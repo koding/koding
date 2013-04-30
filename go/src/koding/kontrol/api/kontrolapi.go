@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
@@ -105,6 +106,7 @@ func main() {
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/services", GetProxyServices).Methods("GET")
+	//TODO: DELETE SERVICE
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyService).Methods("DELETE")
@@ -261,7 +263,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 // * If name is not available an new one is created
 // * If key is available tries to append it, if not creates a new key with host.
 // * If key and host is available it does nothing
-// example: http POST "localhost:8000/proxies/mahlika.local-915/services/server" key=2 host=localhost:8009
+// example: http POST "localhost:8000/proxies/mahlika.local-915/services/server" key=2 host=localhost:8009 rabbitkey=1234567890
 func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -278,20 +280,23 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
-		log.Print("bad json incoming msg: ", err)
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	if msg.Key != nil {
 		key = *msg.Key
 	} else {
-		log.Println("aborting. no 'key' available")
+		err := "no 'key' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
 	if msg.Host != nil {
 		host = *msg.Host
 	} else {
-		log.Println("aborting. no 'host' available")
+		err := "no 'host' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
@@ -315,6 +320,10 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	buildSendProxyCmd("addKey", "", servicename, key, rabbitkey, host, hostdata, uuid)
+
+	url := fmt.Sprintf("http.//%s-%s.x.koding.com", servicename, key)
+	io.WriteString(writer, url)
+	return
 }
 
 // Get all services registered to a proxy machine
