@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"koding/kites/os/ldapserver"
 	"koding/tools/config"
 	"koding/tools/db"
@@ -13,6 +14,7 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -37,22 +39,17 @@ func main() {
 	lifecycle.Startup("kite.os", true)
 	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
 
-	iter := db.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
-	var vm virt.VM
-	for iter.Next(&vm) {
-		switch vm.GetState() {
-		case "RUNNING":
-			info := newInfo(&vm)
-			infos[vm.Id] = info
-			info.startTimeout()
-		case "STOPPED":
-			vm.Unprepare()
-		default:
-			panic("Unhandled VM state.")
-		}
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		panic(err)
 	}
-	if iter.Err() != nil {
-		panic(iter.Err())
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			if err := vm.Unprepare(); err != nil {
+				log.Warn(err.Error())
+			}
+		}
 	}
 
 	go ldapserver.Listen()
