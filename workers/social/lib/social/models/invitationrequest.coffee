@@ -1,6 +1,9 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
+
+  @trait __dirname, '../traits/grouprelated'
+
   {ObjectRef, daisy, secure}   = require 'bongo'
 
   {permit} = require './group/permissionset'
@@ -48,6 +51,8 @@ module.exports = class JInvitationRequest extends Model
           'sent'
           'declined'
           'approved'
+          'ignored'
+          'accepted'
         ]]
         default       : 'pending'
       invitationType  :
@@ -124,19 +129,12 @@ module.exports = class JInvitationRequest extends Model
           callback new KodingError "No group! #{@group}"
         else
           @fetchAccount (err, account)=>
-            if err then callback err
-            else
-              # send the invitation in any case:
-              @sendInvitation client
-              if account?
-                group.approveMember account, (err)=>
-                  if err then callback err
-                  else @update $set:{ status: 'approved' }, (err)=>
-                    if err then callback err
-                    else
-                      @sendRequestApprovedNotification client, group, account, callback
-              else
-                @update $set:{ status: 'sent' }, callback
+            return callback err if err
+            group.approveMember account, (err)=>
+              return callback err if err
+              @update $set:{ status: 'approved' }, (err)=>
+                return callback err if err
+                @sendRequestApprovedNotification client, group, account, callback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection
@@ -159,7 +157,7 @@ module.exports = class JInvitationRequest extends Model
       else
         group.approveMember account, (err)=>
           if err then callback err
-          else @update $set:{status:'approved'}, (err)->
+          else @update $set:{status:'accepted'}, (err)->
             if err then callback err
             else callback null
 
@@ -167,7 +165,7 @@ module.exports = class JInvitationRequest extends Model
     @fetchDataForAcceptOrIgnore client, (err, account, group)=>
       if err then callback err
       else
-        @update $set:{status:'declined'}, (err)->
+        @update $set:{status:'ignored'}, (err)->
           if err then callback err
           else callback null
 

@@ -11,6 +11,7 @@ CActivity = require './index'
 module.exports = class CBucketActivity extends CActivity
 
   @trait __dirname, '../../traits/flaggable'
+  @trait __dirname, '../../traits/grouprelated'
 
   @setRelationships
     subject       :

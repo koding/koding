@@ -18,6 +18,8 @@ module.exports = class JOpinion extends JPost
 
   KodingError = require '../../../error'
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @set

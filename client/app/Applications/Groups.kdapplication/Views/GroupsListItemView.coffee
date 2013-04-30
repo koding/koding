@@ -62,20 +62,13 @@ class GroupsListItemView extends KDListItemView
       title   : 'Open group'
       click   : @bound 'privateGroupOpenHandler'
 
-    membersController = new KDListViewController
+    @membersController = new KDListViewController
       view         : @members = new KDListView
         wrapper    : no
         scrollView : no
         type       : "members"
         itemClass  : GroupItemMemberView
-
-    # FIXME: SY
-    # instantiateListItems doesnt fire by default
-    group.fetchMembers (err, members)=>
-      if err then warn err
-      else if members
-        @$('.members-list-wrapper').removeClass "hidden"
-        membersController.instantiateListItems members
+    @fetchMembers() if group.privacy is 'public'
 
     @memberBadge = new KDCustomHTMLView
       tagName   : "div"
@@ -117,6 +110,10 @@ class GroupsListItemView extends KDListItemView
   viewAppended: JView::viewAppended
 
   setFollowerCount:(count)-> @$('.followers a').html count
+
+  markMemberGroup:->
+    @setClass "member-group"
+    @fetchMembers() if @getData().privacy isnt 'public'
 
   markOwnGroup:-> @setClass "own-group"
 
@@ -168,6 +165,21 @@ class GroupsListItemView extends KDListItemView
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
 
+      menu['Remove Group'] =
+        cssClass : 'remove-group hidden'
+        callback : =>
+          modal = new GroupsDangerModalView
+            action     : 'Remove Group'
+            longAction : 'remove this group'
+            callback   : (callback)=>
+              data.remove (err)=>
+                callback()
+                if err
+                  return new KDNotificationView title: if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                new KDNotificationView title:'Ok, we removed your group with a heavy heart!'
+                modal.destroy()
+                @destroy()
+          , data
 
     return menu
 
@@ -185,6 +197,15 @@ class GroupsListItemView extends KDListItemView
         title    : 'Fair Enough! They are gonna miss you.'
         duration : 2000
       callback()
+
+  fetchMembers:->
+    @getData().fetchMembers (err, members)=>
+      if err
+        # HK: better we have error codes for such things
+        warn err unless err.name is 'KodingError' and err.message is 'Access denied'
+      else if members
+        @$('.members-list-wrapper').removeClass "hidden"
+        @membersController.instantiateListItems members
 
 class GroupItemMemberView extends KDListItemView
 
