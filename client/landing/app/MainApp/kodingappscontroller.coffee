@@ -68,22 +68,20 @@ class KodingAppsController extends KDController
         stack = []
 
         files.forEach (file)->
-          if /\.kdapp$/.test file.name
+          if /\.kdapp$/.test(file.name) and file.type is 'folder'
             apps.push file
 
         apps.forEach (app)=>
           stack.push (cb)=>
-            manifestFile = if app.type is "folder" then \
-              FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-            manifestFile.fetchContents (err, response)->
+            manifest = FSHelper.createFileFromPath "#{app.path}/.manifest"
+            manifest.fetchContents (err, response)->
               # shadowing the error is intentional here
-              # to not to break the results of the stack
+              # to not to break the result of the stack
               cb null, response
 
-        manifests = @constructor.manifests
-        async.parallel stack, (err, results)=>
-          warn err if err
-          results.forEach (rawManifest)->
+        {manifests} = @constructor
+        async.parallel stack, (err, result)=>
+          result.forEach (rawManifest)->
             if rawManifest
               try
                 manifest = JSON.parse rawManifest
