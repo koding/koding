@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"io"
-	"io/ioutil"
 	"koding/kontrol/proxy/proxyconfig"
 	"koding/tools/config"
 	"koding/tools/utils"
