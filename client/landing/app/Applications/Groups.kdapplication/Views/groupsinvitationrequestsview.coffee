@@ -31,13 +31,13 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       cssClass : 'clean-gray'
       callback : @bound 'showBatchApproveModal'
 
-    @prepareBulkInvitations()
     @refresh()
     @utils.defer =>
       @parent.on 'NewInvitationActionArrived', @bound 'refresh'
 
   fetchAndPopulate:(controller, removeAllItems=no)->
     controller.showLazyLoader()
+    controller.setLastTimestamp null if removeAllItems
     @fetchSomeRequests @invitationTypeFilter, controller.getStatuses(), controller.getLastTimestamp(), (err, requests)=>
       controller.hideLazyLoader()
       return warn err if err
@@ -50,6 +50,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         controller.emit 'noItemsFound'
 
   refresh:->
+    @prepareBulkInvitations()
     @fetchAndPopulate @penRequestsListController, yes
     @fetchAndPopulate @penInvitationsListController, yes
     @fetchAndPopulate @resRequestsListController, yes
@@ -127,6 +128,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   showModalForm:(options)->
     modal = new KDModalViewWithForms
+      cssClass               : options.cssClass
       title                  : options.title
       overlay                : yes
       width                  : options.width or 400
@@ -172,19 +174,41 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
   showInviteByUsernameModal:->
     @inviteByUsername = @showModalForm
+      cssClass         : 'invite-by-username'
       title            : 'Invite by Username'
       callback         : @emit.bind @, 'InviteByUsername'
       fields           :
         recipient      :
           label        : 'Username'
-          type         : 'text'
-          name         : 'recipient'
-          placeholder  : 'Enter a user name...'
-          validate     :
-            rules      :
-              required : yes
-            messages   :
-              required : 'A user name is required!'
+          type         : 'hidden'
+
+    recipientField = @inviteByUsername.modalTabs.forms.invite.fields.recipient
+    recipientsWrapper = new KDView
+      cssClass: 'completed-items'
+
+    @inviteByUsername.on 'AutoCompleteNeedsMemberData', (event)=>
+      {callback,blacklist,inputValue} = event
+      @fetchBlacklistForInviteByUsernameModal (ids)->
+        blacklist.push id for id in ids
+        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err,accounts)->
+          callback accounts
+
+    recipient = new KDAutoCompleteController
+      name                : 'recipient'
+      itemClass           : InviteByUsernameAutoCompleteItemView
+      selectedItemClass   : InviteByUsernameAutoCompletedItemView
+      outputWrapper       : recipientsWrapper
+      form                : @inviteByUsername.modalTabs.forms.invite
+      itemDataPath        : 'profile.nickname'
+      listWrapperCssClass : 'users'
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        blacklist = (data.getId() for data in recipient.getSelectedItemData())
+        @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,blacklist,callback}
+
+    recipientField.addSubView recipient.getView()
+    recipientField.addSubView recipientsWrapper
 
   showBatchInviteModal:->
     @batchInvite = @showModalForm
@@ -254,6 +278,23 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     </div>
     """
 
+  fetchBlacklistForInviteByUsernameModal:(callback)->
+    unless @usernameBlacklist
+      @usernameBlacklist = []
+      @getData().fetchInvitationRequests
+        targetOptions:selector:
+          'koding.username': {$exists:1},
+          status: $not:$in :['declined','ignored']
+      , (err, requests)=>
+        unless err
+          @usernameBlacklist.push request.getId() for request in requests
+          @getData().fetchMembers (err, members)=>
+            unless err
+              @usernameBlacklist.push member.getId() for member in members
+            callback @usernameBlacklist
+    else
+      callback @usernameBlacklist
+
 class GroupsInvitationRequestsModalView extends KDModalView
   constructor:(options = {}, data)->
     options.cssClass or= 'invitations-request-modal'
@@ -268,3 +309,44 @@ class GroupsInvitationRequestsModalView extends KDModalView
     {winHeight} = @getSingleton('windowController')
     log @$('.kdmodal-content .kdscrollview')
     @$('.kdmodal-content .kdscrollview').css 'max-height', winHeight - 200
+
+class InviteByUsernameAutoCompleteItemView extends KDAutoCompleteListItemView
+  constructor:(options, data)->
+    options.cssClass = "clearfix member-suggestion-item"
+    super
+    userInput = options.userInput or @getDelegate().userInput
+    @avatar = new AutoCompleteAvatarView {},data
+    @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data
+
+  pistachio:->
+    """
+      <span class='avatar'>{{> @avatar}}</span>
+      {{> @profileLink}}
+    """
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  partial:()-> ''
+
+class InviteByUsernameAutoCompletedItemView extends KDAutoCompletedItem
+  constructor:(options, data)->
+    options.cssClass = "clearfix"
+    super
+    @avatar = new AutoCompleteAvatarView {size : width : 16, height : 16},data
+    @profileText = new AutoCompleteProfileTextView {},data
+
+  pistachio:->
+    """
+      <span class='avatar'>{{> @avatar}}</span>
+      {{> @profileText}}
+    """
+
+  viewAppended:->
+    super()
+    @setTemplate @pistachio()
+    @template.update()
+
+  partial:()-> ''

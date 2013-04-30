@@ -871,6 +871,41 @@
     .details .requested-at
       margin-top              5px
 
+.kdmodal.invite-by-username
+  .kdautocompletewrapper
+    width             250px
+    display           inline-block
+    vertical-align    bottom
+    borderBox()
+    input.text
+      width           100%
+      borderBox()
+  .completed-items
+    width             250px
+    max-height        300px
+    margin-left       95px
+    padding           5px 0 0 0
+    overflow          auto
+
+  .kdview.kdautocompletedlistitem
+    margin            5px 5px 0 0
+    padding-left      0
+    span.avatar
+      abs()
+      top             1px
+      left            1px
+      padding         1px
+      bg(color,white)
+      size(16px,16px)
+    .avatarview
+      cite
+        hidden()
+
+    span.profile
+      margin-left     21px
+      display         block
+      overflow        hidden
+
 @media screen and (max-width:1000px)
 
   .group-content-display .group-content

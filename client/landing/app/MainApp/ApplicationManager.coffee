@@ -51,6 +51,18 @@ class ApplicationManager extends KDObject
       defaultCallback      = -> createOrShow appOptions, callback
       kodingAppsController = @getSingleton("kodingAppsController")
 
+      # If app has a preCondition then first check condition in it
+      # if it returns true then continue, otherwise call failure
+      # method of preCondition if exists
+      if appOptions?.preCondition? and not options.conditionPassed
+        appOptions.preCondition.condition (state)=>
+          if state
+            options.conditionPassed = yes
+            @open name, options, callback
+          else
+            appOptions.preCondition.failure? callback
+        return
+
       # if there is no registered appController
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller

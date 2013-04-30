@@ -55,8 +55,7 @@ AccountMixin = do ->
           arguments   : []
           callbacks   : {}
         )
-        @once 'pong', ->
-          callback?()
+        @once 'pong', callback  if callback
 
       pong = ->
         @emit 'pong'
@@ -165,7 +164,6 @@ AccountMixin = do ->
           clientId    : KD.remote.getSessionToken()
 
       tellKite =(options, callback=->)->
-        scrubber = new Scrubber localStore
         args = [options, callback]
         {method, kiteName} = options
         request kiteName, method, args
