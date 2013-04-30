@@ -96,7 +96,13 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		}
 	case "deleteName":
 		log.Println("got 'deleteName' json request")
-		err := proxyConfig.DeleteName(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
+		err := proxyConfig.DeleteName(msg.ServiceName, msg.Uuid)
+		if err != nil {
+			log.Println(err)
+		}
+	case "deleteDomain":
+		log.Println("got 'deleteDame' json request")
+		err := proxyConfig.DeleteDomain(msg.DomainName, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}

@@ -136,6 +136,46 @@ func (p *ProxyConfiguration) AddProxy(uuid string) error {
 	return nil
 }
 
+func (p *ProxyConfiguration) AddDomain(domainname, servicename, key, fullurl, uuid string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("adding domain not possible '%s'", err)
+	}
+
+	_, ok := proxy.DomainRoutingTable.Domains[domainname]
+	if !ok {
+		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(servicename, key, fullurl)
+	}
+
+	// domainMap := proxy.DomainRoutingTable.Domain
+	// proxy.DomainRoutingTable.Domain = domainMap
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *ProxyConfiguration) DeleteDomain(domainname, uuid string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("deleting domain not possible '%s'", err)
+	}
+
+	_, ok := proxy.DomainRoutingTable.Domains[domainname]
+	if !ok {
+		return errors.New("domain name is wrong. deleting domain is not possible")
+	}
+
+	delete(proxy.DomainRoutingTable.Domains, domainname)
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Base DELETE crud action
 func (p *ProxyConfiguration) Delete(uuid string) error {
 	err := p.Collection.Remove(bson.M{"uuid": uuid})
@@ -158,7 +198,7 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteName(name, key, host, hostdata, uuid string) error {
+func (p *ProxyConfiguration) DeleteName(name, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("deleting key not possible '%s'", err)
@@ -166,7 +206,7 @@ func (p *ProxyConfiguration) DeleteName(name, key, host, hostdata, uuid string) 
 
 	_, ok := proxy.Services[name]
 	if !ok {
-		return errors.New("service name is wrong. deleting key is not possible")
+		return errors.New("service name is wrong. deleting service is not possible")
 
 	}
 
@@ -205,26 +245,6 @@ func (p *ProxyConfiguration) DeleteKey(name, key, host, hostdata, uuid string) e
 
 func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
 	err := p.Collection.Update(bson.M{"uuid": proxy.Uuid}, proxy)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (p *ProxyConfiguration) AddDomain(domainname, servicename, key, fullurl, uuid string) error {
-	proxy, err := p.GetProxy(uuid)
-	if err != nil {
-		return fmt.Errorf("adding domain not possible '%s'", err)
-	}
-
-	_, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(servicename, key, fullurl)
-	}
-
-	// domainMap := proxy.DomainRoutingTable.Domain
-	// proxy.DomainRoutingTable.Domain = domainMap
-	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
 	}
