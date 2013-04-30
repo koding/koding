@@ -25,7 +25,7 @@ module.exports = deepFreeze
   webserver     :
     login       : 'prod-webserver'
     port        : dynConfig.webInternalPort
-    clusterSize : 10
+    clusterSize : 20
     queueName   : socialQueueName+'web'
     watch       : no
   sourceServer  :
