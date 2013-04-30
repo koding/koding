@@ -11,15 +11,17 @@ class GroupReadmeView extends JView
     @readmeView       = new KDView
     @readmeInput      = new KDInputViewWithPreview
       name            : "body"
-      cssClass        : "edit warn-on-unsaved-data"
+      cssClass        : "edit warn-on-unsaved-data readme-input"
       type            : "textarea"
       autogrow        : yes
       placeholder     : "This is your readme file."
-      showHelperModal : no
+      showHelperModal : yes
+      preview         :
+        showInitially : no
 
     @readmeEditButton = new KDButtonView
       title           : 'Edit the Readme'
-      cssClass        : 'clean-gray'
+      cssClass        : 'clean-gray readme-edit'
       callback        : =>
         @readmeInput.setValue Encoder.htmlDecode @readme
         @readmeView.hide()
@@ -28,7 +30,7 @@ class GroupReadmeView extends JView
 
     @readmeSaveButton = new KDButtonView
       title           : "Save Changes"
-      cssClass        : 'clean-gray'
+      cssClass        : 'clean-gray readme-save'
       loader          :
         color         : "#444444"
         diameter      : 12
@@ -36,7 +38,7 @@ class GroupReadmeView extends JView
 
     @readmeCancelLink = new CustomLinkView
       title           : 'Cancel'
-      cssClass        : 'edit-cancel'
+      cssClass        : 'edit-cancel readme-cancel'
       click           : (event)=>
         event.preventDefault()
         @readmeView.show()

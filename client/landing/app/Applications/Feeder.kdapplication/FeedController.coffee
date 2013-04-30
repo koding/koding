@@ -166,8 +166,8 @@ class FeedController extends KDViewController
       @emitLoadCompleted filter
     else
       filter.dataSource selector, options, (err, items, rest...)=>
+        listController = @emitLoadCompleted filter
         if items?
-          listController = @emitLoadCompleted filter
           unless err
             if items.length is 0 and listController.getItemCount() is 0
               @noItemFound.show()
@@ -179,6 +179,8 @@ class FeedController extends KDViewController
           else
             warn err
         else unless err
+          if listController.getItemCount() is 0
+            @noItemFound.show()
           filter.dataEnd? @, rest...
         else
           filter.dataError? @, err
