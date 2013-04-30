@@ -126,8 +126,8 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func lookupKey(host string) (string, string, error) {
-	log.Printf("lookup key table for host '%s'", host)
+func parseKey(host string) (string, string, error) {
+	log.Printf("parse host '%s' to get key and name", host)
 	counts := strings.Count(host, "-")
 	if counts == 0 {
 		return "", "", fmt.Errorf("no key found for host '%s'", host)
@@ -185,6 +185,16 @@ func targetHost(name, key string) string {
 	var hostname string
 
 	keyRoutingTable := proxy.Services[name]
+
+	var latestKey string
+	if key == "latest" {
+		for k, _ := range keyRoutingTable.Keys {
+			if k > latestKey {
+				key = k
+			}
+		}
+	}
+
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
 		hostname = "proxy.in.koding.com"
@@ -363,7 +373,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	var target *url.URL
 	var fullurl string
 
-	name, key, err := lookupKey(outreq.Host)
+	name, key, err := parseKey(outreq.Host)
 	if err != nil {
 		log.Println(err)
 		name, key, fullurl, err = lookupDomain(outreq.Host)
@@ -374,12 +384,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	rabbitKey := lookupRabbitKey(name, key)
+
+	// proxy it directly to the fullurl if avaible
 	if fullurl != "" {
 		target, err = url.Parse("http://" + fullurl)
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
+		// otherwise lookup from our database with the given key and name
 		target = targetUrl(name, key)
 	}
 
