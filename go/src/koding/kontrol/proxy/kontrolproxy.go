@@ -186,25 +186,26 @@ func targetHost(name, key string) string {
 	var hostname string
 
 	keyRoutingTable := proxy.Services[name]
-	if key == "latest" {
-		// get all keys and sort them
-		listOfKeys := make([]int, len(keyRoutingTable.Keys))
-		i := 0
-		for k, _ := range keyRoutingTable.Keys {
-			listOfKeys[i], _ = strconv.Atoi(k)
-			i++
-		}
-		sort.Ints(listOfKeys)
-
-		// give precedence to the largest key number
-		key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
-	}
 
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
 		hostname = "proxy.in.koding.com"
 		log.Println("no keys are added, using default url ", hostname)
 	} else {
+		if key == "latest" {
+			// get all keys and sort them
+			listOfKeys := make([]int, len(keyRoutingTable.Keys))
+			i := 0
+			for k, _ := range keyRoutingTable.Keys {
+				listOfKeys[i], _ = strconv.Atoi(k)
+				i++
+			}
+			sort.Ints(listOfKeys)
+
+			// give precedence to the largest key number
+			key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
+		}
+
 		// use round-robin algorithm for each hostname
 		for i, value := range keyRoutingTable.Keys[key] {
 			currentIndex := value.CurrentIndex
