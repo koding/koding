@@ -106,10 +106,10 @@ func main() {
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/services", GetProxyServices).Methods("GET")
-	//TODO: DELETE SERVICE
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
 	//TODO: UPDATE DOMAIN
 	//TODO: DELETE DOMAIN
@@ -191,9 +191,21 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	io.WriteString(writer, resp)
 }
 
+// Delete service for the given name
+// exameple: http DELETE /proxies/mahlika.local-915/{serviceName}
+func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	servicename := vars["servicename"]
+
+	buildSendProxyCmd("deleteName", "", servicename, "", "", "", "", uuid)
+	resp := fmt.Sprintf("service: '%' is deleted on uuid: '%s'", servicename, uuid)
+	io.WriteString(writer, resp)
+}
+
 // Delete key for the given name and key
 // exameple: http DELETE /proxies/mahlika.local-915/{serviceName}/{keyname}
-func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
+func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	key := vars["key"]

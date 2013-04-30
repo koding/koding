@@ -158,6 +158,27 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 	return nil
 }
 
+func (p *ProxyConfiguration) DeleteName(name, key, host, hostdata, uuid string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("deleting key not possible '%s'", err)
+	}
+
+	_, ok := proxy.Services[name]
+	if !ok {
+		return errors.New("service name is wrong. deleting key is not possible")
+
+	}
+
+	delete(proxy.Services, name)
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *ProxyConfiguration) DeleteKey(name, key, host, hostdata, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
@@ -166,7 +187,7 @@ func (p *ProxyConfiguration) DeleteKey(name, key, host, hostdata, uuid string) e
 
 	_, ok := proxy.Services[name]
 	if !ok {
-		return errors.New("service name is wrong. deletin key is not possible")
+		return errors.New("service name is wrong. deleting key is not possible")
 
 	}
 

@@ -94,6 +94,12 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if err != nil {
 			log.Println(err)
 		}
+	case "deleteName":
+		log.Println("got 'deleteName' json request")
+		err := proxyConfig.DeleteName(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
+		if err != nil {
+			log.Println(err)
+		}
 	default:
 		log.Println("invalid action", msg.Action)
 	}
