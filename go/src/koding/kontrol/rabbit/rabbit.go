@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"github.com/streadway/amqp"
 	"io/ioutil"
+	"koding/tools/config"
 	"log"
 	"net/http"
 	"strings"
@@ -45,10 +46,10 @@ func startRouting() {
 
 	log.Printf("creating consumer connections")
 
-	user := "guest"
-	password := "s486auEkPzvUjYfeFTMQ"
-	host := "kontrol.in.koding.com"
-	port := "5672"
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
 	c.conn, err = amqp.Dial(url)
@@ -61,18 +62,17 @@ func startRouting() {
 		log.Fatal(err)
 	}
 
-	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "topic", false, true, false, false, nil)
+	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
-
+	clientKey := readKey()
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	clientKey := readKey()
 	log.Println("KEY is", clientKey)
-	if err := c.channel.QueueBind("", clientKey+"local", "kontrol-rabbitproxy", false, nil); err != nil {
+	if err := c.channel.QueueBind("", clientKey, "kontrol-rabbitproxy", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
 
@@ -88,17 +88,15 @@ func startRouting() {
 		// 	msg.DeliveryTag,
 		// 	msg.RoutingKey,
 		// 	msg.Body)
-		switch msg.RoutingKey {
-		case clientKey + "local":
-			body, err := doRequest(msg.Body)
-			if err != nil {
-				log.Println(err)
-				go publishToRemote(nil, clientKey+"remote")
-			} else {
-				go publishToRemote(body, clientKey+"remote")
-			}
 
+		body, err := doRequest(msg.Body)
+		if err != nil {
+			log.Println(err)
+			go publishToRemote(nil, msg.CorrelationId, msg.ReplyTo)
+		} else {
+			go publishToRemote(body, msg.CorrelationId, msg.ReplyTo)
 		}
+
 	}
 }
 
@@ -127,17 +125,14 @@ func doRequest(msg []byte) ([]byte, error) {
 	return output.Bytes(), nil
 }
 
-func publishToRemote(data []byte, routingKey string) {
+func publishToRemote(data []byte, id, routingKey string) {
 	msg := amqp.Publishing{
-		Headers:         amqp.Table{},
-		ContentType:     "text/plain",
-		ContentEncoding: "",
-		Body:            data,
-		DeliveryMode:    1, // 1=non-persistent, 2=persistent
-		Priority:        0, // 0-9
+		ContentType:   "text/plain",
+		Body:          data,
+		CorrelationId: id,
 	}
 
-	log.Println("publishing repsonse to",  routingKey)
+	log.Println("publishing repsonse to", routingKey)
 	err := producer.channel.Publish("kontrol-rabbitproxy", routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
@@ -153,10 +148,11 @@ func createProducer() (*Producer, error) {
 
 	log.Printf("creating publisher connections")
 	var err error
-	user := "guest"
-	password := "s486auEkPzvUjYfeFTMQ"
-	host := "kontrol.in.koding.com"
-	port := "5672"
+
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
 	p.conn, err = amqp.Dial(url)

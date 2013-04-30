@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"io"
+	"io/ioutil"
 	"koding/kontrol/proxy/proxyconfig"
 	"koding/tools/config"
+	"koding/tools/utils"
 	"log"
 	"net"
 	"net/http"
@@ -29,15 +31,22 @@ type IncomingMessage struct {
 	ProxyResponse *proxyconfig.ProxyResponse
 }
 
+type RabbitChannel struct {
+	ReplyTo string
+	Receive chan []byte
+}
+
 var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
 var start chan bool
 var first bool = true
+var connections map[string]RabbitChannel
 
 func main() {
 	log.Printf("kontrol proxy started ")
 	start = make(chan bool)
+	connections = make(map[string]RabbitChannel)
 
 	// open kontrol-daemon database connection
 	var err error
@@ -435,8 +444,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// Test values, will be removed - arslan
-		// outreq.URL.Host = "localhost:5000"
-		// outreq.Host = "localhost:5000"
+		// outreq.URL.Host = "localhost:3000"
+		// outreq.Host = "localhost:3000"
 		// outreq.URL.Host = "67.169.70.88"
 		// outreq.Host = "67.169.70.88"
 
@@ -448,11 +457,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			// we can't connect to url, thus proxy trough amqp
 			log.Println("rabbit proxy started...")
 			log.Println("trying to make rabbit connection to", outreq.URL.Host)
-			response := make(chan []byte)
-			ready := make(chan bool)
-			go consumeFromRemote(rabbitKey, ready, response)
-
-			<-ready
 
 			output := new(bytes.Buffer)
 			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
@@ -462,18 +466,64 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			log.Println("publishing http request to rabbit")
-			amqpStream.Publish("kontrol-rabbitproxy", rabbitKey+"local", output.Bytes())
+			// declare just once time
+			if len(connections) == 0 {
+				err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
+				if err != nil {
+					log.Fatal("exchange.declare: %s", err)
+				}
 
-			log.Println("waiting for rabbit response...")
-			body := <-response
-			log.Println("...got rabbit response")
-			if body == nil {
+			}
+
+			id := utils.RandomString()
+			if _, ok := connections[rabbitKey]; !ok {
+				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
+				if err != nil {
+					log.Fatal("queue.declare: %s", err)
+				}
+
+				if err := amqpStream.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
+					log.Fatal("queue.bind: %s", err)
+				}
+
+				messages, err := amqpStream.channel.Consume("", "", true, false, false, false, nil)
+				if err != nil {
+					log.Fatal("basic.consume: %s", err)
+				}
+
+				connections[rabbitKey] = RabbitChannel{
+					ReplyTo: queue.Name,
+					Receive: make(chan []byte, 1),
+				}
+
+				go func() {
+					for msg := range messages {
+						log.Println("ID IS: ", id)
+						log.Printf("got rabbit http message for %s", connections[rabbitKey].ReplyTo)
+						connections[rabbitKey].Receive <- msg.Body
+
+					}
+				}()
+			}
+
+			log.Println("publishing http request to rabbit")
+			msg := amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        output.Bytes(),
+				ReplyTo:     connections[rabbitKey].ReplyTo,
+			}
+
+			amqpStream.channel.Publish("kontrol-rabbitproxy", rabbitKey, false, false, msg)
+
+			log.Println("...waiting for http response from rabbit")
+
+			respData := <-connections[rabbitKey].Receive
+			if respData == nil {
 				rw.WriteHeader(http.StatusInternalServerError)
 				return
 			}
 
-			buf := bytes.NewBuffer(body)
+			buf := bytes.NewBuffer(respData)
 			respreader := bufio.NewReader(buf)
 
 			// ok got now response from rabbit :)
