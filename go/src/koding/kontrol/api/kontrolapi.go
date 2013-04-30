@@ -48,12 +48,13 @@ type ProxyMachine struct {
 type ProxyMachines []ProxyMachine
 
 type ProxyPostMessage struct {
-	Name     *string
-	Domain   *string
-	Key      *string
-	Host     *string
-	Hostdata *string
-	Uuid     *string
+	Name      *string
+	Domain    *string
+	Key       *string
+	RabbitKey *string
+	Host      *string
+	Hostdata  *string
+	Uuid      *string
 }
 
 var StatusCode = map[workerconfig.WorkerStatus]string{
@@ -147,7 +148,7 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	buildSendProxyCmd("deleteProxy", "", "", "", "", "", uuid)
+	buildSendProxyCmd("deleteProxy", "", "", "", "", "", "", uuid)
 }
 
 // Register a proxy
@@ -175,7 +176,7 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	buildSendProxyCmd("addProxy", "", "", "", "", "", uuid)
+	buildSendProxyCmd("addProxy", "", "", "", "", "", "", uuid)
 }
 
 // Delete key for the given name and key
@@ -186,7 +187,7 @@ func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	key := vars["key"]
 	servicename := vars["servicename"]
 
-	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", uuid)
+	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", "", uuid)
 }
 
 // Get all domains registered to a proxy machine
@@ -252,7 +253,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addDomain", domain, name, key, host, "FromKontrolAPI", uuid)
+	buildSendProxyCmd("addDomain", domain, name, key, "", host, "FromKontrolAPI", uuid)
 
 }
 
@@ -270,6 +271,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	var key string
 	var host string
 	var hostdata string
+	var rabbitkey string
 
 	body, _ := ioutil.ReadAll(req.Body)
 	log.Println(string(body))
@@ -298,6 +300,10 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		hostdata = *msg.Hostdata
 	}
 
+	if msg.Key != nil {
+		rabbitkey = *msg.RabbitKey
+	}
+
 	if hostdata == "" {
 		hostdata = "FromKontrolAPI"
 	}
@@ -308,7 +314,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addKey", "", servicename, key, host, hostdata, uuid)
+	buildSendProxyCmd("addKey", "", servicename, key, rabbitkey, host, hostdata, uuid)
 }
 
 // Get all services registered to a proxy machine
@@ -520,11 +526,12 @@ func buildSendCmd(action, host, uuid string) {
 }
 
 // Creates and send request message for proxies. Sends to kontrold.
-func buildSendProxyCmd(action, domainname, servicename, key, host, hostdata, uuid string) {
+func buildSendProxyCmd(action, domainname, servicename, key, rabbitkey, host, hostdata, uuid string) {
 	var cmd proxyconfig.ProxyMessage
 	cmd.Action = action
 	cmd.Uuid = uuid
 	cmd.Key = key
+	cmd.RabbitKey = rabbitkey
 	cmd.ServiceName = servicename
 	cmd.DomainName = domainname
 	cmd.Host = host
