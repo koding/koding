@@ -33,9 +33,10 @@ class GroupsMemberRolesEditView extends JView
 
     isAdmin = 'admin' in @roles.usersRole
     @checkboxGroup = new KDInputCheckboxGroup
-      name         : 'user-role'
-      defaultValue : @roles.usersRole
-      checkboxes   : @roles.allRoles.map (role)=>
+      name           : 'user-role'
+      cssClassPrefix : 'role-'
+      defaultValue   : @roles.usersRole
+      checkboxes     : @roles.allRoles.map (role)=>
         if role is 'admin'
           callback = =>
             isAdmin = 'admin' in @checkboxGroup.getValue()

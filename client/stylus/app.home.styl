@@ -160,10 +160,21 @@ div.screenshots
           borderBox()
 
   .home-links
-    size                auto, 50px
+    size                auto, 0
     text-align          left
-    gradient            #fff, #eee
+    transition          height .15s ease-in-out
+    overflow            hidden
+    rel()
+    &.in
+      height            50px
 
+    .overlay
+      abs()
+      size              100%, 100%
+      z-index           10
+      bg                color, transparent
+    > ul
+      z-index           0
     .custom-link-view
       size              25%, 50px
       padding           0 26px 0 20px

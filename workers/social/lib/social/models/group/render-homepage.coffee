@@ -78,6 +78,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
                   <div class="group-desc">#{body}</div>
                 </section>
                 <div class="home-links" id="group-home-links">
+                  <div class='overlay'></div>
                   <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register an account</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
                 </div>
                 <div class="kdview readme" id="home-group-readme">
