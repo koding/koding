@@ -302,14 +302,15 @@ class GroupsAppController extends AppController
         @openGroup group
 
   putAddAGroupButton:->
-    {facetsController} = @feedController
-    innerNav = facetsController.getView()
-    innerNav.addSubView addButton = new KDButtonView
-      tooltip   :
-        title   : "Create a Group"
-      style     : "small-gray"
-      iconOnly  : yes
-      callback  : => @showGroupSubmissionView()
+    if KD.isLoggedIn()
+      {facetsController} = @feedController
+      innerNav = facetsController.getView()
+      innerNav.addSubView addButton = new KDButtonView
+        tooltip   :
+          title   : "Create a Group"
+        style     : "small-gray"
+        iconOnly  : yes
+        callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData)->
 
