@@ -8,11 +8,17 @@ class VirtualizationController extends KDController
     @lastState =
       state    : 'STOPPED'
 
-  run:(command, callback, emitStateChanged=yes)->
-    @kc.run
-      kiteName : 'os'
-      method   : command
-    , @_cbWrapper callback, emitStateChanged
+  run:(command, callback)->
+
+    @askForApprove command, (approved)=>
+      if approved
+        cb = unless command is 'vm.info' then @_cbWrapper callback \
+             else callback
+        @kc.run
+          kiteName : 'os'
+          method   : command
+        , cb
+      else unless command is 'vm.info' then @info()
 
   start:(callback)->
     @run 'vm.start', callback
@@ -32,10 +38,52 @@ class VirtualizationController extends KDController
       callback? err, info
     , no
 
-  _cbWrapper:(callback, emitStateChanged)->
-    return callback  unless emitStateChanged
+  _cbWrapper:(callback)->
     return (rest...)=>
       @info callback? rest...
+
+  askForApprove:(command, callback)->
+
+    switch command
+      when 'vm.stop'
+        content = """Turning off your VM will <b>stop</b> running Terminal
+                     instances and all running proccesess that you have on
+                     your VM. Do you want to continue?"""
+        button  =
+          title : "Turn off"
+          style : "modal-clean-red"
+
+      when 'vm.reinitialize'
+        content = """Re-initializing your VM will <b>reset</b> all of your
+                     settings that you've done in root filesystem. This
+                     process will not remove any of your files under your
+                     home directory. Do you want to continue?"""
+        button  =
+          title : "Re-initialize"
+          style : "modal-clean-red"
+
+      else
+        return callback yes
+
+    modal = new KDModalView
+      title          : "Approval required"
+      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        Action       :
+          title      : button.title
+          style      : button.style
+          callback   : ->
+            modal.destroy()
+            callback yes
+        Cancel       :
+          style      : "modal-clean-gray"
+          callback   : ->
+            modal.destroy()
+            callback no
+
+    modal.once 'KDModalViewDestroyed', -> callback no
 
   askToTurnOn:(appName='', callback)->
 
