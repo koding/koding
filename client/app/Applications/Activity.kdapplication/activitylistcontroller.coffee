@@ -76,11 +76,13 @@ class ActivityListController extends KDListViewController
     for activity in activities when activity
       @addItem activity
 
-    modifiedAt = _.compact(activities).first.meta.createdAt
+    modifiedAt = activities.first.meta.createdAt
     unless @lastItemTimeStamp > modifiedAt
       # HACK: activity timestamp is off -200 ms on first get
       time = new Date(modifiedAt).getTime()+1000
       @lastItemTimeStamp = new Date(time).toISOString()
+
+    KD.logToMixpanel "populateActivity.success", 5
 
     @emit "teasersLoaded"
 
@@ -106,6 +108,8 @@ class ActivityListController extends KDListViewController
 
     modifiedAt = sortedActivities.last.modifiedAt
     @lastItemTimeStamp = modifiedAt  unless @lastItemTimeStamp > modifiedAt
+
+    KD.logToMixpanel "populateActivity.success", 5
 
     @emit "teasersLoaded"
 

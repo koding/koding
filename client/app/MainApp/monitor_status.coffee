@@ -207,6 +207,9 @@ do ->
         # we won't know that disconnection has happened.
         if lastPong && (Date.now() - lastPong) > 30*1000
           log "lastPong too long ago, possible computer sleep; disconnecting"
+
+          KD.logToMixpanel "computer woke up from sleep", 10
+
           status = KD.getSingleton "status"
           status.disconnect
             reason:"internetDownForLongTime"
@@ -232,6 +235,7 @@ do ->
   KD.remote.on 'disconnected', ->
     return unless brokerInterval?
 
+    log 'disconnected, stopping broker ping'
+
     clearInterval brokerInterval
     brokerInterval = null
-    log 'disconnected, stopping broker ping', brokerInterval

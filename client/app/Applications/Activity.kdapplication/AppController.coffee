@@ -45,8 +45,8 @@ class ActivityAppController extends AppController
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
     @status = @getSingleton "status"
-    @status.on "reconnected", (reason)=>
-      if reason is "internetDownForLongTime"
+    @status.on "reconnected", (conn)=>
+      if conn && conn.reason is "internetDownForLongTime"
         @refresh()
       else
         @fetchSomeActivities()
@@ -117,7 +117,6 @@ class ActivityAppController extends AppController
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
 
-    teasers  = _.compact(teasers)
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
 
@@ -132,18 +131,27 @@ class ActivityAppController extends AppController
   refresh:->
 
     # prevents multiple clicks to refresh from interfering
-    return if @isLoading
+    return  if @isLoading
 
     @resetAll()
+    @populateActivityWithTimeout()
+
+  populateActivityWithTimeout:->
+
     @populateActivity {},\
-      KD.utils.getTimedOutCallback (err, items)->
-        log 'refreshing activity feed'
-      , =>
-        # set in populateActivity, but if that fails, this
-        # is never unset, therefore will block further clicks
-        @isLoading = no
-        @status.disconnect(showModal:false)
-      , 5000
+      KD.utils.getTimedOutCallbackOne
+        name      : "populateActivity",
+        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
+        onTimeout : -> @recover.bind this
+
+  recover:->
+
+    KD.logToMixpanel "activity feed render failed; recovering"
+
+    @isLoading = no
+    @status.disconnect
+      reason    : "bongo.timeout"
+      modalSize : "small"
 
   populateActivity:(options = {}, callback)->
 
@@ -223,6 +231,12 @@ class ActivityAppController extends AppController
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
     unless lastItemCreatedAt? or lastItemCreatedAt is ""
       @isLoading = no
+      log "lastItemCreatedAt is empty"
+
+      # if lastItemCreatedAt is null, we assume there are no entries
+      # and refresh the entire feed
+      @refresh()
+
       return
 
     selector       =
