@@ -70,7 +70,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		sendResponse("updateProxy", msg.Uuid)
 	case "addKey":
 		log.Println("got 'addKey' json request")
-		err := proxyConfig.AddKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
+		err := proxyConfig.AddKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid, msg.RabbitKey)
 		if err != nil {
 			log.Println(err)
 		}

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -27,15 +29,22 @@ type IncomingMessage struct {
 	ProxyResponse *proxyconfig.ProxyResponse
 }
 
+type RabbitChannel struct {
+	ReplyTo string
+	Receive chan []byte
+}
+
 var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
 var start chan bool
 var first bool = true
+var connections map[string]RabbitChannel
 
 func main() {
-	log.Printf("fujin proxy started ")
+	log.Printf("kontrol proxy started ")
 	start = make(chan bool)
+	connections = make(map[string]RabbitChannel)
 
 	// open kontrol-daemon database connection
 	var err error
@@ -47,16 +56,15 @@ func main() {
 	// register fujin instance to kontrol-daemon
 	amqpStream = setupAmqp()
 	log.Printf("register fujin to kontrold with uuid '%s'", amqpStream.uuid)
-	amqpStream.Publish(buildProxyCmd("addProxy", amqpStream.uuid))
+	amqpStream.Publish("infoExchange", "input.proxy", buildProxyCmd("addProxy", amqpStream.uuid))
 	log.Println("register command is send. waiting for response from kontrold...")
 	go handleInput(amqpStream.input, amqpStream.uuid)
 
 	<-start // wait until we got message from kontrold or exit via above chan
 
-	reverseProxy := NewSingleHostReverseProxy()
-	http.Handle("/", reverseProxy)
+	reverseProxy := &ReverseProxy{}
+	http.HandleFunc("/", reverseProxy.ServeHTTP)
 
-	// start one with goroutine in order not to block the other one
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 
@@ -77,46 +85,49 @@ func main() {
 }
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
-	for {
-		select {
-		case d := <-input:
-			// log.Printf("got %dB message data: [%v] %s",
-			// 	len(d.Body),
-			// 	d.DeliveryTag,
-			// 	d.Body)
+	for d := range input {
+		// log.Printf("got %dB message data: [%v] %s",
+		// 	len(d.Body),
+		// 	d.DeliveryTag,
+		// 	d.Body)
 
-			var msg IncomingMessage
+		switch d.RoutingKey {
+		case "local.key":
+		}
 
-			err := json.Unmarshal(d.Body, &msg)
-			if err != nil {
-				log.Print("bad json incoming msg: ", err)
-			}
+		var msg IncomingMessage
 
-			if msg.ProxyResponse != nil {
-				if msg.ProxyResponse.Action == "updateProxy" {
-					log.Println("update action received from kontrold. updating proxy route table")
-					var err error
-					proxy, err = proxyDB.GetProxy(uuid)
-					if err != nil {
-						log.Println(err)
-					}
+		err := json.Unmarshal(d.Body, &msg)
+		if err != nil {
+			log.Print("bad json incoming msg: ", err)
+		}
 
-					if first {
-						start <- true
-						first = false
-						log.Println("routing tables updated. ready to start servers.")
-					}
-
+		if msg.ProxyResponse != nil {
+			if msg.ProxyResponse.Action == "updateProxy" {
+				log.Println("update action received from kontrold. updating proxy route table")
+				var err error
+				proxy, err = proxyDB.GetProxy(uuid)
+				if err != nil {
+					log.Println(err)
 				}
 
-			} else {
-				log.Println("incoming message is in wrong format")
+				if first {
+					start <- true
+					first = false
+					log.Println("routing tables updated. ready to start servers.")
+				}
+
 			}
+
+		} else {
+			log.Println("incoming message is in wrong format")
 		}
+
 	}
 }
 
 func lookupKey(host string) (string, string, error) {
+	log.Printf("lookup key table for host '%s'", host)
 	counts := strings.Count(host, "-")
 	if counts == 0 {
 		return "", "", fmt.Errorf("no key found for host '%s'", host)
@@ -132,7 +143,18 @@ func lookupKey(host string) (string, string, error) {
 	return name, key, nil
 }
 
-func targetUrl(numberOfDeaths int, name, key string) *url.URL {
+func lookupDomain(domainname string) (string, string, string, error) {
+	log.Printf("lookup domain table for domain '%s'", domainname)
+
+	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
+	if !ok {
+		return "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+	}
+
+	return domain.Name, domain.Key, domain.FullUrl, nil
+}
+
+func targetUrl(name, key string) *url.URL {
 	var target *url.URL
 	var err error
 	host := targetHost(name, key)
@@ -142,9 +164,21 @@ func targetUrl(numberOfDeaths int, name, key string) *url.URL {
 		log.Fatal(err)
 	}
 
-	log.Printf("got / request. using proxy to %s (key: %s)", target.Host, key)
+	log.Printf("proxy to %s (key: %s)", target.Host, key)
 
 	return target
+}
+
+func lookupRabbitKey(name, key string) string {
+	var rabbitkey string
+	keyRoutingTable := proxy.Services[name]
+	keyDataList := keyRoutingTable.Keys[key]
+
+	for _, keyData := range keyDataList {
+		rabbitkey = keyData.RabbitKey
+	}
+
+	return rabbitkey //return empty if not found
 }
 
 func targetHost(name, key string) string {
@@ -197,26 +231,26 @@ func buildProxyCmd(action, uuid string) []byte {
 }
 
 // not used currently, find a more reliable way
-func checkServer(host string) error {
+func checkServer(host string) (bool, error) {
 	log.Println("Checking server")
 	remoteAddr, err := net.ResolveTCPAddr("tcp", host)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	remoteConn, err := net.DialTCP("tcp", nil, remoteAddr)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	remoteConn.Close()
-	return nil
+	return true, nil
 }
 
 /*************************************************
 *
 *  modified version of go's reverseProxy source code
-*  has support for dynamic url and websockets
+*  has support for dynamic target url, websockets and amqp
 *
 *  - arslan
 *************************************************/
@@ -229,12 +263,6 @@ var onExitFlushLoop func()
 // sends it to another server, proxying the response back to the
 // client.
 type ReverseProxy struct {
-	// Director must be a function which modifies
-	// the request into a new request to be sent
-	// using Transport. Its response is then copied
-	// back to the original client unmodified.
-	Director func(*http.Request)
-
 	// The transport used to perform proxy requests.
 	// If nil, http.DefaultTransport is used.
 	Transport http.RoundTripper
@@ -256,62 +284,6 @@ func singleJoiningSlash(a, b string) string {
 		return a + "/" + b
 	}
 	return a + b
-}
-
-func lookupDomain(domainname string) (string, string, string, error) {
-	log.Printf("lookup domain table for host '%s'", domainname)
-
-	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		return "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
-	}
-
-	return domain.Name, domain.Key, domain.FullUrl, nil
-}
-
-// NewSingleHostReverseProxy returns a new ReverseProxy that rewrites
-// URLs to the scheme, host, and base path provided in target. If the
-// target's path is "/base" and the incoming request was for "/dir",
-// the target request will be for /base/dir.
-func NewSingleHostReverseProxy() *ReverseProxy {
-	director := func(req *http.Request) {
-		log.Println("HOST:", req.RequestURI, req.Host)
-		var deaths int
-		var target *url.URL
-		var fullurl string
-
-		name, key, err := lookupKey(req.Host)
-		if err != nil {
-			log.Println(err)
-			name, key, fullurl, err = lookupDomain(req.Host)
-			if err != nil {
-				log.Println(err)
-			}
-
-		}
-
-		if fullurl != "" {
-			target, err = url.Parse("http://" + fullurl)
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			target = targetUrl(deaths, name, key)
-		}
-
-		log.Printf("proxy to host '%s' ...", target.Host)
-		targetQuery := target.RawQuery
-		req.URL.Scheme = target.Scheme
-		req.URL.Host = target.Host
-		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
-		if targetQuery == "" || req.URL.RawQuery == "" {
-			req.URL.RawQuery = targetQuery + req.URL.RawQuery
-		} else {
-			req.URL.RawQuery = targetQuery + "&" + req.URL.RawQuery
-		}
-	}
-
-	return &ReverseProxy{Director: director}
 }
 
 func copyHeader(dst, src http.Header) {
@@ -356,7 +328,41 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	p.Director(outreq)
+	var target *url.URL
+	var fullurl string
+
+	name, key, err := lookupKey(outreq.Host)
+	if err != nil {
+		log.Println(err)
+		name, key, fullurl, err = lookupDomain(outreq.Host)
+		if err != nil {
+			log.Println(err)
+		}
+
+	}
+
+	rabbitKey := lookupRabbitKey(name, key)
+
+	if fullurl != "" {
+		target, err = url.Parse("http://" + fullurl)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		target = targetUrl(name, key)
+	}
+
+	// Reverseproxy.Director closure
+	targetQuery := target.RawQuery
+	outreq.URL.Scheme = target.Scheme
+	outreq.URL.Host = target.Host
+	outreq.URL.Path = singleJoiningSlash(target.Path, outreq.URL.Path)
+	if targetQuery == "" || outreq.URL.RawQuery == "" {
+		outreq.URL.RawQuery = targetQuery + outreq.URL.RawQuery
+	} else {
+		outreq.URL.RawQuery = targetQuery + "&" + outreq.URL.RawQuery
+	}
+
 	outreq.Proto = "HTTP/1.1"
 	outreq.ProtoMajor = 1
 	outreq.ProtoMinor = 1
@@ -400,9 +406,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			transport = http.DefaultTransport
 		}
 
+		// Display error when someone hits the main page
 		name, _ := os.Hostname()
-		log.Println("LOCAL HOSTNAME:", name)
-		log.Println("REMOTE HOSTANME:", outreq.URL.Host)
 		if name == outreq.URL.Host {
 			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return
@@ -435,12 +440,109 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			outreq.Header.Set("X-Forwarded-For", clientIP)
 		}
 
-		res, err := transport.RoundTrip(outreq)
+		// Test values, will be removed - arslan
+		// outreq.URL.Host = "localhost:3000"
+		// outreq.Host = "localhost:3000"
+		// outreq.URL.Host = "67.169.70.88"
+		// outreq.Host = "67.169.70.88"
+
+		var err error
+		res := new(http.Response)
+
+		res, err = transport.RoundTrip(outreq)
 		if err != nil {
-			log.Printf("http: proxy error: %v", err)
-			rw.WriteHeader(http.StatusInternalServerError)
-			return
+			// we can't connect to url, thus proxy trough amqp
+			log.Println("rabbit proxy started...")
+			log.Println("trying to make rabbit connection to", outreq.URL.Host)
+
+			output := new(bytes.Buffer)
+			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
+			err := outreq.WriteProxy(output)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprint(err))
+				return
+			}
+
+			// declare just once time
+			if len(connections) == 0 {
+				err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
+				if err != nil {
+					log.Fatal("exchange.declare: %s", err)
+				}
+
+			}
+
+			if _, ok := connections[rabbitKey]; !ok {
+				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
+				if err != nil {
+					log.Fatal("queue.declare: %s", err)
+				}
+
+				if err := amqpStream.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
+					log.Fatal("queue.bind: %s", err)
+				}
+
+				messages, err := amqpStream.channel.Consume("", "", true, false, false, false, nil)
+				if err != nil {
+					log.Fatal("basic.consume: %s", err)
+				}
+
+				connections[rabbitKey] = RabbitChannel{
+					ReplyTo: queue.Name,
+					Receive: make(chan []byte, 1),
+				}
+
+				go func() {
+					for msg := range messages {
+						log.Printf("got rabbit http message for %s", connections[rabbitKey].ReplyTo)
+						connections[rabbitKey].Receive <- msg.Body
+
+					}
+				}()
+			}
+
+			log.Println("publishing http request to rabbit")
+			msg := amqp.Publishing{
+				ContentType: "text/plain",
+				Body:        output.Bytes(),
+				ReplyTo:     connections[rabbitKey].ReplyTo,
+			}
+
+			amqpStream.channel.Publish("kontrol-rabbitproxy", rabbitKey, false, false, msg)
+
+			log.Println("...waiting for http response from rabbit")
+
+			var respData []byte
+			// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
+			t := time.NewTimer(20 * time.Second)
+			select {
+			case respData = <-connections[rabbitKey].Receive:
+			case <-t.C:
+				log.Println("timeout. no rabbit proxy message receieved")
+				io.WriteString(rw, "{\"err\":\"no rabbit proxy message received\"}\n")
+				return
+			}
+			t.Stop()
+
+			if respData == nil {
+				rw.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+
+			buf := bytes.NewBuffer(respData)
+			respreader := bufio.NewReader(buf)
+
+			// ok got now response from rabbit :)
+			res, err = http.ReadResponse(respreader, outreq)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprint(err))
+				return
+			}
+			log.Println("proxy trough amqp ...")
+		} else {
+			log.Println("proxy trough http ...")
 		}
+
 		defer res.Body.Close()
 
 		copyHeader(rw.Header(), res.Header)

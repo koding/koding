@@ -72,7 +72,7 @@ func setupAmqp() *AmqpStream {
 	return &AmqpStream{stream, c.channel, appId}
 }
 
-func (a *AmqpStream) Publish(data []byte) {
+func (a *AmqpStream) Publish(exchange, routingKey string, data []byte) {
 	appId := customHostname()
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
@@ -84,7 +84,7 @@ func (a *AmqpStream) Publish(data []byte) {
 		AppId:           appId,
 	}
 
-	a.channel.Publish("infoExchange", "input.proxy", false, false, msg)
+	a.channel.Publish(exchange, routingKey, false, false, msg)
 }
 
 func customHostname() string {

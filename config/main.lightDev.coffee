@@ -148,3 +148,17 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  kontrold        :
+    api           :
+      port        : 80
+    proxy         :
+      port        : 80
+      portssl     : 443
+    mongo         :
+      host        : 'kontrol.in.koding.com'
+    rabbitmq      :
+      host        : 'kontrol.in.koding.com'
+      port        : '5672'
+      login       : 'guest'
+      password    : 's486auEkPzvUjYfeFTMQ'
+      vhost       : '/'
