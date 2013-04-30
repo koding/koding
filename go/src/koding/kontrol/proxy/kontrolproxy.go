@@ -359,6 +359,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	}
 
+	rabbitKey := lookupRabbitKey(name, key)
 	if fullurl != "" {
 		target, err = url.Parse("http://" + fullurl)
 		if err != nil {
@@ -423,8 +424,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// Display error when someone hits the main page
-		name, _ := os.Hostname()
-		if name == outreq.URL.Host {
+		hostname, _ := os.Hostname()
+		if hostname == outreq.URL.Host {
 			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return
 		}
@@ -466,7 +467,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		res := new(http.Response)
 		err := checkServer(outreq.URL.Host)
 		if err != nil {
-			rabbitKey := lookupRabbitKey(name, key)
 			if rabbitKey == "" {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
 				return
