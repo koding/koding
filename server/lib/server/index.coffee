@@ -135,6 +135,36 @@ app.get "/-/kite/login", (req, res) ->
         res.header "Content-Type", "application/json"
         res.send JSON.stringify creds
 
+app.post "/-/kite/register", express.bodyParser(), (req, res)->
+
+  {JKite, JUser} = koding.models
+  {username, password, kiteName} = req.body
+
+  hashPassword = (value, salt)->
+    require('crypto').createHash('sha1').update(salt+value).digest('hex')
+
+  JKite.one {kiteName}, (err, kite)=>
+    if kite
+      res.send error: "Kite already exists."
+    else
+      JUser.one {username, status: $ne: "blocked"}, (err, user) =>
+        if err
+          res.send JSON.stringify error: err.message
+        else unless user?
+          res.send JSON.stringify error: 'Unknown username!'
+        else unless user.getAt('password') is hashPassword password, user.getAt('salt')
+          res.send JSON.stringify error: 'Access denied!'
+        else
+          user.fetchAccount "koding-kite", (err, account)->
+            JKite.create {connection: {delegate: account}}, {kiteName}, (err, kite)->
+              if err
+                res.send error: err
+              else
+                res.send 
+                  error: false
+                  kiteName: kite.kiteName
+                  key: kite.key
+
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
