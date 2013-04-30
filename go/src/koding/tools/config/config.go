@@ -21,6 +21,7 @@ type Config struct {
 	Mongo string
 	Mq    struct {
 		Host          string
+		Port          int
 		ComponentUser string
 		Password      string
 		Vhost         string

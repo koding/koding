@@ -15,11 +15,13 @@ lxc.mount  = /var/lib/lxc/{{.}}/fstab
 lxc.cap.drop = sys_module mac_admin mac_override
 lxc.pivotdir = lxc_putold
 
-lxc.id_map = U 50000000 0 1000000
-lxc.id_map = U 1000000 1000000 49000000
+# better but not possible atm: lxc.id_map = u 0 50000000 1000000
+lxc.id_map = u 0 500000 500000
+lxc.id_map = u 1000000 1000000 49000000
 
-lxc.id_map = G 50000000 0 1000000
-lxc.id_map = G 1000000 1000000 49000000
+# better but not possible atm: lxc.id_map = g 0 50000000 1000000
+lxc.id_map = g 0 500000 500000
+lxc.id_map = g 1000000 1000000 49000000
 
 lxc.cgroup.cpu.shares = 1000
 #lxc.cgroup.memory.limit_in_bytes = 60M

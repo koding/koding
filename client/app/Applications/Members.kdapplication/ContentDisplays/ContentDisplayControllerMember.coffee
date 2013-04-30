@@ -13,13 +13,14 @@ class ContentDisplayControllerMember extends KDViewController
 
   loadView:(mainView)->
     member = @getData()
+    {lazy} = mainView
     mainView.addSubView subHeader = new KDCustomHTMLView
       tagName   : "h2"
       cssClass  : 'sub-header'
-      domId     : 'members-sub-header' unless @revivedContentDisplay
+      domId     : 'members-sub-header' if lazy
 
     subHeader.addSubView backLink = new KDCustomHTMLView
-      domId   : 'members-back-link' unless @revivedContentDisplay
+      domId   : 'members-back-link' if lazy
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)->
@@ -29,6 +30,9 @@ class ContentDisplayControllerMember extends KDViewController
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
         history.back()
         no
+
+
+
 
 
     # FIX THIS GG
@@ -52,6 +56,11 @@ class ContentDisplayControllerMember extends KDViewController
     # mainView.addSubView contentDisplayController._updateController.updateWidget
 
     @addProfileView member
+
+    if lazy and not KD.isLoggedIn()
+      mainView.addSubView @homeLoginBar = new HomeLoginBar
+        domId    : "home-login-bar"
+
     @addActivityView member
 
   addProfileView:(member)->
