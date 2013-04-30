@@ -78,7 +78,7 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership', 
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers'
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
     schema          :
       title         :
@@ -758,28 +758,39 @@ module.exports = class JGroup extends Module
       daisy queue
 
   inviteByUsername: permit 'send invitations',
-    success: (client, username, callback)->
+    success: (client, usernames, callback)->
       JUser    = require '../user'
-      JUser.one {username}, (err, user)=>
-        return callback err if err
-        return callback new KodingError 'User does not exist!' unless user
-        user.fetchOwnAccount (err, account)=>
+      usernames = [usernames] unless Array.isArray usernames
+      queue = usernames.map (username)=>=>
+        console.log username
+        JUser.one {username}, (err, user)=>
           return callback err if err
-          @isMember account, (err, isMember)=>
+          return callback new KodingError 'User does not exist!' unless user
+          user.fetchOwnAccount (err, account)=>
             return callback err if err
-            return callback new KodingError "#{username} is already member of this group!" if isMember
-            @inviteMember client, user.email, callback
+            @isMember account, (err, isMember)=>
+              return callback err if err
+              return callback new KodingError "#{username} is already member of this group!" if isMember
+              @inviteMember client, user.email, (err)->
+                return queue.next() unless err
+                replaceEmail = (errMsg)-> errMsg.replace user.email, username
+                if err.name is 'KodingError' then err.message = replaceEmail err.message
+                else err = replaceEmail err
+                callback err
+      queue.push -> callback null
+      daisy queue
 
   inviteMember: (client, email, callback)->
       params = 
-        email: email
-        group: @slug
+        email  : email
+        group  : @slug
+        status : $not: $in: ['declined', 'ignored']
 
       JInvitationRequest = require '../invitationrequest'
       JInvitationRequest.one params, (err, invitationRequest)=>
         if invitationRequest
           callback new KodingError """
-            You've already invited #{email} to join this group.
+            You've already invited #{email} to join this group before.
             """
         else
           params.invitationType = 'invitation'

@@ -181,6 +181,16 @@ module.exports = class Followable
         JAccount.all _id: $in: ids, (err, accounts)->
           callback err, accounts
 
+  countFollowing: (query, callback)->
+    JAccount = require '../models/account'
+
+    extend query,
+      targetId  : @getId()
+      as        : 'follower'
+      sourceName: @constructor.name
+    Relationship.count query, (err, count)->
+      callback err, count
+
   getQueryWithGroupMembers = (client, query, orientation, callback)->
     {group} = client.context
     if group is 'koding'
@@ -206,12 +216,26 @@ module.exports = class Followable
       @fetchFollowers filteredQuery, page, (err, accounts)->
         if err then callback err else JAccount.markFollowing client, accounts, callback
 
+  countFollowersWithRelationship: secure (client, query, callback)->
+    JAccount = require '../models/account'
+    getQueryWithGroupMembers client, query, 'target', (err, filteredQuery)=>
+      return callback err if err
+      @countFollowers filteredQuery, (err, count)->
+        if err then callback err else callback null, count
+
   fetchFollowingWithRelationship: secure (client, query, page, callback)->
     JAccount = require '../models/account'
     getQueryWithGroupMembers client, query, 'source', (err, filteredQuery)=>
       return callback err if err
       @fetchFollowing query, page, (err, accounts)->
         if err then callback err else JAccount.markFollowing client, accounts, callback
+
+  countFollowingWithRelationship: secure (client, query, callback)->
+    JAccount = require '../models/account'
+    getQueryWithGroupMembers client, query, 'source', (err, filteredQuery)=>
+      return callback err if err
+      @countFollowing query, (err, count)->
+        if err then callback err else callback null, count
 
   fetchFollowedTopics: secure (client, query, page, callback)->
     extend query,

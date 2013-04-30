@@ -40,7 +40,7 @@ module.exports = class JGroupRole extends Module
           if err then callback err
           else callback null, newRole
       else
-        callback null
+        callback null, role
 
   createDefaultRolesHelper = (callback)->
 
