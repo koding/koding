@@ -237,4 +237,7 @@ do ->
     log 'disconnected, stopping broker ping'
 
     clearInterval brokerInterval
-    brokerInterval = null
+    clearTimeout failureCallback
+    brokerInterval  = null
+    failureCallback = null
+    lastPong        = null
