@@ -93,7 +93,7 @@ class KDModalView extends KDView
     defaultFocusTitle = null
     for own buttonTitle, buttonOptions of buttonDataSet
       defaultFocusTitle ?= buttonTitle
-      button = @createButton buttonTitle, buttonOptions
+      button = @createButton buttonOptions.title or buttonTitle, buttonOptions
       @buttons[buttonTitle] = button
       focused = yes  if buttonOptions.focus
 
@@ -161,8 +161,7 @@ class KDModalView extends KDView
       @$overlay.bind "click",()=>
         @destroy()
 
-  createButton:(title,buttonOptions)->
-
+  createButton:(title, buttonOptions)->
     buttonOptions.title    or= title
     buttonOptions.delegate   = @
     itemClass = buttonOptions.itemClass
