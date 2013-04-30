@@ -34,9 +34,10 @@ type Worker struct {
 type Workers []Worker
 
 type Proxy struct {
-	Key      string
-	Host     string
-	Hostdata string
+	Key       string
+	Host      string
+	Hostdata  string
+	RabbitKey string
 }
 type Proxies []Proxy
 
@@ -358,7 +359,7 @@ func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	for _, keys := range keyRoutingTable.Keys {
 		for _, proxy := range keys {
-			p = append(p, Proxy{proxy.Key, proxy.Host, proxy.HostData})
+			p = append(p, Proxy{proxy.Key, proxy.Host, proxy.HostData, proxy.RabbitKey})
 		}
 	}
 
