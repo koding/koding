@@ -494,7 +494,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
 				return
 			}
-			log.Println("proxy via rabbitmq to '%s'", outreq.URL.Host)
+			log.Printf("proxy via rabbitmq to '%s'", outreq.URL.Host)
 			output := new(bytes.Buffer)
 			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
 			err := outreq.WriteProxy(output)
