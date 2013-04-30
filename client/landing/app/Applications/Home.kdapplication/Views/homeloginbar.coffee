@@ -45,7 +45,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Join"
       click       : (event)=>
-        if entryPoint isnt ''
+        if entryPoint isnt '' and KD.isLoggedIn()
           @utils.stopDOMEvent event
           @getSingleton('mainController').emit "groupAccessRequested", @group, no
         else
