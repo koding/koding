@@ -17,6 +17,10 @@ class HomeLoginBar extends JView
       @utils.stopDOMEvent event
       @getSingleton('router').handleRoute route
 
+    requiresLogin = (callback)=>
+      if KD.isLoggedIn() then do callback
+      else @getSingleton('mainController').emit "loginRequired", callback
+
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
@@ -45,11 +49,11 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Join"
       click       : (event)=>
-        if entryPoint isnt '' and KD.isLoggedIn()
+        if entryPoint isnt ''
           @utils.stopDOMEvent event
-          @getSingleton('mainController').emit "groupAccessRequested", @group, no
+          requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
         else
-          handler(event)
+          handler event
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -71,7 +75,7 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        @getSingleton('mainController').emit "groupAccessRequested", @group, yes
+        requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, yes
 
     @join         = new CustomLinkView
       tagName     : "a"
@@ -82,7 +86,7 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        @getSingleton('mainController').emit "groupJoinRequested", @group
+        requiresLogin => @getSingleton('mainController').emit "groupJoinRequested", @group
 
     @decorateButtons()
     @getSingleton('mainController').on 'AccountChanged', @bound 'decorateButtons'
