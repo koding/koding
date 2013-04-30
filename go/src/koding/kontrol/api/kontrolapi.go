@@ -90,27 +90,24 @@ func main() {
 	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
 
 	rout := mux.NewRouter()
-	workers := rout.PathPrefix("/workers").Subrouter()
-	proxies := rout.PathPrefix("/proxies").Subrouter()
-
 	rout.HandleFunc("/", home).Methods("GET")
 
 	// Worker handlers
-	workers.HandleFunc("/", GetWorkers).Methods("GET")
-	workers.HandleFunc("/{uuid}", GetWorker).Methods("GET")
-	workers.HandleFunc("/{uuid}/{action}", UpdateWorker).Methods("PUT")
-	workers.HandleFunc("/{uuid}", DeleteWorker).Methods("DELETE")
+	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
+	rout.HandleFunc("/workers/{uuid}", GetWorker).Methods("GET")
+	rout.HandleFunc("/workers/{uuid}/{action}", UpdateWorker).Methods("PUT")
+	rout.HandleFunc("/workers/{uuid}", DeleteWorker).Methods("DELETE")
 
 	// Proxy handlers
-	proxies.HandleFunc("/", GetProxies).Methods("GET")
-	proxies.HandleFunc("/", CreateProxy).Methods("POST")
-	proxies.HandleFunc("/{uuid}", DeleteProxy).Methods("DELETE")
-	proxies.HandleFunc("/{uuid}/services", GetProxyServices).Methods("GET")
-	proxies.HandleFunc("/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
-	proxies.HandleFunc("/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
-	proxies.HandleFunc("/{uuid}/services/{servicename}/{key}", DeleteProxyService).Methods("DELETE")
-	proxies.HandleFunc("/{uuid}/domains", GetProxyDomains).Methods("GET")
-	proxies.HandleFunc("/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
+	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
+	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services", GetProxyServices).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
