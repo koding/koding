@@ -815,25 +815,36 @@ module.exports = class JGroup extends Module
   requestInvitation: secure (client, invitationType, callback)->
     {delegate} = client.connection
     JInvitationRequest = require '../invitationrequest'
+    JUser              = require '../user'
 
-    invitationRequest = new JInvitationRequest {
-      invitationType
-      koding  : { username: delegate.profile.nickname }
-      group   : @slug,
-      status  : 'pending'
-    }
-    invitationRequest.save (err)=>
-      if err?.code is 11000
-        callback new KodingError """
-          You've already requested an invitation to this group.
-          """
-      else
-        @addInvitationRequest invitationRequest, (err)=>
-          if err then callback err
-          else
-            if invitationType is 'basic approval'
-              invitationRequest.sendRequestNotification client, callback
-            @emit 'NewInvitationRequest'
+    JUser.one username:delegate.profile.nickname, (err, user)=>
+      return callback err if err
+      selector =
+        group: @slug
+        status: $not: $in: ['declined', 'ignored']
+        $or: [
+          'koding.username': delegate.profile.nickname,
+          email: user.email
+        ]
+      JInvitationRequest.one selector, (err, invitationRequest)=>
+        return callback err if err
+        if invitationRequest
+          callback null
+        else
+          invitationRequest = new JInvitationRequest {
+            invitationType
+            koding  : { username: delegate.profile.nickname }
+            email   : user.email
+            group   : @slug,
+            status  : 'pending'
+          }
+          invitationRequest.save (err)=>
+            return callback err if err
+            @addInvitationRequest invitationRequest, (err)=>
+              return callback err if err
+              if invitationType is 'basic approval'
+                invitationRequest.sendRequestNotification client, callback
+              @emit 'NewInvitationRequest'
 
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
@@ -855,7 +866,7 @@ module.exports = class JGroup extends Module
           daisy queue
 
   requestAccess: secure (client, callback)->
-    @requestAccessFor client, invitationType, callback
+    @requestAccessFor client, callback
 
   requestAccessFor: (account, callback)->
     account = connection:delegate:account unless account.connection?
