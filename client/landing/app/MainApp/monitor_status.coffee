@@ -207,13 +207,12 @@ do ->
         # we won't know that disconnection has happened.
         if lastPong && (Date.now() - lastPong) > 30*1000
           log "lastPong too long ago, possible computer sleep; disconnecting"
-
-          KD.logToMixpanel "computer woke up from sleep", 10
+          KD.logToMixpanel "computer woke up from sleep"
 
           status = KD.getSingleton "status"
           status.disconnect
             reason:"internetDownForLongTime"
-            showModal:false
+            notify:no
 
         clearTimeout failureCallback
         failureCallback = null
