@@ -1,8 +1,6 @@
 # Wrapper for pushing events to Mixpanel
 if mixpanel? && KD.config.logToExternal then do ->
 
-  mixpanel.set_config debug:true
-
   # logs to Mixpanel X% of the time
   #   log errors, timeouts 100% of the time, success 20% of the time
   KD.logToMixpanel = (args, percent=100)->
