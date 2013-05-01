@@ -71,7 +71,7 @@ class KodingAppsController extends KDController
 
         apps.forEach (app)=>
           stack.push (cb)=>
-            manifest = FSHelper.createFileFromPath "#{app.path}/.manifest"
+            manifest = FSHelper.createFileFromPath "#{app.path}/manifest.json"
             manifest.fetchContents (err, response)->
               # shadowing the error is intentional here
               # to not to break the result of the stack
