@@ -259,10 +259,14 @@ module.exports = class JGroup extends Module
           queue.next()
 
     create = secure (client, formData, callback)->
+      JAccount = require '../account'
+      {delegate} = client.connection
+      unless delegate instanceof JAccount
+        return callback new KodingError 'Access denied.'
+
       JPermissionSet = require './permissionset'
       JMembershipPolicy = require './membershippolicy'
       JName = require '../name'
-      {delegate} = client.connection
       group                 = new this formData
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
