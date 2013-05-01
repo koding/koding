@@ -26,11 +26,13 @@ class KodingAppsController extends KDController
     @kiteController = @getSingleton('kiteController')
     @manifests = KodingAppsController.manifests
 
-  getAppPath:(manifest)->
+  getAppPath:(manifest, escaped=no)->
 
     {profile} = KD.whoami()
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}" else path
+    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}"\
+           else path
+    return FSHelper.escapeFilePath path  if escaped
     return path.replace /(\/+)$/, ""
 
   # #
@@ -122,17 +124,14 @@ class KodingAppsController extends KDController
   # MISC
   # #
 
-  refreshApps:(callback)->
+  refreshApps:(callback, redecorate=yes)->
 
     @constructor.manifests = {}
     KD.resetAppScripts()
     @fetchAppsFromFs (err, apps)=>
       @appStorage.fetchStorage =>
-        @emit "AppsRefreshed", apps
-      if not err
-        callback? err, apps
-      else
-        callback err
+        @emit "AppsRefreshed", apps  if redecorate
+      callback? err, apps
 
   removeShortcut:(shortcut, callback)->
     @appStorage.fetchValue 'shortcuts', (shortcuts)=>
@@ -342,7 +341,7 @@ class KodingAppsController extends KDController
           new KDNotificationView
             title    : "App list is out-dated, refreshing apps..."
             duration : 2000
-          @refreshApps noop
+          @refreshApps()
         else
           compileOnServer @constructor.manifests[name]
 
