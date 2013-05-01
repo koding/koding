@@ -23,6 +23,10 @@ class Status extends KDController
   connect: ->
     @remote.connect()
 
+  reconnect:(options={})->
+    @disconnect()
+    @connect()
+
   disconnect: (options={}) ->
     if "boolean" is typeof options
       options = autoReconnect : options
