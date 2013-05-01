@@ -240,6 +240,7 @@ class JTreeViewController extends KDViewController
       # self remove
       @listControllers[parentId].getListView().removeItem @nodes[id]
       # remove reference
+      @nodes[id].destroy?()
       delete @nodes[id]
 
   removeNodeView:(nodeView)->
@@ -263,6 +264,7 @@ class JTreeViewController extends KDViewController
       @removeNode childNodeId
 
     @listControllers[id]?.getView().destroy()
+    @listControllers[id]?.destroy()
     delete @listControllers[id]
     delete @listData[id]
 
