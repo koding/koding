@@ -307,9 +307,7 @@ module.exports = class JUser extends jraphical.Module
     @addToGroup account, 'koding', (err)=>
       if err then callback err
       else if invite.group or entryPoint
-        @addToGroup account, invite.group or entryPoint, invite.group?, (err)->
-          if err then callback err
-          else callback null
+        @addToGroup account, invite.group or entryPoint, invite.group?, callback
       else callback null
 
   @register = secure (client, userFormData, callback)->
