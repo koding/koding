@@ -70,8 +70,6 @@ class ActivityAppView extends KDScrollView
       @utils.wait 1500, =>
         @navigateHome pageName :"Activity"
 
-    @utils.defer => @getSingleton('mainViewController').mainView._windowDidResize()
-
   # pistachio:->
   #   """
   #     {{> @header}}
