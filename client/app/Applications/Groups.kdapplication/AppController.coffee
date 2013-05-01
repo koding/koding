@@ -50,6 +50,7 @@ class GroupsAppController extends AppController
 
     mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
     mainController.on 'groupJoinRequested',   @joinGroup.bind this
+    mainController.on 'loginRequired',        @loginRequired.bind this
 
   getCurrentGroupData:-> @currentGroupData
 
@@ -301,14 +302,15 @@ class GroupsAppController extends AppController
         @openGroup group
 
   putAddAGroupButton:->
-    {facetsController} = @feedController
-    innerNav = facetsController.getView()
-    innerNav.addSubView addButton = new KDButtonView
-      tooltip   :
-        title   : "Create a Group"
-      style     : "small-gray"
-      iconOnly  : yes
-      callback  : => @showGroupSubmissionView()
+    if KD.isLoggedIn()
+      {facetsController} = @feedController
+      innerNav = facetsController.getView()
+      innerNav.addSubView addButton = new KDButtonView
+        tooltip   :
+          title   : "Create a Group"
+        style     : "small-gray"
+        iconOnly  : yes
+        callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData)->
 
@@ -671,7 +673,18 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
+  loginRequired:(callback)->
+    new KDNotificationView
+      type     : 'mini'
+      cssClass : 'error'
+      title    : 'Login is required for this action'
+      duration : 5000
 
+    route = "/#{KD.groupEntryPoint}/Login" if KD.groupEntryPoint isnt ''
+    @getSingleton('router').handleRoute route
+    @getSingleton('mainController').once 'AccountChanged', ->
+      if KD.isLoggedIn()
+        callback()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->
