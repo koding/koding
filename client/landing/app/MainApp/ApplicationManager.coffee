@@ -32,8 +32,10 @@ class ApplicationManager extends KDObject
 
     createOrShow = (appOptions, callback = noop)->
 
+      name = appOptions?.name
+      return warn "No such application!"  unless name
+
       appManager  = KD.getSingleton "appManager"
-      {name}      = appOptions
       appInstance = appManager.get name
       cb          = -> appManager.show appOptions, callback
       if appInstance then do cb
@@ -73,15 +75,16 @@ class ApplicationManager extends KDObject
       # appManager.open back, this method should be divided
       # to some logical parts, and runApp should call the
       # appropriate method rather than ::open.
-      if not appOptions?
-        @fetchManifests ->
-          kodingAppsController.runApp (KD.getAppOptions name), callback
+      if not appOptions? and not options.requestedFromAppManager?
+        @fetchManifests name, =>
+          options.requestedFromAppManager = yes
+          @open name, options, callback
         return
-      else if appOptions.thirdParty and not options.requestedFromAppsController
+      else if appOptions?.thirdParty and not options.requestedFromAppsController
         kodingAppsController.runApp (KD.getAppOptions name), callback
         return
 
-      if appOptions.multiple
+      if appOptions?.multiple
 
         if options.forceNew or appOptions.openWith is "forceNew"
           @create name, (appInstance)=> @showInstance appInstance, callback
@@ -104,13 +107,14 @@ class ApplicationManager extends KDObject
                 else
                   warn "user cancelled app to open"
             else do defaultCallback
+
       else do defaultCallback
 
-  fetchManifests:(callback)->
+  fetchManifests:(appName, callback)->
 
     @getSingleton("kodingAppsController").fetchApps (err, manifests)->
       manifestsFetched = yes
-      for name, manifest of manifests
+      for name, manifest of manifests when name is appName
 
         manifest.route        = "Develop"
         manifest.behavior   or= "application"

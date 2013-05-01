@@ -17,12 +17,20 @@ class VirtualizationControls extends JView
 
     @statusLED.on 'stateChanged', (state)=>
       state = if state in ['off', 'red'] then no else yes
-      @VMToggle.setDefaultValue state
+      @vmToggle.setDefaultValue state
 
-    @VMToggle  = new KDOnOffSwitch
+    @vmToggle  = new KDOnOffSwitch
       cssClass : "tiny vm-toggle"
       callback : (state)=>
         if state then @vm.start() else @vm.stop()
+
+    @vmResetButton = new KDButtonView
+      cssClass     : "vmreinitialize-button"
+      iconOnly     : yes
+      iconClass    : "cog"
+      tooltip      :
+        title      : "Re-initialize your VM"
+      callback     : => @vm.reinitialize()
 
   checkVMState:(err, info)->
     if err or not info
@@ -40,7 +48,7 @@ class VirtualizationControls extends JView
     @vm.info @bound 'checkVMState'
 
   pistachio:->
-    """{{> @statusLED}}{{> @VMToggle}}"""
+    """{{> @statusLED}}{{> @vmToggle}}{{> @vmResetButton}}"""
 
 class StatusLED extends JView
 
