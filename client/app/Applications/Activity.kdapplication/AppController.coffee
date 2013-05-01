@@ -142,16 +142,14 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
         onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        onTimeout : -> @recover.bind this
+        onTimeout : @recover.bind this
 
   recover:->
 
     KD.logToMixpanel "activity feed render failed; recovering"
 
     @isLoading = no
-    @status.disconnect
-      reason    : "bongo.timeout"
-      modalSize : "small"
+    @status.reconnect()
 
   populateActivity:(options = {}, callback)->
 
@@ -254,6 +252,9 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallback (err, activities) =>
         if err then warn err
         else
+
+          KD.logToMixpanel "refresh activity feed success"
+
           # FIXME: SY
           # if it is exact 20 there may be other items
           # put a separator and check for new items in between
