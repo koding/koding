@@ -94,7 +94,7 @@ class ActivityListController extends KDListViewController
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
+          anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids when cache.activities[id].teaser?)
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
