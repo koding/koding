@@ -182,13 +182,13 @@ class GroupsAppController extends AppController
       @emit 'ready'
 
   markMemberAndOwnGroups:(controller, ids)->
-    {JGroup} = KD.remote.api
     fetchRoles =
       member: (view)-> view.markMemberGroup()
+      admin : (view)-> view.markGroupAdmin()
       owner : (view)-> view.markOwnGroup()
     for as, callback of fetchRoles
       do (as, callback)->
-        JGroup.fetchMyMemberships ids, as, (err, groups)->
+        KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
           controller.forEachItemByIndex groups, callback
 

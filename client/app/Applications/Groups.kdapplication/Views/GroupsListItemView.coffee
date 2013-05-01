@@ -115,7 +115,15 @@ class GroupsListItemView extends KDListItemView
     @setClass "member-group"
     @fetchMembers() if @getData().privacy isnt 'public'
 
-  markOwnGroup:-> @setClass "own-group"
+  markOwnGroup:->
+    @setClass "own-group"
+    @memberBadge.stopUpdatingPartial = yes
+    @memberBadge.updatePartial "<span class='fold'/>You are owner"
+
+  markGroupAdmin:->
+    @setClass "group-admin"
+    unless @memberBadge.stopUpdatingPartial?
+      @memberBadge.updatePartial "<span class='fold'/>You are an admin"
 
   pistachio:->
     """
