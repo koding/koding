@@ -164,24 +164,27 @@ class NFinderTreeController extends JTreeViewController
       callback? nodeView
       return
 
-    cb = @utils.getCancellableCallback (files)=>
-      @utils.killWait folder.failTimer
-      nodeView.expand()
-      @addNodes files
-      callback? nodeView
-      @emit "folder.expanded", nodeView.getData()
-      @emit 'fs.retry.success'
-      @hideNotification()
-
     folder = nodeView.getData()
 
-    folder.failTimer = @utils.wait 5000, =>
-      @notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+    failCallback = =>
+      @notify "Couldn't fetch files! Click to retry", 'clickable', \
+              """Sorry, a problem occured while communicating with servers,
+                 please try again later.""", yes
       @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
       folder.emit "fs.nothing.finished", []
-      cb.cancel()
 
-    folder.fetchContents cb
+    folder.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+      unless err
+        nodeView.expand()
+        if files
+          @addNodes files
+        callback? nodeView
+        @emit "folder.expanded", nodeView.getData()
+        @emit 'fs.retry.success'
+        @hideNotification()
+      else
+        failCallback()
+    , failCallback
 
   collapseFolder:(nodeView, callback)->
 
@@ -483,7 +486,7 @@ class NFinderTreeController extends JTreeViewController
     CodeShares = []
     @notify "Fetching file list..."
 
-    data.fetchContents (items)=>
+    data.fetchContents (err, items)=>
       @notify "Fetching file contents..."
       files = (file for file in items when file.constructor.name is 'FSFile')
       count = 0
