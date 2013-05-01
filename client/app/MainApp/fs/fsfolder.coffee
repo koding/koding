@@ -20,3 +20,21 @@ class FSFolder extends FSFile
       else
         @emit "fs.fetchContents.finished", err
       callback? err, files
+
+  save:(callback)->
+
+    @emit "fs.save.started"
+
+    @kiteController.run
+      kiteName  : 'os'
+      method    : 'fs.createDirectory'
+      withArgs  : {@path}
+    , (err, res)=>
+
+      if err then warn err
+      @emit "fs.save.finished", err, res
+      callback? err, res
+
+  saveAs:(callback)->
+    log 'Not implemented yet.'
+    callback? null
