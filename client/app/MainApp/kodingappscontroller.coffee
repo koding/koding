@@ -6,7 +6,6 @@ class KodingAppsController extends KDController
 
   @manifests = {}
 
-
   @getManifestFromPath = getManifestFromPath = (path)->
 
     folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
@@ -31,7 +30,7 @@ class KodingAppsController extends KDController
 
     {profile} = KD.whoami()
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/Users/#{profile.nickname}#{path.substr(1)}" else path
+    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}" else path
     return path.replace /(\/+)$/, ""
 
   # #
@@ -50,8 +49,7 @@ class KodingAppsController extends KDController
         if err
           @fetchAppsFromFs (err, apps)=>
             if err then callback()
-            else
-              callback null, apps
+            else callback null, apps
         else
           callback? err, apps
 
@@ -79,7 +77,7 @@ class KodingAppsController extends KDController
               # to not to break the result of the stack
               cb null, response
 
-        {manifests} = @constructor
+        manifests = @constructor.manifests
         async.parallel stack, (err, result)=>
           result.forEach (rawManifest)->
             if rawManifest
@@ -117,11 +115,8 @@ class KodingAppsController extends KDController
 
   fetchCompiledApp:(manifest, callback)->
 
-    {name} = manifest
-    appPath = @getAppPath manifest
-    indexJsPath = "#{appPath}/index.js"
-    @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      callback err, response
+    indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
+    indexJs.fetchContents (err, response)=> callback null, response
 
   # #
   # MISC
@@ -191,7 +186,6 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-
           KD.getSingleton("appManager").open manifest.name,
             requestedFromAppsController : yes
           , (appInstance)->
@@ -218,7 +212,6 @@ class KodingAppsController extends KDController
           callback?()
           return null
 
-        log "App to run:", name
         callback?()
 
   publishApp:(path, callback)->
@@ -554,39 +547,6 @@ class KodingAppsController extends KDController
           callback? err
         else
           callback? null
-
-
-  # cloneApp:(path, callback)->
-
-  #   @fetchApps (err, manifests = {})=>
-  #     if err
-  #       warn err
-  #       new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-  #       callback? err
-  #     else
-  #       manifest = getManifestFromPath path
-
-  #       {repo} = manifest
-
-  #       if /^git/.test repo      then repoType = "git"
-  #       else if /^svn/.test repo then repoType = "svn"
-  #       else if /^hg/.test repo  then repoType = "hg"
-  #       else
-  #         err = "Unsupported repository specified, quitting!"
-  #         new KDNotificationView type : "mini", title : err
-  #         callback? err
-  #         return no
-
-  #       appPath = "/home/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
-  #       appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
-
-  #       @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->
-  #         if err then warn err
-  #         @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->
-  #           if err then warn err
-  #           else
-  #             log response, "App cloned!"
-  #           callback? err, response
 
   # #
   # HELPERS
