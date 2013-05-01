@@ -42,12 +42,13 @@ class NotificationController extends KDObject
     # 4 - < actor fullname > sent you a private message.
     # 5 - < actor fullname > replied to your private message.
     # 6 - < actor fullname > also replied to your private message.
+    # 7 - < actor fullname > started following you.
 
     options = {}
-    {origin, subject, actionType, replier, liker, sender} = notification.contents
+    {origin, subject, actionType, actorType, replier, liker, sender, follower} = notification.contents
 
     isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
-    actor  = replier or liker or sender
+    actor  = replier or liker or sender or follower
 
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
 
@@ -79,21 +80,28 @@ class NotificationController extends KDObject
         when "newMessage"
           @emit "NewMessageArrived"
           "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
-
-      options.click = ->
-        view = @
-        if subject.constructorName is "JPrivateMessage"
-          KD.getSingleton("appManager").open "Inbox"
-        else if subject.constructorName in ["JComment", "JOpinion"]
-          KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
-            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-            view.destroy()
         else
-          # ask chris if KD.remote.cacheable is good for this
-          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
-            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-            view.destroy()
-      options.type  = actionType or ''
+          if actorType is "follower"
+            "#{actorName} started following you."
+
+      if subject
+        options.click = ->
+          view = @
+          if subject.constructorName is "JPrivateMessage"
+            appManager.openApplication "Inbox"
+          else if subject.constructorName in ["JComment", "JOpinion"]
+            KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
+              KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
+              # appManager.tell "Activity", "createContentDisplay", post
+              view.destroy()
+          else
+            # ask chris if KD.remote.cacheable is good for this
+            KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
+              # appManager.tell "Activity", "createContentDisplay", post
+              KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
+              view.destroy()
+
+      options.type  = actionType or actorType or ''
 
       @notify options
 
