@@ -157,10 +157,13 @@ class FSItem extends KDObject
   stat:(callback=noop)->
     FSHelper.getInfo @path, callback
 
-  remove:(callback)->
+  remove:(callback, recursive=no)->
 
     @emit "fs.delete.started"
-    @kiteController.run "rm -r #{escapeFilePath @path}", (err, response)=>
+    @kiteController.run
+      method    : "fs.remove"
+      withArgs  : {@path, recursive}
+    , (err, response)=>
       callback err, response
       if err then warn err
       else
