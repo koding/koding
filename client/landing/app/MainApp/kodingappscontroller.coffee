@@ -113,7 +113,7 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
-  fetchCompiledApp:(manifest, callback)->
+  fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
     indexJs.fetchContents (err, response)=> callback null, response
@@ -160,7 +160,7 @@ class KodingAppsController extends KDController
     if script = KD.getAppScript name
       callback null, script
     else
-      @fetchCompiledApp manifest, (err, script)=>
+      @fetchCompiledAppSource manifest, (err, script)=>
         if err
           @compileApp name, (err)->
             callback err, script
@@ -304,7 +304,7 @@ class KodingAppsController extends KDController
       , (err)=>
         if not err
           loader.notificationSetTitle "Fetching compiled app..."
-          @fetchCompiledApp app, (err, res)=>
+          @fetchCompiledAppSource app, (err, res)=>
             if not err
               @defineApp name, res
               loader.notificationSetTitle "App compiled successfully"
