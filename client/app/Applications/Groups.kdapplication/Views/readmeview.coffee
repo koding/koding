@@ -59,6 +59,9 @@ class GroupReadmeView extends JView
     @readmeSaveButton.show()
     @readmeCancelLink.show()
 
+  getDefaultGroupReadme:(title)->
+    defaultGroupReadme title
+
   defaultGroupReadme = (title)->
     """
     <h1>Hello!</h1>
