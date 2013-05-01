@@ -164,8 +164,8 @@ class NFinderTreeController extends JTreeViewController
       callback? nodeView
       return
 
-    cb = @utils.getCancellableCallback (files)=>
-      @utils.killWait folder.failTimer
+    cb = @utils.getCancellableCallback (err, files)=>
+      return @utils.killWait folder.failTimer  if err
       nodeView.expand()
       @addNodes files
       callback? nodeView
@@ -483,7 +483,7 @@ class NFinderTreeController extends JTreeViewController
     CodeShares = []
     @notify "Fetching file list..."
 
-    data.fetchContents (items)=>
+    data.fetchContents (err, items)=>
       @notify "Fetching file contents..."
       files = (file for file in items when file.constructor.name is 'FSFile')
       count = 0

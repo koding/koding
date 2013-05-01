@@ -59,8 +59,8 @@ class KodingAppsController extends KDController
 
     path   = "/home/#{KD.whoami().profile.nickname}/Applications"
     appDir = FSHelper.createFileFromPath path, 'folder'
-    appDir.fetchContents KD.utils.getTimedOutCallback (files)=>
-      if not Array.isArray files or files.length is 0
+    appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+      if err or not Array.isArray files or files.length is 0
         @putAppsToAppStorage {}
         callback()
       else
