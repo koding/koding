@@ -181,7 +181,7 @@ class LoginView extends KDScrollView
           duration  : 2000
         KD.getSingleton('router').clear()
         setTimeout =>
-          @animateToForm "login"
+          @hide()
           @registerForm.reset()
           @registerForm.button.hideLoader()
           # setTimeout =>

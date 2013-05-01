@@ -6,7 +6,6 @@ class KodingAppsController extends KDController
 
   @manifests = {}
 
-
   @getManifestFromPath = getManifestFromPath = (path)->
 
     folderName = (p for p in path.split("/") when /\.kdapp/.test p)[0]
@@ -31,7 +30,7 @@ class KodingAppsController extends KDController
 
     {profile} = KD.whoami()
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/Users/#{profile.nickname}#{path.substr(1)}" else path
+    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}" else path
     return path.replace /(\/+)$/, ""
 
   # #
@@ -50,56 +49,48 @@ class KodingAppsController extends KDController
         if err
           @fetchAppsFromFs (err, apps)=>
             if err then callback()
-            else
-              callback null, apps
+            else callback null, apps
         else
           callback? err, apps
 
   fetchAppsFromFs:(callback)->
 
-    path = "/home/#{KD.whoami().profile.nickname}/Applications"
-
-    throw "Please adapt to new os kite interface."
-
-    @kiteController.run "ls #{escapeFilePath path} -lpva", \
-      KD.utils.getTimedOutCallback (err, response)=>
-        if err
-          @putAppsToAppStorage {}
-          warn err, response
-          callback err
-        else
-          files = FSHelper.parseLsOutput [path], response
-          apps  = []
-          stack = []
-
-          files.forEach (file)->
-            if /\.kdapp$/.test file.name
-              apps.push file
-
-          apps.forEach (app)=>
-            stack.push (cb)=>
-              manifestFile = if app.type is "folder" then \
-                FSHelper.createFileFromPath "#{app.path}/.manifest" else app
-              manifestFile.fetchContents (err, response)->
-                # shadowing the error is intentional here
-                # to not to break the results of the stack
-                cb null, response
-
-          manifests = @constructor.manifests
-          async.parallel stack, (err, results)=>
-            warn err if err
-            results.forEach (rawManifest)->
-              if rawManifest
-                try
-                  manifest = JSON.parse rawManifest
-                  manifests["#{manifest.name}"] = manifest
-                catch e
-                  console.warn "Manifest file is broken", e
-            @putAppsToAppStorage manifests
-            callback? null, manifests
-      , ->
-        log "Timeout reached for kite request"
+    path   = "/home/#{KD.whoami().profile.nickname}/Applications"
+    appDir = FSHelper.createFileFromPath path, 'folder'
+    appDir.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+      if err or not Array.isArray files or files.length is 0
+        @putAppsToAppStorage {}
         callback()
+      else
+        apps  = []
+        stack = []
+
+        files.forEach (file)->
+          if /\.kdapp$/.test(file.name) and file.type is 'folder'
+            apps.push file
+
+        apps.forEach (app)=>
+          stack.push (cb)=>
+            manifest = FSHelper.createFileFromPath "#{app.path}/.manifest"
+            manifest.fetchContents (err, response)->
+              # shadowing the error is intentional here
+              # to not to break the result of the stack
+              cb null, response
+
+        manifests = @constructor.manifests
+        async.parallel stack, (err, result)=>
+          result.forEach (rawManifest)->
+            if rawManifest
+              try
+                manifest = JSON.parse rawManifest
+                manifests["#{manifest.name}"] = manifest
+              catch e
+                console.warn "Manifest file is broken", e
+          @putAppsToAppStorage manifests
+          callback? null, manifests
+    , ->
+      log "Timeout reached for kite request"
+      callback()
 
   fetchAppsFromDb:(callback)->
     return unless @appStorage
@@ -124,11 +115,8 @@ class KodingAppsController extends KDController
 
   fetchCompiledApp:(manifest, callback)->
 
-    {name} = manifest
-    appPath = @getAppPath manifest
-    indexJsPath = "#{appPath}/index.js"
-    @kiteController.run "cat #{escapeFilePath indexJsPath}", (err, response)=>
-      callback err, response
+    indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
+    indexJs.fetchContents (err, response)=> callback null, response
 
   # #
   # MISC
@@ -198,7 +186,6 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-
           KD.getSingleton("appManager").open manifest.name,
             requestedFromAppsController : yes
           , (appInstance)->
@@ -225,7 +212,6 @@ class KodingAppsController extends KDController
           callback?()
           return null
 
-        log "App to run:", name
         callback?()
 
   publishApp:(path, callback)->
@@ -562,39 +548,6 @@ class KodingAppsController extends KDController
         else
           callback? null
 
-
-  # cloneApp:(path, callback)->
-
-  #   @fetchApps (err, manifests = {})=>
-  #     if err
-  #       warn err
-  #       new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-  #       callback? err
-  #     else
-  #       manifest = getManifestFromPath path
-
-  #       {repo} = manifest
-
-  #       if /^git/.test repo      then repoType = "git"
-  #       else if /^svn/.test repo then repoType = "svn"
-  #       else if /^hg/.test repo  then repoType = "hg"
-  #       else
-  #         err = "Unsupported repository specified, quitting!"
-  #         new KDNotificationView type : "mini", title : err
-  #         callback? err
-  #         return no
-
-  #       appPath = "/home/#{KD.whoami().profile.nickname}/Applications/#{manifest.name}.kdapp"
-  #       appBackupPath = "#{appPath}.old#{@utils.getRandomNumber 9999}"
-
-  #       @kiteController.run "mv #{escapeFilePath appPath} #{escapeFilePath appBackupPath}" , (err, response)->
-  #         if err then warn err
-  #         @kiteController.run "#{forkRepoCommandMap()[repoType]} #{repo} #{escapeFilePath getAppPath manifest}", (err, response)->
-  #           if err then warn err
-  #           else
-  #             log response, "App cloned!"
-  #           callback? err, response
-
   # #
   # HELPERS
   # #
@@ -688,21 +641,21 @@ class KodingAppsController extends KDController
       description : 'Koding Terminal'
       author      : 'Koding'
       path        : 'WebTerm'
-    CodeMirror    :
-      name        : 'CodeMirror'
-      type        : 'comingsoon'
-      icon        : 'icn-codemirror.png'
-      description : 'Code Editor'
-      author      : 'Marijn Haverbeke'
-    yMacs         :
-      name        : 'yMacs'
-      type        : 'comingsoon'
-      icon        : 'icn-ymacs.png'
-      description : 'Code Editor'
-      author      : 'Mihai Bazon'
-    Pixlr         :
-      name        : 'Pixlr'
-      type        : 'comingsoon'
-      icon        : 'icn-pixlr.png'
-      description : 'Image Editor'
-      author      : 'Autodesk'
+    # CodeMirror    :
+    #   name        : 'CodeMirror'
+    #   type        : 'comingsoon'
+    #   icon        : 'icn-codemirror.png'
+    #   description : 'Code Editor'
+    #   author      : 'Marijn Haverbeke'
+    # yMacs         :
+    #   name        : 'yMacs'
+    #   type        : 'comingsoon'
+    #   icon        : 'icn-ymacs.png'
+    #   description : 'Code Editor'
+    #   author      : 'Mihai Bazon'
+    # Pixlr         :
+    #   name        : 'Pixlr'
+    #   type        : 'comingsoon'
+    #   icon        : 'icn-pixlr.png'
+    #   description : 'Image Editor'
+    #   author      : 'Autodesk'

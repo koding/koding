@@ -48,6 +48,10 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
+    mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
+    mainController.on 'groupJoinRequested',   @joinGroup.bind this
+    mainController.on 'loginRequired',        @loginRequired.bind this
+
   getCurrentGroupData:-> @currentGroupData
 
   getCurrentGroup:->
@@ -248,12 +252,47 @@ class GroupsAppController extends AppController
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
-  requestAccess:(group, callback)->
-    group.requestAccess (err)->
-      callback err
-      new KDNotificationView title:
-        if err then err.message
-        else "Invitation has been requested!"
+  showRequestAccessModal:(group, isApproval, callback=->)->
+    if isApproval
+      title   = 'Request Access'
+      content = 'Membership to this group requires administrative approval.'
+      success = 'Access has been requested!'
+    else
+      title   = 'Request an Invite'
+      content = 'Membership to this group requires an invitation.'
+      success = 'Invitation has been requested!'
+
+    modal = new KDModalView
+      title          : title
+      overlay        : yes
+      width          : 300
+      height         : 'auto'
+      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      buttons        :
+        request      :
+          title      : title
+          loader     : 
+            color    : "#ffffff"
+            diameter : 12
+          style      : 'modal-clean-green'
+          callback   : (event)->
+            group.requestAccess (err)->
+              modal.buttons.request.hideLoader()
+              callback err
+              new KDNotificationView title:
+                if err then err.message else success
+              modal.destroy() unless err
+
+  joinGroup:(group)->
+    group.join (err, response)=>
+      if err
+        error err
+        new KDNotificationView
+          title : "An error occured, please try again"
+      else
+        new KDNotificationView
+          title : "You successfully joined the group!"
+        @getSingleton('mainController').emit 'JoinedGroup'
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, hasPermission)=>
@@ -263,14 +302,15 @@ class GroupsAppController extends AppController
         @openGroup group
 
   putAddAGroupButton:->
-    {facetsController} = @feedController
-    innerNav = facetsController.getView()
-    innerNav.addSubView addButton = new KDButtonView
-      tooltip   :
-        title   : "Create a Group"
-      style     : "small-gray"
-      iconOnly  : yes
-      callback  : => @showGroupSubmissionView()
+    if KD.isLoggedIn()
+      {facetsController} = @feedController
+      innerNav = facetsController.getView()
+      innerNav.addSubView addButton = new KDButtonView
+        tooltip   :
+          title   : "Create a Group"
+        style     : "small-gray"
+        iconOnly  : yes
+        callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData)->
 
@@ -482,7 +522,6 @@ class GroupsAppController extends AppController
       #   event.preventDefault()
       #   @getSingleton('windowManager').open @href, slug
 
-
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
       @getView().$(".feeder-header span.optional_title").html count
@@ -634,7 +673,18 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
+  loginRequired:(callback)->
+    new KDNotificationView
+      type     : 'mini'
+      cssClass : 'error'
+      title    : 'Login is required for this action'
+      duration : 5000
 
+    route = "/#{KD.groupEntryPoint}/Login" if KD.groupEntryPoint isnt ''
+    @getSingleton('router').handleRoute route
+    @getSingleton('mainController').once 'AccountChanged', ->
+      if KD.isLoggedIn()
+        callback()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->
