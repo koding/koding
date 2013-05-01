@@ -223,11 +223,12 @@ func (k *Kite) Run() {
 
 			case "auth.who":
 				var client struct {
-					Username          string `json:"username"`
-					RoutingKey        string `json:"routingKey"`
-					CorrelationName   string `json:"correlationName"`
-					DeadService       string `json:"deadService"`
-					ServiceUniqueName string `json:"serviceUniqueName"` // used only for response
+					Username           string `json:"username"`
+					RoutingKey         string `json:"routingKey"`
+					CorrelationName    string `json:"correlationName"`
+					DeadService        string `json:"deadService"`
+					ServiceGenericName string `json:"serviceGenericName"`
+					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}
 				err := json.Unmarshal(message.Body, &client)
 				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {

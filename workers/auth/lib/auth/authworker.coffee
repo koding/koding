@@ -48,7 +48,7 @@ module.exports = class AuthWorker extends EventEmitter
 
   addService: ({serviceGenericName, serviceUniqueName, loadBalancing}) ->
     servicesOfType = @services[serviceGenericName] ?= []
-    servicesOfType.push {serviceUniqueName, loadBalancing}
+    servicesOfType.push {serviceUniqueName, serviceGenericName, loadBalancing}
 
   removeService: ({serviceGenericName, serviceUniqueName}) ->
     servicesOfType = @services[serviceGenericName] 
@@ -107,10 +107,11 @@ module.exports = class AuthWorker extends EventEmitter
         callback? null
 
   sendAuthMessage: (options) ->
-    { serviceUniqueName, routingKey, method, callback
-    username, correlationName, socketId } = options
+    { serviceUniqueName, serviceGenericName, routingKey, method, callback
+    username, correlationName, socketId, deadService } = options
 
-    params = { routingKey, username, correlationName }
+    params = { routingKey, username, correlationName
+               serviceGenericName, deadService }
 
     @publishToService serviceUniqueName, method, params, callback
 
@@ -129,8 +130,9 @@ module.exports = class AuthWorker extends EventEmitter
     joinClientHelper = (messageData, routingKey, socketId) ->
       @authenticate messageData, routingKey, (session) =>
         serviceInfo = @getNextServiceInfo messageData.name
-        { serviceUniqueName, loadBalancing } = serviceInfo
+        { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
         params = {
+          serviceGenericName
           serviceUniqueName
           routingKey
           username        : session.username
@@ -246,6 +248,30 @@ module.exports = class AuthWorker extends EventEmitter
       catch e then console.error e
     @presence.listen()
 
+  handleKiteWho: (messageData, socketId) ->
+    { serviceGenericName, serviceUniqueName, routingKey
+      correlationName, username } = messageData
+
+    servicesOfType = @services[serviceGenericName]
+    
+    [matchingService] = (service for service in servicesOfType \
+                         when service.serviceUniqueName is serviceUniqueName)
+    params = {
+      serviceGenericName
+      serviceUniqueName
+      routingKey
+      correlationName
+      username
+    }
+
+    if matchingService?
+      @sendAuthJoin params
+    else
+      params.deadService = serviceUniqueName
+      serviceInfo = @getNextServiceInfo serviceGenericName
+      params.serviceUniqueName = serviceInfo.serviceUniqueName
+      @sendAuthWho params
+
   connect: ->
     {bongo} = this
     bongo.mq.ready =>
@@ -279,13 +305,7 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.leave'
                   @removeService messageData
                 when 'kite.who'
-                  # TODO: make sure this is OK for untrusted kites:
-                  @sendAuthJoin {
-                    serviceUniqueName : messageData.serviceUniqueName
-                    routingKey        : messageData.routingKey
-                    correlationName   : messageData.correlationName
-                    username          : messageData.username
-                  }
+                  @handleKiteWho messageData
                 when "client.auth"
                   @joinClient messageData, socketId
                 else
