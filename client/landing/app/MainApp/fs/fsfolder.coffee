@@ -38,3 +38,6 @@ class FSFolder extends FSFile
   saveAs:(callback)->
     log 'Not implemented yet.'
     callback? null
+
+  remove:(callback)->
+    super callback, yes
