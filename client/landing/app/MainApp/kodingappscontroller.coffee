@@ -71,7 +71,7 @@ class KodingAppsController extends KDController
 
         apps.forEach (app)=>
           stack.push (cb)=>
-            manifest = FSHelper.createFileFromPath "#{app.path}/.manifest"
+            manifest = FSHelper.createFileFromPath "#{app.path}/manifest.json"
             manifest.fetchContents (err, response)->
               # shadowing the error is intentional here
               # to not to break the result of the stack
@@ -113,7 +113,7 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
-  fetchCompiledApp:(manifest, callback)->
+  fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
     indexJs.fetchContents (err, response)=> callback null, response
@@ -160,7 +160,7 @@ class KodingAppsController extends KDController
     if script = KD.getAppScript name
       callback null, script
     else
-      @fetchCompiledApp manifest, (err, script)=>
+      @fetchCompiledAppSource manifest, (err, script)=>
         if err
           @compileApp name, (err)->
             callback err, script
@@ -304,7 +304,7 @@ class KodingAppsController extends KDController
       , (err)=>
         if not err
           loader.notificationSetTitle "Fetching compiled app..."
-          @fetchCompiledApp app, (err, res)=>
+          @fetchCompiledAppSource app, (err, res)=>
             if not err
               @defineApp name, res
               loader.notificationSetTitle "App compiled successfully"
@@ -467,58 +467,49 @@ class KodingAppsController extends KDController
       newAppModal = null
       callback? yes
 
+  _createChangeLog:(name)->
+    today = new Date().format('yyyy-mm-dd')
+    {profile} = KD.whoami()
+    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+
+    """
+     #{today} #{fullName} <@#{profile.nickname}>
+
+        * #{name} (index.coffee): Application created.
+    """
+
   prepareApplication:({isBlank, name}, callback)->
 
-    type        = if isBlank then "blank" else "sample"
-    name        = if name is "" then null else name
-    name        = name.replace(/[^a-zA-Z0-9\/\-.]/g, '') if name
-    manifestStr = defaultManifest type, name
-    manifest    = JSON.parse manifestStr
-    appPath     = @getAppPath manifest
+    type         = if isBlank then "blank" else "sample"
+    name         = if name is "" then null else name
+    name         = name.replace(/[^a-zA-Z0-9\/\-.]/g, '')  if name
+    manifestStr  = defaultManifest type, name
+    changeLogStr = @_createChangeLog name
+    manifest     = JSON.parse manifestStr
+    appPath      = @getAppPath manifest
     # log manifestStr
 
-    FSItem.create appPath, "folder", (err, fsFolder)=>
+    stack = []
+
+    manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
+    changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
+
+    # Copy default app files (app Skeleton)
+    stack.push (cb)=>
+      @kiteController.run
+        method    : "app.skeleton"
+        withArgs  :
+          type    : if isBlank then "blank" else "sample"
+          appPath : appPath
+        , cb
+
+    stack.push (cb)=> manifestFile.save  manifestStr,  cb
+    stack.push (cb)=> changeLogFile.save changeLogStr, cb
+
+    async.parallel stack, (err, result) =>
       if err then warn err
-      else
-        stack = []
-        today = new Date().format('yyyy-mm-dd')
-        {profile} = KD.whoami()
-        fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
-
-        stack.push (cb)=>
-          @kiteController.run
-            method      : "uploadFile"
-            withArgs    :
-              path      : escapeFilePath "#{fsFolder.path}/.manifest"
-              contents  : manifestStr
-          , cb
-
-        stack.push (cb)=>
-          @kiteController.run
-            method      : "uploadFile"
-            withArgs    :
-              path      : escapeFilePath "#{fsFolder.path}/ChangeLog"
-              contents  : """
-                              #{today} #{fullName} <@#{profile.nickname}>
-
-                                  * #{name} (index.coffee): Application created.
-                          """
-          , cb
-
-        # Copy default app files (app Skeleton)
-        stack.push (cb)=>
-          @kiteController.run
-            kiteName  : "applications"
-            method    : "copyAppSkeleton"
-            withArgs  :
-              type    : if isBlank then "blank" else "sample"
-              appPath : appPath
-            , cb
-
-        async.parallel stack, (error, result) =>
-          if err then warn err
-          @emit "aNewAppCreated" if not err
-          callback? err, result
+      @emit "aNewAppCreated" if not err
+      callback? err, result
 
   # #
   # FORK / CLONE APP
