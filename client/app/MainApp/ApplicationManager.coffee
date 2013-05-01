@@ -73,9 +73,10 @@ class ApplicationManager extends KDObject
       # appManager.open back, this method should be divided
       # to some logical parts, and runApp should call the
       # appropriate method rather than ::open.
-      if not appOptions?
-        @fetchManifests ->
-          kodingAppsController.runApp (KD.getAppOptions name), callback
+      if not appOptions? and not options.requestedFromAppManager?
+        @fetchManifests =>
+          options.requestedFromAppManager = yes
+          @open name, options, callback
         return
       else if appOptions.thirdParty and not options.requestedFromAppsController
         kodingAppsController.runApp (KD.getAppOptions name), callback
@@ -104,6 +105,7 @@ class ApplicationManager extends KDObject
                 else
                   warn "user cancelled app to open"
             else do defaultCallback
+
       else do defaultCallback
 
   fetchManifests:(callback)->
