@@ -341,6 +341,16 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
+    verifySlug = (slug)->
+      modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+      KD.remote.api.JName.one
+        name : "#{slug}"
+      , (err,name)=>
+        if name
+          modal.modalTabs.forms["General Settings"].inputs.Slug.setClass 'slug-taken'
+        else
+          modal.modalTabs.forms["General Settings"].inputs.Slug.unsetClass 'slug-taken'
+
     modalOptions =
       title                          : 'Create a new group'
       height                         : 'auto'
@@ -394,11 +404,22 @@ class GroupsAppController extends AppController
                 keydown              : (pubInst, event)->
                   @utils.defer =>
                     slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                    verifySlug slug
+
+
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
                 label                : "Slug"
                 name                 : "slug"
+                blur                 : ->
+                  @utils.defer =>
+                    slug = @utils.slugify @getValue()
+                    verifySlug slug
+                keydown              : ->
+                  @utils.defer =>
+                    slug = @utils.slugify @getValue()
+                    verifySlug slug
+
                 defaultValue         : ""
                 placeholder          : 'This value will be automatically generated'
               "Description"          :
