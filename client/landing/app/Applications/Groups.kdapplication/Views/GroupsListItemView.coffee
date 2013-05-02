@@ -184,7 +184,7 @@ class GroupsListItemView extends KDListItemView
                 callback()
                 if err
                   return new KDNotificationView title: if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-                new KDNotificationView title:'Ok, we removed your group with a heavy heart!'
+                new KDNotificationView title:'Successfully removed!'
                 modal.destroy()
                 @destroy()
           , data
@@ -202,7 +202,7 @@ class GroupsListItemView extends KDListItemView
         return callback()
 
       new KDNotificationView
-        title    : 'Fair Enough! They are gonna miss you.'
+        title    : 'Successfully left group!'
         duration : 2000
       callback()
 
