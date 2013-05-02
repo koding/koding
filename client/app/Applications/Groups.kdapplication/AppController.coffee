@@ -53,7 +53,7 @@ class GroupsAppController extends AppController
     mainController.on 'loginRequired',        @loginRequired.bind this
 
   getCurrentGroup:->
-    throw 'FIXME: array whould never be passed'  if Array.isArray @currentGroupData.data
+    throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
