@@ -80,6 +80,8 @@ class AccountAppController extends AppController
     @_windowDidResize()
     @getSingleton("windowController").registerWindowResizeListener @
 
+    @utils.wait => @split._windowDidResize()
+
   contentScrolled:(pubInst,event)->
     @__lastScrollTop or= 0
     newScrollTop = pubInst.$().scrollTop()
