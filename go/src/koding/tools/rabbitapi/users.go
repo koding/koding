@@ -77,3 +77,19 @@ func (r *Rabbit) DeleteUser(name string) error {
 
 	return nil
 }
+
+// GET /api/users/name/permissions
+func (r *Rabbit) GetUserPermissions(name string) ([]Permission, error) {
+	body, err := r.getRequest("/api/users/" + name + "/permissions")
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]Permission, 0)
+	err = json.Unmarshal(body, &list)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}

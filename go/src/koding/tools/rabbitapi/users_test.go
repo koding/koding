@@ -43,3 +43,13 @@ func TestRabbit_DeleteUser(t *testing.T) {
 		t.Log("user 'zeynep' deleted successfull")
 	}
 }
+
+func TestRabbit_GetUserPermissions(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+	permissions, err := r.GetUserPermissions("guest")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("permissions for user 'guest'", permissions)
+	}
+}

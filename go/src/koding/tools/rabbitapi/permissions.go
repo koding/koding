@@ -67,7 +67,6 @@ func (r *Rabbit) CreatePermission(vhost, user, configure, write, read string) er
 		return err
 	}
 
-	// debug fmt.Println(string(data))
 	err = r.putRequest("/api/permissions/"+vhost+"/"+user, data)
 	if err != nil {
 		return err
