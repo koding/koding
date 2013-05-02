@@ -52,11 +52,8 @@ class GroupsAppController extends AppController
     mainController.on 'groupJoinRequested',   @joinGroup.bind this
     mainController.on 'loginRequired',        @loginRequired.bind this
 
-  getCurrentGroupData:-> @currentGroupData
-
   getCurrentGroup:->
-    if Array.isArray @currentGroupData.data
-      return @currentGroupData.data.first
+    throw 'FIXME: array whould never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
