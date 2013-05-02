@@ -400,7 +400,7 @@ class GroupsAppController extends AppController
               "type"                 :
                 name                 : "type"
                 itemClass            : KDInputRadioGroup
-                defaultValue         : "custom"
+                defaultValue         : "project"
                 cssClass             : "group-type"
                 radios               : [
                   { title : "University/School", value : "educational"}
