@@ -22,7 +22,6 @@ class NFinderController extends KDViewController
 
     super options, data
 
-    @kiteController = @getSingleton('kiteController')
     @treeController = new NFinderTreeController treeOptions, []
 
     if options.useStorage
