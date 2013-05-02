@@ -41,9 +41,6 @@ class MainViewController extends KDViewController
 
     cdController.emit "ContentDisplaysShouldBeHidden"
 
-    if route is 'Develop'
-      router.handleRoute '/Develop', suppressListeners: yes
-
     @setViewState pane.getOptions()
     navController.selectItemByName route
 
