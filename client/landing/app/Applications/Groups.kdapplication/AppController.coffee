@@ -71,10 +71,10 @@ class GroupsAppController extends AppController
       @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
-    return callback()  if @currentGroup is groupName
-    throw new Error 'Cannot change the group!'  if @currentGroup?
+    return callback()  if @currentGroupName is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroupName?
     @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    unless @currentGroup is groupName
+    unless @currentGroupName is groupName
       @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
@@ -89,17 +89,17 @@ class GroupsAppController extends AppController
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
-  getGroupSlug:-> @currentGroup
+  getGroupSlug:-> @currentGroupName
 
   setGroup:(groupName)->
-    @currentGroup = groupName
+    @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: KD.whoami().profile.nickname
     }
 
   resetUserArea:(account)->
     @setUserArea {
-      group: @currentGroup ? 'koding', user: account.profile.nickname
+      group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
   createFeed:(view)->
