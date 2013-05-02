@@ -124,14 +124,6 @@ class PopupGroupListItem extends KDListItemView
     roleClasses = roles.map((role)-> "role-#{role}").join ' '
     @setClass "role #{roleClasses}"
 
-    @avatar = new KDCustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'avatar-image'
-      attributes :
-        src      : avatar or "http://lorempixel.com/20/20?#{@utils.getRandomNumber()}"
-        width    : 20
-        height   : 20
-
     @switchLink = new CustomLinkView
       title       : title
       href        : "/#{if slug is 'koding' then '' else slug+'/'}Activity"
@@ -148,7 +140,6 @@ class PopupGroupListItem extends KDListItemView
   pistachio: ->
     {roles} = @getData()
     """
-    <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
       {{> @switchLink}}
       <span class="roles">#{roles.join ', '}</span>
