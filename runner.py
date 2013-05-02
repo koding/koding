@@ -93,7 +93,6 @@ def print_usage():
 def main():
     run_dir = os.getcwd()
     run_file = os.path.join(run_dir, 'Runfile')
-    run_log = os.path.join(run_dir, 'run.log')
 
     if not os.access(run_file, os.R_OK):
         print "Nothing to do"
@@ -111,8 +110,7 @@ def main():
         return -1
 
     if operation == 'log':
-        if os.access(run_log, os.R_OK):
-            os.system('tail -f %s' % run_log)
+        os.system('tail -f *.log')
         return
 
     rules = yaml.load(file(run_file))
@@ -169,7 +167,7 @@ def main():
     elif operation == 'start':
         for cmd in rule_commands:
             if cmd not in running_commands:
-                fork_command(cmd, run_log)
+                fork_command(cmd, os.path.join(run_dir, "%s.log" % cmd[-1]))
 
     return 0
 
