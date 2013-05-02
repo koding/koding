@@ -73,12 +73,14 @@ class GroupsListItemView extends KDListItemView
     @memberBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge member"
-      partial   : "<span class='fold'/>You are a member"
+      partial   : "You are a member"
 
     @privateBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
-      partial   : "<span class='fold'/><span class='icon'/>"
+      partial   : "<span class='icon'/>"
+      tooltip   :
+        title   : "Restricted access: viewing this groups content requires requesting an invitation"
 
     @memberCount = new CustomLinkView
       title       : "#{group.counts?.members or 'No'} Members"
