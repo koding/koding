@@ -158,7 +158,8 @@ class GroupsListItemView extends KDListItemView
                   diameter : 16
                 callback   : =>
                   @leaveGroup data, =>
-                    @unsetClass 'own-group'
+                    @memberBadge.hide()
+                    @settingsButton.hide()
                     modal.buttons.Leave.hideLoader()
                     modal.destroy()
               Cancel       :
@@ -196,6 +197,11 @@ class GroupsListItemView extends KDListItemView
       new KDNotificationView
         title    : 'Fair Enough! They are gonna miss you.'
         duration : 2000
+
+      currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
+      currentGroupSlug = currentGroup.getAt 'slug'
+      if group.slug == currentGroupSlug
+        document.location.reload()
       callback()
 
   fetchMembers:->
