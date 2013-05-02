@@ -57,16 +57,6 @@ func TestRabbit_PutUser(t *testing.T) {
 	}
 }
 
-func TestRabbit_DeleteUser(t *testing.T) {
-	r := Auth("guest", "guest", "http://localhost:15672")
-	err := r.DeleteUser("fatih")
-	if err != nil {
-		t.Error(err)
-	} else {
-		t.Log("user 'fatih' deleted successfull")
-	}
-}
-
 func TestRabbit_GetPermissions(t *testing.T) {
 	r := Auth("guest", "guest", "http://localhost:15672")
 	permissions, err := r.GetPermissions()
@@ -94,5 +84,15 @@ func TestRabbit_PutPermission(t *testing.T) {
 		t.Error(err)
 	} else {
 		t.Log("user created successfull")
+	}
+}
+
+func TestRabbit_DeleteUser(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+	err := r.DeleteUser("zeynep")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("user 'zeynep' deleted successfull")
 	}
 }
