@@ -256,7 +256,7 @@ class GroupsAppController extends AppController
     if isApproval
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
-      success = 'Access has been requested!'
+      success = "Thanks! You'll receive an email an email shortly."
     else
       title   = 'Request an Invite'
       content = 'Membership to this group requires an invitation.'
@@ -271,7 +271,7 @@ class GroupsAppController extends AppController
       buttons        :
         request      :
           title      : title
-          loader     : 
+          loader     :
             color    : "#ffffff"
             diameter : 12
           style      : 'modal-clean-green'
