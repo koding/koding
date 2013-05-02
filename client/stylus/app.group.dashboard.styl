@@ -751,14 +751,18 @@
               fl()
 
           &:nth-last-child(2)
-            margin-bottom     49px
+            margin-bottom       49px
             border-bottom-color transparent
+
+          &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
+            bg color,         rgba(0,0,0,0.025)
 
           borderBox()
           padding             7px 10px
           // border-bottom       1px solid #f5f5f5
           // border-left         1px solid #f5f5f5
           // border-right        1px solid #f5f5f5
+          border            none
 
           .input-wrapper:first-child
             border-left       none
@@ -797,7 +801,7 @@
           // background          linear-gradient(top, #555 0%,#666 93.7%)
           color               #444
           font-weight         bold
-          padding-top         15px
+          padding-top         25px
           .input-wrapper
             text-align        left
 
