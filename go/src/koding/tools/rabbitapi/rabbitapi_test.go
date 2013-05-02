@@ -53,7 +53,17 @@ func TestRabbit_PutUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		t.Log("user created successfull")
+		t.Log("user 'zeynep created successfull")
+	}
+}
+
+func TestRabbit_DeleteUser(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+	err := r.DeleteUser("fatih")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("user 'fatih' deleted successfull")
 	}
 }
 

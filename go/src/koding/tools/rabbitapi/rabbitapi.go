@@ -92,8 +92,7 @@ func (r *Rabbit) GetVhost(name string) (Vhost, error) {
 func (r *Rabbit) PutVhost(name string)    {}
 func (r *Rabbit) DeleteVhost(name string) {}
 
-// /api/users
-// /api/users/name GET, PUT, DELETE
+// GET /api/users
 func (r *Rabbit) GetUsers() ([]User, error) {
 	body, err := r.getRequest("/api/users")
 	if err != nil {
@@ -109,6 +108,8 @@ func (r *Rabbit) GetUsers() ([]User, error) {
 	return users, nil
 
 }
+
+// GET /api/users/name
 func (r *Rabbit) GetUser(name string) (User, error) {
 	body, err := r.getRequest("/api/users/" + name)
 	if err != nil {
@@ -124,6 +125,8 @@ func (r *Rabbit) GetUser(name string) (User, error) {
 	return user, nil
 
 }
+
+// PUT /api/users/name password=secret tags=""
 func (r *Rabbit) PutUser(name, password string, tags string) error {
 	user := &UserPut{
 		Password: password,
@@ -143,7 +146,15 @@ func (r *Rabbit) PutUser(name, password string, tags string) error {
 	return nil
 }
 
-func (r *Rabbit) DeleteUser(name string) {}
+// DELETE /api/users/name
+func (r *Rabbit) DeleteUser(name string) error {
+	err := r.deleteRequest("/api/users/" + name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // /api/permissions
 // /api/permissions/name GET, PUT, DELETE
@@ -206,7 +217,9 @@ func (r *Rabbit) PutPermission(vhost, user, configure, write, read string) error
 	return nil
 
 }
-func (r *Rabbit) DeletePermission(name string) {}
+func (r *Rabbit) DeletePermission(name string) {
+
+}
 
 // /api/whoami
 func (r *Rabbit) GetWhoami() {}
@@ -222,8 +235,9 @@ func (r *Rabbit) getRequest(endpoint string) ([]byte, error) {
 	if err != nil {
 		log.Println(err)
 	}
-
 	req.SetBasicAuth(r.Username, r.Password)
+	req.Header.Set("Content-Type", "application/json")
+
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Println(err)
@@ -245,12 +259,33 @@ func (r *Rabbit) getRequest(endpoint string) ([]byte, error) {
 
 func (r *Rabbit) putRequest(endpoint string, body []byte) error {
 	reader := bytes.NewBuffer(body)
-
 	req, err := r.newRequest("PUT", endpoint, reader)
 	if err != nil {
 		log.Println(err)
 	}
+	req.SetBasicAuth(r.Username, r.Password)
+	req.Header.Set("Content-Type", "application/json")
 
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	defer resp.Body.Close()
+
+	// io.Copy(os.Stdout, resp.Body)
+
+	if resp.StatusCode != 204 {
+		return fmt.Errorf(resp.Status)
+	}
+
+	return nil
+}
+
+func (r *Rabbit) deleteRequest(endpoint string) error {
+	req, err := r.newRequest("DELETE", endpoint, nil)
+	if err != nil {
+		log.Println(err)
+	}
 	req.SetBasicAuth(r.Username, r.Password)
 	req.Header.Set("Content-Type", "application/json")
 
