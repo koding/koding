@@ -450,16 +450,16 @@ class GroupsAppController extends AppController
                   { title : "Visible in group listings",    value : "visible" }
                   { title : "Hidden in group listings",     value : "hidden" }
                 ]
-              "Group VM"             :
-                label                : "Create a shared server for the group"
-                itemClass            : KDOnOffSwitch
-                name                 : "group-vm"
-                defaultValue         : no
-              "Member VM"            :
-                label                : "Create a server for each group member"
-                itemClass            : KDOnOffSwitch
-                name                 : "member-vm"
-                defaultValue         : no
+#              "Group VM"             :
+#                label                : "Create a shared server for the group"
+#                itemClass            : KDOnOffSwitch
+#                name                 : "group-vm"
+#                defaultValue         : no
+#              "Member VM"            :
+#                label                : "Create a server for each group member"
+#                itemClass            : KDOnOffSwitch
+#                name                 : "member-vm"
+#                defaultValue         : no
 
     modal = new KDModalViewWithForms modalOptions
 
