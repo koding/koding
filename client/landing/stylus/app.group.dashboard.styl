@@ -802,8 +802,10 @@
           color               #444
           font-weight         bold
           padding-top         25px
-          &:not(:first-child)
+
+          &:nth-child(2) // Header is first, first subgroup is 2
             padding-top       0
+
           .input-wrapper
             text-align        left
 
