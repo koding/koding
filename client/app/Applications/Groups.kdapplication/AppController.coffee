@@ -256,11 +256,11 @@ class GroupsAppController extends AppController
     if isApproval
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
-      success = 'Access has been requested!'
+      success = "Thanks! You'll receive an email when group's admin accepts you."
     else
       title   = 'Request an Invite'
       content = 'Membership to this group requires an invitation.'
-      success = 'Invitation has been requested!'
+      success = "Invitation has been sent to the group's admin."
 
     modal = new KDModalView
       title          : title
@@ -271,7 +271,7 @@ class GroupsAppController extends AppController
       buttons        :
         request      :
           title      : title
-          loader     : 
+          loader     :
             color    : "#ffffff"
             diameter : 12
           style      : 'modal-clean-green'
@@ -384,10 +384,7 @@ class GroupsAppController extends AppController
                 loader               :
                   color              : "#444444"
                   diameter           : 12
-              "Cancel"               :
-                style                : "modal-clean-gray"
-                callback             : -> modal.destroy()
-              "back"                 :
+              "Back"                 :
                 style                : "modal-cancel"
                 callback             : -> modal.modalTabs.showPreviousPane()
             fields                   :

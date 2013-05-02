@@ -34,7 +34,7 @@ class GroupHomeView extends KDView
 
         group.fetchReadme (err, readme)=>
           @addSubView @readmeView = new KDView
-            partial   : @utils.applyMarkdown readme?.content or \
+            partial   : @utils.applyMarkdown(readme?.content)or \
               GroupReadmeView::getDefaultGroupReadme.call @, group.title
             cssClass  : 'has-markdown'
             tagName   : 'figure'
