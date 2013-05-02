@@ -77,4 +77,16 @@ func (r *Rabbit) CreatePermission(vhost, user, configure, write, read string) er
 }
 
 // DELETE /api/permissions/vhost/user
-func (r *Rabbit) DeletePermission(name string) {}
+func (r *Rabbit) DeletePermission(vhost, user string) error {
+	if vhost == "/" {
+		vhost = "%2f"
+	}
+
+	err := r.deleteRequest("/api/permissions/" + vhost + "/" + user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}

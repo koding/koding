@@ -39,6 +39,17 @@ func TestRabbit_CreatePermission(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		t.Log("user created successfull")
+		t.Log("permission for user 'zeynep' is created successfull")
+	}
+}
+
+func TestRabbit_DeletePermission(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+
+	err := r.DeletePermission("/", "zeynep")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("permission for user 'zeynep' is deleted successfull")
 	}
 }
