@@ -105,7 +105,7 @@ class GroupsAppController extends AppController
       group: @currentGroup ? 'koding', user: account.profile.nickname
     }
 
-  createFeed:(view)->
+  createFeed:(view, loadFeed = no)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -136,7 +136,12 @@ class GroupsAppController extends AppController
             {JGroup} = KD.remote.api
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              JGroup.byRelevance @_searchValue, options, callback
+              JGroup.byRelevance @_searchValue, options, (err, items, rest...)=>
+                callback err, items, rest...
+                # to trigger dataEnd
+                unless err
+                  ids = item.getId?() for item in items
+                  callback null, null, ids
             else
               JGroup.streamModels selector, options, callback
           dataEnd           :({resultsController}, ids)=>
@@ -177,7 +182,7 @@ class GroupsAppController extends AppController
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
-
+      @feedController.loadFeed() if loadFeed
       @putAddAGroupButton()
       @emit 'ready'
 
@@ -491,17 +496,17 @@ class GroupsAppController extends AppController
           permissionSet
         }, group
 
-  loadView:(mainView, firstRun = yes)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
-        @loadView mainView, no
-
+        @loadView mainView, no, yes
       mainView.createCommons()
-      @createFeed mainView
+
+    @createFeed mainView, loadFeed
 
   openGroup:(group)->
     {slug, title} = group
