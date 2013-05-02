@@ -89,7 +89,7 @@ class GroupsListItemView extends KDListItemView
     menu = @settingsMenu data
     if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent group-settings-context'
+        style       : 'transparent group-settings-context'
         title       : ''
         delegate    : @
         type        : 'contextmenu'
@@ -113,15 +113,18 @@ class GroupsListItemView extends KDListItemView
 
   markMemberGroup:->
     @setClass "member-group"
+    @settingsButton.options.style += " member-group"
     @fetchMembers() if @getData().privacy isnt 'public'
 
   markOwnGroup:->
     @setClass "own-group"
+    @settingsButton.options.style += " own-group"
     @memberBadge.stopUpdatingPartial = yes
     @memberBadge.updatePartial "<span class='fold'/>You are owner"
 
   markGroupAdmin:->
     @setClass "group-admin"
+    @settingsButton.options.style += " group-admin"
     unless @memberBadge.stopUpdatingPartial?
       @memberBadge.updatePartial "<span class='fold'/>You are an admin"
 
@@ -152,6 +155,7 @@ class GroupsListItemView extends KDListItemView
 
     if data.slug isnt 'koding'
       menu['Leave Group'] =
+        cssClass : 'leave-group'
         callback : =>
           modal = new KDModalView
             title          : 'Leave Group'
@@ -174,7 +178,7 @@ class GroupsListItemView extends KDListItemView
                 callback   : (event)-> modal.destroy()
 
       menu['Remove Group'] =
-        cssClass : 'remove-group hidden'
+        cssClass : 'remove-group'
         callback : =>
           modal = new GroupsDangerModalView
             action     : 'Remove Group'
