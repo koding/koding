@@ -44,7 +44,6 @@ class TopicsAppController extends AppController
               JTag.streamModels selector, options, callback
           dataEnd           : ({resultsController}, ids)->
             JTag.fetchMyFollowees ids, (err, followees)->
-              console.log followees
               if err then error err
               else
                 {everything} = resultsController.listControllers
@@ -106,7 +105,6 @@ class TopicsAppController extends AppController
     @createFeed mainView
 
   openTopic:(topic)->
-    console.trace()
     group = KD.getSingleton('groupsController').getCurrentGroup()
     KD.getSingleton('router').handleRoute """
       #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
