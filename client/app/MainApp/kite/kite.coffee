@@ -44,7 +44,6 @@ class Kite extends KDObject
 
   handleBrokerSubscribed:->
 
-
   cycleChannel: ->
     @setStopPinging()
     @channel.off()
@@ -60,9 +59,9 @@ class Kite extends KDObject
       callbacks   : {}
     @channel.once 'pong', callback  if callback
 
-  setStartPinging: -> @stopPinging = false
+  setStartPinging: -> @stopPinging = yes
 
-  setStopPinging: -> @stopPinging = true
+  setStopPinging: -> @stopPinging = no
 
   handleMessageArrived: ->
     clearTimeout @unresponsiveTimeoutId
@@ -116,9 +115,7 @@ class Kite extends KDObject
     @channel.exchange = resourceName
     @emit 'ready'
 
-  handleError: (err) ->
-    @cycleChannel()
-    console.error err
+  handleError: (err) -> console.error err
 
   handlePong: ->
     @channel.emit 'pong'
