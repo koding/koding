@@ -8,7 +8,7 @@ class Kite extends KDObject
     super
 
     { @kiteName, @correlationName, @kiteKey } = options
-    
+
     @initChannel()
 
     @localStore   = new Store
@@ -139,9 +139,9 @@ class Kite extends KDObject
   unscrub: (args) ->
     scrubber = new Scrubber @localStore
     return scrubber.unscrub args, (callbackId) =>
-      unless remoteStore.has callbackId
+      unless @remoteStore.has callbackId
         @remoteStore.add callbackId, (rest...) =>
-          @handleRequest @kiteName, callbackId, rest
+          @handleRequest callbackId, rest
       @remoteStore.get callbackId
 
   getChannelName: ->
