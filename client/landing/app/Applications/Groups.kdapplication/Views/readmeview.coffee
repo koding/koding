@@ -83,7 +83,9 @@ class GroupReadmeView extends JView
         group.canEditGroup (err, allowed)=>
           @readmeEditButton.show() if allowed
       else
-        partial = err.message or "Access denied! Please join the group."
+        partial =
+          if err?.message then err.message
+          else "Access denied! Please join the group."
 
       @readme = readme?.content or partial
       @readmeView.updatePartial @utils.applyMarkdown partial
