@@ -253,11 +253,11 @@ class GroupsAppController extends AppController
     if isApproval
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
-      success = 'Access has been requested!'
+      success = "Thanks! You'll receive an email when group's admin accepts you."
     else
       title   = 'Request an Invite'
       content = 'Membership to this group requires an invitation.'
-      success = 'Invitation has been requested!'
+      success = "Invitation has been sent to the group's admin."
 
     modal = new KDModalView
       title          : title
@@ -268,7 +268,7 @@ class GroupsAppController extends AppController
       buttons        :
         request      :
           title      : title
-          loader     : 
+          loader     :
             color    : "#ffffff"
             diameter : 12
           style      : 'modal-clean-green'
@@ -338,6 +338,16 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
+    verifySlug = (slug)->
+      modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+      KD.remote.api.JName.one
+        name : "#{slug}"
+      , (err,name)=>
+        if name
+          modal.modalTabs.forms["General Settings"].inputs.Slug.setClass 'slug-taken'
+        else
+          modal.modalTabs.forms["General Settings"].inputs.Slug.unsetClass 'slug-taken'
+
     modalOptions =
       title                          : 'Create a new group'
       height                         : 'auto'
@@ -381,10 +391,7 @@ class GroupsAppController extends AppController
                 loader               :
                   color              : "#444444"
                   diameter           : 12
-              "Cancel"               :
-                style                : "modal-clean-gray"
-                callback             : -> modal.destroy()
-              "back"                 :
+              "Back"                 :
                 style                : "modal-cancel"
                 callback             : -> modal.modalTabs.showPreviousPane()
             fields                   :
@@ -394,11 +401,22 @@ class GroupsAppController extends AppController
                 keydown              : (pubInst, event)->
                   @utils.defer =>
                     slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                    verifySlug slug
+
+
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
                 label                : "Slug"
                 name                 : "slug"
+                blur                 : ->
+                  @utils.defer =>
+                    slug = @utils.slugify @getValue()
+                    verifySlug slug
+                keydown              : ->
+                  @utils.defer =>
+                    slug = @utils.slugify @getValue()
+                    verifySlug slug
+
                 defaultValue         : ""
                 placeholder          : 'This value will be automatically generated'
               "Description"          :
