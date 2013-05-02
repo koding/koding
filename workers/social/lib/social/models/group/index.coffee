@@ -794,7 +794,7 @@ module.exports = class JGroup extends Module
       JInvitationRequest.one params, (err, invitationRequest)=>
         if invitationRequest
           callback new KodingError """
-            You've already invited #{email} to join this group before.
+            You've already invited #{email}.
             """
         else
           params.invitationType = 'invitation'
