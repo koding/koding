@@ -59,9 +59,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     backToKodingView = new KDView
       height   : "auto"
       cssClass : "split sublink right"
-      partial  : "<a class='right' href='#'>Back to Koding</a>"
+      partial  : "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
       click    : =>
-        KD.getSingleton('router').handleRoute '/Activity'
         @hide()
 
     split = new SplitView
