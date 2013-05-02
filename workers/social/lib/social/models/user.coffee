@@ -381,6 +381,8 @@ module.exports = class JUser extends jraphical.Module
                             followActions  : off
                             comment        : on
                             likeActivities : off
+                            groupRequest   : on
+                            groupApproval  : on 
                           }
                         }
                         user.save (err)=>
