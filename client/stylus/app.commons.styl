@@ -200,6 +200,9 @@ button.kdbutton.icon-only
       bg            position,-160px -560px
     &.down
       bg            position,-120px -560px
+    &.exclamation
+      bg            position,-300px -140px
+
 
 /* editor-button
 *******************************************************************************/
@@ -1446,6 +1449,9 @@ figure.code-container
   &.newMessage
     .kdnotification-title span
       bg              position, -102px -604px
+  &.follower
+    .kdnotification-title span
+      bg              position, -82px -662px
 
   .kdnotification-title
     font-size         12px
@@ -1503,11 +1509,9 @@ figure.code-container
     vertical-align      top
     sprite()
   span.title
-    // text-decoration     underline
     display             inline-block
     color               linkColor1
     overflow            ellipsis
-    width               100%
 
 
 .application-tab-handle-holder.kdtabhandlecontainer

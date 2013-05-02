@@ -13,7 +13,7 @@ func CreateConnection(component string) *amqp.Connection {
 	conn, err := amqp.Dial(amqp.URI{
 		Scheme:   "amqp",
 		Host:     config.Current.Mq.Host,
-		Port:     5672,
+		Port:     config.Current.Mq.Port,
 		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
 		Password: config.Current.Mq.Password,
 		Vhost:    config.Current.Mq.Vhost,

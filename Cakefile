@@ -44,13 +44,23 @@ compileGoBinaries = (configFile,callback)->
   compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
   if compileGo
     processes.spawn
-      name: 'build'
+      name: 'build go'
       cmd : './go/build.sh'
       stdout : process.stdout
       stderr : process.stderr
       verbose : yes
       onExit :->
-        callback null
+        if configFile == "vagrant"
+          processes.spawn
+            name: 'build go in vagrant'
+            cmd : 'vagrant ssh --command "/opt/koding/go/build.sh bin-vagrant"'
+            stdout : process.stdout
+            stderr : process.stderr
+            verbose : yes
+            onExit :->
+              callback null
+        else
+          callback null
   else
     callback null
 
@@ -248,7 +258,7 @@ task 'osKite',({configFile})->
 
   processes.spawn
     name  : 'osKite'
-    cmd   : "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -342,7 +352,6 @@ run =({configFile})->
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
-    invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes

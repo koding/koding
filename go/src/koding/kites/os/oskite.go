@@ -204,7 +204,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 			if vm.LdapPassword == "" {
 				ldapPassword := utils.RandomString()
-				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ldapPassword": nil}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
 					panic(err)
 				}
 				vm.LdapPassword = ldapPassword
