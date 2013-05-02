@@ -51,7 +51,7 @@ class ActivityListHeader extends JView
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   pistachio:(newCount)->
-    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}"
+    "<div class='header-wrapper'><span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     @_newItemsCount++
