@@ -16,7 +16,7 @@ class MembersAppController extends AppController
 
 #  setGroup:-> console.trace()
 
-  createFeed:(view)->
+  createFeed:(view, loadFeed = no)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
@@ -83,8 +83,8 @@ class MembersAppController extends AppController
           direction         : -1
     }, (controller)=>
       @feedController = controller
+      @feedController.loadFeed() if loadFeed
       view.addSubView @_lastSubview = controller.getView()
-      controller.loadFeed()
       @emit 'ready'
       controller.on "FeederListViewItemCountChanged", (count, filter)=>
         if @_searchValue and filter is 'everything'
@@ -193,15 +193,15 @@ class MembersAppController extends AppController
     newView.createCommons account
     @createLikedFeedForContentDisplay newView, account
 
-  loadView:(mainView, firstRun = yes)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
-        @loadView mainView, no
+        @loadView mainView, no, yes
       mainView.createCommons()
-    @createFeed mainView
+    @createFeed mainView, loadFeed
 
   # showMemberContentDisplay:({content})->
   #   contentDisplayController = @getSingleton "contentDisplayController"
