@@ -100,6 +100,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://new.koding.com:4040'
     runtimeOptions:
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
