@@ -5,10 +5,10 @@ class GroupsWebhookView extends JView
     @setClass 'webhook'
     @editLink = new CustomLinkView
       href    : '#'
-      title   : 'Edit webhook'
+      title   : 'Edit'
       click   : (event)=>
         event.preventDefault()
         @emit 'WebhookEditRequested'
 
   pistachio:->
-    "{.endpoint{#(webhookEndpoint)}}{{> @editLink}}"
+    "{.endpoint{#(webhookEndpoint)}} {{> @editLink}}"
