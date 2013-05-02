@@ -47,13 +47,30 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView @listController.getView()
 
-    @avatarPopupContent.addSubView new KDView
+
+    seeAllView = new KDView
       height   : "auto"
-      cssClass : "sublink"
+      cssClass : "split sublink"
       partial  : "<a href='#'>See all groups...</a>"
       click    : =>
         KD.getSingleton("appManager").open "Groups"
         @hide()
+
+    backToKodingView = new KDView
+      height   : "auto"
+      cssClass : "split sublink right"
+      partial  : "<a class='right' href='#'>Back to Koding</a>"
+      click    : =>
+        KD.getSingleton('router').handleRoute '/Activity'
+        @hide()
+
+    split = new SplitView
+      domId     : "avatararea-bottom-split-view"
+      height    : "37px"
+      sizes     : [130,null]
+      views     : [seeAllView,backToKodingView]
+      resizable : no
+    @avatarPopupContent.addSubView split
 
   accountChanged:->
     @listController.removeAllItems()
