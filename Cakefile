@@ -193,7 +193,7 @@ task 'guestCleanup',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      startMode     : "many"
+      startMode     : "one"
       nodeProcess   : yes
     verbose         : yes
 
@@ -317,7 +317,7 @@ task 'kontrolCli',({configFile}) ->
 task 'kontrolDaemon',({configFile}) ->
   processes.spawn
     name  : 'kontrolDaemon'
-    cmd   : "./kites/daemon -c #{configFile}"
+    cmd   : "./go/bin/daemon -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -325,7 +325,7 @@ task 'kontrolDaemon',({configFile}) ->
 task 'kontrolApi',({configFile}) ->
   processes.spawn
     name  : 'kontrolApi'
-    cmd   : "./kites/api -c #{configFile}"
+    cmd   : "./go/bin/api -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
