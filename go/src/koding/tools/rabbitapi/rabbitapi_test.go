@@ -76,3 +76,13 @@ func TestRabbit_GetPermission(t *testing.T) {
 		t.Log("permission for vhost '/' and user 'guest':", permission)
 	}
 }
+
+func TestRabbit_PutPermission(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+	err := r.PutPermission("/", "zeynep", ".*", ".*", ".*")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("user created successfull")
+	}
+}

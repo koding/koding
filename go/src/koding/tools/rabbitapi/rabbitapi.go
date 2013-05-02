@@ -37,11 +37,11 @@ type UserPut struct {
 }
 
 type Permission struct {
-	Configure string
-	Read      string
-	User      string
-	Vhost     string
-	Write     string
+	Configure string `json:"configure"`
+	Read      string `json:"read"`
+	User      string `json:"user"`
+	Vhost     string `json:"vhost"`
+	Write     string `json:"write"`
 }
 
 // To create a new rabbit struct instance
@@ -181,7 +181,31 @@ func (r *Rabbit) GetPermission(vhost, user string) (Permission, error) {
 	return permission, nil
 
 }
-func (r *Rabbit) PutPermission(name string)    {}
+func (r *Rabbit) PutPermission(vhost, user, configure, write, read string) error {
+	if vhost == "/" {
+		vhost = "%2f"
+	}
+
+	permission := &Permission{
+		Configure: configure,
+		Write:     write,
+		Read:      read,
+	}
+
+	data, err := json.Marshal(permission)
+	if err != nil {
+		return err
+	}
+
+	// debug fmt.Println(string(data))
+	err = r.putRequest("/api/permissions/"+vhost+"/"+user, data)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
 func (r *Rabbit) DeletePermission(name string) {}
 
 // /api/whoami
@@ -235,6 +259,8 @@ func (r *Rabbit) putRequest(endpoint string, body []byte) error {
 		log.Println(err)
 	}
 	defer resp.Body.Close()
+
+	// io.Copy(os.Stdout, resp.Body)
 
 	if resp.StatusCode != 204 {
 		return fmt.Errorf(resp.Status)
