@@ -79,21 +79,31 @@
         overflow              visible
 
   > .kdformview
-    margin-top                20px
+    max-width                 800px
+    margin                    20px auto
+    border                    1px solid #e8e8e8
+    rounded(5px)
+
     > .formline
       width                   100%
       borderBox()
       overflow                auto
-      border                  none
+
+      .kdinput.text
+        width                 100%
+
+      textarea.kdinput.text
+        min-height            100px
+
       &.button-field
         bg color,             transparent
         rounded               0
         border                none
         padding               0
-        margin-left           108px
-        margin-top            15px
+        margin-left           0
+        margin-top            0
+        padding               20px
   .kdselectbox
-    margin-right              25px
     fr()
   .kdinput.on-off
     margin-right              25px
@@ -691,8 +701,8 @@
 
       .permissions-header
         abs()
-        top                   0px
-        left                  0
+        top                   0
+        left                  20px
         right                 0
         z-index               20000
         bg color,             white
@@ -707,12 +717,14 @@
           display             block
           text-overflow       ellipsis
           white-space         nowrap
+          font-weight         bold
+
 
       .permissions-form
         overflow-y            scroll
         overflow-x            hidden
         // max-height 300px
-        margin-top            20px
+        margin-top            30px
 
         fraction(full,divisor)
           fraction = full/divisor
@@ -727,7 +739,7 @@
             borderBox()
             &.scrolling
               shadow          0 -5px 10px -3px rgba(0,0,0,0.1)
-            abs()
+            fixed()
             left              0
             right             0
             // bottom 0
@@ -739,14 +751,18 @@
               fl()
 
           &:nth-last-child(2)
-            margin-bottom     49px
+            margin-bottom       49px
             border-bottom-color transparent
 
+          &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
+            bg color,         rgba(0,0,0,0.025)
+
           borderBox()
-          padding             0px
-          border-bottom       1px solid #f5f5f5
-          border-left         1px solid #f5f5f5
-          border-right        1px solid #f5f5f5
+          padding             7px 10px
+          // border-bottom       1px solid #f5f5f5
+          // border-left         1px solid #f5f5f5
+          // border-right        1px solid #f5f5f5
+          border            none
 
           .input-wrapper:first-child
             border-left       none
@@ -771,7 +787,7 @@
             margin-top        5px
             vertical-align    middle
           .input-wrapper
-            border-left       1px solid #f5f5f5
+            // border-left       1px solid #f5f5f5
             borderBox()
             display           inline-block
             width             100%
@@ -782,8 +798,12 @@
               vertical-align  middle
 
         .permissions-module
-          background          linear-gradient(top, #555 0%,#666 93.7%)
-          color               white
+          // background          linear-gradient(top, #555 0%,#666 93.7%)
+          color               #444
+          font-weight         bold
+          padding-top         25px
+          &:not(:first-child)
+            padding-top       0
           .input-wrapper
             text-align        left
 

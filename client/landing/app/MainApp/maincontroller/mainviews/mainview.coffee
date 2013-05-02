@@ -11,6 +11,8 @@ class MainView extends KDView
     @createSideBar()
     @listenWindowResize()
 
+    @utils.defer => @_windowDidResize()
+
   putAbout:->
 
     @putOverlay

@@ -28,12 +28,22 @@ class GroupHomeView extends KDView
           tagName   : 'section'
           pistachio : """<div class='group-desc'>{{ #(body)}}</div>"""
         , group
+
         @addSubView @homeLoginBar = new HomeLoginBar
           domId : "group-home-links"
-        @addSubView @readmeView = new GroupReadmeView
-          domId : "home-group-readme"
-        , group
-        @readmeView.on "readmeReady", => @emit "ready"
+
+        group.fetchReadme (err, readme)=>
+          @addSubView @readmeView = new KDView
+            partial   : @utils.applyMarkdown readme?.content or \
+              GroupReadmeView::getDefaultGroupReadme.call @, group.title
+            cssClass  : 'has-markdown'
+            tagName   : 'figure'
+            domId     : "home-group-readme"
+          , group
+
+          GroupReadmeView::highlightCode.call @
+
+          @emit "ready"
 
         # {roles} = KD.config
         # if 'member' in roles or 'admin' in roles
