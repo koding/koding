@@ -41,7 +41,7 @@ class AccountAppController extends AppController
         , section
 
         navView.addSubView lc.getView()
-        navView.addSubView new KDCustomHTMLView "hr"
+        navView.addSubView new KDCustomHTMLView tagName : "hr"
 
         lc.getView().on 'ItemWasAdded', (view, index)=>
           view.on "click", =>
