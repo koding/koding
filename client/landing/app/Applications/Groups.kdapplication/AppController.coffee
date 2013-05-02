@@ -602,12 +602,8 @@ class GroupsAppController extends AppController
             invitationRequestView.prepareBulkInvitations()
             kallback @batchApprove, err
 
-        invitationRequestView.on 'BatchInvite', (formData)->
-          group.inviteByEmails formData.emails, (err)=>
-            kallback @batchInvite, err
-
         invitationRequestView.on 'InviteByEmail', (formData)->
-          group.inviteByEmail formData.recipient, (err)=>
+          group.inviteByEmails formData.emails, (err)=>
             kallback @inviteByEmail, err
 
         invitationRequestView.on 'InviteByUsername', (formData)->
