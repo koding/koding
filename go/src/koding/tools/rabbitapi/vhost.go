@@ -73,3 +73,23 @@ func (r *Rabbit) DeleteVhost(name string) error {
 
 	return nil
 }
+
+// GET /api/vhost/name/permissions
+func (r *Rabbit) GetVhostPermissions(vhost string) ([]Permission, error) {
+	if vhost == "/" {
+		vhost = "%2f"
+	}
+
+	body, err := r.getRequest("/api/vhosts/" + vhost + "/permissions")
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]Permission, 0)
+	err = json.Unmarshal(body, &list)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
+}

@@ -53,3 +53,14 @@ func TestRabbit_DeleteVhost(t *testing.T) {
 		t.Log("vhost 'fatih' deleted successfull")
 	}
 }
+
+func TestRabbit_GetVhostPermissions(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+
+	permissions, err := r.GetVhostPermissions("/")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("permissions for vhost '/':", permissions)
+	}
+}
