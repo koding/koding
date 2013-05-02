@@ -128,6 +128,7 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 }
 
 func parseKey(host string) (string, string, error) {
+	// host is in form {name}-{key}.x.koding.com
 	log.Printf("parse host '%s' to get key and name", host)
 	counts := strings.Count(host, "-")
 	if counts == 0 {
