@@ -20,7 +20,7 @@ func TestRabbit_CreateUser(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	} else {
-		t.Log("user 'zeynep created successfull")
+		t.Log("user 'zeynep' created successfull")
 	}
 }
 

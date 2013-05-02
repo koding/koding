@@ -47,7 +47,29 @@ func (r *Rabbit) GetVhost(name string) (Vhost, error) {
 }
 
 // PUT /api/vhost/name
-func (r *Rabbit) CreateVhost(name string) {}
+func (r *Rabbit) CreateVhost(name string) error {
+	if name == "/" {
+		name = "%2f"
+	}
+
+	err := r.putRequest("/api/vhosts/"+name, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // DELETE /api/vhost/name
-func (r *Rabbit) DeleteVhost(name string) {}
+func (r *Rabbit) DeleteVhost(name string) error {
+	if name == "/" {
+		name = "%2f"
+	}
+
+	err := r.deleteRequest("/api/vhosts/" + name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

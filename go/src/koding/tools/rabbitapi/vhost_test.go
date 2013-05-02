@@ -15,6 +15,16 @@ func TestRabbit_GetVhosts(t *testing.T) {
 
 }
 
+func TestRabbit_CreateVhost(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+	err := r.CreateVhost("fatih")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("vhost 'fatih' created successfull")
+	}
+}
+
 func TestRabbit_GetVhost(t *testing.T) {
 	r := Auth("guest", "guest", "http://localhost:15672")
 
@@ -25,4 +35,21 @@ func TestRabbit_GetVhost(t *testing.T) {
 		t.Log("vhost '/':", vhost)
 	}
 
+	vhost, err = r.GetVhost("fatih")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("vhost 'fatih':", vhost)
+	}
+
+}
+
+func TestRabbit_DeleteVhost(t *testing.T) {
+	r := Auth("guest", "guest", "http://localhost:15672")
+	err := r.DeleteVhost("fatih")
+	if err != nil {
+		t.Error(err)
+	} else {
+		t.Log("vhost 'fatih' deleted successfull")
+	}
 }
