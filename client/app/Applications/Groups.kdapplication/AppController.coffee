@@ -384,10 +384,7 @@ class GroupsAppController extends AppController
                 loader               :
                   color              : "#444444"
                   diameter           : 12
-              "Cancel"               :
-                style                : "modal-clean-gray"
-                callback             : -> modal.destroy()
-              "back"                 :
+              "Back"                 :
                 style                : "modal-cancel"
                 callback             : -> modal.modalTabs.showPreviousPane()
             fields                   :
