@@ -351,6 +351,28 @@ class GroupsAppController extends AppController
         else
           modal.modalTabs.forms["General Settings"].inputs.Slug.unsetClass 'slug-taken'
 
+    getGroupType = ->
+      modal.modalTabs.forms["Select group type"].inputs.type.getValue()
+
+    getPrivacyDefault = ->
+      switch getGroupType()
+        when 'educational'  then 'by-request'
+        when 'company'      then 'by-invite'
+        when 'project'      then'public'
+        when 'custom'       then 'public'
+
+    getVisibilityDefault = ->
+      switch getGroupType()
+        when 'educational'  then 'visible'
+        when 'company'      then 'hidden'
+        when 'project'      then 'visible'
+        when 'custom'       then 'visible'
+
+    applyDefaults =->
+      {Privacy,Visibility} = modal.modalTabs.forms["General Settings"].inputs
+      Privacy.setValue getPrivacyDefault()
+      Visibility.setValue getVisibilityDefault()
+
     modalOptions =
       title                          : 'Create a new group'
       height                         : 'auto'
@@ -373,6 +395,7 @@ class GroupsAppController extends AppController
               "Next"                 :
                 style                : "modal-clean-gray"
                 type                 : "submit"
+                callback             : -> applyDefaults()
             fields                   :
               "type"                 :
                 name                 : "type"
@@ -453,16 +476,21 @@ class GroupsAppController extends AppController
                   { title : "Visible in group listings",    value : "visible" }
                   { title : "Hidden in group listings",     value : "hidden" }
                 ]
-              "Group VM"             :
-                label                : "Create a shared server for the group"
-                itemClass            : KDOnOffSwitch
-                name                 : "group-vm"
-                defaultValue         : no
-              "Member VM"            :
-                label                : "Create a server for each group member"
-                itemClass            : KDOnOffSwitch
-                name                 : "member-vm"
-                defaultValue         : no
+              # # Group VM should be there for every group
+              #
+              # "Group VM"             :
+              #   label                : "Create a shared server for the group"
+              #   itemClass            : KDOnOffSwitch
+              #   name                 : "group-vm"
+              #   defaultValue         : no
+              #
+              # # Members VMs are a future feature
+              #
+              # "Member VM"            :
+              #   label                : "Create a server for each group member"
+              #   itemClass            : KDOnOffSwitch
+              #   name                 : "member-vm"
+              #   defaultValue         : no
 
     modal = new KDModalViewWithForms modalOptions
 
