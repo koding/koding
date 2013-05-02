@@ -653,7 +653,6 @@ module.exports = [
   # "app/MainApp/oldPages/irc/lists.coffee",
   # "app/MainApp/oldPages/irc/tabs.coffee",
   "app/MainApp/status.coffee",
-  "app/MainApp/account-mixins.coffee",
   "app/MainApp/main.coffee",
   "app/MainApp/monitor_status.coffee",
   "app/MainApp/rollbar.coffee",
