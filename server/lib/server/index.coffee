@@ -117,7 +117,7 @@ app.get "/-/imageProxy", (req, res)->
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq
-  
+
   {JKite} = koding.models
   koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
     res.header "Content-Type", "application/json"

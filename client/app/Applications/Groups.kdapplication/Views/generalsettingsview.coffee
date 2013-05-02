@@ -14,9 +14,6 @@ class GroupGeneralSettingsView extends JView
     isPrivateGroup = 'private' is group.privacy
 
     _updateGroupHandler =(group, formData)=>
-      log formData
-      formData.avatar = @customUrl if @customUrl
-      log formData
       group.modify formData, (err)->
         if err
           new KDNotificationView
@@ -48,50 +45,6 @@ class GroupGeneralSettingsView extends JView
             diameter        : 16
           callback          : -> modal.destroy()
       fields:
-        "Avatar"              :
-          label             : "Avatar"
-          cssClass        : 'avatar'
-          limit           : 1
-          preview         : "thumbs"
-          extensions      : null
-          fileMaxSize     : 2048
-          totalMaxSize    : 2048
-          fieldName       : "thumbnails"
-          convertToBlob   : yes
-          title           : ""
-          itemClass         : KDImageUploadView
-          actions         : {
-            big    :
-              [
-                'scale', {
-                  shortest: 400
-                }
-                'crop', {
-                  width   : 400
-                  height  : 400
-                }
-              ]
-            medium         :
-              [
-                'scale', {
-                  shortest: 200
-                }
-                'crop', {
-                  width   : 200
-                  height  : 200
-                }
-              ]
-            small         :
-              [
-                'scale', {
-                  shortest: 60
-                }
-                'crop', {
-                  width   : 60
-                  height  : 60
-                }
-              ]
-          }
         Title               :
           label             : "Group Name"
           itemClass         : KDInputView
@@ -140,24 +93,6 @@ class GroupGeneralSettingsView extends JView
           ]
 
     @settingsForm = new KDFormViewWithFields formOptions, @getData()
-
-    avatarUploadView = @settingsForm.inputs["Avatar"]
-    avatarUploadView.on 'FileReadComplete', ({file, progressEvent})->
-      log 'read'
-      avatarUploadView.$('.kdfileuploadarea').css
-        backgroundImage : "url(#{file.data})"
-      avatarUploadView.$('span').addClass 'hidden'
-
-    avatarUploadView.on 'FileUploadComplete', (res)=>
-      log 'upload',res
-      if res.length and res[0].resource
-        @customUrl = res[0].resource
-
-    # avatarUploadView.on 'FileUploadComplete', (files)->
-    #   for {filename, resource} in files
-    #     console.log {filename, resource}
-
-
 
   viewAppended:->
     super

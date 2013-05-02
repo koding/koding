@@ -65,11 +65,14 @@ Vagrant.configure("2") do |config|
     config.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
     config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
   else
-    config.vm.box = "ubuntu1304-64-1.0"
-    config.vm.box_url = "http://d1vrbmdcyl9zrp.cloudfront.net/ubuntu1304-64-1.0.box"
+    config.vm.box = "koding-4"
+    config.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-4.box"
   end
 
-  config.vm.network :private_network, :ip => "10.5.5.2"
+  config.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
+  config.vm.network :forwarded_port, :guest =>  5672, :host => 5672  # rabbitmq
+  config.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
+  
   config.vm.hostname = "vagrant"
 
   config.vm.synced_folder ".", "/opt/koding"

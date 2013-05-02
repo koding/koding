@@ -18,6 +18,7 @@ module.exports = class JPermissionSet extends Module
   @share()
 
   @set
+    softDelete              : yes
     indexes                 :
       'permissions.module'  : 'sparse'
       'permissions.roles'   : 'sparse'

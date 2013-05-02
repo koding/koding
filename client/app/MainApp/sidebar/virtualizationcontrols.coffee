@@ -2,25 +2,42 @@ class VirtualizationControls extends JView
 
   constructor:->
 
-    options =
-      cssClass         : "virt-controls"
+    options = cssClass : "virt-controls"
     super options
 
-    @statusLED = new StatusLED
-      labels    :
-        green   : 'VM is running'
-        red     : 'VM is turned off'
-        yellow  : 'VM is initializing'
-        off     : '...'
+    @vm = KD.getSingleton 'vmController'
+    @vm.on 'StateChanged', @bound 'checkVMState'
 
-    @VMToggle = new KDOnOffSwitch
-      cssClass        : "tiny vm-toggle"
-      callback        : (state)->
-        command = if state then 'vm.start' else 'vm.stop'
-        log "runnung", state,command
-        KD.singletons.kiteController.run
-          kiteName : 'os'
-          method   : command
+    @statusLED = new StatusLED
+      labels   :
+        green  : 'VM is running'
+        red    : 'VM is turned off'
+        yellow : 'VM is initializing'
+        off    : '...'
+
+    @statusLED.on 'stateChanged', (state)=>
+      state = if state in ['off', 'red'] then no else yes
+      @VMToggle.setDefaultValue state
+
+    @VMToggle  = new KDOnOffSwitch
+      cssClass : "tiny vm-toggle"
+      callback : (state)=>
+        if state then @vm.start() else @vm.stop()
+
+  checkVMState:(err, info)->
+    if err or not info
+      @statusLED.setOff()
+      return warn err
+
+    switch info.state
+      when "RUNNING"
+        @statusLED.setOnline()
+      when "STOPPED"
+        @statusLED.setOffline()
+
+  viewAppended:->
+    super
+    @vm.info @bound 'checkVMState'
 
   pistachio:->
     """{{> @statusLED}}{{> @VMToggle}}"""
@@ -36,6 +53,7 @@ class StatusLED extends JView
 
     @label = new KDCustomHTMLView
       cssClass : 'label'
+
     @setOnline()
 
   setCurrentState:(state)->
@@ -48,6 +66,8 @@ class StatusLED extends JView
 
     if labels
       @label.updatePartial labels[state]
+
+    @emit 'stateChanged', state
 
   setOff:     -> @setCurrentState 'off'
   setOnline:  -> @setCurrentState 'green'
