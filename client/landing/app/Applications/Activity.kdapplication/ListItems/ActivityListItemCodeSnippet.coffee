@@ -15,20 +15,9 @@ class CodesnipActivityItemView extends ActivityItemChild
     codeSnippetData = @getData().attachments[0]
     codeSnippetData.title = @getData().title
 
+    if @getData().fake then codeSnippetData.content = Encoder.htmlEncode codeSnippetData.content
+
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
-
-    # @codeShareBoxView = new CodeShareBox
-    #   allowEditing:no
-    #   allowClosing:no
-    #   hideTabs:yes
-    # ,data
-
-    # log data.meta.tags
-    # @tagGroup = new LinkGroup {
-    #   group         : data.meta.tags
-    #   itemsToShow   : 3
-    #   itemClass  : TagFollowBucketItemView
-    # }
 
   render:->
     super()
