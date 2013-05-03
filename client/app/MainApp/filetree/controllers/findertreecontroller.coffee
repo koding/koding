@@ -142,7 +142,7 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "Refreshing..."
     folder = nodeView.getData()
-    folder.emit "fs.nothing.finished", [] # in case of refresh to stop the spinner
+    folder.emit "fs.job.finished", [] # in case of refresh to stop the spinner
 
     @collapseFolder nodeView, =>
       @expandFolder nodeView, =>
@@ -171,7 +171,7 @@ class NFinderTreeController extends JTreeViewController
               """Sorry, a problem occured while communicating with servers,
                  please try again later.""", yes
       @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
-      folder.emit "fs.nothing.finished", []
+      folder.emit "fs.job.finished", []
 
     folder.fetchContents KD.utils.getTimedOutCallback (err, files)=>
       unless err
@@ -399,13 +399,13 @@ class NFinderTreeController extends JTreeViewController
   compileApp:(nodeView, callback)->
 
     folder = nodeView.getData()
-    folder.emit "fs.compile.started"
+    folder.emit "fs.job.started"
     kodingAppsController = @getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
     kodingAppsController.compileApp manifest.name, (err)=>
-      folder.emit "fs.compile.finished"
+      folder.emit "fs.job.finished"
       if not err
         @notify "App compiled!", "success"
         @utils.wait 500, =>
@@ -417,13 +417,13 @@ class NFinderTreeController extends JTreeViewController
   runApp:(nodeView, callback)->
 
     folder = nodeView.getData()
-    folder.emit "fs.run.started"
+    folder.emit "fs.job.started"
     kodingAppsController = @getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
     kodingAppsController.runApp manifest, =>
-      folder.emit "fs.run.finished"
+      folder.emit "fs.job.finished"
       callback?()
 
 
@@ -433,9 +433,9 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "not yet there!", "error"
 
-    # folder.emit "fs.clone.started"
+    # folder.emit "fs.job.started"
     # @getSingleton('kodingAppsController').cloneApp folder.path, =>
-    #   folder.emit "fs.clone.finished"
+    #   folder.emit "fs.job.finished"
     #   @refreshFolder @nodes[folder.parentPath], =>
     #     @utils.wait 500, =>
     #       @selectNode @nodes[folder.path]
@@ -446,9 +446,9 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
-    folder.emit "fs.publish.started"
+    folder.emit "fs.job.started"
     @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
-      folder.emit "fs.publish.finished"
+      folder.emit "fs.job.finished"
       unless err
         @notify "App published!", "success"
       else
@@ -472,9 +472,9 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
-    folder.emit "fs.sourceDownload.started"
+    folder.emit "fs.job.started"
     @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
-      folder.emit "fs.sourceDownload.finished"
+      folder.emit "fs.job.finished"
       @refreshFolder @nodes[folder.parentPath]
       unless err
         @notify "Source downloaded!", "success"

@@ -28,7 +28,7 @@ class FSItem extends KDObject
 
   @copy:(sourceItem, targetItem, callback)->
 
-    sourceItem.emit "fs.copy.started"
+    sourceItem.emit "fs.job.started"
     FSHelper.ensureNonexistentPath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
       if err
         warn err
@@ -37,7 +37,7 @@ class FSItem extends KDObject
         KD.getSingleton('kiteController').run \
           "cp -R #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
-          sourceItem.emit "fs.copy.finished"
+          sourceItem.emit "fs.job.finished"
           if err then warn err
           else
             file = FSHelper.createFileFromPath "#{targetItem.path}/#{sourceItem.name}", sourceItem.type
@@ -45,7 +45,7 @@ class FSItem extends KDObject
 
   @move:(sourceItem, targetItem, callback)->
 
-    sourceItem.emit "fs.move.started"
+    sourceItem.emit "fs.job.started"
     FSHelper.ensureNonexistentPath "#{targetItem.path}/#{sourceItem.name}", (err, response)->
       if err
         warn err
@@ -54,7 +54,7 @@ class FSItem extends KDObject
         KD.getSingleton('kiteController').run \
           "mv #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
-          sourceItem.emit "fs.move.finished"
+          sourceItem.emit "fs.job.finished"
           if err then warn err
           else
             file = FSHelper.createFileFromPath "#{targetItem.path}/#{sourceItem.name}", sourceItem.type
@@ -62,7 +62,7 @@ class FSItem extends KDObject
 
   @compress:(file, type, callback)->
 
-    file.emit "fs.compress.started"
+    file.emit "fs.job.started"
     FSHelper.ensureNonexistentPath "#{file.path}.#{type}", (err, response)->
       if err
         warn err
@@ -72,13 +72,13 @@ class FSItem extends KDObject
           when "tar.gz" then "tar -pczf #{escapeFilePath response} #{escapeFilePath file.path}"
           else "zip -r #{escapeFilePath response} #{escapeFilePath file.path}"
         KD.getSingleton('kiteController').run command, (err, res)->
-          file.emit "fs.compress.finished"
+          file.emit "fs.job.finished"
           if err then warn err
           callback? err, res
 
   @extract:(file, callback)->
 
-    file.emit "fs.extract.started"
+    file.emit "fs.job.started"
     FSItem.create file.path, "folder", (err, folder)=>
       if err then warn err
       else
@@ -87,7 +87,7 @@ class FSItem extends KDObject
         else if /\.zip$/.test file.name
           "cd #{escapeFilePath file.parentPath};unzip #{escapeFilePath file.name} -d #{folder.path}"
       KD.getSingleton('kiteController').run command, (err, res)->
-        file.emit "fs.extract.finished"
+        file.emit "fs.job.finished"
         if err then warn err
         callback? err, folder
 
@@ -174,7 +174,7 @@ class FSItem extends KDObject
 
     newPath = "#{@parentPath}/#{newName}"
 
-    @emit "fs.rename.started"
+    @emit "fs.job.started"
     FSHelper.ensureNonexistentPath newPath, (err, response)=>
       if err
         warn err
@@ -191,14 +191,14 @@ class FSItem extends KDObject
             @path = newPath
             @name = newName
           callback? err, @
-          @emit "fs.rename.finished"
+          @emit "fs.job.finished"
 
   chmod:(options, callback)->
 
     {recursive, permissions} = options
 
     return callback? "no permissions passed" unless permissions?
-    @emit "fs.chmod.started"
+    @emit "fs.job.started"
 
     @kiteController.run
       method      : "fs.setPermissions"
@@ -207,7 +207,7 @@ class FSItem extends KDObject
         recursive : recursive
         mode      : permissions
     , (err, res)=>
-      @emit "fs.chmod.finished"
+      @emit "fs.job.finished"
       if err then warn err
       else
         @mode = permissions
