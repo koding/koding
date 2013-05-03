@@ -316,45 +316,8 @@ class AdminModal extends KDModalViewWithForms
                     cssClass  : 'type-explain'
                     itemClass : KDView
                     partial   : 'This will show a timer.'
-
-
           "Introduction":
-            buttons           :
-              "Go"  :
-                title         : "Go"
-                style         : "modal-clean-gray"
-                loader        :
-                  color       : "#444444"
-                  diameter    : 12
-                callback      : (event)=>
-
-              "Cancel":
-                title         : "Cancel"
-                style         : "modal-clean-gray"
-                loader        :
-                  color       : "#444444"
-                  diameter    : 12
-                callback      : (event)=>
-
-            # fields            :
-            #   Title           :
-            #     label         :s "Message Title"
-            #     type          : "text"
-            #     placeholder   : "Shutdown in"
-            #     tooltip       :
-            #       title       : 'When using type "Restart", end title with "in",'+\
-            #       ' since there will be a timer following the title.'
-            #       placement   : 'right'
-            #       direction   : 'center'
-            #       offset      :
-            #         top       : 2
-            #         left      : 0
-            #   Description     :
-            #     label         : "Message Details"
-            #     type          : "text"
-            #     placeholder   : "We are upgrading the platform. Please save your work."
-
-
+            fields            : {}
 
     super options, data
 
@@ -365,6 +328,7 @@ class AdminModal extends KDModalViewWithForms
 
     @initInviteTab()
     @initMigrateTab()
+    @initIntroductionTab()
     @createUserAutoComplete()
 
   createUserAutoComplete:->
@@ -428,3 +392,330 @@ class AdminModal extends KDModalViewWithForms
     fields.Invites.show()
     inputs.Invites.setPlaceHolder 'Loading...'
     buttons.Update.show()
+
+  initIntroductionTab: ->
+    @modalTabs.forms["Introduction"].addSubView new IntroductionAdmin()
+
+
+class IntroductionAdmin extends JView
+
+  constructor: (options = {}, data) ->
+
+    super options, data
+
+    @buttonsContainer = new KDView
+      cssClass : "introduction-admin-buttons"
+
+    @buttonsContainer.addSubView @addButton = new KDButtonView
+      cssClass : "editor-button"
+      title    : "Add New"
+      callback : => @showForm()
+
+    @container = new KDView
+      cssClass : "introduction-admin-content"
+
+    @container.addSubView @loader = new KDLoaderView
+      size     :
+        width  : 36
+
+    @container.addSubView @notFoundText = new KDView
+      cssClass : "introduction-not-found"
+      partial  : "There is no introduction yet."
+    @notFoundText.hide()
+
+    @container.addSubView @introListContainer = new KDView
+
+    @fetchData()
+
+    @on "IntroductionItemDeleted", (snippet) =>
+      @snippets.splice @snippets.indexOf(snippet), 1
+      @notFoundText.show() if @snippets.length is 0
+
+  fetchData: ->
+    KD.remote.api.JIntroSnippet.fetchAll (err, snippets) =>
+      @loader.hide()
+      @snippets = snippets
+      return @notFoundText.show() if snippets.length is 0
+
+      for snippet in snippets
+        @introListContainer.addSubView new IntroductionItem
+          delegate: @
+        ,snippet
+
+  showForm: (type = "Group", data = @getData(), actionType = "Insert") ->
+    @buttonsContainer.hide()
+    @container.hide()
+    @addSubView @form = new IntroductionAdminForm {
+      type
+      actionType
+      delegate: @
+    }
+    , data
+
+  viewAppended: ->
+    super
+    @loader.show()
+
+  pistachio: ->
+    """
+      {{> @buttonsContainer}}
+      {{> @container}}
+    """
+
+class IntroductionItem extends JView
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass = "admin-introduction-item"
+
+    super options, data
+
+    @createElements()
+
+  createElements: ->
+    data = @getData()
+
+    @title = new KDView
+      cssClass : "cell name"
+      partial  : data.title
+      click    : => @setupChilds()
+
+    @addLink = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : "<span class='icon add'></span>Add Into"
+      click    : => @add()
+
+    @updateLink = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : "<span class='icon update'></span>Update"
+      click    : => @update()
+
+    @deleteLink = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : "<span class='icon delete'></span>Delete"
+      click    : => @remove()
+
+  add: ->
+    @getDelegate().showForm "Item", @getData()
+
+  update: ->
+    @getDelegate().showForm "Group", @getData(), "Update"
+
+  remove: ->
+    @getData().delete => @destroy()
+    @getDelegate().emit "IntroductionItemDeleted", @getData()
+
+  setupChilds: ->
+    if @childContainer
+      if @isChildContainerVisible
+        @childContainer.hide()
+        return @isChildContainerVisible = no
+      else
+        @childContainer.show()
+        return @isChildContainerVisible = yes
+    else
+      return if @ instanceof IntroductionChildItem
+      @addSubView @childContainer = new KDView
+      @isChildContainerVisible = yes
+
+      for snippet in @getData().snippets
+        @childContainer.addSubView new IntroductionChildItem delegate: @, snippet
+
+  pistachio: ->
+    data       = @getData()
+    hasOverlay = if data.overlay is yes then "yes" else "no"
+    """
+      {{> @title}}
+      <div class="cell">#{data.expiryDate}</div>
+      <div class="cell">#{data.snippets.length}</div>
+      <div class="cell">#{hasOverlay}</div>
+      <div class="introduction-actions cell">
+        {{> @addLink}}{{> @updateLink}}{{> @deleteLink}}
+      </div>
+    """
+
+class IntroductionChildItem extends IntroductionItem
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass = "admin-introduction-child-item"
+
+    super options, data
+
+    @title = new KDView
+      cssClass : "cell name"
+      partial  : data.introTitle
+      click    : => @setupChilds()
+
+  remove: ->
+    @getDelegate().getData().deleteChild @getData().introId, =>
+      @destroy()
+
+  update: ->
+    introductionItem      = @getDelegate()
+    introductionAdmin     = introductionItem.getDelegate()
+    data                  = @getData()
+    data.introductionItem = introductionItem
+    introductionAdmin.showForm "Item", data, "Update"
+
+  pistachio: ->
+    data = @getData()
+    """
+      {{> @title}}
+      <div class="cell">#{data.introId}</div>
+      <div class="introduction-actions cell">
+        {{> @updateLink}}{{> @deleteLink}}
+      </div>
+    """
+
+class IntroductionAdminForm extends KDFormViewWithFields
+
+  constructor: (options = {}, data = {}) ->
+
+    @parentData = data
+
+    groupFields =
+      Title           :
+        label         : "Title"
+        type          : "text"
+        placeholder   : "Title of the introduction"
+        defaultValue  : data.title
+      ExpiryDate      :
+        label         : "Expiry Date"
+        type          : "text"
+        placeholder   : "Best before"
+        defaultValue  : data.expiryDate
+      Overlay         :
+        label         : "Overlay"
+        type          : "select"
+        defaultValue  : data.overlay
+        selectOptions : [
+          { title     : "Yes", value : "yes" }
+          { title     : "No",  value : "no"  }
+        ]
+      Visibility       :
+        label         : "Visibility"
+        type          : "select"
+        defaultValue  : data.visibility
+        selectOptions : [
+          { title     : "Show all together", value : "allTogether" }
+          { title     : "Show step by step", value : "stepByStep"  }
+        ]
+
+    itemFields =
+      IntroTitle      :
+        label         : "Intro Title"
+        type          : "text"
+        defaultValue  : data.introTitle
+      IntroId         :
+        label         : "Intro Id"
+        type          : "text"
+        placeholder   : "Parent view's intro id"
+        defaultValue  : data.introId
+      Snippet         :
+        label         : "Intro Snippet"
+        type          : "textarea"
+        defaultValue  : Encoder.htmlDecode data.snippet
+
+    options.fields  = itemFields
+    if options.type is "Group"
+      if options.actionType is "Insert"
+        groupFields[key] = field for key, field of itemFields
+      options.fields = groupFields
+
+    options.buttons =
+      "Save"          :
+        title         : "Save"
+        style         : "modal-clean-gray"
+        loader        :
+          color       : "#444444"
+          diameter    : 12
+        callback      : (event) => @save()
+      "Cancel"        :
+        title         : "Cancel"
+        style         : "modal-clean-gray"
+        loader        :
+          color       : "#444444"
+          diameter    : 12
+        callback      : (event) =>
+          @destroy()
+          @getDelegate().container.show()
+          @getDelegate().buttonsContainer.show()
+
+    super options, data
+
+  save: ->
+    {actionType} = @getOptions()
+
+    if @getOptions().type is "Group"
+      return @insertParent() if actionType is "Insert"
+      @updateParent()
+    else
+      return @insertChild() if actionType is "Insert"
+      @updateChild()
+
+  insertParent: ->
+    KD.remote.api.JIntroSnippet.create @createPostData(), =>
+      @buttons["Save"].hideLoader()
+      log "new created"
+
+  insertChild: ->
+    @parentData.addChild @createPostData(), =>
+      @buttons["Save"].hideLoader()
+      log "child created"
+
+  updateParent: ->
+    @parentData.update @createPostData(), =>
+      log "parent updated"
+
+  updateChild: ->
+    data = @createPostData()
+    data.oldIntroId = @parentData.introId
+    @parentData.introductionItem.getData().updateChild data, =>
+      log "child updated"
+
+    # {
+    #   introTitle : postData.IntroTitle
+    #   introId    : postData.IntroId
+    #   snippet    : postData.Snippet
+    #   oldIntroId : @getData().IntroId
+    # }
+    # @getData().snippet.updateChild @createPostData(), =>
+      # introId    = "EDITED"
+      # snippet    = "alert"
+      # introTitle = "TITLE"
+      # @getDelegate().getData().updateChild {
+      #   oldIntroId : @getData().introId
+      #   introId
+      #   introTitle
+      #   snippet
+      # }, => @setData {
+      #     introTitle
+      #     introId
+      #     snippet
+      #   }
+
+  createPostData: ->
+    {inputs}     = @
+    options      = @getOptions()
+    {type}       = options
+    {actionType} = options
+    itemData     = {}
+
+    if type is "Item" or (type is "Group" and actionType is "Insert")
+      itemData =
+        introId    : inputs.IntroId.getValue()
+        introTitle : inputs.IntroTitle.getValue()
+        snippet    : inputs.Snippet.getValue()
+
+    if type is "Group"
+      data = {
+        title      : inputs.Title.getValue()
+        expiryDate : inputs.ExpiryDate.getValue()
+        visibility : inputs.Visibility.getValue()
+        overlay    : inputs.Overlay.getValue()
+      }
+      data.snippets = [ itemData ] if actionType is "Insert"
+      return data
+
+    return itemData
