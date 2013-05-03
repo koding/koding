@@ -35,7 +35,7 @@ class Kite extends KDObject
     @channel.ping                       = @bound 'pingChannel'
     @channel.setStartPinging            = @bound 'setStartPinging'
     @channel.setStopPinging             = @bound 'setStopPinging'
-  
+
     @channel.on 'message'               , @bound 'handleChannelMessage'
     @channel.on 'message'               , @bound 'handleMessageArrived'
     @channel.on 'publish'               , @bound 'handleChannelPublish'
@@ -65,7 +65,7 @@ class Kite extends KDObject
 
   handleMessageArrived: ->
     clearTimeout @unresponsiveTimeoutId
-    
+
     @unresponded = 0
 
     @pingTimeoutId = setTimeout =>
@@ -75,14 +75,14 @@ class Kite extends KDObject
   handleChannelMessage: (args) ->
 
     {method} = args
-    
+
     callback = switch method
       when 'ready'            then @bound 'handleReady'
       when 'error'            then @bound 'handleError'
       when 'pong'             then @bound 'handlePong'
       when 'cycleChannel'     then @bound 'cycleChannel'
       else (@localStore.get method) ? ->
-    
+
     callback.apply this, @unscrub args
 
   handleChannelPublish: ->
