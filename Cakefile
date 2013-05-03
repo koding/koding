@@ -132,7 +132,7 @@ task 'socialWorker', ({configFile}) ->
       restartInterval : 100
       kontrol         :
         enabled       : yes
-        startMode     : "force"
+        startMode     : "one"
         nodeProcess   : yes
       # onMessage: (msg) ->
       #   if msg.exiting
@@ -169,7 +169,7 @@ task 'authWorker',({configFile}) ->
       restartInterval : 1000
       kontrol         :
         enabled       : yes
-        startMode     : "force"
+        startMode     : "one"
         nodeProcess   : yes
       verbose         : yes
 
@@ -283,7 +283,7 @@ task 'libratoWorker',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      startMode     : "force"
+      startMode     : "one"
     verbose         : yes
 
 task 'cacheWorker',({configFile})->
@@ -297,7 +297,7 @@ task 'cacheWorker',({configFile})->
     restartInterval : 100
     kontrol         :
       enabled       : yes
-      startMode     : "force"
+      startMode     : "one"
       nodeProcess   : yes
 
   if cacheWorker.watch is yes
