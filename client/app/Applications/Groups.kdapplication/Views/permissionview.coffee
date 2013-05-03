@@ -120,7 +120,7 @@ class GroupPermissionsView extends JView
     @buttonHeight    = @permissions.$('.formline.button-field').outerHeight(yes)
     @subHeaderHeight = @getDelegate().parent.parent.$('.sub-header').outerHeight(yes)
     @visibleHeight   = delegate.$().outerHeight(yes)
-    @contentHeight   = delegate.$('.group-content').outerHeight(yes)
+    @contentHeight   = @getDelegate().parent.parent.$('.group-content').outerHeight(yes)
 
     @setButtonPosition @calculateButtonPosition()
 
