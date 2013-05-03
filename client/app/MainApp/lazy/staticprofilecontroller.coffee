@@ -34,12 +34,12 @@ class StaticProfileController extends KDController
     @mainController = @getSingleton 'mainController'
     @lazyDomController = @getSingleton('lazyDomController')
 
-    # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
+    # KD.remote.cacheable KD.config.entryPoint.slug, (err, user, name)=>
     # FIXME - we want to use cacheable, not a JAccount call, but names
     # are not working correctly
 
     KD.remote.api.JAccount.one
-      "profile.nickname" : KD.config.profileEntryPoint
+      "profile.nickname" : KD.config.entryPoint.slug
     , (err, user, name)=>
       if err then log err,user,name
       unless err
