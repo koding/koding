@@ -47,13 +47,29 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView @listController.getView()
 
-    @avatarPopupContent.addSubView new KDView
+
+    seeAllView = new KDView
       height   : "auto"
-      cssClass : "sublink"
+      cssClass : "split sublink"
       partial  : "<a href='#'>See all groups...</a>"
       click    : =>
         KD.getSingleton("appManager").open "Groups"
         @hide()
+
+    backToKodingView = new KDView
+      height   : "auto"
+      cssClass : "split sublink right"
+      partial  : "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
+      click    : =>
+        @hide()
+
+    split = new SplitView
+      domId     : "avatararea-bottom-split-view"
+      height    : "37px"
+      sizes     : [130,null]
+      views     : [seeAllView,backToKodingView]
+      resizable : no
+    @avatarPopupContent.addSubView split
 
   accountChanged:->
     @listController.removeAllItems()
@@ -107,14 +123,6 @@ class PopupGroupListItem extends KDListItemView
     roleClasses = roles.map((role)-> "role-#{role}").join ' '
     @setClass "role #{roleClasses}"
 
-    @avatar = new KDCustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'avatar-image'
-      attributes :
-        src      : avatar or "http://lorempixel.com/20/20?#{@utils.getRandomNumber()}"
-        width    : 20
-        height   : 20
-
     @switchLink = new CustomLinkView
       title       : title
       href        : "/#{if slug is 'koding' then '' else slug+'/'}Activity"
@@ -131,7 +139,6 @@ class PopupGroupListItem extends KDListItemView
   pistachio: ->
     {roles} = @getData()
     """
-    <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
       {{> @switchLink}}
       <span class="roles">#{roles.join ', '}</span>
@@ -175,7 +182,7 @@ class PopupGroupListItemPending extends PopupGroupListItem
           if err then warn err
           else
             new KDNotificationView
-              title    : 'Fair enough!'
+              title    : 'Ignored!'
               content  : 'If you change your mind, you can request access to the group anytime.'
               duration : 2000
             @destroy()
