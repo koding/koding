@@ -119,13 +119,16 @@ class GroupsAppController extends AppController
       onboarding            :
         everything          :
           """
-            <h3 class='title'>yooo onboard me for da groop!!!</h3>
-            <p>
-              Cosby sweater ethnic neutra meggings, actually single-origin coffee next level before they sold out scenester food truck banh mi gluten-free pitchfork. Before they sold out whatever chillwave, flexitarian stumptown mlkshk pour-over iphone brooklyn semiotics. Seitan brooklyn cliche before they sold out blue bottle polaroid godard marfa fingerstache blog authentic salvia.
-            </p>
-            <p>
-              Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
-            </p>
+            <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+            your interests.</h3>
+
+            <p>When you join a group within a community such as your univeristy or you
+company, you can share virtual machines, files and stay up to date on the
+activites of others in your group.</p>
+
+            <h3 class='title'>Easy to get started and safe</h3>
+
+            <p>Groups are free to create. You decide who can join and what they see.</p>
           """
         mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
       filter                :
