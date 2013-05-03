@@ -236,7 +236,9 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return fmt.Errorf("do request", err)
 	}
 
-	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+	if config.Verbose {
+		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+	}
 
 	if command == "cmd" {
 		req := buildReq("start", data, hostname, 0)
