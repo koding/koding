@@ -14,9 +14,12 @@ class ActivityAppController extends AppController
       # 'CCodeShareActivity'
     ]
 
-  @toArray = toArray = (activities)->
+  @extractValuesFromObject = extractValuesFromObject = (activities)->
     return _.values(activities)
 
+  # clearQuotes was outdated and trying to workaround an issue whose root
+  # cause was recently solved. that workaround tend to fail reviving snapshots 
+  # having a &quot; as clearQuotes breaks JSON syntax, therefore it's not parseable
   # @clearQuotes = clearQuotes = (activities)->
   #   return activities = for activityId, activity of activities
   #     activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
@@ -194,7 +197,7 @@ class ActivityAppController extends AppController
               @listController.listActivitiesFromCache cache
 
   sanitizeCache:(cache, callback)->
-    activities = toArray cache.activities
+    activities = extractValuesFromObject cache.activities
     KD.remote.reviveFromSnapshots activities, (err, instances)->
       for activity,i in activities
         cache.activities[activity._id] or= {}
@@ -215,7 +218,7 @@ class ActivityAppController extends AppController
     KD.remote.api.CActivity.fetchFacets options, (err, activities)->
       if err then callback err
       else
-        KD.remote.reviveFromSnapshots toArray(activities), callback
+        KD.remote.reviveFromSnapshots extractValuesFromObject(activities), callback
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
@@ -344,7 +347,7 @@ class ActivityAppController extends AppController
     KD.remote.api.CActivity.some selector, options, (err, data) =>
       if err then callback err
       else
-        KD.remote.reviveFromSnapshots toArray(data), (err, instances)->
+        KD.remote.reviveFromSnapshots extractValuesFromObject(data), (err, instances)->
           if err then callback err
           else
             callback instances
