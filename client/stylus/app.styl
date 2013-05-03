@@ -726,6 +726,14 @@ span.main-nav-icon
       color           lightCoral
       font-style      normal
 
+#avatararea-bottom-split-view
+  height         31px
+  .split
+    height       auto
+  a.right
+    float        right
+    margin-top   1px
+
 .avatararea-popup
   height                auto
   border                none
@@ -813,9 +821,12 @@ span.main-nav-icon
           border            1px solid #e3e3e3
           margin-right      10px
           size              20px, 20px
-        .custom-link-view .icon.new-page
-          bg                position, -180px -520px
-          opacity           .2
+        .custom-link-view 
+          span.title
+            width           auto
+          .icon.new-page
+            bg              position, -180px -520px
+            opacity         .2
         .buttons
           fr()
           button span.accept

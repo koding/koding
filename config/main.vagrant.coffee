@@ -84,6 +84,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
