@@ -23,7 +23,7 @@ module.exports =
     watch       : yes
   sourceServer  :
     enabled     : yes
-    port        : 1337
+    port        : 1338
   mongo         : mongo
   runGoBroker   : yes
   compileGo     : yes
@@ -141,6 +141,20 @@ module.exports =
     interval: 60000
   haproxy:
     webPort     : 3020
+  kontrold        :
+    api           :
+      port        : 8000
+    proxy         :
+      port        : 8080
+      portssl     : 8081
+    mongo         :
+      host        : '127.0.0.1'
+    rabbitmq      :
+      host        : 'localhost'
+      port        : '5672'
+      login       : 'guest'
+      password    : 'guest'
+      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"

@@ -156,7 +156,9 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if command == "add" || command == "addWithProxy" {
-		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+		if config.Verbose {
+			log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+		}
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
@@ -168,14 +170,12 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		if err != nil {
 			log.Printf("could not marshall worker: %s", err)
 		}
-
 		go deliver(workerJson, workerProducer, res.Uuid)
 
 		// register to kontrol proxy
 		if command != "addWithProxy" {
 			return nil
 		}
-
 		// but not if it has port of 0
 		if worker.Port == 0 {
 			return fmt.Errorf("register to fujin proxy not possible. port number is '0' for %s", worker.Name)
@@ -194,9 +194,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			Uuid:        "proxy.in.koding.com",
 		}
 
-		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 		proxy.DoProxy(cmd)
-
 		return nil
 	}
 
@@ -204,7 +202,9 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		return fmt.Errorf(" do action", err)
 	}
 
-	log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+	if config.Verbose {
+		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
+	}
 
 	actions := map[string]func(worker workerconfig.MsgWorker) error{
 		"ack":    func(worker workerconfig.MsgWorker) error { return kontrolConfig.Ack(worker) },

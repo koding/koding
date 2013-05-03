@@ -316,16 +316,16 @@ task 'kontrolCli',({configFile}) ->
 
 task 'kontrolDaemon',({configFile}) ->
   processes.spawn
-    name  : 'kontrolDaemon'
-    cmd   : "./go/bin/daemon -c #{configFile}"
+    name    : 'kontrolDaemon'
+    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL daemon;sudo ./go/bin-vagrant/daemon -c #{configFile}'" else "./go/bin/daemon -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
 
 task 'kontrolApi',({configFile}) ->
   processes.spawn
-    name  : 'kontrolApi'
-    cmd   : "./go/bin/api -c #{configFile}"
+    name    : 'kontrolApi'
+    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/api -c #{configFile}'" else "./go/bin/api -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -345,6 +345,7 @@ run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile,->
+    invoke 'kontrol'
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'proxy'          if config.runProxy
