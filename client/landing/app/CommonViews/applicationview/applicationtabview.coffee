@@ -11,7 +11,8 @@ class ApplicationTabView extends KDTabView
 
     super options, data
 
-    @isSessionEnabled = options.saveSession and options.sessionName
+    # TODO: fatihacet: session logic should refactored to ui and ux
+    @isSessionEnabled = no #options.saveSession and options.sessionName
 
     appView = @getDelegate()
 
