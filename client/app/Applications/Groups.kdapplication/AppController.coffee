@@ -332,9 +332,7 @@ class GroupsAppController extends AppController
           title: err.message
           duration: 1000
       else
-        new KDNotificationView
-          title   : 'Group was created!'
-          duration: 1000
+        @showGroupCreatedModal group
         @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
@@ -736,6 +734,47 @@ class GroupsAppController extends AppController
     @getSingleton('mainController').once 'AccountChanged', ->
       if KD.isLoggedIn()
         callback()
+
+  showGroupCreatedModal:(group)->
+    group.fetchMembershipPolicy (err, policy)=>
+      return new KDNotificationView title: 'An error occured, however your group has been created!' if err
+
+      port = if location.port isnt 80 then ":#{location.port}" else ''
+      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+
+      if group.privacy is 'public'
+        privacyExpl = 'Koding users can join anytime without approval'
+      else if policy.invitationsEnabled
+        privacyExpl = 'and only invited users can join'
+      else
+        privacyExpl = 'Koding users can only join with your approval'
+
+      body  = """
+        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
+        <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
+        <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        """
+      modal = new KDModalView
+        title        : "#{group.title} has been created!"
+        content      : body
+        click        : (event)->
+          if $(event.target).is 'a.group-link' then modal.destroy()
+        buttons      :
+          dashboard  :
+            title    : 'Go to Dashboard'
+            style    : 'modal-clean-green'
+            callback : -> modal.destroy()
+          group      :
+            title    : 'Go to Group'
+            style    : 'modal-clean-gray'
+            callback : =>
+              modal.destroy()
+              KD.getSingleton('router').handleRoute "/#{group.slug}"
+          dismiss    :
+            title    : 'Dismiss'
+            style    : 'modal-cancel'
+            callback : -> modal.destroy()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->
