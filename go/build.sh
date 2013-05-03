@@ -18,6 +18,7 @@ services=(
 	koding/kontrol/daemon
 	koding/kontrol/api
 	koding/kontrol/proxy
+	koding/kontrol/rabbit
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
