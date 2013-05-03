@@ -56,6 +56,8 @@ class MainController extends KDController
 
     @appStorages = {}
 
+    @introductionTooltipController = new IntroductionTooltipController
+
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
     if @appStorages[appName]?
@@ -80,7 +82,6 @@ class MainController extends KDController
 
         @emit 'AppIsReady'
         @emit 'FrameworkIsReady'
-        @setUpIntroTooltips()
         @appIsReady = yes
 
   accountReady:(fn)->
@@ -241,35 +242,3 @@ class MainController extends KDController
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
           @utils.wait 2500, -> modal?.destroy()
-
-  # TODO: maybe we should move tooltip related methods to a controller file
-  setUpIntroTooltips: ->
-    KD.remote.api.JIntroSnippet.fetchAll (err, snippets) =>
-      return log err if err # TODO: error handling
-
-      # TODO: Ask Mr. Sinan for such a long name since it's 4KB.
-      @introductionTooltipStatusStorage = new AppStorage "IntroductionTooltipStatus"
-      @introductionTooltipStatusStorage.fetchStorage (storage) =>
-        @introSnippets    = snippets
-        shouldAddOverlay = no
-        for snippet in snippets
-          shouldAddOverlay = yes if snippet.overlay
-          for item in snippet.snippets
-            item.expiryDate = snippet.expiry
-            new IntroductionTooltip {}, item
-
-        @addOverlay() if shouldAddOverlay
-
-  addOverlay: ->
-    @$overlay = $ "<div/>",
-      class : "kdoverlay"
-    @$overlay.hide()
-    @$overlay.appendTo "body"
-    @$overlay.fadeIn 200
-    if @getOptions().overlayClick
-      @$overlay.bind "click",()=>
-        @destroy()
-
-  initIntroTooltip: (parentView) ->
-    return if not @introSnippets or not parentView or
-    new IntroductionTooltip { parentView }
