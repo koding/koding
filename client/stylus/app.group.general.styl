@@ -252,9 +252,6 @@
         visible()
       .group-settings-context
         visible()
-    &.own-group
-      .group-settings-context .remove-group
-        visible()
 
     .side-wrapper
       top                     0
@@ -513,3 +510,16 @@
           size 15px 15px
           margin               0 6px 0 0
           vertical-align       middle
+
+.kdbuttonmenu.group-settings-context
+  .leave-group
+  .remove-group
+    hidden()
+
+  &.member-group .leave-group
+    visible()
+  &.own-group
+    .kdlistitemview-contextitem.leave-group
+      hidden()
+    .remove-group
+      visible()

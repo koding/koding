@@ -182,7 +182,7 @@ class PopupGroupListItemPending extends PopupGroupListItem
           if err then warn err
           else
             new KDNotificationView
-              title    : 'Fair enough!'
+              title    : 'Ignored!'
               content  : 'If you change your mind, you can request access to the group anytime.'
               duration : 2000
             @destroy()
