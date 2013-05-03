@@ -303,7 +303,7 @@ class GroupsAppController extends AppController
           title : "An error occured, please try again"
       else
         new KDNotificationView
-          title : "You successfully joined the group!"
+          title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
   openPrivateGroup:(group)->
