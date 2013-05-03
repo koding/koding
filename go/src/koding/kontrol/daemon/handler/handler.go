@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"koding/kontrol/daemon/handler/proxy"
 	"koding/kontrol/daemon/workerconfig"
+	"koding/kontrol/helper"
 	"koding/kontrol/proxy/proxyconfig"
-	"koding/tools/amqputil"
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
@@ -564,8 +564,8 @@ func createProducer(name string) (*Producer, error) {
 	host := config.Current.Kontrold.RabbitMq.Host
 	port := config.Current.Kontrold.RabbitMq.Port
 
-	p.conn = amqputil.CreateAmqpConnection(user, password, host, port)
-	p.channel = amqputil.CreateChannel(p.conn)
+	p.conn = helper.CreateAmqpConnection(user, password, host, port)
+	p.channel = helper.CreateChannel(p.conn)
 
 	return p, nil
 }

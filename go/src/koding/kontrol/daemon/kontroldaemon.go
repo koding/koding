@@ -4,7 +4,7 @@ import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/daemon/handler"
 	"koding/kontrol/daemon/handler/proxy"
-	"koding/tools/amqputil"
+	"koding/kontrol/helper"
 	"koding/tools/config"
 	"log"
 )
@@ -63,8 +63,8 @@ func startRouting() error {
 	port := config.Current.Kontrold.RabbitMq.Port
 
 	/* We use one connection and channel for our three consumers */
-	c.conn = amqputil.CreateAmqpConnection(user, password, host, port)
-	c.channel = amqputil.CreateChannel(c.conn)
+	c.conn = helper.CreateAmqpConnection(user, password, host, port)
+	c.channel = helper.CreateChannel(c.conn)
 	err := c.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("info exchange.declare: %s", err)

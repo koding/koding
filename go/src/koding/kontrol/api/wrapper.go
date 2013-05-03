@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/tools/amqputil"
+	"koding/kontrol/helper"
 	"koding/tools/config"
 )
 
@@ -22,8 +22,8 @@ func setupAmqp() (ext *AmqpWrapper) {
 	host := config.Current.Kontrold.RabbitMq.Host
 	port := config.Current.Kontrold.RabbitMq.Port
 
-	connection := amqputil.CreateAmqpConnection(user, password, host, port)
-	channel := amqputil.CreateChannel(connection)
+	connection := helper.CreateAmqpConnection(user, password, host, port)
+	channel := helper.CreateChannel(connection)
 	_, err := channel.QueueDeclare(channelName, false, true, false, false, nil)
 	if err != nil {
 		fmt.Println(err)

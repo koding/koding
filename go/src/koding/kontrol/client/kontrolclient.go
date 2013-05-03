@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"io/ioutil"
+	"koding/kontrol/helper"
 	"koding/kontrold/workerconfig"
-	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/process"
 	"log"
@@ -40,8 +40,8 @@ func main() {
 	host := config.Current.Kontrold.Host
 	port := config.Current.Kontrold.Port
 
-	c.conn = amqputil.CreateAmqpConnection(user, password, host, port)
-	c.channel = amqputil.CreateChannel(c.conn)
+	c.conn = helper.CreateAmqpConnection(user, password, host, port)
+	c.channel = helper.CreateChannel(c.conn)
 
 	err := c.channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
