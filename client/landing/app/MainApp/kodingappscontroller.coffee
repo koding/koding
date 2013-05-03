@@ -118,7 +118,7 @@ class KodingAppsController extends KDController
   fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
-    indexJs.fetchContents (err, response)=> callback null, response
+    indexJs.fetchContents callback
 
   # #
   # MISC
@@ -296,11 +296,7 @@ class KodingAppsController extends KDController
         title    : "Compiling #{name}..."
         type     : "mini"
 
-      @kiteController.run
-        kiteName  : "applications"
-        method    : "compileApp"
-        withArgs  : {appPath}
-      , (err)=>
+      @kiteController.run "kd app compile #{appPath}", (err, response)=>
         if not err
           loader.notificationSetTitle "Fetching compiled app..."
           @fetchCompiledAppSource app, (err, res)=>
@@ -312,11 +308,8 @@ class KodingAppsController extends KDController
         else
           loader.destroy()
 
-          if err.details?.details?
-            details = """<pre>ERROR: #{err.details.details} <br/>
-                              FILE : #{err.details.file} <br/></pre>"""
-          else if err.details?
-            details = "<pre>#{err.details}</pre>"
+          if response
+            details = """<pre>#{response}</pre>"""
           else
             details = ""
 
@@ -336,6 +329,7 @@ class KodingAppsController extends KDController
       @fetchApps (err, apps)->
         compileOnServer apps[name]
     else
+
       @kiteController.run "test -d #{escapeFilePath @getAppPath @constructor.manifests[name]}", (err)=>
         if err
           new KDNotificationView
@@ -493,6 +487,13 @@ class KodingAppsController extends KDController
     manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
     changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
 
+    stack.push (cb)=>
+      @kiteController.run
+        method    : "fs.ensurePathExists"
+        withArgs  :
+          path    : "/home/#{KD.whoami().profile.nickname}/Applications"
+        , cb
+
     # Copy default app files (app Skeleton)
     stack.push (cb)=>
       @kiteController.run
@@ -506,8 +507,8 @@ class KodingAppsController extends KDController
     stack.push (cb)=> changeLogFile.save changeLogStr, cb
 
     async.parallel stack, (err, result) =>
-      if err then warn err
-      @emit "aNewAppCreated" if not err
+      warn err  if err
+      @emit "aNewAppCreated"  unless err
       callback? err, result
 
   # #
