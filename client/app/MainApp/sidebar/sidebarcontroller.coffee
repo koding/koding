@@ -66,7 +66,7 @@ class SidebarController extends KDViewController
           else if 'admin' in roles
             navController.removeItem dashboardLink  if @dashboardLink?
             @dashboardLink = navController.addItem
-              title     : 'Admin dashboard'
+              title     : 'Group Settings'
               type      : 'admin'
               loggedIn  : yes
               callback  : ->

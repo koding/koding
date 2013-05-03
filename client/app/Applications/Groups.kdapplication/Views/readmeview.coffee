@@ -59,6 +59,9 @@ class GroupReadmeView extends JView
     @readmeSaveButton.show()
     @readmeCancelLink.show()
 
+  getDefaultGroupReadme:(title)->
+    defaultGroupReadme title
+
   defaultGroupReadme = (title)->
     """
     <h1>Hello!</h1>
@@ -80,9 +83,12 @@ class GroupReadmeView extends JView
         group.canEditGroup (err, allowed)=>
           @readmeEditButton.show() if allowed
       else
-        partial = err.message or "Access denied! Please join the group."
+        partial =
+          if err?.message then err.message
+          else @getDefaultGroupReadme group.title
 
-      @readme = readme?.content or partial
+      #SA: is this line being used anywhere, this overrides the logic above
+      #@readme = readme?.content or partial
       @readmeView.updatePartial @utils.applyMarkdown partial
       @highlightCode()
       JView::viewAppended.call @

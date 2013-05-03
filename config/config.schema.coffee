@@ -119,15 +119,16 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
-        resourceName: 1
-        suppressLogs: 1
-        version   : 1
-        mainUri   : 1
-        broker    :
-          sockJS  : 1
-        apiUri    : 1
-        appsUri   : 1
-        sourceUri : 1
+        logToExternal : 1
+        resourceName  : 1
+        suppressLogs  : 1
+        version       : 1
+        mainUri       : 1
+        broker        :
+          sockJS      : 1
+        apiUri        : 1
+        appsUri       : 1
+        sourceUri     : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1

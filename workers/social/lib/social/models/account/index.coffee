@@ -7,6 +7,8 @@ likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JBlogPost'
                      ]
 
+{sharedStaticMethods, sharedInstanceMethods} = require '../account/methods'
+
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
@@ -47,28 +49,8 @@ module.exports = class JAccount extends jraphical.Module
     indexes:
       'profile.nickname' : 'unique'
     sharedMethods :
-      static      : [
-        'one', 'some', 'cursor', 'each', 'someWithRelationship'
-        'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion','reserveNames'
-        'impersonate'
-      ]
-      instance    : [
-        'modify','follow','unfollow','fetchFollowersWithRelationship'
-        'countFollowersWithRelationship', 'countFollowingWithRelationship'
-        'fetchFollowingWithRelationship', 'fetchTopics'
-        'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
-        'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
-        'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
-        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-        'fetchPendingGroupInvitations'
-      ]
+      static      : sharedStaticMethods()
+      instance    : sharedInstanceMethods()
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
