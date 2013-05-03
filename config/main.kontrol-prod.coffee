@@ -93,6 +93,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "http://#{version}.x.koding.com"
     runtimeOptions:
+      logToExternal : 1
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
