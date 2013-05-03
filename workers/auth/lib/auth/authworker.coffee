@@ -130,6 +130,7 @@ module.exports = class AuthWorker extends EventEmitter
     joinClientHelper = (messageData, routingKey, socketId) ->
       @authenticate messageData, routingKey, (session) =>
         serviceInfo = @getNextServiceInfo messageData.name
+        return console.error "No service info! #{messageData.name}"  unless serviceInfo?
         { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
         params = {
           serviceGenericName
