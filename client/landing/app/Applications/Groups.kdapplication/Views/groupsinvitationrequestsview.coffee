@@ -126,6 +126,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     modal = new KDModalViewWithForms
       cssClass               : options.cssClass
       title                  : options.title
+      content                : options.content
       overlay                : yes
       width                  : options.width or 400
       height                 : options.height or 'auto'
@@ -207,9 +208,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @batchApprove = @showModalForm
       title            : 'Batch Approve Requests'
       callback         : @emit.bind @, 'BatchApproveRequests'
+      content          : "<div class='modalformline'>Enter how many of the pending requests you want to approve:</div>"
       fields           :
         count          :
-          label        : '# of requests'
+          label        : 'No. of requests'
           type         : 'text'
           defaultValue : 10
           placeholder  : 'how many requests do you want to approve?'
