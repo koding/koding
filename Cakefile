@@ -208,15 +208,25 @@ task 'goBroker',(options)->
 
   processes.spawn
     name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
+    cmd   : "./go/bin/broker -c #{configFile} #{addFlags options}"
     restart: yes
     restartInterval: 100
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
 
-  config = require('koding-config-manager').load("main.#{configFile}")
-  sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
+task 'rerouting',(options)->
+
+  {configFile} = options
+
+  processes.spawn
+    name  : 'rerouting'
+    cmd   : "./go/bin/rerouting -c #{configFile}"
+    restart: yes
+    restartInterval: 100
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
 task 'osKite',({configFile})->
 
@@ -279,6 +289,7 @@ run =({configFile})->
   compileGoBinaries configFile,->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
+    invoke 'rerouting'      if config.runRerouting
     invoke 'proxy'          if config.runProxy
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
