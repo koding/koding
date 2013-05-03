@@ -37,6 +37,8 @@ class KDInputRadioGroup extends KDInputView
         div.hide()
     @domElement
 
+  click:-> @setValue @getValue()
+
   setDefaultValue:(value) ->
     @inputDefaultValue = value
     @setValue value
@@ -48,6 +50,8 @@ class KDInputRadioGroup extends KDInputView
     # @getDomElement().find("input[value='#{value}']").parent().siblings().removeClass('checked')
     # @getDomElement().find("input[value='#{value}']").parent().addClass('checked')
     @getDomElement().find("input[value='#{value}']").attr "checked","checked"
+    @getDomElement().find(".kd-radio-holder").removeClass 'active'
+    @getDomElement().find(".kd-radio-holder.#{value}").addClass 'active'
 
   getInputElements:->
     @getDomElement().find('input')
