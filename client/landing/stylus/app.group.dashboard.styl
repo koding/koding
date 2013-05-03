@@ -502,7 +502,7 @@
 
     .permissions
       height: auto;
-      margin-bottom: 50px;
+      // margin-bottom: 50px;
 
     .form-generator
       min-width               600px
@@ -678,32 +678,7 @@
 
     .permissions-view
       padding                 0 20px
-
-      .add-role-dialog
-        z-index               100000
-
-        .add-role-header
-          padding-top         15px
-          padding-bottom      15px
-          font-size           14px
-          font-weight         500
-
-        .add-role-button
-          margin-bottom       10px
-        .add-role-cancel
-          margin-top          8px
-
-        label.label-role-name
-          display             inline-block
-        input.role-name
-          display             inline-block
-          width               289px
-
-        label.label-copy-permissions
-          margin-top          10px
-          display             inline-block
-        div.kdselectbox.copy-permissions
-          margin-top          0px
+      overflow                auto
 
       // .kdview.kdloader
       //   display           block
@@ -714,7 +689,7 @@
         top                   0
         left                  20px
         right                 0
-        z-index               20000
+        z-index               99
         bg color,             white
         &.scrolling
            shadow             0 5px 15px -5px rgba(0,0,0,0.1)
@@ -745,11 +720,13 @@
               width fraction(340,num)px
 
         .formline
+
           &.button-field
             borderBox()
             &.scrolling
               shadow          0 -5px 10px -3px rgba(0,0,0,0.1)
-            fixed()
+            // fixed()
+            abs()
             left              0
             right             0
             // bottom 0
@@ -761,7 +738,7 @@
               fl()
 
           &:nth-last-child(2)
-            margin-bottom       49px
+            margin-bottom       50px
             border-bottom-color transparent
 
           &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
@@ -974,3 +951,33 @@
     padding                   10px
     font-size                 11px
     bg                        color, white
+
+
+.add-role-dialog
+  // z-index               100000
+  // max-width              300px
+
+  .add-role-header
+    padding-top         15px
+    padding-bottom      15px
+    font-size           14px
+    font-weight         500
+
+  .add-role-button
+    margin-bottom       10px
+  .add-role-cancel
+    margin-top          8px
+
+  label.label-role-name
+    display             inline-block
+    fl()
+  input.role-name
+    display             inline-block
+    width               289px
+
+  label.label-copy-permissions
+    // margin-top          10px
+    display             inline-block
+    fl()
+  // div.kdselectbox.copy-permissions
+  //   margin-top          9px
