@@ -80,16 +80,19 @@ class GroupReadmeView extends JView
     group.fetchReadme (err, readme)=>
       if not err and readme?
         partial = readme.content or getDefaultGroupReadme group.title
-        group.canEditGroup (err, allowed)=>
-          @readmeEditButton.show() if allowed
+        # group.canEditGroup (err, allowed)=>
+        #   @readmeEditButton.show() if allowed
       else
-        partial =
+        partialHTML =
           if err?.message then err.message
           else @getDefaultGroupReadme group.title
 
+      group.canEditGroup (err, allowed)=>
+        @readmeEditButton.show() if allowed
+
       #SA: is this line being used anywhere, this overrides the logic above
       #@readme = readme?.content or partial
-      @readmeView.updatePartial @utils.applyMarkdown partial
+      @readmeView.updatePartial partialHTML or @utils.applyMarkdown partial
       @highlightCode()
       JView::viewAppended.call @
       @emit "readmeReady"
