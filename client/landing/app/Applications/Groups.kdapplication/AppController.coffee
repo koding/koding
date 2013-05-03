@@ -105,7 +105,7 @@ class GroupsAppController extends AppController
       group: @currentGroup ? 'koding', user: account.profile.nickname
     }
 
-  createFeed:(view)->
+  createFeed:(view, loadFeed = no)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -119,13 +119,17 @@ class GroupsAppController extends AppController
       onboarding            :
         everything          :
           """
-            <h3 class='title'>yooo onboard me for da groop!!!</h3>
-            <p>
-              Cosby sweater ethnic neutra meggings, actually single-origin coffee next level before they sold out scenester food truck banh mi gluten-free pitchfork. Before they sold out whatever chillwave, flexitarian stumptown mlkshk pour-over iphone brooklyn semiotics. Seitan brooklyn cliche before they sold out blue bottle polaroid godard marfa fingerstache blog authentic salvia.
-            </p>
-            <p>
-              Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
-            </p>
+            <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+            your interests.</h3>
+
+            <p>When you join a group such as your univeristy or your company, you can share virtual
+            machines, collaborate on projects and stay up to date on the activites of others in your
+            group.</p>
+
+            <h3 class='title'>Easy to get started</h3>
+
+            <p>Groups are free to create. You decide who can join, what actions they can do inside the
+            group and what they see.</p>
           """
         mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
       filter                :
@@ -136,7 +140,12 @@ class GroupsAppController extends AppController
             {JGroup} = KD.remote.api
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              JGroup.byRelevance @_searchValue, options, callback
+              JGroup.byRelevance @_searchValue, options, (err, items, rest...)=>
+                callback err, items, rest...
+                # to trigger dataEnd
+                unless err
+                  ids = item.getId?() for item in items
+                  callback null, null, ids
             else
               JGroup.streamModels selector, options, callback
           dataEnd           :({resultsController}, ids)=>
@@ -177,18 +186,18 @@ class GroupsAppController extends AppController
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
-
+      @feedController.loadFeed() if loadFeed
       @putAddAGroupButton()
       @emit 'ready'
 
   markMemberAndOwnGroups:(controller, ids)->
-    {JGroup} = KD.remote.api
     fetchRoles =
       member: (view)-> view.markMemberGroup()
+      admin : (view)-> view.markGroupAdmin()
       owner : (view)-> view.markOwnGroup()
     for as, callback of fetchRoles
       do (as, callback)->
-        JGroup.fetchMyMemberships ids, as, (err, groups)->
+        KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
           controller.forEachItemByIndex groups, callback
 
@@ -323,9 +332,7 @@ class GroupsAppController extends AppController
           title: err.message
           duration: 1000
       else
-        new KDNotificationView
-          title   : 'Group was created!'
-          duration: 1000
+        @showGroupCreatedModal group
         @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
@@ -340,6 +347,38 @@ class GroupsAppController extends AppController
           duration: 1000
 
   showGroupSubmissionView:->
+
+    verifySlug = (slug)->
+      modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+      KD.remote.api.JName.one
+        name : "#{slug}"
+      , (err,name)=>
+        if name
+          modal.modalTabs.forms["General Settings"].inputs.Slug.setClass 'slug-taken'
+        else
+          modal.modalTabs.forms["General Settings"].inputs.Slug.unsetClass 'slug-taken'
+
+    getGroupType = ->
+      modal.modalTabs.forms["Select group type"].inputs.type.getValue()
+
+    getPrivacyDefault = ->
+      switch getGroupType()
+        when 'educational'  then 'by-request'
+        when 'company'      then 'by-invite'
+        when 'project'      then'public'
+        when 'custom'       then 'public'
+
+    getVisibilityDefault = ->
+      switch getGroupType()
+        when 'educational'  then 'visible'
+        when 'company'      then 'hidden'
+        when 'project'      then 'visible'
+        when 'custom'       then 'visible'
+
+    applyDefaults =->
+      {Privacy,Visibility} = modal.modalTabs.forms["General Settings"].inputs
+      Privacy.setValue getPrivacyDefault()
+      Visibility.setValue getVisibilityDefault()
 
     modalOptions =
       title                          : 'Create a new group'
@@ -363,11 +402,12 @@ class GroupsAppController extends AppController
               "Next"                 :
                 style                : "modal-clean-gray"
                 type                 : "submit"
+                callback             : -> applyDefaults()
             fields                   :
               "type"                 :
                 name                 : "type"
                 itemClass            : KDInputRadioGroup
-                defaultValue         : "custom"
+                defaultValue         : "project"
                 cssClass             : "group-type"
                 radios               : [
                   { title : "University/School", value : "educational"}
@@ -394,11 +434,22 @@ class GroupsAppController extends AppController
                 keydown              : (pubInst, event)->
                   @utils.defer =>
                     slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                    verifySlug slug
+
+
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
                 label                : "Slug"
                 name                 : "slug"
+                blur                 : ->
+                  @utils.defer =>
+                    slug = @utils.slugify @getValue()
+                    verifySlug slug
+                keydown              : ->
+                  @utils.defer =>
+                    slug = @utils.slugify @getValue()
+                    verifySlug slug
+
                 defaultValue         : ""
                 placeholder          : 'This value will be automatically generated'
               "Description"          :
@@ -432,16 +483,21 @@ class GroupsAppController extends AppController
                   { title : "Visible in group listings",    value : "visible" }
                   { title : "Hidden in group listings",     value : "hidden" }
                 ]
-              "Group VM"             :
-                label                : "Create a shared server for the group"
-                itemClass            : KDOnOffSwitch
-                name                 : "group-vm"
-                defaultValue         : no
-              "Member VM"            :
-                label                : "Create a server for each group member"
-                itemClass            : KDOnOffSwitch
-                name                 : "member-vm"
-                defaultValue         : no
+              # # Group VM should be there for every group
+              #
+              # "Group VM"             :
+              #   label                : "Create a shared server for the group"
+              #   itemClass            : KDOnOffSwitch
+              #   name                 : "group-vm"
+              #   defaultValue         : no
+              #
+              # # Members VMs are a future feature
+              #
+              # "Member VM"            :
+              #   label                : "Create a server for each group member"
+              #   itemClass            : KDOnOffSwitch
+              #   name                 : "member-vm"
+              #   defaultValue         : no
 
     modal = new KDModalViewWithForms modalOptions
 
@@ -488,17 +544,17 @@ class GroupsAppController extends AppController
           permissionSet
         }, group
 
-  loadView:(mainView, firstRun = yes)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
-        @loadView mainView, no
-
+        @loadView mainView, no, yes
       mainView.createCommons()
-      @createFeed mainView
+
+    @createFeed mainView, loadFeed
 
   openGroup:(group)->
     {slug, title} = group
@@ -678,6 +734,47 @@ class GroupsAppController extends AppController
     @getSingleton('mainController').once 'AccountChanged', ->
       if KD.isLoggedIn()
         callback()
+
+  showGroupCreatedModal:(group)->
+    group.fetchMembershipPolicy (err, policy)=>
+      return new KDNotificationView title: 'An error occured, however your group has been created!' if err
+
+      port = if location.port isnt 80 then ":#{location.port}" else ''
+      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+
+      if group.privacy is 'public'
+        privacyExpl = 'Koding users can join anytime without approval'
+      else if policy.invitationsEnabled
+        privacyExpl = 'and only invited users can join'
+      else
+        privacyExpl = 'Koding users can only join with your approval'
+
+      body  = """
+        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
+        <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
+        <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        """
+      modal = new KDModalView
+        title        : "#{group.title} has been created!"
+        content      : body
+        click        : (event)->
+          if $(event.target).is 'a.group-link' then modal.destroy()
+        buttons      :
+          dashboard  :
+            title    : 'Go to Dashboard'
+            style    : 'modal-clean-green'
+            callback : -> modal.destroy()
+          group      :
+            title    : 'Go to Group'
+            style    : 'modal-clean-gray'
+            callback : =>
+              modal.destroy()
+              KD.getSingleton('router').handleRoute "/#{group.slug}"
+          dismiss    :
+            title    : 'Dismiss'
+            style    : 'modal-cancel'
+            callback : -> modal.destroy()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->

@@ -42,6 +42,8 @@
         left                    90px
         margin                  0
         abs()
+      &.active
+        bg                      color, rgba(0, 0, 0, .05)
       &:hover
         bg                      color, rgba(0, 0, 0, .05)
         &:before
@@ -436,7 +438,10 @@
           line-height         8px
 
         .policylanguage-editor
-
+          width               auto
+          display             inline-block
+          button
+            margin            10px 10px 0 0
           textarea
             min-width         400px
             min-height        100px
@@ -951,3 +956,20 @@
   display                     inline-block
   margin-top                  3px
   color                       white
+
+.policy-language-image-wrapper
+  fr()
+  width                       auto
+  border                      1px solid #e8e8e8
+  rounded                     5px
+  bg                          color, #fbfbfb
+  img
+    width                     auto
+    height                    auto
+    margin                    10px
+  span
+    border-top                1px solid #e8e8e8
+    display                   block
+    padding                   10px
+    font-size                 11px
+    bg                        color, white
