@@ -57,13 +57,9 @@ func startRouting() error {
 	}
 
 	log.Printf("creating connection to handle incoming cli and api messages")
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
 
 	/* We use one connection and channel for our three consumers */
-	c.conn = helper.CreateAmqpConnection(user, password, host, port)
+	c.conn = helper.CreateAmqpConnection()
 	c.channel = helper.CreateChannel(c.conn)
 	err := c.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {

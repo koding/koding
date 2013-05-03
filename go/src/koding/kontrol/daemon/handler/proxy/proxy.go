@@ -157,12 +157,7 @@ func createProducer(name string) (*Producer, error) {
 		log.Printf("creating connection for sending %s messages", p.name)
 	}
 
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
-
-	p.conn = helper.CreateAmqpConnection(user, password, host, port)
+	p.conn = helper.CreateAmqpConnection()
 	p.channel = helper.CreateChannel(p.conn)
 
 	return p, nil

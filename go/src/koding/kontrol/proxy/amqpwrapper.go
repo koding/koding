@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
-	"koding/tools/config"
 	"log"
 )
 
@@ -29,13 +28,7 @@ func setupAmqp() *AmqpStream {
 	}
 
 	appId := helper.CustomHostname()
-
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
-
-	c.conn = helper.CreateAmqpConnection(user, password, host, port)
+	c.conn = helper.CreateAmqpConnection()
 	c.channel = helper.CreateChannel(c.conn)
 	err := c.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {

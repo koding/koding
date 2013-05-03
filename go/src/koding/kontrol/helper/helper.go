@@ -3,12 +3,18 @@ package helper
 import (
 	"github.com/streadway/amqp"
 	"io/ioutil"
+	"koding/tools/config"
 	"log"
 	"os"
 	"strings"
 )
 
-func CreateAmqpConnection(user, password, host, port string) *amqp.Connection {
+func CreateAmqpConnection() *amqp.Connection {
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
+
 	if port == "" {
 		port = "5672" // default RABBITMQ_NODE_PORT
 	}

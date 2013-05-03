@@ -5,7 +5,6 @@ import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/daemon/workerconfig"
 	"koding/kontrol/helper"
-	"koding/tools/config"
 	"koding/tools/process"
 	"log"
 )
@@ -28,13 +27,7 @@ func main() {
 		tag:     "",
 		done:    make(chan error),
 	}
-
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
-
-	c.conn = helper.CreateAmqpConnection(user, password, host, port)
+	c.conn = helper.CreateAmqpConnection()
 	c.channel = helper.CreateChannel(c.conn)
 
 	err := c.channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)

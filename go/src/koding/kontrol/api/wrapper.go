@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
-	"koding/tools/config"
 )
 
 const exchangeName = "infoExchange"
@@ -17,12 +16,7 @@ type AmqpWrapper struct {
 }
 
 func setupAmqp() (ext *AmqpWrapper) {
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
-
-	connection := helper.CreateAmqpConnection(user, password, host, port)
+	connection := helper.CreateAmqpConnection()
 	channel := helper.CreateChannel(connection)
 	_, err := channel.QueueDeclare(channelName, false, true, false, false, nil)
 	if err != nil {
