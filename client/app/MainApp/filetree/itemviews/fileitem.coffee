@@ -1,6 +1,6 @@
 class NFileItemView extends KDCustomHTMLView
 
-  loaderRequiredEvents = ['job', 'delete', 'save', 'saveAs']
+  loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
 
   constructor:(options = {},data)->
 
