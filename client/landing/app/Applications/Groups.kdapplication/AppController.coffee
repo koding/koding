@@ -105,7 +105,24 @@ class GroupsAppController extends AppController
       group: @currentGroup ? 'koding', user: account.profile.nickname
     }
 
+  onboardingText:->
+
+    """
+      <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+      your interests.</h3>
+
+      <p>When you join a group such as your univeristy or your company, you can share virtual
+      machines, collaborate on projects and stay up to date on the activites of others in your
+      group.</p>
+
+      <h3 class='title'>Easy to get started</h3>
+
+      <p>Groups are free to create. You decide who can join, what actions they can do inside the
+      group and what they see.</p>
+    """
+
   createFeed:(view, loadFeed = no)->
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -117,21 +134,8 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          :
-          """
-            <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
-            your interests.</h3>
-
-            <p>When you join a group such as your univeristy or your company, you can share virtual
-            machines, collaborate on projects and stay up to date on the activites of others in your
-            group.</p>
-
-            <h3 class='title'>Easy to get started</h3>
-
-            <p>Groups are free to create. You decide who can join, what actions they can do inside the
-            group and what they see.</p>
-          """
-        mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
+        everything          : @onboardingText()
+        mine                : @onboardingText()
       filter                :
         everything          :
           title             : "All groups"
