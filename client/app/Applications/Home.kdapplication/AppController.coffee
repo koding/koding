@@ -2,7 +2,7 @@ class HomeAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Home"
-    route        : "Home"
+    route        : "/Home"
     hiddenHandle : yes
     behavior     : "hideTabs"
 

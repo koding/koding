@@ -2,7 +2,7 @@ class ActivityAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Activity"
-    route        : "Activity"
+    route        : "/Activity"
     hiddenHandle : yes
 
   activityTypes = [

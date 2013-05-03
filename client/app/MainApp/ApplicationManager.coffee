@@ -116,7 +116,7 @@ class ApplicationManager extends KDObject
       manifestsFetched = yes
       for name, manifest of manifests when name is appName
 
-        manifest.route        = "Develop"
+        manifest.route        = "/Develop"
         manifest.behavior   or= "application"
         manifest.thirdParty or= yes
 
