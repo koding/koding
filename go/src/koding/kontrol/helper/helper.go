@@ -2,7 +2,10 @@ package helper
 
 import (
 	"github.com/streadway/amqp"
+	"io/ioutil"
 	"log"
+	"os"
+	"strings"
 )
 
 func CreateAmqpConnection(user, password, host, port string) *amqp.Connection {
@@ -36,4 +39,22 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 		}
 	}()
 	return channel
+}
+
+func CustomHostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Println(err)
+	}
+
+	return hostname
+}
+
+func ReadVersion() string {
+	file, err := ioutil.ReadFile("VERSION")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return strings.TrimSpace(string(file))
 }

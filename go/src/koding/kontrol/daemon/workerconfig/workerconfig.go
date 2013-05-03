@@ -3,7 +3,7 @@ package workerconfig
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"koding/kontrol/helper"
 	"koding/tools/config"
 	"koding/tools/process"
 	"labix.org/v2/mgo"
@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strings"
 	"time"
 )
 
@@ -167,7 +166,7 @@ func Connect() (*WorkerConfig, error) {
 	col := session.DB("kontrol").C("workers")
 
 	wk := &WorkerConfig{
-		Hostname:        customHostname(),
+		Hostname:        helper.CustomHostname(),
 		RegisteredHosts: make(map[string][]string),
 		Session:         session,
 		Collection:      col,
@@ -461,25 +460,4 @@ func (w *WorkerConfig) GetWorker(uuid string) (MsgWorker, error) {
 
 	return result, nil
 
-}
-
-func customHostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Println(err)
-	}
-
-	// hostVersion := hostname + "-" + readVersion()
-	hostVersion := hostname
-
-	return hostVersion
-}
-
-func readVersion() string {
-	file, err := ioutil.ReadFile("VERSION")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return strings.TrimSpace(string(file))
 }

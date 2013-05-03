@@ -2,11 +2,9 @@ package main
 
 import (
 	"github.com/streadway/amqp"
-	"io/ioutil"
+	"koding/kontrol/helper"
 	"koding/tools/config"
 	"log"
-	"os"
-	"strings"
 )
 
 type Consumer struct {
@@ -30,27 +28,16 @@ func setupAmqp() *AmqpStream {
 		done:    make(chan error),
 	}
 
-	var err error
-
-	appId := customHostname()
+	appId := helper.CustomHostname()
 
 	user := config.Current.Kontrold.RabbitMq.Login
 	password := config.Current.Kontrold.RabbitMq.Password
 	host := config.Current.Kontrold.RabbitMq.Host
 	port := config.Current.Kontrold.RabbitMq.Port
 
-	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
-	c.conn, err = amqp.Dial(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	c.channel, err = c.conn.Channel()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = c.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
+	c.conn = helper.CreateAmqpConnection(user, password, host, port)
+	c.channel = helper.CreateChannel(c.conn)
+	err := c.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
@@ -73,7 +60,7 @@ func setupAmqp() *AmqpStream {
 }
 
 func (a *AmqpStream) Publish(exchange, routingKey string, data []byte) {
-	appId := customHostname()
+	appId := helper.CustomHostname()
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",
@@ -85,24 +72,4 @@ func (a *AmqpStream) Publish(exchange, routingKey string, data []byte) {
 	}
 
 	a.channel.Publish(exchange, routingKey, false, false, msg)
-}
-
-func customHostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Println(err)
-	}
-
-	// hostVersion := hostname + "-" + readVersion()
-	hostVersion := hostname
-	return hostVersion
-}
-
-func readVersion() string {
-	file, err := ioutil.ReadFile("VERSION")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return strings.TrimSpace(string(file))
 }

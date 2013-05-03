@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
-	"io/ioutil"
 	"koding/kontrol/daemon/handler/proxy"
 	"koding/kontrol/daemon/workerconfig"
 	"koding/kontrol/helper"
@@ -13,9 +12,7 @@ import (
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
-	"os"
 	"strconv"
-	"strings"
 )
 
 type cliRequest struct {
@@ -549,10 +546,6 @@ func deliver(data []byte, producer *Producer, appId string) {
 		// 	log.Printf("SENDING WORKER data %s to %s", string(data), workerOut)
 		// }
 	}
-
-	// defer workerProducer.conn.Close()
-	// defer workerProducer.channel.Close()
-
 }
 
 func createProducer(name string) (*Producer, error) {
@@ -568,27 +561,6 @@ func createProducer(name string) (*Producer, error) {
 	p.channel = helper.CreateChannel(p.conn)
 
 	return p, nil
-}
-
-func customHostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Println(err)
-	}
-
-	// hostVersion := hostname + "-" + readVersion()
-	hostVersion := hostname
-
-	return hostVersion
-}
-
-func readVersion() string {
-	file, err := ioutil.ReadFile("VERSION")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return strings.TrimSpace(string(file))
 }
 
 func buildReq(action, cmd, hostname string, pid int) []byte {

@@ -45,15 +45,6 @@ func setupAmqp() (ext *AmqpWrapper) {
 }
 
 func (self *AmqpWrapper) Tell(cmd []byte) {
-	//wm := WorkerMessage{"status", "all", "result"}
-	//mes := Message{"worker", wm, "secret-worker-uuid", "senthils-MacBook-Pro.local-915", 0, 4, 1}
-	//data, err := json.Marshal(mes)
-
-	//data, err := json.Marshal(cmd)
-	//if err != nil {
-	//fmt.Println(data)
-	//}
-
 	msg := buildMessage(cmd)
 	self.channel.Publish(exchangeName, "input.webapi", false, false, msg)
 }

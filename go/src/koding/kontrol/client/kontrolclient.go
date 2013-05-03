@@ -3,14 +3,11 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"io/ioutil"
+	"koding/kontrol/daemon/workerconfig"
 	"koding/kontrol/helper"
-	"koding/kontrold/workerconfig"
 	"koding/tools/config"
 	"koding/tools/process"
 	"log"
-	"os"
-	"strings"
 )
 
 type Consumer struct {
@@ -20,11 +17,8 @@ type Consumer struct {
 	done    chan error
 }
 
-var HOSTNAME string
-
 func init() {
 	log.SetPrefix("kontrold-client ")
-	HOSTNAME = hostname()
 }
 
 func main() {
@@ -35,10 +29,10 @@ func main() {
 		done:    make(chan error),
 	}
 
-	user := config.Current.Kontrold.Login
-	password := config.Current.Kontrold.Password
-	host := config.Current.Kontrold.Host
-	port := config.Current.Kontrold.Port
+	user := config.Current.Kontrold.RabbitMq.Login
+	password := config.Current.Kontrold.RabbitMq.Password
+	host := config.Current.Kontrold.RabbitMq.Host
+	port := config.Current.Kontrold.RabbitMq.Port
 
 	c.conn = helper.CreateAmqpConnection(user, password, host, port)
 	c.channel = helper.CreateChannel(c.conn)
@@ -99,7 +93,7 @@ func matchAction(action, cmd, hostname string, pid int) {
 		"stop":  stop,
 	}
 
-	if hostname != "" && hostname != HOSTNAME {
+	if hostname != "" && hostname != helper.CustomHostname() {
 		log.Println("command is for a different machine")
 		return
 	}
@@ -155,23 +149,4 @@ func stop(cmd, hostname string, pid int) error {
 
 	log.Printf("local process with %s pid is get SIGSTOP", pid)
 	return nil
-}
-
-func hostname() string {
-	hostname, err := os.Hostname()
-	if err != nil {
-		log.Println(err)
-	}
-	customHost := hostname + "-" + readVersion()
-
-	return customHost
-}
-
-func readVersion() string {
-	file, err := ioutil.ReadFile("VERSION")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return strings.TrimSpace(string(file))
 }
