@@ -142,6 +142,15 @@ func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
 	})
 }
 
+func (vos *VOS) MkdirAll(name string, perm os.FileMode) error {
+	return vos.inVosContext(name, func(resolved string) error {
+		if err := os.MkdirAll(resolved, perm); err != nil {
+			return err
+		}
+		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
+	})
+}
+
 func (vos *VOS) Open(name string) (file *os.File, err error) {
 	err = vos.inVosContext(name, func(resolved string) error {
 		file, err = os.Open(resolved)
