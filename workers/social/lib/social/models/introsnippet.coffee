@@ -8,43 +8,73 @@ module.exports = class JIntroSnippet extends jraphical.Module
 
   @set
     sharedMethods :
-      instance    : [ "addToGroup" ]
+      instance    : [ "addChild", "delete", "deleteChild", "updateChild", "update" ]
       static      : [ "create", "fetchAll" ]
     schema        :
-      expiry      :
+      title       :
         type      : String
         required  : yes
-      name        :
+      expiryDate  :
         type      : String
         required  : yes
-      snippets    :
-        type      : Array
+      visibility  :
+        type      : String
         required  : yes
       overlay     :
         type      : Boolean
         required  : yes
-        default   : no
+      snippets    :
+        type      : Array
+        required  : yes
 
   @create = secure (client, data, callback) ->
     return unless JIntroSnippet.checkPermission client
 
     introSnippet = new JIntroSnippet data
-
     introSnippet.save (err)=>
       return callback? err if err
       callback null, introSnippet
       console.log "new intro snippet saved to database"
 
+  update: secure (client, data, callback) ->
+    return unless data
+    @checkPermission client
+    @[key] = value for key, value of data
+    @save()
+    callback?()
+
   @fetchAll = secure (client, callback) ->
     JIntroSnippet.some {}, {}, (err, records) ->
       callback? err, records
 
-  addToGroup: secure (client, data, callback) ->
+  addChild: secure (client, data, callback) ->
     @checkPermission client
-    @snippets.push
-      introId: data.introId
-      snippet: data.snippet
+    @snippets.push data
     @save()
+    callback?()
+
+  deleteChild: secure (client, introId, callback) ->
+    return unless introId
+    @checkPermission client
+    {snippets} = @
+    for snippet in snippets
+      if snippet?.introId is introId
+        snippets.splice snippets.indexOf(snippet), 1
+    @save()
+    callback?()
+
+  updateChild: secure (client, data, callback) ->
+    return unless data
+    @checkPermission client
+    {snippets} = @
+    for snippet in snippets
+      if snippet?.introId is data.oldIntroId
+        snippet.introId    = data.introId
+        snippet.introTitle = data.introTitle
+        snippet.snippet    = data.snippet
+
+    @save()
+    callback?()
 
   @checkPermission = (client) ->
     {globalFlags}  = client.connection.delegate
@@ -55,3 +85,6 @@ module.exports = class JIntroSnippet extends jraphical.Module
     return status
 
   checkPermission: @checkPermission # is it valid?
+
+  delete: secure (client, callback) ->
+    @remove callback
