@@ -83,8 +83,16 @@ class KiteController extends KDController
       command = options
       options = {}
 
+    currentGroupName = (KD.getSingleton 'groupsController').getGroupSlug()
+
     options.kiteName or= "os"
     options.method   or= "exec"
+    # options.correlationName or= currentGroupName
+
+    kite = @getKite options.kiteName,
+      if not currentGroupName or currentGroupName is 'koding'
+      then KD.whoami().profile.nickname
+      else currentGroupName
 
     if command
       options.withArgs = command
@@ -94,7 +102,7 @@ class KiteController extends KDController
     notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
     log "Kite Request:", options
 
-    KD.whoami().tellKite? options, (err, response)=>
+    kite.tell options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
 
   setListeners:->

@@ -52,11 +52,8 @@ class GroupsAppController extends AppController
     mainController.on 'groupJoinRequested',   @joinGroup.bind this
     mainController.on 'loginRequired',        @loginRequired.bind this
 
-  getCurrentGroupData:-> @currentGroupData
-
   getCurrentGroup:->
-    if Array.isArray @currentGroupData.data
-      return @currentGroupData.data.first
+    throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
@@ -74,10 +71,10 @@ class GroupsAppController extends AppController
       @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
-    return callback()  if @currentGroup is groupName
-    throw new Error 'Cannot change the group!'  if @currentGroup?
+    return callback()  if @currentGroupName is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroupName?
     @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    unless @currentGroup is groupName
+    unless @currentGroupName is groupName
       @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
@@ -92,20 +89,36 @@ class GroupsAppController extends AppController
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
-  getGroupSlug:-> @currentGroup
+  getGroupSlug:-> @currentGroupName
 
   setGroup:(groupName)->
-    @currentGroup = groupName
+    @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: KD.whoami().profile.nickname
     }
 
   resetUserArea:(account)->
     @setUserArea {
-      group: @currentGroup ? 'koding', user: account.profile.nickname
+      group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
   createFeed:(view, loadFeed = no)->
+
+    onboardingText =
+      """
+        <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+        your interests.</h3>
+
+        <p>When you join a group such as your univeristy or your company, you can share virtual
+        machines, collaborate on projects and stay up to date on the activites of others in your
+        group.</p>
+
+        <h3 class='title'>Easy to get started</h3>
+
+        <p>Groups are free to create. You decide who can join, what actions they can do inside the
+        group and what they see.</p>
+      """
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -117,21 +130,8 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          :
-          """
-            <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
-            your interests.</h3>
-
-            <p>When you join a group such as your univeristy or your company, you can share virtual
-            machines, collaborate on projects and stay up to date on the activites of others in your
-            group.</p>
-
-            <h3 class='title'>Easy to get started</h3>
-
-            <p>Groups are free to create. You decide who can join, what actions they can do inside the
-            group and what they see.</p>
-          """
-        mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
+        everything          : onboardingText
+        mine                : onboardingText
       filter                :
         everything          :
           title             : "All groups"
@@ -300,7 +300,7 @@ class GroupsAppController extends AppController
           title : "An error occured, please try again"
       else
         new KDNotificationView
-          title : "You successfully joined the group!"
+          title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
   openPrivateGroup:(group)->
@@ -321,17 +321,19 @@ class GroupsAppController extends AppController
         iconOnly  : yes
         callback  : => @showGroupSubmissionView()
 
-  _createGroupHandler =(formData)->
+  _createGroupHandler =(formData, callback)->
 
     if formData.privacy in ['by-invite', 'by-request', 'same-domain']
       formData.privacy = 'private'
 
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
+        callback? err
         new KDNotificationView
           title: err.message
           duration: 1000
       else
+        callback no
         @showGroupCreatedModal group
         @createContentDisplay group
 
@@ -391,8 +393,10 @@ class GroupsAppController extends AppController
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     :(formData)=>
-          _createGroupHandler.call @, formData
-          modal.destroy()
+          _createGroupHandler.call @, formData, (err) ->
+            modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
+            unless err
+              modal.destroy()
         forms                        :
           "Select group type"        :
             title                    : 'Group type'
