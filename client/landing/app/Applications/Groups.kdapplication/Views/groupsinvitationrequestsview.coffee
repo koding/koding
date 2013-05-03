@@ -22,10 +22,6 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       title    : 'Invite by Username'
       cssClass : 'clean-gray'
       callback : @bound 'showInviteByUsernameModal'
-    @batchInviteButton = new KDButtonView
-      title    : 'Batch Invite'
-      cssClass : 'clean-gray'
-      callback : @bound 'showBatchInviteModal'
     @batchApproveButton = new KDButtonView
       title    : 'Batch Approve Requests'
       cssClass : 'clean-gray'
@@ -130,6 +126,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     modal = new KDModalViewWithForms
       cssClass               : options.cssClass
       title                  : options.title
+      content                : options.content
       overlay                : yes
       width                  : options.width or 400
       height                 : options.height or 'auto'
@@ -153,24 +150,6 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
 
     return modal
-
-  showInviteByEmailModal:->
-    @inviteByEmail = @showModalForm
-      title              : 'Invite by Email'
-      callback           : @emit.bind @, 'InviteByEmail'
-      fields             :
-        recipient        :
-          label          : 'Email address'
-          type           : 'text'
-          name           : 'recipient'
-          placeholder    : 'Enter an email address...'
-          validate       :
-            rules        :
-              required   : yes
-              email      : yes
-            messages     :
-              required   : 'An email address is required!'
-              email      : 'That does not not seem to be a valid email address!'
 
   showInviteByUsernameModal:->
     @inviteByUsername = @showModalForm
@@ -210,10 +189,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     recipientField.addSubView recipient.getView()
     recipientField.addSubView recipientsWrapper
 
-  showBatchInviteModal:->
-    @batchInvite = @showModalForm
-      title            : 'Batch Invite by Email'
-      callback         : @emit.bind @, 'BatchInvite'
+  showInviteByEmailModal:->
+    @inviteByEmail = @showModalForm
+      title            : 'Invite by Email'
+      callback         : @emit.bind @, 'InviteByEmail'
       fields           :
         emails         :
           label        : 'Emails'
@@ -229,9 +208,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     @batchApprove = @showModalForm
       title            : 'Batch Approve Requests'
       callback         : @emit.bind @, 'BatchApproveRequests'
+      content          : "<div class='modalformline'>Enter how many of the pending requests you want to approve:</div>"
       fields           :
         count          :
-          label        : '# of requests'
+          label        : 'No. of requests'
           type         : 'text'
           defaultValue : 10
           placeholder  : 'how many requests do you want to approve?'
@@ -250,7 +230,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
   pistachio:->
     """
     <div class="button-bar">
-      {{> @batchApproveButton}} {{> @batchInviteButton}} {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
+      {{> @batchApproveButton}} {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
     </div>
     <section class="formline status-quo">
       <h2>Status quo</h2>

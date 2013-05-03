@@ -73,12 +73,14 @@ class GroupsListItemView extends KDListItemView
     @memberBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge member"
-      partial   : "<span class='fold'/>You are a member"
+      partial   : "You are a member"
 
     @privateBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
-      partial   : "<span class='fold'/><span class='icon'/>"
+      partial   : "<span class='icon'/>"
+      tooltip   :
+        title   : "Restricted access"
 
     @memberCount = new CustomLinkView
       title       : "#{group.counts?.members or 'No'} Members"
@@ -89,7 +91,7 @@ class GroupsListItemView extends KDListItemView
     menu = @settingsMenu data
     if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent group-settings-context'
+        style       : 'transparent group-settings-context'
         title       : ''
         delegate    : @
         type        : 'contextmenu'
@@ -113,9 +115,20 @@ class GroupsListItemView extends KDListItemView
 
   markMemberGroup:->
     @setClass "member-group"
+    @settingsButton.options.style += " member-group"
     @fetchMembers() if @getData().privacy isnt 'public'
 
-  markOwnGroup:-> @setClass "own-group"
+  markOwnGroup:->
+    @setClass "own-group"
+    @settingsButton.options.style += " own-group"
+    @memberBadge.stopUpdatingPartial = yes
+    @memberBadge.updatePartial "<span class='fold'/>You are owner"
+
+  markGroupAdmin:->
+    @setClass "group-admin"
+    @settingsButton.options.style += " group-admin"
+    unless @memberBadge.stopUpdatingPartial?
+      @memberBadge.updatePartial "<span class='fold'/>You are an admin"
 
   pistachio:->
     """
@@ -144,6 +157,7 @@ class GroupsListItemView extends KDListItemView
 
     if data.slug isnt 'koding'
       menu['Leave Group'] =
+        cssClass : 'leave-group'
         callback : =>
           modal = new KDModalView
             title          : 'Leave Group'
@@ -166,7 +180,7 @@ class GroupsListItemView extends KDListItemView
                 callback   : (event)-> modal.destroy()
 
       menu['Remove Group'] =
-        cssClass : 'remove-group hidden'
+        cssClass : 'remove-group'
         callback : =>
           modal = new GroupsDangerModalView
             action     : 'Remove Group'
@@ -176,7 +190,7 @@ class GroupsListItemView extends KDListItemView
                 callback()
                 if err
                   return new KDNotificationView title: if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-                new KDNotificationView title:'Ok, we removed your group with a heavy heart!'
+                new KDNotificationView title:'Successfully removed!'
                 modal.destroy()
                 @destroy()
           , data
@@ -194,7 +208,7 @@ class GroupsListItemView extends KDListItemView
         return callback()
 
       new KDNotificationView
-        title    : 'Fair Enough! They are gonna miss you.'
+        title    : 'Successfully left group!'
         duration : 2000
       callback()
 

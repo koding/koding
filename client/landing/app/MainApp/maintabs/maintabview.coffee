@@ -49,11 +49,12 @@ class MainTabView extends KDTabView
     appInstance = appManager.getByView appView
     options     = appInstance.getOptions()
     @getSingleton('router').handleRoute "/#{options.route}"
-    # if $(event.target).hasClass "close-tab"
-    #   pane.mainView.destroy()
-    #   return no
 
-    # @showPane pane
+    if $(event.target).hasClass "close-tab"
+      pane.mainView.destroy()
+      return no
+
+    @showPane pane  if options.route is 'Develop'
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
