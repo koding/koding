@@ -107,8 +107,8 @@ func Startup() {
 			result := workerconfig.MsgWorker{}
 			for iter.Next(&result) {
 				// If it's still death just remove it
-				log.Printf("removing death worker '%s'", result.Name)
 				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
+					log.Printf("removing death worker '%s'", result.Name)
 					kontrolConfig.DeleteWorker(result.Uuid)
 				}
 			}
