@@ -1559,6 +1559,55 @@ figure.code-container
     bg                  position, -120px -460px
     sprite()
 
+.introduction-tooltip
+  max-width             300px
+.admin-introduction-item
+  overflow              hidden
+  line-height           24px
+  margin                20px 0 20px 20px
+  &:hover .introduction-actions
+    display             block
+  .cell
+    float               left
+    width               100px
+    text-overflow       ellipsis
+    &.name
+      pointer()
+  .introduction-actions
+    width               200px
+    display             none
+    span
+      font-size         11px
+      cursor            pointer
+    span.icon
+      display           inline-block
+      size              16px, 16px
+      sprite()
+      &.add
+        bg              position, -120px -458px
+      &.update
+        bg              position, -120px -398px
+      &.delete
+        bg              position, -78px -518px
+    span:first-child
+      margin-right      3px
+.introduction-admin-buttons
+  padding               10px 0
+  text-align            right
+  button
+    right               10px
+.introduction textarea
+  width                 463px
+  height                125px
+.introduction-admin-content
+  padding               0 20px 10px
+  .kdloader
+    left                50%
+    margin-left         -18px
+.introduction-not-found
+  font-style            italic
+  font-size             13px
+
 
 // /*
 //   Animation tests
