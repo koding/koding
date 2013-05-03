@@ -6,9 +6,7 @@ class LoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else ''
+    entryPoint = KD.config.entryPoint?.slug? and KD.config.entryPoint.slug or ''
 
     super options, data
 
@@ -217,7 +215,7 @@ class LoginView extends KDScrollView
 
         @hide()
 
-        if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+        if KD.config.entryPoint?.slug?
           @getSingleton('lazyDomController').hideLandingPage()
 
   doRequest:(formData)->

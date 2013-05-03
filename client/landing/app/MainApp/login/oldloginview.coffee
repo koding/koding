@@ -6,9 +6,7 @@ class OldLoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else entryPoint = ''
+    entryPoint = KD.config.entryPoint?.slug? KD.config.entryPoint.slug or ''
 
     super options, data
 
@@ -316,5 +314,5 @@ class OldLoginView extends KDScrollView
     $('#main-form-handler').removeClass "register recover login reset home lr landed"
     $('#main-form-handler').addClass name
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+    if KD.config.entryPoint?.slug?
       $('#main-form-handler').addClass 'landed'

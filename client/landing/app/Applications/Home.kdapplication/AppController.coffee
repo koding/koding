@@ -9,9 +9,7 @@ class HomeAppController extends AppController
   constructor:(options = {}, data)->
     # options.view    = new HomeMainView
 
-    entryPoint = if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else no
+    entryPoint = KD.config.entryPoint.slug? and KD.config.entryPoint.slug or no
 
     Konstructor = if entryPoint then GroupHomeView else HomeAppView
 

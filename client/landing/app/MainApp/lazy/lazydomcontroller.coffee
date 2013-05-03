@@ -74,9 +74,9 @@ class LazyDomController extends KDController
     contentPanel.setClass "no-anim"
     contentPanel.setClass "social"
 
-  userEnteredFromGroup:-> KD.config.groupEntryPoint?
+  userEnteredFromGroup:-> (KD.config.entryPoint? and KD.config.entryPoint.type == "group")
 
-  userEnteredFromProfile:-> KD.config.profileEntryPoint?
+  userEnteredFromProfile:-> (KD.config.entryPoint? and KD.config.entryPoint.type == "profile")
 
   addGroupViews:->
 
