@@ -85,9 +85,10 @@ class GroupReadmeView extends JView
       else
         partial =
           if err?.message then err.message
-          else "Access denied! Please join the group."
+          else @getDefaultGroupReadme group.title
 
-      @readme = readme?.content or partial
+      #SA: is this line being used anywhere, this overrides the logic above
+      #@readme = readme?.content or partial
       @readmeView.updatePartial @utils.applyMarkdown partial
       @highlightCode()
       JView::viewAppended.call @
