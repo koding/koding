@@ -103,6 +103,22 @@ class GroupsAppController extends AppController
     }
 
   createFeed:(view, loadFeed = no)->
+
+    onboardingText =
+      """
+        <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+        your interests.</h3>
+
+        <p>When you join a group such as your univeristy or your company, you can share virtual
+        machines, collaborate on projects and stay up to date on the activites of others in your
+        group.</p>
+
+        <h3 class='title'>Easy to get started</h3>
+
+        <p>Groups are free to create. You decide who can join, what actions they can do inside the
+        group and what they see.</p>
+      """
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -114,21 +130,8 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          :
-          """
-            <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
-            your interests.</h3>
-
-            <p>When you join a group such as your univeristy or your company, you can share virtual
-            machines, collaborate on projects and stay up to date on the activites of others in your
-            group.</p>
-
-            <h3 class='title'>Easy to get started</h3>
-
-            <p>Groups are free to create. You decide who can join, what actions they can do inside the
-            group and what they see.</p>
-          """
-        mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
+        everything          : onboardingText
+        mine                : onboardingText
       filter                :
         everything          :
           title             : "All groups"
@@ -297,7 +300,7 @@ class GroupsAppController extends AppController
           title : "An error occured, please try again"
       else
         new KDNotificationView
-          title : "You successfully joined the group!"
+          title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
   openPrivateGroup:(group)->
@@ -329,9 +332,7 @@ class GroupsAppController extends AppController
           title: err.message
           duration: 1000
       else
-        new KDNotificationView
-          title   : 'Group was created!'
-          duration: 1000
+        @showGroupCreatedModal group
         @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
@@ -733,6 +734,47 @@ class GroupsAppController extends AppController
     @getSingleton('mainController').once 'AccountChanged', ->
       if KD.isLoggedIn()
         callback()
+
+  showGroupCreatedModal:(group)->
+    group.fetchMembershipPolicy (err, policy)=>
+      return new KDNotificationView title: 'An error occured, however your group has been created!' if err
+
+      port = if location.port isnt 80 then ":#{location.port}" else ''
+      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+
+      if group.privacy is 'public'
+        privacyExpl = 'Koding users can join anytime without approval'
+      else if policy.invitationsEnabled
+        privacyExpl = 'and only invited users can join'
+      else
+        privacyExpl = 'Koding users can only join with your approval'
+
+      body  = """
+        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
+        <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
+        <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        """
+      modal = new KDModalView
+        title        : "#{group.title} has been created!"
+        content      : body
+        click        : (event)->
+          if $(event.target).is 'a.group-link' then modal.destroy()
+        buttons      :
+          dashboard  :
+            title    : 'Go to Dashboard'
+            style    : 'modal-clean-green'
+            callback : -> modal.destroy()
+          group      :
+            title    : 'Go to Group'
+            style    : 'modal-clean-gray'
+            callback : =>
+              modal.destroy()
+              KD.getSingleton('router').handleRoute "/#{group.slug}"
+          dismiss    :
+            title    : 'Dismiss'
+            style    : 'modal-cancel'
+            callback : -> modal.destroy()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->
