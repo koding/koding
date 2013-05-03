@@ -330,6 +330,14 @@ task 'kontrolApi',({configFile}) ->
     stderr  : process.stderr
     verbose : yes
 
+task 'kontrolRabbit',({configFile}) ->
+  processes.spawn
+    name    : 'kontrolRabbit'
+    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/rabbit -c #{configFile}'" else "./go/bin/rabbit -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'kontrol',({configFile}) ->
   invoke 'kontrolDaemon'
   invoke 'kontrolApi'

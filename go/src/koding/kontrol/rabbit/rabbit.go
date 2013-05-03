@@ -3,6 +3,8 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
+	// "github.com/koding/rabbitapi"
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"koding/tools/config"
@@ -23,17 +25,52 @@ type Producer struct {
 	channel *amqp.Channel
 }
 
+type IncomingMq struct {
+	Protocol string `json:"protocol"`
+	Host     string `json:"host"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Vhost    string `json:"vhost"`
+}
+
 var producer *Producer
 
 func main() {
 	log.Println("kontrol rabbitproxy started")
 
-	var err error
+	cred, err := authUser()
+	if err != nil {
+		log.Fatalln("not authorized to run!", err)
+	}
+
+	log.Println(cred)
+
 	producer, err = createProducer()
 	if err != nil {
 		log.Println(err)
 	}
 	startRouting()
+}
+
+func authUser() (IncomingMq, error) {
+	resp, err := http.DefaultClient.Get("http://localhost:3000/-/kite/login?key=123123&name=proxy")
+	if err != nil {
+		return IncomingMq{}, err
+	}
+	defer resp.Body.Close()
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return IncomingMq{}, err
+	}
+
+	msg := IncomingMq{}
+	err = json.Unmarshal(data, &msg)
+	if err != nil {
+		return IncomingMq{}, err
+	}
+
+	return msg, nil
 }
 
 func startRouting() {
