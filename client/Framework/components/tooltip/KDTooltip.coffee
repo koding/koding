@@ -17,7 +17,8 @@ class KDTooltip extends KDView
 
   constructor:(options,data)->
 
-    options.bind  or= "mouseenter mouseleave"
+    options.bind   or= "mouseenter mouseleave"
+    options.sticky or= no
 
     super options, data
 
@@ -169,6 +170,8 @@ class KDTooltip extends KDView
     super
 
   delayedRemove:(timeout = @getOptions().delayOut)->
+
+    return if @getOptions().sticky
 
     @utils.killWait @deleteTimer
     @deleteTimer = @utils.wait timeout, =>
