@@ -20,7 +20,7 @@ class GroupReadmeView extends JView
         showInitially : no
 
     @readmeEditButton = new KDButtonView
-      title           : 'Edit the Readme'
+      title           : 'Edit Readme'
       cssClass        : 'clean-gray readme-edit'
       callback        : =>
         @readmeInput.setValue Encoder.htmlDecode @readme
