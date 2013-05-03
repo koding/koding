@@ -13,6 +13,7 @@ import (
 	"labix.org/v2/mgo/bson"
 	"log"
 	"strconv"
+	"time"
 )
 
 type cliRequest struct {
@@ -96,6 +97,23 @@ func Startup() {
 	if err != nil {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
 	}
+
+	// cleanup death workers every 2 minutes
+	ticker := time.NewTicker(time.Minute * 2)
+	go func() {
+		for t := range ticker.C {
+			log.Println("cleaning any death workers", t)
+			iter := kontrolConfig.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
+			result := workerconfig.MsgWorker{}
+			for iter.Next(&result) {
+				// If it's still death just remove it
+				log.Printf("removing death worker '%s'", result.Name)
+				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
+					kontrolConfig.DeleteWorker(result.Uuid)
+				}
+			}
+		}
+	}()
 
 	log.Printf("ready on host %s", kontrolConfig.Hostname)
 }
