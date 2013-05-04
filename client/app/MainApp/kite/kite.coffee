@@ -8,7 +8,7 @@ class Kite extends KDObject
     super
 
     { @kiteName, @correlationName, @kiteKey } = options
-    
+
     @initChannel()
 
     @localStore   = new Store
@@ -44,7 +44,6 @@ class Kite extends KDObject
 
   handleBrokerSubscribed:->
 
-
   cycleChannel: ->
     @setStopPinging()
     @channel.off()
@@ -60,9 +59,9 @@ class Kite extends KDObject
       callbacks   : {}
     @channel.once 'pong', callback  if callback
 
-  setStartPinging: -> @stopPinging = false
+  setStartPinging: -> @stopPinging = yes
 
-  setStopPinging: -> @stopPinging = true
+  setStopPinging: -> @stopPinging = no
 
   handleMessageArrived: ->
     clearTimeout @unresponsiveTimeoutId
@@ -116,9 +115,7 @@ class Kite extends KDObject
     @channel.exchange = resourceName
     @emit 'ready'
 
-  handleError: (err) ->
-    @cycleChannel()
-    console.error err
+  handleError: (err) -> console.error err
 
   handlePong: ->
     @channel.emit 'pong'
@@ -139,9 +136,9 @@ class Kite extends KDObject
   unscrub: (args) ->
     scrubber = new Scrubber @localStore
     return scrubber.unscrub args, (callbackId) =>
-      unless remoteStore.has callbackId
+      unless @remoteStore.has callbackId
         @remoteStore.add callbackId, (rest...) =>
-          @handleRequest @kiteName, callbackId, rest
+          @handleRequest callbackId, rest
       @remoteStore.get callbackId
 
   getChannelName: ->

@@ -10,6 +10,7 @@ fi
 ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
 	koding/broker
+    koding/rerouting
 	koding/kites/os
 	koding/kites/irc
 	koding/virt/proxy
