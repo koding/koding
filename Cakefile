@@ -133,7 +133,6 @@ task 'socialWorker', ({configFile}) ->
       kontrol         :
         enabled       : yes
         startMode     : "one"
-        nodeProcess   : yes
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -170,7 +169,6 @@ task 'authWorker',({configFile}) ->
       kontrol         :
         enabled       : yes
         startMode     : "one"
-        nodeProcess   : yes
       verbose         : yes
 
   if config.watch is yes
@@ -206,7 +204,6 @@ task 'emailWorker',({configFile})->
     kontrol         :
       enabled       : yes
       startMode     : "one"
-      nodeProcess   : yes
     verbose         : yes
 
   watcher = new Watcher
@@ -307,7 +304,6 @@ task 'cacheWorker',({configFile})->
     kontrol         :
       enabled       : yes
       startMode     : "one"
-      nodeProcess   : yes
 
   if cacheWorker.watch is yes
     watcher = new Watcher
