@@ -194,7 +194,6 @@ task 'guestCleanup',({configFile})->
     kontrol         :
       enabled       : yes
       startMode     : "one"
-      nodeProcess   : yes
     verbose         : yes
 
 task 'emailWorker',({configFile})->
@@ -324,23 +323,8 @@ task 'kontrolCli',({configFile}) ->
     name : "kontrol"
     cmd  : "./node_modules/kontrol -c #{configFile}"
 
-task 'kontrolDaemon',({configFile}) ->
-  processes.spawn
-    name    : 'kontrolDaemon'
-    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL daemon;sudo ./go/bin-vagrant/daemon -c #{configFile}'" else "./go/bin/daemon -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolApi',({configFile}) ->
-  processes.spawn
-    name    : 'kontrolApi'
-    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/api -c #{configFile}'" else "./go/bin/api -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolRabbit',({configFile}) ->
+task 'kontrolRabbit',(options) ->
+  {configFile} = options
   processes.spawn
     name    : 'kontrolRabbit'
     cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/rabbit -c #{configFile}'" else "./go/bin/rabbit -c #{configFile}"
@@ -348,7 +332,28 @@ task 'kontrolRabbit',({configFile}) ->
     stderr  : process.stderr
     verbose : yes
 
-task 'kontrol',({configFile}) ->
+task 'kontrolDaemon',(options) ->
+  {configFile} = options
+  console.log configFile
+  processes.spawn
+    name    : 'kontrolDaemon'
+    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL daemon;sudo ./go/bin-vagrant/daemon -c #{configFile}'" else "./go/bin/daemon -c #{configFile} #{addFlags options}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolApi',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolApi'
+    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/api -c #{configFile}'" else "./go/bin/api -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+
+task 'kontrol',(options) ->
+  {configFile} = options
   invoke 'kontrolDaemon'
   invoke 'kontrolApi'
 
