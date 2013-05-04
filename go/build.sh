@@ -22,7 +22,16 @@ services=(
 	koding/kontrol/rabbit
 )
 
-go install -v -ldflags "$ldflags" "${services[@]}"
+
+for i in "${services[@]}"
+do
+  if [ "$i" == "koding/kontrol/proxy" ]; then
+    go build -v -ldflags "$ldflags" -o "kontrolproxy" "$i"
+    mv "kontrolproxy" $GOBIN
+  else
+    go install -v -ldflags "$ldflags" "$i"
+  fi
+done
 
 cd $GOPATH
 cp bin/os bin/irc ../kites
