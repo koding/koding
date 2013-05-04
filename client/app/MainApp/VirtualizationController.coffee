@@ -8,6 +8,8 @@ class VirtualizationController extends KDController
     @lastState =
       state    : 'STOPPED'
 
+    @dialogIsOpen = no
+
   run:(command, callback)->
 
     @askForApprove command, (approved)=>
@@ -65,6 +67,8 @@ class VirtualizationController extends KDController
       else
         return callback yes
 
+    return  if @dialogIsOpen
+
     modal = new KDModalView
       title          : "Approval required"
       content        : "<div class='modalformline'><p>#{content}</p></div>"
@@ -85,7 +89,12 @@ class VirtualizationController extends KDController
 
     modal.once 'KDModalViewDestroyed', -> callback no
 
+    @dialogIsOpen = yes
+    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+
   askToTurnOn:(appName='', callback)->
+
+    return  if @dialogIsOpen
 
     content = """To #{if appName then 'run' else 'do this'} <b>#{appName}</b>
                  you need to turn on your VM first, you can do that by
@@ -112,3 +121,6 @@ class VirtualizationController extends KDController
             callback?()
 
     modal.once 'KDModalViewDestroyed', -> callback?()
+
+    @dialogIsOpen = yes
+    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
