@@ -14,18 +14,15 @@ app.finder.styl
 }
 
 selectedNeighbor()
-  border-top-color  #E6981E
   background        finderSelectedColor1
 
 dimmed()
-  border-color      #ccc transparent #c2c2c2 transparent
   color             #282828
   text-shadow       none
   // background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
   bg                color, #ccc
 
 dimmedNeighbor()
-  border-top-color  finderDimmedColor1
   background        finderDimmedColor2
 
 #finder-holder
@@ -68,8 +65,6 @@ dimmedNeighbor()
 .kdlistitemview-finderitem
   height              auto
   min-height          22px
-  border              1px solid transparent
-  border-width        1px 0
   font-size           11px
   color               #282828
   noTextSelection()
@@ -90,12 +85,11 @@ dimmedNeighbor()
     bg                position,-180px -360px
 
   &.selected
-    border            1px solid #F6A220
-    border-width      1px 0
     color             white
     text-shadow       0 -1px 0 rgba(0,0,0,0.22)
     // background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
     bg                color, finderSelectedColor1
+
     .title
       color white
       text-shadow none
@@ -131,13 +125,15 @@ dimmedNeighbor()
     > div
       span.icon
         bg          position,-40px -120px
+      span.arrow
+        bg          position, -40px 0px
+
 
   &.being-inline-edited
     .chevron
       hidden()
 
   &.being-deleted
-    border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
     background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
     height            22px
     .kdview.delete-container
@@ -731,11 +727,11 @@ div.led-wrapper
     fl()
 
   .kdloader
-    margin        2px 3px
+    margin        3px 3px
     fl()
 
   .icon
-    margin        2px 3px
+    margin        3px 3px
     size          16px,16px
 
   .section-title
@@ -751,17 +747,29 @@ div.led-wrapper
   .broken
   .section
     font-size       11px
+
+    span.icon
+    span.arrow
+      sprite()
+      fl()
+
     span.icon
       margin        2px 3px
       size          16px,16px
-      sprite()
-      fl()
+    span.arrow
+      margin        3px 3px
+      margin-left   0
+      size          10px,16px
+      bg            position, -1000px -1000px
+
   .folder
   .mount
     span.icon
       bg            position, -40px -100px
     span.icon.application
       bg            position, -40px -320px
+    span.arrow
+      bg            position, -40px -20px
   .folder
     span.icon
       &.app
@@ -788,7 +796,6 @@ div.led-wrapper
         bg          position, -40px -300px
 
 
-
 .finder-drag-container
   abs()
   width             208px
@@ -809,10 +816,3 @@ div.led-wrapper
     .title
       display         inline-block
       margin-right    0
-
-
-
-
-
-
-

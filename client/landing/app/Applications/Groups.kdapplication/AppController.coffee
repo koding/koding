@@ -351,14 +351,30 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = (slug)->
+
+      queryDB = (s)->
+        KD.remote.api.JName.one
+          name : "#{s}"
+        , (err,name)=>
+          unless name
+            modal.modalTabs.forms["General Settings"].inputs.Slug.setValue s
+          else
+            slug = name.name
+            if '-' in slug
+              parts = slug.split('-')
+              suffix = parseInt parts[parts.length - 1]
+              if not isNaN(suffix)
+                parts[parts.length - 1] = suffix + 1
+                slug = parts.join('-')
+              else
+                slug += '-1'
+            else
+              slug += '-1'
+            queryDB slug
+
       modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-      KD.remote.api.JName.one
-        name : "#{slug}"
-      , (err,name)=>
-        if name
-          modal.modalTabs.forms["General Settings"].inputs.Slug.setClass 'slug-taken'
-        else
-          modal.modalTabs.forms["General Settings"].inputs.Slug.unsetClass 'slug-taken'
+      if slug.length > 0
+        queryDB slug
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
