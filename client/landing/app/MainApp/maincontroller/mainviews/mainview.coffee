@@ -79,7 +79,7 @@ class MainView extends KDView
 
         KD.getSingleton('router').handleRoute route
 
-    if KD.config.entryPoint?.slug?
+    if KD.config.entryPoint?.slug? and KD.config.entryPoint.type == "group"
       KD.remote.cacheable KD.config.entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
