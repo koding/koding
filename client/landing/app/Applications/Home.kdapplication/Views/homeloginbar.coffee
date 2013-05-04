@@ -3,7 +3,7 @@ class HomeLoginBar extends JView
   constructor:(options = {}, data)->
 
     options.cssClass   = "home-links"
-    options.entryPoint = KD.config.entryPoint.slug
+    options.entryPoint = KD.config.entryPoint?.slug
 
     super options, data
 
