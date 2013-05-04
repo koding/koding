@@ -10,13 +10,30 @@ module.exports = class JGuest extends jraphical.Module
         err.message
 
   {secure, dash} = require 'bongo'
-  
+
   @share()
+
+  KodingError = require '../error'
+
+  {sharedStaticMethods, sharedInstanceMethods} = require '../models/account/methods'
+
+  # We import instance & static methods from JAccount into JGuest for
+  # uniformty of interface
+  do =>
+    errorCallback = (err, callback)-> callback new KodingError "Access denied"
+    @[method]    ?= errorCallback for method in sharedStaticMethods()
+    @::[method]  ?= errorCallback for method in sharedInstanceMethods()
+    return
+
+  staticMethods = sharedStaticMethods()
+  staticMethods.push 'obtain', 'resetAllGuests'
+  instanceMethods = sharedInstanceMethods()
+  instanceMethods.push 'getDefaultEnvironment', 'fetchStorage'
 
   @set
     sharedMethods   :
-      static        : ['obtain', 'resetAllGuests']
-      instance      : ['getDefaultEnvironment', 'fetchStorage']
+      static        : staticMethods
+      instance      : instanceMethods
     indexes         :
       guestId       : ['unique', 'descending']
     schema          :

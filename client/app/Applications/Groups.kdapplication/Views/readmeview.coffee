@@ -20,7 +20,7 @@ class GroupReadmeView extends JView
         showInitially : no
 
     @readmeEditButton = new KDButtonView
-      title           : 'Edit the Readme'
+      title           : 'Edit Readme'
       cssClass        : 'clean-gray readme-edit'
       callback        : =>
         @readmeInput.setValue Encoder.htmlDecode @readme
@@ -59,6 +59,9 @@ class GroupReadmeView extends JView
     @readmeSaveButton.show()
     @readmeCancelLink.show()
 
+  getDefaultGroupReadme:(title)->
+    defaultGroupReadme title
+
   defaultGroupReadme = (title)->
     """
     <h1>Hello!</h1>
@@ -77,13 +80,19 @@ class GroupReadmeView extends JView
     group.fetchReadme (err, readme)=>
       if not err and readme?
         partial = readme.content or getDefaultGroupReadme group.title
-        group.canEditGroup (err, allowed)=>
-          @readmeEditButton.show() if allowed
+        # group.canEditGroup (err, allowed)=>
+        #   @readmeEditButton.show() if allowed
       else
-        partial = err.message or "Access denied! Please join the group."
+        partialHTML =
+          if err?.message then err.message
+          else @getDefaultGroupReadme group.title
 
-      @readme = readme?.content or partial
-      @readmeView.updatePartial @utils.applyMarkdown partial
+      group.canEditGroup (err, allowed)=>
+        @readmeEditButton.show() if allowed
+
+      #SA: is this line being used anywhere, this overrides the logic above
+      #@readme = readme?.content or partial
+      @readmeView.updatePartial partialHTML or @utils.applyMarkdown partial
       @highlightCode()
       JView::viewAppended.call @
       @emit "readmeReady"

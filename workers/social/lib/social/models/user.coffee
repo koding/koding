@@ -41,7 +41,7 @@ module.exports = class JUser extends jraphical.Module
                      'fucker','admin','postfix','puppet','main','invite',
                      'administrator','members','register','activate',
                      'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework']
+                     'term','twitter','facebook','google','framework', 'kite']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
@@ -381,6 +381,8 @@ module.exports = class JUser extends jraphical.Module
                             followActions  : off
                             comment        : on
                             likeActivities : off
+                            groupRequest   : on
+                            groupApproval  : on 
                           }
                         }
                         user.save (err)=>
