@@ -97,8 +97,8 @@ class StaticPageCustomizeView extends KDView
       href      : '#'
       cssClass  : 'settings-link'
       click     : =>
-        entrypoint = @getDelegate().entryPoint.slug
-        @getSingleton('lazyDomController')?.openPath "/#{entrypoint}/Activity"
+        entryPoint = @getDelegate().entryPoint
+        @getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
 
 
   fetchStaticPageData:(callback =->)->

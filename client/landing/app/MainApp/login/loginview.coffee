@@ -6,7 +6,7 @@ class LoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = KD.config.entryPoint?.slug? and KD.config.entryPoint.slug or ''
+    {entryPoint} = KD.config
 
     super options, data
 
@@ -15,10 +15,9 @@ class LoginView extends KDScrollView
     @bindTransitionEnd()
 
     handler =(route, event)=>
-      route = "/#{entryPoint}#{route}" if entryPoint
       stop event
       log route
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -191,6 +190,9 @@ class LoginView extends KDScrollView
     credentials.username = credentials.username.toLowerCase()
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
       @loginForm.button.hideLoader()
+
+      {entryPoint} = KD.config
+
       if error
         new KDNotificationView
           title   : error.message
@@ -204,7 +206,6 @@ class LoginView extends KDScrollView
         mainView.show()
         mainView.$().css "opacity", 1
 
-        {entryPoint} = KD.config
         @getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
 
         new KDNotificationView
@@ -216,7 +217,7 @@ class LoginView extends KDScrollView
 
         @hide()
 
-        if KD.config.entryPoint?.slug?
+        if entryPoint?.slug?
           @getSingleton('lazyDomController').hideLandingPage()
 
   doRequest:(formData)->

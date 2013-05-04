@@ -6,16 +6,16 @@ class OldLoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = KD.config.entryPoint?.slug? and KD.config.entryPoint.slug or ''
+
+    {entryPoint} = KD.config
 
     super options, data
 
     @hidden = no
 
     handler =(route, event)=>
-      route = "/#{entryPoint}#{route}" if entryPoint
       stop event
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'

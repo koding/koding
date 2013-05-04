@@ -9,13 +9,12 @@ class HomeLoginBar extends JView
 
     @utils.wait 400, => @setClass 'in'
 
-    entryPoint = @getOptions().entryPoint or ''
+    {entryPoint} = KD.config
 
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
-      route = "/#{entryPoint}#{route}" if entryPoint isnt ''
       @utils.stopDOMEvent event
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     requiresLogin = (callback)=>
       if KD.isLoggedIn() then do callback
