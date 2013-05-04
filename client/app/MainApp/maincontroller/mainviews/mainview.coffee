@@ -64,20 +64,18 @@ class MainView extends KDView
       tagName : "header"
       domId   : "main-header"
 
-    if groupEntryPoint = KD.config.entryPoint?.slug?
-      route = "/#{groupEntryPoint}/Activity"
-
+    {entryPoint} = KD.config
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : if groupEntryPoint then 'group' else ''
+      cssClass  : if entryPoint?.type? == 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
         # return if @userEnteredFromGroup()
         event.stopPropagation()
         event.preventDefault()
 
-        KD.getSingleton('router').handleRoute route
+        KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
 
     if KD.config.entryPoint?.slug? and KD.config.entryPoint.type == "group"
       KD.remote.cacheable KD.config.entryPoint.slug, (err, models)=>

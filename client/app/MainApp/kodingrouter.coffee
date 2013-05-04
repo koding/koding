@@ -125,7 +125,7 @@ class KodingRouter extends KDRouter
       else
         @loadContent name, section, slug, route, query
 
-  clear:(route="/#{KD.config.groupEntryPoint ? ''}", replaceState=yes)->
+  clear:(route="/#{KD.config.entryPoint?.slug ? ''}", replaceState=yes)->
     super route, replaceState
 
   getRoutes =->
