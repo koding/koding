@@ -64,7 +64,7 @@ class MainView extends KDView
       tagName : "header"
       domId   : "main-header"
 
-    if groupEntryPoint = KD.config.groupEntryPoint
+    if groupEntryPoint = KD.config.entryPoint?.slug?
       route = "/#{groupEntryPoint}/Activity"
 
     @header.addSubView @logo = new KDCustomHTMLView
@@ -79,8 +79,8 @@ class MainView extends KDView
 
         KD.getSingleton('router').handleRoute route
 
-    if KD.config.groupEntryPoint
-      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+    if KD.config.entryPoint?.slug?
+      KD.remote.cacheable KD.config.entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [group] = models

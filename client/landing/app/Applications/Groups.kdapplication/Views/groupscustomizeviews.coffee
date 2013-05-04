@@ -102,7 +102,7 @@ class StaticPageCustomizeView extends KDView
 
 
   fetchStaticPageData:(callback =->)->
-    KD.remote.cacheable @getDelegate().groupEntryPoint, (err,[group],name)=>
+    KD.remote.cacheable @getDelegate().entryPoint.slug, (err,[group],name)=>
       @group = group
       callback group
 

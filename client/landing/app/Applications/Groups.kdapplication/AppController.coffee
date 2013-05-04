@@ -727,7 +727,11 @@ class GroupsAppController extends AppController
       title    : 'Login is required for this action'
       duration : 5000
 
-    route = "/#{KD.groupEntryPoint}/Login" if KD.groupEntryPoint isnt ''
+    if KD.entryPoint.type is 'group' and KD.entryPoint.slug isnt ''
+      route = "/#{KD.entryPoint.slug}/Login"
+    else
+      route = "/Login"
+
     @getSingleton('router').handleRoute route
     @getSingleton('mainController').once 'AccountChanged', ->
       if KD.isLoggedIn()

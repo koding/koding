@@ -8,8 +8,8 @@ class StaticUserButtonBar extends KDView
     @mc  = @getSingleton 'mainController'
 
     @prefix =
-      if @ldc.userEnteredFromGroup() and KD.config.groupEntryPoint isnt 'koding'
-          "/#{KD.config.groupEntryPoint}"
+      if @ldc.userEnteredFromGroup() and KD.config.entryPoint.slug isnt 'koding'
+          "/#{KD.config.entryPoint.slug}"
       else ""
 
     @refreshButtons()
