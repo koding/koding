@@ -6,7 +6,7 @@ class OldLoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = KD.config.entryPoint?.slug? KD.config.entryPoint.slug or ''
+    entryPoint = KD.config.entryPoint?.slug? and KD.config.entryPoint.slug or ''
 
     super options, data
 
