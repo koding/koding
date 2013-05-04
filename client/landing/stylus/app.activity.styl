@@ -148,6 +148,8 @@ h1.kdheaderview.notification-header
   overflow                auto
   size                    100%, auto
   .feeder-header
+    .header-wrapper
+      max-width           800px
     height                28px
     line-height           28px
     div.on-off
@@ -296,13 +298,13 @@ h1.kdheaderview.notification-header
 
     &.blog-post
       .type-icon
-        bg(position,-399px -376px)
+        bg(position,-707px -816px)
 
       // bg color,         #f5f5f5
       .read-this-link
         span.title
           color             #444
-          line-height       100%
+          line-height       1.25
           // font-size         24px
           // font-weight       bold
 
@@ -389,7 +391,7 @@ h1.kdheaderview.notification-header
     font-weight           500
     cursor                pointer
     display               inline-block
-  > p > span
+  > p:not(.blog-post-body) > span
     cursor                pointer
   p
     color                 #5F5F5F
