@@ -2,14 +2,14 @@ class HomeLoginBar extends JView
 
   constructor:(options = {}, data)->
 
+    {entryPoint} = KD.config
+
     options.cssClass   = "home-links"
-    options.entryPoint = KD.config.entryPoint?.slug
+    options.entryPoint = entryPoint?.slug
 
     super options, data
 
     @utils.wait 400, => @setClass 'in'
-
-    {entryPoint} = KD.config
 
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
@@ -48,7 +48,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Join"
       click       : (event)=>
-        if entryPoint isnt ''
+        if entryPoint.slug isnt ''
           @utils.stopDOMEvent event
           requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
         else
