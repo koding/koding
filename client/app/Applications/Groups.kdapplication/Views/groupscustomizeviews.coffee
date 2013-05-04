@@ -67,8 +67,8 @@ class StaticPageCustomizeView extends KDView
       href      : '#'
       cssClass  : 'settings-link'
       click     : =>
-        entrypoint = @getDelegate().entryPoint.slug
-        @getSingleton('lazyDomController')?.openPath "/#{entrypoint}/Activity"
+        {entryPoint} = KD.config
+        @getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
 
     @backButton = new CustomLinkView
       title       : ""
@@ -97,12 +97,15 @@ class StaticPageCustomizeView extends KDView
       href      : '#'
       cssClass  : 'settings-link'
       click     : =>
-        entryPoint = @getDelegate().entryPoint
+        {entryPoint} = KD.config
         @getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
 
 
+
   fetchStaticPageData:(callback =->)->
-    KD.remote.cacheable @getDelegate().entryPoint.slug, (err,[group],name)=>
+    {entryPoint} = KD.config
+
+    KD.remote.cacheable entryPoint.slug, (err,[group],name)=>
       @group = group
       callback group
 

@@ -101,7 +101,7 @@ class LazyDomController extends KDController
     {loginScreen, mainViewController}    = mc
     {entryPoint} = KD.config
 
-    return @openPath(path) if path
+    return @openPath(path, {entryPoint}) if path
 
     switch action
       when 'login'
