@@ -51,7 +51,7 @@ class KDInputRadioGroup extends KDInputView
     # @getDomElement().find("input[value='#{value}']").parent().addClass('checked')
     @getDomElement().find("input[value='#{value}']").attr "checked","checked"
     @getDomElement().find(".kd-radio-holder").removeClass 'active'
-    @getDomElement().find(".kd-radio-holder.#{value}").addClass 'active'
+    @getDomElement().find(".kd-radio-holder.#{value}").addClass 'active'  if value
 
   getInputElements:->
     @getDomElement().find('input')

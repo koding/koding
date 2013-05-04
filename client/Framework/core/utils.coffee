@@ -352,13 +352,6 @@ __utils =
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
-  removeBrokenSymlinksUnder:(path)->
-    kiteController = KD.getSingleton('kiteController')
-    escapeFilePath = FSHelper.escapeFilePath
-    kiteController.run "stat #{escapeFilePath path}", (err)->
-      if not err
-        kiteController.run "find -L #{escapeFilePath path} -type l -delete", noop
-
   wait: (duration, fn)->
     if "function" is typeof duration
       fn = duration

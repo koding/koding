@@ -1,5 +1,7 @@
 class NFileItemView extends KDCustomHTMLView
 
+  loaderRequiredEvents = ['job', 'remove', 'save', 'saveAs']
+
   constructor:(options = {},data)->
 
     options.tagName   or= "div"
@@ -20,21 +22,24 @@ class NFileItemView extends KDCustomHTMLView
         speed       : 1.5
         FPS         : 24
 
+    @arrow = new KDCustomHTMLView
+      tagName   : "span"
+      cssClass  : "arrow"
+
     @icon = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon"
 
-    data.on "fs.*.started", => @showLoader()
-    data.on "fs.*.finished", => @hideLoader()
-
-    # data.on "fs.saveAs.finished", (newFile, oldFile)=>
-    #   oldFile.emit "folderNeedsToRefresh", newFile
+    for ev in loaderRequiredEvents
+      data.on "fs.#{ev}.started", => @showLoader()
+      data.on "fs.#{ev}.finished", => @hideLoader()
 
   destroy:->
 
-    @getData().off "fs.*.started"
-    @getData().off "fs.*.finished"
-    @getData().off "fs.saveAs.finished"
+    for ev in loaderRequiredEvents
+      @getData().off "fs.#{ev}.started"
+      @getData().off "fs.#{ev}.finished"
+
     super
 
   decorateItem:->
@@ -74,6 +79,7 @@ class NFileItemView extends KDCustomHTMLView
   pistachio:->
 
     """
+      {{> @arrow}}
       {{> @icon}}
       {{> @loader}}
       {span.title{ #(name)}}
