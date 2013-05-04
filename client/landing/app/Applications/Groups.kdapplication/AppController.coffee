@@ -267,11 +267,11 @@ class GroupsAppController extends AppController
     if isApproval
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
-      success = "Thanks! You'll receive an email when group's admin accepts you."
+      success = "Thanks! You'll be notified when group's admin accepts you."
     else
       title   = 'Request an Invite'
       content = 'Membership to this group requires an invitation.'
-      success = "Invitation has been sent to the group's admin."
+      success = "Your request has been sent to the group's admin."
 
     modal = new KDModalView
       title          : title
