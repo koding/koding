@@ -793,27 +793,28 @@ module.exports = class JGroup extends Module
       daisy queue
 
   inviteMember: (client, email, callback)->
-      params = 
-        email  : email
-        group  : @slug
-        status : $not: $in: ['declined', 'ignored']
+    JInvitationRequest = require '../invitationrequest'
 
-      JInvitationRequest = require '../invitationrequest'
-      JInvitationRequest.one params, (err, invitationRequest)=>
-        if invitationRequest
-          callback new KodingError """
-            You've already invited #{email}.
-            """
-        else
-          params.invitationType = 'invitation'
-          params.status         = 'sent'
+    params = 
+      email  : email
+      group  : @slug
+      status : $not: $in: JInvitationRequest.resolvedStatuses
 
-          invitationRequest = new JInvitationRequest params
-          invitationRequest.save (err)=>
+    JInvitationRequest.one params, (err, invitationRequest)=>
+      if invitationRequest
+        callback new KodingError """
+          You've already invited #{email}.
+          """
+      else
+        params.invitationType = 'invitation'
+        params.status         = 'sent'
+
+        invitationRequest = new JInvitationRequest params
+        invitationRequest.save (err)=>
+          if err then callback err
+          else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else @addInvitationRequest invitationRequest, (err)->
-              if err then callback err
-              else invitationRequest.sendInvitation client, callback
+            else invitationRequest.sendInvitation client, callback
 
   isMember: (account, callback)->
     selector =
@@ -833,7 +834,7 @@ module.exports = class JGroup extends Module
       return callback err if err
       selector =
         group: @slug
-        status: $not: $in: ['declined', 'ignored']
+        status: $not: $in: JInvitationRequest.resolvedStatuses
         $or: [
           'koding.username': delegate.profile.nickname,
           email: user.email

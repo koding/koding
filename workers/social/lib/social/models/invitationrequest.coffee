@@ -63,6 +63,13 @@ module.exports = class JInvitationRequest extends Model
         ]]
         default       : 'invitation'
 
+  @resolvedStatuses = [
+    'declined'
+    'approved'
+    'ignored'
+    'accepted'
+  ]
+
   @create =({email}, callback)->
     invite = new @ {email}
     invite.save (err)->
