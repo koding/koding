@@ -204,7 +204,8 @@ class LoginView extends KDScrollView
         mainView.show()
         mainView.$().css "opacity", 1
 
-        @getSingleton('router').handleRoute @getRouteWithEntryPoint('Activity'), replaceState: yes
+        {entryPoint} = KD.config
+        @getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
 
         new KDNotificationView
           cssClass  : "login"
@@ -302,9 +303,8 @@ class LoginView extends KDScrollView
   click:(event)->
     if $(event.target).is('.login-screen')
       @hide =>
-        {groupEntryPoint} = KD.config
-        route = if groupEntryPoint then "/#{groupEntryPoint}/Activity" else "/Activity"
-        @getSingleton('router').handleRoute route
+        {entryPoint} = KD.config
+        @getSingleton('router').handleRoute "/Activity", {entryPoint}
 
   animateToForm: (name)->
 
@@ -333,8 +333,8 @@ class LoginView extends KDScrollView
       @setClass name
 
   getRouteWithEntryPoint:(route)->
-    {groupEntryPoint} = KD.config
-    if groupEntryPoint and groupEntryPoint isnt 'koding'
-      return "/#{groupEntryPoint}/#{route}"
+    {entryPoint} = KD.config
+    if entryPoint and entryPoint.slug isnt 'koding'
+      return "/#{entryPoint}/#{route}"
     else
       return "/#{route}"
