@@ -321,17 +321,19 @@ class GroupsAppController extends AppController
         iconOnly  : yes
         callback  : => @showGroupSubmissionView()
 
-  _createGroupHandler =(formData)->
+  _createGroupHandler =(formData, callback)->
 
     if formData.privacy in ['by-invite', 'by-request', 'same-domain']
       formData.privacy = 'private'
 
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
+        callback? err
         new KDNotificationView
           title: err.message
           duration: 1000
       else
+        callback no
         @showGroupCreatedModal group
         @createContentDisplay group
 
@@ -391,8 +393,10 @@ class GroupsAppController extends AppController
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     :(formData)=>
-          _createGroupHandler.call @, formData
-          modal.destroy()
+          _createGroupHandler.call @, formData, (err) ->
+            modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
+            unless err
+              modal.destroy()
         forms                        :
           "Select group type"        :
             title                    : 'Group type'
@@ -706,7 +710,7 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
-    @prepareVocabularyTab()
+#    @prepareVocabularyTab()
 
     if 'private' is group.privacy
       @prepareMembershipPolicyTab()

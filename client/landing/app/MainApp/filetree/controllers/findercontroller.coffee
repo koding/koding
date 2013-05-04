@@ -79,7 +79,7 @@ class NFinderController extends KDViewController
     kiteController          = KD.getSingleton('kiteController')
 
     timer = Date.now()
-    @mount.emit "fs.fetchContents.started"
+    @mount.emit "fs.job.started"
 
     log "Calling readDirectory..."
     {nickname} = KD.whoami().profile
@@ -101,7 +101,7 @@ class NFinderController extends KDViewController
         @lastSuccessfulResponse = response
 
       log "#{(Date.now()-timer)/1000}sec !"
-      @mount.emit "fs.fetchContents.finished"
+      @mount.emit "fs.job.finished"
 
   setRecentFile:(filePath, callback)->
 
