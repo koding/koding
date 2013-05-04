@@ -22,5 +22,5 @@ class GroupAvatar extends JView
 
   click:->
     super
-    if KD.config.groupEntryPoint?
+    if KD.config.entryPoint?.slug?
       KD.getSingleton('lazyDomController').showLandingPage()

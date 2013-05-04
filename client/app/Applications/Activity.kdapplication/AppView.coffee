@@ -6,7 +6,7 @@ class ActivityAppView extends KDScrollView
 
     options.cssClass   = "content-page activity"
     options.domId      = "content-page-activity"
-    options.entryPoint = KD.config.groupEntryPoint
+    options.entryPoint = KD.config.entryPoint.slug
 
     super options, data
 
