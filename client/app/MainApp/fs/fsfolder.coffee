@@ -4,7 +4,8 @@ class FSFolder extends FSFile
   fetchContents:(callback)->
 
     {nickname} = KD.whoami().profile
-    @emit "fs.fetchContents.started"
+
+    @emit "fs.job.started"
     @kiteController.run
       kiteName   : 'os'
       method     : 'fs.readDirectory'
@@ -16,9 +17,9 @@ class FSFolder extends FSFile
       if not err and response?.files
         files = FSHelper.parseWatcher @path, response.files
         {@stopWatching} = response
-        @emit "fs.fetchContents.finished", err, files
+        @emit "fs.job.finished", err, files
       else
-        @emit "fs.fetchContents.finished", err
+        @emit "fs.job.finished", err
       callback? err, files
 
   save:(callback)->
@@ -38,3 +39,6 @@ class FSFolder extends FSFile
   saveAs:(callback)->
     log 'Not implemented yet.'
     callback? null
+
+  remove:(callback)->
+    super callback, yes

@@ -9,7 +9,7 @@ class WebTermController extends AppController
     preCondition :
       condition  : (cb)->
         KD.singletons.vmController.info (err, info)=>
-          cb if info?.state is 'RUNNING' then yes else no
+          cb  if info?.state is 'RUNNING' then yes else no
       failure    : (cb)->
         KD.singletons.vmController.askToTurnOn 'WebTerm', cb
 
