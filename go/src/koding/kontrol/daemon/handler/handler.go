@@ -39,56 +39,40 @@ type ProcessWorker struct {
 	CompatibleWith map[string][]int `json:"compatibleWith"`
 }
 
-type Producer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	name    string
-	done    chan error
-}
-
 var kontrolConfig *workerconfig.WorkerConfig
 
-var workerProducer *Producer
-var cliProducer *Producer
-var webapiProducer *Producer
-var clientProducer *Producer
+var workerProducer *helper.Producer
+var cliProducer *helper.Producer
+var apiProducer *helper.Producer
+var clientProducer *helper.Producer
 
 func init() {
 	log.SetPrefix("kontrol-daemonhandler ")
 }
 
-func NewProducer(name string) *Producer {
-	return &Producer{
-		conn:    nil,
-		channel: nil,
-		name:    name,
-		done:    make(chan error),
-	}
-}
-
 func Startup() {
 	var err error
-	workerProducer, err = createProducer("worker")
+	workerProducer, err = helper.CreateProducer("worker")
 	if err != nil {
 		log.Println(err)
 	}
 
-	cliProducer, err = createProducer("cli")
+	cliProducer, err = helper.CreateProducer("cli")
 	if err != nil {
 		log.Println(err)
 	}
 
-	webapiProducer, err = createProducer("webapi")
+	apiProducer, err = helper.CreateProducer("api")
 	if err != nil {
 		log.Println(err)
 	}
 
-	clientProducer, err = createProducer("client")
+	clientProducer, err = helper.CreateProducer("client")
 	if err != nil {
 		log.Println(err)
 	}
 
-	err = clientProducer.channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
+	err = clientProducer.Channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
 		log.Printf("Supervisor: worker exchange.declare: %s", err)
 	}
@@ -101,21 +85,21 @@ func Startup() {
 	// cleanup death workers every 2 minutes
 	ticker := time.NewTicker(time.Minute * 2)
 	go func() {
-		for t := range ticker.C {
-			log.Println("cleaning any death workers", t)
+		for _ = range ticker.C {
+			log.Println("cleanup death workers")
 			iter := kontrolConfig.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
 			result := workerconfig.MsgWorker{}
 			for iter.Next(&result) {
 				// If it's still death just remove it
 				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
-					log.Printf("removing death worker '%s'", result.Name)
+					log.Printf("removing death worker '%s - %s - %s'", result.Name, result.Hostname, result.Uuid)
 					kontrolConfig.DeleteWorker(result.Uuid)
 				}
 			}
 		}
 	}()
 
-	log.Printf("ready on host %s", kontrolConfig.Hostname)
+	log.Println("kontrold handler plugin is initialized")
 }
 
 func HandleWorkerMessage(data []byte) {
@@ -174,9 +158,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if command == "add" || command == "addWithProxy" {
-		if config.Verbose {
-			log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
-		}
+		log.Printf("ACTION RECEIVED: --  %s  --", command)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
@@ -196,9 +178,15 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		}
 		// but not if it has port of 0
 		if worker.Port == 0 {
-			return fmt.Errorf("register to fujin proxy not possible. port number is '0' for %s", worker.Name)
+			return fmt.Errorf("register to konytol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
+		// log.Println("registerProxy is enabled "
+
+		log.Printf("registerProxy is enabled '%s' on hostname '%s' with uuid '%s'",
+			worker.Name,
+			worker.Hostname,
+			worker.Uuid)
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		cmd := proxyconfig.ProxyMessage{
@@ -218,10 +206,6 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 
 	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
 		return fmt.Errorf(" do action", err)
-	}
-
-	if config.Verbose {
-		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
 	}
 
 	actions := map[string]func(worker workerconfig.MsgWorker) error{
@@ -254,9 +238,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return fmt.Errorf("do request", err)
 	}
 
-	if config.Verbose {
-		log.Printf("COMMAND ACTION RECEIVED: --  %s  --", command)
-	}
+	log.Printf("ACTION RECEIVED: --  %s  --", command)
 
 	if command == "cmd" {
 		req := buildReq("start", data, hostname, 0)
@@ -272,7 +254,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 
 		response, err := json.Marshal(res)
 		if appId == "" {
-			go deliver(response, webapiProducer, "")
+			go deliver(response, apiProducer, "")
 		} else {
 			go deliver(response, cliProducer, appId)
 		}
@@ -439,7 +421,10 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	case "one":
 		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
 		if availableWorkers < 1 {
-			log.Printf("adding worker '%s'", worker.Name)
+			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s'",
+				worker.Name,
+				worker.Hostname,
+				worker.Uuid)
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running
 			kontrolConfig.AddWorker(worker)
@@ -468,7 +453,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			kontrolConfig.DeleteWorker(result.Uuid)
 
 			log.Printf("worker with the name '%s' is not alive anymore. permission grant to run", worker.Name)
-			log.Printf("adding new worker '%s' on hostname '%s' with uuid '%s' as started",
+			log.Printf("adding new worker '%s' on hostname '%s' with uuid '%s'",
 				worker.Name,
 				worker.Hostname,
 				worker.Uuid)
@@ -486,14 +471,13 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		return worker, nil // contains first.start or added.before
 	case "many":
-		log.Printf("adding worker '%s' on hostname '%s' with uuid '%s' as started",
+		log.Printf("adding worker '%s' on hostname '%s' with uuid '%s'",
 			worker.Name,
 			worker.Hostname,
 			worker.Uuid)
 
 		worker.Message.Result = "added.now"
 		worker.Status = workerconfig.Running
-		log.Printf("'add' worker '%s' with pid: '%d'", worker.Name, worker.Pid)
 		kontrolConfig.AddWorker(worker)
 		return worker, nil //
 	default:
@@ -514,7 +498,7 @@ func sendWorker(res workerconfig.MsgWorker) {
 	return
 }
 
-func deliver(data []byte, producer *Producer, appId string) {
+func deliver(data []byte, producer *helper.Producer, appId string) {
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",
@@ -524,13 +508,13 @@ func deliver(data []byte, producer *Producer, appId string) {
 		Priority:        0, // 0-9
 	}
 
-	switch producer.name {
+	switch producer.Name {
 	case "cli":
 		if appId == "" {
 			log.Printf(" Can't send to cli. appId is missing")
 		}
 		cliOut := "output.cli." + appId
-		err := cliProducer.channel.Publish("infoExchange", cliOut, false, false, msg)
+		err := cliProducer.Channel.Publish("infoExchange", cliOut, false, false, msg)
 		if err != nil {
 			log.Printf("error while publishing cli message: %s", err)
 		}
@@ -538,27 +522,27 @@ func deliver(data []byte, producer *Producer, appId string) {
 		//log.Printf("SENDING CLI data to %s", cliOut)
 		//}
 	case "client":
-		err := clientProducer.channel.Publish("clientExchange", "", false, false, msg)
+		err := clientProducer.Channel.Publish("clientExchange", "", false, false, msg)
 		if err != nil {
 			log.Printf("error while publishing client message: %s", err)
 		}
 		if config.Verbose {
 			log.Printf("SENDING CLIENT data %s", string(data))
 		}
-	case "webapi":
-		err := webapiProducer.channel.Publish("infoExchange", "output.webapi", false, false, msg)
+	case "api":
+		err := apiProducer.Channel.Publish("infoExchange", "output.api", false, false, msg)
 		if err != nil {
-			log.Printf("error while publishing webapi message: %s", err)
+			log.Printf("error while publishing api message: %s", err)
 		}
 		if config.Verbose {
-			log.Println("SENDING WEBAPI data ", string(data))
+			log.Println("SENDING API data ", string(data))
 		}
 	case "worker":
 		if appId == "" {
 			log.Printf("can't send to worker. appId is missing")
 		}
 		workerOut := "output.worker." + appId
-		err := workerProducer.channel.Publish("workerExchange", workerOut, false, false, msg)
+		err := workerProducer.Channel.Publish("workerExchange", workerOut, false, false, msg)
 		if err != nil {
 			log.Printf("error while publishing message: %s", err)
 		}
@@ -566,15 +550,6 @@ func deliver(data []byte, producer *Producer, appId string) {
 		// 	log.Printf("SENDING WORKER data %s to %s", string(data), workerOut)
 		// }
 	}
-}
-
-func createProducer(name string) (*Producer, error) {
-	p := NewProducer(name)
-	log.Printf("creating connection for sending %s messages", p.name)
-	p.conn = helper.CreateAmqpConnection()
-	p.channel = helper.CreateChannel(p.conn)
-
-	return p, nil
 }
 
 func buildReq(action, cmd, hostname string, pid int) []byte {

@@ -9,6 +9,22 @@ import (
 	"strings"
 )
 
+type Producer struct {
+	Conn    *amqp.Connection
+	Channel *amqp.Channel
+	Name    string
+	Done    chan error
+}
+
+func NewProducer(name string) *Producer {
+	return &Producer{
+		Conn:    nil,
+		Channel: nil,
+		Name:    name,
+		Done:    make(chan error),
+	}
+}
+
 func CreateAmqpConnection() *amqp.Connection {
 	user := config.Current.Kontrold.RabbitMq.Login
 	password := config.Current.Kontrold.RabbitMq.Password
@@ -63,4 +79,13 @@ func ReadVersion() string {
 	}
 
 	return strings.TrimSpace(string(file))
+}
+
+func CreateProducer(name string) (*Producer, error) {
+	p := NewProducer(name)
+	log.Printf("creating connection for sending %s messages", p.Name)
+	p.Conn = CreateAmqpConnection()
+	p.Channel = CreateChannel(p.Conn)
+
+	return p, nil
 }

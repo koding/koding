@@ -48,7 +48,7 @@ func startRouting() error {
 
 	apiBindings := []bind{
 		bind{"kontrol-cli", "input.cli"},
-		bind{"kontrol-webapi", "input.webapi"},
+		bind{"kontrol-api", "input.api"},
 		bind{"kontrol-proxy", "input.proxy"},
 	}
 
@@ -56,8 +56,7 @@ func startRouting() error {
 		bind{"kontrol-worker", "input.worker"},
 	}
 
-	log.Printf("creating connection to handle incoming cli and api messages")
-
+	log.Printf("creating connection to receive cli, api, proxy and worker messages")
 	/* We use one connection and channel for our three consumers */
 	c.conn = helper.CreateAmqpConnection()
 	c.channel = helper.CreateChannel(c.conn)
@@ -107,7 +106,7 @@ func startRouting() error {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	webapiStream, err := c.channel.Consume("kontrol-webapi", "", true, true, false, false, nil)
+	apiStream, err := c.channel.Consume("kontrol-api", "", true, true, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}
@@ -134,9 +133,9 @@ func startRouting() error {
 				log.Printf("cli handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
 			}
 			handler.HandleApiMessage(d.Body, d.AppId)
-		case d := <-webapiStream:
+		case d := <-apiStream:
 			if config.Verbose {
-				log.Printf("webapi handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
+				log.Printf("api handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
 			}
 			handler.HandleApiMessage(d.Body, "")
 		case d := <-proxyStream:

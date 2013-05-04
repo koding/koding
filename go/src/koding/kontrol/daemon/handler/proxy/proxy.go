@@ -9,33 +9,17 @@ import (
 	"log"
 )
 
-type Producer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	name    string
-	done    chan error
-}
-
-func NewProducer(name string) *Producer {
-	return &Producer{
-		conn:    nil,
-		channel: nil,
-		name:    name,
-		done:    make(chan error),
-	}
-}
-
-var proxyProducer *Producer
+var proxyProducer *helper.Producer
 var proxyConfig *proxyconfig.ProxyConfiguration
 
 func Startup() {
 	var err error
-	proxyProducer, err = createProducer("proxy")
+	proxyProducer, err = helper.CreateProducer("proxy")
 	if err != nil {
 		log.Println(err)
 	}
 
-	err = proxyProducer.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
+	err = proxyProducer.Channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
@@ -45,7 +29,7 @@ func Startup() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	log.Println("kontrold proxy plugin has started")
+	log.Println("kontrold proxy plugin is initialized")
 }
 
 func HandleMessage(data []byte) {
@@ -62,52 +46,66 @@ func HandleMessage(data []byte) {
 func DoProxy(msg proxyconfig.ProxyMessage) {
 	switch msg.Action {
 	case "addProxy":
-		log.Println("got 'addProxy' json request")
+		if config.Verbose {
+			log.Println("got 'addProxy' json request")
+		}
 		err := proxyConfig.AddProxy(msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "addKey":
-		log.Println("got 'addKey' json request")
+		if config.Verbose {
+			log.Println("got 'addKey' json request")
+		}
 		err := proxyConfig.AddKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid, msg.RabbitKey)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "addDomain":
-		log.Println("got 'addDomain' json request")
+		if config.Verbose {
+			log.Println("got 'addDomain' json request")
+		}
 		err := proxyConfig.AddDomain(msg.DomainName, msg.ServiceName, msg.Key, msg.Host, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "deleteProxy":
-		log.Println("got 'deleteProxy' json request")
+		if config.Verbose {
+			log.Println("got 'deleteProxy' json request")
+		}
 		err := proxyConfig.DeleteProxy(msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	case "deleteKey":
-		log.Println("got 'deleteKey' json request")
+		if config.Verbose {
+			log.Println("got 'deleteKey' json request")
+		}
 		err := proxyConfig.DeleteKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	case "deleteName":
-		log.Println("got 'deleteName' json request")
+		if config.Verbose {
+			log.Println("got 'deleteName' json request")
+		}
 		err := proxyConfig.DeleteName(msg.ServiceName, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	case "deleteDomain":
-		log.Println("got 'deleteDame' json request")
+		if config.Verbose {
+			log.Println("got 'deleteDame' json request")
+		}
 		err := proxyConfig.DeleteDomain(msg.DomainName, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	default:
-		log.Println("invalid action", msg.Action)
+		log.Println("invalid doProxy action", msg.Action)
 	}
 }
 
@@ -141,24 +139,11 @@ func deliver(data []byte, appId string) {
 	}
 
 	proxyId := "output.proxy." + appId
-	err := proxyProducer.channel.Publish("infoExchange", proxyId, false, false, msg)
+	err := proxyProducer.Channel.Publish("infoExchange", proxyId, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
 	}
 	//if config.Verbose {
 	//log.Println("SENDING PROXY data ", string(data))
 	//}
-}
-
-func createProducer(name string) (*Producer, error) {
-	p := NewProducer(name)
-
-	if config.Verbose {
-		log.Printf("creating connection for sending %s messages", p.name)
-	}
-
-	p.conn = helper.CreateAmqpConnection()
-	p.channel = helper.CreateChannel(p.conn)
-
-	return p, nil
 }

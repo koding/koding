@@ -281,7 +281,7 @@ func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 		workerResult.Message.Result = "stopped.before"
 	}
 
-	log.Printf("stopping remote worker '%s' on '%s'", workerResult.Name, hostname)
+	log.Printf("stopping worker '%s' on '%s'", workerResult.Name, hostname)
 
 	w.UpdateWorker(workerResult)
 	return workerResult, nil
@@ -295,7 +295,7 @@ func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
 
 	workerResult.Message.Result = "killed.now"
 	workerResult.Status = Waiting
-	log.Printf("killing remote worker with pid: %d on hostname: %s", workerResult.Pid, hostname)
+	log.Printf("killing worker with pid: %d on hostname: %s", workerResult.Pid, hostname)
 
 	w.UpdateWorker(workerResult)
 	return workerResult, nil
@@ -310,7 +310,7 @@ func (w *WorkerConfig) Start(hostname, uuid string) (MsgWorker, error) {
 	if workerResult.Status == Stopped || workerResult.Status == Killed {
 		workerResult.Status = Waiting
 		workerResult.Message.Result = "started.now"
-		log.Printf("starting remote worker: '%s' on '%s'", workerResult.Name, hostname)
+		log.Printf("starting worker: '%s' on '%s'", workerResult.Name, hostname)
 	} else if workerResult.Status == Notstarted || workerResult.Status == Dead {
 
 		// data := buildReq("start", workerResult.Cmd, hostname, workerResult.Pid)
@@ -418,10 +418,12 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	result.Uuid = worker.Uuid
 	result.Version = worker.Version
 
-	log.Printf("got new information from worker '%s' on hostname '%s' with uuid '%s'. Updating...",
-		worker.Name,
-		worker.Hostname,
-		worker.Uuid)
+	if config.Verbose {
+		log.Printf("got new information from worker '%s' on hostname '%s' with uuid '%s'. Updating...",
+			worker.Name,
+			worker.Hostname,
+			worker.Uuid)
+	}
 
 	w.AddWorker(result)
 
