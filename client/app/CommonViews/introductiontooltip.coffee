@@ -48,7 +48,7 @@ class IntroductionTooltipController extends KDController
             item.expiryDate = snippet.expiryDate
             @createInstance null, item
 
-        # @addOverlay() if @shouldAddOverlay and @visibleTooltips.length > 0
+        @addOverlay() if @shouldAddOverlay and @visibleTooltips.length > 0
 
   createInstance: (parentView, data) ->
     assets = @getAssets parentView, data
@@ -115,3 +115,8 @@ class IntroductionTooltipController extends KDController
     @overlay.hide()
     @overlay.appendTo "body"
     @overlay.fadeIn 200
+    @overlay.bind "click", =>
+      for tooltipInstance in @visibleTooltips
+        tooltipInstance.getOptions().parentView.tooltip?.destroy()
+      @overlay.remove()
+      @visibleTooltips.length = 0
