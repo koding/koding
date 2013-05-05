@@ -1561,21 +1561,52 @@ figure.code-container
 
 .introduction-tooltip
   max-width             300px
+.admin-introduction-header .cell
+  border-bottom         1px solid #EEE
 .admin-introduction-item
   overflow              hidden
-  line-height           24px
-  margin                20px 0 20px 20px
+  line-height           20px
   &:hover .introduction-actions
     display             block
   .cell
     float               left
     width               100px
-    text-overflow       ellipsis
+    .arrow
+      abs()
+      sprite()
+      size              16px, 16px
+      left              0
+      bg                position, -140px -562px
+      &.down
+        bg              position, -120px -563px
     &.name
       pointer()
+      padding-left      20px
+      position          relative
+      width             280px
+    &.icon
+      size              16px, 16px
+      top               4px
+      position          relative
+      margin            0 17px
+      sprite()
+      &.yep
+        bg              position, -82px -502px
+      &.nope
+        bg              position, -82px -481px
+      &.allTogether
+        bg              position, 0 -301px
+      &.stepByStep
+        bg              position, -40px -299px
+    &.mini
+      width             50px
+      text-align        center
+
   .introduction-actions
-    width               200px
+    abs()
+    right               0
     display             none
+    text-align          right
     span
       font-size         11px
       cursor            pointer
@@ -1600,7 +1631,8 @@ figure.code-container
   width                 463px
   height                125px
 .introduction-admin-content
-  padding               0 20px 10px
+  padding               0 10px 10px 20px
+  width                 auto
   .kdloader
     left                50%
     margin-left         -18px
