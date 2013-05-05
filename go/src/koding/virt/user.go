@@ -7,12 +7,11 @@ import (
 )
 
 type User struct {
-	ObjectId  bson.ObjectId `bson:"_id"`
-	Uid       int           `bson:"uid"`
-	Name      string        `bson:"username"`
-	Password  string        `bson:"password"`
-	Salt      string        `bson:"salt"`
-	DefaultVM bson.ObjectId `bson:"defaultVM"`
+	ObjectId bson.ObjectId `bson:"_id"`
+	Uid      int           `bson:"uid"`
+	Name     string        `bson:"username"`
+	Password string        `bson:"password"`
+	Salt     string        `bson:"salt"`
 }
 
 func (user *User) HasPassword(password string) bool {

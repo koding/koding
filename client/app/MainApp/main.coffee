@@ -17,7 +17,6 @@ do ->
   status.on 'bongoConnected', (account)->
     KD.socketConnected()
     mainController.accountChanged account, firstLoad
-    AccountMixin.init(KD.remote.api)
     firstLoad = no
 
   status.on 'sessionTokenChanged', (token)-> $.cookie 'clientId', token

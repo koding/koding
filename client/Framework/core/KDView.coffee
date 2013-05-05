@@ -840,7 +840,6 @@ class KDView extends KDObject
 
     @getSingleton('windowController').registerWindowResizeListener @
 
-
   notifyResizeListeners:->
 
     @getSingleton('windowController').notifyWindowResizeListeners()
@@ -872,7 +871,6 @@ class KDView extends KDObject
 
     if storedValue
       @utils.defer => @applyPreserveValue storedValue
-
 
   applyPreserveValue:(value)->
     if @getOptions().preserveValue.setValue

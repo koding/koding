@@ -19,7 +19,8 @@ type VM struct {
 	Name         string        `bson:"name"`
 	Users        []*UserEntry  `bson:"users"`
 	LdapPassword string        `bson:"ldapPassword"`
-	IP           net.IP        `bson:"ip,omitempty"`
+	IP           net.IP        `bson:"ip"`
+	HostKite     string        `bson:"hostKite"`
 }
 
 type UserEntry struct {
