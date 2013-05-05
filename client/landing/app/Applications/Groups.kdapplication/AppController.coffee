@@ -52,11 +52,8 @@ class GroupsAppController extends AppController
     mainController.on 'groupJoinRequested',   @joinGroup.bind this
     mainController.on 'loginRequired',        @loginRequired.bind this
 
-  getCurrentGroupData:-> @currentGroupData
-
   getCurrentGroup:->
-    if Array.isArray @currentGroupData.data
-      return @currentGroupData.data.first
+    throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
@@ -74,10 +71,10 @@ class GroupsAppController extends AppController
       @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
-    return callback()  if @currentGroup is groupName
-    throw new Error 'Cannot change the group!'  if @currentGroup?
+    return callback()  if @currentGroupName is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroupName?
     @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    unless @currentGroup is groupName
+    unless @currentGroupName is groupName
       @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
@@ -92,20 +89,36 @@ class GroupsAppController extends AppController
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
-  getGroupSlug:-> @currentGroup
+  getGroupSlug:-> @currentGroupName
 
   setGroup:(groupName)->
-    @currentGroup = groupName
+    @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: KD.whoami().profile.nickname
     }
 
   resetUserArea:(account)->
     @setUserArea {
-      group: @currentGroup ? 'koding', user: account.profile.nickname
+      group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
   createFeed:(view, loadFeed = no)->
+
+    onboardingText =
+      """
+        <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+        your interests.</h3>
+
+        <p>When you join a group such as your univeristy or your company, you can share virtual
+        machines, collaborate on projects and stay up to date on the activites of others in your
+        group.</p>
+
+        <h3 class='title'>Easy to get started</h3>
+
+        <p>Groups are free to create. You decide who can join, what actions they can do inside the
+        group and what they see.</p>
+      """
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -117,17 +130,8 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          :
-          """
-            <h3 class='title'>yooo onboard me for da groop!!!</h3>
-            <p>
-              Cosby sweater ethnic neutra meggings, actually single-origin coffee next level before they sold out scenester food truck banh mi gluten-free pitchfork. Before they sold out whatever chillwave, flexitarian stumptown mlkshk pour-over iphone brooklyn semiotics. Seitan brooklyn cliche before they sold out blue bottle polaroid godard marfa fingerstache blog authentic salvia.
-            </p>
-            <p>
-              Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
-            </p>
-          """
-        mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
+        everything          : onboardingText
+        mine                : onboardingText
       filter                :
         everything          :
           title             : "All groups"
@@ -296,7 +300,7 @@ class GroupsAppController extends AppController
           title : "An error occured, please try again"
       else
         new KDNotificationView
-          title : "You successfully joined the group!"
+          title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
   openPrivateGroup:(group)->
@@ -317,20 +321,20 @@ class GroupsAppController extends AppController
         iconOnly  : yes
         callback  : => @showGroupSubmissionView()
 
-  _createGroupHandler =(formData)->
+  _createGroupHandler =(formData, callback)->
 
     if formData.privacy in ['by-invite', 'by-request', 'same-domain']
       formData.privacy = 'private'
 
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
+        callback? err
         new KDNotificationView
           title: err.message
           duration: 1000
       else
-        new KDNotificationView
-          title   : 'Group was created!'
-          duration: 1000
+        callback no
+        @showGroupCreatedModal group
         @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
@@ -347,14 +351,30 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = (slug)->
+
+      queryDB = (s)->
+        KD.remote.api.JName.one
+          name : "#{s}"
+        , (err,name)=>
+          unless name
+            modal.modalTabs.forms["General Settings"].inputs.Slug.setValue s
+          else
+            slug = name.name
+            if '-' in slug
+              parts = slug.split('-')
+              suffix = parseInt parts[parts.length - 1]
+              if not isNaN(suffix)
+                parts[parts.length - 1] = suffix + 1
+                slug = parts.join('-')
+              else
+                slug += '-1'
+            else
+              slug += '-1'
+            queryDB slug
+
       modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-      KD.remote.api.JName.one
-        name : "#{slug}"
-      , (err,name)=>
-        if name
-          modal.modalTabs.forms["General Settings"].inputs.Slug.setClass 'slug-taken'
-        else
-          modal.modalTabs.forms["General Settings"].inputs.Slug.unsetClass 'slug-taken'
+      if slug.length > 0
+        queryDB slug
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
@@ -389,8 +409,10 @@ class GroupsAppController extends AppController
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     :(formData)=>
-          _createGroupHandler.call @, formData
-          modal.destroy()
+          _createGroupHandler.call @, formData, (err) ->
+            modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
+            unless err
+              modal.destroy()
         forms                        :
           "Select group type"        :
             title                    : 'Group type'
@@ -704,7 +726,7 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
-    @prepareVocabularyTab()
+#    @prepareVocabularyTab()
 
     if 'private' is group.privacy
       @prepareMembershipPolicyTab()
@@ -732,6 +754,47 @@ class GroupsAppController extends AppController
     @getSingleton('mainController').once 'AccountChanged', ->
       if KD.isLoggedIn()
         callback()
+
+  showGroupCreatedModal:(group)->
+    group.fetchMembershipPolicy (err, policy)=>
+      return new KDNotificationView title: 'An error occured, however your group has been created!' if err
+
+      port = if location.port isnt 80 then ":#{location.port}" else ''
+      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+
+      if group.privacy is 'public'
+        privacyExpl = 'Koding users can join anytime without approval'
+      else if policy.invitationsEnabled
+        privacyExpl = 'and only invited users can join'
+      else
+        privacyExpl = 'Koding users can only join with your approval'
+
+      body  = """
+        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
+        <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
+        <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        """
+      modal = new KDModalView
+        title        : "#{group.title} has been created!"
+        content      : body
+        click        : (event)->
+          if $(event.target).is 'a.group-link' then modal.destroy()
+        buttons      :
+          dashboard  :
+            title    : 'Go to Dashboard'
+            style    : 'modal-clean-green'
+            callback : -> modal.destroy()
+          group      :
+            title    : 'Go to Group'
+            style    : 'modal-clean-gray'
+            callback : =>
+              modal.destroy()
+              KD.getSingleton('router').handleRoute "/#{group.slug}"
+          dismiss    :
+            title    : 'Dismiss'
+            style    : 'modal-cancel'
+            callback : -> modal.destroy()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->

@@ -26,11 +26,13 @@ class KodingAppsController extends KDController
     @kiteController = @getSingleton('kiteController')
     @manifests = KodingAppsController.manifests
 
-  getAppPath:(manifest)->
+  getAppPath:(manifest, escaped=no)->
 
     {profile} = KD.whoami()
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}" else path
+    path = if /^~/.test path then "/home/#{profile.nickname}#{path.substr(1)}"\
+           else path
+    return FSHelper.escapeFilePath path  if escaped
     return path.replace /(\/+)$/, ""
 
   # #
@@ -116,23 +118,20 @@ class KodingAppsController extends KDController
   fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
-    indexJs.fetchContents (err, response)=> callback null, response
+    indexJs.fetchContents callback
 
   # #
   # MISC
   # #
 
-  refreshApps:(callback)->
+  refreshApps:(callback, redecorate=yes)->
 
     @constructor.manifests = {}
     KD.resetAppScripts()
     @fetchAppsFromFs (err, apps)=>
       @appStorage.fetchStorage =>
-        @emit "AppsRefreshed", apps
-      if not err
-        callback? err, apps
-      else
-        callback err
+        @emit "AppsRefreshed", apps  if redecorate
+      callback? err, apps
 
   removeShortcut:(shortcut, callback)->
     @appStorage.fetchValue 'shortcuts', (shortcuts)=>
@@ -297,11 +296,7 @@ class KodingAppsController extends KDController
         title    : "Compiling #{name}..."
         type     : "mini"
 
-      @kiteController.run
-        kiteName  : "applications"
-        method    : "compileApp"
-        withArgs  : {appPath}
-      , (err)=>
+      @kiteController.run "kd app compile #{appPath}", (err, response)=>
         if not err
           loader.notificationSetTitle "Fetching compiled app..."
           @fetchCompiledAppSource app, (err, res)=>
@@ -313,11 +308,8 @@ class KodingAppsController extends KDController
         else
           loader.destroy()
 
-          if err.details?.details?
-            details = """<pre>ERROR: #{err.details.details} <br/>
-                              FILE : #{err.details.file} <br/></pre>"""
-          else if err.details?
-            details = "<pre>#{err.details}</pre>"
+          if response
+            details = """<pre>#{response}</pre>"""
           else
             details = ""
 
@@ -337,12 +329,13 @@ class KodingAppsController extends KDController
       @fetchApps (err, apps)->
         compileOnServer apps[name]
     else
+
       @kiteController.run "test -d #{escapeFilePath @getAppPath @constructor.manifests[name]}", (err)=>
         if err
           new KDNotificationView
             title    : "App list is out-dated, refreshing apps..."
             duration : 2000
-          @refreshApps noop
+          @refreshApps()
         else
           compileOnServer @constructor.manifests[name]
 
@@ -494,6 +487,13 @@ class KodingAppsController extends KDController
     manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
     changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
 
+    stack.push (cb)=>
+      @kiteController.run
+        method    : "fs.ensurePathExists"
+        withArgs  :
+          path    : "/home/#{KD.whoami().profile.nickname}/Applications"
+        , cb
+
     # Copy default app files (app Skeleton)
     stack.push (cb)=>
       @kiteController.run
@@ -507,8 +507,8 @@ class KodingAppsController extends KDController
     stack.push (cb)=> changeLogFile.save changeLogStr, cb
 
     async.parallel stack, (err, result) =>
-      if err then warn err
-      @emit "aNewAppCreated" if not err
+      warn err  if err
+      @emit "aNewAppCreated"  unless err
       callback? err, result
 
   # #
