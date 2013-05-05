@@ -29,6 +29,7 @@ class IntroductionTooltipController extends KDController
 
     super options, data
 
+    @currentTimestamp = Date.now()
     @shouldAddOverlay = no
     @visibleTooltips  = []
 
@@ -52,7 +53,7 @@ class IntroductionTooltipController extends KDController
 
   createInstance: (parentView, data) ->
     assets = @getAssets parentView, data
-    return unless assets
+    return if not assets or @isExpired assets.data.expiryDate
 
     {parentView, tooltipView} = assets
     tooltip = new IntroductionTooltip {
@@ -67,6 +68,9 @@ class IntroductionTooltipController extends KDController
       @close parentView.getOptions().introId
       parentView.tooltip.destroy()
       @visibleTooltips.splice @visibleTooltips.indexOf(tooltip), 1
+
+  isExpired: (expiryDate) ->
+    return new Date(expiryDate).getTime() < @currentTimestamp
 
   getAssets: (parentView, data) ->
     return no if not @introSnippets
