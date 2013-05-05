@@ -394,7 +394,8 @@ class AdminModal extends KDModalViewWithForms
     buttons.Update.show()
 
   initIntroductionTab: ->
-    @modalTabs.forms["Introduction"].addSubView new IntroductionAdmin()
+    parentView = @modalTabs.forms["Introduction"]
+    parentView.addSubView new IntroductionAdmin { parentView }
 
 
 class IntroductionAdmin extends JView
@@ -431,6 +432,11 @@ class IntroductionAdmin extends JView
       @snippets.splice @snippets.indexOf(snippet), 1
       @notFoundText.show() if @snippets.length is 0
 
+  reload: ->
+    parentView = @getOptions().parentView
+    parentView.addSubView new IntroductionAdmin { parentView }
+    @destroy()
+
   fetchData: ->
     KD.remote.api.JIntroSnippet.fetchAll (err, snippets) =>
       @loader.hide()
@@ -451,6 +457,8 @@ class IntroductionAdmin extends JView
       delegate: @
     }
     , data
+
+    @form.on "IntroductionFormNeedsReload", => @reload()
 
   viewAppended: ->
     super
@@ -578,13 +586,20 @@ class IntroductionAdminForm extends KDFormViewWithFields
       Title           :
         label         : "Title"
         type          : "text"
-        placeholder   : "Title of the introduction"
+        placeholder   : "Title of introduction group"
         defaultValue  : data.title
       ExpiryDate      :
         label         : "Expiry Date"
         type          : "text"
-        placeholder   : "Best before"
+        placeholder   : "Best before (YYYY-MM-DD)"
         defaultValue  : data.expiryDate
+        tooltip       :
+          title       : "Date format should be YYYY-MM-DD. e.g. 2013-05-03"
+          placement   : "right"
+          direction   : "center"
+          offset      :
+            top       : 2
+            left      : 0
       Overlay         :
         label         : "Overlay"
         type          : "select"
@@ -657,43 +672,22 @@ class IntroductionAdminForm extends KDFormViewWithFields
   insertParent: ->
     KD.remote.api.JIntroSnippet.create @createPostData(), =>
       @buttons["Save"].hideLoader()
-      log "new created"
+      @emit "IntroductionFormNeedsReload"
 
   insertChild: ->
     @parentData.addChild @createPostData(), =>
       @buttons["Save"].hideLoader()
-      log "child created"
+      @emit "IntroductionFormNeedsReload"
 
   updateParent: ->
     @parentData.update @createPostData(), =>
-      log "parent updated"
+      @emit "IntroductionFormNeedsReload"
 
   updateChild: ->
     data = @createPostData()
     data.oldIntroId = @parentData.introId
     @parentData.introductionItem.getData().updateChild data, =>
-      log "child updated"
-
-    # {
-    #   introTitle : postData.IntroTitle
-    #   introId    : postData.IntroId
-    #   snippet    : postData.Snippet
-    #   oldIntroId : @getData().IntroId
-    # }
-    # @getData().snippet.updateChild @createPostData(), =>
-      # introId    = "EDITED"
-      # snippet    = "alert"
-      # introTitle = "TITLE"
-      # @getDelegate().getData().updateChild {
-      #   oldIntroId : @getData().introId
-      #   introId
-      #   introTitle
-      #   snippet
-      # }, => @setData {
-      #     introTitle
-      #     introId
-      #     snippet
-      #   }
+      @emit "IntroductionFormNeedsReload"
 
   createPostData: ->
     {inputs}     = @
