@@ -404,6 +404,8 @@ class IntroductionAdmin extends JView
 
     super options, data
 
+    @currentTimestamp = Date.now()
+
     @buttonsContainer = new KDView
       cssClass : "introduction-admin-buttons"
 
@@ -442,6 +444,16 @@ class IntroductionAdmin extends JView
       @loader.hide()
       @snippets = snippets
       return @notFoundText.show() if snippets.length is 0
+
+      @introListContainer.addSubView new KDView
+        cssClass : "admin-introduction-item admin-introduction-header"
+        partial  : """
+          <div class="cell name">Title</div>
+          <div class="cell mini">Count</div>
+          <div class="cell mini">In Use</div>
+          <div class="cell mini">Overlay</div>
+          <div class="cell mini">Visibility</div>
+        """
 
       for snippet in snippets
         @introListContainer.addSubView new IntroductionItem
@@ -488,20 +500,33 @@ class IntroductionItem extends JView
       partial  : data.title
       click    : => @setupChilds()
 
+    @title.addSubView @arrow = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "arrow"
+
     @addLink = new KDCustomHTMLView
       tagName  : "span"
-      partial  : "<span class='icon add'></span>Add Into"
+      partial  : "<span class='icon add'></span>"
       click    : => @add()
+      tooltip  :
+        title  : "Add Into"
+        placement : "left"
 
     @updateLink = new KDCustomHTMLView
       tagName  : "span"
-      partial  : "<span class='icon update'></span>Update"
+      partial  : "<span class='icon update'></span>"
       click    : => @update()
+      tooltip  :
+        title  : "Update"
+        placement : "left"
 
     @deleteLink = new KDCustomHTMLView
       tagName  : "span"
-      partial  : "<span class='icon delete'></span>Delete"
+      partial  : "<span class='icon delete'></span>"
       click    : => @remove()
+      tooltip  :
+        title  : "Delete"
+        placement : "left"
 
   add: ->
     @getDelegate().showForm "Item", @getData()
@@ -517,26 +542,36 @@ class IntroductionItem extends JView
     if @childContainer
       if @isChildContainerVisible
         @childContainer.hide()
+        @arrow.unsetClass "down"
         return @isChildContainerVisible = no
       else
         @childContainer.show()
+        @arrow.setClass "down"
         return @isChildContainerVisible = yes
     else
       return if @ instanceof IntroductionChildItem
       @addSubView @childContainer = new KDView
       @isChildContainerVisible = yes
+      @arrow.setClass "down"
 
       for snippet in @getData().snippets
         @childContainer.addSubView new IntroductionChildItem delegate: @, snippet
 
+  isExpired: (expiryDate) ->
+    return new Date(expiryDate).getTime() < @getDelegate().currentTimestamp
+
   pistachio: ->
     data       = @getData()
-    hasOverlay = if data.overlay is "yes" then "yes" else "no"
+    hasOverlay = if data.overlay is "yes" then "yep" else "nope"
+    status     = if @isExpired(data.expiryDate) is yes then "nope" else "yep"
+    visibility = if data.visibility is "allTogether" then "allTogether" else "stepByStep"
+
     """
       {{> @title}}
-      <div class="cell">#{data.expiryDate}</div>
-      <div class="cell">#{data.snippets.length}</div>
-      <div class="cell">#{hasOverlay}</div>
+      <div class="cell mini">#{data.snippets.length}</div>
+      <div class="cell icon #{status}"></div>
+      <div class="cell icon #{hasOverlay}"></div>
+      <div class="cell icon #{visibility}"></div>
       <div class="introduction-actions cell">
         {{> @addLink}}{{> @updateLink}}{{> @deleteLink}}
       </div>
@@ -551,7 +586,7 @@ class IntroductionChildItem extends IntroductionItem
     super options, data
 
     @title = new KDView
-      cssClass : "cell name"
+      cssClass : "cell name child"
       partial  : data.introTitle
       click    : => @setupChilds()
 
