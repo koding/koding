@@ -11,7 +11,7 @@ class ApplicationTabView extends KDTabView
 
     super options, data
 
-    # TODO: fatihacet: session logic should refactored to ui and ux
+    # TODO: fatihacet: session logic should refactored for ui and ux
     @isSessionEnabled = no #options.saveSession and options.sessionName
 
     appView = @getDelegate()
@@ -28,7 +28,8 @@ class ApplicationTabView extends KDTabView
 
     @on 'PaneAdded', =>
       @tabHandleContainer.repositionPlusHandle @handles
-      @initSession @panes.last, => @updateSession() if @isSessionEnabled
+      if @isSessionEnabled
+        @initSession @panes.last, => @updateSession()
 
     @on 'SaveSession', (data) =>
       @appStorage.setValue @getOptions().sessionKey, data
