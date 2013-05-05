@@ -44,7 +44,7 @@ class IntroductionTooltipController extends KDController
       @introductionTooltipStatusStorage.fetchStorage (storage) =>
         @introSnippets = snippets
         for snippet in snippets
-          @shouldAddOverlay = yes if snippet.overlay
+          @shouldAddOverlay = yes if snippet.overlay is "yes"
           for item in snippet.snippets
             item.expiryDate = snippet.expiryDate
             @createInstance null, item

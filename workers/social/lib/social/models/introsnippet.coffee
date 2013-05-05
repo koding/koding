@@ -21,7 +21,7 @@ module.exports = class JIntroSnippet extends jraphical.Module
         type      : String
         required  : yes
       overlay     :
-        type      : Boolean
+        type      : String
         required  : yes
       snippets    :
         type      : Array

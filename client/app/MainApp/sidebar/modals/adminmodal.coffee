@@ -531,7 +531,7 @@ class IntroductionItem extends JView
 
   pistachio: ->
     data       = @getData()
-    hasOverlay = if data.overlay is yes then "yes" else "no"
+    hasOverlay = if data.overlay is "yes" then "yes" else "no"
     """
       {{> @title}}
       <div class="cell">#{data.expiryDate}</div>
