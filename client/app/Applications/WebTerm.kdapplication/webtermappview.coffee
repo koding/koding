@@ -17,6 +17,10 @@ class WebTermAppView extends JView
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes
       webTermView.terminal?.setFocused yes
 
+      webTermView.on "WebTerm.terminated", (server) =>
+        if @tabView.getActivePane() == pane
+          @tabView.removePane pane
+
   viewAppended: ->
     super
     @addNewTab()
