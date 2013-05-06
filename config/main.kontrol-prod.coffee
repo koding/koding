@@ -16,15 +16,15 @@ module.exports =
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'webserver'
+    login       : 'prod-webserver'
     port        : 3000
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
     enabled     : no
-    port        : 1338
-  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+    port        : 1337
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
   runRerouting  : no
   compileGo     : no
@@ -61,12 +61,12 @@ module.exports =
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
-    login       : 'authWorker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 1
     watch       : yes
   social        :
-    login       : 'social'
+    login       : 'prod-social'
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
@@ -94,21 +94,21 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "http://#{version}.x.koding.com"
     runtimeOptions:
-      logToExternal : no
-      resourceName  : socialQueueName
-      suppressLogs  : no
-      version       : version
-      mainUri       : "http://#{version}.x.koding.com"
-      broker        :
-        sockJS      : "http://broker-#{version}.x.koding.com/subscribe"
-      apiUri        : 'https://dev-api.koding.com'
+      logToExternal : 1
+      resourceName: socialQueueName
+      suppressLogs: no
+      version   : version
+      mainUri   : "http://#{version}.x.koding.com"
+      broker    :
+        sockJS   : "http://broker-#{version}.x.koding.com/subscribe"
+      apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri       : 'https://dev-app.koding.com'
-      sourceUri     : 'http://web-kontrol-test.in.koding.com:1337'
+      appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
   mq            :
-    host        : 'web-dev.in.koding.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
-    apiAddress  : "web-dev.in.koding.com"
+    apiAddress  : "rabbitmq1.in.koding.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
