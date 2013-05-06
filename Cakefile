@@ -144,17 +144,17 @@ task 'socialWorker', ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-
-  if social.watch?
-    watcher = new Watcher
-      groups   :
-        social   :
-          folders   : ['./workers/social']
-          onChange  : (path) ->
-            if social.numberOfWorkers is 1
-              processes.kill "social"
-            else
-              processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
+  unless KONFIG.runKontrol
+    if social.watch?
+      watcher = new Watcher
+        groups   :
+          social   :
+            folders   : ['./workers/social']
+            onChange  : (path) ->
+              if social.numberOfWorkers is 1
+                processes.kill "social"
+              else
+                processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
@@ -172,16 +172,17 @@ task 'authWorker',({configFile}) ->
         startMode     : "one"
       verbose         : yes
 
-  if config.watch is yes
-    watcher = new Watcher
-      groups        :
-        auth        :
-          folders   : ['./workers/auth']
-          onChange  : (path) ->
-            if numberOfWorkers is 1
-              processes.kill "auth"
-            else
-              processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
+  unless KONFIG.runKontrol
+    if config.watch is yes
+      watcher = new Watcher
+        groups        :
+          auth        :
+            folders   : ['./workers/auth']
+            onChange  : (path) ->
+              if numberOfWorkers is 1
+                processes.kill "auth"
+              else
+                processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
 task 'guestCleanup',({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -305,16 +306,17 @@ task 'cacheWorker',({configFile})->
     restart         : yes
     restartInterval : 100
     kontrol         :
-      enabled       : if config.runKontrol is yes then yes else no
+      enabled       : if KONFIG.runKontrol is yes then yes else no
       startMode     : "one"
 
-  if cacheWorker.watch is yes
-    watcher = new Watcher
-      groups        :
-        server      :
-          folders   : ['./workers/cacher']
-          onChange  : ->
-            processes.kill "cacheWorker"
+  unless KONFIG.runKontrol
+    if cacheWorker.watch is yes
+      watcher = new Watcher
+        groups        :
+          server      :
+            folders   : ['./workers/cacher']
+            onChange  : ->
+              processes.kill "cacheWorker"
 
 
 task 'kontrolCli',({configFile}) ->
