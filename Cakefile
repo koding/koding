@@ -373,7 +373,6 @@ run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile,->
-    invoke 'kontrol'
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting

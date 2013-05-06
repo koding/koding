@@ -23,7 +23,7 @@ module.exports =
     watch       : yes
   sourceServer  :
     enabled     : no
-    port        : 1337
+    port        : 1338
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
   runRerouting  : no
