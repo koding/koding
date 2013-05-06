@@ -618,6 +618,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
   constructor: (options = {}, data = {}) ->
 
     @parentData = data
+    @timestamp  = Date.now()
 
     groupFields =
       Title           :
@@ -666,7 +667,9 @@ class IntroductionAdminForm extends KDFormViewWithFields
         defaultValue  : data.introId
       Snippet         :
         label         : "Intro Snippet"
-        type          : "textarea"
+        itemClass     : KDView
+        cssClass      : "introduction-ace-editor"
+        domId         : "introduction-ace#{@timestamp}"
         defaultValue  : Encoder.htmlDecode data.snippet
 
     options.fields  = itemFields
@@ -695,6 +698,8 @@ class IntroductionAdminForm extends KDFormViewWithFields
           @getDelegate().buttonsContainer.show()
 
     super options, data
+
+    @utils.defer => @setAceEditor()
 
   save: ->
     {actionType} = @getOptions()
@@ -750,3 +755,22 @@ class IntroductionAdminForm extends KDFormViewWithFields
       return data
 
     return itemData
+
+  setAceEditor: ->
+    require ["ace/ace"], (ace) =>
+      domElement = document.getElementById "introduction-ace#{@timestamp}"
+      @aceEditor = ace.edit domElement
+      @aceEditor.setTheme "ace/theme/idle_fingers"
+      @aceEditor.getSession().setMode "ace/mode/javascript"
+      domElement.style.fontSize = "14px"
+      @aceEditor.commands.addCommand
+        name    : 'save'
+        bindKey :
+          win   : 'Ctrl-S'
+          mac   : 'Command-S'
+        exec    : =>
+      @aceEditor.getSession().setValue """
+        new KDView({
+          partial: ""
+        });
+      """
