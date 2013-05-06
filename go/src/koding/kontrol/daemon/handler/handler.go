@@ -32,15 +32,7 @@ type ApiMessage struct {
 	Cli    *cliRequest
 }
 
-type ProcessWorker struct {
-	Cmd            string           `json:"cmd"`
-	Host           []string         `json:"host"`
-	Version        int              `json:"version"`
-	CompatibleWith map[string][]int `json:"compatibleWith"`
-}
-
 var kontrolConfig *workerconfig.WorkerConfig
-
 var workerProducer *helper.Producer
 var cliProducer *helper.Producer
 var apiProducer *helper.Producer
