@@ -105,10 +105,8 @@ class TopicsAppController extends AppController
     @createFeed mainView, loadFeed
 
   openTopic:(topic)->
-    group = KD.getSingleton('groupsController').getCurrentGroup()
-    KD.getSingleton('router').handleRoute """
-      #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
-      """, state:topic
+    {entryPoint} = KD.config
+    KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
 
   updateTopic:(topicItem)->
     topic = topicItem.data

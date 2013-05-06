@@ -40,11 +40,13 @@ class GroupsAppController extends AppController
     mainController = @getSingleton 'mainController'
     mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      KD.getSingleton('router').handleRoute if pageInfo.path
-        if pageInfo.topLevel then pageInfo.path
+      {entryPoint} = KD.config
+      if pageInfo.path
+        if pageInfo.topLevel
+          KD.getSingleton('router').handleRoute "#{pageInfo.path}"
         else
-          {group} = @userArea
-          "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
+          KD.getSingleton('router').handleRoute "#{pageInfo.path}", {entryPoint}
+
     @groups = {}
     @currentGroupData = new GroupData
 

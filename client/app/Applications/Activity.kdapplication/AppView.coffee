@@ -33,7 +33,6 @@ class ActivityAppView extends KDScrollView
     @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
   decorate:->
-    {entryPoint} = @getOptions()
     if KD.isLoggedIn()
       @setClass 'loggedin'
       @widget.show()
