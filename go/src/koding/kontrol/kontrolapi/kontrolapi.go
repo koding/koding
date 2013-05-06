@@ -17,9 +17,6 @@ import (
 	"time"
 )
 
-// Gateway to messages from/to kontrold via amqp.
-var listenTell *ListenTell
-
 type Worker struct {
 	Name      string    `json:"name"`
 	Uuid      string    `json:"uuid"`

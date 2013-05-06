@@ -6,6 +6,14 @@ import (
 	"koding/kontrol/helper"
 )
 
+// Gateway to messages from/to kontrold via amqp.
+var listenTell *ListenTell
+
+type ListenTell struct {
+	listen chan string
+	tell   chan []byte
+}
+
 const exchangeName = "infoExchange"
 const channelName = "webApi"
 const bindingKey = "output.webapi"
@@ -40,7 +48,7 @@ func setupAmqp() (ext *AmqpWrapper) {
 
 func (self *AmqpWrapper) Tell(cmd []byte) {
 	msg := buildMessage(cmd)
-	self.channel.Publish(exchangeName, "input.webapi", false, false, msg)
+	self.channel.Publish(exchangeName, "input.api", false, false, msg)
 }
 
 func (self *AmqpWrapper) Listen() <-chan amqp.Delivery {
@@ -81,11 +89,6 @@ func tellAmqp(amqp *AmqpWrapper, output chan []byte) {
 	for cmd := range output {
 		amqp.Tell(cmd)
 	}
-}
-
-type ListenTell struct {
-	listen chan string
-	tell   chan []byte
 }
 
 func (listenTell *ListenTell) Listen() string {
