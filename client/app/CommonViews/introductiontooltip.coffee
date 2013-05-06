@@ -69,6 +69,7 @@ class IntroductionTooltipController extends KDController
       @close parentView.getOptions().introId
       parentView.tooltip.destroy()
       @visibleTooltips.splice @visibleTooltips.indexOf(tooltip), 1
+      @overlay.remove() if @visibleTooltips.length is 0
 
   isExpired: (expiryDate) ->
     return new Date(expiryDate).getTime() < @currentTimestamp
