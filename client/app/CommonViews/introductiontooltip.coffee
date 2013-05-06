@@ -21,6 +21,7 @@ class IntroductionTooltip extends KDObject
 
   close: ->
     @emit "IntroductionTooltipClosed"
+    @destroy()
 
 
 class IntroductionTooltipController extends KDController
