@@ -56,7 +56,7 @@ func main() {
 
 	// register fujin instance to kontrol-daemon
 	amqpStream = setupAmqp()
-	log.Printf("register fujin to kontrold with uuid '%s'", amqpStream.uuid)
+	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
 	amqpStream.Publish("infoExchange", "input.proxy", buildProxyCmd("addProxy", amqpStream.uuid))
 	log.Println("register command is send. waiting for response from kontrold...")
 	go handleInput(amqpStream.input, amqpStream.uuid)
