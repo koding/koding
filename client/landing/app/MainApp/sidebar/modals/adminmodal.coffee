@@ -432,7 +432,9 @@ class IntroductionAdmin extends JView
 
     @on "IntroductionItemDeleted", (snippet) =>
       @snippets.splice @snippets.indexOf(snippet), 1
-      @notFoundText.show() if @snippets.length is 0
+      if @snippets.length is 0
+        @introListContainer.hide()
+        @notFoundText.show()
 
   reload: ->
     parentView = @getOptions().parentView
