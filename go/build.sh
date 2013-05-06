@@ -27,7 +27,7 @@ for i in "${services[@]}"
 do
   if [ "$i" == "koding/kontrol/proxy" ]; then
     go build -v -ldflags "$ldflags" -o "kontrolproxy" "$i"
-    mv "kontrolproxy" $GOBIN
+    mv "kontrolproxy" $GOPATH/bin
   else
     go install -v -ldflags "$ldflags" "$i"
   fi
