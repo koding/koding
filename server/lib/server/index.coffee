@@ -2,7 +2,7 @@
 Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, kontrold} = KONFIG
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
 
 {loggedInPage, loggedOutPage} = require './staticpages'
 
@@ -125,17 +125,22 @@ app.get "/-/kite/login", (req, res) ->
     res.header "Content-Type", "application/json"
 
     if err? or !kite?
-      res.send 401
+      res.send 401, JSON.stringify {error: "unauthorized"}
     else
       rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
-        creds =
-          protocol  : 'amqp'
-          host      : mq.apiAddress
-          username  : data.username
-          password  : data.password
-          vhost     : mq.vhost
-        res.header "Content-Type", "application/json"
-        res.send JSON.stringify creds
+        if err?
+          console.log "ERROR", err
+          # really error is above in 'err', this is for client
+          res.send 401, JSON.stringify {error: "unauthorized"}
+        else
+          creds =
+            protocol  : 'amqp'
+            host      : mq.apiAddress
+            username  : data.username
+            password  : data.password
+            vhost     : mq.vhost
+          res.header "Content-Type", "application/json"
+          res.send JSON.stringify creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'

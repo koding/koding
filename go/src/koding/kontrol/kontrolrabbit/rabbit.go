@@ -4,12 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	// "github.com/koding/rabbitapi"
 	"github.com/streadway/amqp"
 	"io/ioutil"
-	"koding/tools/config"
 	"log"
 	"net/http"
 	"os/user"
@@ -61,18 +59,16 @@ func authUser(key string) (Credentials, error) {
 	}
 	defer resp.Body.Close()
 
-	log.Println(resp.StatusCode)
-
-	if resp.StatusCode == 401 {
-		return Credentials{}, errors.New("Unauthorized, please be sure that the key and name is correct")
-	}
-
 	data, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return Credentials{}, err
 	}
 
-	log.Println(string(data))
+	if resp.StatusCode == 401 {
+		return Credentials{}, fmt.Errorf("Error %s", string(data))
+	}
+
+	log.Println(string(data)) // debug
 
 	msg := Credentials{}
 	err = json.Unmarshal(data, &msg)
@@ -94,10 +90,10 @@ func startRouting(cred Credentials) {
 
 	log.Printf("creating consumer connections")
 
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
+	user := cred.Username
+	password := cred.Password
+	host := cred.Host
+	port := "5672"
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
 	c.conn, err = amqp.Dial(url)
@@ -119,7 +115,6 @@ func startRouting(cred Credentials) {
 		log.Fatal("queue.declare: %s", err)
 	}
 
-	log.Println("KEY is", clientKey)
 	if err := c.channel.QueueBind("", clientKey, "kontrol-rabbitproxy", false, nil); err != nil {
 		log.Fatal("queue.bind: %s", err)
 	}
@@ -197,10 +192,10 @@ func createProducer(cred Credentials) (*Producer, error) {
 	log.Printf("creating publisher connections")
 	var err error
 
-	user := config.Current.Kontrold.RabbitMq.Login
-	password := config.Current.Kontrold.RabbitMq.Password
-	host := config.Current.Kontrold.RabbitMq.Host
-	port := config.Current.Kontrold.RabbitMq.Port
+	user := cred.Username
+	password := cred.Password
+	host := cred.Host
+	port := "5672"
 
 	url := "amqp://" + user + ":" + password + "@" + host + ":" + port
 	p.conn, err = amqp.Dial(url)
@@ -223,7 +218,6 @@ func readKey() string {
 	}
 
 	keyfile := usr.HomeDir + "/.kd/koding.key"
-	log.Println(keyfile)
 
 	file, err := ioutil.ReadFile(keyfile)
 	if err != nil {
