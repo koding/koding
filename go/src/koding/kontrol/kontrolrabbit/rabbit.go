@@ -52,7 +52,7 @@ func main() {
 }
 
 func authUser(key string) (Credentials, error) {
-	registerApi := fmt.Sprintf("http://localhost:3020/-/kite/login?key=%s&name=proxy", key)
+	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?key=%s&name=proxy", key)
 	resp, err := http.DefaultClient.Get(registerApi)
 	if err != nil {
 		return Credentials{}, err
@@ -106,10 +106,10 @@ func startRouting(cred Credentials) {
 		log.Fatal(err)
 	}
 
-	err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
-	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
-	}
+	// err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
+	// if err != nil {
+	// 	log.Fatal("exchange.declare: %s", err)
+	// }
 	clientKey := readKey()
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)

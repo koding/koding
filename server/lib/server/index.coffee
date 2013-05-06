@@ -116,6 +116,32 @@ app.get "/-/imageProxy", (req, res)->
   else
     res.send 404
 
+app.get "/-/proxy/login", (req, res) ->
+  rabbitAPI = require 'koding-rabbit-api'
+  rabbitAPI.setMQ mq
+
+  {JKite} = koding.models
+  koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
+    res.header "Content-Type", "application/json"
+
+    if err? or !kite?
+      res.send 401, JSON.stringify {error: "unauthorized"}
+    else
+      rabbitAPI.newProxyUser req.query.key, kite.kiteName, (err, data) =>
+        if err?
+          console.log "ERROR", err
+          # really error is above in 'err', this is for client
+          res.send 401, JSON.stringify {error: "unauthorized"}
+        else
+          creds =
+            protocol  : 'amqp'
+            host      : mq.apiAddress
+            username  : data.username
+            password  : data.password
+            vhost     : mq.vhost
+          res.header "Content-Type", "application/json"
+          res.send JSON.stringify creds
+
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq
