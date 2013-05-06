@@ -3,26 +3,26 @@
 Compile the binary
 
 ```
-cd fujin/
+cd proxy/
 go build
 ```
 
-Start fujin proxy hander 
+Start kontrol proxy 
 
 ```
-./fujin -c "dev"
+./proxy -c "dev"
 ```
 
-This will start via http (80) and https (443). You can change them with
+This will start with the porst http (80) and https (443). You can change them easily:
 
 ```
-./fujin -c "dev" --port 8080 --portSSL 9090
+./proxy -c "dev" --port 8080 --portSSL 9090
 
 ```
 
-# Usage of Fujin
+# Usage of Kontrol Proxy
 
-You can test fujin with curl request. You can use the test-dummy-server to
+You can test proxy with curl request. You can use the test-dummy-server to
 represent backend servers:
 
 ```
@@ -31,7 +31,7 @@ go run test/proxy-dummy-server.go -p 8002
 
 This will create a dummy server on localhost:8004. You can run several dummy
 servers. After setting up these dummy servers you have to create configuration.
-Please refer to kontrol-api for creating and managing fujin proxy configuration.
+Please refer to kontrol-api for creating and managing proxy configuration.
 
 An example of using this api for the uuid `kontrol.local-2000` is:
 
@@ -61,7 +61,7 @@ If you push a new host with a key greater than the previous:
 http POST "localhost:8000/proxies/kontrol.local-2000" key=2 host=localhost:8002
 ```
 
-Then fujin will automatically use the information with keys `2`. The old routes
+Then proxy will automatically use the information with keys `2`. The old routes
 are still available.
 
 

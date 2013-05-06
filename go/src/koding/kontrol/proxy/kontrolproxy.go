@@ -54,7 +54,7 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	// register fujin instance to kontrol-daemon
+	// register proxy instance to kontrol-daemon
 	amqpStream = setupAmqp()
 	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
 	amqpStream.Publish("infoExchange", "input.proxy", buildProxyCmd("addProxy", amqpStream.uuid))
