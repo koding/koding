@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	// "github.com/koding/rabbitapi"
 	"github.com/streadway/amqp"
@@ -26,7 +27,7 @@ type Producer struct {
 	channel *amqp.Channel
 }
 
-type IncomingMq struct {
+type Credentials struct {
 	Protocol string `json:"protocol"`
 	Host     string `json:"host"`
 	Username string `json:"username"`
@@ -42,41 +43,47 @@ func main() {
 	clientKey := readKey()
 	cred, err := authUser(clientKey)
 	if err != nil {
-		log.Fatalln("not authorized to run!", err)
+		log.Fatalln(err)
 	}
 
-	log.Println(cred)
-
-	producer, err = createProducer()
+	producer, err = createProducer(cred)
 	if err != nil {
 		log.Println(err)
 	}
-	startRouting()
+	startRouting(cred)
 }
 
-func authUser(key string) (IncomingMq, error) {
-	registerApi := fmt.Sprintf("http://localhost:3000/-/kite/login?key=%s&name=proxy", key)
+func authUser(key string) (Credentials, error) {
+	registerApi := fmt.Sprintf("http://localhost:3020/-/kite/login?key=%s&name=proxy", key)
 	resp, err := http.DefaultClient.Get(registerApi)
 	if err != nil {
-		return IncomingMq{}, err
+		return Credentials{}, err
 	}
 	defer resp.Body.Close()
 
-	data, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return IncomingMq{}, err
+	log.Println(resp.StatusCode)
+
+	if resp.StatusCode == 401 {
+		return Credentials{}, errors.New("Unauthorized, please be sure that the key and name is correct")
 	}
 
-	msg := IncomingMq{}
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return Credentials{}, err
+	}
+
+	log.Println(string(data))
+
+	msg := Credentials{}
 	err = json.Unmarshal(data, &msg)
 	if err != nil {
-		return IncomingMq{}, err
+		return Credentials{}, err
 	}
 
 	return msg, nil
 }
 
-func startRouting() {
+func startRouting(cred Credentials) {
 	c := &Consumer{
 		conn:    nil,
 		channel: nil,
@@ -181,7 +188,7 @@ func publishToRemote(data []byte, id, routingKey string) {
 
 }
 
-func createProducer() (*Producer, error) {
+func createProducer(cred Credentials) (*Producer, error) {
 	p := &Producer{
 		conn:    nil,
 		channel: nil,
