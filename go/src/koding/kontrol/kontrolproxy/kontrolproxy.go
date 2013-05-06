@@ -64,7 +64,10 @@ func main() {
 	<-start // wait until we got message from kontrold or exit via above chan
 
 	reverseProxy := &ReverseProxy{}
-	http.HandleFunc("/", reverseProxy.ServeHTTP)
+	// http.HandleFunc("/", reverseProxy.ServeHTTP) this works for 1.1
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		reverseProxy.ServeHTTP(w, r)
+	})
 
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
