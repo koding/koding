@@ -94,17 +94,17 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "http://#{version}.x.koding.com"
     runtimeOptions:
-      logToExternal : 1
-      resourceName: socialQueueName
-      suppressLogs: no
-      version   : version
-      mainUri   : "http://#{version}.x.koding.com"
-      broker    :
-        sockJS   : "http://broker-#{version}.x.koding.com/subscribe"
-      apiUri    : 'https://dev-api.koding.com'
+      logToExternal : no
+      resourceName  : socialQueueName
+      suppressLogs  : no
+      version       : version
+      mainUri       : "http://#{version}.x.koding.com"
+      broker        :
+        sockJS      : "http://broker-#{version}.x.koding.com/subscribe"
+      apiUri        : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
+      appsUri       : 'https://dev-app.koding.com'
+      sourceUri     : 'http://web-kontrol-test.in.koding.com:1337'
   mq            :
     host        : 'web-dev.in.koding.com'
     port        : 5672
