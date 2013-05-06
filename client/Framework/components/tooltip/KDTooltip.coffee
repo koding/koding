@@ -103,8 +103,9 @@ class KDTooltip extends KDView
       @parentView.bindEvent name for name in o.events
 
     @parentView.on 'mouseenter', =>
-      @show()
-      @avoidDestroy = yes
+      if @parentView.tooltip
+        @show()
+        @avoidDestroy = yes
 
     unless o.selector
       @parentView.on 'mouseleave', =>
