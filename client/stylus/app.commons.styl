@@ -1561,6 +1561,23 @@ figure.code-container
 
 .introduction-tooltip
   max-width             300px
+  padding               5px
+  rounded               5px
+  bg                    color, rgba(0, 0, 0, .4) !important
+  .wrapper
+    bg                  color, #FBFBFB !important
+    padding-right       20px !important
+    border-color        rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.15) !important
+    border-width        1px 1px 3px 1px !important
+    .kdview
+      overflow          visible
+      .close-icon
+        bg              position, -79px -223px !important
+        right           -20px
+        top             1px !important
+        &:hover
+          bg            position, -79px -243px !important
+
 .admin-introduction-header .cell
   border-bottom         1px solid #EEE
 .admin-introduction-item
@@ -1639,6 +1656,38 @@ figure.code-container
 .introduction-not-found
   font-style            italic
   font-size             13px
+
+// introduction tooltip arrows
+div.introduction-tooltip
+  .arrow
+    width               0 !important
+    height              0 !important
+  &.placement-top
+    div.arrow
+      border-left       8px solid transparent
+      border-right      8px solid transparent
+      border-top        8px solid rgba(0, 0, 0, .4)
+      bottom            -8px !important
+  &.placement-bottom
+    div.arrow
+      border-left       8px solid transparent
+      border-right      8px solid transparent
+      border-bottom     8px solid rgba(0, 0, 0, .4)
+      top              -8px !important
+  &.placement-right
+    div.arrow
+      border-top        8px solid transparent
+      border-bottom     8px solid transparent
+      border-right      8px solid rgba(0, 0, 0, .4)
+      left              -8px !important
+      background        none !important
+  &.placement-left
+    div.arrow
+      border-top        8px solid transparent
+      border-bottom     8px solid transparent
+      border-left       8px solid rgba(0, 0, 0, .4)
+      right             -8px !important
+
 
 
 // /*
