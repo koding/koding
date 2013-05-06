@@ -121,26 +121,48 @@ app.get "/-/proxy/login", (req, res) ->
   rabbitAPI.setMQ mq
 
   {JKite} = koding.models
-  koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
+  koding.models.JKite.control {key : req.query.rabbitkey, kiteName : req.query.name}, (err, kite) =>
     res.header "Content-Type", "application/json"
 
+    console.log "QUERY", req.query
     if err? or !kite?
-      res.send 401, JSON.stringify {error: "unauthorized"}
+      console.log "ERROR", err
+      res.send 401, JSON.stringify {error: "unauthorized - error code 0"}
     else
-      rabbitAPI.newProxyUser req.query.key, kite.kiteName, (err, data) =>
+      rabbitAPI.newProxyUser req.query.rabbitkey, kite.kiteName, (err, data) =>
         if err?
           console.log "ERROR", err
-          # really error is above in 'err', this is for client
-          res.send 401, JSON.stringify {error: "unauthorized"}
+          res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
         else
-          creds =
-            protocol  : 'amqp'
-            host      : mq.apiAddress
-            username  : data.username
-            password  : data.password
-            vhost     : mq.vhost
-          res.header "Content-Type", "application/json"
-          res.send JSON.stringify creds
+          postData =
+            key       : req.query.key
+            host      : req.query.host
+            rabbitkey : req.query.rabbitkey
+
+          proxyServer = 'mahlika.local' #TODO: change it to public url
+
+          options =
+            method  : 'POST'
+            uri     : "http://localhost:8000/proxies/#{proxyServer}/services/proxy"
+            body    : JSON.stringify postData
+            headers : {'content-type': 'application/json'}
+
+          request.post options, (error, response, body) =>
+            if error
+              console.log "ERROR", err
+              res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
+            else if response.statusCode is 200
+              creds =
+                protocol  : 'amqp'
+                host      : mq.apiAddress
+                username  : data.username
+                password  : data.password
+                vhost     : mq.vhost
+                publicUrl : body
+
+              res.header "Content-Type", "application/json"
+              res.send JSON.stringify creds
+
 
 app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'

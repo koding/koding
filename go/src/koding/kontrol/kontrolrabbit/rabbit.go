@@ -26,11 +26,12 @@ type Producer struct {
 }
 
 type Credentials struct {
-	Protocol string `json:"protocol"`
-	Host     string `json:"host"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Vhost    string `json:"vhost"`
+	Protocol  string `json:"protocol"`
+	Host      string `json:"host"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
+	Vhost     string `json:"vhost"`
+	PublicUrl string `json:"publicUrl"`
 }
 
 var producer *Producer
@@ -52,7 +53,7 @@ func main() {
 }
 
 func authUser(key string) (Credentials, error) {
-	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?key=%s&name=proxy", key)
+	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?rabbitkey=%s&name=proxy&key=1&host=localhost:8004", key)
 	resp, err := http.DefaultClient.Get(registerApi)
 	if err != nil {
 		return Credentials{}, err
