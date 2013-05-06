@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/streadway/amqp"
-	"koding/kontrol/daemon/handler"
-	"koding/kontrol/daemon/handler/proxy"
 	"koding/kontrol/helper"
+	"koding/kontrol/kontroldaemon/handler"
+	"koding/kontrol/kontroldaemon/handler/proxy"
 	"koding/tools/config"
 	"log"
 )

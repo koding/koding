@@ -274,7 +274,7 @@ task 'proxy',({configFile})->
 
   processes.spawn
     name  : 'proxy'
-    cmd   : "./go/bin/proxy -c #{configFile}"
+    cmd   : "./go/bin/vmproxy -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -319,11 +319,21 @@ task 'kontrolCli',({configFile}) ->
     name : "kontrol"
     cmd  : "./node_modules/kontrol -c #{configFile}"
 
+
+task 'kontrolProxy',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolProxy'
+    cmd     : "./go/bin/kontrolproxy -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'kontrolRabbit',(options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolRabbit'
-    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/rabbit -c #{configFile}'" else "./go/bin/rabbit -c #{configFile}"
+    cmd     : "./go/bin/kontrolrabbit -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -333,7 +343,7 @@ task 'kontrolDaemon',(options) ->
   console.log configFile
   processes.spawn
     name    : 'kontrolDaemon'
-    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL daemon;sudo ./go/bin-vagrant/daemon -c #{configFile}'" else "./go/bin/daemon -c #{configFile} #{addFlags options}"
+    cmd     : "./go/bin/kontroldaemon -c #{configFile} #{addFlags options}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -342,11 +352,10 @@ task 'kontrolApi',(options) ->
   {configFile} = options
   processes.spawn
     name    : 'kontrolApi'
-    cmd     : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding/;sudo killall -q -KILL api;sudo ./go/bin-vagrant/api -c #{configFile}'" else "./go/bin/api -c #{configFile}"
+    cmd     : "./go/bin/kontrolapi -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
 
 task 'kontrol',(options) ->
   {configFile} = options

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
-	"koding/kontrol/proxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
 	"log"
 )

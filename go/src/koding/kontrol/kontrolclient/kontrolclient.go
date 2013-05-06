@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/kontrol/daemon/workerconfig"
 	"koding/kontrol/helper"
+	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/tools/process"
 	"log"
 )

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	// "github.com/koding/rabbitapi"
 	"github.com/streadway/amqp"
 	"io/ioutil"
@@ -38,7 +39,8 @@ var producer *Producer
 func main() {
 	log.Println("kontrol rabbitproxy started")
 
-	cred, err := authUser()
+	clientKey := readKey()
+	cred, err := authUser(clientKey)
 	if err != nil {
 		log.Fatalln("not authorized to run!", err)
 	}
@@ -52,8 +54,9 @@ func main() {
 	startRouting()
 }
 
-func authUser() (IncomingMq, error) {
-	resp, err := http.DefaultClient.Get("http://localhost:3000/-/kite/login?key=123123&name=proxy")
+func authUser(key string) (IncomingMq, error) {
+	registerApi := fmt.Sprintf("http://localhost:3000/-/kite/login?key=%s&name=proxy", key)
+	resp, err := http.DefaultClient.Get(registerApi)
 	if err != nil {
 		return IncomingMq{}, err
 	}

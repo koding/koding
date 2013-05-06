@@ -9,29 +9,20 @@ fi
 
 ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
-	koding/broker
+    koding/broker
     koding/rerouting
 	koding/kites/os
 	koding/kites/irc
-	koding/virt/proxy
+	koding/virt/vmproxy
 	koding/virt/vmtool
 	koding/alice
-	koding/kontrol/daemon
-	koding/kontrol/api
-	koding/kontrol/proxy
-	koding/kontrol/rabbit
+	koding/kontrol/kontroldaemon
+	koding/kontrol/kontrolapi
+    koding/kontrol/kontrolproxy
+    koding/kontrol/kontrolrabbit
 )
 
-
-for i in "${services[@]}"
-do
-  if [ "$i" == "koding/kontrol/proxy" ]; then
-    go build -v -ldflags "$ldflags" -o "kontrolproxy" "$i"
-    mv "kontrolproxy" $GOPATH/bin
-  else
-    go install -v -ldflags "$ldflags" "$i"
-  fi
-done
+go install -v -ldflags "$ldflags" "${services[@]}"
 
 cd $GOPATH
 cp bin/os bin/irc ../kites
