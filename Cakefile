@@ -90,7 +90,7 @@ task 'webserver', ({configFile}) ->
       restart           : yes
       restartInterval   : 100
       kontrol           :
-        enabled         : if webserver.watch is yes then no else yes
+        enabled         : if KONFIG.runKontrol is yes then yes else no
         startMode       : "many"
         registerToProxy : yes
         port            : port
@@ -112,13 +112,14 @@ task 'webserver', ({configFile}) ->
       restart         : yes
       restartInterval : 100
 
-  if webserver.watch is yes
-    watcher = new Watcher
-      groups        :
-        server      :
-          folders   : ['./server']
-          onChange  : ->
-            processes.kill "server"
+  unless KONFIG.runKontrol
+    if webserver.watch is yes
+      watcher = new Watcher
+        groups        :
+          server      :
+            folders   : ['./server']
+            onChange  : ->
+              processes.kill "server"
 
 task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
