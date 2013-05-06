@@ -17,7 +17,7 @@ class TopicsAppController extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-  createFeed:(view)->
+  createFeed:(view, loadFeed = no)->
     {JTag} = KD.remote.api
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
@@ -44,7 +44,6 @@ class TopicsAppController extends AppController
               JTag.streamModels selector, options, callback
           dataEnd           : ({resultsController}, ids)->
             JTag.fetchMyFollowees ids, (err, followees)->
-              console.log followees
               if err then error err
               else
                 {everything} = resultsController.listControllers
@@ -81,19 +80,19 @@ class TopicsAppController extends AppController
       controller.resultsController.on 'ItemWasAdded', (item)=>
         item.on 'LinkClicked', => @openTopic item.getData()
       view.addSubView @_lastSubview = controller.getView()
-      controller.loadFeed()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
+      controller.loadFeed() if loadFeed
       @emit 'ready'
 
-  loadView:(mainView, firstRun = yes)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
-        @loadView mainView, no
+        @loadView mainView, no, yes
 
       mainView.createCommons()
 
@@ -103,10 +102,9 @@ class TopicsAppController extends AppController
         @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
           @updateTopic topicItem
 
-    @createFeed mainView
+    @createFeed mainView, loadFeed
 
   openTopic:(topic)->
-    console.trace()
     group = KD.getSingleton('groupsController').getCurrentGroup()
     KD.getSingleton('router').handleRoute """
       #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}

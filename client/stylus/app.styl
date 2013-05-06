@@ -477,6 +477,10 @@ body
         top               -50px !important
 
 span.main-nav-icon
+  margin                  -1px 18px 0 0
+  size                    20px, 20px
+  bg                    position, 0 -120px
+  sprite()
   fl()
   margin -1px 18px 0 0
   sprite()
@@ -486,54 +490,54 @@ span.main-nav-icon
   &.home
     bg(position,0 0)
   &.activity
-    bg(position,0 -80px) //new bubbles
+    bg                    position, 0 -80px
   &.members
-    bg(position,0 -60px)
+    bg                    position, 0 -60px
   &.groups
-    bg(position,0 -260px)
+    bg                    position, 0 -260px
   &.questions-answers
-    bg(position,0 -80px)
+    bg                    position, 0 -80px
   &.app-store
-    bg(position,0 -100px)
+    bg                    position, 0 -100px
   &.my-apps
-    bg(position,0 -220px)
+    bg                    position, 0 -220px
   &.settings
-    bg(position,0 -320px)
+    bg                    position, 0 -320px
   &.about
-    bg(position,0 -340px)
+    bg                    position, 0 -340px
   &.screen
-    bg(position,0 -360px)
+    bg                    position, 0 -360px
   &.app
-    bg(position,0 -140px)
+    bg                    position, 0 -140px
   &.server-manager
-    bg(position,0 -240px)
+    bg                    position, 0 -240px
   &.teams
-    bg(position,0 -260px)
+    bg                    position, 0 -260px
   &.databases
-    bg(position,0 -280px)
+    bg                    position, 0 -280px
   &.backups
-    bg(position,0 -300px)
+    bg                    position, 0 -300px
   &.apps
-    bg(position,0 -300px)
+    bg                    position, 0 -300px
   &.develop
-    bg(position,0 -400px)
+    bg                    position, 0 -400px
   &.topics
-    bg(position,0 -480px)
+    bg                    position, 0 -480px
   &.account
-    bg(position,0 -420px)
+    bg                    position, 0 -420px
   &.logout
-    bg(position,0 -440px)
+    bg                    position, 0 -440px
   &.login
-    bg(position,0 -460px)
+    bg                    position, 0 -460px
   &.beta-feedback
-    bg(position,0 -500px)
+    bg                    position, 0 -500px
   &.demos
-    bg(position,0 -100px)
+    bg                    position, 0 -100px
   &.people
-    bg(position,0 -60px)
+    bg                    position, 0 -60px
   &.admin-panel
-  &.admin-dashboard
-    bg(position,-80px -300px)
+  &.group-settings
+    bg                    position, -80px -300px
   &.invite-friends
     text-shadow     0 -1px 0 #26231F
     padding         3px 3px 1px 3px
@@ -547,38 +551,40 @@ span.main-nav-icon
     text-align      center
     size            auto,auto
   &.register
-    bg(position,0 -420px)
+    bg                    position, 0 -420px
   &.request-access
-    bg(position,0 -540px)
+    bg                    position, 0 -540px
   &.open-group
-    bg(position,0 -260px)
+    bg                    position, 0 -260px
+
 
 .kdlistitemview.selected
   span.main-nav-icon
     &.request-access
-      bg(position,-20px -540px)
+      bg                    position, -20px -540px
     &.register
-      bg(position,-20px -420px)
+      bg                    position, -20px -420px
     &.open-group
-      bg(position,-20px -260px)
+      bg                    position, -20px -260px
     &.people
-      bg(position,-20px -60px)
+      bg                    position, -20px -60px
     &.home
-      bg(position,-20px 0px)
+      bg                    position, -20px 0px
     &.activity
-      bg(position,-20px -80px)
+      bg                    position, -20px -80px
     &.topics
-      bg(position,-20px -480px)
+      bg                    position, -20px -480px
     &.members
-      bg(position,-20px -60px)
+      bg                    position, -20px -60px
     &.groups
-      bg(position,-20px -260px)
+      bg                    position, -20px -260px
     &.develop
-      bg(position,-20px -400px)
+      bg                    position, -20px -400px
     &.apps
-      bg(position,-20px -300px)
+      bg                    position, -20px -300px
     &.demos
-      bg(position,-20px -100px)
+      bg                    position, -20px -100px
+
 
 .navigation-item
   min-width         135px
@@ -776,16 +782,16 @@ span.main-nav-icon
     border              1px solid #d2d2d2
     margin-top          -27px
     shadow              0 0 21px 10px rgba(0,0,0,0.18)
-    rounded        0,3px,3px,3px
+    rounded             0 3px 3px 3px
     size                280px,auto
     bg                  color,white
     borderBox()
 
   &.status-update
-    left                105px
+    left                  105px
     .tab
       span
-        bg(position,-100px -540px)
+        bg                position, -100px -540px
     .content
       height              99px !important
       .hitenterview
@@ -823,6 +829,9 @@ span.main-nav-icon
           size              20px, 20px
         .custom-link-view .icon.new-page
           bg                position, -180px -520px
+          opacity           .2
+        .custom-link-view .icon.dashboard-page
+          bg                position, -180px -440px
           opacity           .2
         .buttons
           fr()
@@ -1057,9 +1066,11 @@ span.main-nav-icon
 
 .kdview.kdlistitemview
   rel()
-  clear               both
+  clear             both
+
   &:last-child
     border-bottom   none
+
   &:hover
     .list-item-arrow
         display     block
@@ -1105,10 +1116,10 @@ span.main-nav-icon
   display           inline-block
   vertical-align    middle
   border            none !important
-  size(20px,20px)
+  size				20px, 20px
   background-color  transparent !important
-  bg(image,url("../images/_kd.sprites.png")) !important
-  bg(position,-120px -340px) !important
+  bg				image, url("../images/_kd.sprites.png")!important
+  bg                position, -120px -340px!important
   .title
       blockMid() !important
 

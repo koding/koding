@@ -117,7 +117,7 @@ class LazyDomController extends KDController
               title : "An error occured, please try again"
             else
               new KDNotificationView
-                title : "You successfully joined to group!"
+                title : "You've successfully joined to group!"
               @openPath "/#{groupEntryPoint}/Activity"
 
       when 'logout'
