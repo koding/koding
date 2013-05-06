@@ -186,7 +186,8 @@ class TutorialActivityItemView extends ActivityItemChild
 
   click:(event)->
     if $(event.target).is("[data-paths~=title]") # or\
-      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      {entryPoint} = KD.config
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
          # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
     if $(event.target).is("[data-paths~=preview]")
 
