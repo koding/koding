@@ -3,7 +3,7 @@ JPost = require '../post'
 module.exports = class JLink extends JPost
   {secure} = require 'bongo'
   {Relationship} = require 'jraphical'
-
+  {permit} = require '../../group/permissionset'
   {once,extend} = require 'underscore'
   {log} = console
 
@@ -44,6 +44,7 @@ module.exports = class JLink extends JPost
       meta        : data.meta
     JPost::modify.call @, client, link, callback
 
-  reply: secure (client, comment, callback)->
-    JComment = require '../comment'
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      JComment = require '../comment'
+      JPost::reply.call @, client, JComment, comment, callback

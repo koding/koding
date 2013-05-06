@@ -300,68 +300,69 @@ module.exports = class JPost extends jraphical.Message
     ]
     daisy queue
 
-  reply: secure (client, replyType, comment, callback)->
-    {delegate} = client.connection
-    unless delegate instanceof JAccount
-      callback new Error 'Log in required!'
-    else
-      comment = new replyType body: comment
-      exempt = delegate.checkFlag('exempt')
-      if exempt
-        comment.isLowQuality = yes
-      comment
-        .sign(delegate)
-        .save (err)=>
-          if err
-            callback err
-          else
-            delegate.addContent comment, (err)->
-              if err
-                log 'error adding content to delegate with err', err
-            @addComment comment,
-              flags:
-                isLowQuality    : exempt
-            , (err, docs)=>
-              if err
-                callback err
-              else
-                if exempt
-                  callback null, comment
+  reply: permit 'reply to posts',
+    success:(client, replyType, comment, callback)->
+      {delegate} = client.connection
+      unless delegate instanceof JAccount
+        callback new Error 'Log in required!'
+      else
+        comment = new replyType body: comment
+        exempt = delegate.checkFlag('exempt')
+        if exempt
+          comment.isLowQuality = yes
+        comment
+          .sign(delegate)
+          .save (err)=>
+            if err
+              callback err
+            else
+              delegate.addContent comment, (err)->
+                if err
+                  log 'error adding content to delegate with err', err
+              @addComment comment,
+                flags:
+                  isLowQuality    : exempt
+              , (err, docs)=>
+                if err
+                  callback err
                 else
-                  Relationship.count {
-                    sourceId                    : @getId()
-                    as                          : 'reply'
-                    'data.flags.isLowQuality'   : $ne: yes
-                  }, (err, count)=>
-                    if err
-                      callback err
-                    else
-                      @update $set: repliesCount: count, (err)=>
-                        if err
-                          callback err
-                        else
-                          callback null, comment
-                          @fetchActivityId (err, id)->
-                            CActivity.update {_id: id}, {
-                              $set: 'sorts.repliesCount': count
-                            }, (err)-> log err if err
-                          @fetchOrigin (err, origin)=>
-                            if err
-                              console.log "Couldn't fetch the origin"
-                            else
-                              unless exempt
-                                @emit 'ReplyIsAdded', {
-                                  origin
-                                  subject       : ObjectRef(@).data
-                                  actorType     : 'replier'
-                                  actionType    : 'reply'
-                                  replier       : ObjectRef(delegate).data
-                                  reply         : ObjectRef(comment).data
-                                  repliesCount  : count
-                                  relationship  : docs[0]
-                                }
-                              @follow client, emitActivity: no, (err)->
-                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                  if exempt
+                    callback null, comment
+                  else
+                    Relationship.count {
+                      sourceId                    : @getId()
+                      as                          : 'reply'
+                      'data.flags.isLowQuality'   : $ne: yes
+                    }, (err, count)=>
+                      if err
+                        callback err
+                      else
+                        @update $set: repliesCount: count, (err)=>
+                          if err
+                            callback err
+                          else
+                            callback null, comment
+                            @fetchActivityId (err, id)->
+                              CActivity.update {_id: id}, {
+                                $set: 'sorts.repliesCount': count
+                              }, (err)-> log err if err
+                            @fetchOrigin (err, origin)=>
+                              if err
+                                console.log "Couldn't fetch the origin"
+                              else
+                                unless exempt
+                                  @emit 'ReplyIsAdded', {
+                                    origin
+                                    subject       : ObjectRef(@).data
+                                    actorType     : 'replier'
+                                    actionType    : 'reply'
+                                    replier       : ObjectRef(delegate).data
+                                    reply         : ObjectRef(comment).data
+                                    repliesCount  : count
+                                    relationship  : docs[0]
+                                  }
+                                @follow client, emitActivity: no, (err)->
+                                @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
