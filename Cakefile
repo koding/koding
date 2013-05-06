@@ -131,7 +131,7 @@ task 'socialWorker', ({configFile}) ->
       restart         : yes
       restartInterval : 100
       kontrol         :
-        enabled       : yes
+        enabled       : if KONFIG.runKontrol is yes then yes else no
         startMode     : "one"
       # onMessage: (msg) ->
       #   if msg.exiting
@@ -167,7 +167,7 @@ task 'authWorker',({configFile}) ->
       restart 		  : yes
       restartInterval : 1000
       kontrol         :
-        enabled       : yes
+        enabled       : if config.runKontrol is yes then yes else no
         startMode     : "one"
       verbose         : yes
 
@@ -183,6 +183,7 @@ task 'authWorker',({configFile}) ->
               processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
 task 'guestCleanup',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
     name            : 'guestCleanup'
@@ -190,11 +191,12 @@ task 'guestCleanup',({configFile})->
     restart         : yes
     restartInterval : 100
     kontrol         :
-      enabled       : yes
+      enabled       : if config.runKontrol is yes then yes else no
       startMode     : "one"
     verbose         : yes
 
 task 'emailWorker',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
     name            : 'email'
@@ -202,7 +204,7 @@ task 'emailWorker',({configFile})->
     restart         : yes
     restartInterval : 100
     kontrol         :
-      enabled       : yes
+      enabled       : if config.runKontrol is yes then yes else no
       startMode     : "one"
     verbose         : yes
 
@@ -241,7 +243,7 @@ task 'goBroker',(options)->
     stdout            : process.stdout
     stderr            : process.stderr
     kontrol           :
-      enabled         : yes
+      enabled         : if config.runKontrol is yes then yes else no
       startMode       : "many"
       registerToProxy : yes
       port            : broker.port
@@ -288,7 +290,7 @@ task 'libratoWorker',({configFile})->
     restart         : yes
     restartInterval : 100
     kontrol         :
-      enabled       : yes
+      enabled       : if config.runKontrol is yes then yes else no
       startMode     : "one"
     verbose         : yes
 
@@ -302,7 +304,7 @@ task 'cacheWorker',({configFile})->
     restart         : yes
     restartInterval : 100
     kontrol         :
-      enabled       : yes
+      enabled       : if config.runKontrol is yes then yes else no
       startMode     : "one"
 
   if cacheWorker.watch is yes

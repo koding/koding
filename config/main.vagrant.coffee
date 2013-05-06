@@ -26,6 +26,7 @@ module.exports =
     port        : 1338
   mongo         : mongo
   runGoBroker   : yes
+  runKontrol    : no
   runRerouting  : yes
   compileGo     : yes
   buildClient   : yes

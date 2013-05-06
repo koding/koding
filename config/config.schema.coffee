@@ -57,6 +57,7 @@ config =
       port        : 1
     mongo         : 1
     runGoBroker   : 1
+    runKontrol    : 1
     runRerouting  : 1
     compileGo     : 1
     buildClient   : 1
