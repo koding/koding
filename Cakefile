@@ -90,7 +90,7 @@ task 'webserver', ({configFile}) ->
       restart           : yes
       restartInterval   : 100
       kontrol           :
-        enabled         : yes
+        enabled         : if webserver.watch is yes then no else yes
         startMode       : "many"
         registerToProxy : yes
         port            : port

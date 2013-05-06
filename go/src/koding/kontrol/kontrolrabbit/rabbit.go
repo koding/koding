@@ -37,13 +37,15 @@ type Credentials struct {
 var producer *Producer
 
 func main() {
-	log.Println("kontrol rabbitproxy started")
+	fmt.Println("koding local proxy is starting...")
 
 	clientKey := readKey()
+	fmt.Printf("auth for key: %s and kite-name: proxy\n", clientKey)
 	cred, err := authUser(clientKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	fmt.Println("auth is successfull")
 
 	producer, err = createProducer(cred)
 	if err != nil {
@@ -69,7 +71,7 @@ func authUser(key string) (Credentials, error) {
 		return Credentials{}, fmt.Errorf("Error %s", string(data))
 	}
 
-	log.Println(string(data)) // debug
+	// log.Println(string(data)) // debug
 
 	msg := Credentials{}
 	err = json.Unmarshal(data, &msg)
@@ -88,8 +90,6 @@ func startRouting(cred Credentials) {
 	}
 
 	var err error
-
-	log.Printf("creating consumer connections")
 
 	user := cred.Username
 	password := cred.Password
@@ -125,7 +125,8 @@ func startRouting(cred Credentials) {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	log.Println("routing started...")
+	fmt.Printf("your public url: %s\nyour local port: 4000\n", cred.PublicUrl)
+	fmt.Print("proxy is ready and working...")
 	for msg := range httpStream {
 		// log.Printf("got %dB message data: [%v]-[%s] %s",
 		// 	len(msg.Body),
@@ -176,7 +177,7 @@ func publishToRemote(data []byte, id, routingKey string) {
 		CorrelationId: id,
 	}
 
-	log.Println("publishing repsonse to", routingKey)
+	fmt.Println("publishing repsonse to", routingKey)
 	err := producer.channel.Publish("kontrol-rabbitproxy", routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
@@ -190,7 +191,6 @@ func createProducer(cred Credentials) (*Producer, error) {
 		channel: nil,
 	}
 
-	log.Printf("creating publisher connections")
 	var err error
 
 	user := cred.Username
