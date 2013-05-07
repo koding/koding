@@ -42,7 +42,7 @@ module.exports = class JGroup extends Module
     permissions     :
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
-      'list members'                      : ['member','moderator']
+      'list members'                      : ['guest','member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -645,17 +645,25 @@ module.exports = class JGroup extends Module
         callback new KodingError '404 Membership policy not found'
       else policy.remove callback
 
-  convertPublicToPrivate =(group, callback)->
+  convertPublicToPrivate =(group, callback=->)->
     group.createMembershipPolicy callback
 
-  convertPrivateToPublic =(group, callback)->
-    group.destroyMemebershipPolicy callback
+  convertPrivateToPublic =(group, client, callback=->)->
+    kallback = (err)->
+      return callback err if err
+      queue.next()
 
-  setPrivacy:(privacy)->
+    daisy queue = [
+      -> group.resolvePendingRequests client, yes, kallback
+      -> group.destroyMemebershipPolicy kallback
+      -> callback null
+    ]
+
+  setPrivacy:(privacy, client)->
     if @privacy is 'public' and privacy is 'private'
       convertPublicToPrivate this
     else if @privacy is 'private' and privacy is 'public'
-      convertPrivateToPublic this
+      convertPrivateToPublic this, client
     @privacy = privacy
 
   getPrivacy:-> @privacy
@@ -666,7 +674,10 @@ module.exports = class JGroup extends Module
       { permission: 'edit groups' }
     ]
     success : (client, formData, callback)->
-      @setPrivacy formData.privacy
+      # do not allow people to change there slugs
+      delete formData.slug
+      delete formData.slug_
+      @setPrivacy formData.privacy, client
       @update {$set:formData}, callback
 
   modifyMembershipPolicy: permit
@@ -725,7 +736,6 @@ module.exports = class JGroup extends Module
         if err then callback err
         else unless policy then callback new KodingError 'No membership policy!'
         else
-
           invitationType =
             if policy.invitationsEnabled then 'invitation' else 'basic approval'
 
@@ -735,17 +745,14 @@ module.exports = class JGroup extends Module
             else
               if isApproved then 'approve' else 'decline'
 
-          JInvitationRequest = require '../invitationrequest'
-
           invitationRequestSelector =
             group             : @slug
             status            : 'pending'
             invitationType    : invitationType
-
+          JInvitationRequest = require '../invitationrequest'
           JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
             if err then callback err
-            else if request? then request[method+'Invitation'] client, (err)->
-              console.error err  if err
+            else if request? then request[method+'Invitation'] client, callback
             else callback null
 
   inviteByEmail: permit 'send invitations',
@@ -766,7 +773,6 @@ module.exports = class JGroup extends Module
       JUser    = require '../user'
       usernames = [usernames] unless Array.isArray usernames
       queue = usernames.map (username)=>=>
-        console.log username
         JUser.one {username}, (err, user)=>
           return callback err if err
           return callback new KodingError 'User does not exist!' unless user

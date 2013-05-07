@@ -30,8 +30,8 @@ module.exports = class JPost extends jraphical.Message
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
-    slug          : Object
-    slug_         : Object # this is necessary, because $exists operator won't work with a sparse index.
+    slug          : String
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index.
     group         : String 
     counts        :
       followers   :
@@ -135,8 +135,8 @@ module.exports = class JPost extends jraphical.Message
               if err
                 callback err
               else
-                status.slug   = slug
-                status.slug_  = slug
+                status.slug   = slug.slug
+                status.slug_  = slug.slug
                 queue.next()
           ->
             status

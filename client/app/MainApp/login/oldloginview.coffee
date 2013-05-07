@@ -6,18 +6,16 @@ class OldLoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else entryPoint = ''
+
+    {entryPoint} = KD.config
 
     super options, data
 
     @hidden = no
 
     handler =(route, event)=>
-      route = "/#{entryPoint}#{route}" if entryPoint
       stop event
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -316,5 +314,5 @@ class OldLoginView extends KDScrollView
     $('#main-form-handler').removeClass "register recover login reset home lr landed"
     $('#main-form-handler').addClass name
 
-    if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+    if KD.config.entryPoint?.slug?
       $('#main-form-handler').addClass 'landed'

@@ -111,6 +111,11 @@ class KDTabView extends KDScrollView
       @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
     @emit "PaneRemoved"
 
+  removePaneByName:(name)->
+    for pane in @panes
+      if pane.name is name
+        @removePane pane
+        break
 
   appendHandleContainer:()->
     @addSubView @tabHandleContainer

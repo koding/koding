@@ -11,7 +11,7 @@ class FSFile extends FSItem
 
   fetchContents:(callback)->
 
-    @emit "fs.fetchContents.started"
+    @emit "fs.job.started"
     @kiteController.run
       kiteName  : 'os'
       method    : 'fs.readFile'
@@ -26,7 +26,7 @@ class FSFile extends FSItem
         content = atob content
 
       callback.call @, err, content
-      @emit "fs.fetchContents.finished", err, content
+      @emit "fs.job.finished", err, content
 
   saveAs:(contents, name, parentPath, callback)->
 

@@ -89,7 +89,7 @@ class GroupsMemberRolesEditView extends JView
       callback   : =>
         @group.transferOwnership @member.getId(), (err)=>
           return @showErrorMessage err if err
-          new KDNotificationView title:'Accepted! Resignation is the courage to start with something else.'
+          new KDNotificationView title:'Ownership transferred!'
           modal.destroy()
     , @group
 

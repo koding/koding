@@ -26,7 +26,6 @@ class ApplicationManager extends KDObject
       image : "Viewer"
       sound : "Viewer"
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
-    @on 'AppManagerWantsToShowAnApp', @bound "setRouteSilently"
 
   open: do ->
 
@@ -116,7 +115,7 @@ class ApplicationManager extends KDObject
       manifestsFetched = yes
       for name, manifest of manifests when name is appName
 
-        manifest.route        = "Develop"
+        manifest.route        = "/Develop"
         manifest.behavior   or= "application"
         manifest.thirdParty or= yes
 
@@ -245,20 +244,6 @@ class ApplicationManager extends KDObject
       @appControllers[name].instances.splice index, 1
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
-
-  setRouteSilently:(controller, view, options)->
-
-    {profileEntryPoint, groupEntryPoint} = KD.config
-
-    entryPoint = if profileEntryPoint or groupEntryPoint
-      "/#{profileEntryPoint or groupEntryPoint}"
-    else ''
-
-    return unless options.route
-
-    @getSingleton('router').handleRoute "#{entryPoint}/#{options.route}",
-      suppressListeners : yes
-
 
   createPromptModal:(appOptions, callback)->
     # show modal and wait for response

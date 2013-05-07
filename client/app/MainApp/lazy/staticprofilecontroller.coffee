@@ -34,12 +34,12 @@ class StaticProfileController extends KDController
     @mainController = @getSingleton 'mainController'
     @lazyDomController = @getSingleton('lazyDomController')
 
-    # KD.remote.cacheable KD.config.profileEntryPoint, (err, user, name)=>
+    # KD.remote.cacheable KD.config.entryPoint.slug, (err, user, name)=>
     # FIXME - we want to use cacheable, not a JAccount call, but names
     # are not working correctly
 
     KD.remote.api.JAccount.one
-      "profile.nickname" : KD.config.profileEntryPoint
+      "profile.nickname" : KD.config.entryPoint.slug
     , (err, user, name)=>
       if err then log err,user,name
       unless err
@@ -73,7 +73,8 @@ class StaticProfileController extends KDController
         @utils.wait 1000, =>
           @mainController.loginScreen.animateToForm 'login'
       else
-        @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
+        {entryPoint} = KD.config
+        @lazyDomController.openPath "/Activity/#{view.getData().slug}", {entryPoint}
 
 
     @on 'CommentCountReceivedClick', (view)=>
@@ -85,7 +86,8 @@ class StaticProfileController extends KDController
           @mainController.loginScreen.animateToForm 'login'
 
       else
-        @lazyDomController.openPath "/#{view.getData().group}/Activity/#{view.getData().slug}"
+        {entryPoint} = KD.config
+        @lazyDomController.openPath "/Activity/#{view.getData().slug}", {entryPoint}
 
     @on 'StaticInteractionHappened',(view)=>
       if KD.whoami() instanceof KD.remote.api.JGuest
@@ -103,7 +105,8 @@ class StaticProfileController extends KDController
       else
         if view instanceof LikeView
         else if view instanceof StaticTagLinkView
-          @lazyDomController.openPath "/#{view.getData().group}/Topics/#{view.getData().slug}"
+          {entryPoint} = KD.config
+          @lazyDomController.openPath "/Topics/#{view.getData().slug}", {entryPoint}
 
 
     @on 'HomeLinkClicked', (callback=->)=>
