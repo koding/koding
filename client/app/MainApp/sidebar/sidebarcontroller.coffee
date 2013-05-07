@@ -8,6 +8,10 @@ class SidebarController extends KDViewController
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
 
+  loadView:->
+
+    @accountChanged KD.whoami()
+
   accountChanged:(account)->
 
     {profile} = account
@@ -38,6 +42,7 @@ class SidebarController extends KDViewController
 
   resetAdminNavItems:->
     return unless KD.isLoggedIn()
+
     KD.whoami().fetchRole? (err, role)=>
       if role is "super-admin"
         @getView().navController.addItem
@@ -52,7 +57,7 @@ class SidebarController extends KDViewController
       groupsController.on 'GroupChanged', ->
         group = groupsController.getCurrentGroup()
 
-        # We need to fix that, it happens when you logged-in from groupEntryPoint
+        # We need to fix that, it happens when you logged-in from entryPoint
         return unless group
 
         group.fetchMyRoles (err, roles)=>
@@ -61,7 +66,7 @@ class SidebarController extends KDViewController
           else if 'admin' in roles
             navController.removeItem dashboardLink  if @dashboardLink?
             @dashboardLink = navController.addItem
-              title     : 'Admin dashboard'
+              title     : 'Group Settings'
               type      : 'admin'
               loggedIn  : yes
               callback  : ->

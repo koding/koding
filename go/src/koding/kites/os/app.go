@@ -14,6 +14,7 @@ import (
 	"launchpad.net/goamz/aws"
 	"launchpad.net/goamz/s3"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -36,31 +37,37 @@ var appsBucket = s3.New(
 ).Bucket("koding-apps")
 
 func registerAppMethods(k *kite.Kite) {
-	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		bucketPath, vos, appPath, err := prepareAppRetrival(args)
-		if err != nil {
-			return nil, err
+	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Owner, Identifier, Version, AppPath string
+		}
+		if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+			return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 		}
 
-		if err := vos.Mkdir(appPath, 0755); err != nil && !os.IsExist(err) {
+		bucketPath := fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
+		if err := vos.Mkdir(params.AppPath, 0755); err != nil && !os.IsExist(err) {
 			return nil, err
 		}
-		if err := downloadFile(bucketPath+"/index.js", vos, appPath+"/index.js"); err != nil {
+		if err := downloadFile(bucketPath+"/index.js", vos, params.AppPath+"/index.js"); err != nil {
 			return nil, err
 		}
-		if err := downloadFile(bucketPath+"/manifest.json", vos, appPath+"/manifest.json"); err != nil {
+		if err := downloadFile(bucketPath+"/manifest.json", vos, params.AppPath+"/manifest.json"); err != nil {
 			return nil, err
 		}
 
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		bucketPath, vos, appPath, err := prepareAppRetrival(args)
-		if err != nil {
-			return nil, err
+	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+		var params struct {
+			Owner, Identifier, Version, AppPath string
+		}
+		if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
+			return nil, &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
 		}
 
+		bucketPath := fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
 		r, err := appsBucket.GetReader(bucketPath + ".tar.gz")
 		if err != nil {
 			return nil, err
@@ -73,10 +80,13 @@ func registerAppMethods(k *kite.Kite) {
 		}
 		defer gzr.Close()
 
-		if _, err := vos.Stat(appPath); err == nil {
-			if err := vos.Rename(appPath, appPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
+		if _, err := vos.Stat(params.AppPath); err == nil {
+			if err := vos.Rename(params.AppPath, params.AppPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
 				return nil, err
 			}
+		}
+		if err := vos.Mkdir(params.AppPath, 0755); err != nil && !os.IsExist(err) {
+			return nil, err
 		}
 
 		tr := tar.NewReader(gzr)
@@ -89,11 +99,15 @@ func registerAppMethods(k *kite.Kite) {
 				return nil, err
 			}
 
-			filePath := appPath + "/" + header.Name
+			if strings.Contains(header.Name, "/._") {
+				continue // skip OS X metadata pseudo files
+			}
+
+			filePath := params.AppPath + "/" + header.Name
 
 			switch header.Typeflag {
 			case tar.TypeReg, tar.TypeRegA:
-				file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
+				file, err := vos.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
 				if err != nil {
 					return nil, err
 				}
@@ -104,7 +118,7 @@ func registerAppMethods(k *kite.Kite) {
 				file.Close()
 
 			case tar.TypeDir:
-				if err := vos.Mkdir(filePath, os.FileMode(header.Mode)); err != nil {
+				if err := vos.Mkdir(filePath, os.FileMode(header.Mode)); err != nil && !os.IsExist(err) {
 					return nil, err
 				}
 
@@ -125,7 +139,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			AppPath string
 		}
@@ -145,9 +159,9 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		bucketPath := fmt.Sprintf("%s/%s/%s.tar.gz", user.Name, manifest.Identifier, manifest.Version)
+		bucketPath := fmt.Sprintf("%s/%s/%s", user.Name, manifest.Identifier, manifest.Version)
 
-		result, err := appsBucket.List(bucketPath, "", "", 1)
+		result, err := appsBucket.List(bucketPath+".tar.gz", "", "", 1)
 		if err != nil {
 			return nil, err
 		}
@@ -169,7 +183,7 @@ func registerAppMethods(k *kite.Kite) {
 
 			header := tar.Header{
 				Name:    name,
-				Mode:    int64(fi.Mode()),
+				Mode:    int64(fi.Mode() & os.ModePerm),
 				ModTime: fi.ModTime(),
 			}
 
@@ -199,7 +213,9 @@ func registerAppMethods(k *kite.Kite) {
 					return err
 				}
 				defer file.Close()
-				if _, err := io.Copy(tw, file); err != nil {
+
+				teeReader := io.TeeReader(file, tw) // write to tar and S3 at once
+				if err := appsBucket.PutReader(bucketPath+"/"+name, teeReader, fi.Size(), "", s3.Private); err != nil {
 					return err
 				}
 			} else {
@@ -219,7 +235,11 @@ func registerAppMethods(k *kite.Kite) {
 					return err
 				}
 				for _, entry := range entries {
-					if err := readPath(name + "/" + entry); err != nil {
+					entryPath := name + "/" + entry
+					if name == "." {
+						entryPath = entry
+					}
+					if err := readPath(entryPath); err != nil {
 						return err
 					}
 				}
@@ -235,14 +255,14 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		if err := appsBucket.Put(bucketPath, buf.Bytes(), "", s3.Private); err != nil {
+		if err := appsBucket.Put(bucketPath+".tar.gz", buf.Bytes(), "", s3.Private); err != nil {
 			return nil, err
 		}
 
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Type, AppPath string
 		}
@@ -266,20 +286,6 @@ func registerAppMethods(k *kite.Kite) {
 
 		return true, nil
 	})
-}
-
-func prepareAppRetrival(args *dnode.Partial) (bucketPath string, vos *virt.VOS, appPath string, err error) {
-	var params struct {
-		Owner, Identifier, Version, AppPath string
-	}
-	if args.Unmarshal(&params) != nil || params.Owner == "" || params.Identifier == "" || params.Version == "" || params.AppPath == "" {
-		err = &kite.ArgumentError{Expected: "{ owner: [string], identifier: [string], version: [string], appPath: [string] }"}
-		return
-	}
-
-	bucketPath = fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
-	appPath = params.AppPath
-	return
 }
 
 func downloadFile(url string, vos *virt.VOS, path string) error {

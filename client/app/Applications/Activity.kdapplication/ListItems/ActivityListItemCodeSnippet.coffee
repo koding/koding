@@ -15,20 +15,9 @@ class CodesnipActivityItemView extends ActivityItemChild
     codeSnippetData = @getData().attachments[0]
     codeSnippetData.title = @getData().title
 
+    if @getData().fake then codeSnippetData.content = Encoder.htmlEncode codeSnippetData.content
+
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
-
-    # @codeShareBoxView = new CodeShareBox
-    #   allowEditing:no
-    #   allowClosing:no
-    #   hideTabs:yes
-    # ,data
-
-    # log data.meta.tags
-    # @tagGroup = new LinkGroup {
-    #   group         : data.meta.tags
-    #   itemsToShow   : 3
-    #   itemClass  : TagFollowBucketItemView
-    # }
 
   render:->
     super()
@@ -45,7 +34,8 @@ class CodesnipActivityItemView extends ActivityItemChild
     super
 
     if $(event.target).is(".activity-item-right-col h3")
-      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      {entryPoint} = KD.config
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", { state:@getData(), entryPoint }
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeSnipActivity

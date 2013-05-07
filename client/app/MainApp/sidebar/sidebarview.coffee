@@ -63,17 +63,6 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
-    @serverStackPin = new KDButtonView
-      cssClass     : "server-pin-button"
-      iconOnly     : yes
-      iconClass    : "cog"
-      callback     : =>
-        $('body').addClass 'server-stack'
-        @putOverlay
-          animated    : yes
-          isRemovable : no
-          color       : 'rgba(0,0,0,.3)'
-
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
@@ -213,7 +202,6 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
-        {{> @serverStackPin}}
         {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
@@ -326,14 +314,14 @@ class Sidebar extends JView
         title   : "Launch Terminal", icon : "terminal",
         appPath : "WebTerm", isWebTerm : yes
       }
-      {
-        title   : "Manage Remotes", icon : "remotes",
-        action  : "manageRemotes"
-      }
-      {
-        title   : "Manage Databases", icon : "databases",
-        action  : "manageDatabases"
-      }
+      # {
+      #   title   : "Manage Remotes", icon : "remotes",
+      #   action  : "manageRemotes"
+      # }
+      # {
+      #   title   : "Manage Databases", icon : "databases",
+      #   action  : "manageDatabases"
+      # }
       { title   : "Add Resources",      icon : "resources" }
       { title   : "Settings",           icon : "cog" }
       {

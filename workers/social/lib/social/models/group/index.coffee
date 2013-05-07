@@ -34,6 +34,7 @@ module.exports = class JGroup extends Module
   @share()
 
   @set
+    softDelete      : yes
     slugifyFrom     : 'title'
     slugTemplate    : '#{slug}'
     feedable        : no
@@ -41,7 +42,7 @@ module.exports = class JGroup extends Module
     permissions     :
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
-      'list members'                      : ['member','moderator']
+      'list members'                      : ['guest','member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -72,10 +73,12 @@ module.exports = class JGroup extends Module
         'fetchUserRoles','changeMemberRoles','canOpenGroup', 'canEditGroup'
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
-        'countPendingInvitationRequests', 'countInvitationRequests'
-        'fetchInvitationRequestCounts', 'resolvePendingRequests','fetchVocabulary'
-        'fetchMembershipStatuses', 'setBackgroundImage', 'fetchAdmin', 'inviteMember',
-        'removeBackgroundImage', 'kickMember', 'transferOwnership', 'fetchNewestMembers'
+        'countPendingInvitationRequests', 'countPendingSentInvitations',
+        'countInvitationRequests', 'fetchInvitationRequestCounts', 
+        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
+        'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
+        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership', 
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
     schema          :
       title         :
@@ -256,10 +259,14 @@ module.exports = class JGroup extends Module
           queue.next()
 
     create = secure (client, formData, callback)->
+      JAccount = require '../account'
+      {delegate} = client.connection
+      unless delegate instanceof JAccount
+        return callback new KodingError 'Access denied.'
+
       JPermissionSet = require './permissionset'
       JMembershipPolicy = require './membershippolicy'
       JName = require '../name'
-      {delegate} = client.connection
       group                 = new this formData
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
@@ -269,7 +276,7 @@ module.exports = class JGroup extends Module
           else unless slug?
             callback new KodingError "Couldn't claim the slug!"
           else
-            console.log "created a slug #{slug}"
+            console.log "created a slug #{slug.slug}"
             group.slug  = slug.slug
             group.slug_ = slug.slug
             queue.next()
@@ -475,7 +482,8 @@ module.exports = class JGroup extends Module
     @fetchRolesByAccount client.connection.delegate, callback
 
   fetchUserRoles: permit 'grant permissions',
-    success:(client, callback)->
+    success:(client, ids, callback)->
+      [callback, ids] = [ids, callback]  unless callback
       @fetchRoles (err, roles)=>
         roleTitles = (role.title for role in roles)
         selector = {
@@ -483,6 +491,7 @@ module.exports = class JGroup extends Module
           sourceId    : @getId()
           as          : { $in: roleTitles }
         }
+        selector.targetId = $in: ids  if ids
         Relationship.someData selector, {as:1, targetId:1}, (err, cursor)->
           if err then callback err
           else
@@ -643,17 +652,25 @@ module.exports = class JGroup extends Module
         callback new KodingError '404 Membership policy not found'
       else policy.remove callback
 
-  convertPublicToPrivate =(group, callback)->
+  convertPublicToPrivate =(group, callback=->)->
     group.createMembershipPolicy callback
 
-  convertPrivateToPublic =(group, callback)->
-    group.destroyMemebershipPolicy callback
+  convertPrivateToPublic =(group, client, callback=->)->
+    kallback = (err)->
+      return callback err if err
+      queue.next()
 
-  setPrivacy:(privacy)->
+    daisy queue = [
+      -> group.resolvePendingRequests client, yes, kallback
+      -> group.destroyMemebershipPolicy kallback
+      -> callback null
+    ]
+
+  setPrivacy:(privacy, client)->
     if @privacy is 'public' and privacy is 'private'
       convertPublicToPrivate this
     else if @privacy is 'private' and privacy is 'public'
-      convertPrivateToPublic this
+      convertPrivateToPublic this, client
     @privacy = privacy
 
   getPrivacy:-> @privacy
@@ -664,7 +681,10 @@ module.exports = class JGroup extends Module
       { permission: 'edit groups' }
     ]
     success : (client, formData, callback)->
-      @setPrivacy formData.privacy
+      # do not allow people to change there slugs
+      delete formData.slug
+      delete formData.slug_
+      @setPrivacy formData.privacy, client
       @update {$set:formData}, callback
 
   modifyMembershipPolicy: permit
@@ -693,6 +713,10 @@ module.exports = class JGroup extends Module
     success: (client, callback)->
       @countInvitationRequests {}, {status: 'pending'}, callback
 
+  countPendingSentInvitations: permit 'send invitations',
+    success: (client, callback)->
+      @countInvitationRequests {}, {status: 'sent'}, callback
+
   countInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @countInvitationRequests rest...
 
@@ -719,7 +743,6 @@ module.exports = class JGroup extends Module
         if err then callback err
         else unless policy then callback new KodingError 'No membership policy!'
         else
-
           invitationType =
             if policy.invitationsEnabled then 'invitation' else 'basic approval'
 
@@ -729,31 +752,62 @@ module.exports = class JGroup extends Module
             else
               if isApproved then 'approve' else 'decline'
 
-          JInvitationRequest = require '../invitationrequest'
-
           invitationRequestSelector =
             group             : @slug
             status            : 'pending'
             invitationType    : invitationType
-
+          JInvitationRequest = require '../invitationrequest'
           JInvitationRequest.each invitationRequestSelector, {}, (err, request)->
             if err then callback err
-            else if request? then request[method+'Invitation'] client, (err)->
-              console.error err  if err
+            else if request? then request[method+'Invitation'] client, callback
             else callback null
 
-  inviteMember: permit 'send invitations',
+  inviteByEmail: permit 'send invitations',
     success: (client, email, callback)->
+      @inviteMember client, email, callback
+
+  inviteByEmails: permit 'send invitations',
+    success: (client, emails, callback)->
+      queue = emails.split(/\n/).map (email)=>=>
+        @inviteByEmail client, email.trim(), (err)->
+          return callback err if err
+          queue.next()
+      queue.push -> callback null
+      daisy queue
+
+  inviteByUsername: permit 'send invitations',
+    success: (client, usernames, callback)->
+      JUser    = require '../user'
+      usernames = [usernames] unless Array.isArray usernames
+      queue = usernames.map (username)=>=>
+        JUser.one {username}, (err, user)=>
+          return callback err if err
+          return callback new KodingError 'User does not exist!' unless user
+          user.fetchOwnAccount (err, account)=>
+            return callback err if err
+            @isMember account, (err, isMember)=>
+              return callback err if err
+              return callback new KodingError "#{username} is already member of this group!" if isMember
+              @inviteMember client, user.email, (err)->
+                return queue.next() unless err
+                replaceEmail = (errMsg)-> errMsg.replace user.email, username
+                if err.name is 'KodingError' then err.message = replaceEmail err.message
+                else err = replaceEmail err
+                callback err
+      queue.push -> callback null
+      daisy queue
+
+  inviteMember: (client, email, callback)->
+      params = 
+        email  : email
+        group  : @slug
+        status : $not: $in: ['declined', 'ignored']
+
       JInvitationRequest = require '../invitationrequest'
-
-      params =
-        email: email,
-        group: @slug
-
       JInvitationRequest.one params, (err, invitationRequest)=>
         if invitationRequest
           callback new KodingError """
-            You've already invited #{email} to join this group.
+            You've already invited #{email}.
             """
         else
           params.invitationType = 'invitation'
@@ -766,28 +820,48 @@ module.exports = class JGroup extends Module
               if err then callback err
               else invitationRequest.sendInvitation client, callback
 
+  isMember: (account, callback)->
+    selector =
+      sourceId  : @getId()
+      targetId  : account.getId()
+      as        : 'member'
+    Relationship.count selector, (err, count)->
+      if err then callback err
+      else callback null, (if count is 0 then no else yes)
+
   requestInvitation: secure (client, invitationType, callback)->
     {delegate} = client.connection
     JInvitationRequest = require '../invitationrequest'
+    JUser              = require '../user'
 
-    invitationRequest = new JInvitationRequest {
-      invitationType
-      koding  : { username: delegate.profile.nickname }
-      group   : @slug,
-      status  : 'pending'
-    }
-    invitationRequest.save (err)=>
-      if err?.code is 11000
-        callback new KodingError """
-          You've already requested an invitation to this group.
-          """
-      else
-        @addInvitationRequest invitationRequest, (err)=>
-          if err then callback err
-          else
-            if invitationType is 'basic approval'
-              invitationRequest.sendRequestNotification client, callback
-            @emit 'NewInvitationRequest'
+    JUser.one username:delegate.profile.nickname, (err, user)=>
+      return callback err if err
+      selector =
+        group: @slug
+        status: $not: $in: ['declined', 'ignored']
+        $or: [
+          'koding.username': delegate.profile.nickname,
+          email: user.email
+        ]
+      JInvitationRequest.one selector, (err, invitationRequest)=>
+        return callback err if err
+        if invitationRequest
+          callback null
+        else
+          invitationRequest = new JInvitationRequest {
+            invitationType
+            koding  : { username: delegate.profile.nickname }
+            email   : user.email
+            group   : @slug,
+            status  : 'pending'
+          }
+          invitationRequest.save (err)=>
+            return callback err if err
+            @addInvitationRequest invitationRequest, (err)=>
+              return callback err if err
+              if invitationType is 'basic approval'
+                invitationRequest.sendRequestNotification client, callback
+              @emit 'NewInvitationRequest'
 
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
@@ -802,16 +876,17 @@ module.exports = class JGroup extends Module
         if err then callback err
         else
           queue = requests.map (request)->->
-            request.sendInvitation client, ->
-              callback null, """
-                An invite was sent to:
-                <strong>koding+#{request.koding.username}@koding.com</strong>
-                """
+            request.approveInvitation client, (err)->
+              return callback err if err
               setTimeout queue.next.bind(queue), 50
-          queue.push -> callback null, null
+          queue.push -> callback null
           daisy queue
 
   requestAccess: secure (client, callback)->
+    @requestAccessFor client, callback
+
+  requestAccessFor: (account, callback)->
+    account = connection:delegate:account unless account.connection?
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
@@ -820,7 +895,7 @@ module.exports = class JGroup extends Module
         else
           invitationType = 'basic approval'
 
-        @requestInvitation client, invitationType, callback
+        @requestInvitation account, invitationType, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
@@ -973,7 +1048,7 @@ module.exports = class JGroup extends Module
 
             dash queue, =>
               # transfer ownership
-              owner.update $set: targetId: accountId, kallback
+              owner.update $set: targetId: account.getId(), kallback
 
   ensureUniquenessOfRoleRelationship:(target, options, fallbackRole, roleUnique, callback)->
     unless callback
@@ -1019,3 +1094,77 @@ module.exports = class JGroup extends Module
       if err then callback err
       else oldAddOwner.call this, target, options, callback
 
+  remove_ = @::remove
+  remove: secure (client, callback)->
+    JName = require '../name'
+
+    @fetchOwner (err, owner)=>
+      return callback err if err
+      unless owner.getId().equals client.connection.delegate.getId()
+        return callback new KodingError 'You must be the owner to perform this action!'
+
+      removeHelper = (model, err, callback, queue)->
+        return callback err if err
+        return queue.next() unless model
+        model.remove (err)=>
+          return callback err if err
+          queue.next()
+
+      removeHelperMany = (klass, models, err, callback, queue)->
+        return callback err if err
+        return queue.next() if not models or models.length < 1
+        ids = (model._id for model in models)
+        klass.remove (_id: $in: ids), (err)->
+          return callback err if err
+          queue.next()
+
+      daisy queue = [
+        => JName.one name:@slug, (err, name)->
+          removeHelper name, err, callback, queue
+
+        => @fetchPermissionSet (err, permSet)->
+          removeHelper permSet, err, callback, queue
+
+        => @fetchDefaultPermissionSet (err, permSet)->
+          removeHelper permSet, err, callback, queue
+
+        => @fetchMembershipPolicy (err, policy)->
+          removeHelper policy, err, callback, queue
+
+        => @fetchReadme (err, readme)->
+          removeHelper readme, err, callback, queue
+
+        => @fetchInvitationRequests (err, requests)->
+          JInvitationRequest = require '../invitationrequest'
+          removeHelperMany JInvitationRequest, requests, err, callback, queue
+
+        => @fetchVocabularies (err, vocabularies)->
+          JVocabulary = require '../vocabulary'
+          removeHelperMany JVocabulary, vocabularies, err, callback, queue
+
+        => @fetchTags (err, tags)->
+          JTag = require '../tag'
+          removeHelperMany JTag, tags, err, callback, queue
+
+        => @fetchApplications (err, apps)->
+          JApp = require '../app'
+          removeHelperMany JApp, apps, err, callback, queue
+
+        # needs to be tested once subgroups are supported
+        # => @fetchSubgroups (err, groups)=>
+        #   return callback err if err
+        #   return queue.next() unless groups
+        #   ids = (model._id for model in groups)
+        #   JGroup.remove client, (_id: $in: ids), (err)->
+        #     return callback err if err
+        #     queue.next()
+
+        => remove_.call this, (err)->
+          return callback err if err
+          queue.next()
+
+        => @constructor.emit 'GroupDestroyed', this, ->
+          queue.next()
+
+        -> callback null
+      ]

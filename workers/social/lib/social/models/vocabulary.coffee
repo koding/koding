@@ -15,6 +15,7 @@ module.exports = class JVocabulary extends Module
   @trait __dirname, '../traits/protected'
 
   @set
+    softDelete      : yes
     sharedMethods   :
       static        : ['create']
       instance      : ['remove', 'modify']
@@ -36,12 +37,12 @@ module.exports = class JVocabulary extends Module
       tag           :
         targetType  : 'JTag'
         as          : 'vocabulary'
-    permissions     :
-      'create vocabularies'     : ['moderator']
-      'edit vocabularies'       : ['moderator']
-      'delete vocabularies'     : ['moderator']
-      'edit own vocabularies'   : ['moderator']
-      'delete own vocabularies' : ['moderator']
+    # permissions     :
+    #   'create vocabularies'     : ['moderator']
+    #   'edit vocabularies'       : ['moderator']
+    #   'delete vocabularies'     : ['moderator']
+    #   'edit own vocabularies'   : ['moderator']
+    #   'delete own vocabularies' : ['moderator']
 
   @create$ = permit 'create vocabularies',
     success:(client, formData, callback)->

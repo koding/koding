@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"io/ioutil"
 	"koding/kites/os/ldapserver"
 	"koding/tools/config"
 	"koding/tools/db"
@@ -13,13 +14,14 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
 
 type VMInfo struct {
 	vmId          bson.ObjectId
-	sessions      map[*kite.Session]bool
+	channels      map[*kite.Channel]bool
 	timeout       *time.Timer
 	totalCpuUsage int
 
@@ -35,31 +37,53 @@ var infosMutex sync.Mutex
 
 func main() {
 	lifecycle.Startup("kite.os", true)
-	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
-
-	iter := db.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
-	var vm virt.VM
-	for iter.Next(&vm) {
-		switch vm.GetState() {
-		case "RUNNING":
-			info := newInfo(&vm)
-			infos[vm.Id] = info
-			info.startTimeout()
-		case "STOPPED":
-			vm.Unprepare()
-		default:
-			panic("Unhandled VM state.")
-		}
+	if err := virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates"); err != nil {
+		log.LogError(err, 0)
+		return
 	}
-	if iter.Err() != nil {
-		panic(iter.Err())
+
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		log.LogError(err, 0)
+		return
+	}
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			if err := vm.Unprepare(); err != nil {
+				log.Warn(err.Error())
+			}
+		}
 	}
 
 	go ldapserver.Listen()
 	go LimiterLoop()
 	k := kite.New("os")
 
-	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
+		if deadService != "" {
+			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": deadService}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+				log.LogError(err, 0)
+			}
+		}
+
+		var vm *virt.VM
+		if bson.IsObjectIdHex(correlationName) {
+			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
+		}
+		if vm == nil {
+			if err := db.VMs.Find(bson.M{"name": correlationName}).One(&vm); err != nil {
+				return k.ServiceUniqueName
+			}
+		}
+
+		if vm.HostKite == "" {
+			return k.ServiceUniqueName
+		}
+		return vm.HostKite
+	}
+
+	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {
 			return nil, errors.New("Permission denied.")
@@ -68,7 +92,7 @@ func main() {
 		return vm.Start()
 	})
 
-	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {
 			return nil, errors.New("Permission denied.")
@@ -77,7 +101,7 @@ func main() {
 		return vm.Shutdown()
 	})
 
-	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {
 			return nil, errors.New("Permission denied.")
@@ -86,7 +110,7 @@ func main() {
 		return vm.Stop()
 	})
 
-	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {
 			return nil, errors.New("Permission denied.")
@@ -96,7 +120,7 @@ func main() {
 		return vm.Start()
 	})
 
-	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil {
 			return nil, errors.New("Permission denied.")
@@ -107,7 +131,7 @@ func main() {
 		return info, nil
 	})
 
-	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil {
 			return nil, errors.New("Permission denied.")
@@ -120,7 +144,7 @@ func main() {
 		return vm.AttachCommand(user.Uid, "", command...).CombinedOutput()
 	})
 
-	registerVmMethod(k, "exec", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil {
 			return nil, errors.New("Permission denied.")
@@ -140,31 +164,35 @@ func main() {
 	k.Run()
 }
 
-func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Session, *virt.User, *virt.VM, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.User, *virt.VM, *virt.VOS) (interface{}, error)) {
+	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var user virt.User
-		if err := db.Users.Find(bson.M{"username": session.Username}).One(&user); err != nil {
+		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
 			panic(err)
 		}
 		if user.Uid < virt.UserIdOffset {
 			panic("User with too low uid.")
 		}
 
-		var params struct {
-			Vm string
-		}
-		if args.Unmarshal(&params) != nil || (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
-			return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
-		}
-
-		var vm *virt.VM
-		if params.Vm != "" {
-			if err := db.VMs.FindId(bson.ObjectIdHex(params.Vm)).One(&vm); err != nil {
-				return nil, errors.New("There is no VM with id '" + params.Vm + "'.")
-			}
-		}
+		vm, _ := channel.KiteData.(*virt.VM)
 		if vm == nil {
-			vm = getDefaultVM(&user)
+			if bson.IsObjectIdHex(channel.CorrelationName) {
+				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
+			}
+			if vm == nil {
+				if err := db.VMs.Find(bson.M{"name": channel.CorrelationName}).One(&vm); err != nil {
+					return nil, errors.New("There is no VM with name/id '" + channel.CorrelationName + "'.")
+				}
+			}
+
+			if vm.HostKite != k.ServiceUniqueName {
+				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+					return nil, &kite.WrongChannelError{}
+				}
+				vm.HostKite = k.ServiceUniqueName
+			}
+
+			channel.KiteData = vm
 		}
 
 		infosMutex.Lock()
@@ -173,19 +201,19 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			info = newInfo(vm)
 			infos[vm.Id] = info
 		}
-		if !info.sessions[session] {
-			info.sessions[session] = true
+		if !info.channels[channel] {
+			info.channels[channel] = true
 			if info.timeout != nil {
 				info.timeout.Stop()
 				info.timeout = nil
 			}
 
-			session.OnDisconnect(func() {
+			channel.OnDisconnect(func() {
 				infosMutex.Lock()
 				defer infosMutex.Unlock()
 
-				delete(info.sessions, session)
-				if len(info.sessions) == 0 {
+				delete(info.channels, channel)
+				if len(info.channels) == 0 {
 					info.startTimeout()
 				}
 			})
@@ -203,7 +231,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 			if vm.LdapPassword == "" {
 				ldapPassword := utils.RandomString()
-				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ldapPassword": nil}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
 					panic(err)
 				}
 				vm.LdapPassword = ldapPassword
@@ -218,35 +246,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}
 
-		return callback(args, session, &user, vm, vm.OS(&user))
+		return callback(args, channel, &user, vm, vm.OS(&user))
 	})
-}
-
-func getDefaultVM(user *virt.User) *virt.VM {
-	if user.DefaultVM == "" {
-		// create new vm
-		vm := virt.VM{
-			Id:    bson.NewObjectId(),
-			Name:  user.Name,
-			Users: []*virt.UserEntry{{Id: user.ObjectId, Sudo: true}},
-		}
-		if err := db.VMs.Insert(vm); err != nil {
-			panic(err)
-		}
-
-		if err := db.Users.Update(bson.M{"_id": user.ObjectId, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
-			panic(err)
-		}
-		user.DefaultVM = vm.Id
-
-		return &vm
-	}
-
-	var vm virt.VM
-	if err := db.VMs.FindId(user.DefaultVM).One(&vm); err != nil {
-		panic(err)
-	}
-	return &vm
 }
 
 func getUsers(vm *virt.VM) []virt.User {
@@ -265,7 +266,7 @@ func getUsers(vm *virt.VM) []virt.User {
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vmId:          vm.Id,
-		sessions:      make(map[*kite.Session]bool),
+		channels:      make(map[*kite.Channel]bool),
 		totalCpuUsage: utils.MaxInt,
 		CpuShares:     1000,
 	}
@@ -276,7 +277,7 @@ func (info *VMInfo) startTimeout() {
 		infosMutex.Lock()
 		defer infosMutex.Unlock()
 
-		if len(info.sessions) != 0 {
+		if len(info.channels) != 0 {
 			return
 		}
 
@@ -292,6 +293,9 @@ func (info *VMInfo) startTimeout() {
 			log.Warn(err.Error())
 		}
 
+		if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+			log.LogError(err, 0)
+		}
 		delete(infos, vm.Id)
 	})
 }

@@ -60,7 +60,7 @@ class KDListViewController extends KDViewController
     @getListView().addSubView @defaultItem = new itemClass options, data
 
   removeDefaultItem:->
-    @getListView().removeSubView @defaultItem if @defaultItem
+    @defaultItem.destroy() if @defaultItem
 
   putDefaultItem:(list=[])->
     if @getOptions().showDefaultItem
@@ -132,8 +132,8 @@ class KDListViewController extends KDViewController
 
   hideNoItemWidget:->
     {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-    @scrollView.removeSubView noItemFoundWidget if noItemFoundWidget
-    @scrollView.removeSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+    noItemFoundWidget.destroy()     if noItemFoundWidget
+    noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
 
   ###
   ITEM OPERATIONS

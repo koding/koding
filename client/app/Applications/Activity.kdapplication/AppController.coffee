@@ -2,7 +2,7 @@ class ActivityAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Activity"
-    route        : "Activity"
+    route        : "/Activity"
     hiddenHandle : yes
 
   activityTypes = [
@@ -39,6 +39,13 @@ class ActivityAppController extends AppController
     if @mainController.appIsReady then @putListeners()
     else @mainController.on 'FrameworkIsReady', => @putListeners()
 
+    @status = @getSingleton "status"
+    @status.on "reconnected", (conn)=>
+      if conn && conn.reason is "internetDownForLongTime"
+        @refresh()
+      else
+        @fetchSomeActivities()
+
   putListeners:->
     activityController = @getSingleton('activityController')
     activityController.on   "ActivityListControllerReady", @attachEvents.bind @
@@ -50,10 +57,12 @@ class ActivityAppController extends AppController
   loadView:->
     @populateActivity() if @listController
 
-  resetList:->
+  resetAll:->
 
     delete @lastTo
     delete @lastFrom
+
+    @listController.resetList()
     @listController.removeAllItems()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
@@ -78,6 +87,7 @@ class ActivityAppController extends AppController
     @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
+    activityController.on 'Refresh', @bound "refresh"
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
@@ -86,13 +96,13 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
-      @resetList()
+      @resetAll()
       @setFilter data.type
       @populateActivity()
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
-      @listController.newActivityArrived activity
+      @listController?.newActivityArrived activity
 
   isExempt:(callback)->
 
@@ -137,7 +147,6 @@ class ActivityAppController extends AppController
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
 
-    teasers  = _.compact(teasers)
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
     # debugger
@@ -147,7 +156,32 @@ class ActivityAppController extends AppController
     @lastTo   = cache.to
     @lastFrom = cache.from
 
-  populateActivity:(options = {})->
+  # Refreshes activity feed, used when user has been disconnected
+  # for so long, backend connection is long gone.
+  refresh:->
+
+    # prevents multiple clicks to refresh from interfering
+    return  if @isLoading
+
+    @resetAll()
+    @populateActivityWithTimeout()
+
+  populateActivityWithTimeout:->
+
+    @populateActivity {},\
+      KD.utils.getTimedOutCallbackOne
+        name      : "populateActivity",
+        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
+        onTimeout : @recover.bind this
+
+  recover:->
+
+    KD.logToMixpanel "activity feed render failed; recovering"
+
+    @isLoading = no
+    @status.reconnect()
+
+  populateActivity:(options = {}, callback)->
 
     return if @isLoading
     @isLoading = yes
@@ -194,14 +228,26 @@ class ActivityAppController extends AppController
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
-  # Fetches activities that occur when user is disconnected.
+  # Fetches activities that occured after the first entry in user feed,
+  # used for minor disruptions.
   fetchSomeActivities:(options = {}) ->
 
+    return if @isLoading
+    @isLoading = yes
+
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
+    unless lastItemCreatedAt? or lastItemCreatedAt is ""
+      @isLoading = no
+      log "lastItemCreatedAt is empty"
+
+      # if lastItemCreatedAt is null, we assume there are no entries
+      # and refresh the entire feed
+      @refresh()
+
+      return
 
     selector       =
       createdAt    :
-        $lte       : new Date
         $gt        : options.createdAt or lastItemCreatedAt
       type         : { $in : options.facets or @getFilter() }
       isLowQuality : { $ne : options.exempt or no }
@@ -211,16 +257,24 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.some selector, options, (err, activities) =>
-      if err then warn err
-      else
-        # FIXME: SY
-        # if it is exact 20 there may be other items
-        # put a separator and check for new items in between
-        if activities.length is 20
-          warn "put a separator in between new and old activities"
+    KD.remote.api.CActivity.some selector, options,\
+      KD.utils.getTimedOutCallback (err, activities) =>
+        if err then warn err
+        else
 
-        @activitiesArrived activities.reverse()
+          KD.logToMixpanel "refresh activity feed success"
+
+          # FIXME: SY
+          # if it is exact 20 there may be other items
+          # put a separator and check for new items in between
+          if activities.length is 20
+            warn "put a separator in between new and old activities"
+
+          @activitiesArrived activities.reverse()
+          @isLoading = no
+      , =>
+        @isLoading = no
+        log "fetchSomeActivities timeout reached"
 
   fetchCachedActivity:(options = {}, callback)->
 
@@ -242,8 +296,14 @@ class ActivityAppController extends AppController
     # we don't need this anymore
     # we need a different approach tho, tBDL - SY
 
-    # unless @listController.scrollView.hasScrollBars()
-    #   @continueLoadingTeasers()
+    # due to complex nesting of subviews, i used jQuery here. - AK
+    contentPanel     = @getSingleton('contentPanel')
+    scrollViewHeight = @listController.scrollView.$()[0].clientHeight
+    headerHeight     = contentPanel.$('.feeder-header')[0].offsetHeight
+    panelHeight      = contentPanel.$('.activity-content')[0].clientHeight
+
+    if scrollViewHeight + headerHeight < panelHeight
+      @continueLoadingTeasers()
 
   createContentDisplay:(activity, callback=->)->
     controller = switch activity.bongo_.constructorName

@@ -31,6 +31,7 @@ module.exports = class JApp extends jraphical.Module
 
   @set
 
+    softDelete      : yes
     slugifyFrom     : 'title'
     slugTemplate    : 'Apps/#{slug}'
 
@@ -211,8 +212,8 @@ module.exports = class JApp extends jraphical.Module
             if err
               callback err
             else
-              app.slug   = slug
-              app.slug_  = slug
+              app.slug   = slug.slug
+              app.slug_  = slug.slug
               app.save (err)->
                 if err
                   callback err
@@ -321,14 +322,22 @@ module.exports = class JApp extends jraphical.Module
 
   # Do not return not approved apps
   @one$ = secure (client, selector, options, callback)->
+    {delegate} = client.connection
     [options, callback] = [callback, options] unless callback
     @one selector, options, (err, app)->
-      if err then callback err
-      else unless app.approved then callback null
-      else callback null, app
+      if err or not app
+        return callback err
+      else unless app.approved
+        if (delegate.checkFlag 'super-admin') or   \
+           (delegate.checkFlag 'app-publisher' and \
+            delegate.getId().equals app.originId)
+          return callback null, app
+        return callback null
+      callback null, app
 
   @someWithRelationship: secure (client, selector, options, callback)->
     {delegate} = client.connection
+    selector or= {}
 
     # Just show approved apps to regular users
     if not delegate.checkFlag 'super-admin'

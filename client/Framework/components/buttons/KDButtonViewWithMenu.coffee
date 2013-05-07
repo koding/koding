@@ -39,6 +39,9 @@ class KDButtonViewWithMenu extends KDButtonView
       treeItemClass     : o.treeItemClass
       itemChildClass    : o.itemChildClass
       itemChildOptions  : o.itemChildOptions
+      # offset            :
+      #   left            : 152
+      #   top             : 0
     , if "function" is typeof o.menu then o.menu() else
 
       # this allows for "sorted" menus that can have elements added to then

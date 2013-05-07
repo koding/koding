@@ -3,8 +3,10 @@ JPost = require '../post'
 module.exports = class JStatusUpdate extends JPost
   {secure} = require 'bongo'
   {Relationship} = require 'jraphical'
-
+  {permit} = require '../../group/permissionset'
   {once, extend} = require 'underscore'
+
+  @trait __dirname, '../../../traits/grouprelated'
 
   @share()
 
@@ -83,6 +85,7 @@ module.exports = class JStatusUpdate extends JPost
 
     JPost::modify.call @, client, statusUpdate, callback
 
-  reply: secure (client, comment, callback)->
-    JComment = require '../comment'
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      JComment = require '../comment'
+      JPost::reply.call @, client, JComment, comment, callback

@@ -2,7 +2,7 @@ class TopicsAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Topics"
-    route        : "Topics"
+    route        : "/Topics"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->
@@ -17,13 +17,13 @@ class TopicsAppController extends AppController
     @listItemClass = TopicsListItemView
     @controllers = {}
 
-  createFeed:(view)->
+  createFeed:(view, loadFeed = no)->
     {JTag} = KD.remote.api
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
       useHeaderNav          : yes
-      noItemFoundText       : "There is no topics."
+      noItemFoundText       : "There are no topics."
       # feedMessage           :
       #   title                 : "Topics organize shared content on Koding. Tag items when you share, and follow topics to see content relevant to you in your activity feed."
       #   messageLocation       : 'Topics'
@@ -55,7 +55,7 @@ class TopicsAppController extends AppController
 
         following           :
           title             : "Following"
-          noItemFoundText   : "There is no topics that you follow."
+          noItemFoundText   : "There are no topics that you follow."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchTopics selector, options, (err, items)=>
               for item in items
@@ -82,16 +82,17 @@ class TopicsAppController extends AppController
       view.addSubView @_lastSubview = controller.getView()
       controller.on "FeederListViewItemCountChanged", (count)=>
         if @_searchValue then @setCurrentViewHeader count
+      controller.loadFeed() if loadFeed
       @emit 'ready'
 
-  loadView:(mainView, firstRun = yes)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
-        @loadView mainView, no
+        @loadView mainView, no, yes
 
       mainView.createCommons()
 
@@ -101,14 +102,11 @@ class TopicsAppController extends AppController
         @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
           @updateTopic topicItem
 
-    @createFeed mainView
+    @createFeed mainView, loadFeed
 
   openTopic:(topic)->
-    console.trace()
-    group = KD.getSingleton('groupsController').getCurrentGroup()
-    KD.getSingleton('router').handleRoute """
-      #{if group?.slug then "/#{group.slug}" else ''}/Topics/#{topic.slug}
-      """, state:topic
+    {entryPoint} = KD.config
+    KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
 
   updateTopic:(topicItem)->
     topic = topicItem.data

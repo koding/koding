@@ -267,20 +267,12 @@ class KDWindowController extends KDController
 
   notifyWindowResizeListeners:(event, throttle = no, duration = 17)->
     event or= type : "resize"
+    fireResizeHandlers = =>
+      for key, instance of @windowResizeListeners when instance._windowDidResize
+        instance._windowDidResize event
     if throttle
-      clearTimeout @resizeNotifiersTimer if @resizeNotifiersTimer
-      @resizeNotifiersTimer = setTimeout ()=>
-        for key,instance of @windowResizeListeners
-          instance._windowDidResize? event
-      , duration
-    else
-      for key,instance of @windowResizeListeners
-        instance._windowDidResize? event
+      KD.utils.killWait @resizeNotifiersTimer
+      @resizeNotifiersTimer = KD.utils.wait duration, fireResizeHandlers
+    else do fireResizeHandlers
 
-  # notifyWindowResizeListeners: __utils.throttle (event)=>
-  #   event or= type : "resize"
-  #   for key,instance of @windowResizeListeners
-  #     instance._windowDidResize? event
-  # ,50
-
-new KDWindowController
+do -> new KDWindowController

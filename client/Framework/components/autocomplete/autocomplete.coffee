@@ -45,6 +45,6 @@ class KDAutoComplete extends KDInputView
     @$input().prev().width()
 
   destroyDropdown:()->
-    @removeSubView @dropdown if @dropdown?
+    @dropdown.destroy() if @dropdown?
     @dropdownPrefix = ""
     @dropdown = null

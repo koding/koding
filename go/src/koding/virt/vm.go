@@ -19,7 +19,8 @@ type VM struct {
 	Name         string        `bson:"name"`
 	Users        []*UserEntry  `bson:"users"`
 	LdapPassword string        `bson:"ldapPassword"`
-	IP           net.IP        `bson:"ip,omitempty"`
+	IP           net.IP        `bson:"ip"`
+	HostKite     string        `bson:"hostKite"`
 }
 
 type UserEntry struct {
@@ -28,18 +29,34 @@ type UserEntry struct {
 }
 
 const UserIdOffset = 1000000
-const RootIdOffset = 50000000
+const RootIdOffset = 500000
 
 var templateDir string
-var templates *template.Template
+var templates = template.New("lxc")
 
-func LoadTemplates(dir string) {
-	templateDir = dir
-	var err error
-	templates, err = template.ParseGlob(templateDir + "/lxc/*")
+func LoadTemplates(dir string) error {
+	interf, err := net.InterfaceByName("lxcbr0")
 	if err != nil {
-		panic(err)
+		return err
 	}
+	addrs, err := interf.Addrs()
+	if err != nil {
+		return err
+	}
+	hostIP, _, err := net.ParseCIDR(addrs[0].String())
+	if err != nil {
+		return err
+	}
+
+	templateDir = dir
+	templates.Funcs(template.FuncMap{
+		"hostIP": func() string { return hostIP.String() },
+	})
+	if _, err := templates.ParseGlob(templateDir + "/lxc/*"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (vm *VM) String() string {
@@ -100,7 +117,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount block device to overlay
 	prepareDir(vm.OverlayFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
 		panic(commandError("mount rbd failed.", err, out))
 	}
 
@@ -232,17 +249,17 @@ func (vm *VM) Unprepare() error {
 
 func (vm *VM) mapRBD() {
 	makeFileSystem := false
-	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).Run(); err != nil {
+	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).Run(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
 			panic(err)
 		}
 
 		// create disk and try to map again
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", vm.String()).CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd create failed.", err, out))
 		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd map failed.", err, out))
 		}
 
@@ -266,6 +283,40 @@ func (vm *VM) mapRBD() {
 			panic(commandError("mkfs.ext4 failed.", err, out))
 		}
 	}
+}
+
+const FIFREEZE = 0xC0045877
+const FITHAW = 0xC0045878
+
+func (vm *VM) FreezeFileSystem() error {
+	return vm.controlOverlay(FIFREEZE)
+}
+
+func (vm *VM) ThawFileSystem() error {
+	return vm.controlOverlay(FITHAW)
+}
+
+func (vm *VM) controlOverlay(action uintptr) error {
+	fd, err := os.Open(vm.OverlayFile(""))
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), action, 0); errno != 0 {
+		return errno
+	}
+	return nil
+}
+
+func (vm *VM) CreateConsistentSnapshot(snapshotName string) error {
+	if err := vm.FreezeFileSystem(); err != nil {
+		return err
+	}
+	defer vm.ThawFileSystem()
+	if out, err := exec.Command("rbd", "snap", "create", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Creating snapshot failed.", err, out)
+	}
+	return nil
 }
 
 func commandError(message string, err error, out []byte) error {
