@@ -1,7 +1,8 @@
 class AppView extends KDView
 
-  constructor:->
+  constructor:(options, data)->
 
+    data = data.first  if Array.isArray data
     super
 
     app = @getData()
