@@ -80,8 +80,6 @@ module.exports = class JIntroSnippet extends jraphical.Module
     {globalFlags}  = client.connection.delegate
     status         = no
     status         = yes for flag of globalFlags when globalFlags[flag] is "super-admin"
-    console.log "user isn't super admin, go away!" if status is no
-    console.log "user is super admin, go on!" if status is yes
     return status
 
   checkPermission: @checkPermission # is it valid?

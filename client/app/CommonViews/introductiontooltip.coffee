@@ -166,7 +166,6 @@ class IntroductionTooltipController extends KDController
 
   addLayers: ->
     windowController = KD.getSingleton("windowController")
-    mainView         = KD.getSingleton("contentPanel")
     for tooltip in @visibleTooltips
       windowController.addLayer tooltip
       tooltip.on "ReceivedClickElsewhere", =>
