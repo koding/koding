@@ -26,6 +26,15 @@ class ApplicationManager extends KDObject
       image : "Viewer"
       sound : "Viewer"
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
+    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
+
+  # temp fix, until router logic is complete
+  setMissingRoute:(appController, appView, appOptions)->
+    router = @getSingleton('router')
+    # log router.getCurrentPath(), appOptions.route
+    if router.getCurrentPath().search(appOptions.route.slice(1)) isnt 0
+      router.handleRoute appOptions.route, suppressListeners : yes
+
 
   open: do ->
 
