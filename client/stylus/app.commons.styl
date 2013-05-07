@@ -1583,8 +1583,14 @@ figure.code-container
 .admin-introduction-item
   overflow              hidden
   line-height           20px
-  &:hover .introduction-actions
+  &:hover > .introduction-actions
     display             block
+  .introItemText
+    float               left
+  .admin-introduction-child-item
+    text-indent         40px
+    &:hover > .introduction-actions
+      display           block
   .cell
     float               left
     width               100px

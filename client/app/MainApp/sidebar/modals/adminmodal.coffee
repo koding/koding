@@ -489,7 +489,7 @@ class IntroductionItem extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = "admin-introduction-item"
+    options.cssClass = options.cssClass or "admin-introduction-item"
 
     super options, data
 
@@ -513,7 +513,6 @@ class IntroductionItem extends JView
       click    : => @add()
       tooltip  :
         title  : "Add Into"
-        placement : "left"
 
     @updateLink = new KDCustomHTMLView
       tagName  : "span"
@@ -521,7 +520,6 @@ class IntroductionItem extends JView
       click    : => @update()
       tooltip  :
         title  : "Update"
-        placement : "left"
 
     @deleteLink = new KDCustomHTMLView
       tagName  : "span"
@@ -529,7 +527,6 @@ class IntroductionItem extends JView
       click    : => @remove()
       tooltip  :
         title  : "Delete"
-        placement : "left"
 
   add: ->
     @getDelegate().showForm "Item", @getData()
@@ -552,7 +549,6 @@ class IntroductionItem extends JView
         @arrow.setClass "down"
         return @isChildContainerVisible = yes
     else
-      return if @ instanceof IntroductionChildItem
       @addSubView @childContainer = new KDView
       @isChildContainerVisible = yes
       @arrow.setClass "down"
@@ -588,11 +584,6 @@ class IntroductionChildItem extends IntroductionItem
 
     super options, data
 
-    @title = new KDView
-      cssClass : "cell name child"
-      partial  : data.introTitle
-      click    : => @setupChilds()
-
   remove: ->
     @getDelegate().getData().deleteChild @getData().introId, =>
       @destroy()
@@ -607,8 +598,7 @@ class IntroductionChildItem extends IntroductionItem
   pistachio: ->
     data = @getData()
     """
-      {{> @title}}
-      <div class="cell">#{data.introId}</div>
+      <div class="introItemText"><b>Intro Id</b>: #{data.introId} <b>for</b>: #{data.introTitle}</div>
       <div class="introduction-actions cell">
         {{> @updateLink}}{{> @deleteLink}}
       </div>
