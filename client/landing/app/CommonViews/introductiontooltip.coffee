@@ -50,7 +50,9 @@ class IntroductionTooltipController extends KDController
             item.expiryDate = snippet.expiryDate
             @createInstance null, item
 
-        @addOverlay() if @shouldAddOverlay and @visibleTooltips.length > 0
+        if @visibleTooltips.length > 0
+          if @shouldAddOverlay then @addOverlay() else @addLayers()
+
 
   createInstance: (parentView, data) ->
     assets = @getAssets parentView, data
@@ -63,7 +65,8 @@ class IntroductionTooltipController extends KDController
     }
     , assets.data
 
-    @visibleTooltips.push tooltip
+    if @visibleTooltips.indexOf(parentView.tooltip) is -1
+      @visibleTooltips.push parentView.tooltip
 
     tooltip.on "IntroductionTooltipClosed", =>
       @close parentView.getOptions().introId
@@ -126,3 +129,12 @@ class IntroductionTooltipController extends KDController
         tooltipInstance.getOptions().parentView.tooltip?.destroy()
       @overlay.remove()
       @visibleTooltips.length = 0
+
+  addLayers: ->
+    windowController = KD.getSingleton("windowController")
+    mainView         = KD.getSingleton("contentPanel")
+    for tooltip in @visibleTooltips
+      windowController.addLayer tooltip
+      tooltip.on "ReceivedClickElsewhere", =>
+        tooltip.destroy() for tooltip in @visibleTooltips when tooltip
+        @visibleTooltips.length = 0
