@@ -219,7 +219,8 @@ module.exports = [
   "app/CommonViews/fatih/fatihprefpane.coffee",
   "app/CommonViews/fatih/fatih.coffee",
 
-  "app/CommonViews/introductiontooltip.coffee",
+  "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
+  "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
@@ -227,6 +228,10 @@ module.exports = [
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
   "app/MainApp/sidebar/virtualizationcontrols.coffee",
   "app/MainApp/sidebar/footermenuitem.coffee",
+  "app/MainApp/sidebar/modals/introductiontooltip/introductionitem.coffee",
+  "app/MainApp/sidebar/modals/introductiontooltip/introductionchilditem.coffee",
+  "app/MainApp/sidebar/modals/introductiontooltip/introductionadminform.coffee",
+  "app/MainApp/sidebar/modals/introductiontooltip/introductionadmin.coffee",
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
 
