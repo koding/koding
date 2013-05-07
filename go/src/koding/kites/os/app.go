@@ -36,7 +36,7 @@ var appsBucket = s3.New(
 ).Bucket("koding-apps")
 
 func registerAppMethods(k *kite.Kite) {
-	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		bucketPath, vos, appPath, err := prepareAppRetrival(args)
 		if err != nil {
 			return nil, err
@@ -55,7 +55,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		bucketPath, vos, appPath, err := prepareAppRetrival(args)
 		if err != nil {
 			return nil, err
@@ -125,7 +125,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			AppPath string
 		}
@@ -242,7 +242,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Type, AppPath string
 		}
