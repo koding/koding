@@ -11,6 +11,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/user"
 	"strings"
@@ -27,6 +28,16 @@ type Producer struct {
 	channel *amqp.Channel
 }
 
+type Kdconfig struct {
+	Username string `json:"user.name"`
+}
+
+type Kdmanifest struct {
+	Kitename  string `json:"name"`
+	Apiadress string `json:"apiAdress"`
+	Version   string `json:"version"`
+}
+
 type Credentials struct {
 	Protocol  string `json:"protocol"`
 	Host      string `json:"host"`
@@ -39,11 +50,12 @@ type Credentials struct {
 var producer *Producer
 
 func main() {
-	clientKey := readKey()
-	cred, err := authUser(clientKey)
+	cred, err := authUser()
 	if err != nil {
 		log.Fatalln(err)
 	}
+
+	log.Println(cred)
 
 	producer, err = createProducer(cred)
 	if err != nil {
@@ -52,16 +64,20 @@ func main() {
 	startRouting(cred)
 }
 
-func authUser(key string) (Credentials, error) {
-
-	err := checkServer("localhost:3020")
+func authUser() (Credentials, error) {
+	manifest := readManifest()
+	err := checkServer(manifest.Apiadress)
 	if err != nil {
-		fmt.Println("could not connect to koding backend", err)
+		fmt.Println(err)
+		fmt.Println("could not connect to koding backend")
 		os.Exit(1)
 	}
 
-	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?rabbitkey=%s&name=proxy&key=1", key)
-	resp, err := http.DefaultClient.Get(registerApi)
+	query := createApiRequest()
+	requestUrl := "http://" + manifest.Apiadress + "/-/proxy/login?" + query
+
+	log.Println("REQUEST URL IS", requestUrl)
+	resp, err := http.DefaultClient.Get(requestUrl)
 	if err != nil {
 		return Credentials{}, err
 	}
@@ -211,6 +227,20 @@ func createProducer(cred Credentials) (*Producer, error) {
 	return p, nil
 }
 
+func createApiRequest() string {
+	kiteKey := readKey()
+	manifest := readManifest()
+	userName := readUsername()
+
+	v := url.Values{}
+	v.Set("rabbitkey", kiteKey)
+	v.Set("kitename", manifest.Kitename)
+	v.Set("key", manifest.Version)
+	v.Set("username", userName)
+
+	return v.Encode()
+}
+
 func readKey() string {
 	usr, err := user.Current()
 	if err != nil {
@@ -227,6 +257,45 @@ func readKey() string {
 	return strings.TrimSpace(string(file))
 }
 
+func readUsername() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configfile := usr.HomeDir + "/.kdconfig"
+
+	file, err := ioutil.ReadFile(configfile)
+	if err != nil {
+		log.Println(err)
+	}
+
+	kdconfig := Kdconfig{}
+	err = json.Unmarshal(file, &kdconfig)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return kdconfig.Username
+}
+
+func readManifest() Kdmanifest {
+	configfile := "manifest.json"
+
+	file, err := ioutil.ReadFile(configfile)
+	if err != nil {
+		log.Println(err)
+	}
+
+	kdmanifest := Kdmanifest{}
+	err = json.Unmarshal(file, &kdmanifest)
+	if err != nil {
+		log.Println(err)
+		return Kdmanifest{}
+	}
+
+	return kdmanifest
+}
 func checkServer(host string) error {
 	c, err := net.Dial("tcp", host)
 	if err != nil {

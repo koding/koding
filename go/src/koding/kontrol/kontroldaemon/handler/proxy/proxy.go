@@ -58,7 +58,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if config.Verbose {
 			log.Println("got 'addKey' json request")
 		}
-		err := proxyConfig.AddKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid, msg.RabbitKey)
+		err := proxyConfig.AddKey(msg.Username, msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid, msg.RabbitKey)
 		if err != nil {
 			log.Println(err)
 		}
@@ -67,7 +67,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if config.Verbose {
 			log.Println("got 'addDomain' json request")
 		}
-		err := proxyConfig.AddDomain(msg.DomainName, msg.ServiceName, msg.Key, msg.Host, msg.Uuid)
+		err := proxyConfig.AddDomain(msg.Username, msg.DomainName, msg.ServiceName, msg.Key, msg.Host, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
@@ -84,15 +84,15 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		if config.Verbose {
 			log.Println("got 'deleteKey' json request")
 		}
-		err := proxyConfig.DeleteKey(msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
+		err := proxyConfig.DeleteKey(msg.Username, msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
-	case "deleteName":
+	case "deleteServiceName":
 		if config.Verbose {
-			log.Println("got 'deleteName' json request")
+			log.Println("got 'deleteServiceName' json request")
 		}
-		err := proxyConfig.DeleteName(msg.ServiceName, msg.Uuid)
+		err := proxyConfig.DeleteServiceName(msg.Username, msg.ServiceName, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}

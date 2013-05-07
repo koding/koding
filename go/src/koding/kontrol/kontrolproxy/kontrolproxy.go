@@ -136,39 +136,60 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func parseKey(host string) (string, string, error) {
-	// host is in form {name}-{key}.x.koding.com
+func parseKey(host string) (string, string, string, string) {
 	log.Printf("parse host '%s' to get key and name", host)
-	counts := strings.Count(host, "-")
-	if counts == 0 {
-		return "", "", fmt.Errorf("no key found for host '%s'", host)
+
+	switch counts := strings.Count(host, "-"); {
+	case counts == 0:
+		// host is in form {name}.x.koding.com, used for domain forwarding
+		username, key, servicename, fullurl, err := lookupDomain(host)
+		if err != nil {
+			log.Println(err)
+		}
+		return username, key, servicename, fullurl
+	case counts == 1:
+		// host is in form {name}-{key}.x.koding.com, used by koding
+		partsFirst := strings.Split(host, ".")
+		firstSub := partsFirst[0]
+
+		partsSecond := strings.Split(firstSub, "-")
+		servicename := partsSecond[0]
+		key := partsSecond[1]
+
+		return "koding", key, servicename, ""
+	case counts > 1:
+		// host is in form {name}-{key}-{username}.x.koding.com, used by users
+		partsFirst := strings.Split(host, ".")
+		firstSub := partsFirst[0]
+
+		partsSecond := strings.SplitN(firstSub, "-", 2)
+		log.Println("PARTSECONDS", partsSecond) // debug
+		servicename := partsSecond[0]
+		key := partsSecond[1]
+		username := partsSecond[2]
+
+		return username, key, servicename, ""
+	default:
+		return "", "", "", ""
 	}
 
-	partsFirst := strings.Split(host, ".")
-	firstSub := partsFirst[0]
-
-	partsSecond := strings.Split(firstSub, "-")
-	name := partsSecond[0]
-	key := partsSecond[1]
-
-	return name, key, nil
 }
 
-func lookupDomain(domainname string) (string, string, string, error) {
+func lookupDomain(domainname string) (string, string, string, string, error) {
 	log.Printf("lookup domain table for domain '%s'", domainname)
 
 	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		return "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+		return "", "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	return domain.Name, domain.Key, domain.FullUrl, nil
+	return domain.Name, domain.Key, domain.Username, domain.FullUrl, nil
 }
 
-func targetUrl(name, key string) *url.URL {
+func targetUrl(username, key, servicename string) *url.URL {
 	var target *url.URL
 	var err error
-	host := targetHost(name, key)
+	host := targetHost(username, key, servicename)
 
 	target, err = url.Parse("http://" + host)
 	if err != nil {
@@ -180,22 +201,37 @@ func targetUrl(name, key string) *url.URL {
 	return target
 }
 
-func lookupRabbitKey(name, key string) string {
+func lookupRabbitKey(username, key, servicename string) string {
 	var rabbitkey string
-	keyRoutingTable := proxy.Services[name]
+
+	_, ok := proxy.RoutingTable[username]
+	if !ok {
+		log.Println("no user available in the db. rabbitkey not found")
+		return rabbitkey
+	}
+	user := proxy.RoutingTable[username]
+
+	keyRoutingTable := user.Services[servicename]
 	keyDataList := keyRoutingTable.Keys[key]
 
 	for _, keyData := range keyDataList {
 		rabbitkey = keyData.RabbitKey
 	}
 
-	return rabbitkey //return empty if not found
+	return rabbitkey //returns empty if not found
 }
 
-func targetHost(name, key string) string {
+func targetHost(username, key, servicename string) string {
 	var hostname string
 
-	keyRoutingTable := proxy.Services[name]
+	_, ok := proxy.RoutingTable[username]
+	if !ok {
+		log.Println("no user available in the db. targethost not found")
+		return ""
+	}
+
+	user := proxy.RoutingTable[username]
+	keyRoutingTable := user.Services[servicename]
 
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
@@ -388,18 +424,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	var target *url.URL
 	var fullurl string
+	var err error
 
-	name, key, err := parseKey(outreq.Host)
-	if err != nil {
-		log.Println(err)
-		name, key, fullurl, err = lookupDomain(outreq.Host)
-		if err != nil {
-			log.Println(err)
-		}
-
-	}
-
-	rabbitKey := lookupRabbitKey(name, key)
+	username, key, servicename, fullurl := parseKey(outreq.Host)
+	rabbitKey := lookupRabbitKey(username, key, servicename)
 
 	// proxy it directly to the fullurl if avaible
 	if fullurl != "" {
@@ -408,8 +436,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Fatal(err)
 		}
 	} else {
-		// otherwise lookup from our database with the given key and name
-		target = targetUrl(name, key)
+		// otherwise lookup for matches in our database
+		target = targetUrl(username, key, servicename)
 	}
 
 	// Reverseproxy.Director closure
