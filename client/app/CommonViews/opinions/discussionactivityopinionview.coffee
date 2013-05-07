@@ -21,8 +21,8 @@ class DiscussionActivityOpinionView extends KDView
       if opinionsData?.length and items.length < 2
         opinions = opinionsData[0..1]
         for opinion in opinions
-          for item in items
-            @opinionList.addItem opinion if opinion isnt item.getData()
+          for item in items when opinion isnt item.getData()
+            @opinionList.addItem opinion
 
 
     # the snapshot opinion list gets populated with 2 items at max initially
