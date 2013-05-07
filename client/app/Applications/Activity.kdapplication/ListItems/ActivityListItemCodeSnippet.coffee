@@ -34,7 +34,8 @@ class CodesnipActivityItemView extends ActivityItemChild
     super
 
     if $(event.target).is(".activity-item-right-col h3")
-      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      {entryPoint} = KD.config
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", { state:@getData(), entryPoint }
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeSnipActivity
