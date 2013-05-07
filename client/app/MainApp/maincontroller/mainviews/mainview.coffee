@@ -102,7 +102,7 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "PaneDidShow", => KD.utils.wait 10, =>
+    @mainTabView.on "PaneDidShow", => @utils.wait 10, =>
       appManifest = getFrontAppManifest()
       @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
 
@@ -120,10 +120,10 @@ class MainView extends KDView
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
 
-  getMainSettingsMenuButton:->
+  getMainSettingsMenuButton: ->
     new KDButtonView
       domId    : "main-settings-menu"
-      cssClass : "kdsettingsmenucontainer transparent hidden"
+      cssClass : "kdsettingsmenucontainer transparent"
       iconOnly : yes
       iconClass: "dot"
       callback : ->
