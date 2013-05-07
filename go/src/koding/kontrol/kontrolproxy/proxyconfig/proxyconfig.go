@@ -284,14 +284,16 @@ func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid, rabbitkey s
 		return nil
 	}
 
-	// check for existing hostnames, if exist abort
-	for _, value := range keyRoutingTable.Keys[key] {
-		if value.Host == host {
-			return nil
-		}
-	}
-
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+	/* check for existing hostnames, if exist abort. Comment out if you want
+	   * add multiple entities for a single key. Useful if you want use
+	   * round-robin.
+	   for _, value := range keyRoutingTable.Keys[key] {
+	       if value.Host == host {
+	           return nil
+	       }
+	   }
+	   keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+	*/
 
 	proxy.Services[name] = keyRoutingTable
 	err = p.UpdateProxy(proxy)
