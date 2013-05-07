@@ -24,7 +24,8 @@ class TutorialActivityActionsView extends ActivityActionsView
 
     @on "TutorialActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayTutorial
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 

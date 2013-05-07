@@ -42,13 +42,15 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
 
     @on "DiscussionActivityCommentLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
         # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "CommentLinkReceivedClick"
@@ -102,7 +104,8 @@ class OpinionActivityActionsView extends ActivityActionsView
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
         # KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
       else
         @getDelegate().emit "OpinionLinkReceivedClick"
