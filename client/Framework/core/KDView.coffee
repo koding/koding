@@ -338,29 +338,25 @@ class KDView extends KDObject
     positionOptions.position = "absolute"
     @$().css positionOptions
 
-  getWidth:()->
-    w = @getDomElement().width()
+  getWidth:()-> @$().width()
 
   setWidth:(w, unit = "px")->
     @getElement().style.width = "#{w}#{unit}"
-    # @getDomElement().width w
     @emit "ViewResized", {newWidth : w, unit}
 
   getHeight:()->
-    # @getDomElement()[0].clientHeight
-    @getDomElement().outerHeight(no)
+    @getDomElement().outerHeight no
 
-  setHeight:(h)->
-    @getElement().style.height = "#{h}px"
-    # @getDomElement().height h
-    @emit "ViewResized", newHeight : h
+  setHeight:(h, unit = "px")->
+    @getElement().style.height = "#{h}#{unit}"
+    @emit "ViewResized", {newHeight : h, unit}
 
-  getX:()->@getDomElement().offset().left
-  getRelativeX:()->@$().position().left
-  setX:(x)->@$().css left : x
-  getY:()->@getDomElement().offset().top
-  getRelativeY:->@getDomElement().position().top
-  setY:(y)->@$().css top : y
+  setX:(x)-> @$().css left : x
+  setY:(y)-> @$().css top : y
+  getX:-> @$().offset().left
+  getY:-> @$().offset().top
+  getRelativeX:-> @$().position().left
+  getRelativeY:-> @$().position().top
 
 # #
 # ADD/DESTROY VIEW INSTANCES
