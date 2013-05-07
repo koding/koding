@@ -108,7 +108,7 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/domains/", GetProxyDomains).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
 
@@ -303,7 +303,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	if msg.Username != nil {
-		username = *msg.Name
+		username = *msg.Username
 	} else {
 		err := "no 'username' available"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
