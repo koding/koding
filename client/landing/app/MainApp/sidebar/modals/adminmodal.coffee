@@ -617,10 +617,11 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
   constructor: (options = {}, data = {}) ->
 
-    @parentData = data
-    @timestamp  = Date.now()
+    @parentData  = data
+    @timestamp   = Date.now()
+    @snippetType = "Code"
 
-    groupFields =
+    groupFields  =
       Title           :
         label         : "Title"
         type          : "text"
@@ -671,6 +672,12 @@ class IntroductionAdminForm extends KDFormViewWithFields
         cssClass      : "introduction-ace-editor"
         domId         : "introduction-ace#{@timestamp}"
         defaultValue  : Encoder.htmlDecode data.snippet
+        nextElement   :
+          typeSwitch  :
+            itemClass : KDView
+            partial   : "Switch to Text Mode"
+            cssClass  : "introduction-snippet-switch snippet"
+            click     : => @switchMode()
 
     options.fields  = itemFields
     if options.type is "Group"
@@ -738,11 +745,18 @@ class IntroductionAdminForm extends KDFormViewWithFields
     {actionType} = options
     itemData     = {}
 
+    snippet = @aceEditor.getValue()
+    if @snippetType is "Text"
+      snippet = """new KDView({partial: "#{@aceEditor.getValue()}"});"""
+
     if type is "Item" or (type is "Group" and actionType is "Insert")
-      itemData =
+      itemData = {
         introId    : inputs.IntroId.getValue()
         introTitle : inputs.IntroTitle.getValue()
-        snippet    : inputs.Snippet.getValue()
+        snippet
+      }
+
+    return log itemData
 
     if type is "Group"
       data = {
@@ -763,14 +777,26 @@ class IntroductionAdminForm extends KDFormViewWithFields
       @aceEditor.setTheme "ace/theme/idle_fingers"
       @aceEditor.getSession().setMode "ace/mode/javascript"
       domElement.style.fontSize = "14px"
+      @setEditorText()
       @aceEditor.commands.addCommand
         name    : 'save'
         bindKey :
           win   : 'Ctrl-S'
           mac   : 'Command-S'
         exec    : =>
-      @aceEditor.getSession().setValue """
-        new KDView({
-          partial: ""
-        });
-      """
+
+  setEditorText: (text = "new KDView({\n  partial: \"\"\n});") ->
+    @aceEditor.getSession().setValue text
+
+  switchMode: ->
+    switchView = @fields.typeSwitch.getSubViews()[1].getSubViews()[0]
+    if @snippetType is "Code"
+      switchView.updatePartial "Switch to Code Mode"
+      @aceEditor.getSession().setMode "ace/mode/text"
+      @snippetType = "Text"
+      @setEditorText ""
+    else
+      switchView.updatePartial "Switch to Text Mode"
+      @aceEditor.getSession().setMode "ace/mode/javascript"
+      @snippetType = "Code"
+      @setEditorText()
