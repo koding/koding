@@ -91,7 +91,7 @@ class GroupsListItemView extends KDListItemView
     menu = @settingsMenu data
     if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
-        style       : 'transparent group-settings-context'
+        style       : 'group-settings-context'
         title       : ''
         delegate    : @
         type        : 'contextmenu'
@@ -114,13 +114,13 @@ class GroupsListItemView extends KDListItemView
   setFollowerCount:(count)-> @$('.followers a').html count
 
   markMemberGroup:->
-    @setClass "member-group"
-    @settingsButton.options.style += " member-group"
+    @setClass "group-member"
+    @settingsButton.options.style += " group-member"
     @fetchMembers() if @getData().privacy isnt 'public'
 
   markOwnGroup:->
-    @setClass "own-group"
-    @settingsButton.options.style += " own-group"
+    @setClass "group-owner"
+    @settingsButton.options.style += " group-owner"
     @memberBadge.stopUpdatingPartial = yes
     @memberBadge.updatePartial "<span class='fold'/>You are owner"
 
@@ -172,7 +172,7 @@ class GroupsListItemView extends KDListItemView
                   diameter : 16
                 callback   : =>
                   @leaveGroup data, =>
-                    @unsetClass 'own-group'
+                    @unsetClass 'group-owner'
                     modal.buttons.Leave.hideLoader()
                     modal.destroy()
               Cancel       :
