@@ -35,6 +35,22 @@ type RabbitChannel struct {
 	Receive chan []byte
 }
 
+type KeyData struct {
+	Username    string
+	Servicename string
+	Key         string
+	FullUrl     string
+}
+
+func NewKeyData(username, servicename, key, fullurl string) *KeyData {
+	return &KeyData{
+		Username:    username,
+		Servicename: servicename,
+		Key:         key,
+		FullUrl:     fullurl,
+	}
+}
+
 var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
@@ -136,17 +152,17 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func parseKey(host string) (string, string, string, string) {
+func parseKey(host string) (KeyData, error) {
 	log.Printf("parse host '%s' to get key and name", host)
 
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
 		// host is in form {name}.x.koding.com, used for domain forwarding
-		username, key, servicename, fullurl, err := lookupDomain(host)
+		keyData, err := lookupDomain(host)
 		if err != nil {
 			log.Println(err)
 		}
-		return username, key, servicename, fullurl
+		return keyData, nil
 	case counts == 1:
 		// host is in form {name}-{key}.x.koding.com, used by koding
 		partsFirst := strings.Split(host, ".")
@@ -156,40 +172,39 @@ func parseKey(host string) (string, string, string, string) {
 		servicename := partsSecond[0]
 		key := partsSecond[1]
 
-		return "koding", key, servicename, ""
+		return *NewKeyData("koding", servicename, key, ""), nil
 	case counts > 1:
 		// host is in form {name}-{key}-{username}.x.koding.com, used by users
 		partsFirst := strings.Split(host, ".")
 		firstSub := partsFirst[0]
 
 		partsSecond := strings.SplitN(firstSub, "-", 3)
-		log.Println("PARTSECONDS", partsSecond) // debug
 		servicename := partsSecond[0]
 		key := partsSecond[1]
 		username := partsSecond[2]
 
-		return username, key, servicename, ""
+		return *NewKeyData(username, servicename, key, ""), nil
 	default:
-		return "", "", "", ""
+		return KeyData{}, errors.New("no data available for proxy")
 	}
 
 }
 
-func lookupDomain(domainname string) (string, string, string, string, error) {
+func lookupDomain(domainname string) (KeyData, error) {
 	log.Printf("lookup domain table for domain '%s'", domainname)
 
 	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		return "", "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+		return KeyData{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	return domain.Username, domain.Key, domain.Name, domain.FullUrl, nil
+	return *NewKeyData(domain.Username, domain.Name, domain.Key, domain.FullUrl), nil
 }
 
-func targetUrl(username, key, servicename string) *url.URL {
+func targetUrl(username, servicename, key string) *url.URL {
 	var target *url.URL
 	var err error
-	host := targetHost(username, key, servicename)
+	host := targetHost(username, servicename, key)
 
 	target, err = url.Parse("http://" + host)
 	if err != nil {
@@ -201,7 +216,7 @@ func targetUrl(username, key, servicename string) *url.URL {
 	return target
 }
 
-func lookupRabbitKey(username, key, servicename string) string {
+func lookupRabbitKey(username, servicename, key string) string {
 	var rabbitkey string
 
 	_, ok := proxy.RoutingTable[username]
@@ -221,7 +236,7 @@ func lookupRabbitKey(username, key, servicename string) string {
 	return rabbitkey //returns empty if not found
 }
 
-func targetHost(username, key, servicename string) string {
+func targetHost(username, servicename, key string) string {
 	var hostname string
 
 	_, ok := proxy.RoutingTable[username]
@@ -426,10 +441,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	var fullurl string
 	var err error
 
-	username, key, servicename, fullurl := parseKey(outreq.Host)
-	rabbitKey := lookupRabbitKey(username, key, servicename)
+	keyData, err := parseKey(outreq.Host)
+	if err != nil {
+		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
+		return
+	}
 
-	// proxy it directly to the fullurl if avaible
+	rabbitKey := lookupRabbitKey(keyData.Username, keyData.Servicename, keyData.Key)
+
 	if fullurl != "" {
 		target, err = url.Parse("http://" + fullurl)
 		if err != nil {
@@ -437,7 +457,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	} else {
 		// otherwise lookup for matches in our database
-		target = targetUrl(username, key, servicename)
+		target = targetUrl(keyData.Username, keyData.Servicename, keyData.Key)
 	}
 
 	// Reverseproxy.Director closure
@@ -548,7 +568,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Println(err)
 			// we can't connect to url, thus proxy trough amqp
 			if rabbitKey == "" {
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy connection refused %s'. not able to connect.\"}\n", outreq.URL.Host))
 				return
 			}
 
@@ -605,7 +625,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			case respData = <-connections[rabbitKey].Receive:
 			case <-t.C:
 				log.Println("timeout. no rabbit proxy message receieved")
-				io.WriteString(rw, "{\"err\":\"no rabbit proxy message received\"}\n")
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy could not connect to rabbit-client %s'\"}\n", outreq.URL.Host))
 				return
 			}
 			t.Stop()
