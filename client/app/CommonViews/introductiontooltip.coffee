@@ -125,8 +125,7 @@ class IntroductionTooltipController extends KDController
     @overlay.appendTo "body"
     @overlay.fadeIn 200
     @overlay.bind "click", =>
-      for tooltipInstance in @visibleTooltips
-        tooltipInstance.getOptions().parentView.tooltip?.destroy()
+      tooltipInstance.destroy() for tooltipInstance in @visibleTooltips
       @overlay.remove()
       @visibleTooltips.length = 0
 
