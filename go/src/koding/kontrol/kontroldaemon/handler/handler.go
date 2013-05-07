@@ -187,7 +187,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			DomainName:  "",
 			ServiceName: worker.Name,
 			Key:         key,
-			RabbitKey:   worker.RabbitKey,
+			RabbitKey:   worker.RabbitKey, // this is empty, thus proxy will not use it
 			Host:        worker.Hostname + ":" + port,
 			HostData:    "FromKontrolDaemon",
 			Uuid:        "proxy.in.koding.com",
