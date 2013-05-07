@@ -183,7 +183,7 @@ func registerAppMethods(k *kite.Kite) {
 
 			header := tar.Header{
 				Name:    name,
-				Mode:    int64(fi.Mode()),
+				Mode:    int64(fi.Mode() & os.ModePerm),
 				ModTime: fi.ModTime(),
 			}
 
