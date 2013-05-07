@@ -38,9 +38,9 @@ class ActivityListController extends KDListViewController
 
     @_state = 'public'
 
-    @getListView().on "ItemIsBeingDestroyed", ()->
+    @getListView().on "ItemIsBeingDestroyed", ()=>
       @addNoItemFoundWidget()
-    @getListView().on "ItemWasAdded", ()->
+    @getListView().on "ItemWasAdded", ()=>
       @removeNoItemFoundWidget()
 
     @scrollView.on 'scroll', (event) =>
