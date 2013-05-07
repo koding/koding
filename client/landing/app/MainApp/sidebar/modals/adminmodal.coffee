@@ -632,13 +632,12 @@ class IntroductionAdminForm extends KDFormViewWithFields
         type          : "text"
         placeholder   : "Best before (YYYY-MM-DD)"
         defaultValue  : data.expiryDate
-        tooltip       :
-          title       : "Date format should be YYYY-MM-DD. e.g. 2013-05-03"
-          placement   : "right"
-          direction   : "center"
-          offset      :
-            top       : 2
-            left      : 0
+        nextElement   :
+          info        :
+            itemClass : KDView
+            partial   : "Date format should be YYYY-MM-DD. e.g. 2013-05-03"
+            cssClass  : "help-text info"
+
       Overlay         :
         label         : "Overlay"
         type          : "select"
