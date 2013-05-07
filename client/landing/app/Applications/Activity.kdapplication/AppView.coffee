@@ -6,7 +6,7 @@ class ActivityAppView extends KDScrollView
 
     options.cssClass   = "content-page activity"
     options.domId      = "content-page-activity"
-    options.entryPoint = KD.config.groupEntryPoint
+    options.entryPoint = KD.config.entryPoint?.slug
 
     super options, data
 
@@ -33,7 +33,6 @@ class ActivityAppView extends KDScrollView
     @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
   decorate:->
-    {entryPoint} = @getOptions()
     if KD.isLoggedIn()
       @setClass 'loggedin'
       @widget.show()
