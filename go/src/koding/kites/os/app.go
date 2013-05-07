@@ -37,7 +37,7 @@ var appsBucket = s3.New(
 
 func registerAppMethods(k *kite.Kite) {
 	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		bucketPath, vos, appPath, err := prepareAppRetrival(args)
+		bucketPath, appPath, err := prepareAppRetrival(args)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +56,7 @@ func registerAppMethods(k *kite.Kite) {
 	})
 
 	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		bucketPath, vos, appPath, err := prepareAppRetrival(args)
+		bucketPath, appPath, err := prepareAppRetrival(args)
 		if err != nil {
 			return nil, err
 		}
@@ -268,7 +268,7 @@ func registerAppMethods(k *kite.Kite) {
 	})
 }
 
-func prepareAppRetrival(args *dnode.Partial) (bucketPath string, vos *virt.VOS, appPath string, err error) {
+func prepareAppRetrival(args *dnode.Partial) (bucketPath string, appPath string, err error) {
 	var params struct {
 		Owner, Identifier, Version, AppPath string
 	}
