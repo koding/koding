@@ -53,7 +53,7 @@ compileGoBinaries = (configFile,callback)->
         if configFile == "vagrant"
           processes.spawn
             name: 'build go in vagrant'
-            cmd : 'vagrant ssh --command "/opt/koding/go/build.sh bin-vagrant"'
+            cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
             stdout : process.stdout
             stderr : process.stderr
             verbose : yes
@@ -232,7 +232,7 @@ task 'osKite',({configFile})->
 
   processes.spawn
     name  : 'osKite'
-    cmd   : if configFile == "vagrant" then "vagrant ssh -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
