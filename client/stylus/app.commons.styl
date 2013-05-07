@@ -1644,9 +1644,24 @@ figure.code-container
   text-align            right
   button
     right               10px
-.introduction textarea
-  width                 463px
-  height                125px
+.introduction
+  .help-text
+    position            absolute
+    top                 14px
+    height              12px
+    rounded             4px
+    padding             3px
+    &.warning
+      width             415px
+      background        #a80000
+      left              171px
+      color             #FFF
+    &.info
+      width             300px
+      left              283px
+      background        #FEF0B1
+      color             #BE9C17
+
 .introduction-admin-content
   padding               0 10px 10px 20px
   width                 auto

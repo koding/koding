@@ -646,6 +646,14 @@ class IntroductionAdminForm extends KDFormViewWithFields
           { title     : "Yes", value : "yes" }
           { title     : "No",  value : "no"  }
         ]
+        nextElement   :
+          warning     :
+            itemClass : KDView
+            partial   : "Please be careful when using no overlay option. It may cause UX problems."
+            cssClass  : "help-text warning"
+        change: =>
+          @setVisibilityOfOverlayWarning @inputs.Overlay.getValue() is "no" # wtf "no"
+
       Visibility       :
         label         : "Visibility"
         type          : "select"
@@ -708,6 +716,8 @@ class IntroductionAdminForm extends KDFormViewWithFields
     {type, actionType} = @getOptions()
     @utils.defer => @setAceEditor() if (type is "Group" and actionType is "Insert") or type is "Item"
 
+    @setVisibilityOfOverlayWarning @parentData.overlay is "no" # wtf "no"
+
   save: ->
     {actionType} = @getOptions()
 
@@ -768,12 +778,17 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
     return itemData
 
+  setVisibilityOfOverlayWarning: (isShowing) ->
+    @warningView = @warningView or @fields?.warning.getSubViews()[1].getSubViews()[0]
+    if isShowing then @warningView?.show() else @warningView?.hide()
+
   setAceEditor: ->
     require ["ace/ace"], (ace) =>
       domElement = document.getElementById "introduction-ace#{@timestamp}"
       @aceEditor = ace.edit domElement
       @aceEditor.setTheme "ace/theme/idle_fingers"
       @aceEditor.getSession().setMode "ace/mode/javascript"
+      @aceEditor.getSession().setTabSize 2
       domElement.style.fontSize = "14px"
       @setEditorText()
       @aceEditor.commands.addCommand
