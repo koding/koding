@@ -38,37 +38,40 @@ class GroupsMemberPermissionsView extends JView
     groupData.fetchRoles (err, roles)=>
       return warn err if err
       list.getOptions().roles = roles
-      groupData.fetchUserRoles (err, userRoles)=>
-        return warn err if err
-        userRolesHash = {}
-        for userRole in userRoles
-          if not userRolesHash[userRole.targetId]
-            userRolesHash[userRole.targetId] = []
-          userRolesHash[userRole.targetId].push userRole.as
-
-        list.getOptions().userRoles = userRolesHash
-        callback()
 
   fetchSomeMembers:(selector={})->
     options =
       limit : 20
       sort  : { timestamp: -1 }
-    groupData = @getData()
-    groupData.fetchMembers selector, options, (err, members)=>
+    @getData().fetchMembers selector, options, (err, members)=>
       return warn err if err
       @loader.hide()
       @loaderText.hide()
       @listController.hideLazyLoader()
       if members.length > 0
-        @listController.instantiateListItems members
-        @timestamp = new Date members.last.timestamp_
-        log @timestamp
-        @emit 'teasersLoaded'
+        ids = (member._id for member in members)
+        @getData().fetchUserRoles ids, (err, userRoles)=>
+          return warn err if err
+          userRolesHash = {}
+          for userRole in userRoles
+            userRolesHash[userRole.targetId] ?= []
+            userRolesHash[userRole.targetId].push userRole.as
+
+          list = @listController.getListView()
+          list.getOptions().userRoles ?= []
+          list.getOptions().userRoles = _.extend(
+            list.getOptions().userRoles, userRolesHash
+          )
+
+          @listController.instantiateListItems members
+          @timestamp = new Date members.last.timestamp_
+          @emit 'teasersLoaded'
 
   refresh:->
     @listController.removeAllItems()
     @timestamp = new Date 0
-    @fetchRoles @bound 'fetchSomeMembers'
+    @fetchRoles()
+    @fetchSomeMembers()
 
   continueLoadingTeasers:->
     @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}

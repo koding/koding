@@ -243,11 +243,7 @@
     &:hover
       div.groups-settings-menu
         opacity 1
-
-    &:nth-child(2n)
-      margin-right          2%
-
-    &.member-group
+    &.group-member
       .badge.member
         visible()
       .group-settings-context
@@ -265,6 +261,14 @@
       size                    auto, auto
       margin-top              18px
 
+    &.group-admin
+      .badge
+        bg                    color, #0896BD
+        text-shadow           0 -1px 0 #184175
+    &.group-owner
+      .badge
+        bg                    color, #6DC021
+        text-shadow           0 -1px 0 #258A25
     .badge
       font-style              normal
       font-weight             600
@@ -289,30 +293,26 @@
           bg                  position, -80px -640px
           sprite()
 
+
     .group-settings-context
       fr()
       rel()
       hidden()
-      height                26px
+      height                28px
       width                 19px
       bg                    color, #FFEDD2
       padding-right         0px!important
       cursor                pointer
-      border                1px solid rgba(255, 146, 0, 0.2)
-      border-right-width    0
       &:hover
         bg                  image, none
         bg                  color, none
         shadow              none
-
-
 
       span.chevron-separator
         hidden()
 
       span.chevron
         margin              1px -1px 0 0
-        opacity             1
         bg                  position, -80px -260px
 
       span
@@ -516,9 +516,9 @@
   .remove-group
     hidden()
 
-  &.member-group .leave-group
+  &.group-member .leave-group
     visible()
-  &.own-group
+  &.group-owner
     .kdlistitemview-contextitem.leave-group
       hidden()
     .remove-group
