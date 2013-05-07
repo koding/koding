@@ -184,7 +184,10 @@ class MembersContentDisplayView extends KDView
     subHeader.addSubView backLink = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
-      click   : => contentDisplayController.emit "ContentDisplayWantsToBeHidden", @
+      click   : (event)=>
+        event.preventDefault()
+        event.stopPropagation()
+        @getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
 
     @listenWindowResize()
 

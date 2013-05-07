@@ -15,6 +15,9 @@ app.contentdisplays.styl
   bg                        color,rgb(255,255,255)
   z-index                   1000
   overflow                  auto
+  transition                left .2s ease-in
+  &.in
+    left                    0%
   .kdsplitview
     vendor                  transition, height .3s ease-in-out
   .header-view-section
@@ -229,6 +232,11 @@ app.contentdisplays.styl
     .header-view-section
       cite
         bg(position,-399px -305px)
+
+  &.blogpost
+    .header-view-section
+      cite
+        bg(position,-707px -745px)
 
   &.codesnip
     .header-view-section

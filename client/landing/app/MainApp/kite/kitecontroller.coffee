@@ -14,6 +14,24 @@ class KiteController extends KDController
     checkingServers   : "Checking if servers are back..."
     alive             : "Shared hosting is alive!"
 
+  getKiteKey =(kiteName, correlationName)->
+    "~#{kiteName}~#{correlationName}"
+
+  getKite:(kiteName, correlationName)->
+    key = getKiteKey kiteName, correlationName
+    kite = @kiteInstances[key]
+    return kite  if kite?
+    kite = @createKite kiteName, correlationName, key
+    @kiteInstances[key] = kite
+    return kite
+
+  destroyKite:(kite)->
+    delete @kiteInstances[kite.kiteKey]
+
+  createKite:(kiteName, correlationName, kiteKey)->
+    kite = new Kite { kiteName, correlationName, kiteKey }
+    kite.on 'destroy', => @destroyKite kite
+    return kite
 
   # notification = null
   notify = (options = {})->
@@ -45,6 +63,10 @@ class KiteController extends KDController
     @kites     = {}
     @channels  = {}
 
+    # new API:
+    @kiteInstances = {}
+
+
   addKite: (name, channel) ->
     @channels[name] = channel
     @kites[name] = channel
@@ -61,8 +83,16 @@ class KiteController extends KDController
       command = options
       options = {}
 
+    currentGroupName = (KD.getSingleton 'groupsController').getGroupSlug()
+
     options.kiteName or= "os"
     options.method   or= "exec"
+    # options.correlationName or= currentGroupName
+
+    kite = @getKite options.kiteName,
+      if not currentGroupName or currentGroupName is 'koding'
+      then KD.whoami().profile.nickname
+      else currentGroupName
 
     if command
       options.withArgs = command
@@ -72,23 +102,15 @@ class KiteController extends KDController
     notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
     log "Kite Request:", options
 
-    KD.whoami().tellKite options, (err, response)=>
+    kite.tell options, (err, response)=>
       @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
 
     mainController = @getSingleton "mainController"
 
-#    mainController.getVisitor().on 'change.login', (account)=>
-#      KD.whoami()Changed account
-
     @on "CreatingUserEnvironment", =>
       mainView = @getSingleton "mainView"
-#      mainView.putOverlay
-#        isRemovable : no
-#        cssClass    : "dummy"
-#        animated    : yes
-#        parent      : "#finder-panel"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"

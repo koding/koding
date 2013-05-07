@@ -29,6 +29,7 @@ class MainController extends KDController
     KD.registerSingleton "appManager", appManager
     KD.registerSingleton "mainController", @
     KD.registerSingleton "kiteController", new KiteController
+    KD.registerSingleton "vmController", new VirtualizationController
     KD.registerSingleton "contentDisplayController", new ContentDisplayController
     KD.registerSingleton "notificationController", new NotificationController
     KD.registerSingleton "localStorageController", new LocalStorageController
@@ -94,7 +95,7 @@ class MainController extends KDController
     @accountReadyState       = 1
     connectedState.connected = yes
 
-    @emit "AccountChanged", account, firstLoad
+    @accountReady @emit.bind @, "AccountChanged", account, firstLoad
 
     unless @mainViewController
 
@@ -234,10 +235,15 @@ class MainController extends KDController
       #   KD.utils.wait 5000, -> location.reload yes
 
     checkConnectionState = ->
-      fail() unless connectedState.connected
+      unless connectedState.connected
+        fail()
+
+        KD.logToMixpanel "Couldn't connect to backend"
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
+        KD.logToMixpanel "Connected to backend"
+
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

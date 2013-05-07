@@ -112,8 +112,7 @@ class GroupView extends ActivityContentDisplay
 
   #   # if the view is there and stale, remove the views and 'refresh'
   #   else if @isStaleTab tabName
-  #     pane.getSubViews().forEach (view)->
-  #       pane.removeSubView view
+  #     pane.getSubViews().forEach (view)-> view.destroy()
   #     view = new konstructor options ? {}, @getData()
   #     pane.addSubView view
   #     @unsetStaleTab tabName
