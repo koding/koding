@@ -9,8 +9,7 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
-    cb = (account)->
-      mainController.sidebarController?.accountChanged account
+    cb = (account)-> mainController.sidebarController?.accountChanged account
 
     mainController.on 'AccountChanged', (account)=>
       if KD.isLoggedIn()
