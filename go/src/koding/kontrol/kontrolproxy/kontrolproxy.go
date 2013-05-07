@@ -161,6 +161,7 @@ func parseKey(host string) (KeyData, error) {
 		keyData, err := lookupDomain(host)
 		if err != nil {
 			log.Println(err)
+			return KeyData{}, err
 		}
 		return keyData, nil
 	case counts == 1:
