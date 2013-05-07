@@ -158,6 +158,7 @@ task 'socialWorker', ({configFile}) ->
 
 
 task 'authWorker',({configFile}) ->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
   config = require('koding-config-manager').load("main.#{configFile}").authWorker
   numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
 
@@ -168,7 +169,7 @@ task 'authWorker',({configFile}) ->
       restart 		  : yes
       restartInterval : 1000
       kontrol         :
-        enabled       : if config.runKontrol is yes then yes else no
+        enabled       : if KONFIG.runKontrol is yes then yes else no
         startMode     : "one"
       verbose         : yes
 
