@@ -226,25 +226,19 @@ class KodingAppsController extends KDController
 
     @getAppScript manifest, (appScript)=>
 
-      manifest        = @constructor.manifests[appName]
-      userAppPath     = @getAppPath manifest
-      options         =
-        kiteName      : "applications"
-        method        : "publishApp"
-        withArgs      :
-          version     : manifest.version
-          appName     : manifest.name
-          userAppPath : userAppPath
-          profile     : KD.whoami().profile
+      manifest   = @constructor.manifests[appName]
+      appPath    = @getAppPath manifest
+      options    =
+        method   : "app.publish"
+        withArgs : {appPath}
 
       @kiteController.run options, (err, res)=>
-        log "app is being published"
         if err
           warn err
           callback? err
         else
           manifest.authorNick = KD.whoami().profile.nickname
-          jAppData   =
+          jAppData     =
             title      : manifest.name        or "Application Title"
             body       : manifest.description or "Application description"
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
@@ -255,7 +249,6 @@ class KodingAppsController extends KDController
               warn err
               callback? err
             else
-              # log app, "app published"
               KD.getSingleton("appManager").open "Apps"
               KD.getSingleton("appManager").tell "Apps", "updateApps"
               callback?()
