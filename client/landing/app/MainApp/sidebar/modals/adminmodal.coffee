@@ -411,7 +411,7 @@ class IntroductionAdmin extends JView
 
     @buttonsContainer.addSubView @addButton = new KDButtonView
       cssClass : "editor-button"
-      title    : "Add New"
+      title    : "Add New Introduction Group"
       callback : => @showForm()
 
     @container = new KDView
@@ -462,12 +462,13 @@ class IntroductionAdmin extends JView
           delegate: @
         ,snippet
 
-  showForm: (type = "Group", data = @getData(), actionType = "Insert") ->
+  showForm: (type = "Group", data = @getData(), actionType = "Insert", addingToAGroup = no) ->
     @buttonsContainer.hide()
     @container.hide()
     @addSubView @form = new IntroductionAdminForm {
       type
       actionType
+      addingToAGroup
       delegate: @
     }
     , data
@@ -637,7 +638,6 @@ class IntroductionAdminForm extends KDFormViewWithFields
             itemClass : KDView
             partial   : "Date format should be YYYY-MM-DD. e.g. 2013-05-03"
             cssClass  : "help-text info"
-
       Overlay         :
         label         : "Overlay"
         type          : "select"
@@ -653,7 +653,6 @@ class IntroductionAdminForm extends KDFormViewWithFields
             cssClass  : "help-text warning"
         change: =>
           @setVisibilityOfOverlayWarning @inputs.Overlay.getValue() is "no" # wtf "no"
-
       Visibility       :
         label         : "Visibility"
         type          : "select"
@@ -686,11 +685,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
             cssClass  : "introduction-snippet-switch snippet"
             click     : => @switchMode()
 
-    options.fields  = itemFields
-    if options.type is "Group"
-      if options.actionType is "Insert"
-        groupFields[key] = field for key, field of itemFields
-      options.fields = groupFields
+    options.fields = if options.type is "Group" then groupFields else itemFields
 
     options.buttons =
       "Save"          :
@@ -713,15 +708,15 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
     super options, data
 
-    {type, actionType} = @getOptions()
-    @utils.defer => @setAceEditor() if (type is "Group" and actionType is "Insert") or type is "Item"
-
-    @setVisibilityOfOverlayWarning @parentData.overlay is "no" # wtf "no"
+    @utils.defer => @setAceEditor() if @getOptions().type is "Item"
+    if @getOptions().type is "Group"
+      @setVisibilityOfOverlayWarning @parentData.overlay is "no" # wtf "no"
 
   save: ->
-    {actionType} = @getOptions()
+    options      = @getOptions()
+    {actionType, addingToAGroup} = options
 
-    if @getOptions().type is "Group"
+    if @getOptions().type is "Group" or addingToAGroup
       return @insertParent() if actionType is "Insert"
       @updateParent()
     else
@@ -729,9 +724,15 @@ class IntroductionAdminForm extends KDFormViewWithFields
       @updateChild()
 
   insertParent: ->
-    KD.remote.api.JIntroSnippet.create @createPostData(), =>
-      @buttons["Save"].hideLoader()
-      @emit "IntroductionFormNeedsReload"
+    data = @createPostData()
+    if not @getOptions().addingToAGroup
+      @destroy()
+      @getDelegate().showForm "Item", data, "Insert", yes
+    else
+      @parentData.snippets.push data
+      KD.remote.api.JIntroSnippet.create @parentData, =>
+        @buttons["Save"].hideLoader()
+        @emit "IntroductionFormNeedsReload"
 
   insertChild: ->
     @parentData.addChild @createPostData(), =>
@@ -750,33 +751,26 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
   createPostData: ->
     {inputs}     = @
-    options      = @getOptions()
-    {type}       = options
-    {actionType} = options
-    itemData     = {}
 
-    snippet = @aceEditor?.getValue()
-    if @snippetType is "Text"
-      snippet = """new KDView({partial: "#{@aceEditor?.getValue()}"});"""
-
-    if type is "Item" or (type is "Group" and actionType is "Insert")
-      itemData = {
-        introId    : inputs.IntroId.getValue()
-        introTitle : inputs.IntroTitle.getValue()
-        snippet
-      }
-
-    if type is "Group"
-      data = {
+    if @getOptions().type is "Group"
+      groupData =
         title      : inputs.Title.getValue()
         expiryDate : inputs.ExpiryDate.getValue()
         visibility : inputs.Visibility.getValue()
         overlay    : inputs.Overlay.getValue()
-      }
-      data.snippets = [ itemData ] if actionType is "Insert"
-      return data
+        snippets   : []
+      return groupData
 
-    return itemData
+    else
+      editorValue = @aceEditor?.getValue()
+      snippet     = """new KDView({partial: "#{editorValue}"});""" if @snippetType is "Text"
+
+      itemData    =
+        introId    : inputs.IntroId.getValue()
+        introTitle : inputs.IntroTitle.getValue()
+        snippet    : snippet or editorValue
+
+      return itemData
 
   setVisibilityOfOverlayWarning: (isShowing) ->
     @warningView = @warningView or @fields?.warning.getSubViews()[1].getSubViews()[0]
