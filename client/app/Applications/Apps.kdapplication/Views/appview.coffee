@@ -1,7 +1,8 @@
 class AppView extends KDView
 
-  constructor:->
+  constructor:(options, data)->
 
+    data = data.first  if Array.isArray data
     super
 
     app = @getData()
@@ -48,18 +49,13 @@ class AppView extends KDView
         states          : [
           title         : "Approve"
           callback      : (callback)->
-            appsController.approveApp app, (err)=>
-              if not err
-                app.approve yes, (err)->
-                  if err then warn err
-                  callback? err
-              else
-                callback? err
+            app.approve yes, (err)->
+              if err then warn err
+              callback? err
         ,
           title         : "Disapprove"
           callback      : (callback)->
-            app.approve no, (err)->
-              callback? err
+            app.approve no, (err)-> callback? err
         ]
       , app
 

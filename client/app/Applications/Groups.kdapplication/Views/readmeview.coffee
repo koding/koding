@@ -20,7 +20,7 @@ class GroupReadmeView extends JView
         showInitially : no
 
     @readmeEditButton = new KDButtonView
-      title           : 'Edit the Readme'
+      title           : 'Edit Readme'
       cssClass        : 'clean-gray readme-edit'
       callback        : =>
         @readmeInput.setValue Encoder.htmlDecode @readme
@@ -59,18 +59,40 @@ class GroupReadmeView extends JView
     @readmeSaveButton.show()
     @readmeCancelLink.show()
 
+  getDefaultGroupReadme:(title)->
+    defaultGroupReadme title
+
+  defaultGroupReadme = (title)->
+    """
+    <h1>Hello!</h1>
+    <p>Welcome to the <strong>#{title}</strong> group on Koding.<p>
+    <h2>Talk.</h2>
+    <p>Looking for people who share your interest? You are in the right place. And you can discuss your ideas, questions and problems with them easily.</p>
+    <h2>Share.</h2>
+    <p>Here you will be able to find and share interesting content. Experts share their wisdom through links or tutorials, professionals answer the questions of those who want to learn.</p>
+    <h2>Collaborate.</h2>
+    <p>You will be able to share your code, thoughts and designs with like-minded enthusiasts, discussing and improving it with a community dedicated to improving each other's work.</p>
+    <p>Go ahead, the members of <strong>#{title}</strong> are waiting for you.</p>
+    """
+
   viewAppended:->
     group = @getData()
     group.fetchReadme (err, readme)=>
-      unless err
-        partial = readme?.content or "This group does not have any associated readme data yet."
-        group.canEditGroup (err, allowed)=>
-          @readmeEditButton.show() if allowed
+      if not err and readme?
+        partial = readme.content or getDefaultGroupReadme group.title
+        # group.canEditGroup (err, allowed)=>
+        #   @readmeEditButton.show() if allowed
       else
-        partial = err.message or "Access denied! Please join the group."
+        partialHTML =
+          if err?.message then err.message
+          else @getDefaultGroupReadme group.title
 
-      @readme = readme?.content or partial
-      @readmeView.updatePartial @utils.applyMarkdown partial
+      group.canEditGroup (err, allowed)=>
+        @readmeEditButton.show() if allowed
+
+      #SA: is this line being used anywhere, this overrides the logic above
+      #@readme = readme?.content or partial
+      @readmeView.updatePartial partialHTML or @utils.applyMarkdown partial
       @highlightCode()
       JView::viewAppended.call @
       @emit "readmeReady"

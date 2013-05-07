@@ -42,6 +42,7 @@ module.exports =
     port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
+  runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : no
@@ -100,6 +101,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://new.koding.com:#{webPort}'
     runtimeOptions:
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version

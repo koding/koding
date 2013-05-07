@@ -63,14 +63,6 @@ class Sidebar extends JView
 
     @finderBottomControls = @finderBottomControlsController.getView()
 
-    @serverStackPin = new KDButtonView
-      cssClass     : "server-pin-button"
-      iconOnly     : yes
-      iconClass    : "cog"
-      tooltip      :
-        title      : "Re-initialize your VM"
-      callback     : => KD.singletons.vmController.reinitialize()
-
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
@@ -210,7 +202,6 @@ class Sidebar extends JView
       {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
-        {{> @serverStackPin}}
         {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>

@@ -43,13 +43,18 @@ class MainTabView extends KDTabView
 
   # temp fix sinan 27 Nov 12
   # not calling @removePane but @_removePane
-  handleClicked:(index,event)->
-    pane = @getPaneByIndex index
+  handleClicked:(index, event)->
+    pane        = @getPaneByIndex index
+    appView     = pane.getMainView()
+    appInstance = appManager.getByView appView
+    options     = appInstance.getOptions()
+    @getSingleton('router').handleRoute "#{options.route}"
+
     if $(event.target).hasClass "close-tab"
       pane.mainView.destroy()
       return no
 
-    @showPane pane
+    @showPane pane  if options.route is '/Develop'
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25

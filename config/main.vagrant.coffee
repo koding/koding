@@ -26,6 +26,7 @@ module.exports =
     port        : 1337
   mongo         : mongo
   runGoBroker   : yes
+  runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -84,6 +85,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :

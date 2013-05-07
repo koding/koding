@@ -14,18 +14,15 @@ app.finder.styl
 }
 
 selectedNeighbor()
-  border-top-color  #E6981E
   background        finderSelectedColor1
 
 dimmed()
-  border-color      #ccc transparent #c2c2c2 transparent
   color             #282828
   text-shadow       none
   // background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
   bg                color, #ccc
 
 dimmedNeighbor()
-  border-top-color  finderDimmedColor1
   background        finderDimmedColor2
 
 #finder-holder
@@ -68,8 +65,6 @@ dimmedNeighbor()
 .kdlistitemview-finderitem
   height              auto
   min-height          22px
-  border              1px solid transparent
-  border-width        1px 0
   font-size           11px
   color               #282828
   noTextSelection()
@@ -90,12 +85,11 @@ dimmedNeighbor()
     bg                position,-180px -360px
 
   &.selected
-    border            1px solid #F6A220
-    border-width      1px 0
     color             white
     text-shadow       0 -1px 0 rgba(0,0,0,0.22)
     // background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
     bg                color, finderSelectedColor1
+
     .title
       color white
       text-shadow none
@@ -131,13 +125,15 @@ dimmedNeighbor()
     > div
       span.icon
         bg          position,-40px -120px
+      span.arrow
+        bg          position, -40px 0px
+
 
   &.being-inline-edited
     .chevron
       hidden()
 
   &.being-deleted
-    border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
     background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
     height            22px
     .kdview.delete-container
@@ -278,13 +274,6 @@ dimmedNeighbor()
     &.clickable
       cursor pointer
 
-  .server-pin-button
-    border          none
-    background      none
-    right           -5px
-    margin-top      2px
-    z-index         10
-    abs()
 
   // .finder-settings-border
   //   rel()
@@ -388,6 +377,91 @@ dimmedNeighbor()
         bg(position,-220px -300px)
       span.databases
         bg(position,-198px -300px)
+
+
+div.virt-controls
+  width             auto
+  height            25px
+  background-color  white
+  padding           2px
+  min-width         200px
+
+  .vm-toggle
+    right           20px
+    top             6px
+    abs()
+
+  .vmreinitialize-button
+    border          none
+    background      none
+    right           -5px
+    z-index         10
+    abs()
+
+div.led-wrapper
+  borderBox()
+  width                                 auto
+  display                               inline-block
+  opacity 1
+  vendor transition, opacity .1s ease-in-out
+
+  div.label
+    padding-left                        22px
+    padding-top                         5px
+    font-size                           11px
+    font-weight                         bold
+    cursor                              pointer
+
+  div.led
+    left                                10px
+    top                                 10px
+    width                               6px
+    height                              6px
+    border-radius                       50%
+    display inline-block
+    abs()
+    borderBox()
+    vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out \, opacity 0.25s ease-in-out
+  &.red
+    .led
+      background-color                  #ff9200
+      // box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
+      animation-name                    pulseAlert
+      animation-duration                1s
+      animation-iteration-count         infinite
+  &.green
+    .led
+      animation-name                    pulseOnce
+      animation-duration                1s
+      animation-iteration-count         1
+      background-color                  #5f5f5f
+      // box-shadow                        rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
+      // box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 5px, #555 0 2px 14px
+  &.yellow
+    .led
+      background-color                  #ff0
+  &.blue
+    .led
+      background-color                  #00f
+      // box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
+  &.off
+    .led
+      background-color                  rgba(0,0,0,0)
+      // box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
+
+  &:hover
+    &.green
+      .led
+        bg color,                       #0f0
+    &.red
+      .led
+        bg color,                       #f60
+
+  &.pulse
+    .led
+      animation-name                    pulseOnce
+      animation-duration                1s
+      animation-iteration-count         1
 
 /*
 **  Overriding Treeview STYLES
@@ -653,11 +727,11 @@ dimmedNeighbor()
     fl()
 
   .kdloader
-    margin        2px 3px
+    margin        3px 3px
     fl()
 
   .icon
-    margin        2px 3px
+    margin        3px 3px
     size          16px,16px
 
   .section-title
@@ -673,17 +747,29 @@ dimmedNeighbor()
   .broken
   .section
     font-size       11px
+
+    span.icon
+    span.arrow
+      sprite()
+      fl()
+
     span.icon
       margin        2px 3px
       size          16px,16px
-      sprite()
-      fl()
+    span.arrow
+      margin        3px 3px
+      margin-left   0
+      size          10px,16px
+      bg            position, -1000px -1000px
+
   .folder
   .mount
     span.icon
       bg            position, -40px -100px
     span.icon.application
       bg            position, -40px -320px
+    span.arrow
+      bg            position, -40px -20px
   .folder
     span.icon
       &.app
@@ -710,7 +796,6 @@ dimmedNeighbor()
         bg          position, -40px -300px
 
 
-
 .finder-drag-container
   abs()
   width             208px
@@ -731,10 +816,3 @@ dimmedNeighbor()
     .title
       display         inline-block
       margin-right    0
-
-
-
-
-
-
-

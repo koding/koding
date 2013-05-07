@@ -6,7 +6,7 @@ class ActivityAppView extends KDScrollView
 
     options.cssClass   = "content-page activity"
     options.domId      = "content-page-activity"
-    options.entryPoint = KD.config.groupEntryPoint
+    options.entryPoint = KD.config.entryPoint?.slug
 
     super options, data
 
@@ -22,6 +22,7 @@ class ActivityAppView extends KDScrollView
     mainController    = @getSingleton("mainController")
 
     mainController.on "AccountChanged", @bound "decorate"
+    mainController.on "JoinedGroup", => @widget.show()
     mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
     @on 'scroll', @utils.throttle @bound("setFixed"), 250
 
@@ -33,10 +34,12 @@ class ActivityAppView extends KDScrollView
     @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
   decorate:->
-    {entryPoint} = @getOptions()
     if KD.isLoggedIn()
       @setClass 'loggedin'
-      @widget.show()
+      if KD.config.entryPoint?.type is 'group' and 'member' not in KD.config.roles
+        @widget.hide()
+      else
+        @widget.show()
     else
       @unsetClass 'loggedin'
       @widget.hide()

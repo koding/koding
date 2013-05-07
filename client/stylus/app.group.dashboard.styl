@@ -16,6 +16,11 @@
 
 
 .group-admin-modal
+
+  &.admin-kdmodal
+    .kdselectbox
+      margin-right              22px
+
   .kdview.formline.type.group-type
     padding                     0
     border-bottom               none
@@ -37,6 +42,8 @@
         left                    90px
         margin                  0
         abs()
+      &.active
+        bg                      color, rgba(0, 0, 0, .05)
       &:hover
         bg                      color, rgba(0, 0, 0, .05)
         &:before
@@ -79,21 +86,31 @@
         overflow              visible
 
   > .kdformview
-    margin-top                20px
+    max-width                 800px
+    margin                    20px auto
+    border                    1px solid #e8e8e8
+    rounded(5px)
+
     > .formline
       width                   100%
       borderBox()
       overflow                auto
-      border                  none
+
+      .kdinput.text
+        width                 100%
+
+      textarea.kdinput.text
+        min-height            100px
+
       &.button-field
         bg color,             transparent
         rounded               0
         border                none
         padding               0
-        margin-left           108px
-        margin-top            15px
+        margin-left           0
+        margin-top            0
+        padding               20px
   .kdselectbox
-    margin-right              25px
     fr()
   .kdinput.on-off
     margin-right              25px
@@ -421,7 +438,10 @@
           line-height         8px
 
         .policylanguage-editor
-
+          width               auto
+          display             inline-block
+          button
+            margin            10px 10px 0 0
           textarea
             min-width         400px
             min-height        100px
@@ -482,7 +502,7 @@
 
     .permissions
       height: auto;
-      margin-bottom: 50px;
+      // margin-bottom: 50px;
 
     .form-generator
       min-width               600px
@@ -657,33 +677,9 @@
         noTextDeco()
 
     .permissions-view
+      borderBox()
       padding                 0 20px
-
-      .add-role-dialog
-        z-index               100000
-
-        .add-role-header
-          padding-top         15px
-          padding-bottom      15px
-          font-size           14px
-          font-weight         500
-
-        .add-role-button
-          margin-bottom       10px
-        .add-role-cancel
-          margin-top          8px
-
-        label.label-role-name
-          display             inline-block
-        input.role-name
-          display             inline-block
-          width               289px
-
-        label.label-copy-permissions
-          margin-top          10px
-          display             inline-block
-        div.kdselectbox.copy-permissions
-          margin-top          0px
+      overflow                auto
 
       // .kdview.kdloader
       //   display           block
@@ -691,10 +687,10 @@
 
       .permissions-header
         abs()
-        top                   0px
-        left                  0
+        top                   0
+        left                  20px
         right                 0
-        z-index               20000
+        z-index               99
         bg color,             white
         &.scrolling
            shadow             0 5px 15px -5px rgba(0,0,0,0.1)
@@ -707,12 +703,14 @@
           display             block
           text-overflow       ellipsis
           white-space         nowrap
+          font-weight         bold
+
 
       .permissions-form
         overflow-y            scroll
         overflow-x            hidden
         // max-height 300px
-        margin-top            20px
+        margin-top            30px
 
         fraction(full,divisor)
           fraction = full/divisor
@@ -723,10 +721,12 @@
               width fraction(340,num)px
 
         .formline
+
           &.button-field
             borderBox()
             &.scrolling
               shadow          0 -5px 10px -3px rgba(0,0,0,0.1)
+            // fixed()
             abs()
             left              0
             right             0
@@ -739,14 +739,18 @@
               fl()
 
           &:nth-last-child(2)
-            margin-bottom     49px
+            margin-bottom       50px
             border-bottom-color transparent
 
+          &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
+            bg color,         rgba(0,0,0,0.025)
+
           borderBox()
-          padding             0px
-          border-bottom       1px solid #f5f5f5
-          border-left         1px solid #f5f5f5
-          border-right        1px solid #f5f5f5
+          padding             7px 10px
+          // border-bottom       1px solid #f5f5f5
+          // border-left         1px solid #f5f5f5
+          // border-right        1px solid #f5f5f5
+          border            none
 
           .input-wrapper:first-child
             border-left       none
@@ -771,7 +775,7 @@
             margin-top        5px
             vertical-align    middle
           .input-wrapper
-            border-left       1px solid #f5f5f5
+            // border-left       1px solid #f5f5f5
             borderBox()
             display           inline-block
             width             100%
@@ -782,8 +786,14 @@
               vertical-align  middle
 
         .permissions-module
-          background          linear-gradient(top, #555 0%,#666 93.7%)
-          color               white
+          // background          linear-gradient(top, #555 0%,#666 93.7%)
+          color               #444
+          font-weight         bold
+          padding-top         25px
+
+          &:nth-child(2) // Header is first, first subgroup is 2
+            padding-top       0
+
           .input-wrapper
             text-align        left
 
@@ -924,3 +934,51 @@
   display                     inline-block
   margin-top                  3px
   color                       white
+
+.policy-language-image-wrapper
+  fr()
+  width                       auto
+  border                      1px solid #e8e8e8
+  rounded                     5px
+  bg                          color, #fbfbfb
+  margin-left                 10px
+  img
+    width                     auto
+    height                    auto
+    margin                    3px 3px 0
+  span
+    border-top                1px solid #e8e8e8
+    display                   block
+    padding                   10px
+    font-size                 11px
+    bg                        color, white
+
+
+.add-role-dialog
+  // z-index               100000
+  // max-width              300px
+
+  .add-role-header
+    padding-top         15px
+    padding-bottom      15px
+    font-size           14px
+    font-weight         500
+
+  .add-role-button
+    margin-bottom       10px
+  .add-role-cancel
+    margin-top          8px
+
+  label.label-role-name
+    display             inline-block
+    fl()
+  input.role-name
+    display             inline-block
+    width               289px
+
+  label.label-copy-permissions
+    // margin-top          10px
+    display             inline-block
+    fl()
+  // div.kdselectbox.copy-permissions
+  //   margin-top          9px

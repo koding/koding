@@ -2,7 +2,6 @@ package kite
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
 	"koding/tools/dnode"
@@ -10,18 +9,30 @@ import (
 	"koding/tools/log"
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
 
 type Kite struct {
-	Name     string
-	Handlers map[string]Handler
+	Name              string
+	Handlers          map[string]Handler
+	ServiceUniqueName string
+	LoadBalancer      func(correlationName string, username string, deadService string) string
 }
 
 type Handler struct {
 	Concurrent bool
 	Callback   func(args *dnode.Partial, session *Session) (interface{}, error)
+}
+
+type Session struct {
+	Username        string
+	RoutingKey      string
+	CorrelationName string
+	Alive           bool
+	onDisconnect    []func()
 }
 
 func New(name string) *Kite {
@@ -61,9 +72,12 @@ func (k *Kite) Run() {
 	defer publishChannel.Close()
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
-	amqputil.DeclarePresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, "kite-"+k.Name)
-	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", "kite-"+k.Name, "", true)
 
+	hostname, _ := os.Hostname()
+	k.ServiceUniqueName = "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
+
+	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
 	for {
 		select {
 		case message, ok := <-stream:
@@ -73,35 +87,30 @@ func (k *Kite) Run() {
 
 			switch message.RoutingKey {
 			case "auth.join":
-				var client struct {
-					Username   string
-					RoutingKey string
-				}
-				err := json.Unmarshal(message.Body, &client)
-				if err != nil || client.Username == "" || client.RoutingKey == "" {
+				var session Session
+				err := json.Unmarshal(message.Body, &session)
+				if err != nil || session.Username == "" || session.RoutingKey == "" {
 					log.Err("Invalid auth.join message.", message.Body)
 					continue
 				}
 
-				if _, found := routeMap[client.RoutingKey]; found {
+				if _, found := routeMap[session.RoutingKey]; found {
 					log.Warn("Duplicate auth.join for same routing key.")
 					continue
 				}
 				channel := make(chan []byte, 1024)
-				routeMap[client.RoutingKey] = channel
+				routeMap[session.RoutingKey] = channel
 
 				go func() {
 					defer log.RecoverAndLog()
+					defer session.Close()
 
 					changeClientsGauge(1)
-					log.Debug("Client connected: " + client.Username)
+					log.Debug("Client connected: " + session.Username)
 					defer func() {
 						changeClientsGauge(-1)
-						log.Debug("Client disconnected: " + client.Username)
+						log.Debug("Client disconnected: " + session.Username)
 					}()
-
-					session := NewSession(client.Username)
-					defer session.Close()
 
 					d := dnode.New()
 					defer d.Close()
@@ -134,17 +143,24 @@ func (k *Kite) Run() {
 
 						handler, found := k.Handlers[method]
 						if !found {
-							resultCallback(fmt.Sprintf("Method '%v' not known.", method), nil)
+							resultCallback("Method '"+method+"' not known.", nil)
 							return
 						}
 
 						execHandler := func() {
-							result, err := handler.Callback(options.WithArgs, session)
+							result, err := handler.Callback(options.WithArgs, &session)
 							if b, ok := result.([]byte); ok {
 								result = string(b)
 							}
 
 							if err != nil {
+								if _, ok := err.(*WrongChannelError); ok {
+									if err := publishChannel.Publish("broker", session.RoutingKey+".cycleChannel", false, false, amqp.Publishing{}); err != nil {
+										log.LogError(err, 0)
+									}
+									return
+								}
+
 								resultCallback(err.Error(), result)
 								return
 							}
@@ -166,15 +182,14 @@ func (k *Kite) Run() {
 					go func() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
-							log.Debug("Write", client.RoutingKey, data)
-							err := publishChannel.Publish("broker", client.RoutingKey, false, false, amqp.Publishing{Body: data})
-							if err != nil {
+							log.Debug("Write", session.RoutingKey, data)
+							if err := publishChannel.Publish("broker", session.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
 						}
 					}()
 
-					d.Send("ready", "kite-"+k.Name)
+					d.Send("ready", k.ServiceUniqueName)
 
 					for {
 						select {
@@ -182,10 +197,10 @@ func (k *Kite) Run() {
 							if !ok {
 								return
 							}
-							log.Debug("Read", client.RoutingKey, message)
+							log.Debug("Read", session.RoutingKey, message)
 							d.ProcessMessage(message)
 						case <-time.After(24 * time.Hour):
-							timeoutChannel <- client.RoutingKey
+							timeoutChannel <- session.RoutingKey
 						}
 					}
 				}()
@@ -204,6 +219,35 @@ func (k *Kite) Run() {
 				if found {
 					close(channel)
 					delete(routeMap, client.RoutingKey)
+				}
+
+			case "auth.who":
+				var client struct {
+					Username           string `json:"username"`
+					RoutingKey         string `json:"routingKey"`
+					CorrelationName    string `json:"correlationName"`
+					DeadService        string `json:"deadService"`
+					ServiceGenericName string `json:"serviceGenericName"`
+					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
+				}
+				err := json.Unmarshal(message.Body, &client)
+				if err != nil || client.Username == "" || client.RoutingKey == "" || client.CorrelationName == "" {
+					log.Err("Invalid auth.who message.", message.Body)
+					continue
+				}
+				if k.LoadBalancer == nil {
+					log.Err("Got auth.who without having a load balancer.", message.Body)
+					continue
+				}
+
+				client.ServiceUniqueName = k.LoadBalancer(client.CorrelationName, client.Username, client.DeadService)
+				response, err := json.Marshal(client)
+				if err != nil {
+					log.LogError(err, 0)
+					continue
+				}
+				if err := publishChannel.Publish("auth", "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
+					log.LogError(err, 0)
 				}
 
 			default:
@@ -233,19 +277,6 @@ func (k *Kite) Run() {
 			lifecycle.BeginShutdown()
 			consumeChannel.Close()
 		}
-	}
-}
-
-type Session struct {
-	Username     string
-	Alive        bool
-	onDisconnect []func()
-}
-
-func NewSession(username string) *Session {
-	return &Session{
-		Username: username,
-		Alive:    true,
 	}
 }
 

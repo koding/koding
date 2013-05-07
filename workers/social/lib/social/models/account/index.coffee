@@ -7,6 +7,8 @@ likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JBlogPost'
                      ]
 
+{sharedStaticMethods, sharedInstanceMethods} = require '../account/methods'
+
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
@@ -47,28 +49,8 @@ module.exports = class JAccount extends jraphical.Module
     indexes:
       'profile.nickname' : 'unique'
     sharedMethods :
-      static      : [
-        'one', 'some', 'cursor', 'each', 'someWithRelationship'
-        'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion','reserveNames'
-        'impersonate'
-      ]
-      instance    : [
-        'modify','follow','unfollow','fetchFollowersWithRelationship'
-        'countFollowersWithRelationship', 'countFollowingWithRelationship'
-        'fetchFollowingWithRelationship', 'fetchTopics'
-        'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
-        'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
-        'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
-        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-        'fetchPendingGroupInvitations'
-      ]
+      static      : sharedStaticMethods()
+      instance    : sharedInstanceMethods()
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -449,11 +431,23 @@ module.exports = class JAccount extends jraphical.Module
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
+    ### TODO:
+    It is highly dependent to culture and there are even onces w/o the concept
+    of first and last names. For now we assume last part of the seed is the lastname
+    and the whole except last part is the first name. Not ideal but covers more
+    than previous implementation. This implementation would fail if I type my
+    two firstnames only, it will assume second part is my lastname.
+    Ideal solution is to check the seed against firstName + ' ' + lastName instead of
+    deciding ourselves which parts of the search are for first or last name.
+    MongoDB 2.4 and bongo implementation of aggregate required to use $concat
+    ###
+    names = seed.toString().split('/')[1].replace('^','').split ' '
+    names.push names.first if names.length is 1
     @some {
       $or : [
           ( 'profile.nickname'  : seed )
-          ( 'profile.firstName' : seed )
-          ( 'profile.lastName'  : seed )
+          ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
+          ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
         ],
       _id     :
         $nin  : blacklist

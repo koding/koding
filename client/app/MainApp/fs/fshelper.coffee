@@ -115,7 +115,7 @@ class FSHelper
       @registry[fileData.path][prop] = value
 
   @setFileListeners = (file)->
-    file.on "fs.rename.finished", =>
+    file.on "fs.job.finished", =>
 
   @getFileNameFromPath = getFileName = (path)->
     return path.split('/').pop()

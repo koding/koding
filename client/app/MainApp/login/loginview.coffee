@@ -6,9 +6,7 @@ class LoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else ''
+    {entryPoint} = KD.config
 
     super options, data
 
@@ -17,10 +15,9 @@ class LoginView extends KDScrollView
     @bindTransitionEnd()
 
     handler =(route, event)=>
-      route = "/#{entryPoint}#{route}" if entryPoint
       stop event
       log route
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -181,7 +178,7 @@ class LoginView extends KDScrollView
           duration  : 2000
         KD.getSingleton('router').clear()
         setTimeout =>
-          @animateToForm "login"
+          @hide()
           @registerForm.reset()
           @registerForm.button.hideLoader()
           # setTimeout =>
@@ -193,6 +190,9 @@ class LoginView extends KDScrollView
     credentials.username = credentials.username.toLowerCase()
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
       @loginForm.button.hideLoader()
+
+      {entryPoint} = KD.config
+
       if error
         new KDNotificationView
           title   : error.message
@@ -206,7 +206,7 @@ class LoginView extends KDScrollView
         mainView.show()
         mainView.$().css "opacity", 1
 
-        @getSingleton('router').handleRoute @getRouteWithEntryPoint('Activity'), replaceState: yes
+        @getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
 
         new KDNotificationView
           cssClass  : "login"
@@ -217,7 +217,7 @@ class LoginView extends KDScrollView
 
         @hide()
 
-        if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
+        if entryPoint?.slug?
           @getSingleton('lazyDomController').hideLandingPage()
 
   doRequest:(formData)->
@@ -304,9 +304,8 @@ class LoginView extends KDScrollView
   click:(event)->
     if $(event.target).is('.login-screen')
       @hide =>
-        {groupEntryPoint} = KD.config
-        route = if groupEntryPoint then "/#{groupEntryPoint}/Activity" else "/Activity"
-        @getSingleton('router').handleRoute route
+        {entryPoint} = KD.config
+        @getSingleton('router').handleRoute "/Activity", {entryPoint}
 
   animateToForm: (name)->
 
@@ -335,8 +334,8 @@ class LoginView extends KDScrollView
       @setClass name
 
   getRouteWithEntryPoint:(route)->
-    {groupEntryPoint} = KD.config
-    if groupEntryPoint and groupEntryPoint isnt 'koding'
-      return "/#{groupEntryPoint}/#{route}"
+    {entryPoint} = KD.config
+    if entryPoint and entryPoint.slug isnt 'koding'
+      return "/#{entryPoint}/#{route}"
     else
       return "/#{route}"

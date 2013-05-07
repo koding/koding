@@ -56,6 +56,29 @@ func main() {
 	go LimiterLoop()
 	k := kite.New("os")
 
+	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
+		if deadService != "" {
+			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": deadService}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+				log.LogError(err, 0)
+			}
+		}
+
+		var vm *virt.VM
+		if bson.IsObjectIdHex(correlationName) {
+			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
+		}
+		if vm == nil {
+			if err := db.VMs.Find(bson.M{"name": correlationName}).One(&vm); err != nil {
+				return k.ServiceUniqueName
+			}
+		}
+
+		if vm.HostKite == "" {
+			return k.ServiceUniqueName
+		}
+		return vm.HostKite
+	}
+
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {
@@ -169,22 +192,21 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic("User with too low uid.")
 		}
 
-		var params struct {
-			Vm string
-		}
-
-		if args.Unmarshal(&params) == nil && (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
-			return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
-		}
-
 		var vm *virt.VM
-		if params.Vm != "" {
-			if err := db.VMs.FindId(bson.ObjectIdHex(params.Vm)).One(&vm); err != nil {
-				return nil, errors.New("There is no VM with id '" + params.Vm + "'.")
-			}
+		if bson.IsObjectIdHex(session.CorrelationName) {
+			db.VMs.FindId(bson.ObjectIdHex(session.CorrelationName)).One(&vm)
 		}
 		if vm == nil {
-			vm = getDefaultVM(&user)
+			if err := db.VMs.Find(bson.M{"name": session.CorrelationName}).One(&vm); err != nil {
+				return nil, errors.New("There is no VM with name/id '" + session.CorrelationName + "'.")
+			}
+		}
+
+		if vm.HostKite != k.ServiceUniqueName {
+			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+				return nil, &kite.WrongChannelError{}
+			}
+			vm.HostKite = k.ServiceUniqueName
 		}
 
 		if vm.SnapshotOf != "" {
@@ -254,33 +276,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 	})
 }
 
-func getDefaultVM(user *virt.User) *virt.VM {
-	if user.DefaultVM == "" {
-		// create new vm
-		vm := virt.VM{
-			Id:    bson.NewObjectId(),
-			Name:  user.Name,
-			Users: []*virt.UserEntry{{Id: user.ObjectId, Sudo: true}},
-		}
-		if err := db.VMs.Insert(vm); err != nil {
-			panic(err)
-		}
-
-		if err := db.Users.Update(bson.M{"_id": user.ObjectId, "defaultVM": nil}, bson.M{"$set": bson.M{"defaultVM": vm.Id}}); err != nil {
-			panic(err)
-		}
-		user.DefaultVM = vm.Id
-
-		return &vm
-	}
-
-	var vm virt.VM
-	if err := db.VMs.FindId(user.DefaultVM).One(&vm); err != nil {
-		panic(err)
-	}
-	return &vm
-}
-
 func getUsers(vm *virt.VM) []virt.User {
 	users := make([]virt.User, len(vm.Users))
 	for i, entry := range vm.Users {
@@ -322,6 +317,12 @@ func (info *VMInfo) startTimeout() {
 
 		if err := vm.Unprepare(); err != nil {
 			log.Warn(err.Error())
+		}
+
+		if !vm.IsTemporary() {
+			if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+				log.LogError(err, 0)
+			}
 		}
 
 		if vm.IsTemporary() {

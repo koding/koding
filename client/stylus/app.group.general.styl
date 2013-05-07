@@ -243,17 +243,10 @@
     &:hover
       div.groups-settings-menu
         opacity 1
-
-    &:nth-child(2n)
-      margin-right          2%
-
-    &.member-group
+    &.group-member
       .badge.member
         visible()
       .group-settings-context
-        visible()
-    &.own-group
-      .group-settings-context .remove-group
         visible()
 
     .side-wrapper
@@ -268,6 +261,14 @@
       size                    auto, auto
       margin-top              18px
 
+    &.group-admin
+      .badge
+        bg                    color, #0896BD
+        text-shadow           0 -1px 0 #184175
+    &.group-owner
+      .badge
+        bg                    color, #6DC021
+        text-shadow           0 -1px 0 #258A25
     .badge
       font-style              normal
       font-weight             600
@@ -292,16 +293,16 @@
           bg                  position, -80px -640px
           sprite()
 
+
     .group-settings-context
       fr()
       rel()
       hidden()
       height                28px
-      width                 20px
-      bg                    color, #f5f5f5
+      width                 19px
+      bg                    color, #FFEDD2
       padding-right         0px!important
       cursor                pointer
-
       &:hover
         bg                  image, none
         bg                  color, none
@@ -312,10 +313,13 @@
 
       span.chevron
         margin              1px -1px 0 0
-        opacity             0.5
+        bg                  position, -80px -260px
 
       span
         height              28px
+
+    button.group-settings-context
+      border-width          0
 
     .members-list-wrapper
       abs()
@@ -385,14 +389,6 @@
       abs()
       // shadow                  0 1px 5px rgba(0,0,0,.3)
       // fl()
-      .avatar-image
-        margin-top            18px
-        display               block
-        text-decoration       none
-        background-size       cover
-        background-position   center
-        // bg                    image, url("../images/defaultavatar/default.group.128.png")
-        size                  100%, 128px
 
     .wrapper
       overflow          hidden
@@ -514,3 +510,16 @@
           size 15px 15px
           margin               0 6px 0 0
           vertical-align       middle
+
+.kdbuttonmenu.group-settings-context
+  .leave-group
+  .remove-group
+    hidden()
+
+  &.group-member .leave-group
+    visible()
+  &.group-owner
+    .kdlistitemview-contextitem.leave-group
+      hidden()
+    .remove-group
+      visible()

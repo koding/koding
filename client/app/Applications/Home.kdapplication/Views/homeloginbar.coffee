@@ -2,20 +2,23 @@ class HomeLoginBar extends JView
 
   constructor:(options = {}, data)->
 
+    {entryPoint} = KD.config
+
     options.cssClass   = "home-links"
-    options.entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
+    options.entryPoint = entryPoint?.slug
 
     super options, data
 
     @utils.wait 400, => @setClass 'in'
 
-    entryPoint = @getOptions().entryPoint or ''
-
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
-      route = "/#{entryPoint}#{route}" if entryPoint isnt ''
       @utils.stopDOMEvent event
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
+
+    requiresLogin = (callback)=>
+      if KD.isLoggedIn() then do callback
+      else @getSingleton('mainController').emit "loginRequired", callback
 
     @register     = new CustomLinkView
       tagName     : "a"
@@ -44,7 +47,12 @@ class HomeLoginBar extends JView
       icon        : {}
       attributes  :
         href      : "/Join"
-      click       : handler
+      click       : (event)=>
+        if entryPoint?.type is 'group'
+          @utils.stopDOMEvent event
+          requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
+        else
+          handler event
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -66,42 +74,47 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        log "request access"
+        requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, yes
 
     @join         = new CustomLinkView
       tagName     : "a"
-      title       : "Join group"
+      title       : "Join Group"
       icon        : {}
       cssClass    : "join green hidden"
       attributes  :
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        log "join group"
+        requiresLogin => @getSingleton('mainController').emit "groupJoinRequested", @group
 
-    groupsController = @getSingleton "groupsController"
-    {roles} = KD.config
-    # if 'member' in roles or 'admin' in roles
+    @decorateButtons()
+    @getSingleton('mainController').on 'AccountChanged', @bound 'decorateButtons'
+    @getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
-    if entryPoint isnt ''
+  decorateButtons:->
+    entryPoint = @getOptions().entryPoint or ''
+    if entryPoint isnt '' and 'member' not in KD.config.roles
+      if KD.isLoggedIn()
+        @login.hide()
+        @register.hide()
+
       KD.remote.cacheable entryPoint, (err, models)=>
         if err then callback err
         else if models?
-          [group] = models
-          if group.privacy is "public"
+          [@group] = models
+          if @group.privacy is "public"
             @request.hide()
             @access.hide()
             @join.show()
-          else if "private"
+          else if @group.privacy is "private"
             KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint, (err, policy)=>
               if err then console.warn err
               else if policy.approvalEnabled
                 @request.hide()
                 @join.hide()
                 @access.show()
-    else
-      if KD.isLoggedIn()
-        @hide()
+    else if KD.isLoggedIn()
+      @hide()
 
   viewAppended:->
     super
