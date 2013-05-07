@@ -38,6 +38,7 @@ class IntroductionTooltipController extends KDController
       @init()
 
   init: ->
+    return unless KD.whoami() instanceof KD.remote.api.JAccount
     KD.remote.api.JIntroSnippet.fetchAll (err, snippets) =>
       return log err if err # TODO: error handling
 
