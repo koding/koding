@@ -14,8 +14,7 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
-	"os"
-	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -40,22 +39,17 @@ func main() {
 	lifecycle.Startup("kite.os", true)
 	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
 
-	iter := db.VMs.Find(bson.M{"ip": bson.M{"$ne": nil}}).Iter()
-	var vm virt.VM
-	for iter.Next(&vm) {
-		switch vm.GetState() {
-		case "RUNNING":
-			info := newInfo(&vm)
-			infos[vm.Id] = info
-			info.startTimeout()
-		case "STOPPED":
-			vm.Unprepare()
-		default:
-			panic("Unhandled VM state.")
-		}
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		panic(err)
 	}
-	if iter.Err() != nil {
-		panic(iter.Err())
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			if err := vm.Unprepare(); err != nil {
+				log.Warn(err.Error())
+			}
+		}
 	}
 
 	go ldapserver.Listen()
@@ -110,57 +104,26 @@ func main() {
 		return info, nil
 	})
 
-	registerVmMethod(k, "vm.createFilteredSnapshot", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil || !userEntry.Sudo {
 			return nil, errors.New("Permission denied.")
 		}
 
-		var params struct {
-			Whitelist []string
-		}
-		if args.Unmarshal(&params) != nil || len(params.Whitelist) == 0 {
-			return nil, &kite.ArgumentError{Expected: "{ whitelist: [string array] }"}
+		snippet := virt.VM{
+			Id:         bson.NewObjectId(),
+			SnapshotOf: vm.Id,
 		}
 
-		id := bson.NewObjectId()
-		clone := virt.VM{
-			Id:    id,
-			Name:  id.Hex(),
-			Users: vm.Users,
-		}
-
-		if err := vm.CreateConsistentSnapshot(id.Hex()); err != nil {
-			return nil, err
-		}
-		if err := vm.CreateImageFromSnapshot(id.Hex(), clone.String()); err != nil {
+		if err := vm.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
 			return nil, err
 		}
 
-		mountDir := os.TempDir() + "/" + id.Hex()
-		err := clone.MountRBD(mountDir)
-		defer clone.UnmountRBD(mountDir) // always try to clean up
-		if err != nil {
+		if err := db.VMs.Insert(snippet); err != nil {
 			return nil, err
 		}
 
-		sort.Strings(params.Whitelist)
-		for _, dirname := range []string{"/etc", "/home", "/var"} {
-			entries, err := ioutil.ReadDir(mountDir + dirname)
-			if err != nil {
-				return nil, err
-			}
-
-			for _, entry := range entries {
-				if sort.SearchStrings(params.Whitelist, dirname+"/"+entry.Name()) == len(params.Whitelist) {
-					if err := os.RemoveAll(mountDir + dirname + "/" + entry.Name()); err != nil {
-						return nil, err
-					}
-				}
-			}
-		}
-
-		return true, nil
+		return snippet.Id.Hex(), nil
 	})
 
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
@@ -210,9 +173,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			Vm string
 		}
 
-		// if args.Unmarshal(&params) != nil || (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
-		// 	return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
-		// }
+		if args.Unmarshal(&params) == nil && (params.Vm != "" && !bson.IsObjectIdHex(params.Vm)) {
+			return nil, &kite.ArgumentError{Expected: "{ vm: [id string], ... }"}
+		}
 
 		var vm *virt.VM
 		if params.Vm != "" {
@@ -222,6 +185,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		if vm == nil {
 			vm = getDefaultVM(&user)
+		}
+
+		if vm.SnapshotOf != "" {
+			var err error
+			vm, err = vm.CreateTemporaryVM()
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		infosMutex.Lock()
@@ -253,15 +224,19 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if vm.IP == nil {
 				ipInt := db.NextCounterValue("vm_ip")
 				ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-					panic(err)
+				if !vm.IsTemporary() {
+					if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+						panic(err)
+					}
 				}
 				vm.IP = ip
 			}
 			if vm.LdapPassword == "" {
 				ldapPassword := utils.RandomString()
-				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
-					panic(err)
+				if !vm.IsTemporary() {
+					if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+						panic(err)
+					}
 				}
 				vm.LdapPassword = ldapPassword
 			}
@@ -347,6 +322,12 @@ func (info *VMInfo) startTimeout() {
 
 		if err := vm.Unprepare(); err != nil {
 			log.Warn(err.Error())
+		}
+
+		if vm.IsTemporary() {
+			if err := vm.Destroy(); err != nil {
+				log.Warn(err.Error())
+			}
 		}
 
 		delete(infos, vm.Id)

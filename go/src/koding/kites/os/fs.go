@@ -108,10 +108,10 @@ func registerFileSystemMethods(k *kite.Kite) {
 		}
 
 		dir, err := vos.Open(params.Path)
-		defer dir.Close()
 		if err != nil {
 			return nil, err
 		}
+		defer dir.Close()
 
 		infos, err := dir.Readdir(0)
 		if err != nil {
