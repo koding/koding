@@ -104,6 +104,7 @@ func main() {
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetProxyService).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
@@ -159,8 +160,8 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	io.WriteString(writer, resp)
 }
 
-// Register a proxy
-// Example: http POST "localhost:8000/proxies" uuid=mahlika.local-916
+// Register a user proxy
+// Example: http POST "localhost:8000/proxies/{uuid}/{username}"
 func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	var msg ProxyPostMessage
 	var uuid string
@@ -193,6 +194,23 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	buildSendProxyCmd(cmd)
 
 	resp := fmt.Sprintf("'%s' is registered", uuid)
+	io.WriteString(writer, resp)
+}
+
+// Register a proxy
+// example: http POST "localhost:8000/proxies/mahlika.local-915/{username}/services"
+func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	username := vars["username"]
+
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addUser"
+	cmd.Uuid = uuid
+	cmd.Username = username
+
+	buildSendProxyCmd(cmd)
+	resp := fmt.Sprintf("user '%s' is added to proxy uuid: '%s'", username, uuid)
 	io.WriteString(writer, resp)
 }
 

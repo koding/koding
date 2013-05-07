@@ -54,6 +54,15 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
+	case "addUser":
+		if config.Verbose {
+			log.Println("got 'addUser' json request")
+		}
+		err := proxyConfig.AddUser(msg.Uuid, msg.Username)
+		if err != nil {
+			log.Println(err)
+		}
+		sendResponse("updateProxy", msg.Uuid)
 	case "addKey":
 		if config.Verbose {
 			log.Println("got 'addKey' json request")
