@@ -706,9 +706,16 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
     super options, data
 
-    @utils.defer => @setAceEditor() if @getOptions().type is "Item"
-    if @getOptions().type is "Group"
+    {type, actionType} = @getOptions()
+
+    if type is "Group"
       @setVisibilityOfOverlayWarning @parentData.overlay is "no" # wtf "no"
+
+    if type is "Item"
+      @utils.defer => @setAceEditor()
+      if actionType is "Update"
+        partial = "You're updating this item from: <span class=\"groupName\">#{@parentData.introductionItem.getData().title}</span>"
+        @inputs.GroupName.updatePartial partial
 
   save: ->
     options      = @getOptions()
