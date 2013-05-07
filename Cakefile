@@ -234,9 +234,9 @@ task 'emailSender',({configFile})->
           processes.kill "emailSender"
 
 task 'goBroker',(options)->
+  {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
   {broker} = config
-  {configFile} = options
 
   processes.spawn
     name              : 'broker'
