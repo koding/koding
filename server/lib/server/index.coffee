@@ -1,6 +1,6 @@
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
 
 webPort = argv.p ? webserver.port
 
@@ -90,6 +90,15 @@ koding = require './bongo'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
+
+app.get "/-/neo", (req, res)->
+  Graph = require "./graph"
+  GraphDecorator = require "./graphdecorator"
+  graph = new Graph neo4j
+  graph.fetchAll (err, respond)->
+#    res.send respond
+    GraphDecorator.decorateToCacheObject respond, (decorated)->
+      res.send decorated
 
 startTime = null
 app.get "/-/cache/latest", (req, res)->
