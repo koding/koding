@@ -84,7 +84,6 @@ class ApplicationManager extends KDObject
         return
 
       if appOptions?.multiple
-
         if options.forceNew or appOptions.openWith is "forceNew"
           @create name, (appInstance)=> @showInstance appInstance, callback
           return
@@ -158,7 +157,7 @@ class ApplicationManager extends KDObject
 
     AppClass   = KD.getAppClass name
     appOptions = KD.getAppOptions name
-    @register appInstance = new AppClass appOptions  if AppClass
+    @register appInstance = new AppClass($.extend {}, true, appOptions)  if AppClass
     @utils.defer -> callback? appInstance
 
   show:(appOptions, callback)->
