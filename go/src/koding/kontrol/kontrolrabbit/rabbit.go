@@ -9,7 +9,9 @@ import (
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"os"
 	"os/user"
 	"strings"
 )
@@ -37,15 +39,11 @@ type Credentials struct {
 var producer *Producer
 
 func main() {
-	fmt.Println("koding local proxy is starting...")
-
 	clientKey := readKey()
-	fmt.Printf("auth for key: %s and kite-name: proxy\n", clientKey)
 	cred, err := authUser(clientKey)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println("auth is successfull")
 
 	producer, err = createProducer(cred)
 	if err != nil {
@@ -55,7 +53,14 @@ func main() {
 }
 
 func authUser(key string) (Credentials, error) {
-	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?rabbitkey=%s&name=proxy&key=1&host=localhost:8004", key)
+
+	err := checkServer("localhost:3020")
+	if err != nil {
+		fmt.Println("could not connect to koding backend", err)
+		os.Exit(1)
+	}
+
+	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?rabbitkey=%s&name=proxy&key=1", key)
 	resp, err := http.DefaultClient.Get(registerApi)
 	if err != nil {
 		return Credentials{}, err
@@ -70,8 +75,6 @@ func authUser(key string) (Credentials, error) {
 	if resp.StatusCode == 401 {
 		return Credentials{}, fmt.Errorf("Error %s", string(data))
 	}
-
-	// log.Println(string(data)) // debug
 
 	msg := Credentials{}
 	err = json.Unmarshal(data, &msg)
@@ -107,10 +110,7 @@ func startRouting(cred Credentials) {
 		log.Fatal(err)
 	}
 
-	// err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
-	// if err != nil {
-	// 	log.Fatal("exchange.declare: %s", err)
-	// }
+	// err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	clientKey := readKey()
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
@@ -125,8 +125,7 @@ func startRouting(cred Credentials) {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	fmt.Printf("your public url: %s\nyour local port: 4000\n", cred.PublicUrl)
-	fmt.Print("proxy is ready and working...")
+	fmt.Printf("your public url: %s\n", cred.PublicUrl)
 	for msg := range httpStream {
 		// log.Printf("got %dB message data: [%v]-[%s] %s",
 		// 	len(msg.Body),
@@ -226,4 +225,13 @@ func readKey() string {
 	}
 
 	return strings.TrimSpace(string(file))
+}
+
+func checkServer(host string) error {
+	c, err := net.Dial("tcp", host)
+	if err != nil {
+		return err
+	}
+	c.Close()
+	return nil
 }
