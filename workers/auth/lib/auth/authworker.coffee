@@ -260,7 +260,7 @@ module.exports = class AuthWorker extends EventEmitter
       {channel, routingKey, serviceType} = messageData
       switch serviceType
         when 'bongo', 'kite'
-          joinHelper.call this, messageData, routingKey, socketId
+          joinClientHelper.call this, messageData, routingKey, socketId
         
         when 'group'
           unless ///^group\.#{messageData.group}\.///.test routingKey
@@ -386,6 +386,6 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.who'
                   @handleKiteWho messageData
                 when "client.auth"
-                  @join messageData, socketId
+                  @joinClient messageData, socketId
                 else
                   @rejectClient routingKey
