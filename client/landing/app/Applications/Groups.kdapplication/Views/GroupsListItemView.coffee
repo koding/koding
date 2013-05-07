@@ -202,7 +202,7 @@ class GroupsListItemView extends KDListItemView
 
       currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
       currentGroupSlug = currentGroup.getAt 'slug'
-      if group.slug == currentGroupSlug
+      if group.slug is currentGroupSlug
         document.location.reload()
       callback()
 
