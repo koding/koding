@@ -663,6 +663,14 @@ class IntroductionAdminForm extends KDFormViewWithFields
         ]
 
     itemFields =
+      ItemInfo        :
+        label         : ""
+        type          : "hidden"
+        nextElement   :
+          GroupName   :
+            itemClass : KDView
+            cssClass  : "introduction-group-name"
+            partial   : "You're adding an item to: <span class=\"groupName\">#{@parentData.title}</span>"
       IntroTitle      :
         label         : "Intro Title"
         type          : "text"
