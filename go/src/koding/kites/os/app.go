@@ -159,9 +159,9 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		bucketPath := fmt.Sprintf("%s/%s/%s.tar.gz", user.Name, manifest.Identifier, manifest.Version)
+		bucketPath := fmt.Sprintf("%s/%s/%s", user.Name, manifest.Identifier, manifest.Version)
 
-		result, err := appsBucket.List(bucketPath, "", "", 1)
+		result, err := appsBucket.List(bucketPath+".tar.gz", "", "", 1)
 		if err != nil {
 			return nil, err
 		}
@@ -213,7 +213,9 @@ func registerAppMethods(k *kite.Kite) {
 					return err
 				}
 				defer file.Close()
-				if _, err := io.Copy(tw, file); err != nil {
+
+				teeReader := io.TeeReader(file, tw) // write to tar and S3 at once
+				if err := appsBucket.PutReader(bucketPath+"/"+name, teeReader, fi.Size(), "", s3.Private); err != nil {
 					return err
 				}
 			} else {
@@ -233,7 +235,11 @@ func registerAppMethods(k *kite.Kite) {
 					return err
 				}
 				for _, entry := range entries {
-					if err := readPath(name + "/" + entry); err != nil {
+					entryPath := name + "/" + entry
+					if name == "." {
+						entryPath = entry
+					}
+					if err := readPath(entryPath); err != nil {
 						return err
 					}
 				}
@@ -249,7 +255,7 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		if err := appsBucket.Put(bucketPath, buf.Bytes(), "", s3.Private); err != nil {
+		if err := appsBucket.Put(bucketPath+".tar.gz", buf.Bytes(), "", s3.Private); err != nil {
 			return nil, err
 		}
 
