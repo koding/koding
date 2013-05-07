@@ -260,31 +260,6 @@ class KodingAppsController extends KDController
               KD.getSingleton("appManager").tell "Apps", "updateApps"
               callback?()
 
-  approveApp:(app, callback)->
-
-    if not KD.checkFlag('super-admin')
-      err = "You are not authorized to approve apps."
-      log err
-      callback? err
-      return no
-
-    options         =
-      kiteName      : "applications"
-      method        : "approveApp"
-      withArgs      :
-        version     : app.manifest.version
-        appName     : app.manifest.name
-        authorNick  : app.manifest.authorNick
-
-    @kiteController.run options, (err, res)=>
-      log "app is being approved"
-      if err
-        warn err
-        callback? err
-      else
-        log app, "app approved"
-        callback?()
-
   compileApp:(name, callback)->
 
     compileOnServer = (app)=>
