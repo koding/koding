@@ -117,7 +117,7 @@ class KDView extends KDObject
 
       if @getOptions().introId
         mainController = KD.getSingleton "mainController"
-        mainController.introductionTooltipController.createInstance @
+        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", @
 
     # development only
     if location.hostname is "localhost"

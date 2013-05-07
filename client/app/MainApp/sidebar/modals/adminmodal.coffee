@@ -756,6 +756,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
   createPostData: ->
     {inputs}     = @
+    snippets     = if @parentData.snippets?.length then @parentData.snippets else []
 
     if @getOptions().type is "Group"
       groupData =
@@ -763,7 +764,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
         expiryDate : inputs.ExpiryDate.getValue()
         visibility : inputs.Visibility.getValue()
         overlay    : inputs.Overlay.getValue()
-        snippets   : []
+        snippets   : snippets
       return groupData
 
     else
