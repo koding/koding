@@ -254,11 +254,6 @@ func targetHost(username, servicename, key string) (string, error) {
 	if v == 0 {
 		return "", fmt.Errorf("no keys are available for user %s", username)
 	} else {
-		_, ok := keyRoutingTable.Keys[key]
-		if !ok {
-			return "", fmt.Errorf("no key %s is available for user %s", key, username)
-		}
-
 		if key == "latest" {
 			// get all keys and sort them
 			listOfKeys := make([]int, len(keyRoutingTable.Keys))
@@ -271,6 +266,11 @@ func targetHost(username, servicename, key string) (string, error) {
 
 			// give precedence to the largest key number
 			key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
+		}
+
+		_, ok := keyRoutingTable.Keys[key]
+		if !ok {
+			return "", fmt.Errorf("no key %s is available for user %s", key, username)
 		}
 
 		// use round-robin algorithm for each hostname
