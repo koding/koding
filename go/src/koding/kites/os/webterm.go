@@ -32,7 +32,7 @@ type WebtermRemote struct {
 }
 
 func registerWebtermMethods(k *kite.Kite) {
-	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil {
 			return nil, errors.New("Permission denied.")
@@ -57,7 +57,7 @@ func registerWebtermMethods(k *kite.Kite) {
 		return sessions, nil
 	})
 
-	registerVmMethod(k, "webterm.createSession", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "webterm.createSession", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil {
 			return nil, errors.New("Permission denied.")
@@ -73,11 +73,11 @@ func registerWebtermMethods(k *kite.Kite) {
 		}
 
 		server := newWebtermServer(vm, user, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY)
-		session.OnDisconnect(func() { server.Close() })
+		channel.OnDisconnect(func() { server.Close() })
 		return server, nil
 	})
 
-	registerVmMethod(k, "webterm.joinSession", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "webterm.joinSession", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		userEntry := vm.GetUserEntry(user)
 		if userEntry == nil {
 			return nil, errors.New("Permission denied.")
@@ -89,11 +89,11 @@ func registerWebtermMethods(k *kite.Kite) {
 			SizeX, SizeY int
 		}
 		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], channelId: [integer], sizeX: [integer], sizeY: [integer] }"}
 		}
 
 		server := newWebtermServer(vm, user, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)
-		session.OnDisconnect(func() { server.Close() })
+		channel.OnDisconnect(func() { server.Close() })
 		return server, nil
 	})
 }

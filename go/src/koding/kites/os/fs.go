@@ -81,7 +81,7 @@ func init() {
 }
 
 func registerFileSystemMethods(k *kite.Kite) {
-	registerVmMethod(k, "fs.readDirectory", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.readDirectory", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path     string
 			OnChange dnode.Callback
@@ -103,7 +103,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 			watch := &Watch{vos, watchedPath, params.OnChange}
 			watchMap[watchedPath] = append(watchMap[watchedPath], watch)
-			session.OnDisconnect(func() { watch.Close() })
+			channel.OnDisconnect(func() { watch.Close() })
 			response["stopWatching"] = func() { watch.Close() }
 		}
 
@@ -127,7 +127,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return response, nil
 	})
 
-	registerVmMethod(k, "fs.readFile", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.readFile", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
@@ -158,7 +158,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return map[string]interface{}{"content": buf}, nil
 	})
 
-	registerVmMethod(k, "fs.writeFile", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.writeFile", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path           string
 			Content        []byte
@@ -186,7 +186,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		panic(err)
 	}
 
-	registerVmMethod(k, "fs.ensureNonexistentPath", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.ensureNonexistentPath", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
@@ -213,7 +213,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return name, nil
 	})
 
-	registerVmMethod(k, "fs.ensurePathExists", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.ensurePathExists", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
@@ -232,7 +232,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return nil, nil
 	})
 
-	registerVmMethod(k, "fs.getInfo", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.getInfo", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
@@ -251,7 +251,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return makeFileEntry(vos, path.Dir(params.Path), fi), nil
 	})
 
-	registerVmMethod(k, "fs.setPermissions", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.setPermissions", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path      string
 			Mode      os.FileMode
@@ -301,7 +301,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "fs.remove", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.remove", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path      string
 			Recursive bool
@@ -323,7 +323,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "fs.rename", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.rename", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			OldPath string
 			NewPath string
@@ -339,7 +339,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "fs.createDirectory", false, func(args *dnode.Partial, session *kite.Session, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "fs.createDirectory", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
 		}
