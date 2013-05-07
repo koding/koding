@@ -438,7 +438,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	*outreq = *req // includes shallow copies of maps, but okay
 
 	var target *url.URL
-	var fullurl string
 	var err error
 
 	keyData, err := parseKey(outreq.Host)
@@ -450,8 +449,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	rabbitKey := lookupRabbitKey(keyData.Username, keyData.Servicename, keyData.Key)
 
-	if fullurl != "" {
-		target, err = url.Parse("http://" + fullurl)
+	if keyData.FullUrl != "" {
+		target, err = url.Parse("http://" + keyData.FullUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
