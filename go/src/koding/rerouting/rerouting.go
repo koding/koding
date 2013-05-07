@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
@@ -19,11 +21,12 @@ type Producer struct {
 }
 
 type JoinMsg struct {
-	Name       string `json:"name"`
-	BindingKey string `json:"bindingKey"`
-	Exchange   string `json:"exchange"`
-	RoutingKey string `json:"routingKey"`
-	Suffix     string `json:"suffix"`
+	Name        string `json:"name"`
+	BindingKey  string `json:"bindingKey"`
+	Exchange    string `json:"exchange"`
+	RoutingKey  string `json:"routingKey"`
+	ConsumerTag string
+	Suffix      string `json:"suffix"`
 }
 
 type LeaveMsg struct {
@@ -38,7 +41,7 @@ func main() {
 	log.Println("routing worker started")
 
 	authPairs = make(map[string]JoinMsg)
-	exchanges = make(map[string]bool)
+	exchanges = make(map[string]uint)
 
 	var err error
 	producer, err = createProducer()
@@ -96,13 +99,14 @@ func startRouting() {
 				log.Print("bad json incoming msg: ", err)
 			}
 
+			join.ConsumerTag = generateUniqueConsumerTag(join.BindingKey)
 			authPairs[join.RoutingKey] = join
 
 			log.Println("Auth pairs:", authPairs) // this is just for debug
 
 			declareExchange(c, join.Exchange)
 
-			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey, join.Suffix)
+			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey, join.Suffix, join.ConsumerTag)
 		case "auth.leave":
 			var leave LeaveMsg
 			err := json.Unmarshal(msg.Body, &leave)
@@ -111,11 +115,11 @@ func startRouting() {
 			}
 
 			// cancel consuming
-			err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
+			err = c.channel.Cancel(authPairs[leave.RoutingKey].ConsumerTag, false)
 			if err != nil {
 				log.Fatal("basic.cancel: %s", err)
 			}
-			updateExchangeCounter(leave);
+			decrementExchangeCounter(leave)
 
 		default:
 			log.Println("routing key is not defined: ", msg.RoutingKey)
@@ -123,8 +127,14 @@ func startRouting() {
 	}
 }
 
+func generateUniqueConsumerTag(bindingKey string) string {
+	r := make([]byte, 32/8)
+	rand.Read(r)
+	return bindingKey + "." + base64.StdEncoding.EncodeToString(r)
+}
+
 func declareExchange(c *Consumer, exchange string) {
-	if !exchanges[exchange] {
+	if exchanges[exchange] <= 0 {
 		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
 			log.Fatal("exchange.declare: %s", err)
 		}
@@ -133,21 +143,17 @@ func declareExchange(c *Consumer, exchange string) {
 	exchanges[exchange]++
 }
 
-func updateExchangeCounter(leave LeaveMsg) {
-	exchange string = authPairs[leave.RoutingKey].Exchange;
+func decrementExchangeCounter(leave LeaveMsg) {
+	exchange := authPairs[leave.RoutingKey].Exchange
 	// decrement exchange counter
-	exchanges[exchange]--;
-	// delete exchange reference if 0 so it gets redeclared
-	if exchanges[exchange] <= 0 {
-		delete(exchanges, exchange)
-	}
+	exchanges[exchange]--
 	// delete authPairs map
 	delete(authPairs, leave.RoutingKey)
 }
 
-func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string) {
-	log.Printf("Consume from:\n exchange %s\n bindingKey %s\n routingKey %s\n",
-		exchange, bindingKey, routingKey)
+func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string, consumerTag string) {
+	log.Printf("Consume from:\n exchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
+		exchange, bindingKey, routingKey, consumerTag)
 
 	if len(suffix) > 0 {
 		routingKey += suffix
@@ -161,7 +167,7 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix s
 		log.Fatal("queue.bind: %s", err)
 	}
 
-	messages, err := c.channel.Consume("", bindingKey, true, false, false, false, nil)
+	messages, err := c.channel.Consume("", consumerTag, true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("basic.consume: %s", err)
 	}
