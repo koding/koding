@@ -46,7 +46,7 @@ func main() {
 	log.Printf("kontrol proxy started ")
 	start = make(chan bool)
 	connections = make(map[string]RabbitChannel)
-
+	// declare just once time
 	// open kontrol-daemon database connection
 	var err error
 	proxyDB, err = proxyconfig.Connect()
@@ -56,6 +56,12 @@ func main() {
 
 	// register proxy instance to kontrol-daemon
 	amqpStream = setupAmqp()
+
+	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
+	if err != nil {
+		log.Fatal("exchange.declare: %s", err)
+	}
+
 	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
 	amqpStream.Publish("infoExchange", "input.proxy", buildProxyCmd("addProxy", amqpStream.uuid))
 	log.Println("register command is send. waiting for response from kontrold...")
@@ -517,6 +523,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"no rabbit key defined for server '%s'. rabbit proxy aborted\"}\n", outreq.URL.Host))
 				return
 			}
+
 			log.Printf("proxy via rabbitmq to '%s'", outreq.URL.Host)
 			output := new(bytes.Buffer)
 			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
@@ -524,14 +531,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			if err != nil {
 				io.WriteString(rw, fmt.Sprint(err))
 				return
-			}
-
-			// declare just once time
-			if len(connections) == 0 {
-				err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
-				if err != nil {
-					log.Fatal("exchange.declare: %s", err)
-				}
 			}
 
 			if _, ok := connections[rabbitKey]; !ok {
