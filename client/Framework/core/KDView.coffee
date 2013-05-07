@@ -371,8 +371,9 @@ class KDView extends KDObject
     @destroySubViews()  if @getSubViews().length > 0
 
     # instance drops itself from its parent's subviews array
-    if @parent and @parent.subViews?
-      @parent.removeSubView @
+    if @parent?.subViews and index = @parent.subViews.indexOf @ >= 0
+        @subViews.splice index, 1
+        @unsetParent()
 
     # instance removes itself from DOM
     @getDomElement().remove()
@@ -418,6 +419,9 @@ class KDView extends KDObject
 
     return subView
 
+  # here for backwards compatibility - SY
+  removeSubView:(subView)-> subView.destroy()
+
   getSubViews:->
     ###
     FIX: NEEDS REFACTORING
@@ -429,14 +433,6 @@ class KDView extends KDObject
     if @items?
       subViews = subViews.concat [].slice.call @items
     subViews
-
-  removeSubView:(subViewInstance)->
-    for subView,i in @subViews
-      if subViewInstance is subView
-        @subViews.splice(i,1)
-        subViewInstance.getDomElement().detach()
-        subViewInstance.unsetParent()
-        subViewInstance.handleEvent { type : "viewRemoved"}
 
   setTemplate:(tmpl, params)->
     params ?= @getOptions()?.pistachioParams

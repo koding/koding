@@ -133,8 +133,7 @@ class KDTooltip extends KDView
   setView:(newView)->
     return unless newView
 
-    if @wrapper.view?
-      @wrapper.removeSubView @wrapper.view
+    @wrapper.view.destroy() if @wrapper.view?
 
     {options, data, constructorName} = newView
 

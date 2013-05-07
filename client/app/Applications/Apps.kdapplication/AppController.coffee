@@ -2,7 +2,7 @@ class AppsAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Apps"
-    route        : "Apps"
+    route        : "/Apps"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->

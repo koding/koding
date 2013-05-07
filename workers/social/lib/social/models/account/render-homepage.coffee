@@ -215,7 +215,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
       </div>
     </section>
   </div>
-    #{KONFIG.getConfigScriptTag profileEntryPoint: profile.nickname}
+    #{KONFIG.getConfigScriptTag entryPoint: { slug : profile.nickname, type: "profile" } }
     #{getScripts()}
   </body>
   </html>

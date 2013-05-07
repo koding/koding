@@ -2,20 +2,19 @@ class HomeLoginBar extends JView
 
   constructor:(options = {}, data)->
 
+    {entryPoint} = KD.config
+
     options.cssClass   = "home-links"
-    options.entryPoint = KD.config.profileEntryPoint or KD.config.groupEntryPoint
+    options.entryPoint = entryPoint?.slug
 
     super options, data
 
     @utils.wait 400, => @setClass 'in'
 
-    entryPoint = @getOptions().entryPoint or ''
-
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
-      route = "/#{entryPoint}#{route}" if entryPoint isnt ''
       @utils.stopDOMEvent event
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     requiresLogin = (callback)=>
       if KD.isLoggedIn() then do callback
@@ -49,7 +48,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Join"
       click       : (event)=>
-        if entryPoint isnt ''
+        if entryPoint.slug isnt ''
           @utils.stopDOMEvent event
           requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
         else
