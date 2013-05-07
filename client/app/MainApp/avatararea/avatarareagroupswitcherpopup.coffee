@@ -95,7 +95,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     KD.whoami().fetchGroups (err, groups)=>
       if err then warn err
       else if groups?
-        @listController.hideLazyLoader()
 
         stack = []
         groups.forEach (group)->
@@ -113,7 +112,9 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
                 return a.group.slug > b.group.slug
               else
                 return not a.admin and b.admin
+            @listController.hideLazyLoader()
             @listController.instantiateListItems results
+
 
   decreasePendingCount:->
     @pending--

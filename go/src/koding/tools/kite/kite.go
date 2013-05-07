@@ -24,14 +24,15 @@ type Kite struct {
 
 type Handler struct {
 	Concurrent bool
-	Callback   func(args *dnode.Partial, session *Session) (interface{}, error)
+	Callback   func(args *dnode.Partial, channel *Channel) (interface{}, error)
 }
 
-type Session struct {
+type Channel struct {
 	Username        string
 	RoutingKey      string
 	CorrelationName string
 	Alive           bool
+	KiteData        interface{}
 	onDisconnect    []func()
 }
 
@@ -42,7 +43,7 @@ func New(name string) *Kite {
 	}
 }
 
-func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.Partial, session *Session) (interface{}, error)) {
+func (k *Kite) Handle(method string, concurrent bool, callback func(args *dnode.Partial, channel *Channel) (interface{}, error)) {
 	k.Handlers[method] = Handler{concurrent, callback}
 }
 
@@ -52,8 +53,8 @@ func (k *Kite) Run() {
 
 	routeMap := make(map[string](chan<- []byte))
 	defer func() {
-		for _, channel := range routeMap {
-			close(channel)
+		for _, route := range routeMap {
+			close(route)
 		}
 	}()
 
@@ -87,29 +88,29 @@ func (k *Kite) Run() {
 
 			switch message.RoutingKey {
 			case "auth.join":
-				var session Session
-				err := json.Unmarshal(message.Body, &session)
-				if err != nil || session.Username == "" || session.RoutingKey == "" {
+				var channel Channel
+				err := json.Unmarshal(message.Body, &channel)
+				if err != nil || channel.Username == "" || channel.RoutingKey == "" {
 					log.Err("Invalid auth.join message.", message.Body)
 					continue
 				}
 
-				if _, found := routeMap[session.RoutingKey]; found {
+				if _, found := routeMap[channel.RoutingKey]; found {
 					log.Warn("Duplicate auth.join for same routing key.")
 					continue
 				}
-				channel := make(chan []byte, 1024)
-				routeMap[session.RoutingKey] = channel
+				route := make(chan []byte, 1024)
+				routeMap[channel.RoutingKey] = route
 
 				go func() {
 					defer log.RecoverAndLog()
-					defer session.Close()
+					defer channel.Close()
 
 					changeClientsGauge(1)
-					log.Debug("Client connected: " + session.Username)
+					log.Debug("Client connected: " + channel.Username)
 					defer func() {
 						changeClientsGauge(-1)
-						log.Debug("Client disconnected: " + session.Username)
+						log.Debug("Client disconnected: " + channel.Username)
 					}()
 
 					d := dnode.New()
@@ -148,14 +149,14 @@ func (k *Kite) Run() {
 						}
 
 						execHandler := func() {
-							result, err := handler.Callback(options.WithArgs, &session)
+							result, err := handler.Callback(options.WithArgs, &channel)
 							if b, ok := result.([]byte); ok {
 								result = string(b)
 							}
 
 							if err != nil {
 								if _, ok := err.(*WrongChannelError); ok {
-									if err := publishChannel.Publish("broker", session.RoutingKey+".cycleChannel", false, false, amqp.Publishing{}); err != nil {
+									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{}); err != nil {
 										log.LogError(err, 0)
 									}
 									return
@@ -182,8 +183,8 @@ func (k *Kite) Run() {
 					go func() {
 						defer log.RecoverAndLog()
 						for data := range d.SendChan {
-							log.Debug("Write", session.RoutingKey, data)
-							if err := publishChannel.Publish("broker", session.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
+							log.Debug("Write", channel.RoutingKey, data)
+							if err := publishChannel.Publish("broker", channel.RoutingKey, false, false, amqp.Publishing{Body: data}); err != nil {
 								log.LogError(err, 0)
 							}
 						}
@@ -193,14 +194,14 @@ func (k *Kite) Run() {
 
 					for {
 						select {
-						case message, ok := <-channel:
+						case message, ok := <-route:
 							if !ok {
 								return
 							}
-							log.Debug("Read", session.RoutingKey, message)
+							log.Debug("Read", channel.RoutingKey, message)
 							d.ProcessMessage(message)
 						case <-time.After(24 * time.Hour):
-							timeoutChannel <- session.RoutingKey
+							timeoutChannel <- channel.RoutingKey
 						}
 					}
 				}()
@@ -215,9 +216,9 @@ func (k *Kite) Run() {
 					continue
 				}
 
-				channel, found := routeMap[client.RoutingKey]
+				route, found := routeMap[client.RoutingKey]
 				if found {
-					close(channel)
+					close(route)
 					delete(routeMap, client.RoutingKey)
 				}
 
@@ -251,13 +252,13 @@ func (k *Kite) Run() {
 				}
 
 			default:
-				channel, found := routeMap[message.RoutingKey]
+				route, found := routeMap[message.RoutingKey]
 				if found {
 					select {
-					case channel <- message.Body:
+					case route <- message.Body:
 						// successful
 					default:
-						close(channel)
+						close(route)
 						delete(routeMap, message.RoutingKey)
 						log.Warn("Dropped client because of message buffer overflow.")
 					}
@@ -265,11 +266,11 @@ func (k *Kite) Run() {
 			}
 
 		case routingKey := <-timeoutChannel:
-			channel, found := routeMap[routingKey]
+			route, found := routeMap[routingKey]
 			if found {
-				close(channel)
+				close(route)
 				delete(routeMap, routingKey)
-				log.Warn("Dropped client because of fallback session timeout.")
+				log.Warn("Dropped client because of fallback channel timeout.")
 			}
 
 		case <-sigtermChannel:
@@ -280,14 +281,14 @@ func (k *Kite) Run() {
 	}
 }
 
-func (session *Session) OnDisconnect(f func()) {
-	session.onDisconnect = append(session.onDisconnect, f)
+func (channel *Channel) OnDisconnect(f func()) {
+	channel.onDisconnect = append(channel.onDisconnect, f)
 }
 
-func (session *Session) Close() {
-	session.Alive = false
-	for _, f := range session.onDisconnect {
+func (channel *Channel) Close() {
+	channel.Alive = false
+	for _, f := range channel.onDisconnect {
 		f()
 	}
-	session.onDisconnect = nil
+	channel.onDisconnect = nil
 }

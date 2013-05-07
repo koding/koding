@@ -24,7 +24,7 @@ class KDTooltip extends KDView
 
     @avoidDestroy = no
     @visible      = yes
-    @parentView   = @getDelegate()
+    @parentView   = options.view or @getDelegate()
 
     # Container for positioning in the viewport
     @setClass 'kdtooltip'
@@ -136,8 +136,7 @@ class KDTooltip extends KDView
   setView: (childView) ->
     return unless childView
 
-    if @wrapper.childView?
-      @wrapper.removeSubView @wrapper.childView
+    @wrapper.view.destroy() if @wrapper.view?
 
     if childView.constructorName
       {options, data, constructorName} = childView

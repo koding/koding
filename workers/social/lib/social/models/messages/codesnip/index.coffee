@@ -13,7 +13,8 @@ module.exports = class JCodeSnip extends JPost
 
   {secure} = require 'bongo'
   {extend} = require 'underscore'
-
+  {permit} = require '../../group/permissionset'
+  
   @trait __dirname, '../../../traits/grouprelated'
 
   @share()
@@ -59,6 +60,7 @@ module.exports = class JCodeSnip extends JPost
       meta        : data.meta
     JPost::modify.call @, client, codeSnip, callback
 
-  reply: secure (client, comment, callback)->
-    JComment = require '../comment'
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      JComment = require '../comment'
+      JPost::reply.call @, client, JComment, comment, callback

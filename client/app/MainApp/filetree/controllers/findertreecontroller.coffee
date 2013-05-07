@@ -391,17 +391,17 @@ class NFinderTreeController extends JTreeViewController
         @notify "App published!", "success"
       else
         @notify "Publish failed!", "error", err
-        if err.message
-          modal = new KDModalView
-            title        : "Publish failed!"
-            overlay      : yes
-            cssClass     : "new-kdmodal"
-            content      : "<div class='modalformline'>#{err.message}</div>"
-            buttons      :
-              "Close"    :
-                style    : "modal-clean-gray"
-                callback : (event)->
-                  modal.destroy()
+        message = err.message or err
+        modal = new KDModalView
+          title        : "Publish failed!"
+          overlay      : yes
+          cssClass     : "new-kdmodal"
+          content      : "<div class='modalformline'>#{message}</div>"
+          buttons      :
+            "Close"    :
+              style    : "modal-clean-gray"
+              callback : (event)->
+                modal.destroy()
 
   makeNewApp:(nodeView)->
     @getSingleton('kodingAppsController').makeNewApp()

@@ -2,7 +2,7 @@ class AppsAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Apps"
-    route        : "Apps"
+    route        : "/Apps"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->
@@ -22,7 +22,7 @@ class AppsAppController extends AppController
   createFeed:(view)->
 
     options =
-      itemClass          : AppsListItemView
+      itemClass             : AppsListItemView
       limitPerPage          : 10
       noItemFoundText       : "There is no app."
       filter                :
@@ -106,7 +106,7 @@ class AppsAppController extends AppController
         log "there was an error fetching topics #{err.message}"
 
   updateApps:->
-    @utils.wait 100, @feedController.changeActiveSort "meta.modifiedAt"
+    @utils.wait 100, @feedController?.changeActiveSort "meta.modifiedAt"
 
   createContentDisplay:(app, callback)->
     contentDisplay = @showContentDisplay app
@@ -131,7 +131,7 @@ class AppsAppController extends AppController
     log formData,"in createApp"
     # log JSON.stringify formData
     KD.remote.api.JApp.create formData, (err, app)->
-      callback? err,app
+      callback? err, app
 
   showAppSubmissionView:->
     modal       = new AppSubmissionModal

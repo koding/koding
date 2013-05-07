@@ -4,7 +4,7 @@ module.exports = class JBlogPost extends JPost
 
   {secure} = require 'bongo'
   {Relationship} = require 'jraphical'
-
+  {permit} = require '../../group/permissionset'
   {once, extend} = require 'underscore'
 
   @trait __dirname, '../../../traits/grouprelated'
@@ -74,6 +74,7 @@ module.exports = class JBlogPost extends JPost
       checksum    : JBlogPost.generateChecksum data.body
     JPost::modify.call @, client, blogPost, callback
 
-  reply: secure (client, comment, callback)->
-    JComment = require '../comment'
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      JComment = require '../comment'
+      JPost::reply.call @, client, JComment, comment, callback

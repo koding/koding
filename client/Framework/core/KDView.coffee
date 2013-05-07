@@ -342,29 +342,25 @@ class KDView extends KDObject
     positionOptions.position = "absolute"
     @$().css positionOptions
 
-  getWidth:()->
-    w = @getDomElement().width()
+  getWidth:()-> @$().width()
 
   setWidth:(w, unit = "px")->
     @getElement().style.width = "#{w}#{unit}"
-    # @getDomElement().width w
     @emit "ViewResized", {newWidth : w, unit}
 
   getHeight:()->
-    # @getDomElement()[0].clientHeight
-    @getDomElement().outerHeight(no)
+    @getDomElement().outerHeight no
 
-  setHeight:(h)->
-    @getElement().style.height = "#{h}px"
-    # @getDomElement().height h
-    @emit "ViewResized", newHeight : h
+  setHeight:(h, unit = "px")->
+    @getElement().style.height = "#{h}#{unit}"
+    @emit "ViewResized", {newHeight : h, unit}
 
-  getX:()->@getDomElement().offset().left
-  getRelativeX:()->@$().position().left
-  setX:(x)->@$().css left : x
-  getY:()->@getDomElement().offset().top
-  getRelativeY:->@getDomElement().position().top
-  setY:(y)->@$().css top : y
+  setX:(x)-> @$().css left : x
+  setY:(y)-> @$().css top : y
+  getX:-> @$().offset().left
+  getY:-> @$().offset().top
+  getRelativeX:-> @$().position().left
+  getRelativeY:-> @$().position().top
 
 # #
 # ADD/DESTROY VIEW INSTANCES
@@ -375,8 +371,10 @@ class KDView extends KDObject
     @destroySubViews()  if @getSubViews().length > 0
 
     # instance drops itself from its parent's subviews array
-    if @parent and @parent.subViews?
-      @parent.removeSubView @
+
+    if @parent?.subViews and (index = @parent.subViews.indexOf @) >= 0
+        @parent.subViews.splice index, 1
+        @unsetParent()
 
     # instance removes itself from DOM
     @getDomElement().remove()
@@ -422,6 +420,9 @@ class KDView extends KDObject
 
     return subView
 
+  # here for backwards compatibility - SY
+  removeSubView:(subView)-> subView.destroy()
+
   getSubViews:->
     ###
     FIX: NEEDS REFACTORING
@@ -433,14 +434,6 @@ class KDView extends KDObject
     if @items?
       subViews = subViews.concat [].slice.call @items
     subViews
-
-  removeSubView:(subViewInstance)->
-    for subView,i in @subViews
-      if subViewInstance is subView
-        @subViews.splice(i,1)
-        subViewInstance.getDomElement().detach()
-        subViewInstance.unsetParent()
-        subViewInstance.handleEvent { type : "viewRemoved"}
 
   setTemplate:(tmpl, params)->
     params ?= @getOptions()?.pistachioParams
