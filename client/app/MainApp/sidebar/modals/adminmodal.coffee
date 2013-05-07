@@ -798,7 +798,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
         exec    : =>
 
   setEditorText: (text = "new KDView({\n  partial: \"\"\n});") ->
-    @aceEditor.getSession().setValue text
+    @aceEditor.getSession().setValue Encoder.htmlDecode @parentData.snippet or text
 
   switchMode: ->
     {typeSwitch} = @inputs
