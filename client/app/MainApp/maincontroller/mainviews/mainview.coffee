@@ -68,7 +68,7 @@ class MainView extends KDView
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : if entryPoint?.type? == 'group' then 'group' else ''
+      cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
         # return if @userEnteredFromGroup()
@@ -77,7 +77,7 @@ class MainView extends KDView
 
         KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
 
-    if entryPoint?.slug? and entryPoint.type == "group"
+    if entryPoint?.slug? and entryPoint.type is "group"
       KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?

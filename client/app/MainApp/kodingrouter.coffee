@@ -26,10 +26,11 @@ class KodingRouter extends KDRouter
     super
     unless @userRoute
       {entryPoint} = KD.config
-      @handleRoute @defaultRoute,
+      @handleRoute @defaultRoute,{
         shouldPushState: yes
         replaceState: yes
         entryPoint
+      }
 
   notFound =(route)->
     # defer this so that notFound can be called before the constructor.
@@ -42,7 +43,7 @@ class KodingRouter extends KDRouter
       entrySlug = "/" + entryPoint.slug
       # indexOf = if sending route prefixed with groupname or entrySlug is the route
       # also we dont want to koding group name
-      if route.indexOf(entrySlug) != 0 and entrySlug isnt '/koding'
+      if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
     super route, options
