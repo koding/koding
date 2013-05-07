@@ -62,7 +62,7 @@ type DomainData struct {
 
 func NewDomainData(username, name, key, fullurl string) *DomainData {
 	return &DomainData{
-		Username: name,
+		Username: username,
 		Name:     name,
 		Key:      key,
 		FullUrl:  fullurl,
