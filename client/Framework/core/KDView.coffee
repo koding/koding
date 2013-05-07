@@ -115,6 +115,10 @@ class KDView extends KDObject
       else if subViews? and 'object' is typeof subViews
         fireViewAppended child for key, child of subViews
 
+      if @getOptions().introId
+        mainController = KD.getSingleton "mainController"
+        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", @
+
     # development only
     if location.hostname is "localhost"
       @on "click", (event)=>
@@ -796,6 +800,7 @@ class KDView extends KDObject
       right      : "w"
 
     o.title     or= ""
+    o.cssClass  or= ""
     o.placement or= "top"
     o.direction or= "center"
     o.offset    or=
@@ -810,6 +815,7 @@ class KDView extends KDObject
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
+    o.sticky    or= no
     o.delegate  or= @
     o.events    or= ['mouseenter','mouseleave','mousemove']
     o.viewCssClass or= null
