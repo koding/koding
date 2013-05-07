@@ -26,7 +26,7 @@ class StaticGroupController extends KDController
     @group             = null
     @mainController    = @getSingleton "mainController"
     @lazyDomController = @getSingleton "lazyDomController"
-    {@groupEntryPoint} = KD.config
+    {@entryPoint} = KD.config
 
     @reviveViews()
     @attachListeners()
@@ -231,7 +231,7 @@ class StaticGroupController extends KDController
       #   icon     : {}
       #   click    : (event)=>
       #     event.preventDefault()
-      #     @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+      #     @lazyDomController.openPath "/#{@entryPoint}/Activity"
 
       # @buttonWrapper.addSubView dashboard
 
@@ -269,8 +269,8 @@ class StaticGroupController extends KDController
 
   openGroup:->
     router = KD.getSingleton 'router'
-    if router.getCurrentPath() is @groupEntryPoint
-      @lazyDomController.openPath "/#{@groupEntryPoint}/Activity"
+    if router.getCurrentPath() is @entryPoint.slug
+      @lazyDomController.openPath "/Activity", {@entryPoint}
     else
       @lazyDomController.hideLandingPage()
     KD.utils.wait 600, -> $('#main-koding-loader').hide()
@@ -292,7 +292,7 @@ class StaticGroupController extends KDController
     @listenToNewMember()
 
     if KD.isLoggedIn()
-      KD.remote.api.JMembershipPolicy.byGroupSlug @groupEntryPoint, (err, policy)=>
+      KD.remote.api.JMembershipPolicy.byGroupSlug @entryPoint.slug, (err, policy)=>
         if err then console.warn err
         else unless policy?.approvalEnabled
           @requestButton.destroy()
@@ -328,7 +328,7 @@ class StaticGroupController extends KDController
     else @fetchGroup (err, group)-> cb group
 
   fetchGroup:(callback)->
-    KD.remote.cacheable @groupEntryPoint, (err, groups, name)=>
+    KD.remote.cacheable @entryPoint.slug, (err, groups, name)=>
       if err then callback err
       else if groups?.first
         @group = groups.first
