@@ -219,6 +219,8 @@ module.exports = [
   "app/CommonViews/fatih/fatihprefpane.coffee",
   "app/CommonViews/fatih/fatih.coffee",
 
+  "app/CommonViews/introductiontooltip.coffee",
+
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
