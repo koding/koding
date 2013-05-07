@@ -325,26 +325,6 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-
-  _permissionMap: ->
-    map =
-      '---': 0
-      '--x': 1
-      '-w-': 2
-      '-wx': 3
-      'r--': 4
-      'r-x': 5
-      'rw-': 6
-      'rwx': 7
-
-  symbolsPermissionToOctal: (permissions) ->
-    permissions = permissions.substr(1)
-
-    user    = permissions.substr 0, 3
-    group   = permissions.substr 3, 3
-    other   = permissions.substr 6, 3
-    octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
-
   getFullnameFromAccount:(account)->
     {firstName, lastName} = account.profile
     return "#{firstName} #{lastName}"
@@ -358,7 +338,7 @@ __utils =
       duration = 0
     setTimeout fn, duration
 
-  killWait:(id)-> clearTimeout id
+  killWait:(id)-> clearTimeout id if id
 
   repeat: (duration, fn)->
     if "function" is typeof duration
@@ -657,6 +637,28 @@ __utils =
   runXpercent: (percent)->
     chance = Math.floor(Math.random() * 100)
     chance <= percent
+
+  # deprecated functions starts
+  _permissionMap: ->
+    map =
+      '---': 0
+      '--x': 1
+      '-w-': 2
+      '-wx': 3
+      'r--': 4
+      'r-x': 5
+      'rw-': 6
+      'rwx': 7
+
+  symbolsPermissionToOctal: (permissions) ->
+    permissions = permissions.substr(1)
+
+    user    = permissions.substr 0, 3
+    group   = permissions.substr 3, 3
+    other   = permissions.substr 6, 3
+    octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
+
+  # deprecated ends
 
 ###
 //     Underscore.js 1.3.1
