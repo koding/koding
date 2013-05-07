@@ -117,8 +117,9 @@ class MainTabView extends KDTabView
     # this is a temporary hack
     # for reviving the main tabs
     # a better solution tbdl - SY
-    o.domId         = "maintabpane-#{@utils.slugify options.name}"
-    o.domId        += "-#{@utils.getRandomNumber()}" if document.getElementById o.domId
+    if document.getElementById o.domId
+      o.domId         = "maintabpane-#{@utils.slugify options.name}"
+
     o.name          = options.name
     o.behavior      = options.behavior
     o.hiddenHandle  = options.hiddenHandle
@@ -127,8 +128,9 @@ class MainTabView extends KDTabView
 
     paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
-      if options.appInfo?.title?
-        paneInstance.setTitle options.appInfo.title
+      appController = appManager.getByView mainView
+      {appInfo}     = appController.getOptions()
+      paneInstance.setTitle appInfo.title  if appInfo?.title
 
     @addPane paneInstance
 
