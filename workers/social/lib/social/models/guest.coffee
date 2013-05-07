@@ -118,6 +118,8 @@ module.exports = class JGuest extends jraphical.Module
                     delete obtaining[clientId]
                     callback null, guest
 
+  checkFlag:-> no
+
   fetchStorage: secure (client, options, callback)->
     JAppStorage = require './appstorage'
     callback null, new JAppStorage options
