@@ -418,7 +418,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		hostdata = *msg.Hostdata
 	}
 
-	if msg.Key != nil {
+	if msg.RabbitKey != nil {
 		rabbitkey = *msg.RabbitKey
 	}
 
