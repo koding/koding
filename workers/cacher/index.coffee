@@ -17,7 +17,7 @@ koding = new Bongo {
   mq           : new Broker mqOptions
   resourceName : cacheWorker.queueName
   models       : '../social/lib/social/models'
-}  
+}
 
 REROUTING_EXCHANGE_OPTIONS = 
   type        : 'fanout'
@@ -66,6 +66,7 @@ do ->
         connection.exchange 'broker', {type:'topic', autoDelete:no}, (exchange)->
           connection.queue '', {exclusive:yes, autoDelete:yes}, (queue)->
             queue.bind exchange, routingKey
+            exchange.close()
             queue.on 'queueBindOk', ->
               queue.subscribe (message)->
                 message   = JSON.parse koding.mq.cleanPayload message

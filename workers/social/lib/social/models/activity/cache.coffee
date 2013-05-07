@@ -492,38 +492,32 @@ module.exports = class JActivityCache extends jraphical.Module
     since = new Date()
     since.setDate(since.getDate() - timespan / 1000 / 60 / 60 / 24)
 
-    @some {to: {$gte: since}}, {sort: {to: 1}}, (err, caches)=>
+    @some {to: $gte: since}, {sort: to: 1}, (err, caches)=>
       if err then log err
       else
-        if not caches
-          log "no caches found since #{since}... No actions performed."
-          return
+        return log "no caches found since #{since}... No actions performed." unless caches
 
         foundInCache = null
         removedCollections = 0
 
-        queue = caches.map (cache)->
-          ->
-            # look for activity of user
-            if not foundInCache
-              for id, activity of cache.activities
-                if activity.originType == 'JAccount' and activity.originId.equals userId
-                  log "found activities of user in cache from #{cache.from}..."
-                  log "starting removing all cache collections from then..."
-                  foundInCache = cache
+        queue = caches.map (cache)->->
+          # look for activity of user
+          if not foundInCache
+            for id, activity of cache.activities
+              if activity.originType == 'JAccount' and activity.originId.equals userId
+                log "found activities of user in cache from #{cache.from}..."
+                log "starting removing all cache collections from then..."
+                foundInCache = cache
 
-              if not foundInCache
-                return queue.next()
+            return queue.next() unless foundInCache
 
-            cache.remove ->
-              log "removed cache collection #{cache._id}"
-              removedCollections++
-              queue.next()
+          cache.remove ->
+            log "removed cache collection #{cache._id}"
+            removedCollections++
+            queue.next()
 
         queue.push =>
-          if not foundInCache
-            log "no activities found of this user since #{since}."
-            return
+          return log "no activities found of this user since #{since}." unless foundInCache
 
           log "#{removedCollections} collections removed. Re-generating cache..."
 

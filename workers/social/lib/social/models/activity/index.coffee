@@ -230,7 +230,7 @@ module.exports = class CActivity extends jraphical.Capsule
         group        : client.groupName ? 'koding'
 
       selector.originId = originId if originId
-      selector.isLowQuality = { $ne : yes } if lowQuality is no
+      selector.isLowQuality = $ne : yes unless lowQuality
 
       options =
         limit : limit or 20

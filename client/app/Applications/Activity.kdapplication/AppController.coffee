@@ -189,7 +189,7 @@ class ActivityAppController extends AppController
 
     @isExempt (exempt)->
       options.lowQuality = exempt
-      KD.remote.api.CActivity.fetchFacets options, (err, activities)=>
+      KD.remote.api.CActivity.fetchFacets options, (err, activities)->
         if err then callback err
         else if not exempt
           KD.remote.reviveFromSnapshots clearQuotes(activities), callback

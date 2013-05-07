@@ -292,12 +292,10 @@ module.exports = class JPost extends jraphical.Message
           activityId = activityId_
           queue.next()
       =>
-        @fetchTeaser (err, teaser_)=>
-          if err
-            callback createKodingError err
-          else
-            teaser = teaser_
-            queue.next()
+        @fetchTeaser (err, teaser_)->
+          return callback createKodingError err if err
+          teaser = teaser_
+          queue.next()
       =>
         CActivity.update _id: activityId, {
           $set:
@@ -395,9 +393,7 @@ module.exports = class JPost extends jraphical.Message
       'data.deletedAt':
         $exists   : no
 
-    if not showIsLowQuality
-      query['data.flags.isLowQuality'] =
-        $ne: yes
+    query['data.flags.isLowQuality'] = $ne: yes unless showIsLowQuality
 
     @beginGraphlet()
       .edges

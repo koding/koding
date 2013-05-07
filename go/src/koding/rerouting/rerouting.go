@@ -31,7 +31,7 @@ type LeaveMsg struct {
 }
 
 var authPairs map[string]JoinMsg
-var exchanges map[string]bool
+var exchanges map[string]uint
 var producer *Producer
 
 func main() {
@@ -115,10 +115,7 @@ func startRouting() {
 			if err != nil {
 				log.Fatal("basic.cancel: %s", err)
 			}
-			// delete exchange reference so it gets redeclared
-			delete(exchanges, authPairs[leave.RoutingKey].Exchange)
-			// delete authPairs map
-			delete(authPairs, leave.RoutingKey)
+			updateExchangeCounter(leave);
 
 		default:
 			log.Println("routing key is not defined: ", msg.RoutingKey)
@@ -131,8 +128,21 @@ func declareExchange(c *Consumer, exchange string) {
 		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
 			log.Fatal("exchange.declare: %s", err)
 		}
-		exchanges[exchange] = true
+		exchanges[exchange] = 0
 	}
+	exchanges[exchange]++
+}
+
+func updateExchangeCounter(leave LeaveMsg) {
+	exchange string = authPairs[leave.RoutingKey].Exchange;
+	// decrement exchange counter
+	exchanges[exchange]--;
+	// delete exchange reference if 0 so it gets redeclared
+	if exchanges[exchange] <= 0 {
+		delete(exchanges, exchange)
+	}
+	// delete authPairs map
+	delete(authPairs, leave.RoutingKey)
 }
 
 func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string) {

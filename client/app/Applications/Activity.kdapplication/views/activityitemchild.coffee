@@ -88,7 +88,7 @@ class ActivityItemChild extends KDView
     if data.originId is KD.whoami().getId()
       menu =
         'Edit'     :
-          callback : =>
+          callback : ->
             mainController.emit 'ActivityItemEditLinkClicked', data
         'Delete'   :
           callback : =>
@@ -100,17 +100,17 @@ class ActivityItemChild extends KDView
       if data.isLowQuality
         menu =
           'Unmark User as Troll' :
-            callback : =>
+            callback             : ->
               mainController.unmarkUserAsTroll data
       else
         menu =
           'Mark User as Troll' :
-            callback : =>
+            callback           : ->
               mainController.markUserAsTroll data
 
       menu['Delete Post'] =
-          callback : =>
-            @confirmDeletePost data
+        callback : =>
+          @confirmDeletePost data
 
       return menu
 

@@ -76,17 +76,16 @@ module.exports = class JComment extends jraphical.Reply
       targetId  : @getId()
       as        : 'reply'
     }, (err, rel)->
-      if err
-        queue.fin err
+      if err then queue.fin err
       else
         rel.fetchSource (err, message)->
-          if err
-            queue.fin err
+          if err then queue.fin err
           else
             repliesCount = message.getAt 'repliesCount'
             daisy queue = [
-              ->
-                rel.update $set: 'data.flags.isLowQuality': isLowQuality, -> queue.next()
+              -> 
+                rel.update $set: 'data.flags.isLowQuality': isLowQuality, 
+                  -> queue.next()
               ->
                 message.update $inc: repliesCount: inc, -> queue.next()
               ->
