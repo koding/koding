@@ -252,7 +252,7 @@ func targetHost(username, servicename, key string) (string, error) {
 
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
-		return "", fmt.Errorf("no keys are available for user %s", key, username)
+		return "", fmt.Errorf("no keys are available for user %s", username)
 	} else {
 		_, ok := keyRoutingTable.Keys[key]
 		if !ok {
