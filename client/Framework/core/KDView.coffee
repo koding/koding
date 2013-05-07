@@ -371,8 +371,9 @@ class KDView extends KDObject
     @destroySubViews()  if @getSubViews().length > 0
 
     # instance drops itself from its parent's subviews array
-    if @parent?.subViews and index = @parent.subViews.indexOf @ >= 0
-        @subViews.splice index, 1
+
+    if @parent?.subViews and (index = @parent.subViews.indexOf @) >= 0
+        @parent.subViews.splice index, 1
         @unsetParent()
 
     # instance removes itself from DOM
