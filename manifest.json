@@ -1,0 +1,5 @@
+{
+"name": "proxy",
+"apiAdress": "localhost:3020",
+"version": "1"
+}

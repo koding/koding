@@ -121,10 +121,10 @@ app.get "/-/proxy/login", (req, res) ->
   rabbitAPI.setMQ mq
 
   {JKite} = koding.models
-  koding.models.JKite.control {key : req.query.rabbitkey, kiteName : req.query.name}, (err, kite) =>
+  koding.models.JKite.control {key : req.query.rabbitkey, kiteName : req.query.kitename}, (err, kite) =>
     res.header "Content-Type", "application/json"
 
-    console.log "QUERY", req.query
+    # console.log "QUERY", req.query
     if err? or !kite?
       console.log "ERROR", err
       res.send 401, JSON.stringify {error: "unauthorized - error code 0"}
@@ -136,28 +136,32 @@ app.get "/-/proxy/login", (req, res) ->
         else
           postData =
             key       : req.query.key
-            host      : req.query.host
+            host      : 'localhost:3020'
             rabbitkey : req.query.rabbitkey
 
-          proxyServer = 'mahlika.local' #TODO: change it to public url
+          apiServer   = 'api.x.koding.com'
+          proxyServer = 'proxy.in.koding.com'
+          # local development
+          # apiServer   = 'localhost:8000'
+          # proxyServer = 'mahlika.local'
 
           options =
             method  : 'POST'
-            uri     : "http://localhost:8000/proxies/#{proxyServer}/services/proxy"
+            uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{req.query.username}/#{kite.kiteName}"
             body    : JSON.stringify postData
             headers : {'content-type': 'application/json'}
 
           request.post options, (error, response, body) =>
             if error
-              console.log "ERROR", err
+              console.log "ERROR", error
               res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
             else if response.statusCode is 200
               creds =
                 protocol  : 'amqp'
-                host      : mq.apiAddress
+                host      : "kontrol.in.koding.com"
                 username  : data.username
                 password  : data.password
-                vhost     : mq.vhost
+                vhost     : "/"
                 publicUrl : body
 
               res.header "Content-Type", "application/json"

@@ -162,7 +162,7 @@ func parseKey(host string) (string, string, string, string) {
 		partsFirst := strings.Split(host, ".")
 		firstSub := partsFirst[0]
 
-		partsSecond := strings.SplitN(firstSub, "-", 2)
+		partsSecond := strings.SplitN(firstSub, "-", 3)
 		log.Println("PARTSECONDS", partsSecond) // debug
 		servicename := partsSecond[0]
 		key := partsSecond[1]
