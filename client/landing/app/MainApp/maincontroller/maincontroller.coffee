@@ -56,6 +56,8 @@ class MainController extends KDController
 
     @appStorages = {}
 
+    @introductionTooltipController = new IntroductionTooltipController
+
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
     if @appStorages[appName]?
