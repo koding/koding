@@ -237,7 +237,11 @@ module.exports = class JPost extends jraphical.Message
       dash queue, =>
         callback null
         @emit 'PostIsDeleted', 1
-        CActivity.emit "PostIsDeleted", {teaserId : id, createdAt}
+        CActivity.emit "PostIsDeleted", {
+          teaserId : id
+          createdAt
+          group    : @group
+        }
     else
       callback new KodingError 'Access denied!'
 
@@ -471,6 +475,7 @@ module.exports = class JPost extends jraphical.Message
   triggerCache:->
     CActivity.emit "PostIsUpdated",
       teaserId  : @getId()
+      group     : @group
       createdAt : @meta.createdAt
 
   update:(rest..., callback)->
