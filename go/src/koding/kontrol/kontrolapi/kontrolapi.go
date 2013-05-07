@@ -103,14 +103,14 @@ func main() {
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/services", GetProxyServices).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", DeleteProxyService).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetProxyService).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/domains/{username}", GetProxyDomains).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/domains/{username}/{domain}", CreateProxyDomain).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/domains/{username}/{domain}", DeleteProxyDomain).Methods("DELETE")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -197,16 +197,18 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Delete service for the given name
-// exameple: http DELETE /proxies/mahlika.local-915/{serviceName}
+// exameple: http DELETE /proxies/mahlika.local-915/{username}/{serviceName}
 func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
 	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "deleteName"
+	cmd.Action = "deleteServiceName"
 	cmd.Uuid = uuid
 	cmd.ServiceName = servicename
+	cmd.Username = username
 
 	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("service: '%s' is deleted on proxy uuid: '%s'", servicename, uuid)
@@ -220,6 +222,7 @@ func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 	key := vars["key"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
 	var cmd proxyconfig.ProxyMessage
 	cmd.Action = "deleteKey"
@@ -238,6 +241,7 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	domain := vars["domain"]
+	username := vars["username"]
 
 	var cmd proxyconfig.ProxyMessage
 	cmd.Action = "deleteDomain"
@@ -254,6 +258,7 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+	username := vars["username"]
 
 	proxyMachine, _ := proxyConfig.GetProxy(uuid)
 
@@ -274,6 +279,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	domain := vars["domain"]
+	username := vars["username"]
 
 	var msg ProxyPostMessage
 	var name string
@@ -348,6 +354,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
 	var msg ProxyPostMessage
 	var key string
@@ -430,6 +437,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+	username := vars["username"]
 
 	services := make([]string, 0)
 	proxyMachine, _ := proxyConfig.GetProxy(uuid)
@@ -459,6 +467,7 @@ func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
 	v := req.URL.Query()
 	key := v.Get("key")
