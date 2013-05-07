@@ -778,8 +778,8 @@ class IntroductionAdminForm extends KDFormViewWithFields
       return itemData
 
   setVisibilityOfOverlayWarning: (isShowing) ->
-    @warningView = @warningView or @fields?.warning.getSubViews()[1].getSubViews()[0]
-    if isShowing then @warningView?.show() else @warningView?.hide()
+    {warning} = @inputs
+    if isShowing then warning?.show() else warning?.hide()
 
   setAceEditor: ->
     require ["ace/ace"], (ace) =>
@@ -801,14 +801,14 @@ class IntroductionAdminForm extends KDFormViewWithFields
     @aceEditor.getSession().setValue text
 
   switchMode: ->
-    switchView = @fields.typeSwitch.getSubViews()[1].getSubViews()[0]
+    {typeSwitch} = @inputs
     if @snippetType is "Code"
-      switchView.updatePartial "Switch to Code Mode"
+      typeSwitch.updatePartial "Switch to Code Mode"
       @aceEditor.getSession().setMode "ace/mode/text"
       @snippetType = "Text"
       @setEditorText ""
     else
-      switchView.updatePartial "Switch to Text Mode"
+      typeSwitch.updatePartial "Switch to Text Mode"
       @aceEditor.getSession().setMode "ace/mode/javascript"
       @snippetType = "Code"
       @setEditorText()
