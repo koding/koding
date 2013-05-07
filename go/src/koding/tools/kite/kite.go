@@ -32,6 +32,7 @@ type Session struct {
 	RoutingKey      string
 	CorrelationName string
 	Alive           bool
+	KiteData        interface{}
 	onDisconnect    []func()
 }
 

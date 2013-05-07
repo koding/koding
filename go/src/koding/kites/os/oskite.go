@@ -170,21 +170,25 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic("User with too low uid.")
 		}
 
-		var vm *virt.VM
-		if bson.IsObjectIdHex(session.CorrelationName) {
-			db.VMs.FindId(bson.ObjectIdHex(session.CorrelationName)).One(&vm)
-		}
+		vm, _ := session.KiteData.(*virt.VM)
 		if vm == nil {
-			if err := db.VMs.Find(bson.M{"name": session.CorrelationName}).One(&vm); err != nil {
-				return nil, errors.New("There is no VM with name/id '" + session.CorrelationName + "'.")
+			if bson.IsObjectIdHex(session.CorrelationName) {
+				db.VMs.FindId(bson.ObjectIdHex(session.CorrelationName)).One(&vm)
 			}
-		}
+			if vm == nil {
+				if err := db.VMs.Find(bson.M{"name": session.CorrelationName}).One(&vm); err != nil {
+					return nil, errors.New("There is no VM with name/id '" + session.CorrelationName + "'.")
+				}
+			}
 
-		if vm.HostKite != k.ServiceUniqueName {
-			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
-				return nil, &kite.WrongChannelError{}
+			if vm.HostKite != k.ServiceUniqueName {
+				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+					return nil, &kite.WrongChannelError{}
+				}
+				vm.HostKite = k.ServiceUniqueName
 			}
-			vm.HostKite = k.ServiceUniqueName
+
+			session.KiteData = vm
 		}
 
 		infosMutex.Lock()
