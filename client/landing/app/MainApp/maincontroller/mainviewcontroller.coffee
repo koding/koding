@@ -41,7 +41,7 @@ class MainViewController extends KDViewController
     cdController.emit "ContentDisplaysShouldBeHidden"
 
     @setViewState pane.getOptions()
-    navController.selectItemByName route
+    navController.selectItemByName name
 
   isEntryPointSet = null
 
