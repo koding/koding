@@ -297,15 +297,7 @@ class KodingAppsController extends KDController
       @fetchApps (err, apps)->
         compileOnServer apps[name]
     else
-
-      @kiteController.run "test -d #{escapeFilePath @getAppPath @constructor.manifests[name]}", (err)=>
-        if err
-          new KDNotificationView
-            title    : "App list is out-dated, refreshing apps..."
-            duration : 2000
-          @refreshApps()
-        else
-          compileOnServer @constructor.manifests[name]
+      compileOnServer @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 
@@ -315,42 +307,34 @@ class KodingAppsController extends KDController
         new KDNotificationView type : "mini", title : "There was an error, please try again later!"
         callback? err
       else
-        # log manifests
         if app.title in Object.keys(manifests)
           new KDNotificationView type : "mini", title : "App is already installed!"
           callback? msg : "App is already installed!"
         else
-          # log "installing the app: #{app.title}"
           if not app.approved and not KD.checkFlag 'super-admin'
-            err = "This app is not approved, installation cancelled."
-            log err
+            warn err = "This app is not approved, installation cancelled."
             callback? err
           else
             app.fetchCreator (err, acc)=>
-              # log err, acc, ">>>>"
               if err
                 callback? err
               else
                 options =
-                  kiteName      : "applications"
-                  method        : "installApp"
+                  method        : "app.install"
                   withArgs      :
                     owner       : acc.profile.nickname
+                    identifier  : app.manifest.identifier
                     appPath     : @getAppPath app.manifest
-                    appName     : app.manifest.name
-                    version     : version
-                # log "asking kite to install", options
+                    version     : app.versions.last
+
                 @kiteController.run options, (err, res)=>
-                  log "Kite response: ", err, res
                   if err then warn err
                   else
                     app.install (err)=>
-                      log err if err
-                      # log callback
-                      # This doesnt work :#
+                      warn err  if err
                       KD.getSingleton("appManager").open "StartTab"
                       @refreshApps()
-                      # callback?()
+                      callback?()
 
   # #
   # MAKE NEW APP
