@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -557,6 +558,7 @@ func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 // http://localhost:8000/workers?name=social
 // http://localhost:8000/workers?state=stopped
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
+	log.Println("GET /workers")
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
 	query := bson.M{}
@@ -587,6 +589,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+	log.Printf("GET /workers/%s\n", uuid)
 
 	query := bson.M{"uuid": uuid}
 	matchedWorkers := queryResult(query)
@@ -599,6 +602,7 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+	log.Printf("DELETE /workers/%s\n", uuid)
 
 	buildSendCmd("delete", "", uuid)
 	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
@@ -614,6 +618,7 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid, action := vars["uuid"], vars["action"]
+	log.Printf("%s /workers/%s\n", strings.ToUpper(action), uuid)
 
 	buildSendCmd(action, "", uuid)
 	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
@@ -631,8 +636,6 @@ func queryResult(query bson.M) Workers {
 	if err != nil {
 		log.Println(err)
 	}
-
-	log.Println(query)
 
 	workers := make(Workers, 0)
 	worker := workerconfig.MsgWorker{}
