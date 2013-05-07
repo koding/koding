@@ -183,7 +183,7 @@ func lookupDomain(domainname string) (string, string, string, string, error) {
 		return "", "", "", "", fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	return domain.Name, domain.Key, domain.Username, domain.FullUrl, nil
+	return domain.Username, domain.Key, domain.Name, domain.FullUrl, nil
 }
 
 func targetUrl(username, key, servicename string) *url.URL {
