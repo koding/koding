@@ -5,11 +5,21 @@ class IntroductionTooltip extends KDObject
     super options, data
 
     {tooltipView, parentView} = @getOptions()
+    data = @getData()
 
     tooltipView.addSubView @closeButton = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "close-icon"
       click    : => @close()
+
+    if data.visibility is "stepByStep"
+      buttonTitle = if data.nextItem then "Next" else "Finish"
+      tooltipView.addSubView @navButton = new KDButtonView
+        title    : buttonTitle
+        cssClass : "editor-button"
+        callback : =>
+          @close yes
+          @emit "IntorductionTooltipNavigated", data
 
     parentView.setTooltip
       view     : tooltipView
@@ -19,8 +29,8 @@ class IntroductionTooltip extends KDObject
     @utils.defer =>
       parentView.tooltip.show()
 
-  close: ->
-    @emit "IntroductionTooltipClosed"
+  close: (hasNext) ->
+    @emit "IntroductionTooltipClosed", hasNext
     @destroy()
 
 
@@ -33,9 +43,13 @@ class IntroductionTooltipController extends KDController
     @currentTimestamp = Date.now()
     @shouldAddOverlay = no
     @visibleTooltips  = []
+    @stepByStepGroups = {}
 
     @getSingleton("mainController").on "FrameworkIsReady", =>
       @init()
+
+    @on "ShowIntroductionTooltip", (view) =>
+      @createInstance view
 
   init: ->
     return unless KD.whoami() instanceof KD.remote.api.JAccount
@@ -45,10 +59,21 @@ class IntroductionTooltipController extends KDController
       @introductionTooltipStatusStorage = new AppStorage "IntroductionTooltipStatus"
       @introductionTooltipStatusStorage.fetchStorage (storage) =>
         @introSnippets = snippets
+
         for snippet in snippets
           @shouldAddOverlay = yes if snippet.overlay is "yes"
-          for item in snippet.snippets
+          currentSnippets   = snippet.snippets
+          if snippet.visibility is "stepByStep"
+            @stepByStepGroups[snippet.title] = snippet
+            @stepByStepGroups[snippet.title].currentIndex = 0
+          for item, i in currentSnippets
             item.expiryDate = snippet.expiryDate
+            item.visibility = snippet.visibility
+            item.groupName  = snippet.title
+            if snippet.visibility is "stepByStep"
+              item.index    = i
+              item.nextItem = currentSnippets[i + 1]
+              item.prevItem = currentSnippets[i - 1]
             @createInstance null, item
 
         if @visibleTooltips.length > 0
@@ -57,23 +82,32 @@ class IntroductionTooltipController extends KDController
 
   createInstance: (parentView, data) ->
     assets = @getAssets parentView, data
-    return if not assets or @isExpired assets.data.expiryDate
+    data   = assets.data
+
+    return if not assets or @isExpired data.expiryDate
+    return if data.visibility is "stepByStep" and data.index > @stepByStepGroups[data.groupName].currentIndex
 
     {parentView, tooltipView} = assets
     tooltip = new IntroductionTooltip {
       parentView
       tooltipView
     }
-    , assets.data
+    , data
 
     if @visibleTooltips.indexOf(parentView.tooltip) is -1
       @visibleTooltips.push parentView.tooltip
 
-    tooltip.on "IntroductionTooltipClosed", =>
+    tooltip.on "IntroductionTooltipClosed", (hasNext) =>
       @close parentView.getOptions().introId
       parentView.tooltip.destroy()
       @visibleTooltips.splice @visibleTooltips.indexOf(tooltip), 1
-      @overlay.remove() if @visibleTooltips.length is 0
+      @overlay.remove() if @visibleTooltips.length is 0 and not hasNext
+
+    tooltip.on "IntorductionTooltipNavigated", (tooltipData) =>
+      {nextItem} = tooltipData
+      return @overlay.remove() unless nextItem
+      ++@stepByStepGroups[tooltipData.groupName].currentIndex
+      @createInstance null, nextItem
 
   isExpired: (expiryDate) ->
     return new Date(expiryDate).getTime() < @currentTimestamp
