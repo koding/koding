@@ -11,14 +11,3 @@ class AppsMainView extends KDView
     @addSubView header = new HeaderViewSection
       type  : "big"
       title : "App Catalog"
-
-  showContentDisplay:(content,contentType)->
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerApps null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.emit "ContentDisplayWantsToBeShown",contentDisplay
-
-  _windowDidResize:()->
-    # @appsSplitView.setRightColumnClass()
-    # @appsSplitView.panels[1].$(".listview-wrapper").height @appsSplitView.getHeight() - 28
-

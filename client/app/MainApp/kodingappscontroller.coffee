@@ -226,25 +226,19 @@ class KodingAppsController extends KDController
 
     @getAppScript manifest, (appScript)=>
 
-      manifest        = @constructor.manifests[appName]
-      userAppPath     = @getAppPath manifest
-      options         =
-        kiteName      : "applications"
-        method        : "publishApp"
-        withArgs      :
-          version     : manifest.version
-          appName     : manifest.name
-          userAppPath : userAppPath
-          profile     : KD.whoami().profile
+      manifest   = @constructor.manifests[appName]
+      appPath    = @getAppPath manifest
+      options    =
+        method   : "app.publish"
+        withArgs : {appPath}
 
       @kiteController.run options, (err, res)=>
-        log "app is being published"
         if err
           warn err
           callback? err
         else
           manifest.authorNick = KD.whoami().profile.nickname
-          jAppData   =
+          jAppData     =
             title      : manifest.name        or "Application Title"
             body       : manifest.description or "Application description"
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
@@ -255,35 +249,9 @@ class KodingAppsController extends KDController
               warn err
               callback? err
             else
-              # log app, "app published"
               KD.getSingleton("appManager").open "Apps"
               KD.getSingleton("appManager").tell "Apps", "updateApps"
               callback?()
-
-  approveApp:(app, callback)->
-
-    if not KD.checkFlag('super-admin')
-      err = "You are not authorized to approve apps."
-      log err
-      callback? err
-      return no
-
-    options         =
-      kiteName      : "applications"
-      method        : "approveApp"
-      withArgs      :
-        version     : app.manifest.version
-        appName     : app.manifest.name
-        authorNick  : app.manifest.authorNick
-
-    @kiteController.run options, (err, res)=>
-      log "app is being approved"
-      if err
-        warn err
-        callback? err
-      else
-        log app, "app approved"
-        callback?()
 
   compileApp:(name, callback)->
 
@@ -329,15 +297,7 @@ class KodingAppsController extends KDController
       @fetchApps (err, apps)->
         compileOnServer apps[name]
     else
-
-      @kiteController.run "test -d #{escapeFilePath @getAppPath @constructor.manifests[name]}", (err)=>
-        if err
-          new KDNotificationView
-            title    : "App list is out-dated, refreshing apps..."
-            duration : 2000
-          @refreshApps()
-        else
-          compileOnServer @constructor.manifests[name]
+      compileOnServer @constructor.manifests[name]
 
   installApp:(app, version='latest', callback)->
 
@@ -347,42 +307,34 @@ class KodingAppsController extends KDController
         new KDNotificationView type : "mini", title : "There was an error, please try again later!"
         callback? err
       else
-        # log manifests
         if app.title in Object.keys(manifests)
           new KDNotificationView type : "mini", title : "App is already installed!"
           callback? msg : "App is already installed!"
         else
-          # log "installing the app: #{app.title}"
           if not app.approved and not KD.checkFlag 'super-admin'
-            err = "This app is not approved, installation cancelled."
-            log err
+            warn err = "This app is not approved, installation cancelled."
             callback? err
           else
             app.fetchCreator (err, acc)=>
-              # log err, acc, ">>>>"
               if err
                 callback? err
               else
                 options =
-                  kiteName      : "applications"
-                  method        : "installApp"
+                  method        : "app.install"
                   withArgs      :
                     owner       : acc.profile.nickname
+                    identifier  : app.manifest.identifier
                     appPath     : @getAppPath app.manifest
-                    appName     : app.manifest.name
-                    version     : version
-                # log "asking kite to install", options
+                    version     : app.versions.last
+
                 @kiteController.run options, (err, res)=>
-                  log "Kite response: ", err, res
                   if err then warn err
                   else
                     app.install (err)=>
-                      log err if err
-                      # log callback
-                      # This doesnt work :#
+                      warn err  if err
                       KD.getSingleton("appManager").open "StartTab"
                       @refreshApps()
-                      # callback?()
+                      callback?()
 
   # #
   # MAKE NEW APP

@@ -12,13 +12,12 @@ class NavigationLink extends KDListItemView
   click:(event)->
     {appPath, title, path, type, topLevel} = @getData()
 
-    # This check is for Invite Friends link which has no app at all
+    # This check is for custom items which isn't connected to an app
     # or if the item is a separator
-    return if title is "Invite Friends" or type is "separator"
+    return unless path
 
     mc = @getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
-      orgEvent  : event
       pageName  : title
       appPath   : appPath or title
       path      : path

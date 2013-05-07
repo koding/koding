@@ -477,7 +477,8 @@ module.exports = class JGroup extends Module
     @fetchRolesByAccount client.connection.delegate, callback
 
   fetchUserRoles: permit 'grant permissions',
-    success:(client, callback)->
+    success:(client, ids, callback)->
+      [callback, ids] = [ids, callback]  unless callback
       @fetchRoles (err, roles)=>
         roleTitles = (role.title for role in roles)
         selector = {
@@ -485,6 +486,7 @@ module.exports = class JGroup extends Module
           sourceId    : @getId()
           as          : { $in: roleTitles }
         }
+        selector.targetId = $in: ids  if ids
         Relationship.someData selector, {as:1, targetId:1}, (err, cursor)->
           if err then callback err
           else

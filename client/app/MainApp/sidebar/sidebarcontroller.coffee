@@ -57,7 +57,7 @@ class SidebarController extends KDViewController
       groupsController.on 'GroupChanged', ->
         group = groupsController.getCurrentGroup()
 
-        # We need to fix that, it happens when you logged-in from groupEntryPoint
+        # We need to fix that, it happens when you logged-in from entryPoint
         return unless group
 
         group.fetchMyRoles (err, roles)=>
