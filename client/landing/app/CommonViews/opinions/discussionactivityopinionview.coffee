@@ -9,15 +9,21 @@ class DiscussionActivityOpinionView extends KDView
 
     @opinionList = new KDListView
       type          : "comments"
-      itemClass  : DiscussionActivityOpinionListItemView
+      itemClass     : DiscussionActivityOpinionListItemView
       delegate      : @
     , data
 
     @opinionController = new OpinionListViewController view: @opinionList
 
     @getData().on 'update', =>
-      if @opinionList.items.length < 2 and @getData().opinions
-        @opinionList.addItem @getData().opinions[@getData().opinions.length-1]
+      opinionsData = @getData().opinions
+      items = @opinionList.items
+      if opinionsData?.length and items.length < 2
+        opinions = opinionsData[0..1]
+        for opinion in opinions
+          for item in items when opinion isnt item.getData()
+            @opinionList.addItem opinion
+
 
     # the snapshot opinion list gets populated with 2 items at max initially
     # it may grow in size later on, when the user populates the data object
