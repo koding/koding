@@ -47,6 +47,7 @@ type ProxyMachines []ProxyMachine
 
 type ProxyPostMessage struct {
 	Name      *string
+	Username  *string
 	Domain    *string
 	Key       *string
 	RabbitKey *string
@@ -102,11 +103,12 @@ func main() {
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/services", GetProxyServices).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", GetProxyService).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", CreateProxyService).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}", DeleteProxyService).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/services/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetProxyService).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
@@ -149,13 +151,17 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	buildSendProxyCmd("deleteProxy", "", "", "", "", "", "", uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "deleteProxy"
+	cmd.Uuid = uuid
+
+	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("'%s' is deleted", uuid)
 	io.WriteString(writer, resp)
 }
 
-// Register a proxy
-// Example: http POST "localhost:8000/proxies" uuid=mahlika.local-916
+// Register a user proxy
+// Example: http POST "localhost:8000/proxies/{uuid}/{username}"
 func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	var msg ProxyPostMessage
 	var uuid string
@@ -181,45 +187,86 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	buildSendProxyCmd("addProxy", "", "", "", "", "", "", uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addProxy"
+	cmd.Uuid = uuid
+
+	buildSendProxyCmd(cmd)
 
 	resp := fmt.Sprintf("'%s' is registered", uuid)
 	io.WriteString(writer, resp)
 }
 
+// Register a proxy
+// example: http POST "localhost:8000/proxies/mahlika.local-915/{username}/services"
+func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	username := vars["username"]
+
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addUser"
+	cmd.Uuid = uuid
+	cmd.Username = username
+
+	buildSendProxyCmd(cmd)
+	resp := fmt.Sprintf("user '%s' is added to proxy uuid: '%s'", username, uuid)
+	io.WriteString(writer, resp)
+}
+
 // Delete service for the given name
-// exameple: http DELETE /proxies/mahlika.local-915/{serviceName}
+// exameple: http DELETE /proxies/mahlika.local-915/arslan/{serviceName}
 func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
-	buildSendProxyCmd("deleteName", "", servicename, "", "", "", "", uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "deleteServiceName"
+	cmd.Uuid = uuid
+	cmd.ServiceName = servicename
+	cmd.Username = username
+
+	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("service: '%s' is deleted on proxy uuid: '%s'", servicename, uuid)
 	io.WriteString(writer, resp)
 }
 
 // Delete key for the given name and key
-// exameple: http DELETE /proxies/mahlika.local-915/{serviceName}/{keyname}
+// exameple: http DELETE /proxies/mahlika.local-915/{username}/{serviceName}/{keyname}
 func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	key := vars["key"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
-	buildSendProxyCmd("deleteKey", "", servicename, key, "", "", "", uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "deleteKey"
+	cmd.Uuid = uuid
+	cmd.Key = key
+	cmd.ServiceName = servicename
+	cmd.Username = username
+
+	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("key: '%s' is deleted for service: '%s'", key, servicename)
 	io.WriteString(writer, resp)
 }
 
-// Delete key for the given name and key
+// Delete domain for the given name and key
 // exameple: http DELETE /proxies/mahlika.local-915/domains/blog.arsln.org
 func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	domain := vars["domain"]
 
-	buildSendProxyCmd("deleteDomain", domain, "", "", "", "", "", uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "deleteDomain"
+	cmd.Uuid = uuid
+	cmd.DomainName = domain
+
+	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("domain: '%s' is deleted on proxy uuid: '%s'", domain, uuid)
 	io.WriteString(writer, resp)
 }
@@ -244,7 +291,7 @@ func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Add domain to the domain routingtable
-// example: http POST "localhost:8000/proxies/mahlika.local-915/domains/blog.arsln.org" name=server key=15
+// example: http POST "localhost:8000/proxies/mahlika.local-915/domains/blog.arsln.org" name=server key=15 username=arslan
 func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -252,6 +299,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 
 	var msg ProxyPostMessage
 	var name string
+	var username string
 	var key string
 	var host string
 
@@ -268,6 +316,14 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		name = *msg.Name
 	} else {
 		err := "no 'name' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Username != nil {
+		username = *msg.Username
+	} else {
+		err := "no 'username' available"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
@@ -291,7 +347,17 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addDomain", domain, name, key, "", host, "FromKontrolAPI", uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addDomain"
+	cmd.Username = username
+	cmd.Uuid = uuid
+	cmd.Key = key
+	cmd.ServiceName = name
+	cmd.DomainName = domain
+	cmd.Host = host
+	cmd.HostData = "FromKontrolAPI"
+
+	buildSendProxyCmd(cmd)
 
 	var resp string
 	if host != "" {
@@ -306,14 +372,15 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Add key with proxy host to proxy machine with uuid
-// * If name is not available an new one is created
+// * If servicename is not available an new one is created
 // * If key is available tries to append it, if not creates a new key with host.
 // * If key and host is available it does nothing
-// example: http POST "localhost:8000/proxies/mahlika.local-915/services/server" key=2 host=localhost:8009 rabbitkey=1234567890
+// example: http POST "localhost:8000/proxies/mahlika.local-915/arslan/services/server" key=2 host=localhost:8009 rabbitkey=1234567890
 func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
 	var msg ProxyPostMessage
 	var key string
@@ -365,23 +432,42 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	buildSendProxyCmd("addKey", "", servicename, key, rabbitkey, host, hostdata, uuid)
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addKey"
+	cmd.Uuid = uuid
+	cmd.Key = key
+	cmd.RabbitKey = rabbitkey
+	cmd.ServiceName = servicename
+	cmd.Username = username
+	cmd.Host = host
+	cmd.HostData = hostdata
 
-	url := fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
+	buildSendProxyCmd(cmd)
+
+	url := fmt.Sprintf("http://%s-%s.x.koding.com", key, servicename)
 	io.WriteString(writer, url)
 	return
 }
 
 // Get all services registered to a proxy machine
-// example: http GET "localhost:8000/proxies/mahlika.local-915/services"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/{username}/services"
 func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
+	username := vars["username"]
 
 	services := make([]string, 0)
 	proxyMachine, _ := proxyConfig.GetProxy(uuid)
 
-	for name, _ := range proxyMachine.Services {
+	_, ok := proxyMachine.RoutingTable[username]
+	if !ok {
+		resp := fmt.Sprintf("getting proxy services is not possible. no user %s exists", username)
+		io.WriteString(writer, resp)
+		return
+	}
+	user := proxyMachine.RoutingTable[username]
+
+	for name, _ := range user.Services {
 		services = append(services, name)
 	}
 
@@ -396,16 +482,17 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Get all keys and hosts for a given proxy service registerd to a proxy uuid
-// example: http GET "localhost:8000/proxies/mahlika.local-915/foo"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo"
 //
 // accepts query filtering for key, host and hostdata
-// example: http GET "localhost:8000/proxies/mahlika.local-915/foo?key=2"
-// example: http GET "localhost:8000/proxies/mahlika.local-915/foo?host=localhost:8002"
-// example: http GET "localhost:8000/proxies/mahlika.local-915/foo?hostdata=FromKontrolAPI"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo?key=2"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo?host=localhost:8002"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo?hostdata=FromKontrolAPI"
 func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
+	username := vars["username"]
 
 	v := req.URL.Query()
 	key := v.Get("key")
@@ -414,7 +501,16 @@ func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	p := make(Proxies, 0)
 	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-	keyRoutingTable := proxyMachine.Services[servicename]
+
+	_, ok := proxyMachine.RoutingTable[username]
+	if !ok {
+		resp := fmt.Sprintf("getting proxy service is not possible. no user %s exists", username)
+		io.WriteString(writer, resp)
+		return
+	}
+	user := proxyMachine.RoutingTable[username]
+
+	keyRoutingTable := user.Services[servicename]
 
 	for _, keys := range keyRoutingTable.Keys {
 		for _, proxy := range keys {
@@ -587,17 +683,7 @@ func buildSendCmd(action, host, uuid string) {
 }
 
 // Creates and send request message for proxies. Sends to kontrold.
-func buildSendProxyCmd(action, domainname, servicename, key, rabbitkey, host, hostdata, uuid string) {
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = action
-	cmd.Uuid = uuid
-	cmd.Key = key
-	cmd.RabbitKey = rabbitkey
-	cmd.ServiceName = servicename
-	cmd.DomainName = domainname
-	cmd.Host = host
-	cmd.HostData = hostdata
-
+func buildSendProxyCmd(cmd proxyconfig.ProxyMessage) {
 	log.Println("Sending cmd to kontrold:", cmd)
 
 	// Wrap message for dynamic unmarshaling at endpoint

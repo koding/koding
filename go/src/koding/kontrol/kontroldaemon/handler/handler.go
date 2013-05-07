@@ -183,6 +183,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		key := strconv.Itoa(worker.Version)
 		cmd := proxyconfig.ProxyMessage{
 			Action:      "addKey",
+			Username:    "koding",
 			DomainName:  "",
 			ServiceName: worker.Name,
 			Key:         key,

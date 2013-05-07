@@ -12,6 +12,7 @@ type ProxyMessage struct {
 	Action      string `json:"action"`
 	DomainName  string `json:"domainName"`
 	ServiceName string `json:"serviceName"`
+	Username    string `json:"username"`
 	Key         string `json:"key"`
 	RabbitKey   string `json:"rabbitKey"`
 	Host        string `json:"host"`
@@ -53,16 +54,18 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 }
 
 type DomainData struct {
-	Name    string
-	Key     string
-	FullUrl string
+	Username string
+	Name     string
+	Key      string
+	FullUrl  string
 }
 
-func NewDomainData(name, key, fullurl string) *DomainData {
+func NewDomainData(username, name, key, fullurl string) *DomainData {
 	return &DomainData{
-		Name:    name,
-		Key:     key,
-		FullUrl: fullurl,
+		Username: username,
+		Name:     name,
+		Key:      key,
+		FullUrl:  fullurl,
 	}
 }
 
@@ -76,17 +79,27 @@ func NewDomainRoutingTable() *DomainRoutingTable {
 	}
 }
 
+type UserProxy struct {
+	Services map[string]KeyRoutingTable
+}
+
 type Proxy struct {
-	Services           map[string]KeyRoutingTable
-	DomainRoutingTable DomainRoutingTable
 	Uuid               string
+	RoutingTable       map[string]UserProxy
+	DomainRoutingTable DomainRoutingTable
 }
 
 func NewProxy(uuid string) *Proxy {
 	return &Proxy{
-		Services:           make(map[string]KeyRoutingTable),
-		DomainRoutingTable: *NewDomainRoutingTable(),
 		Uuid:               uuid,
+		RoutingTable:       make(map[string]UserProxy),
+		DomainRoutingTable: *NewDomainRoutingTable(),
+	}
+}
+
+func NewUserProxy() *UserProxy {
+	return &UserProxy{
+		Services: make(map[string]KeyRoutingTable),
 	}
 }
 
@@ -136,19 +149,33 @@ func (p *ProxyConfiguration) AddProxy(uuid string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddDomain(domainname, servicename, key, fullurl, uuid string) error {
+func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
-		return fmt.Errorf("adding domain not possible '%s'", err)
+		return fmt.Errorf("adding user is not possible '%s'", err)
+	}
+
+	proxy.RoutingTable[username] = *NewUserProxy()
+
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, fullurl, uuid string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("adding domain is not possible '%s'", err)
 	}
 
 	_, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(servicename, key, fullurl)
+		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(username, servicename, key, fullurl)
 	}
 
-	// domainMap := proxy.DomainRoutingTable.Domain
-	// proxy.DomainRoutingTable.Domain = domainMap
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -164,7 +191,7 @@ func (p *ProxyConfiguration) DeleteDomain(domainname, uuid string) error {
 
 	_, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		return errors.New("domain name is wrong. deleting domain is not possible")
+		return errors.New("deleting domain is not possible. domain name is wrong")
 	}
 
 	delete(proxy.DomainRoutingTable.Domains, domainname)
@@ -198,19 +225,26 @@ func (p *ProxyConfiguration) DeleteProxy(uuid string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteName(name, uuid string) error {
+func (p *ProxyConfiguration) DeleteServiceName(username, name, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("deleting key not possible '%s'", err)
 	}
 
-	_, ok := proxy.Services[name]
+	_, ok := proxy.RoutingTable[username]
+	if !ok {
+		return fmt.Errorf("deleting key is not possible. no user %s exists", username)
+	}
+	user := proxy.RoutingTable[username]
+
+	_, ok = user.Services[name]
 	if !ok {
 		return errors.New("service name is wrong. deleting service is not possible")
-
 	}
 
-	delete(proxy.Services, name)
+	delete(user.Services, name)
+
+	proxy.RoutingTable[username] = user
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -219,22 +253,29 @@ func (p *ProxyConfiguration) DeleteName(name, uuid string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteKey(name, key, host, hostdata, uuid string) error {
+func (p *ProxyConfiguration) DeleteKey(username, name, key, host, hostdata, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("deleting key not possible '%s'", err)
 	}
 
-	_, ok := proxy.Services[name]
+	_, ok := proxy.RoutingTable[username]
 	if !ok {
-		return errors.New("service name is wrong. deleting key is not possible")
+		return fmt.Errorf("deleting key is not possible. no user %s exists", username)
+	}
+	user := proxy.RoutingTable[username]
 
+	_, ok = user.Services[name]
+	if !ok {
+		return errors.New("deleting key is not possible. service name is wrong.")
 	}
 
-	keyRoutingTable := proxy.Services[name]
+	keyRoutingTable := user.Services[name]
 	delete(keyRoutingTable.Keys, key)
 
-	proxy.Services[name] = keyRoutingTable
+	user.Services[name] = keyRoutingTable
+
+	proxy.RoutingTable[username] = user
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -251,21 +292,35 @@ func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid, rabbitkey string) error {
+func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, rabbitkey string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
-		return fmt.Errorf("adding key not possible '%s'", err)
+		return fmt.Errorf("adding key is not possible. '%s'", err)
 	}
 
-	_, ok := proxy.Services[name]
+	_, ok := proxy.RoutingTable[username]
 	if !ok {
-		proxy.Services[name] = *NewKeyRoutingTable()
+		if username == "koding" {
+			err := p.AddUser(uuid, username)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("adding key is not possible. no user %s exists", username)
+		}
 	}
-	keyRoutingTable := proxy.Services[name]
+	user := proxy.RoutingTable[username]
+
+	_, ok = user.Services[name]
+	if !ok {
+		user.Services[name] = *NewKeyRoutingTable()
+	}
+	keyRoutingTable := user.Services[name]
 
 	if len(keyRoutingTable.Keys) == 0 { // empty routing table, add it
 		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-		proxy.Services[name] = keyRoutingTable
+		user.Services[name] = keyRoutingTable
+		proxy.RoutingTable[username] = user
 		err = p.UpdateProxy(proxy)
 		if err != nil {
 			return err
@@ -276,7 +331,8 @@ func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid, rabbitkey s
 	_, ok = keyRoutingTable.Keys[key] // new key, add it
 	if !ok {
 		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-		proxy.Services[name] = keyRoutingTable
+		user.Services[name] = keyRoutingTable
+		proxy.RoutingTable[username] = user
 		err = p.UpdateProxy(proxy)
 		if err != nil {
 			return err
@@ -284,16 +340,19 @@ func (p *ProxyConfiguration) AddKey(name, key, host, hostdata, uuid, rabbitkey s
 		return nil
 	}
 
-	// check for existing hostnames, if exist abort
-	for _, value := range keyRoutingTable.Keys[key] {
-		if value.Host == host {
-			return nil
-		}
-	}
+	/* check for existing hostnames, if exist abort. Comment out if you want
+	   * add multiple entities for a single key. Useful if you want use
+	   * round-robin.
+	   for _, value := range keyRoutingTable.Keys[key] {
+	       if value.Host == host {
+	           return nil
+	       }
+	   }
+	   keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+	*/
 
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-
-	proxy.Services[name] = keyRoutingTable
+	user.Services[name] = keyRoutingTable
+	proxy.RoutingTable[username] = user
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -318,5 +377,14 @@ func (p *ProxyConfiguration) GetProxy(uuid string) (Proxy, error) {
 	}
 
 	return result, nil
-
 }
+
+// func (p *ProxyConfiguration) GetUserProxy(username string) (UserProxy, error) {
+// 	result := UserProxy{}
+// 	err := p.Collection.Find(bson.M{"uuid": uuid}).One(&result)
+// 	if err != nil {
+// 		return result, fmt.Errorf("no proxy with the uuid %s exist.", uuid)
+// 	}
+//
+// 	return result, nil
+// }

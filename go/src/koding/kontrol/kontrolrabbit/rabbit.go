@@ -9,7 +9,10 @@ import (
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
+	"os"
 	"os/user"
 	"strings"
 )
@@ -25,6 +28,16 @@ type Producer struct {
 	channel *amqp.Channel
 }
 
+type Kdconfig struct {
+	Username string `json:"user.name"`
+}
+
+type Kdmanifest struct {
+	Kitename  string `json:"name"`
+	Apiadress string `json:"apiAdress"`
+	Version   string `json:"version"`
+}
+
 type Credentials struct {
 	Protocol  string `json:"protocol"`
 	Host      string `json:"host"`
@@ -37,15 +50,12 @@ type Credentials struct {
 var producer *Producer
 
 func main() {
-	fmt.Println("koding local proxy is starting...")
-
-	clientKey := readKey()
-	fmt.Printf("auth for key: %s and kite-name: proxy\n", clientKey)
-	cred, err := authUser(clientKey)
+	cred, err := authUser()
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println("auth is successfull")
+
+	log.Println(cred)
 
 	producer, err = createProducer(cred)
 	if err != nil {
@@ -54,9 +64,20 @@ func main() {
 	startRouting(cred)
 }
 
-func authUser(key string) (Credentials, error) {
-	registerApi := fmt.Sprintf("http://localhost:3020/-/proxy/login?rabbitkey=%s&name=proxy&key=1&host=localhost:8004", key)
-	resp, err := http.DefaultClient.Get(registerApi)
+func authUser() (Credentials, error) {
+	manifest := readManifest()
+	err := checkServer(manifest.Apiadress)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("could not connect to koding backend")
+		os.Exit(1)
+	}
+
+	query := createApiRequest()
+	requestUrl := "http://" + manifest.Apiadress + "/-/proxy/login?" + query
+
+	log.Println("REQUEST URL IS", requestUrl)
+	resp, err := http.DefaultClient.Get(requestUrl)
 	if err != nil {
 		return Credentials{}, err
 	}
@@ -70,8 +91,6 @@ func authUser(key string) (Credentials, error) {
 	if resp.StatusCode == 401 {
 		return Credentials{}, fmt.Errorf("Error %s", string(data))
 	}
-
-	// log.Println(string(data)) // debug
 
 	msg := Credentials{}
 	err = json.Unmarshal(data, &msg)
@@ -107,10 +126,7 @@ func startRouting(cred Credentials) {
 		log.Fatal(err)
 	}
 
-	// err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", false, true, false, false, nil)
-	// if err != nil {
-	// 	log.Fatal("exchange.declare: %s", err)
-	// }
+	// err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	clientKey := readKey()
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)
@@ -125,8 +141,7 @@ func startRouting(cred Credentials) {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	fmt.Printf("your public url: %s\nyour local port: 4000\n", cred.PublicUrl)
-	fmt.Print("proxy is ready and working...")
+	fmt.Printf("your public url: %s\n", cred.PublicUrl)
 	for msg := range httpStream {
 		// log.Printf("got %dB message data: [%v]-[%s] %s",
 		// 	len(msg.Body),
@@ -212,6 +227,20 @@ func createProducer(cred Credentials) (*Producer, error) {
 	return p, nil
 }
 
+func createApiRequest() string {
+	kiteKey := readKey()
+	manifest := readManifest()
+	userName := readUsername()
+
+	v := url.Values{}
+	v.Set("rabbitkey", kiteKey)
+	v.Set("kitename", manifest.Kitename)
+	v.Set("key", manifest.Version)
+	v.Set("username", userName)
+
+	return v.Encode()
+}
+
 func readKey() string {
 	usr, err := user.Current()
 	if err != nil {
@@ -226,4 +255,52 @@ func readKey() string {
 	}
 
 	return strings.TrimSpace(string(file))
+}
+
+func readUsername() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configfile := usr.HomeDir + "/.kdconfig"
+
+	file, err := ioutil.ReadFile(configfile)
+	if err != nil {
+		log.Println(err)
+	}
+
+	kdconfig := Kdconfig{}
+	err = json.Unmarshal(file, &kdconfig)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return kdconfig.Username
+}
+
+func readManifest() Kdmanifest {
+	configfile := "manifest.json"
+
+	file, err := ioutil.ReadFile(configfile)
+	if err != nil {
+		log.Println(err)
+	}
+
+	kdmanifest := Kdmanifest{}
+	err = json.Unmarshal(file, &kdmanifest)
+	if err != nil {
+		log.Println(err)
+		return Kdmanifest{}
+	}
+
+	return kdmanifest
+}
+func checkServer(host string) error {
+	c, err := net.Dial("tcp", host)
+	if err != nil {
+		return err
+	}
+	c.Close()
+	return nil
 }
