@@ -182,7 +182,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       inputOptions    :
         name          : 'entryPoint'
         type          : 'hidden'
-        defaultValue  : KD.config.groupEntryPoint
+        defaultValue  : KD.config.entryPoint?.slug
 
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"

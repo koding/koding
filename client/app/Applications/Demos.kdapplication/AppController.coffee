@@ -2,7 +2,7 @@ class DemosAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Demos"
-    route        : "Demos"
+    route        : "/Demos"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->
