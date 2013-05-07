@@ -14,12 +14,22 @@ class GroupGeneralSettingsView extends JView
     isPrivateGroup = 'private' is group.privacy
 
     _updateGroupHandler =(group, formData)=>
-      group.modify formData, (err)->
+      group.modify formData, (err)=>
+        @settingsForm.buttons.Save.hideLoader()
         if err
           new KDNotificationView
             title: err.message
             duration: 1000
         else
+          if formData.privacy isnt group.privacy
+            group.privacy = formData.privacy
+            if formData.privacy is 'private'
+              KD.getSingleton('appManager').tell 'Groups', 'prepareMembershipPolicyTab'
+              KD.getSingleton('appManager').tell 'Groups', 'prepareInvitationsTab'
+            else
+              @parent.parent.removePaneByName 'Membership policy'
+              @parent.parent.removePaneByName 'Invitations'
+
           new KDNotificationView
             title: 'Group was updated!'
             duration: 1000
@@ -33,7 +43,7 @@ class GroupGeneralSettingsView extends JView
           _updateGroupHandler group, formData
       buttons:
         Save                :
-          style             : "modal-clean-gray"
+          style             : "modal-clean-green"
           type              : "submit"
           loader            :
             color           : "#444444"
@@ -49,20 +59,8 @@ class GroupGeneralSettingsView extends JView
           label             : "Group Name"
           itemClass         : KDInputView
           name              : "title"
-          keydown           : (pubInst, event)=>
-            value = @settingsForm.inputs.Title.getValue()
-            setTimeout =>
-              slug = @utils.slugify @settingsForm.inputs.Title.getValue()
-              @settingsForm.inputs.Slug.setValue slug
-            , 1
           defaultValue      : Encoder.htmlDecode group.title ? ""
           placeholder       : 'Please enter a title here'
-        Slug :
-          itemClass         : KDInputView
-          label             : 'Path'
-          name              : "slug"
-          defaultValue      : group.slug ? ""
-          placeholder       : 'This value will be automatically generated'
         Description         :
           label             : "Description"
           type              : "textarea"

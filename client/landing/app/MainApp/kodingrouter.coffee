@@ -25,24 +25,38 @@ class KodingRouter extends KDRouter
   listen:->
     super
     unless @userRoute
-      @handleRoute @defaultRoute,
+      {entryPoint} = KD.config
+      @handleRoute @defaultRoute,{
         shouldPushState: yes
         replaceState: yes
+        entryPoint
+      }
 
   notFound =(route)->
     # defer this so that notFound can be called before the constructor.
     @utils.defer => @addRoute route, ->
       console.warn "Contract warning: shared route #{route} is not implemented."
 
+  handleRoute:(route, options={})->
+    {entryPoint} = options
+    if entryPoint?.slug?
+      entrySlug = "/" + entryPoint.slug
+      # indexOf = if sending route prefixed with groupname or entrySlug is the route
+      # also we dont want to koding group name
+      if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
+        route =  entrySlug + route
+
+    super route, options
+
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
-
+      {entryPoint} = KD.config
       if KD.isLoggedIn()
-        @handleRoute @userRoute or @getDefaultRoute(), replaceState: yes
+        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
       else
-        @handleRoute @getDefaultRoute()
+        @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -125,7 +139,7 @@ class KodingRouter extends KDRouter
       else
         @loadContent name, section, slug, route, query
 
-  clear:(route="/#{KD.config.groupEntryPoint ? ''}", replaceState=yes)->
+  clear:(route="/#{KD.config.entryPoint?.slug ? ''}", replaceState=yes)->
     super route, replaceState
 
   getRoutes =->
