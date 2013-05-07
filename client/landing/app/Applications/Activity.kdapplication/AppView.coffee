@@ -22,6 +22,7 @@ class ActivityAppView extends KDScrollView
     mainController    = @getSingleton("mainController")
 
     mainController.on "AccountChanged", @bound "decorate"
+    mainController.on "JoinedGroup", => @widget.show()
     mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
     @on 'scroll', @utils.throttle @bound("setFixed"), 250
 
@@ -35,7 +36,10 @@ class ActivityAppView extends KDScrollView
   decorate:->
     if KD.isLoggedIn()
       @setClass 'loggedin'
-      @widget.show()
+      if KD.config.entryPoint?.type is 'group' and 'member' not in KD.config.roles
+        @widget.hide()
+      else
+        @widget.show()
     else
       @unsetClass 'loggedin'
       @widget.hide()
