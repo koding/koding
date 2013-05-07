@@ -41,7 +41,7 @@ module.exports = class JUser extends jraphical.Module
                      'fucker','admin','postfix','puppet','main','invite',
                      'administrator','members','register','activate',
                      'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework']
+                     'term','twitter','facebook','google','framework', 'kite']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
@@ -59,6 +59,7 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    softDelete      : yes
     broadcastable   : no
     indexes         :
       username      : 'unique'
@@ -293,24 +294,26 @@ module.exports = class JUser extends jraphical.Module
           data = JSON.parse data.substr(1, data.length - 2)
           if data.error then callback yes else callback null
 
-  @addToGroup = (account, slug, callback)->
+  @addToGroup = (account, slug, isInvited, callback)->
+    [callback, isInvited] = [isInvited, callback]  unless callback
+    isInvited ?= no
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
+      else if not isInvited and group.privacy is 'private'
+        group.requestAccessFor account, callback
       else group.approveMember account, callback
 
-  @addToGroups = (account, invite, callback)->
+  @addToGroups = (account, invite, entryPoint, callback)->
     @addToGroup account, 'koding', (err)=>
       if err then callback err
-      else if invite.group
-        @addToGroup account, invite.group, (err)->
-          if err then callback err
-          else callback null
+      else if invite.group or entryPoint
+        @addToGroup account, invite.group or entryPoint, invite.group?, callback
       else callback null
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
-     agree, inviteCode, kodingenUser, clientId} = userFormData
+     agree, inviteCode, kodingenUser, clientId, entryPoint} = userFormData
 
     # The silence option provides silence registers,
     # means no welcome e-mail for new users.
@@ -378,6 +381,8 @@ module.exports = class JUser extends jraphical.Module
                             followActions  : off
                             comment        : on
                             likeActivities : off
+                            groupRequest   : on
+                            groupApproval  : on 
                           }
                         }
                         user.save (err)=>
@@ -398,7 +403,7 @@ module.exports = class JUser extends jraphical.Module
                               if err then callback err
                               else user.addOwnAccount account, (err)=>
                                 if err then callback err
-                                else @addToGroups account, invite, (err)->
+                                else @addToGroups account, invite, entryPoint, (err)->
                                   if err then callback err
                                   else if silence
                                     JUser.grantInitialInvitations user.username
@@ -551,7 +556,7 @@ module.exports = class JUser extends jraphical.Module
 
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView callback
+      else account.fetchHomepageView clientId, callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require './emailconfirmation'

@@ -26,14 +26,15 @@ class ApplicationManager extends KDObject
       image : "Viewer"
       sound : "Viewer"
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
-    @on 'AppManagerWantsToShowAnApp', @bound "setRouteSilently"
 
   open: do ->
 
     createOrShow = (appOptions, callback = noop)->
 
+      name = appOptions?.name
+      return warn "No such application!"  unless name
+
       appManager  = KD.getSingleton "appManager"
-      {name}      = appOptions
       appInstance = appManager.get name
       cb          = -> appManager.show appOptions, callback
       if appInstance then do cb
@@ -51,6 +52,18 @@ class ApplicationManager extends KDObject
       defaultCallback      = -> createOrShow appOptions, callback
       kodingAppsController = @getSingleton("kodingAppsController")
 
+      # If app has a preCondition then first check condition in it
+      # if it returns true then continue, otherwise call failure
+      # method of preCondition if exists
+      if appOptions?.preCondition? and not options.conditionPassed
+        appOptions.preCondition.condition (state)=>
+          if state
+            options.conditionPassed = yes
+            @open name, options, callback
+          else
+            appOptions.preCondition.failure? callback
+        return
+
       # if there is no registered appController
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller
@@ -61,15 +74,16 @@ class ApplicationManager extends KDObject
       # appManager.open back, this method should be divided
       # to some logical parts, and runApp should call the
       # appropriate method rather than ::open.
-      if not appOptions?
-        @fetchManifests ->
-          kodingAppsController.runApp (KD.getAppOptions name), callback
+      if not appOptions? and not options.requestedFromAppManager?
+        @fetchManifests name, =>
+          options.requestedFromAppManager = yes
+          @open name, options, callback
         return
-      else if appOptions.thirdParty and not options.requestedFromAppsController
+      else if appOptions?.thirdParty and not options.requestedFromAppsController
         kodingAppsController.runApp (KD.getAppOptions name), callback
         return
 
-      if appOptions.multiple
+      if appOptions?.multiple
 
         if options.forceNew or appOptions.openWith is "forceNew"
           @create name, (appInstance)=> @showInstance appInstance, callback
@@ -92,15 +106,16 @@ class ApplicationManager extends KDObject
                 else
                   warn "user cancelled app to open"
             else do defaultCallback
+
       else do defaultCallback
 
-  fetchManifests:(callback)->
+  fetchManifests:(appName, callback)->
 
     @getSingleton("kodingAppsController").fetchApps (err, manifests)->
       manifestsFetched = yes
-      for name, manifest of manifests
+      for name, manifest of manifests when name is appName
 
-        manifest.route        = "Develop"
+        manifest.route        = "/Develop"
         manifest.behavior   or= "application"
         manifest.thirdParty or= yes
 
@@ -131,12 +146,10 @@ class ApplicationManager extends KDObject
 
     return warn "ApplicationManager::tell called without an app name!"  unless name
 
-    log "::: Telling #{command} to #{name}"
+    # log "::: Telling #{command} to #{name}"
 
     app = @get name
-    cb  = (appInstance)->
-      log command, rest
-      appInstance?[command]? rest...
+    cb  = (appInstance)-> appInstance?[command]? rest...
 
     if app then cb app
     else @create name, cb
@@ -232,20 +245,6 @@ class ApplicationManager extends KDObject
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
 
-  setRouteSilently:(controller, view, options)->
-
-    {profileEntryPoint, groupEntryPoint} = KD.config
-
-    entryPoint = if profileEntryPoint or groupEntryPoint
-      "/#{profileEntryPoint or groupEntryPoint}"
-    else ''
-
-    return unless options.route
-
-    @getSingleton('router').handleRoute "#{entryPoint}/#{options.route}",
-      suppressListeners : yes
-
-
   createPromptModal:(appOptions, callback)->
     # show modal and wait for response
     {name} = appOptions
@@ -260,7 +259,6 @@ class ApplicationManager extends KDObject
         forms               :
           openWith          :
             callback        : (formOutput)->
-              log formOutput, "openWith ::::::"
               modal.destroy()
               {index, openNew} = formOutput
               callback index, openNew

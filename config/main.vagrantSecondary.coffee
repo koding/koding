@@ -1,50 +1,35 @@
-fs = require 'fs'
-nodePath = require 'path'
+fs              = require 'fs'
+nodePath        = require 'path'
+deepFreeze      = require 'koding-deep-freeze'
 
-version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
-
-# DEV
-mongo = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
-
-projectRoot = nodePath.join __dirname, '..'
-
-rabbitPrefix = ((
-  try fs.readFileSync nodePath.join(projectRoot, '.rabbitvhost'), 'utf8'
-  catch e then require("os").hostname()
-).trim())+"-dev-#{version}"
-rabbitPrefix = rabbitPrefix.split('.').join('-')
-
-socialQueueName = "koding-social-prod-#{version}"
-
-webPort          = 4040
-brokerPort       = 9010 + (version % 10)
-sourceServerPort = 1400 + (version % 10)
-dynConfig        = JSON.parse(fs.readFileSync("#{projectRoot}/config/.dynamic-config.json"))
+version         = "0.0.1"
+mongo           = 'dev:k9lc4G1k32nyD72@10.0.2.2:27017/koding'
+projectRoot     = nodePath.join __dirname, '..'
+socialQueueName = "koding-social-vagrant"
 
 module.exports =
-  haproxy:
-    webPort     : webPort
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://new.koding.com:4040"
+    address     : "http://localhost"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : dynConfig.webInternalPort
-    clusterSize : 10
+    port        : 3020
+    clusterSize : 1
     queueName   : socialQueueName+'web'
-    watch       : no
+    watch       : yes
   sourceServer  :
     enabled     : yes
-    port        : sourceServerPort
+    port        : 1337
   mongo         : mongo
   runGoBroker   : yes
+  runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
-  runOsKite     : no
+  runOsKite     : yes
   runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
@@ -67,30 +52,30 @@ module.exports =
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
-    login       : 'prod-authworker'
+    login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
-    numberOfWorkers: 2
-    watch       : no
-  cacheWorker   :
-    login       : 'prod-social'
-    watch       : no
-    queueName   : socialQueueName+'cache'
-    run         : yes
+    numberOfWorkers: 1
+    watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 10
-    watch       : no
+    numberOfWorkers: 1
+    watch       : yes
     queueName   : socialQueueName
+  cacheWorker   :
+    login       : 'prod-social'
+    watch       : yes
+    queueName   : socialQueueName+'cache'
+    run         : no
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
-    numberOfWorkers: 2
+    numberOfWorkers: 1
   presence      :
     exchange    : 'services-presence'
   client        :
     version     : version
-    watch       : no
-    watchDuration: 4000
+    watch       : yes
+    watchDuration : 300
     includesPath: 'client'
     websitePath : 'website'
     js          : "js/kd.#{version}.js"
@@ -98,45 +83,46 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://new.koding.com:4040'
+    staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
-      suppressLogs: yes
-      version   : version
-      mainUri   : 'http://new.koding.com:4040'
+      suppressLogs: no
       broker    :
-        sockJS  : "https://new.koding.com:#{brokerPort}/subscribe"
-      apiUri    : 'https://api.koding.com'
+        sockJS  : 'http://localhost:8008/subscribe'
+      apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
-      appsUri   : 'https://app.koding.com'
-      sourceUri : "http://new.koding.com:#{sourceServerPort}"
+      version   : version
+      mainUri   : 'http://localhost'
+      appsUri   : 'https://dev-app.koding.com'
+      sourceUri : 'http://localhost:1337'
   mq            :
-    host        : 'web-prod.in.koding.com'
-    login       : 'PROD-k5it50s4676pO9O'
+    host        : '10.0.2.2'
     port        : 5672
-    apiAddress  : "web-prod.in.koding.com"
-    apiPort     : 55672
-    componentUser: "prod-<component>"
-    password    : 'Dtxym6fRJXx4GJz'
+    apiAddress  : "10.0.2.2"
+    apiPort     : 15672
+    login       : 'PROD-k5it50s4676pO9O'
+    componentUser: "PROD-k5it50s4676pO9O"
+    password    : 'djfjfhgh4455__5'
     heartbeat   : 10
-    vhost       : 'new'
+    vhost       : '/'
   broker        :
     ip          : ""
-    port        : brokerPort
-    certFile    : "/etc/nginx/ssl/server_new.crt"
-    keyFile     : "/etc/nginx/ssl/server_new.key"
+    port        : 8008
+    certFile    : ""
+    keyFile     : ""
   kites:
     disconnectTimeout: 3e3
-    vhost       : 'new'
+    vhost       : 'kite'
   email         :
-    host        : 'koding.com'
-    protocol    : 'https:'
+    host        : 'localhost'
+    protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
-    run         : yes
-    defaultRecepient : 'chris@koding.com'
+    run         : no
+    defaultRecepient : undefined
   emailSender   :
     run         : no
   guests        :
@@ -148,11 +134,29 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   loggr:
     push: no
-    url: "http://post.loggr.net/1/logs/koding/events"
-    apiKey: "eb65f620b72044118015d33b4177f805"
+    url: ""
+    apiKey: ""
   librato:
     push: no
-    email: "devrim@koding.com"
-    token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
+    email: ""
+    token: ""
     interval: 60000
-
+  haproxy:
+    webPort     : 3020
+  # crypto :
+  #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
+  #     crypto = require "crypto"
+  #     str = str+""
+  #     key = key+""
+  #     cipher = crypto.createCipher('aes-256-cbc',""+key)
+  #     cipher.update(str,'utf-8')
+  #     a = cipher.final('hex')
+  #     return a
+  #   decrypt: (str,key=Math.floor(Date.now()/1000/60))->
+  #     crypto = require "crypto"
+  #     str = str+""
+  #     key = key+""
+  #     decipher = crypto.createDecipher('aes-256-cbc',""+key)
+  #     decipher.update(str,'hex')
+  #     b = decipher.final('utf-8')
+  #     return b

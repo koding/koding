@@ -11,6 +11,7 @@ module.exports = class JName extends Model
   @share()
 
   @set
+    softDelete        : yes
     sharedMethods     :
       static          : ['one','claimNames','migrateAllOldNames']
       instance        : ['migrateOldName']

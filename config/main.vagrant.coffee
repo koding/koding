@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+mongo           = 'dev:k9lc4G1k32nyD72@localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -12,13 +12,13 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://koding.local"
+    address     : "http://localhost"
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 2
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
@@ -26,10 +26,11 @@ module.exports =
     port        : 1337
   mongo         : mongo
   runGoBroker   : yes
+  runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
-  runProxy      : yes
+  runProxy      : no
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -82,22 +83,23 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://koding.local'
+    staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
-        sockJS  : 'http://koding.local:8008/subscribe'
+        sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://koding.local'
+      mainUri   : 'http://localhost'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://koding.local:1337'
+      sourceUri : 'http://localhost:1337'
   mq            :
-    host        : 'koding.local'
+    host        : 'localhost'
     port        : 5672
-    apiAddress  : "koding.local"
+    apiAddress  : "localhost"
     apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
@@ -113,7 +115,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'koding.local'
+    host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :

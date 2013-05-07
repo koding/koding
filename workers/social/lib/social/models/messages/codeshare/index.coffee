@@ -12,6 +12,9 @@ module.exports = class JCodeShare extends JPost
 
   {secure} = require 'bongo'
   {extend} = require 'underscore'
+  {permit} = require '../../group/permissionset'
+  
+  @trait __dirname, '../../../traits/grouprelated'
 
   {log} = console
   @share()
@@ -54,6 +57,7 @@ module.exports = class JCodeShare extends JPost
 
     JPost::modify.call @, client, codeShare, callback
 
-  reply: secure (client, comment, callback)->
-    JComment = require '../comment'
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      JComment = require '../comment'
+      JPost::reply.call @, client, JComment, comment, callback

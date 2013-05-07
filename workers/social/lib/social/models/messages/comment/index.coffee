@@ -8,6 +8,7 @@ module.exports = class JComment extends jraphical.Reply
 
   @trait __dirname, '../../../traits/likeable'
   @trait __dirname, '../../../traits/notifying'
+  @trait __dirname, '../../../traits/grouprelated'
 
   @share()
 

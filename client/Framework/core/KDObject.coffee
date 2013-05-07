@@ -62,7 +62,7 @@ class KDObject extends KDEventEmitter
   getOption:(key)-> @options[key] or null
 
   changeId:(id)->
-    KD.deleteInstance @
+    KD.deleteInstance id
     @id = id
     KD.registerInstance @
 
@@ -73,7 +73,6 @@ class KDObject extends KDEventEmitter
   getDelegate:->@delegate
 
   destroy:->
-
     @emit 'KDObjectWillBeDestroyed'
     KD.deleteInstance @id
 

@@ -21,28 +21,6 @@ class NFinderTreeController extends JTreeViewController
     return if o.foldersOnly and nodeData.type is "file"
     item = super nodeData, index
 
-  setItemListeners:(view, index)->
-
-    super
-
-    @setFileListeners view.getData()
-    #
-    # view.on "folderNeedsToRefresh", (newFile)=>
-    #
-    #   @navigateTo newFile.parentPath, =>
-    #     @selectNode @nodes[newFile.path]
-    #     @openFile @nodes[newFile.path]
-
-  listenedPaths: {}
-
-  setFileListeners:(file)->
-
-    unless @listenedPaths[file.path]
-      file.on "folderNeedsToRefresh", (newFile)=>
-        @navigateTo newFile.parentPath, =>
-          @selectNode @nodes[newFile.path]
-        @listenedPaths[file.path] = file.path
-
   highlightFile:(view)->
 
     @selectNode @nodes[view.data.path], null, no
@@ -57,51 +35,11 @@ class NFinderTreeController extends JTreeViewController
   navigateToNewFile:(newFile)->
 
     @navigateTo newFile.parentPath, =>
-
-      # arr = []
-      # unless @nodes[newFile.path]
-      #   arr.push item.getData().path for item in @listControllers[newFile.parentPath].itemsOrdered
-      #   arr.push newFile.path
-      #   arr.sort()
-      #   index = arr.indexOf newFile.path
-      #   @addNode newFile, index
-
       @selectNode @nodes[newFile.path]
-
-    # #
-    # # file.on "fs.saveAs.finished", (newFile, oldFile)=>
-    #
-    #   log "fs.saveAs.finished", "+>>>>>"
-    #
-    #   parentNode = @nodes[path]
-    #   if parentNode
-    #     if parentNode.expanded
-    #       @refreshFolder @nodes[path], =>
-    #         @selectNode @nodes[path]
-    #     else
-    #       @expandFolder @nodes[parentPath], =>
-    #         @selectNode @nodes[path]
-
-    # file.on "fs.remotefile.created", (oldPath)=>
-    #   tc = @treeController
-    #   parentNode = tc.nodes[file.parentPath]
-    #
-    #   if parentNode
-    #     if parentNode.expanded
-    #       tc.refreshFolder tc.nodes[file.parentPath], ->
-    #         tc.selectNode tc.nodes[file.path]
-    #     else
-    #       tc.expandFolder tc.nodes[file.parentPath], ->
-    #         tc.selectNode tc.nodes[file.path]
-    #   log "removed", oldPath
-    #   delete @aceViews[oldPath]
-    #   log "put", file.path
-    #   @aceViews[file.path]
 
   getOpenFolders: ->
 
     return Object.keys(@listControllers).slice(1)
-
 
   ###
   FINDER OPERATIONS
@@ -142,7 +80,7 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "Refreshing..."
     folder = nodeView.getData()
-    folder.emit "fs.nothing.finished", [] # in case of refresh to stop the spinner
+    folder.emit "fs.job.finished", [] # in case of refresh to stop the spinner
 
     @collapseFolder nodeView, =>
       @expandFolder nodeView, =>
@@ -164,24 +102,27 @@ class NFinderTreeController extends JTreeViewController
       callback? nodeView
       return
 
-    cb = @utils.getCancellableCallback (files)=>
-      @utils.killWait folder.failTimer
-      nodeView.expand()
-      @addNodes files
-      callback? nodeView
-      @emit "folder.expanded", nodeView.getData()
-      @emit 'fs.retry.success'
-      @hideNotification()
-
     folder = nodeView.getData()
 
-    folder.failTimer = @utils.wait 5000, =>
-      @notify "Couldn't fetch files! Click to retry", 'clickable', "Sorry, a problem occured while communicating with servers, please try again later.", yes
+    failCallback = =>
+      @notify "Couldn't fetch files! Click to retry", 'clickable', \
+              """Sorry, a problem occured while communicating with servers,
+                 please try again later.""", yes
       @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
-      folder.emit "fs.nothing.finished", []
-      cb.cancel()
+      folder.emit "fs.job.finished", []
 
-    folder.fetchContents cb
+    folder.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+      unless err
+        nodeView.expand()
+        if files
+          @addNodes files
+        callback? nodeView
+        @emit "folder.expanded", nodeView.getData()
+        @emit 'fs.retry.success'
+        @hideNotification()
+      else
+        failCallback()
+    , failCallback
 
   collapseFolder:(nodeView, callback)->
 
@@ -396,13 +337,13 @@ class NFinderTreeController extends JTreeViewController
   compileApp:(nodeView, callback)->
 
     folder = nodeView.getData()
-    folder.emit "fs.compile.started"
+    folder.emit "fs.job.started"
     kodingAppsController = @getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
     kodingAppsController.compileApp manifest.name, (err)=>
-      folder.emit "fs.compile.finished"
+      folder.emit "fs.job.finished"
       if not err
         @notify "App compiled!", "success"
         @utils.wait 500, =>
@@ -414,13 +355,13 @@ class NFinderTreeController extends JTreeViewController
   runApp:(nodeView, callback)->
 
     folder = nodeView.getData()
-    folder.emit "fs.run.started"
+    folder.emit "fs.job.started"
     kodingAppsController = @getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
     kodingAppsController.runApp manifest, =>
-      folder.emit "fs.run.finished"
+      folder.emit "fs.job.finished"
       callback?()
 
 
@@ -430,9 +371,9 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "not yet there!", "error"
 
-    # folder.emit "fs.clone.started"
+    # folder.emit "fs.job.started"
     # @getSingleton('kodingAppsController').cloneApp folder.path, =>
-    #   folder.emit "fs.clone.finished"
+    #   folder.emit "fs.job.finished"
     #   @refreshFolder @nodes[folder.parentPath], =>
     #     @utils.wait 500, =>
     #       @selectNode @nodes[folder.path]
@@ -443,24 +384,24 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
-    folder.emit "fs.publish.started"
+    folder.emit "fs.job.started"
     @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
-      folder.emit "fs.publish.finished"
+      folder.emit "fs.job.finished"
       unless err
         @notify "App published!", "success"
       else
         @notify "Publish failed!", "error", err
-        if err.message
-          modal = new KDModalView
-            title        : "Publish failed!"
-            overlay      : yes
-            cssClass     : "new-kdmodal"
-            content      : "<div class='modalformline'>#{err.message}</div>"
-            buttons      :
-              "Close"    :
-                style    : "modal-clean-gray"
-                callback : (event)->
-                  modal.destroy()
+        message = err.message or err
+        modal = new KDModalView
+          title        : "Publish failed!"
+          overlay      : yes
+          cssClass     : "new-kdmodal"
+          content      : "<div class='modalformline'>#{message}</div>"
+          buttons      :
+            "Close"    :
+              style    : "modal-clean-gray"
+              callback : (event)->
+                modal.destroy()
 
   makeNewApp:(nodeView)->
     @getSingleton('kodingAppsController').makeNewApp()
@@ -469,9 +410,9 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
 
-    folder.emit "fs.sourceDownload.started"
+    folder.emit "fs.job.started"
     @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
-      folder.emit "fs.sourceDownload.finished"
+      folder.emit "fs.job.finished"
       @refreshFolder @nodes[folder.parentPath]
       unless err
         @notify "Source downloaded!", "success"
@@ -483,7 +424,7 @@ class NFinderTreeController extends JTreeViewController
     CodeShares = []
     @notify "Fetching file list..."
 
-    data.fetchContents (items)=>
+    data.fetchContents (err, items)=>
       @notify "Fetching file contents..."
       files = (file for file in items when file.constructor.name is 'FSFile')
       count = 0
@@ -600,6 +541,11 @@ class NFinderTreeController extends JTreeViewController
     if $(event.target).is ".chevron"
       @contextMenu nodeView, event
       return no
+
+    if $(event.target).is ".arrow"
+      @openItem nodeView
+      return no
+
     super
 
   dblClick:(nodeView, event)->
@@ -654,12 +600,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-
-    sameParent = no
-    @selectedNodes.forEach (selectedNode)->
-      sameParent = yes if selectedNode.getData().parentPath is nodeView.getData().parentPath
-
-    return if sameParent
+    return unless nodeView.getData?().type in ['folder', 'mount']
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView
@@ -765,3 +706,9 @@ class NFinderTreeController extends JTreeViewController
           @getSingleton('windowController').addLayer details
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
+
+  refreshTopNode:->
+    KD.logToMixpanel "sharedHosting click on refresh success"
+
+    {nickname} = KD.whoami().profile
+    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"

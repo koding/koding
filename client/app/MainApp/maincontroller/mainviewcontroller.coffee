@@ -9,15 +9,14 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
-    mainView.on "SidebarCreated", (sidebar)=>
-      mainController.sidebarController = new SidebarController view : sidebar
+    cb = (account)->
+      mainController.sidebarController?.accountChanged account
 
-      mainController.on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
-        mainController.sidebarController.accountChanged account
+    mainController.on 'AccountChanged', (account)=>
+      if KD.isLoggedIn()
+      then mainController.loginScreen.hide cb.bind this, account
+      else cb account
 
-      mainController.on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-        mainController.loginScreen.hide =>
-          mainController.sidebarController.accountChanged account
     # mainView.on "BottomPanelCreated", (bottomPanel)=>
     #   @bottomPanelController = new BottomPanelController view : bottomPanel
 
@@ -43,9 +42,6 @@ class MainViewController extends KDViewController
     cdController    = @getSingleton("contentDisplayController")
 
     cdController.emit "ContentDisplaysShouldBeHidden"
-
-    if route is 'Develop'
-      router.handleRoute '/Develop', suppressListeners: yes
 
     @setViewState pane.getOptions()
     navController.selectItemByName route

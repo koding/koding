@@ -17,12 +17,11 @@ class NFinderController extends KDViewController
     treeOptions.contextMenu       = options.contextMenu        ?= yes
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.useStorage        = options.useStorage         ?= no
-    treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= yes
+    treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= no
     treeOptions.delegate          = @
 
     super options, data
 
-    @kiteController = @getSingleton('kiteController')
     @treeController = new NFinderTreeController treeOptions, []
 
     if options.useStorage
@@ -80,7 +79,7 @@ class NFinderController extends KDViewController
     kiteController          = KD.getSingleton('kiteController')
 
     timer = Date.now()
-    @mount.emit "fs.fetchContents.started"
+    @mount.emit "fs.job.started"
 
     log "Calling readDirectory..."
     {nickname} = KD.whoami().profile
@@ -102,7 +101,7 @@ class NFinderController extends KDViewController
         @lastSuccessfulResponse = response
 
       log "#{(Date.now()-timer)/1000}sec !"
-      @mount.emit "fs.fetchContents.finished"
+      @mount.emit "fs.job.finished"
 
   setRecentFile:(filePath, callback)->
 

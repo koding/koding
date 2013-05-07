@@ -1,6 +1,7 @@
 class KDInputRadioGroup extends KDInputView
   constructor:(options)->
-    options.type or= 'radio'
+    options.type           or= 'radio'
+    options.cssClassPrefix or= ''
 
     super options
 
@@ -13,7 +14,7 @@ class KDInputRadioGroup extends KDInputView
       radioOptions.callback or= ->
 
       div     = $ "<div/>",
-        class : "kd-#{@getType()}-holder #{@utils.slugify radioOptions.value}"
+        class : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
 
       radio   = $ "<input/>",
         type   : @getType()
@@ -26,7 +27,7 @@ class KDInputRadioGroup extends KDInputView
       label   = $ "<label/>",
         for   : "#{@getId()}_#{@getType()}_#{i}"
         html  : radioOptions.title
-        class : @utils.slugify radioOptions.value
+        class : options.cssClassPrefix + @utils.slugify radioOptions.value
 
       div.append radio
       div.append label
@@ -35,6 +36,8 @@ class KDInputRadioGroup extends KDInputView
       if not radioOptions.visible
         div.hide()
     @domElement
+
+  click:-> @setValue @getValue()
 
   setDefaultValue:(value) ->
     @inputDefaultValue = value
@@ -47,6 +50,8 @@ class KDInputRadioGroup extends KDInputView
     # @getDomElement().find("input[value='#{value}']").parent().siblings().removeClass('checked')
     # @getDomElement().find("input[value='#{value}']").parent().addClass('checked')
     @getDomElement().find("input[value='#{value}']").attr "checked","checked"
+    @getDomElement().find(".kd-radio-holder").removeClass 'active'
+    @getDomElement().find(".kd-radio-holder.#{value}").addClass 'active'  if value
 
   getInputElements:->
     @getDomElement().find('input')

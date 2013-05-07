@@ -104,17 +104,16 @@ class KDView extends KDObject
       # temp fix for KDTreeView
       # subviews are stored in an object not in an array
       # hmm not really sth weirder going on...
-      type = $.type subViews
-      if type is "array"
-        for child in subViews
-          unless child.parentIsInDom
-            child.parentIsInDom = yes
-            child.emit 'viewAppended', child
-      else if type is "object"
-        for key,child of subViews
-          unless child.parentIsInDom
-            child.parentIsInDom = yes
-            child.emit 'viewAppended', child
+
+      fireViewAppended = (child)->
+        unless child.parentIsInDom
+          child.parentIsInDom = yes
+          child.emit 'viewAppended', child unless child.lazy
+
+      if Array.isArray subViews
+        fireViewAppended child for child in subViews
+      else if subViews? and 'object' is typeof subViews
+        fireViewAppended child for key, child of subViews
 
     # development only
     if location.hostname is "localhost"
@@ -128,11 +127,6 @@ class KDView extends KDObject
           log @
           return false
 
-  unsetParent:()->
-    delete @parent
-
-  getTagName:-> @options.tagName || 'div'
-
   setInstanceVariables:(options)->
     {@domId, @parent} = options
     @subViews = []
@@ -144,7 +138,7 @@ class KDView extends KDObject
     @setDomAttributes options.attributes  if options.attributes
     @setSize options.size                 if options.size
     @setPosition options.position         if options.position
-    @setPartial options.partial           if options.partial
+    @updatePartial options.partial           if options.partial
     if options.preserveValue
       log 'preserving', options.preserveValue
       @setPreserveValue options.preserveValue
@@ -216,6 +210,8 @@ class KDView extends KDObject
   getDomElement:-> @domElement
 
   getElement:-> @getDomElement()[0]
+
+  getTagName:-> @options.tagName || 'div'
 
   # shortcut method for @getDomElement()
 
@@ -322,38 +318,48 @@ class KDView extends KDObject
     # @$().show duration
     #@getDomElement()[0].style.display = "block"
 
-  setSize:(sizes)->
-    @setWidth   sizes.width  if sizes.width?
-    @setHeight  sizes.height if sizes.height?
+  setSize: do->
+    counter = 0
+    isPredefinedSize = (size)->
+      # we have predefined classes for 0 to 1000px
+      return !isNaN(size) and (1000 >= size >= 0)
+
+    (sizes)->
+      if sizes.width?
+        if isPredefinedSize sizes.width
+        then @setClass "w#{sizes.width}"
+        else @setWidth sizes.width
+
+      if sizes.height?
+        if isPredefinedSize sizes.height
+        then @setClass "h#{sizes.height}"
+        else @setHeight  sizes.height
+
 
   setPosition:()->
     positionOptions = @getOptions().position
     positionOptions.position = "absolute"
     @$().css positionOptions
 
-  getWidth:()->
-    w = @getDomElement().width()
+  getWidth:()-> @$().width()
 
   setWidth:(w, unit = "px")->
     @getElement().style.width = "#{w}#{unit}"
-    # @getDomElement().width w
     @emit "ViewResized", {newWidth : w, unit}
 
   getHeight:()->
-    # @getDomElement()[0].clientHeight
-    @getDomElement().outerHeight(no)
+    @getDomElement().outerHeight no
 
-  setHeight:(h)->
-    @getElement().style.height = "#{h}px"
-    # @getDomElement().height h
-    @emit "ViewResized", newHeight : h
+  setHeight:(h, unit = "px")->
+    @getElement().style.height = "#{h}#{unit}"
+    @emit "ViewResized", {newHeight : h, unit}
 
-  getX:()->@getDomElement().offset().left
-  getRelativeX:()->@$().position().left
-  setX:(x)->@$().css left : x
-  getY:()->@getDomElement().offset().top
-  getRelativeY:->@getDomElement().position().top
-  setY:(y)->@$().css top : y
+  setX:(x)-> @$().css left : x
+  setY:(y)-> @$().css top : y
+  getX:-> @$().offset().left
+  getY:-> @$().offset().top
+  getRelativeX:-> @$().position().left
+  getRelativeY:-> @$().position().top
 
 # #
 # ADD/DESTROY VIEW INSTANCES
@@ -361,17 +367,18 @@ class KDView extends KDObject
 
   destroy:->
     # instance destroys own subviews
-    @destroySubViews() if @getSubViews().length > 0
+    @destroySubViews()  if @getSubViews().length > 0
 
     # instance drops itself from its parent's subviews array
-    if @parent and @parent.subViews?
-      @parent.removeSubView @
+
+    if @parent?.subViews and (index = @parent.subViews.indexOf @) >= 0
+        @parent.subViews.splice index, 1
+        @unsetParent()
 
     # instance removes itself from DOM
     @getDomElement().remove()
 
-    if @$overlay?
-      @removeOverlay()
+    @removeOverlay()  if @$overlay?
 
     # call super to remove instance subscriptions
     # and delete instance from KD.instances registry
@@ -412,6 +419,9 @@ class KDView extends KDObject
 
     return subView
 
+  # here for backwards compatibility - SY
+  removeSubView:(subView)-> subView.destroy()
+
   getSubViews:->
     ###
     FIX: NEEDS REFACTORING
@@ -424,14 +434,6 @@ class KDView extends KDObject
       subViews = subViews.concat [].slice.call @items
     subViews
 
-  removeSubView:(subViewInstance)->
-    for subView,i in @subViews
-      if subViewInstance is subView
-        @subViews.splice(i,1)
-        subViewInstance.getDomElement().detach()
-        subViewInstance.unsetParent()
-        subViewInstance.handleEvent { type : "viewRemoved"}
-
   setTemplate:(tmpl, params)->
     params ?= @getOptions()?.pistachioParams
     options = if params? then {params}
@@ -439,18 +441,17 @@ class KDView extends KDObject
     @updatePartial @template.html
     @template.embedSubViews()
 
-  pistachio:(tmpl)->
-    "#{@options.prefix}#{tmpl}#{@options.suffix}"
+  pistachio:(tmpl)-> "#{@options.prefix}#{tmpl}#{@options.suffix}"
 
   setParent:(parent)->
-    if @parent?
-      log "view:", @, "parent:", @parent
-      error 'View already has a parent'
+    if @parent? then error 'View already has a parent', this, @parent
     else
       if defineProperty
         defineProperty @, 'parent', value : parent, configurable : yes
       else
         @parent = parent
+
+  unsetParent:()-> delete @parent
 
   embedChild:(placeholderId, child, isCustom)->
 
@@ -835,7 +836,6 @@ class KDView extends KDObject
 
     @getSingleton('windowController').registerWindowResizeListener @
 
-
   notifyResizeListeners:->
 
     @getSingleton('windowController').notifyWindowResizeListeners()
@@ -867,7 +867,6 @@ class KDView extends KDObject
 
     if storedValue
       @utils.defer => @applyPreserveValue storedValue
-
 
   applyPreserveValue:(value)->
     if @getOptions().preserveValue.setValue

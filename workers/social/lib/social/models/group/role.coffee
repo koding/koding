@@ -6,6 +6,7 @@ module.exports = class JGroupRole extends Module
   KodingError   = require '../../error'
 
   @set
+    softDelete        : yes
     schema            :
       title           : String
       value           : String
@@ -39,7 +40,7 @@ module.exports = class JGroupRole extends Module
           if err then callback err
           else callback null, newRole
       else
-        callback null
+        callback null, role
 
   createDefaultRolesHelper = (callback)->
 

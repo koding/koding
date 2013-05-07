@@ -8,9 +8,9 @@ class GroupPermissionsView extends JView
 
     group = @getData()
 
-    @getDelegate().bindEvent 'scroll'
-    @getDelegate().on 'scroll', =>
-      # _.debounce @setButtonPosition @calculateButtonPosition(), 25, yes
+    @getDelegate().tabView.bindEvent 'scroll'
+
+    @getDelegate().tabView.on 'scroll', =>
       @setButtonPosition @calculateButtonPosition()
 
     @listenWindowResize()
@@ -33,13 +33,19 @@ class GroupPermissionsView extends JView
           unless err
             if newPermissions
               permissionSet.permissions = newPermissions
-            if @permissions then @removeSubView @permissions
+
+            @permissions.destroy() if @permissions
+
             @addSubView @permissions = new PermissionsModal {
               privacy: group.privacy
               permissionSet
               roles
+              delegate : @
             }, group
-            @setButtonPosition @calculateButtonPosition()
+
+            @_windowDidResize()
+            @utils.defer =>
+              @setButtonPosition @calculateButtonPosition()
 
             @permissions.emit 'RoleViewRefreshed'
             @permissions.on 'RoleWasAdded', (newPermissions,role,copy)=>
@@ -63,33 +69,27 @@ class GroupPermissionsView extends JView
     addPermissionsView()
 
   setButtonPosition:(offset)->
-    # @permissions.$('.formline.button-field').css
-    #     top : "#{offset.buttons}px"
+    @permissions.$('.formline.button-field').css
+        top : "#{offset.buttons}px"
     @permissions?.$('.formline.permissions-header.head').css
         top : "#{offset.header}px"
 
 
   calculateButtonPosition:->
     if @permissions
-      delegate = @getDelegate()
+      delegate  = @getDelegate().tabView
 
-      headerHeight    = delegate.$('.group-header').outerHeight(yes)
-      tabHeight       = delegate.$('.kdtabhandlecontainer').outerHeight(yes)
-      buttonHeight    = @permissions.$('.formline.button-field').outerHeight(yes)
-      scrollTop       = delegate.getDomElement()[0].scrollTop
-      subHeaderHeight = delegate.$('.sub-header').outerHeight(yes)
-      visibleHeight   = delegate.$().outerHeight(yes)
-      contentHeight   = delegate.$('.group-content').outerHeight(yes)
-      buttons = visibleHeight+scrollTop-buttonHeight-headerHeight
+      scrollTop = delegate.getDomElement()[0].scrollTop
+      buttons   = 15+1+@visibleHeight+scrollTop-@buttonHeight-@headerHeight
 
-      if buttons + buttonHeight isnt contentHeight
+      if buttons + @buttonHeight isnt @contentHeight
         @setScrollingBottom()
       else
         @unsetScrollingBottom()
 
       header = 0 # default abs() is non-sticky with top 0
-      if scrollTop > (headerHeight-subHeaderHeight+tabHeight)
-        header += scrollTop-headerHeight+subHeaderHeight-tabHeight
+      if scrollTop > @tabHeight-@subHeaderHeight
+        header += scrollTop-@tabHeight+@subHeaderHeight
         @setScrollingTop()
       else @unsetScrollingTop()
 
@@ -114,6 +114,16 @@ class GroupPermissionsView extends JView
     @loaderText.show()
 
   _windowDidResize: (event) ->
+
+    delegate = @getDelegate().tabView
+
+    @headerHeight    = @getDelegate().parent.parent.$('.group-header').outerHeight(yes)
+    @tabHeight       = delegate.$('.kdtabhandlecontainer').outerHeight(yes)
+    @buttonHeight    = @permissions.$('.formline.button-field').outerHeight(yes)
+    @subHeaderHeight = @getDelegate().parent.parent.$('.sub-header').outerHeight(yes)
+    @visibleHeight   = delegate.$().outerHeight(yes)
+    @contentHeight   = @getDelegate().parent.parent.$('.group-content').outerHeight(yes)
+
     @setButtonPosition @calculateButtonPosition()
 
   pistachio:->
