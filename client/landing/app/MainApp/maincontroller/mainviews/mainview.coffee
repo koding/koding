@@ -12,6 +12,8 @@ class MainView extends KDView
     @createChatPanel()
     @listenWindowResize()
 
+    @utils.defer => @_windowDidResize()
+
   putAbout:->
 
     @putOverlay
@@ -58,29 +60,26 @@ class MainView extends KDView
         $('.kdoverlay').remove()
 
   addHeader:->
-    log "adding header"
 
     @addSubView @header = new KDView
       tagName : "header"
       domId   : "main-header"
 
-    if groupEntryPoint = KD.config.groupEntryPoint
-      route = "/#{groupEntryPoint}/Activity"
-
+    {entryPoint} = KD.config
     @header.addSubView @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
-      cssClass  : if groupEntryPoint then 'group' else ''
+      cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
         # return if @userEnteredFromGroup()
         event.stopPropagation()
         event.preventDefault()
 
-        KD.getSingleton('router').handleRoute route
+        KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
 
-    if KD.config.groupEntryPoint
-      KD.remote.cacheable KD.config.groupEntryPoint, (err, models)=>
+    if entryPoint?.slug? and entryPoint.type is "group"
+      KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [group] = models
@@ -117,8 +116,9 @@ class MainView extends KDView
 
   createSideBar:->
 
-    @sidebar = new Sidebar domId : "sidebar", delegate : @
-    @emit "SidebarCreated", @sidebar
+    @sidebar             = new Sidebar domId : "sidebar", delegate : @
+    mc                   = @getSingleton 'mainController'
+    mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
 
   createChatPanel:->

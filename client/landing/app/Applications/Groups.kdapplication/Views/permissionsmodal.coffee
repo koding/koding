@@ -19,10 +19,11 @@ class PermissionsModal extends KDFormViewWithFields
           color     : "#444444"
           diameter  : 12
         callback          : =>
-          @addSubView addRoleDialog = new KDDialogView
+
+          @getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
             cssClass      : "add-role-dialog"
             duration      : 200
-            topOffset     : 21
+            topOffset     : 0
             overlay       : yes
             height        : 'auto'
             buttons       :
@@ -71,25 +72,30 @@ class PermissionsModal extends KDFormViewWithFields
             partial       : 'Add new Role'
 
           wrapper.addSubView form = new KDFormView
+          form.addSubView inputFormline = new KDView
+            cssClass : 'formline'
 
-          form.addSubView labelRoleName = new KDLabelView
+          inputFormline.addSubView labelRoleName = new KDLabelView
             cssClass      : 'label-role-name'
             title         : "Role Name:"
 
-          form.addSubView @inputRoleName = inputRoleName = new KDInputView
+          inputFormline.addSubView @inputRoleName = inputRoleName = new KDInputView
             cssClass      : 'role-name'
             label         : labelRoleName
             defaultValue  : ''
             placeholder   : 'new-role'
 
-          form.addSubView labelCopyPermissions = new KDLabelView
+          form.addSubView copyFormline = new KDView
+            cssClass : 'formline'
+
+          copyFormline.addSubView labelCopyPermissions = new KDLabelView
             cssClass      : 'label-copy-permissions'
             title         : "Copy Permissions from"
 
           selectOptions   = [{title:'None',value:null}]
           selectOptions.push {title:readableText(role),value:role} for role in roles
 
-          form.addSubView @inputCopyPermissions = new KDSelectBox
+          copyFormline.addSubView @inputCopyPermissions = new KDSelectBox
             cssClass      : 'copy-permissions'
             selectOptions : selectOptions
             defaultValue  : null
@@ -116,7 +122,6 @@ class PermissionsModal extends KDFormViewWithFields
     dictionary =
       "JTag" : "Tags"
       "JGroup": 'Groups'
-      "JReview": 'Reviews'
       "JPost":'Posts'
       "JVocabulary": 'Vocabularies'
       "JVM": "Compute"

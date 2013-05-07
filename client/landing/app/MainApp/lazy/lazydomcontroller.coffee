@@ -1,8 +1,8 @@
 class LazyDomController extends KDController
 
   fetchCurrentGroup = (callback)->
-    {groupEntryPoint} = KD.config
-    KD.remote.api.JGroup.one slug: groupEntryPoint, (err, group)=>
+    {entryPoint} = KD.config
+    KD.remote.api.JGroup.one slug: entryPoint.slug, (err, group)=>
       error err if err
       if err then new KDNotificationView
         title : "An error occured, please try again"
@@ -74,9 +74,9 @@ class LazyDomController extends KDController
     contentPanel.setClass "no-anim"
     contentPanel.setClass "social"
 
-  userEnteredFromGroup:-> KD.config.groupEntryPoint?
+  userEnteredFromGroup:-> (KD.config.entryPoint? and KD.config.entryPoint.type is "group")
 
-  userEnteredFromProfile:-> KD.config.profileEntryPoint?
+  userEnteredFromProfile:-> (KD.config.entryPoint? and KD.config.entryPoint.type is "profile")
 
   addGroupViews:->
 
@@ -92,16 +92,16 @@ class LazyDomController extends KDController
     @staticProfileController = new StaticProfileController
     {@landingView}           = @staticProfileController
 
-  openPath:(path)-> @getSingleton('router').handleRoute path
+  openPath:(path, options ={})-> @getSingleton('router').handleRoute path, options
 
   handleNavigationItemClick:(item, event)->
 
     mc = @getSingleton 'mainController'
     {action, path} = item
     {loginScreen, mainViewController}    = mc
-    {groupEntryPoint, profileEntryPoint} = KD.config
+    {entryPoint} = KD.config
 
-    return @openPath(path) if path
+    return @openPath(path, {entryPoint}) if path
 
     switch action
       when 'login'
@@ -117,8 +117,8 @@ class LazyDomController extends KDController
               title : "An error occured, please try again"
             else
               new KDNotificationView
-                title : "You successfully joined to group!"
-              @openPath "/#{groupEntryPoint}/Activity"
+                title : "You've successfully joined to group!"
+              @openPath "/Activity", {entryPoint}
 
       when 'logout'
         mainViewController.getView().hide()
@@ -135,7 +135,6 @@ class LazyDomController extends KDController
 
   requestAccess:->
     {loginScreen} = @getSingleton('mainController')
-    {groupEntryPoint, profileEntryPoint} = KD.config
 
     if KD.isLoggedIn()
       fetchCurrentGroup (group)=>

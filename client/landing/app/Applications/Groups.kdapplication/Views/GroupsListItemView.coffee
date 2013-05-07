@@ -62,30 +62,25 @@ class GroupsListItemView extends KDListItemView
       title   : 'Open group'
       click   : @bound 'privateGroupOpenHandler'
 
-    membersController = new KDListViewController
+    @membersController = new KDListViewController
       view         : @members = new KDListView
         wrapper    : no
         scrollView : no
         type       : "members"
         itemClass  : GroupItemMemberView
-
-    # FIXME: SY
-    # instantiateListItems doesnt fire by default
-    group.fetchMembers (err, members)=>
-      if err then warn err
-      else if members
-        @$('.members-list-wrapper').removeClass "hidden"
-        membersController.instantiateListItems members
+    @fetchMembers() if group.privacy is 'public'
 
     @memberBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge member"
-      partial   : "<span class='fold'/>You are a member"
+      partial   : "You are a member"
 
     @privateBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
-      partial   : "<span class='fold'/><span class='icon'/>"
+      partial   : "<span class='icon'/>"
+      tooltip   :
+        title   : "Restricted access"
 
     @memberCount = new CustomLinkView
       title       : "#{group.counts?.members or 'No'} Members"
@@ -96,7 +91,7 @@ class GroupsListItemView extends KDListItemView
     menu = @settingsMenu data
     if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent group-settings-context'
+        style       : 'group-settings-context'
         title       : ''
         delegate    : @
         type        : 'contextmenu'
@@ -118,7 +113,22 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
-  markOwnGroup:-> @setClass "own-group"
+  markMemberGroup:->
+    @setClass "group-member"
+    @settingsButton.options.style += " group-member"
+    @fetchMembers() if @getData().privacy isnt 'public'
+
+  markOwnGroup:->
+    @setClass "group-owner"
+    @settingsButton.options.style += " group-owner"
+    @memberBadge.stopUpdatingPartial = yes
+    @memberBadge.updatePartial "<span class='fold'/>You are owner"
+
+  markGroupAdmin:->
+    @setClass "group-admin"
+    @settingsButton.options.style += " group-admin"
+    unless @memberBadge.stopUpdatingPartial?
+      @memberBadge.updatePartial "<span class='fold'/>You are an admin"
 
   pistachio:->
     """
@@ -147,6 +157,7 @@ class GroupsListItemView extends KDListItemView
 
     if data.slug isnt 'koding'
       menu['Leave Group'] =
+        cssClass : 'leave-group'
         callback : =>
           modal = new KDModalView
             title          : 'Leave Group'
@@ -161,13 +172,30 @@ class GroupsListItemView extends KDListItemView
                   diameter : 16
                 callback   : =>
                   @leaveGroup data, =>
-                    @unsetClass 'own-group'
+                    @memberBadge.hide()
+                    @settingsButton.hide()
+                    @unsetClass 'group-owner'
                     modal.buttons.Leave.hideLoader()
                     modal.destroy()
               Cancel       :
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
 
+      menu['Remove Group'] =
+        cssClass : 'remove-group'
+        callback : =>
+          modal = new GroupsDangerModalView
+            action     : 'Remove Group'
+            longAction : 'remove this group'
+            callback   : (callback)=>
+              data.remove (err)=>
+                callback()
+                if err
+                  return new KDNotificationView title: if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                new KDNotificationView title:'Successfully removed!'
+                modal.destroy()
+                @destroy()
+          , data
 
     return menu
 
@@ -182,9 +210,23 @@ class GroupsListItemView extends KDListItemView
         return callback()
 
       new KDNotificationView
-        title    : 'Fair Enough! They are gonna miss you.'
+        title    : 'Successfully left group!'
         duration : 2000
+
+      currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
+      currentGroupSlug = currentGroup.getAt 'slug'
+      if group.slug is currentGroupSlug
+        document.location.reload()
       callback()
+
+  fetchMembers:->
+    @getData().fetchMembers (err, members)=>
+      if err
+        # HK: better we have error codes for such things
+        warn err unless err.name is 'KodingError' and err.message is 'Access denied'
+      else if members
+        @$('.members-list-wrapper').removeClass "hidden"
+        @membersController.instantiateListItems members
 
 class GroupItemMemberView extends KDListItemView
 

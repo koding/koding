@@ -5,7 +5,7 @@ class AceAppController extends AppController
     multiple     : yes
     hiddenHandle : no
     openWith     : "lastActive"
-    route        : "Develop"
+    route        : "/Develop"
     behavior     : "application"
     # mimeTypes    : "text"
 

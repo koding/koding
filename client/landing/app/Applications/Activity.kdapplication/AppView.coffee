@@ -4,14 +4,15 @@ class ActivityAppView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "content-page activity"
-    options.domId    = "content-page-activity"
+    options.cssClass   = "content-page activity"
+    options.domId      = "content-page-activity"
+    options.entryPoint = KD.config.entryPoint?.slug
 
     super options, data
 
     @listenWindowResize()
 
-    entryPoint        = KD.config.groupEntryPoint
+    {entryPoint}      = @getOptions()
     HomeKonstructor   = if entryPoint then GroupHomeView else HomeAppView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
@@ -21,32 +22,32 @@ class ActivityAppView extends KDScrollView
     mainController    = @getSingleton("mainController")
 
     mainController.on "AccountChanged", @bound "decorate"
+    mainController.on "JoinedGroup", => @widget.show()
     mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
     @on 'scroll', @utils.throttle @bound("setFixed"), 250
 
     @decorate()
-    @setLazyLoader(.99)
+    @setLazyLoader .99
 
     {scrollView} = @feedWrapper.controller
     @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
-    @header.on "viewAppended", -> headerHeight = @getHeight()
+    @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
   decorate:->
     if KD.isLoggedIn()
       @setClass 'loggedin'
-      @widget.show()
-      @header.$('.home-links').addClass 'hidden'
+      if KD.config.entryPoint?.type is 'group' and 'member' not in KD.config.roles
+        @widget.hide()
+      else
+        @widget.show()
     else
       @unsetClass 'loggedin'
       @widget.hide()
-      @header.$('.home-links').removeClass 'hidden'
-    @notifyResizeListeners()
+    @_windowDidResize()
 
   setFixed:->
-    if @getScrollTop() > headerHeight
-      @setClass "fixed"
-    else
-      @unsetClass "fixed"
+    pre = if @getScrollTop() > headerHeight = @header.getHeight() then "set" else "unset"
+    @["#{pre}Class"] "fixed"
 
   navigateHome:(itemData)->
 
@@ -55,20 +56,30 @@ class ActivityAppView extends KDScrollView
 
     @scrollTo {top, duration} if itemData.pageName in ["Home", "Activity"]
 
-  viewAppended: JView::viewAppended
-
   _windowDidResize:->
 
     headerHeight = @header.getHeight()
     @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 
-  pistachio:->
-    """
-      {{> @header}}
-      {{> @widget}}
-      {{> @innerNav}}
-      {{> @feedWrapper}}
-    """
+  viewAppended:->
+
+    $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
+    @addSubView @header
+    @addSubView @widget
+    @addSubView @innerNav
+    @addSubView @feedWrapper
+
+    if KD.isLoggedIn()
+      @utils.wait 1500, =>
+        @navigateHome pageName :"Activity"
+
+  # pistachio:->
+  #   """
+  #     {{> @header}}
+  #     {{> @widget}}
+  #     {{> @innerNav}}
+  #     {{> @feedWrapper}}
+  #   """
 
 class ActivityListContainer extends JView
 

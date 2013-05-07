@@ -52,7 +52,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
     """
     {{> @header}}
     <h2 class="sub-header">{{> @back}}</h2>
-    <div class='kdview content-display-main-section activity-item status'>
+    <div class='kdview content-display-main-section activity-item blog-post'>
       <span>
         {{> @avatar}}
         <span class="author">AUTHOR</span>

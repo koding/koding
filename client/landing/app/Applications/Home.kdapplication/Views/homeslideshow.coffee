@@ -1,5 +1,11 @@
 class HomeSlideShow extends KDScrollView
 
+  constructor:->
+
+    super
+
+    @pos = 0
+
   viewAppended:->
 
     @setTemplate @pistachio()
@@ -9,18 +15,18 @@ class HomeSlideShow extends KDScrollView
     @_windowDidResize()
     @slideTo 0
 
-    @getSingleton('mainView').on "transitionend", =>
-      @_windowDidResize()
+    @getSingleton('mainView').on "transitionend", @bound "_windowDidResize"
 
   _windowDidResize:->
 
     {winHeight, winWidth} = @getSingleton('windowController')
-    slideAmount = @$('li').length
-    # @setHeight winHeight - @parent.$('h1').height() - @parent.$('h2').height() - 51 - 130
-    # @$('ul').css marginTop : @parent.$('h1').height() + @parent.$('h2').height() + 70
+    slideAmount = @$('>ul>li').length
     {contentPanel} = @getSingleton('mainView')
-    @$('ul').width contentPanel.getWidth() * slideAmount
-    @$('li').width contentPanel.getWidth()
+    @$('>ul').width "#{slideAmount}00%"
+    @$('>ul>li').width "#{100/slideAmount}%"
+    aWidth = @$('>ul>li>*').first().width()
+    @$('>ul>li>p').css
+      width      : aWidth
 
   click:->
     @setKeyView()
@@ -42,20 +48,17 @@ class HomeSlideShow extends KDScrollView
       when "next" then 1
       else 0
     index  = null if addend isnt 0
-    total  = @getScrollWidth()
-    actual = @$().scrollLeft()
-    amount = @$('li').length
-    one    = total / amount
-    pos    = index or Math.round actual / one
+    amount = @$('>ul>li').length
+    aWidth = 100 / amount
+    pos    = index or @pos
     pos    = pos + addend
 
     if pos < 0 then pos = 0
-    else if pos > amount-1 then pos = amount-1
+    else if pos > amount-1 then pos = amount - 1
 
-    @$().animate scrollLeft : pos * one, 500
+    @pos = pos
 
-    # @$('li').removeClass "in"
-    # @$('li').eq(pos).addClass "in"
+    @$().animate scrollLeft : (pos * (@getScrollWidth() * aWidth / 100)), 277
 
     if pos is 0
       @emit "FirstSlideShown"

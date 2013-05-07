@@ -74,7 +74,7 @@ class DiscussionActivityOpinionListItemView extends KDListItemView
       <div class='activity-opinion item-content-comment'>
         <span class="avatar">{{> @avatar}}</span>
         <footer class="activity-opinion-item-footer">
-           {{> @author}} posted an answer
+         {{> @author}} posted an answer
          {{> @timeAgoView}}
          <span class="comment-count">#{if @getData().repliesCount > 0 then @utils.formatPlural(@getData().repliesCount, "Comment") else ""}</span>
         </footer>

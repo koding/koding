@@ -178,8 +178,8 @@ module.exports = [
 
   "app/CommonViews/followbutton.coffee",
 
-  "app/CommonViews/remotesmodal.coffee",
-  "app/CommonViews/databasesmodal.coffee",
+  # "app/CommonViews/remotesmodal.coffee",
+  # "app/CommonViews/databasesmodal.coffee",
 
   "app/CommonViews/comments/commentview.coffee",
   "app/CommonViews/comments/commentlistviewcontroller.coffee",
@@ -222,7 +222,6 @@ module.exports = [
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
-  "app/MainApp/sidebar/groupavatar.coffee",
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
   "app/MainApp/sidebar/virtualizationcontrols.coffee",
   "app/MainApp/sidebar/footermenuitem.coffee",
@@ -521,6 +520,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberroleseditview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsdangermodalview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
@@ -540,7 +540,6 @@ module.exports = [
 
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",
-  "app/Applications/Apps.kdapplication/AppController.coffee",
 
   "app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee",
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
@@ -638,7 +637,11 @@ module.exports = [
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
 
   # KITE CONTROLLER
-  "app/MainApp/KiteController.coffee",
+  "app/MainApp/kite/kite.coffee",
+  "app/MainApp/kite/kitecontroller.coffee",
+
+  # Virtualization CONTROLLER
+  "app/MainApp/VirtualizationController.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
@@ -664,10 +667,10 @@ module.exports = [
   # "app/MainApp/oldPages/irc/lists.coffee",
   # "app/MainApp/oldPages/irc/tabs.coffee",
   "app/MainApp/status.coffee",
-  "app/MainApp/account-mixins.coffee",
   "app/MainApp/main.coffee",
   "app/MainApp/monitor_status.coffee",
   "app/MainApp/rollbar.coffee",
+  "app/MainApp/mixpanel.coffee",
 
   # --- Styles ---
   "css/style.css",
@@ -692,6 +695,7 @@ module.exports = [
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
+  "stylus/app.predefined.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
   "stylus/app.aceeditor.styl",
