@@ -75,7 +75,7 @@ func main() {
 
 	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		log.Println("exchange.declare: %s", err)
 	}
 
 	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
@@ -596,14 +596,20 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			if _, ok := connections[rabbitKey]; !ok {
 				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
 				if err != nil {
-					log.Fatal("queue.declare: %s", err)
+					log.Printf("queue.declare: %s", err)
+					io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+					return
 				}
 				if err := amqpStream.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
-					log.Fatal("queue.bind: %s", err)
+					log.Printf("queue.bind: %s", err)
+					io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+					return
 				}
 				messages, err := amqpStream.channel.Consume("", "", true, false, false, false, nil)
 				if err != nil {
-					log.Fatal("basic.consume: %s", err)
+					log.Printf("basic.consume: %s", err)
+					io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+					return
 				}
 
 				connections[rabbitKey] = RabbitChannel{
