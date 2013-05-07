@@ -32,8 +32,17 @@ class ActivityListHeader extends JView
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>
+
+      @refreshLink = new KDCustomHTMLView
+        pistachio : "<a href=#>Refresh</a>"
+        click : (event)=>
+          @getSingleton('activityController')
+          @getSingleton('activityController').emit "Refresh"
+
     else
       @lowQualitySwitch = new KDCustomHTMLView
+      @refreshLink      = new KDCustomHTMLView
+        tagName: "span"
 
     @appStorage.fetchStorage (storage)=>
       state = @appStorage.getValue('liveUpdates') or off
@@ -42,7 +51,7 @@ class ActivityListHeader extends JView
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   pistachio:(newCount)->
-    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}}{{> @showNewItemsLink}}"
+    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}"
 
   newActivityArrived:->
     @_newItemsCount++

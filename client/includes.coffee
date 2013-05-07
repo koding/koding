@@ -16,7 +16,7 @@ module.exports = [
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
-  
+
   # core
   "Framework/core/utils.coffee",
   "Framework/core/KD.coffee",
@@ -375,6 +375,8 @@ module.exports = [
   #  'app/Applications/Shell.kdapplication/termlib/src/termlib.js',
   # viewer
   'app/Applications/Viewer.kdapplication/AppController.coffee',
+  'app/Applications/Viewer.kdapplication/AppView.coffee',
+  'app/Applications/Viewer.kdapplication/viewertopbar.coffee',
 
   # webterm
   "app/Applications/WebTerm.kdapplication/AppController.coffee",
@@ -587,6 +589,7 @@ module.exports = [
   "app/MainApp/main.coffee",
   "app/MainApp/monitor_status.coffee",
   "app/MainApp/rollbar.coffee",
+  "app/MainApp/mixpanel.coffee",
 
   # --- Styles ---
   "css/style.css",
