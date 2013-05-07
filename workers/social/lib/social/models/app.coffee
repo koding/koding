@@ -212,8 +212,8 @@ module.exports = class JApp extends jraphical.Module
             if err
               callback err
             else
-              app.slug   = slug
-              app.slug_  = slug
+              app.slug   = slug.slug
+              app.slug_  = slug.slug
               app.save (err)->
                 if err
                   callback err
