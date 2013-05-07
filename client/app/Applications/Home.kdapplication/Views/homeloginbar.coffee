@@ -48,7 +48,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Join"
       click       : (event)=>
-        if entryPoint.slug isnt ''
+        if entryPoint?.type is 'group'
           @utils.stopDOMEvent event
           requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
         else
