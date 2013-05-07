@@ -202,19 +202,21 @@ func lookupDomain(domainname string) (KeyData, error) {
 	return *NewKeyData(domain.Username, domain.Name, domain.Key, domain.FullUrl), nil
 }
 
-func targetUrl(username, servicename, key string) *url.URL {
+func targetUrl(username, servicename, key string) (*url.URL, error) {
 	var target *url.URL
-	var err error
-	host := targetHost(username, servicename, key)
+	host, err := targetHost(username, servicename, key)
+	if err != nil {
+		return nil, err
+	}
 
 	target, err = url.Parse("http://" + host)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	log.Printf("proxy to %s (key: %s)", target.Host, key)
 
-	return target
+	return target, nil
 }
 
 func lookupRabbitKey(username, servicename, key string) string {
@@ -237,13 +239,12 @@ func lookupRabbitKey(username, servicename, key string) string {
 	return rabbitkey //returns empty if not found
 }
 
-func targetHost(username, servicename, key string) string {
+func targetHost(username, servicename, key string) (string, error) {
 	var hostname string
 
 	_, ok := proxy.RoutingTable[username]
 	if !ok {
-		log.Println("no user available in the db. targethost not found")
-		return ""
+		return "", errors.New("no users availalable in the db. targethost not found")
 	}
 
 	user := proxy.RoutingTable[username]
@@ -251,8 +252,7 @@ func targetHost(username, servicename, key string) string {
 
 	v := len(keyRoutingTable.Keys)
 	if v == 0 {
-		hostname = "proxy.in.koding.com"
-		log.Println("no keys are added, using default url ", hostname)
+		return "", fmt.Errorf("no key %s available for user %s", key, username)
 	} else {
 		if key == "latest" {
 			// get all keys and sort them
@@ -285,7 +285,7 @@ func targetHost(username, servicename, key string) string {
 		}
 	}
 
-	return hostname
+	return hostname, nil
 }
 
 /*************************************************
@@ -453,11 +453,18 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if keyData.FullUrl != "" {
 		target, err = url.Parse("http://" + keyData.FullUrl)
 		if err != nil {
-			log.Fatal(err)
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+			log.Printf("error running fullurl %s: %v", keyData.FullUrl, err)
+			return
 		}
 	} else {
 		// otherwise lookup for matches in our database
-		target = targetUrl(keyData.Username, keyData.Servicename, keyData.Key)
+		target, err = targetUrl(keyData.Username, keyData.Servicename, keyData.Key)
+		if err != nil {
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+			log.Printf("error running key proxy %s: %v", keyData.FullUrl, err)
+			return
+		}
 	}
 
 	// Reverseproxy.Director closure
