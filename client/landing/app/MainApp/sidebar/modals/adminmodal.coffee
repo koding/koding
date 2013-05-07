@@ -706,7 +706,8 @@ class IntroductionAdminForm extends KDFormViewWithFields
 
     super options, data
 
-    @utils.defer => @setAceEditor()
+    {type, actionType} = @getOptions()
+    @utils.defer => @setAceEditor() if (type is "Group" and actionType is "Insert") or type is "Item"
 
   save: ->
     {actionType} = @getOptions()
@@ -745,9 +746,9 @@ class IntroductionAdminForm extends KDFormViewWithFields
     {actionType} = options
     itemData     = {}
 
-    snippet = @aceEditor.getValue()
+    snippet = @aceEditor?.getValue()
     if @snippetType is "Text"
-      snippet = """new KDView({partial: "#{@aceEditor.getValue()}"});"""
+      snippet = """new KDView({partial: "#{@aceEditor?.getValue()}"});"""
 
     if type is "Item" or (type is "Group" and actionType is "Insert")
       itemData = {
@@ -755,8 +756,6 @@ class IntroductionAdminForm extends KDFormViewWithFields
         introTitle : inputs.IntroTitle.getValue()
         snippet
       }
-
-    return log itemData
 
     if type is "Group"
       data = {
