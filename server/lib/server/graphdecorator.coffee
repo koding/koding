@@ -37,12 +37,16 @@ module.exports = class GraphDecorator
   @extractSingleActivityOverview:(datum)->
 
     overview =
-      createdAt : [datum.meta.createdAt]
+      createdAt : [@convertToISO(datum.meta.createdAt)]
       ids       : [datum.id]
       type      : datum.name
       count     : 1
 
     return overview
+
+  @convertToISO: (time)->
+    t = new Date(time)
+    return t.toISOString()
 
   @extractSingleActivity:(datum)->
 
@@ -55,12 +59,16 @@ module.exports = class GraphDecorator
       type       : datum.name
       originId   : datum.originId
       originType : datum.originType
-      createdAt  : datum.meta.createdAt
-      modifiedAt : datum.meta.modifiedAt
+      createdAt  : @convertToISO datum.meta.createdAt
+      modifiedAt : @convertToISO datum.meta.modifiedAt
       sorts :
         repliesCount  : repliesCount
         likesCount    : likesCount
         followerCount : followerCount
+
+    snapshotMeta            = datum.meta
+    snapshotMeta.createdAt  = @convertToISO datum.meta.createdAt
+    snapshotMeta.modifiedAt = @convertToISO datum.meta.modifiedAt
 
     snapshot =
       _id               : datum._id
@@ -70,7 +78,7 @@ module.exports = class GraphDecorator
       slug_             : datum.slug_
       originId          : datum.originId
       originType        : datum.originType
-      meta              : datum.meta
+      meta              : snapshotMeta
       body              : datum.body
       attachments       : datum.attachments
       repliesCount      : repliesCount
