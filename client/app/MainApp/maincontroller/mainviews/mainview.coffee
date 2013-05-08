@@ -106,7 +106,7 @@ class MainView extends KDView
     @mainTabView.on "PaneDidShow", =>
       appManifest = KD.getSingleton("appManager").getFrontAppManifest()
       menu = appManifest?.menu or appManager.get(@mainTabView.getActivePane()?.name)?.getOptions().menu
-      if menu
+      if menu?.length
         @appSettingsMenuButton.setData menu
         @appSettingsMenuButton.show()
       else
