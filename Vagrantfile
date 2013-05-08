@@ -102,6 +102,7 @@ Vagrant.configure("2") do |config|
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
       secondary.vm.box = "koding-5"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-5.box"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 
