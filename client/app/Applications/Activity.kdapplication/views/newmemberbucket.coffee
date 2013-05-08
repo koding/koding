@@ -38,7 +38,7 @@ class NewMemberBucketView extends JView
       KD.remote.api.CActivity.some selector, options, (err, activities)=>
         if err then warn err
         else
-          activities = ActivityAppController.extractValuesFromObject activities
+          activities = ActivityAppController.toArray activities
           lastFetchedDate = activities.last.createdAt
           KD.remote.reviveFromSnapshots activities, (err, teasers)=>
             if err then warn err
