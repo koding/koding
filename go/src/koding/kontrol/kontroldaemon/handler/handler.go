@@ -74,8 +74,8 @@ func Startup() {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
 	}
 
-	// cleanup death workers every 2 minutes
-	ticker := time.NewTicker(time.Minute * 2)
+	// cleanup death workers at intervals
+	ticker := time.NewTicker(time.Hour * 1)
 	go func() {
 		for _ = range ticker.C {
 			log.Println("cleanup death workers")
