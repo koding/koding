@@ -69,9 +69,12 @@ class AceView extends JView
 
   preview: ->
     publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
-    publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
-    return if publicPath is @getData().path
-    KD.getSingleton("appManager").open "Viewer", (appInstance)->
+    publicPath     = @getData().path.replace publicUrlCheck, 'http://$1/$2'
+    appManager     = KD.getSingleton "appManager"
+    if publicPath is @getData().path
+      {nickname} = KD.whoami().profile
+      return appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
+    appManager.open "Viewer", (appInstance)->
       appInstance.open publicPath
 
   compileAndRun: ->
