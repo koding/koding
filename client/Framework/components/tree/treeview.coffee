@@ -44,3 +44,5 @@ class JTreeView extends KDListView
   destroy:->
 
     @getSingleton("windowController").revertKeyView @
+
+    super
