@@ -224,6 +224,11 @@ class ApplicationManager extends KDObject
     @setLastActiveIndex appInstance
     @frontApp = appInstance
 
+  getFrontAppManifest: ->
+    appController = KD.getSingleton "kodingAppsController"
+    frontAppName  = @getFrontApp().getOptions().name
+    return appController.constructor.manifests?[frontAppName] # .constructor, weird, why?
+
   register:(appInstance)->
 
     name = appInstance.getOption "name"

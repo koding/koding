@@ -139,14 +139,6 @@ class MainView extends KDView
           content    : systemStatus.content
           type       : systemStatus.type
 
-
-  # take this to appManager SY
-  getFrontAppManifest = ->
-    appManager    = KD.getSingleton "appManager"
-    appController = KD.getSingleton "kodingAppsController"
-    frontAppName  = appManager.getFrontApp().getOptions().name
-    return appController.constructor.manifests?[frontAppName]
-
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
 
