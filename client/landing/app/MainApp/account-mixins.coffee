@@ -81,7 +81,7 @@ AccountMixin = do ->
 
         @pingTimeout = setTimeout =>
           @ping()
-        , 10000
+        , 5000
 
       messageSent = (msg) ->
         clearTimeout @pingTimeout
