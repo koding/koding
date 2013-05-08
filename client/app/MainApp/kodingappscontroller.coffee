@@ -567,6 +567,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      menu: []
 
     json = JSON.stringify raw, null, 2
 
