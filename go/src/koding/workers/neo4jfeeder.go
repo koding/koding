@@ -22,16 +22,8 @@ type Consumer struct {
 }
 
 type Message struct {
-	Event   string `json:"event"`
-	Payload []EventData
-}
-
-type EventData struct {
-	SourceName string
-	SourceId   string
-	TargetName string
-	TargetId   string
-	As         string
+	Event   string                   `json:"event"`
+	Payload []map[string]interface{} `json:"payload"`
 }
 
 func main() {
@@ -91,48 +83,80 @@ func startConsuming() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			//there will be only one array in data
 			data := message.Payload[0]
+
 			fmt.Println(message.Event)
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
 			} else if message.Event == "RelationshipRemoved" {
 				deleteNode(data)
+			} else if message.Event == "updateInstance" {
+				updateNode(data)
 			}
 		}
 	}()
 }
 
-func createNode(data EventData) {
+func createNode(data map[string]interface{}) {
 
-	sourceNode := neo4j.CreateUniqueNode(data.SourceId, data.SourceName)
+	sourceId := fmt.Sprintf("%s", data["sourceId"])
+	sourceName := fmt.Sprintf("%s", data["sourceName"])
+
+	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
 	fmt.Println(data)
-	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(data.SourceId), data.SourceName)
+	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		neo4j.UpdateNode(data.SourceId, sourceContent)
+		neo4j.UpdateNode(sourceId, sourceContent)
 	}
 
-	targetNode := neo4j.CreateUniqueNode(data.TargetId, data.TargetName)
-	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(data.TargetId), data.TargetName)
+	targetId := fmt.Sprintf("%s", data["targetId"])
+	targetName := fmt.Sprintf("%s", data["targetName"])
+
+	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
+	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		neo4j.UpdateNode(data.TargetId, targetContent)
+		neo4j.UpdateNode(targetId, targetContent)
 	}
 
 	source := fmt.Sprintf("%s", sourceNode["create_relationship"])
 	target := fmt.Sprintf("%s", targetNode["self"])
-	neo4j.CreateRelationship(data.As, source, target)
+
+	as := fmt.Sprintf("%s", data["as"])
+	neo4j.CreateRelationship(as, source, target)
 
 }
 
-func deleteNode(data EventData) {
-	result := neo4j.DeleteRelationship(data.SourceId, data.TargetId, data.As)
+func deleteNode(data map[string]interface{}) {
+	sourceId := fmt.Sprintf("%s", data["sourceId"])
+	targetId := fmt.Sprintf("%s", data["targetId"])
+	as := fmt.Sprintf("%s", data["as"])
+
+	result := neo4j.DeleteRelationship(sourceId, targetId, as)
 	if result {
 		fmt.Println("Relationship deleted")
 	} else {
 		fmt.Println("Relationship couldnt be deleted")
+	}
+}
+
+func updateNode(data map[string]interface{}) {
+	bongo := data["bongo_"].(map[string]interface{})
+	obj := data["data"].(map[string]interface{})
+	fmt.Println(bongo["constructorName"])
+	fmt.Println(obj["_id"])
+
+	sourceId := fmt.Sprintf("%s", obj["_id"])
+	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
+
+	neo4j.CreateUniqueNode(sourceId, sourceName)
+	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		neo4j.UpdateNode(sourceId, sourceContent)
 	}
 }
