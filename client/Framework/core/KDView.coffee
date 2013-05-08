@@ -319,23 +319,29 @@ class KDView extends KDObject
     # @$().show duration
     #@getDomElement()[0].style.display = "block"
 
-  setSize: do->
-    counter = 0
-    isPredefinedSize = (size)->
-      # we have predefined classes for 0 to 1000px
-      return !isNaN(size) and (1000 >= size >= 0)
+  # setSize: do->
+  #   counter = 0
+  #   isPredefinedSize = (size)->
+  #     # we have predefined classes for 0 to 1000px
+  #     return !isNaN(size) and (1000 >= size >= 0)
 
-    (sizes)->
-      if sizes.width?
-        if isPredefinedSize sizes.width
-        then @setClass "w#{sizes.width}"
-        else @setWidth sizes.width
+  #   (sizes)->
+  #     if sizes.width?
+  #       if isPredefinedSize sizes.width
+  #       then @setClass "w#{sizes.width}"
+  #       else @setWidth sizes.width
 
-      if sizes.height?
-        if isPredefinedSize sizes.height
-        then @setClass "h#{sizes.height}"
-        else @setHeight  sizes.height
+  #     if sizes.height?
+  #       if isPredefinedSize sizes.height
+  #       then @setClass "h#{sizes.height}"
+  #       else @setHeight  sizes.height
 
+  setSize: (sizes)->
+    if sizes.width?
+      @setWidth sizes.width
+
+    if sizes.height?
+      @setHeight sizes.height
 
   setPosition:()->
     positionOptions = @getOptions().position
@@ -464,8 +470,10 @@ class KDView extends KDObject
     if @template?
       @template.update()
       return
-    else if 'function' is typeof @partial and data = @getData()
-      @updatePartial @partial data
+    # removes e.g. on actions on status updates such as like and comment
+    # as in the backend they trigger 'update'
+    # else if 'function' is typeof @partial and data = @getData()
+    #   @updatePartial @partial data
 
 
 # #

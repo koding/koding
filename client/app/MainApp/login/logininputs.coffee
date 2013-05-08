@@ -60,7 +60,7 @@ class LoginInputViewWithLoader extends LoginInputView
     super
 
     @loader = new KDLoaderView
-      cssClass : "input-laoder"
+      cssClass : "input-loader"
       size     :
         width  : 16
         height : 16

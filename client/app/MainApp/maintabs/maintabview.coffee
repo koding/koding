@@ -54,7 +54,10 @@ class MainTabView extends KDTabView
       pane.mainView.destroy()
       return no
 
-    @showPane pane  if options.route is '/Develop'
+    # this is a temporary fix for third party apps
+    # until router handles everything correctly
+    if options.route is '/Develop'
+      appManager.show KD.getAppOptions options.name
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
@@ -117,18 +120,19 @@ class MainTabView extends KDTabView
     # this is a temporary hack
     # for reviving the main tabs
     # a better solution tbdl - SY
-    o.domId         = "maintabpane-#{@utils.slugify options.name}"
-    o.domId        += "-#{@utils.getRandomNumber()}" if document.getElementById o.domId
+
+    domId           = "maintabpane-#{@utils.slugify options.name}"
+    o.domId         = domId  if document.getElementById domId
     o.name          = options.name
     o.behavior      = options.behavior
     o.hiddenHandle  = options.hiddenHandle
-
-    paneInstance = new MainTabPane o
+    paneInstance    = new MainTabPane o
 
     paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
-      if options.appInfo?.title?
-        paneInstance.setTitle options.appInfo.title
+      appController = appManager.getByView mainView
+      {appInfo}     = appController.getOptions()
+      paneInstance.setTitle appInfo.title  if appInfo?.title
 
     @addPane paneInstance
 

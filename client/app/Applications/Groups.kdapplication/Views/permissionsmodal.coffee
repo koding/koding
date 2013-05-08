@@ -50,11 +50,12 @@ class PermissionsModal extends KDFormViewWithFields
                     unless copy is null
                       log 'copying permissions from ',copy,' to ',role
 
-                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
                     @on 'RoleViewRefreshed', =>
                       @utils.wait 500, =>
                         addRoleDialog.buttons["Add Role"].hideLoader()
                         addRoleDialog.hide()
+
+                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
 
               Cancel :
                 style     : "add-role-cancel modal-cancel"
