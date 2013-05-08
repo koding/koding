@@ -15,7 +15,4 @@ class NewReviewForm extends NewCommentForm
       @commentInput.$().blur()
       @getDelegate().emit 'ReviewSubmitted', review
     else
-      new KDNotificationView
-        type      : "growl"
-        title     : "please login to post a review!"
-        duration  : 1500
+      KD.requireLogin "please login to post a review!", noop
