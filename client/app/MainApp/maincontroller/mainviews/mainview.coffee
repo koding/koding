@@ -93,6 +93,7 @@ class MainView extends KDView
       delegate : @
 
     @mainSettingsMenuButton = @getMainSettingsMenuButton()
+    @mainSettingsMenuButton.hide()
 
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
@@ -102,7 +103,7 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "PaneDidShow", => @utils.wait 10, =>
+    @mainTabView.on "PaneDidShow", =>
       appManifest = getFrontAppManifest()
       @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
 
@@ -120,21 +121,20 @@ class MainView extends KDView
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
 
-  getMainSettingsMenuButton: ->
+  getMainSettingsMenuButton:->
     new KDButtonView
-      domId    : "main-settings-menu"
-      cssClass : "kdsettingsmenucontainer transparent"
+      cssClass : "app-settings-menu"
       iconOnly : yes
-      iconClass: "dot"
-      callback : ->
+      callback : (event) ->
         appManifest = getFrontAppManifest()
         if appManifest?.menu
-          appManifest.menu.forEach (item, index)->
-            item.callback = (contextmenu)->
-              mainView = KD.getSingleton "mainView"
-              view = mainView.mainTabView.activePane?.mainView
+          mainTabView = KD.getSingleton("mainView").mainTabView
+          appManifest.menu.forEach (item, index) ->
+            item.callback = (contextmenu) ->
+              view = mainTabView.activePane?.mainView
               item.eventName or= item.title
               view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
+              contextMenu.destroy()
 
           offset = @$().offset()
           contextMenu = new JContextMenu
@@ -170,9 +170,8 @@ class MainView extends KDView
   getFrontAppManifest = ->
     appManager    = KD.getSingleton "appManager"
     appController = KD.getSingleton "kodingAppsController"
-    frontApp      = appManager.getFrontApp()
-    frontAppName  = name for name, instances of appManager.appControllers when frontApp in instances
-    appController.constructor.manifests?[frontAppName]
+    frontAppName  = appManager.getFrontApp().getOptions().name
+    return appController.constructor.manifests?[frontAppName]
 
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
