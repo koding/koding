@@ -96,3 +96,5 @@ db.query query, params, (err, results) ->
   # console.log users.length
   # console.log new Date().getTime() - start
   # console.log users
+
+start activity=node:koding('id:*') return activity.`meta.createdAt` order by activity.`meta.createdAt` DESC limit 50
