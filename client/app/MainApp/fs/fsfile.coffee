@@ -23,7 +23,7 @@ class FSFile extends FSItem
         {content} = response
 
         # Convert to String
-        content = atob content
+        content = KD.utils.utf8Decode atob content
 
       callback.call @, err, content
       @emit "fs.job.finished", err, content
@@ -53,7 +53,7 @@ class FSFile extends FSItem
     @emit "fs.save.started"
 
     # Convert to base64
-    content = btoa contents
+    content = btoa KD.utils.utf8Encode contents
 
     @kiteController.run
       kiteName  : 'os'
