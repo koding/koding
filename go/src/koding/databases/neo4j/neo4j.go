@@ -59,6 +59,21 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 	return relNode
 }
 
+// connect source and target with relation property
+// response will be object
+func CreateRelationshipWithData(relation, source, target, data string) map[string]interface{} {
+
+	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s", data : "%s" }`, target, relation, data)
+	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData)
+
+	relNode, err := jsonDecode(relRes)
+	if err != nil {
+		fmt.Println("Problem with relation response", relRes)
+	}
+
+	return relNode
+}
+
 // creates a unique node with given id and node name
 // response will be Object
 func CreateUniqueNode(id string, name string) map[string]interface{} {

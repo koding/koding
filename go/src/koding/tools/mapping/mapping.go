@@ -56,7 +56,7 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 				for arrayKey, arrayValue := range tempVal {
 					//generating a fake string map to be able to call this function
 					tempMap := make(map[string]interface{})
-					//add our interface into string map as own key 
+					//add our interface into string map as own key
 					tempMap[strconv.Itoa(arrayKey)] = arrayValue
 					src := ConvertTo2DMap(k, tempMap)
 					for arrayChildKey, arrayChildValue := range src {
@@ -87,7 +87,7 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 		case "bool":
 			val = strconv.FormatBool(v.(bool))
 		case "time.Time":
-			val = v.(time.Time).UTC().String()
+			val = v.(time.Time).UTC().Format("2006-01-02T15:04:05Z")
 		case "string":
 			val = v.(string)
 		default:
