@@ -1,5 +1,7 @@
 module.exports = class GraphDecorator
 
+  _ = require 'underscore'
+
   singleActivites =
     'JStatusUpdate' : true
     'JCodeSnip'     : true
@@ -13,29 +15,52 @@ module.exports = class GraphDecorator
 
   @decorateToCacheObject:(data, callback)->
 
-    cacheObjects = []
+    cacheObjects    = {}
+    overviewObjects = []
 
     for datum in data
-      localObject = if singleActivites[datum.name]
-        @extractSingleActivity(datum)
+      if singleActivites[datum.name]
+        activity = @extractSingleActivity datum
+        overview = @extractSingleActivityOverview datum
       else if bucketActivities[datum.name]
-        @extractBucketActivity(datum)
+        activity = @extractBucketActivity datum
+        overview = @extractBucketActivityOverview datum
       else
-        console.log "graphdecorator: unimplemented parsing of #{datum.name}"
+        console.log "graphdecorator: don't know about #{datum.name}"
 
-      cacheObjects.push localObject
+      cacheObjects[activity._id] = activity
+      overviewObjects.push overview
 
-    callback cacheObjects
+    response = @buildResponse cacheObjects, overviewObjects
+    callback response
+
+  @extractSingleActivityOverview:(datum)->
+
+    overview =
+      createdAt : [datum.meta.createdAt]
+      ids       : [datum.id]
+      type      : datum.name
+      count     : 1
+
+    return overview
 
   @extractSingleActivity:(datum)->
 
-    localObject =
+    repliesCount  = @extractCountFromRelationData datum, 'reply'
+    likesCount    = @extractCountFromRelationData datum, 'like'
+    followerCount = @extractCountFromRelationData datum, 'follower'
+
+    activity =
       _id        : datum.id
       type       : datum.name
       originId   : datum.originId
       originType : datum.originType
       createdAt  : datum.meta.createdAt
       modifiedAt : datum.meta.modifiedAt
+      sorts :
+        repliesCount  : repliesCount
+        likesCount    : likesCount
+        followerCount : followerCount
 
     snapshot =
       _id               : datum._id
@@ -48,17 +73,39 @@ module.exports = class GraphDecorator
       meta              : datum.meta
       body              : datum.body
       attachments       : datum.attachments
-      repliesCount      : datum.relationData.reply?.length? or 0
+      repliesCount      : repliesCount
       replies           : datum.relationData.reply? or null
       tags              : datum.relationData.tag? or null
       counts            :
         following       : 0
-        followers       : datum.relationData.follower?.length or 0
+        followers       : followerCount
 
-    localObject["snapshot"] = JSON.stringify snapshot
+    activity["snapshot"] = JSON.stringify snapshot
 
-    return localObject
+    return activity
+
+  @extractCountFromRelationData:(datum, name)->
+    datum.relationData[name]?.length or 0
 
   @extractBucketActivity:(datum)->
+    console.log "TODO: parse activity of #{datum.name}"
 
-    console.log "TODO: parse #{datum.name}"
+  @extractBucketActivityOverview:(datum)->
+    console.log "TODO: parse overview of #{datum.name}"
+
+  @buildResponse:(cacheObjects, overviewObjects)->
+
+    overviewObjects = @sortByTime overviewObjects
+    from            = _.first(overviewObjects).createdAt[0]
+    to              = _.last(overviewObjects).createdAt[0]
+
+    response =
+      activities : cacheObjects
+      from       : from
+      to         : to
+      overview   : overviewObjects
+
+    return response
+
+  @sortByTime:(overviewObjects)->
+    _.sortBy overviewObjects, (overview)-> overview.createdAt
