@@ -171,6 +171,7 @@ unless window.event?
     options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
+    options.menu         or= null         # {Array.<Object{{title: string, eventName: string, shortcut: string}}>}
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes
