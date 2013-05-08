@@ -14,13 +14,11 @@ class ActivityAppController extends AppController
       # 'CCodeShareActivity'
     ]
 
-  @toArray = toArray = (activities)->
-    return _.values(activities)
+  @clearQuotes = clearQuotes = (activities)->
 
-  # @clearQuotes = clearQuotes = (activities)->
-  #   return activities = for activityId, activity of activities
-  #     activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
-  #     activity
+    return activities = for activityId, activity of activities
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activity
 
   isExempt = (callback)->
 
@@ -95,7 +93,8 @@ class ActivityAppController extends AppController
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
         if activity.constructor.name in @getFilter()
-          controller.followedActivityArrived activity
+          activities = clearQuotes [activity]
+          controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
       @resetAll()
@@ -194,8 +193,11 @@ class ActivityAppController extends AppController
               @listController.listActivitiesFromCache cache
 
   sanitizeCache:(cache, callback)->
-    activities = toArray cache.activities
+
+    activities = clearQuotes cache.activities
+
     KD.remote.reviveFromSnapshots activities, (err, instances)->
+
       for activity,i in activities
         cache.activities[activity._id] or= {}
         cache.activities[activity._id].teaser = instances[i]
@@ -215,7 +217,7 @@ class ActivityAppController extends AppController
     KD.remote.api.CActivity.fetchFacets options, (err, activities)->
       if err then callback err
       else
-        KD.remote.reviveFromSnapshots toArray(activities), callback
+        KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
@@ -344,7 +346,8 @@ class ActivityAppController extends AppController
     KD.remote.api.CActivity.some selector, options, (err, data) =>
       if err then callback err
       else
-        KD.remote.reviveFromSnapshots toArray(data), (err, instances)->
+        data = clearQuotes data
+        KD.remote.reviveFromSnapshots data, (err, instances)->
           if err then callback err
           else
             callback instances

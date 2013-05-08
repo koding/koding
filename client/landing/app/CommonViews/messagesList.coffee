@@ -140,7 +140,7 @@ class NotificationListItem extends KDListItemView
 
   getActionPhrase:()->
     data = @getData()
-    if @snapshot.anchor?.constructorName is "JPrivateMessage"
+    if @snapshot.anchor.constructorName is "JPrivateMessage"
       @unsetClass "comment"
       @setClass "reply"
       actionPhraseMap().reply
