@@ -1,36 +1,64 @@
 module.exports = class GraphDecorator
 
+  singleActivites =
+    'JStatusUpdate' : true
+    'JCodeSnip'     : true
+    'JDiscussion'   : true
+    'JTutorial'     : true
+
+  bucketActivities =
+    'CFollowerBucketActivity'  : true
+    'CNewMemberBucketActivity' : true
+    'CInstallerBucketActivity' : true
+
   @decorateToCacheObject:(data, callback)->
-    cacheObject = []
+
+    cacheObjects = []
+
     for datum in data
-      if datum.name == "JStatusUpdate"
-        localObject = {}
-        localObject.modifiedAt = datum.meta.modifiedAt
-        localObject["type"]       = "CStatusActivity"
-        localObject["_id"]        = datum.id
-        localObject["createdAt"]  = datum.meta.createdAt
-        localObject["originId"]   = datum.originId
-        localObject["originType"] = datum.originType
+      localObject = if singleActivites[datum.name]
+        @extractSingleActivity(datum)
+      else if bucketActivities[datum.name]
+        @extractBucketActivity(datum)
+      else
+        console.log "graphdecorator: unimplemented parsing of #{datum.name}"
 
-        console.log datum
-        snapshot = {}
-        snapshot.bongo_           = { constructorName : "JStatusUpdate" }
-        snapshot.slug             = datum.slug
-        snapshot.slug_            = datum.slug_
-        snapshot.originId         = datum.originId
-        snapshot.originType       = datum.originType
-        snapshot.meta             = datum.meta
-        snapshot.body             = datum.body
-        snapshot.attachments      = datum.attachments
-        snapshot._id              = datum._id
-        snapshot.repliesCount     = datum.relationData.reply?.length? or 0
-        snapshot.replies          = datum.relationData.reply? or null
-        snapshot.tags             = datum.relationData.tag? or null
-        snapshot.counts           = {}
-        snapshot.counts.following = 0
-        snapshot.counts.followers = datum.relationData.follower?.length or 0
+      cacheObjects.push localObject
 
-        localObject["snapshot"] = JSON.stringify( snapshot )
+    callback cacheObjects
 
-        cacheObject.push localObject
-    callback cacheObject
+  @extractSingleActivity:(datum)->
+
+    localObject =
+      _id        : datum.id
+      type       : datum.name
+      originId   : datum.originId
+      originType : datum.originType
+      createdAt  : datum.meta.createdAt
+      modifiedAt : datum.meta.modifiedAt
+
+    snapshot =
+      _id               : datum._id
+      bongo_            :
+        constructorName : datum.name
+      slug              : datum.slug
+      slug_             : datum.slug_
+      originId          : datum.originId
+      originType        : datum.originType
+      meta              : datum.meta
+      body              : datum.body
+      attachments       : datum.attachments
+      repliesCount      : datum.relationData.reply?.length? or 0
+      replies           : datum.relationData.reply? or null
+      tags              : datum.relationData.tag? or null
+      counts            :
+        following       : 0
+        followers       : datum.relationData.follower?.length or 0
+
+    localObject["snapshot"] = JSON.stringify snapshot
+
+    return localObject
+
+  @extractBucketActivity:(datum)->
+
+    console.log "TODO: parse #{datum.name}"
