@@ -90,6 +90,13 @@ class Ace extends KDView
         mac   : 'Command-Shift-C'
       exec    : => @getDelegate().compileAndRun()
 
+    @editor.commands.addCommand
+      name    : 'preview'
+      bindKey :
+        win   : 'Ctrl-Shift-P'
+        mac   : 'Command-Shift-P'
+      exec    : => @getDelegate().preview()
+
     file = @getData()
 
     file.on "fs.save.finished", (err,res)=>
