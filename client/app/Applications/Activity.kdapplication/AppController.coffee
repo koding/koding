@@ -44,12 +44,8 @@ class ActivityAppController extends AppController
     activityController = @getSingleton('activityController')
     activityController.on "ActivityListControllerReady", @attachEvents.bind @
 
-    @status = @getSingleton "status"
-    @status.on "reconnected", (conn)=>
-      if conn && conn.reason is "internetDownForLongTime"
-        @refresh()
-      else
-        @fetchSomeActivities()
+    status = @getSingleton "status"
+    status.on "reconnected", @bound "fetchSomeActivities"
 
   bringToFront:()->
 
@@ -60,12 +56,11 @@ class ActivityAppController extends AppController
       ac = @getSingleton('activityController')
       ac.once "ActivityListControllerReady", @populateActivity.bind @
 
-  resetAll:->
+  resetList:->
 
     delete @lastTo
     delete @lastFrom
 
-    @listController.resetList()
     @listController.removeAllItems()
 
   setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
@@ -88,7 +83,6 @@ class ActivityAppController extends AppController
     @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
-    activityController.on 'Refresh', @bound "refresh"
 
     KD.whoami().on "FollowedActivityArrived", (activityId) =>
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
@@ -97,18 +91,9 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
-      @resetAll()
+      @resetList()
       @setFilter data.type
       @populateActivity()
-
-    # SA: commenting it out since
-    #     1. ui isn't implemeneted,
-    #     2. if the latet item can't be revived, this gets duplicate entries
-    #@listController.on "scrolledToTopOfPage", =>
-      #return if @isLoading
-
-      #log "scrolled_up fetching activities"
-      #@fetchSomeActivities()
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
@@ -117,6 +102,7 @@ class ActivityAppController extends AppController
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
 
+    teasers  = _.compact(teasers)
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
 
@@ -126,32 +112,7 @@ class ActivityAppController extends AppController
     @lastTo   = cache.to
     @lastFrom = cache.from
 
-  # Refreshes activity feed, used when user has been disconnected
-  # for so long, backend connection is long gone.
-  refresh:->
-
-    # prevents multiple clicks to refresh from interfering
-    return  if @isLoading
-
-    @resetAll()
-    @populateActivityWithTimeout()
-
-  populateActivityWithTimeout:->
-
-    @populateActivity {},\
-      KD.utils.getTimedOutCallbackOne
-        name      : "populateActivity",
-        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        onTimeout : @recover.bind this
-
-  recover:->
-
-    KD.logToMixpanel "activity feed render failed; recovering"
-
-    @isLoading = no
-    @status.reconnect()
-
-  populateActivity:(options = {}, callback)->
+  populateActivity:(options = {})->
 
     return if @isLoading
     @isLoading = yes
@@ -165,8 +126,6 @@ class ActivityAppController extends AppController
         options = to : options.to or Date.now()
 
         @fetchActivity options, (err, teasers)=>
-          callback? err, teasers
-
           @isLoading = no
           @listController.hideLazyLoader()
           if err or teasers.length is 0
@@ -178,8 +137,6 @@ class ActivityAppController extends AppController
 
       else
         @fetchCachedActivity options, (err, cache)=>
-          callback? err, cache
-
           @isLoading = no
           if err or cache.length is 0
             warn err
@@ -219,26 +176,14 @@ class ActivityAppController extends AppController
       else
         KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
-  # Fetches activities that occured after the first entry in user feed,
-  # used for minor disruptions.
+  # Fetches activities that occur when user is disconnected.
   fetchSomeActivities:(options = {}) ->
 
-    return if @isLoading
-    @isLoading = yes
-
     lastItemCreatedAt = @listController.getLastItemTimeStamp()
-    unless lastItemCreatedAt? or lastItemCreatedAt is ""
-      @isLoading = no
-      log "lastItemCreatedAt is empty"
-
-      # if lastItemCreatedAt is null, we assume there are no entries
-      # and refresh the entire feed
-      @refresh()
-
-      return
 
     selector       =
       createdAt    :
+        $lte       : new Date
         $gt        : options.createdAt or lastItemCreatedAt
       type         : { $in : options.facets or @getFilter() }
       isLowQuality : { $ne : options.exempt or no }
@@ -248,24 +193,16 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.some selector, options,\
-      KD.utils.getTimedOutCallback (err, activities) =>
-        if err then warn err
-        else
+    KD.remote.api.CActivity.some selector, options, (err, activities) =>
+      if err then warn err
+      else
+        # FIXME: SY
+        # if it is exact 20 there may be other items
+        # put a separator and check for new items in between
+        if activities.length is 20
+          warn "put a separator in between new and old activities"
 
-          KD.logToMixpanel "refresh activity feed success"
-
-          # FIXME: SY
-          # if it is exact 20 there may be other items
-          # put a separator and check for new items in between
-          if activities.length is 20
-            warn "put a separator in between new and old activities"
-
-          @activitiesArrived activities.reverse()
-          @isLoading = no
-      , =>
-        @isLoading = no
-        log "fetchSomeActivities timeout reached"
+        @activitiesArrived activities.reverse()
 
   fetchCachedActivity:(options = {}, callback)->
 
@@ -351,3 +288,4 @@ class ActivityAppController extends AppController
           if err then callback err
           else
             callback instances
+

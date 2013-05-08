@@ -66,7 +66,7 @@ module.exports = deepFreeze
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     authResourceName: 'auth'
-    numberOfWorkers: 5
+    numberOfWorkers: 2
     watch       : no
   cacheWorker   :
     login       : 'prod-social'
@@ -75,7 +75,7 @@ module.exports = deepFreeze
     run         : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 25
+    numberOfWorkers: 10
     watch       : no
     queueName   : socialQueueName
   feeder        :
@@ -96,7 +96,6 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
-      logToExternal: yes  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version

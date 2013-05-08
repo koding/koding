@@ -452,79 +452,6 @@ __utils =
     fallbackTimer = setTimeout fallback, timeout
     kallback
 
-  # Returns a new callback which calls the failcallback if
-  # first callback doesn't finish its job within timeout.
-  #
-  # Also, keeps track of start and end times.
-  #
-  # Let's assume that you have this:
-  #
-  #   asyncFunc (data)-> doSomethingWith data
-  #
-  # To set a timeout for 500ms:
-  #
-  #   asyncFunc ,\
-  #     KD.utils.getTimedOutCallbackOne
-  #       name     :"asyncFunc" // optional, logs to KD.utils.timers
-  #       timeout  : 500        // defaults to 5000
-  #       onSucess : (data)->
-  #       onTimeout: ->
-  #       onResult : ->         // called when result comes after timeout
-  getTimedOutCallbackOne: (options={})->
-    timerName = options.name      or "undefined"
-    timeout   = options.timeout   or 10000
-    onSuccess = options.onSuccess or ->
-    onTimeout = options.onTimeout or ->
-    onResult  = options.onResult  or ->
-
-    timedOut = no
-    kallback = (rest...)=>
-      clearTimeout fallbackTimer
-      @updateLogTimer timerName, fallbackTimer, Date.now()
-
-      if timedOut then onResult rest... else onSuccess rest...
-
-    fallback = (rest...)=>
-      timedOut = yes
-      @updateLogTimer timerName, fallbackTimer
-      @logTimeoutToExternal timerName
-
-      onTimeout rest...
-
-    fallbackTimer = setTimeout fallback, timeout
-    @logTimer timerName, fallbackTimer, Date.now()
-
-    kallback.cancel =-> clearTimeout fallbackTimer
-    kallback
-
-  logTimeoutToExternal: (timerName)->
-    KD.logToMixpanel timerName+".timeout"
-
-  logTimer:(timerName, timerNumber, startTime)->
-    log "logTimer name:#{timerName}"
-
-    @timers[timerName] ||= {}
-    @timers[timerName][timerNumber] =
-      start  : startTime
-      status : "started"
-
-  updateLogTimer:(timerName, timerNumber, endTime)->
-    timer     = @timers[timerName][timerNumber]
-    status    = if endTime then "ended" else "failed"
-    startTime = timer.start
-    elapsed   = endTime-startTime
-    timer     =
-      start   : startTime
-      end     : endTime
-      status  : status
-      elapsed : elapsed
-
-    @timers[timerName][timerNumber] = timer
-
-    log "updateLogTimer name:#{timerName}, status:#{status} elapsed:#{elapsed}"
-
-  timers: {}
-
   ###
   password-generator
   Copyright(c) 2011 Bermi Ferrer <bermi@bermilabs.com>
@@ -656,14 +583,6 @@ __utils =
 
   startLoggingToRollbar: ->
     window._rollbar = KD.getSingleton("mainController").old_rollbar
-
-  # Return true x% of time based on argument.
-  #
-  # Example:
-  #   runXpercent(10) => returns true 10% of the time
-  runXpercent: (percent)->
-    chance = Math.floor(Math.random() * 100)
-    chance <= percent
 
 ###
 //     Underscore.js 1.3.1

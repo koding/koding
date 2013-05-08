@@ -89,7 +89,6 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://koding.local'
     runtimeOptions:
-      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
