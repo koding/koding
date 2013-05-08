@@ -111,7 +111,7 @@ class NFinderTreeController extends JTreeViewController
       @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
       folder.emit "fs.job.finished", []
 
-    folder.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+    folder.fetchContents (KD.utils.getTimedOutCallback (err, files)=>
       unless err
         nodeView.expand()
         if files
@@ -122,7 +122,7 @@ class NFinderTreeController extends JTreeViewController
         @hideNotification()
       else
         failCallback()
-    , failCallback
+    , failCallback), no
 
   collapseFolder:(nodeView, callback)->
 
@@ -445,7 +445,7 @@ class NFinderTreeController extends JTreeViewController
               @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   openTerminalFromHere: (nodeView) ->
-    appManager.open "WebTerm", yes, (appInstance) =>
+    appManager.open "WebTerm", (appInstance) =>
       path        = nodeView.getData().path
       webTermView = KD.getSingleton('mainView').mainTabView.getActivePane().mainView
       #TODO: webTermView != appInstance.getView() so should simplify the line above

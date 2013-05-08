@@ -110,16 +110,26 @@ class MainTabView extends KDTabView
 
   createTabPane:(options = {}, mainView)->
 
-    options.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
-    options.class  or= KDView
-    options.domId    = "maintabpane-#{@utils.slugify options.name}"
+    o = {}
+    o.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
+    o.class  or= KDView
 
-    paneInstance = new MainTabPane options
+    # this is a temporary hack
+    # for reviving the main tabs
+    # a better solution tbdl - SY
+
+    domId           = "maintabpane-#{@utils.slugify options.name}"
+    o.domId         = domId  if document.getElementById domId
+    o.name          = options.name
+    o.behavior      = options.behavior
+    o.hiddenHandle  = options.hiddenHandle
+    paneInstance    = new MainTabPane o
 
     paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
-      if options.appInfo?.title?
-        paneInstance.setTitle options.appInfo.title
+      appController = appManager.getByView mainView
+      {appInfo}     = appController.getOptions()
+      paneInstance.setTitle appInfo.title  if appInfo?.title
 
     @addPane paneInstance
 

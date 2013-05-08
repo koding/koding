@@ -37,11 +37,15 @@ var infosMutex sync.Mutex
 
 func main() {
 	lifecycle.Startup("kite.os", true)
-	virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates")
+	if err := virt.LoadTemplates(config.Current.ProjectRoot + "/go/templates"); err != nil {
+		log.LogError(err, 0)
+		return
+	}
 
 	dirs, err := ioutil.ReadDir("/var/lib/lxc")
 	if err != nil {
-		panic(err)
+		log.LogError(err, 0)
+		return
 	}
 	for _, dir := range dirs {
 		if strings.HasPrefix(dir.Name(), "vm-") {

@@ -38,6 +38,10 @@ class ActivityListController extends KDListViewController
 
     @_state = 'public'
 
+    @getListView().on "ItemIsBeingDestroyed", @bound "addNoItemFoundWidget"
+
+    @getListView().on "ItemWasAdded", @bound "removeNoItemFoundWidget"
+
     @scrollView.on 'scroll', (event) =>
       if event.delegateTarget.scrollTop > 0
         @activityHeader.setClass "scrolling-up-outset"
@@ -47,6 +51,18 @@ class ActivityListController extends KDListViewController
 
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
+
+  removeNoItemFoundWidget:->
+    if @getItemCount() is 1
+      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+      noItemFoundWidget.destroy() if noItemFoundWidget
+
+  addNoItemFoundWidget:->
+    if @getItemCount() is 0
+      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+      noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
+      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
 
   resetList:->
     @newActivityArrivedList = {}
