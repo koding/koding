@@ -1,7 +1,7 @@
 
 class FSFolder extends FSFile
 
-  fetchContents:(callback)->
+  fetchContents:(callback, dontWatch=yes)->
 
     {nickname} = KD.whoami().profile
 
@@ -10,7 +10,7 @@ class FSFolder extends FSFile
       kiteName   : 'os'
       method     : 'fs.readDirectory'
       withArgs   :
-        onChange : (change)=>
+        onChange : if dontWatch then null else (change)=>
           FSHelper.folderOnChange @path, change, @treeController
         path     : @path
     , (err, response)=>
