@@ -93,7 +93,8 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-app.get "/-/neo", (req, res)->
+#app.get "/-/neo", (req, res)->
+app.get "/-/cache/latest", (req, res)->
   Graph = require "./graph"
   GraphDecorator = require "./graphdecorator"
   graph = new Graph neo4j
@@ -103,7 +104,7 @@ app.get "/-/neo", (req, res)->
       res.send decorated
 
 startTime = null
-app.get "/-/cache/latest", (req, res)->
+app.get "/-/oldcache/latest", (req, res)->
   {JActivityCache} = koding.models
   startTime = Date.now()
   JActivityCache.latest (err, cache)->
