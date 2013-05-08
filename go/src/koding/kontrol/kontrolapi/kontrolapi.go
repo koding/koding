@@ -445,10 +445,11 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd(cmd)
 
+	var url string
 	if username == "koding" {
-		url := fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
+		url = fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
 	} else {
-		url := fmt.Sprintf("http://%s-%s-%s.x.koding.com", servicename, key, username)
+		url = fmt.Sprintf("http://%s-%s-%s.x.koding.com", servicename, key, username)
 	}
 	io.WriteString(writer, url)
 	return
