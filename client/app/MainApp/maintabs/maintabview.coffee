@@ -54,7 +54,10 @@ class MainTabView extends KDTabView
       pane.mainView.destroy()
       return no
 
-    @showPane pane  if options.route is '/Develop'
+    # this is a temporary fix for third party apps
+    # until router handles everything correctly
+    if options.route is '/Develop'
+      appManager.show KD.getAppOptions options.name
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
