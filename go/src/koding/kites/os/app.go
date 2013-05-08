@@ -14,6 +14,7 @@ import (
 	"launchpad.net/goamz/aws"
 	"launchpad.net/goamz/s3"
 	"os"
+	"path"
 	"strings"
 	"time"
 )
@@ -80,10 +81,8 @@ func registerAppMethods(k *kite.Kite) {
 		}
 		defer gzr.Close()
 
-		if _, err := vos.Stat(params.AppPath); err == nil {
-			if err := vos.Rename(params.AppPath, params.AppPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
-				return nil, err
-			}
+		if err := moveToBackup(params.AppPath, vos); err != nil {
+			return nil, err
 		}
 		if err := vos.Mkdir(params.AppPath, 0755); err != nil && !os.IsExist(err) {
 			return nil, err
@@ -274,18 +273,27 @@ func registerAppMethods(k *kite.Kite) {
 			params.Type = "blank"
 		}
 
-		if _, err := vos.Stat(params.AppPath); err == nil {
-			if err := vos.Rename(params.AppPath, params.AppPath+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
-				return nil, err
-			}
+		if err := moveToBackup(params.AppPath, vos); err != nil {
+			return nil, err
 		}
-
 		if err := recursiveCopy(config.Current.ProjectRoot+"/go/templates/app/"+params.Type, vos, params.AppPath); err != nil {
 			return nil, err
 		}
 
 		return true, nil
 	})
+}
+
+func moveToBackup(name string, vos *virt.VOS) error {
+	if _, err := vos.Stat(name); err == nil {
+		if err := vos.Mkdir("Backup", 0755); err != nil && !os.IsExist(err) {
+			return err
+		}
+		if err := vos.Rename(name, "Backup/"+path.Base(name)+time.Now().Format("_02_Jan_06_15:04:05_MST")); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func downloadFile(url string, vos *virt.VOS, path string) error {
