@@ -118,52 +118,61 @@ app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq
 
-  {JKite} = koding.models
-  koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
-    res.header "Content-Type", "application/json"
+  res.header "Content-Type", "application/json"
 
-    if err? or !kite?
-      res.send 401
-    else
-      rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
-        creds =
-          protocol  : 'amqp'
-          host      : mq.apiAddress
-          username  : data.username
-          password  : data.password
-          vhost     : mq.vhost
-        res.header "Content-Type", "application/json"
-        res.send JSON.stringify creds
+  {username, key, name} = req.query
 
-app.post "/-/kite/register", express.bodyParser(), (req, res)->
-
-  {JKite, JUser} = koding.models
-  {username, password, kiteName} = req.body
-
-  hashPassword = (value, salt)->
-    require('crypto').createHash('sha1').update(salt+value).digest('hex')
-
-  JKite.one {kiteName}, (err, kite)=>
-    if kite
-      res.send error: "Kite already exists."
-    else
-      JUser.one {username, status: $ne: "blocked"}, (err, user) =>
-        if err
-          res.send JSON.stringify error: err.message
-        else unless user?
-          res.send JSON.stringify error: 'Unknown username!'
-        else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-          res.send JSON.stringify error: 'Access denied!'
-        else
-          user.fetchAccount "koding-kite", (err, account)->
-            JKite.create {connection: {delegate: account}}, {kiteName}, (err, kite)->
-              if err
-                res.send error: err
+  unless username and key and name
+    res.send 
+      error: true
+      message: "Not enough parameters."
+  else
+    {JKodingKey, JUser} = koding.models
+    
+    JUser.one {username, status: $ne: "blocked"}, (err, user) =>
+      if err or not user
+        res.status 404
+        res.send
+          error: true
+          message: "User not found."
+      else
+        user.fetchAccount "koding", (err, account)=>
+          if err or not account
+            res.status 500
+            res.send
+              error: true
+              message: "An error occured."
+          else
+            JKodingKey.one {key}, (err, kodingKey)=>
+              if err or not kodingKey
+                res.status 401
+                res.send
+                  error: true
+                  message: "Koding Key not found."
               else
-                res.send 
-                  error: false
-                  kiteName: kite.kiteName
-                  key: kite.key
+                JKodingKey.fetchByKey {connection: {delegate: account}}, {key: kodingKey._id}, (err, kodingKey)=>
+                  if err or not kodingKey
+                    res.status 401
+                    res.send
+                      error: true
+                      message: "Koding Key not found."
+                  else if kodingKey.length is 0
+                    res.status 401
+                    res.send
+                      error: true
+                      message: "Koding Key not found."
+                  else
+                    rabbitAPI.newUser key, name, (err, data) =>
+                      creds = 
+                        protocol  : 'amqp'
+                        port      : mq.apiPort
+                        host      : mq.apiAddress
+                        username  : data.username
+                        password  : data.password
+                        vhost     : mq.vhost
+                      console.log creds
+                      res.status 200
+                      res.send creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
@@ -310,6 +319,33 @@ app.get "/", (req, res)->
           if username then serve loggedInPage, res
           else serve loggedOutPage, res
 
+###
+app.get "/-/kd/register/:key", (req, res)->
+  {clientId} = req.cookies
+  unless clientId
+    serve loggedOutPage, res
+  else
+    {JSession} = koding.models
+    JSession.one {clientId}, (err, session)=>
+      if err
+        console.error err
+        serve loggedOutPage, res
+      else
+        {username} = session.data
+        unless username
+          res.redirect 302, '/'
+        else
+          JUser.one {username, status: $ne: "blocked"}, (err, user) =>
+          if err
+            res.redirect 302, '/'
+          else unless user?
+            res.redirect 302, '/'
+          else
+            user.fetchAccount "koding", (err, account)->
+              {key} = req.params
+              JPublicKey.create {connection: {delegate: account}}, {key}, (err, publicKey)->
+                res.send "true"
+###
 getAlias = do->
   caseSensitiveAliases = ['auth']
   (url)->
