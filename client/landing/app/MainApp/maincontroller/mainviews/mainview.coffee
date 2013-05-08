@@ -121,32 +121,6 @@ class MainView extends KDView
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
 
-  getMainSettingsMenuButton:->
-    new KDButtonView
-      cssClass : "app-settings-menu"
-      iconOnly : yes
-      callback : (event) ->
-        appManifest = getFrontAppManifest()
-        if appManifest?.menu
-          mainTabView = KD.getSingleton("mainView").mainTabView
-          appManifest.menu.forEach (item, index) ->
-            item.callback = (contextmenu) ->
-              view = mainTabView.activePane?.mainView
-              item.eventName or= item.title
-              view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
-              contextMenu.destroy()
-
-          offset = @$().offset()
-          contextMenu = new JContextMenu
-              event       : event
-              delegate    : @
-              x           : offset.left - 150
-              y           : offset.top + 20
-              arrow       :
-                placement : "top"
-                margin    : -5
-            , appManifest.menu
-
   setStickyNotification:->
     # sticky = @getSingleton('windowController')?.stickyNotification
     @utils.defer => getStatus()
