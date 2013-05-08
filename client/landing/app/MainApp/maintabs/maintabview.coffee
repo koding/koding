@@ -117,14 +117,13 @@ class MainTabView extends KDTabView
     # this is a temporary hack
     # for reviving the main tabs
     # a better solution tbdl - SY
-    if document.getElementById o.domId
-      o.domId         = "maintabpane-#{@utils.slugify options.name}"
 
+    domId           = "maintabpane-#{@utils.slugify options.name}"
+    o.domId         = domId  if document.getElementById domId
     o.name          = options.name
     o.behavior      = options.behavior
     o.hiddenHandle  = options.hiddenHandle
-
-    paneInstance = new MainTabPane o
+    paneInstance    = new MainTabPane o
 
     paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
