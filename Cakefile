@@ -112,14 +112,13 @@ task 'webserver', ({configFile}) ->
       restart         : yes
       restartInterval : 100
 
-  unless KONFIG.runKontrol
-    if webserver.watch is yes
-      watcher = new Watcher
-        groups        :
-          server      :
-            folders   : ['./server']
-            onChange  : ->
-              processes.kill "server"
+  if webserver.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./server']
+          onChange  : ->
+            processes.kill "server"
 
 task 'socialWorker', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
@@ -144,17 +143,16 @@ task 'socialWorker', ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-  unless KONFIG.runKontrol
-    if social.watch?
-      watcher = new Watcher
-        groups   :
-          social   :
-            folders   : ['./workers/social']
-            onChange  : (path) ->
-              if social.numberOfWorkers is 1
-                processes.kill "social"
-              else
-                processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
+  if social.watch?
+    watcher = new Watcher
+      groups   :
+        social   :
+          folders   : ['./workers/social']
+          onChange  : (path) ->
+            if social.numberOfWorkers is 1
+              processes.kill "social"
+            else
+              processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
@@ -173,17 +171,16 @@ task 'authWorker',({configFile}) ->
         startMode     : "one"
       verbose         : yes
 
-  unless KONFIG.runKontrol
-    if config.watch is yes
-      watcher = new Watcher
-        groups        :
-          auth        :
-            folders   : ['./workers/auth']
-            onChange  : (path) ->
-              if numberOfWorkers is 1
-                processes.kill "auth"
-              else
-                processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
+  if config.watch is yes
+    watcher = new Watcher
+      groups        :
+        auth        :
+          folders   : ['./workers/auth']
+          onChange  : (path) ->
+            if numberOfWorkers is 1
+              processes.kill "auth"
+            else
+              processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
 task 'guestCleanup',({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
@@ -310,14 +307,13 @@ task 'cacheWorker',({configFile})->
       enabled       : if KONFIG.runKontrol is yes then yes else no
       startMode     : "one"
 
-  unless KONFIG.runKontrol
-    if cacheWorker.watch is yes
-      watcher = new Watcher
-        groups        :
-          server      :
-            folders   : ['./workers/cacher']
-            onChange  : ->
-              processes.kill "cacheWorker"
+  if cacheWorker.watch is yes
+    watcher = new Watcher
+      groups        :
+        server      :
+          folders   : ['./workers/cacher']
+          onChange  : ->
+            processes.kill "cacheWorker"
 
 
 task 'kontrolCli',({configFile}) ->
@@ -346,7 +342,6 @@ task 'kontrolRabbit',(options) ->
 
 task 'kontrolDaemon',(options) ->
   {configFile} = options
-  console.log configFile
   processes.spawn
     name    : 'kontrolDaemon'
     cmd     : "./go/bin/kontroldaemon -c #{configFile} #{addFlags options}"
