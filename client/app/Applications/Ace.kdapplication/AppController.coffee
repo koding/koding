@@ -1,12 +1,36 @@
 class AceAppController extends AppController
 
   KD.registerAppClass @,
-    name         : "Ace"
-    multiple     : yes
-    hiddenHandle : no
-    openWith     : "lastActive"
-    route        : "/Develop"
-    behavior     : "application"
+    name          : "Ace"
+    multiple      : yes
+    hiddenHandle  : no
+    openWith      : "lastActive"
+    route         : "/Develop"
+    behavior      : "application"
+    menu          : [
+      {
+        title     : "Save"
+        eventName : "save"
+      }
+      {
+        title     : "Save As"
+        eventName : "saveAs"
+      }
+      {
+        type      : "separator"
+      }
+      {
+        title     : "Compile and Run"
+        eventName : "compileAndRun"
+      }
+      {
+        type      : "separator"
+      }
+      {
+        title     : "Preview"
+        eventName : "preview"
+      }
+    ]
     # mimeTypes    : "text"
 
   constructor: (options = {}, data)->
