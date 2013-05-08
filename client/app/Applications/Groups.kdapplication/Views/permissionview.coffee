@@ -59,6 +59,8 @@ class GroupPermissionsView extends JView
               for item in copiedPermissions
                 newPermissions.push item
               addPermissionsView(newPermissions)
+              @permissions.emit 'RoleViewRefreshed'
+
 
           else
             @addSubView new KDView
