@@ -122,7 +122,6 @@ class PermissionsModal extends KDFormViewWithFields
     dictionary =
       "JTag" : "Tags"
       "JGroup": 'Groups'
-      "JReview": 'Reviews'
       "JPost":'Posts'
       "JVocabulary": 'Vocabularies'
       "JVM": "Compute"

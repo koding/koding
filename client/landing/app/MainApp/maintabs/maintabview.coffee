@@ -48,13 +48,13 @@ class MainTabView extends KDTabView
     appView     = pane.getMainView()
     appInstance = appManager.getByView appView
     options     = appInstance.getOptions()
-    @getSingleton('router').handleRoute "/#{options.route}"
+    @getSingleton('router').handleRoute "#{options.route}"
 
     if $(event.target).hasClass "close-tab"
       pane.mainView.destroy()
       return no
 
-    @showPane pane  if options.route is 'Develop'
+    @showPane pane  if options.route is '/Develop'
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25
@@ -112,7 +112,12 @@ class MainTabView extends KDTabView
 
     options.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
     options.class  or= KDView
-    options.domId    = "maintabpane-#{@utils.slugify options.name}"
+
+    # this is a temporary hack
+    # for reviving the main tabs
+    # a better solution tbdl - SY
+    options.domId  = "maintabpane-#{@utils.slugify options.name}"
+    options.domId += "-#{@utils.getRandomNumber()}" if document.getElementById options.domId
 
     paneInstance = new MainTabPane options
 

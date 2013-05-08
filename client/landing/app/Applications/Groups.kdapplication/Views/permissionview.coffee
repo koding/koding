@@ -33,7 +33,9 @@ class GroupPermissionsView extends JView
           unless err
             if newPermissions
               permissionSet.permissions = newPermissions
-            if @permissions then @removeSubView @permissions
+
+            @permissions.destroy() if @permissions
+
             @addSubView @permissions = new PermissionsModal {
               privacy: group.privacy
               permissionSet
