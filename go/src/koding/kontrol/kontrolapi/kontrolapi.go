@@ -199,7 +199,7 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Register a proxy
-// example: http POST "localhost:8000/proxies/mahlika.local-915/{username}/services"
+// example: http POST "localhost:8000/proxies/mahlika.local-915/services/{username}"
 func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -216,7 +216,7 @@ func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Delete service for the given name
-// exameple: http DELETE /proxies/mahlika.local-915/arslan/{serviceName}
+// exameple: http DELETE /proxies/mahlika.local-915/services/arslan/{serviceName}
 func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -235,7 +235,7 @@ func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Delete key for the given name and key
-// exameple: http DELETE /proxies/mahlika.local-915/{username}/{serviceName}/{keyname}
+// exameple: http DELETE /proxies/mahlika.local-915/services/{username}/{serviceName}/{keyname}
 func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -376,7 +376,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 // * If servicename is not available an new one is created
 // * If key is available tries to append it, if not creates a new key with host.
 // * If key and host is available it does nothing
-// example: http POST "localhost:8000/proxies/mahlika.local-915/arslan/services/server" key=2 host=localhost:8009 rabbitkey=1234567890
+// example: http POST "localhost:8000/proxies/mahlika.local-915/services/arslan/server" key=2 host=localhost:8009 rabbitkey=1234567890
 func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -445,13 +445,17 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd(cmd)
 
-	url := fmt.Sprintf("http://%s-%s.x.koding.com", key, servicename)
+	if username == "koding" {
+		url := fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
+	} else {
+		url := fmt.Sprintf("http://%s-%s-%s.x.koding.com", servicename, key, username)
+	}
 	io.WriteString(writer, url)
 	return
 }
 
 // Get all services registered to a proxy machine
-// example: http GET "localhost:8000/proxies/mahlika.local-915/{username}/services"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/services/{username}"
 func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -483,12 +487,12 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 }
 
 // Get all keys and hosts for a given proxy service registerd to a proxy uuid
-// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/services/arslan/foo"
 //
 // accepts query filtering for key, host and hostdata
-// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo?key=2"
-// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo?host=localhost:8002"
-// example: http GET "localhost:8000/proxies/mahlika.local-915/arslan/foo?hostdata=FromKontrolAPI"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/services/arslan/foo?key=2"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/services/arslan/foo?host=localhost:8002"
+// example: http GET "localhost:8000/proxies/mahlika.local-915/services/arslan/foo?hostdata=FromKontrolAPI"
 func GetProxyService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]

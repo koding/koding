@@ -62,7 +62,7 @@ func main() {
 	log.Printf("kontrol proxy started ")
 	start = make(chan bool)
 	connections = make(map[string]RabbitChannel)
-	// declare just once time
+
 	// open kontrol-daemon database connection
 	var err error
 	proxyDB, err = proxyconfig.Connect()
@@ -73,6 +73,7 @@ func main() {
 	// register proxy instance to kontrol-daemon
 	amqpStream = setupAmqp()
 
+	// declare just once time
 	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	if err != nil {
 		log.Println("exchange.declare: %s", err)
@@ -578,7 +579,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		err := checkServer(outreq.URL.Host)
 		if err != nil {
 			log.Println(err)
-			// we can't connect to url, thus proxy trough amqp
+			// we can't connect to url, thus try proxy trough rabbitmq
 			if rabbitKey == "" {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy connection refused %s'. not able to connect.\"}\n", outreq.URL.Host))
 				return
