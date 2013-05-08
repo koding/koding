@@ -3,7 +3,7 @@ class FeederResultsController extends KDViewController
   constructor:(options = {}, data)->
 
     options.view                or= new FeederTabView hideHandleCloseIcons : yes
-    options.paneClass           or= FeederTabPaneView
+    options.paneClass           or= KDTabPaneView
     options.itemClass           or= KDListItemView
     options.listControllerClass or= KDListViewController
     options.onboarding          or= null
@@ -13,8 +13,7 @@ class FeederResultsController extends KDViewController
     @panes = {}
     @listControllers = {}
 
-    for name, filter of options.filters
-      @createTab name,filter
+    @createTab name, filter for name, filter of options.filters
 
   loadView:(mainView)->
 

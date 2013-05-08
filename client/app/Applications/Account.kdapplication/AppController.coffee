@@ -2,7 +2,7 @@ class AccountAppController extends AppController
 
   KD.registerAppClass @,
     name         : "Account"
-    route        : "Account"
+    route        : "/Account"
     behavior     : "hideTabs"
     hiddenHandle : yes
 
