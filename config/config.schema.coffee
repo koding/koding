@@ -56,6 +56,10 @@ config =
       enabled     : 1
       port        : 1
     mongo         : 1
+    neo4j         :
+      enabled     : 1
+      host        : 1
+      port        : 1
     runGoBroker   : 1
     runRerouting  : 1
     compileGo     : 1

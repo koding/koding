@@ -40,6 +40,10 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : sourceServerPort
+  neo4j         :
+    enabled     : yes
+    host        : "http://neo4j-dev"
+    port        : 7474
   mongo         : mongo
   runGoBroker   : yes
   runRerouting  : yes
