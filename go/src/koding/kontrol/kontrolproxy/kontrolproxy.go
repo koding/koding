@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nranchev/go-libGeoIP"
 	"github.com/streadway/amqp"
 	"io"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -424,12 +425,23 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	fmt.Printf("--")
+	fmt.Println("--")
 	host, port, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
 		log.Printf("could not split host and port", err)
 	} else {
 		log.Printf("new connection from %s:%s\n", host, port)
+	}
+
+	dbFile := "GeoIP.dat"
+	gi, err := libgeo.Load(dbFile)
+	if err != nil {
+		fmt.Printf("load GeoIP.dat: %s\n", err.Error())
+	}
+
+	loc := gi.GetLocationByIP(host)
+	if loc != nil {
+		fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
 	}
 
 	conn_hdr := ""
