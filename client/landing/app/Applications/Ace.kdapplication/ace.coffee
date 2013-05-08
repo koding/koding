@@ -280,8 +280,7 @@ class Ace extends KDView
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
       type      : "mini"
-      cssClass  : "editor #{style}"
-      container : @parent
+      cssClass  : "#{style}"
       duration  : duration or if details then 5000 else 2500
       details   : details
       click     : ->
