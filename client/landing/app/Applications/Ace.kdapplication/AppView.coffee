@@ -15,22 +15,6 @@ class AceView extends JView
 
     @listenWindowResize()
 
-    @editorHeader = new KDView
-      cssClass : "editor-header header-buttons"
-
-    @editorHeader.addSubView @headerButtonContainer = new KDView
-      cssClass : "header-buttons"
-
-    @saveButton = new KDButtonViewWithMenu
-      title         : "Save"
-      style         : "editor-button save-menu"
-      type          : "contextmenu"
-      delegate      : @
-      menu          : @getSaveMenu.bind @
-      callback      : =>
-        @ace.requestSave()
-    @saveButton.disable()
-
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
       cssClass      : "caret-position section"
@@ -50,47 +34,8 @@ class AceView extends JView
       menu          : @getAdvancedSettingsMenuItems.bind @
     @advancedSettings.disable()
 
-    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
-    @previewButton = new KDButtonView
-      style     : "editor-button"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "preview"
-      callback  : =>
-        publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
-        return if publicPath is @getData().path
-        KD.getSingleton("appManager").open "Viewer", (appInstance)->
-          appInstance.open publicPath
-
-    @previewButton.hide() unless publicUrlCheck.test(@getData().path)
-    @previewButton.disable()
-
-    @compileAndRunButton = new KDButtonView
-      style     : "editor-button"
-      title     : "Compile & Run"
-      loader    :
-        color   : "#444444"
-        diameter: 12
-      callback  : =>
-        manifest = KodingAppsController.getManifestFromPath @getData().path
-        @ace.notify "Compiling...", null, yes
-        @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
-          if not err
-            @ace.notify "App compiled!", "success"
-          else
-            @ace.notify "Trying to run old version..."
-          @getSingleton('kodingAppsController').runApp manifest
-          @compileAndRunButton.hideLoader()
-
-    @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
-    @compileAndRunButton.disable()
-
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
     @findAndReplaceView.hide()
-
-    @headerButtonContainer.addSubView @compileAndRunButton
-    @headerButtonContainer.addSubView @previewButton
-    @headerButtonContainer.addSubView @saveButton
 
     @setViewListeners()
 
@@ -122,6 +67,24 @@ class AceView extends JView
       else
         @getData().emit "file.requests.save", contents
 
+  preview: ->
+    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
+    publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
+    return if publicPath is @getData().path
+    KD.getSingleton("appManager").open "Viewer", (appInstance)->
+      appInstance.open publicPath
+
+  compileAndRun: ->
+    manifest = KodingAppsController.getManifestFromPath @getData().path
+    @ace.notify "Compiling...", null, yes
+    @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
+      if not err
+        @ace.notify "App compiled!", "success"
+      else
+        @ace.notify "Trying to run old version..."
+      @getSingleton('kodingAppsController').runApp manifest
+      @compileAndRunButton.hideLoader()
+
   viewAppended:->
 
     super
@@ -130,7 +93,6 @@ class AceView extends JView
   pistachio:->
 
     """
-    {{> @editorHeader}}
     <div class="kdview editor-main">
       {{> @ace}}
       <div class="editor-bottom-bar clearfix">
