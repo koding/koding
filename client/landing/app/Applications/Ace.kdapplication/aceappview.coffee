@@ -50,6 +50,14 @@ class AceAppView extends JView
       # ace.on "AceDidSaveAs", (name, parentPath) =>
       #   update tooltip title here
 
+    @on "menu.save", => @getActiveAceView().ace.requestSave()
+
+    @on "menu.saveAs", => @getActiveAceView().ace.requestSaveAs()
+
+    @on "menu.compileAndRun", => @getActiveAceView().compileAndRun()
+
+    @on "menu.preview", => @getActiveAceView().preview()
+
   viewAppended:->
     super
     @utils.wait 100, => @addNewTab() if @tabView.panes.length is 0
@@ -70,6 +78,9 @@ class AceAppView extends JView
 
   setViewListeners: (view) ->
     @setFileListeners view.getData()
+
+  getActiveAceView: ->
+    return @tabView.getActivePane().getOptions().aceView
 
   isFileOpen: (file) -> @aceViews[file.path]?
 
