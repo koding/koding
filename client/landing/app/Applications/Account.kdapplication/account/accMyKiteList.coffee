@@ -131,7 +131,7 @@ class AccountMyKiteList extends KDListView
         forms                         :
           MyKites                     :
             callback                  : =>
-              @modal.modalTabs.forms.MyKites.buttons.Create.showLoader()
+              @modal.modalTabs.forms.MyKites.buttons.create.showLoader()
               @emit "CreateKiteSubmitted", @
             buttons                   :
               create                  :
