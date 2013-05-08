@@ -81,7 +81,4 @@ class NewCommentForm extends KDView
       @commentInput.$().blur()
       @getDelegate().emit 'CommentSubmitted', reply
     else
-      new KDNotificationView
-        type      : "growl"
-        title     : "please login to post a comment!"
-        duration  : 1500
+      KD.requireLogin "please login to post a comment!", noop
