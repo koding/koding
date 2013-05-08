@@ -464,8 +464,10 @@ class KDView extends KDObject
     if @template?
       @template.update()
       return
-    else if 'function' is typeof @partial and data = @getData()
-      @updatePartial @partial data
+    # removes e.g. on actions on status updates such as like and comment
+    # as in the backend they trigger 'update'
+    # else if 'function' is typeof @partial and data = @getData()
+    #   @updatePartial @partial data
 
 
 # #
