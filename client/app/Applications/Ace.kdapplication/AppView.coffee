@@ -75,6 +75,7 @@ class AceView extends JView
 
   compileAndRun: ->
     manifest = KodingAppsController.getManifestFromPath @getData().path
+    return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
     @ace.notify "Compiling...", null, yes
     @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
       if not err
