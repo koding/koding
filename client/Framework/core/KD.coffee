@@ -68,6 +68,7 @@ unless window.event?
 
   debugStates     : {}
   instances       : {}
+  introInstances  : {}
   singletons      : {}
   subscriptions   : []
   classes         : {}
@@ -119,6 +120,9 @@ unless window.event?
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
+
+    {introId} = anInstance.getOptions()
+    @introInstances[introId] = anInstance if introId
     # @classes[anInstance.constructor.name] ?= anInstance.constructor
 
   unregisterInstance: (anInstanceId)->

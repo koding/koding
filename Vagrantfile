@@ -22,7 +22,7 @@ if version < "4.2.12r84980"
   puts "", "VirtualBox successfully installed.", ""
 end
 
-if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.1"
+if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
@@ -33,11 +33,11 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.1"
 
   if not install
     puts "No automatic installation. Please download and install Vagrant manually from:"
-    puts "http://downloads.vagrantup.com/tags/v1.2.1"
+    puts "http://downloads.vagrantup.com/tags/v1.2.2"
     exit 1
   end
 
-  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/a7853fe7b7f08dbedbc934eb9230d33be6bf746f/Vagrant-1.2.1.dmg" or exit 1
+  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/7e400d00a3c5a0fdf2809c8b5001a035415a607b/Vagrant-1.2.2.dmg" or exit 1
   system "hdiutil attach /tmp/Vagrant.dmg" or exit 1
   system "sudo installer -pkg /Volumes/Vagrant/Vagrant.pkg  -target /" or exit 1
   sleep 1 # somehow the installer stays active for some time
@@ -61,38 +61,56 @@ if provision
 end
 
 Vagrant.configure("2") do |config|
-  if provision
-    config.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
-    config.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
-  else
-    config.vm.box = "koding-4"
-    config.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-4.box"
+  config.vm.define :default do |default|
+    if provision
+      default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
+      default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
+    else
+      default.vm.box = "koding-5"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-5.box"
+    end
+
+    default.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
+    default.vm.network :forwarded_port, :guest =>  5672, :host => 5672  # rabbitmq
+    default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
+    default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # nginx for rockmongo
+    
+    default.vm.hostname = "vagrant"
+
+    default.vm.synced_folder ".", "/opt/koding"
+    default.vm.synced_folder "saltstack", "/srv" if provision
+
+    default.vm.provider "virtualbox" do |v|
+      v.name = "koding_#{Time.new.to_i}"
+      v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
+      v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
+    end
+
+    if provision
+      default.vm.provision :shell, :inline => "
+        apt-get --assume-yes install python-pip python-dev
+        pip install mako
+      "
+      default.vm.provision :salt do |salt|
+        salt.verbose = true
+        salt.minion_config = "saltstack/vagrant-minion"
+        salt.run_highstate = true
+      end
+    end
   end
 
-  config.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
-  config.vm.network :forwarded_port, :guest =>  5672, :host => 5672  # rabbitmq
-  config.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
-  
-  config.vm.hostname = "vagrant"
+  if ENV.has_key? "SECONDARY"
+    config.vm.define :secondary do |secondary|
+      secondary.vm.box = "koding-5"
+      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-5.box"
+      secondary.vm.hostname = "secondary"
+      secondary.vm.synced_folder ".", "/opt/koding"
 
-  config.vm.synced_folder ".", "/opt/koding"
-  config.vm.synced_folder "saltstack", "/srv" if provision
-
-  config.vm.provider "virtualbox" do |v|
-    v.name = "koding_#{Time.new.to_i}"
-    v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-    v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
-  end
-
-  if provision
-    config.vm.provision :shell, :inline => "
-      apt-get --assume-yes install python-pip python-dev
-      pip install mako
-    "
-    config.vm.provision :salt do |salt|
-      salt.verbose = true
-      salt.minion_config = "saltstack/vagrant-minion"
-      salt.run_highstate = true
+      secondary.vm.provider "virtualbox" do |v|
+        v.name = "second_#{Time.new.to_i}"
+        v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
+        v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
+      end
     end
   end
 end

@@ -315,7 +315,7 @@ app.get "/", (req, res)->
           console.error err
           serve loggedOutPage, res
         else
-          {username} = session.data
+          {username} = session?.data
           if username then serve loggedInPage, res
           else serve loggedOutPage, res
 

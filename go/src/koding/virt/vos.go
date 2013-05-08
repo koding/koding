@@ -20,7 +20,11 @@ func (vm *VM) OS(user *User) *VOS {
 }
 
 func (vos *VOS) resolve(name string) (string, error) {
-	if !path.IsAbs(name) {
+	tildePrefix := strings.HasPrefix(name, "~/")
+	if !path.IsAbs(name) || tildePrefix {
+		if tildePrefix {
+			name = name[2:]
+		}
 		name = "/home/" + vos.user.Name + "/" + name
 	}
 	constructedPath := ""
