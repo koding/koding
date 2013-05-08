@@ -111,7 +111,7 @@ class NFinderTreeController extends JTreeViewController
       @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
       folder.emit "fs.job.finished", []
 
-    folder.fetchContents KD.utils.getTimedOutCallback (err, files)=>
+    folder.fetchContents (KD.utils.getTimedOutCallback (err, files)=>
       unless err
         nodeView.expand()
         if files
@@ -122,7 +122,7 @@ class NFinderTreeController extends JTreeViewController
         @hideNotification()
       else
         failCallback()
-    , failCallback
+    , failCallback), no
 
   collapseFolder:(nodeView, callback)->
 
