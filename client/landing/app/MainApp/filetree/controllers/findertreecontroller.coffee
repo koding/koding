@@ -445,7 +445,7 @@ class NFinderTreeController extends JTreeViewController
               @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   openTerminalFromHere: (nodeView) ->
-    appManager.open "WebTerm", yes, (appInstance) =>
+    appManager.open "WebTerm", (appInstance) =>
       path        = nodeView.getData().path
       webTermView = KD.getSingleton('mainView').mainTabView.getActivePane().mainView
       #TODO: webTermView != appInstance.getView() so should simplify the line above
