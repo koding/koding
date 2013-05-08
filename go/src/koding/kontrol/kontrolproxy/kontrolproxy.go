@@ -424,7 +424,7 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	fmt.Printf("--")
+	fmt.Println("--")
 	host, port, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
 		log.Printf("could not split host and port", err)
