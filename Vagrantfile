@@ -100,7 +100,7 @@ Vagrant.configure("2") do |config|
 
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
-      secondary.vm.box = "koding-5"
+      secondary.vm.box = "koding-4"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 
