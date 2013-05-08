@@ -92,8 +92,8 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
-    @mainSettingsMenuButton = @getMainSettingsMenuButton()
-    @mainSettingsMenuButton.hide()
+    @appSettingsMenuButton = new AppSettingsMenuButton
+    @appSettingsMenuButton.hide()
 
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
@@ -104,15 +104,20 @@ class MainView extends KDView
     ,null
 
     @mainTabView.on "PaneDidShow", =>
-      appManifest = getFrontAppManifest()
-      @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
+      appManifest = KD.getSingleton("appManager").getFrontAppManifest()
+      menu = appManifest?.menu or appManager.get(@mainTabView.getActivePane()?.name)?.getOptions().menu
+      if menu
+        @appSettingsMenuButton.setData menu
+        @appSettingsMenuButton.show()
+      else
+        @appSettingsMenuButton.hide()
 
     @mainTabView.on "AllPanesClosed", ->
       @getSingleton('router').handleRoute "/Activity"
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
-    @contentPanel.addSubView @mainSettingsMenuButton
+    @contentPanel.addSubView @appSettingsMenuButton
 
   createSideBar:->
 
