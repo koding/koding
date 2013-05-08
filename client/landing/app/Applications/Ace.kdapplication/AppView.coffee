@@ -41,11 +41,7 @@ class AceView extends JView
 
   setViewListeners:->
 
-    @ace.on "ace.ready", =>
-      @saveButton.enable()
-      @advancedSettings.enable()
-      @previewButton.enable()
-      @compileAndRunButton.enable()
+    @ace.on "ace.ready", => @advancedSettings.enable()
 
     @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
@@ -123,11 +119,11 @@ class AceView extends JView
 
   _windowDidResize:->
 
-    height = @getHeight() - 10
+    height = @getHeight() - 9
     editorHeight = height - @$('.editor-header').height()
     bottomBarHeight = @$('.editor-bottom-bar').height()
     @$('.editor-main').height editorHeight
-    @ace.setHeight editorHeight - bottomBarHeight - 10
+    @ace.setHeight editorHeight - bottomBarHeight - 9
 
   openSaveDialog: (callback) ->
 
