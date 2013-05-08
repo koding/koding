@@ -232,7 +232,7 @@ func (w *WorkerConfig) RefreshStatus(uuid string) error {
 		workerData.Monitor.Mem = MemData{}
 		workerData.Monitor.Uptime = 0
 	} else {
-		if workerData.Timestamp.Add(11 * time.Second).Before(time.Now().UTC()) {
+		if workerData.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
 			workerData.Status = Dead
 			workerData.Monitor.Mem = MemData{}
 			workerData.Monitor.Uptime = 0

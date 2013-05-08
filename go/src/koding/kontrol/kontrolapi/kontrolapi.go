@@ -637,6 +637,11 @@ func home(writer http.ResponseWriter, request *http.Request) {
 }
 
 func queryResult(query bson.M) Workers {
+	err := kontrolConfig.RefreshStatusAll()
+	if err != nil {
+		log.Println(err)
+	}
+
 	workers := make(Workers, 0)
 	worker := workerconfig.MsgWorker{}
 
@@ -655,12 +660,6 @@ func queryResult(query bson.M) Workers {
 		}
 
 		workers = append(workers, *apiWorker)
-	}
-
-	for _, worker := range workers {
-		if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
-			worker.State = StatusCode[workerconfig.Dead]
-		}
 	}
 
 	return workers
