@@ -91,6 +91,18 @@ func Startup() {
 		}
 	}()
 
+	// update workers
+	tickerWorker := time.NewTicker(time.Second * 5)
+	go func() {
+		for _ = range tickerWorker.C {
+			log.Println("update worker status")
+			err := kontrolConfig.RefreshStatusAll()
+			if err != nil {
+				log.Println("couldn't update worker data", err)
+			}
+		}
+	}()
+
 	log.Println("kontrold handler plugin is initialized")
 }
 

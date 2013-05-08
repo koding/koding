@@ -231,15 +231,11 @@ func (w *WorkerConfig) RefreshStatus(uuid string) error {
 		workerData.Status = Notstarted
 		workerData.Monitor.Mem = MemData{}
 		workerData.Monitor.Uptime = 0
-	} else {
-		if workerData.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
-			workerData.Status = Dead
-			workerData.Monitor.Mem = MemData{}
-			workerData.Monitor.Uptime = 0
-		} else {
-			// Worker is alive (started, stopped or child is killed), nothing to be changed
-		}
-	}
+	} else if workerData.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
+		workerData.Status = Dead
+		workerData.Monitor.Mem = MemData{}
+		workerData.Monitor.Uptime = 0
+	} // otherwise the workers are still alive
 
 	w.UpdateWorker(workerData)
 	return nil

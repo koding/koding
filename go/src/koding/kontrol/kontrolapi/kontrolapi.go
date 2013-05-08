@@ -637,11 +637,6 @@ func home(writer http.ResponseWriter, request *http.Request) {
 }
 
 func queryResult(query bson.M) Workers {
-	err := kontrolConfig.RefreshStatusAll()
-	if err != nil {
-		log.Println(err)
-	}
-
 	workers := make(Workers, 0)
 	worker := workerconfig.MsgWorker{}
 
