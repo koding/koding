@@ -594,7 +594,11 @@ __utils =
 
     return if location.hostname isnt "localhost"
 
-    status = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    body  = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
+      group = KD.config.entryPoint.slug
+    else
+      group = ''
 
     KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
       unless err

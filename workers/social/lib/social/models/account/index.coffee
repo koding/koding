@@ -21,6 +21,7 @@ module.exports = class JAccount extends jraphical.Module
 
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
+  CActivity = require '../activity'
 
   @getFlagRole = 'content'
 
@@ -592,7 +593,7 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "aleksey-m", "gokmen", "chris",
-                  "arvidkahl", "testdude", "blum", "neelance"]
+                  "arvidkahl", "testdude", "blum", "neelance", "halk"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -602,6 +603,7 @@ module.exports = class JAccount extends jraphical.Module
       if flag is 'exempt'
         console.log 'is exempt'
         @markAllContentAsLowQuality()
+        @cleanCacheFromActivities()
       else
         console.log 'aint exempt'
     else
@@ -613,7 +615,7 @@ module.exports = class JAccount extends jraphical.Module
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
       if flag is 'exempt'
-        console.log 'is exempt'
+        console.log 'was exempt'
         @unmarkAllContentAsLowQuality()
       else
         console.log 'aint exempt'
@@ -832,14 +834,25 @@ module.exports = class JAccount extends jraphical.Module
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, console.log
-        item.emit 'ContentMarkedAsLowQuality', null
+        item.update {$set: isLowQuality: yes}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.flagIsLowQuality ->
+              item.emit 'ContentMarkedAsLowQuality', null
+          else
+            item.emit 'ContentMarkedAsLowQuality', null
 
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, console.log
-        item.emit 'ContentUnmarkedAsLowQuality', null
+        item.update {$set: isLowQuality: no}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.unflagIsLowQuality ->
+              item.emit 'ContentUnmarkedAsLowQuality', null
+          else
+            item.emit 'ContentUnmarkedAsLowQuality', null
+
+  cleanCacheFromActivities:->
+    CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->
