@@ -89,7 +89,7 @@ class LikeView extends KDView
             @_currentState = not @_currentState
             @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
       else
-        @getSingleton('staticProfileController')?.emit 'StaticInteractionHappened', @
+        KD.requireLogin "You need to be logged in!", noop
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
