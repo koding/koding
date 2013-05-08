@@ -241,9 +241,8 @@ class ApplicationManager extends KDObject
     @frontApp = appInstance
 
   getFrontAppManifest: ->
-    appController = KD.getSingleton "kodingAppsController"
-    frontAppName  = @getFrontApp().getOptions().name
-    return appController.constructor.manifests?[frontAppName] # .constructor, weird, why?
+    {name}  = @getFrontApp().getOptions()
+    return KD.getAppOptions name
 
   register:(appInstance)->
 
