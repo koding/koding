@@ -26,6 +26,15 @@ class ApplicationManager extends KDObject
       image : "Viewer"
       sound : "Viewer"
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
+    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
+
+  # temp fix, until router logic is complete
+  setMissingRoute:(appController, appView, appOptions)->
+    router = @getSingleton('router')
+    # log router.getCurrentPath(), appOptions.route
+    if router.getCurrentPath().search(appOptions.route.slice(1)) isnt 0
+      router.handleRoute appOptions.route, suppressListeners : yes
+
 
   open: do ->
 
@@ -84,7 +93,6 @@ class ApplicationManager extends KDObject
         return
 
       if appOptions?.multiple
-
         if options.forceNew or appOptions.openWith is "forceNew"
           @create name, (appInstance)=> @showInstance appInstance, callback
           return
@@ -158,7 +166,7 @@ class ApplicationManager extends KDObject
 
     AppClass   = KD.getAppClass name
     appOptions = KD.getAppOptions name
-    @register appInstance = new AppClass appOptions  if AppClass
+    @register appInstance = new AppClass($.extend {}, true, appOptions)  if AppClass
     @utils.defer -> callback? appInstance
 
   show:(appOptions, callback)->
