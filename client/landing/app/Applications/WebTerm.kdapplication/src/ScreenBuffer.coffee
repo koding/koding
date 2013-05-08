@@ -72,6 +72,8 @@ class WebTerm.ScreenBuffer
       
     @linesToUpdate = []
 
+    @terminal.flushedCallback()
+
   class ContentArray
     constructor: ->
       @elements = []
