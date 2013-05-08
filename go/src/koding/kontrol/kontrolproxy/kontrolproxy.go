@@ -424,6 +424,14 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	fmt.Printf("--")
+	host, port, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		log.Printf("could not split host and port", err)
+	} else {
+		log.Printf("new connection from %s:%s\n", host, port)
+	}
+
 	conn_hdr := ""
 	conn_hdrs := req.Header["Connection"]
 	log.Printf("Connection headers: %v", conn_hdrs)
@@ -445,7 +453,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	*outreq = *req // includes shallow copies of maps, but okay
 
 	var target *url.URL
-	var err error
 
 	keyData, err := parseKey(outreq.Host)
 	if err != nil {
