@@ -39,10 +39,10 @@ class KodingRouter extends KDRouter
 
   handleRoute:(route, options={})->
     {entryPoint} = options
-    if entryPoint?.slug?
+    if entryPoint?.slug? and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
-      # indexOf = if sending route prefixed with groupname or entrySlug is the route
-      # also we dont want to koding group name
+      # if incoming route is prefixed with groupname or entrySlug is the route
+      # also we dont want koding as group name
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
@@ -96,38 +96,51 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, state, route, query)->
-    KD.getSingleton("appManager").tell section, 'createContentDisplay', state,
+  openContent:(name, section, models, route, query)->
+
+    [model] = models
+    KD.getSingleton("appManager").tell section, 'createContentDisplay', model,
       (contentDisplay)=>
         @openRoutes[route] = contentDisplay
         @openRoutesById[contentDisplay.id] = route
         contentDisplay.emit 'handleQuery', query
 
   loadContent:(name, section, slug, route, query)->
+
     routeWithoutParams = route.split('?')[0]
-    KD.remote.api.JName.one {name: routeWithoutParams}, (err, name)=>
-      if err
-        new KDNotificationView title: err?.message or 'An unknown error has occured.'
-      else if name?
-        models = []
-        name.slugs.forEach (slug, i)=>
-          {constructorName, usedAsPath} = slug
-          selector = {}
-          konstructor = KD.remote.api[constructorName]
-          selector[usedAsPath] = slug.slug
-          konstructor?.one selector, (err, model)=>
-            error err if err?
-            unless model
-              @handleNotFound route
-            else
-              models[i] = model
-              if models.length is name.slugs.length
-                @openContent name, section, models, routeWithoutParams, query
-      else
-        @handleNotFound route
+    # return log name, ">>>>>"
+
+    onSuccess = (models)=> @openContent name, section, models, route, query
+    onError   = (err)=>
+      new KDNotificationView title: err?.message or 'An unknown error has occured.'
+      @handleNotFound route
+
+    if name
+      KD.remote.cacheable name or routeWithoutParams, (err, models)=>
+        if models?
+        then onSuccess models
+        else onError err
+    else
+      KD.remote.api.JName.one {name: routeWithoutParams}, (err, jName)=>
+        if err then onError err
+        else if jName?
+          models = []
+          jName.slugs.forEach (aSlug, i)=>
+            {constructorName, usedAsPath} = aSlug
+            selector = {}
+            konstructor = KD.remote.api[constructorName]
+            selector[usedAsPath] = aSlug.slug
+            konstructor?.one selector, (err, model)=>
+              return onError err if err?
+              if model
+                models[i] = model
+                if models.length is jName.slugs.length
+                  onSuccess models
+        else onError()
 
   createContentDisplayHandler:(section)->
-    ({params:{name, slug}, query}, state, route)=>
+    ({params:{name, slug}, query}, models, route)=>
+
       route = name unless route
       contentDisplay = @openRoutes[route.split('?')[0]]
       if contentDisplay?
@@ -135,7 +148,7 @@ class KodingRouter extends KDRouter
           .hideAllContentDisplays contentDisplay
         contentDisplay.emit 'handleQuery', query
       else if state?
-        @openContent name, section, state, route, query
+        @openContent name, section, models, route, query
       else
         @loadContent name, section, slug, route, query
 
@@ -193,8 +206,8 @@ class KodingRouter extends KDRouter
       '/:name?/Dashboard'               : (routeInfo, state, route)->
         {name} = routeInfo.params
         n = name ? 'koding'
-        KD.remote.cacheable n, (err, [group], nameObj)=>
-          @openContent name, 'Groups', group, route
+        KD.remote.cacheable n, (err, groups, nameObj)=>
+          @openContent name, 'Groups', groups, route
 
       # content
       '/:name?/Topics/:slug'            : createContentHandler 'Topics'
