@@ -17,14 +17,14 @@ class KDTooltip extends KDView
 
   constructor:(options,data)->
 
-    options = $.extend {}, options,
-      bind  : "mouseenter mouseleave"
+    options.bind   or= "mouseenter mouseleave"
+    options.sticky or= no
 
-    super options,data
+    super options, data
 
     @avoidDestroy = no
     @visible      = yes
-    @view         = options.view or @getDelegate()
+    @parentView   = @getDelegate()
 
     # Container for positioning in the viewport
     @setClass 'kdtooltip'
@@ -59,7 +59,7 @@ class KDTooltip extends KDView
     if o.selector
       selectorEntered = no
 
-      @view.on 'mousemove', (mouseEvent)=>
+      @parentView.on 'mousemove', (mouseEvent)=>
 
         if $(mouseEvent.target).is(o.selector) and selectorEntered is no
           selectorEntered = yes
@@ -79,7 +79,7 @@ class KDTooltip extends KDView
 
       if event
         return if o.selector and not $(event.target).is o.selector
-      @view.off 'mousemove'
+      @parentView.off 'mousemove'
       # to throttle super need to call it explicitly
       # KDView::show.call @
       super
@@ -100,20 +100,23 @@ class KDTooltip extends KDView
     o = @getOptions()
 
     if o.events
-      @view.bindEvent name for name in o.events
+      @parentView.bindEvent name for name in o.events
 
-    @view.on 'mouseenter', @bound "show"
+    @parentView.on 'mouseenter', =>
+      if @parentView.tooltip
+        @show()
+        @avoidDestroy = yes
 
     unless o.selector
-      @view.on 'mouseleave', @bound "hide"
-
-    # @view.on 'click',      @bound "hide"
+      @parentView.on 'mouseleave', =>
+        @avoidDestroy = no
+        @delayedRemove 40
 
     @on 'mouseenter', =>
       @avoidDestroy = yes
 
     @on 'mouseleave', (event)=>
-      return if $(event.target).is @view.$()
+      return if $(event.target).is @parentView.$()
       @avoidDestroy = no
       @delayedRemove()
 
@@ -130,17 +133,18 @@ class KDTooltip extends KDView
 
   isCurrentlyRemovable:-> @avoidDestroy
 
-  setView:(newView)->
-    return unless newView
+  setView: (childView) ->
+    return unless childView
 
     @wrapper.view.destroy() if @wrapper.view?
 
-    {options, data, constructorName} = newView
+    if childView.constructorName
+      {options, data, constructorName} = childView
+      @childView = new constructorName options, data
+    else
+      @wrapper.addSubView childView
 
-    @view = new constructorName options, data
-    @wrapper.addSubView @view
-
-  getView:-> @view
+  getView:-> @childView
 
   delayedDisplay:(timeout = @getOptions().delayIn)->
     @utils.killWait @displayTimer
@@ -161,11 +165,13 @@ class KDTooltip extends KDView
   destroy:->
 
     @visible = no
-    @view.tooltip = null
-    delete @view.tooltip
+    @parentView.tooltip = null
+    delete @parentView.tooltip
     super
 
   delayedRemove:(timeout = @getOptions().delayOut)->
+
+    return if @getOptions().sticky
 
     @utils.killWait @deleteTimer
     @deleteTimer = @utils.wait timeout, =>
@@ -197,12 +203,12 @@ class KDTooltip extends KDView
     @show()
     @visible = yes
     @getSingleton('windowController').disableScroll()
-    @setPosition(o)
+    @setPosition o
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->
     # values that can/will be used in all the submethods
     container       = @$()
-    selector        = @view.$(o.selector)
+    selector        = @parentView.$(o.selector)
     d = # dimensions
       container :
         height  : container.height()
@@ -313,7 +319,7 @@ class KDTooltip extends KDView
     # @setTemplate @pistachio()
     # @template.update()
 
-    @view.emit 'TooltipReady'
+    @parentView.emit 'TooltipReady'
 
     @addSubView @arrow
     @addSubView @wrapper

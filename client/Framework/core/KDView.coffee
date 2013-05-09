@@ -115,6 +115,10 @@ class KDView extends KDObject
       else if subViews? and 'object' is typeof subViews
         fireViewAppended child for key, child of subViews
 
+      if @getOptions().introId
+        mainController = KD.getSingleton "mainController"
+        mainController.introductionTooltipController.emit "ShowIntroductionTooltip", @
+
     # development only
     if location.hostname is "localhost"
       @on "click", (event)=>
@@ -315,23 +319,29 @@ class KDView extends KDObject
     # @$().show duration
     #@getDomElement()[0].style.display = "block"
 
-  setSize: do->
-    counter = 0
-    isPredefinedSize = (size)->
-      # we have predefined classes for 0 to 1000px
-      return !isNaN(size) and (1000 >= size >= 0)
+  # setSize: do->
+  #   counter = 0
+  #   isPredefinedSize = (size)->
+  #     # we have predefined classes for 0 to 1000px
+  #     return !isNaN(size) and (1000 >= size >= 0)
 
-    (sizes)->
-      if sizes.width?
-        if isPredefinedSize sizes.width
-        then @setClass "w#{sizes.width}"
-        else @setWidth sizes.width
+  #   (sizes)->
+  #     if sizes.width?
+  #       if isPredefinedSize sizes.width
+  #       then @setClass "w#{sizes.width}"
+  #       else @setWidth sizes.width
 
-      if sizes.height?
-        if isPredefinedSize sizes.height
-        then @setClass "h#{sizes.height}"
-        else @setHeight  sizes.height
+  #     if sizes.height?
+  #       if isPredefinedSize sizes.height
+  #       then @setClass "h#{sizes.height}"
+  #       else @setHeight  sizes.height
 
+  setSize: (sizes)->
+    if sizes.width?
+      @setWidth sizes.width
+
+    if sizes.height?
+      @setHeight sizes.height
 
   setPosition:()->
     positionOptions = @getOptions().position
@@ -369,8 +379,8 @@ class KDView extends KDObject
     # instance drops itself from its parent's subviews array
 
     if @parent?.subViews and (index = @parent.subViews.indexOf @) >= 0
-        @parent.subViews.splice index, 1
-        @unsetParent()
+      @parent.subViews.splice index, 1
+      @unsetParent()
 
     # instance removes itself from DOM
     @getDomElement().remove()
@@ -460,8 +470,10 @@ class KDView extends KDObject
     if @template?
       @template.update()
       return
-    else if 'function' is typeof @partial and data = @getData()
-      @updatePartial @partial data
+    # removes e.g. on actions on status updates such as like and comment
+    # as in the backend they trigger 'update'
+    # else if 'function' is typeof @partial and data = @getData()
+    #   @updatePartial @partial data
 
 
 # #
@@ -796,6 +808,7 @@ class KDView extends KDObject
       right      : "w"
 
     o.title     or= ""
+    o.cssClass  or= ""
     o.placement or= "top"
     o.direction or= "center"
     o.offset    or=
@@ -810,6 +823,7 @@ class KDView extends KDObject
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
+    o.sticky    or= no
     o.delegate  or= @
     o.events    or= ['mouseenter','mouseleave','mousemove']
     o.viewCssClass or= null

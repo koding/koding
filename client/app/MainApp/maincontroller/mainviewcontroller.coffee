@@ -9,8 +9,7 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
-    cb = (account)->
-      mainController.sidebarController?.accountChanged account
+    cb = (account)-> mainController.sidebarController?.accountChanged account
 
     mainController.on 'AccountChanged', (account)=>
       if KD.isLoggedIn()
@@ -42,7 +41,7 @@ class MainViewController extends KDViewController
     cdController.emit "ContentDisplaysShouldBeHidden"
 
     @setViewState pane.getOptions()
-    navController.selectItemByName route
+    navController.selectItemByName name
 
   isEntryPointSet = null
 
