@@ -15,10 +15,10 @@ class GroupHomeView extends KDView
     super options, data
 
   viewAppended:->
-    entryPoint       = @getOption 'entryPoint'
+    {entryPoint}     = KD.config
     groupsController = @getSingleton "groupsController"
 
-    KD.remote.cacheable entryPoint, (err, models)=>
+    KD.remote.cacheable entryPoint.slug, (err, models)=>
       if err then callback err
       else if models?
         [group] = models

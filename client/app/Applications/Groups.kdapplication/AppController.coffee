@@ -29,8 +29,8 @@ class GroupsAppController extends AppController
     super options, data
 
     @listItemClass = GroupsListItemView
-    @controllers = {}
-
+    @controllers   = {}
+    @isReady       = no
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
@@ -38,14 +38,14 @@ class GroupsAppController extends AppController
 
   init:->
     mainController = @getSingleton 'mainController'
+    router         = @getSingleton 'router'
+    {entryPoint}   = KD.config
     mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      {entryPoint} = KD.config
-      if pageInfo.path
-        if pageInfo.topLevel
-          KD.getSingleton('router').handleRoute "#{pageInfo.path}"
-        else
-          KD.getSingleton('router').handleRoute "#{pageInfo.path}", {entryPoint}
+      return unless pageInfo.path
+      if pageInfo.topLevel
+      then router.handleRoute "#{pageInfo.path}"
+      else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
     @groups = {}
     @currentGroupData = new GroupData
@@ -68,22 +68,26 @@ class GroupsAppController extends AppController
     # TEMP SY: to be able to work in a vagrantless env
     # to avoid shared authworker's message getting lost
     if location.hostname is "localhost"
-      callback()
-    else
-      @groupChannel.once 'setSecretName', callback
+    then do callback
+    else @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroupName is groupName
     throw new Error 'Cannot change the group!'  if @currentGroupName?
-    @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
     unless @currentGroupName is groupName
-      @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
           [group] = models
-          @currentGroupData.setGroup group
-          @openGroupChannel group, => @emit 'GroupChanged', groupName, group
+          if group.bongo_.constructorName isnt 'JGroup'
+            @isReady = yes
+          else
+            @setGroup groupName
+            @currentGroupData.setGroup group
+            @openGroupChannel group, =>
+              @isReady = yes
+              callback null, groupName, group
+              @emit 'GroupChanged', groupName, group
 
   getUserArea:-> @userArea
 

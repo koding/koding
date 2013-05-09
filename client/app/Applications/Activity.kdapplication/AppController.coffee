@@ -48,11 +48,13 @@ class ActivityAppController extends AppController
 
   putListeners:->
     activityController = @getSingleton('activityController')
-    activityController.on   "ActivityListControllerReady", @attachEvents.bind @
 
     # Do we really need this? ~ GG
     # yes - SY
-    activityController.once "ActivityListControllerReady", @bound "populateActivity"
+    activityController.once "ActivityListControllerReady", (controller)=>
+      @attachEvents controller
+      frontApp = @getSingleton('appManager').getFrontApp()
+      @populateActivity() if frontApp?.name is "Activity"
 
   loadView:->
     @populateActivity() if @listController
@@ -183,22 +185,34 @@ class ActivityAppController extends AppController
 
   populateActivity:(options = {}, callback)->
 
+    # log "ever here?", @isLoading
+    # debugger
+
     return if @isLoading
-    @isLoading = yes
+
     @listController.showLazyLoader()
     @listController.hideNoItemWidget()
 
-    currentGroup = @getSingleton('groupsController').getCurrentGroup()
-    slug = currentGroup.getAt 'slug'
+    @isLoading       = yes
+    groupsController = @getSingleton 'groupsController'
+    {isReady}        = groupsController
+    currentGroup     = groupsController.getCurrentGroup()
 
-    unless slug is 'koding'
-      @fetchActivitiesDirectly options
-    else
-      @isExempt (exempt)=>
-        if exempt or @getFilter() isnt activityTypes
-          @fetchActivitiesDirectly options
-        else
-          @fetchActivitiesFromCache options
+    # log isReady, ">>>>>>>>"
+
+    fetch = (slug)=>
+      unless slug is 'koding'
+        @fetchActivitiesDirectly options, callback
+      else
+        @isExempt (exempt)=>
+          if exempt or @getFilter() isnt activityTypes
+          then @fetchActivitiesDirectly options, callback
+          else @fetchActivitiesFromCache options, callback
+
+    unless isReady
+    then groupsController.once 'groupChanged', fetch
+    else fetch currentGroup.slug
+
 
   sanitizeCache:(cache, callback)->
 
