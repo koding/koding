@@ -6,17 +6,16 @@ class ActivityAppView extends KDScrollView
 
     options.cssClass   = "content-page activity"
     options.domId      = "content-page-activity"
-    options.entryPoint = KD.config.entryPoint?.slug
 
     super options, data
 
     @listenWindowResize()
 
-    {entryPoint}      = @getOptions()
-    HomeKonstructor   = if entryPoint then GroupHomeView else HomeAppView
+    {entryPoint}      = KD.config
+    HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else HomeAppView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
-    @header           = new HomeKonstructor {entryPoint}
+    @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
     mainController    = @getSingleton("mainController")

@@ -9,9 +9,9 @@ class HomeAppController extends AppController
   constructor:(options = {}, data)->
     # options.view    = new HomeMainView
 
-    entryPoint = KD.config.entryPoint.slug? and KD.config.entryPoint.slug or no
+    {entryPoint} = KD.config
 
-    Konstructor = if entryPoint then GroupHomeView else HomeAppView
+    Konstructor = if entryPoint and entryPoint.type is 'group' then GroupHomeView else HomeAppView
 
     options.view    = new Konstructor
       cssClass      : "content-page home"

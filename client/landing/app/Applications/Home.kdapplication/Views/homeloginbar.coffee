@@ -3,9 +3,7 @@ class HomeLoginBar extends JView
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
-
     options.cssClass   = "home-links"
-    options.entryPoint = entryPoint?.slug
 
     super options, data
 
@@ -92,8 +90,15 @@ class HomeLoginBar extends JView
     @getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   decorateButtons:->
-    entryPoint = @getOptions().entryPoint or ''
-    if entryPoint isnt '' and 'member' not in KD.config.roles
+
+    {entryPoint} = KD.config
+    if entryPoint?.type is 'profile'
+      if KD.isLoggedIn()
+      then @hide()
+      else @request.hide()
+      return
+
+    if entryPoint and 'member' not in KD.config.roles
       if KD.isLoggedIn()
         @login.hide()
         @register.hide()
