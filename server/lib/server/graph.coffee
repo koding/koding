@@ -31,7 +31,7 @@ module.exports = class Graph
       ' or koding.name = "JStatusUpdate"'
       'return *'
       'order by koding.`meta.createdAt` DESC'
-      'limit 4'
+      'limit 20'
     ].join('\n');
 
     params =
