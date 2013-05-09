@@ -16,7 +16,6 @@ class LoginView extends KDScrollView
 
     handler =(route, event)=>
       stop event
-      log route
       @getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
@@ -303,9 +302,7 @@ class LoginView extends KDScrollView
 
   click:(event)->
     if $(event.target).is('.login-screen')
-      @hide =>
-        {entryPoint} = KD.config
-        @getSingleton('router').handleRoute "/Activity", {entryPoint}
+      @hide @getSingleton('router').bound "back"
 
   animateToForm: (name)->
 
