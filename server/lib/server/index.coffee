@@ -145,21 +145,18 @@ app.get "/-/kite/login", (req, res) ->
           else
             JKodingKey.one {key}, (err, kodingKey)=>
               if err or not kodingKey
-                console.log "Error 1", err, kodingKey, key
                 res.status 401
                 res.send
                   error: true
                   message: "Koding Key not found. Error 1"
               else
                 JKodingKey.fetchByKey {connection: {delegate: account}}, {key: kodingKey._id}, (err, kodingKey)=>
-                  console.log "Error 2", err
                   if err or not kodingKey
                     res.status 401
                     res.send
                       error: true
                       message: "Koding Key not found. Error 2"
                   else if kodingKey.length is 0
-                    console.log "Error 3", err
                     res.status 401
                     res.send
                       error: true
