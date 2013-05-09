@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nranchev/go-libGeoIP"
 	"github.com/streadway/amqp"
 	"io"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -57,6 +58,7 @@ var amqpStream *AmqpStream
 var start chan bool
 var first bool = true
 var connections map[string]RabbitChannel
+var geoIP *libgeo.GeoIP
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -68,6 +70,13 @@ func main() {
 	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
+
+	// load GeoIP db into memory
+	dbFile := "GeoIP.dat"
+	geoIP, err = libgeo.Load(dbFile)
+	if err != nil {
+		log.Printf("load GeoIP.dat: %s\n", err.Error())
 	}
 
 	// register proxy instance to kontrol-daemon
@@ -430,6 +439,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		log.Printf("could not split host and port", err)
 	} else {
 		log.Printf("new connection from %s:%s\n", host, port)
+	}
+
+	if geoIP != nil {
+		loc := geoIP.GetLocationByIP(host)
+		if loc != nil {
+			fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
+		}
 	}
 
 	conn_hdr := ""
