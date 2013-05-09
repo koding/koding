@@ -74,6 +74,14 @@ class IntroductionAdminForm extends KDFormViewWithFields
           { title     : "Bottom", value : "bottom"  }
           { title     : "Left",   value : "left"  }
         ]
+      DelayForNext    :
+        label         : "Delay for next"
+        type          : "text"
+        placeholder   : "Parent view's intro id"
+        tooltip       :
+          title       : "in ms (3000 for 3 sec.)"
+          placement   : "right"
+        defaultValue  : data.delayForNext or 0
       Snippet         :
         label         : "Intro Snippet"
         itemClass     : KDView
@@ -86,6 +94,12 @@ class IntroductionAdminForm extends KDFormViewWithFields
             partial   : "Switch to Text Mode"
             cssClass  : "introduction-snippet-switch snippet"
             click     : => @switchMode()
+      Callback        :
+        label         : "Callback"
+        itemClass     : KDView
+        cssClass      : "introduction-ace-editor"
+        domId         : "introduction-callback-ace#{@timestamp}"
+        defaultValue  : Encoder.htmlDecode data.callback or ""
 
     options.fields = if options.type is "Group" then groupFields else itemFields
 
@@ -116,7 +130,9 @@ class IntroductionAdminForm extends KDFormViewWithFields
       @setVisibilityOfOverlayWarning @parentData.overlay is "no" # wtf "no"
 
     if type is "Item"
-      @utils.defer => @setAceEditor()
+      @utils.defer =>
+        @createAceEditor()
+        @createCallbackAceEditor()
       if actionType is "Update"
         partial = "You're updating this item from: <span class=\"groupName\">#{@parentData.introductionItem.getData().title}</span>"
         @inputs.GroupName.updatePartial partial
@@ -172,14 +188,16 @@ class IntroductionAdminForm extends KDFormViewWithFields
       return groupData
 
     else
-      editorValue = @aceEditor?.getValue()
+      editorValue = @aceEditor.getValue()
       snippet     = """new KDView({partial: "#{editorValue}"});""" if @snippetType is "Text"
 
       itemData    =
-        introId    : inputs.IntroId.getValue()
-        introTitle : inputs.IntroTitle.getValue()
-        placement  : inputs.Placement.getValue()
-        snippet    : snippet or editorValue
+        introId      : inputs.IntroId.getValue()
+        introTitle   : inputs.IntroTitle.getValue()
+        placement    : inputs.Placement.getValue()
+        snippet      : snippet or editorValue
+        delayForNext : inputs.DelayForNext.getValue()
+        callback     : @callbackEditor.getValue()
 
       return itemData
 
@@ -187,24 +205,33 @@ class IntroductionAdminForm extends KDFormViewWithFields
     {warning} = @inputs
     if isShowing then warning?.show() else warning?.hide()
 
-  setAceEditor: ->
+  createAceEditor: (domElement) ->
     require ["ace/ace"], (ace) =>
-      domElement = document.getElementById "introduction-ace#{@timestamp}"
-      @aceEditor = ace.edit domElement
-      @aceEditor.setTheme "ace/theme/idle_fingers"
-      @aceEditor.getSession().setMode "ace/mode/javascript"
-      @aceEditor.getSession().setTabSize 2
-      domElement.style.fontSize = "14px"
-      @setEditorText()
-      @aceEditor.commands.addCommand
-        name    : 'save'
-        bindKey :
-          win   : 'Ctrl-S'
-          mac   : 'Command-S'
-        exec    : => # to disable browser save modal
+      @aceEditor = ace.edit document.getElementById "introduction-ace#{@timestamp}"
+      @setAceEditor @aceEditor
+      text = "new KDView({\n  partial: \"\"\n});"
+      @setEditorContent @aceEditor, Encoder.htmlDecode @parentData.snippet or text
 
-  setEditorText: (text = "new KDView({\n  partial: \"\"\n});") ->
-    @aceEditor.getSession().setValue Encoder.htmlDecode @parentData.snippet or text
+  createCallbackAceEditor: ->
+    require ["ace/ace"], (ace) =>
+      @callbackEditor = ace.edit document.getElementById "introduction-callback-ace#{@timestamp}"
+      @setAceEditor @callbackEditor
+      @setEditorContent @callbackEditor, Encoder.htmlDecode @parentData.callback or ""
+
+  setAceEditor: (aceInstance, content) ->
+    aceInstance.setTheme "ace/theme/idle_fingers"
+    aceInstance.getSession().setMode "ace/mode/javascript"
+    aceInstance.getSession().setTabSize 2
+    # domElement.style.fontSize = "14px"
+    aceInstance.commands.addCommand
+      name    : 'save'
+      bindKey :
+        win   : 'Ctrl-S'
+        mac   : 'Command-S'
+      exec    : => # to disable browser save modal
+
+  setEditorContent: (editor, content) ->
+    editor.getSession().setValue content
 
   switchMode: ->
     {typeSwitch} = @inputs
@@ -212,9 +239,9 @@ class IntroductionAdminForm extends KDFormViewWithFields
       typeSwitch.updatePartial "Switch to Code Mode"
       @aceEditor.getSession().setMode "ace/mode/text"
       @snippetType = "Text"
-      @setEditorText ""
+      @aceEditor.getSession().setValue ""
     else
       typeSwitch.updatePartial "Switch to Text Mode"
       @aceEditor.getSession().setMode "ace/mode/javascript"
+      @setSnippetEditorValue()
       @snippetType = "Code"
-      @setEditorText()
