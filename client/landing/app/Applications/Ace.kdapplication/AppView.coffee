@@ -79,7 +79,6 @@ class AceView extends JView
     @getSingleton('kodingAppsController').compileApp manifest.name, (err) =>
       @ace.notify "Trying to run old version..." if err
       @getSingleton('kodingAppsController').runApp manifest
-      @compileAndRunButton.hideLoader()
 
   viewAppended:->
 
