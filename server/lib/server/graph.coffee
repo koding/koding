@@ -38,7 +38,7 @@ module.exports = class Graph
       itemId : "515360d23af2fb6b6b000009"
 
     @db.query query, params, (err, results)=>
-#      console.log results
+
       tempRes = []
       if err then callback err
       else if results.length is 0 then callback null, []
@@ -100,36 +100,80 @@ module.exports = class Graph
       'limit 40'
     ].join('\n');
 
-    @db.query query, {}, (err, results) ->
-        if err then throw err
-        resultData = []
-        for result in results
-          type = result.r.data
-          data = result.users.data
-          apps = result.koding.data
-          data.appName = type
-          data.apps = apps
-          resultData.push data
+    @db.query query, {}, (err, results) =>
+      if err then throw err
+      @generateInstalledApps [], results, callback
 
-        objectify resultData, (objected)->
-          callback err, objected
+  generateInstalledApps:(resultData, results, callback)->
+    if results? and results.length < 1 then return callback null, resultData
+    result = results.shift()
+    data = {}
+    objectify result.users.data, (objected)=>
+      data.user = objected
+      objectify result.r.data, (objected)=>
+        data.relationship = objected
+        objectify result.koding.data, (objected)=>
+          data.app = objected
+          resultData.push data
+          @generateInstalledApps resultData, results, callback
 
   fetchNewMembers:(callback)->
     query = [
-      'start koding=node:koding(\'id:*\')'
-      'where koding.name="JAccount" and koding.`meta.createdAt` > "2013-02-14T23:56:48Z"'
-      'return *'
+      'start  koding=node:koding(id={groupId})'
+      'MATCH  koding-[r:member]->members'
+      'where  members.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'return members'
       'order by koding.`meta.createdAt` DESC'
       'limit 40'
     ].join('\n');
 
-    @db.query query, {}, (err, results) ->
+    params =
+      groupId : "5150c743f2589b107d000007"
+      startDate : "2012-02-14T23:56:48Z"
+      endDate : "2014-02-14T23:56:48Z"
+
+    @db.query query, params, (err, results) ->
         if err then throw err
         resultData = []
         for result in results
-          data = result.koding.data
+          data = result.members.data
           resultData.push data
 
         objectify resultData, (objected)->
           callback err, objected
 
+
+
+  fetchNewFollows:(callback)->
+    #followers
+    query = [
+      'start koding=node:koding(id={groupId})'
+      'MATCH koding-[:member]->followees<-[r:follower]-follower'
+      'where followees.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'return r,followees, follower'
+      'order by r.createdAt DESC'
+      'limit 10'
+    ].join('\n');
+
+    params =
+      groupId : "5150c743f2589b107d000007"
+      startDate : "2012-02-14T23:56:48Z"
+      endDate : "2014-02-14T23:56:48Z"
+
+    @db.query query, params, (err, results)=>
+      if err then throw err
+      @generateFollows [], results, callback
+
+  generateFollows:(resultData, results, callback)->
+
+    if results? and results.length < 1 then return callback null, resultData
+    result = results.shift()
+    data = {}
+    objectify result.follower.data, (objected)=>
+      data.follower = objected
+      objectify result.r.data, (objected)=>
+        data.relationship = objected
+        objectify result.followees.data, (objected)=>
+          data.followee = objected
+          resultData.push data
+          @generateFollows resultData, results, callback
