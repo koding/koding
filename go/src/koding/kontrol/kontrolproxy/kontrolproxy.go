@@ -461,8 +461,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	rabbitKey := lookupRabbitKey(keyData.Username, keyData.Servicename, keyData.Key)
-
 	if keyData.FullUrl != "" {
 		target, err = url.Parse("http://" + keyData.FullUrl)
 		if err != nil {
@@ -581,6 +579,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if !ok {
 			outreq.URL.Host = addPort(outreq.URL.Host, "80")
 		}
+
+		rabbitKey := lookupRabbitKey(keyData.Username, keyData.Servicename, keyData.Key)
 
 		if rabbitKey != "" {
 			log.Printf("proxy via rabbitmq to '%s'", outreq.URL.Host)
