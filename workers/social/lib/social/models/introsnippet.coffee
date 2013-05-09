@@ -72,6 +72,7 @@ module.exports = class JIntroSnippet extends jraphical.Module
         snippet.introId    = data.introId
         snippet.introTitle = data.introTitle
         snippet.snippet    = data.snippet
+        snippet.placement  = data.placement
 
     @save()
     callback?()

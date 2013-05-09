@@ -64,6 +64,16 @@ class IntroductionAdminForm extends KDFormViewWithFields
         type          : "text"
         placeholder   : "Parent view's intro id"
         defaultValue  : data.introId
+      Placement       :
+        label         : "Placement"
+        type          : "select"
+        defaultValue  : data.placement
+        selectOptions : [
+          { title     : "Top",    value : "top"    }
+          { title     : "Right",  value : "right"  }
+          { title     : "Bottom", value : "bottom"  }
+          { title     : "Left",   value : "left"  }
+        ]
       Snippet         :
         label         : "Intro Snippet"
         itemClass     : KDView
@@ -168,6 +178,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
       itemData    =
         introId    : inputs.IntroId.getValue()
         introTitle : inputs.IntroTitle.getValue()
+        placement  : inputs.Placement.getValue()
         snippet    : snippet or editorValue
 
       return itemData
@@ -190,7 +201,7 @@ class IntroductionAdminForm extends KDFormViewWithFields
         bindKey :
           win   : 'Ctrl-S'
           mac   : 'Command-S'
-        exec    : =>
+        exec    : => # to disable browser save modal
 
   setEditorText: (text = "new KDView({\n  partial: \"\"\n});") ->
     @aceEditor.getSession().setValue Encoder.htmlDecode @parentData.snippet or text
