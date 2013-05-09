@@ -2,7 +2,6 @@ class ContentDisplayControllerApps extends KDViewController
   constructor:(options = {}, data)->
 
     options.view or= mainView = new KDView cssClass : 'apps content-display'
-    data = data.first  if Array.isArray data
 
     super options, data
 
