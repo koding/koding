@@ -89,3 +89,45 @@ module.exports = class Graph
           if not respond[type] then respond[type] = []
           respond[type].push obj
         callback err, respond
+
+  fetchNewInstalledApps:(callback)->
+    query = [
+      'start koding=node:koding(\'id:*\')'
+      'match koding-[r:user]->users'
+      'where koding.name="JApp" and r.createdAt > "2012-11-14T23:56:48Z"'
+      'return *'
+      'limit 40'
+    ].join('\n');
+
+    @db.query query, {}, (err, results) ->
+        if err then throw err
+        resultData = []
+        for result in results
+          type = result.r.data
+          data = result.users.data
+          apps = result.koding.data
+          data.appName = type
+          data.apps = apps
+          resultData.push data
+
+        objectify resultData, (objected)->
+          callback err, objected
+
+  fetchNewMembers:(callback)->
+    query = [
+      'start koding=node:koding(\'id:*\')'
+      'where koding.name="JAccount" and koding.`meta.createdAt` > "2013-02-14T23:56:48Z"'
+      'return *'
+      'limit 40'
+    ].join('\n');
+
+    @db.query query, {}, (err, results) ->
+        if err then throw err
+        resultData = []
+        for result in results
+          data = result.koding.data
+          resultData.push data
+
+        objectify resultData, (objected)->
+          callback err, objected
+

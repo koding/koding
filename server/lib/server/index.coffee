@@ -103,6 +103,20 @@ app.get "/-/cache/latest", (req, res)->
     GraphDecorator.decorateToCacheObject respond, (decorated)->
       res.send decorated
 
+#app.get "/-/neo", (req, res)->
+app.get "/-/cache/apps", (req, res)->
+  Graph = require "./graph"
+  graph = new Graph neo4j
+  graph.fetchNewInstalledApps (err, respond)->
+   res.send respond
+
+
+app.get "/-/cache/members", (req, res)->
+  Graph = require "./graph"
+  graph = new Graph neo4j
+  graph.fetchNewMembers (err, respond)->
+   res.send respond
+
 startTime = null
 app.get "/-/oldcache/latest", (req, res)->
   {JActivityCache} = koding.models
