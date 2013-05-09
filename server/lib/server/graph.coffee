@@ -31,13 +31,10 @@ module.exports = class Graph
       ' or koding.name = "JStatusUpdate"'
       'return *'
       'order by koding.`meta.createdAt` DESC'
-      'limit 4'
+      'limit 20'
     ].join('\n');
 
-    params =
-      itemId : "515360d23af2fb6b6b000009"
-
-    @db.query query, params, (err, results)=>
+    @db.query query, {}, (err, results)=>
 #      console.log results
       tempRes = []
       if err then callback err
