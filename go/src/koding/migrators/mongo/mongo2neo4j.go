@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"koding/databases/mongo"
 	"koding/databases/neo4j"
-	// "koding/tools/config"
+	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
@@ -18,14 +18,13 @@ type Relationship struct {
 	SourceName string        `bson:"sourceName"`
 	As         string
 	Data       bson.Binary
-	Timestamp  time.Time
+	Timestamp  time.Time `bson:"timestamp"`
 }
 
 var (
-	SAVED_DATA       = make(map[string]interface{})
-	MONGO_CONNECTION *mgo.Session
-	// MONGO_CONN_STRING = config.Current.Mongo
-	MONGO_CONN_STRING     = "PROD-koding:34W4BXx595ib3J72k5Mh@web-prod.in.koding.com:27017/beta_koding"
+	SAVED_DATA            = make(map[string]interface{})
+	MONGO_CONNECTION      *mgo.Session
+	MONGO_CONN_STRING     = config.Current.Mongo
 	MONGO_COLLECTION_NAME = "relationships"
 )
 
@@ -52,7 +51,7 @@ func main() {
 	var result *Relationship
 
 	i := 0
-	iter := relationshipColl.Find(nil).Skip(4000000).Limit(9000000).Iter()
+	iter := relationshipColl.Find(nil).Skip(500000).Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
@@ -60,8 +59,6 @@ func main() {
 		i += 1
 		fmt.Println(i)
 
-		fmt.Println("result")
-		fmt.Println(result)
 		if result.SourceName == "JAppStorage" || result.TargetName == "JAppStorage" || result.SourceName == "JFeed" || result.TargetName == "JFeed" || strings.HasSuffix(result.SourceName, "Bucket") || strings.HasSuffix(result.TargetName, "Bucket") || strings.HasSuffix(result.SourceName, "BucketActivity") || strings.HasSuffix(result.TargetName, "BucketActivity") {
 			continue
 		}
@@ -79,13 +76,12 @@ func main() {
 			} else {
 				sourceContent, err = mongo.FetchContent(result.SourceId, result.SourceName)
 			}
-
 			fmt.Println("sourcefetched")
 			if err != nil {
 				fmt.Println("source err ", err)
 				fmt.Println(hexSourceId, result.SourceName)
 			} else {
-				//then find target 
+				//then find target
 				if result.TargetName != "" {
 					if _, ok := SAVED_DATA[hexTargetId]; ok {
 						targetContent = fmt.Sprintf("%s", SAVED_DATA[hexTargetId])
@@ -105,7 +101,11 @@ func main() {
 						fmt.Println("target unique id created")
 						source := fmt.Sprintf("%s", sourceNode["create_relationship"])
 						target := fmt.Sprintf("%s", targetNode["self"])
-						neo4j.CreateRelationship(result.As, source, target)
+
+						//UTC for date time uniqueness
+						//format is a Go woodoo :)
+						relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, result.Timestamp.UTC().Format("2006-01-02T15:04:05Z"))
+						neo4j.CreateRelationshipWithData(result.As, source, target, relationshipData)
 
 						if _, ok := SAVED_DATA[hexSourceId]; !ok {
 							neo4j.UpdateNode(hexSourceId, sourceContent)
@@ -126,10 +126,6 @@ func main() {
 		} else {
 			fmt.Println("source name not given:", hexSourceId, result.SourceName)
 		}
-	}
-	if err := iter.Close(); err != nil {
-
-		fmt.Println("err during iterarion", err)
 	}
 
 	fmt.Println("Migration completed")

@@ -9,6 +9,7 @@ import (
 	"koding/tools/amqputil"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"strings"
 )
 
 var (
@@ -97,10 +98,26 @@ func startConsuming() {
 	}()
 }
 
+func checkIfEligible(sourceName, targetName string) bool {
+
+	if sourceName == "JAppStorage" || targetName == "JAppStorage" || sourceName == "JFeed" || targetName == "JFeed" || strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
+		return false
+	}
+
+	return true
+
+}
 func createNode(data map[string]interface{}) {
 
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	sourceName := fmt.Sprintf("%s", data["sourceName"])
+
+	targetId := fmt.Sprintf("%s", data["targetId"])
+	targetName := fmt.Sprintf("%s", data["targetName"])
+
+	if !checkIfEligible(sourceName, targetName) {
+		return
+	}
 
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
 	fmt.Println(data)
@@ -110,9 +127,6 @@ func createNode(data map[string]interface{}) {
 	} else {
 		neo4j.UpdateNode(sourceId, sourceContent)
 	}
-
-	targetId := fmt.Sprintf("%s", data["targetId"])
-	targetName := fmt.Sprintf("%s", data["targetName"])
 
 	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
 	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
@@ -126,7 +140,9 @@ func createNode(data map[string]interface{}) {
 	target := fmt.Sprintf("%s", targetNode["self"])
 
 	as := fmt.Sprintf("%s", data["as"])
-	neo4j.CreateRelationship(as, source, target)
+
+	relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, data["timestamp"])
+	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
 
 }
 
@@ -151,6 +167,10 @@ func updateNode(data map[string]interface{}) {
 
 	sourceId := fmt.Sprintf("%s", obj["_id"])
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
+
+	if !checkIfEligible(sourceName, "") {
+		return
+	}
 
 	neo4j.CreateUniqueNode(sourceId, sourceName)
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
