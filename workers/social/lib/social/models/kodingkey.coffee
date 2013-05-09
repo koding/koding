@@ -15,67 +15,48 @@ module.exports = class JKodingKey extends jraphical.Module
   @set
     softDelete        : yes
     sharedMethods     :
-      static          : ['create', 'fetchAll']
+      static          : ['create', 'fetchAll', 'fetchByKey', 'fetchByUserKey']
     indexes           :
       key             : ['unique']
     schema            :
       key             : String
       hostname        : String
-
-    relationships         :->
-      creator             :
-        targetType        : JAccount
-        as                : 'owner'
+      owner           : String
 
   @create = secure (client, data, callback)->
     {delegate} = client.connection
-    
-    key = new JKodingKey data
+    key = new JKodingKey
+      key   : data.key
+      owner : delegate._id
     key.save (err)->
       if err
         callback err
       else
-        key.addCreator delegate, (err)->
-          if err
-            callback err
-          else
-            callback null, key
+        callback null, key
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
-    selector = {
-      targetId   : delegate._id
-      sourceName : 'JKodingKey'
-      as         : 'owner'
-    }
-    options or= {}
-    @fetcher selector, options, callback
+    JKodingKey.all
+      owner : delegate._id
+    , (err, keys)->
+      callback err, keys
 
   @fetchByKey = secure ({connection:{delegate}}, options, callback)->
-    selector = {
-      targetId   : delegate._id
-      sourceId   : options.key
-      sourceName : 'JKodingKey'
-      as         : 'owner'
-    }
-    options or= {}
-    @fetcher selector, options, callback
+    JKodingKey.all
+      owner : delegate._id
+      key   : options.key
+    , (err, keys)->
+      callback err, keys
 
-  @fetcher = (selector, options, callback)->
-    Relationship.some selector, options, (err, relationships)=>
+  @fetchByUserKey = (options, callback)->
+    JAccount.one
+      'profile.nickname': options.username
+    , (err, account)->
       if err then callback err
-      else if relationships.length is 0 then callback null, []
+      else if not account
+        callback null, null
       else
-        teasers = []
-        collectTeasers = race (i, root, fin)->
-          root.fetchSource (err, data)->
-            if err
-              callback err
-              fin()
-            else if not data
-              # if relation found but source is not found
-              fin()
-            else
-              teasers.push data
-              fin()
-        , -> callback null, teasers
-        collectTeasers relationship for relationship in relationships
+        JKodingKey.one
+          key   : options.key
+          owner : account._id
+        , (err, key)->
+          callback err, key
