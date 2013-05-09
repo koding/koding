@@ -11,9 +11,10 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	// "os"
+	"os"
 	"os/user"
 	"strings"
+	"time"
 )
 
 type Consumer struct {
@@ -47,37 +48,36 @@ type Credentials struct {
 }
 
 var producer *Producer
+var ticker *time.Ticker
 
 func main() {
+	ticker = time.NewTicker(time.Millisecond * 500)
+	go func() {
+		for _ = range ticker.C {
+			fmt.Print(". ")
+		}
+	}()
+
 	cred, err := authUser()
 	if err != nil {
-		log.Fatalln(err)
+		ticker.Stop()
+		fmt.Print("could not authorized")
+		os.Exit(1)
 	}
-
-	log.Println(cred)
 
 	producer, err = createProducer(cred)
 	if err != nil {
-		log.Println(err)
+		ticker.Stop()
+		fmt.Println(err)
 	}
 	startRouting(cred)
 }
 
 func authUser() (Credentials, error) {
 	manifest := readManifest()
-
-	// err := checkServer(manifest.Apiaddress + ":80")
-	// if err != nil {
-	// 	log.Println("default 1", err)
-	// 	fmt.Println(err)
-	// 	fmt.Println("could not connect to koding backend")
-	// 	os.Exit(1)
-	// }
-
 	query := createApiRequest()
 	requestUrl := "http://" + manifest.Apiaddress + "/-/kite/login?" + query
 
-	log.Println("REQUEST URL IS", requestUrl)
 	resp, err := http.DefaultClient.Get(requestUrl)
 	if err != nil {
 		return Credentials{}, err
@@ -142,7 +142,8 @@ func startRouting(cred Credentials) {
 		log.Fatal("basic.consume: %s", err)
 	}
 
-	fmt.Printf("your public url: %s\n", cred.PublicUrl)
+	ticker.Stop()
+	fmt.Printf("\nyour public url: %s\n", cred.PublicUrl)
 	for msg := range httpStream {
 		// log.Printf("got %dB message data: [%v]-[%s] %s",
 		// 	len(msg.Body),
@@ -166,13 +167,14 @@ func doRequest(msg []byte) ([]byte, error) {
 	reader := bufio.NewReader(buf)
 	req, err := http.ReadRequest(reader)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 
 	// Request.RequestURI can't be set in client requests.
 	// http://golang.org/src/pkg/net/http/client.go
 	req.RequestURI = ""
-	log.Println("Doing a http request to", req.URL.Host)
+	fmt.Print("- ")
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -180,8 +182,6 @@ func doRequest(msg []byte) ([]byte, error) {
 	}
 	output := new(bytes.Buffer)
 	resp.Write(output)
-
-	// log.Println("Response is", string(data))
 
 	return output.Bytes(), nil
 }
@@ -193,10 +193,10 @@ func publishToRemote(data []byte, id, routingKey string) {
 		CorrelationId: id,
 	}
 
-	fmt.Println("publishing repsonse to", routingKey)
+	fmt.Print(". ")
 	err := producer.channel.Publish("kontrol-rabbitproxy", routingKey, false, false, msg)
 	if err != nil {
-		log.Printf("error while publishing proxy message: %s", err)
+		fmt.Printf("error while publishing proxy message: %s", err)
 	}
 
 }
@@ -254,6 +254,7 @@ func readKey() string {
 	file, err := ioutil.ReadFile(keyfile)
 	if err != nil {
 		log.Println(err)
+		os.Exit(1)
 	}
 
 	return strings.TrimSpace(string(file))
@@ -270,6 +271,7 @@ func readUsername() string {
 	file, err := ioutil.ReadFile(configfile)
 	if err != nil {
 		log.Println(err)
+		os.Exit(1)
 	}
 
 	kdconfig := Kdconfig{}
@@ -286,13 +288,14 @@ func readManifest() Kdmanifest {
 
 	file, err := ioutil.ReadFile(configfile)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
 	kdmanifest := Kdmanifest{}
 	err = json.Unmarshal(file, &kdmanifest)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		return Kdmanifest{}
 	}
 
