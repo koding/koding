@@ -101,12 +101,12 @@ func startConsuming() {
 func checkIfEligible(sourceName, targetName string) bool {
 
 	if sourceName == "JAppStorage" || targetName == "JAppStorage" || sourceName == "JFeed" || targetName == "JFeed" || strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
+		fmt.Println("not eligible " + sourceName + " " + targetName)
 		return false
 	}
-
 	return true
-
 }
+
 func createNode(data map[string]interface{}) {
 
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
@@ -160,10 +160,16 @@ func deleteNode(data map[string]interface{}) {
 }
 
 func updateNode(data map[string]interface{}) {
+
+	if _, ok := data["bongo_"]; !ok {
+		return
+	}
+	if _, ok := data["data"]; !ok {
+		return
+	}
+
 	bongo := data["bongo_"].(map[string]interface{})
 	obj := data["data"].(map[string]interface{})
-	fmt.Println(bongo["constructorName"])
-	fmt.Println(obj["_id"])
 
 	sourceId := fmt.Sprintf("%s", obj["_id"])
 	sourceName := fmt.Sprintf("%s", bongo["constructorName"])
