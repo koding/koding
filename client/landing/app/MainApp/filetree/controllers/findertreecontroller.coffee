@@ -446,9 +446,9 @@ class NFinderTreeController extends JTreeViewController
 
   openTerminalFromHere: (nodeView) ->
     appManager.open "WebTerm", (appInstance) =>
-      path        = nodeView.getData().path
-      webTermView = KD.getSingleton('mainView').mainTabView.getActivePane().mainView
-      #TODO: webTermView != appInstance.getView() so should simplify the line above
+      path          = nodeView.getData().path
+      appManager    = @getSingleton "appManager"
+      {webTermView} = appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
       webTermView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
