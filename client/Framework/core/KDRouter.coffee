@@ -15,8 +15,9 @@ class KDRouter extends KDObject
 
   constructor:(routes)->
     super()
-    @tree   = {} # this is the tree for quick lookups
-    @routes = {} # this is the flat namespace containing all routes
+    @tree          = {} # this is the tree for quick lookups
+    @routes        = {} # this is the flat namespace containing all routes
+    @visitedRoutes = []
     @addRoutes routes
 
   listen:->
@@ -41,6 +42,8 @@ class KDRouter extends KDObject
   clear:(route = '/', replaceState = yes)->
     delete @userRoute # TODO: i hope deleting the userRoute here doesn't break anything... C.T.
     @handleRoute route, {replaceState}
+
+  back:-> if @visitedRoutes.length <= 1 then @clear() else history.back()
 
   startListening:->
     return no  if @isListening # make this action idempotent
@@ -94,6 +97,8 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
+
+    @visitedRoutes.push userRoute
 
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
 
