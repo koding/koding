@@ -1,7 +1,7 @@
 neo4j = require "neo4j"
 {race} = require 'sinkrow'
 
-module.exports = class Graph 
+module.exports = class Graph
   constructor:(config)->
     @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
 
@@ -26,16 +26,16 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(\'id:*\')'
       'where koding.name = "JTutorial"'
-      ' or koding.name = "JCodeSnip"' 
-      ' or koding.name = "JDiscussion"' 
-      ' or koding.name = "JStatusUpdate"' 
+      ' or koding.name = "JCodeSnip"'
+      ' or koding.name = "JDiscussion"'
+      ' or koding.name = "JStatusUpdate"'
       'return *'
       'order by koding.`meta.createdAt` DESC'
-      'limit 4'  
+      'limit 4'
     ].join('\n');
 
     params =
-      itemId : "515360d23af2fb6b6b000009" 
+      itemId : "515360d23af2fb6b6b000009"
 
     @db.query query, params, (err, results)=>
 #      console.log results
@@ -56,11 +56,11 @@ module.exports = class Graph
         , ->
           console.log new Date().getTime() - start
           callback null, tempRes
-        resultData = ( result.koding.data for result in results)  
+        resultData = ( result.koding.data for result in results)
         objectify resultData, (objecteds)->
           for objected in objecteds
             tempRes.push objected
-            collectRelations objected 
+            collectRelations objected
 
   fecthRelatedItems:(itemId, callback)->
     query = [
@@ -73,7 +73,6 @@ module.exports = class Graph
     params =
       itemId : itemId
 
-    
     @db.query query, params, (err, results) ->
       if err then throw err
       resultData = []
