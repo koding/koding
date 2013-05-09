@@ -37,10 +37,15 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 	result["name"] = name
 	//we need createdAt at all nodes
 	if _, ok := result["meta.createdAt"]; !ok {
-		if _, oki := result["createdAt"]; oki {
+
+		if _, ok := result["createdAt"]; ok {
 			result["meta.createdAt"] = result["createdAt"]
+		} else if _, ok := result["modifiedAt"]; ok {
+			result["meta.createdAt"] = result["modifiedAt"]
+		} else if _, ok := result["meta.modifiedAt"]; ok {
+			result["meta.createdAt"] = result["meta.modifiedAt"]
 		} else {
-			result["meta.createdAt"] = time.Now().UTC()
+			result["meta.createdAt"] = time.Now().UTC().Format("2006-01-02T15:04:05Z")
 		}
 	}
 
