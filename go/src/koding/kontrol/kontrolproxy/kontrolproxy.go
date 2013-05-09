@@ -574,7 +574,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// outreq.URL.Host = "67.169.70.88"
 		// outreq.Host = "67.169.70.88"
 
-		// var err error
 		res := new(http.Response)
 
 		// add :80 if not available
@@ -583,15 +582,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			outreq.URL.Host = addPort(outreq.URL.Host, "80")
 		}
 
-		err := checkServer(outreq.URL.Host)
-		if err != nil {
-			log.Println(err)
-			// we can't connect to url, thus try proxy trough rabbitmq
-			if rabbitKey == "" {
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy connection refused %s'. not able to connect.\"}\n", outreq.URL.Host))
-				return
-			}
-
+		if rabbitKey != "" {
 			log.Printf("proxy via rabbitmq to '%s'", outreq.URL.Host)
 			output := new(bytes.Buffer)
 			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..

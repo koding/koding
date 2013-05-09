@@ -132,7 +132,7 @@ task 'socialWorker', ({configFile}) ->
       restartTimeout : 100
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "one"
+        startMode    : "many"
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -168,7 +168,7 @@ task 'authWorker',({configFile}) ->
       restartTimeout : 1000
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "one"
+        startMode    : "many"
       verbose        : yes
 
   if config.watch is yes
