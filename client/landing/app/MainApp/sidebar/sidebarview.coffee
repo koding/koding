@@ -88,7 +88,7 @@ class Sidebar extends JView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
 
-    @virtualizationButtons = new VirtualizationControls
+    # @virtualizationButtons = new VirtualizationControls
 
   resetAdminNavController:->
     @utils.wait 1000, =>
@@ -201,7 +201,6 @@ class Sidebar extends JView
     <div id='finder-panel'>
       <div id='finder-header-holder'>
         {{> @finderHeader}}
-        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}
