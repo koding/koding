@@ -120,7 +120,9 @@ app.get "/-/kite/login", (req, res) ->
 
   res.header "Content-Type", "application/json"
 
-  {username, key, name} = req.query
+  {owner, key, name} = req.query
+
+  username = owner
 
   unless username and key and name
     res.send 
