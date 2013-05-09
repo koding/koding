@@ -64,7 +64,7 @@ class IntroductionTooltipController extends KDController
       @visibleTooltips.splice @visibleTooltips.indexOf(tooltip), 1
       @overlay.remove() if @visibleTooltips.length is 0 and not hasNext
 
-    tooltip.on "IntorductionTooltipNavigated", (tooltipData) =>
+    tooltip.on "IntroductionTooltipNavigated", (tooltipData) =>
       {nextItem} = tooltipData
       return @overlay.remove() unless nextItem
       ++@stepByStepGroups[tooltipData.groupName].currentIndex

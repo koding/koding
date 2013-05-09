@@ -19,7 +19,12 @@ class IntroductionTooltip extends KDObject
         cssClass : "editor-button"
         callback : =>
           @close yes
-          @emit "IntorductionTooltipNavigated", data
+          delayForNext = @getData().delayForNext
+          if delayForNext > 0
+            @utils.wait delayForNext, =>
+              @emit "IntroductionTooltipNavigated", data
+          else
+            @emit "IntroductionTooltipNavigated", data
 
     parentView.setTooltip
       view      : tooltipView
@@ -31,5 +36,8 @@ class IntroductionTooltip extends KDObject
       parentView.tooltip.show()
 
   close: (hasNext) ->
+    data     = @getData()
+    callback = Encoder.htmlDecode(data.callback)
+    eval callback if data.callback
     @emit "IntroductionTooltipClosed", hasNext
     @destroy()
