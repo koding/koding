@@ -442,8 +442,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if geoIP != nil {
-		// loc := geoIP.GetLocationByIP(host)
-		loc := geoIP.GetLocationByIP("222.153.180.186")
+		loc := geoIP.GetLocationByIP(host)
 		if loc != nil {
 			fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
 		}
