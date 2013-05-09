@@ -58,6 +58,7 @@ var amqpStream *AmqpStream
 var start chan bool
 var first bool = true
 var connections map[string]RabbitChannel
+var geoIP *libgeo.GeoIP
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -69,6 +70,13 @@ func main() {
 	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
+
+	// load GeoIP db into memory
+	dbFile := "GeoIP.dat"
+	geoIP, err = libgeo.Load(dbFile)
+	if err != nil {
+		log.Printf("load GeoIP.dat: %s\n", err.Error())
 	}
 
 	// register proxy instance to kontrol-daemon
@@ -433,15 +441,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		log.Printf("new connection from %s:%s\n", host, port)
 	}
 
-	dbFile := "GeoIP.dat"
-	gi, err := libgeo.Load(dbFile)
-	if err != nil {
-		fmt.Printf("load GeoIP.dat: %s\n", err.Error())
-	}
-
-	loc := gi.GetLocationByIP(host)
-	if loc != nil {
-		fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
+	if geoIP != nil {
+		// loc := geoIP.GetLocationByIP(host)
+		loc := geoIP.GetLocationByIP("222.153.180.186")
+		if loc != nil {
+			fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
+		}
 	}
 
 	conn_hdr := ""
