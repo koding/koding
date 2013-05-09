@@ -163,6 +163,11 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member)->
       @constructor.emit 'MemberAdded', { group: this, member }
+      @sendNotificationToAdmins 'GroupJoined',
+        actionType : 'groupJoined'
+        actorType  : 'member'
+        subject    : ObjectRef(this).data
+        member     : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -1164,3 +1169,9 @@ module.exports = class JGroup extends Module
 
         -> callback null
       ]
+
+  sendNotificationToAdmins: (event, contents)->
+    @fetchAdmins (err, admins)=>
+      unless err
+        for admin in admins
+          admin.sendNotification event, contents

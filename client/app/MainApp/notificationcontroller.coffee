@@ -45,6 +45,7 @@ class NotificationController extends KDObject
     # 7 - Your membership request to < group title > has been approved.
     # 8 - < actor fullname > has requested access to < group title >.
     # 9 - < actor fullname > has invited you to < group title >.
+    # 9 - < actor fullname > has joined < group title >.
 
     options = {}
     {origin, subject, actionType, actorType} = notification.contents
@@ -89,6 +90,8 @@ class NotificationController extends KDObject
             "#{actorName} has requested access to <a href='#'>#{subjectObj.title}</a>."
           when "groupInvited"
             "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
+          when "groupJoined"
+            "#{actorName} has joined <a href='#'>#{subjectObj.title}</a>."
           else
             if actorType is "follower"
               "#{actorName} started following you."
