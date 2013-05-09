@@ -54,8 +54,6 @@ koding.connect ->
       incService serviceKey, -1
 
 {extend} = require 'underscore'
-os       = require "os"
-amqp     = require 'amqp'
 express  = require 'express'
 Broker   = require 'broker'
 request  = require 'request'
@@ -215,7 +213,6 @@ app.get "/-/kite/login", (req, res) ->
                           res.status 200
                           res.send creds
 
-
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
@@ -361,6 +358,33 @@ app.get "/", (req, res)->
           if username then serve loggedInPage, res
           else serve loggedOutPage, res
 
+###
+app.get "/-/kd/register/:key", (req, res)->
+  {clientId} = req.cookies
+  unless clientId
+    serve loggedOutPage, res
+  else
+    {JSession} = koding.models
+    JSession.one {clientId}, (err, session)=>
+      if err
+        console.error err
+        serve loggedOutPage, res
+      else
+        {username} = session.data
+        unless username
+          res.redirect 302, '/'
+        else
+          JUser.one {username, status: $ne: "blocked"}, (err, user) =>
+          if err
+            res.redirect 302, '/'
+          else unless user?
+            res.redirect 302, '/'
+          else
+            user.fetchAccount "koding", (err, account)->
+              {key} = req.params
+              JPublicKey.create {connection: {delegate: account}}, {key}, (err, publicKey)->
+                res.send "true"
+###
 getAlias = do->
   caseSensitiveAliases = ['auth']
   (url)->
