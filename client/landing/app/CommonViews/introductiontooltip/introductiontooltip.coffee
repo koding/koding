@@ -22,9 +22,10 @@ class IntroductionTooltip extends KDObject
           @emit "IntorductionTooltipNavigated", data
 
     parentView.setTooltip
-      view     : tooltipView
-      cssClass : "introduction-tooltip"
-      sticky   : yes
+      view      : tooltipView
+      cssClass  : "introduction-tooltip"
+      sticky    : yes
+      placement : data.placement
 
     @utils.defer =>
       parentView.tooltip.show()

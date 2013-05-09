@@ -34,15 +34,12 @@ class IntroductionTooltipController extends KDController
             item.expiryDate = snippet.expiryDate
             item.visibility = snippet.visibility
             item.groupName  = snippet.title
+            item.overlay    = @shouldAddOverlay
             if snippet.visibility is "stepByStep"
               item.index    = i
               item.nextItem = currentSnippets[i + 1]
               item.prevItem = currentSnippets[i - 1]
             @createInstance null, item
-
-        if @visibleTooltips.length > 0
-          if @shouldAddOverlay then @addOverlay() else @addLayers()
-
 
   createInstance: (parentView, data) ->
     assets = @getAssets parentView, data
@@ -73,6 +70,8 @@ class IntroductionTooltipController extends KDController
       ++@stepByStepGroups[tooltipData.groupName].currentIndex
       @createInstance null, nextItem
 
+    if data.overlay then @addOverlay() else @addLayers()
+
   isExpired: (expiryDate) ->
     return new Date(expiryDate).getTime() < @currentTimestamp
 
@@ -93,7 +92,10 @@ class IntroductionTooltipController extends KDController
     return no unless parentView # view not appended to dom yet, probably came from db query
 
     tooltipView = null
-    try tooltipView = eval Encoder.htmlDecode data.snippet.split("@").join("this.") # trying to eval snippet
+    try
+      tooltipView = eval Encoder.htmlDecode data.snippet.split("@").join("this.") # trying to eval snippet
+    catch err
+      log err.message
     return no unless tooltipView instanceof KDView # we will add this as a subview, should be a KDView instance
 
     return { parentView, tooltipView, data }
@@ -118,6 +120,7 @@ class IntroductionTooltipController extends KDController
     @storage.setValue tooltipIntroId, yes
 
   addOverlay: ->
+    return if @overlay
     @overlay = $ "<div/>",
       class : "kdoverlay"
     @overlay.hide()
