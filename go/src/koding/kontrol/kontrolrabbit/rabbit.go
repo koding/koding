@@ -36,6 +36,7 @@ type Kdmanifest struct {
 	Kitename   string `json:"name"`
 	Apiaddress string `json:"apiAddress"`
 	Version    string `json:"version"`
+	Port       string `json:"port"`
 }
 
 type Credentials struct {
@@ -235,6 +236,7 @@ func createApiRequest() string {
 
 	v := url.Values{}
 	v.Set("type", "webserver")
+	v.Set("port", manifest.Port)
 	v.Set("key", kiteKey)
 	v.Set("name", manifest.Kitename)
 	v.Set("version", manifest.Version)
@@ -253,7 +255,7 @@ func readKey() string {
 
 	file, err := ioutil.ReadFile(keyfile)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -270,14 +272,14 @@ func readUsername() string {
 
 	file, err := ioutil.ReadFile(configfile)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	kdconfig := Kdconfig{}
 	err = json.Unmarshal(file, &kdconfig)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 
 	return kdconfig.Username

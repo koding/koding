@@ -171,7 +171,7 @@ app.get "/-/kite/login", (req, res) ->
                           else
                             postData =
                               key       : req.query.version
-                              host      : 'localhost'
+                              host      : 'localhost:' + req.query.port
                               rabbitkey : req.query.key
 
                             apiServer   = 'api.x.koding.com'
