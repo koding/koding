@@ -63,7 +63,7 @@ func CreateRelationship(relation, source, target string) map[string]interface{} 
 // response will be object
 func CreateRelationshipWithData(relation, source, target, data string) map[string]interface{} {
 
-	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s", data : "%s" }`, target, relation, data)
+	relationshipData := fmt.Sprintf(`{"to" : "%s", "type" : "%s", "data" : %s }`, target, relation, data)
 	relRes := sendRequest("POST", fmt.Sprintf("%s", source), relationshipData)
 
 	relNode, err := jsonDecode(relRes)

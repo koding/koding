@@ -126,7 +126,9 @@ func createNode(data map[string]interface{}) {
 	target := fmt.Sprintf("%s", targetNode["self"])
 
 	as := fmt.Sprintf("%s", data["as"])
-	neo4j.CreateRelationship(as, source, target)
+
+	relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, data["timestamp"])
+	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
 
 }
 
