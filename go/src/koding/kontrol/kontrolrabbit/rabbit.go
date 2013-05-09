@@ -12,7 +12,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
+	// "os"
 	"os/user"
 	"strings"
 )
@@ -66,12 +66,13 @@ func main() {
 
 func authUser() (Credentials, error) {
 	manifest := readManifest()
-	err := checkServer(manifest.Apiadress)
-	if err != nil {
-		fmt.Println(err)
-		fmt.Println("could not connect to koding backend")
-		os.Exit(1)
-	}
+	// err := checkServer(manifest.Apiadress)
+	// if err != nil {
+	// 	log.Println("default 1", err)
+	// 	fmt.Println(err)
+	// 	fmt.Println("could not connect to koding backend")
+	// 	os.Exit(1)
+	// }
 
 	query := createApiRequest()
 	requestUrl := "http://" + manifest.Apiadress + "/-/proxy/login?" + query
