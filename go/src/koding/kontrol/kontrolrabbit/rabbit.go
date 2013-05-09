@@ -235,9 +235,9 @@ func createApiRequest() string {
 
 	v := url.Values{}
 	v.Set("type", "webserver")
-	v.Set("rabbitkey", kiteKey)
+	v.Set("key", kiteKey)
 	v.Set("name", manifest.Kitename)
-	v.Set("key", manifest.Version)
+	v.Set("version", manifest.Version)
 	v.Set("username", userName)
 
 	return v.Encode()
@@ -249,7 +249,7 @@ func readKey() string {
 		log.Fatal(err)
 	}
 
-	keyfile := usr.HomeDir + "/.kd/koding.key"
+	keyfile := usr.HomeDir + "/.kd/koding.key.pub"
 
 	file, err := ioutil.ReadFile(keyfile)
 	if err != nil {

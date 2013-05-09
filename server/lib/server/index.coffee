@@ -120,7 +120,7 @@ app.get "/-/kite/login", (req, res) ->
 
   res.header "Content-Type", "application/json"
 
-  {username, key, name, type} = req.query
+  {username, key, name, type, version} = req.query
 
   unless username and key and name
     res.send
@@ -145,34 +145,37 @@ app.get "/-/kite/login", (req, res) ->
           else
             JKodingKey.one {key}, (err, kodingKey)=>
               if err or not kodingKey
+                console.log "Error 1", err, kodingKey, key
                 res.status 401
                 res.send
                   error: true
-                  message: "Koding Key not found."
+                  message: "Koding Key not found. Error 1"
               else
                 JKodingKey.fetchByKey {connection: {delegate: account}}, {key: kodingKey._id}, (err, kodingKey)=>
+                  console.log "Error 2", err
                   if err or not kodingKey
                     res.status 401
                     res.send
                       error: true
-                      message: "Koding Key not found."
+                      message: "Koding Key not found. Error 2"
                   else if kodingKey.length is 0
+                    console.log "Error 3", err
                     res.status 401
                     res.send
                       error: true
-                      message: "Koding Key not found."
+                      message: "Koding Key not found. Error 3"
                   else
                     switch type
                       when 'webserver'
-                        rabbitAPI.newProxyUser req.query.rabbitkey, kite.kiteName, (err, data) =>
+                        rabbitAPI.newProxyUser req.query.key, req.query.name, (err, data) =>
                           if err?
                             console.log "ERROR", err
                             res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
                           else
                             postData =
-                              key       : req.query.key
+                              key       : req.query.version
                               host      : 'localhost'
-                              rabbitkey : req.query.rabbitkey
+                              rabbitkey : req.query.key
 
                             apiServer   = 'api.x.koding.com'
                             proxyServer = 'proxy.in.koding.com'
@@ -182,7 +185,7 @@ app.get "/-/kite/login", (req, res) ->
 
                             options =
                               method  : 'POST'
-                              uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{req.query.username}/#{kite.kiteName}"
+                              uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{req.query.username}/#{req.query.name}"
                               body    : JSON.stringify postData
                               headers : {'content-type': 'application/json'}
 
