@@ -321,6 +321,7 @@ module.exports = class JActivityCache extends jraphical.Module
         activityHash = {}
         for activity in activities
           actvivityId = activity._id
+          activity.snapshot = activity.snapshot.replace(/(&quot;)/g, '\\"')
           activityHash[actvivityId] = activity
 
         callback null, activityHash
