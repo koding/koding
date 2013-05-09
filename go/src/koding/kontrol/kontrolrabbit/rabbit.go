@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	// "github.com/koding/rabbitapi"
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"log"
@@ -33,9 +32,9 @@ type Kdconfig struct {
 }
 
 type Kdmanifest struct {
-	Kitename  string `json:"name"`
-	Apiadress string `json:"apiAdress"`
-	Version   string `json:"version"`
+	Kitename   string `json:"name"`
+	Apiaddress string `json:"apiAddress"`
+	Version    string `json:"version"`
 }
 
 type Credentials struct {
@@ -66,7 +65,8 @@ func main() {
 
 func authUser() (Credentials, error) {
 	manifest := readManifest()
-	// err := checkServer(manifest.Apiadress)
+
+	// err := checkServer(manifest.Apiaddress + ":80")
 	// if err != nil {
 	// 	log.Println("default 1", err)
 	// 	fmt.Println(err)
@@ -75,7 +75,7 @@ func authUser() (Credentials, error) {
 	// }
 
 	query := createApiRequest()
-	requestUrl := "http://" + manifest.Apiadress + "/-/proxy/login?" + query
+	requestUrl := "http://" + manifest.Apiaddress + "/-/kite/login?" + query
 
 	log.Println("REQUEST URL IS", requestUrl)
 	resp, err := http.DefaultClient.Get(requestUrl)
@@ -234,8 +234,9 @@ func createApiRequest() string {
 	userName := readUsername()
 
 	v := url.Values{}
+	v.Set("type", "webserver")
 	v.Set("rabbitkey", kiteKey)
-	v.Set("kitename", manifest.Kitename)
+	v.Set("name", manifest.Kitename)
 	v.Set("key", manifest.Version)
 	v.Set("username", userName)
 
@@ -297,6 +298,7 @@ func readManifest() Kdmanifest {
 
 	return kdmanifest
 }
+
 func checkServer(host string) error {
 	c, err := net.Dial("tcp", host)
 	if err != nil {
