@@ -64,10 +64,15 @@ class NFinderController extends KDViewController
     @mount     = FSHelper.createFile
       name: nickname.toLowerCase()
       path: "/home/#{nickname}"
-      type: "mount"
+      type: "vm"
+
+    @mount2    = FSHelper.createFile
+      name: "Root Structure"
+      path: "/"
+      type: "vm"
 
     @defaultStructureLoaded = no
-    @treeController.initTree [@mount]
+    @treeController.initTree [@mount, @mount2]
     @loadDefaultStructure()
 
   loadDefaultStructure:->
