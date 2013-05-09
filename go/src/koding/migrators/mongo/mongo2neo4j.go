@@ -51,7 +51,7 @@ func main() {
 	var result *Relationship
 
 	i := 0
-	iter := relationshipColl.Find(nil).Skip(8100000).Limit(100000).Iter()
+	iter := relationshipColl.Find(nil).Skip(500000).Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
