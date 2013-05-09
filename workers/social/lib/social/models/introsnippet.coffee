@@ -69,10 +69,12 @@ module.exports = class JIntroSnippet extends jraphical.Module
     {snippets} = @
     for snippet in snippets
       if snippet?.introId is data.oldIntroId
-        snippet.introId    = data.introId
-        snippet.introTitle = data.introTitle
-        snippet.snippet    = data.snippet
-        snippet.placement  = data.placement
+        snippet.introId      = data.introId
+        snippet.introTitle   = data.introTitle
+        snippet.snippet      = data.snippet
+        snippet.placement    = data.placement
+        snippet.delayForNext = data.delayForNext
+        snippet.callback     = data.callback
 
     @save()
     callback?()
