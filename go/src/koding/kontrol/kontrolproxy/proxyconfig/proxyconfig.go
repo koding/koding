@@ -300,13 +300,9 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 
 	_, ok := proxy.RoutingTable[username]
 	if !ok {
-		if username == "koding" {
-			err := p.AddUser(uuid, username)
-			if err != nil {
-				return err
-			}
-		} else {
-			return fmt.Errorf("adding key is not possible. no user %s exists", username)
+		err := p.AddUser(uuid, username)
+		if err != nil {
+			return err
 		}
 	}
 	user := proxy.RoutingTable[username]
