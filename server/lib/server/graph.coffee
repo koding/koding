@@ -96,6 +96,7 @@ module.exports = class Graph
       'match koding-[r:user]->users'
       'where koding.name="JApp" and r.createdAt > "2012-11-14T23:56:48Z"'
       'return *'
+      'order by r.createdAt DESC'
       'limit 40'
     ].join('\n');
 
@@ -118,6 +119,7 @@ module.exports = class Graph
       'start koding=node:koding(\'id:*\')'
       'where koding.name="JAccount" and koding.`meta.createdAt` > "2013-02-14T23:56:48Z"'
       'return *'
+      'order by koding.`meta.createdAt` DESC'
       'limit 40'
     ].join('\n');
 
