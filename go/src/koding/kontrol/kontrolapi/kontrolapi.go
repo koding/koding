@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -587,10 +588,15 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	log.Println("GET /workers")
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
+	var latestVersion bool
 	query := bson.M{}
 	for key, value := range queries {
 		switch key {
 		case "version", "pid":
+			if value[0] == "latest" {
+				latestVersion = true
+				break
+			}
 			v, _ := strconv.Atoi(value[0])
 			query[key] = v
 		case "state":
@@ -613,7 +619,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	matchedWorkers := queryResult(query)
+	matchedWorkers := queryResult(query, latestVersion)
 	data := buildWriteData(matchedWorkers)
 	writer.Write(data)
 
@@ -627,7 +633,7 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	log.Printf("GET /workers/%s\n", uuid)
 
 	query := bson.M{"uuid": uuid}
-	matchedWorkers := queryResult(query)
+	matchedWorkers := queryResult(query, false)
 	data := buildWriteData(matchedWorkers)
 	writer.Write(data)
 }
@@ -666,7 +672,7 @@ func home(writer http.ResponseWriter, request *http.Request) {
 	io.WriteString(writer, "Hello world - kontrol api!\n")
 }
 
-func queryResult(query bson.M) Workers {
+func queryResult(query bson.M, latestVersion bool) Workers {
 	workers := make(Workers, 0)
 	worker := workerconfig.MsgWorker{}
 
@@ -685,6 +691,28 @@ func queryResult(query bson.M) Workers {
 		}
 
 		workers = append(workers, *apiWorker)
+	}
+
+	// finding the largest number of a field in mongo is kinda problematic.
+	// therefore we are doing it on our side
+	if latestVersion {
+		versions := make([]int, len(workers))
+
+		for i, val := range workers {
+			versions[i] = val.Version
+		}
+
+		sort.Ints(versions)
+		maxVersion := versions[len(versions)-1] // get largest version number
+
+		filteredWorkers := make(Workers, 0)
+		for _, val := range workers {
+			if maxVersion == val.Version {
+				filteredWorkers = append(filteredWorkers, val)
+			}
+		}
+
+		return filteredWorkers
 	}
 
 	return workers
