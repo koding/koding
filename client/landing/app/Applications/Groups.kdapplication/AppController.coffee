@@ -156,7 +156,7 @@ class GroupsAppController extends AppController
               JGroup.streamModels selector, options, callback
           dataEnd           :({resultsController}, ids)=>
             {everything} = resultsController.listControllers
-            @markMemberAndOwnGroups everything, ids
+            @markGroupRelationship everything, ids
           dataError         :(controller, err)->
             log "Seems something broken:", controller, err
 
@@ -164,7 +164,6 @@ class GroupsAppController extends AppController
           title             : "My groups"
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
-              console.log items
               ids = []
               for item in items
                 item.followee = true
@@ -173,7 +172,18 @@ class GroupsAppController extends AppController
               callback err, null, ids
           dataEnd           :({resultsController}, ids)=>
             {mine} = resultsController.listControllers
-            @markMemberAndOwnGroups mine, ids
+            @markGroupRelationship mine, ids
+
+        pending             :
+          title             : "Awaiting Approval"
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().getGroupsAwaitingApproval options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {pending} = resultsController.listControllers
+            @markAwaitingApprovalGroups pending, ids
+
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -195,7 +205,7 @@ class GroupsAppController extends AppController
       @feedController.loadFeed() if loadFeed
       @emit 'ready'
 
-  markMemberAndOwnGroups:(controller, ids)->
+  markGroupRelationship:(controller, ids)->
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
@@ -205,6 +215,12 @@ class GroupsAppController extends AppController
         KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
           controller.forEachItemByIndex groups, callback
+
+    KD.whoami().getGroupsAwaitingApproval groupIds:ids, (err, groups)=>
+      @markAwaitingApprovalGroups controller, (group.getId() for group in groups)
+
+  markAwaitingApprovalGroups:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markAwaitingApproval()
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
