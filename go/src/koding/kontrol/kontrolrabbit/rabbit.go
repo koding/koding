@@ -236,7 +236,6 @@ func createApiRequest() string {
 
 	v := url.Values{}
 	v.Set("type", "webserver")
-	v.Set("port", manifest.Port)
 	v.Set("key", kiteKey)
 	v.Set("name", manifest.Kitename)
 	v.Set("version", manifest.Version)
