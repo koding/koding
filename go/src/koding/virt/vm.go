@@ -134,36 +134,10 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 		}
 	}
 
-	// prepare directories in overlay
+	// prepare overlay
 	prepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
 	prepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
 	prepareDir(vm.OverlayFile("/etc"), RootIdOffset)
-	prepareDir(vm.OverlayFile("/home"), RootIdOffset)
-
-	// create user homes
-	for i, user := range users {
-		if prepareDir(vm.OverlayFile("/home/"+user.Name), user.Uid) && i == 0 {
-			prepareDir(vm.OverlayFile("/home/"+user.Name+"/Sites"), user.Uid)
-			prepareDir(vm.OverlayFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
-			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-			prepareDir(vm.OverlayFile(websiteDir), user.Uid)
-			files, err := ioutil.ReadDir(templateDir + "/website")
-			if err != nil {
-				panic(err)
-			}
-			for _, file := range files {
-				if err := copyFile(templateDir+"/website/"+file.Name(), vm.OverlayFile(websiteDir+"/"+file.Name()), user.Uid); err != nil {
-					panic(err)
-				}
-			}
-			prepareDir(vm.OverlayFile("/var"), RootIdOffset)
-			if err := os.Symlink(websiteDir, vm.OverlayFile("/var/www")); err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	// generate overlay files
 	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
@@ -249,21 +223,24 @@ func (vm *VM) Unprepare() error {
 
 func (vm *VM) mapRBD() {
 	makeFileSystem := false
-	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).Run(); err != nil {
+
+	// create image if it does not exist
+	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-			panic(err)
+			panic(commandError("rbd info failed.", err, out))
 		}
 
-		// create disk and try to map again
 		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd create failed.", err, out))
 		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
-			panic(commandError("rbd map failed.", err, out))
-		}
 
 		makeFileSystem = true
+	}
+
+	// map image
+	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+		panic(commandError("rbd map failed.", err, out))
 	}
 
 	// wait for rbd device to appear
@@ -324,18 +301,11 @@ func commandError(message string, err error, out []byte) error {
 }
 
 // may panic
-func prepareDir(p string, id int) bool {
-	created := true
-	if err := os.Mkdir(p, 0755); err != nil {
-		if !os.IsExist(err) {
-			panic(err)
-		}
-		created = false
+func prepareDir(p string, id int) {
+	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
+		panic(err)
 	}
-
 	chown(p, id, id)
-
-	return created
 }
 
 // may panic
