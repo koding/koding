@@ -311,7 +311,9 @@ func copyIntoVos(src, dst string, vos *virt.VOS) error {
 		return err
 	}
 
-	if fi.IsDir() {
+	if fi.Name() == "empty-directory" {
+		// ignored file
+	} else if fi.IsDir() {
 		if err := vos.Mkdir(dst, fi.Mode()); err != nil && !os.IsExist(err) {
 			return err
 		}
