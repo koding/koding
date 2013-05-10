@@ -605,7 +605,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			rabbitClient := keyData.Servicename + "-" + rabbitKey
+			rabbitClient := keyData.Username + "-" + keyData.Servicename + "-" + rabbitKey
 
 			if _, ok := connections[rabbitClient]; !ok {
 				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)

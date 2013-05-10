@@ -136,9 +136,9 @@ func startRouting(cred Credentials) {
 	}
 
 	// err = c.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
-	clientKey := readKey()
 	manifest := readManifest()
-	rabbitClient := manifest.Kitename + "-" + clientKey
+
+	rabbitClient := readUsername() + "-" + manifest.Kitename + "-" + readKey()
 
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
 		log.Fatal("queue.declare: %s", err)

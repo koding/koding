@@ -142,15 +142,15 @@ app.get "/-/kite/login", (req, res) ->
       else
         switch type
           when 'webserver'
-            rabbitAPI.newProxyUser req.query.key, req.query.name, (err, data) =>
+            rabbitAPI.newProxyUser username, key, (err, data) =>
               if err?
                 console.log "ERROR", err
                 res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
               else
                 postData =
-                  key       : req.query.version
+                  key       : version
                   host      : 'localhost'
-                  rabbitkey : req.query.key
+                  rabbitkey : key
 
                 apiServer   = 'api.x.koding.com'
                 proxyServer = 'proxy.in.koding.com'
@@ -160,7 +160,7 @@ app.get "/-/kite/login", (req, res) ->
 
                 options =
                   method  : 'POST'
-                  uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{req.query.username}/#{req.query.name}"
+                  uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{username}/#{name}"
                   body    : JSON.stringify postData
                   headers : {'content-type': 'application/json'}
 
