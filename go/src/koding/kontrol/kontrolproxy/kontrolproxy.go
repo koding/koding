@@ -82,7 +82,8 @@ func main() {
 	// register proxy instance to kontrol-daemon
 	amqpStream = setupAmqp()
 
-	// declare just once time
+	// declare rabbitproxy exchange. this is used by rabbitclients to create
+	// artifical host in form {name}-{key}-{username}.x.koding.com and use it
 	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	if err != nil {
 		log.Println("exchange.declare: %s", err)
@@ -602,7 +603,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			if _, ok := connections[rabbitKey]; !ok {
+			rabbitClient := keyData.Servicename + "-" + rabbitKey
+
+			if _, ok := connections[rabbitClient]; !ok {
 				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
 				if err != nil {
 					log.Printf("queue.declare: %s", err)
@@ -621,15 +624,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 					return
 				}
 
-				connections[rabbitKey] = RabbitChannel{
+				connections[rabbitClient] = RabbitChannel{
 					ReplyTo: queue.Name,
 					Receive: make(chan []byte, 1),
 				}
 
 				go func() {
 					for msg := range messages {
-						log.Printf("got rabbit http message for %s", connections[rabbitKey].ReplyTo)
-						connections[rabbitKey].Receive <- msg.Body
+						log.Printf("got rabbit http message for %s", connections[rabbitClient].ReplyTo)
+						connections[rabbitClient].Receive <- msg.Body
 
 					}
 				}()
@@ -639,17 +642,17 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			msg := amqp.Publishing{
 				ContentType: "text/plain",
 				Body:        output.Bytes(),
-				ReplyTo:     connections[rabbitKey].ReplyTo,
+				ReplyTo:     connections[rabbitClient].ReplyTo,
 			}
 
-			amqpStream.channel.Publish("kontrol-rabbitproxy", rabbitKey, false, false, msg)
+			amqpStream.channel.Publish("kontrol-rabbitproxy", rabbitClient, false, false, msg)
 
 			var respData []byte
 			// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
 			t := time.NewTimer(20 * time.Second)
 			log.Println("...waiting for http response from rabbit")
 			select {
-			case respData = <-connections[rabbitKey].Receive:
+			case respData = <-connections[rabbitClient].Receive:
 			case <-t.C:
 				log.Println("timeout. no rabbit proxy message receieved")
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy could not connect to rabbit-client %s'\"}\n", outreq.URL.Host))
