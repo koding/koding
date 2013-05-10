@@ -22,7 +22,7 @@ module.exports = class Graph
       generatedObjects.push generatedObject
     callback generatedObjects
 
-  fetchAll:(callback)->
+  fetchAll:(startDate, endDate, callback)->
     start = new Date().getTime()
     query = [
       'start koding=node:koding(\'id:*\')'
@@ -30,13 +30,16 @@ module.exports = class Graph
       ' or koding.name = "JCodeSnip"'
       ' or koding.name = "JDiscussion"'
       ' or koding.name = "JStatusUpdate"'
+      'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
       'return *'
       'order by koding.`meta.createdAt` DESC'
       'limit 20'
     ].join('\n');
 
     params =
-      itemId : "515360d23af2fb6b6b000009"
+      groupId   : @groupId
+      startDate : startDate
+      endDate   : endDate
 
     @db.query query, params, (err, results)=>
 
