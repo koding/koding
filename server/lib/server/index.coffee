@@ -93,15 +93,35 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-Graph = require "./graph/graph"
-GraphDecorator = require "../../../utils/graph/graph_decorator"
 
-app.get "/-/cache/latest", (req, res)->
+_fetchActivitiesByTimestamp = (req, res)->
+  Graph = require "./graph/graph"
+  GraphDecorator = require "./graph/graph_decorator"
+
   graph = new Graph neo4j
-  graph.fetchAll (err, respond)->
+  #calculate the current and next timestamp
+  timestamp = req.params?.timestamp
+  if not timestamp
+    timestamp = new Date
+
+  startDate = new Date timestamp
+  #20*60*1000 = 1200000
+  endDate = new Date(startDate.getTime() + 1200000);
+
+  graph.fetchAll startDate.toISOString(), endDate.toISOString(), (err, respond)->
     # res.send respond
     GraphDecorator.decorateToCacheObject respond, (decorated)->
       res.send decorated
+
+app.get "/-/cache/latest", (req, res)->
+  _fetchActivitiesByTimestamp req, res
+
+app.get "/-/cache/before/:timestamp", (req, res)->
+  console.log "dfasdf"
+  console.log  req.params
+  console.log "d12341324"
+
+  _fetchActivitiesByTimestamp req, res
 
 app.get "/-/cache/apps", (req, res)->
   graph = new Graph neo4j
@@ -127,11 +147,12 @@ app.get "/-/oldcache/latest", (req, res)->
     # console.log "latest: #{Date.now() - startTime} msecs!"
     return res.send if cache then cache.data else {}
 
-app.get "/-/cache/before/:timestamp", (req, res)->
+app.get "/-/oldcache/before/:timestamp", (req, res)->
   {JActivityCache} = koding.models
   JActivityCache.before req.params.timestamp, (err, cache)->
     if err then console.warn err
     res.send if cache then cache.data else {}
+
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
