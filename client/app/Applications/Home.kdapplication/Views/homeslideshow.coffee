@@ -70,7 +70,7 @@ class HomeSlideShow extends KDScrollView
 
   pistachio:->
 
-    host = unless /koding.com/.test location.hostname then "" else "https://api.koding.com"
+    host = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
     """
     <ul class="clearfix">
       <li>

@@ -40,10 +40,14 @@ KD.log   = log   = noop
 KD.warn  = warn  = noop
 KD.error = error = noop
 
+
 unless window.event?
-  # warn when the global "event" property is accessed.
-  Object.defineProperty window, "event", get:->
-    KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
+  try
+    # warn when the global "event" property is accessed.
+    Object.defineProperty window, "event", get:->
+      KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
+  catch e
+    log "we fail silently!", e
 
 @KD = $.extend (KD), do ->
   # private member for tracking z-indexes
