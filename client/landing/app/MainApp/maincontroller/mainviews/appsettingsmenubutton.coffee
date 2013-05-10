@@ -14,20 +14,19 @@ class AppSettingsMenuButton extends KDButtonView
         item.callback = (contextmenu) =>
           view = mainTabView.activePane?.mainView
           item.eventName or= item.title
-          view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
           @contextMenu.destroy()
+          view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu, @offset
 
       @createMenu event, menu
 
     super options, data
 
   createMenu: (event, menu) ->
-    offset = @$().offset()
+    @offset = @$().offset()
     @contextMenu = new JContextMenu
-      event       : event
       delegate    : @
-      x           : offset.left - 150
-      y           : offset.top + 20
+      x           : @offset.left - 150
+      y           : @offset.top + 20
       arrow       :
         placement : "top"
         margin    : -5
