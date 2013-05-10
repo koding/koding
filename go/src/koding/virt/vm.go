@@ -249,21 +249,24 @@ func (vm *VM) Unprepare() error {
 
 func (vm *VM) mapRBD() {
 	makeFileSystem := false
-	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).Run(); err != nil {
+
+	// create image if it does not exist
+	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-			panic(err)
+			panic(commandError("rbd info failed.", err, out))
 		}
 
-		// create disk and try to map again
 		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String()).CombinedOutput(); err != nil {
 			panic(commandError("rbd create failed.", err, out))
 		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
-			panic(commandError("rbd map failed.", err, out))
-		}
 
 		makeFileSystem = true
+	}
+
+	// map image
+	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+		panic(commandError("rbd map failed.", err, out))
 	}
 
 	// wait for rbd device to appear
