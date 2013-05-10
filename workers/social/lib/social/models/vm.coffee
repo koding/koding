@@ -2,30 +2,74 @@
 
 module.exports = class JVM extends Model
 
+  {permit} = require './group/permissionset'
+
   @share()
 
   @trait __dirname, '../traits/protected'
 
   @set
-    softDelete        : yes
-    permissions       :
-      'sudoer'        : []
-    schema            :
-      ip              :
-        type          : String
-        default       : -> null
-      ldapPassword    :
-        type          : String
-        default       : -> null
-      name            : String
-      users           : Array
-      groups          : Array
-      isEnabled       :
-        type          : Boolean
-        default       : yes
-      shouldDelete    :
-        type          : Boolean
-        default       : no
+    softDelete          : yes
+    permissions         :
+      'sudoer'          : []
+      'list all vms'    : ['member','moderator']
+      'list default vm' : ['member','moderator']
+    sharedMethods       :
+      static            : ['fetchVmsByContext']
+      instance          : []
+    schema              :
+      ip                :
+        type            : String
+        default         : -> null
+      ldapPassword      :
+        type            : String
+        default         : -> null
+      name              : String
+      users             : Array
+      groups            : Array
+      isEnabled         :
+        type            : Boolean
+        default         : yes
+      shouldDelete      :
+        type            : Boolean
+        default         : no
+
+  @fetchVmsByContext = permit 'list all vms',
+    success: (client, options, callback) ->
+      [callback, options] = [options, callback]  unless callback
+
+      options ?= {}
+      options.limit = Math.min options.limit ? 10, 10
+
+      JGroup = require './group'
+
+      {context, connection:{delegate}} = client
+
+      slug = context.group ? 'koding'
+
+      delegate.fetchUser (err, user) ->
+        return callback err  if err
+
+        JGroup.one {slug}, (err, group) ->
+          return callback err  if err
+
+          selector =
+            groups  : { $elemMatch: id: group.getId() }
+            users   : { $elemMatch: id: user.getId() }
+
+          JVM.someData selector, { name: 1 }, options, (err, cursor)->
+            return callback err  if err
+
+            cursor.toArray (err, arr)->
+              return callback err  if err
+              callback null, arr.map (vm)-> vm.name
+
+    # TODO: let's implement something like this:
+    # failure: (client, callback) ->
+    #   @fetchDefaultVmByContext client, (err, vm)->
+    #     return callback err  if err
+    #     callback null, [vm]
+
 
   do ->
 

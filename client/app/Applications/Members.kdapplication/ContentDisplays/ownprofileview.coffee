@@ -20,6 +20,7 @@ class OwnProfileView extends JView
     @profileName = new PersonalFormNameView {memberData}
     @location    = new PersonalFormLocationView {memberData}
 
+    {entryPoint} = KD.config
     @followers = new KDView
       tagName     : 'a'
       attributes  :
@@ -28,7 +29,7 @@ class OwnProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.followers is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Followers", {state:memberData, entryPoint}
     , memberData
 
     @following = new KDView
@@ -39,7 +40,7 @@ class OwnProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Following", {state:memberData, entryPoint}
     , memberData
 
     @likes = new KDView
@@ -50,7 +51,7 @@ class OwnProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
+        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Likes", {state:memberData, entryPoint}
     , memberData
 
     @aboutYou     = new PersonalFormAboutView {memberData}
