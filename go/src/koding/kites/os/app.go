@@ -158,6 +158,10 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
+		if manifest.AuthorNick != user.Name {
+			return nil, fmt.Errorf("The authorNick in manifest.json must be your nickname.")
+		}
+
 		bucketPath := fmt.Sprintf("%s/%s/%s", user.Name, manifest.Identifier, manifest.Version)
 
 		result, err := appsBucket.List(bucketPath+".tar.gz", "", "", 1)

@@ -14,6 +14,8 @@ type User struct {
 	Salt     string        `bson:"salt"`
 }
 
+var RootUser = User{Uid: 0, Name: "root"}
+
 func (user *User) HasPassword(password string) bool {
 	hash := sha1.New()
 	hash.Write([]byte(user.Salt))
