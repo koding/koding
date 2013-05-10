@@ -223,7 +223,6 @@ class PopupGroupListItemPending extends PopupGroupListItem
 
   pistachio: ->
     """
-    <span class='avatar'>{{> @avatar}}</span>
     <div class='right-overflow'>
       <div class="buttons">
         {{> @acceptButton}}

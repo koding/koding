@@ -145,6 +145,7 @@ class FSHelper
       @updateInstance data
     else
       constructor = switch data.type
+        when "vm"         then FSVm
         when "folder"     then FSFolder
         when "mount"      then FSMount
         when "symLink"    then FSFolder
