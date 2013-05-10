@@ -732,4 +732,6 @@ module.exports = [
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
 ]
