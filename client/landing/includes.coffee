@@ -272,11 +272,13 @@ module.exports = [
   "app/MainApp/filetree/itemviews/mountitem.coffee",
   "app/MainApp/filetree/itemviews/brokenlinkitem.coffee",
   "app/MainApp/filetree/itemviews/sectionitem.coffee",
+  "app/MainApp/filetree/itemviews/vmitem.coffee",
 
   "app/MainApp/filetree/itemsubviews/finderitemdeleteview.coffee",
   "app/MainApp/filetree/itemsubviews/finderitemdeletedialog.coffee",
   "app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee",
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
+  "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
@@ -289,6 +291,7 @@ module.exports = [
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
+  "app/MainApp/fs/fsvm.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
@@ -730,4 +733,6 @@ module.exports = [
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
 ]

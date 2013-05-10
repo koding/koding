@@ -14,6 +14,9 @@ app.activity.styl
   overflow                     hidden
   #content-page-activity
     height                     100%
+    .kdview.screenshots
+      margin-top               0
+      transition               margin-top .3s ease
     &.fixed
       .common-inner-nav
         top                    51px
@@ -23,17 +26,12 @@ app.activity.styl
         top                    51px
         fix()
       .activity-content
-        margin                 28px 0 0 138px
-      .feeder-header
-        top                    51px
-        fix()
+        margin                 0 0 0 138px
       &.loggedin
         .common-inner-nav
           top                  128px
         .activity-content
-          margin-top           105px
-        .feeder-header
-          top                  128px
+          margin-top           77px
 
 
   .activity-content
