@@ -1,8 +1,8 @@
 package virt
 
 import (
+	"errors"
 	"exp/inotify"
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -22,7 +22,7 @@ func (vm *VM) OS(user *User) *VOS {
 func (vos *VOS) resolve(name string) (string, error) {
 	entry := vos.vm.GetUserEntry(vos.user)
 	if entry == nil {
-		return "", fmt.Errorf("Permission denied.")
+		return "", &os.PathError{"path", name, errors.New("permission denied")}
 	}
 
 	tildePrefix := strings.HasPrefix(name, "~/")
@@ -37,7 +37,7 @@ func (vos *VOS) resolve(name string) (string, error) {
 	for _, segment := range strings.Split(path.Clean(name), "/")[1:] {
 		// sanity check, should all be removed by path.Clean
 		if segment == ".." {
-			return "", fmt.Errorf("Error while processing path")
+			return "", &os.PathError{"path", name, errors.New("error while processing path")}
 		}
 
 		fullPath := vos.vm.File("rootfs/" + constructedPath + "/" + segment)
@@ -68,7 +68,7 @@ func (vos *VOS) resolve(name string) (string, error) {
 			sysinfo := info.Sys().(*syscall.Stat_t)
 			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid)
 			if !readable {
-				return "", fmt.Errorf("Permission denied: %s/%s", constructedPath, segment)
+				return "", &os.PathError{"path", constructedPath + "/" + segment, errors.New("permission denied")}
 			}
 		}
 
@@ -91,7 +91,7 @@ func (vos *VOS) ensureWritable(name string) error {
 	sysinfo := info.Sys().(*syscall.Stat_t)
 	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid)
 	if !writable {
-		return fmt.Errorf("Permission denied: %s", name)
+		return &os.PathError{"path", name, errors.New("permission denied")}
 	}
 	return nil
 }
