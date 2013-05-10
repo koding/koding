@@ -29,7 +29,14 @@ module.exports = class BaseDecorator
     maps =
       'JStatusUpdate' : 'CStatusActivity'
       'JCodeSnip'     : 'CCodeSnipActivity'
+      #"hede1"         : 'CFollowerBucketActivity'
+      #"hede2"         : 'CNewMemberBucketActivity'
       'JDiscussion'   : 'CDiscussionActivity'
+      #"hede2"         : 'CInstallerBucketActivity'
+      'JTutorial'     : 'CTutorialActivity'
+      'JBlogPost'     : 'CBlogPostActivity'
+
+    return maps
 
     return maps
 
