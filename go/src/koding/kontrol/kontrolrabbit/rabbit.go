@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/streadway/amqp"
 	"io/ioutil"
@@ -50,6 +51,7 @@ type Credentials struct {
 
 var producer *Producer
 var ticker *time.Ticker
+var localPort *string = flag.String("p", "1337", "port to be listened")
 
 func main() {
 	ticker = time.NewTicker(time.Millisecond * 500)
@@ -157,7 +159,7 @@ func startRouting(cred Credentials) {
 
 		body, err := doRequest(msg.Body)
 		if err != nil {
-			log.Println(err)
+			fmt.Println(err)
 			go publishToRemote(nil, msg.CorrelationId, msg.ReplyTo)
 		} else {
 			go publishToRemote(body, msg.CorrelationId, msg.ReplyTo)
@@ -178,6 +180,11 @@ func doRequest(msg []byte) ([]byte, error) {
 	// http://golang.org/src/pkg/net/http/client.go
 	req.RequestURI = ""
 	fmt.Print("- ")
+
+	ok := hasPort(req.URL.Host)
+	if !ok {
+		req.URL.Host = addPort(req.URL.Host, *localPort)
+	}
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -313,4 +320,17 @@ func checkServer(host string) error {
 	}
 	c.Close()
 	return nil
+}
+
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func addPort(host, port string) string {
+	if ok := hasPort(host); ok {
+		return host
+	}
+
+	return host + ":" + port
 }
