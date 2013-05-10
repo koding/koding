@@ -239,7 +239,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	}
 
 	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
-		return fmt.Errorf("do request", err)
+		return fmt.Errorf("do request %s", err.Error())
 	}
 
 	log.Printf("ACTION RECEIVED: --  %s  --", command)
