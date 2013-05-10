@@ -28,8 +28,15 @@ class AceAppView extends JView
 
       @tabView.emit 'SaveSession', data
 
-    @on "SessionListCreated", (pane, sessionList) =>
-      pane.getOptions().aceView.editorHeader.addSubView sessionList
+    @on "SessionListCreated", (pane, sessionList) => @sessionList = sessionList
+
+    @on "SessionItemClicked", (items) =>
+      if items.length > 1
+        @getSingleton("appManager").open "Ace", { forceNew: true }, (appController) =>
+          appView = appController.getView()
+          appView.openFile FSHelper.createFileFromPath file for file in items
+      else
+        @openFile FSHelper.createFileFromPath file for file in items
 
     @tabView.on 'PaneDidShow', (pane) =>
       {ace} = pane.getOptions().aceView
@@ -57,6 +64,21 @@ class AceAppView extends JView
     @on "menu.compileAndRun", => @getActiveAceView().compileAndRun()
 
     @on "menu.preview", => @getActiveAceView().preview()
+
+    @on "menu.recents", (eventName, item, contextmenu, offset) =>
+      @createOpenRecentsMenu eventName, item, contextmenu, offset
+
+  createOpenRecentsMenu: (eventName, item, contextmenu, offset) ->
+    contextMenu = new JContextMenu
+      cssClass    : "recent-files-menu"
+      delegate    : @
+      x           : offset.left - 400
+      y           : offset.top  + 130
+      menuWidth   : 250
+      arrow       :
+        placement : "right"
+        margin    : -5
+    , @sessionList
 
   viewAppended:->
     super
