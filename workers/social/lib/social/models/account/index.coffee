@@ -845,6 +845,50 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
+  getInvitiationRequestRelationships:(options, callback)->
+    JInvitationRequest = require '../invitationrequest'
+
+    @fetchUser (err, user)=>
+      return callback err if err
+
+      selector =
+        $or: [
+          'koding.username': @profile.nickname,
+          email: user.email
+        ]
+        status: 'pending'
+
+      JInvitationRequest.some selector, {}, (err, requests)->
+        return callback err if err
+        return callback null, [] unless requests
+
+        selector =
+          targetName : 'JInvitationRequest'
+          targetId   : $in:(request.getId() for request in requests)
+          sourceName : 'JGroup'
+
+        if options.groupIds
+          selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
+          delete options.groupIds
+
+        Relationship.some selector, {}, callback
+
+  getGroupsAwaitingApproval:(options, callback)->
+    JGroup = require '../group'
+
+    @getInvitiationRequestRelationships options, (err, rels)->
+      return callback err if err
+      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
+
+  cancelRequest:(group, callback)->
+    JInvitationRequest = require '../invitationrequest'
+
+    @getInvitiationRequestRelationships groupIds:[group._id], (err, [rel])->
+      return callback err if err or not rel
+      JInvitationRequest.one _id:rel.targetId, (err, request)->
+        return callback err if err
+        request.remove callback
+
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate
   #   id = delegate?.getId()

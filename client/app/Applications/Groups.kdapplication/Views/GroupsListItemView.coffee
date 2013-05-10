@@ -113,6 +113,11 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
+  markAwaitingApproval:->
+    @setClass "awaiting-approval"
+    @settingsButton.options.style += " awaiting-approval"
+    @memberBadge.updatePartial "<span class='fold'/>Awaiting Approval"
+
   markMemberGroup:->
     @setClass "group-member"
     @settingsButton.options.style += " group-member"
@@ -197,6 +202,31 @@ class GroupsListItemView extends KDListItemView
                 @destroy()
           , data
 
+      menu['Cancel Request'] =
+        cssClass : 'cancel-request'
+        callback : =>
+          modal = new KDModalView
+            title          : 'Cancel Request'
+            content        : "<div class='modalformline'>Are you sure that you want to cancel your membership request to this group?</div>"
+            height         : 'auto'
+            overlay        : yes
+            buttons        :
+              Cancel       :
+                style      : "modal-clean-red"
+                loader     :
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @cancelRequest data, =>
+                    @memberBadge.hide()
+                    @settingsButton.hide()
+                    @unsetClass 'group-owner'
+                    modal.buttons.Cancel.hideLoader()
+                    modal.destroy()
+              Dismiss      :
+                style      : "modal-cancel"
+                callback   : (event)-> modal.destroy()
+
     return menu
 
   leaveGroup:(group, callback)->
@@ -217,6 +247,21 @@ class GroupsListItemView extends KDListItemView
       currentGroupSlug = currentGroup.getAt 'slug'
       if group.slug is currentGroupSlug
         document.location.reload()
+      callback()
+
+  cancelRequest:(group, callback)->
+    KD.whoami().cancelRequest group, (err)->
+      if err
+        warn err
+        new KDNotificationView
+          title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+          duration : 2000
+        return callback()
+
+      new KDNotificationView
+        title    : 'Successfully canceled the request!'
+        duration : 2000
+
       callback()
 
   fetchMembers:->

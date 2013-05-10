@@ -243,6 +243,7 @@
     &:hover
       div.groups-settings-menu
         opacity 1
+    &.awaiting-approval
     &.group-member
       .badge.member
         visible()
@@ -512,10 +513,13 @@
           vertical-align       middle
 
 .kdbuttonmenu.group-settings-context
+  .awaiting-approval
   .leave-group
   .remove-group
     hidden()
 
+  &.awaiting-approval .cancel-request
+    visible()
   &.group-member .leave-group
     visible()
   &.group-owner
