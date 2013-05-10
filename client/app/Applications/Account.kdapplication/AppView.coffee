@@ -35,6 +35,8 @@ class AccountListWrapper extends KDView
       repos                          : AccountRepoList
       keysController                 : AccountSshKeyListController
       keys                           : AccountSshKeyList
+      kodingKeysController           : AccountKodingKeyListController
+      kodingKeys                     : AccountKodingKeyList
     kites                            :
       myKiteList                     : AccountMyKiteList
       myKiteListController           : AccountMyKiteListController
