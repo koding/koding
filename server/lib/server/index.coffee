@@ -93,33 +93,27 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-#app.get "/-/neo", (req, res)->
+Graph = require "./graph/graph"
+GraphDecorator = require "../../../utils/graph/graph_decorator"
+
 app.get "/-/cache/latest", (req, res)->
-  Graph = require "./graph"
-  GraphDecorator = require "./graphdecorator"
   graph = new Graph neo4j
   graph.fetchAll (err, respond)->
-#    res.send respond
+    # res.send respond
     GraphDecorator.decorateToCacheObject respond, (decorated)->
       res.send decorated
 
-#app.get "/-/neo", (req, res)->
 app.get "/-/cache/apps", (req, res)->
-  Graph = require "./graph"
   graph = new Graph neo4j
   graph.fetchNewInstalledApps (err, respond)->
    res.send respond
 
-
 app.get "/-/cache/members", (req, res)->
-  Graph = require "./graph"
   graph = new Graph neo4j
   graph.fetchNewMembers (err, respond)->
    res.send respond
 
-
 app.get "/-/cache/follows", (req, res)->
-  Graph = require "./graph"
   graph = new Graph neo4j
   graph.fetchNewFollows (err, respond)->
    res.send respond
