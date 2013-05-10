@@ -33,6 +33,7 @@ class GroupsRequestView extends JView
       targetOptions : 
         selector    : targetSelector
         limit       : @requestLimit
+        sort        : { requestedAt: -1 }
       options       :
         sort        : { timestamp: -1 }
 
