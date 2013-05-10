@@ -600,7 +600,14 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 				}
 			}
 		default:
-			query[key] = value[0]
+			name := value[0]
+			if key == "name" {
+				if counts := strings.Count(value[0], "-"); counts > 0 {
+					s := strings.Split(value[0], "-")
+					name = fmt.Sprintf("/%s", s[0])
+				}
+			}
+			query[key] = name
 		}
 	}
 
