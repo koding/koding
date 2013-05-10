@@ -118,22 +118,78 @@ app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq
 
-  {JKite} = koding.models
-  koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
-    res.header "Content-Type", "application/json"
+  res.header "Content-Type", "application/json"
 
-    if err? or !kite?
-      res.send 401
-    else
-      rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
-        creds =
-          protocol  : 'amqp'
-          host      : mq.apiAddress
-          username  : data.username
-          password  : data.password
-          vhost     : mq.vhost
-        res.header "Content-Type", "application/json"
-        res.send JSON.stringify creds
+  {username, key, name, type, version} = req.query
+
+  unless username and key and name
+    res.send
+      error: true
+      message: "Not enough parameters."
+  else
+    {JKodingKey} = koding.models
+
+    JKodingKey.fetchByUserKey
+      username: username
+      key     : key
+    , (err, kodingKey)=>
+      if err or not kodingKey
+        console.log "ERROR", err
+        res.status 401
+        res.send
+          error: true
+          message: "Koding Key not found. Error 2"
+      else
+        switch type
+          when 'webserver'
+            rabbitAPI.newProxyUser username, key, (err, data) =>
+              if err?
+                console.log "ERROR", err
+                res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
+              else
+                postData =
+                  key       : version
+                  host      : 'localhost'
+                  rabbitkey : key
+
+                apiServer   = 'api.x.koding.com'
+                proxyServer = 'proxy.in.koding.com'
+                # local development
+                # apiServer   = 'localhost:8000'
+                # proxyServer = 'mahlika.local'
+
+                options =
+                  method  : 'POST'
+                  uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{username}/#{name}"
+                  body    : JSON.stringify postData
+                  headers : {'content-type': 'application/json'}
+
+                request.post options, (error, response, body) =>
+                  if error
+                    console.log "ERROR", error
+                    res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
+                  else if response.statusCode is 200
+                    creds =
+                      protocol  : 'amqp'
+                      host      : "kontrol.in.koding.com"
+                      username  : data.username
+                      password  : data.password
+                      vhost     : "/"
+                      publicUrl : body
+
+                    res.header "Content-Type", "application/json"
+                    res.send JSON.stringify creds
+          when 'openservice'
+            rabbitAPI.newUser key, name, (err, data) =>
+              creds =
+                protocol  : 'amqp'
+                host      : mq.apiAddress
+                username  : data.username
+                password  : data.password
+                vhost     : mq.vhost
+              console.log creds
+              res.status 200
+              res.send creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
@@ -280,6 +336,33 @@ app.get "/", (req, res)->
           if username then serve loggedInPage, res
           else serve loggedOutPage, res
 
+###
+app.get "/-/kd/register/:key", (req, res)->
+  {clientId} = req.cookies
+  unless clientId
+    serve loggedOutPage, res
+  else
+    {JSession} = koding.models
+    JSession.one {clientId}, (err, session)=>
+      if err
+        console.error err
+        serve loggedOutPage, res
+      else
+        {username} = session.data
+        unless username
+          res.redirect 302, '/'
+        else
+          JUser.one {username, status: $ne: "blocked"}, (err, user) =>
+          if err
+            res.redirect 302, '/'
+          else unless user?
+            res.redirect 302, '/'
+          else
+            user.fetchAccount "koding", (err, account)->
+              {key} = req.params
+              JPublicKey.create {connection: {delegate: account}}, {key}, (err, publicKey)->
+                res.send "true"
+###
 getAlias = do->
   caseSensitiveAliases = ['auth']
   (url)->

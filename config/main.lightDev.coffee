@@ -32,6 +32,7 @@ module.exports =
     port        : 1337
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   runGoBroker   : no
+  runKontrol    : no
   runRerouting  : no
   compileGo     : no
   buildClient   : yes
@@ -150,3 +151,17 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  kontrold        :
+    api           :
+      port        : 80
+    proxy         :
+      port        : 80
+      portssl     : 443
+    mongo         :
+      host        : 'kontrol.in.koding.com'
+    rabbitmq      :
+      host        : 'kontrol.in.koding.com'
+      port        : '5672'
+      login       : 'guest'
+      password    : 's486auEkPzvUjYfeFTMQ'
+      vhost       : '/'

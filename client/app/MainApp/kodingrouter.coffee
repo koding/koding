@@ -293,6 +293,57 @@ class KodingRouter extends KDRouter
                     modal.destroy()
             @clear()
 
+      '/:name?/KD/Register/:hostname/:key':
+        ({params:{key, hostname}})->
+          key = decodeURIComponent key
+          hostname = decodeURIComponent hostname
+
+          showModal = (title, content)=>
+            modal = new KDModalView
+              title        : title
+              overlay      : yes
+              cssClass     : "new-kdmodal"
+              content      : "<div class='modalformline'>#{content}</div>"
+              buttons      :
+                "Close"    :
+                  style    : "modal-clean-gray"
+                  callback : (event)->
+                    modal.destroy()
+            @clear()
+
+          if key.length isnt 64
+            title = "Key is not valid!"
+            content = """
+            <p>
+            You provided an invalid Koding Key. Please try with another one.
+            You can renew your Koding key using <code>$ kd register renew</code> on command
+            line interface.
+            </p>
+            """
+            return showModal title, content
+
+          KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
+
+            if err or not data
+              title   = 'An error occured'
+              content = """
+              <p>
+              You provided an invalid Koding Key. Please try with another one.
+              You can renew your Koding key using <code>$ kd register renew</code> on command
+              line interface.
+              </p>
+              """
+              log err
+            else
+              title   = 'Host Connected!'
+              content = """
+              <p>
+              You've connected your Koding Key! It will help you to use Koding command line interface
+              with more features!
+              </p>
+              """
+            showModal title, content
+
       # top level names
       '/:name':do->
         open =(routeInfo, model)->
