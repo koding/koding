@@ -594,9 +594,11 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rabbitKey := lookupRabbitKey(keyData.Username, keyData.Servicename, keyData.Key)
 
 		if rabbitKey != "" {
-			log.Printf("proxy via rabbitmq to '%s'", outreq.URL.Host)
+			requestHost := outreq.Host
+			log.Printf("proxy via rabbitmq to '%s'", requestHost)
 			output := new(bytes.Buffer)
 			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
+
 			err := outreq.WriteProxy(output)
 			if err != nil {
 				io.WriteString(rw, fmt.Sprint(err))
@@ -655,7 +657,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			case respData = <-connections[rabbitClient].Receive:
 			case <-t.C:
 				log.Println("timeout. no rabbit proxy message receieved")
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy could not connect to rabbit-client %s'\"}\n", outreq.URL.Host))
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy could not connect to rabbit-client %s'\"}\n", requestHost))
 				return
 			}
 			t.Stop()

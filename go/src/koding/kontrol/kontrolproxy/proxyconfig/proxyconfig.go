@@ -333,6 +333,12 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 		return nil
 	}
 
+	// delete old key
+	delete(keyRoutingTable.Keys, key)
+
+	// and replace it with the new one
+	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+
 	/* check for existing hostnames, if exist abort. Comment out if you want
 	   * add multiple entities for a single key. Useful if you want use
 	   * round-robin.

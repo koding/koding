@@ -130,7 +130,7 @@ app.get "/-/kite/login", (req, res) ->
     {JKodingKey} = koding.models
 
     JKodingKey.fetchByUserKey
-      username: userName
+      username: username
       key     : key
     , (err, kodingKey)=>
       if err or not kodingKey
