@@ -691,7 +691,7 @@ module.exports = [
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
-  "stylus/app.predefined.styl",
+  # "stylus/app.predefined.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
   "stylus/app.aceeditor.styl",
