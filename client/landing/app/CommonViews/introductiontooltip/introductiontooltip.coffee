@@ -10,7 +10,7 @@ class IntroductionTooltip extends KDObject
     tooltipView.addSubView @closeButton = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "close-icon"
-      click    : => @close()
+      click    : => @close no, no
 
     if data.visibility is "stepByStep"
       buttonTitle = if data.nextItem then "Next" else "Finish"
@@ -18,17 +18,27 @@ class IntroductionTooltip extends KDObject
         title    : buttonTitle
         cssClass : "editor-button"
         callback : =>
-          @close yes
-          @emit "IntorductionTooltipNavigated", data
+          @close yes, yes
+          delayForNext = @getData().delayForNext
+          if delayForNext > 0
+            @utils.wait delayForNext, =>
+              @emit "IntroductionTooltipNavigated", data
+          else
+            @emit "IntroductionTooltipNavigated", data
 
     parentView.setTooltip
-      view     : tooltipView
-      cssClass : "introduction-tooltip"
-      sticky   : yes
+      view      : tooltipView
+      cssClass  : "introduction-tooltip"
+      sticky    : yes
+      placement : data.placement
 
     @utils.defer =>
       parentView.tooltip.show()
 
-  close: (hasNext) ->
+  close: (hasNext, processCallback = yes) ->
+    if processCallback
+      data     = @getData()
+      callback = Encoder.htmlDecode(data.callback)
+      eval callback if data.callback
     @emit "IntroductionTooltipClosed", hasNext
     @destroy()
