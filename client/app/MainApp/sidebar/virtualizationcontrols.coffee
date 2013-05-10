@@ -86,3 +86,4 @@ class StatusLED extends JView
   hide:-> @setClass 'fadeout'
 
   pistachio:-> """<div class='led'></div>{{> @label}}"""
+

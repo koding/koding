@@ -1,5 +1,9 @@
 class HomeLoginBar extends JView
 
+  requiresLogin = (callback)->
+    if KD.isLoggedIn() then do callback
+    else KD.getSingleton('mainController').emit "loginRequired", callback
+
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
@@ -14,10 +18,6 @@ class HomeLoginBar extends JView
       @utils.stopDOMEvent event
       @getSingleton('router').handleRoute route, {entryPoint}
 
-    requiresLogin = (callback)=>
-      if KD.isLoggedIn() then do callback
-      else @getSingleton('mainController').emit "loginRequired", callback
-
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
@@ -25,7 +25,7 @@ class HomeLoginBar extends JView
       icon        : {}
       attributes  :
         href      : "/Register"
-      click       : handler
+      click       : (event)=> handler.call @register, event
 
     @browse       = new CustomLinkView
       tagName     : "a"
@@ -50,7 +50,7 @@ class HomeLoginBar extends JView
           @utils.stopDOMEvent event
           requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
         else
-          handler event
+          handler.call @request, event
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -103,7 +103,7 @@ class HomeLoginBar extends JView
         @login.hide()
         @register.hide()
 
-      KD.remote.cacheable entryPoint, (err, models)=>
+      KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [@group] = models
@@ -112,7 +112,7 @@ class HomeLoginBar extends JView
             @access.hide()
             @join.show()
           else if @group.privacy is "private"
-            KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint, (err, policy)=>
+            KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint.slug, (err, policy)=>
               if err then console.warn err
               else if policy.approvalEnabled
                 @request.hide()

@@ -49,8 +49,9 @@ func main() {
 	//iterate over results
 	for iter.Next(&result) {
 		fmt.Println(i)
+		accountColl.UpdateId(result.Id, bson.M{"$set": bson.M{"emailFrequency.groupInvite": true}})
 		accountColl.UpdateId(result.Id, bson.M{"$set": bson.M{"emailFrequency.groupRequest": true}})
-		accountColl.UpdateId(result.Id, bson.M{"$set": bson.M{"emailFrequency.groupApproval": true}})
+		accountColl.UpdateId(result.Id, bson.M{"$set": bson.M{"emailFrequency.groupApproved": true}})
 		i++
 	}
 	if iter.Err() != nil {
