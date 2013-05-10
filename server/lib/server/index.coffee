@@ -127,91 +127,69 @@ app.get "/-/kite/login", (req, res) ->
       error: true
       message: "Not enough parameters."
   else
-    {JKodingKey, JUser} = koding.models
+    {JKodingKey} = koding.models
 
-    JUser.one {username, status: $ne: "blocked"}, (err, user) =>
-      if err or not user
-        res.status 404
+    JKodingKey.fetchByUserKey
+      username: userName
+      key     : key
+    , (err, kodingKey)=>
+      if err or not kodingKey
+        console.log "ERROR", err
+        res.status 401
         res.send
           error: true
-          message: "User not found."
+          message: "Koding Key not found. Error 2"
       else
-        user.fetchAccount "koding", (err, account)=>
-          if err or not account
-            res.status 500
-            res.send
-              error: true
-              message: "An error occured."
-          else
-            JKodingKey.one {key}, (err, kodingKey)=>
-              if err or not kodingKey
-                res.status 401
-                res.send
-                  error: true
-                  message: "Koding Key not found. Error 1"
+        switch type
+          when 'webserver'
+            rabbitAPI.newProxyUser req.query.key, req.query.name, (err, data) =>
+              if err?
+                console.log "ERROR", err
+                res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
               else
-                JKodingKey.fetchByKey {connection: {delegate: account}}, {key: kodingKey._id}, (err, kodingKey)=>
-                  if err or not kodingKey
-                    res.status 401
-                    res.send
-                      error: true
-                      message: "Koding Key not found. Error 2"
-                  else if kodingKey.length is 0
-                    res.status 401
-                    res.send
-                      error: true
-                      message: "Koding Key not found. Error 3"
-                  else
-                    switch type
-                      when 'webserver'
-                        rabbitAPI.newProxyUser req.query.key, req.query.name, (err, data) =>
-                          if err?
-                            console.log "ERROR", err
-                            res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
-                          else
-                            postData =
-                              key       : req.query.version
-                              host      : 'localhost:' + req.query.port
-                              rabbitkey : req.query.key
+                postData =
+                  key       : req.query.version
+                  host      : 'localhost'
+                  rabbitkey : req.query.key
 
-                            apiServer   = 'api.x.koding.com'
-                            proxyServer = 'proxy.in.koding.com'
-                            # local development
-                            # apiServer   = 'localhost:8000'
-                            # proxyServer = 'mahlika.local'
+                apiServer   = 'api.x.koding.com'
+                proxyServer = 'proxy.in.koding.com'
+                # local development
+                # apiServer   = 'localhost:8000'
+                # proxyServer = 'mahlika.local'
 
-                            options =
-                              method  : 'POST'
-                              uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{req.query.username}/#{req.query.name}"
-                              body    : JSON.stringify postData
-                              headers : {'content-type': 'application/json'}
+                options =
+                  method  : 'POST'
+                  uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{req.query.username}/#{req.query.name}"
+                  body    : JSON.stringify postData
+                  headers : {'content-type': 'application/json'}
 
-                            request.post options, (error, response, body) =>
-                              if error
-                                console.log "ERROR", error
-                                res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
-                              else if response.statusCode is 200
-                                creds =
-                                  protocol  : 'amqp'
-                                  host      : "kontrol.in.koding.com"
-                                  username  : data.username
-                                  password  : data.password
-                                  vhost     : "/"
-                                  publicUrl : body
+                request.post options, (error, response, body) =>
+                  if error
+                    console.log "ERROR", error
+                    res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
+                  else if response.statusCode is 200
+                    creds =
+                      protocol  : 'amqp'
+                      host      : "kontrol.in.koding.com"
+                      username  : data.username
+                      password  : data.password
+                      vhost     : "/"
+                      publicUrl : body
 
-                                res.header "Content-Type", "application/json"
-                                res.send JSON.stringify creds
-                      when 'openservice'
-                        rabbitAPI.newUser key, name, (err, data) =>
-                          creds =
-                            protocol  : 'amqp'
-                            host      : mq.apiAddress
-                            username  : data.username
-                            password  : data.password
-                            vhost     : mq.vhost
-                          console.log creds
-                          res.status 200
-                          res.send creds
+                    res.header "Content-Type", "application/json"
+                    res.send JSON.stringify creds
+          when 'openservice'
+            rabbitAPI.newUser key, name, (err, data) =>
+              creds =
+                protocol  : 'amqp'
+                host      : mq.apiAddress
+                username  : data.username
+                password  : data.password
+                vhost     : mq.vhost
+              console.log creds
+              res.status 200
+              res.send creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
