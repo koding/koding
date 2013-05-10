@@ -138,8 +138,8 @@ func (vos *VOS) Create(name string) (file *os.File, err error) {
 }
 
 func (vos *VOS) Symlink(oldname, newname string) error {
-	return vos.inVosContext(oldname, true, func(resolved string) error {
-		if err := os.Symlink(resolved, newname); err != nil {
+	return vos.inVosContext(newname, true, func(resolved string) error {
+		if err := os.Symlink(oldname, resolved); err != nil {
 			return err
 		}
 		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
