@@ -56,7 +56,7 @@ class ActivityAppView extends KDScrollView
       else
         @setClass "fixed"
     else
-      @unsetClass "fixed"
+      @unsetClass "fixed" unless KD.isLoggedIn()
 
 
   navigateHome:(itemData)->
