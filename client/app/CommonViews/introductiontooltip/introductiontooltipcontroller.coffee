@@ -4,10 +4,11 @@ class IntroductionTooltipController extends KDController
 
     super options, data
 
-    @currentTimestamp = Date.now()
-    @shouldAddOverlay = no
-    @visibleTooltips  = []
-    @stepByStepGroups = {}
+    @currentTimestamp  = Date.now()
+    @shouldAddOverlay  = no
+    @visibleTooltips   = []
+    @displayedTooltips = []
+    @stepByStepGroups  = {}
 
     @getSingleton("mainController").on "FrameworkIsReady", =>
       @init()
@@ -47,6 +48,9 @@ class IntroductionTooltipController extends KDController
 
     return if not assets or @isExpired data.expiryDate
     return if data.visibility is "stepByStep" and data.index > @stepByStepGroups[data.groupName].currentIndex
+    return if @displayedTooltips.indexOf(data.introId) > -1
+
+    @displayedTooltips.push data.introId
 
     {parentView, tooltipView} = assets
     tooltip = new IntroductionTooltip {
