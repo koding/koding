@@ -103,7 +103,7 @@ class HomeLoginBar extends JView
         @login.hide()
         @register.hide()
 
-      KD.remote.cacheable entryPoint, (err, models)=>
+      KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [@group] = models
@@ -112,7 +112,7 @@ class HomeLoginBar extends JView
             @access.hide()
             @join.show()
           else if @group.privacy is "private"
-            KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint, (err, policy)=>
+            KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint.slug, (err, policy)=>
               if err then console.warn err
               else if policy.approvalEnabled
                 @request.hide()

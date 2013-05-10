@@ -12,6 +12,7 @@ class NFinderContextMenuController extends KDController
     else
       [fileView] = fileViews
       switch fileView.getData().type
+        when "vm"         then @getVmMenu fileView
         when "file"       then @getFileMenu fileView
         when "folder"     then @getFolderMenu fileView
         when "mount"      then @getMountMenu fileView
@@ -201,6 +202,39 @@ class NFinderContextMenuController extends KDController
         action : 'delete'
 
     items
+
+  getVmMenu:(fileView)->
+
+    fileData = fileView.getData()
+
+    items =
+      customView                  : new NVMToggleButtonView {}, fileData
+      'Re-initialize VM'          :
+        action                    : 'resetVm'
+        separator                 : yes
+      Refresh                     :
+        action                    : 'refresh'
+        separator                 : yes
+      Expand                      :
+        action                    : 'expand'
+        separator                 : yes
+      Collapse                    :
+        action                    : 'collapse'
+        separator                 : yes
+      'New File'                  :
+        action                    : 'createFile'
+      'New Folder'                :
+        action                    : 'createFolder'
+      'Upload file...'            :
+        disabled                  : yes
+        action                    : 'upload'
+
+    if fileView.expanded
+      delete items.Expand
+    else
+      delete items.Collapse
+
+    return items
 
   getMountMenu:(fileView)->
 
