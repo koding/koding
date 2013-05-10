@@ -139,25 +139,31 @@ module.exports = class Builder
           js = source
           jsSourceMap = null
 
-        try ast = UglifyJS.parse js
-        catch e
-          console.error """
-            JS parse error occurred during minification: #{file.sourcePath}
-            """
-          throw e
-        ast.figure_out_scope()
-        ast = ast.transform UglifyJS.Compressor
-          warnings: no
-          sequences: no
-          drop_debugger: no
+        if process.env.NO_UGLIFYJS
+          file.content = js
+          if jsSourceMap?
+            fs.writeFileSync file.sourceMapPath, jsSourceMap, "utf8"
+            file.sourceMap = jsSourceMap
+        else
+          try ast = UglifyJS.parse js
+          catch e
+            console.error """
+              JS parse error occurred during minification: #{file.sourcePath}
+              """
+            throw e
+          ast.figure_out_scope()
+          ast = ast.transform UglifyJS.Compressor
+            warnings: no
+            sequences: no
+            drop_debugger: no
 
-        uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
-        stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
-        ast.print stream
-        file.content = stream.toString()
-        sourceMapJSON = uglifiedSourceMap.toString()
-        fs.writeFileSync file.sourceMapPath, sourceMapJSON, "utf8"
-        file.sourceMap = new SourceMap.SourceMapConsumer(sourceMapJSON)._generatedMappings
+          uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
+          stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
+          ast.print stream
+          file.content = stream.toString()
+          sourceMapJSON = uglifiedSourceMap.toString()
+          fs.writeFileSync file.sourceMapPath, sourceMapJSON, "utf8"
+          file.sourceMap = new SourceMap.SourceMapConsumer(sourceMapJSON)._generatedMappings
       when ".styl"
         Stylus(source).set('compress',true).use(nib()).render (err, css)=> # callback is synchronous
           log.error "error with styl file at #{file.includePath}" if err
@@ -191,7 +197,7 @@ module.exports = class Builder
 
     for file, scriptIndex in @scripts
       js += file.content + "\n"
-      for mapping in file.sourceMap
+      for mapping in (file.sourceMap ? [])
         while previousGeneratedLine < fileLineOffset + mapping.generatedLine
           sourceMap.mappings += ";"
           previousGeneratedLine++

@@ -439,13 +439,6 @@ class KodingAppsController extends KDController
     manifestFile  = FSHelper.createFileFromPath "#{appPath}/manifest.json"
     changeLogFile = FSHelper.createFileFromPath "#{appPath}/ChangeLog"
 
-    stack.push (cb)=>
-      @kiteController.run
-        method    : "fs.ensurePathExists"
-        withArgs  :
-          path    : "/home/#{KD.whoami().profile.nickname}/Applications"
-        , cb
-
     # Copy default app files (app Skeleton)
     stack.push (cb)=>
       @kiteController.run
@@ -458,7 +451,7 @@ class KodingAppsController extends KDController
     stack.push (cb)=> manifestFile.save  manifestStr,  cb
     stack.push (cb)=> changeLogFile.save changeLogStr, cb
 
-    async.parallel stack, (err, result) =>
+    async.series stack, (err, result) =>
       warn err  if err
       @emit "aNewAppCreated"  unless err
       callback? err, result
