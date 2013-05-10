@@ -1,4 +1,5 @@
 class ApplicationTabView extends KDTabView
+
   constructor: (options = {}, data) ->
 
     options.resizeTabHandles             = yes
@@ -11,8 +12,7 @@ class ApplicationTabView extends KDTabView
 
     super options, data
 
-    # TODO: fatihacet: session logic should refactored for ui and ux
-    @isSessionEnabled = no #options.saveSession and options.sessionName
+    @isSessionEnabled = options.saveSession and options.sessionName
 
     appView = @getDelegate()
 
@@ -28,16 +28,12 @@ class ApplicationTabView extends KDTabView
 
     @on 'PaneAdded', =>
       @tabHandleContainer.repositionPlusHandle @handles
-      if @isSessionEnabled
-        @initSession @panes.last, => @updateSession()
+      @initSession @panes.last, @bound "updateSession" if @isSessionEnabled
 
     @on 'SaveSession', (data) =>
       @appStorage.setValue @getOptions().sessionKey, data
 
-    @on "SessionItemClicked", (items) =>
-      @getDelegate().openFile FSHelper.createFileFromPath file for file in items
-
-    appView.on "AceAppDidQuit", => @removeFromSession no
+    # appView.on "AceAppDidQuit", => @removeFromSession no
 
   # session related methods
 
@@ -46,7 +42,7 @@ class ApplicationTabView extends KDTabView
 
   initSession: (pane, callback) ->
     options     = @getOptions()
-    @appStorage = new AppStorage options.sessionName, '0.1'
+    @appStorage = new AppStorage options.sessionName, '0.2'
 
     @fetchStorage (data) =>
       if data then @restoreSession data, pane
@@ -72,25 +68,15 @@ class ApplicationTabView extends KDTabView
   updateSession: ->
     if @isSessionEnabled
       @fetchStorage (data) =>
-        @getDelegate().emit 'UpdateSessionData', @panes, data
+        @getDelegate().emit "UpdateSessionData", @panes, data
 
   restoreSession: (data, pane) ->
     return if data.latestSessions.length is 0
-    @getDelegate().emit "SessionListCreated", pane, @createSessionList data
-
-  createSessionList: (data) ->
-    items = @createSessionItems data
-    button = new KDButtonViewWithMenu
-      title    : "Sessions"
-      cssClass : "editor-button ace-session-button"
-      menu     : => items
-
-    return button
+    @getDelegate().emit "SessionListCreated", pane, @createSessionItems data
 
   createSessionItems: (data) ->
-    items      = {}
-    delegate   = @getDelegate()
-    date       = new Date()
+    items = {}
+    date  = new Date()
 
     data.latestSessions.forEach (sessionId, i) =>
       isSessionActive = yes for aceApp in appManager.appControllers.Ace when aceApp.getView().id is sessionId
@@ -100,7 +86,7 @@ class ApplicationTabView extends KDTabView
         itemTxt         = if itemLen is 1 then "file" else "files"
         formattedDate   = dateFormat date.setTime(sessionId.split("_")[1]), "dd mmm yyyy - HH:MM"
         items["#{formattedDate} (#{itemLen} #{itemTxt})"] =
-          callback: => @emit "SessionItemClicked", sessionItems
+          callback: => @getDelegate().emit "SessionItemClicked", sessionItems
 
     items.separator = type: "separator"
 
@@ -109,10 +95,10 @@ class ApplicationTabView extends KDTabView
       isSessionActive = yes for aceApp in appManager.appControllers.Ace when aceApp.getView().id is sessionId
       unless isSessionActive
         sessionItems = data[sessionId]
-        for path, i in sessionItems
+        sessionItems.forEach (path, i) =>
           if fileCount < 10
-            filePath = path.replace("/Users/#{KD.whoami().profile.nickname}", "~")
-            items[filePath] = callback: @emit.bind(@, "SessionItemClicked", [path])
+            filePath = path.replace("/home/#{KD.whoami().profile.nickname}", "~")
+            items[filePath] = callback: => @getDelegate().emit "SessionItemClicked", [path]
             fileCount++
 
     return items
