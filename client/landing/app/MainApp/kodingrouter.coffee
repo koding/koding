@@ -96,21 +96,30 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, models, route, query)->
+  openContent:(name, section, models, route, query, passOptions=no)->
+    method = 'createContentDisplay'
+    [options] = models
 
-    [model] = models
-    KD.getSingleton("appManager").tell section, 'createContentDisplay', model,
+    if passOptions
+      method += 'WithOptions'
+      options = {
+        model : options
+        route
+        query
+      }
+      
+    KD.getSingleton("appManager").tell section, method, options,
       (contentDisplay)=>
-        @openRoutes[route] = contentDisplay
-        @openRoutesById[contentDisplay.id] = route
+        routeWithoutParams = route.split('?')[0]
+        @openRoutes[routeWithoutParams] = contentDisplay
+        @openRoutesById[contentDisplay.id] = routeWithoutParams
         contentDisplay.emit 'handleQuery', query
 
-  loadContent:(name, section, slug, route, query)->
-
+  loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
     # return log name, ">>>>>"
 
-    onSuccess = (models)=> @openContent name, section, models, route, query
+    onSuccess = (models)=> @openContent name, section, models, route, query, passOptions
     onError   = (err)=>
       new KDNotificationView title: err?.message or 'An unknown error has occured.'
       @handleNotFound route
@@ -138,7 +147,7 @@ class KodingRouter extends KDRouter
                   onSuccess models
         else onError()
 
-  createContentDisplayHandler:(section)->
+  createContentDisplayHandler:(section, passOptions=no)->
     ({params:{name, slug}, query}, models, route)=>
 
       route = name unless route
@@ -148,9 +157,9 @@ class KodingRouter extends KDRouter
           .hideAllContentDisplays contentDisplay
         contentDisplay.emit 'handleQuery', query
       else if state?
-        @openContent name, section, models, route, query
+        @openContent name, section, models, route, query, passOptions
       else
-        @loadContent name, section, slug, route, query
+        @loadContent name, section, slug, route, query, passOptions
 
   clear:(route="/#{KD.config.entryPoint?.slug ? ''}", replaceState=yes)->
     super route, replaceState
@@ -213,6 +222,10 @@ class KodingRouter extends KDRouter
       '/:name?/Topics/:slug'            : createContentHandler 'Topics'
       '/:name?/Activity/:slug'          : createContentHandler 'Activity'
       '/:name?/Apps/:slug'              : createContentHandler 'Apps'
+
+      '/:name/Followers'                : createContentHandler 'Members', yes
+      '/:name/Following'                : createContentHandler 'Members', yes
+      '/:name/Likes'                    : createContentHandler 'Members', yes
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
