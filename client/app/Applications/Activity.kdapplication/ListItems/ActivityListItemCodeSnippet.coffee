@@ -117,7 +117,7 @@ class CodeSnippetView extends KDCustomHTMLView
         title   : 'Save'
       callback  : ->
         {nickname} = KD.whoami().profile
-        rootPath   = "/Users/#{nickname}/Documents/CodeSnippets"
+        rootPath   = "/home/#{nickname}/Documents/CodeSnippets"
         fileName   = "#{@utils.slugify title}.#{__aceSettings.syntaxAssociations[syntax][1].split('|')[0]}"
         fullPath   = "#{rootPath}/#{fileName}"
 
