@@ -57,8 +57,11 @@ class FinderBottomControlsListItem extends KDListItemView
       { keySet : "cmd+s",          title : "Save File" }
       { keySet : "cmd+shift+s",    title : "Save as..." }
       { keySet : "cmd+f",          title : "Find" }
-      { keySet : "cmd+g",          title : "Find next" }
-      { keySet : "cmd+shift+g",    title : "Find previous" }
+      { keySet : "cmd+shift+f",    title : "Find and replace" }
+      { keySet : "cmd+shift+c",    title : "Compile and run" }
+      { keySet : "cmd+shift+p",    title : "Preview" }
+      # { keySet : "cmd+g",          title : "Find next" }
+      # { keySet : "cmd+shift+g",    title : "Find previous" }
       # { keySet : "cmd+b",          title : "Compile code" }
       # { keySet : "cmd+e",          title : "Run code" }
       # { keySet : "esc",            title : "Autocomplete" }
