@@ -115,11 +115,9 @@ class AceView extends JView
 
   _windowDidResize:->
 
-    height = @getHeight() - 9
-    editorHeight = height - @$('.editor-header').height()
+    height = @getHeight()
     bottomBarHeight = @$('.editor-bottom-bar').height()
-    @$('.editor-main').height editorHeight
-    @ace.setHeight editorHeight - bottomBarHeight - 9
+    @ace.setHeight height - bottomBarHeight
 
   openSaveDialog: (callback) ->
 
