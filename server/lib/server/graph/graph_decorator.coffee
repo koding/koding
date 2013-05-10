@@ -26,8 +26,3 @@ module.exports = class GraphDecorator
 
     response = (new ResponseDecorator(cacheObjects, overviewObjects)).decorate()
     callback response
-
-# data = require('fs').readFileSync './single_activities.sample', 'utf8'
-# data = JSON.parse data
-# GraphDecorator.decorateToCacheObject data, (resp)->
-#   console.log JSON.stringify(resp, null, 3)
