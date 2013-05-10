@@ -154,7 +154,7 @@ func startRouting(cred Credentials) {
 	}
 
 	ticker.Stop()
-	fmt.Printf("\nyour public url: %s ... listening to local port %s\n", cred.PublicUrl, manifest.Port)
+	fmt.Printf("\nyour public url: %s\n", cred.PublicUrl)
 	for msg := range httpStream {
 		// log.Printf("got %dB message data: [%v]-[%s] %s",
 		// 	len(msg.Body),
@@ -174,7 +174,6 @@ func startRouting(cred Credentials) {
 }
 
 func doRequest(msg []byte) ([]byte, error) {
-	manifest := readManifest()
 	buf := bytes.NewBuffer(msg)
 	reader := bufio.NewReader(buf)
 	req, err := http.ReadRequest(reader)
@@ -185,10 +184,10 @@ func doRequest(msg []byte) ([]byte, error) {
 	// Request.RequestURI can't be set in client requests.
 	// http://golang.org/src/pkg/net/http/client.go
 	req.RequestURI = ""
-	fmt.Print("- ")
 
 	ok := hasPort(req.URL.Host)
 	if !ok {
+		manifest := readManifest()
 		req.URL.Host = addPort(req.URL.Host, manifest.Port)
 	}
 
@@ -210,7 +209,6 @@ func publishToRemote(data []byte, id, routingKey string) {
 		CorrelationId: id,
 	}
 
-	fmt.Print(". ")
 	err := producer.channel.Publish("kontrol-rabbitproxy", routingKey, false, false, msg)
 	if err != nil {
 		fmt.Printf("error while publishing proxy message: %s", err)
