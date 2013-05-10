@@ -3,6 +3,7 @@ neo4j = require "neo4j"
 
 module.exports = class Graph
   constructor:(config)->
+    @groupId = KD?.getSingleton('groupsController')?.getCurrentGroup()?.getId() or "5150c743f2589b107d000007"
     @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
 
   objectify = (incomingObjects, callback)->
@@ -128,9 +129,9 @@ module.exports = class Graph
     ].join('\n');
 
     params =
-      groupId : "5150c743f2589b107d000007"
+      groupId   : @groupId
       startDate : "2012-02-14T23:56:48Z"
-      endDate : "2014-02-14T23:56:48Z"
+      endDate   : "2014-02-14T23:56:48Z"
 
     @db.query query, params, (err, results) ->
         if err then throw err
@@ -156,9 +157,9 @@ module.exports = class Graph
     ].join('\n');
 
     params =
-      groupId : "5150c743f2589b107d000007"
+      groupId   : @groupId
       startDate : "2012-02-14T23:56:48Z"
-      endDate : "2014-02-14T23:56:48Z"
+      endDate   : "2014-02-14T23:56:48Z"
 
     @db.query query, params, (err, results)=>
       if err then throw err
