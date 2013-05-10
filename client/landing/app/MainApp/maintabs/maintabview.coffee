@@ -57,7 +57,7 @@ class MainTabView extends KDTabView
     # this is a temporary fix for third party apps
     # until router handles everything correctly
     if options.route is '/Develop'
-      appManager.show KD.getAppOptions options.name
+      appManager.showInstance appInstance
 
   showHandleContainer:()->
     @tabHandleContainer.$().css top : -25

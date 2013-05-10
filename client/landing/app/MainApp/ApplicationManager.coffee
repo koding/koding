@@ -240,6 +240,10 @@ class ApplicationManager extends KDObject
     @setLastActiveIndex appInstance
     @frontApp = appInstance
 
+  getFrontAppManifest: ->
+    {name}  = @getFrontApp().getOptions()
+    return KD.getAppOptions name
+
   register:(appInstance)->
 
     name = appInstance.getOption "name"
