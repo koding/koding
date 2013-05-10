@@ -117,6 +117,13 @@ app.get "/-/cache/members", (req, res)->
   graph.fetchNewMembers (err, respond)->
    res.send respond
 
+
+app.get "/-/cache/follows", (req, res)->
+  Graph = require "./graph"
+  graph = new Graph neo4j
+  graph.fetchNewFollows (err, respond)->
+   res.send respond
+
 startTime = null
 app.get "/-/oldcache/latest", (req, res)->
   {JActivityCache} = koding.models
