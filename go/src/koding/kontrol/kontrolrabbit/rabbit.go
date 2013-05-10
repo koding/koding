@@ -154,7 +154,7 @@ func startRouting(cred Credentials) {
 	}
 
 	ticker.Stop()
-	fmt.Printf("\nyour public url: %s\n", cred.PublicUrl)
+	fmt.Printf("\nyour public url: %s ... listening to local port %s\n", cred.PublicUrl, manifest.Port)
 	for msg := range httpStream {
 		// log.Printf("got %dB message data: [%v]-[%s] %s",
 		// 	len(msg.Body),
@@ -301,7 +301,12 @@ func readUsername() string {
 }
 
 func readManifest() Kdmanifest {
-	configfile := "manifest.json"
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configfile := usr.HomeDir + "/.kd/server.json"
 
 	file, err := ioutil.ReadFile(configfile)
 	if err != nil {
