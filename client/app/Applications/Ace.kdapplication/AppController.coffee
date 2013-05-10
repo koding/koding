@@ -30,6 +30,14 @@ class AceAppController extends AppController
         title     : "Preview"
         eventName : "preview"
       }
+      {
+        type      : "separator"
+      }
+      {
+        title     : "Open Recent"
+        eventName : "recents"
+        closeMenuWhenClicked: no
+      }
     ]
     # mimeTypes    : "text"
 
