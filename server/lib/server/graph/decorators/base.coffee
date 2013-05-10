@@ -1,5 +1,4 @@
 module.exports = class BaseDecorator
-
   constructor:(@datum)->
 
   decorate:->

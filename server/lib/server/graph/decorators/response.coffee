@@ -15,8 +15,8 @@ module.exports = class ResponseDecorator
       isFull     : null
       _id        : null
       activities : @cacheObjects
-      from       : @overviewObjects.first.createdAt.first or 1
-      to         : @overviewObjects.last.createdAt.first  or 2
+      from       : @overviewObjects.first?.createdAt?.first or 1
+      to         : @overviewObjects.last?.createdAt?.first  or 2
       overview   : @overviewObjects
 
     return response
