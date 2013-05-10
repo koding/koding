@@ -92,7 +92,8 @@ class MainView extends KDView
       cssClass : "kdtabhandlecontainer"
       delegate : @
 
-    @mainSettingsMenuButton = @getMainSettingsMenuButton()
+    @appSettingsMenuButton = new AppSettingsMenuButton
+    @appSettingsMenuButton.hide()
 
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
@@ -102,16 +103,22 @@ class MainView extends KDView
       tabHandleContainer : @mainTabHandleHolder
     ,null
 
-    @mainTabView.on "PaneDidShow", => KD.utils.wait 10, =>
-      appManifest = getFrontAppManifest()
-      @mainSettingsMenuButton[if appManifest?.menu then "show" else "hide"]()
+    @mainTabView.on "PaneDidShow", =>
+      appManager  = KD.getSingleton "appManager"
+      appManifest = appManager.getFrontAppManifest()
+      menu = appManifest?.menu or KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
+      if menu?.length
+        @appSettingsMenuButton.setData menu
+        @appSettingsMenuButton.show()
+      else
+        @appSettingsMenuButton.hide()
 
     @mainTabView.on "AllPanesClosed", ->
       @getSingleton('router').handleRoute "/Activity"
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
-    @contentPanel.addSubView @mainSettingsMenuButton
+    @contentPanel.addSubView @appSettingsMenuButton
 
   createSideBar:->
 
@@ -119,33 +126,6 @@ class MainView extends KDView
     mc                   = @getSingleton 'mainController'
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
-
-  getMainSettingsMenuButton:->
-    new KDButtonView
-      domId    : "main-settings-menu"
-      cssClass : "kdsettingsmenucontainer transparent hidden"
-      iconOnly : yes
-      iconClass: "dot"
-      callback : ->
-        appManifest = getFrontAppManifest()
-        if appManifest?.menu
-          appManifest.menu.forEach (item, index)->
-            item.callback = (contextmenu)->
-              mainView = KD.getSingleton "mainView"
-              view = mainView.mainTabView.activePane?.mainView
-              item.eventName or= item.title
-              view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu
-
-          offset = @$().offset()
-          contextMenu = new JContextMenu
-              event       : event
-              delegate    : @
-              x           : offset.left - 150
-              y           : offset.top + 20
-              arrow       :
-                placement : "top"
-                margin    : -5
-            , appManifest.menu
 
   setStickyNotification:->
     # sticky = @getSingleton('windowController')?.stickyNotification
@@ -164,15 +144,6 @@ class MainView extends KDView
           title      : systemStatus.title
           content    : systemStatus.content
           type       : systemStatus.type
-
-
-  # take this to appManager SY
-  getFrontAppManifest = ->
-    appManager    = KD.getSingleton "appManager"
-    appController = KD.getSingleton "kodingAppsController"
-    frontApp      = appManager.getFrontApp()
-    frontAppName  = name for name, instances of appManager.appControllers when frontApp in instances
-    appController.constructor.manifests?[frontAppName]
 
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
