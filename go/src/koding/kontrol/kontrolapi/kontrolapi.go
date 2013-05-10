@@ -601,10 +601,12 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 			}
 		default:
 			if key == "name" {
+				name := value[0]
 				if counts := strings.Count(value[0], "-"); counts > 0 {
 					s := strings.Split(value[0], "-")
-					query[key] = bson.RegEx{"^" + s[0], "i"}
+					name = s[0]
 				}
+				query[key] = bson.RegEx{"^" + name, "i"}
 			} else {
 				query[key] = value[0]
 			}
