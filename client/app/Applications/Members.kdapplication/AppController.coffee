@@ -90,7 +90,7 @@ class MembersAppController extends AppController
         if @_searchValue and filter is 'everything'
           @setCurrentViewHeader count
 
-  createFeedForContentDisplay:(view, account, followersOrFollowing)->
+  createFeedForContentDisplay:(view, account, followersOrFollowing, callback)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
@@ -124,24 +124,27 @@ class MembersAppController extends AppController
           title             : "Most Following"
           direction         : -1
     }, (controller)=>
-
       view.addSubView controller.getView()
       contentDisplayController = @getSingleton "contentDisplayController"
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+      callback view, controller
+      if controller.facetsController?.filterController?
+        controller.emit 'ready'
+      else
+        controller.getView().on 'viewAppended', -> controller.emit 'ready'
 
-  createFolloweeContentDisplay:(account, filter)->
+  createFolloweeContentDisplay:(account, filter, callback)->
     # log "I need to create followee for", account, filter
     newView = new MembersContentDisplayView
       cssClass : "content-display #{filter}"
       # domId    : 'members-feeder-split-view'
-
     newView.createCommons(account, filter)
-    @createFeedForContentDisplay newView, account, filter
+    @createFeedForContentDisplay newView, account, filter, callback
 
-  createLikedFeedForContentDisplay:(view, account)->
+  createLikedFeedForContentDisplay:(view, account, callback)->
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
-      domId                 : 'members-feeder-split-view'
+      # domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
@@ -180,18 +183,23 @@ class MembersAppController extends AppController
           title           : 'Most activity'
           direction       : 1
     }, (controller)=>
-
       view.addSubView controller.getView()
       contentDisplayController = @getSingleton "contentDisplayController"
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
+      callback view, controller
 
-  createLikedContentDisplay:(account)->
+      if controller.facetsController?.filterController?
+        controller.emit 'ready'
+      else
+        controller.getView().on 'viewAppended', -> controller.emit 'ready'
+
+  createLikedContentDisplay:(account, callback)->
     newView = new MembersLikedContentDisplayView
       cssClass : "content-display likes"
       # domId    : 'members-feeder-split-view'
 
     newView.createCommons account
-    @createLikedFeedForContentDisplay newView, account
+    @createLikedFeedForContentDisplay newView, account, callback
 
   loadView:(mainView, firstRun = yes, loadFeed = no)->
     if firstRun
@@ -216,6 +224,26 @@ class MembersAppController extends AppController
       controller.ready -> controller.feedController?.handleQuery? query
     @showContentDisplay contentDisplay
     @utils.defer -> callback contentDisplay
+
+  createContentDisplayWithOptions:(options, callback)->
+    {model, route, query} = options
+    kallback = (contentDisplay, controller)=>
+      # needed to remove the member display which comes as HTML
+      unless KD.getSingleton('router').openRoutes[KD.config.entryPoint?.slug]
+        memberDisplay = document.getElementById('member-contentdisplay')
+        memberDisplay?.parentNode.removeChild(memberDisplay)
+
+      contentDisplay.on 'handleQuery', (query)->
+        controller.ready -> controller.handleQuery? query
+      callback contentDisplay
+
+    switch route.split('/')[1]
+      when 'Followers'
+        @createFolloweeContentDisplay model, 'followers', kallback
+      when 'Following'
+        @createFolloweeContentDisplay model, 'following', kallback
+      when 'Likes'
+        @createLikedContentDisplay model, kallback
 
   showContentDisplay:(contentDisplay)->
     contentDisplayController = @getSingleton "contentDisplayController"
