@@ -13,8 +13,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"os/user"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -73,7 +75,10 @@ func main() {
 		ticker.Stop()
 		fmt.Println(err)
 	}
+
+	go signalWatcher(cred.PublicUrl)
 	startRouting(cred)
+
 }
 
 func authUser() (Credentials, error) {
@@ -333,4 +338,18 @@ func addPort(host, port string) string {
 	}
 
 	return host + ":" + port
+}
+
+func signalWatcher(url string) {
+	// For future reference, if we can do stuff for ctrl+c
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals)
+	for {
+		signal := <-signals
+		switch signal {
+		case syscall.SIGINT, syscall.SIGTERM:
+			fmt.Printf(" disconnected from: %s\n", url)
+			os.Exit(1)
+		}
+	}
 }
