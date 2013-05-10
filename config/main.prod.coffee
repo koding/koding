@@ -33,6 +33,7 @@ module.exports = deepFreeze
     port        : sourceServerPort
   mongo         : mongo
   runGoBroker   : yes
+  runKontrol    : no
   runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
