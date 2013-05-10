@@ -8,7 +8,11 @@ module.exports = class BucketActivityDecorator
 
   decorate:->
     @groupByAnchorId()
-    #for datum in @groups
+    for id, value of @groups
+      jsonSnaphost = JSON.stringify value.snapshot
+      @groups[id].snapshot = jsonSnaphost
+
+    return @groups
 
   groupByAnchorId:->
     for datum in @data
@@ -17,8 +21,6 @@ module.exports = class BucketActivityDecorator
         @addFollowerToGroup datum
       else
         @createNewGroup datum
-
-    return @groups
 
   addFollowerToGroup:(datum)->
     id = @extractId datum

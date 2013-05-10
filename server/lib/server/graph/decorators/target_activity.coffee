@@ -3,8 +3,6 @@ module.exports = class TargetActivityDecorator
     @target   = @datum[@targetName].first
     @groupBy  = @datum[@groupByName].first
 
-    #console.log this
-
   decorate:-> @decorateActivity()
 
   decorateActivity:->
