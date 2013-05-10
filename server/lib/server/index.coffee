@@ -94,7 +94,7 @@ authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
 Graph = require "./graph/graph"
-GraphDecorator = require "../../../utils/graph/graph_decorator"
+GraphDecorator = require './graph/graph_decorator'
 
 app.get "/-/cache/latest", (req, res)->
   graph = new Graph neo4j
