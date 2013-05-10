@@ -59,20 +59,19 @@ class NFinderController extends KDViewController
     else
       @createRootStructure()
 
-  createRootStructure:->
+  createRootStructure:(path)->
     {nickname} = KD.whoami().profile
-    @mount     = FSHelper.createFile
-      name: nickname.toLowerCase()
-      path: "/home/#{nickname}"
-      type: "vm"
 
-    @mount2    = FSHelper.createFile
-      name: "Root Structure"
-      path: "/"
-      type: "vm"
+    path or= "/home/#{nickname}"
+    FSHelper.resetRegistry()
+
+    @mount = FSHelper.createFile
+      name : path
+      path : path
+      type : "vm"
 
     @defaultStructureLoaded = no
-    @treeController.initTree [@mount, @mount2]
+    @treeController.initTree [@mount]
     @loadDefaultStructure()
 
   loadDefaultStructure:->
@@ -92,13 +91,13 @@ class NFinderController extends KDViewController
       method     : 'fs.readDirectory'
       withArgs   :
         onChange : (change)=>
-          FSHelper.folderOnChange "/home/#{nickname}", change, @treeController
-        path     : '.'
+          FSHelper.folderOnChange @mount.path, change, @treeController
+        path     : @mount.path
     , (err, response)=>
       @lastSuccessfulResponse?.stopWatching?()
 
       if response
-        files = FSHelper.parseWatcher "/home/#{nickname}", response.files
+        files = FSHelper.parseWatcher @mount.path, response.files
         @treeController.addNodes files
         @treeController.emit 'fs.retry.success'
         @treeController.hideNotification()
