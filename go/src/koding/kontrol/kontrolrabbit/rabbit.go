@@ -174,6 +174,7 @@ func startRouting(cred Credentials) {
 }
 
 func doRequest(msg []byte) ([]byte, error) {
+	manifest := readManifest()
 	buf := bytes.NewBuffer(msg)
 	reader := bufio.NewReader(buf)
 	req, err := http.ReadRequest(reader)
@@ -188,7 +189,7 @@ func doRequest(msg []byte) ([]byte, error) {
 
 	ok := hasPort(req.URL.Host)
 	if !ok {
-		req.URL.Host = addPort(req.URL.Host, *localPort)
+		req.URL.Host = addPort(req.URL.Host, manifest.Port)
 	}
 
 	client := &http.Client{}
