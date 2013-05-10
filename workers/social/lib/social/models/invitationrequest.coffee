@@ -63,6 +63,13 @@ module.exports = class JInvitationRequest extends Model
         ]]
         default       : 'invitation'
 
+  @resolvedStatuses = [
+    'declined'
+    'approved'
+    'ignored'
+    'accepted'
+  ]
+
   @create =({email}, callback)->
     invite = new @ {email}
     invite.save (err)->
@@ -219,10 +226,15 @@ module.exports = class JInvitationRequest extends Model
                 invite     : ObjectRef(@).data
                 admin      : ObjectRef(client).data
 
+            receiver.sendNotification 'GroupInvited',
+              actionType : 'groupInvited'
+              actorType  : 'inviter'
+              inviter    : ObjectRef(actor).data
+              subject    : ObjectRef(group).data
+
             JMailNotification.create data, (err)->
               if err then callback new KodingError "Could not send"
-              else
-                callback null
+              else callback null
 
   sendRequestNotification:(client, callback)->
     JUser             = require './user'
@@ -254,10 +266,15 @@ module.exports = class JInvitationRequest extends Model
                     approvalRequest : ObjectRef(@).data
                     requester       : ObjectRef(actor).data
 
+                account.sendNotification 'GroupAccessRequested',
+                  actionType : 'groupAccessRequested'
+                  actorType  : 'requester'
+                  requester  : ObjectRef(actor).data
+                  subject    : ObjectRef(group).data
+
                 JMailNotification.create data, (err)->
                   if err then callback new KodingError "Could not send"
-                  else
-                    callback null
+                  else callback null
 
   sendRequestApprovedNotification:(client, group, account, callback)->
     JAccount          = require './account'
@@ -278,7 +295,12 @@ module.exports = class JInvitationRequest extends Model
             approved        : ObjectRef(@).data
             requester       : ObjectRef(actor).data
 
+        account.sendNotification 'GroupRequestApproved',
+          actionType : 'groupRequestApproved'
+          actorType  : 'admin'
+          subject    : ObjectRef(group).data
+          admin      : ObjectRef(account).data
+
         JMailNotification.create data, (err)->
           if err then callback new KodingError "Could not send"
-          else
-            callback null
+          else callback null

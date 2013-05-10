@@ -20,7 +20,7 @@ class GroupTabHandleView extends KDTabHandleView
 
   markDirty:(@isDirty=yes)->
     if @isDirty
-      @setClass 'dirty'  unless @currentCount++
+      @setClass 'dirty'  unless ++@currentCount
       @newCount.updatePartial @currentCount
       @newCount.show()
     else

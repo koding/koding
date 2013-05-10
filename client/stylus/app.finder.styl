@@ -31,7 +31,7 @@ dimmedNeighbor()
   .nfinder
     overflow            visible
     > div
-      padding           10px 0
+      // padding           10px 0
       borderBox()
     ul
       min-width         180px
@@ -299,7 +299,7 @@ dimmedNeighbor()
     margin          0 20px
 
 #finder-header-holder
-  size              auto, 66px
+  size              auto, 50px
   h2
     font-size       13px
     font-weight     bold
@@ -741,6 +741,8 @@ div.led-wrapper
       bg          position,-40px -60px
 
 .file-container
+
+  .vm
   .file
   .mount
   .folder
@@ -762,6 +764,28 @@ div.led-wrapper
       size          10px,16px
       bg            position, -1000px -1000px
 
+  .vm
+    margin-left     0 !important
+    height          22px
+    padding-top     1px
+    padding-bottom  3px
+
+    &.online
+      span.icon
+        bg          position, -20px -140px !important
+
+    span.arrow
+      width         0
+
+    span.icon
+      bg            position, 0px -140px !important
+    span.chevron
+      top           3px
+    div.vm-toggle
+      top           3px
+      right         20px
+      abs()
+
   .folder
   .mount
     span.icon
@@ -770,13 +794,16 @@ div.led-wrapper
       bg            position, -40px -320px
     span.arrow
       bg            position, -40px -20px
+
   .folder
     span.icon
       &.app
         bg          position, -40px -60px
+
   .broken
     span.icon
       bg            position, -60px -140px
+
   .file
     span.icon
       bg            position, -40px -140px
@@ -816,3 +843,11 @@ div.led-wrapper
     .title
       display         inline-block
       margin-right    0
+
+.vm-toggle-menu
+  font-size       12px
+  padding         2px 0px 7px 10px
+  .vm-toggle-item
+    right           16px
+    top             2px
+    abs()
