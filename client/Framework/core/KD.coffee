@@ -108,7 +108,6 @@ unless window.event?
 
     if KD.whoami() instanceof KD.remote.api.JGuest
       new KDNotificationView
-        type     : 'growl'
         title    : 'Access denied!'
         content  : errMsg or 'You must log in to perform this action!'
         duration : 3000
