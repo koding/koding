@@ -213,25 +213,6 @@ func registerFileSystemMethods(k *kite.Kite) {
 		return name, nil
 	})
 
-	registerVmMethod(k, "fs.ensurePathExists", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Path string
-		}
-		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
-		}
-
-		_, err := vos.Stat(params.Path)
-		if err != nil {
-			if os.IsNotExist(err) {
-				if err := vos.MkdirAll(params.Path, 0755); err != nil {
-					return nil, err
-				}
-			}
-		}
-		return nil, nil
-	})
-
 	registerVmMethod(k, "fs.getInfo", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Path string
@@ -341,16 +322,23 @@ func registerFileSystemMethods(k *kite.Kite) {
 
 	registerVmMethod(k, "fs.createDirectory", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
 		var params struct {
-			Path string
+			Path      string
+			Recursive bool
 		}
 		if args.Unmarshal(&params) != nil || params.Path == "" {
-			return nil, &kite.ArgumentError{Expected: "{ path: [string] }"}
+			return nil, &kite.ArgumentError{Expected: "{ path: [string], recursive: [bool] }"}
+		}
+
+		if params.Recursive {
+			if err := vos.MkdirAll(params.Path, 0755); err != nil {
+				return nil, err
+			}
+			return true, nil
 		}
 
 		if err := vos.Mkdir(params.Path, 0755); err != nil {
 			return nil, err
 		}
-
 		return true, nil
 	})
 }

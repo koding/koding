@@ -47,7 +47,7 @@ func registerAppMethods(k *kite.Kite) {
 		}
 
 		bucketPath := fmt.Sprintf("%s/%s/%s", params.Owner, params.Identifier, params.Version)
-		if err := vos.Mkdir(params.AppPath, 0755); err != nil && !os.IsExist(err) {
+		if err := vos.MkdirAll(params.AppPath, 0755); err != nil && !os.IsExist(err) {
 			return nil, err
 		}
 		if err := downloadFile(bucketPath+"/index.js", vos, params.AppPath+"/index.js"); err != nil {
@@ -84,7 +84,7 @@ func registerAppMethods(k *kite.Kite) {
 		if err := moveToBackup(params.AppPath, vos); err != nil {
 			return nil, err
 		}
-		if err := vos.Mkdir(params.AppPath, 0755); err != nil && !os.IsExist(err) {
+		if err := vos.MkdirAll(params.AppPath, 0755); err != nil && !os.IsExist(err) {
 			return nil, err
 		}
 
@@ -326,7 +326,7 @@ func recursiveCopy(srcPath string, vos *virt.VOS, appPath string) error {
 	defer sf.Close()
 
 	if fi.IsDir() {
-		if err := vos.Mkdir(appPath, fi.Mode()); err != nil {
+		if err := vos.MkdirAll(appPath, fi.Mode()); err != nil {
 			return err
 		}
 		entries, err := sf.Readdirnames(0)
