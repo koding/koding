@@ -2,12 +2,8 @@ BucketActivityDecorator = require './bucket_activity'
 
 module.exports = class FollowBucketDecorator extends BucketActivityDecorator
   constructor:(@data)->
-    @bucketName = 'CFollowerBucketActivity'
+    @bucketName  = 'CFollowerBucketActivity'
+    @targetName  = 'follower'
+    @groupByName = 'follower'
+
     super @data
-
-  target:-> 'followee'
-  groupBy:-> 'follower'
-
-  decorate:->
-    groups = super
-    return groups

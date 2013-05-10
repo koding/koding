@@ -24,13 +24,13 @@ module.exports = class BucketActivityDecorator
 
   addFollowerToGroup:(datum)->
     id = @extractId datum
-    @groups[id].snapshot.group.push @decorateGroupActivity datum[@groupBy()]
+    @groups[id].snapshot.group.push @decorateGroupActivity datum[@groupByName]
 
   createNewGroup:(datum)->
     id = @extractId datum
     @groups[id] = @decorateTargetActivity datum
-    @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupBy()]]
-    @groups.overview = @decorateOverview datum.followee.first
+    @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupByName]]
+    @groups.overview = @decorateOverview datum[@groupByName].first
 
   decorateOverview:(target)->
     overview =
@@ -42,19 +42,13 @@ module.exports = class BucketActivityDecorator
     return overview
 
   decorateTargetActivity:(datum)->
-    return (new TargetActivityDecorator datum, @target(), @groupBy()).decorate()
+    return (new TargetActivityDecorator datum, @targetName, @groupByName).decorate()
 
   decorateGroupActivity:(groupActivity)->
     return (new SingleActivityDecorator groupActivity.first).decorate()
 
   extractId:(datum)->
-    return datum[@target()].first._id
-
-  target:->
-    console.log 'implement this in child class'
-
-  groupBy:->
-    console.log 'implement this in child class'
+    return datum[@targetName].first._id
 
   # TODO: DRY this
   convertToISO: (time)-> return (new Date(time)).toISOString()
