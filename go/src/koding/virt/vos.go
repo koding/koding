@@ -100,7 +100,7 @@ func (vos *VOS) inVosContext(name string, writeAccess bool, f func(name string) 
 	vmRoot := vos.vm.File("rootfs")
 	vmPath, err := vos.resolve(name)
 	if err == nil && writeAccess {
-		err = vos.ensureWritable(vmPath)
+		err = vos.ensureWritable(vmRoot + vmPath)
 	}
 	if err == nil {
 		err = f(vmRoot + vmPath)
@@ -164,15 +164,24 @@ func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
 }
 
 func (vos *VOS) MkdirAll(name string, perm os.FileMode) error {
+	_, err := vos.Stat(name)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err == nil {
+		return nil
+	}
+
 	dir, _ := path.Split(name)
 	if dir != "" {
 		if err := vos.MkdirAll(dir[:len(dir)-1], perm); err != nil {
 			return err
 		}
 	}
-	if err := vos.Mkdir(name, perm); err != nil && !os.IsExist(err) {
+	if err := vos.Mkdir(name, perm); err != nil {
 		return err
 	}
+
 	return nil
 }
 
