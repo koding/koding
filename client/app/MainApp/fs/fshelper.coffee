@@ -103,6 +103,8 @@ class FSHelper
 
   @registry = {}
 
+  @resetRegistry:-> @registry = {}
+
   @register = (file)->
     @setFileListeners file
     @registry[file.path] = file
