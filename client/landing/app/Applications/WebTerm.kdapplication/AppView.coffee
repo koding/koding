@@ -123,6 +123,7 @@ class WebTermView extends KDView
         sizeY: @terminal.sizeY
     , (err, remote) =>
       @terminal.server = remote
+      remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
       @setKeyView()
       @emit "WebTermConnected", remote
 
