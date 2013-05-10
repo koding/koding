@@ -1,8 +1,8 @@
 package virt
 
 import (
+	"errors"
 	"exp/inotify"
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -21,8 +21,8 @@ func (vm *VM) OS(user *User) *VOS {
 
 func (vos *VOS) resolve(name string) (string, error) {
 	entry := vos.vm.GetUserEntry(vos.user)
-	if entry == nil {
-		return "", fmt.Errorf("Permission denied.")
+	if entry == nil && vos.user.Uid != 0 {
+		return "", &os.PathError{"path", name, errors.New("permission denied")}
 	}
 
 	tildePrefix := strings.HasPrefix(name, "~/")
@@ -37,7 +37,7 @@ func (vos *VOS) resolve(name string) (string, error) {
 	for _, segment := range strings.Split(path.Clean(name), "/")[1:] {
 		// sanity check, should all be removed by path.Clean
 		if segment == ".." {
-			return "", fmt.Errorf("Error while processing path")
+			return "", &os.PathError{"path", name, errors.New("error while processing path")}
 		}
 
 		fullPath := vos.vm.File("rootfs/" + constructedPath + "/" + segment)
@@ -66,9 +66,9 @@ func (vos *VOS) resolve(name string) (string, error) {
 
 			// check permissions
 			sysinfo := info.Sys().(*syscall.Stat_t)
-			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid)
+			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == 0
 			if !readable {
-				return "", fmt.Errorf("Permission denied: %s/%s", constructedPath, segment)
+				return "", &os.PathError{"path", constructedPath + "/" + segment, errors.New("permission denied")}
 			}
 		}
 
@@ -89,9 +89,9 @@ func (vos *VOS) ensureWritable(name string) error {
 	}
 
 	sysinfo := info.Sys().(*syscall.Stat_t)
-	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid)
+	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == 0
 	if !writable {
-		return fmt.Errorf("Permission denied: %s", name)
+		return &os.PathError{"path", name, errors.New("permission denied")}
 	}
 	return nil
 }
@@ -100,7 +100,7 @@ func (vos *VOS) inVosContext(name string, writeAccess bool, f func(name string) 
 	vmRoot := vos.vm.File("rootfs")
 	vmPath, err := vos.resolve(name)
 	if err == nil && writeAccess {
-		err = vos.ensureWritable(vmPath)
+		err = vos.ensureWritable(vmRoot + vmPath)
 	}
 	if err == nil {
 		err = f(vmRoot + vmPath)
@@ -164,15 +164,24 @@ func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
 }
 
 func (vos *VOS) MkdirAll(name string, perm os.FileMode) error {
+	_, err := vos.Stat(name)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err == nil {
+		return nil
+	}
+
 	dir, _ := path.Split(name)
 	if dir != "" {
 		if err := vos.MkdirAll(dir[:len(dir)-1], perm); err != nil {
 			return err
 		}
 	}
-	if err := vos.Mkdir(name, perm); err != nil && !os.IsExist(err) {
+	if err := vos.Mkdir(name, perm); err != nil {
 		return err
 	}
+
 	return nil
 }
 
