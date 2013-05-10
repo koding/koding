@@ -65,7 +65,7 @@ func parseRollbarReq(request *http.Request) (Rollbar, error) {
 
 func findWorkersRelevantToProblem(problem string) []Worker {
 	query := bson.M{}
-	allWorkers := queryResult(query) // for empty bson.M it returns all workers
+	allWorkers := queryResult(query, false) // for empty bson.M it returns all workers
 	s := make([]interface{}, len(allWorkers))
 	for i, v := range allWorkers {
 		s[i] = v
