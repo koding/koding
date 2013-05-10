@@ -193,7 +193,6 @@ class GroupsAppController extends AppController
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
       @feedController.loadFeed() if loadFeed
-      @putAddAGroupButton()
       @emit 'ready'
 
   markMemberAndOwnGroups:(controller, ids)->
@@ -315,17 +314,6 @@ class GroupsAppController extends AppController
         @showErrorModal group, err
       else if hasPermission
         @openGroup group
-
-  putAddAGroupButton:->
-    if KD.isLoggedIn()
-      {facetsController} = @feedController
-      innerNav = facetsController.getView()
-      innerNav.addSubView addButton = new KDButtonView
-        tooltip   :
-          title   : "Create a Group"
-        style     : "small-gray"
-        iconOnly  : yes
-        callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData, callback)->
 

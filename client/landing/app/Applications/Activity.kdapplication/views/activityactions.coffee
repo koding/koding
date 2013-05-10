@@ -19,13 +19,20 @@ class ActivityActionsView extends KDView
     @shareLink    = new ActivityActionLink
       partial     : "Share"
       tooltip     :
-        title     : "<p class='login-tip'>Coming Soon</p>"
-        placement : "above"
+        title     : "Coming Soon"
       click:(event)=>
         event.preventDefault()
-    
+
     @likeView     = new LikeView {checkIfLikedBefore: no}, activity
     @loader       = new KDLoaderView size : width : 14
+
+    unless KD.isLoggedIn()
+      @commentLink.setTooltip title: "Login required"
+      @likeView.likeLink.setTooltip title: "Login required"
+      KD.singletons.mainController.on "accountChanged.to.loggedIn", =>
+        delete @likeView.likeLink.tooltip
+        delete @commentLink.tooltip
+        @attachListeners()
 
   viewAppended:->
 
@@ -51,10 +58,15 @@ class ActivityActionsView extends KDView
     activity    = @getData()
     commentList = @getDelegate()
 
-    commentList.on "BackgroundActivityStarted", => @loader.show()
-    commentList.on "BackgroundActivityFinished", => @loader.hide()
+    events =
+      BackgroundActivityStarted  : 'show'
+      BackgroundActivityFinished : 'hide'
 
-    @commentLink.on "click", (event)=>
+    for ev, func of events
+      commentList.off ev
+      commentList.on ev, @loader.bound func
+
+    if KD.isLoggedIn() then @commentLink.on "click", (event)=>
       commentList.emit "CommentLinkReceivedClick", event, @
 
 class ActivityActionLink extends KDCustomHTMLView

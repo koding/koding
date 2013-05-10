@@ -11,8 +11,6 @@ class WebTermView extends KDView
     super
 
   viewAppended: ->
-    @setHeight @getHeight() - 21 # 21 is application tabs height
-
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
       bind     : "scroll"
@@ -123,6 +121,7 @@ class WebTermView extends KDView
         sizeY: @terminal.sizeY
     , (err, remote) =>
       @terminal.server = remote
+      remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
       @setKeyView()
       @emit "WebTermConnected", remote
 
@@ -209,8 +208,6 @@ class WebTermView extends KDView
       @textarea?.remove()
 
   _windowDidResize: (event) ->
-    diff = 21 + 10 # 21 is app sub tab's height and 10 is padding of appView
-    @setHeight @getDelegate().getHeight() - diff
     @terminal.windowDidResize()
 
   getAdvancedSettingsMenuItems:->
