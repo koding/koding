@@ -104,6 +104,7 @@ func main() {
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services", GetProxyUsers).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetProxyService).Methods("GET")
@@ -449,10 +450,30 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 	if username == "koding" {
 		url = fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
 	} else {
-		url = fmt.Sprintf("http://%s-%s-%s.x.koding.com", servicename, key, username)
+		url = fmt.Sprintf("http://%s-%s-%s.kd.io", servicename, key, username)
 	}
 	io.WriteString(writer, url)
 	return
+}
+
+func GetProxyUsers(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+
+	users := make([]string, 0)
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+
+	for username := range proxyMachine.RoutingTable {
+		users = append(users, username)
+	}
+
+	data, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
 }
 
 // Get all services registered to a proxy machine
