@@ -4,10 +4,11 @@ class IntroductionTooltipController extends KDController
 
     super options, data
 
-    @currentTimestamp = Date.now()
-    @shouldAddOverlay = no
-    @visibleTooltips  = []
-    @stepByStepGroups = {}
+    @currentTimestamp  = Date.now()
+    @shouldAddOverlay  = no
+    @visibleTooltips   = []
+    @displayedTooltips = []
+    @stepByStepGroups  = {}
 
     @getSingleton("mainController").on "FrameworkIsReady", =>
       @init()
@@ -34,15 +35,12 @@ class IntroductionTooltipController extends KDController
             item.expiryDate = snippet.expiryDate
             item.visibility = snippet.visibility
             item.groupName  = snippet.title
+            item.overlay    = @shouldAddOverlay
             if snippet.visibility is "stepByStep"
               item.index    = i
               item.nextItem = currentSnippets[i + 1]
               item.prevItem = currentSnippets[i - 1]
             @createInstance null, item
-
-        if @visibleTooltips.length > 0
-          if @shouldAddOverlay then @addOverlay() else @addLayers()
-
 
   createInstance: (parentView, data) ->
     assets = @getAssets parentView, data
@@ -50,6 +48,9 @@ class IntroductionTooltipController extends KDController
 
     return if not assets or @isExpired data.expiryDate
     return if data.visibility is "stepByStep" and data.index > @stepByStepGroups[data.groupName].currentIndex
+    return if @displayedTooltips.indexOf(data.introId) > -1
+
+    @displayedTooltips.push data.introId
 
     {parentView, tooltipView} = assets
     tooltip = new IntroductionTooltip {
@@ -67,11 +68,13 @@ class IntroductionTooltipController extends KDController
       @visibleTooltips.splice @visibleTooltips.indexOf(tooltip), 1
       @overlay.remove() if @visibleTooltips.length is 0 and not hasNext
 
-    tooltip.on "IntorductionTooltipNavigated", (tooltipData) =>
+    tooltip.on "IntroductionTooltipNavigated", (tooltipData) =>
       {nextItem} = tooltipData
       return @overlay.remove() unless nextItem
       ++@stepByStepGroups[tooltipData.groupName].currentIndex
       @createInstance null, nextItem
+
+    if data.overlay then @addOverlay() else @addLayers()
 
   isExpired: (expiryDate) ->
     return new Date(expiryDate).getTime() < @currentTimestamp
@@ -93,7 +96,10 @@ class IntroductionTooltipController extends KDController
     return no unless parentView # view not appended to dom yet, probably came from db query
 
     tooltipView = null
-    try tooltipView = eval Encoder.htmlDecode data.snippet.split("@").join("this.") # trying to eval snippet
+    try
+      tooltipView = eval Encoder.htmlDecode data.snippet.split("@").join("this.") # trying to eval snippet
+    catch err
+      log err.message
     return no unless tooltipView instanceof KDView # we will add this as a subview, should be a KDView instance
 
     return { parentView, tooltipView, data }
@@ -118,6 +124,7 @@ class IntroductionTooltipController extends KDController
     @storage.setValue tooltipIntroId, yes
 
   addOverlay: ->
+    return if @overlay
     @overlay = $ "<div/>",
       class : "kdoverlay"
     @overlay.hide()
