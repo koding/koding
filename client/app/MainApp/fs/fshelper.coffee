@@ -3,16 +3,12 @@ class FSHelper
   parseWatcherFile = (parentPath, file, user)->
 
     {name, size, mode} = file
-    createdAt          = file.time
-    type               = if file.isBroken then 'brokenLink' else \
-                         if file.isDir then 'folder' else 'file'
-    path               = parentPath + '/' + name
-    group              = user
-
-    # Fix that when we implemented RemoteDrives
-    # if type is 'folder'
-    #   if /^\/home\/(.*)\/RemoteDrives(|\/([^\/]+))$/gm.test path
-    #     type = 'mount'
+    type      = if file.isBroken then 'brokenLink' else \
+                if file.isDir then 'folder' else 'file'
+    path      = if parentPath is '/' then "/#{name}" else \
+                "#{parentPath}/#{name}"
+    group     = user
+    createdAt = file.time
 
     return { size, user, group, createdAt, mode, type, parentPath, path, name }
 
