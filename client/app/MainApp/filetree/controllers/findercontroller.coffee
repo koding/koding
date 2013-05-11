@@ -59,10 +59,10 @@ class NFinderController extends KDViewController
     else
       @createRootStructure()
 
-  createRootStructure:(path)->
+  createRootStructure:(path, callback)->
     {nickname} = KD.whoami().profile
 
-    path or= "/home/#{nickname}"
+    path ?= "/home/#{nickname}"
     FSHelper.resetRegistry()
 
     @mount = FSHelper.createFile
@@ -73,6 +73,7 @@ class NFinderController extends KDViewController
     @defaultStructureLoaded = no
     @treeController.initTree [@mount]
     @loadDefaultStructure()
+    callback?()
 
   loadDefaultStructure:->
 
@@ -85,7 +86,6 @@ class NFinderController extends KDViewController
     timer = Date.now()
     @mount.emit "fs.job.started"
 
-    log "Calling readDirectory..."
     {nickname} = KD.whoami().profile
     kiteController.run
       method     : 'fs.readDirectory'
