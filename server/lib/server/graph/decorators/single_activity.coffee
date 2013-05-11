@@ -1,7 +1,6 @@
 BaseDecorator = require './base.coffee'
 
 module.exports = class SingleActivityDecorator extends BaseDecorator
-
   decorate:->
     response = super
     {activity, overview} = response
@@ -9,5 +8,4 @@ module.exports = class SingleActivityDecorator extends BaseDecorator
     activity.originType  = @datum.originType
 
     response = {activity, overview}
-
     return response
