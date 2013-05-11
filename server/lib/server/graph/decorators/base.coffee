@@ -59,8 +59,7 @@ module.exports = class BaseDecorator
 
   decorateAdditions:(additions)->
     for addition in additions
-      addition.bongo =
-        constructorName : addition.name
+      addition.bongo = {constructorName : addition.name}
 
     return additions
 
@@ -68,6 +67,7 @@ module.exports = class BaseDecorator
     snapshotMeta            = @datum.meta
     snapshotMeta.createdAt  = @convertToISO @datum.meta.createdAt
     snapshotMeta.modifiedAt = @convertToISO @datum.meta.modifiedAt
+    snapshotMeta.likes      = parseInt(@datum.meta.likes, 10) if @datum.meta.likes
 
     return snapshotMeta
 
