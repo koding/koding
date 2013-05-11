@@ -51,7 +51,7 @@ module.exports = class AuthWorker extends EventEmitter
     servicesOfType.push {serviceUniqueName, serviceGenericName, loadBalancing}
 
   removeService: ({serviceGenericName, serviceUniqueName}) ->
-    servicesOfType = @services[serviceGenericName] 
+    servicesOfType = @services[serviceGenericName]
     [index] = (i for s, i in servicesOfType \
                  when s.serviceUniqueName is serviceUniqueName)
     servicesOfType.splice index, 1
@@ -132,11 +132,12 @@ module.exports = class AuthWorker extends EventEmitter
         serviceInfo = @getNextServiceInfo messageData.name
         return console.error "No service info! #{messageData.name}"  unless serviceInfo?
         { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
+
         params = {
           serviceGenericName
           serviceUniqueName
           routingKey
-          username        : session.username
+          username        : session.username ? 'guest'
           correlationName : messageData.correlationName
           # maybe the callback wants this:
           socketId
@@ -175,7 +176,7 @@ module.exports = class AuthWorker extends EventEmitter
             if err or not account then fail err
             else JGroup.one {slug: messageData.group}, (err, group) =>
               if err or not group then fail err
-              else 
+              else
                 group.fetchRolesByAccount account, (err, roles) =>
                   if err or not roles then fail err
                   else
@@ -254,7 +255,7 @@ module.exports = class AuthWorker extends EventEmitter
       correlationName, username } = messageData
 
     servicesOfType = @services[serviceGenericName]
-    
+
     [matchingService] = (service for service in servicesOfType \
                          when service.serviceUniqueName is serviceUniqueName)
     params = {

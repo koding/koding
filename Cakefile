@@ -83,12 +83,17 @@ task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
-  runServer = (config, port) ->
+  runServer = (config, port, index) ->
     processes.fork
-      name            : 'server'
-      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
-      restart         : yes
-      restartInterval : 100
+      name              : "server"
+      cmd               : __dirname + "/server/index -c #{config} -p #{port}"
+      restart           : yes
+      restartTimeout    : 100
+      kontrol           :
+        enabled         : if KONFIG.runKontrol is yes then yes else no
+        startMode       : "many"
+        registerToProxy : yes
+        port            : port
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -97,15 +102,15 @@ task 'webserver', ({configFile}) ->
   else
     webPort = [webserver.port]
 
-  webPort.forEach (port) ->
-    runServer configFile, port
+  webPort.forEach (port, index) ->
+    runServer configFile, port, index
 
   if sourceServer?.enabled
     processes.fork
-      name            : 'sourceserver'
-      cmd             : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
-      restart         : yes
-      restartInterval : 100
+      name           : 'sourceserver'
+      cmd            : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
+      restart        : yes
+      restartTimeout : 100
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -121,10 +126,13 @@ task 'socialWorker', ({configFile}) ->
 
   for i in [1..social.numberOfWorkers]
     processes.fork
-      name  : "socialWorker-#{i}"
-      cmd   : __dirname + "/workers/social/index -c #{configFile}"
-      restart : yes
-      restartInterval : 100
+      name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile}"
+      restart        : yes
+      restartTimeout : 100
+      kontrol        :
+        enabled      : if KONFIG.runKontrol is yes then yes else no
+        startMode    : "many"
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -135,26 +143,33 @@ task 'socialWorker', ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-
   if social.watch?
     watcher = new Watcher
       groups   :
         social   :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
+            if social.numberOfWorkers is 1
+              processes.kill "social"
+            else
+              processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
   config = require('koding-config-manager').load("main.#{configFile}").authWorker
   numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
 
-  for _, i in Array +numberOfWorkers
+  for i in [1..numberOfWorkers]
     processes.fork
-      name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
-      restart : yes
-      restartInterval : 1000
+      name  		 : if numberOfWorkers is 1 then "auth" else "auth-#{i}"
+      cmd   		 : __dirname+"/workers/auth/index -c #{configFile}"
+      restart 		 : yes
+      restartTimeout : 1000
+      kontrol        :
+        enabled      : if KONFIG.runKontrol is yes then yes else no
+        startMode    : "many"
+      verbose        : yes
 
   if config.watch is yes
     watcher = new Watcher
@@ -162,23 +177,36 @@ task 'authWorker',({configFile}) ->
         auth        :
           folders   : ['./workers/auth']
           onChange  : (path) ->
-            processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
+            if numberOfWorkers is 1
+              processes.kill "auth"
+            else
+              processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
 task 'guestCleanup',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
-    name  : 'guestCleanup'
-    cmd   : "./workers/guestcleanup/index -c #{configFile}"
-    restart: yes
-    restartInterval: 100
+    name           : 'guestCleanup'
+    cmd            : "./workers/guestcleanup/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
 task 'emailWorker',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
-    name            : 'emailWorker'
-    cmd             : "./workers/emailnotifications/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
+    name           : 'email'
+    cmd            : "./workers/emailnotifications/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -190,10 +218,10 @@ task 'emailWorker',({configFile})->
 task 'emailSender',({configFile})->
 
   processes.fork
-    name            : 'emailSender'
-    cmd             : "./workers/emailsender/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
+    name           : 'emailSender'
+    cmd            : "./workers/emailsender/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
 
   watcher = new Watcher
     groups        :
@@ -203,30 +231,36 @@ task 'emailSender',({configFile})->
           processes.kill "emailSender"
 
 task 'goBroker',(options)->
-
   {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
 
   processes.spawn
-    name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile} #{addFlags options}"
-    restart: yes
-    restartInterval: 100
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
+    name              : 'broker'
+    cmd               : "./go/bin/broker -c #{configFile} #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      startMode       : "many"
+      registerToProxy : yes
+      port            : broker.port
+    verbose           : yes
 
 task 'rerouting',(options)->
 
   {configFile} = options
 
   processes.spawn
-    name  : 'rerouting'
-    cmd   : "./go/bin/rerouting -c #{configFile}"
-    restart: yes
-    restartInterval: 100
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
+    name           : 'rerouting'
+    cmd            : "./go/bin/rerouting -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    stdout         : process.stdout
+    stderr         : process.stderr
+    verbose        : yes
 
 task 'osKite',({configFile})->
 
@@ -242,7 +276,7 @@ task 'proxy',({configFile})->
 
   processes.spawn
     name  : 'proxy'
-    cmd   : "./go/bin/proxy -c #{configFile}"
+    cmd   : "./go/bin/vmproxy -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -251,21 +285,27 @@ task 'proxy',({configFile})->
 task 'libratoWorker',({configFile})->
 
   processes.fork
-    name  : 'libratoWorker'
-    cmd   : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
-    restart: yes
-    restartInterval: 100
-    verbose: yes
+    name           : 'librato'
+    cmd            : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
 task 'cacheWorker',({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {cacheWorker} = KONFIG
 
   processes.fork
-    name            : 'cacheWorker'
-    cmd             : "./workers/cacher/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
+    name           : 'cache'
+    cmd            : "./workers/cacher/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if KONFIG.runKontrol is yes then yes else no
+      startMode    : "one"
 
   if cacheWorker.watch is yes
     watcher = new Watcher
@@ -275,6 +315,53 @@ task 'cacheWorker',({configFile})->
           onChange  : ->
             processes.kill "cacheWorker"
 
+
+task 'kontrolCli',({configFile}) ->
+  processes.fork
+    name : "kontrol"
+    cmd  : "./node_modules/kontrol -c #{configFile}"
+
+
+task 'kontrolProxy',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolProxy'
+    cmd     : "./go/bin/kontrolproxy -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolRabbit',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolRabbit'
+    cmd     : "./go/bin/kontrolrabbit -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolDaemon',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolDaemon'
+    cmd     : "./go/bin/kontroldaemon -c #{configFile} #{addFlags options}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolApi',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolApi'
+    cmd     : "./go/bin/kontrolapi -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrol',(options) ->
+  {configFile} = options
+  invoke 'kontrolDaemon'
+  invoke 'kontrolApi'
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."

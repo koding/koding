@@ -35,6 +35,15 @@ class NFinderController extends KDViewController
       @treeController.on "folder.collapsed", (folder)=>
         @unsetRecentFolder folder.path
 
+  watchers: []
+
+  registerWatcher:(response)->
+    @watchers.push response.stopWatching
+
+  stopAllWatchers:->
+    (watcher() for watcher in @watchers)
+    @watchers = []
+
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
@@ -59,21 +68,22 @@ class NFinderController extends KDViewController
     else
       @createRootStructure()
 
-  createRootStructure:->
+  createRootStructure:(path, callback)->
     {nickname} = KD.whoami().profile
-    @mount     = FSHelper.createFile
-      name: nickname.toLowerCase()
-      path: "/home/#{nickname}"
-      type: "vm"
 
-    @mount2    = FSHelper.createFile
-      name: "Root Structure"
-      path: "/"
-      type: "vm"
+    path ?= "/home/#{nickname}"
+    FSHelper.resetRegistry()
+    @stopAllWatchers()
+
+    @mount = FSHelper.createFile
+      name : path
+      path : path
+      type : "vm"
 
     @defaultStructureLoaded = no
-    @treeController.initTree [@mount, @mount2]
+    @treeController.initTree [@mount]
     @loadDefaultStructure()
+    callback?()
 
   loadDefaultStructure:->
 
@@ -86,19 +96,19 @@ class NFinderController extends KDViewController
     timer = Date.now()
     @mount.emit "fs.job.started"
 
-    log "Calling readDirectory..."
     {nickname} = KD.whoami().profile
     kiteController.run
       method     : 'fs.readDirectory'
       withArgs   :
         onChange : (change)=>
-          FSHelper.folderOnChange "/home/#{nickname}", change, @treeController
-        path     : '.'
+          FSHelper.folderOnChange @mount.path, change, @treeController
+        path     : @mount.path
     , (err, response)=>
       @lastSuccessfulResponse?.stopWatching?()
 
       if response
-        files = FSHelper.parseWatcher "/home/#{nickname}", response.files
+        @mount.stopWatching = response.stopWatching
+        files = FSHelper.parseWatcher @mount.path, response.files
         @treeController.addNodes files
         @treeController.emit 'fs.retry.success'
         @treeController.hideNotification()
