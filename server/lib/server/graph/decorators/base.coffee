@@ -46,6 +46,7 @@ module.exports = class BaseDecorator
       bongo_            :
         constructorName : @datum.name
       slug              : @datum.slug
+      title             : @datum.title
       slug_             : @datum.slug_
       originId          : @datum.originId
       originType        : @datum.originType
@@ -81,8 +82,8 @@ module.exports = class BaseDecorator
   followerCount:->
     return @extractCountFromRelationData @datum, 'follower'
 
-  extractCountFromRelationData:(name)->
-    return @datum.relationData[name]?.length or 0
+  extractCountFromRelationData:(data, name)->
+    return data.relationData[name]?.length or 0
 
   decorateOverview:->
     overview =
