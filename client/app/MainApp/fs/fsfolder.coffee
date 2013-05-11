@@ -1,4 +1,3 @@
-
 class FSFolder extends FSFile
 
   fetchContents:(callback, dontWatch=yes)->
@@ -17,6 +16,8 @@ class FSFolder extends FSFile
       if not err and response?.files
         files = FSHelper.parseWatcher @path, response.files
         {@stopWatching} = response
+        finder = KD.getSingleton 'finderController'
+        finder.registerWatcher response
         @emit "fs.job.finished", err, files
       else
         @emit "fs.job.finished", err
