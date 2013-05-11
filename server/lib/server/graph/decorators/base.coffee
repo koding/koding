@@ -49,10 +49,20 @@ module.exports = class BaseDecorator
         following       : 0
         followers       : @followerCount()
 
-    snapshot.replies = @datum.relationData.reply  if @datum.relationData.reply
-    snapshot.tags    = @datum.relationData.tag    if @datum.relationData.tag
+    if @datum.relationData.reply
+      snapshot.replies = @decorateAdditions @datum.relationData.reply
+
+    if @datum.relationData.tag
+      snapshot.tags = @decorateAdditions @datum.relationData.tag
 
     return snapshot
+
+  decorateAdditions:(additions)->
+    for addition in additions
+      addition.bongo =
+        constructorName : addition.name
+
+    return additions
 
   decorateSnapshotMeta:->
     snapshotMeta            = @datum.meta
@@ -85,5 +95,4 @@ module.exports = class BaseDecorator
 
     return overview
 
-  convertToISO: (time)->
-    return (new Date(time)).toISOString()
+  convertToISO: (time)-> return (new Date(time)).toISOString()
