@@ -10,7 +10,14 @@ module.exports = class GraphDecorator
     'JDiscussion'   : SingleActivityDecorator
     'JStatusUpdate' : SingleActivityDecorator
 
-  @decorateSingleActivities:(data, callback)->
+  ## TODO: move these to ResponseDecorator ##
+  @decorateSingle:(rawData, callback)->
+    {cacheObjects, overviewObjects} = @decorateSingleActivities rawData
+    response = @decorateResponse cacheObjects, overviewObjects
+
+    callback response
+
+  @decorateSingleActivities:(data)->
     cacheObjects    = {}
     overviewObjects = []
 
@@ -25,7 +32,7 @@ module.exports = class GraphDecorator
       cacheObjects[datum._id] = activity
       overviewObjects.push overview
 
-    callback {cacheObjects, overviewObjects}
+    return {cacheObjects, overviewObjects}
 
   @decorateFollows:(data, callback)->
     cacheObjects    = {}
@@ -43,17 +50,12 @@ module.exports = class GraphDecorator
     callback resp
 
   ## TODO: move these to ResponseDecorator ##
-  #@decorateSingle:(data, callback)->
-    #{cacheObjects, overviewObjects} = @decorateSingleToCacheObject data, callback
-    #response = @decorateResponse cacheObjects, overviewObjects
-
-    #callback response
-
   #@decorateFollows:(data, callback)->
     #{cacheObjects, overviewObjects} = @decorateFollowsToCacheObject data, callback
     #response = @decorateResponse cacheObjects, overviewObjects
 
     #callback response
 
-  #@decorateResponse:(cacheObjects, overviewObjects)->
-    #return (new ResponseDecorator(cacheObjects, overviewObjects)).decorate()
+  ## TODO: move these to ResponseDecorator ##
+  @decorateResponse:(cacheObjects, overviewObjects)->
+    return (new ResponseDecorator(cacheObjects, overviewObjects)).decorate()

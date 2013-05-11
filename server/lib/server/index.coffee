@@ -108,9 +108,9 @@ _fetchActivitiesByTimestamp = (req, res)->
   #20*60*1000 = 1200000
   endDate = new Date(startDate.getTime() + 1200000);
 
-  graph.fetchAll startDate.toISOString(), endDate.toISOString(), (err, respond)->
-    # res.send respond
-    GraphDecorator.decorateToCacheObject respond, (decorated)->
+  graph.fetchAll startDate.toISOString(), endDate.toISOString(), (err, rawResponse)->
+     #res.send respond
+    GraphDecorator.decorateSingle rawResponse, (decorated)->
       res.send decorated
 
 app.get "/-/cache/latest", (req, res)->

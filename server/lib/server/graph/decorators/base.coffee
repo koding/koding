@@ -83,16 +83,16 @@ module.exports = class BaseDecorator
     if @datum.attachments is "" then []
 
   repliesCount:->
-    return @extractCountFromRelationData @datum, 'reply'
+    return @extractCountFromRelationData 'reply'
 
   likesCount:->
-    return @extractCountFromRelationData @datum, 'like'
+    return @extractCountFromRelationData 'like'
 
   followerCount:->
-    return @extractCountFromRelationData @datum, 'follower'
+    return @extractCountFromRelationData 'follower'
 
-  extractCountFromRelationData:(data, name)->
-    return data.relationData[name]?.length or 0
+  extractCountFromRelationData:(name)->
+    return @datum.relationData[name]?.length or 0
 
   decorateOverview:->
     overview =
