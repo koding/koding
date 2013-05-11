@@ -35,6 +35,15 @@ class NFinderController extends KDViewController
       @treeController.on "folder.collapsed", (folder)=>
         @unsetRecentFolder folder.path
 
+  watchers: []
+
+  registerWatcher:(response)->
+    @watchers.push response.stopWatching
+
+  stopAllWatchers:->
+    (watcher() for watcher in @watchers)
+    @watchers = []
+
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
@@ -64,6 +73,7 @@ class NFinderController extends KDViewController
 
     path ?= "/home/#{nickname}"
     FSHelper.resetRegistry()
+    @stopAllWatchers()
 
     @mount = FSHelper.createFile
       name : path
@@ -97,6 +107,7 @@ class NFinderController extends KDViewController
       @lastSuccessfulResponse?.stopWatching?()
 
       if response
+        @mount.stopWatching = response.stopWatching
         files = FSHelper.parseWatcher @mount.path, response.files
         @treeController.addNodes files
         @treeController.emit 'fs.retry.success'
