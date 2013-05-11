@@ -15,22 +15,6 @@ class AceView extends JView
 
     @listenWindowResize()
 
-    @editorHeader = new KDView
-      cssClass : "editor-header header-buttons"
-
-    @editorHeader.addSubView @headerButtonContainer = new KDView
-      cssClass : "header-buttons"
-
-    @saveButton = new KDButtonViewWithMenu
-      title         : "Save"
-      style         : "editor-button save-menu"
-      type          : "contextmenu"
-      delegate      : @
-      menu          : @getSaveMenu.bind @
-      callback      : =>
-        @ace.requestSave()
-    @saveButton.disable()
-
     @caretPosition = new KDCustomHTMLView
       tagName       : "div"
       cssClass      : "caret-position section"
@@ -50,57 +34,14 @@ class AceView extends JView
       menu          : @getAdvancedSettingsMenuItems.bind @
     @advancedSettings.disable()
 
-    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
-    @previewButton = new KDButtonView
-      style     : "editor-button"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "preview"
-      callback  : =>
-        publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
-        return if publicPath is @getData().path
-        KD.getSingleton("appManager").open "Viewer", (appInstance)->
-          appInstance.open publicPath
-
-    @previewButton.hide() unless publicUrlCheck.test(@getData().path)
-    @previewButton.disable()
-
-    @compileAndRunButton = new KDButtonView
-      style     : "editor-button"
-      title     : "Compile & Run"
-      loader    :
-        color   : "#444444"
-        diameter: 12
-      callback  : =>
-        manifest = KodingAppsController.getManifestFromPath @getData().path
-        @ace.notify "Compiling...", null, yes
-        @getSingleton('kodingAppsController').compileApp manifest.name, (err)=>
-          if not err
-            @ace.notify "App compiled!", "success"
-          else
-            @ace.notify "Trying to run old version..."
-          @getSingleton('kodingAppsController').runApp manifest
-          @compileAndRunButton.hideLoader()
-
-    @compileAndRunButton.hide() unless /\.kdapp\//.test @getData().path
-    @compileAndRunButton.disable()
-
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
     @findAndReplaceView.hide()
-
-    @headerButtonContainer.addSubView @compileAndRunButton
-    @headerButtonContainer.addSubView @previewButton
-    @headerButtonContainer.addSubView @saveButton
 
     @setViewListeners()
 
   setViewListeners:->
 
-    @ace.on "ace.ready", =>
-      @saveButton.enable()
-      @advancedSettings.enable()
-      @previewButton.enable()
-      @compileAndRunButton.enable()
+    @ace.on "ace.ready", => @advancedSettings.enable()
 
     @ace.on "ace.changeSetting", (setting, value)=>
       @ace["set#{setting.capitalize()}"]? value
@@ -122,6 +63,23 @@ class AceView extends JView
       else
         @getData().emit "file.requests.save", contents
 
+  preview: ->
+    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
+    publicPath     = @getData().path.replace publicUrlCheck, 'http://$1/$2'
+    appManager     = KD.getSingleton "appManager"
+    if publicPath is @getData().path
+      {nickname} = KD.whoami().profile
+      return appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
+    appManager.open "Viewer", (appInstance)->
+      appInstance.open publicPath
+
+  compileAndRun: ->
+    manifest = KodingAppsController.getManifestFromPath @getData().path
+    return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
+    @getSingleton('kodingAppsController').compileApp manifest.name, (err) =>
+      @ace.notify "Trying to run old version..." if err
+      @getSingleton('kodingAppsController').runApp manifest
+
   viewAppended:->
 
     super
@@ -130,7 +88,6 @@ class AceView extends JView
   pistachio:->
 
     """
-    {{> @editorHeader}}
     <div class="kdview editor-main">
       {{> @ace}}
       <div class="editor-bottom-bar clearfix">
@@ -158,11 +115,9 @@ class AceView extends JView
 
   _windowDidResize:->
 
-    height = @getHeight() - 10
-    editorHeight = height - @$('.editor-header').height()
+    height = @getHeight()
     bottomBarHeight = @$('.editor-bottom-bar').height()
-    @$('.editor-main').height editorHeight
-    @ace.setHeight editorHeight - bottomBarHeight - 10
+    @ace.setHeight height - bottomBarHeight
 
   openSaveDialog: (callback) ->
 

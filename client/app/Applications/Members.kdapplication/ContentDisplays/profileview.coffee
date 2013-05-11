@@ -80,7 +80,8 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.followers is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Followers", {state:memberData, entryPoint}
     , memberData
 
     @following = new KDView
@@ -91,7 +92,8 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Following", {state:memberData, entryPoint}
     , memberData
 
     @likes = new KDView
@@ -102,7 +104,8 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Likes", {state:memberData, entryPoint}
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
