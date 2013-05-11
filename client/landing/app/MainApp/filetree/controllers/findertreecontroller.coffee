@@ -79,6 +79,10 @@ class NFinderTreeController extends JTreeViewController
   resetVm:(nodeView)->
     KD.getSingleton('vmController').reinitialize()
 
+  makeTopFolder:(nodeView)->
+    KD.getSingleton('finderController').createRootStructure \
+      nodeView.getData().path
+
   refreshFolder:(nodeView, callback)->
 
     @notify "Refreshing..."
@@ -462,6 +466,7 @@ class NFinderTreeController extends JTreeViewController
 
   cmExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
   cmCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  cmMakeTopFolder:(nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
   cmResetVm:      (nodeView, contextMenuItem)-> @resetVm nodeView
   cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView

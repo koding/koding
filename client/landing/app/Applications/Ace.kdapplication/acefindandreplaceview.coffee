@@ -18,10 +18,12 @@ class AceFindAndReplaceView extends JView
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
+      cssClass     : "editor-button"
       title        : "Find Next"
       callback     : => @findNext()
 
     @findPrevButton = new KDButtonView
+      cssClass     : "editor-button"
       title        : "Find Prev"
       callback     : => @findPrev()
 

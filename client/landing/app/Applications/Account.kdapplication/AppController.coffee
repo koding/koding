@@ -129,6 +129,11 @@ class AccountAppController extends AppController
         { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
         { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
       ]
+    develop :
+      title : "Develop"
+      items : [
+        { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
+      ]
     kites :
       title : "Kites"
       items : [
