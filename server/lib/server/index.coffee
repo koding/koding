@@ -93,11 +93,10 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
+Graph = require "./graph/graph"
+GraphDecorator = require "./graph/graph_decorator"
 
 _fetchActivitiesByTimestamp = (req, res)->
-  Graph = require "./graph/graph"
-  GraphDecorator = require "./graph/graph_decorator"
-
   graph = new Graph neo4j
   #calculate the current and next timestamp
   timestamp = req.params?.timestamp
@@ -109,11 +108,11 @@ _fetchActivitiesByTimestamp = (req, res)->
   endDate = new Date(startDate.getTime() + 1200000);
 
   graph.fetchAll startDate.toISOString(), endDate.toISOString(), (err, rawResponse)->
-     #res.send respond
+    # res.send rawResponse
     GraphDecorator.decorateSingle rawResponse, (decorated)->
       res.send decorated
 
-app.get "/-/cache/latest", (req, res)->
+app.get "/-/cache/apps", (req, res)->
   _fetchActivitiesByTimestamp req, res
 
 app.get "/-/cache/before/:timestamp", (req, res)->
@@ -125,18 +124,21 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
 app.get "/-/cache/apps", (req, res)->
   graph = new Graph neo4j
-  graph.fetchNewInstalledApps (err, respond)->
-   res.send respond
+  graph.fetchNewInstalledApps (err, rawResponse)->
+    GraphDecorator.decorateInstalls rawResponse, (decorated)->
+      res.send decorated
 
 app.get "/-/cache/members", (req, res)->
   graph = new Graph neo4j
-  graph.fetchNewMembers (err, respond)->
-   res.send respond
+  graph.fetchNewMembers (err, rawResponse)->
+    GraphDecorator.decorateMembers rawResponse, (decorated)->
+      res.send decorated
 
 app.get "/-/cache/follows", (req, res)->
   graph = new Graph neo4j
-  graph.fetchNewFollows (err, respond)->
-   res.send respond
+  graph.fetchNewFollows (err, rawResponse)->
+    GraphDecorator.decorateFollows rawResponse, (decorated)->
+      res.send decorated
 
 startTime = null
 app.get "/-/oldcache/latest", (req, res)->

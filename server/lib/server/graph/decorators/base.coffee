@@ -49,7 +49,7 @@ module.exports = class BaseDecorator
       slug_             : @datum.slug_
       originId          : @datum.originId
       originType        : @datum.originType
-      meta              : @decorateSnapshotMeta()
+      meta              : @decorateSnapshotMeta(@datum)
       body              : @datum.body
       attachments       : @attachments()
       repliesCount      : @repliesCount()
@@ -67,20 +67,22 @@ module.exports = class BaseDecorator
 
   decorateAdditions:(additions)->
     for addition in additions
-      addition.bongo = {constructorName : addition.name}
+      addition.bongo_ = {constructorName : addition.name}
+      addition.meta   = @decorateSnapshotMeta addition
 
     return additions
 
-  decorateSnapshotMeta:->
-    snapshotMeta            = @datum.meta
-    snapshotMeta.createdAt  = @convertToISO @datum.meta.createdAt
-    snapshotMeta.modifiedAt = @convertToISO @datum.meta.modifiedAt
-    snapshotMeta.likes      = parseInt(@datum.meta.likes, 10) if @datum.meta.likes
+  decorateSnapshotMeta:(data)->
+    snapshotMeta            = data.meta
+    snapshotMeta.createdAt  = @convertToISO data.meta.createdAt if snapshotMeta.createdAt
+    snapshotMeta.modifiedAt = @convertToISO data.meta.modifiedAt if snapshotMeta.modifiedAt
+    snapshotMeta.likes      = parseInt(data.meta.likes, 10) if data.meta.likes
 
     return snapshotMeta
 
   attachments:->
-    if @datum.attachments is "" then []
+    attachments = @datum.attachments
+    return if not attachments then [] else attachments
 
   repliesCount:->
     return @extractCountFromRelationData 'reply'
