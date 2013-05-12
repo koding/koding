@@ -28,6 +28,7 @@ module.exports =
     host        : "http://neo4j-dev"
     port        : 7474
   mongo         : mongo
+  runNeo4jFeeder: no
   runGoBroker   : no
   runRerouting  : no
   compileGo     : no

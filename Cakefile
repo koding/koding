@@ -248,6 +248,16 @@ task 'proxy',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
+task 'neo4jfeeder',({configFile})->
+
+  processes.spawn
+    name    : 'proxy'
+    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
@@ -291,6 +301,7 @@ run =({configFile})->
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
     invoke 'proxy'          if config.runProxy
+    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push

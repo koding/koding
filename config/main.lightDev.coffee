@@ -35,6 +35,7 @@ module.exports =
     host        : "http://neo4j-dev"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+  runNeo4jFeeder: no
   runGoBroker   : no
   runRerouting  : no
   compileGo     : no
