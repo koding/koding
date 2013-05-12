@@ -51,7 +51,8 @@ func main() {
 	var result *Relationship
 
 	i := 0
-	iter := relationshipColl.Find(nil).Skip(500000).Iter()
+	skip := 0 //51236 + 400959 + 456281 + 26496 + 27752 + 54613 + 10223
+	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
@@ -73,10 +74,11 @@ func main() {
 			var err error
 			if _, ok := SAVED_DATA[hexSourceId]; ok {
 				sourceContent = fmt.Sprintf("%s", SAVED_DATA[hexSourceId])
+				fmt.Println("source allready fetched")
 			} else {
 				sourceContent, err = mongo.FetchContent(result.SourceId, result.SourceName)
+				fmt.Println("sourcefetched")
 			}
-			fmt.Println("sourcefetched")
 			if err != nil {
 				fmt.Println("source err ", err)
 				fmt.Println(hexSourceId, result.SourceName)
@@ -85,11 +87,12 @@ func main() {
 				if result.TargetName != "" {
 					if _, ok := SAVED_DATA[hexTargetId]; ok {
 						targetContent = fmt.Sprintf("%s", SAVED_DATA[hexTargetId])
+						fmt.Println("target allready fetched")
 					} else {
 						targetContent, err = mongo.FetchContent(result.TargetId, result.TargetName)
+						fmt.Println("targetfetched")
 					}
 
-					fmt.Println("targetfetched")
 					if err != nil {
 						fmt.Println("target err ", err)
 						fmt.Println(hexTargetId, result.TargetName)
