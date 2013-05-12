@@ -153,7 +153,7 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
-      'where followees.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'where followees.name="JAccount" and follower.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
       'return r,followees, follower'
       'order by r.createdAt DESC'
       'limit 10'
