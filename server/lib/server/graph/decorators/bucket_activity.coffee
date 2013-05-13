@@ -26,8 +26,9 @@ module.exports = class BucketActivityDecorator
     # TODO: use anchorId
     id = @extractId datum
     @groups[id].snapshot.group.push @decorateGroupActivity datum[@groupByName]
-    @addActvityToOverview datum[@groupByName].first, anchorId
+    #@addActvityToOverview datum[@groupByName].first, anchorId
 
+  # not required since for non member buckets, all entries are grouped
   addActvityToOverview:(datum, anchorId)->
     for followers in @groups.overview when followers.ids.first is anchorId
       followers.ids.push datum.id
