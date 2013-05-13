@@ -32,7 +32,7 @@
 		  <li class="divider-vertical"></li>
 		     </ul>
 			<form class="navbar-search pull-left">
-			  <input name="searchbuild" type="text" class="search-query" placeholder="latest">
+			  <input name="searchbuild" type="text" class="search-query">
 			</form>
         </div>
       </div>
@@ -103,6 +103,10 @@
 				<tr>
 					<td>Git branch</td>
 					<td>{{.Server.GitBranch}}</td>
+				</tr>
+				<tr>
+					<td>Git commit</td>
+					<td>{{.Server.GitCommit}}</td>
 				</tr>
 				<tr>
 					<td>Config used</td>
