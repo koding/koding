@@ -120,15 +120,11 @@
 					<td>{{.Server.Config.Mongo}}</td>
 				</tr>
 			</table>
-			<h4>RabbitMQ</h4>
+			<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-success" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
 			<table class="table table-hover table-bordered table-condensed">
 				<tr>
 					<td>Host</td>
 					<td>{{.Server.Config.Mq.Host}}</td>
-				</tr>
-				<tr>
-					<td>Management</td>
-					<td><a target="_blank" href="http://{{.Server.Config.Mq.Host}}:15672/">{{.Server.Config.Mq.Host}}:15672</a></td>
 				</tr>
 				<tr>
 					<td>Port</td>
