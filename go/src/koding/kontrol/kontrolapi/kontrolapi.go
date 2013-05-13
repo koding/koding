@@ -59,6 +59,12 @@ type ProxyPostMessage struct {
 	Uuid      *string
 }
 
+type DeployPostMessage struct {
+	Build  *string
+	Git    *string
+	Config *string
+}
+
 var StatusCode = map[workerconfig.WorkerStatus]string{
 	workerconfig.Running:    "running",
 	workerconfig.Pending:    "waiting",
@@ -104,6 +110,7 @@ func main() {
 
 	// Worker handlers
 	rout.HandleFunc("/deployments", GetClients).Methods("GET")
+	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
 	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
 
 	// Worker handlers
@@ -139,11 +146,69 @@ func main() {
 	}
 }
 
+func CreateClient(writer http.ResponseWriter, req *http.Request) {
+	log.Println("POST /deployments")
+	var msg DeployPostMessage
+	var build string
+	var git string
+	var config string
+
+	body, _ := ioutil.ReadAll(req.Body)
+
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Build != nil {
+		build = *msg.Build
+	} else {
+		err := "aborting. no 'build' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Git != nil {
+		git = *msg.Git
+	} else {
+		err := "aborting. no 'git' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Config != nil {
+		config = *msg.Config
+	} else {
+		err := "aborting. no 'config' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	client := clientconfig.ServerInfo{
+		BuildNumber: build,
+		GitBranch:   git,
+		ConfigUsed:  config,
+		Config:      nil,
+		Hostname:    clientconfig.Hostname{},
+		IP:          clientconfig.IP{},
+	}
+
+	clientDB.AddClient(client)
+
+	var url string
+	url = fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
+	io.WriteString(writer, url)
+	return
+
+}
+
 // Get all registered proxies
 // example: http GET "localhost:8000/proxies"
 func GetClients(writer http.ResponseWriter, req *http.Request) {
 	clients := make([]clientconfig.ServerInfo, 0)
 	client := clientconfig.ServerInfo{}
+	log.Println("GET /deployments")
 
 	iter := clientDB.Collection.Find(nil).Iter()
 	for iter.Next(&client) {
@@ -164,7 +229,7 @@ func GetClients(writer http.ResponseWriter, req *http.Request) {
 func GetClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
-	log.Printf("GET /build/%s\n", build)
+	log.Printf("GET /deployments/%s\n", build)
 
 	client := clientconfig.ServerInfo{}
 	clients := make([]clientconfig.ServerInfo, 0)

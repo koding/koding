@@ -100,7 +100,10 @@ func main() {
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
 
 	fmt.Println("koding overview started")
-	http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		fmt.Println(err)
+	}
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
@@ -142,6 +145,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	renderTemplate(w, "index", home)
+	return
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
