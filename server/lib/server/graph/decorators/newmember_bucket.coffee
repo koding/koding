@@ -6,7 +6,7 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
   constructor:(@data)->
     @activityName  = 'CNewMemberBucketActivity'
     @bucketName    = 'CNewMemberBucket'
-    @overview      = {createdAt:[], ids:[], type:"CFollowerBucketActivity", count:1}
+    @overview      = {createdAt:[], ids:[], type:@activityName, count:1}
     @overviewIndex = {}
 
   decorate:->
@@ -21,25 +21,26 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
       generatedMember = {}
       generatedMember.modifiedAt = member.meta.cretadAt
       generatedMember.createdAt  = member.meta.cretadAt
-      generatedMember.type       = @bucketActivityName
+      generatedMember.type       = @activityName
       generatedMember._id        = id
       snapshot = @generateSnapshot member
-      generatedMember.snapshot   = snapshot
+      generatedMember.snapshot   = JSON.stringify snapshot
       generatedMember.ids        = [id]
       generatedMember.sorts      = {repliesCount: 0, likesCount: 0, followerCount: 0}
-
       members[id] =  generatedMember
-
       @addToOverview(member)
 
-    members.overview = @overview
+    members.overview = [@overview]
 
     return members
 
   addToOverview:(member)->
+    @overview.count++
+
+    return  if @overview.count > 5
+
     @overview.createdAt.push member.meta.createdAt
     @overview.ids.push member.id
-    @overview.count++
 
   generateSnapshot:(member)->
 

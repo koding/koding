@@ -115,7 +115,7 @@ _fetchActivitiesByTimestamp = (req, res)->
       res.send decorated
 
 app.get "/-/cache/latest", (req, res)->
-  async.parallel [fetchInstalls, fetchFollows], (err, results)=>
+  async.parallel [fetchMembers], (err, results)=>
     res.send decorateAll(err, results)
 
 app.get "/-/cache/before/:timestamp", (req, res)->
@@ -125,11 +125,11 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
   #_fetchActivitiesByTimestamp req, res
 
-app.get "/-/cache/members", (req, res)->
-  graph = new Graph neo4j
-  graph.fetchNewMembers (err, rawResponse)->
-    GraphDecorator.decorateMembers rawResponse, (decorated)->
-      callback err, decorated
+#app.get "/-/cache/members", (req, res)->
+  #graph = new Graph neo4j
+  #graph.fetchNewMembers (err, rawResponse)->
+    #GraphDecorator.decorateMembers rawResponse, (decorated)->
+      #callback err, decorated
 
 app.get "/-/cache/follows", (req, res)->
   graph = new Graph neo4j
