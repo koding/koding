@@ -82,6 +82,17 @@ type HomePage struct {
 	Server  *ServerInfo
 }
 
+func NewServerInfo() *ServerInfo {
+	return &ServerInfo{
+		BuildNumber: "",
+		GitBranch:   "",
+		ConfigUsed:  "",
+		Config:      ConfigFile{},
+		Hostname:    Hostname{},
+		IP:          IP{},
+	}
+}
+
 var templates = template.Must(template.ParseFiles("index.html"))
 
 func main() {
@@ -93,10 +104,20 @@ func main() {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	workers := workerInfo()
+	var workers []WorkerInfo
+	var server *ServerInfo
+	var err error
+	workers, err = workerInfo()
+	if err != nil {
+		fmt.Println(err)
+	}
 	status := statusInfo()
 	jenkins := jenkinsInfo()
-	server := serverInfo()
+	server, err = serverInfo()
+	if err != nil {
+		fmt.Println(err)
+		server = NewServerInfo()
+	}
 
 	for i, val := range workers {
 		switch val.State {
@@ -156,45 +177,45 @@ func statusInfo() StatusInfo {
 	return s
 }
 
-func workerInfo() []WorkerInfo {
-	workersApi := "http://api.x.koding.com/workers?version=latest"
+func workerInfo() ([]WorkerInfo, error) {
+	workersApi := "http://kontrol.in.koding.com/workers?version=latest"
 	resp, err := http.Get(workersApi)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	w := make([]WorkerInfo, 0)
 	err = json.Unmarshal(body, &w)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return w
+	return w, nil
 }
 
-func serverInfo() *ServerInfo {
-	serverApi := "http://api.x.koding.com/deployments"
+func serverInfo() (*ServerInfo, error) {
+	serverApi := "http://kontrol.in.koding.com/deployments/latest"
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	s := &ServerInfo{}
 	err = json.Unmarshal(body, &s)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
-	return s
+	return s, nil
 }
