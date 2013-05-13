@@ -107,9 +107,9 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
   mq            :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : 'internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com'
     port        : 5672
-    apiAddress  : "rabbitmq1.in.koding.com"
+    apiAddress  : "internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
