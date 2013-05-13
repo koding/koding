@@ -276,15 +276,6 @@ module.exports = class JGroup extends Module
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
-        -> group.createSlug (err, slug)->
-          if err then callback err
-          else unless slug?
-            callback new KodingError "Couldn't claim the slug!"
-          else
-            console.log "created a slug #{slug.slug}"
-            group.slug  = slug.slug
-            group.slug_ = slug.slug
-            queue.next()
         -> save_ 'group', group, queue, callback
         -> group.addMember delegate, (err)->
             if err then callback err
