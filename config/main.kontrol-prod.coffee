@@ -64,11 +64,11 @@ module.exports =
   authWorker    :
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 1
+    numberOfWorkers: 20
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
