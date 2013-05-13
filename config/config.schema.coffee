@@ -60,6 +60,7 @@ config =
       enabled     : 1
       host        : 1
       port        : 1
+    runNeo4jFeeder: 1
     runGoBroker   : 1
     runRerouting  : 1
     compileGo     : 1

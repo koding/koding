@@ -5,14 +5,16 @@ import (
 	"fmt"
 	// "koding/databases/neo4j"
 	"koding/tools/mapping"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
 	"time"
 )
 
 var (
-	DATA     = make(map[string]interface{})
-	ERR_DATA = make(map[string]interface{})
+	DATA        = make(map[string]interface{})
+	ERR_DATA    = make(map[string]interface{})
+	COLLECTIONS = make(map[string]*mgo.Collection)
 )
 
 func FetchContent(id bson.ObjectId, name string) (string, error) {
@@ -21,12 +23,15 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 
 	var jsonResult string
 
-	collectionName := getCollectionName(name)
+	if _, ok := COLLECTIONS[name]; !ok {
+		collectionName := getCollectionName(name)
 
-	collection := GetCollection(collectionName)
+		collection := GetCollection(collectionName)
+		COLLECTIONS[name] = collection
+	}
 
 	result := make(map[string]interface{})
-	err := collection.FindId(id).One(result)
+	err := COLLECTIONS[name].FindId(id).One(result)
 	if err != nil {
 		return "", err
 	}

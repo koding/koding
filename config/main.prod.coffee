@@ -34,8 +34,9 @@ module.exports = deepFreeze
   mongo         : mongo
   neo4j         :
     enabled     : no
-    host        : "http://neo4j-dev"
+    host        : "http://kgraphdb1.in.koding.com"
     port        : 7474
+  runNeo4jFeeder: yes
   runGoBroker   : yes
   runRerouting  : yes
   compileGo     : yes

@@ -8,6 +8,7 @@ import (
 
 var (
 	MONGO_CONNECTION              *mgo.Session
+	DATABASE                      *mgo.Database
 	MONGO_CONN_STRING             = config.Current.Mongo
 	MONGO_DEFAULT_COLLECTION_NAME = "relationships"
 )
@@ -21,18 +22,23 @@ func GetConnection() *mgo.Session {
 		if err != nil {
 			fmt.Println(err)
 		}
+		fmt.Println("connection established")
 	}
 	return MONGO_CONNECTION
 }
 
 func GetCollection(collectionName string) *mgo.Collection {
-	session := GetConnection()
+	if DATABASE == nil {
+		session := GetConnection()
+		DATABASE = session.DB("")
+		fmt.Println("database selected")
+	}
 	// defer session.Close()
 	if collectionName == "" {
 		collectionName = MONGO_DEFAULT_COLLECTION_NAME
 	}
 	//default db, as in connection string
-	c := session.DB("").C(collectionName)
+	c := DATABASE.C(collectionName)
 	return c
 }
 
