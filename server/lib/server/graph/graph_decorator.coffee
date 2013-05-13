@@ -10,14 +10,7 @@ module.exports = class GraphDecorator
     'JDiscussion'   : SingleActivityDecorator
     'JStatusUpdate' : SingleActivityDecorator
 
-  ## TODO: move these to ResponseDecorator ##
-  @decorateSingle:(rawData, callback)->
-    {cacheObjects, overviewObjects} = @decorateSingleActivities rawData
-    response = @decorateResponse cacheObjects, overviewObjects
-
-    callback response
-
-  @decorateSingleActivities:(data)->
+  @decorateSingles:(data, callback)->
     cacheObjects    = {}
     overviewObjects = []
 
@@ -27,12 +20,12 @@ module.exports = class GraphDecorator
       else
         console.log datum.name, "not implemented"
         activity = {}
-        overview = []
 
       cacheObjects[datum._id] = activity
       overviewObjects.push overview
 
-    return {cacheObjects, overviewObjects}
+    cacheObjects.overview = overviewObjects
+    callback cacheObjects
 
   @decorateFollows:(data, callback)->
     cacheObjects    = {}

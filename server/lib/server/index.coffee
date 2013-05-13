@@ -53,6 +53,9 @@ koding.connect ->
     leave: (serviceKey) ->
       incService serviceKey, -1
 
+# TODO: DRY this
+_        = require 'underscore'
+async    = require 'async'
 {extend} = require 'underscore'
 express  = require 'express'
 Broker   = require 'broker'
@@ -89,6 +92,7 @@ process.on 'uncaughtException',(err)->
 #    console.log stack  if stack?
 
 koding = require './bongo'
+async  = require 'async'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
@@ -111,26 +115,21 @@ _fetchActivitiesByTimestamp = (req, res)->
       res.send decorated
 
 app.get "/-/cache/latest", (req, res)->
-  _fetchActivitiesByTimestamp req, res
+  async.parallel [fetchSingles], (err, results)->
+    res.send decorateAll(err, results)
 
 app.get "/-/cache/before/:timestamp", (req, res)->
   console.log "dfasdf"
   console.log  req.params
   console.log "d12341324"
 
-  _fetchActivitiesByTimestamp req, res
-
-app.get "/-/cache/apps", (req, res)->
-  graph = new Graph neo4j
-  graph.fetchNewInstalledApps (err, rawResponse)->
-    GraphDecorator.decorateInstalls rawResponse, (decorated)->
-      res.send decorated
+  #_fetchActivitiesByTimestamp req, res
 
 app.get "/-/cache/members", (req, res)->
   graph = new Graph neo4j
   graph.fetchNewMembers (err, rawResponse)->
     GraphDecorator.decorateMembers rawResponse, (decorated)->
-      res.send decorated
+      callback err, decorated
 
 app.get "/-/cache/follows", (req, res)->
   graph = new Graph neo4j
@@ -347,5 +346,54 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
+
+decorateAll = (err, decoratedObjects)->
+  cacheObjects    = {}
+  overviewObjects = []
+
+  for objects in decoratedObjects
+    for key, value of objects when key isnt "overview"
+      cacheObjects[key] = value
+    overviewObjects.push objects.overview
+
+  overview = _.flatten overviewObjects
+
+  response            = {}
+  response.activities = cacheObjects
+  response.overview   = overview
+  response._id        = ""
+  response.isFull     = false
+
+  return response
+
+fetchSingles = (callback)->
+  _fetchSingles (err, rawResponse)->
+    GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
+      callback err, decoratedResponse
+
+fetchFollows = (callback)->
+  _fetchFollows (err, rawResponse)->
+    GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
+      callback err, decoratedResponse
+
+fetchInstalls = (callback)->
+  _fetchInstalls (err, rawResponse)->
+    GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
+      callback err, decoratedResponse
+
+_fetchSingles = (callback)->
+  graph = new Graph neo4j
+  graph.fetchAll {}, {}, (err, rawResponse)->
+    callback err, rawResponse
+
+_fetchInstalls = (callback)->
+  graph = new Graph neo4j
+  graph.fetchNewInstalledApps (err, rawResponse)->
+    callback err, rawResponse
+
+_fetchFollows = (callback)->
+  graph = new Graph neo4j
+  graph.fetchNewFollows (err, rawResponse)->
+    callback err, rawResponse
 
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

@@ -15,7 +15,6 @@ module.exports = class BucketActivityDecorator
       @groups[id].snapshot = jsonSnaphost
 
     @groups.overview = _.sortBy(@groups.overview, (activity)-> activity.createdAt.first)
-
     return @groups
 
   groupByAnchorId:->
