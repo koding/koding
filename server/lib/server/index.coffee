@@ -115,7 +115,7 @@ _fetchActivitiesByTimestamp = (req, res)->
       res.send decorated
 
 app.get "/-/cache/latest", (req, res)->
-  async.parallel [fetchSingles], (err, results)->
+  async.parallel [fetchFollows], (err, results)->
     res.send decorateAll(err, results)
 
 app.get "/-/cache/before/:timestamp", (req, res)->
@@ -361,8 +361,10 @@ decorateAll = (err, decoratedObjects)->
   response            = {}
   response.activities = cacheObjects
   response.overview   = overview
-  response._id        = ""
+  response._id        = "1"
   response.isFull     = false
+  response.from       = overview.first.createdAt.first
+  response.to         = overview.last.createdAt.first
 
   return response
 
