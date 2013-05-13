@@ -48,6 +48,13 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+    sharedEvents    :
+      static        : [
+        { name: 'AccountAuthenticated' }
+      ]
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods :
       static      : sharedStaticMethods()
       instance    : sharedInstanceMethods()

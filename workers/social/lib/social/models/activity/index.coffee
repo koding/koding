@@ -33,7 +33,10 @@ module.exports = class CActivity extends jraphical.Capsule
 
     permissions             :
       'read activity'       : ['guest','member','moderator']
-
+    sharedEvents    :
+      static        : [
+        { name: 'feed-new' }
+      ]
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'

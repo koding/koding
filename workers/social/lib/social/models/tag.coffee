@@ -43,6 +43,10 @@ module.exports = class JTag extends jraphical.Module
       # slug          : 'unique'
       title         : 'sparse'
       # group         : 'sparse'
+    sharedEvents    :
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
