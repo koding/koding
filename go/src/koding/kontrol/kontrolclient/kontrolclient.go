@@ -32,6 +32,7 @@ func main() {
 }
 
 func gatherData() ([]byte, error) {
+	log.Println("gathering information...")
 	buildNumber := helper.ReadVersion()
 	configused := helper.ReadConfigname()
 	gitbranch := helper.ReadGitbranch()
@@ -83,7 +84,8 @@ func gatherData() ([]byte, error) {
 		log.Println(err.Error())
 	}
 
-	log.Println(string(data))
+	log.Println(".. I'm done")
+	log.Println("Data is: ", string(data))
 
 	return data, nil
 }

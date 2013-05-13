@@ -224,8 +224,6 @@ func GetClients(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-// Get worker with uuid
-// Example :http://localhost:8000/workers/134f945b3327b775a5f424be804d75e3
 func GetClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
@@ -238,6 +236,11 @@ func GetClient(writer http.ResponseWriter, req *http.Request) {
 		iter := clientDB.Collection.Find(nil).Iter()
 		for iter.Next(&client) {
 			clients = append(clients, client)
+		}
+
+		if len(clients) == 0 {
+			io.WriteString(writer, "[]") // return empty slice
+			return
 		}
 
 		builds := make([]int, len(clients))

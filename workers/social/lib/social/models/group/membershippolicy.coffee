@@ -11,6 +11,7 @@ module.exports = class JMembershipPolicy extends Module
     softDelete            : yes
     sharedMethods         :
       static              : ['byGroupSlug']
+      instance            : ['explain']
     schema                :
       approvalEnabled     :
         type              : Boolean
@@ -34,7 +35,7 @@ module.exports = class JMembershipPolicy extends Module
       else group.fetchMembershipPolicy callback
 
   explain:->
-    return @explanation  if @explanation?
+    return @explanation if @explanation?
     if @invitationsEnabled
       """
       Sorry, membership to this group requires an invitation.
