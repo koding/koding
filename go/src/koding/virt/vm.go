@@ -32,7 +32,7 @@ const UserIdOffset = 1000000
 const RootIdOffset = 500000
 
 var templateDir string
-var templates = template.New("lxc")
+var Templates = template.New("lxc")
 
 func LoadTemplates(dir string) error {
 	interf, err := net.InterfaceByName("lxcbr0")
@@ -49,10 +49,10 @@ func LoadTemplates(dir string) error {
 	}
 
 	templateDir = dir
-	templates.Funcs(template.FuncMap{
+	Templates.Funcs(template.FuncMap{
 		"hostIP": func() string { return hostIP.String() },
 	})
-	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
+	if _, err := Templates.ParseGlob(templateDir + "/vm/*"); err != nil {
 		return err
 	}
 
@@ -320,7 +320,7 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) {
 	}
 	defer file.Close()
 
-	if err := templates.ExecuteTemplate(file, template, vm); err != nil {
+	if err := Templates.ExecuteTemplate(file, template, vm); err != nil {
 		panic(err)
 	}
 
