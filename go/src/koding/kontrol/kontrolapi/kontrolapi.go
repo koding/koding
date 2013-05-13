@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
+	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
@@ -58,6 +59,12 @@ type ProxyPostMessage struct {
 	Uuid      *string
 }
 
+type DeployPostMessage struct {
+	Build  *string
+	Git    *string
+	Config *string
+}
+
 var StatusCode = map[workerconfig.WorkerStatus]string{
 	workerconfig.Running:    "running",
 	workerconfig.Pending:    "waiting",
@@ -68,6 +75,7 @@ var StatusCode = map[workerconfig.WorkerStatus]string{
 	workerconfig.Dead:       "dead",
 }
 
+var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
 var proxyConfig *proxyconfig.ProxyConfiguration
 
@@ -90,10 +98,20 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
+	clientDB, err = clientconfig.Connect()
+	if err != nil {
+		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
+
 	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
 
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
+
+	// Worker handlers
+	rout.HandleFunc("/deployments", GetClients).Methods("GET")
+	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
+	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
 
 	// Worker handlers
 	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
@@ -126,6 +144,138 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func CreateClient(writer http.ResponseWriter, req *http.Request) {
+	log.Println("POST /deployments")
+	var msg DeployPostMessage
+	var build string
+	var git string
+	var config string
+
+	body, _ := ioutil.ReadAll(req.Body)
+
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Build != nil {
+		build = *msg.Build
+	} else {
+		err := "aborting. no 'build' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Git != nil {
+		git = *msg.Git
+	} else {
+		err := "aborting. no 'git' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Config != nil {
+		config = *msg.Config
+	} else {
+		err := "aborting. no 'config' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	client := clientconfig.ServerInfo{
+		BuildNumber: build,
+		GitBranch:   git,
+		ConfigUsed:  config,
+		Config:      nil,
+		Hostname:    clientconfig.Hostname{},
+		IP:          clientconfig.IP{},
+	}
+
+	clientDB.AddClient(client)
+
+	var url string
+	url = fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
+	io.WriteString(writer, url)
+	return
+
+}
+
+// Get all registered proxies
+// example: http GET "localhost:8000/proxies"
+func GetClients(writer http.ResponseWriter, req *http.Request) {
+	clients := make([]clientconfig.ServerInfo, 0)
+	client := clientconfig.ServerInfo{}
+	log.Println("GET /deployments")
+
+	iter := clientDB.Collection.Find(nil).Iter()
+	for iter.Next(&client) {
+		clients = append(clients, client)
+	}
+
+	data, err := json.MarshalIndent(clients, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
+// Get worker with uuid
+// Example :http://localhost:8000/workers/134f945b3327b775a5f424be804d75e3
+func GetClient(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	build := vars["build"]
+	log.Printf("GET /deployments/%s\n", build)
+
+	client := clientconfig.ServerInfo{}
+	clients := make([]clientconfig.ServerInfo, 0)
+
+	if build == "latest" {
+		iter := clientDB.Collection.Find(nil).Iter()
+		for iter.Next(&client) {
+			clients = append(clients, client)
+		}
+
+		builds := make([]int, len(clients))
+
+		for i, val := range clients {
+			builds[i], _ = strconv.Atoi(val.BuildNumber)
+		}
+
+		sort.Ints(builds)
+		latestBuild := builds[len(builds)-1] // get largest build number
+		for _, val := range clients {
+			build, _ := strconv.Atoi(val.BuildNumber)
+
+			if latestBuild == build {
+				data, err := json.MarshalIndent(val, "", "  ")
+				if err != nil {
+					io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+					return
+				}
+				writer.Write([]byte(data))
+				return
+			}
+		}
+	}
+
+	query := bson.M{"buildnumber": build}
+	iter := clientDB.Collection.Find(query).Iter()
+	for iter.Next(&client) {
+		data, err := json.MarshalIndent(client, "", "  ")
+		if err != nil {
+			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+			return
+		}
+
+		writer.Write([]byte(data))
+		return
+	}
+
 }
 
 // Get all registered proxies

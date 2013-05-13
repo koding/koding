@@ -248,9 +248,17 @@ class JTreeViewController extends KDViewController
 
   removeAllNodes:->
 
-    if @listControllers["0"]
-      @listControllers["0"].itemsOrdered.forEach (itemView)=>
-        @removeNodeView itemView
+    for id, listController of @listControllers
+      listController.itemsOrdered.forEach @bound 'removeNodeView'
+      listController?.getView().destroy()
+      delete @listControllers[id]
+      delete @listData[id]
+
+    @nodes           = {}
+    @listData        = {}
+    @indexedNodes    = []
+    @selectedNodes   = []
+    @listControllers = {}
 
   removeChildNodes:(id)->
 

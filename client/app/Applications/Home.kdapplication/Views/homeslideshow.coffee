@@ -74,20 +74,20 @@ class HomeSlideShow extends KDScrollView
     """
     <ul class="clearfix">
       <li>
+        <img src="#{host}/images/demo-screenshots/sc-terminal.jpg" />
+        <p class="flex-caption">A new way for developers to work.<span>We said.</span></p>
+      </li>
+      <li>
         <div>
           <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
         </div>
-      </li>
-      <li>
-        <img src="#{host}/images/demo-screenshots/sc-code.jpg" />
-        <p class="flex-caption">A new way for developers to work.<span>We said.</span></p>
       </li>
       <li>
         <img src="#{host}/images/demo-screenshots/sc-activity.jpg" />
         <p class="flex-caption">Wow! Cool - good luck!<span>Someone we talked to the other day...</span></p>
       </li>
       <li>
-        <img src="#{host}/images/demo-screenshots/sc-terminal.jpg" />
+        <img src="#{host}/images/demo-screenshots/sc-code.jpg" />
         <p class="flex-caption">I don't get it... What is it, again?<span>Same dude.</span></p>
       </li>
       <li>

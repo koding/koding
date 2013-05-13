@@ -119,6 +119,9 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
+      'Make this top Folder'      :
+        action                    : 'makeTopFolder'
+        separator                 : yes
       Delete                      :
         action                    : 'delete'
         separator                 : yes

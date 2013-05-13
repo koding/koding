@@ -11,11 +11,7 @@ import (
 type Config struct {
 	BuildNumber int
 	ProjectRoot string
-	GoConfig    struct {
-		HomePrefix string
-		UseLVE     bool
-	}
-	Client struct {
+	Client      struct {
 		StaticFilesBaseUrl string
 	}
 	Mongo string

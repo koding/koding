@@ -1,4 +1,3 @@
-
 class FSFolder extends FSFile
 
   fetchContents:(callback, dontWatch=yes)->
@@ -16,7 +15,7 @@ class FSFolder extends FSFile
     , (err, response)=>
       if not err and response?.files
         files = FSHelper.parseWatcher @path, response.files
-        {@stopWatching} = response
+        @registerWatcher response
         @emit "fs.job.finished", err, files
       else
         @emit "fs.job.finished", err
@@ -31,7 +30,6 @@ class FSFolder extends FSFile
       method    : 'fs.createDirectory'
       withArgs  : {@path}
     , (err, res)=>
-
       if err then warn err
       @emit "fs.save.finished", err, res
       callback? err, res
@@ -41,4 +39,14 @@ class FSFolder extends FSFile
     callback? null
 
   remove:(callback)->
+    @off 'fs.delete.finished'
+    @on  'fs.delete.finished', =>
+      finder = KD.getSingleton 'finderController'
+      finder.stopWatching @path
+
     super callback, yes
+
+  registerWatcher:(response)->
+    {@stopWatching} = response
+    finder = KD.getSingleton 'finderController'
+    finder.registerWatcher @path, @stopWatching

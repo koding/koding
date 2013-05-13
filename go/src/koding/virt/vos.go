@@ -123,7 +123,7 @@ func (vos *VOS) Chmod(name string, mode os.FileMode) error {
 
 func (vos *VOS) Chown(name string, uid, gid int) error {
 	return vos.inVosContext(name, true, func(resolved string) error {
-		return os.Chown(resolved, uid, gid)
+		return os.Lchown(resolved, uid, gid)
 	})
 }
 
@@ -142,7 +142,7 @@ func (vos *VOS) Symlink(oldname, newname string) error {
 		if err := os.Symlink(oldname, resolved); err != nil {
 			return err
 		}
-		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
+		return os.Lchown(resolved, vos.user.Uid, vos.user.Uid)
 	})
 }
 
@@ -159,7 +159,7 @@ func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
 		if err := os.Mkdir(resolved, perm); err != nil {
 			return err
 		}
-		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
+		return os.Lchown(resolved, vos.user.Uid, vos.user.Uid)
 	})
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
+	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/handler/proxy"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -33,6 +34,7 @@ type ApiMessage struct {
 }
 
 var kontrolConfig *workerconfig.WorkerConfig
+var clientDB *clientconfig.ClientConfig
 var workerProducer *helper.Producer
 var cliProducer *helper.Producer
 var apiProducer *helper.Producer
@@ -74,6 +76,11 @@ func Startup() {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
 	}
 
+	clientDB, err = clientconfig.Connect()
+	if err != nil {
+		log.Fatalf("wokerconfig mongodb connect: %s", err)
+	}
+
 	// cleanup death workers at intervals
 	ticker := time.NewTicker(time.Hour * 1)
 	go func() {
@@ -92,7 +99,7 @@ func Startup() {
 	}()
 
 	// update workers
-	tickerWorker := time.NewTicker(time.Second * 5)
+	tickerWorker := time.NewTicker(time.Second * 1)
 	go func() {
 		for _ = range tickerWorker.C {
 			err := kontrolConfig.RefreshStatusAll()
@@ -103,6 +110,18 @@ func Startup() {
 	}()
 
 	log.Println("kontrold handler plugin is initialized")
+}
+
+func HandleClientMessage(data amqp.Delivery) {
+	if data.RoutingKey == "kontrol-client" {
+		var info clientconfig.ServerInfo
+		err := json.Unmarshal(data.Body, &info)
+		if err != nil {
+			log.Print("bad json client msg: ", err)
+		}
+
+		clientDB.AddClient(info)
+	}
 }
 
 func HandleWorkerMessage(data []byte) {

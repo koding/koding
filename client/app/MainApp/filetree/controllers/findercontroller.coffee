@@ -32,8 +32,23 @@ class NFinderController extends KDViewController
       @treeController.on "folder.expanded", (folder)=>
         @setRecentFolder folder.path
 
-      @treeController.on "folder.collapsed", (folder)=>
-        @unsetRecentFolder folder.path
+      @treeController.on "folder.collapsed", ({path})=>
+        @unsetRecentFolder path
+        @stopWatching path
+
+  watchers: {}
+
+  registerWatcher:(path, stopWatching)->
+    @watchers[path] = stop: stopWatching
+
+  stopAllWatchers:->
+    (watcher.stop() for path, watcher of @watchers)
+    @watchers = {}
+
+  stopWatching:(pathToStop)->
+    for path, watcher of @watchers  when ///^#{pathToStop}///.test path
+      watcher.stop()
+      delete @watchers[path]
 
   loadView:(mainView)->
 
@@ -59,21 +74,21 @@ class NFinderController extends KDViewController
     else
       @createRootStructure()
 
-  createRootStructure:->
+  createRootStructure:(path, callback)->
     {nickname} = KD.whoami().profile
-    @mount     = FSHelper.createFile
-      name: nickname.toLowerCase()
-      path: "/home/#{nickname}"
-      type: "vm"
 
-    @mount2    = FSHelper.createFile
-      name: "Root Structure"
-      path: "/"
-      type: "vm"
+    path ?= "/home/#{nickname}"
+    FSHelper.resetRegistry()
+
+    @mount = FSHelper.createFile
+      name : path
+      path : path
+      type : "vm"
 
     @defaultStructureLoaded = no
-    @treeController.initTree [@mount, @mount2]
+    @treeController.initTree [@mount]
     @loadDefaultStructure()
+    callback?()
 
   loadDefaultStructure:->
 
@@ -85,25 +100,23 @@ class NFinderController extends KDViewController
 
     timer = Date.now()
     @mount.emit "fs.job.started"
+    @stopAllWatchers()
 
-    log "Calling readDirectory..."
     {nickname} = KD.whoami().profile
     kiteController.run
       method     : 'fs.readDirectory'
       withArgs   :
         onChange : (change)=>
-          FSHelper.folderOnChange "/home/#{nickname}", change, @treeController
-        path     : '.'
+          FSHelper.folderOnChange @mount.path, change, @treeController
+        path     : @mount.path
     , (err, response)=>
-      @lastSuccessfulResponse?.stopWatching?()
 
       if response
-        files = FSHelper.parseWatcher "/home/#{nickname}", response.files
+        @mount.registerWatcher response
+        files = FSHelper.parseWatcher @mount.path, response.files
         @treeController.addNodes files
         @treeController.emit 'fs.retry.success'
         @treeController.hideNotification()
-
-        @lastSuccessfulResponse = response
 
       log "#{(Date.now()-timer)/1000}sec !"
       @mount.emit "fs.job.finished"

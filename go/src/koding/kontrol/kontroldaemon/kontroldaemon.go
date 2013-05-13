@@ -68,6 +68,21 @@ func startRouting() error {
 	err = c.channel.ExchangeDeclare("workerExchange", "topic", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("worker exchange.declare: %s", err)
+
+	}
+	err = c.channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
+	if err != nil {
+		log.Fatal("worker exchange.declare: %s", err)
+	}
+
+	_, err = c.channel.QueueDeclare("kontrol-client", true, false, false, false, nil)
+	if err != nil {
+		log.Fatal("queue.declare: %s", err)
+	}
+
+	err = c.channel.QueueBind("kontrol-client", "", "clientExchange", false, nil)
+	if err != nil {
+		log.Fatal("queue.bind: %s", err)
 	}
 
 	for _, a := range apiBindings {
@@ -96,7 +111,7 @@ func startRouting() error {
 
 	}
 
-	err = c.channel.Qos(4, 0, false)
+	err = c.channel.Qos(5, 0, false)
 	if err != nil {
 		log.Fatal("basic.qos: %s", err)
 	}
@@ -121,6 +136,11 @@ func startRouting() error {
 		log.Fatal("basic.consume: %s", err)
 	}
 
+	clientStream, err := c.channel.Consume("kontrol-client", "", true, true, false, false, nil)
+	if err != nil {
+		log.Fatal("basic.consume: %s", err)
+	}
+
 	for {
 		select {
 		case d := <-workerStream:
@@ -138,6 +158,15 @@ func startRouting() error {
 				log.Printf("api handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)
 			}
 			handler.HandleApiMessage(d.Body, "")
+		case d := <-clientStream:
+			if config.Verbose {
+				log.Printf("got %dB message data: [%v]-[%s] %s",
+					len(d.Body),
+					d.DeliveryTag,
+					d.RoutingKey,
+					d.Body)
+			}
+			handler.HandleClientMessage(d)
 		case d := <-proxyStream:
 			if config.Verbose {
 				log.Printf("proxy handle got %dB message data: [%v] %s", len(d.Body), d.DeliveryTag, d.Body)

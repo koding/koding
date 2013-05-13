@@ -90,6 +90,11 @@ dimmedNeighbor()
     // background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
     bg                color, finderSelectedColor1
 
+    // I'll find a better place for it ~ GG
+    .vm
+      span.path-select
+        display     block
+        bg          position, -220px -520px
     .title
       color white
       text-shadow none
@@ -119,6 +124,7 @@ dimmedNeighbor()
 
   &:hover
     span.chevron
+    .vm span.path-select
       display       block
 
   &.expanded
@@ -174,10 +180,11 @@ dimmedNeighbor()
     .title
       cursor          default
       font-weight     normal
-      width           auto
+      width           66%
       margin-right    26px
       display         block
       overflow        hidden
+      text-overflow   ellipsis
 
     form
       height          22px
@@ -756,6 +763,7 @@ div.led-wrapper
       fl()
 
     span.icon
+    span.path-select
       margin        2px 3px
       size          16px,16px
     span.arrow
@@ -781,6 +789,16 @@ div.led-wrapper
       bg            position, 0px -140px !important
     span.chevron
       top           3px
+
+    span.path-select
+      top           0
+      size          18px,18px
+      right         22px
+      display       none
+      bg            position, -220px -540px
+      sprite()
+      abs()
+
     div.vm-toggle
       top           3px
       right         20px
