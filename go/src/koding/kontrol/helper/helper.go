@@ -81,6 +81,24 @@ func ReadVersion() string {
 	return strings.TrimSpace(string(file))
 }
 
+func ReadConfigname() string {
+	file, err := ioutil.ReadFile("CONFIG_USED")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return strings.TrimSpace(string(file))
+}
+
+func ReadGitbranch() string {
+	file, err := ioutil.ReadFile("GIT_BRANCH")
+	if err != nil {
+		log.Println(err)
+	}
+
+	return strings.TrimSpace(string(file))
+}
+
 func CreateProducer(name string) (*Producer, error) {
 	p := NewProducer(name)
 	log.Printf("creating connection for sending %s messages", p.Name)
