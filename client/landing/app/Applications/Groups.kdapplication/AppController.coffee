@@ -50,9 +50,12 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
-    mainController.on 'groupJoinRequested',   @joinGroup.bind this
-    mainController.on 'loginRequired',        @loginRequired.bind this
+    mainController.on 'groupAccessRequested',    @showRequestAccessModal.bind this
+    mainController.on 'groupJoinRequested',      @joinGroup.bind this
+    mainController.on 'groupInvitationAccepted', @acceptInvitation.bind this
+    mainController.on 'groupInvitationIgnored',  @ignoreInvitation.bind this
+    mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
+    mainController.on 'loginRequired',           @loginRequired.bind this
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
@@ -156,15 +159,15 @@ class GroupsAppController extends AppController
               JGroup.streamModels selector, options, callback
           dataEnd           :({resultsController}, ids)=>
             {everything} = resultsController.listControllers
-            @markMemberAndOwnGroups everything, ids
+            @markGroupRelationship everything, ids
           dataError         :(controller, err)->
             log "Seems something broken:", controller, err
 
         mine                :
           title             : "My groups"
+          loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
-              console.log items
               ids = []
               for item in items
                 item.followee = true
@@ -173,7 +176,30 @@ class GroupsAppController extends AppController
               callback err, null, ids
           dataEnd           :({resultsController}, ids)=>
             {mine} = resultsController.listControllers
-            @markMemberAndOwnGroups mine, ids
+            @markGroupRelationship mine, ids
+
+        pending             :
+          title             : "Invited Groups"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {pending} = resultsController.listControllers
+            @markPendingGroupInvitations pending, ids
+
+        requested             :
+          title             : "Requested Groups"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupRequests options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {requested} = resultsController.listControllers
+            @markPendingRequestGroups requested, ids
+
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -195,7 +221,9 @@ class GroupsAppController extends AppController
       @feedController.loadFeed() if loadFeed
       @emit 'ready'
 
-  markMemberAndOwnGroups:(controller, ids)->
+  markGroupRelationship:(controller, ids)->
+    return unless KD.isLoggedIn()
+
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
@@ -205,6 +233,18 @@ class GroupsAppController extends AppController
         KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
           controller.forEachItemByIndex groups, callback
+
+    KD.whoami().fetchPendingGroupRequests groupIds:ids, (err, groups)=>
+      @markPendingRequestGroups controller, (group.getId() for group in groups)
+
+    KD.whoami().fetchPendingGroupInvitations groupIds:ids, (err, groups)=>
+      @markPendingGroupInvitations controller, (group.getId() for group in groups)
+
+  markPendingRequestGroups:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
+  
+  markPendingGroupInvitations:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
@@ -266,7 +306,7 @@ class GroupsAppController extends AppController
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
-  showRequestAccessModal:(group, policy, isApproval, callback=->)->
+  showRequestAccessModal:(group, policy, callback=->)->
     if policy.explanation?
       title = "Request Access"
       content = __utils.applyMarkdown policy.explanation
@@ -311,6 +351,15 @@ class GroupsAppController extends AppController
         new KDNotificationView
           title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
+
+  acceptInvitation:(group, callback)->
+    KD.whoami().acceptInvitation group, callback
+
+  ignoreInvitation:(group, callback)->
+    KD.whoami().ignoreInvitation group, callback
+  
+  cancelGroupRequest:(group, callback)->
+    KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, hasPermission)=>
