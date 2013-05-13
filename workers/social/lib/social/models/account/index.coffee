@@ -344,41 +344,6 @@ module.exports = class JAccount extends jraphical.Module
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
 
-  fetchPendingGroupInvitations: secure (client, callback)->
-    JUser              = require '../user'
-    JGroup             = require '../group'
-    JInvitationRequest = require '../invitationrequest'
-
-    JUser.one username:@profile.nickname, (err, user)->
-      if err then callback err
-      else
-        selector =
-          email          : user.email
-          invitationType : 'invitation'
-          status         : 'sent'
-          group          : {$exists:1}
-
-        JInvitationRequest.some selector, {}, (err, invites)->
-          if err then callback err
-          else if invites?.length <= 0
-            callback null, []
-          else
-            invitations     = []
-            checkMembership = race (i, invitation, done)->
-              JGroup.one slug:invitation.group, (err, group)->
-                if err
-                  callback err
-                  done()
-                else
-                  group.fetchMembershipStatuses client, (err, roles)->
-                    if err then callback err
-                    else if 'member' not in roles and 'admin' not in roles
-                      invitations.push {invitation, group, roles: []}
-                    done()
-            , -> callback null, invitations
-
-            checkMembership invitation for invitation in invites
-
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
     JGroup = require '../group'
@@ -845,7 +810,7 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
-  getInvitiationRequestRelationships:(options, callback)->
+  getInvitiationRequestRelationships:(options, status, callback)->
     JInvitationRequest = require '../invitationrequest'
 
     @fetchUser (err, user)=>
@@ -853,10 +818,10 @@ module.exports = class JAccount extends jraphical.Module
 
       selector =
         $or: [
-          'koding.username': @profile.nickname,
-          email: user.email
+          {'koding.username': @profile.nickname,}
+          {email: user.email}
         ]
-        status: 'pending'
+        status: status
 
       JInvitationRequest.some selector, {}, (err, requests)->
         return callback err if err
@@ -867,27 +832,65 @@ module.exports = class JAccount extends jraphical.Module
           targetId   : $in:(request.getId() for request in requests)
           sourceName : 'JGroup'
 
-        if options.groupIds
+        if options?.groupIds
           selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
           delete options.groupIds
 
         Relationship.some selector, {}, callback
 
-  getGroupsAwaitingApproval:(options, callback)->
+  fetchPendingGroupRequests:(options, callback)->
     JGroup = require '../group'
 
-    @getInvitiationRequestRelationships options, (err, rels)->
+    @getInvitiationRequestRelationships options, 'pending', (err, rels)->
+      return callback err if err
+      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
+  
+  fetchPendingGroupInvitations:(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    JGroup = require '../group'
+
+    @getInvitiationRequestRelationships options, 'sent', (err, rels)->
       return callback err if err
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
 
-  cancelRequest:(group, callback)->
+  getInvitationRequestByGroup:(groupData, status, callback)->
     JInvitationRequest = require '../invitationrequest'
+    JGroup             = require '../group'
 
-    @getInvitiationRequestRelationships groupIds:[group._id], (err, [rel])->
-      return callback err if err or not rel
-      JInvitationRequest.one _id:rel.targetId, (err, request)->
+    JGroup.one _id:groupData._id, (err, group)=>
+      return callback err if err
+      @fetchUser (err, user)=>
         return callback err if err
+        options =
+          targetOptions:
+            selector:
+              $or: [
+                {'koding.username': @profile.nickname}
+                {email: user.email}
+              ]
+              status: status
+          options:
+            sort: { timestamp: -1 }
+
+        group.fetchInvitationRequests {}, options, callback
+
+  cancelRequest: secure (client, group, callback)->
+    if @equals client.connection.delegate
+      @getInvitationRequestByGroup group, 'pending', (err, [request])->
+        return callback err if err or not request
         request.remove callback
+
+  acceptInvitation: secure (client, group, callback)->
+    if @equals client.connection.delegate
+      @getInvitationRequestByGroup group, 'sent', (err, [request])->
+        return callback err if err or not request
+        request.acceptInvitationByInvitee client, callback
+
+  ignoreInvitation: secure (client, group, callback)->
+    if @equals client.connection.delegate
+      @getInvitationRequestByGroup group, 'sent', (err, [request])->
+        return callback err if err or not request
+        request.ignoreInvitationByInvitee client, callback
 
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate

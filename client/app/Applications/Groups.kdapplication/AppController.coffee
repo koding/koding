@@ -162,6 +162,7 @@ class GroupsAppController extends AppController
 
         mine                :
           title             : "My groups"
+          loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
               ids = []
@@ -175,14 +176,26 @@ class GroupsAppController extends AppController
             @markGroupRelationship mine, ids
 
         pending             :
-          title             : "Awaiting Approval"
+          title             : "Invited Groups"
+          loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().getGroupsAwaitingApproval options, (err, groups)->
+            KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
               callback err, groups
               callback err, null, (group.getId() for group in groups)
           dataEnd           :({resultsController}, ids)=>
             {pending} = resultsController.listControllers
-            @markAwaitingApprovalGroups pending, ids
+            @markPendingGroupInvitations pending, ids
+
+        requested             :
+          title             : "Requested Groups"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupRequests options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {requested} = resultsController.listControllers
+            @markPendingRequestGroups pending, ids
 
         # recommended         :
         #   title             : "Recommended"
@@ -206,6 +219,8 @@ class GroupsAppController extends AppController
       @emit 'ready'
 
   markGroupRelationship:(controller, ids)->
+    return unless KD.isLoggedIn()
+
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
@@ -216,11 +231,17 @@ class GroupsAppController extends AppController
           return error err if err
           controller.forEachItemByIndex groups, callback
 
-    KD.whoami().getGroupsAwaitingApproval groupIds:ids, (err, groups)=>
-      @markAwaitingApprovalGroups controller, (group.getId() for group in groups)
+    KD.whoami().fetchPendingGroupRequests groupIds:ids, (err, groups)=>
+      @markPendingRequestGroups controller, (group.getId() for group in groups)
 
-  markAwaitingApprovalGroups:(controller, ids)->
-    controller.forEachItemByIndex ids, (view)-> view.markAwaitingApproval()
+    KD.whoami().fetchPendingGroupInvitations groupIds:ids, (err, groups)=>
+      @markPendingGroupInvitations controller, (group.getId() for group in groups)
+
+  markPendingRequestGroups:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
+  
+  markPendingGroupInvitations:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
