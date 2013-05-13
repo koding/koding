@@ -15,6 +15,7 @@ module.exports = class JKodingKey extends jraphical.Module
   @set
     softDelete        : yes
     sharedMethods     :
+      instance        : ['revoke']
       static          : ['create', 'fetchAll', 'fetchByKey', 'fetchByUserKey']
     indexes           :
       key             : ['unique']
@@ -26,8 +27,9 @@ module.exports = class JKodingKey extends jraphical.Module
   @create = secure (client, data, callback)->
     {delegate} = client.connection
     key = new JKodingKey
-      key   : data.key
-      owner : delegate._id
+      key     : data.key
+      hostname: data.hostname
+      owner   : delegate._id
     key.save (err)->
       if err
         callback err
@@ -60,3 +62,6 @@ module.exports = class JKodingKey extends jraphical.Module
           owner : account._id
         , (err, key)->
           callback err, key
+
+  revoke: secure ({connection:{delegate}}, callback)->
+    @remove callback

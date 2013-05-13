@@ -37,11 +37,11 @@ class AccountListWrapper extends KDView
       keys                           : AccountSshKeyList
       kodingKeysController           : AccountKodingKeyListController
       kodingKeys                     : AccountKodingKeyList
-    kites                            :
-      myKiteList                     : AccountMyKiteList
-      myKiteListController           : AccountMyKiteListController
-      kiteList                       : AccountKiteList
-      kiteListController             : AccountKiteListController
+#    kites                            :
+#      myKiteList                     : AccountMyKiteList
+#      myKiteListController           : AccountMyKiteListController
+#      kiteList                       : AccountKiteList
+#      kiteListController             : AccountKiteListController
 
   viewAppended:->
 
