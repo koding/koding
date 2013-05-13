@@ -34,22 +34,34 @@
 	<div class="row">
 		<div class="span7 offset1">
 			<h2>Status</h2>
-			<ul>
-				<li>
-				Last Jenkins builds: 
-				</li>
-				<ul>
-					<li>completed <span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></li>
-					<li>stable <span class="label label-success">{{.Jenkins.LastStableBuild.Number}}</span></li>
-					<li>failed <span class="label label-important">{{.Jenkins.LastFailedBuild.Number}}</span></li>
-				</ul>
-
-				<li>
-				    <span class="badge badge-success">{{.Status.Workers.Running}}</span> workers are running,
-				    <span class="badge badge-important">{{.Status.Workers.Dead}}</span> workers are dead
-				</li>
-			</ul>
+			<table class="table table-hover table-bordered">
+				<thead>
+					<tr>
+						<td><strong>Last Jenkins builds</strong></td>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td>Completed</td>
+						<td><span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></td>
+					</tr>
+					<tr>
+						<td>Stable</td>
+						<td><span class="label label-success">{{.Jenkins.LastStableBuild.Number}}</span></td>
+					</tr>
+					<tr>
+						<td>Failed</td>
+						<td><span class="label label-important">{{.Jenkins.LastFailedBuild.Number}}</span></td>
+					</tr>
+				</tbody>
+			</table>
 			<h2>Workers</h2>
+			<table class="table table-bordered">
+				<tr>
+					<td><span class="badge badge-success">{{.Status.Workers.Running}}</span> workers are running</td>
+					<td><span class="badge badge-important">{{.Status.Workers.Dead}}</span> workers are dead</td>
+				</tr>
+			</table>
 			<table class="table table-hover table-bordered">
 				<thead>
 					<tr>
@@ -77,7 +89,7 @@
 		</div>
 		<div class="span5 offset1">
 			<h2>Deployment</h2>
-			<table class="table table-bordered table-condensed">
+			<table class="table table-hover table-bordered table-condensed">
 				<tr>
 					<td>Latest Build Number</td>
 					<td>{{.Server.BuildNumber}}</td>
@@ -91,7 +103,7 @@
 					<td>{{.Server.ConfigUsed}}</td>
 				</tr>
 			</table>
-			<table class="table table-bordered table-condensed">
+			<table class="table table-hover table-bordered table-condensed">
 				<tr>
 					<td>Hostname</td>
 					<td>{{.Server.Hostname.Public}}</td>
@@ -102,14 +114,14 @@
 				</tr>
 			</table>
 			<h4>MongoDB</h4>
-			<table class="table table-bordered table-condensed">
+			<table class="table table-hover table-bordered table-condensed">
 				<tr>
 					<td>Login</td>
 					<td>{{.Server.Config.Mongo}}</td>
 				</tr>
 			</table>
 			<h4>RabbitMQ</h4>
-			<table class="table table-bordered table-condensed">
+			<table class="table table-hover table-bordered table-condensed">
 				<tr>
 					<td>Host</td>
 					<td>{{.Server.Config.Mq.Host}}</td>

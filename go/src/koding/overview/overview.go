@@ -178,8 +178,7 @@ func workerInfo() []WorkerInfo {
 }
 
 func serverInfo() *ServerInfo {
-	// serveApi := "http://api.x.koding.com/deployments"
-	serverApi := "http://localhost:8000/deployments/latest"
+	serverApi := "http://api.x.koding.com/deployments"
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
