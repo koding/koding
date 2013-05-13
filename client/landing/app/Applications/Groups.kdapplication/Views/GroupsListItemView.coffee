@@ -113,15 +113,21 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
-  markAwaitingApproval:->
-    @setClass "awaiting-approval"
-    @settingsButton.options.style += " awaiting-approval"
-    @memberBadge.updatePartial "<span class='fold'/>Awaiting Approval"
+  markPendingRequest:->
+    @setClass "pending-request"
+    @settingsButton.options.style += " pending-request"
+    @memberBadge.updatePartial "<span class='fold'/>Request Pending"
 
-  markMemberGroup:->
+  markPendingInvitation:->
+    @setClass "pending-invitation"
+    @settingsButton.options.style += " pending-invitation"
+    @memberBadge.updatePartial "<span class='fold'/>Pending Invitation"
+
+  markMemberGroup:(updatePartial=no)->
     @setClass "group-member"
     @settingsButton.options.style += " group-member"
     @fetchMembers() if @getData().privacy isnt 'public'
+    @memberBadge.updatePartial "<span class='fold'/>You are a member" if updatePartial
 
   markOwnGroup:->
     @setClass "group-owner"
@@ -227,42 +233,53 @@ class GroupsListItemView extends KDListItemView
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
 
+      menu['Accept Invitation'] =
+        cssClass : 'accept-invitation'
+        callback : @bound 'acceptInvitation'
+
+      menu['Ignore Invitation'] =
+        cssClass : 'ignore-invitation'
+        callback : @bound 'ignoreInvitation'
+
     return menu
 
   leaveGroup:(group, callback)->
-
-    group.leave (err)->
-      if err
-        warn err
-        new KDNotificationView
-          title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-          duration : 2000
-        return callback()
-
-      new KDNotificationView
-        title    : 'Successfully left group!'
-        duration : 2000
-
-      currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
-      currentGroupSlug = currentGroup.getAt 'slug'
-      if group.slug is currentGroupSlug
-        document.location.reload()
-      callback()
+    group.leave @handleBackendResponse 'Successfully left group!', (err)->
+      unless err
+        currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
+        currentGroupSlug = currentGroup.getAt 'slug'
+        if group.slug is currentGroupSlug
+          document.location.reload()
+      callback err
 
   cancelRequest:(group, callback)->
-    KD.whoami().cancelRequest group, (err)->
+    KD.whoami().cancelRequest group, @handleBackendResponse 'Successfully canceled the request!', callback
+
+  acceptInvitation:->
+    KD.whoami().acceptInvitation @getData(), @handleBackendResponse 'Successfully accepted the invitation!', (err)=>
+      unless err
+        @markMemberGroup yes
+        @unsetClass 'pending-invitation'
+        @settingsButton.options.style = @settingsButton.options.style.replace ' pending-invitation', ''
+
+  ignoreInvitation:->
+    KD.whoami().ignoreInvitation @getData(), @handleBackendResponse 'Successfully ignored the invitation!', (err)=>
+      @unsetClass 'pending-invitation' unless err
+
+  handleBackendResponse:(successMsg, callback)->
+    (err)->
       if err
         warn err
         new KDNotificationView
           title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
           duration : 2000
-        return callback()
+        return callback err
 
       new KDNotificationView
-        title    : 'Successfully canceled the request!'
+        title    : successMsg
         duration : 2000
 
-      callback()
+      callback null
 
   fetchMembers:->
     @getData().fetchMembers (err, members)=>
