@@ -49,7 +49,7 @@ class HomeLoginBar extends JView
         if entryPoint?.type is 'group'
           @utils.stopDOMEvent event
           requiresLogin => 
-            @getSingleton('mainController').emit "groupAccessRequested", @group, no, (err)=>
+            @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
               unless err
                 @request.hide()
                 @requested.show()
@@ -77,7 +77,7 @@ class HomeLoginBar extends JView
       click       : (event)=>
         @utils.stopDOMEvent event
         requiresLogin => 
-          @getSingleton('mainController').emit "groupAccessRequested", @group, yes, (err)=>
+          @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
             unless err
               @access.hide()
               @requested.show()
@@ -127,7 +127,7 @@ class HomeLoginBar extends JView
                     @handleBackendResponse err, 'Successfully cancelled request!'
                     modal.destroy()
                     @requested.hide()
-                    if @approvalEnabled
+                    if @policy.approvalEnabled
                       @access.show()
                     else
                       @request.show()
@@ -174,7 +174,7 @@ class HomeLoginBar extends JView
                     @handleBackendResponse err, 'Successfully ignored invitation!'
                     unless err
                       @invited.hide()
-                      if @approvalEnabled
+                      if @policy.approvalEnabled
                         @access.show()
                       else
                         @request.show()
@@ -222,12 +222,12 @@ class HomeLoginBar extends JView
             @join.show()
           else if @group.privacy is "private"
             KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint.slug, (err, policy)=>
+              @policy = policy
               if err then console.warn err
               else if policy.approvalEnabled
                 @request.hide()
                 @join.hide()
                 @access.show()
-                @approvalEnabled = yes
 
               KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
                 return console.warn err if err
