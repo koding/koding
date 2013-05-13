@@ -1,4 +1,6 @@
 module.exports = class BucketActivityDecorator
+  _ = require 'underscore'
+
   SingleActivityDecorator = require './single_bucket_activity'
   TargetActivityDecorator = require './target_activity'
 
@@ -14,30 +16,43 @@ module.exports = class BucketActivityDecorator
       @groups[id].type = @bucketName
 
 
+    @groups.overview = _.sortBy(@groups.overview, (activity)-> activity.createdAt.first)
+
     return @groups
 
   groupByAnchorId:->
     for datum in @data
-      id = @extractId datum
-      if @groups[id]
-        @addFollowerToGroup datum
+      anchorId = @extractId datum
+      if @groups[anchorId]
+        @addActivityToGroup datum, anchorId
       else
         @createNewGroup datum
 
-  addFollowerToGroup:(datum)->
+  addActivityToGroup:(datum, anchorId)->
+    # TODO: use anchorId
     id = @extractId datum
     @groups[id].snapshot.group.push @decorateGroupActivity datum[@groupByName]
+    #@addActvityToOverview datum[@groupByName].first, anchorId
+
+  # not required since for non member buckets, all entries are grouped
+  addActvityToOverview:(datum, anchorId)->
+    for followers in @groups.overview when followers.ids.first is anchorId
+      followers.ids.push datum.id
+      followers.createdAt.push datum.meta.createdAt
+      followers.count++
 
   createNewGroup:(datum)->
     id = @extractId datum
     @groups[id] = @decorateTargetActivity datum
     @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupByName]]
-    @groups.overview = @decorateOverview datum[@groupByName].first
+    @groups.overview ||= []
+    @groups.overview.push @decorateOverview datum[@groupByName].first, id,\
+      datum.relationship.first.createdAt
 
-  decorateOverview:(target)->
+  decorateOverview:(target, anchorId, createdAt)->
     overview =
-      createdAt : [@convertToISO(target.meta.createdAt)]
-      ids       : [target.id]
+      createdAt : [@convertToISO(createdAt)]
+      ids       : [anchorId]
       type      : @groupName
       count     : 1
 
