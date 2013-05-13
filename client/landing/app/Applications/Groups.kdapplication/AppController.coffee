@@ -348,13 +348,14 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
-    verifySlug = (slug)->
+    verifySlug = (userSlug)->
       slugField = modal.modalTabs.forms["General Settings"].inputs.Slug
       KD.remote.api.JName.one
-        name : "#{slug}"
+        name : "#{userSlug}"
       , (err,name)=>
         if name
           slugField.setClass 'slug-taken'
+          suggestSlug userSlug
         else
           slugField.unsetClass 'slug-taken'
           delete slugField.tooltip
@@ -362,28 +363,38 @@ class GroupsAppController extends AppController
     makeSlug = (title)=>
       if title.length == 0
         return
-      queryDB @utils.slugify(title), (slug)->
-        modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+      queryDB @utils.slugify(title), (newSlug)->
+        modal.modalTabs.forms["General Settings"].inputs.Slug.setValue newSlug
 
-    queryDB = (s, callback)->
+    queryDB = (userSlug, callback)->
       KD.remote.api.JName.one
-        name : "#{s}"
+        name : "#{userSlug}"
       , (err,name)=>
         unless name
-          callback s
+          callback userSlug
         else
-          slug = name.name
-          if '-' in slug
-            parts = slug.split('-')
+          existingSlug = name.name
+          if '-' in existingSlug
+            parts = existingSlug.split('-')
             suffix = parseInt parts[parts.length - 1]
             if not isNaN(suffix)
               parts[parts.length - 1] = suffix + 1
-              slug = parts.join('-')
+              existingSlug = parts.join('-')
             else
-              slug += '-1'
+              existingSlug += '-1'
           else
-            slug += '-1'
-          queryDB slug, callback
+            existingSlug += '-1'
+          queryDB existingSlug, callback
+
+    suggestSlug = (userSlug)->
+      slugField = modal.modalTabs.forms["General Settings"].inputs.Slug
+      if userSlug.length > 0
+        queryDB userSlug, (newSlug)->
+          slugField.setTooltip
+            title     : "<b>Suggestions:</b> <br/> #{newSlug}"
+            placement : 'right'
+      else
+        delete slugField.tooltip
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
