@@ -349,30 +349,41 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = (slug)->
+      slugField = modal.modalTabs.forms["General Settings"].inputs.Slug
+      KD.remote.api.JName.one
+        name : "#{slug}"
+      , (err,name)=>
+        if name
+          slugField.setClass 'slug-taken'
+        else
+          slugField.unsetClass 'slug-taken'
+          delete slugField.tooltip
 
-      queryDB = (s)->
-        KD.remote.api.JName.one
-          name : "#{s}"
-        , (err,name)=>
-          unless name
-            modal.modalTabs.forms["General Settings"].inputs.Slug.setValue s
-          else
-            slug = name.name
-            if '-' in slug
-              parts = slug.split('-')
-              suffix = parseInt parts[parts.length - 1]
-              if not isNaN(suffix)
-                parts[parts.length - 1] = suffix + 1
-                slug = parts.join('-')
-              else
-                slug += '-1'
+    makeSlug = (title)=>
+      if title.length == 0
+        return
+      queryDB @utils.slugify(title), (slug)->
+        modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+
+    queryDB = (s, callback)->
+      KD.remote.api.JName.one
+        name : "#{s}"
+      , (err,name)=>
+        unless name
+          callback s
+        else
+          slug = name.name
+          if '-' in slug
+            parts = slug.split('-')
+            suffix = parseInt parts[parts.length - 1]
+            if not isNaN(suffix)
+              parts[parts.length - 1] = suffix + 1
+              slug = parts.join('-')
             else
               slug += '-1'
-            queryDB slug
-
-      modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-      if slug.length > 0
-        queryDB slug
+          else
+            slug += '-1'
+          queryDB slug, callback
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
@@ -407,7 +418,7 @@ class GroupsAppController extends AppController
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     :(formData)=>
-          _createGroupHandler.call @, formData, (err) ->
+          _createGroupHandler.call @, formData, (err) =>
             modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
             unless err
               modal.destroy()
@@ -451,9 +462,8 @@ class GroupsAppController extends AppController
                 name                 : "title"
                 keydown              : (pubInst, event)->
                   @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    verifySlug slug
-
+                    value = modal.modalTabs.forms["General Settings"].inputs.Title.getValue()
+                    makeSlug value
 
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
@@ -461,12 +471,8 @@ class GroupsAppController extends AppController
                 name                 : "slug"
                 blur                 : ->
                   @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    verifySlug slug
-                keydown              : ->
-                  @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    verifySlug slug
+                    value = modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
+                    verifySlug value
 
                 defaultValue         : ""
                 placeholder          : 'This value will be automatically generated'
