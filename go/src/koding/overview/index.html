@@ -24,10 +24,16 @@
 
   <body>
 
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
           <a class="brand" href="#">Koding Overview</a>
+		  <ul class="nav">
+		  <li class="divider-vertical"></li>
+		     </ul>
+			<form class="navbar-search pull-left">
+			  <input name="searchbuild" type="text" class="search-query" placeholder="latest">
+			</form>
         </div>
       </div>
  
@@ -120,7 +126,7 @@
 					<td>{{.Server.Config.Mongo}}</td>
 				</tr>
 			</table>
-			<h4>RabbitMQ</h4>
+			<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-success" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
 			<table class="table table-hover table-bordered table-condensed">
 				<tr>
 					<td>Host</td>

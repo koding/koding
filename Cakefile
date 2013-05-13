@@ -321,6 +321,14 @@ task 'kontrolCli',({configFile}) ->
     name : "kontrol"
     cmd  : "./node_modules/kontrol -c #{configFile}"
 
+task 'kontrolClient',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolClient'
+    cmd     : "./go/bin/kontrolclient -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
 
 task 'kontrolProxy',(options) ->
   {configFile} = options
