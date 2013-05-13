@@ -13,6 +13,8 @@ module.exports = class BucketActivityDecorator
     for id, value of @groups
       jsonSnaphost = JSON.stringify value.snapshot
       @groups[id].snapshot = jsonSnaphost
+      @groups[id].type = @bucketName
+
 
     @groups.overview = _.sortBy(@groups.overview, (activity)-> activity.createdAt.first)
     return @groups
