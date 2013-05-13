@@ -48,7 +48,7 @@ class HomeLoginBar extends JView
       click       : (event)=>
         if entryPoint?.type is 'group'
           @utils.stopDOMEvent event
-          requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
+          requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, no
         else
           handler.call @request, event
 
@@ -72,7 +72,7 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, yes
+        requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, yes
 
     @join         = new CustomLinkView
       tagName     : "a"
@@ -113,6 +113,8 @@ class HomeLoginBar extends JView
             @join.show()
           else if @group.privacy is "private"
             KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint.slug, (err, policy)=>
+              console.log policy
+              @policy = policy
               if err then console.warn err
               else if policy.approvalEnabled
                 @request.hide()
