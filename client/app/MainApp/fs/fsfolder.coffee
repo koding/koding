@@ -30,7 +30,6 @@ class FSFolder extends FSFile
       method    : 'fs.createDirectory'
       withArgs  : {@path}
     , (err, res)=>
-
       if err then warn err
       @emit "fs.save.finished", err, res
       callback? err, res
@@ -40,6 +39,11 @@ class FSFolder extends FSFile
     callback? null
 
   remove:(callback)->
+    @off 'fs.delete.finished'
+    @on  'fs.delete.finished', =>
+      finder = KD.getSingleton 'finderController'
+      finder.stopWatching @path
+
     super callback, yes
 
   registerWatcher:(response)->
