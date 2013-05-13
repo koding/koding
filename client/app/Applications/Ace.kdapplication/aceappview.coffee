@@ -3,7 +3,8 @@ class AceAppView extends JView
 
     super options, data
 
-    @aceViews       = {}
+    @aceViews  = {}
+    @timestamp = Date.now()
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: @
@@ -14,21 +15,11 @@ class AceAppView extends JView
       saveSession          : yes
       sessionName          : "AceTabHistory"
 
-    @on 'UpdateSessionData', (openPanes, data = {}) =>
-      paths = []
-      paths.push pane.getOptions().aceView.getData().path for pane in openPanes
+    @on "SessionDataCreated", (sessionData) => @sessionData = sessionData
 
-      data[@id] = paths
-      data.latestSessions or= []
-
-      data.latestSessions.push @id if data.latestSessions.indexOf(@id) is -1
-      if data.latestSessions.length > 3
-        shifted = data.latestSessions.shift()
-        delete data[shifted]
-
-      @tabView.emit 'SaveSession', data
-
-    @on "SessionListCreated", (pane, sessionList) => @sessionList = sessionList
+    @on "UpdateSessionData", (openPanes, data) =>
+      @sessionData = @createSessionData openPanes, data
+      @tabView.emit "SaveSessionData", @sessionData
 
     @on "SessionItemClicked", (items) =>
       if items.length > 1
@@ -38,7 +29,7 @@ class AceAppView extends JView
       else
         @openFile FSHelper.createFileFromPath file for file in items
 
-    @tabView.on 'PaneDidShow', (pane) =>
+    @tabView.on "PaneDidShow", (pane) =>
       {ace} = pane.getOptions().aceView
       @_windowDidResize()
       ace.on "ace.ready", -> ace.focus()
@@ -69,6 +60,8 @@ class AceAppView extends JView
     @on "menu.recents", (eventName, item, contextmenu, offset) =>
       @createOpenRecentsMenu eventName, item, contextmenu, offset
 
+    @on "menu.reopen", => @reopenLastSession()
+
     @listenWindowResize()
 
   _windowDidResize:->
@@ -85,7 +78,45 @@ class AceAppView extends JView
       arrow       :
         placement : "right"
         margin    : -5
-    , @sessionList
+    , @createSessionListItems()
+
+  createSessionData: (openPanes, data = {}) ->
+    paths     = []
+    recordKey = "#{@id}-#{@timestamp}"
+
+    for pane in openPanes
+      {path} = pane.getOptions().aceView.getData()
+      paths.push path if path.indexOf("localfile") is -1
+
+    data[recordKey] = paths
+
+    latest = data.latestSessions or= []
+    latest.push recordKey if latest.indexOf(recordKey) is -1
+    if latest.length > 10
+      shifted = latest.shift()
+      delete data[shifted]
+
+    return @sessionData = data
+
+  createSessionListItems: ->
+    items       = {}
+    sessionData = @sessionData
+    {nickname}  = KD.whoami().profile
+    itemCount   = 0
+    for sessionId in sessionData.latestSessions
+      return items if itemCount > 14
+      sessionItems = sessionData[sessionId]
+      sessionItems.forEach (path, i) =>
+        filePath = path.replace("/home/#{nickname}", "~")
+        items[filePath] = callback: => @emit "SessionItemClicked", [path]
+        itemCount++
+
+    return items
+
+  reopenLastSession: ->
+    data   = @sessionData
+    latest = data.latestSessions
+    @emit "SessionItemClicked", data[latest[latest.length - 2]]
 
   viewAppended:->
     super

@@ -34,9 +34,13 @@ class AceAppController extends AppController
         type      : "separator"
       }
       {
-        title     : "Open Recent"
+        title     : "Recently Opened"
         eventName : "recents"
         closeMenuWhenClicked: no
+      }
+      {
+        title     : "Reopen lastest files"
+        eventName : "reopen"
       }
     ]
     # mimeTypes    : "text"
