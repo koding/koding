@@ -57,7 +57,7 @@ module.exports = class BucketActivityDecorator
     return overview
 
   decorateTargetActivity:(datum)->
-    return (new TargetActivityDecorator datum, @targetName, @groupByName).decorate()
+    return (new TargetActivityDecorator datum, @targetName, @groupByName, @activityName).decorate()
 
   decorateGroupActivity:(groupActivity)->
     return (new SingleActivityDecorator groupActivity.first).decorate()
