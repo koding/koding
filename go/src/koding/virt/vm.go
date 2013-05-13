@@ -52,7 +52,7 @@ func LoadTemplates(dir string) error {
 	templates.Funcs(template.FuncMap{
 		"hostIP": func() string { return hostIP.String() },
 	})
-	if _, err := templates.ParseGlob(templateDir + "/lxc/*"); err != nil {
+	if _, err := templates.ParseGlob(templateDir + "/vm/*"); err != nil {
 		return err
 	}
 
