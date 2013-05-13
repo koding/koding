@@ -99,10 +99,8 @@ GraphDecorator = require "./graph/graph_decorator"
 _fetchActivitiesByTimestamp = (req, res)->
   graph = new Graph neo4j
   #calculate the current and next timestamp
-  timestamp = req.params?.timestamp
-  if not timestamp
-    timestamp = new Date
 
+  timestamp = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
   startDate = new Date timestamp
   #20*60*1000 = 1200000
   endDate = new Date(startDate.getTime() + 1200000);
@@ -112,7 +110,7 @@ _fetchActivitiesByTimestamp = (req, res)->
     GraphDecorator.decorateSingle rawResponse, (decorated)->
       res.send decorated
 
-app.get "/-/cache/apps", (req, res)->
+app.get "/-/cache/latest", (req, res)->
   _fetchActivitiesByTimestamp req, res
 
 app.get "/-/cache/before/:timestamp", (req, res)->
