@@ -851,6 +851,10 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	if latestVersion {
 		versions := make([]int, len(workers))
 
+		if len(workers) == 0 {
+			return workers
+		}
+
 		for i, val := range workers {
 			versions[i] = val.Version
 		}
