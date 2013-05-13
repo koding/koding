@@ -11,6 +11,8 @@ module.exports = class BucketActivityDecorator
     for id, value of @groups
       jsonSnaphost = JSON.stringify value.snapshot
       @groups[id].snapshot = jsonSnaphost
+      @groups[id].type = @bucketName
+
 
     return @groups
 
