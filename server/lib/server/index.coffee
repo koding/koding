@@ -115,7 +115,7 @@ _fetchActivitiesByTimestamp = (req, res)->
       res.send decorated
 
 app.get "/-/cache/latest", (req, res)->
-  async.parallel [fetchSingles, fetchInstalls, fetchFollows], (err, results)=>
+  async.parallel [fetchFollows, fetchMembers], (err, results)=>
     res.send decorateAll(err, results)
 
 app.get "/-/cache/before/:timestamp", (req, res)->
@@ -350,6 +350,7 @@ app.listen webPort
 decorateAll = (err, decoratedObjects)->
   cacheObjects    = {}
   overviewObjects = []
+  newMemberBucketIndex = null
 
   for objects in decoratedObjects
     for key, value of objects when key isnt "overview"
@@ -359,6 +360,9 @@ decorateAll = (err, decoratedObjects)->
   overview = _.flatten(overviewObjects)
   overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
 
+  for activity, index in overview when activity.type is "CNewMemberBucketActivity"
+    newMemberBucketIndex = index
+
   response            = {}
   response.activities = cacheObjects
   response.overview   = overview
@@ -366,7 +370,7 @@ decorateAll = (err, decoratedObjects)->
   response.isFull     = false
   response.from       = overview.first.createdAt.first
   response.to         = overview.last.createdAt.first
-  response.newMemberBucketIndex = 1
+  response.newMemberBucketIndex = newMemberBucketIndex
 
   return response
 
