@@ -138,7 +138,6 @@ class NFinderTreeController extends JTreeViewController
     {path} = folder
 
     @emit "folder.collapsed", folder
-    folder.stopWatching?()
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
