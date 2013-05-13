@@ -391,7 +391,7 @@ class GroupsAppController extends AppController
       if userSlug.length > 0
         queryDB userSlug, (newSlug)->
           slugField.setTooltip
-            title     : "<b>Suggestions:</b> <br/> #{newSlug}"
+            title     : "<b>Suggestion:</b> #{newSlug}"
             placement : 'right'
       else
         delete slugField.tooltip
