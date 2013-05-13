@@ -56,9 +56,8 @@ func main() {
 
 	//iterate over results
 	for iter.Next(&result) {
-
 		i += 1
-		fmt.Println(i)
+		// fmt.Println(i)
 
 		if result.SourceName == "JAppStorage" || result.TargetName == "JAppStorage" || result.SourceName == "JFeed" || result.TargetName == "JFeed" || strings.HasSuffix(result.SourceName, "Bucket") || strings.HasSuffix(result.TargetName, "Bucket") || strings.HasSuffix(result.SourceName, "BucketActivity") || strings.HasSuffix(result.TargetName, "BucketActivity") {
 			continue
@@ -129,6 +128,10 @@ func main() {
 		} else {
 			fmt.Println("source name not given:", hexSourceId, result.SourceName)
 		}
+	}
+
+	if iter.Err() != nil {
+		fmt.Println("err during iteration", iter.Err())
 	}
 
 	fmt.Println("Migration completed")
