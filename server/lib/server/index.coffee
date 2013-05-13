@@ -384,6 +384,11 @@ fetchInstalls = (callback)->
     GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
       callback err, decoratedResponse
 
+fetchMembers = (callback)->
+  _fetchMembers (err, rawResponse)->
+    GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
+      callback err, decoratedResponse
+
 _fetchSingles = (callback)->
   graph = new Graph neo4j
   graph.fetchAll {}, {}, (err, rawResponse)->
@@ -397,6 +402,11 @@ _fetchInstalls = (callback)->
 _fetchFollows = (callback)->
   graph = new Graph neo4j
   graph.fetchNewFollows (err, rawResponse)->
+    callback err, rawResponse
+
+_fetchMembers = (callback)->
+  graph = new Graph neo4j
+  graph.fetchNewMembers (err, rawResponse)->
     callback err, rawResponse
 
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

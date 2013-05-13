@@ -1,13 +1,22 @@
 BucketActivityDecorator = require './bucket_activity'
 
 module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
+  _ = require 'underscore'
+
   constructor:(@data)->
-    @bucketName          = 'CNewMemberBucket'
-    @bucketActivityName  = 'CNewMemberBucketActivity'
+    @activityName  = 'CNewMemberBucketActivity'
+    @bucketName    = 'CNewMemberBucket'
+    @overview      = {createdAt:[], ids:[], type:"CFollowerBucketActivity", count:1}
+    @overviewIndex = {}
 
   decorate:->
-    members = {}
-    for member in @data
+    members  = {}
+    overview = []
+
+    data = _.sortBy @data, (member)-> member.meta.createdAt
+    data = data.reverse()
+
+    for member in data
       id = member.id
       generatedMember = {}
       generatedMember.modifiedAt = member.meta.cretadAt
@@ -21,7 +30,16 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
 
       members[id] =  generatedMember
 
+      @addToOverview(member)
+
+    members.overview = @overview
+
     return members
+
+  addToOverview:(member)->
+    @overview.createdAt.push member.meta.createdAt
+    @overview.ids.push member.id
+    @overview.count++
 
   generateSnapshot:(member)->
 
