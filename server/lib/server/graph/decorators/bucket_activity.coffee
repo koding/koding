@@ -1,4 +1,6 @@
 module.exports = class BucketActivityDecorator
+  _ = require 'underscore'
+
   SingleActivityDecorator = require './single_bucket_activity'
   TargetActivityDecorator = require './target_activity'
 
@@ -11,6 +13,8 @@ module.exports = class BucketActivityDecorator
     for id, value of @groups
       jsonSnaphost = JSON.stringify value.snapshot
       @groups[id].snapshot = jsonSnaphost
+
+    @groups.overview = _.sortBy(@groups.overview, (activity)-> activity.createdAt.first)
 
     return @groups
 
@@ -40,11 +44,12 @@ module.exports = class BucketActivityDecorator
     @groups[id] = @decorateTargetActivity datum
     @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupByName]]
     @groups.overview ||= []
-    @groups.overview.push @decorateOverview datum[@groupByName].first, id
+    @groups.overview.push @decorateOverview datum[@groupByName].first, id,\
+      datum.relationship.first.createdAt
 
-  decorateOverview:(target, anchorId)->
+  decorateOverview:(target, anchorId, createdAt)->
     overview =
-      createdAt : [@convertToISO(target.meta.createdAt)]
+      createdAt : [@convertToISO(createdAt)]
       ids       : [anchorId]
       type      : @groupName
       count     : 1
