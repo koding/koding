@@ -32,17 +32,23 @@ class NFinderController extends KDViewController
       @treeController.on "folder.expanded", (folder)=>
         @setRecentFolder folder.path
 
-      @treeController.on "folder.collapsed", (folder)=>
-        @unsetRecentFolder folder.path
+      @treeController.on "folder.collapsed", ({path})=>
+        @unsetRecentFolder path
+        @stopWatching path
 
-  watchers: []
+  watchers: {}
 
-  registerWatcher:(response)->
-    @watchers.push response.stopWatching
+  registerWatcher:(path, stopWatching)->
+    @watchers[path] = stop: stopWatching
 
   stopAllWatchers:->
-    (watcher() for watcher in @watchers)
-    @watchers = []
+    (watcher.stop() for path, watcher of @watchers)
+    @watchers = {}
+
+  stopWatching:(pathToStop)->
+    for path, watcher of @watchers  when ///^#{pathToStop}///.test path
+      watcher.stop()
+      delete @watchers[path]
 
   loadView:(mainView)->
 
@@ -73,7 +79,6 @@ class NFinderController extends KDViewController
 
     path ?= "/home/#{nickname}"
     FSHelper.resetRegistry()
-    @stopAllWatchers()
 
     @mount = FSHelper.createFile
       name : path
@@ -95,6 +100,7 @@ class NFinderController extends KDViewController
 
     timer = Date.now()
     @mount.emit "fs.job.started"
+    @stopAllWatchers()
 
     {nickname} = KD.whoami().profile
     kiteController.run
@@ -104,16 +110,13 @@ class NFinderController extends KDViewController
           FSHelper.folderOnChange @mount.path, change, @treeController
         path     : @mount.path
     , (err, response)=>
-      @lastSuccessfulResponse?.stopWatching?()
 
       if response
-        @mount.stopWatching = response.stopWatching
+        @mount.registerWatcher response
         files = FSHelper.parseWatcher @mount.path, response.files
         @treeController.addNodes files
         @treeController.emit 'fs.retry.success'
         @treeController.hideNotification()
-
-        @lastSuccessfulResponse = response
 
       log "#{(Date.now()-timer)/1000}sec !"
       @mount.emit "fs.job.finished"
