@@ -285,22 +285,24 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				panic(err)
 			}
 		}
-		if _, err := rootVos.Stat("/etc/apache2/sites-available/" + vm.Hostname()); err != nil {
-			if !os.IsNotExist(err) {
-				panic(err)
-			}
+		if _, err := rootVos.Stat("/etc/apache2"); err == nil {
+			if _, err := rootVos.Stat("/etc/apache2/sites-available/" + vm.Hostname()); err != nil {
+				if !os.IsNotExist(err) {
+					panic(err)
+				}
 
-			file, err := rootVos.Create("/etc/apache2/sites-available/" + vm.Hostname())
-			if err != nil {
-				panic(err)
-			}
-			defer file.Close()
-			if err := virt.Templates.ExecuteTemplate(file, "apache-site", vm); err != nil {
-				panic(err)
-			}
+				file, err := rootVos.Create("/etc/apache2/sites-available/" + vm.Hostname())
+				if err != nil {
+					panic(err)
+				}
+				defer file.Close()
+				if err := virt.Templates.ExecuteTemplate(file, "apache-site", vm); err != nil {
+					panic(err)
+				}
 
-			if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
-				panic(err)
+				if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
+					panic(err)
+				}
 			}
 		}
 
