@@ -16,26 +16,35 @@ module.exports = class BucketActivityDecorator
 
   groupByAnchorId:->
     for datum in @data
-      id = @extractId datum
-      if @groups[id]
-        @addFollowerToGroup datum
+      anchorId = @extractId datum
+      if @groups[anchorId]
+        @addActivityToGroup datum, anchorId
       else
         @createNewGroup datum
 
-  addFollowerToGroup:(datum)->
+  addActivityToGroup:(datum, anchorId)->
+    # TODO: use anchorId
     id = @extractId datum
     @groups[id].snapshot.group.push @decorateGroupActivity datum[@groupByName]
+    @addActvityToOverview datum[@groupByName].first, anchorId
+
+  addActvityToOverview:(datum, anchorId)->
+    for followers in @groups.overview when followers.ids.first is anchorId
+      followers.ids.push datum.id
+      followers.createdAt.push datum.meta.createdAt
+      followers.count++
 
   createNewGroup:(datum)->
     id = @extractId datum
     @groups[id] = @decorateTargetActivity datum
     @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupByName]]
-    @groups.overview = @decorateOverview datum[@groupByName].first
+    @groups.overview ||= []
+    @groups.overview.push @decorateOverview datum[@groupByName].first, id
 
-  decorateOverview:(target)->
+  decorateOverview:(target, anchorId)->
     overview =
       createdAt : [@convertToISO(target.meta.createdAt)]
-      ids       : [target.id]
+      ids       : [anchorId]
       type      : @groupName
       count     : 1
 
