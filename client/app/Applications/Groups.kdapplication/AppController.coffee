@@ -50,9 +50,12 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
-    mainController.on 'groupJoinRequested',   @joinGroup.bind this
-    mainController.on 'loginRequired',        @loginRequired.bind this
+    mainController.on 'groupAccessRequested',    @showRequestAccessModal.bind this
+    mainController.on 'groupJoinRequested',      @joinGroup.bind this
+    mainController.on 'groupInvitationAccepted', @acceptInvitation.bind this
+    mainController.on 'groupInvitationIgnored',  @ignoreInvitation.bind this
+    mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
+    mainController.on 'loginRequired',           @loginRequired.bind this
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
@@ -195,7 +198,7 @@ class GroupsAppController extends AppController
               callback err, null, (group.getId() for group in groups)
           dataEnd           :({resultsController}, ids)=>
             {requested} = resultsController.listControllers
-            @markPendingRequestGroups pending, ids
+            @markPendingRequestGroups requested, ids
 
         # recommended         :
         #   title             : "Recommended"
@@ -344,6 +347,15 @@ class GroupsAppController extends AppController
         new KDNotificationView
           title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
+
+  acceptInvitation:(group, callback)->
+    KD.whoami().acceptInvitation group, callback
+
+  ignoreInvitation:(group, callback)->
+    KD.whoami().ignoreInvitation group, callback
+  
+  cancelGroupRequest:(group, callback)->
+    KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, hasPermission)=>

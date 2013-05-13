@@ -853,7 +853,9 @@ module.exports = class JAccount extends jraphical.Module
       return callback err if err
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
 
-  getInvitationRequestByGroup:(groupData, status, callback)->
+  getInvitationRequestByGroup: secure (client, groupData, status, callback)->
+    return unless @equals client.connection.delegate
+
     JInvitationRequest = require '../invitationrequest'
     JGroup             = require '../group'
 
@@ -875,22 +877,19 @@ module.exports = class JAccount extends jraphical.Module
         group.fetchInvitationRequests {}, options, callback
 
   cancelRequest: secure (client, group, callback)->
-    if @equals client.connection.delegate
-      @getInvitationRequestByGroup group, 'pending', (err, [request])->
-        return callback err if err or not request
-        request.remove callback
+    @getInvitationRequestByGroup client, group, 'pending', (err, [request])->
+      return callback err if err or not request
+      request.remove callback
 
   acceptInvitation: secure (client, group, callback)->
-    if @equals client.connection.delegate
-      @getInvitationRequestByGroup group, 'sent', (err, [request])->
-        return callback err if err or not request
-        request.acceptInvitationByInvitee client, callback
+    @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
+      return callback err if err or not request
+      request.acceptInvitationByInvitee client, callback
 
   ignoreInvitation: secure (client, group, callback)->
-    if @equals client.connection.delegate
-      @getInvitationRequestByGroup group, 'sent', (err, [request])->
-        return callback err if err or not request
-        request.ignoreInvitationByInvitee client, callback
+    @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
+      return callback err if err or not request
+      request.ignoreInvitationByInvitee client, callback
 
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate
