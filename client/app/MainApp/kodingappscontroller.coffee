@@ -24,7 +24,8 @@ class KodingAppsController extends KDController
     super
 
     @kiteController = @getSingleton('kiteController')
-    @manifests = KodingAppsController.manifests
+    @manifests      = KodingAppsController.manifests
+    @getPublishedAppVersions()
 
   getAppPath:(manifest, escaped=no)->
 
@@ -167,6 +168,63 @@ class KodingAppsController extends KDController
           @defineApp name, script
           callback err, script
 
+  getPublishedAppVersions: ->
+    KD.remote.api.JApp.some {}, {}, (err, apps) =>
+      @publishedAppVersions = map = {}
+      for app in apps
+        {manifest} = app
+        map[manifest.name] = manifest.version
+
+  isAppRequireAnUpdate: (manifest) ->
+    return @utils.versionCompare manifest.version, "lt", @publishedAppVersions[manifest.name]
+
+  showUpdateRequiredModal: (manifest) ->
+    log manifest
+    modal = new KDModalView
+      title          : "App Update Required"
+      content        : """
+        <div class="app-update-modal">
+          <p>#{manifest.name}.kdapp requires an update to work properly. Please update it to latest version.</p>
+          <p><span class="app-update-warning">Warning:</span> Updating the app will delete it's current folder to install new version. This cannot be undone. If you have updated files, back up them now.</p>
+        </div>
+      """
+      overlay        : yes
+      buttons        :
+        Update       :
+          style      : "modal-clean-green"
+          loader     :
+            color    : "#FFFFFF"
+            diameter : 12
+          callback   : =>
+            @updateUserApp manifest, ->
+              modal.buttons.Update.hideLoader()
+              modal.destroy()
+        Cancel       :
+          style      : "modal-cancel"
+          callback   : => modal.destroy()
+
+  updateUserApp: (manifest, callback) ->
+    notification = new KDNotificationView
+      type     : "mini"
+      title    : "Deleting old app files"
+      duration : 120000
+
+    folder = FSHelper.createFileFromPath manifest.path, "folder"
+    folder.remove (err, res) =>
+      # TODO: Error handling
+      @refreshApps =>
+        notification.notificationSetTitle "Fetching updated app details"
+        KD.remote.api.JApp.some { "manifest.name": manifest.name }, {}, (err, app) =>
+          notification.notificationSetTitle "Updating app to latest version"
+          @installApp app[0], "latest", =>
+            @refreshApps()
+            callback?()
+            notification.setClass "success"
+            notification.notificationSetTitle "App updated successfully"
+            @utils.wait 3000, => notification.destroy()
+            @getSingleton("appManager").open manifest.name
+      , yes
+
   # #
   # KITE INTERACTIONS
   # #
@@ -176,6 +234,10 @@ class KodingAppsController extends KDController
     unless manifest
       warn "AppManager doesn't know what to run, no options passed!"
       return
+
+    if @isAppRequireAnUpdate(manifest) and not manifest.devMode
+      @showUpdateRequiredModal manifest
+      return callback?()
 
     {options, name} = manifest
 
@@ -302,6 +364,7 @@ class KodingAppsController extends KDController
   installApp:(app, version='latest', callback)->
 
     @fetchApps (err, manifests = {})=>
+      log manifests
       if err
         warn err
         new KDNotificationView type : "mini", title : "There was an error, please try again later!"
