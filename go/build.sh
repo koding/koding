@@ -16,6 +16,7 @@ services=(
 	koding/virt/vmproxy
 	koding/virt/vmtool
 	koding/alice
+	koding/kontrol/kontrolclient
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"
