@@ -125,11 +125,11 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
   #_fetchActivitiesByTimestamp req, res
 
-app.get "/-/cache/members", (req, res)->
-  graph = new Graph neo4j
-  graph.fetchNewMembers (err, rawResponse)->
-    GraphDecorator.decorateMembers rawResponse, (decorated)->
-      callback err, decorated
+#app.get "/-/cache/members", (req, res)->
+  #graph = new Graph neo4j
+  #graph.fetchNewMembers (err, rawResponse)->
+    #GraphDecorator.decorateMembers rawResponse, (decorated)->
+      #callback err, decorated
 
 app.get "/-/cache/follows", (req, res)->
   graph = new Graph neo4j
@@ -385,6 +385,11 @@ fetchInstalls = (callback)->
     GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
       callback err, decoratedResponse
 
+fetchMembers = (callback)->
+  _fetchMembers (err, rawResponse)->
+    GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
+      callback err, decoratedResponse
+
 _fetchSingles = (callback)->
   graph = new Graph neo4j
   graph.fetchAll {}, {}, (err, rawResponse)->
@@ -398,6 +403,11 @@ _fetchInstalls = (callback)->
 _fetchFollows = (callback)->
   graph = new Graph neo4j
   graph.fetchNewFollows (err, rawResponse)->
+    callback err, rawResponse
+
+_fetchMembers = (callback)->
+  graph = new Graph neo4j
+  graph.fetchNewMembers (err, rawResponse)->
     callback err, rawResponse
 
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

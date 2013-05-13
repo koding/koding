@@ -43,7 +43,6 @@ module.exports = class GraphDecorator
     resp = (new InstallsBucketDecorator(data)).decorate()
     callback resp
 
-
   @decorateMembers:(data, callback)->
     resp = (new NewMemberBucketDecorator(data)).decorate()
     callback resp
