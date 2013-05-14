@@ -101,19 +101,17 @@ authenticationFailed = (res, err)->
 app.get "/-/cache/latest", (req, res)->
   timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
   startDate = (new Date timestamp).toISOString()
-  endDate   = (new Date (new Date timestamp).getTime() + 1200000).toISOString()
 
-  fetchAllActivityParallel startDate, endDate, neo4j, (results)->
+  fetchAllActivityParallel startDate, neo4j, (results)->
     res.send results
 
 app.get "/-/cache/before/:timestamp", (req, res)->
   timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
   startDate = (new Date timestamp).toISOString()
-  endDate   = (new Date (new Date timestamp).getTime() + 1200000).toISOString()
 
-  console.log req.params, timestamp, startDate, endDate
+  console.log req.params, timestamp, startDate
 
-  fetchAllActivityParallel startDate, endDate, neo4j, (results)->
+  fetchAllActivityParallel startDate, neo4j, (results)->
     res.send results
 
 startTime = null
