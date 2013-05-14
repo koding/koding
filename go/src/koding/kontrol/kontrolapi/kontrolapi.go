@@ -524,7 +524,6 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 
 	io.WriteString(writer, resp)
 	return
-
 }
 
 // Add key with proxy host to proxy machine with uuid

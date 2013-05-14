@@ -162,7 +162,6 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 		return err
 	}
 	return nil
-
 }
 
 func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, fullurl, uuid string) error {
@@ -377,13 +376,3 @@ func (p *ProxyConfiguration) GetProxy(uuid string) (Proxy, error) {
 
 	return result, nil
 }
-
-// func (p *ProxyConfiguration) GetUserProxy(username string) (UserProxy, error) {
-// 	result := UserProxy{}
-// 	err := p.Collection.Find(bson.M{"uuid": uuid}).One(&result)
-// 	if err != nil {
-// 		return result, fmt.Errorf("no proxy with the uuid %s exist.", uuid)
-// 	}
-//
-// 	return result, nil
-// }

@@ -5,7 +5,6 @@ import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
-	"koding/tools/config"
 	"log"
 )
 
@@ -46,69 +45,51 @@ func HandleMessage(data []byte) {
 func DoProxy(msg proxyconfig.ProxyMessage) {
 	switch msg.Action {
 	case "addProxy":
-		if config.Verbose {
-			log.Println("got 'addProxy' json request")
-		}
+		log.Println("got 'addProxy' json request")
 		err := proxyConfig.AddProxy(msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "addUser":
-		if config.Verbose {
-			log.Println("got 'addUser' json request")
-		}
+		log.Println("got 'addUser' json request")
 		err := proxyConfig.AddUser(msg.Uuid, msg.Username)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "addKey":
-		if config.Verbose {
-			log.Println("got 'addKey' json request")
-		}
+		log.Println("got 'addKey' json request")
 		err := proxyConfig.AddKey(msg.Username, msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid, msg.RabbitKey)
 		if err != nil {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "addDomain":
-		if config.Verbose {
-			log.Println("got 'addDomain' json request")
-		}
+		log.Println("got 'addDomain' json request")
 		err := proxyConfig.AddDomain(msg.Username, msg.DomainName, msg.ServiceName, msg.Key, msg.Host, msg.Uuid)
-		if err != nil {
-			log.Println(err)
-		}
+		log.Println(err)
 		sendResponse("updateProxy", msg.Uuid)
 	case "deleteProxy":
-		if config.Verbose {
-			log.Println("got 'deleteProxy' json request")
-		}
+		log.Println("got 'deleteProxy' json request")
 		err := proxyConfig.DeleteProxy(msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	case "deleteKey":
-		if config.Verbose {
-			log.Println("got 'deleteKey' json request")
-		}
+		log.Println("got 'deleteKey' json request")
 		err := proxyConfig.DeleteKey(msg.Username, msg.ServiceName, msg.Key, msg.Host, msg.HostData, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	case "deleteServiceName":
-		if config.Verbose {
-			log.Println("got 'deleteServiceName' json request")
-		}
+		log.Println("got 'deleteServiceName' json request")
 		err := proxyConfig.DeleteServiceName(msg.Username, msg.ServiceName, msg.Uuid)
 		if err != nil {
 			log.Println(err)
 		}
 	case "deleteDomain":
-		if config.Verbose {
-			log.Println("got 'deleteDame' json request")
-		}
+		log.Println("got 'deleteDame' json request")
 		err := proxyConfig.DeleteDomain(msg.DomainName, msg.Uuid)
 		if err != nil {
 			log.Println(err)
@@ -144,7 +125,6 @@ func deliver(data []byte, appId string) {
 		ContentEncoding: "",
 		Body:            data,
 		DeliveryMode:    1, // 1=non-persistent, 2=persistent
-		Priority:        0, // 0-9
 	}
 
 	proxyId := "output.proxy." + appId
@@ -152,7 +132,4 @@ func deliver(data []byte, appId string) {
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
 	}
-	//if config.Verbose {
-	//log.Println("SENDING PROXY data ", string(data))
-	//}
 }
