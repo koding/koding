@@ -199,6 +199,10 @@ func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex string
 		return fmt.Errorf("adding key is not possible. '%s'", err)
 	}
 
+	if proxy.Rules == nil {
+		proxy.Rules = make(map[string]UserRules)
+	}
+
 	_, ok := proxy.Rules[username]
 	if !ok {
 		proxy.Rules[username] = UserRules{Services: make(map[string]Restriction)}
