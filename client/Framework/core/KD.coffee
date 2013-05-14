@@ -102,15 +102,28 @@ unless window.event?
             return yes
     no
 
-  requireLogin:(errMsg, callback)->
+  requireLogin:(options={})->
 
-    [callback, errMsg] = [errMsg, callback] unless callback
+    {callback, onFailMsg, onFail, silence, tryAgain} = options
 
-    if KD.whoami() instanceof KD.remote.api.JGuest
-      new KDNotificationView
-        title    : 'Access denied!'
-        content  : errMsg or 'You must log in to perform this action!'
-        duration : 3000
+    unless KD.whoami() instanceof KD.remote.api.JAccount and KD.isLoggedIn()
+
+      if onFailMsg
+        new KDNotificationView
+          type     : 'mini'
+          cssClass : 'error'
+          title    : onFailMsg
+          duration : 5000
+
+      onFail?()
+
+      unless silence
+        @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+
+      if callback? and tryAgain
+        @getSingleton('mainController').once "accountChanged.to.loggedIn",\
+          -> callback()
+
     else
       callback?()
 
