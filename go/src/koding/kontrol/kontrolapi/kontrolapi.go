@@ -82,14 +82,14 @@ var StatusCode = map[workerconfig.WorkerStatus]string{
 var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
 var proxyConfig *proxyconfig.ProxyConfiguration
+var amqpWrapper *AmqpWrapper
 
 func init() {
 	log.SetPrefix("kontrol-api ")
 }
 
 func main() {
-	amqpWrapper := setupAmqp()
-	listenTell = setupListenTell(amqpWrapper)
+	amqpWrapper = setupAmqp()
 
 	var err error
 	kontrolConfig, err = workerconfig.Connect()
@@ -1027,7 +1027,7 @@ func buildSendCmd(action, host, uuid string) {
 		log.Println("Json marshall error", data)
 	}
 
-	listenTell.Tell(data)
+	amqpWrapper.Publish(data)
 }
 
 // Creates and send request message for proxies. Sends to kontrold.
@@ -1042,5 +1042,5 @@ func buildSendProxyCmd(cmd proxyconfig.ProxyMessage) {
 		log.Println("Json marshall error", data)
 	}
 
-	listenTell.Tell(data)
+	amqpWrapper.Publish(data)
 }
