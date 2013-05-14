@@ -822,6 +822,7 @@ class GroupsAppController extends AppController
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a class="hidden" id="go-to-group-link" href="/#{group.slug}" target="#{group.slug}">Go to Group</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
@@ -837,8 +838,8 @@ class GroupsAppController extends AppController
             title    : 'Go to Group'
             style    : 'modal-clean-gray'
             callback : =>
+              document.getElementById('go-to-group-link').click()
               modal.destroy()
-              KD.getSingleton('router').handleRoute "/#{group.slug}"
           dismiss    :
             title    : 'Dismiss'
             style    : 'modal-cancel'
