@@ -18,7 +18,7 @@ class NVMItemView extends NFileItemView
     offset = @changePathButton.$().offset()
     finder = KD.getSingleton('finderController')
     currentPath = @getData().path
-    log width = 30 + currentPath.length * 5
+
     contextMenu = new JContextMenu
       menuWidth   : width
       delegate    : @changePathButton

@@ -602,6 +602,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
+  "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
   #ABOUT VIEWS
 

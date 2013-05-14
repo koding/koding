@@ -4,60 +4,119 @@ import (
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
+	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/tools/process"
 	"log"
 )
 
-type Consumer struct {
-	conn    *amqp.Connection
-	channel *amqp.Channel
-	tag     string
-	done    chan error
-}
-
 func init() {
 	log.SetPrefix("kontrold-client ")
 }
 
+var producer *helper.Producer
+
 func main() {
-	c := &Consumer{
-		conn:    nil,
-		channel: nil,
-		tag:     "",
-		done:    make(chan error),
-	}
-	c.conn = helper.CreateAmqpConnection()
-	c.channel = helper.CreateChannel(c.conn)
-
-	err := c.channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
+	var err error
+	producer, err = helper.CreateProducer("client")
 	if err != nil {
-		log.Fatal("info exchange.declare: %s", err)
+		log.Fatalf(err.Error())
 	}
 
-	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
-		log.Fatal("clientProducer queue.declare: %s", err)
-	}
-
-	if err := c.channel.QueueBind("", "", "clientExchange", false, nil); err != nil {
-		log.Fatal("clientProducer queue.bind: %s", err)
-	}
-
-	stream, err := c.channel.Consume("", "", true, false, false, false, nil)
+	data, err := gatherData()
 	if err != nil {
-		log.Fatal("clientProducer basic.consume: %s", err)
+		log.Fatalf(err.Error())
 	}
 
-	go handle(stream, c)
-
-	log.Println("starting to listen for requests...")
-
-	select {}
-
+	deliver(data)
 }
 
-func handle(deliveries <-chan amqp.Delivery, consumer *Consumer) {
-	for d := range deliveries {
+func gatherData() ([]byte, error) {
+	log.Println("gathering information...")
+	buildNumber := helper.ReadVersion()
+	configused := helper.ReadFile("CONFIG_USED")
+	gitbranch := helper.ReadFile("GIT_BRANCH")
+	gitcommit := helper.ReadFile("GIT_COMMIT")
+
+	publicHostname := helper.CustomHostname()
+
+	localHostname, err := process.RunCmd("ec2metadata", "--local-hostname")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	publicIP, err := process.RunCmd("ec2metadata", "--public-ipv4")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	localIp, err := process.RunCmd("ec2metadata", "--local-ipv4")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	configJSON, err := process.RunCmd("node", "-e", "require('koding-config-manager').printJson('main."+configused+"')")
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	config := &clientconfig.ConfigFile{}
+	err = json.Unmarshal(configJSON, &config)
+	if err != nil {
+		log.Fatalf("Could not unmarshal configuration: %s\nConfiguration source output:\n%s\n", err.Error(), configJSON)
+	}
+
+	s := &clientconfig.ServerInfo{
+		BuildNumber: buildNumber,
+		GitBranch:   gitbranch,
+		GitCommit:   gitcommit,
+		ConfigUsed:  configused,
+		Config:      config,
+		Hostname: clientconfig.Hostname{
+			Public: publicHostname,
+			Local:  string(localHostname),
+		},
+		IP: clientconfig.IP{
+			Public: string(publicIP),
+			Local:  string(localIp),
+		},
+	}
+
+	data, err := json.Marshal(s)
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	log.Println(".. I'm done")
+	log.Println("Data is: ", string(data))
+
+	return data, nil
+}
+
+func startConsuming() {
+	connection := helper.CreateAmqpConnection()
+	channel := helper.CreateChannel(connection)
+
+	err := channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
+	if err != nil {
+		log.Fatalf("info exchange.declare: %s", err)
+	}
+
+	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
+		log.Fatalf("clientProducer queue.declare: %s", err)
+	}
+
+	if err := channel.QueueBind("", "", "clientExchange", false, nil); err != nil {
+		log.Fatalf("clientProducer queue.bind: %s", err)
+	}
+
+	stream, err := channel.Consume("", "", true, false, false, false, nil)
+	if err != nil {
+		log.Fatalf("clientProducer basic.consume: %s", err)
+	}
+
+	log.Println("starting to listen for requests...")
+	for d := range stream {
 		log.Printf("handle got %dB message data: [%v] %s %s",
 			len(d.Body),
 			d.DeliveryTag,
@@ -73,9 +132,6 @@ func handle(deliveries <-chan amqp.Delivery, consumer *Consumer) {
 		matchAction(req.Action, req.Cmd, req.Hostname, req.Pid)
 
 	}
-
-	log.Printf("handle deliveries channel closed")
-	consumer.done <- nil
 }
 
 func matchAction(action, cmd, hostname string, pid int) {
@@ -92,7 +148,7 @@ func matchAction(action, cmd, hostname string, pid int) {
 	}
 
 	if pid == 0 && action != "start" {
-		log.Println("please provide pid number for '%s'", action)
+		log.Printf("please provide pid number for '%s'\n", action)
 	}
 
 	err := funcs[action](cmd, hostname, pid)
@@ -142,4 +198,19 @@ func stop(cmd, hostname string, pid int) error {
 
 	log.Printf("local process with %s pid is get SIGSTOP", pid)
 	return nil
+}
+
+func deliver(data []byte) {
+	msg := amqp.Publishing{
+		Headers:         amqp.Table{},
+		ContentType:     "text/plain",
+		ContentEncoding: "",
+		Body:            data,
+		DeliveryMode:    1, // 1=non-persistent, 2=persistent
+	}
+
+	err := producer.Channel.Publish("clientExchange", "kontrol-client", false, false, msg)
+	if err != nil {
+		log.Printf("error while publishing client message: %s", err)
+	}
 }

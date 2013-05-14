@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -36,15 +37,17 @@ type RabbitChannel struct {
 	Receive chan []byte
 }
 
-type KeyData struct {
+type UserInfo struct {
 	Username    string
 	Servicename string
 	Key         string
 	FullUrl     string
+	IP          string
+	Country     string
 }
 
-func NewKeyData(username, servicename, key, fullurl string) *KeyData {
-	return &KeyData{
+func NewUserInfo(username, servicename, key, fullurl string) *UserInfo {
+	return &UserInfo{
 		Username:    username,
 		Servicename: servicename,
 		Key:         key,
@@ -86,7 +89,7 @@ func main() {
 	// artifical host in form {name}-{key}-{username}.x.koding.com and use it
 	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	if err != nil {
-		log.Println("exchange.declare: %s", err)
+		log.Printf("exchange.declare: %s\n", err.Error())
 	}
 
 	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
@@ -123,17 +126,7 @@ func main() {
 
 func handleInput(input <-chan amqp.Delivery, uuid string) {
 	for d := range input {
-		// log.Printf("got %dB message data: [%v] %s",
-		// 	len(d.Body),
-		// 	d.DeliveryTag,
-		// 	d.Body)
-
-		switch d.RoutingKey {
-		case "local.key":
-		}
-
 		var msg IncomingMessage
-
 		err := json.Unmarshal(d.Body, &msg)
 		if err != nil {
 			log.Print("bad json incoming msg: ", err)
@@ -153,28 +146,44 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 					first = false
 					log.Println("routing tables updated. ready to start servers.")
 				}
-
 			}
-
 		} else {
 			log.Println("incoming message is in wrong format")
 		}
-
 	}
 }
 
-func parseKey(host string) (KeyData, error) {
+func validateHost(user UserInfo) error {
+	rules, ok := proxy.Rules[user.Username]
+	if !ok { // if not available assume allowed for all
+		return nil
+	}
+
+	restriction, ok := rules.Services[user.Servicename]
+	if !ok { // if not available assume allowed for all
+		return nil
+	}
+
+	validator := regexp.MustCompile(restriction.IP)
+	if !validator.MatchString(user.IP) {
+		return nil
+	}
+
+	return fmt.Errorf("IP is not validated '%s'", user.IP)
+}
+
+func parseKey(host string) (UserInfo, error) {
 	log.Printf("parse host '%s' to get key and name", host)
 
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
 		// host is in form {name}.x.koding.com, used for domain forwarding
-		keyData, err := lookupDomain(host)
+		userInfo, err := lookupDomain(host)
 		if err != nil {
 			log.Println(err)
-			return KeyData{}, err
+			return UserInfo{}, err
 		}
-		return keyData, nil
+		return userInfo, nil
 	case counts == 1:
 		// host is in form {name}-{key}.x.koding.com, used by koding
 		partsFirst := strings.Split(host, ".")
@@ -184,7 +193,7 @@ func parseKey(host string) (KeyData, error) {
 		servicename := partsSecond[0]
 		key := partsSecond[1]
 
-		return *NewKeyData("koding", servicename, key, ""), nil
+		return *NewUserInfo("koding", servicename, key, ""), nil
 	case counts > 1:
 		// host is in form {name}-{key}-{username}.x.koding.com, used by users
 		partsFirst := strings.Split(host, ".")
@@ -195,22 +204,22 @@ func parseKey(host string) (KeyData, error) {
 		key := partsSecond[1]
 		username := partsSecond[2]
 
-		return *NewKeyData(username, servicename, key, ""), nil
+		return *NewUserInfo(username, servicename, key, ""), nil
 	default:
-		return KeyData{}, errors.New("no data available for proxy")
+		return UserInfo{}, errors.New("no data available for proxy")
 	}
 
 }
 
-func lookupDomain(domainname string) (KeyData, error) {
+func lookupDomain(domainname string) (UserInfo, error) {
 	log.Printf("lookup domain table for domain '%s'", domainname)
 
 	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
-		return KeyData{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+		return UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	return *NewKeyData(domain.Username, domain.Name, domain.Key, domain.FullUrl), nil
+	return *NewUserInfo(domain.Username, domain.Name, domain.Key, domain.FullUrl), nil
 }
 
 func targetUrl(username, servicename, key string) (*url.URL, error) {
@@ -435,19 +444,6 @@ var hopHeaders = []string{
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println("--")
-	host, port, err := net.SplitHostPort(req.RemoteAddr)
-	if err != nil {
-		log.Printf("could not split host and port", err)
-	} else {
-		log.Printf("new connection from %s:%s\n", host, port)
-	}
-
-	if geoIP != nil {
-		loc := geoIP.GetLocationByIP(host)
-		if loc != nil {
-			fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
-		}
-	}
 
 	conn_hdr := ""
 	conn_hdrs := req.Header["Connection"]
@@ -471,26 +467,49 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	var target *url.URL
 
-	keyData, err := parseKey(outreq.Host)
+	userInfo, err := parseKey(outreq.Host)
 	if err != nil {
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
 		return
 	}
 
-	if keyData.FullUrl != "" {
-		target, err = url.Parse("http://" + keyData.FullUrl)
+	host, port, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		log.Printf("could not split host and port: %s", err.Error())
+	} else {
+		log.Printf("new connection from %s:%s\n", host, port)
+		userInfo.IP = host
+	}
+
+	if geoIP != nil {
+		loc := geoIP.GetLocationByIP(host)
+		if loc != nil {
+			fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
+			userInfo.Country = loc.CountryName
+		}
+	}
+
+	err = validateHost(userInfo)
+	if err != nil {
+		http.NotFound(rw, req)
+		return
+	}
+
+	if userInfo.FullUrl != "" {
+		target, err = url.Parse("http://" + userInfo.FullUrl)
 		if err != nil {
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-			log.Printf("error running fullurl %s: %v", keyData.FullUrl, err)
+			log.Printf("error running fullurl %s: %v", userInfo.FullUrl, err)
+			http.NotFound(rw, req)
 			return
 		}
 	} else {
 		// otherwise lookup for matches in our database
-		target, err = targetUrl(keyData.Username, keyData.Servicename, keyData.Key)
+		target, err = targetUrl(userInfo.Username, userInfo.Servicename, userInfo.Key)
 		if err != nil {
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-			log.Printf("error running key proxy %s: %v", keyData.FullUrl, err)
+			log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
 			return
 		}
 	}
@@ -591,7 +610,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		res := new(http.Response)
 
-		rabbitKey := lookupRabbitKey(keyData.Username, keyData.Servicename, keyData.Key)
+		rabbitKey := lookupRabbitKey(userInfo.Username, userInfo.Servicename, userInfo.Key)
 
 		if rabbitKey != "" {
 			requestHost := outreq.Host
@@ -605,7 +624,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			rabbitClient := keyData.Username + "-" + keyData.Servicename + "-" + rabbitKey
+			rabbitClient := userInfo.Username + "-" + userInfo.Servicename + "-" + rabbitKey
 
 			if _, ok := connections[rabbitClient]; !ok {
 				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)

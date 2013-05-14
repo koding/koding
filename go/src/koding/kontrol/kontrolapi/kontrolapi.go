@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
+	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
@@ -47,6 +48,10 @@ type ProxyMachine struct {
 }
 type ProxyMachines []ProxyMachine
 
+type RulesPostMessage struct {
+	IpRegex *string
+}
+
 type ProxyPostMessage struct {
 	Name      *string
 	Username  *string
@@ -56,6 +61,12 @@ type ProxyPostMessage struct {
 	Host      *string
 	Hostdata  *string
 	Uuid      *string
+}
+
+type DeployPostMessage struct {
+	Build  *string
+	Git    *string
+	Config *string
 }
 
 var StatusCode = map[workerconfig.WorkerStatus]string{
@@ -68,6 +79,7 @@ var StatusCode = map[workerconfig.WorkerStatus]string{
 	workerconfig.Dead:       "dead",
 }
 
+var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
 var proxyConfig *proxyconfig.ProxyConfiguration
 
@@ -90,10 +102,20 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
+	clientDB, err = clientconfig.Connect()
+	if err != nil {
+		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
+
 	port := strconv.Itoa(config.Current.Kontrold.Api.Port)
 
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
+
+	// Deployment handlers
+	rout.HandleFunc("/deployments", GetClients).Methods("GET")
+	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
+	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
 
 	// Worker handlers
 	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
@@ -105,6 +127,8 @@ func main() {
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
+
+	// Proxy service handlers
 	rout.HandleFunc("/proxies/{uuid}/services", GetProxyUsers).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
@@ -112,9 +136,17 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
+
+	// Proxy domain handlers
 	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
+
+	// Proxy rule handlers
+	rout.HandleFunc("/proxies/{uuid}/rules", GetRules).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}", GetUserRules).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", GetUserServiceRules).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", CreateUserServiceRules).Methods("POST")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -126,6 +158,251 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func GetRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	users := make([]string, 0)
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	for username := range proxyMachine.Rules {
+		users = append(users, username)
+	}
+	data, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
+func GetUserRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	username := vars["username"]
+	services := make([]string, 0)
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	_, ok := proxyMachine.Rules[username]
+	if !ok {
+		resp := fmt.Sprintf("getting services of user rules is not possible. no user %s exists", username)
+		io.WriteString(writer, resp)
+		return
+	}
+
+	rules := proxyMachine.Rules[username]
+	for name, _ := range rules.Services {
+		services = append(services, name)
+	}
+
+	data, err := json.MarshalIndent(services, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func GetUserServiceRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	username := vars["username"]
+	servicename := vars["servicename"]
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	_, ok := proxyMachine.Rules[username]
+	if !ok {
+		resp := fmt.Sprintf("getting services of user rules is not possible. no user %s exists", username)
+		io.WriteString(writer, resp)
+		return
+	}
+
+	rules := proxyMachine.Rules[username]
+	restriction := rules.Services[servicename]
+
+	data, err := json.MarshalIndent(restriction, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	servicename := vars["servicename"]
+	username := vars["username"]
+
+	var msg RulesPostMessage
+	var ipregex string
+
+	body, _ := ioutil.ReadAll(req.Body)
+	log.Println(string(body))
+
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.IpRegex != nil {
+		ipregex = *msg.IpRegex
+	} else {
+		err := "no 'ipregex' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addRule"
+	cmd.Uuid = uuid
+	cmd.Username = username
+	cmd.ServiceName = servicename
+	cmd.IpRegex = ipregex
+
+	buildSendProxyCmd(cmd)
+
+	url := fmt.Sprintf("rule '%s' is added for the user %s and service %s", ipregex, username, servicename)
+	io.WriteString(writer, url)
+	return
+
+}
+
+func CreateClient(writer http.ResponseWriter, req *http.Request) {
+	log.Println("POST /deployments")
+	var msg DeployPostMessage
+	var build string
+	var git string
+	var config string
+
+	body, _ := ioutil.ReadAll(req.Body)
+
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Build != nil {
+		build = *msg.Build
+	} else {
+		err := "aborting. no 'build' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Git != nil {
+		git = *msg.Git
+	} else {
+		err := "aborting. no 'git' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.Config != nil {
+		config = *msg.Config
+	} else {
+		err := "aborting. no 'config' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	client := clientconfig.ServerInfo{
+		BuildNumber: build,
+		GitBranch:   git,
+		ConfigUsed:  config,
+		Config:      nil,
+		Hostname:    clientconfig.Hostname{},
+		IP:          clientconfig.IP{},
+	}
+
+	clientDB.AddClient(client)
+
+	var url string
+	url = fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
+	io.WriteString(writer, url)
+	return
+
+}
+
+// Get all registered proxies
+// example: http GET "localhost:8000/proxies"
+func GetClients(writer http.ResponseWriter, req *http.Request) {
+	clients := make([]clientconfig.ServerInfo, 0)
+	client := clientconfig.ServerInfo{}
+	log.Println("GET /deployments")
+
+	iter := clientDB.Collection.Find(nil).Iter()
+	for iter.Next(&client) {
+		clients = append(clients, client)
+	}
+
+	data, err := json.MarshalIndent(clients, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
+func GetClient(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	build := vars["build"]
+	log.Printf("GET /deployments/%s\n", build)
+
+	client := clientconfig.ServerInfo{}
+	clients := make([]clientconfig.ServerInfo, 0)
+
+	if build == "latest" {
+		iter := clientDB.Collection.Find(nil).Iter()
+		for iter.Next(&client) {
+			clients = append(clients, client)
+		}
+
+		if len(clients) == 0 {
+			io.WriteString(writer, "[]") // return empty slice
+			return
+		}
+
+		builds := make([]int, len(clients))
+
+		for i, val := range clients {
+			builds[i], _ = strconv.Atoi(val.BuildNumber)
+		}
+
+		sort.Ints(builds)
+		latestBuild := builds[len(builds)-1] // get largest build number
+		for _, val := range clients {
+			build, _ := strconv.Atoi(val.BuildNumber)
+
+			if latestBuild == build {
+				data, err := json.MarshalIndent(val, "", "  ")
+				if err != nil {
+					io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+					return
+				}
+				writer.Write([]byte(data))
+				return
+			}
+		}
+	}
+
+	query := bson.M{"buildnumber": build}
+	iter := clientDB.Collection.Find(query).Iter()
+	for iter.Next(&client) {
+		data, err := json.MarshalIndent(client, "", "  ")
+		if err != nil {
+			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+			return
+		}
+
+		writer.Write([]byte(data))
+		return
+	}
+
 }
 
 // Get all registered proxies
@@ -371,7 +648,6 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 
 	io.WriteString(writer, resp)
 	return
-
 }
 
 // Add key with proxy host to proxy machine with uuid
@@ -506,7 +782,6 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	writer.Write([]byte(data))
-
 }
 
 // Get all keys and hosts for a given proxy service registerd to a proxy uuid
@@ -612,7 +887,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 					s := strings.Split(value[0], "-")
 					name = s[0]
 				}
-				query[key] = bson.RegEx{"^" + name, "i"}
+				query[key] = bson.RegEx{Pattern: "^" + name, Options: "i"}
 			} else {
 				query[key] = value[0]
 			}
@@ -620,7 +895,11 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	matchedWorkers := queryResult(query, latestVersion)
-	data := buildWriteData(matchedWorkers)
+	data, err := createJson(matchedWorkers)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
 	writer.Write(data)
 
 }
@@ -634,7 +913,11 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 
 	query := bson.M{"uuid": uuid}
 	matchedWorkers := queryResult(query, false)
-	data := buildWriteData(matchedWorkers)
+	data, err := createJson(matchedWorkers)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
 	writer.Write(data)
 }
 
@@ -698,6 +981,10 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	if latestVersion {
 		versions := make([]int, len(workers))
 
+		if len(workers) == 0 {
+			return workers
+		}
+
 		for i, val := range workers {
 			versions[i] = val.Version
 		}
@@ -718,18 +1005,18 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	return workers
 }
 
-func buildWriteData(w Workers) []byte {
+func createJson(w Workers) ([]byte, error) {
 	data, err := json.MarshalIndent(w, "", "  ")
 	if err != nil {
-		log.Println("Marshall allWorkers into Json failed", err)
+		return nil, err
 	}
 
-	return data
+	return data, nil
 }
 
 // Creates and send request message for workers. Sends to kontrold.
 func buildSendCmd(action, host, uuid string) {
-	cmd := workerconfig.Request{action, host, uuid}
+	cmd := workerconfig.Request{Command: action, Hostname: host, Uuid: uuid}
 	log.Println("Sending cmd to kontrold:", cmd)
 
 	// Wrap message for dynamic unmarshaling at endpoint

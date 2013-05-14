@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/helper"
+	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/handler/proxy"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -33,6 +34,7 @@ type ApiMessage struct {
 }
 
 var kontrolConfig *workerconfig.WorkerConfig
+var clientDB *clientconfig.ClientConfig
 var workerProducer *helper.Producer
 var cliProducer *helper.Producer
 var apiProducer *helper.Producer
@@ -74,6 +76,11 @@ func Startup() {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
 	}
 
+	clientDB, err = clientconfig.Connect()
+	if err != nil {
+		log.Fatalf("wokerconfig mongodb connect: %s", err)
+	}
+
 	// cleanup death workers at intervals
 	ticker := time.NewTicker(time.Hour * 1)
 	go func() {
@@ -92,7 +99,7 @@ func Startup() {
 	}()
 
 	// update workers
-	tickerWorker := time.NewTicker(time.Second * 5)
+	tickerWorker := time.NewTicker(time.Second * 1)
 	go func() {
 		for _ = range tickerWorker.C {
 			err := kontrolConfig.RefreshStatusAll()
@@ -103,6 +110,18 @@ func Startup() {
 	}()
 
 	log.Println("kontrold handler plugin is initialized")
+}
+
+func HandleClientMessage(data amqp.Delivery) {
+	if data.RoutingKey == "kontrol-client" {
+		var info clientconfig.ServerInfo
+		err := json.Unmarshal(data.Body, &info)
+		if err != nil {
+			log.Print("bad json client msg: ", err)
+		}
+
+		clientDB.AddClient(info)
+	}
 }
 
 func HandleWorkerMessage(data []byte) {
@@ -136,16 +155,13 @@ func HandleApiMessage(data []byte, appId string) {
 	}
 
 	if msg.Worker != nil {
-		// from kontrol-api PUT or DELETE /workers/{uuid}/....
 		err = DoRequest(msg.Worker.Command, msg.Worker.Hostname, msg.Worker.Uuid, "", appId)
 		if err != nil {
 			log.Println(err)
 		}
 	} else if msg.Proxy != nil {
-		// from kontrol-api PUT or DELETE /proxies/{uuid}/action}
 		proxy.DoProxy(*msg.Proxy)
 	} else if msg.Cli != nil {
-		// from kontrol-cli directly (TODO: should use kontrol-api instead of communicating with rabbitmq)
 		err = DoRequest(msg.Cli.Command, msg.Cli.Hostname, msg.Cli.Uuid, msg.Cli.Data, appId)
 		if err != nil {
 			log.Println(err)
@@ -168,7 +184,6 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		if err != nil {
 			return err
 		}
-
 		workerJson, err := json.Marshal(res)
 		if err != nil {
 			log.Printf("could not marshall worker: %s", err)
@@ -179,12 +194,10 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		if command != "addWithProxy" {
 			return nil
 		}
-		// but not if it has port of 0
-		if worker.Port == 0 {
+
+		if worker.Port == 0 { // but not if it has port of 0
 			return fmt.Errorf("register to konytol proxy not possible. port number is '0' for %s", worker.Name)
 		}
-
-		// log.Println("registerProxy is enabled "
 
 		log.Printf("registerProxy is enabled '%s' on hostname '%s' with uuid '%s'",
 			worker.Name,
@@ -209,7 +222,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
-		return fmt.Errorf(" do action", err)
+		return fmt.Errorf(" do action: %s", err.Error())
 	}
 
 	actions := map[string]func(worker workerconfig.MsgWorker) error{
@@ -218,7 +231,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if _, ok := actions[command]; !ok {
-		return fmt.Errorf(" command not recognized: ", command)
+		return fmt.Errorf(" command not recognized: %s", command)
 	}
 
 	if config.Verbose && command != "ack" {
@@ -311,7 +324,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	}
 
 	if _, ok := actions[command]; !ok {
-		return fmt.Errorf("command not recognized: ", command)
+		return fmt.Errorf("command not recognized: %s", command)
 	}
 
 	result := workerconfig.MsgWorker{}
@@ -348,7 +361,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 			hostname = workerResult.Hostname
 		}
 
-		if config.Verbose && command != "ack" {
+		if command != "ack" {
 			log.Printf(" '%s' worker '%s' on host '%s'", command, workerResult.Name, hostname)
 		}
 
@@ -392,11 +405,6 @@ func SaveMonitorData(data *workerconfig.Monitor) error {
 
 func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	option := worker.Message.Option
-
-	// if !kontrolConfig.ApprovedHost(worker.Name, worker.Hostname) {
-	// 	worker.Message.Result = "not.allowed"
-	// 	return worker, errors.New("Worker is not in approved host before")
-	// }
 
 	switch option {
 	case "force":
@@ -522,9 +530,6 @@ func deliver(data []byte, producer *helper.Producer, appId string) {
 		if err != nil {
 			log.Printf("error while publishing cli message: %s", err)
 		}
-		//if config.Verbose {
-		//log.Printf("SENDING CLI data to %s", cliOut)
-		//}
 	case "client":
 		err := clientProducer.Channel.Publish("clientExchange", "", false, false, msg)
 		if err != nil {
@@ -550,14 +555,11 @@ func deliver(data []byte, producer *helper.Producer, appId string) {
 		if err != nil {
 			log.Printf("error while publishing message: %s", err)
 		}
-		// if config.Verbose {
-		// 	log.Printf("SENDING WORKER data %s to %s", string(data), workerOut)
-		// }
 	}
 }
 
 func buildReq(action, cmd, hostname string, pid int) []byte {
-	req := workerconfig.ClientRequest{action, cmd, hostname, pid}
+	req := workerconfig.ClientRequest{Action: action, Cmd: cmd, Hostname: hostname, Pid: pid}
 	log.Println("Sending cmd to kontrold-client:", req)
 
 	data, err := json.Marshal(req)

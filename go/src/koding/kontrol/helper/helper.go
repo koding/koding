@@ -81,6 +81,15 @@ func ReadVersion() string {
 	return strings.TrimSpace(string(file))
 }
 
+func ReadFile(config string) string {
+	file, err := ioutil.ReadFile(config)
+	if err != nil {
+		log.Println(err)
+	}
+
+	return strings.TrimSpace(string(file))
+}
+
 func CreateProducer(name string) (*Producer, error) {
 	p := NewProducer(name)
 	log.Printf("creating connection for sending %s messages", p.Name)

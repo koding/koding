@@ -73,6 +73,7 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
     default.vm.network :forwarded_port, :guest =>  5672, :host => 5672  # rabbitmq
     default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
+    default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
     
     default.vm.hostname = "vagrant"
 
@@ -101,6 +102,7 @@ Vagrant.configure("2") do |config|
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
       secondary.vm.box = "koding-4"
+      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-4.box"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 
