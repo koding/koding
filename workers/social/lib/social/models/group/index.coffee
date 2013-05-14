@@ -78,7 +78,8 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
+        'fetchBundle', 'createBundle', 'destroyBundle'
       ]
     schema          :
       title         :
@@ -106,12 +107,15 @@ module.exports = class JGroup extends Module
           customType      :
             type          : String
             default       : 'defaultImage'
-            enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+            enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
           customValue     :
             type          : String
             default       : '1'
           customOptions   : Object
     relationships   :
+      bundle        :
+        targetType  : 'JGroupBundle'
+        as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
@@ -1175,3 +1179,32 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
+
+  destroyBundle: (callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      return callback new KodingError 'Bundle not found!'  unless bundle?
+
+      bundle.remove callback
+
+  destroyBundle$: permit 'change bundle',
+    success: (client, callback) -> @destroyBundle callback
+
+  createBundle: (callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      return callback new KodingError 'Bundle exists!'  if bundle?
+
+      JGroupBundle = require '../bundle/groupbundle'
+
+      bundle = new JGroupBundle
+      bundle.save (err) =>
+        return callback err  if err?
+
+        @addBundle bundle, callback
+
+  createBundle$: permit 'change bundle',
+    success: (client, callback) -> @createBundle callback
+
+  fetchBundle$: permit 'change bundle',
+    success: (client, rest...) -> @fetchBundle rest...
