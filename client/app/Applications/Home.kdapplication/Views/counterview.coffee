@@ -29,7 +29,10 @@ class CounterView extends KDCustomHTMLView
     @addSubView @title = new KDCustomHTMLView
       tagName  : 'h6'
       cssClass : 'title'
-      partial  : @getOption 'title'
+      partial  : @getOption('title')+':'
+
+    @addSubView @digitWrapper = new KDCustomHTMLView
+      tagName  : 'div'
 
     @createDigits()
     @emit "ready"
@@ -53,7 +56,7 @@ class CounterView extends KDCustomHTMLView
     # and add the subView
     for value, i in @prevCount when not @["digit#{i}"]
       @["digit#{i}"] = new CounterDigitView digitOptions, {value}
-      @addSubView @["digit#{i}"]
+      @digitWrapper.addSubView @["digit#{i}"]
 
   update:(count)->
     @getData().count = count
