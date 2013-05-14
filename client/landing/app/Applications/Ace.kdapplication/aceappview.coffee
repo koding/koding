@@ -49,18 +49,18 @@ class AceAppView extends JView
       # ace.on "AceDidSaveAs", (name, parentPath) =>
       #   update tooltip title here
 
-    @on "menu.save", => @getActiveAceView().ace.requestSave()
+    @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
 
-    @on "menu.saveAs", => @getActiveAceView().ace.requestSaveAs()
+    @on "saveAsMenuItemClicked", => @getActiveAceView().ace.requestSaveAs()
 
-    @on "menu.compileAndRun", => @getActiveAceView().compileAndRun()
+    @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
 
-    @on "menu.preview", => @getActiveAceView().preview()
+    @on "previewMenuItemClicked", => @getActiveAceView().preview()
 
-    @on "menu.recents", (eventName, item, contextmenu, offset) =>
+    @on "recentsMenuItemClicked", (eventName, item, contextmenu, offset) =>
       @createOpenRecentsMenu eventName, item, contextmenu, offset
 
-    @on "menu.reopen", => @reopenLastSession()
+    @on "reopenMenuItemClicked", => @reopenLastSession()
 
     @listenWindowResize()
 
