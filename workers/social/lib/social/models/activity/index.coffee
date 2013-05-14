@@ -1,4 +1,5 @@
 jraphical      = require 'jraphical'
+neo4j = require "neo4j"
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -38,7 +39,7 @@ module.exports = class CActivity extends jraphical.Capsule
       static          : [
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets',
-        'checkIfLikedBefore'
+        'checkIfLikedBefore', 'fetchFolloweeContents'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -252,6 +253,76 @@ module.exports = class CActivity extends jraphical.Capsule
               activities[index].snapshot = activities[index].snapshot.replace(/(&quot;)/g, '\\"')
 
           callback null, activities
+
+  @fetchObjectsFromMongo:(collections, wantedOrder, callback)->
+
+    console.log(collections)
+
+    sortThem:(err, objects) ->
+      console.log("finished!!!!")
+
+    ret = []
+    collectObjects = race (i, res, fin)->
+      res.klass.all res.selector, (err, objects)->
+      if err then callback err
+      else
+        console.log("the error >>>>>: " + err)
+        console.log("the objects >>>>>: ")
+        console.log(objects)
+        for o in objects
+          ret.push(o)
+      fin()
+    , -> sortThem null, ret
+
+    for modelName of collections
+      ids = collections[modelName]
+      klass = Base.constructors[modelName]
+      selector = {
+        _id:
+          $in: ids.map (id)->
+            if 'string' is typeof id then ObjectId(id)
+            else id
+      }
+      collectObjects({klass:klass, selector:selector})
+
+
+  @fetchFolloweeContents:(params={}, callback)->
+    neo4jConfig = KONFIG['neo4j']
+    params['userId'] = "502348600a6f5e381a000005"
+
+    @db = new neo4j.GraphDatabase(neo4jConfig.host + ":" + neo4jConfig.port);
+
+    query = ['start koding=node:koding(id={userId})'
+             'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
+             'where myfollowees.name="JAccount"'
+             'return myfollowees, items'
+             'order by items.`meta.createdAt` DESC'
+             'LIMIT 100'
+            ].join('\n')
+
+    @db.query query, params, (err, results)=>
+      console.log("err:" + err)
+      if err then return callback err
+      console.log "result:" + results
+      wants_in_order = []
+      collections = {
+      }
+      for result in results
+#        console.log "=============================="
+#        console.log JSON.stringify(result)
+#        console.log "------------------------------"
+#        console.log result["items"]["_data"]["data"]["id"]
+#        console.log "=============================="
+        oid = result["items"]["_data"]["data"]["id"]
+        otype = result["items"]["_data"]["data"]["name"]
+        wants_in_order.push({id: oid, collection: otype, idx: oid+'_'+otype})
+        collections[otype] ||= []
+        collections[otype].push(oid)
+
+      console.log("!!!!!!!!")
+      myobjects = @fetchObjectsFromMongo(collections, wants_in_order)
+      console.log("done")
+      callback null, "xx"
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

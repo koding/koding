@@ -2,6 +2,15 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
   viewAppended:()->
 
+    # followers...
+    filterController = @setListController
+      type : "showme"
+      itemClass : ListGroupShowMeItem
+    , @followerMenuData
+    @addSubView filterController.getView()
+    filterController.selectItem filterController.getItemsOrdered()[0]
+
+    # everything...
     filterController = @setListController
       type : "showme"
       itemClass : ListGroupShowMeItem
@@ -19,9 +28,16 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         html      : yes
         animate   : yes
 
+  followerMenuData :
+    title : "SHOW ME"
+    items : [      
+        { title : "Public",   type: "Public" }
+        { title : "Followed",   type: "Followed" }
+      ]
+
   showMenuData :
     title : "SHOW ME"
-    items : [
+    items : [      
         { title : "Everything" }
         { title : "Status Updates",   type : "CStatusActivity" }
         { title : "Blog Posts",       type : "CBlogPostActivity" }
