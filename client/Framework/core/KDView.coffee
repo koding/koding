@@ -368,6 +368,13 @@ class KDView extends KDObject
   getRelativeX:-> @$().position().left
   getRelativeY:-> @$().position().top
 
+  destroyChild: (prop) ->
+    if @[prop]?
+      @[prop].destroy?()
+      delete @[prop]
+      yes
+    else no
+
 # #
 # ADD/DESTROY VIEW INSTANCES
 # #
