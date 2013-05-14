@@ -241,6 +241,9 @@
           opacity             .5
 
 .group-content-display
+  .kdhiddentab
+    display                   none
+
   .sub-header
     gradient                  #fff, #f8f8f8
     width                     100%
@@ -304,16 +307,25 @@
     borderBox()
     // height                    auto
 
+    .kdtabpaneview
+      padding-top             55px
+      &.permissions
+        padding-top           70px
+
+
     .kdtabhandlecontainer
       padding-top             0
-      margin-top              28px
-      // background            linear-gradient(top, #555 0%,#666 93.7%)
+      position                fixed
+      top                     79px
+      z-index                 12
+      // background              linear-gradient(top, #555 0%,#666 93.7%)
       height                  27px
       padding                 0px 10px 0px 10px
       // shadow                inset 0 2px 5px rgba(0,0,0,.1)
       bg color,               #f8f8f8
       borderBox()
       border-bottom           1px solid #e8e8e8
+
       .kdtabhandle
         border-width          0
         height                27px
@@ -439,10 +451,11 @@
 
         .policylanguage-editor
           width               auto
-          display             inline-block
+          display             block
           button
             margin            10px 10px 0 0
           textarea
+            width             100%
             min-width         400px
             min-height        100px
 
@@ -502,7 +515,6 @@
 
     .permissions
       height: auto;
-      // margin-bottom: 50px;
 
     .form-generator
       min-width               600px
@@ -678,33 +690,23 @@
 
     .permissions-view
       borderBox()
-      padding                 0 20px
+      // padding                 0 20px
       overflow                auto
+      min-width               600px
 
       // .kdview.kdloader
       //   display           block
       //   margin            10px auto
 
-      .permissions-header
-        abs()
-        top                   0
-        left                  20px
-        right                 0
+      form>.permissions-header:first-child
+        position              fixed
+        top                   106px
+        width                 100%
+        min-width             600px
         z-index               99
+        height                33px
         bg color,             white
-        &.scrolling
-           shadow             0 5px 15px -5px rgba(0,0,0,0.1)
-        > .input-wrapper > .kdview
-          borderBox()
-          width               auto
-          line-height         20px
-          top                 0
-          overflow-x          hidden
-          display             block
-          text-overflow       ellipsis
-          white-space         nowrap
-          font-weight         bold
-
+        shadow             0 5px 15px -5px rgba(0,0,0,0.1)
 
       .permissions-form
         overflow-y            scroll
@@ -723,17 +725,15 @@
         .formline
 
           &.button-field
-            borderBox()
-            &.scrolling
-              shadow          0 -5px 10px -3px rgba(0,0,0,0.1)
-            // fixed()
-            abs()
-            left              0
-            right             0
-            // bottom 0
+            fixed()
+            bottom            0
+            width             100%
             height            50px
             padding           15px 20px 0 15px
             border-top        1px solid #e5e5e5
+            shadow            0 -5px 10px -3px rgba(0,0,0,0.1)
+            background-color  rgba(255,255,255,0.9) !important
+            borderBox()
 
             button.add-role
               fl()
@@ -953,6 +953,8 @@
     font-size                 11px
     bg                        color, white
 
+textarea.emails-input
+  height                    60px !important
 
 .add-role-dialog
   // z-index               100000

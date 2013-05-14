@@ -28,6 +28,7 @@ class JContextMenu extends KDView
         itemChildOptions  : o.itemChildOptions
         addListsCollapsed : o.addListsCollapsed
         putDepthInfo      : o.putDepthInfo
+        lazyLoad          : o.lazyLoad ? no
       , data
       @addSubView @treeController.getView()
       @treeController.getView().on 'ReceivedClickElsewhere', => @destroy()

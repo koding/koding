@@ -62,6 +62,7 @@ config =
       port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
+    runKontrol    : 1
     runRerouting  : 1
     compileGo     : 1
     buildClient   : 1
@@ -170,6 +171,21 @@ config =
       batchSize       : 1
       cleanupCron     : 1
     pidFile       : 1
-
+    kontrold        :
+      api           :
+        port        : 1
+      proxy         :
+        port        : 1
+        portssl     : 1
+      mongo         :
+        host        : 1
+      rabbitmq      :
+        host        : 1
+        port        : 1
+        login       : 1
+        password    : 1
+        vhost       : 1
+    recurly         :
+      apiKey        : 1
 
 module.exports = config

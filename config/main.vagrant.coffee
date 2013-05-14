@@ -23,7 +23,7 @@ module.exports =
     watch       : yes
   sourceServer  :
     enabled     : yes
-    port        : 1337
+    port        : 3526
   mongo         : mongo
   neo4j         :
     enabled     : yes
@@ -31,6 +31,7 @@ module.exports =
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
+  runKontrol    : no
   runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
@@ -100,7 +101,7 @@ module.exports =
       version   : version
       mainUri   : 'http://localhost'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://localhost:1337'
+      sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -148,6 +149,20 @@ module.exports =
     interval: 60000
   haproxy:
     webPort     : 3020
+  kontrold        :
+    api           :
+      port        : 8000
+    proxy         :
+      port        : 8080
+      portssl     : 8081
+    mongo         :
+      host        : '127.0.0.1'
+    rabbitmq      :
+      host        : 'localhost'
+      port        : '5672'
+      login       : 'guest'
+      password    : 'guest'
+      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
@@ -165,3 +180,5 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

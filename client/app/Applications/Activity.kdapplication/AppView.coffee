@@ -23,7 +23,8 @@ class ActivityAppView extends KDScrollView
     @mainController.on "AccountChanged", @bound "decorate"
     @mainController.on "JoinedGroup", => @widget.show()
     @mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
-    @on 'scroll', @utils.throttle @bound("changePageToActivity"), 250
+    # @on 'scroll', @utils.throttle @bound("changePageToActivity"), 250
+    @on 'scroll', @bound("changePageToActivity")
     @header.bindTransitionEnd()
 
     @decorate()
@@ -46,11 +47,11 @@ class ActivityAppView extends KDScrollView
     @_windowDidResize()
 
   changePageToActivity:(event)->
+    return if @$().hasClass "fixed"
     if @getScrollTop() > headerHeight
       if KD.isLoggedIn()
         {navController} = @mainController.sidebarController.getView()
         navController.selectItemByName 'Activity'
-        # @header.once "transitionend", => @scrollTo top : 0
         @setClass "fixed"
         @header.$().css marginTop : -headerHeight
       else
@@ -64,7 +65,7 @@ class ActivityAppView extends KDScrollView
     switch itemData.pageName
       when "Home"
         @scrollTo {duration : 300, top : 0}, =>
-          @header.once "transitionend", => @unsetClass "fixed"
+          @unsetClass "fixed"
           @header.$().css marginTop : 0
       when "Activity"
         @header.once "transitionend", => @setClass "fixed"

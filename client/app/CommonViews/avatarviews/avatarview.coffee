@@ -179,8 +179,9 @@ class AvatarTooltipView extends KDView
     return unless data.getId?
 
     unless data.followee?
-      KD.whoami().isFollowing? data.getId(), "JAccount", (following) =>
+      KD.whoami().isFollowing? data.getId(), "JAccount", (err, following)=>
         data.followee = following
+        warn err  if KD.isLoggedIn()
         if data.followee
           @followButton.setClass 'following-btn'
           @followButton.setState "Unfollow"

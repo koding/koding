@@ -79,6 +79,10 @@ class NFinderTreeController extends JTreeViewController
   resetVm:(nodeView)->
     KD.getSingleton('vmController').reinitialize()
 
+  makeTopFolder:(nodeView)->
+    KD.getSingleton('finderController').createRootStructure \
+      nodeView.getData().path
+
   refreshFolder:(nodeView, callback)->
 
     @notify "Refreshing..."
@@ -134,7 +138,6 @@ class NFinderTreeController extends JTreeViewController
     {path} = folder
 
     @emit "folder.collapsed", folder
-    folder.stopWatching?()
 
     if @listControllers[path]
       @listControllers[path].getView().collapse =>
@@ -449,9 +452,9 @@ class NFinderTreeController extends JTreeViewController
 
   openTerminalFromHere: (nodeView) ->
     appManager.open "WebTerm", (appInstance) =>
-      path        = nodeView.getData().path
-      webTermView = KD.getSingleton('mainView').mainTabView.getActivePane().mainView
-      #TODO: webTermView != appInstance.getView() so should simplify the line above
+      path          = nodeView.getData().path
+      appManager    = @getSingleton "appManager"
+      {webTermView} = appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
       webTermView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
@@ -462,6 +465,7 @@ class NFinderTreeController extends JTreeViewController
 
   cmExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
   cmCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  cmMakeTopFolder:(nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
   cmResetVm:      (nodeView, contextMenuItem)-> @resetVm nodeView
   cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
