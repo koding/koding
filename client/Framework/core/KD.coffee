@@ -107,7 +107,7 @@ unless window.event?
 
     {callback, onFailMsg, onFail, silence, tryAgain} = options
 
-    unless KD.whoami() instanceof KD.remote.api.JAccount and KD.isLoggedIn()
+    unless KD.isLoggedIn()
 
       if onFailMsg
         new KDNotificationView
