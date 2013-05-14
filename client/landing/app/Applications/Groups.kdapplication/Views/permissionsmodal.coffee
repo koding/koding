@@ -224,9 +224,7 @@ class PermissionsModal extends KDFormViewWithFields
   createReducedList =(values)->
     cache = {}
     values.reduce (acc, {module, role, permission})->
-      storageKey = module+':'+role
-
-      console.log {storageKey}
+      storageKey = "#{module}:#{role}"
       cached = cache[storageKey]
       if cached?
         cached.permissions.push permission
