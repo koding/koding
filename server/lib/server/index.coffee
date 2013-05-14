@@ -115,7 +115,7 @@ _fetchActivitiesByTimestamp = (req, res)->
       res.send decorated
 
 app.get "/-/cache/latest", (req, res)->
-  async.parallel [fetchFollows, fetchMembers], (err, results)=>
+  async.parallel [fetchSingles, fetchFollows, fetchInstalls, fetchMembers], (err, results)=>
     res.send decorateAll(err, results)
 
 app.get "/-/cache/before/:timestamp", (req, res)->
