@@ -41,18 +41,30 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 	result["id"] = idHex
 	result["name"] = name
 	//we need createdAt at all nodes
-	if _, ok := result["meta.createdAt"]; !ok {
+
+	meta := make(map[string]interface{})
+	createdAt := time.Now().UTC().Format("2006-01-02T15:04:05Z")
+
+	if _, ok := result["meta"]; ok {
+		meta = result["meta"].(map[string]interface{})
+
+		if _, ok := meta["createdAt"]; ok {
+			createdAt = fmt.Sprintf("%s", meta["createdAt"])
+		} else if _, ok := meta["modifiedAt"]; ok {
+			createdAt = fmt.Sprintf("%s", meta["modifiedAt"])
+		}
+
+	} else {
 
 		if _, ok := result["createdAt"]; ok {
-			result["meta.createdAt"] = result["createdAt"]
+			createdAt = fmt.Sprintf("%s", result["createdAt"])
 		} else if _, ok := result["modifiedAt"]; ok {
-			result["meta.createdAt"] = result["modifiedAt"]
-		} else if _, ok := result["meta.modifiedAt"]; ok {
-			result["meta.createdAt"] = result["meta.modifiedAt"]
-		} else {
-			result["meta.createdAt"] = time.Now().UTC().Format("2006-01-02T15:04:05Z")
+			createdAt = fmt.Sprintf("%s", result["modifiedAt"])
 		}
 	}
+
+	meta["createdAt"] = createdAt
+	result["meta"] = meta
 
 	jsonResult = generateJSON(result)
 
