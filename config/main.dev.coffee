@@ -157,3 +157,5 @@ module.exports =
       login       : 'guest'
       password    : 'guest'
       vhost       : '/'
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'
