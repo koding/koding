@@ -10,6 +10,8 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
     @overviewIndex = {}
 
   decorate:->
+    return {overview:[]}  if @data.length is 0
+
     members  = {}
     overview = []
 

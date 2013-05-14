@@ -114,7 +114,7 @@ class ActivityAppController extends AppController
 
   fetchActivitiesDirectly:(options = {}, callback)->
 
-    KD.time "Activity fetch took"
+    KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
     @fetchActivity options, (err, teasers)=>

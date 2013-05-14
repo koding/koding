@@ -147,7 +147,6 @@ module.exports = class Graph
           callback err, objected
 
 
-
   fetchNewFollows:(callback)->
     #followers
     query = [

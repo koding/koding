@@ -66,9 +66,12 @@ module.exports = class BaseDecorator
     return snapshot
 
   decorateAdditions:(additions)->
-    results = for addition in additions.slice(-3)
+    results = []
+    for addition in additions.slice(-3)
       addition.bongo_ = {constructorName : addition.name}
       addition.meta   = @decorateSnapshotMeta addition
+
+      results.push addition
 
     return results
 
