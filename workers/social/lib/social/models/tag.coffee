@@ -50,7 +50,7 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        'one','on','some','create' #,'updateAllSlugs'
+        'one','on','some','create', 'count' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
         'cursor','cursorWithRelationship','fetchMyFollowees','each'
         ]
@@ -182,7 +182,7 @@ module.exports = class JTag extends jraphical.Module
         if err then callback err
         else
           tag.slug = slug.slug
-          tag.slug_ = slug.slug      
+          tag.slug_ = slug.slug
           tag.save (err)->
             if err
               callback err

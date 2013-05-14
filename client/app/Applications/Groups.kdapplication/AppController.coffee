@@ -29,8 +29,8 @@ class GroupsAppController extends AppController
     super options, data
 
     @listItemClass = GroupsListItemView
-    @controllers = {}
-
+    @controllers   = {}
+    @isReady       = no
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
@@ -38,21 +38,24 @@ class GroupsAppController extends AppController
 
   init:->
     mainController = @getSingleton 'mainController'
+    router         = @getSingleton 'router'
+    {entryPoint}   = KD.config
     mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      {entryPoint} = KD.config
-      if pageInfo.path
-        if pageInfo.topLevel
-          KD.getSingleton('router').handleRoute "#{pageInfo.path}"
-        else
-          KD.getSingleton('router').handleRoute "#{pageInfo.path}", {entryPoint}
+      return unless pageInfo.path
+      if pageInfo.topLevel
+      then router.handleRoute "#{pageInfo.path}"
+      else router.handleRoute "#{pageInfo.path}", {entryPoint}
 
     @groups = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'groupAccessRequested', @showRequestAccessModal.bind this
-    mainController.on 'groupJoinRequested',   @joinGroup.bind this
-    mainController.on 'loginRequired',        @loginRequired.bind this
+    mainController.on 'groupAccessRequested',    @showRequestAccessModal.bind this
+    mainController.on 'groupJoinRequested',      @joinGroup.bind this
+    mainController.on 'groupInvitationAccepted', @acceptInvitation.bind this
+    mainController.on 'groupInvitationIgnored',  @ignoreInvitation.bind this
+    mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
+    mainController.on 'loginRequired',           @loginRequired.bind this
 
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
@@ -68,22 +71,26 @@ class GroupsAppController extends AppController
     # TEMP SY: to be able to work in a vagrantless env
     # to avoid shared authworker's message getting lost
     if location.hostname is "localhost"
-      callback()
-    else
-      @groupChannel.once 'setSecretName', callback
+    then do callback
+    else @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroupName is groupName
     throw new Error 'Cannot change the group!'  if @currentGroupName?
-    @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
     unless @currentGroupName is groupName
-      @setGroup groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
           [group] = models
-          @currentGroupData.setGroup group
-          @openGroupChannel group, => @emit 'GroupChanged', groupName, group
+          if group.bongo_.constructorName isnt 'JGroup'
+            @isReady = yes
+          else
+            @setGroup groupName
+            @currentGroupData.setGroup group
+            @openGroupChannel group, =>
+              @isReady = yes
+              callback null, groupName, group
+              @emit 'GroupChanged', groupName, group
 
   getUserArea:-> @userArea
 
@@ -152,15 +159,15 @@ class GroupsAppController extends AppController
               JGroup.streamModels selector, options, callback
           dataEnd           :({resultsController}, ids)=>
             {everything} = resultsController.listControllers
-            @markMemberAndOwnGroups everything, ids
+            @markGroupRelationship everything, ids
           dataError         :(controller, err)->
             log "Seems something broken:", controller, err
 
         mine                :
           title             : "My groups"
+          loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
-              console.log items
               ids = []
               for item in items
                 item.followee = true
@@ -169,7 +176,30 @@ class GroupsAppController extends AppController
               callback err, null, ids
           dataEnd           :({resultsController}, ids)=>
             {mine} = resultsController.listControllers
-            @markMemberAndOwnGroups mine, ids
+            @markGroupRelationship mine, ids
+
+        pending             :
+          title             : "Invited Groups"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {pending} = resultsController.listControllers
+            @markPendingGroupInvitations pending, ids
+
+        requested             :
+          title             : "Requested Groups"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupRequests options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {requested} = resultsController.listControllers
+            @markPendingRequestGroups requested, ids
+
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -189,10 +219,11 @@ class GroupsAppController extends AppController
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
       @feedController.loadFeed() if loadFeed
-      @putAddAGroupButton()
       @emit 'ready'
 
-  markMemberAndOwnGroups:(controller, ids)->
+  markGroupRelationship:(controller, ids)->
+    return unless KD.isLoggedIn()
+
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
@@ -202,6 +233,18 @@ class GroupsAppController extends AppController
         KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
           return error err if err
           controller.forEachItemByIndex groups, callback
+
+    KD.whoami().fetchPendingGroupRequests groupIds:ids, (err, groups)=>
+      @markPendingRequestGroups controller, (group.getId() for group in groups)
+
+    KD.whoami().fetchPendingGroupInvitations groupIds:ids, (err, groups)=>
+      @markPendingGroupInvitations controller, (group.getId() for group in groups)
+
+  markPendingRequestGroups:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
+  
+  markPendingGroupInvitations:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
@@ -263,15 +306,19 @@ class GroupsAppController extends AppController
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
-  showRequestAccessModal:(group, isApproval, callback=->)->
-    if isApproval
+  showRequestAccessModal:(group, policy, callback=->)->
+    if policy.explanation?
+      title = "Request Access"
+      content = __utils.applyMarkdown policy.explanation
+      success = "Your request has been sent to the group's admin."
+    else if policy.approvalEnabled?
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
-      success = "Thanks! You'll receive an email when group's admin accepts you."
+      success = "Thanks! You'll be notified when group's admin accepts you."
     else
       title   = 'Request an Invite'
       content = 'Membership to this group requires an invitation.'
-      success = "Invitation has been sent to the group's admin."
+      success = "Your request has been sent to the group's admin."
 
     modal = new KDModalView
       title          : title
@@ -305,23 +352,21 @@ class GroupsAppController extends AppController
           title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
+  acceptInvitation:(group, callback)->
+    KD.whoami().acceptInvitation group, callback
+
+  ignoreInvitation:(group, callback)->
+    KD.whoami().ignoreInvitation group, callback
+  
+  cancelGroupRequest:(group, callback)->
+    KD.whoami().cancelRequest group, callback
+
   openPrivateGroup:(group)->
     group.canOpenGroup (err, hasPermission)=>
       if err
         @showErrorModal group, err
       else if hasPermission
         @openGroup group
-
-  putAddAGroupButton:->
-    if KD.isLoggedIn()
-      {facetsController} = @feedController
-      innerNav = facetsController.getView()
-      innerNav.addSubView addButton = new KDButtonView
-        tooltip   :
-          title   : "Create a Group"
-        style     : "small-gray"
-        iconOnly  : yes
-        callback  : => @showGroupSubmissionView()
 
   _createGroupHandler =(formData, callback)->
 
@@ -677,7 +722,7 @@ class GroupsAppController extends AppController
         invitationRequestView.on 'BatchApproveRequests', (formData)->
           group.sendSomeInvitations formData.count, (err)=>
             return invitationRequestView.showErrorMessage err if err
-            invitationRequestView.prepareBulkInvitations()
+            invitationRequestView.updateCurrentState()
             kallback @batchApprove, err
 
         invitationRequestView.on 'InviteByEmail', (formData)->
@@ -688,11 +733,11 @@ class GroupsAppController extends AppController
           group.inviteByUsername formData.recipients, (err)=>
             kallback @inviteByUsername, err
 
-        invitationRequestView.on 'RequestIsApproved', (request)->
-          request.approveInvitation()
+        invitationRequestView.on 'RequestIsApproved', (request, callback)->
+          request.approveInvitation callback
 
-        invitationRequestView.on 'RequestIsDeclined', (request)->
-          request.declineInvitation()
+        invitationRequestView.on 'RequestIsDeclined', (request, callback)->
+          request.declineInvitation callback
 
         pane.on 'PaneDidShow', ->
           invitationRequestView.refresh()  if pane.tabHandle.isDirty
@@ -777,6 +822,7 @@ class GroupsAppController extends AppController
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a class="hidden" id="go-to-group-link" href="/#{group.slug}" target="#{group.slug}">Go to Group</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
@@ -792,8 +838,8 @@ class GroupsAppController extends AppController
             title    : 'Go to Group'
             style    : 'modal-clean-gray'
             callback : =>
+              document.getElementById('go-to-group-link').click()
               modal.destroy()
-              KD.getSingleton('router').handleRoute "/#{group.slug}"
           dismiss    :
             title    : 'Dismiss'
             style    : 'modal-cancel'

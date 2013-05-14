@@ -243,6 +243,8 @@
     &:hover
       div.groups-settings-menu
         opacity 1
+    &.pending-request
+    &.pending-invitation
     &.group-member
       .badge.member
         visible()
@@ -512,10 +514,18 @@
           vertical-align       middle
 
 .kdbuttonmenu.group-settings-context
+  .cancel-request
+  .accept-invitation
+  .ignore-invitation
   .leave-group
   .remove-group
     hidden()
 
+  &.pending-request .cancel-request
+    visible()
+  &.pending-invitation .accept-invitation
+  &.pending-invitation .ignore-invitation
+    visible()
   &.group-member .leave-group
     visible()
   &.group-owner
@@ -523,3 +533,11 @@
       hidden()
     .remove-group
       visible()
+
+.create-group-button
+  right       226px
+  top         25px
+  abs()
+  .button-title
+    font-size 13px
+

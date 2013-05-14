@@ -46,8 +46,8 @@ class Sidebar extends JView
       pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
     , account
 
-    @finderResizeHandle = new SidebarResizeHandle
-      cssClass  : "finder-resize-handle"
+    # @finderResizeHandle = new SidebarResizeHandle
+    #   cssClass  : "finder-resize-handle"
 
     @finderController = new NFinderController
       useStorage        : yes
@@ -88,7 +88,7 @@ class Sidebar extends JView
     @statusLEDs = new KDView
       cssClass : 'status-leds'
 
-    @virtualizationButtons = new VirtualizationControls
+    # @virtualizationButtons = new VirtualizationControls
 
   resetAdminNavController:->
     @utils.wait 1000, =>
@@ -112,47 +112,47 @@ class Sidebar extends JView
     mainController.on "AvatarPopupIsActive",   => @_popupIsActive = yes
     mainController.on "AvatarPopupIsInactive", => @_popupIsActive = no
 
-    @finderResizeHandle.on "ClickedButNotDragged", =>
-      unless fpLastWidth
-        fpLastWidth = parseInt $fp.css("width"), 10
-        cp.$().css left : 65, width : @wc.winWidth - 65
-        @utils.wait 300, -> $fp.css "width", 13
-      else
-        fpLastWidth = 208 if fpLastWidth < 100
-        $fp.css "width", fpLastWidth
-        cpWidth = @wc.winWidth - 52 - fpLastWidth
-        cp.$().css left : 52 + fpLastWidth, width : cpWidth
-        cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
-        fpLastWidth = null
-      @finderResizeHandle.$().css left: ''
+    # @finderResizeHandle.on "ClickedButNotDragged", =>
+    #   unless fpLastWidth
+    #     fpLastWidth = parseInt $fp.css("width"), 10
+    #     cp.$().css left : 65, width : @wc.winWidth - 65
+    #     @utils.wait 300, -> $fp.css "width", 13
+    #   else
+    #     fpLastWidth = 208 if fpLastWidth < 100
+    #     $fp.css "width", fpLastWidth
+    #     cpWidth = @wc.winWidth - 52 - fpLastWidth
+    #     cp.$().css left : 52 + fpLastWidth, width : cpWidth
+    #     cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
+    #     fpLastWidth = null
+    #   @finderResizeHandle.$().css left: ''
 
-    @finderResizeHandle.on "DragStarted", (e, dragState)=>
-      cp._left  = parseInt cp.$().css("left"), 10
-      cp._left  = parseInt cp.$().css("left"), 10
-      @_fpWidth = parseInt $fp.css("width"), 10
-      cp._width = parseInt @wc.winWidth - 52 - @_fpWidth, 10
-      cp.unsetClass "transition"
+    # @finderResizeHandle.on "DragStarted", (e, dragState)=>
+    #   cp._left  = parseInt cp.$().css("left"), 10
+    #   cp._left  = parseInt cp.$().css("left"), 10
+    #   @_fpWidth = parseInt $fp.css("width"), 10
+    #   cp._width = parseInt @wc.winWidth - 52 - @_fpWidth, 10
+    #   cp.unsetClass "transition"
 
-    @finderResizeHandle.on "DragFinished", (e, dragState)=>
-      delete cp._left
-      delete cp._width
-      delete @_fpWidth
-      unless @finderResizeHandle._dragged
-        @finderResizeHandle.emit "ClickedButNotDragged"
-      else
-        fpLastWidth = null
-      delete @finderResizeHandle._dragged
-      cp.setClass "transition"
+    # @finderResizeHandle.on "DragFinished", (e, dragState)=>
+    #   delete cp._left
+    #   delete cp._width
+    #   delete @_fpWidth
+    #   unless @finderResizeHandle._dragged
+    #     @finderResizeHandle.emit "ClickedButNotDragged"
+    #   else
+    #     fpLastWidth = null
+    #   delete @finderResizeHandle._dragged
+    #   cp.setClass "transition"
 
-    @finderResizeHandle.on "DragInAction", (x, y)=>
-      @finderResizeHandle._dragged = yes
-      newFpWidth = @_fpWidth + x
-      return @finderResizeHandle.$().css left: '' if newFpWidth < 13
-      cpWidth = cp._width - x
-      cp.$().css left : cp._left + x, width : cpWidth
-      @finderResizeHandle.$().css left: ''
-      $fp.css "width", newFpWidth
-      cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
+    # @finderResizeHandle.on "DragInAction", (x, y)=>
+    #   @finderResizeHandle._dragged = yes
+    #   newFpWidth = @_fpWidth + x
+    #   return @finderResizeHandle.$().css left: '' if newFpWidth < 13
+    #   cpWidth = cp._width - x
+    #   cp.$().css left : cp._left + x, width : cpWidth
+    #   @finderResizeHandle.$().css left: ''
+    #   $fp.css "width", newFpWidth
+    #   cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
 
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
@@ -185,7 +185,7 @@ class Sidebar extends JView
     @setListeners()
 
   pistachio:->
-
+    # {{> @finderResizeHandle}} removed until fixed
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
@@ -199,10 +199,8 @@ class Sidebar extends JView
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
-      {{> @finderResizeHandle}}
       <div id='finder-header-holder'>
         {{> @finderHeader}}
-        {{> @virtualizationButtons}}
       </div>
       <div id='finder-holder'>
         {{> @finder}}

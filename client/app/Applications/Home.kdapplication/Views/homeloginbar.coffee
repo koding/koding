@@ -1,11 +1,13 @@
 class HomeLoginBar extends JView
 
+  requiresLogin = (callback)->
+    if KD.isLoggedIn() then do callback
+    else KD.getSingleton('mainController').emit "loginRequired", callback
+
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
-
     options.cssClass   = "home-links"
-    options.entryPoint = entryPoint?.slug
 
     super options, data
 
@@ -16,10 +18,6 @@ class HomeLoginBar extends JView
       @utils.stopDOMEvent event
       @getSingleton('router').handleRoute route, {entryPoint}
 
-    requiresLogin = (callback)=>
-      if KD.isLoggedIn() then do callback
-      else @getSingleton('mainController').emit "loginRequired", callback
-
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
@@ -27,7 +25,7 @@ class HomeLoginBar extends JView
       icon        : {}
       attributes  :
         href      : "/Register"
-      click       : handler
+      click       : (event)=> handler.call @register, event
 
     @browse       = new CustomLinkView
       tagName     : "a"
@@ -50,9 +48,13 @@ class HomeLoginBar extends JView
       click       : (event)=>
         if entryPoint?.type is 'group'
           @utils.stopDOMEvent event
-          requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, no
+          requiresLogin => 
+            @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
+              unless err
+                @request.hide()
+                @requested.show()
         else
-          handler event
+          handler.call @request, event
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -74,7 +76,11 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        requiresLogin => @getSingleton('mainController').emit "groupAccessRequested", @group, yes
+        requiresLogin => 
+          @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
+            unless err
+              @access.hide()
+              @requested.show()
 
     @join         = new CustomLinkView
       tagName     : "a"
@@ -87,18 +93,126 @@ class HomeLoginBar extends JView
         @utils.stopDOMEvent event
         requiresLogin => @getSingleton('mainController').emit "groupJoinRequested", @group
 
+    @requested    = new CustomLinkView
+      tagName     : "a"
+      title       : "Request pending"
+      icon        : {}
+      cssClass    : "request-pending green hidden"
+      attributes  :
+        href      : "#"
+      click       : (event)=>
+        @utils.stopDOMEvent event
+        requiresLogin =>
+          modal = new KDModalView
+            title          : 'Request pending'
+            content        : "<div class='modalformline'>You already requested access to this group, however the admin has not approved it yet.</div>"
+            height         : 'auto'
+            overlay        : yes
+            buttons        :
+              Okay         :
+                style      : 'modal-clean-green'
+                loader     : 
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : -> modal.destroy()
+              Cancel       :
+                title      : 'Cancel Request'
+                style      : 'modal-clean-red'
+                loader     : 
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @getSingleton('mainController').emit 'groupRequestCancelled', @group, (err)=>
+                    modal.buttons.Cancel.hideLoader()
+                    @handleBackendResponse err, 'Successfully cancelled request!'
+                    modal.destroy()
+                    @requested.hide()
+                    if @policy.approvalEnabled
+                      @access.show()
+                    else
+                      @request.show()
+              Dismiss      :
+                style      : "modal-cancel"
+                callback   : -> modal.destroy()
+
+    @invited      = new CustomLinkView
+      tagName     : "a"
+      title       : "Invited"
+      icon        : {}
+      cssClass    : "invitation-pending green hidden"
+      attributes  :
+        href      : "#"
+      click       : (event)=>
+        @utils.stopDOMEvent event
+        requiresLogin =>
+          modal = new KDModalView
+            title          : 'Invitation pending'
+            content        : "<div class='modalformline'>You are invited to join this group.</div>"
+            height         : 'auto'
+            overlay        : yes
+            buttons        :
+              Accept       :
+                style      : 'modal-clean-green'
+                loader     : 
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @getSingleton('mainController').emit 'groupInvitationAccepted', @group, (err)=>
+                    modal.buttons.Accept.hideLoader()
+                    @handleBackendResponse err, 'Successfully accepted invitation!'
+                    unless err
+                      modal.destroy()
+                      @hide()
+              Ignore       :
+                style      : 'modal-clean-red'
+                loader     : 
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @getSingleton('mainController').emit 'groupInvitationIgnored', @group, (err)=>
+                    modal.buttons.Ignore.hideLoader()
+                    @handleBackendResponse err, 'Successfully ignored invitation!'
+                    unless err
+                      @invited.hide()
+                      if @policy.approvalEnabled
+                        @access.show()
+                      else
+                        @request.show()
+                      modal.destroy()
+              Cancel       :
+                style      : "modal-cancel"
+                callback   : -> modal.destroy()
+
     @decorateButtons()
     @getSingleton('mainController').on 'AccountChanged', @bound 'decorateButtons'
     @getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
+  handleBackendResponse:(err, successMsg)->
+    if err
+      warn err
+      return new KDNotificationView
+        title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+        duration : 2000
+      
+    new KDNotificationView
+      title    : successMsg
+      duration : 2000
+
   decorateButtons:->
-    entryPoint = @getOptions().entryPoint or ''
-    if entryPoint isnt '' and 'member' not in KD.config.roles
+
+    {entryPoint} = KD.config
+    if entryPoint?.type is 'profile'
+      if KD.isLoggedIn()
+      then @hide()
+      else @request.hide()
+      return
+
+    if entryPoint and 'member' not in KD.config.roles
       if KD.isLoggedIn()
         @login.hide()
         @register.hide()
 
-      KD.remote.cacheable entryPoint, (err, models)=>
+      KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [@group] = models
@@ -107,12 +221,23 @@ class HomeLoginBar extends JView
             @access.hide()
             @join.show()
           else if @group.privacy is "private"
-            KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint, (err, policy)=>
+            KD.remote.api.JMembershipPolicy.byGroupSlug entryPoint.slug, (err, policy)=>
+              @policy = policy
               if err then console.warn err
               else if policy.approvalEnabled
                 @request.hide()
                 @join.hide()
                 @access.show()
+
+              KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
+                return console.warn err if err
+                return unless request
+                @access.hide()
+                @request.hide()
+                if request.status is 'sent'
+                  @invited.show()
+                else
+                  @requested.show()
     else if KD.isLoggedIn()
       @hide()
 
@@ -125,7 +250,7 @@ class HomeLoginBar extends JView
     <div class='overlay'></div>
     <ul>
       <li>{{> @browse}}</li>
-      <li>{{> @request}}{{> @access}}{{> @join}}</li>
+      <li>{{> @request}}{{> @access}}{{> @join}}{{> @invited}}{{> @requested}}</li>
       <li>{{> @register}}</li>
       <li>{{> @login}}</li>
     </ul>

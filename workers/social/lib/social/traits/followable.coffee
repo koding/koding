@@ -264,9 +264,9 @@ module.exports = class Followable
         sourceName: sourceName
       Relationship.one selector, (err, rel) ->
         if rel? and not err?
-          callback yes
+          callback null, yes
         else
-          callback no
+          callback null, no
 
   updateFollowingCount: (followee, action)->
     if @constructor.name is 'JAccount'

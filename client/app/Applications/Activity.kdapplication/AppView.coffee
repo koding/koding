@@ -6,25 +6,25 @@ class ActivityAppView extends KDScrollView
 
     options.cssClass   = "content-page activity"
     options.domId      = "content-page-activity"
-    options.entryPoint = KD.config.entryPoint?.slug
 
     super options, data
 
     @listenWindowResize()
 
-    {entryPoint}      = @getOptions()
-    HomeKonstructor   = if entryPoint then GroupHomeView else HomeAppView
+    {entryPoint}      = KD.config
+    HomeKonstructor   = if entryPoint and entryPoint.type isnt 'profile' then GroupHomeView else HomeAppView
     @feedWrapper      = new ActivityListContainer
     @innerNav         = new ActivityInnerNavigation cssClass : 'fl'
-    @header           = new HomeKonstructor {entryPoint}
+    @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
-    mainController    = @getSingleton("mainController")
+    @mainController   = @getSingleton("mainController")
 
-    mainController.on "AccountChanged", @bound "decorate"
-    mainController.on "JoinedGroup", => @widget.show()
-    mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
-    @on 'scroll', @utils.throttle @bound("setFixed"), 250
+    @mainController.on "AccountChanged", @bound "decorate"
+    @mainController.on "JoinedGroup", => @widget.show()
+    @mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
+    @on 'scroll', @utils.throttle @bound("changePageToActivity"), 250
+    @header.bindTransitionEnd()
 
     @decorate()
     @setLazyLoader .99
@@ -45,16 +45,30 @@ class ActivityAppView extends KDScrollView
       @widget.hide()
     @_windowDidResize()
 
-  setFixed:->
-    pre = if @getScrollTop() > headerHeight = @header.getHeight() then "set" else "unset"
-    @["#{pre}Class"] "fixed"
+  changePageToActivity:(event)->
+    if @getScrollTop() > headerHeight
+      if KD.isLoggedIn()
+        {navController} = @mainController.sidebarController.getView()
+        navController.selectItemByName 'Activity'
+        # @header.once "transitionend", => @scrollTo top : 0
+        @setClass "fixed"
+        @header.$().css marginTop : -headerHeight
+      else
+        @setClass "fixed"
+    else
+      @unsetClass "fixed" unless KD.isLoggedIn()
+
 
   navigateHome:(itemData)->
 
-    top      = if itemData.pageName is "Home" then 0 else @header.getHeight()
-    duration = 300
-
-    @scrollTo {top, duration} if itemData.pageName in ["Home", "Activity"]
+    switch itemData.pageName
+      when "Home"
+        @scrollTo {duration : 300, top : 0}, =>
+          @header.once "transitionend", => @unsetClass "fixed"
+          @header.$().css marginTop : 0
+      when "Activity"
+        @header.once "transitionend", => @setClass "fixed"
+        @header.$().css marginTop : -headerHeight
 
   _windowDidResize:->
 
@@ -69,17 +83,10 @@ class ActivityAppView extends KDScrollView
     @addSubView @innerNav
     @addSubView @feedWrapper
 
-    if KD.isLoggedIn()
-      @utils.wait 1500, =>
-        @navigateHome pageName :"Activity"
+    # if KD.isLoggedIn()
+    #   @utils.wait 1500, =>
+    #     @navigateHome pageName :"Activity"
 
-  # pistachio:->
-  #   """
-  #     {{> @header}}
-  #     {{> @widget}}
-  #     {{> @innerNav}}
-  #     {{> @feedWrapper}}
-  #   """
 
 class ActivityListContainer extends JView
 

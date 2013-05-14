@@ -95,7 +95,7 @@ class AccountMyKiteListController extends KDListViewController
     KD.remote.api.JKite.create data,(err, kite) =>
       if err
         @notify err.message, "fail"
-        form.modal.modalTabs.forms.MyKites.buttons.Create.hideLoader()
+        form.modal.modalTabs.forms.MyKites.buttons.create.hideLoader()
       else
         @notify 'Your kite is created', "success"
         @emit "KiteCreated", kite
@@ -131,7 +131,7 @@ class AccountMyKiteList extends KDListView
         forms                         :
           MyKites                     :
             callback                  : =>
-              @modal.modalTabs.forms.MyKites.buttons.Create.showLoader()
+              @modal.modalTabs.forms.MyKites.buttons.create.showLoader()
               @emit "CreateKiteSubmitted", @
             buttons                   :
               create                  :

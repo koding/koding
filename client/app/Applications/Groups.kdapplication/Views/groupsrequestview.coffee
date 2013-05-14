@@ -2,7 +2,7 @@ class GroupsRequestView extends JView
 
   requestLimit: 5
 
-  prepareBulkInvitations:->
+  updateCurrentState:->
     group = @getData()
     group.countPendingInvitationRequests (err, countReq)=>
       if err then console.error error
@@ -10,9 +10,10 @@ class GroupsRequestView extends JView
         group.countPendingSentInvitations (err, countInv)=>
           if err then console.error error
           else
-            reqPhrase = if countReq is 1 then 'person' else 'people'
+            reqPhrase = if countReq is 1 then 'approval' else 'approvals'
+            invPhrase = if countInv is 1 then 'invitation' else 'invitations'
             @currentState.updatePartial """
-              Currently there are #{countReq} #{reqPhrase} waiting for an invitation or approval and #{countInv} sent invitations unanswered.
+              There are #{countReq} waiting #{reqPhrase} and #{countInv} unacknowledged #{invPhrase}.
               """
 
   fetchSomeRequests:(invitationType='invitation', status, timestamp, callback)->
@@ -33,6 +34,7 @@ class GroupsRequestView extends JView
       targetOptions : 
         selector    : targetSelector
         limit       : @requestLimit
+        sort        : { requestedAt: -1 }
       options       :
         sort        : { timestamp: -1 }
 

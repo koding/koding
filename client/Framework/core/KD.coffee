@@ -40,10 +40,14 @@ KD.log   = log   = noop
 KD.warn  = warn  = noop
 KD.error = error = noop
 
+
 unless window.event?
-  # warn when the global "event" property is accessed.
-  Object.defineProperty window, "event", get:->
-    KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
+  try
+    # warn when the global "event" property is accessed.
+    Object.defineProperty window, "event", get:->
+      KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
+  catch e
+    log "we fail silently!", e
 
 @KD = $.extend (KD), do ->
   # private member for tracking z-indexes
@@ -104,7 +108,6 @@ unless window.event?
 
     if KD.whoami() instanceof KD.remote.api.JGuest
       new KDNotificationView
-        type     : 'growl'
         title    : 'Access denied!'
         content  : errMsg or 'You must log in to perform this action!'
         duration : 3000
@@ -171,6 +174,7 @@ unless window.event?
     options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
+    options.menu         or= null         # {Array.<Object{{title: string, eventName: string, shortcut: string}}>}
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes

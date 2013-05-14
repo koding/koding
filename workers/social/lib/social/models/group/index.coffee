@@ -64,7 +64,7 @@ module.exports = class JGroup extends Module
       ]
     sharedMethods   :
       static        : [
-        'one','create','each','byRelevance','someWithRelationship'
+        'one','create','each','count','byRelevance','someWithRelationship'
         '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
       ]
       instance      : [
@@ -74,10 +74,10 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countPendingSentInvitations',
-        'countInvitationRequests', 'fetchInvitationRequestCounts', 
-        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
+        'countInvitationRequests', 'fetchInvitationRequestCounts',
+        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
-        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership', 
+        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
     schema          :
@@ -163,6 +163,11 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member)->
       @constructor.emit 'MemberAdded', { group: this, member }
+      @sendNotificationToAdmins 'GroupJoined',
+        actionType : 'groupJoined'
+        actorType  : 'member'
+        subject    : ObjectRef(this).data
+        member     : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -793,27 +798,28 @@ module.exports = class JGroup extends Module
       daisy queue
 
   inviteMember: (client, email, callback)->
-      params = 
-        email  : email
-        group  : @slug
-        status : $not: $in: ['declined', 'ignored']
+    JInvitationRequest = require '../invitationrequest'
 
-      JInvitationRequest = require '../invitationrequest'
-      JInvitationRequest.one params, (err, invitationRequest)=>
-        if invitationRequest
-          callback new KodingError """
-            You've already invited #{email}.
-            """
-        else
-          params.invitationType = 'invitation'
-          params.status         = 'sent'
+    params =
+      email  : email
+      group  : @slug
+      status : $not: $in: JInvitationRequest.resolvedStatuses
 
-          invitationRequest = new JInvitationRequest params
-          invitationRequest.save (err)=>
+    JInvitationRequest.one params, (err, invitationRequest)=>
+      if invitationRequest
+        callback new KodingError """
+          You've already invited #{email}.
+          """
+      else
+        params.invitationType = 'invitation'
+        params.status         = 'sent'
+
+        invitationRequest = new JInvitationRequest params
+        invitationRequest.save (err)=>
+          if err then callback err
+          else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else @addInvitationRequest invitationRequest, (err)->
-              if err then callback err
-              else invitationRequest.sendInvitation client, callback
+            else invitationRequest.sendInvitation client, callback
 
   isMember: (account, callback)->
     selector =
@@ -833,10 +839,10 @@ module.exports = class JGroup extends Module
       return callback err if err
       selector =
         group: @slug
-        status: $not: $in: ['declined', 'ignored']
+        status: $not: $in: JInvitationRequest.resolvedStatuses
         $or: [
-          'koding.username': delegate.profile.nickname,
-          email: user.email
+          {'koding.username': delegate.profile.nickname}
+          {email: user.email}
         ]
       JInvitationRequest.one selector, (err, invitationRequest)=>
         return callback err if err
@@ -1163,3 +1169,9 @@ module.exports = class JGroup extends Module
 
         -> callback null
       ]
+
+  sendNotificationToAdmins: (event, contents)->
+    @fetchAdmins (err, admins)=>
+      unless err
+        for admin in admins
+          admin.sendNotification event, contents

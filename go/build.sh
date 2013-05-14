@@ -9,13 +9,14 @@ fi
 
 ldflags="-X koding/tools/lifecycle.version $(git rev-parse HEAD)"
 services=(
-  koding/broker
-  koding/rerouting
-  koding/kites/os
-  koding/kites/irc
-  koding/virt/proxy
-  koding/virt/vmtool
-  koding/alice
+    koding/broker
+    koding/rerouting
+	koding/kites/os
+	koding/kites/irc
+	koding/virt/vmproxy
+	koding/virt/vmtool
+	koding/alice
+	koding/kontrol/kontrolclient
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"

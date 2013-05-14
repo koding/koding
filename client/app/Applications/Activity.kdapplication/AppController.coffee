@@ -35,33 +35,33 @@ class ActivityAppController extends AppController
     @appStorage        = new AppStorage 'Activity', '1.0'
     @isLoading         = no
     @mainController    = @getSingleton 'mainController'
+    @lastTo            = null
+    @lastFrom          = null
 
-    if @mainController.appIsReady then @putListeners()
-    else @mainController.on 'FrameworkIsReady', => @putListeners()
+    # if @mainController.appIsReady then @putListeners()
+    # else @mainController.on 'FrameworkIsReady', => @putListeners()
 
     @status = @getSingleton "status"
     @status.on "reconnected", (conn)=>
       if conn && conn.reason is "internetDownForLongTime"
-        @refresh()
-      else
-        @fetchSomeActivities()
+      then @refresh()
+      else @fetchSomeActivities()
 
-  putListeners:->
+  loadView:->
     activityController = @getSingleton('activityController')
-    activityController.on   "ActivityListControllerReady", @attachEvents.bind @
 
     # Do we really need this? ~ GG
     # yes - SY
-    activityController.once "ActivityListControllerReady", @bound "populateActivity"
+    activityController.once "ActivityListControllerReady", (controller)=>
+      @attachEvents controller
+      frontApp = @getSingleton('appManager').getFrontApp()
+      @ready @bound "populateActivity"
 
-  loadView:->
-    @populateActivity() if @listController
+    @emit 'ready'
 
   resetAll:->
-
-    delete @lastTo
-    delete @lastFrom
-
+    @lastTo   = null
+    @lastFrom = null
     @listController.resetList()
     @listController.removeAllItems()
 
@@ -146,7 +146,6 @@ class ActivityAppController extends AppController
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
-
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
     # debugger
@@ -159,7 +158,6 @@ class ActivityAppController extends AppController
   # Refreshes activity feed, used when user has been disconnected
   # for so long, backend connection is long gone.
   refresh:->
-
     # prevents multiple clicks to refresh from interfering
     return  if @isLoading
 
@@ -184,21 +182,28 @@ class ActivityAppController extends AppController
   populateActivity:(options = {}, callback)->
 
     return if @isLoading
-    @isLoading = yes
+
     @listController.showLazyLoader()
     @listController.hideNoItemWidget()
 
-    currentGroup = @getSingleton('groupsController').getCurrentGroup()
-    slug = currentGroup.getAt 'slug'
+    @isLoading       = yes
+    groupsController = @getSingleton 'groupsController'
+    {isReady}        = groupsController
+    currentGroup     = groupsController.getCurrentGroup()
 
-    unless slug is 'koding'
-      @fetchActivitiesDirectly options
-    else
-      @isExempt (exempt)=>
-        if exempt or @getFilter() isnt activityTypes
-          @fetchActivitiesDirectly options
-        else
-          @fetchActivitiesFromCache options
+    fetch = (slug)=>
+      unless slug is 'koding'
+        @fetchActivitiesDirectly options, callback
+      else
+        @isExempt (exempt)=>
+          if exempt or @getFilter() isnt activityTypes
+          then @fetchActivitiesDirectly options, callback
+          else @fetchActivitiesFromCache options, callback
+
+    unless isReady
+    then groupsController.once 'groupChanged', fetch
+    else fetch currentGroup.slug
+
 
   sanitizeCache:(cache, callback)->
 
@@ -288,7 +293,7 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    lastTimeStamp = (new Date @lastFrom).getTime()
+    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->

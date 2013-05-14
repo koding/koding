@@ -26,14 +26,21 @@ class ApplicationManager extends KDObject
       image : "Viewer"
       sound : "Viewer"
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
+
+    # temp fix, until router logic is complete
     @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
 
   # temp fix, until router logic is complete
   setMissingRoute:(appController, appView, appOptions)->
-    router = @getSingleton('router')
-    # log router.getCurrentPath(), appOptions.route
-    if router.getCurrentPath().search(appOptions.route.slice(1)) isnt 0
-      router.handleRoute appOptions.route, suppressListeners : yes
+    router       = @getSingleton('router')
+    {entryPoint} = KD.config
+
+    route = if entryPoint?.slug? and entryPoint.type is 'group'
+    then "#{entryPoint.slug}#{appOptions.route}"
+    else appOptions.route.slice(1)
+
+    if router.getCurrentPath().search(route) isnt 0
+      router.handleRoute appOptions.route, {suppressListeners : yes, entryPoint}
 
 
   open: do ->
@@ -232,6 +239,10 @@ class ApplicationManager extends KDObject
 
     @setLastActiveIndex appInstance
     @frontApp = appInstance
+
+  getFrontAppManifest: ->
+    {name}  = @getFrontApp().getOptions()
+    return KD.getAppOptions name
 
   register:(appInstance)->
 

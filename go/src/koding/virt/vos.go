@@ -1,8 +1,8 @@
 package virt
 
 import (
+	"errors"
 	"exp/inotify"
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -20,6 +20,11 @@ func (vm *VM) OS(user *User) *VOS {
 }
 
 func (vos *VOS) resolve(name string) (string, error) {
+	entry := vos.vm.GetUserEntry(vos.user)
+	if entry == nil && vos.user.Uid != 0 {
+		return "", &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
+	}
+
 	tildePrefix := strings.HasPrefix(name, "~/")
 	if !path.IsAbs(name) || tildePrefix {
 		if tildePrefix {
@@ -27,11 +32,12 @@ func (vos *VOS) resolve(name string) (string, error) {
 		}
 		name = "/home/" + vos.user.Name + "/" + name
 	}
+
 	constructedPath := ""
 	for _, segment := range strings.Split(path.Clean(name), "/")[1:] {
 		// sanity check, should all be removed by path.Clean
 		if segment == ".." {
-			return "", fmt.Errorf("Error while processing path")
+			return "", &os.PathError{Op: "path", Path: name, Err: errors.New("error while processing path")}
 		}
 
 		fullPath := vos.vm.File("rootfs/" + constructedPath + "/" + segment)
@@ -60,20 +66,42 @@ func (vos *VOS) resolve(name string) (string, error) {
 
 			// check permissions
 			sysinfo := info.Sys().(*syscall.Stat_t)
-			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid)
+			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == 0
 			if !readable {
-				return "", fmt.Errorf("Permission denied: %s/%s", constructedPath, segment)
+				return "", &os.PathError{Op: "path", Path: constructedPath + "/" + segment, Err: errors.New("permission denied")}
 			}
 		}
 
 		constructedPath += "/" + segment
 	}
+
 	return constructedPath, nil
 }
 
-func (vos *VOS) inVosContext(name string, f func(name string) error) error {
+func (vos *VOS) ensureWritable(name string) error {
+	info, err := os.Stat(name)
+	if err != nil {
+		if os.IsNotExist(err) {
+			dir, _ := path.Split(name)
+			return vos.ensureWritable(dir[:len(dir)-1])
+		}
+		return err
+	}
+
+	sysinfo := info.Sys().(*syscall.Stat_t)
+	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == 0
+	if !writable {
+		return &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
+	}
+	return nil
+}
+
+func (vos *VOS) inVosContext(name string, writeAccess bool, f func(name string) error) error {
 	vmRoot := vos.vm.File("rootfs")
 	vmPath, err := vos.resolve(name)
+	if err == nil && writeAccess {
+		err = vos.ensureWritable(vmRoot + vmPath)
+	}
 	if err == nil {
 		err = f(vmRoot + vmPath)
 	}
@@ -88,49 +116,38 @@ func (vos *VOS) inVosContext(name string, f func(name string) error) error {
 }
 
 func (vos *VOS) Chmod(name string, mode os.FileMode) error {
-	return vos.inVosContext(name, func(resolved string) error {
+	return vos.inVosContext(name, true, func(resolved string) error {
 		return os.Chmod(resolved, mode)
 	})
 }
 
 func (vos *VOS) Chown(name string, uid, gid int) error {
-	return vos.inVosContext(name, func(resolved string) error {
-		return os.Chown(resolved, uid, gid)
+	return vos.inVosContext(name, true, func(resolved string) error {
+		return os.Lchown(resolved, uid, gid)
 	})
 }
 
 func (vos *VOS) Chtimes(name string, atime time.Time, mtime time.Time) error {
-	return vos.inVosContext(name, func(resolved string) error {
+	return vos.inVosContext(name, true, func(resolved string) error {
 		return os.Chtimes(resolved, atime, mtime)
 	})
 }
 
 func (vos *VOS) Create(name string) (file *os.File, err error) {
-	err = vos.inVosContext(name, func(resolved string) error {
-		file, err = os.Create(resolved)
-		if err != nil {
-			return err
-		}
-		if err := file.Chown(vos.user.Uid, vos.user.Uid); err != nil {
-			file.Close()
-			return err
-		}
-		return nil
-	})
-	return
+	return vos.OpenFile(name, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 }
 
 func (vos *VOS) Symlink(oldname, newname string) error {
-	return vos.inVosContext(oldname, func(resolved string) error {
-		if err := os.Symlink(resolved, newname); err != nil {
+	return vos.inVosContext(newname, true, func(resolved string) error {
+		if err := os.Symlink(oldname, resolved); err != nil {
 			return err
 		}
-		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
+		return os.Lchown(resolved, vos.user.Uid, vos.user.Uid)
 	})
 }
 
 func (vos *VOS) Stat(name string) (fi os.FileInfo, err error) {
-	err = vos.inVosContext(name, func(resolved string) error {
+	err = vos.inVosContext(name, false, func(resolved string) error {
 		fi, err = os.Lstat(resolved) // resolved has already followed all symlinks
 		return err
 	})
@@ -138,33 +155,42 @@ func (vos *VOS) Stat(name string) (fi os.FileInfo, err error) {
 }
 
 func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
-	return vos.inVosContext(name, func(resolved string) error {
+	return vos.inVosContext(name, true, func(resolved string) error {
 		if err := os.Mkdir(resolved, perm); err != nil {
 			return err
 		}
-		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
+		return os.Lchown(resolved, vos.user.Uid, vos.user.Uid)
 	})
 }
 
 func (vos *VOS) MkdirAll(name string, perm os.FileMode) error {
-	return vos.inVosContext(name, func(resolved string) error {
-		if err := os.MkdirAll(resolved, perm); err != nil {
+	_, err := vos.Stat(name)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err == nil {
+		return nil
+	}
+
+	dir, _ := path.Split(name)
+	if dir != "" {
+		if err := vos.MkdirAll(dir[:len(dir)-1], perm); err != nil {
 			return err
 		}
-		return os.Chown(resolved, vos.user.Uid, vos.user.Uid)
-	})
+	}
+	if err := vos.Mkdir(name, perm); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (vos *VOS) Open(name string) (file *os.File, err error) {
-	err = vos.inVosContext(name, func(resolved string) error {
-		file, err = os.Open(resolved)
-		return err
-	})
-	return
+	return vos.OpenFile(name, os.O_RDONLY, 0)
 }
 
 func (vos *VOS) OpenFile(name string, flag int, perm os.FileMode) (file *os.File, err error) {
-	err = vos.inVosContext(name, func(resolved string) error {
+	err = vos.inVosContext(name, flag&(os.O_WRONLY|os.O_RDWR|os.O_APPEND|os.O_CREATE|os.O_TRUNC) != 0, func(resolved string) error {
 		file, err = os.OpenFile(resolved, flag, perm)
 		if err != nil {
 			return err
@@ -181,7 +207,7 @@ func (vos *VOS) OpenFile(name string, flag int, perm os.FileMode) (file *os.File
 }
 
 func (vos *VOS) Readlink(name string) (linkname string, err error) {
-	err = vos.inVosContext(name, func(resolved string) error {
+	err = vos.inVosContext(name, false, func(resolved string) error {
 		linkname, err = os.Readlink(resolved)
 		return err
 	})
@@ -189,27 +215,48 @@ func (vos *VOS) Readlink(name string) (linkname string, err error) {
 }
 
 func (vos *VOS) Remove(name string) error {
-	return vos.inVosContext(name, func(resolved string) error {
+	return vos.inVosContext(name, true, func(resolved string) error {
 		return os.Remove(resolved)
 	})
 }
 
 func (vos *VOS) RemoveAll(name string) error {
-	return vos.inVosContext(name, func(resolved string) error {
-		return os.RemoveAll(resolved)
-	})
+	fi, err := vos.Stat(name)
+	if err != nil {
+		return err
+	}
+
+	if fi.IsDir() {
+		dir, err := vos.Open(name)
+		if err != nil {
+			return err
+		}
+		defer dir.Close()
+
+		entries, err := dir.Readdirnames(0)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			if err := vos.RemoveAll(name + "/" + entry); err != nil {
+				return err
+			}
+		}
+	}
+
+	return vos.Remove(name)
 }
 
 func (vos *VOS) Rename(oldname, newname string) error {
-	return vos.inVosContext(oldname, func(oldnameResolved string) error {
-		return vos.inVosContext(newname, func(newnameResolved string) error {
+	return vos.inVosContext(oldname, true, func(oldnameResolved string) error {
+		return vos.inVosContext(newname, true, func(newnameResolved string) error {
 			return os.Rename(oldnameResolved, newnameResolved)
 		})
 	})
 }
 
 func (vos *VOS) AddWatch(w *inotify.Watcher, name string, flags uint32) (watchedPath string, err error) {
-	err = vos.inVosContext(name, func(resolved string) error {
+	err = vos.inVosContext(name, false, func(resolved string) error {
 		watchedPath = resolved
 		return w.AddWatch(resolved, flags)
 	})

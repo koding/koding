@@ -272,11 +272,13 @@ module.exports = [
   "app/MainApp/filetree/itemviews/mountitem.coffee",
   "app/MainApp/filetree/itemviews/brokenlinkitem.coffee",
   "app/MainApp/filetree/itemviews/sectionitem.coffee",
+  "app/MainApp/filetree/itemviews/vmitem.coffee",
 
   "app/MainApp/filetree/itemsubviews/finderitemdeleteview.coffee",
   "app/MainApp/filetree/itemsubviews/finderitemdeletedialog.coffee",
   "app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee",
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
+  "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
@@ -289,6 +291,7 @@ module.exports = [
   "app/MainApp/fs/fsfolder.coffee",
   "app/MainApp/fs/fsmount.coffee",
   "app/MainApp/fs/fsbrokenlink.coffee",
+  "app/MainApp/fs/fsvm.coffee",
 
   # avatararea
   "app/MainApp/avatararea/avatarareapopup.coffee",
@@ -324,6 +327,7 @@ module.exports = [
   # "app/MainApp/bottompanels/chat/chatuseritem.coffee",
   # "app/MainApp/bottompanels/terminal/terminalpanel.coffee",
 
+  "app/MainApp/maincontroller/mainviews/appsettingsmenubutton.coffee",
   "app/MainApp/maincontroller/mainviews/mainview.coffee",
   "app/MainApp/maincontroller/mainviews/contentpanel.coffee",
   "app/MainApp/maincontroller/mainviewcontroller.coffee",
@@ -598,6 +602,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",
+  "app/Applications/Home.kdapplication/Views/counterview.coffee",
 
   #ABOUT VIEWS
 
@@ -617,6 +622,7 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsDevMounts.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsDevRepos.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsDevSshKeys.coffee",
+  "app/Applications/Account.kdapplication/account/accSettingsDevKodingKeys.coffee",
 
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
@@ -688,7 +694,7 @@ module.exports = [
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
-  "stylus/app.predefined.styl",
+  # "stylus/app.predefined.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
   "stylus/app.aceeditor.styl",
@@ -729,4 +735,6 @@ module.exports = [
   "app/Applications/WebTerm.kdapplication/themes/green-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/gray-on-black.styl",
   "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
+  "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
 ]
