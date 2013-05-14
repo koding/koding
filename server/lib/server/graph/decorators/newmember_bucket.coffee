@@ -39,8 +39,8 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
 
     return  if @overview.count > 5
 
-    @overview.createdAt.push member.meta.createdAt
-    @overview.ids.push member.id
+    @overview.createdAt.unshift member.meta.createdAt
+    @overview.ids.unshift member.id
 
   generateSnapshot:(member)->
 
