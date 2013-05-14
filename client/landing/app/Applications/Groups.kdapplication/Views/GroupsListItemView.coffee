@@ -113,10 +113,21 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
-  markMemberGroup:->
+  markPendingRequest:->
+    @setClass "pending-request"
+    @settingsButton.options.style += " pending-request"
+    @memberBadge.updatePartial "<span class='fold'/>Request Pending"
+
+  markPendingInvitation:->
+    @setClass "pending-invitation"
+    @settingsButton.options.style += " pending-invitation"
+    @memberBadge.updatePartial "<span class='fold'/>Pending Invitation"
+
+  markMemberGroup:(updatePartial=no)->
     @setClass "group-member"
     @settingsButton.options.style += " group-member"
     @fetchMembers() if @getData().privacy isnt 'public'
+    @memberBadge.updatePartial "<span class='fold'/>You are a member" if updatePartial
 
   markOwnGroup:->
     @setClass "group-owner"
@@ -197,27 +208,78 @@ class GroupsListItemView extends KDListItemView
                 @destroy()
           , data
 
+      menu['Cancel Request'] =
+        cssClass : 'cancel-request'
+        callback : =>
+          modal = new KDModalView
+            title          : 'Cancel Request'
+            content        : "<div class='modalformline'>Are you sure that you want to cancel your membership request to this group?</div>"
+            height         : 'auto'
+            overlay        : yes
+            buttons        :
+              Cancel       :
+                style      : "modal-clean-red"
+                loader     :
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @cancelRequest data, =>
+                    @memberBadge.hide()
+                    @settingsButton.hide()
+                    @unsetClass 'group-owner'
+                    modal.buttons.Cancel.hideLoader()
+                    modal.destroy()
+              Dismiss      :
+                style      : "modal-cancel"
+                callback   : (event)-> modal.destroy()
+
+      menu['Accept Invitation'] =
+        cssClass : 'accept-invitation'
+        callback : @bound 'acceptInvitation'
+
+      menu['Ignore Invitation'] =
+        cssClass : 'ignore-invitation'
+        callback : @bound 'ignoreInvitation'
+
     return menu
 
   leaveGroup:(group, callback)->
+    group.leave @handleBackendResponse 'Successfully left group!', (err)->
+      unless err
+        currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
+        currentGroupSlug = currentGroup.getAt 'slug'
+        if group.slug is currentGroupSlug
+          document.location.reload()
+      callback err
 
-    group.leave (err)->
+  cancelRequest:(group, callback)->
+    KD.whoami().cancelRequest group, @handleBackendResponse 'Successfully canceled the request!', callback
+
+  acceptInvitation:->
+    KD.whoami().acceptInvitation @getData(), @handleBackendResponse 'Successfully accepted the invitation!', (err)=>
+      unless err
+        @markMemberGroup yes
+        @unsetClass 'pending-invitation'
+        @settingsButton.options.style = @settingsButton.options.style.replace ' pending-invitation', ''
+
+  ignoreInvitation:->
+    KD.whoami().ignoreInvitation @getData(), @handleBackendResponse 'Successfully ignored the invitation!', (err)=>
+      @unsetClass 'pending-invitation' unless err
+
+  handleBackendResponse:(successMsg, callback)->
+    (err)->
       if err
         warn err
         new KDNotificationView
           title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
           duration : 2000
-        return callback()
+        return callback err
 
       new KDNotificationView
-        title    : 'Successfully left group!'
+        title    : successMsg
         duration : 2000
 
-      currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
-      currentGroupSlug = currentGroup.getAt 'slug'
-      if group.slug is currentGroupSlug
-        document.location.reload()
-      callback()
+      callback null
 
   fetchMembers:->
     @getData().fetchMembers (err, members)=>
