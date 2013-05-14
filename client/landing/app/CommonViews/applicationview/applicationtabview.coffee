@@ -2,11 +2,11 @@ class ApplicationTabView extends KDTabView
 
   constructor: (options = {}, data) ->
 
-    options.resizeTabHandles             = yes
-    options.lastTabHandleMargin          = 40
-    options.sortable                     = yes
-    options.closeAppWhenAllTabsClosed  or= yes
-    options.saveSession                or= no
+    options.resizeTabHandles            ?= yes
+    options.lastTabHandleMargin         ?= 40
+    options.sortable                    ?= yes
+    options.closeAppWhenAllTabsClosed   ?= yes
+    options.saveSession                 ?= no
     options.sessionName                or= ""
 
     super options, data
@@ -32,7 +32,7 @@ class ApplicationTabView extends KDTabView
       @appStorage.setValue "sessions", data if @isSessionEnabled
 
   initSession: ->
-    @appStorage = new AppStorage @getOptions().sessionName, "0.5"
+    @appStorage = new AppStorage @getOptions().sessionName, "1.0"
 
     @appStorage.fetchStorage (storage) =>
       data = @appStorage.getValue "sessions"

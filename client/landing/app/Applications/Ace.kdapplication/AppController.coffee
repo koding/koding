@@ -39,7 +39,7 @@ class AceAppController extends AppController
         closeMenuWhenClicked: no
       }
       {
-        title     : "Reopen lastest files"
+        title     : "Reopen latest files"
         eventName : "reopen"
       }
     ]
