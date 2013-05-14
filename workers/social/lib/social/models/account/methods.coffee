@@ -22,5 +22,7 @@ module.exports =
       'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
       'setHandle','setAbout','fetchAbout','setStaticPageTitle',
       'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-      'fetchPendingGroupInvitations'
+      'fetchPendingGroupInvitations', 'fetchPendingGroupRequests', 
+      'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
+      'getInvitationRequestByGroup'
     ]
