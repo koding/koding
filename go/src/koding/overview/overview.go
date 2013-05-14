@@ -23,6 +23,7 @@ type ConfigFile struct {
 type ServerInfo struct {
 	BuildNumber string
 	GitBranch   string
+	GitCommit   string
 	ConfigUsed  string
 	Config      ConfigFile
 	Hostname    Hostname
@@ -86,6 +87,7 @@ func NewServerInfo() *ServerInfo {
 	return &ServerInfo{
 		BuildNumber: "",
 		GitBranch:   "",
+		GitCommit:   "",
 		ConfigUsed:  "",
 		Config:      ConfigFile{},
 		Hostname:    Hostname{},
@@ -107,16 +109,23 @@ func main() {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
+	build := r.FormValue("searchbuild")
+	if build == "" {
+		build = "latest"
+	}
 	var workers []WorkerInfo
 	var server *ServerInfo
 	var err error
-	workers, err = workerInfo()
+
+	workers, err = workerInfo(build)
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	status := statusInfo()
 	jenkins := jenkinsInfo()
-	server, err = serverInfo()
+
+	server, err = serverInfo(build)
 	if err != nil {
 		fmt.Println(err)
 		server = NewServerInfo()
@@ -156,6 +165,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
 }
 
 func jenkinsInfo() *JenkinsInfo {
+	fmt.Println("getting jenkins info")
 	j := &JenkinsInfo{}
 	jenkinsApi := "http://salt-master.in.koding.com/job/build-koding/api/json"
 	resp, err := http.Get(jenkinsApi)
@@ -181,8 +191,9 @@ func statusInfo() StatusInfo {
 	return s
 }
 
-func workerInfo() ([]WorkerInfo, error) {
-	workersApi := "http://kontrol.in.koding.com/workers?version=latest"
+func workerInfo(build string) ([]WorkerInfo, error) {
+	fmt.Println("getting worker info")
+	workersApi := "http://kontrol.in.koding.com/workers?version=" + build
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		return nil, err
@@ -202,8 +213,10 @@ func workerInfo() ([]WorkerInfo, error) {
 	return w, nil
 }
 
-func serverInfo() (*ServerInfo, error) {
-	serverApi := "http://kontrol.in.koding.com/deployments/latest"
+func serverInfo(build string) (*ServerInfo, error) {
+	fmt.Println("getting server info")
+	serverApi := "http://kontrol.in.koding.com/deployments/" + build
+	fmt.Println(serverApi)
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -220,6 +233,8 @@ func serverInfo() (*ServerInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println(s)
 
 	return s, nil
 }

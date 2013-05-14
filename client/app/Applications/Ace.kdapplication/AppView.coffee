@@ -151,7 +151,7 @@ class AceView extends JView
         Cancel      :
           style     : "modal-cancel"
           callback  : =>
-            @finderController.lastSuccessfulResponse?.stopWatching?()
+            @finderController.stopAllWatchers()
             delete @finderController
             saveDialog.hide()
 

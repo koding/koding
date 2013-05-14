@@ -3312,6 +3312,8 @@ button.close {
 }
 
 .btn-mini {
+  margin-bottom: 7px;
+  margin-left: 4px;
   padding: 0 6px;
   font-size: 10.5px;
   -webkit-border-radius: 3px;

@@ -32,9 +32,12 @@ func main() {
 }
 
 func gatherData() ([]byte, error) {
+	log.Println("gathering information...")
 	buildNumber := helper.ReadVersion()
-	configused := helper.ReadConfigname()
-	gitbranch := helper.ReadGitbranch()
+	configused := helper.ReadFile("CONFIG_USED")
+	gitbranch := helper.ReadFile("GIT_BRANCH")
+	gitcommit := helper.ReadFile("GIT_COMMIT")
+
 	publicHostname := helper.CustomHostname()
 
 	localHostname, err := process.RunCmd("ec2metadata", "--local-hostname")
@@ -66,6 +69,7 @@ func gatherData() ([]byte, error) {
 	s := &clientconfig.ServerInfo{
 		BuildNumber: buildNumber,
 		GitBranch:   gitbranch,
+		GitCommit:   gitcommit,
 		ConfigUsed:  configused,
 		Config:      config,
 		Hostname: clientconfig.Hostname{
@@ -83,7 +87,8 @@ func gatherData() ([]byte, error) {
 		log.Println(err.Error())
 	}
 
-	log.Println(string(data))
+	log.Println(".. I'm done")
+	log.Println("Data is: ", string(data))
 
 	return data, nil
 }

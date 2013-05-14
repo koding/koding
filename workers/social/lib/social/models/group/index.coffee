@@ -841,8 +841,8 @@ module.exports = class JGroup extends Module
         group: @slug
         status: $not: $in: JInvitationRequest.resolvedStatuses
         $or: [
-          'koding.username': delegate.profile.nickname,
-          email: user.email
+          {'koding.username': delegate.profile.nickname}
+          {email: user.email}
         ]
       JInvitationRequest.one selector, (err, invitationRequest)=>
         return callback err if err

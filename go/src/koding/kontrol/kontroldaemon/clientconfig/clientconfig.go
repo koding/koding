@@ -3,12 +3,14 @@ package clientconfig
 import (
 	"koding/tools/config"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 )
 
 type ServerInfo struct {
 	BuildNumber string
 	GitBranch   string
+	GitCommit   string
 	ConfigUsed  string
 	Config      *ConfigFile
 	Hostname    Hostname
@@ -61,7 +63,7 @@ func Connect() (*ClientConfig, error) {
 }
 
 func (c *ClientConfig) AddClient(info ServerInfo) {
-	err := c.Collection.Insert(info)
+	_, err := c.Collection.Upsert(bson.M{"buildnumber": info.BuildNumber}, info)
 	if err != nil {
 		log.Println(err)
 	}
