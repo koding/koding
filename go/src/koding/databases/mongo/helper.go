@@ -8,7 +8,6 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
-	"time"
 )
 
 var (
@@ -43,27 +42,13 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 	//we need createdAt at all nodes
 
 	meta := make(map[string]interface{})
-	createdAt := time.Now().UTC().Format("2006-01-02T15:04:05Z")
 
 	if _, ok := result["meta"]; ok {
 		meta = result["meta"].(map[string]interface{})
-
-		if _, ok := meta["createdAt"]; ok {
-			createdAt = fmt.Sprintf("%s", meta["createdAt"])
-		} else if _, ok := meta["modifiedAt"]; ok {
-			createdAt = fmt.Sprintf("%s", meta["modifiedAt"])
-		}
-
-	} else {
-
-		if _, ok := result["createdAt"]; ok {
-			createdAt = fmt.Sprintf("%s", result["createdAt"])
-		} else if _, ok := result["modifiedAt"]; ok {
-			createdAt = fmt.Sprintf("%s", result["modifiedAt"])
-		}
 	}
 
-	meta["createdAt"] = createdAt
+	meta["createdAt"] = id.Time().UTC().Format("2006-01-02T15:04:05Z")
+
 	result["meta"] = meta
 
 	jsonResult = generateJSON(result)
