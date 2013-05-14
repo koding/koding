@@ -40,6 +40,39 @@ class HomeAppView extends KDView
         @utils.stopDOMEvent event
         @slideShow.slideTo "next"
 
+    @addSubView @counterBar = new CounterGroupView
+      domId    : "home-counter-bar"
+      tagName  : "section"
+    ,
+      "Members"          : count : 0
+      "Virtual Machines" : count : 0
+      "Lines of Code"    : count : 0
+      "Groups"           : count : 0
+      "Topics"           : count : 0
+
+    @counterBar.counters.Members.ready =>
+      KD.remote.api.JAccount.count "", (err, count)=>
+        @counterBar.counters.Members.update count or 0
+
+    @counterBar.counters["Virtual Machines"].ready =>
+      @getSingleton("vmController").getTotalVMCount (err, count)=>
+        @counterBar.counters["Virtual Machines"].update count or 0
+
+    @counterBar.counters["Lines of Code"].ready =>
+      @getSingleton("vmController").getTotalLoC (err, count)=>
+        @counterBar.counters["Lines of Code"].update count or 0
+
+    @counterBar.counters.Groups.ready =>
+      KD.remote.api.JGroup.count "", (err, count)=>
+        @counterBar.counters.Groups.update count or 0
+
+    @counterBar.counters.Topics.ready =>
+      KD.remote.api.JTag.count "", (err, count)=>
+        @counterBar.counters.Topics.update count or 0
+
+
+
+
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
 
@@ -54,6 +87,7 @@ class HomeAppView extends KDView
     @slideShow.on "OtherSlideShown", =>
       @leftArrow.$().css  left  : ""
       @rightArrow.$().css right : ""
+
 
   # OLD HOME PISTACHIO
   # left here for reference - SY
