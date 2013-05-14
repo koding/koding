@@ -15,7 +15,7 @@ class AceAppView extends JView
       saveSession          : yes
       sessionName          : "AceTabHistory"
 
-    @on "SessionDataCreated", (sessionData) => @sessionData = sessionData
+    @on "SessionDataCreated", (@sessionData) =>
 
     @on "UpdateSessionData", (openPanes, data) =>
       @sessionData = @createSessionData openPanes, data
