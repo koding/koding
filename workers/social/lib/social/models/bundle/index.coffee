@@ -1,10 +1,14 @@
+JProduct = require '../product'
+
 {Module} = require 'jraphical'
 
-module.exports = class JBundle extends Module
+module.exports = class JBundle extends JProduct
 
   {dash} = require 'bongo'
 
-  @setLimits =(limits)->
+  # @create = ()
+
+  @setLimits = (limits) ->
     JLimit = require '../limit'
 
     relationships =
@@ -14,6 +18,10 @@ module.exports = class JBundle extends Module
 
     @setRelationships relationships
 
+    # prevent subclasses from trying to set relationships + limits:
+    @setRelationships = ->
+      throw new Error "You can't set relationships on a bundle class"
+
     normalizedLimits = {}
     for own limitName, limit of limits
       normalizedLimits[limitName] =
@@ -22,21 +30,27 @@ module.exports = class JBundle extends Module
 
     @limits_ = normalizedLimits
 
-  constructor:(limits)->
-    super {}
+  constructor: (data, limits) ->
 
-    { limits_: defaultLimits } = @constructor
+    super data
 
-    @once 'save', =>
+    if limits?
 
-      queue = Object.keys(defaultLimits).map (limitName) => =>
-        limitOptions = limits[limitName]
-        limitOptions = { unit: limit }  if 'string' is typeof limitOptions
-        limit = new Limit limitOptions
-        limit.save (err)=>
-          return next err  if err
-          @addLimit limit, limitName, next
+      { limits_: defaultLimits } = @constructor
 
-      next = queue.next.bind queue
+      @once 'save', =>
+        console.log 'does this happen?'
 
-      dash queue, => @emit 'limitsAreSet'
+        queue = Object.keys(defaultLimits).map (limitName) => =>
+          limitOptions = limits[limitName]
+          limitOptions = { unit: limit }  if 'string' is typeof limitOptions
+          limit = new Limit limitOptions
+          limit.save (err)=>
+            return next err  if err
+            @addLimit limit, limitName, next
+
+        dash queue, => @emit 'limitsAreSet'
+
+        next = queue.next.bind queue
+
+        return
