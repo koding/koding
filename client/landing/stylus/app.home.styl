@@ -43,7 +43,7 @@ body.group
       fr()
 
     a.readme-cancel
-      margin              3px 0 3px 10px
+      margin              -6px 0 3px 10px
       fr()
 
     button.readme-edit
@@ -52,35 +52,27 @@ body.group
 div.screenshots
   rel()
   height                  auto
-  z-index                 1000
 
   .arrow
     abs()
     display               block
-    top                   107px
-    size                  30px, 503px
+    top                   50%
+    size                  30px, 60px
+    margin-top            -30px
     shadow                0 10px 25px rgba(0, 0, 0, .4)
     bg                    color, rgba(0, 0, 0, .5)
     vendor                transition, left  .15s ease-in-out\,\
                                       right .15s ease-in-out\,\
                                       width .15s ease-in-out
     z-index               1
-    border                1px solid transparent
-    border-color          rgba(255, 255, 255, .2)\
-                          rgba(0, 0, 0, .1)\
-                          rgba(0, 0, 0, .3)
     borderBox()
     &.left
       left                0
-      rounded             0 4px 4px 0
-      border-width        1px 1px 1px 0
       span
         right             10px
         bg                position, -220px -100px
     &.right
       right               0
-      rounded             4px 0 0 4px
-      border-width        1px 0 1px 1px
       span
         left              20px
         bg                position, -200px -100px
@@ -99,65 +91,71 @@ div.screenshots
 
   > section
     size                  100%, 506px
-    overflow              hidden
     text-align            center
-    padding               30px 0
-    background            transparent url("../images/clouds.png") no-repeat center 0
+    padding               0
+    background            transparent url("../images/bg/blurred/1.jpg") no-repeat center 0
     background-size       cover
     shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
 
     ul
-      margin                0
-      size                  600%, 506px
-      z-index               0
-
-    li
-      rel()
-      size                16.6667%, 506px
+      margin              0
+      size                100%, 100%
+      z-index             0
       overflow            hidden
-      padding             30px 0
+    li
+      abs()
+      top                 0
+      size                100%, 100%
+      overflow            hidden
+      padding             0
+      background-size     cover
+      background-position 50% 0px
+      background-repeat   no-repeat
+      background-color    transparent
       borderBox()
-      fl()
-
+      &.to-left p
+        margin-left       100%
+        opacity           0
+      &.to-right p
+        margin-left       -100%
+        opacity           0
       p
-        rel()
-        size              100%, auto
-        padding           10px 40px
-        margin            -120px auto 0 auto
-        font-size         20px
-        line-height       30px
+        abs()
+        width             100%
         text-align        center
-        color             #FFF
-        opacity           .9
-        text-shadow       0 1px 0 rgba(0,0,0,0.4)
-        // gradient          rgba(255, 146, 0, 0.8), rgba(209, 107, 13, 0.8)
-        gradient          #888, #666
-        bg                color, #ff9200
-        shadow            0 3px 10px rgba(0,0,0,0.5)
-        rounded           2px
-        borderBox()
+        margin-top        150px
+        margin-left       0%
+        opacity           1
+        vendor            transition, margin .4s ease-in-out\, opacity .25s ease-in-out
         span
-          font-style      italic
-          font-size       12px
-          line-height     20px
-          color           rgba(255, 255, 255, .85)
-          display         block
+          color           rgba(255,255,255,.95)
+          text-shadow     0 1px 0 rgba(0,0,0,0.4)
+          bg              color, rgba(0,0,0,.3)
+          line-height     2em
+          display         inline
+          font-size       48px
+          font-weight     600
+          padding         10px 20px
 
-      > div
-      > img
+      > figure
+        rel()
         display           inline-block
-        width             90%
         max-width         800px
         min-width         500px
         max-height        443px
         rounded           4px
         shadow            0 10px 25px rgba(0,0,0,0.5)
         overflow          hidden
-      > div
-        background        rgba(0, 0, 0, .4)
-        iframe
-          padding         10px
-          borderBox()
+        &.video
+          margin          30px auto
+          size            100%, 100%
+          background      rgba(0, 0, 0, .4)
+          iframe
+            size          100%, 100%
+            padding       10px
+            borderBox()
+        img
+          width           100%
 
   .home-links
     size                auto, 0
@@ -214,6 +212,8 @@ div.screenshots
       &.customize
         .icon
           bg            position, -200px -380px
+      &.invitation-pending
+      &.request-pending
       &.request
         .icon
           bg            position, -200px -360px
@@ -229,6 +229,64 @@ div.screenshots
       &.orange
         border-top      1px solid rgba(255,255,255,.4)
         gradient        rgb(233, 142, 27), rgb(223, 118, 4)
+
+#home-counter-bar
+  padding               30px
+  gradient              #37332C ,#1D1B18
+  text-align            center
+
+figure.counter
+  display               inline-block
+  margin                0 10px 0 0
+  > div
+    padding             2px
+    bg                  color, rgba(0,0,0,.2)
+    fl()
+    rel()
+  h6.title
+    font-size           14px
+    color               white
+    text-transform      uppercase
+    text-shadow         0 -1px 0 black
+    size                auto, 26px
+    line-height         26px
+    white-space         nowrap
+    font-weight         300
+    margin              2px 10px 0 0
+    fl()
+    // vendor              font-smoothing, antialiased
+    // vendor              text-rendering, geometricPrecision
+    // abs()
+  i.digit
+    display             inline-block
+    font-family         Ubuntu
+    font-size           22px
+    font-weight         bold
+    padding             0 3px
+    line-height         24px
+    color               rgb(255,255,255)
+    // text-shadow         0 -1px 0 black
+    // rounded             2px
+    gradient            #42403A, #454340
+    margin-right        1px
+    font-style          normal
+    vendor              font-smoothing, antialiased
+    vendor              text-rendering, geometricPrecision
+    shadow              inset 0 2px 4px -2px rgba(0,0,0,.5)
+    rel()
+    &:last-child
+      margin-right      0
+    span.hinge
+      size              100%, 50%
+      top               -1px
+      left              0
+      margin            0
+      bg                color, rgba(0,0,0,.1)
+      border-bottom     1px solid rgba(0,0,0,.3)
+      shadow            0 1px 0 rgba(255,255,255,.1)
+      abs()
+
+
 
 // NEW TRY END
 
