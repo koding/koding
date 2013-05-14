@@ -216,9 +216,6 @@ class LoginView extends KDScrollView
 
         @hide()
 
-        if entryPoint?.slug?
-          @getSingleton('lazyDomController').hideLandingPage()
-
   doRequest:(formData)->
 
     KD.remote.api.JInvitationRequest.create formData, (err, result)=>
