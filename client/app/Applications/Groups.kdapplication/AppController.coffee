@@ -242,7 +242,7 @@ class GroupsAppController extends AppController
 
   markPendingRequestGroups:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
-  
+
   markPendingGroupInvitations:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
@@ -357,7 +357,7 @@ class GroupsAppController extends AppController
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
-  
+
   cancelGroupRequest:(group, callback)->
     KD.whoami().cancelRequest group, callback
 
@@ -762,6 +762,13 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
+  prepareBundleTab: ->
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Bundle', GroupsBundleView,
+      (pane, bundleView) ->
+        console.log 'bundle view', bundleView
+
   createContentDisplay:(group, callback)->
 
     @groupView = groupView = new GroupView
@@ -773,6 +780,7 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
+    @prepareBundleTab()
 #    @prepareVocabularyTab()
 
     if 'private' is group.privacy
