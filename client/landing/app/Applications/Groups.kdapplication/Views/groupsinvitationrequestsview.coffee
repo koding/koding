@@ -46,7 +46,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         controller.emit 'noItemsFound'
 
   refresh:->
-    @prepareBulkInvitations()
+    @updateCurrentState()
     @fetchAndPopulate @penRequestsListController, yes
     @fetchAndPopulate @penInvitationsListController, yes
     @fetchAndPopulate @resRequestsListController, yes
@@ -89,6 +89,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     listView = controller.getListView()
     @forwardEvent listView, 'RequestIsApproved'
     @forwardEvent listView, 'RequestIsDeclined'
+    listView.on 'UpdateCurrentState', @bound 'updateCurrentState'
 
     return [controller, view]
 
@@ -197,6 +198,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         emails         :
           label        : 'Emails'
           type         : 'textarea'
+          cssClass     : 'emails-input'
           placeholder  : 'Enter each email address on a new line...'
           validate     :
             rules      :

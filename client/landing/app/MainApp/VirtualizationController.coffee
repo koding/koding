@@ -12,6 +12,14 @@ class VirtualizationController extends KDController
 
   run:(command, callback)->
 
+    unless KD.isLoggedIn()
+      unless command is 'vm.info'
+        KD.requireLogin()
+        callback "Login required"
+      else
+        callback null, state: 'STOPPED'
+      return
+
     @askForApprove command, (approved)=>
       if approved
         cb = unless command is 'vm.info' then @_cbWrapper callback \
