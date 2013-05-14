@@ -23,6 +23,7 @@ type ConfigFile struct {
 type ServerInfo struct {
 	BuildNumber string
 	GitBranch   string
+	GitCommit   string
 	ConfigUsed  string
 	Config      ConfigFile
 	Hostname    Hostname
@@ -86,6 +87,7 @@ func NewServerInfo() *ServerInfo {
 	return &ServerInfo{
 		BuildNumber: "",
 		GitBranch:   "",
+		GitCommit:   "",
 		ConfigUsed:  "",
 		Config:      ConfigFile{},
 		Hostname:    Hostname{},

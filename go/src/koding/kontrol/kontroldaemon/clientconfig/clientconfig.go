@@ -1,15 +1,16 @@
 package clientconfig
 
 import (
-	"labix.org/v2/mgo/bson"
 	"koding/tools/config"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 )
 
 type ServerInfo struct {
 	BuildNumber string
 	GitBranch   string
+	GitCommit   string
 	ConfigUsed  string
 	Config      *ConfigFile
 	Hostname    Hostname

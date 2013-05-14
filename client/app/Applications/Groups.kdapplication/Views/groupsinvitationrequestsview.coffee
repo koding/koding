@@ -46,7 +46,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         controller.emit 'noItemsFound'
 
   refresh:->
-    @prepareBulkInvitations()
+    @updateCurrentState()
     @fetchAndPopulate @penRequestsListController, yes
     @fetchAndPopulate @penInvitationsListController, yes
     @fetchAndPopulate @resRequestsListController, yes
@@ -89,6 +89,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     listView = controller.getListView()
     @forwardEvent listView, 'RequestIsApproved'
     @forwardEvent listView, 'RequestIsDeclined'
+    listView.on 'UpdateCurrentState', @bound 'updateCurrentState'
 
     return [controller, view]
 
