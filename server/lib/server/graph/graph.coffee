@@ -22,7 +22,7 @@ module.exports = class Graph
       generatedObjects.push generatedObject
     callback generatedObjects
 
-  fetchAll:(startDate, endDate, callback)->
+  fetchAll:(startDate, callback)->
     start = new Date().getTime()
     query = [
       'start koding=node:koding(\'id:*\')'
@@ -30,16 +30,18 @@ module.exports = class Graph
       ' or koding.name = "JCodeSnip"'
       ' or koding.name = "JDiscussion"'
       ' or koding.name = "JStatusUpdate"'
-      #'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
+      ' and has(koding.`meta.createdAt`)'
+      ' and koding.`meta.createdAt` < {startDate}'
       'return *'
       'order by koding.`meta.createdAt` DESC'
-      'limit 20'
+      'limit 10'
     ].join('\n');
+
+    console.log query, startDate
 
     params =
       groupId   : @groupId
       startDate : startDate
-      endDate   : endDate
 
     @db.query query, params, (err, results)=>
 
@@ -70,6 +72,7 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(id={itemId})'
       'match koding-[r]-all'
+      'where has(koding.`meta.createdAt`)'
       'return *'
       'order by koding.`meta.createdAt` DESC'
     ].join('\n');
@@ -94,17 +97,25 @@ module.exports = class Graph
           respond[type].push obj
         callback err, respond
 
-  fetchNewInstalledApps:(callback)->
+
+  fetchNewInstalledApps:(startDate, callback)->
     query = [
       'start koding=node:koding(\'id:*\')'
       'match koding-[r:user]->users'
       'where koding.name="JApp" and r.createdAt > "2012-11-14T23:56:48Z"'
+      'and koding.`meta.createdAt` < {startDate}'
       'return *'
       'order by r.createdAt DESC'
-      'limit 40'
+      'limit 10'
     ].join('\n');
 
-    @db.query query, {}, (err, results) =>
+    console.log query, startDate
+
+    params =
+      groupId   : @groupId
+      startDate : startDate
+
+    @db.query query, params, (err, results) =>
       if err then throw err
       @generateInstalledApps [], results, callback
 
@@ -121,20 +132,24 @@ module.exports = class Graph
           resultData.push data
           @generateInstalledApps resultData, results, callback
 
-  fetchNewMembers:(callback)->
+  fetchNewMembers:(startDate, callback)->
     query = [
       'start  koding=node:koding(id={groupId})'
       'MATCH  koding-[r:member]->members'
-      'where  members.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'where  members.name="JAccount"'
+      'and r.createdAt < {startDate}'
+      'and has(koding.`meta.createdAt`)'
+      'and koding.`meta.createdAt` < {startDate}'
       'return members'
       'order by koding.`meta.createdAt` DESC'
-      'limit 40'
+      'limit 10'
     ].join('\n');
+
+    console.log query, startDate
 
     params =
       groupId   : @groupId
-      startDate : "2012-02-14T23:56:48Z"
-      endDate   : "2014-02-14T23:56:48Z"
+      startDate : startDate
 
     @db.query query, params, (err, results) ->
         if err then throw err
@@ -146,22 +161,23 @@ module.exports = class Graph
         objectify resultData, (objected)->
           callback err, objected
 
-
-  fetchNewFollows:(callback)->
+  fetchNewFollows:(startDate, callback)->
     #followers
     query = [
       'start koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
-      'where followees.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'where followees.name="JAccount"'
+      'and r.createdAt < {startDate}'
       'return r,followees, follower'
       'order by r.createdAt DESC'
       'limit 10'
     ].join('\n');
 
+    console.log query, startDate
+
     params =
       groupId   : @groupId
-      startDate : "2012-02-14T23:56:48Z"
-      endDate   : "2014-02-14T23:56:48Z"
+      startDate : startDate
 
     @db.query query, params, (err, results)=>
       if err then throw err
