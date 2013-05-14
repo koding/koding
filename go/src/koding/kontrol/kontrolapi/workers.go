@@ -68,6 +68,8 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 					s := strings.Split(value[0], "-")
 					name = s[0]
 				}
+				// if searched for social-1, social-2, then return all workers
+				// that begins with social
 				query[key] = bson.RegEx{Pattern: "^" + name, Options: "i"}
 			} else {
 				query[key] = value[0]
