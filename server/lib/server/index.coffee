@@ -358,6 +358,9 @@ decorateAll = (err, decoratedObjects)->
     overviewObjects.push objects.overview
 
   overview = _.flatten(overviewObjects)
+
+  return {}  if overview.length is 0
+
   overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
 
   for activity, index in overview when activity.type is "CNewMemberBucketActivity"
