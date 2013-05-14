@@ -1,7 +1,7 @@
 class HomeSlideShow extends KDView
 
   constructor:(options = {}, data)->
-    
+
     host = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
     data = [
       {
@@ -28,18 +28,23 @@ class HomeSlideShow extends KDView
         """
       }
     ]
-    options.tagName or= "section"
-    options.keydown   = 
-      left  : @slideTo.bind this, "prev"
-      right : @slideTo.bind this, "next"
+    options.tagName  or= "section"
+    options.keydown    =
+      left             : =>
+        @interacted = yes
+        @slideTo "prev"
+      right            : =>
+        @interacted = yes
+        @slideTo "next"
 
     super options, data
-    
-    @slides = []
-    @pos    = 0
-    @listenWindowResize()
+
+    @slides     = []
+    @pos        = 0
+    @interacted = no
 
   viewAppended:->
+
     @leftArrow = new KDCustomHTMLView
       domId    : "home-ss-left-arrow"
       tagName  : "a"
@@ -48,6 +53,8 @@ class HomeSlideShow extends KDView
       click    : (event)=>
         @utils.stopDOMEvent event
         @slideTo "prev"
+        @setKeyView()
+        @interacted = yes
 
     @leftArrow.setX -40
 
@@ -59,14 +66,16 @@ class HomeSlideShow extends KDView
       click    : (event)=>
         @utils.stopDOMEvent event
         @slideTo "next"
+        @setKeyView()
+        @interacted = yes
 
-    @wrapper = new KDScrollView
+    @wrapper = new KDView
       cssClass   : 'clearfix'
       tagName    : 'ul'
       bind       : 'mousewheel'
       mousewheel : =>
         @utils.killWait @timer
-        @timer = @utils.wait 300, => @slideTo()
+        @timer = @utils.wait 600, => @slideTo()
 
     for slide, i in @getData()
       @wrapper.addSubView slide = new KDCustomHTMLView
@@ -74,9 +83,9 @@ class HomeSlideShow extends KDView
         partial    : slide.title
         cssClass   : "to-right" if i > 0
         attributes :
-          style    : "background-image: url('#{slide.bg}'); left: #{i*100}%"
+          style    : "background-image: url('#{slide.bg}'); width: #{100/@getData().length}%"
       @slides.push slide
-    
+
     @setKeyView()
     @slideTo 0
     @$().html ""
@@ -85,7 +94,7 @@ class HomeSlideShow extends KDView
     @addSubView @rightArrow
     @wrapper.on "viewAppended", @bound "_windowDidResize"
     @getSingleton('mainView').on "transitionend", @bound "_windowDidResize"
-    
+
     @on "FirstSlideShown", =>
       @rightArrow.$().css right : 0
       @leftArrow.$().css  left  : -40
@@ -100,12 +109,20 @@ class HomeSlideShow extends KDView
 
     @addSubView @wrapper
 
-  _windowDidResize:->
-
-    @slides.forEach (slide, i)->
-      slide.$().css left : "#{i*100}%"
+    @utils.wait 5000, =>
+      if @pos is 0
+        repeater = @utils.repeat 5000, =>
+          unless @interacted
+          then @rotate()
+          else @utils.killRepeat repeater
 
   click:-> @setKeyView()
+
+  rotate:->
+
+    if @pos is @slides.length - 1
+    then @slideTo 0
+    else @slideTo "next"
 
   slideTo:(index)->
 
@@ -119,7 +136,7 @@ class HomeSlideShow extends KDView
     pos    = index or @pos
     pos    = pos + addend
 
-    if pos < 0 
+    if pos < 0
     then pos = 0
     else if pos > amount-1
     then pos = amount - 1
@@ -134,7 +151,7 @@ class HomeSlideShow extends KDView
 
     @pos = pos
     @slides[pos].unsetClass 'to-left to-right'
-    @wrapper.$().animate scrollLeft : (pos * (@wrapper.getScrollWidth() * aWidth / 100)), 300
+    @wrapper.$().css marginLeft : "-#{pos * 100}%"
 
     if pos is 0
     then @emit "FirstSlideShown"
@@ -148,7 +165,7 @@ class HomeSlideShow extends KDView
   #   <ul class="clearfix">
   #   </ul>
   #   """
-    
+
   #   """
   #   <ul class="clearfix">
   #     <li>
