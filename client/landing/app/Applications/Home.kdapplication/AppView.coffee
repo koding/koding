@@ -10,35 +10,16 @@ class HomeAppView extends KDView
   viewAppended:->
 
     account = KD.whoami()
-    @addSubView @header = new WelcomeHeader
-      domId     : "home-welcome-header"
-      type      : "big"
-      title     : if KD.isLoggedIn() then\
-        "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
-        "Welcome to the Koding Public Beta!<br>"
-      subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
+    # @addSubView @header = new WelcomeHeader
+    #   domId     : "home-welcome-header"
+    #   type      : "big"
+    #   title     : if KD.isLoggedIn() then\
+    #     "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
+    #     "Welcome to the Koding Public Beta!<br>"
+    #   subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
 
     @addSubView @slideShow = new HomeSlideShow
       domId   : "home-slideshow"
-      tagName : "section"
-
-    @addSubView @leftArrow = new KDCustomHTMLView
-      domId    : "home-ss-left-arrow"
-      tagName  : "a"
-      cssClass : "arrow left"
-      partial  : "<span></span>"
-      click    : (event)=>
-        @utils.stopDOMEvent event
-        @slideShow.slideTo "prev"
-
-    @addSubView @rightArrow = new KDCustomHTMLView
-      domId    : "home-ss-right-arrow"
-      tagName  : "a"
-      cssClass : "arrow right"
-      partial  : "<span></span>"
-      click    : (event)=>
-        @utils.stopDOMEvent event
-        @slideShow.slideTo "next"
 
     @addSubView @counterBar = new CounterGroupView
       domId    : "home-counter-bar"
@@ -70,24 +51,8 @@ class HomeAppView extends KDView
       KD.remote.api.JTag.count "", (err, count)=>
         @counterBar.counters.Topics.update count or 0
 
-
-
-
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
-
-    @slideShow.on "FirstSlideShown", =>
-      @rightArrow.$().css right : 0
-      @leftArrow.$().css  left  : -40
-
-    @slideShow.on "LastSlideShown", =>
-      @leftArrow.$().css  left  : 0
-      @rightArrow.$().css right : -40
-
-    @slideShow.on "OtherSlideShown", =>
-      @leftArrow.$().css  left  : ""
-      @rightArrow.$().css right : ""
-
 
   # OLD HOME PISTACHIO
   # left here for reference - SY
