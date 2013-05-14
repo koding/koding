@@ -35,7 +35,7 @@ module.exports = class JGroup extends Module
 
   @set
     softDelete      : yes
-    slugifyFrom     : 'title'
+    slugifyFrom     : 'slug'
     slugTemplate    : '#{slug}'
     feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
@@ -65,7 +65,8 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
+        'suggestUniqueSlug'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -276,6 +277,15 @@ module.exports = class JGroup extends Module
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
+        -> group.createSlug (err, slug)->
+          if err then callback err
+          else unless slug?
+            callback new KodingError "Couldn't claim the slug!"
+          else
+            console.log "created a slug #{slug.slug}"
+            group.slug  = slug.slug
+            group.slug_ = slug.slug
+            queue.next()
         -> save_ 'group', group, queue, callback
         -> group.addMember delegate, (err)->
             if err then callback err

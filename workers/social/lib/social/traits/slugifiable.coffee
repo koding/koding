@@ -24,6 +24,20 @@ module.exports = class Slugifiable
     if isNaN count then ''          # show empty string instead of zero...
     else "-#{count + 1}"            # otherwise, try the next integer.
 
+  @suggestUniqueSlug = (source, callback)->
+    unless source.length then callback null, ''
+    else
+      JName = require '../models/name'
+      slug = slugify source
+      selector = name: RegExp "^#{slug}(-\\d+)?$"
+      JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
+        if err then callback err
+        else cursor.toArray (err, names)->
+          if err then callback err
+          else
+            nextCount = getNextCount names
+            callback null, "#{slug}#{nextCount}"
+
   generateUniqueSlug =(ctx, konstructor, slug, i, template, callback)->
     [callback, template] = [template, callback]  unless callback
     template or= '#{slug}'
