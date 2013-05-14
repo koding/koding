@@ -722,7 +722,7 @@ class GroupsAppController extends AppController
         invitationRequestView.on 'BatchApproveRequests', (formData)->
           group.sendSomeInvitations formData.count, (err)=>
             return invitationRequestView.showErrorMessage err if err
-            invitationRequestView.prepareBulkInvitations()
+            invitationRequestView.updateCurrentState()
             kallback @batchApprove, err
 
         invitationRequestView.on 'InviteByEmail', (formData)->
@@ -733,11 +733,11 @@ class GroupsAppController extends AppController
           group.inviteByUsername formData.recipients, (err)=>
             kallback @inviteByUsername, err
 
-        invitationRequestView.on 'RequestIsApproved', (request)->
-          request.approveInvitation()
+        invitationRequestView.on 'RequestIsApproved', (request, callback)->
+          request.approveInvitation callback
 
-        invitationRequestView.on 'RequestIsDeclined', (request)->
-          request.declineInvitation()
+        invitationRequestView.on 'RequestIsDeclined', (request, callback)->
+          request.declineInvitation callback
 
         pane.on 'PaneDidShow', ->
           invitationRequestView.refresh()  if pane.tabHandle.isDirty
