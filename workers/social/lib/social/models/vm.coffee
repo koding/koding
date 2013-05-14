@@ -4,18 +4,23 @@ module.exports = class JVM extends Model
 
   {permit} = require './group/permissionset'
 
+  KodingError = require '../error'
+
   @share()
 
   @trait __dirname, '../traits/protected'
+
+  @bound = require 'koding-bound'
 
   @set
     softDelete          : yes
     permissions         :
       'sudoer'          : []
+      'create vms'      : ['member','moderator']
       'list all vms'    : ['member','moderator']
       'list default vm' : ['member','moderator']
     sharedMethods       :
-      static            : ['fetchVmsByContext']
+      static            : ['fetchVmsByContext']#,'create']
       instance          : []
     schema              :
       ip                :
@@ -33,6 +38,36 @@ module.exports = class JVM extends Model
       shouldDelete      :
         type            : Boolean
         default         : no
+
+  # TODO: this needs to be rethought in terms of bundles, as per the
+  # discussion between Devrim, Chris T. and Badahir  C.T.
+  # @createVm = (target, groupSlug, limit, callback)->
+  #   unless 0 < limit.getValue()
+  #     callback new KodingError 'Quota exceeded'
+  #   else
+  #     target.fetchUser (err, user)->
+  #       return callback err  if err
+  #       { usage } = limit
+  #       vm = new JVM {
+  #         name: "#{user.username}#{unless usage then '' else "~#{usage}"}"
+  #         users: [{ id: user.getId(),  sudo: yes }]
+  #       }
+  #       vm.save (err)->
+  #         return callback err  if err
+  #         limit.update {$inc: usage: 1}, (err)->
+  #           return callback err  if err
+  #           callback null, vm
+
+  # @create = permit 'create vms',
+  #   success: (client, callback) ->
+
+  # @initializeVmLimits =(target, callback)->
+  #   JLimit = require './limit'
+  #   limit = new JLimit { quota: 5 }
+  #   limit.save (err)->
+  #     return callback err  if err
+  #     target.addLimit limit, 'vm', (err)->
+  #       callback err ? null, unless err then limit
 
   @fetchVmsByContext = permit 'list all vms',
     success: (client, options, callback) ->
