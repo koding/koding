@@ -18,6 +18,7 @@ type ProxyMessage struct {
 	Host        string `json:"host"`
 	HostData    string `json:"hostdata"`
 	Uuid        string `json:"uuid"`
+	IpRegex     string `json:"ipregex"`
 }
 
 type ProxyResponse struct {
@@ -31,16 +32,6 @@ type KeyData struct {
 	HostData     string
 	CurrentIndex int
 	RabbitKey    string
-}
-
-func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyData {
-	return &KeyData{
-		Key:          key,
-		Host:         host,
-		HostData:     hostdata,
-		CurrentIndex: currentindex,
-		RabbitKey:    rabbitkey,
-	}
 }
 
 type KeyRoutingTable struct {
@@ -60,6 +51,44 @@ type DomainData struct {
 	FullUrl  string
 }
 
+type DomainRoutingTable struct {
+	Domains map[string]DomainData `json:"domains"`
+}
+
+type UserProxy struct {
+	Services map[string]KeyRoutingTable
+}
+
+type Restriction struct {
+	IP string
+}
+
+type UserRules struct {
+	Services map[string]Restriction
+}
+
+type Proxy struct {
+	Uuid               string
+	RoutingTable       map[string]UserProxy
+	DomainRoutingTable DomainRoutingTable
+	Rules              map[string]UserRules
+}
+
+type ProxyConfiguration struct {
+	Session    *mgo.Session
+	Collection *mgo.Collection
+}
+
+func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyData {
+	return &KeyData{
+		Key:          key,
+		Host:         host,
+		HostData:     hostdata,
+		CurrentIndex: currentindex,
+		RabbitKey:    rabbitkey,
+	}
+}
+
 func NewDomainData(username, name, key, fullurl string) *DomainData {
 	return &DomainData{
 		Username: username,
@@ -69,31 +98,12 @@ func NewDomainData(username, name, key, fullurl string) *DomainData {
 	}
 }
 
-type DomainRoutingTable struct {
-	Domains map[string]DomainData `json:"domains"`
-}
-
-func NewDomainRoutingTable() *DomainRoutingTable {
-	return &DomainRoutingTable{
-		Domains: make(map[string]DomainData),
-	}
-}
-
-type UserProxy struct {
-	Services map[string]KeyRoutingTable
-}
-
-type Proxy struct {
-	Uuid               string
-	RoutingTable       map[string]UserProxy
-	DomainRoutingTable DomainRoutingTable
-}
-
 func NewProxy(uuid string) *Proxy {
 	return &Proxy{
 		Uuid:               uuid,
 		RoutingTable:       make(map[string]UserProxy),
 		DomainRoutingTable: *NewDomainRoutingTable(),
+		Rules:              make(map[string]UserRules),
 	}
 }
 
@@ -103,9 +113,10 @@ func NewUserProxy() *UserProxy {
 	}
 }
 
-type ProxyConfiguration struct {
-	Session    *mgo.Session
-	Collection *mgo.Collection
+func NewDomainRoutingTable() *DomainRoutingTable {
+	return &DomainRoutingTable{
+		Domains: make(map[string]DomainData),
+	}
 }
 
 func Connect() (*ProxyConfiguration, error) {
@@ -175,6 +186,99 @@ func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, f
 		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(username, servicename, key, fullurl)
 	}
 
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("adding key is not possible. '%s'", err)
+	}
+
+	_, ok := proxy.Rules[username]
+	if !ok {
+		proxy.Rules[username] = UserRules{Services: make(map[string]Restriction)}
+	}
+	rules := proxy.Rules[username]
+
+	_, ok = rules.Services[servicename]
+	if !ok {
+		rules.Services[servicename] = Restriction{}
+	}
+	restriction := rules.Services[servicename]
+	restriction.IP = ipregex
+
+	rules.Services[servicename] = restriction
+	proxy.Rules[username] = rules
+	err = p.UpdateProxy(proxy)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, rabbitkey string) error {
+	proxy, err := p.GetProxy(uuid)
+	if err != nil {
+		return fmt.Errorf("adding key is not possible. '%s'", err)
+	}
+
+	_, ok := proxy.RoutingTable[username]
+	if !ok {
+		proxy.RoutingTable[username] = *NewUserProxy()
+	}
+	user := proxy.RoutingTable[username]
+
+	_, ok = user.Services[name]
+	if !ok {
+		user.Services[name] = *NewKeyRoutingTable()
+	}
+	keyRoutingTable := user.Services[name]
+
+	if len(keyRoutingTable.Keys) == 0 { // empty routing table, add it
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+		user.Services[name] = keyRoutingTable
+		proxy.RoutingTable[username] = user
+		err = p.UpdateProxy(proxy)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	_, ok = keyRoutingTable.Keys[key] // new key, add it
+	if !ok {
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+		user.Services[name] = keyRoutingTable
+		proxy.RoutingTable[username] = user
+		err = p.UpdateProxy(proxy)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// delete old key
+	delete(keyRoutingTable.Keys, key)
+
+	// and replace it with the new one
+	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+
+	/* check for existing hostnames, if exist abort. Comment out if you want
+	 add multiple entities for a single key. Useful to use  round-robin.
+	for _, value := range keyRoutingTable.Keys[key] {
+	    if value.Host == host {
+	        return nil
+	    }
+	}
+	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+	*/
+
+	user.Services[name] = keyRoutingTable
+	proxy.RoutingTable[username] = user
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -285,73 +389,6 @@ func (p *ProxyConfiguration) DeleteKey(username, name, key, host, hostdata, uuid
 
 func (p *ProxyConfiguration) UpdateProxy(proxy Proxy) error {
 	err := p.Collection.Update(bson.M{"uuid": proxy.Uuid}, proxy)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, rabbitkey string) error {
-	proxy, err := p.GetProxy(uuid)
-	if err != nil {
-		return fmt.Errorf("adding key is not possible. '%s'", err)
-	}
-
-	_, ok := proxy.RoutingTable[username]
-	if !ok {
-		proxy.RoutingTable[username] = *NewUserProxy()
-	}
-	user := proxy.RoutingTable[username]
-
-	_, ok = user.Services[name]
-	if !ok {
-		user.Services[name] = *NewKeyRoutingTable()
-	}
-	keyRoutingTable := user.Services[name]
-
-	if len(keyRoutingTable.Keys) == 0 { // empty routing table, add it
-		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-		user.Services[name] = keyRoutingTable
-		proxy.RoutingTable[username] = user
-		err = p.UpdateProxy(proxy)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	_, ok = keyRoutingTable.Keys[key] // new key, add it
-	if !ok {
-		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-		user.Services[name] = keyRoutingTable
-		proxy.RoutingTable[username] = user
-		err = p.UpdateProxy(proxy)
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	// delete old key
-	delete(keyRoutingTable.Keys, key)
-
-	// and replace it with the new one
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-
-	/* check for existing hostnames, if exist abort. Comment out if you want
-	   * add multiple entities for a single key. Useful if you want use
-	   * round-robin.
-	   for _, value := range keyRoutingTable.Keys[key] {
-	       if value.Host == host {
-	           return nil
-	       }
-	   }
-	   keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-	*/
-
-	user.Services[name] = keyRoutingTable
-	proxy.RoutingTable[username] = user
-	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
 	}

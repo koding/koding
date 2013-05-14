@@ -48,6 +48,10 @@ type ProxyMachine struct {
 }
 type ProxyMachines []ProxyMachine
 
+type RulesPostMessage struct {
+	IpRegex *string
+}
+
 type ProxyPostMessage struct {
 	Name      *string
 	Username  *string
@@ -108,7 +112,7 @@ func main() {
 	rout := mux.NewRouter()
 	rout.HandleFunc("/", home).Methods("GET")
 
-	// Worker handlers
+	// Deployment handlers
 	rout.HandleFunc("/deployments", GetClients).Methods("GET")
 	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
 	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
@@ -123,6 +127,8 @@ func main() {
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
 	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
+
+	// Proxy service handlers
 	rout.HandleFunc("/proxies/{uuid}/services", GetProxyUsers).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
@@ -130,9 +136,17 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
+
+	// Proxy domain handlers
 	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
+
+	// Proxy rule handlers
+	rout.HandleFunc("/proxies/{uuid}/rules", GetRules).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}", GetUserRules).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", GetUserServiceRules).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", CreateUserServiceRules).Methods("POST")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -144,6 +158,116 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func GetRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	users := make([]string, 0)
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	for username := range proxyMachine.Rules {
+		users = append(users, username)
+	}
+	data, err := json.MarshalIndent(users, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
+func GetUserRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	username := vars["username"]
+	services := make([]string, 0)
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	_, ok := proxyMachine.Rules[username]
+	if !ok {
+		resp := fmt.Sprintf("getting services of user rules is not possible. no user %s exists", username)
+		io.WriteString(writer, resp)
+		return
+	}
+
+	rules := proxyMachine.Rules[username]
+	for name, _ := range rules.Services {
+		services = append(services, name)
+	}
+
+	data, err := json.MarshalIndent(services, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func GetUserServiceRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	username := vars["username"]
+	servicename := vars["servicename"]
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	_, ok := proxyMachine.Rules[username]
+	if !ok {
+		resp := fmt.Sprintf("getting services of user rules is not possible. no user %s exists", username)
+		io.WriteString(writer, resp)
+		return
+	}
+
+	rules := proxyMachine.Rules[username]
+	restriction := rules.Services[servicename]
+
+	data, err := json.MarshalIndent(restriction, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	servicename := vars["servicename"]
+	username := vars["username"]
+
+	var msg RulesPostMessage
+	var ipregex string
+
+	body, _ := ioutil.ReadAll(req.Body)
+	log.Println(string(body))
+
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.IpRegex != nil {
+		ipregex = *msg.IpRegex
+	} else {
+		err := "no 'ipregex' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	var cmd proxyconfig.ProxyMessage
+	cmd.Action = "addRule"
+	cmd.Uuid = uuid
+	cmd.Username = username
+	cmd.ServiceName = servicename
+	cmd.IpRegex = ipregex
+
+	buildSendProxyCmd(cmd)
+
+	url := fmt.Sprintf("rule '%s' is added for the user %s and service %s", ipregex, username, servicename)
+	io.WriteString(writer, url)
+	return
+
 }
 
 func CreateClient(writer http.ResponseWriter, req *http.Request) {
@@ -658,7 +782,6 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	writer.Write([]byte(data))
-
 }
 
 // Get all keys and hosts for a given proxy service registerd to a proxy uuid
@@ -772,7 +895,11 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	matchedWorkers := queryResult(query, latestVersion)
-	data := buildWriteData(matchedWorkers)
+	data, err := createJson(matchedWorkers)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
 	writer.Write(data)
 
 }
@@ -786,7 +913,11 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 
 	query := bson.M{"uuid": uuid}
 	matchedWorkers := queryResult(query, false)
-	data := buildWriteData(matchedWorkers)
+	data, err := createJson(matchedWorkers)
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
 	writer.Write(data)
 }
 
@@ -874,13 +1005,13 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	return workers
 }
 
-func buildWriteData(w Workers) []byte {
+func createJson(w Workers) ([]byte, error) {
 	data, err := json.MarshalIndent(w, "", "  ")
 	if err != nil {
-		log.Println("Marshall allWorkers into Json failed", err)
+		return nil, err
 	}
 
-	return data
+	return data, nil
 }
 
 // Creates and send request message for workers. Sends to kontrold.

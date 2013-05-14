@@ -65,10 +65,19 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 			log.Println(err)
 		}
 		sendResponse("updateProxy", msg.Uuid)
+	case "addRule":
+		log.Println("got 'addRule' json request")
+		err := proxyConfig.AddRule(msg.Uuid, msg.Username, msg.ServiceName, msg.IpRegex)
+		if err != nil {
+			log.Println(err)
+		}
+		sendResponse("updateProxy", msg.Uuid)
 	case "addDomain":
 		log.Println("got 'addDomain' json request")
 		err := proxyConfig.AddDomain(msg.Username, msg.DomainName, msg.ServiceName, msg.Key, msg.Host, msg.Uuid)
-		log.Println(err)
+		if err != nil {
+			log.Println(err)
+		}
 		sendResponse("updateProxy", msg.Uuid)
 	case "deleteProxy":
 		log.Println("got 'deleteProxy' json request")
