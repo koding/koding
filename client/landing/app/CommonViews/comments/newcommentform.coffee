@@ -81,4 +81,7 @@ class NewCommentForm extends KDView
       @commentInput.$().blur()
       @getDelegate().emit 'CommentSubmitted', reply
     else
-      KD.requireLogin "please login to post a comment!", noop
+      KD.requireLogin
+        callback  : noop
+        onFailMsg : "Login required to post a comment!"
+        tryAgain  : yes
