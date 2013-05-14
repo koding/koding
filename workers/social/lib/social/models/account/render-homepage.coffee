@@ -108,7 +108,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
                   <section>
                     <div class="profileinfo">
                       <h3 class="profilename"><span class="data" data-paths="profile.firstName" id="el-100">#{firstName}</span> <span class="data" data-paths="profile.lastName" id="el-101">#{lastName}</span></h3>
-                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{locationTags[0] if locationTags}</span></div></h4>
+                      <h4 class="profilelocation"><div class="kdview"><span class="data" data-paths="locationTags" id="el-109">#{if locationTags then locationTags[0] else 'Earth'}</span></div></h4>
                       <h5>
                         <a class="user-home-link" href="http://#{nickname}.koding.com" target="_blank">#{nickname}.koding.com</a>
                         <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
@@ -131,7 +131,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
                       <div class="profilebio">
                         <p><span class="data" data-paths="profile.about" id="el-107">#{about}</span></p>
                       </div>
-                      <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper"><div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
+                      <div class="skilltags"><label>SKILLS</label><div class="tag-group"><div class="kdview listview-wrapper">...<div class="kdview kdscrollview"><div class="kdview kdlistview kdlistview-default skilltag-cloud"></div></div></div></div></div>
                     </div>
                   </section>
                 </div>
