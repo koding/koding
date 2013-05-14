@@ -78,7 +78,7 @@ func Send(event url.Values) {
 	event.Add("apikey", config.Current.Loggr.ApiKey)
 	resp, err := http.PostForm(config.Current.Loggr.Url, event)
 	if err != nil || resp.StatusCode != http.StatusCreated {
-		fmt.Println("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
+		fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
 	}
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()

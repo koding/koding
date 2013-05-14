@@ -1,162 +1,173 @@
 
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Koding Overview</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="">
-    <meta name="author" content="">
+	<head>
+		<meta charset="utf-8">
+		<title>Koding Overview</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
 
-    <link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
-    <link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+		<link href="./bootstrap/css/bootstrap.css" rel="stylesheet">
+		<style>
+			body {
+				padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+			}
+		</style>
+		<link href="./bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="../assets/js/html5shiv.js"></script>
-    <![endif]-->
-  </head>
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+		<script src="../assets/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
 
-  <body>
+	<body>
 
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="#">Koding Overview</a>
-		  <ul class="nav">
-		  <li class="divider-vertical"></li>
-		     </ul>
-			<form class="navbar-search pull-left">
-			  <input name="searchbuild" type="text" class="search-query" placeholder="latest">
-			</form>
-        </div>
-      </div>
- 
-	<div class="row">
-		<div class="span7 offset1">
-			<h2>Status</h2>
-			<table class="table table-hover table-bordered">
-				<thead>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="brand" href="#">Koding Overview</a>
+					<ul class="nav">
+						<li class="divider-vertical"></li>
+					</ul>
+					<form class="navbar-search pull-left">
+						<input name="searchbuild" type="text" class="search-query">
+					</form>
+				</div>
+			</div>
+		</div><!-- navbar -->
+
+		<div class="row-fluid">
+			<div class="span5 offset1">
+				<h2>Status</h2>
+				<table class="table table-hover table-bordered">
+					<thead>
+						<tr>
+							<td><strong>Last Jenkins builds</strong></td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+
+							<td><a target="_blank" href="{{.Jenkins.LastCompletedBuild.Url}}">Completed</a></td>
+							<td><span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></td>
+						</tr>
+						<tr>
+							<td><a target="_blank" href="{{.Jenkins.LastStableBuild.Url}}">Stable</a></td>
+							<td><span class="label label-success">{{.Jenkins.LastStableBuild.Number}}</span></td>
+						</tr>
+						<tr>
+							<td><a target="_blank" href="{{.Jenkins.LastFailedBuild.Url}}">Failed</a></td>
+							<td><span class="label label-important">{{.Jenkins.LastFailedBuild.Number}}</span></td>
+						</tr>
+					</tbody>
+				</table>
+				<h2>Workers</h2>
+				<table class="table table-bordered">
 					<tr>
-						<td><strong>Last Jenkins builds</strong></td>
+						<td><span class="badge badge-success">{{.Status.Workers.Running}}</span> workers are running</td>
+						<td><span class="badge badge-important">{{.Status.Workers.Dead}}</span> workers are dead</td>
 					</tr>
-				</thead>
-				<tbody>
+				</table>
+				<table class="table table-hover table-bordered">
+					<thead>
+						<tr>
+							<td><strong>Name</strong></td>
+							<td><strong>Pid</strong></td>
+							<td><strong>Port</strong></td>
+							<td><strong>Uptime</strong></td>
+							<td><strong>State</strong></td>
+						</tr>
+					</thead>
+					<tbody>
+						{{range .Workers}} 
+						<tr class="{{.Info}}">
+							<td>{{.Name}}</td>
+							<td>{{.Pid}}</td>
+							<td>{{.Port}}</td>
+							<td>{{.Clock}}</td>
+							<td>{{.State}}</td>
+						</tr>
+						{{end}}
+					</tbody>
+				</table>
+				<span class="label label-info">Info</span>
+				Kontrold is cleaning up death workers in one hour intervals.
+			</div>
+			<div class="span4">
+				<h2>Latest Deployment</h2>
+				<table class="table table-hover table-bordered table-condensed">
 					<tr>
-						<td>Completed</td>
-						<td><span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></td>
+						<td>Build Number</td>
+						<td>{{.Server.BuildNumber}}</td>
 					</tr>
 					<tr>
-						<td>Stable</td>
-						<td><span class="label label-success">{{.Jenkins.LastStableBuild.Number}}</span></td>
+						<td>Git branch</td>
+						<td>{{.Server.GitBranch}}</td>
 					</tr>
 					<tr>
-						<td>Failed</td>
-						<td><span class="label label-important">{{.Jenkins.LastFailedBuild.Number}}</span></td>
+						<td>Git commit</td>
+						<td>{{.Server.GitCommit}}</td>
 					</tr>
-				</tbody>
-			</table>
-			<h2>Workers</h2>
-			<table class="table table-bordered">
-				<tr>
-					<td><span class="badge badge-success">{{.Status.Workers.Running}}</span> workers are running</td>
-					<td><span class="badge badge-important">{{.Status.Workers.Dead}}</span> workers are dead</td>
-				</tr>
-			</table>
-			<table class="table table-hover table-bordered">
-				<thead>
 					<tr>
-						<td><strong>Name</strong></td>
-						<td><strong>Pid</strong></td>
-						<td><strong>Port</strong></td>
-						<td><strong>Uptime</strong></td>
-						<td><strong>State</strong></td>
+						<td>Config used</td>
+						<td>{{.Server.ConfigUsed}}</td>
 					</tr>
-				</thead>
-				<tbody>
-					{{range .Workers}} 
-					<tr class="{{.Info}}">
-						<td>{{.Name}}</td>
-						<td>{{.Pid}}</td>
-						<td>{{.Port}}</td>
-						<td>{{.Uptime}}</td>
-						<td>{{.State}}</td>
+				</table>
+				<table class="table table-hover table-bordered table-condensed">
+					<tr>
+						<td>Hostname</td>
+						<td>{{.Server.Hostname.Public}}</td>
 					</tr>
-					{{end}}
-				</tbody>
-			</table>
-			<span class="label label-info">Info</span>
-			Kontrold is cleaning up death workers in one hour intervals.
+					<tr>
+						<td>IP</td>
+						<td>{{.Server.IP.Public}}</td>
+					</tr>
+				</table>
+				<h4>MongoDB</h4>
+				<table class="table table-hover table-bordered table-condensed">
+					<tr>
+						<td>Login</td>
+						<td>{{.Server.Config.Mongo}}</td>
+					</tr>
+					<tr>
+						<td>Shell</td>
+						<td><span class="label label-inverse">{{.Status.MongoLogin}}</span></td>
+					</tr>
+				</table>
+				
+				<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-success" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
+				<table class="table table-hover table-bordered table-condensed">
+					<tr>
+						<td>Host</td>
+						<td>{{.Server.Config.Mq.Host}}</td>
+					</tr>
+					<tr>
+						<td>Port</td>
+						<td>{{.Server.Config.Mq.Port}}</td>
+					</tr>
+					<tr>
+						<td>ComponentUser</td>
+						<td>{{.Server.Config.Mq.ComponentUser}}</td>
+					</tr>
+					<tr>
+						<td>Password</td>
+						<td>{{.Server.Config.Mq.Password}}</td>
+					</tr>
+					<tr>
+						<td>Vhost</td>
+						<td>{{.Server.Config.Mq.Vhost}}</td>
+					</tr>
+				</table>
+			</div>
+		</div> <!-- rows -->
+
+		<div class="row">
 		</div>
-		<div class="span5 offset1">
-			<h2>Deployment</h2>
-			<table class="table table-hover table-bordered table-condensed">
-				<tr>
-					<td>Latest Build Number</td>
-					<td>{{.Server.BuildNumber}}</td>
-				</tr>
-				<tr>
-					<td>Git branch</td>
-					<td>{{.Server.GitBranch}}</td>
-				</tr>
-				<tr>
-					<td>Config used</td>
-					<td>{{.Server.ConfigUsed}}</td>
-				</tr>
-			</table>
-			<table class="table table-hover table-bordered table-condensed">
-				<tr>
-					<td>Hostname</td>
-					<td>{{.Server.Hostname.Public}}</td>
-				</tr>
-				<tr>
-					<td>IP</td>
-					<td>{{.Server.IP.Public}}</td>
-				</tr>
-			</table>
-			<h4>MongoDB</h4>
-			<table class="table table-hover table-bordered table-condensed">
-				<tr>
-					<td>Login</td>
-					<td>{{.Server.Config.Mongo}}</td>
-				</tr>
-			</table>
-			<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-success" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
-			<table class="table table-hover table-bordered table-condensed">
-				<tr>
-					<td>Host</td>
-					<td>{{.Server.Config.Mq.Host}}</td>
-				</tr>
-				<tr>
-					<td>Port</td>
-					<td>{{.Server.Config.Mq.Port}}</td>
-				</tr>
-				<tr>
-					<td>ComponentUser</td>
-					<td>{{.Server.Config.Mq.ComponentUser}}</td>
-				</tr>
-				<tr>
-					<td>Password</td>
-					<td>{{.Server.Config.Mq.Password}}</td>
-				</tr>
-				<tr>
-					<td>Vhost</td>
-					<td>{{.Server.Config.Mq.Vhost}}</td>
-				</tr>
-			</table>
-		</div>
-	</div>
 
-	<div class="row">
-	</div>
-
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="./bootstrap/js/bootstrap.js"></script>
-  </body>
+		<!-- Placed at the end of the document so the pages load faster -->
+		<script src="./bootstrap/js/bootstrap.js"></script>
+	</body>
 </html>
 

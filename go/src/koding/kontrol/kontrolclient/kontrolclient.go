@@ -34,8 +34,10 @@ func main() {
 func gatherData() ([]byte, error) {
 	log.Println("gathering information...")
 	buildNumber := helper.ReadVersion()
-	configused := helper.ReadConfigname()
-	gitbranch := helper.ReadGitbranch()
+	configused := helper.ReadFile("CONFIG_USED")
+	gitbranch := helper.ReadFile("GIT_BRANCH")
+	gitcommit := helper.ReadFile("GIT_COMMIT")
+
 	publicHostname := helper.CustomHostname()
 
 	localHostname, err := process.RunCmd("ec2metadata", "--local-hostname")
@@ -67,6 +69,7 @@ func gatherData() ([]byte, error) {
 	s := &clientconfig.ServerInfo{
 		BuildNumber: buildNumber,
 		GitBranch:   gitbranch,
+		GitCommit:   gitcommit,
 		ConfigUsed:  configused,
 		Config:      config,
 		Hostname: clientconfig.Hostname{
@@ -96,20 +99,20 @@ func startConsuming() {
 
 	err := channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("info exchange.declare: %s", err)
+		log.Fatalf("info exchange.declare: %s", err)
 	}
 
 	if _, err := channel.QueueDeclare("", false, true, false, false, nil); err != nil {
-		log.Fatal("clientProducer queue.declare: %s", err)
+		log.Fatalf("clientProducer queue.declare: %s", err)
 	}
 
 	if err := channel.QueueBind("", "", "clientExchange", false, nil); err != nil {
-		log.Fatal("clientProducer queue.bind: %s", err)
+		log.Fatalf("clientProducer queue.bind: %s", err)
 	}
 
 	stream, err := channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("clientProducer basic.consume: %s", err)
+		log.Fatalf("clientProducer basic.consume: %s", err)
 	}
 
 	log.Println("starting to listen for requests...")
@@ -145,7 +148,7 @@ func matchAction(action, cmd, hostname string, pid int) {
 	}
 
 	if pid == 0 && action != "start" {
-		log.Println("please provide pid number for '%s'", action)
+		log.Printf("please provide pid number for '%s'\n", action)
 	}
 
 	err := funcs[action](cmd, hostname, pid)

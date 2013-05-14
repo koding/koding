@@ -64,7 +64,7 @@ module.exports = class JGroup extends Module
       ]
     sharedMethods   :
       static        : [
-        'one','create','each','byRelevance','someWithRelationship'
+        'one','create','each','count','byRelevance','someWithRelationship'
         '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
         'suggestUniqueSlug'
       ]
@@ -75,10 +75,10 @@ module.exports = class JGroup extends Module
         'fetchMembershipPolicy','modifyMembershipPolicy','requestAccess'
         'fetchReadme', 'setReadme', 'addCustomRole', 'fetchInvitationRequests'
         'countPendingInvitationRequests', 'countPendingSentInvitations',
-        'countInvitationRequests', 'fetchInvitationRequestCounts', 
-        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses', 
+        'countInvitationRequests', 'fetchInvitationRequestCounts',
+        'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
-        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership', 
+        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
     schema          :
@@ -801,7 +801,7 @@ module.exports = class JGroup extends Module
   inviteMember: (client, email, callback)->
     JInvitationRequest = require '../invitationrequest'
 
-    params = 
+    params =
       email  : email
       group  : @slug
       status : $not: $in: JInvitationRequest.resolvedStatuses
@@ -842,8 +842,8 @@ module.exports = class JGroup extends Module
         group: @slug
         status: $not: $in: JInvitationRequest.resolvedStatuses
         $or: [
-          'koding.username': delegate.profile.nickname,
-          email: user.email
+          {'koding.username': delegate.profile.nickname}
+          {email: user.email}
         ]
       JInvitationRequest.one selector, (err, invitationRequest)=>
         return callback err if err

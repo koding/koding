@@ -10,7 +10,7 @@ class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
       icon        : yes
       iconClass   : 'approve'
       callback    : =>
-        @getData().approveInvitation (err)=>
+        @getDelegate().emit 'RequestIsApproved', @getData(), (err)=>
           @updateButtons err, 'approved'
 
     @declineButton = new KDButtonView
@@ -19,7 +19,7 @@ class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
       icon        : yes
       iconClass   : 'decline'
       callback    : => 
-        @getData().declineInvitation (err)=>
+        @getDelegate().emit 'RequestIsDeclined', @getData(), (err)=>
           @updateButtons err, 'declined'
 
     @statusText    = new KDCustomHTMLView
@@ -48,6 +48,7 @@ class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
       return new KDNotificationView title:'An error occurred. Please try again later'
     @getData().status = expectedStatus
     @initializeButtons()
+    @getDelegate().emit 'UpdateCurrentState'
 
   viewAppended:->
     JView::viewAppended.call this

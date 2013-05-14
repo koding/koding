@@ -180,6 +180,7 @@ config =
         login       : 1
         password    : 1
         vhost       : 1
-
+    recurly         :
+      apiKey        : 1
 
 module.exports = config

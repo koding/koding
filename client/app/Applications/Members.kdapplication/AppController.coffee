@@ -54,6 +54,7 @@ class MembersAppController extends AppController
                 JAccount.count selector, (err, count)=>
                   @setCurrentViewNumber 'all', count
         followed            :
+          loggedInOnly      : yes
           title             : "Followers <span class='member-numbers-followers'></span>"
           noItemFoundText   : "There is no member who follows you."
           dataSource        : (selector, options, callback)=>
@@ -63,6 +64,7 @@ class MembersAppController extends AppController
             KD.whoami().countFollowersWithRelationship selector, (err, count)=>
               @setCurrentViewNumber 'followers', count
         followings          :
+          loggedInOnly      : yes
           title             : "Following <span class='member-numbers-following'></span>"
           noItemFoundText   : "You are not following anyone."
           dataSource        : (selector, options, callback)=>
