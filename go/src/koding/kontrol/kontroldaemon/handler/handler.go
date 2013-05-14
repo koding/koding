@@ -228,7 +228,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
-		return fmt.Errorf(" do action", err)
+		return fmt.Errorf(" do action: %s", err.Error())
 	}
 
 	actions := map[string]func(worker workerconfig.MsgWorker) error{
@@ -237,7 +237,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if _, ok := actions[command]; !ok {
-		return fmt.Errorf(" command not recognized: ", command)
+		return fmt.Errorf(" command not recognized: %s", command)
 	}
 
 	if config.Verbose && command != "ack" {
@@ -330,7 +330,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 	}
 
 	if _, ok := actions[command]; !ok {
-		return fmt.Errorf("command not recognized: ", command)
+		return fmt.Errorf("command not recognized: %s", command)
 	}
 
 	result := workerconfig.MsgWorker{}
@@ -576,7 +576,7 @@ func deliver(data []byte, producer *helper.Producer, appId string) {
 }
 
 func buildReq(action, cmd, hostname string, pid int) []byte {
-	req := workerconfig.ClientRequest{action, cmd, hostname, pid}
+	req := workerconfig.ClientRequest{Action: action, Cmd: cmd, Hostname: hostname, Pid: pid}
 	log.Println("Sending cmd to kontrold-client:", req)
 
 	data, err := json.Marshal(req)

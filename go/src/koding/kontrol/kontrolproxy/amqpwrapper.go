@@ -32,21 +32,21 @@ func setupAmqp() *AmqpStream {
 	c.channel = helper.CreateChannel(c.conn)
 	err := c.channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		log.Fatalf("exchange.declare: %s", err)
 	}
 
 	if _, err := c.channel.QueueDeclare("proxy-handler-"+appId, false, true, false, false, nil); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		log.Fatalf("queue.declare: %s", err)
 	}
 
 	proxyId := "output.proxy." + appId
 	if err := c.channel.QueueBind("proxy-handler-"+appId, proxyId, "infoExchange", false, nil); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		log.Fatalf("queue.bind: %s", err)
 	}
 
 	stream, err := c.channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		log.Fatalf("basic.consume: %s", err)
 	}
 
 	return &AmqpStream{stream, c.channel, appId}

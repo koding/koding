@@ -765,7 +765,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 					s := strings.Split(value[0], "-")
 					name = s[0]
 				}
-				query[key] = bson.RegEx{"^" + name, "i"}
+				query[key] = bson.RegEx{Pattern: "^" + name, Options: "i"}
 			} else {
 				query[key] = value[0]
 			}
@@ -886,7 +886,7 @@ func buildWriteData(w Workers) []byte {
 
 // Creates and send request message for workers. Sends to kontrold.
 func buildSendCmd(action, host, uuid string) {
-	cmd := workerconfig.Request{action, host, uuid}
+	cmd := workerconfig.Request{Command: action, Hostname: host, Uuid: uuid}
 	log.Println("Sending cmd to kontrold:", cmd)
 
 	// Wrap message for dynamic unmarshaling at endpoint

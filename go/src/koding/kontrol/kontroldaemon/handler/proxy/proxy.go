@@ -21,7 +21,7 @@ func Startup() {
 
 	err = proxyProducer.Channel.ExchangeDeclare("infoExchange", "topic", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		log.Fatalf("exchange.declare: %s", err)
 	}
 
 	proxyConfig, err = proxyconfig.Connect()
