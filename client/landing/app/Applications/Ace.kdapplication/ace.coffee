@@ -1,7 +1,6 @@
 ###
   todo:
 
-    - put search replace
     - fix setSoftWrap it goes back to off when you reopen the settings
 
 ###
@@ -96,6 +95,10 @@ class Ace extends KDView
         win   : 'Ctrl-Shift-P'
         mac   : 'Command-Shift-P'
       exec    : => @getDelegate().preview()
+
+    @getSingleton('windowController').on "keydown", (e) =>
+      {findAndReplaceView} = @getDelegate()
+      findAndReplaceView.close() if e.keyCode is 27 and findAndReplaceView
 
     file = @getData()
 
