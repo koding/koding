@@ -1,8 +1,7 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    if KD.isLoggedIn() then do callback
-    else KD.getSingleton('mainController').emit "loginRequired", callback
+    KD.requireLogin {callback, tryAgain: yes}
 
   constructor:(options = {}, data)->
 
