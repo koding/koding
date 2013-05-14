@@ -365,9 +365,8 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  fetchTeasers:(selector,options,callback)->
-
-    KD.remote.api.CActivity.some selector, options, (err, data) =>
+  fetchTeasers:(options,callback)->
+    KD.remote.api.CActivity.fetchFacets options, (err, data) =>
       if err then callback err
       else
         data = clearQuotes data
