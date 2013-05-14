@@ -13,9 +13,9 @@ module.exports = class BucketActivityDecorator
     for id, value of @groups
       jsonSnaphost = JSON.stringify value.snapshot
       @groups[id].snapshot = jsonSnaphost
+      @groups[id].type = @bucketName
 
     @groups.overview = _.sortBy(@groups.overview, (activity)-> activity.createdAt.first)
-
     return @groups
 
   groupByAnchorId:->
@@ -57,7 +57,7 @@ module.exports = class BucketActivityDecorator
     return overview
 
   decorateTargetActivity:(datum)->
-    return (new TargetActivityDecorator datum, @targetName, @groupByName).decorate()
+    return (new TargetActivityDecorator datum, @targetName, @groupByName, @activityName).decorate()
 
   decorateGroupActivity:(groupActivity)->
     return (new SingleActivityDecorator groupActivity.first).decorate()

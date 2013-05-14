@@ -30,7 +30,7 @@ module.exports = class Graph
       ' or koding.name = "JCodeSnip"'
       ' or koding.name = "JDiscussion"'
       ' or koding.name = "JStatusUpdate"'
-      'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
+      #'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
       'return *'
       'order by koding.`meta.createdAt` DESC'
       'limit 20'

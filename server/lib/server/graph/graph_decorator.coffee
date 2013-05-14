@@ -1,8 +1,9 @@
 module.exports = class GraphDecorator
-  ResponseDecorator       = require './decorators/response'
-  SingleActivityDecorator = require './decorators/single_activity'
-  FollowsBucketDecorator  = require './decorators/follow_bucket'
-  InstallsBucketDecorator = require './decorators/installs_bucket'
+  ResponseDecorator        = require './decorators/response'
+  SingleActivityDecorator  = require './decorators/single_activity'
+  FollowsBucketDecorator   = require './decorators/follow_bucket'
+  InstallsBucketDecorator  = require './decorators/installs_bucket'
+  NewMemberBucketDecorator = require './decorators/newmember_bucket'
 
   singleActivityDecorators =
     'JTutorial'     : SingleActivityDecorator
@@ -10,14 +11,7 @@ module.exports = class GraphDecorator
     'JDiscussion'   : SingleActivityDecorator
     'JStatusUpdate' : SingleActivityDecorator
 
-  ## TODO: move these to ResponseDecorator ##
-  @decorateSingle:(rawData, callback)->
-    {cacheObjects, overviewObjects} = @decorateSingleActivities rawData
-    response = @decorateResponse cacheObjects, overviewObjects
-
-    callback response
-
-  @decorateSingleActivities:(data)->
+  @decorateSingles:(data, callback)->
     cacheObjects    = {}
     overviewObjects = []
 
@@ -27,12 +21,12 @@ module.exports = class GraphDecorator
       else
         console.log datum.name, "not implemented"
         activity = {}
-        overview = []
 
       cacheObjects[datum._id] = activity
       overviewObjects.push overview
 
-    return {cacheObjects, overviewObjects}
+    cacheObjects.overview = overviewObjects
+    callback cacheObjects
 
   @decorateFollows:(data, callback)->
     cacheObjects    = {}
@@ -47,6 +41,10 @@ module.exports = class GraphDecorator
 
   @decorateInstalls:(data, callback)->
     resp = (new InstallsBucketDecorator(data)).decorate()
+    callback resp
+
+  @decorateMembers:(data, callback)->
+    resp = (new NewMemberBucketDecorator(data)).decorate()
     callback resp
 
   ## TODO: move these to ResponseDecorator ##

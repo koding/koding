@@ -1,5 +1,5 @@
 module.exports = class TargetActivityDecorator
-  constructor:(@datum, @targetName, @groupByName)->
+  constructor:(@datum, @targetName, @groupByName, @activityName)->
     @target   = @datum[@targetName].first
     @groupBy  = @datum[@groupByName].first
 
@@ -7,15 +7,16 @@ module.exports = class TargetActivityDecorator
 
   decorateActivity:->
     activity =
-      _id        : @target._id
-      type       : @bucketName
-      createdAt  : @datum.relationship.first.createdAt
-      snapshot   : @decorateSnapshot()
-      sorts      :
+      _id         : @target._id
+      type        : @bucketName
+      createdAt   : @datum.relationship.first.createdAt
+      modifedAt   : @datum.relationship.last.createdAt
+      snapshot    : @decorateSnapshot()
+      snapshotIds : [@target._id]
+      sorts       :
         repliesCount  : 0   # hardcoded since bucket activities don't have these
         likesCount    : 0
         followerCount : 0
-      #snapshotIds: @extractSnapshotIds()
 
   decorateSnapshot:->
     snapshot =
@@ -24,8 +25,7 @@ module.exports = class TargetActivityDecorator
       groupedBy         : "target"
       sourceName        : @target.name
       bongo_            :
-        constructorName : @target.name
+        constructorName : @activityName
       slug              : @datum.slug
       event             : "ItemWasAdded"     # TODO: hardcode?
       group             : []
-      snapshotIds       : [@target._id]
