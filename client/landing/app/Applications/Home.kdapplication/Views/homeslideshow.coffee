@@ -123,7 +123,7 @@ class HomeSlideShow extends KDView
     then pos = 0
     else if pos > amount-1
     then pos = amount - 1
-    log "????", pos, @pos
+
     for slide, i in @slides when i isnt pos
       if pos < i
         slide.unsetClass 'to-left'
