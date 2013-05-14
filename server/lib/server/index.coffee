@@ -373,7 +373,7 @@ decorateAll = (err, decoratedObjects)->
   response.isFull     = false
   response.from       = overview.first.createdAt.first
   response.to         = overview.last.createdAt.first
-  response.newMemberBucketIndex = newMemberBucketIndex
+  response.newMemberBucketIndex = newMemberBucketIndex  if newMemberBucketIndex
 
   return response
 
