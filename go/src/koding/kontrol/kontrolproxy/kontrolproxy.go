@@ -86,7 +86,7 @@ func main() {
 	// artifical host in form {name}-{key}-{username}.x.koding.com and use it
 	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
 	if err != nil {
-		log.Println("exchange.declare: %s", err)
+		log.Printf("exchange.declare: %s\n", err.Error())
 	}
 
 	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
@@ -437,7 +437,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println("--")
 	host, port, err := net.SplitHostPort(req.RemoteAddr)
 	if err != nil {
-		log.Printf("could not split host and port", err)
+		log.Printf("could not split host and port: %s", err.Error())
 	} else {
 		log.Printf("new connection from %s:%s\n", host, port)
 	}

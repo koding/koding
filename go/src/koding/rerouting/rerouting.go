@@ -64,20 +64,20 @@ func startRouting() {
 
 	err = c.channel.ExchangeDeclare("routing-control", "fanout", false, true, false, false, nil)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		log.Fatalf("exchange.declare: %s", err)
 	}
 
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		log.Fatalf("queue.declare: %s", err)
 	}
 
 	if err := c.channel.QueueBind("", "", "routing-control", false, nil); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		log.Fatalf("queue.bind: %s", err)
 	}
 
 	authStream, err := c.channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		log.Fatalf("basic.consume: %s", err)
 	}
 
 	log.Println("routing started...")
@@ -115,7 +115,7 @@ func startRouting() {
 
 			err = c.channel.Cancel(authPairs[leave.RoutingKey].BindingKey, false)
 			if err != nil {
-				log.Fatal("basic.cancel: %s", err)
+				log.Fatalf("basic.cancel: %s", err)
 			}
 
 		default:
@@ -127,7 +127,7 @@ func startRouting() {
 func declareExchange(c *Consumer, exchange string) {
 	if !exchanges[exchange] {
 		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
-			log.Fatal("exchange.declare: %s", err)
+			log.Fatalf("exchange.declare: %s", err)
 		}
 		exchanges[exchange] = true
 	}
@@ -142,16 +142,16 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix s
 	}
 
 	if _, err := c.channel.QueueDeclare("", false, true, true, false, nil); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		log.Fatalf("queue.declare: %s", err)
 	}
 
 	if err := c.channel.QueueBind("", bindingKey, exchange, false, nil); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		log.Fatalf("queue.bind: %s", err)
 	}
 
 	messages, err := c.channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		log.Fatalf("basic.consume: %s", err)
 	}
 
 	for msg := range messages {
