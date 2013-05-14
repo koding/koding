@@ -348,53 +348,21 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
-    verifySlug = (userSlug)->
-      slugField = modal.modalTabs.forms["General Settings"].inputs.Slug
+    verifySlug = ()->
+      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
       KD.remote.api.JName.one
-        name : "#{userSlug}"
-      , (err,name)=>
+        name: slugInput.getValue()
+      , (err, name)->
         if name
-          slugField.setClass 'slug-taken'
-          suggestSlug userSlug
+          slugInput.setClass 'slug-taken'
         else
-          slugField.unsetClass 'slug-taken'
-          delete slugField.tooltip
+          slugInput.unsetClass 'slug-taken'
 
-    makeSlug = (title)=>
-      if title.length == 0
-        return
-      queryDB @utils.slugify(title), (newSlug)->
-        modal.modalTabs.forms["General Settings"].inputs.Slug.setValue newSlug
-
-    queryDB = (userSlug, callback)->
-      KD.remote.api.JName.one
-        name : "#{userSlug}"
-      , (err,name)=>
-        unless name
-          callback userSlug
-        else
-          existingSlug = name.name
-          if '-' in existingSlug
-            parts = existingSlug.split('-')
-            suffix = parseInt parts[parts.length - 1]
-            if not isNaN(suffix)
-              parts[parts.length - 1] = suffix + 1
-              existingSlug = parts.join('-')
-            else
-              existingSlug += '-1'
-          else
-            existingSlug += '-1'
-          queryDB existingSlug, callback
-
-    suggestSlug = (userSlug)->
-      slugField = modal.modalTabs.forms["General Settings"].inputs.Slug
-      if userSlug.length > 0
-        queryDB userSlug, (newSlug)->
-          slugField.setTooltip
-            title     : "<b>Suggestion:</b> #{newSlug}"
-            placement : 'right'
-      else
-        delete slugField.tooltip
+    makeSlug = ()=>
+      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
+      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
+      KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+        slugInput.setValue newSlug
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
@@ -428,7 +396,7 @@ class GroupsAppController extends AppController
         navigable                    : no
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
-        callback                     :(formData)=>
+        callback                     : (formData)=>
           _createGroupHandler.call @, formData, (err) =>
             modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
             unless err
@@ -471,19 +439,25 @@ class GroupsAppController extends AppController
               "Title"                :
                 label                : "Title"
                 name                 : "title"
+                validate             :
+                  event              : "blur"
+                  rules              :
+                    required         : yes
                 keydown              : (pubInst, event)->
                   @utils.defer =>
-                    value = modal.modalTabs.forms["General Settings"].inputs.Title.getValue()
-                    makeSlug value
+                    makeSlug()
 
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
                 label                : "Slug"
                 name                 : "slug"
+                validate             :
+                  event              : "blur"
+                  rules              :
+                    required         : yes
                 blur                 : ->
                   @utils.defer =>
-                    value = modal.modalTabs.forms["General Settings"].inputs.Slug.getValue()
-                    verifySlug value
+                    verifySlug()
 
                 defaultValue         : ""
                 placeholder          : 'This value will be automatically generated'
@@ -535,6 +509,8 @@ class GroupsAppController extends AppController
               #   defaultValue         : no
 
     modal = new KDModalViewWithForms modalOptions
+    modal.modalTabs.forms["General Settings"].on "FormValidationFailed", ->
+      modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
