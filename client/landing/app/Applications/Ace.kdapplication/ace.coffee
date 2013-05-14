@@ -54,47 +54,17 @@ class Ace extends KDView
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
-    @editor.commands.addCommand
-      name    : 'find'
-      bindKey :
-        win   : 'Ctrl-F'
-        mac   : 'Command-F'
-      exec    : => @showFindReplaceView no
+    @addKeyCombo "save", "Ctrl-S", "Command-S", @bound "requestSave"
 
-    @editor.commands.addCommand
-      name    : 'replace'
-      bindKey :
-        win   : 'Ctrl-Shift-F'
-        mac   : 'Command-Shift-F'
-      exec    : => @showFindReplaceView yes
+    @addKeyCombo "saveAs", "Ctrl-Shift-S", "Command-Shift-S", @bound "requestSaveAs"
 
-    @editor.commands.addCommand
-      name    : 'save'
-      bindKey :
-        win   : 'Ctrl-S'
-        mac   : 'Command-S'
-      exec    : => @requestSave()
+    @addKeyCombo "find", "Ctrl-F", "Command-F", @bound "showFindReplaceView", no
 
-    @editor.commands.addCommand
-      name    : 'save as'
-      bindKey :
-        win   : 'Ctrl-Shift-S'
-        mac   : 'Command-Shift-S'
-      exec    : => @requestSaveAs()
+    @addKeyCombo "replace", "Ctrl-Shift-F", "Command-Shift-F", @bound "showFindReplaceView", yes
 
-    @editor.commands.addCommand
-      name    : 'compileAndRun'
-      bindKey :
-        win   : 'Ctrl-Shift-C'
-        mac   : 'Command-Shift-C'
-      exec    : => @getDelegate().compileAndRun()
+    @addKeyCombo "compileAndRun", "Ctrl-Shift-C", "Command-Shift-C", => @getDelegate().compileAndRun()
 
-    @editor.commands.addCommand
-      name    : 'preview'
-      bindKey :
-        win   : 'Ctrl-Shift-P'
-        mac   : 'Command-Shift-P'
-      exec    : => @getDelegate().preview()
+    @addKeyCombo "preview", "Ctrl-Shift-P", "Command-Shift-P", => @getDelegate().preview()
 
     @getSingleton('windowController').on "keydown", (e) =>
       {findAndReplaceView} = @getDelegate()
@@ -116,6 +86,14 @@ class Ace extends KDView
     findAndReplaceView.setViewHeight openReplaceView
     findAndReplaceView.setTextIntoFindInput selectedText
     findAndReplaceView.on "FindAndReplaceViewClosed", => @focus()
+
+  addKeyCombo: (name, winKey, macKey, callback) ->
+    @editor.commands.addCommand
+      name    : name
+      bindKey :
+        win   : winKey
+        mac   : macKey
+      exec    : => callback?()
 
   ###
   FS REQUESTS
