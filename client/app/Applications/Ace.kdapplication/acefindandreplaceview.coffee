@@ -6,15 +6,16 @@ class AceFindAndReplaceView extends JView
 
     super options, data
 
-    @mode           = null
-    @lastViewHeight = 0
+    @mode             = null
+    @lastViewHeight   = 0
+    @isFoundSomething = no
 
     @findInput = new KDHitEnterInputView
       type         : "text"
       validate     :
         rules      :
           required : yes
-      keyup        : @bindSpecialKeys()
+      keyup        : @bindSpecialKeys "find"
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
@@ -33,7 +34,7 @@ class AceFindAndReplaceView extends JView
       validate     :
         rules      :
           required : yes
-      keyup        : @bindSpecialKeys()
+      keyup        : @bindSpecialKeys "replace"
       callback     : => @replace()
 
     @replaceButton = new KDButtonView
@@ -56,7 +57,7 @@ class AceFindAndReplaceView extends JView
       labels       : ["case-sensitive", "whole-word", "regex"]
       multiple     : yes
 
-  bindSpecialKeys: ->
+  bindSpecialKeys: (input) ->
     "esc"           : (e) => @close()
     "super+f"       : (e) =>
       e.preventDefault()
@@ -64,6 +65,8 @@ class AceFindAndReplaceView extends JView
     "super+shift+f" : (e) =>
       e.preventDefault()
       @setViewHeight yes
+    "shift+enter"   : (e) =>
+      @findPrev() if input is "find"
 
   close: ->
     @hide()
@@ -77,6 +80,7 @@ class AceFindAndReplaceView extends JView
     @$().css { height }
     @resizeAceEditor height
     @show()
+    @isFoundSomething = no
 
   resizeAceEditor: (height) ->
     {ace} = @getDelegate()
@@ -87,7 +91,7 @@ class AceFindAndReplaceView extends JView
   lastHeightTakenFromAce: 0
 
   setTextIntoFindInput: (text) ->
-    return if text.indexOf("\n") > 0
+    return @findInput.setFocus() if text.indexOf("\n") > 0 or text.length is 0
     @findInput.setValue text
     @findInput.setFocus()
 
@@ -109,6 +113,7 @@ class AceFindAndReplaceView extends JView
     methodName = if direction is "prev" then "findPrevious" else "find"
     @getDelegate().ace.editor[methodName] @findInput.getValue(), @getSearchOptions()
     @findInput.focus()
+    @isFoundSomething = yes
 
   replace:    -> @replaceHelper no
 
@@ -122,6 +127,7 @@ class AceFindAndReplaceView extends JView
     {editor}   = @getDelegate().ace
     methodName = if doReplaceAll then "replaceAll" else "replace"
 
+    @findNext() unless @isFoundSomething
     editor[methodName] replaceKeyword
 
   pistachio: ->

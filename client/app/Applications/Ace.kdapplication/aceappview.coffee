@@ -3,8 +3,9 @@ class AceAppView extends JView
 
     super options, data
 
-    @aceViews  = {}
-    @timestamp = Date.now()
+    @aceViews   = {}
+    @timestamp  = Date.now()
+    @appManager = @getSingleton "appManager"
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: @
@@ -23,7 +24,7 @@ class AceAppView extends JView
 
     @on "SessionItemClicked", (items) =>
       if items.length > 1
-        @getSingleton("appManager").open "Ace", { forceNew: true }, (appController) =>
+        @appManager.open "Ace", { forceNew: true }, (appController) =>
           appView = appController.getView()
           appView.openFile FSHelper.createFileFromPath file for file in items
       else
@@ -49,18 +50,7 @@ class AceAppView extends JView
       # ace.on "AceDidSaveAs", (name, parentPath) =>
       #   update tooltip title here
 
-    @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
-
-    @on "saveAsMenuItemClicked", => @getActiveAceView().ace.requestSaveAs()
-
-    @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
-
-    @on "previewMenuItemClicked", => @getActiveAceView().preview()
-
-    @on "recentsMenuItemClicked", (eventName, item, contextmenu, offset) =>
-      @createOpenRecentsMenu eventName, item, contextmenu, offset
-
-    @on "reopenMenuItemClicked", => @reopenLastSession()
+    @bindAppMenuEvents()
 
     @listenWindowResize()
 
@@ -69,6 +59,8 @@ class AceAppView extends JView
     @tabView.setHeight @getHeight() - @tabHandleContainer.getHeight() - 10
 
   createOpenRecentsMenu: (eventName, item, contextmenu, offset) ->
+    items = @createSessionListItems()
+    return unless Object.keys(items).length
     contextMenu = new JContextMenu
       cssClass    : "recent-files-menu"
       delegate    : @
@@ -78,7 +70,7 @@ class AceAppView extends JView
       arrow       :
         placement : "right"
         margin    : -5
-    , @createSessionListItems()
+    , items
 
   createSessionData: (openPanes, data = {}) ->
     paths     = []
@@ -174,6 +166,26 @@ class AceAppView extends JView
   clearFileRecords: (view) ->
     file = view.getData()
     delete @aceViews[file.path]
+
+  bindAppMenuEvents: ->
+    @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
+
+    @on "saveAsMenuItemClicked", => @getActiveAceView().ace.requestSaveAs()
+
+    @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
+
+    @on "previewMenuItemClicked", => @getActiveAceView().preview()
+
+    @on "recentsMenuItemClicked", (eventName, item, contextmenu, offset) =>
+      @createOpenRecentsMenu eventName, item, contextmenu, offset
+
+    @on "reopenMenuItemClicked", => @reopenLastSession()
+
+    @on "findMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView()
+
+    @on "findAndReplaceMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView yes
+
+    @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 
   pistachio: ->
     """

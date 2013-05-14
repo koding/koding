@@ -20,6 +20,17 @@ class AceAppController extends AppController
         type      : "separator"
       }
       {
+        title     : "Find"
+        eventName : "find"
+      }
+      {
+        title     : "Find and Replace"
+        eventName : "findAndReplace"
+      }
+      {
+        type      : "separator"
+      }
+      {
         title     : "Compile and Run"
         eventName : "compileAndRun"
       }
@@ -39,8 +50,15 @@ class AceAppController extends AppController
         closeMenuWhenClicked: no
       }
       {
-        title     : "Reopen latest files"
+        title     : "Reopen Latest Files"
         eventName : "reopen"
+      }
+      {
+        type      : "separator"
+      }
+      {
+        title     : "Exit"
+        eventName : "exit"
       }
     ]
     # mimeTypes    : "text"
