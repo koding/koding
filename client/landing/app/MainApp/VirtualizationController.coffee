@@ -12,6 +12,14 @@ class VirtualizationController extends KDController
 
   run:(command, callback)->
 
+    unless KD.isLoggedIn()
+      unless command is 'vm.info'
+        KD.requireLogin()
+        callback "Login required"
+      else
+        callback null, state: 'STOPPED'
+      return
+
     @askForApprove command, (approved)=>
       if approved
         cb = unless command is 'vm.info' then @_cbWrapper callback \
@@ -39,6 +47,15 @@ class VirtualizationController extends KDController
       @emit 'StateChanged', err, info
       callback? err, info
     , no
+
+  # fixme GG!
+  getTotalVMCount:(callback)->
+    callback null, "58K+"
+
+  # fixme GG!
+  getTotalLoC:(callback)->
+    callback null, "776M+"
+
 
   _cbWrapper:(callback)->
     return (rest...)=>

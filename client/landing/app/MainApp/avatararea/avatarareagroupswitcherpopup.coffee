@@ -83,7 +83,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       else if groups?
         @pending = 0
         for group in groups when group
-          @listControllerPending.addItem group
+          @listControllerPending.addItem {group, roles:[], admin:no}
           @pending++
         @updatePendingCount()
         @notPopulatedPending = no
@@ -181,7 +181,7 @@ class PopupGroupListItemPending extends PopupGroupListItem
   constructor:(options = {}, data)->
     super
 
-    {group:{title, slug}, invitation} = @getData()
+    {group} = @getData()
     @setClass 'role pending'
 
     @acceptButton = new KDButtonView
@@ -193,7 +193,7 @@ class PopupGroupListItemPending extends PopupGroupListItem
       tooltip     :
         title     : 'Accept Invitation'
       callback    : =>
-        invitation.acceptInvitationByInvitee (err)=>
+        KD.whoami().acceptInvitation group, (err)=>
           if err then warn err
           else
             @destroy()
@@ -209,7 +209,7 @@ class PopupGroupListItemPending extends PopupGroupListItem
       tooltip     :
         title     : 'Ignore Invitation'
       callback    : =>
-        invitation.ignoreInvitationByInvitee (err)=>
+        KD.whoami().ignoreInvitation group, (err)=>
           if err then warn err
           else
             new KDNotificationView
