@@ -23,7 +23,7 @@ module.exports =
     watch       : yes
   sourceServer  :
     enabled     : yes
-    port        : 1338
+    port        : 3526
   mongo         : mongo
   runGoBroker   : yes
   runKontrol    : no
@@ -96,7 +96,7 @@ module.exports =
       version   : version
       mainUri   : 'http://localhost'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://localhost:1337'
+      sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'
     port        : 5672
