@@ -55,7 +55,8 @@
     "underscore"      : "1.2.3",
     "url"             : "0.4.9",
     "validator"       : "0.2.0",
-    "ws"              : "0.4.25"
+    "ws"              : "0.4.25",
+    "xml2js"          : "0.2.6"
   },
   "devDependencies": {},
   "optionalDependencies": {},

@@ -14,7 +14,6 @@ class ProfileView extends JView
           top  : @avatar.getBounds().y - 8
           left : @avatar.getBounds().x - 8
         modal = new KDModalView
-          # title   : "#{memberData.profile.firstName} #{memberData.profile.lastName}"
           width    : 400
           fx       : yes
           overlay  : yes
@@ -27,8 +26,7 @@ class ProfileView extends JView
         , memberData
     , memberData
 
-    #defaultState  = if memberData.followee? and not memberData.followee then "Follow" else "Unfollow"
-    defaultState = if memberData.followee then "Unfollow" else "Follow"
+    defaultState = if memberData.followee is yes then "Unfollow" else "Follow"
 
     @followButton = new MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
@@ -38,7 +36,6 @@ class ProfileView extends JView
       loader          :
         color         : "#333333"
         diameter      : 18
-        # left          : 3
       states          : [
         title         : "Follow"
         callback      : (callback)->
@@ -61,8 +58,9 @@ class ProfileView extends JView
     , memberData
 
     unless memberData.followee?
-      KD.whoami().isFollowing? memberData.getId(), "JAccount", (following) =>
+      KD.whoami().isFollowing? memberData.getId(), "JAccount", (err, following) =>
         memberData.followee = following
+        warn err  if KD.isLoggedIn()
         if memberData.followee
           @followButton.setClass 'following-btn'
           @followButton.setState "Unfollow"

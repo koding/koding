@@ -23,7 +23,7 @@ module.exports =
     watch       : yes
   sourceServer  :
     enabled     : yes
-    port        : 1338
+    port        : 3526
   mongo         : mongo
   runGoBroker   : yes
   runKontrol    : no
@@ -96,7 +96,7 @@ module.exports =
       version   : version
       mainUri   : 'http://localhost'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://localhost:1337'
+      sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'
     port        : 5672
@@ -175,3 +175,5 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

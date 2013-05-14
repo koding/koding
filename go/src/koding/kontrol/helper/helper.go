@@ -81,17 +81,8 @@ func ReadVersion() string {
 	return strings.TrimSpace(string(file))
 }
 
-func ReadConfigname() string {
-	file, err := ioutil.ReadFile("CONFIG_USED")
-	if err != nil {
-		log.Println(err)
-	}
-
-	return strings.TrimSpace(string(file))
-}
-
-func ReadGitbranch() string {
-	file, err := ioutil.ReadFile("GIT_BRANCH")
+func ReadFile(config string) string {
+	file, err := ioutil.ReadFile(config)
 	if err != nil {
 		log.Println(err)
 	}
