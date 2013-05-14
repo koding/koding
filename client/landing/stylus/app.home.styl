@@ -96,22 +96,26 @@ div.screenshots
     background            transparent url("../images/bg/blurred/1.jpg") no-repeat center 0
     background-size       cover
     shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
-
+    overflow              hidden
+    rel()
     ul
+      abs()
       margin              0
-      size                100%, 100%
+      size                600%, 100%
       z-index             0
       overflow            hidden
+      vendor              transition, margin .5s ease-out
     li
-      abs()
       top                 0
-      size                100%, 100%
+      size                16.666666668%, 100%
       overflow            hidden
       padding             0
       background-size     cover
       background-position 50% 0px
       background-repeat   no-repeat
       background-color    transparent
+      rel()
+      fl()
       borderBox()
       &.to-left p
         margin-left       100%
@@ -126,7 +130,7 @@ div.screenshots
         margin-top        150px
         margin-left       0%
         opacity           1
-        vendor            transition, margin .4s ease-in-out\, opacity .25s ease-in-out
+        vendor            transition, margin .4s ease-in-out\, opacity .3s ease-in-out
         span
           color           rgba(255,255,255,.95)
           text-shadow     0 1px 0 rgba(0,0,0,0.4)
@@ -140,19 +144,11 @@ div.screenshots
       > figure
         rel()
         display           inline-block
-        max-width         800px
-        min-width         500px
-        max-height        443px
-        rounded           4px
-        shadow            0 10px 25px rgba(0,0,0,0.5)
         overflow          hidden
         &.video
-          margin          30px auto
           size            100%, 100%
-          background      rgba(0, 0, 0, .4)
           iframe
             size          100%, 100%
-            padding       10px
             borderBox()
         img
           width           100%
