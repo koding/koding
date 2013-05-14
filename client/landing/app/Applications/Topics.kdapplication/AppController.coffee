@@ -54,6 +54,7 @@ class TopicsAppController extends AppController
             log "Seems something broken:", arguments
 
         following           :
+          loggedInOnly      : yes
           title             : "Following"
           noItemFoundText   : "There are no topics that you follow."
           dataSource        : (selector, options, callback)=>
