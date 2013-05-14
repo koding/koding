@@ -403,9 +403,16 @@ class GroupsAppController extends AppController
         name: slugInput.getValue()
       , (err, name)->
         if name
-          slugInput.setClass 'slug-taken'
+          slugInput.setValidationResult 'slug', "Slug is already being used.", yes
+          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
+            unless err
+              slugInput.setTooltip
+                title     : "Suggestion: #{newSlug}"
+                placement : 'right'
+              slugInput.tooltip.show()
         else
-          slugInput.unsetClass 'slug-taken'
+          slugInput.setValidationResult 'slug', null
+          delete slugInput.tooltip
 
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
@@ -414,6 +421,7 @@ class GroupsAppController extends AppController
         if err then slugInput.setValue ''
         else
           slugInput.setValue newSlug
+          verifySlug()
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
@@ -562,7 +570,7 @@ class GroupsAppController extends AppController
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-      form.buttons.Save.hideLoader()
+    form.buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons

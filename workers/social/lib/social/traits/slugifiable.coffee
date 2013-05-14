@@ -1,7 +1,9 @@
 
 module.exports = class Slugifiable
 
-  {dash, daisy} = require 'bongo'
+  {dash, daisy, secure} = require 'bongo'
+
+  KodingError = require '../error'
 
   slugify =(str='')->
     slug = str
@@ -24,7 +26,11 @@ module.exports = class Slugifiable
     if isNaN count then ''          # show empty string instead of zero...
     else "-#{count + 1}"            # otherwise, try the next integer.
 
-  @suggestUniqueSlug = (source, callback)->
+  @suggestUniqueSlug = secure (client, source, callback)->
+    JAccount = require '../models/account'
+    {delegate} = client.connection
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
     unless source.length then callback null, ''
     else
       JName = require '../models/name'
