@@ -36,11 +36,10 @@
 					</form>
 				</div>
 			</div>
-		</div>
+		</div><!-- navbar -->
 
 		<div class="row-fluid">
-			<div class="span1"></div>
-			<div class="span5">
+			<div class="span5 offset1">
 				<h2>Status</h2>
 				<table class="table table-hover table-bordered">
 					<thead>
@@ -50,15 +49,16 @@
 					</thead>
 					<tbody>
 						<tr>
-							<td>Completed</td>
+
+							<td><a target="_blank" href="{{.Jenkins.LastCompletedBuild.Url}}">Completed</a></td>
 							<td><span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></td>
 						</tr>
 						<tr>
-							<td>Stable</td>
+							<td><a target="_blank" href="{{.Jenkins.LastStableBuild.Url}}">Stable</a></td>
 							<td><span class="label label-success">{{.Jenkins.LastStableBuild.Number}}</span></td>
 						</tr>
 						<tr>
-							<td>Failed</td>
+							<td><a target="_blank" href="{{.Jenkins.LastFailedBuild.Url}}">Failed</a></td>
 							<td><span class="label label-important">{{.Jenkins.LastFailedBuild.Number}}</span></td>
 						</tr>
 					</tbody>
@@ -131,7 +131,12 @@
 						<td>Login</td>
 						<td>{{.Server.Config.Mongo}}</td>
 					</tr>
+					<tr>
+						<td>Shell</td>
+						<td><span class="label label-inverse">{{.Status.MongoLogin}}</span></td>
+					</tr>
 				</table>
+				
 				<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-success" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
 				<table class="table table-hover table-bordered table-condensed">
 					<tr>
@@ -156,8 +161,7 @@
 					</tr>
 				</table>
 			</div>
-			<div class="span1"></div>
-		</div>
+		</div> <!-- rows -->
 
 		<div class="row">
 		</div>
