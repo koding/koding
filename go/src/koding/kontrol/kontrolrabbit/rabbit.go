@@ -141,16 +141,16 @@ func startRouting(cred Credentials) {
 	rabbitClient := readUsername() + "-" + manifest.Kitename + "-" + readKey()
 
 	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		log.Fatalf("queue.declare: %s", err)
 	}
 
 	if err := c.channel.QueueBind("", rabbitClient, "kontrol-rabbitproxy", false, nil); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		log.Fatalf("queue.bind: %s", err)
 	}
 
 	httpStream, err := c.channel.Consume("", "", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		log.Fatalf("basic.consume: %s", err)
 	}
 
 	ticker.Stop()

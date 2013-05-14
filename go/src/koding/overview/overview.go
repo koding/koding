@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -74,6 +75,7 @@ type StatusInfo struct {
 		Running int
 		Dead    int
 	}
+	MongoLogin string
 }
 
 type HomePage struct {
@@ -113,6 +115,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	if build == "" {
 		build = "latest"
 	}
+
 	var workers []WorkerInfo
 	var server *ServerInfo
 	var err error
@@ -130,6 +133,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		server = NewServerInfo()
 	}
+
+	status.MongoLogin = mongoLogin(server.Config.Mongo)
 
 	for i, val := range workers {
 		switch val.State {
@@ -204,13 +209,13 @@ func workerInfo(build string) ([]WorkerInfo, error) {
 		return nil, err
 	}
 
-	w := make([]WorkerInfo, 0)
-	err = json.Unmarshal(body, &w)
+	workers := make([]WorkerInfo, 0)
+	err = json.Unmarshal(body, &workers)
 	if err != nil {
 		return nil, err
 	}
 
-	return w, nil
+	return workers, nil
 }
 
 func serverInfo(build string) (*ServerInfo, error) {
@@ -234,7 +239,21 @@ func serverInfo(build string) (*ServerInfo, error) {
 		return nil, err
 	}
 
-	fmt.Println(s)
-
 	return s, nil
+}
+
+func mongoLogin(login string) string {
+	u, err := url.Parse("http://" + login)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	mPass, _ := u.User.Password()
+	return fmt.Sprintf(
+		"mongo %s%s -u%s -p%s",
+		u.Host,
+		u.Path,
+		u.User.Username(),
+		mPass,
+	)
 }

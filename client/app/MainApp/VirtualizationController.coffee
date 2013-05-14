@@ -47,6 +47,15 @@ class VirtualizationController extends KDController
       callback? err, info
     , no
 
+  # fixme GG!
+  getTotalVMCount:(callback)->
+    callback null, "58K+"
+
+  # fixme GG!
+  getTotalLoC:(callback)->
+    callback null, "776M+"
+
+
   _cbWrapper:(callback)->
     return (rest...)=>
       @info callback? rest...
