@@ -81,6 +81,7 @@ unless window.event?
   utils           : __utils
   appClasses      : {}
   appScripts      : {}
+  lastFuncCall    : null
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -121,13 +122,17 @@ unless window.event?
         @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
 
       if callback? and tryAgain
-        @getSingleton('mainController').once "accountChanged.to.loggedIn",\
-          -> callback()
+        unless KD.lastFuncCall
+          {mainController} = KD.singletons
+          mainController.once "accountChanged.to.loggedIn", ->
+            KD.lastFuncCall?()
+            KD.lastFuncCall = null
+        KD.lastFuncCall = callback
 
     else
       callback?()
 
-  socketConnected:()->
+  socketConnected:->
     @backendIsConnected = yes
     KDObject.emit "KDBackendConnectedEvent"
 
