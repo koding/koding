@@ -31,7 +31,7 @@ module.exports = class Graph
       ' or koding.name = "JDiscussion"'
       ' or koding.name = "JStatusUpdate"'
       ' and has(koding.`meta.createdAt`)'
-      #'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
+      ' and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
       'return *'
       'order by koding.`meta.createdAt` DESC'
       'limit 10'
@@ -96,17 +96,24 @@ module.exports = class Graph
           respond[type].push obj
         callback err, respond
 
-  fetchNewInstalledApps:(callback)->
+
+  fetchNewInstalledApps:(startDate, endDate, callback)->
     query = [
       'start koding=node:koding(\'id:*\')'
       'match koding-[r:user]->users'
       'where koding.name="JApp" and r.createdAt > "2012-11-14T23:56:48Z"'
+      #'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
       'return *'
       'order by r.createdAt DESC'
       'limit 10'
     ].join('\n');
 
-    @db.query query, {}, (err, results) =>
+    params =
+      groupId   : @groupId
+      startDate : startDate
+      endDate   : endDate
+
+    @db.query query, params, (err, results) =>
       if err then throw err
       @generateInstalledApps [], results, callback
 
@@ -123,7 +130,7 @@ module.exports = class Graph
           resultData.push data
           @generateInstalledApps resultData, results, callback
 
-  fetchNewMembers:(callback)->
+  fetchNewMembers:(startDate, endDate, callback)->
     query = [
       'start  koding=node:koding(id={groupId})'
       'MATCH  koding-[r:member]->members'
@@ -131,6 +138,7 @@ module.exports = class Graph
       'and r.createdAt > {startDate}'
       'and r.createdAt < {endDate}'
       'and has(koding.`meta.createdAt`)'
+      #'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
       'return members'
       'order by koding.`meta.createdAt` DESC'
       'limit 10'
@@ -138,8 +146,8 @@ module.exports = class Graph
 
     params =
       groupId   : @groupId
-      startDate : "2012-02-14T23:56:48Z"
-      endDate   : "2014-02-14T23:56:48Z"
+      startDate : startDate
+      endDate   : endDate
 
     @db.query query, params, (err, results) ->
         if err then throw err
@@ -151,8 +159,7 @@ module.exports = class Graph
         objectify resultData, (objected)->
           callback err, objected
 
-
-  fetchNewFollows:(callback)->
+  fetchNewFollows:(startDate, endDate, callback)->
     #followers
     query = [
       'start koding=node:koding(id={groupId})'
@@ -166,8 +173,8 @@ module.exports = class Graph
 
     params =
       groupId   : @groupId
-      startDate : "2012-02-14T23:56:48Z"
-      endDate   : "2014-02-14T23:56:48Z"
+      startDate : startDate
+      endDate   : endDate
 
     @db.query query, params, (err, results)=>
       if err then throw err

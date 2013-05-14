@@ -92,50 +92,29 @@ process.on 'uncaughtException',(err)->
 #    console.log stack  if stack?
 
 koding = require './bongo'
-async  = require 'async'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-Graph = require "./graph/graph"
-GraphDecorator = require "./graph/graph_decorator"
-
-_fetchActivitiesByTimestamp = (req, res)->
-  graph = new Graph neo4j
-  #calculate the current and next timestamp
-
-  timestamp = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-  startDate = new Date timestamp
-  #20*60*1000 = 1200000
-  endDate = new Date(startDate.getTime() + 1200000);
-
-  graph.fetchAll startDate.toISOString(), endDate.toISOString(), (err, rawResponse)->
-    # res.send rawResponse
-    GraphDecorator.decorateSingle rawResponse, (decorated)->
-      res.send decorated
+{fetchAllActivityParallel} = require './graph/fetch'
 
 app.get "/-/cache/latest", (req, res)->
-  async.parallel [fetchSingles, fetchFollows, fetchInstalls, fetchMembers], (err, results)=>
-    res.send decorateAll(err, results)
+  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+  startDate = (new Date timestamp).toISOString()
+  endDate   = (new Date (new Date timestamp).getTime() + 1200000).toISOString()
+
+  fetchAllActivityParallel startDate, endDate, neo4j, (results)->
+    res.send results
 
 app.get "/-/cache/before/:timestamp", (req, res)->
-  console.log "dfasdf"
-  console.log  req.params
-  console.log "d12341324"
+  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+  startDate = (new Date timestamp).toISOString()
+  endDate   = (new Date (new Date timestamp).getTime() + 1200000).toISOString()
 
-  #_fetchActivitiesByTimestamp req, res
+  console.log req.params, timestamp, startDate, endDate
 
-#app.get "/-/cache/members", (req, res)->
-  #graph = new Graph neo4j
-  #graph.fetchNewMembers (err, rawResponse)->
-    #GraphDecorator.decorateMembers rawResponse, (decorated)->
-      #callback err, decorated
-
-app.get "/-/cache/follows", (req, res)->
-  graph = new Graph neo4j
-  graph.fetchNewFollows (err, rawResponse)->
-    GraphDecorator.decorateFollows rawResponse, (decorated)->
-      res.send decorated
+  fetchAllActivityParallel startDate, endDate, neo4j, (results)->
+    res.send results
 
 startTime = null
 app.get "/-/oldcache/latest", (req, res)->
@@ -429,75 +408,4 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
-
-decorateAll = (err, decoratedObjects)->
-  cacheObjects    = {}
-  overviewObjects = []
-  newMemberBucketIndex = null
-
-  for objects in decoratedObjects
-    for key, value of objects when key isnt "overview"
-      cacheObjects[key] = value
-    overviewObjects.push objects.overview
-
-  overview = _.flatten(overviewObjects)
-
-  return {}  if overview.length is 0
-
-  overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
-
-  for activity, index in overview when activity.type is "CNewMemberBucketActivity"
-    newMemberBucketIndex = index
-
-  response            = {}
-  response.activities = cacheObjects
-  response.overview   = overview
-  response._id        = "1"
-  response.isFull     = false
-  response.from       = overview.first.createdAt.first
-  response.to         = overview.last.createdAt.first
-  response.newMemberBucketIndex = newMemberBucketIndex  if newMemberBucketIndex
-
-  return response
-
-fetchSingles = (callback)->
-  _fetchSingles (err, rawResponse)->
-    GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-fetchFollows = (callback)->
-  _fetchFollows (err, rawResponse)->
-    GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-fetchInstalls = (callback)->
-  _fetchInstalls (err, rawResponse)->
-    GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-fetchMembers = (callback)->
-  _fetchMembers (err, rawResponse)->
-    GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-_fetchSingles = (callback)->
-  graph = new Graph neo4j
-  graph.fetchAll {}, {}, (err, rawResponse)->
-    callback err, rawResponse
-
-_fetchInstalls = (callback)->
-  graph = new Graph neo4j
-  graph.fetchNewInstalledApps (err, rawResponse)->
-    callback err, rawResponse
-
-_fetchFollows = (callback)->
-  graph = new Graph neo4j
-  graph.fetchNewFollows (err, rawResponse)->
-    callback err, rawResponse
-
-_fetchMembers = (callback)->
-  graph = new Graph neo4j
-  graph.fetchNewMembers (err, rawResponse)->
-    callback err, rawResponse
-
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
