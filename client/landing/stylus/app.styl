@@ -612,7 +612,7 @@ span.main-nav-icon
   z-index         1
   bg              color, white
 
-#main-settings-menu
+.app-settings-menu
   z-index             100
   position            absolute
   top                 0
@@ -621,6 +621,11 @@ span.main-nav-icon
   width               20px
   height              20px
   padding             0
+  border              none
+  sprite()
+  bg                  position, 0 -280px
+  &:hover
+    bg                position, -20px -280px
   .icon
     padding           0
 

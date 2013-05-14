@@ -35,7 +35,7 @@ class ApplicationManager extends KDObject
     router       = @getSingleton('router')
     {entryPoint} = KD.config
 
-    route = if entryPoint?.slug?
+    route = if entryPoint?.slug? and entryPoint.type is 'group'
     then "#{entryPoint.slug}#{appOptions.route}"
     else appOptions.route.slice(1)
 
@@ -239,6 +239,10 @@ class ApplicationManager extends KDObject
 
     @setLastActiveIndex appInstance
     @frontApp = appInstance
+
+  getFrontAppManifest: ->
+    {name}  = @getFrontApp().getOptions()
+    return KD.getAppOptions name
 
   register:(appInstance)->
 
