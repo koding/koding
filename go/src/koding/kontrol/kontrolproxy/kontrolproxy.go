@@ -164,12 +164,20 @@ func validateHost(user UserInfo) error {
 		return nil
 	}
 
-	validator := regexp.MustCompile(restriction.IP)
-	if !validator.MatchString(user.IP) {
+	if restriction.IP == "" { // assume allowed for all
 		return nil
 	}
 
-	return fmt.Errorf("IP is not validated '%s'", user.IP)
+	validator, err := regexp.Compile(restriction.IP)
+	if err != nil {
+		return nil // dont block anyone if regex compile get wrong
+	}
+
+	if validator.MatchString(user.IP) {
+		return fmt.Errorf("IP is not validated '%s'", user.IP)
+	}
+
+	return nil
 }
 
 func parseKey(host string) (UserInfo, error) {
