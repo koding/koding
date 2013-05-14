@@ -22,9 +22,6 @@ module.exports = class JStatusUpdate extends JPost
   @set
     slugifyFrom       : 'body'
     sharedEvents    :
-      static        : [
-        { name: 'feed-new' }
-      ]
       instance      : [
         { name: 'TagsChanged' }
       ]

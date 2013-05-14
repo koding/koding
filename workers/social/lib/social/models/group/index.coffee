@@ -55,15 +55,15 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'MemberAdded' }
-        { name: 'MemberRemoved' }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
         { name: 'MemberRolesChanged' }
         { name: 'GroupDestroyed' }
       ]
       instance      : [
         { name: 'GroupCreated' }
-        { name: 'MemberAdded' }
-        { name: 'MemberRemoved' }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
       ]
     sharedMethods   :
