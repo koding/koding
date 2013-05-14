@@ -30,10 +30,11 @@ module.exports = class Graph
       ' or koding.name = "JCodeSnip"'
       ' or koding.name = "JDiscussion"'
       ' or koding.name = "JStatusUpdate"'
+      ' and has(koding.`meta.createdAt`)'
       #'and koding.`meta.createdAt` > {startDate} and koding.`meta.createdAt` < {endDate}'
       'return *'
       'order by koding.`meta.createdAt` DESC'
-      'limit 20'
+      'limit 10'
     ].join('\n');
 
     params =
@@ -70,6 +71,7 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(id={itemId})'
       'match koding-[r]-all'
+      'where has(koding.`meta.createdAt`)'
       'return *'
       'order by koding.`meta.createdAt` DESC'
     ].join('\n');
@@ -101,7 +103,7 @@ module.exports = class Graph
       'where koding.name="JApp" and r.createdAt > "2012-11-14T23:56:48Z"'
       'return *'
       'order by r.createdAt DESC'
-      'limit 40'
+      'limit 10'
     ].join('\n');
 
     @db.query query, {}, (err, results) =>
@@ -125,10 +127,13 @@ module.exports = class Graph
     query = [
       'start  koding=node:koding(id={groupId})'
       'MATCH  koding-[r:member]->members'
-      'where  members.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'where  members.name="JAccount"'
+      'and r.createdAt > {startDate}'
+      'and r.createdAt < {endDate}'
+      'and has(koding.`meta.createdAt`)'
       'return members'
       'order by koding.`meta.createdAt` DESC'
-      'limit 40'
+      'limit 10'
     ].join('\n');
 
     params =
@@ -152,7 +157,8 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
-      'where followees.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+      'where followees.name="JAccount"'
+      #'and r.createdAt > {startDate} and r.createdAt < {endDate}'
       'return r,followees, follower'
       'order by r.createdAt DESC'
       'limit 10'
