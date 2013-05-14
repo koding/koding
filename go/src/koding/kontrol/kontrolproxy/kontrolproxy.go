@@ -500,6 +500,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	err = validateHost(userInfo)
 	if err != nil {
+		log.Printf("validation error: %s", err.Error())
 		http.NotFound(rw, req)
 		return
 	}
@@ -507,17 +508,16 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if userInfo.FullUrl != "" {
 		target, err = url.Parse("http://" + userInfo.FullUrl)
 		if err != nil {
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			log.Printf("error running fullurl %s: %v", userInfo.FullUrl, err)
-			http.NotFound(rw, req)
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
 		}
 	} else {
 		// otherwise lookup for matches in our database
 		target, err = targetUrl(userInfo.Username, userInfo.Servicename, userInfo.Key)
 		if err != nil {
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
 		}
 	}
