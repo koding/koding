@@ -197,6 +197,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
         emails         :
           label        : 'Emails'
           type         : 'textarea'
+          cssClass     : 'emails-input'
           placeholder  : 'Enter each email address on a new line...'
           validate     :
             rules      :
