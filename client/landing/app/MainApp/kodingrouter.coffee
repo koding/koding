@@ -1,5 +1,7 @@
 class KodingRouter extends KDRouter
 
+  SKIP_WHEN_GOING_BACK = ['/Login', '/Register', '/Join', '/Recover']
+
   constructor:(@defaultRoute)->
 
     @openRoutes = {}
@@ -83,6 +85,16 @@ class KodingRouter extends KDRouter
       else status_301 target
 
   getDefaultRoute:-> '/Activity'
+
+  back:->
+    routed = no
+    for route in @visitedRoutes by -1
+      unless route in SKIP_WHEN_GOING_BACK
+        @handleRoute route
+        routed = yes
+        break
+
+    @clear  unless routed
 
   setPageTitle:(title="Koding")-> document.title = Encoder.htmlDecode title
 
