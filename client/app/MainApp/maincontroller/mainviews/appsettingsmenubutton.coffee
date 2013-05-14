@@ -15,7 +15,7 @@ class AppSettingsMenuButton extends KDButtonView
         item.callback = (contextmenu) =>
           view = mainTabView.activePane?.mainView
           item.eventName or= item.title
-          view?.emit "menu.#{item.eventName}", item.eventName, item, contextmenu, @offset
+          view?.emit "#{item.eventName}MenuItemClicked", item.eventName, item, contextmenu, @offset
           @contextMenu.destroy() if item.closeMenuWhenClicked
 
       @createMenu event, menu
