@@ -13,17 +13,18 @@ module.exports = class JGroupBundle extends JBundle
       static          : []
       instance        : []
     sharedMethods     :
-      static          : []
-      instance        : ['fetchLimits']
+      static          : ['fetchPlans']
+      instance        : ['fetchLimits', 'debit']
     permissions       :
       'manage payment methods'  : []
       'change bundle'           : []
       'request bundle change'   : ['member','moderator']
+      'commission resources'    : ['member','moderator']
     limits            :
-      cpu             : 'core'
-      ram             : 'GB'
-      disk            : 'GB'
-      users           : 'user'
+      cpu             : { unit: 'core', quota: 1 }
+      ram             : { unit: 'GB',   quota: 0.25 }
+      disk            : { unit: 'GB',   quota: 0.5 }
+      users           : { unit: 'user', quota: 20 }
     schema            :
       overagePolicy   :
         type          : String
@@ -33,5 +34,19 @@ module.exports = class JGroupBundle extends JBundle
         ]
         default       : 'not allowed'
 
-  @fetchLimits$ = permit 'change bundle',
+  @fetchPlans = permit 'commission resources',
+    success: (client, callback) ->
+      (require 'koding-payment').getPlans callback
+
+  fetchLimits$: permit 'change bundle',
     success: (client, callback)-> @fetchLimits callback
+
+  debit$: permit 'commission resources',
+    success: (client, debits, callback)->
+      JVM = require '../vm'
+      JVM.fetchUsage client.connection.delegate, client.context.group, (err, usage)=>
+        return callback err  if err?
+
+        # TODO: we need to do some number-crunching with the usage stats
+
+        @debit debits, callback
