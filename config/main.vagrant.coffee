@@ -175,3 +175,5 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -65,6 +66,7 @@ type WorkerInfo struct {
 	Pid       int       `json:"pid"`
 	State     string    `json:"state"`
 	Info      string    `json:"info"`
+	Clock     string    `json:"clock"`
 	Uptime    int       `json:"uptime"`
 	Port      int       `json:"port"`
 }
@@ -98,6 +100,8 @@ func NewServerInfo() *ServerInfo {
 }
 
 var templates = template.Must(template.ParseFiles("index.html"))
+
+const uptimeLayout = "03:04:00"
 
 func main() {
 	http.HandleFunc("/", viewHandler)
@@ -134,7 +138,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		server = NewServerInfo()
 	}
 
-	status.MongoLogin = mongoLogin(server.Config.Mongo)
+	status.MongoLogin = parseMongoLogin(server.Config.Mongo)
 
 	for i, val := range workers {
 		switch val.State {
@@ -149,6 +153,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		case "waiting":
 			workers[i].Info = "info"
 		}
+
+		d, err := time.ParseDuration(strconv.Itoa(workers[i].Uptime) + "s")
+		if err != nil {
+			fmt.Println(err)
+		}
+		workers[i].Clock = d.String()
 	}
 
 	home := HomePage{
@@ -242,7 +252,7 @@ func serverInfo(build string) (*ServerInfo, error) {
 	return s, nil
 }
 
-func mongoLogin(login string) string {
+func parseMongoLogin(login string) string {
 	u, err := url.Parse("http://" + login)
 	if err != nil {
 		fmt.Println(err)

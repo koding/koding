@@ -43,7 +43,7 @@ func CreateAmqpConnection() *amqp.Connection {
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
-			log.Fatalln("AMQP connection: " + err.Error())
+			log.Fatalf("AMQP connection: %s" + err.Error())
 		}
 	}()
 
@@ -57,10 +57,31 @@ func CreateChannel(conn *amqp.Connection) *amqp.Channel {
 	}
 	go func() {
 		for err := range channel.NotifyClose(make(chan *amqp.Error)) {
-			log.Fatalln("AMQP channel: " + err.Error())
+			log.Fatalf("AMQP channel: %s" + err.Error())
 		}
 	}()
 	return channel
+}
+
+func CreateStream(channel *amqp.Channel, kind, exchange, queue, key string, durable, autoDelete bool) <-chan amqp.Delivery {
+	if err := channel.ExchangeDeclare(exchange, kind, durable, autoDelete, false, false, nil); err != nil {
+		panic(err)
+	}
+
+	if _, err := channel.QueueDeclare(queue, true, false, false, false, nil); err != nil {
+		panic(err)
+	}
+
+	if err := channel.QueueBind(queue, key, exchange, false, nil); err != nil {
+		panic(err)
+	}
+
+	stream, err := channel.Consume(queue, "", true, true, false, false, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	return stream
 }
 
 func CustomHostname() string {

@@ -78,15 +78,18 @@ class LikeView extends KDView
 
   click:(event)->
     event.preventDefault()
-    return no  unless KD.isLoggedIn()
 
     if $(event.target).is("a.action-link")
-      @getData().like (err)=>
-        if err
-          log "Something went wrong while like:", err
-        else
-          @_currentState = not @_currentState
-          @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
+      KD.requireLogin
+        callback  : =>
+          @getData().like (err)=>
+            if err
+              log "Something went wrong while like:", err
+            else
+              @_currentState = not @_currentState
+              @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
+        tryAgain  : yes
+        onFailMsg : 'Login required to like activities'
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
