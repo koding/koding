@@ -9,12 +9,14 @@ class AppView extends KDView
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
       dataPath        : "followee"
-      defaultState    : if app.followee then "Unfollow" else "Follow"
+      defaultState    : "Follow"
       states          : [
         title         : "Follow"
-        callback      : (callback)->
-          app.follow (err)->
-            callback? err
+        callback      : (cb)->
+          KD.requireLogin
+            callback  : => app.follow (err)-> cb? err
+            onFailMsg : "Login required to follow Apps"
+            tryAgain  : yes
       ,
         title         : "Unfollow"
         callback      : (callback)->
@@ -25,11 +27,14 @@ class AppView extends KDView
 
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
+      defaultState    : 'Like'
       states          : [
         title         : "Like"
-        callback      : (callback)->
-          app.like (err)->
-            callback? err
+        callback      : (cb)->
+          KD.requireLogin
+            callback  : => app.like (err)-> cb? err
+            onFailMsg : "Login required to like Apps"
+            tryAgain  : yes
       ,
         title         : "Unlike"
         callback      : (callback)->
@@ -37,6 +42,11 @@ class AppView extends KDView
             callback? err
       ]
     , app
+
+    if KD.isLoggedIn()
+      KD.whoami().isFollowing? app.getId(), "JApp", (err, following) =>
+        app.followee = following
+        @followButton.setState "Unfollow"  if following
 
     appsController = @getSingleton("kodingAppsController")
 
@@ -93,13 +103,13 @@ class AppView extends KDView
       @approveButton = new KDView
       @removeButton  = new KDView
 
-    app.checkIfLikedBefore (err, likedBefore)=>
+    if KD.isLoggedIn() then app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
         @likeButton.setState "Unlike"
       else
         @likeButton.setState "Like"
 
-    if app.versions?.length > 1
+    if app.versions?.length > 1 and KD.isLoggedIn()
       menu = {}
 
       for version,i in app.versions
