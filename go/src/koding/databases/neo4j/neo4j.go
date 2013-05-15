@@ -101,6 +101,10 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	//get target node information
 	targetInfo := GetNode(targetId)
 
+	if len(sourceInfo) < 1 || len(targetInfo) < 1 {
+		return false
+	}
+
 	if _, ok := sourceInfo[0]["self"]; !ok {
 		return false
 	}
