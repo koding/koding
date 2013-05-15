@@ -37,6 +37,9 @@ module.exports = class Followable
   @fetchMyFollowees = secure (client, ids, callback)->
     return callback null  unless ids
 
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
+
     Relationship.someData {
       sourceId  :
         $in     : ids
@@ -78,10 +81,16 @@ module.exports = class Followable
           callback null, cursor
 
   @someWithRelationship = secure (client, selector, options, callback)->
+    JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     @some selector, options, (err, followables)=>
       if err then callback err else @markFollowing client, followables, callback
 
   @markFollowing = secure (client, followables, callback)->
+    JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     Relationship.all
       sourceId  :
         $in     : (followable.getId() for followable in followables)
@@ -97,9 +106,14 @@ module.exports = class Followable
 
   follow: secure (client, options, callback)->
     JAccount = require '../models/account'
+
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
+
+    unless follower instanceof JAccount
+      return callback new KodingError 'Access denied'
+
     if @equals follower
       return callback(
         new KodingError("Can't follow yourself")
@@ -211,6 +225,8 @@ module.exports = class Followable
 
   fetchFollowersWithRelationship: secure (client, query, page, callback)->
     JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     getQueryWithGroupMembers client, query, 'target', (err, filteredQuery)=>
       return callback err if err
       @fetchFollowers filteredQuery, page, (err, accounts)->
@@ -218,6 +234,8 @@ module.exports = class Followable
 
   countFollowersWithRelationship: secure (client, query, callback)->
     JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     getQueryWithGroupMembers client, query, 'target', (err, filteredQuery)=>
       return callback err if err
       @countFollowers filteredQuery, (err, count)->
@@ -225,6 +243,8 @@ module.exports = class Followable
 
   fetchFollowingWithRelationship: secure (client, query, page, callback)->
     JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     getQueryWithGroupMembers client, query, 'source', (err, filteredQuery)=>
       return callback err if err
       @fetchFollowing query, page, (err, accounts)->
@@ -232,12 +252,17 @@ module.exports = class Followable
 
   countFollowingWithRelationship: secure (client, query, callback)->
     JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     getQueryWithGroupMembers client, query, 'source', (err, filteredQuery)=>
       return callback err if err
       @countFollowing query, (err, count)->
         if err then callback err else callback null, count
 
   fetchFollowedTopics: secure (client, query, page, callback)->
+    JAccount = require '../models/account'
+    unless client.connection.delegate instanceof JAccount
+      return callback new KodingError 'Access denied'
     extend query,
       targetId  : @getId()
       as        : 'follower'
