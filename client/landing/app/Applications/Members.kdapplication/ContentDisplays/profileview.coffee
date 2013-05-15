@@ -39,12 +39,17 @@ class ProfileView extends JView
       states          : [
         title         : "Follow"
         callback      : (callback)->
-          memberData.follow (err, response)=>
-            @hideLoader()
-            unless err
-              memberData.followee = yes
-              @setClass 'following-btn'
-              callback? null
+          KD.requireLogin
+            callback  : =>
+              memberData.follow (err, response)=>
+                @hideLoader()
+                unless err
+                  memberData.followee = yes
+                  @setClass 'following-btn'
+                  callback? null
+            tryAgain  : yes
+            onFailMsg : 'Login required to follow members'
+            onFail    : => @hideLoader()
       ,
         title         : "Unfollow"
         callback      : (callback)->

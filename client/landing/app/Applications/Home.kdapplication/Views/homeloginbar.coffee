@@ -1,8 +1,7 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    if KD.isLoggedIn() then do callback
-    else KD.getSingleton('mainController').emit "loginRequired", callback
+    KD.requireLogin {callback, tryAgain: yes}
 
   constructor:(options = {}, data)->
 
@@ -200,8 +199,7 @@ class HomeLoginBar extends JView
 
     {entryPoint} = KD.config
     if entryPoint?.type is 'profile'
-      if KD.isLoggedIn()
-      then @hide()
+      if KD.isLoggedIn() then @hide()
       else @request.hide()
       return
 
@@ -227,6 +225,8 @@ class HomeLoginBar extends JView
                 @join.hide()
                 @access.show()
 
+              return  unless KD.isLoggedIn()
+
               KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
                 return console.warn err if err
                 return unless request
@@ -236,6 +236,7 @@ class HomeLoginBar extends JView
                   @invited.show()
                 else
                   @requested.show()
+
     else if KD.isLoggedIn()
       @hide()
 
