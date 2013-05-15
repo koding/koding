@@ -152,8 +152,8 @@ class ActivityAppController extends AppController
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
-    @lastTo   = cache.to
-    @lastFrom = cache.from
+    #@lastTo   = cache.to
+    #@lastFrom = cache.from
 
   # Refreshes activity feed, used when user has been disconnected
   # for so long, backend connection is long gone.
@@ -287,8 +287,11 @@ class ActivityAppController extends AppController
       url     : "/-/cache/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
-      success : (cache)->
+      success : (cache)=>
         cache.overview.reverse()  if cache?.overview
+        @lastTo = cache.to
+        @lastFrom = cache.from
+        console.log @lastFrom
         callback null, cache
 
   continueLoadingTeasers:->
