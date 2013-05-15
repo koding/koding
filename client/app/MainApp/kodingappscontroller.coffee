@@ -301,40 +301,43 @@ class KodingAppsController extends KDController
 
   installApp:(app, version='latest', callback)->
 
-    @fetchApps (err, manifests = {})=>
-      if err
-        warn err
-        new KDNotificationView type : "mini", title : "There was an error, please try again later!"
-        callback? err
-      else
-        if app.title in Object.keys(manifests)
-          new KDNotificationView type : "mini", title : "App is already installed!"
-          callback? msg : "App is already installed!"
+    KD.requireLogin
+      onFailMsg : "Login required to install Apps"
+      onFail    : => callback yes
+      callback  : => @fetchApps (err, manifests = {})=>
+        if err
+          warn err
+          new KDNotificationView type : "mini", title : "There was an error, please try again later!"
+          callback? err
         else
-          if not app.approved and not KD.checkFlag 'super-admin'
-            warn err = "This app is not approved, installation cancelled."
-            callback? err
+          if app.title in Object.keys(manifests)
+            new KDNotificationView type : "mini", title : "App is already installed!"
+            callback? msg : "App is already installed!"
           else
-            app.fetchCreator (err, acc)=>
-              if err
-                callback? err
-              else
-                options =
-                  method        : "app.install"
-                  withArgs      :
-                    owner       : acc.profile.nickname
-                    identifier  : app.manifest.identifier
-                    appPath     : @getAppPath app.manifest
-                    version     : app.versions.last
+            if not app.approved and not KD.checkFlag 'super-admin'
+              warn err = "This app is not approved, installation cancelled."
+              callback? err
+            else
+              app.fetchCreator (err, acc)=>
+                if err
+                  callback? err
+                else
+                  options =
+                    method        : "app.install"
+                    withArgs      :
+                      owner       : acc.profile.nickname
+                      identifier  : app.manifest.identifier
+                      appPath     : @getAppPath app.manifest
+                      version     : app.versions.last
 
-                @kiteController.run options, (err, res)=>
-                  if err then warn err
-                  else
-                    app.install (err)=>
-                      warn err  if err
-                      KD.getSingleton("appManager").open "StartTab"
-                      @refreshApps()
-                      callback?()
+                  @kiteController.run options, (err, res)=>
+                    if err then warn err
+                    else
+                      app.install (err)=>
+                        warn err  if err
+                        KD.getSingleton("appManager").open "StartTab"
+                        @refreshApps()
+                        callback?()
 
   # #
   # MAKE NEW APP

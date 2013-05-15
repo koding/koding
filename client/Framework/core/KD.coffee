@@ -114,7 +114,7 @@ unless window.event?
           type     : 'mini'
           cssClass : 'error'
           title    : onFailMsg
-          duration : 5000
+          duration : 3500
 
       onFail?()
 

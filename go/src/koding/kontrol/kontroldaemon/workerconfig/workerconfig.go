@@ -3,7 +3,7 @@ package workerconfig
 import (
 	"errors"
 	"fmt"
-	"koding/kontrol/helper"
+	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
 	"koding/tools/process"
 	"labix.org/v2/mgo"
@@ -166,7 +166,7 @@ func Connect() (*WorkerConfig, error) {
 	col := session.DB("kontrol").C("workers")
 
 	wk := &WorkerConfig{
-		Hostname:        helper.CustomHostname(),
+		Hostname:        kontrolhelper.CustomHostname(),
 		RegisteredHosts: make(map[string][]string),
 		Session:         session,
 		Collection:      col,
@@ -401,12 +401,17 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	// After creating a processes, the process sends a new "update" message with
 	// child pid, a new uuid and his new status.
 	result := MsgWorker{}
-	err := w.Collection.Find(bson.M{"uuid": worker.Uuid, "hostname": worker.Hostname}).One(&result)
-	if err != nil {
-		return fmt.Errorf("no worker found with name '%s' and hostname '%s'", worker.Name, worker.Hostname)
+	found := false
+
+	iter := w.Collection.Find(bson.M{"uuid": worker.Uuid, "hostname": worker.Hostname}).Iter()
+	for iter.Next(&result) {
+		w.DeleteWorker(result.Uuid)
+		found = true
 	}
 
-	w.DeleteWorker(result.Uuid)
+	if !found {
+		return fmt.Errorf("no worker found with name '%s' and hostname '%s'", worker.Name, worker.Hostname)
+	}
 
 	result.Timestamp = worker.Timestamp
 	result.Status = worker.Status
@@ -414,15 +419,8 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	result.Uuid = worker.Uuid
 	result.Version = worker.Version
 
-	if config.Verbose {
-		log.Printf("got new information from worker '%s' on hostname '%s' with uuid '%s'. Updating...",
-			worker.Name,
-			worker.Hostname,
-			worker.Uuid)
-	}
-
+	log.Printf("updating worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
 	w.AddWorker(result)
-
 	return nil
 }
 
@@ -436,6 +434,7 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 	workerResult.Message.Command = "acked.now" //Not used by anyone, future...
 	workerResult.Timestamp = worker.Timestamp
 	workerResult.Status = worker.Status
+	workerResult.Monitor.Uptime = worker.Monitor.Uptime
 
 	w.UpdateWorker(workerResult)
 	return nil
