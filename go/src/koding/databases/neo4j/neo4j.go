@@ -101,6 +101,14 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	//get target node information
 	targetInfo := GetNode(targetId)
 
+	if _, ok := sourceInfo[0]["self"]; !ok {
+		return false
+	}
+
+	if _, ok := targetInfo[0]["self"]; !ok {
+		return false
+	}
+
 	// create  url to get relationship information of source node
 	relationshipsURL := fmt.Sprintf("%s", sourceInfo[0]["self"]) + "/relationships/all/" + relationship
 
@@ -110,6 +118,11 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 	relationships, err := jsonArrayDecode(response)
 	if err != nil {
 		fmt.Println("Problem with unique node creation response", response)
+		return false
+	}
+
+	if _, ok := relationships[0]["self"]; !ok {
+		return false
 	}
 
 	//check there might be another relations
@@ -167,24 +180,31 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 	return make(map[string]interface{})
 }
 
-// creates a unique node with given id and node name
-
 func DeleteNode(id string) bool {
 
 	node := GetNode(id)
 
-	nodeURL := node[0]["self"]
+	nodeURL := fmt.Sprintf("%s", node[0]["self"])
 
-	url := BASE_URL + NODE_URL + fmt.Sprintf("%s", nodeURL)
+	relationshipsURL := nodeURL + "/relationships/all"
 
-	// DeleteNodeRelationships(fmt.Sprintf("%s", nodeURL))
+	response := sendRequest("GET", relationshipsURL, "")
 
-	response := sendRequest("DELETE", url, "")
-
-	_, err := jsonDecode(response)
+	relations, err := jsonArrayDecode(response)
 	if err != nil {
 		fmt.Println("Problem with response", response)
+		return false
 	}
+
+	for _, relation := range relations {
+		if _, ok := relation["self"]; ok {
+			relationshipURL := fmt.Sprintf("%s", relation["self"])
+			fmt.Println(relationshipURL)
+			sendRequest("DELETE", relationshipURL, "")
+		}
+	}
+
+	sendRequest("DELETE", nodeURL, "")
 
 	return true
 }

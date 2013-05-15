@@ -90,9 +90,11 @@ func startConsuming() {
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
 			} else if message.Event == "RelationshipRemoved" {
-				deleteNode(data)
+				deleteRelationship(data)
 			} else if message.Event == "updateInstance" {
 				updateNode(data)
+			} else if message.Event == "RemovedFromCollection" {
+				deleteNode(data)
 			}
 		}
 	}()
@@ -120,7 +122,7 @@ func createNode(data map[string]interface{}) {
 	}
 
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
-	fmt.Println(data)
+
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println(err)
@@ -147,6 +149,17 @@ func createNode(data map[string]interface{}) {
 }
 
 func deleteNode(data map[string]interface{}) {
+
+	fmt.Println(data)
+
+	if _, ok := data["_id"]; !ok {
+		return
+	}
+	id := fmt.Sprintf("%s", data["_id"])
+	neo4j.DeleteNode(id)
+}
+
+func deleteRelationship(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	targetId := fmt.Sprintf("%s", data["targetId"])
 	as := fmt.Sprintf("%s", data["as"])
