@@ -58,9 +58,9 @@ class Ace extends KDView
 
     @addKeyCombo "saveAs", "Ctrl-Shift-S", "Command-Shift-S", @bound "requestSaveAs"
 
-    @addKeyCombo "find", "Ctrl-F", "Command-F", @bound "showFindReplaceView", no
+    @addKeyCombo "find", "Ctrl-F", "Command-F", => @showFindReplaceView no
 
-    @addKeyCombo "replace", "Ctrl-Shift-F", "Command-Shift-F", @bound "showFindReplaceView", yes
+    @addKeyCombo "replace", "Ctrl-Shift-F", "Command-Shift-F", => @showFindReplaceView yes
 
     @addKeyCombo "compileAndRun", "Ctrl-Shift-C", "Command-Shift-C", => @getDelegate().compileAndRun()
 
