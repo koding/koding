@@ -234,8 +234,17 @@ class ActivityAppController extends AppController
     console.log("calling KD.remote.api.CActivity.fetchFacets - ")
 
     console.log(options['facets'], "Followed" in  options['facets'])
-    if "Followed" in options['facets']
-      # TODO: !!!! aybars
+    # some are from neo4j some are from directly mongo for now !
+
+    fromneo4j = ["Public", "Followed", "JStatusUpdate", "JBlogPost", "JCodeSnip", "JDiscussion",
+                 "JTutorial", "JLink"]
+
+    fetchfromneo = false
+    for i in options.facets
+      if i in fromneo4j
+        fetchfromneo = true
+
+    if fetchfromneo
       KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
         if err then callback err
         else

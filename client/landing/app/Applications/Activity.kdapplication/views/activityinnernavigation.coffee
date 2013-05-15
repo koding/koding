@@ -28,11 +28,19 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         html      : yes
         animate   : yes
 
+  # TODO: Question ?? will we show those "JComment" "JOpinion" "JCodeShare"
   followerMenuData :
     title : "SHOW ME"
     items : [      
-        { title : "Public",   type: "Public" }
-        { title : "Followed",   type: "Followed" }
+        { title : "Public", type: "Public" }
+        { title : "Followed", type: "Followed" }
+        { title : "Status Updates", type : "JStatusUpdate" }
+        { title : "Blog Posts", type : "JBlogPost" }
+        { title : "Code Snippets", type : "JCodeSnip" }
+        { title : "Discussions", type : "JDiscussion" }
+        { title : "Tutorials", type : "JTutorial" }
+        { title : "Links", type : "JLink", disabledForBeta : yes }
+
       ]
 
   showMenuData :
