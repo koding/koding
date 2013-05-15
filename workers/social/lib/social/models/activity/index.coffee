@@ -1,5 +1,6 @@
 jraphical      = require 'jraphical'
-neo4j = require "neo4j"
+
+neo4jhelper = require '../neo4jhelper'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -264,6 +265,7 @@ module.exports = class CActivity extends jraphical.Capsule
              'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
              'where myfollowees.name="JAccount"'
             ]
+
     if params['contentType']
       assert contentType in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
@@ -275,9 +277,6 @@ module.exports = class CActivity extends jraphical.Capsule
              'LIMIT {resultlimit}'
             ])
     query = query.join('\n')
-    console.log("----------------------------------")
-    console.log(query)
-    console.log("----------------------------------")
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
