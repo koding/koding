@@ -79,7 +79,7 @@ module.exports = class JGroup extends Module
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'fetchBundle', 'createBundle', 'destroyBundle'
+        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle'
       ]
     schema          :
       title         :
@@ -1180,6 +1180,15 @@ module.exports = class JGroup extends Module
         for admin in admins
           admin.sendNotification event, contents
 
+  updateBundle: (formData, callback = (->))->
+    @fetchBundle (err, bundle)->
+      return callback err  if err?
+      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
+
+  updateBundle$: permit 'change bundle',
+    success: (client, formData, callback)->
+      @updateBundle formData, callback
+
   destroyBundle: (callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
@@ -1197,7 +1206,7 @@ module.exports = class JGroup extends Module
 
       JGroupBundle = require '../bundle/groupbundle'
 
-      bundle = new JGroupBundle
+      bundle = new JGroupBundle {}, @getDefaultLimits()
       bundle.save (err) =>
         return callback err  if err?
 
@@ -1208,3 +1217,11 @@ module.exports = class JGroup extends Module
 
   fetchBundle$: permit 'change bundle',
     success: (client, rest...) -> @fetchBundle rest...
+
+  getDefaultLimits:->
+    {
+      cpu   : { quota: 1 }
+      ram   : { quota: 64 }
+      disk  : { quota: 500 }
+      users : { quota: 20 }
+    }
