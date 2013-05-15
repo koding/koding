@@ -27,6 +27,8 @@ module.exports = class Slugifiable
     else "-#{count + 1}"            # otherwise, try the next integer.
 
   @suggestUniqueSlug = secure (client, slug, i, callback)->
+    [client, slug, callback, i] = [client, slug, i, callback] unless callback
+    i ?= 0
     JAccount = require '../models/account'
     {delegate} = client.connection
     unless delegate instanceof JAccount
