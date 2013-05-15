@@ -18,15 +18,15 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
 
-    @addSubView helpBox = new HelpBox
-      subtitle    : "About Your Activity Feed"
-      tooltip     :
-        title     : "<p class=\"bigtwipsy\">The Activity feed displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community. </p>"
-        placement : "above"
-        offset    : 0
-        delayIn   : 300
-        html      : yes
-        animate   : yes
+    # @addSubView helpBox = new HelpBox
+    #   subtitle    : "About Your Activity Feed"
+    #   tooltip     :
+    #     title     : "<p class=\"bigtwipsy\">The Activity feed displays posts from the people and topics you follow on Koding. It's also the central place for sharing updates, code, links, discussions and questions with the community. </p>"
+    #     placement : "above"
+    #     offset    : 0
+    #     delayIn   : 300
+    #     html      : yes
+    #     animate   : yes
 
   followerMenuData :
     title : "SHOW ME"

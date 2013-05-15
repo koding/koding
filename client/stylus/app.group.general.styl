@@ -146,15 +146,6 @@
         list-style        none
         li
           blockMid()
-//group-content-layout
-
-.test-btn
-  // bg(color,lightBlue)
-  width                 auto
-  height                auto
-  abs()
-  left                  0
-  top                   0
 
 .list-filter
   margin                20px 0
@@ -248,8 +239,11 @@
     &.group-member
       .badge.member
         visible()
-      .group-settings-context
+        border-right          1px solid rgba(255, 255, 255, .2)
+      .kdbuttonwithmenu-wrapper.group-settings-context
         visible()
+      .badge.private
+        border-right          1px solid rgba(255, 255, 255, .2)
 
     .side-wrapper
       top                     0
@@ -286,24 +280,21 @@
       rel()
       &.member
         hidden()
-      &.private
-        background-color      #0896bd
-        .icon
-          display             block
-          margin-top          4px
-          size                18px, 18px
-          bg                  position, -80px -640px
-          sprite()
+      &.private .icon
+        display               block
+        margin-top            4px
+        size                  18px, 18px
+        bg                    position, -80px -640px
+        sprite()
 
-
-    .group-settings-context
+    .kdbuttonwithmenu-wrapper.group-settings-context
       fr()
       rel()
       hidden()
       height                28px
       width                 19px
-      bg                    color, #FFEDD2
-      padding-right         0px!important
+      // bg                    color, #FFEDD2
+      padding               0
       cursor                pointer
       &:hover
         bg                  image, none
@@ -315,13 +306,14 @@
 
       span.chevron
         margin              1px -1px 0 0
-        bg                  position, -80px -260px
+        bg                  position, -180px -380px
 
       span
-        height              28px
+        height              20px
 
     button.group-settings-context
       border-width          0
+      padding-right         0!important
 
     .members-list-wrapper
       abs()

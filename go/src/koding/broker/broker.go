@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/streadway/amqp"
+	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/lifecycle"
@@ -248,6 +249,10 @@ func main() {
 		panic(err)
 	}
 	if err := consumeChannel.ExchangeBind("broker", "", "updateInstances", false, nil); err != nil {
+		panic(err)
+	}
+
+	if err := kontrolhelper.RegisterToKontrol("broker", config.Uuid, config.Current.Broker.Port); err != nil {
 		panic(err)
 	}
 

@@ -120,27 +120,27 @@ class ContentDisplayControllerMember extends KDViewController
         everything          :
           title             : "Everything"
           dataSource        : (selector, options, callback)=>
-            selector.originId = account.getId()
-            selector.type = $in: [
+            options.originId = account.getId()
+            options.facets   = [
               'CStatusActivity', 'CCodeSnipActivity'
               'CFolloweeBucketActivity', 'CNewMemberBucket'
               'CDiscussionActivity',"CTutorialActivity"
             ]
-            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
               callback null, data
         statuses            :
           title             : "Status Updates"
           dataSource        : (selector, options, callback)=>
-            selector.originId = account.getId()
-            selector.type = 'CStatusActivity'
-            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            options.originId = account.getId()
+            options.facets   = ['CStatusActivity']
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
               callback null, data
         codesnips           :
           title             : "Code Snippets"
           dataSource        : (selector, options, callback)=>
-            selector.originId = account.getId()
-            selector.type     = 'CCodeSnipActivity'
-            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
+            options.originId = account.getId()
+            options.facet    = ['CCodeSnipActivity']
+            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
               callback null, data
         # Discussions Disabled
         # discussions         :

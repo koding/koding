@@ -397,31 +397,31 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
-    verifySlug = (slug)->
+    verifySlug = ->
+      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
+      KD.remote.api.JName.one
+        name: slugInput.getValue()
+      , (err, name)->
+        if name
+          slugInput.setValidationResult 'slug', "Slug is already being used.", yes
+          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
+            unless err
+              slugInput.setTooltip
+                title     : "Suggestion: #{newSlug}"
+                placement : 'right'
+              slugInput.tooltip.show()
+        else
+          slugInput.setValidationResult 'slug', null
+          delete slugInput.tooltip
 
-      queryDB = (s)->
-        KD.remote.api.JName.one
-          name : "#{s}"
-        , (err,name)=>
-          unless name
-            modal.modalTabs.forms["General Settings"].inputs.Slug.setValue s
-          else
-            slug = name.name
-            if '-' in slug
-              parts = slug.split('-')
-              suffix = parseInt parts[parts.length - 1]
-              if not isNaN(suffix)
-                parts[parts.length - 1] = suffix + 1
-                slug = parts.join('-')
-              else
-                slug += '-1'
-            else
-              slug += '-1'
-            queryDB slug
-
-      modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
-      if slug.length > 0
-        queryDB slug
+    makeSlug = =>
+      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
+      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
+      KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+        if err then slugInput.setValue ''
+        else
+          slugInput.setValue newSlug
+          verifySlug()
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
@@ -455,8 +455,8 @@ class GroupsAppController extends AppController
         navigable                    : no
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
-        callback                     :(formData)=>
-          _createGroupHandler.call @, formData, (err) ->
+        callback                     : (formData)=>
+          _createGroupHandler.call @, formData, (err) =>
             modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
             unless err
               modal.destroy()
@@ -498,24 +498,25 @@ class GroupsAppController extends AppController
               "Title"                :
                 label                : "Title"
                 name                 : "title"
+                validate             :
+                  event              : "blur"
+                  rules              :
+                    required         : yes
                 keydown              : (pubInst, event)->
                   @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    verifySlug slug
-
+                    makeSlug()
 
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
                 label                : "Slug"
                 name                 : "slug"
+                validate             :
+                  event              : "blur"
+                  rules              :
+                    required         : yes
                 blur                 : ->
                   @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    verifySlug slug
-                keydown              : ->
-                  @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    verifySlug slug
+                    verifySlug()
 
                 defaultValue         : ""
                 placeholder          : 'This value will be automatically generated'
@@ -567,6 +568,9 @@ class GroupsAppController extends AppController
               #   defaultValue         : no
 
     modal = new KDModalViewWithForms modalOptions
+    form = modal.modalTabs.forms["General Settings"]
+    form.on "FormValidationFailed", ->
+    form.buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
@@ -764,6 +768,10 @@ class GroupsAppController extends AppController
 
   createContentDisplay:(group, callback)->
 
+    unless KD.config.roles? and 'admin' in KD.config.roles
+      routeSlug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+      return KD.getSingleton('router').handleRoute "#{routeSlug}Activity"
+
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
@@ -818,11 +826,10 @@ class GroupsAppController extends AppController
         privacyExpl = 'Koding users can only join with your approval'
 
       body  = """
-        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
-        <a class="hidden" id="go-to-group-link" href="/#{group.slug}" target="#{group.slug}">Go to Group</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
