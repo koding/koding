@@ -16,7 +16,7 @@ class HomeSlideShow extends KDView
         title   : "<p><span>with a real VM and </span><br><span>a real Terminal...</span></p>"
       },{
         bg      : "#{host}/images/bg/blurred/5.jpg"
-        title   : "<p><span>and free for all...</span></p>"
+        title   : "<p><span>and free for everyone...</span></p>"
       },{
         bg      : "#{host}/images/bg/blurred/7.jpg"
         title   : """
