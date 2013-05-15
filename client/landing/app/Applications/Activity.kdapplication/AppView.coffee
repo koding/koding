@@ -63,13 +63,16 @@ class ActivityAppView extends KDScrollView
 
     switch itemData.pageName
       when "Home"
+        @header.show()
         @scrollTo {duration : 300, top : 0}, =>
           if KD.isLoggedIn()
             @unsetClass "fixed"
             @header.$().css marginTop : 0
       when "Activity"
         if KD.isLoggedIn()
-          @header.once "transitionend", => @setClass "fixed"
+          @header.once "transitionend", =>
+            @header.hide()
+            @setClass "fixed"
           @header.$().css marginTop : -headerHeight
         else
           @scrollTo {duration : 300, top : @header.getHeight()}
