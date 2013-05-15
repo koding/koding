@@ -266,10 +266,12 @@ module.exports = class CActivity extends jraphical.Capsule
              'where myfollowees.name="JAccount"'
             ]
 
-    if params['contentType']
-      assert contentType in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
+    if params['facets'][0][0] == 'J'
+      if params['facets'][0] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
+        throw new Exception("Wrong object type")
       query.push('AND items.name="{{objectType}}"')
+      params['objectType'] = params['facets'][0]
 
     query = query.concat([
              'return myfollowees, items'
@@ -277,6 +279,9 @@ module.exports = class CActivity extends jraphical.Capsule
              'LIMIT {resultlimit}'
             ])
     query = query.join('\n')
+    console.log("------------------------------")
+    console.log(query)
+    console.log("------------------------------")
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
