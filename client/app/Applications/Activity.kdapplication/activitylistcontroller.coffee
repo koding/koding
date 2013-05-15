@@ -71,8 +71,9 @@ class ActivityListController extends KDListViewController
   loadView:(mainView)->
 
     @hideNoItemWidget()
-
+    console.log("list activities ---- load view")
     data = @getData()
+    console.log("got data")
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'feeder-header clearfix'
 
@@ -98,7 +99,7 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   listActivities:(activities)->
-
+    console.log("list activities ---- 1")
     activityIds = []
     for activity in activities when activity
       @addItem activity
@@ -117,7 +118,7 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-
+    console.log("list activities ---- 2")
     return @showNoItemWidget() unless cache.overview?
 
     activityIds = []

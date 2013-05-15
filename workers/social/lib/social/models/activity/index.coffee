@@ -221,6 +221,9 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
+      console.log("fetch activity - fetch facets - options: ")
+      console.log(options)
+      console.log("-----------------------------------------")
       {to, limit, facets, lowQuality, originId} = options
 
       lowQuality  ?= yes
