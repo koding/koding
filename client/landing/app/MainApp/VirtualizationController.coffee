@@ -12,23 +12,22 @@ class VirtualizationController extends KDController
 
   run:(command, callback)->
 
-    unless KD.isLoggedIn()
-      unless command is 'vm.info'
-        KD.requireLogin()
-        callback "Login required"
-      else
-        callback null, state: 'STOPPED'
-      return
-
-    @askForApprove command, (approved)=>
-      if approved
-        cb = unless command is 'vm.info' then @_cbWrapper callback \
-             else callback
-        @kc.run
-          kiteName : 'os'
-          method   : command
-        , cb
-      else unless command is 'vm.info' then @info()
+    KD.requireLogin
+      callback : =>
+        @askForApprove command, (approved)=>
+          if approved
+            cb = unless command is 'vm.info' then @_cbWrapper callback \
+                 else callback
+            @kc.run
+              kiteName : 'os'
+              method   : command
+            , cb
+          else unless command is 'vm.info' then @info()
+      onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
+      onFail    : =>
+        unless command is 'vm.info' then callback yes
+        else callback null, state: 'STOPPED'
+      silence   : yes
 
   start:(callback)->
     @run 'vm.start', callback
