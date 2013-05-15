@@ -31,20 +31,23 @@ class HomeAppView extends KDView
       "Lines of Code"    : count : 0
       "GROUPS"           : count : 0
       "TOPICS"           : count : 0
+      "Thoughts shared"  : count : 0
 
     vms          = @counterBar.counters["Virtual Machines"]
     loc          = @counterBar.counters["Lines of Code"]
     members      = @counterBar.counters.MEMBERS
     groups       = @counterBar.counters.GROUPS
     topics       = @counterBar.counters.TOPICS
+    activities   = @counterBar.counters["Thoughts shared"]
     vmController = @getSingleton("vmController")
-    {JAccount, JTag, JGroup} = KD.remote.api
+    {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
     members.ready => JAccount.count "",       (err, count)=> members.update count or 0
     vms.ready => vmController.getTotalVMCount (err, count)=> vms.update count or 0
     loc.ready => vmController.getTotalLoC     (err, count)=> loc.update count or 0
     groups.ready => JGroup.count "",          (err, count)=> groups.update count or 0
     topics.ready => JTag.count "",            (err, count)=> topics.update count or 0
+    activities.ready => CActivity.count "",   (err, count)=> activities.update count or 0
 
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
