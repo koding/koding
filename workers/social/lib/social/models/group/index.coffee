@@ -35,7 +35,7 @@ module.exports = class JGroup extends Module
 
   @set
     softDelete      : yes
-    slugifyFrom     : 'title'
+    slugifyFrom     : 'slug'
     slugTemplate    : '#{slug}'
     feedable        : no
     memberRoles     : ['admin','moderator','member','guest']
@@ -65,7 +65,8 @@ module.exports = class JGroup extends Module
     sharedMethods   :
       static        : [
         'one','create','each','count','byRelevance','someWithRelationship'
-        '__resetAllGroups','fetchMyMemberships','__importKodingMembers'
+        '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
+        'suggestUniqueSlug'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'

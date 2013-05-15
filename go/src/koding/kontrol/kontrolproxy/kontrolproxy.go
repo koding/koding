@@ -164,12 +164,20 @@ func validateHost(user UserInfo) error {
 		return nil
 	}
 
-	validator := regexp.MustCompile(restriction.IP)
-	if !validator.MatchString(user.IP) {
+	if restriction.IP == "" { // assume allowed for all
 		return nil
 	}
 
-	return fmt.Errorf("IP is not validated '%s'", user.IP)
+	validator, err := regexp.Compile(restriction.IP)
+	if err != nil {
+		return nil // dont block anyone if regex compile get wrong
+	}
+
+	if validator.MatchString(user.IP) {
+		return fmt.Errorf("IP is not validated '%s'", user.IP)
+	}
+
+	return nil
 }
 
 func parseKey(host string) (UserInfo, error) {
@@ -492,6 +500,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	err = validateHost(userInfo)
 	if err != nil {
+		log.Printf("validation error: %s", err.Error())
 		http.NotFound(rw, req)
 		return
 	}
@@ -499,17 +508,16 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if userInfo.FullUrl != "" {
 		target, err = url.Parse("http://" + userInfo.FullUrl)
 		if err != nil {
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			log.Printf("error running fullurl %s: %v", userInfo.FullUrl, err)
-			http.NotFound(rw, req)
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
 		}
 	} else {
 		// otherwise lookup for matches in our database
 		target, err = targetUrl(userInfo.Username, userInfo.Servicename, userInfo.Key)
 		if err != nil {
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
 		}
 	}
