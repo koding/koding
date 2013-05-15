@@ -3,7 +3,7 @@ package workerconfig
 import (
 	"errors"
 	"fmt"
-	"koding/kontrol/helper"
+	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
 	"koding/tools/process"
 	"labix.org/v2/mgo"
@@ -166,7 +166,7 @@ func Connect() (*WorkerConfig, error) {
 	col := session.DB("kontrol").C("workers")
 
 	wk := &WorkerConfig{
-		Hostname:        helper.CustomHostname(),
+		Hostname:        kontrolhelper.CustomHostname(),
 		RegisteredHosts: make(map[string][]string),
 		Session:         session,
 		Collection:      col,

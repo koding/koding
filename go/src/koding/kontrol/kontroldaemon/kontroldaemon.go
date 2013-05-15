@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/streadway/amqp"
-	"koding/kontrol/helper"
 	"koding/kontrol/kontroldaemon/handler"
 	"koding/kontrol/kontroldaemon/handler/proxy"
+	"koding/kontrol/kontrolhelper"
 	"log"
 )
 
@@ -37,11 +37,11 @@ func startRouting() {
 		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
 	}
 
-	connection := helper.CreateAmqpConnection()
-	channel := helper.CreateChannel(connection)
+	connection := kontrolhelper.CreateAmqpConnection()
+	channel := kontrolhelper.CreateChannel(connection)
 
 	for _, b := range bindings {
-		streams[b.name] = helper.CreateStream(channel, b.kind, b.exchange, b.queue, b.key, true, false)
+		streams[b.name] = kontrolhelper.CreateStream(channel, b.kind, b.exchange, b.queue, b.key, true, false)
 	}
 
 	err := channel.Qos(len(bindings), 0, false)

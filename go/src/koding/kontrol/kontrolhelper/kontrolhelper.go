@@ -1,4 +1,4 @@
-package helper
+package kontrolhelper
 
 import (
 	"github.com/streadway/amqp"
