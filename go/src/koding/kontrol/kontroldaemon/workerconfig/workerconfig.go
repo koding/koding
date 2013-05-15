@@ -434,6 +434,7 @@ func (w *WorkerConfig) Ack(worker MsgWorker) error {
 	workerResult.Message.Command = "acked.now" //Not used by anyone, future...
 	workerResult.Timestamp = worker.Timestamp
 	workerResult.Status = worker.Status
+	workerResult.Monitor.Uptime = worker.Monitor.Uptime
 
 	w.UpdateWorker(workerResult)
 	return nil
