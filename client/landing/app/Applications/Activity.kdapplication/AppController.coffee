@@ -113,11 +113,13 @@ class ActivityAppController extends AppController
       callback exempt
 
   fetchActivitiesDirectly:(options = {}, callback)->
-
+    console.log("starting to fetch activities ... !!!" + options)
     KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
+    console.log("fetching activity now ")
     @fetchActivity options, (err, teasers)=>
+      console.log("got it now ?")
       @isLoading = no
       @listController.hideLazyLoader()
       KD.timeEnd "Activity fetch took"
@@ -165,7 +167,7 @@ class ActivityAppController extends AppController
     @populateActivityWithTimeout()
 
   populateActivityWithTimeout:->
-
+    console.log("populateActivityWithTimeout 1")
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
@@ -192,10 +194,12 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
+      console.log("activities ---- !!!! fetch - slug:" + slug)
       unless slug is 'koding'
         @fetchActivitiesDirectly options, callback
       else
         @isExempt (exempt)=>
+          console.log("activities, calling this or that exempt " + exempt)
           if exempt or @getFilter() isnt activityTypes
           then @fetchActivitiesDirectly options, callback
           else @fetchActivitiesFromCache options, callback
@@ -227,16 +231,25 @@ class ActivityAppController extends AppController
       originId    : options.originId or null
       sort        :
         createdAt : -1
+    console.log("calling KD.remote.api.CActivity.fetchFacets - ")
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities)->
-      if err then callback err
-      else
-        KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+    console.log(options['facets'], "Followed" in  options['facets'])
+    if "Followed" in options['facets']
+      # TODO: !!!! aybars
+      KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
+        if err then callback err
+        else
+          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+    else
+      KD.remote.api.CActivity.fetchFacets options, (err, activities)->
+        if err then callback err
+        else
+          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
   fetchSomeActivities:(options = {}) ->
-
+    console.log("fetching some activities")
     return if @isLoading
     @isLoading = yes
 
