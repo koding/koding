@@ -7,6 +7,7 @@ module.exports = class JBundle extends JProduct
   {dash} = require 'bongo'
 
   {extend} = require 'underscore'
+
   # @create = ()
 
   @setLimits = (limits) ->
@@ -47,8 +48,6 @@ module.exports = class JBundle extends JProduct
 
           limitOptions = limits[limitName]
 
-          limitOptions = { unit: limit }  if 'string' is typeof limitOptions
-
           limitOptions = extend { title: limitName }, defaultOptions, limitOptions
 
           limit = new JLimit limitOptions
@@ -61,3 +60,17 @@ module.exports = class JBundle extends JProduct
         fin = queue.fin.bind queue
 
         return
+
+  debit: (debits, callback=(->)) ->
+    @fetchLimits (err, limits) ->
+      return callback err  if err
+
+      queue = limits.map (limit) -> ->
+        {title} = limit
+        console.log title
+        if title of debits and limit.getValue() >= debits[title]
+          limit.update { $inc: usage: debits[title] }, fin
+
+      dash queue, callback
+
+      fin = queue.fin.bind queue
