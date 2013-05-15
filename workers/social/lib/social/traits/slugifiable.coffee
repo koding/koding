@@ -42,7 +42,7 @@ module.exports = class Slugifiable
           if name
             @suggestUniqueSlug client, slug, i+1, callback
           else
-              callback null, suggestedSlug
+            callback null, suggestedSlug
 
   claimUniqueSlug =(ctx, konstructor, slug, callback)->
     JName = require '../models/name'
@@ -56,8 +56,7 @@ module.exports = class Slugifiable
     }
     nextNameFull = nextName.slug
     JName.claim nextNameFull, [nextName], konstructor, 'slug', (err, nameDoc)->
-      if err
-        callback err
+      if err then callback err
       else
         callback null, nextName
 
