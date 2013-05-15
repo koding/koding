@@ -91,7 +91,7 @@ class GroupsListItemView extends KDListItemView
     menu = @settingsMenu data
     if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
-        style       : 'group-settings-context'
+        style       : 'group-settings-context badge'
         title       : ''
         delegate    : @
         type        : 'contextmenu'
@@ -155,9 +155,9 @@ class GroupsListItemView extends KDListItemView
     </div>
     <div class='side-wrapper'>
       <div class='badge-wrapper clearfix'>
+        {{> @settingsButton}}
         {{> @memberBadge}}
         {{> @privateBadge}}
-        {{> @settingsButton}}
       </div>
     </div>
     """
