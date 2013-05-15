@@ -48,6 +48,7 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 	}
 
 	meta["createdAt"] = id.Time().UTC().Format("2006-01-02T15:04:05Z")
+	meta["createdAtEpoch"] = id.Time().Unix()
 
 	result["meta"] = meta
 
