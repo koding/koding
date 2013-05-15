@@ -37,6 +37,7 @@ module.exports = class Followable
   @fetchMyFollowees = secure (client, ids, callback)->
     return callback null  unless ids
 
+    JAccount = require '../models/account'
     unless client.connection.delegate instanceof JAccount
       return callback new KodingError 'Access denied'
 
