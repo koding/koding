@@ -404,20 +404,13 @@ class GroupsAppController extends AppController
       , (err, name)->
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
-            unless err
-              slugInput.setTooltip
-                title     : "Suggestion: #{newSlug}"
-                placement : 'right'
-              slugInput.tooltip.show()
         else
           slugInput.setValidationResult 'slug', null
-          delete slugInput.tooltip
 
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+      KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), 0, (err, newSlug)->
         if err then slugInput.setValue ''
         else
           slugInput.setValue newSlug
