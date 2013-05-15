@@ -285,15 +285,18 @@ class ActivityAppController extends AppController
       error   : (err)->   callback? err
       success : (cache)=>
         cache.overview.reverse()  if cache?.overview
-        @lastTo = cache.to
-        @lastFrom = cache.from
-        console.log @lastFrom
+        #@lastTo = cache.to
+        #@lastFrom = cache.from
+        #console.log "lastFrom", @lastFrom
+        #console.log "lastTo", @lastTo
         callback null, cache
 
   continueLoadingTeasers:->
 
-    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
-    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    # HACK: this gets called multiple times if there's no wait
+    KD.utils.wait 1000, =>
+      lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed
