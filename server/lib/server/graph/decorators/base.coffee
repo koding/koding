@@ -51,6 +51,7 @@ module.exports = class BaseDecorator
       body              : @datum.body
       attachments       : @attachments()
       repliesCount      : @repliesCount()
+      opinionCount      : @opinionsCount()
       counts            :
         following       : 0
         followers       : @followerCount()
@@ -60,6 +61,9 @@ module.exports = class BaseDecorator
 
     if @datum.relationData.tag
       snapshot.tags = @decorateAdditions @datum.relationData.tag
+
+    if @datum.relationData.opinion
+      snapshot.opinions = @decorateAdditions @datum.relationData.opinion
 
     return snapshot
 
@@ -88,6 +92,9 @@ module.exports = class BaseDecorator
 
   repliesCount:->
     return @extractCountFromRelationData 'reply'
+
+  opinionsCount:->
+    return @extractCountFromRelationData 'opinion'
 
   likesCount:->
     return @extractCountFromRelationData 'like'
