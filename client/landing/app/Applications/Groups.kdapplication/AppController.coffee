@@ -408,7 +408,7 @@ class GroupsAppController extends AppController
           KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), 0, (err, newSlug)->
             if newSlug
               slugInput.setTooltip
-                title     : "Next available slug: #{newSlug}"
+                title     : "Available slug: #{newSlug}"
                 placement : "right"
         else
           slugInput.setValidationResult 'slug', null
