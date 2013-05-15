@@ -146,6 +146,19 @@ class AppView extends KDView
           appsController.installApp app, 'latest', (err)=>
             @hideLoader()
 
+    @openAppButton = new KDButtonView
+      title     : "Open App"
+      style     : "cupid-green"
+      callback  : =>
+        @getSingleton("appManager").open app.title
+
+    @openAppButton.hide()
+
+    appsController.fetchApps (err, manifests) =>
+      if app.title in Object.keys manifests
+        @installButton.hide()
+        @openAppButton.show()
+
     {icns, name, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
       "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
@@ -175,6 +188,7 @@ class AppView extends KDView
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
       <div class="installerbar clearfix">
         {{> @installButton}}
+        {{> @openAppButton}}
         <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>
