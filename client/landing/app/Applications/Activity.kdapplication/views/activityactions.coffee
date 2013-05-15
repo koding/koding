@@ -32,7 +32,8 @@ class ActivityActionsView extends KDView
       KD.singletons.mainController.on "accountChanged.to.loggedIn", =>
         delete @likeView.likeLink.tooltip
         delete @commentLink.tooltip
-        @attachListeners()
+
+    @attachListeners()
 
   viewAppended:->
 
@@ -66,7 +67,7 @@ class ActivityActionsView extends KDView
       commentList.off ev
       commentList.on ev, @loader.bound func
 
-    if KD.isLoggedIn() then @commentLink.on "click", (event)=>
+    @commentLink.on "click", (event)=>
       commentList.emit "CommentLinkReceivedClick", event, @
 
 class ActivityActionLink extends KDCustomHTMLView

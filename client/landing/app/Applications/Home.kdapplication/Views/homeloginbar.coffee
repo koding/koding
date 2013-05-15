@@ -1,8 +1,7 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    if KD.isLoggedIn() then do callback
-    else KD.getSingleton('mainController').emit "loginRequired", callback
+    KD.requireLogin {callback, tryAgain: yes}
 
   constructor:(options = {}, data)->
 
@@ -10,8 +9,6 @@ class HomeLoginBar extends JView
     options.cssClass   = "home-links"
 
     super options, data
-
-    @utils.wait 400, => @setClass 'in'
 
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
@@ -48,7 +45,7 @@ class HomeLoginBar extends JView
       click       : (event)=>
         if entryPoint?.type is 'group'
           @utils.stopDOMEvent event
-          requiresLogin => 
+          requiresLogin =>
             @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
               unless err
                 @request.hide()
@@ -76,7 +73,7 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        requiresLogin => 
+        requiresLogin =>
           @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
             unless err
               @access.hide()
@@ -111,14 +108,14 @@ class HomeLoginBar extends JView
             buttons        :
               Okay         :
                 style      : 'modal-clean-green'
-                loader     : 
+                loader     :
                   color    : "#ffffff"
                   diameter : 16
                 callback   : -> modal.destroy()
               Cancel       :
                 title      : 'Cancel Request'
                 style      : 'modal-clean-red'
-                loader     : 
+                loader     :
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
@@ -153,7 +150,7 @@ class HomeLoginBar extends JView
             buttons        :
               Accept       :
                 style      : 'modal-clean-green'
-                loader     : 
+                loader     :
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
@@ -165,7 +162,7 @@ class HomeLoginBar extends JView
                       @hide()
               Ignore       :
                 style      : 'modal-clean-red'
-                loader     : 
+                loader     :
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
@@ -193,7 +190,7 @@ class HomeLoginBar extends JView
       return new KDNotificationView
         title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
         duration : 2000
-      
+
     new KDNotificationView
       title    : successMsg
       duration : 2000
@@ -202,8 +199,7 @@ class HomeLoginBar extends JView
 
     {entryPoint} = KD.config
     if entryPoint?.type is 'profile'
-      if KD.isLoggedIn()
-      then @hide()
+      if KD.isLoggedIn() then @hide()
       else @request.hide()
       return
 
@@ -229,6 +225,8 @@ class HomeLoginBar extends JView
                 @join.hide()
                 @access.show()
 
+              return  unless KD.isLoggedIn()
+
               KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
                 return console.warn err if err
                 return unless request
@@ -238,11 +236,13 @@ class HomeLoginBar extends JView
                   @invited.show()
                 else
                   @requested.show()
+
     else if KD.isLoggedIn()
       @hide()
 
   viewAppended:->
     super
+    @utils.wait 1000, @setClass.bind this, 'in'
     @$('.overlay').remove()
 
   pistachio:->
