@@ -37,8 +37,6 @@ module.exports = class BaseDecorator
 
     return maps
 
-    return maps
-
   decorateSnapshot:->
     snapshot =
       _id               : @datum._id
@@ -67,6 +65,7 @@ module.exports = class BaseDecorator
 
   decorateAdditions:(additions)->
     results = []
+    additions = additions.reverse()
     for addition in additions.slice(-3)
       addition.bongo_ = {constructorName : addition.name}
       addition.meta   = @decorateSnapshotMeta addition

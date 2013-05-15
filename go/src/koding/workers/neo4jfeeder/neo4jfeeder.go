@@ -102,10 +102,57 @@ func startConsuming() {
 
 func checkIfEligible(sourceName, targetName string) bool {
 
-	if sourceName == "JAppStorage" || targetName == "JAppStorage" || sourceName == "JFeed" || targetName == "JFeed" || strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
-		fmt.Println("not eligible " + sourceName + " " + targetName)
-		return false
+	notAllowedNames := []string{
+		"CStatusActivity",
+		"CFolloweeBucketActivity",
+		"CFollowerBucketActivity",
+		"CCodeSnipActivity",
+		"CDiscussionActivity",
+		"CReplieeBucketActivity",
+		"CReplierBucketActivity",
+		"CBlogPostActivity",
+		"CNewMemberBucketActivity",
+		"CTutorialActivity",
+		"CLikeeBucketActivity",
+		"CLikerBucketActivity",
+		"CInstalleeBucketActivity",
+		"CInstallerBucketActivity",
+		"CActivity",
+		"CRunnableActivity",
+		"JAppStorage",
+		"JFeed",
 	}
+	notAllowedSuffixes := []string{
+		"Bucket",
+		"BucketActivity",
+	}
+
+	for _, name := range notAllowedNames {
+		if name == sourceName {
+			fmt.Println("not eligible " + sourceName)
+			return false
+		}
+
+		if name == targetName {
+			fmt.Println("not eligible " + targetName)
+			return false
+		}
+	}
+
+	for _, name := range notAllowedSuffixes {
+
+		if strings.HasSuffix(sourceName, name) {
+			fmt.Println("not eligible " + sourceName)
+			return false
+		}
+
+		if strings.HasSuffix(targetName, name) {
+			fmt.Println("not eligible " + targetName)
+			return false
+		}
+
+	}
+
 	return true
 }
 
@@ -149,8 +196,6 @@ func createNode(data map[string]interface{}) {
 }
 
 func deleteNode(data map[string]interface{}) {
-
-	fmt.Println(data)
 
 	if _, ok := data["_id"]; !ok {
 		return

@@ -9,6 +9,7 @@ module.exports = class GraphDecorator
     'JTutorial'     : SingleActivityDecorator
     'JCodeSnip'     : SingleActivityDecorator
     'JDiscussion'   : SingleActivityDecorator
+    'JBlogPost'     : SingleActivityDecorator
     'JStatusUpdate' : SingleActivityDecorator
 
   @decorateSingles:(data, callback)->
