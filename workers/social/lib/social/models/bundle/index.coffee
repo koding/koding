@@ -6,6 +6,7 @@ module.exports = class JBundle extends JProduct
 
   {dash} = require 'bongo'
 
+  {extend} = require 'underscore'
   # @create = ()
 
   @setLimits = (limits) ->
@@ -39,18 +40,24 @@ module.exports = class JBundle extends JProduct
       { limits_: defaultLimits } = @constructor
 
       @once 'save', =>
-        console.log 'does this happen?'
+        JLimit = require '../limit'
 
         queue = Object.keys(defaultLimits).map (limitName) => =>
+          defaultOptions = defaultLimits[limitName]
+
           limitOptions = limits[limitName]
+
           limitOptions = { unit: limit }  if 'string' is typeof limitOptions
-          limit = new Limit limitOptions
+
+          limitOptions = extend { title: limitName }, defaultOptions, limitOptions
+
+          limit = new JLimit limitOptions
           limit.save (err)=>
             return next err  if err
-            @addLimit limit, limitName, next
+            @addLimit limit, limitName, fin
 
         dash queue, => @emit 'limitsAreSet'
 
-        next = queue.next.bind queue
+        fin = queue.fin.bind queue
 
         return
