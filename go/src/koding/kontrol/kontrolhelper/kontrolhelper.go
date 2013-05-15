@@ -166,6 +166,10 @@ func RegisterToKontrol(name, uuid string, port int) error {
 		AppId:           uuid,
 	}
 
+	if err := channel.ExchangeDeclare("workerExchange", "topic", true, false, false, false, nil); err != nil {
+		return err
+	}
+
 	err = channel.Publish("workerExchange", "input.worker", false, false, msg)
 	if err != nil {
 		return err
