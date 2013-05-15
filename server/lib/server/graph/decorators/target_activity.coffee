@@ -29,3 +29,6 @@ module.exports = class TargetActivityDecorator
       slug              : @datum.slug
       event             : "ItemWasAdded"     # TODO: hardcode?
       group             : []
+      anchor            :
+        id                  : @target._id
+        constructorName     : @target.name

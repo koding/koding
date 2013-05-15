@@ -5,11 +5,7 @@ module.exports = class SingleBucketActivityDecorator
 
   decorateActivity:->
     activity =
-      # I think this is used for new member buckets
-      #bongo_ :
-        #constructorName : @datum.name
-        #instanceId      : @datum._id
+      id              : @datum._id
       constructorName : @datum.name
-      instanceId      : @datum._id
 
     return activity

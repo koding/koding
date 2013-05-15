@@ -167,10 +167,12 @@ module.exports = class Graph
       'start koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
       'where followees.name="JAccount"'
+      'and follower.name="JTag"'
+      'or follower.name="JAccount"'
       'and r.createdAt < {startDate}'
       'return r,followees, follower'
       'order by r.createdAt DESC'
-      'limit 10'
+      'limit 20'
     ].join('\n');
 
     console.log query, startDate
