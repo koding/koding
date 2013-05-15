@@ -12,5 +12,7 @@ module.exports = class JLimit extends jraphical.Module
       usage     :
         type    : Number
         default : 0
+      title     : String
+      unit      : String
 
   getValue:-> @getAt('quota') - @getAt('usage')
