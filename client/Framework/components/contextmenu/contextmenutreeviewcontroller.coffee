@@ -57,7 +57,7 @@ class JContextMenuTreeViewController extends JTreeViewController
   loadView:->
 
     super
-    @selectFirstNode()
+    @selectFirstNode()  unless @getOptions().lazyLoad
 
   initTree:(nodes)->
 

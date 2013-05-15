@@ -30,6 +30,7 @@ module.exports =
   mongo         : mongo
   runNeo4jFeeder: no
   runGoBroker   : no
+  runKontrol    : no
   runRerouting  : no
   compileGo     : no
   buildClient   : yes
@@ -147,3 +148,19 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  kontrold        :
+    api           :
+      port        : 8000
+    proxy         :
+      port        : 8080
+      portssl     : 8081
+    mongo         :
+      host        : '127.0.0.1'
+    rabbitmq      :
+      host        : 'localhost'
+      port        : '5672'
+      login       : 'guest'
+      password    : 'guest'
+      vhost       : '/'
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

@@ -92,50 +92,27 @@ process.on 'uncaughtException',(err)->
 #    console.log stack  if stack?
 
 koding = require './bongo'
-async  = require 'async'
 
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-Graph = require "./graph/graph"
-GraphDecorator = require "./graph/graph_decorator"
-
-_fetchActivitiesByTimestamp = (req, res)->
-  graph = new Graph neo4j
-  #calculate the current and next timestamp
-
-  timestamp = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-  startDate = new Date timestamp
-  #20*60*1000 = 1200000
-  endDate = new Date(startDate.getTime() + 1200000);
-
-  graph.fetchAll startDate.toISOString(), endDate.toISOString(), (err, rawResponse)->
-    # res.send rawResponse
-    GraphDecorator.decorateSingle rawResponse, (decorated)->
-      res.send decorated
+{fetchAllActivityParallel} = require './graph/fetch'
 
 app.get "/-/cache/latest", (req, res)->
-  async.parallel [fetchSingles, fetchFollows, fetchInstalls, fetchMembers], (err, results)=>
-    res.send decorateAll(err, results)
+  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+  startDate = (new Date timestamp).toISOString()
+
+  fetchAllActivityParallel startDate, neo4j, (results)->
+    res.send results
 
 app.get "/-/cache/before/:timestamp", (req, res)->
-  console.log "dfasdf"
-  console.log  req.params
-  console.log "d12341324"
+  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+  startDate = (new Date timestamp).toISOString()
 
-  #_fetchActivitiesByTimestamp req, res
+  console.log req.params, timestamp, startDate
 
-#app.get "/-/cache/members", (req, res)->
-  #graph = new Graph neo4j
-  #graph.fetchNewMembers (err, rawResponse)->
-    #GraphDecorator.decorateMembers rawResponse, (decorated)->
-      #callback err, decorated
-
-app.get "/-/cache/follows", (req, res)->
-  graph = new Graph neo4j
-  graph.fetchNewFollows (err, rawResponse)->
-    GraphDecorator.decorateFollows rawResponse, (decorated)->
-      res.send decorated
+  fetchAllActivityParallel startDate, neo4j, (results)->
+    res.send results
 
 startTime = null
 app.get "/-/oldcache/latest", (req, res)->
@@ -163,22 +140,78 @@ app.get "/-/kite/login", (req, res) ->
   rabbitAPI = require 'koding-rabbit-api'
   rabbitAPI.setMQ mq
 
-  {JKite} = koding.models
-  koding.models.JKite.control {key : req.query.key, kiteName : req.query.name}, (err, kite) =>
-    res.header "Content-Type", "application/json"
+  res.header "Content-Type", "application/json"
 
-    if err? or !kite?
-      res.send 401
-    else
-      rabbitAPI.newUser req.query.key, kite.kiteName, (err, data) =>
-        creds =
-          protocol  : 'amqp'
-          host      : mq.apiAddress
-          username  : data.username
-          password  : data.password
-          vhost     : mq.vhost
-        res.header "Content-Type", "application/json"
-        res.send JSON.stringify creds
+  {username, key, name, type, version} = req.query
+
+  unless username and key and name
+    res.send
+      error: true
+      message: "Not enough parameters."
+  else
+    {JKodingKey} = koding.models
+
+    JKodingKey.fetchByUserKey
+      username: username
+      key     : key
+    , (err, kodingKey)=>
+      if err or not kodingKey
+        console.log "ERROR", err
+        res.status 401
+        res.send
+          error: true
+          message: "Koding Key not found. Error 2"
+      else
+        switch type
+          when 'webserver'
+            rabbitAPI.newProxyUser username, key, (err, data) =>
+              if err?
+                console.log "ERROR", err
+                res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
+              else
+                postData =
+                  key       : version
+                  host      : 'localhost'
+                  rabbitkey : key
+
+                apiServer   = 'api.x.koding.com'
+                proxyServer = 'proxy.in.koding.com'
+                # local development
+                # apiServer   = 'localhost:8000'
+                # proxyServer = 'mahlika.local'
+
+                options =
+                  method  : 'POST'
+                  uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{username}/#{name}"
+                  body    : JSON.stringify postData
+                  headers : {'content-type': 'application/json'}
+
+                request.post options, (error, response, body) =>
+                  if error
+                    console.log "ERROR", error
+                    res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
+                  else if response.statusCode is 200
+                    creds =
+                      protocol  : 'amqp'
+                      host      : "kontrol.in.koding.com"
+                      username  : data.username
+                      password  : data.password
+                      vhost     : "/"
+                      publicUrl : body
+
+                    res.header "Content-Type", "application/json"
+                    res.send JSON.stringify creds
+          when 'openservice'
+            rabbitAPI.newUser key, name, (err, data) =>
+              creds =
+                protocol  : 'amqp'
+                host      : mq.apiAddress
+                username  : data.username
+                password  : data.password
+                vhost     : mq.vhost
+              console.log creds
+              res.status 200
+              res.send creds
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
@@ -325,6 +358,33 @@ app.get "/", (req, res)->
           if username then serve loggedInPage, res
           else serve loggedOutPage, res
 
+###
+app.get "/-/kd/register/:key", (req, res)->
+  {clientId} = req.cookies
+  unless clientId
+    serve loggedOutPage, res
+  else
+    {JSession} = koding.models
+    JSession.one {clientId}, (err, session)=>
+      if err
+        console.error err
+        serve loggedOutPage, res
+      else
+        {username} = session.data
+        unless username
+          res.redirect 302, '/'
+        else
+          JUser.one {username, status: $ne: "blocked"}, (err, user) =>
+          if err
+            res.redirect 302, '/'
+          else unless user?
+            res.redirect 302, '/'
+          else
+            user.fetchAccount "koding", (err, account)->
+              {key} = req.params
+              JPublicKey.create {connection: {delegate: account}}, {key}, (err, publicKey)->
+                res.send "true"
+###
 getAlias = do->
   caseSensitiveAliases = ['auth']
   (url)->
@@ -346,75 +406,4 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
-
-decorateAll = (err, decoratedObjects)->
-  cacheObjects    = {}
-  overviewObjects = []
-  newMemberBucketIndex = null
-
-  for objects in decoratedObjects
-    for key, value of objects when key isnt "overview"
-      cacheObjects[key] = value
-    overviewObjects.push objects.overview
-
-  overview = _.flatten(overviewObjects)
-
-  return {}  if overview.length is 0
-
-  overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
-
-  for activity, index in overview when activity.type is "CNewMemberBucketActivity"
-    newMemberBucketIndex = index
-
-  response            = {}
-  response.activities = cacheObjects
-  response.overview   = overview
-  response._id        = "1"
-  response.isFull     = false
-  response.from       = overview.first.createdAt.first
-  response.to         = overview.last.createdAt.first
-  response.newMemberBucketIndex = newMemberBucketIndex
-
-  return response
-
-fetchSingles = (callback)->
-  _fetchSingles (err, rawResponse)->
-    GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-fetchFollows = (callback)->
-  _fetchFollows (err, rawResponse)->
-    GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-fetchInstalls = (callback)->
-  _fetchInstalls (err, rawResponse)->
-    GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-fetchMembers = (callback)->
-  _fetchMembers (err, rawResponse)->
-    GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
-      callback err, decoratedResponse
-
-_fetchSingles = (callback)->
-  graph = new Graph neo4j
-  graph.fetchAll {}, {}, (err, rawResponse)->
-    callback err, rawResponse
-
-_fetchInstalls = (callback)->
-  graph = new Graph neo4j
-  graph.fetchNewInstalledApps (err, rawResponse)->
-    callback err, rawResponse
-
-_fetchFollows = (callback)->
-  graph = new Graph neo4j
-  graph.fetchNewFollows (err, rawResponse)->
-    callback err, rawResponse
-
-_fetchMembers = (callback)->
-  graph = new Graph neo4j
-  graph.fetchNewMembers (err, rawResponse)->
-    callback err, rawResponse
-
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

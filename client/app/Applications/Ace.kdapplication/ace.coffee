@@ -83,6 +83,20 @@ class Ace extends KDView
         mac   : 'Command-Shift-S'
       exec    : => @requestSaveAs()
 
+    @editor.commands.addCommand
+      name    : 'compileAndRun'
+      bindKey :
+        win   : 'Ctrl-Shift-C'
+        mac   : 'Command-Shift-C'
+      exec    : => @getDelegate().compileAndRun()
+
+    @editor.commands.addCommand
+      name    : 'preview'
+      bindKey :
+        win   : 'Ctrl-Shift-P'
+        mac   : 'Command-Shift-P'
+      exec    : => @getDelegate().preview()
+
     file = @getData()
 
     file.on "fs.save.finished", (err,res)=>
@@ -280,8 +294,7 @@ class Ace extends KDView
     notification = new KDNotificationView
       title     : msg or "Something went wrong"
       type      : "mini"
-      cssClass  : "editor #{style}"
-      container : @parent
+      cssClass  : "#{style}"
       duration  : duration or if details then 5000 else 2500
       details   : details
       click     : ->

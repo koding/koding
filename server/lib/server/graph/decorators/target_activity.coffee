@@ -23,7 +23,7 @@ module.exports = class TargetActivityDecorator
       _id               : @target._id
       meta              : @target.meta
       groupedBy         : "target"
-      sourceName        : @target.name
+      sourceName        : @groupBy.name
       bongo_            :
         constructorName : @activityName
       slug              : @datum.slug

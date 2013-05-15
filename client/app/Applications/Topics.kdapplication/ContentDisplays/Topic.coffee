@@ -111,8 +111,9 @@ class TopicView extends KDView
 
     super
     unless data.followee
-      KD.whoami().isFollowing? data.getId(), "JTag", (following) =>
+      KD.whoami().isFollowing? data.getId(), "JTag", (err, following) =>
         data.followee = following
+        warn err  if KD.isLoggedIn()
         if data.followee
           @followButton.setClass 'following-btn following-topic'
           @followButton.setState "Following"

@@ -20,7 +20,7 @@ module.exports = class JKite extends jraphical.Module
       'edit kites'
       'delete kites'
       'delete own kites'
-    ]  
+    ]
     sharedMethods   :
       instance      : [
           'delete'
