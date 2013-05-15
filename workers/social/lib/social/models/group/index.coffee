@@ -66,7 +66,7 @@ module.exports = class JGroup extends Module
       static        : [
         'one','create','each','count','byRelevance','someWithRelationship'
         '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
-        'suggestUniqueSlug'
+        'suggestUniqueSlug', 'fetchKodingGroup'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -79,7 +79,8 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
+        'fetchRolesByClientId'
       ]
     schema          :
       title         :
@@ -596,22 +597,22 @@ module.exports = class JGroup extends Module
   fetchHomepageView:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
 
-    unless clientId
-      @renderHomepageHelper callback
-    else
-      JSession = require '../session'
-      JSession.one {clientId}, (err, session)=>
-        if err
-          console.error err
-          callback err
-        else
-          {username} = session.data
-          if username
-            @fetchMembershipStatusesByUsername username, (err, roles)=>
-              if err then callback err
-              else @renderHomepageHelper roles, callback
-          else
-            @renderHomepageHelper callback
+    @fetchRolesByClientId clientId, (err, roles)=>
+      return callback err  if err
+      @renderHomepageHelper roles, callback
+
+  fetchRolesByClientId:(clientId, callback)->
+    [callback, clientId] = [clientId, callback]  unless callback
+    return callback null, []  unless clientId
+
+    JSession = require '../session'
+    JSession.one {clientId}, (err, session)=>
+      return callback err  if err
+      {username} = session.data
+      return callback null, []  unless username
+
+      @fetchMembershipStatusesByUsername username, (err, roles)=>
+        callback err, roles or [], session
 
   createRole: permit 'grant permissions',
     success:(client, formData, callback)->
@@ -1176,3 +1177,6 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
+
+  @fetchKodingGroup: (callback)->
+    @one slug:'koding', callback
