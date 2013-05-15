@@ -29,6 +29,7 @@ module.exports = class Graph
       'where koding.name = "JTutorial"'
       ' or koding.name = "JCodeSnip"'
       ' or koding.name = "JDiscussion"'
+      ' or koding.name = "JBlogPost"'
       ' or koding.name = "JStatusUpdate"'
       ' and has(koding.`meta.createdAt`)'
       ' and koding.`meta.createdAt` < {startDate}'
