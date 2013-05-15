@@ -52,7 +52,7 @@ func main() {
 
 	i := 0
 	skip := 0 //51236 + 400959 + 456281 + 26496 + 27752 + 54613 + 10223
-	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Iter()
+	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Sort("-timestamp").Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
