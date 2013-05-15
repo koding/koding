@@ -822,11 +822,10 @@ class GroupsAppController extends AppController
         privacyExpl = 'Koding users can only join with your approval'
 
       body  = """
-        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
-        <a class="hidden" id="go-to-group-link" href="/#{group.slug}" target="#{group.slug}">Go to Group</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
