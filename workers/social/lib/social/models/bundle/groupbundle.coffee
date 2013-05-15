@@ -2,6 +2,8 @@ JBundle = require '../bundle'
 
 module.exports = class JGroupBundle extends JBundle
 
+  {permit} = require '../group/permissionset'
+
   @share()
 
   @trait __dirname, '../../traits/protected'
@@ -10,6 +12,9 @@ module.exports = class JGroupBundle extends JBundle
     sharedEvents      :
       static          : []
       instance        : []
+    sharedMethods     :
+      static          : []
+      instance        : ['fetchLimits']
     permissions       :
       'manage payment methods'  : []
       'change bundle'           : []
@@ -28,3 +33,5 @@ module.exports = class JGroupBundle extends JBundle
         ]
         default       : 'not allowed'
 
+  @fetchLimits$ = permit 'change bundle',
+    success: (client, callback)-> @fetchLimits callback
