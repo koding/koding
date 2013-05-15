@@ -2,14 +2,6 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
   viewAppended:()->
 
-    # followers...
-    filterController = @setListController
-      type : "showme"
-      itemClass : ListGroupShowMeItem
-    , @followerMenuData
-    @addSubView filterController.getView()
-    filterController.selectItem filterController.getItemsOrdered()[0]
-
     # everything...
     filterController = @setListController
       type : "showme"
