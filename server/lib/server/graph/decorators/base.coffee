@@ -57,26 +57,30 @@ module.exports = class BaseDecorator
         followers       : @followerCount()
 
     if @datum.relationData.reply
-      snapshot.replies = @decorateAdditions @datum.relationData.reply
+      snapshot.replies = @decorateAdditions @sliceAdditions @datum.relationData.reply
 
     if @datum.relationData.tag
       snapshot.tags = @decorateAdditions @datum.relationData.tag
 
     if @datum.relationData.opinion
-      snapshot.opinions = @decorateAdditions @datum.relationData.opinion
+      snapshot.opinions = @decorateAdditions @sliceAdditions @datum.relationData.opinion
 
     return snapshot
 
   decorateAdditions:(additions)->
     results = []
-    additions = additions.reverse()
-    for addition in additions.slice(-3)
+    for addition in additions
       addition.bongo_ = {constructorName : addition.name}
       addition.meta   = @decorateSnapshotMeta addition
 
       results.push addition
 
     return results
+
+  sliceAdditions:(additions)->
+    additions = additions.reverse()
+    return additions.slice(-3)
+
 
   decorateSnapshotMeta:(data)->
     snapshotMeta            = data.meta
