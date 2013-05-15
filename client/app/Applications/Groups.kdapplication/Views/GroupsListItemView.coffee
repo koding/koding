@@ -6,13 +6,14 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     group = @getData()
-
     {title, slug, body} = group
+
+    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        href      : "/#{slug}"
+        href      : slugLink
         target    : slug
       pistachio   : '{{ #(title)}}'
       # click       : (event) => @titleReceivedClick event
@@ -57,7 +58,7 @@ class GroupsListItemView extends KDListItemView
       @enterButton.hide()
 
     @enterLink = new CustomLinkView
-      href    : "/#{slug}/Activity"
+      href    : "#{slugLink}Activity"
       target  : slug
       title   : 'Open group'
       click   : @bound 'privateGroupOpenHandler'
@@ -104,7 +105,8 @@ class GroupsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     group = @getData()
-    KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
+    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
+    KD.getSingleton('router').handleRoute slugLink, state:group
     event.stopPropagation()
     event.preventDefault()
     #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
