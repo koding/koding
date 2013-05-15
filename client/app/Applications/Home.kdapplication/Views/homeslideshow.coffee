@@ -1,9 +1,7 @@
 class HomeSlideShow extends KDView
 
-  constructor:(options = {}, data)->
-
-    host = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
-    data = [
+  host      = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
+  slideData = [
       {
         bg      : "#{host}/images/bg/blurred/1.jpg"
         title   : "<p><span>A new way for</span><br><span>developers to work.</span></p>"
@@ -28,20 +26,23 @@ class HomeSlideShow extends KDView
         """
       }
     ]
-    options.tagName  or= "section"
-    options.keydown    =
-      left             : =>
-        @interacted = yes
-        @slideTo "prev"
-      right            : =>
-        @interacted = yes
-        @slideTo "next"
+
+  constructor:(options = {}, data)->
+
+    data                  or= slideData
+    options.tagName       or= "section"
+    options.rotate         ?= yes
+    options.rotationDelay or= 8000
+    options.keydown         =
+      left                  : => @interacted = yes; @slideTo "prev"
+      right                 : => @interacted = yes; @slideTo "next"
 
     super options, data
 
     @slides     = []
     @pos        = 0
     @interacted = no
+    @repeater   = null
 
   viewAppended:->
 
@@ -73,9 +74,6 @@ class HomeSlideShow extends KDView
       cssClass   : 'clearfix'
       tagName    : 'ul'
       bind       : 'mousewheel'
-      mousewheel : =>
-        @utils.killWait @timer
-        @timer = @utils.wait 600, => @slideTo()
 
     for slide, i in @getData()
       @wrapper.addSubView slide = new KDCustomHTMLView
@@ -109,19 +107,20 @@ class HomeSlideShow extends KDView
 
     @addSubView @wrapper
 
-    @utils.wait 5000, =>
-      if @pos is 0
-        repeater = @utils.repeat 5000, =>
-          unless @interacted
-          then @rotate()
-          else @utils.killRepeat repeater
+    if @getOption "rotate"
+      @utils.wait 5000, =>
+        if @pos is 0
+          @repeater = @utils.repeat @getOption("rotationDelay"), =>
+            unless @interacted
+            then @rotate()
+            else @utils.killRepeat @repeater
 
   click:-> @setKeyView()
 
   rotate:->
 
     if @pos is @slides.length - 1
-    then @slideTo 0
+    then @slideTo 0; @utils.killRepeat @repeater
     else @slideTo "next"
 
   slideTo:(index)->
@@ -133,7 +132,7 @@ class HomeSlideShow extends KDView
     index  = null if addend isnt 0
     amount = @slides.length
     aWidth = 100 / amount
-    pos    = index or @pos
+    pos    = index ? @pos
     pos    = pos + addend
 
     if pos < 0
