@@ -299,7 +299,16 @@ class LoginView extends KDScrollView
 
   click:(event)->
     if $(event.target).is('.login-screen')
-      @hide @getSingleton('router').bound "back"
+      @hide ->
+        router = KD.getSingleton('router')
+        routed = no
+        for route in router.visitedRoutes by -1
+          unless route in ['/Login', '/Register', '/Join', '/Recover']
+            router.handleRoute route
+            routed = yes
+            break
+
+        @clear  unless routed
 
   animateToForm: (name)->
 
