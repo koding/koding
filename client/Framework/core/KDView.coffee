@@ -379,7 +379,7 @@ class KDView extends KDObject
 # ADD/DESTROY VIEW INSTANCES
 # #
 
-  destroy:->
+  destroy: ->
     # instance destroys own subviews
     @destroySubViews()  if @getSubViews().length > 0
 
@@ -398,7 +398,7 @@ class KDView extends KDObject
     # and delete instance from KD.instances registry
     super
 
-  destroySubViews:()->
+  destroySubViews: ->
     # (subView.destroy() for subView in @getSubViews())
 
     for subView in @getSubViews().slice()
