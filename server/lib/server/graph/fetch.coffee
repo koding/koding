@@ -65,7 +65,7 @@ decorateAll = (err, decoratedObjects)->
   response.overview   = overview
   response._id        = "1"
   response.isFull     = false
-  response.from       = overview.first.createdAt.first
+  response.from       = overview.first.createdAt.last
   response.to         = overview.last.createdAt.first
   response.newMemberBucketIndex = newMemberBucketIndex  if newMemberBucketIndex
 

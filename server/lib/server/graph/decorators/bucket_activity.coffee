@@ -30,7 +30,11 @@ module.exports = class BucketActivityDecorator
     # TODO: use anchorId
     id = @extractId datum
     @groups[id].snapshot.group.push @decorateGroupActivity datum[@groupByName]
-    #@addActvityToOverview datum[@groupByName].first, anchorId
+    @updateCreatedAtInOverview @convertToISO(datum.relationship.first.createdAt), anchorId
+
+  updateCreatedAtInOverview:(createdAt, anchorId) ->
+    for followers in @groups.overview when followers.ids.first is anchorId
+      followers.createdAt.push createdAt
 
   # not required since for non member buckets, all entries are grouped
   addActvityToOverview:(datum, anchorId)->
@@ -45,7 +49,7 @@ module.exports = class BucketActivityDecorator
     @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupByName]]
     @groups.overview ||= []
     @groups.overview.push @decorateOverview datum[@groupByName].first, id,\
-      datum.relationship.first.createdAt
+      @convertToISO(datum.relationship.first.createdAt)
 
   decorateOverview:(target, anchorId, createdAt)->
     overview =
@@ -66,4 +70,4 @@ module.exports = class BucketActivityDecorator
     return datum[@targetName].first._id
 
   # TODO: DRY this
-  convertToISO: (time)-> return (new Date(time)).toISOString()
+  convertToISO: (time)-> return time
