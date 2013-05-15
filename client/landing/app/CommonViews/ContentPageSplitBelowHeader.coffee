@@ -33,17 +33,12 @@ class ContentPageSplitBelowHeader extends SplitViewWithOlderSiblings
     @setRightColumnClass()
 
   setRightColumnClass:->
-    rightCol = @panels[1]
-    rightColSize = rightCol.size
-    rightCol.unsetClass "extra-wide wide medium narrow extra-narrow"
+    col = @panels[1]
+    col.unsetClass "extra-wide wide medium narrow extra-narrow"
 
-    if rightColSize > 1200
-      rightCol.setClass "extra-wide"
-    else if rightColSize < 1200 and rightColSize > 900
-      rightCol.setClass "wide"
-    else if rightColSize < 900 and rightColSize > 600
-      rightCol.setClass "medium"
-    else if rightColSize < 600 and rightColSize > 300
-      rightCol.setClass "narrow"
-    else
-      rightCol.setClass "extra-narrow"
+    w   = col.size
+    col.setClass if w > 1200 then "extra-wide"
+    else if 900 < w < 1200   then "wide"
+    else if 600 < w < 900    then "medium"
+    else if 300 < w < 600    then "narrow"
+    else "extra-narrow"
