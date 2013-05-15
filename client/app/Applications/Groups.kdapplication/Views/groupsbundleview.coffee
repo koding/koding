@@ -98,7 +98,9 @@ class GroupsBundleEditView extends JView
       title     : "Save bundle"
       callback  : =>
         overagePolicy = @overagePolicy.getValue()
-        group.updateBundle { overagePolicy }
+        quotas = {}
+        quotas[title] = +limit.quota  for own title, limit of @limitsData
+        group.updateBundle { overagePolicy, quotas }
 
     @overageLabel = new KDLabelView
       title     : 'Overage policy'
@@ -113,6 +115,42 @@ class GroupsBundleEditView extends JView
         { value : "allowed",        title : "Allowed for all members" }
       ]
 
+    @advancedModeLabel = new KDLabelView title: 'Advanced mode'
+
+    @advancedMode = new KDOnOffSwitch
+      label     : @advancedModeLabel
+      callback  : @bound 'toggleAdvancedMode'
+
+    @debitButton = new KDButtonView
+      cssClass  : "clean-grey"
+      title     : "Debit..."
+      callback  : =>
+        number = +prompt "How many VMs do you want to debit?", "1"
+        debits =
+          cpu   : number * computeUnitMap.cpu
+          ram   : number * computeUnitMap.ram
+          disk  : number * computeUnitMap.disk
+        bundle.debit debits, (err)->
+          console.error err  if err
+
+  toggleAdvancedMode: (state) ->
+    method = if state then 'show' else 'hide'
+    for own limitName, notHidden of computeUnitVisibility when not notHidden
+      @limits[limitName][method]()
+
+  initializeSlider: (limit) ->
+
+    slider = switch limit.title
+      when 'vms'    then @computeSlider
+      when 'users'  then @usersSlider
+
+    return  unless slider?
+
+    @utils.defer =>
+      {quota} = if limit.title is 'vms' then @limitsData.cpu else limit
+      slider.setValue quota
+      slider.emit 'change'
+
   renderLimits: (limits) ->
     @limits.destroySubViews()
     @limitsData = {}
@@ -121,7 +159,9 @@ class GroupsBundleEditView extends JView
       cssClass = 'group-bundle-limit'
       cssClass += ' hidden'  unless computeUnitVisibility[limit.title]
       limitView = new GroupsBundleLimitView {cssClass}, limit
+      @limits[limit.title] = limitView
       @addSubView limitView
+      @initializeSlider limit
 
   pistachio: ->
     """
@@ -131,9 +171,11 @@ class GroupsBundleEditView extends JView
       <div>{{> @usersLabel}} {{> @usersSlider}}</div>
       <div>{{> @computeLabel}}  {{> @computeSlider}}</div>
       <div>{{> @overageLabel}} {div#overage{> @overagePolicy}}</div>
+      <div>{{> @advancedModeLabel}} {{> @advancedMode}}</div>
     </div>
     {{> @limits}}
     <div>{{> @saveButton}} {{> @destroyButton}}</div>
+    <div>{{> @debitButton}}</div>
     """
 
 # class GroupsBundleLimitWrapper extends KDObject
