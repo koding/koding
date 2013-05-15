@@ -8,7 +8,6 @@ class AceFindAndReplaceView extends JView
 
     @mode             = null
     @lastViewHeight   = 0
-    @isFoundSomething = no
 
     @findInput = new KDHitEnterInputView
       type         : "text"
@@ -56,6 +55,7 @@ class AceFindAndReplaceView extends JView
       cssClass     : "clean-gray editor-button control-button"
       labels       : ["case-sensitive", "whole-word", "regex"]
       multiple     : yes
+      defaultValue : "fakeValueToDeselectFirstOne"
 
   bindSpecialKeys: (input) ->
     "esc"           : (e) => @close()
@@ -80,7 +80,6 @@ class AceFindAndReplaceView extends JView
     @$().css { height }
     @resizeAceEditor height
     @show()
-    @isFoundSomething = no
 
   resizeAceEditor: (height) ->
     {ace} = @getDelegate()
@@ -113,7 +112,6 @@ class AceFindAndReplaceView extends JView
     methodName = if direction is "prev" then "findPrevious" else "find"
     @getDelegate().ace.editor[methodName] @findInput.getValue(), @getSearchOptions()
     @findInput.focus()
-    @isFoundSomething = yes
 
   replace:    -> @replaceHelper no
 
@@ -127,7 +125,7 @@ class AceFindAndReplaceView extends JView
     {editor}   = @getDelegate().ace
     methodName = if doReplaceAll then "replaceAll" else "replace"
 
-    @findNext() unless @isFoundSomething
+    @findNext()
     editor[methodName] replaceKeyword
 
   pistachio: ->
