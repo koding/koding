@@ -34,20 +34,15 @@ module.exports = class Slugifiable
     unless slug.length then callback null, ''
     else
       JName = require '../models/name'
-      if i is 0
-        selector = name: slug
-      else
-        selector = name: "#{slug}-#{i}"
+      suggestedSlug = if i is 0 then slug else "#{slug}-#{i}"
+      selector = name: suggestedSlug
       JName.one selector, (err, name)=>
         if err then callback err
         else
           if name
             @suggestUniqueSlug client, slug, i+1, callback
           else
-            if i is 0
-              callback null, slug
-            else
-              callback null, "#{slug}-#{i}"
+              callback null, suggestedSlug
 
   claimUniqueSlug =(ctx, konstructor, slug, callback)->
     JName = require '../models/name'
