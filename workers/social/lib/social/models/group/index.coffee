@@ -1175,16 +1175,22 @@ module.exports = class JGroup extends Module
         -> callback null
       ]
 
-  sendNotificationToAdmins: (event, contents)->
-    @fetchAdmins (err, admins)=>
+  sendNotificationToAdmins: (event, contents) ->
+    @fetchAdmins (err, admins) =>
       unless err
         for admin in admins
           admin.sendNotification event, contents
 
-  updateBundle: (formData, callback = (->))->
-    @fetchBundle (err, bundle)->
+  updateBundle: (formData, callback = (->)) ->
+    @fetchBundle (err, bundle) =>
       return callback err  if err?
       bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
+      bundle.fetchLimits (err, limits) ->
+        return callback err  if err?
+        queue = limits.map (limit) -> ->
+          limit.update { $set: quota: formData.quotas[limit.title] }, fin
+        dash queue, callback
+        fin = queue.fin.bind queue
 
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->
