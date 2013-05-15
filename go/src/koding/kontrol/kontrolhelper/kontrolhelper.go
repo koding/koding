@@ -7,6 +7,7 @@ import (
 	"koding/tools/config"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -135,8 +136,14 @@ func RegisterToKontrol(name, uuid string, port int) error {
 		Name     string
 		Uuid     string
 		Hostname string
+		Version  int
 		Message  workerMessage
 		Port     int
+	}
+
+	version, err := strconv.Atoi(ReadVersion())
+	if err != nil {
+		log.Println(err)
 	}
 
 	cmd := workerMain{
@@ -147,7 +154,8 @@ func RegisterToKontrol(name, uuid string, port int) error {
 			Command: "addWithProxy",
 			Option:  "many",
 		},
-		Port: port,
+		Port:    port,
+		Version: version,
 	}
 
 	type Wrap struct{ Worker workerMain }
