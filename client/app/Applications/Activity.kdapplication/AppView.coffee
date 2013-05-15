@@ -108,8 +108,7 @@ class ActivityListContainer extends JView
 
     @listWrapper = @controller.getView()
 
-    @utils.defer =>
-      @getSingleton('activityController').emit "ActivityListControllerReady", @controller
+    @utils.defer => @emit 'ready'
 
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
