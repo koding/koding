@@ -28,16 +28,9 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     #     html      : yes
     #     animate   : yes
 
-  followerMenuData :
-    title : "SHOW ME"
-    items : [      
-        { title : "Public",   type: "Public" }
-        { title : "Followed",   type: "Followed" }
-      ]
-
   showMenuData :
     title : "SHOW ME"
-    items : [      
+    items : [
         { title : "Everything" }
         { title : "Status Updates",   type : "CStatusActivity" }
         { title : "Blog Posts",       type : "CBlogPostActivity" }
