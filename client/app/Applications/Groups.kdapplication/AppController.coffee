@@ -761,6 +761,10 @@ class GroupsAppController extends AppController
 
   createContentDisplay:(group, callback)->
 
+    unless KD.config.roles? and 'admin' in KD.config.roles
+      routeSlug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+      return KD.getSingleton('router').handleRoute "#{routeSlug}Activity"
+
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()

@@ -48,13 +48,10 @@ class ActivityAppController extends AppController
       else @fetchSomeActivities()
 
   loadView:->
-    activityController = @getSingleton('activityController')
-
     # Do we really need this? ~ GG
     # yes - SY
-    activityController.once "ActivityListControllerReady", (controller)=>
-      @attachEvents controller
-      frontApp = @getSingleton('appManager').getFrontApp()
+    @getView().feedWrapper.ready (controller)=>
+      @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
 
     @emit 'ready'
@@ -148,7 +145,6 @@ class ActivityAppController extends AppController
   extractTeasersTimeStamps:(teasers)->
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
-    # debugger
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
@@ -365,9 +361,8 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  fetchTeasers:(selector,options,callback)->
-
-    KD.remote.api.CActivity.some selector, options, (err, data) =>
+  fetchTeasers:(options,callback)->
+    KD.remote.api.CActivity.fetchFacets options, (err, data) =>
       if err then callback err
       else
         data = clearQuotes data

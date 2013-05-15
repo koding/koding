@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -85,6 +86,7 @@ type HomePage struct {
 	Workers []WorkerInfo
 	Jenkins *JenkinsInfo
 	Server  *ServerInfo
+	Builds  []int
 }
 
 func NewServerInfo() *ServerInfo {
@@ -115,7 +117,7 @@ func main() {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	build := r.FormValue("searchbuild")
+	build := r.FormValue("build")
 	if build == "" {
 		build = "latest"
 	}
@@ -130,7 +132,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status := statusInfo()
+	status.BuildNumber = build
 	jenkins := jenkinsInfo()
+	builds := buildsInfo()
 
 	server, err = serverInfo(build)
 	if err != nil {
@@ -166,6 +170,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		Workers: workers,
 		Jenkins: jenkins,
 		Server:  server,
+		Builds:  builds,
 	}
 
 	renderTemplate(w, "index", home)
@@ -226,6 +231,35 @@ func workerInfo(build string) ([]WorkerInfo, error) {
 	}
 
 	return workers, nil
+}
+
+func buildsInfo() []int {
+	serverApi := "http://kontrol.in.koding.com/deployments"
+	fmt.Println(serverApi)
+	resp, err := http.Get(serverApi)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	s := &[]ServerInfo{}
+	err = json.Unmarshal(body, &s)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	builds := make([]int, 0)
+	for _, serv := range *s {
+		build, _ := strconv.Atoi(serv.BuildNumber)
+		builds = append(builds, build)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(builds)))
+
+	return builds
 }
 
 func serverInfo(build string) (*ServerInfo, error) {
