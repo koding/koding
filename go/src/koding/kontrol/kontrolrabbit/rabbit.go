@@ -140,7 +140,7 @@ func startRouting(cred Credentials) {
 
 	rabbitClient := readUsername() + "-" + manifest.Kitename + "-" + readKey()
 
-	if _, err := c.channel.QueueDeclare("", false, true, false, false, nil); err != nil {
+	if _, err := c.channel.QueueDeclare("", false, true, true, false, nil); err != nil {
 		log.Fatalf("queue.declare: %s", err)
 	}
 
