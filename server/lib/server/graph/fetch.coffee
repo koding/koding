@@ -8,7 +8,7 @@ module.exports =
     setStartDate startDate
     setNeo4j     neo4j
 
-    async.parallel [fetchSingles], (err, results)->
+    async.parallel [fetchSingles, fetchFollows, fetchInstalls, fetchMembers], (err, results)->
       callback decorateAll(err, results)
 
 getStartDate =-> @startDate or {}
