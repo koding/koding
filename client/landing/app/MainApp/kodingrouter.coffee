@@ -96,17 +96,19 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, model, route, query, passOptions=no)->
-    method = 'createContentDisplay'
-    [model] = model  if Array.isArray model
+  openContent:(name, section, models, route, query, passOptions=no)->
+    method   = 'createContentDisplay'
+    [models] = models  if Array.isArray models
 
+    # HK: with passOptions false an application only gets the information
+    # 'hey open content' with this model. But some applications require
+    # more information such as the route. Unfortunately we would need to
+    # refactor a lot legacy. For now we do this new thing opt-in
     if passOptions
       method += 'WithOptions'
-      options = {model, route, query}
-    else
-      options = model
+      options = {model:models, route, query}
       
-    KD.getSingleton("appManager").tell section, method, options,
+    KD.getSingleton("appManager").tell section, method, options ? models,
       (contentDisplay)=>
         routeWithoutParams = route.split('?')[0]
         @openRoutes[routeWithoutParams] = contentDisplay
@@ -372,7 +374,7 @@ class KodingRouter extends KDRouter
         open =(routeInfo, model)->
           switch model?.bongo_?.constructorName
             when 'JAccount'
-              (createContentHandler 'Members') routeInfo, model
+              (createContentHandler 'Members') routeInfo, [model]
             when 'JGroup'
               (createSectionHandler 'Activity') routeInfo, model
             else
