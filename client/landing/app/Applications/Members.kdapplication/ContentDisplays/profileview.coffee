@@ -30,51 +30,11 @@ class ProfileView extends JView
 
     @followButton = new MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : defaultState
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-      states          : [
-        title         : "Follow"
-        callback      : (callback)->
-          KD.requireLogin
-            callback  : =>
-              memberData.follow (err, response)=>
-                @hideLoader()
-                unless err
-                  memberData.followee = yes
-                  @setClass 'following-btn'
-                  callback? null
-            tryAgain  : yes
-            onFailMsg : 'Login required to follow members'
-            onFail    : => @hideLoader()
-      ,
-        title         : "Unfollow"
-        callback      : (callback)->
-          memberData.unfollow (err, response)=>
-            @hideLoader()
-            unless err
-              memberData.followee = no
-              @unsetClass 'following-btn'
-              callback? null
-      ]
     , memberData
-
-    unless memberData.followee?
-      KD.whoami().isFollowing? memberData.getId(), "JAccount", (err, following) =>
-        memberData.followee = following
-        warn err  if KD.isLoggedIn()
-        if memberData.followee
-          @followButton.setClass 'following-btn'
-          @followButton.setState "Unfollow"
-        else
-          @followButton.setState "Follow"
-          @followButton.unsetClass 'following-btn'
 
     @skillTags = @putSkillTags()
 
+    {nickname} = memberData.profile
     @followers = new KDView
       tagName     : 'a'
       attributes  :
@@ -83,8 +43,7 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.followers is 0
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Followers", {state:memberData, entryPoint}
+        KD.getSingleton('router').handleRoute "/#{nickname}/Followers", {state:memberData}
     , memberData
 
     @following = new KDView
@@ -95,8 +54,7 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Following", {state:memberData, entryPoint}
+        KD.getSingleton('router').handleRoute "/#{nickname}/Following", {state:memberData}
     , memberData
 
     @likes = new KDView
@@ -107,8 +65,7 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Likes", {state:memberData, entryPoint}
+        KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
