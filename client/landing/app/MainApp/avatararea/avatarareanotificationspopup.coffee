@@ -1,9 +1,10 @@
 class AvatarPopupNotifications extends AvatarPopup
 
-  activitesArrived:-> #log arguments
+  constructor:->
+    @notLoggedInMessage = 'Login required to see notifications'
+    super
 
   viewAppended:->
-
     super
 
     @_popupList = new PopupList
