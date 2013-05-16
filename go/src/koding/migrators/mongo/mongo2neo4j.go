@@ -51,7 +51,7 @@ func main() {
 	var result *Relationship
 
 	i := 0
-	skip := 0
+	skip := 0 //25812 + 27752 + 54945
 	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Sort("-timestamp").Iter()
 
 	//iterate over results
@@ -59,71 +59,44 @@ func main() {
 		i += 1
 		fmt.Println(i)
 
+		if result.SourceName == "" || result.TargetName == "" {
+			continue
+		}
+
 		if !checkIfEligible(result.SourceName, result.TargetName) {
 			continue
 		}
 
-		// hexSourceId := fmt.Sprintf("%s", result.SourceId.Hex())
 		hexSourceId := result.SourceId.Hex()
-		// fmt.Println(hexSourceId)
 		hexTargetId := result.TargetId.Hex()
-		// hexTargetId := fmt.Sprintf("%s", result.TargetId.Hex())
-		// fmt.Println(hexTargetId)
 
-		// first find source
-		if result.SourceName != "" {
-			sourceContent := ""
-			targetContent := ""
-			var err error
-			if _, ok := SAVED_DATA[hexSourceId]; ok {
-				sourceContent = fmt.Sprintf("%s", SAVED_DATA[hexSourceId])
-			} else {
-				sourceContent, err = mongo.FetchContent(result.SourceId, result.SourceName)
-			}
-			if err != nil {
-				fmt.Println("source err ", err)
-			} else {
-				//then find target
-				if result.TargetName != "" {
-					if _, ok := SAVED_DATA[hexTargetId]; ok {
-						targetContent = fmt.Sprintf("%s", SAVED_DATA[hexTargetId])
-					} else {
-						targetContent, err = mongo.FetchContent(result.TargetId, result.TargetName)
-					}
+		sourceContent := getContent(result.SourceId, result.SourceName)
+		targetContent := getContent(result.TargetId, result.TargetName)
 
-					if err != nil {
-						fmt.Println("target err ", err)
-					} else {
-
-						sourceNode := neo4j.CreateUniqueNode(hexSourceId, result.SourceName)
-						targetNode := neo4j.CreateUniqueNode(hexTargetId, result.TargetName)
-						source := fmt.Sprintf("%s", sourceNode["create_relationship"])
-						target := fmt.Sprintf("%s", targetNode["self"])
-
-						//UTC for date time uniqueness
-						//format is a Go woodoo :)
-						relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, result.Timestamp.UTC().Format("2006-01-02T15:04:05Z"))
-						neo4j.CreateRelationshipWithData(result.As, source, target, relationshipData)
-
-						if _, ok := SAVED_DATA[hexSourceId]; !ok {
-							neo4j.UpdateNode(hexSourceId, sourceContent)
-							SAVED_DATA[hexSourceId] = sourceContent
-						}
-
-						if _, ok := SAVED_DATA[hexTargetId]; !ok {
-							neo4j.UpdateNode(hexTargetId, targetContent)
-							SAVED_DATA[hexTargetId] = targetContent
-						}
-
-					}
-				} else {
-					fmt.Println("target name not given:", hexTargetId, result.TargetName)
-				}
-
-			}
-		} else {
-			fmt.Println("source name not given:", hexSourceId, result.SourceName)
+		if sourceContent == "" || targetContent == "" {
+			continue
 		}
+
+		sourceNode := neo4j.CreateUniqueNode(hexSourceId, result.SourceName)
+		targetNode := neo4j.CreateUniqueNode(hexTargetId, result.TargetName)
+		source := fmt.Sprintf("%s", sourceNode["create_relationship"])
+		target := fmt.Sprintf("%s", targetNode["self"])
+
+		//UTC for date time uniqueness
+		//format is a Go woodoo :)
+		relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, result.Timestamp.UTC().Format("2006-01-02T15:04:05.111Z"))
+		neo4j.CreateRelationshipWithData(result.As, source, target, relationshipData)
+
+		if _, ok := SAVED_DATA[hexSourceId]; !ok {
+			neo4j.UpdateNode(hexSourceId, sourceContent)
+			SAVED_DATA[hexSourceId] = sourceContent
+		}
+
+		if _, ok := SAVED_DATA[hexTargetId]; !ok {
+			neo4j.UpdateNode(hexTargetId, targetContent)
+			SAVED_DATA[hexTargetId] = targetContent
+		}
+
 	}
 
 	if iter.Err() != nil {
@@ -131,6 +104,24 @@ func main() {
 	}
 
 	fmt.Println("Migration completed")
+}
+
+func getContent(objectId bson.ObjectId, name string) string {
+
+	hexId := objectId.Hex()
+	content := ""
+	var err error
+	if _, ok := SAVED_DATA[hexId]; ok {
+		content = fmt.Sprintf("%s", SAVED_DATA[hexId])
+	} else {
+		content, err = mongo.FetchContent(objectId, name)
+		if err != nil {
+			fmt.Println("source err ", err)
+			content = ""
+		}
+	}
+
+	return content
 }
 
 func checkIfEligible(sourceName, targetName string) bool {
