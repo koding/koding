@@ -47,7 +47,7 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 		meta = result["meta"].(map[string]interface{})
 	}
 
-	meta["createdAt"] = id.Time().UTC().Format("2006-01-02T15:04:05Z")
+	meta["createdAt"] = id.Time().UTC().Format("2006-01-02T15:04:05.000Z")
 	meta["createdAtEpoch"] = id.Time().Unix()
 
 	result["meta"] = meta
@@ -55,7 +55,6 @@ func FetchContent(id bson.ObjectId, name string) (string, error) {
 	jsonResult = generateJSON(result)
 
 	return jsonResult, nil
-
 }
 
 //TO-DO add plural name support for names that ends with "y"
