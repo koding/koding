@@ -16,7 +16,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -153,31 +152,18 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func validateHost(user UserInfo) error {
+func validateUser(user UserInfo) bool {
 	rules, ok := proxy.Rules[user.Username]
 	if !ok { // if not available assume allowed for all
-		return nil
+		return true
 	}
 
 	restriction, ok := rules.Services[user.Servicename]
 	if !ok { // if not available assume allowed for all
-		return nil
+		return true
 	}
 
-	if restriction.IP == "" { // assume allowed for all
-		return nil
-	}
-
-	validator, err := regexp.Compile(restriction.IP)
-	if err != nil {
-		return nil // dont block anyone if regex compile get wrong
-	}
-
-	if validator.MatchString(user.IP) {
-		return fmt.Errorf("IP is not validated '%s'", user.IP)
-	}
-
-	return nil
+	return validator(restriction, user).IP().Country().Check()
 }
 
 func parseKey(host string) (UserInfo, error) {
@@ -472,9 +458,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	err = validateHost(userInfo)
-	if err != nil {
-		log.Printf("validation error: %s", err.Error())
+	ok := validateUser(userInfo)
+	if !ok {
+		log.Println("not validated user")
 		http.NotFound(rw, req)
 		return
 	}
