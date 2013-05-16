@@ -78,7 +78,6 @@ cachedIds = {}
 generateUniqueRandomKey =->
   randomId = Math.floor(Math.random()*1000)
   if cachedIds[randomId]
-    console.log randomId, "already in", cachedIds
     generateUniqueRandomKey()
   else
     cachedIds[randomId] = true
