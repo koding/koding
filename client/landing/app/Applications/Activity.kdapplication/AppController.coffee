@@ -252,6 +252,10 @@ class ActivityAppController extends AppController
       KD.remote.api.CActivity.fetchFacets options, (err, activities)->
         if err then callback err
         else
+          console.log('------------------------------')
+          console.log('------------------------------')
+          console.log(activities)
+          console.log('------------------------------')
           KD.remote.reviveFromSnapshots clearQuotes(activities), callback
 
   # Fetches activities that occured after the first entry in user feed,
@@ -317,9 +321,9 @@ class ActivityAppController extends AppController
         callback null, cache
 
   continueLoadingTeasers:->
-
+    # ?????
     # HACK: this gets called multiple times if there's no wait
-    KD.utils.wait 1000, =>
+    KD.utils.wait 10000, =>
       lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
       @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
