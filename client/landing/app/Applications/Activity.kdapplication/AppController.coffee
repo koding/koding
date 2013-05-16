@@ -148,8 +148,8 @@ class ActivityAppController extends AppController
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
-    #@lastTo   = cache.to
-    #@lastFrom = cache.from
+    @lastTo   = cache.to
+    @lastFrom = cache.from
 
   # Refreshes activity feed, used when user has been disconnected
   # for so long, backend connection is long gone.
