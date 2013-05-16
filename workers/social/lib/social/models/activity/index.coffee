@@ -270,8 +270,8 @@ module.exports = class CActivity extends jraphical.Capsule
       if params['facets'][0] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
         throw new Exception("Wrong object type")
-      query.push('AND items.name="{{objectType}}"')
-      params['objectType'] = params['facets'][0]
+
+      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets'][0]) )
 
     query = query.concat([
              'return myfollowees, items'

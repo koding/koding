@@ -227,7 +227,6 @@ class ActivityAppController extends AppController
       originId    : options.originId or null
       sort        :
         createdAt : -1
-    console.log("calling KD.remote.api.CActivity.fetchFacets - ")
 
     console.log(options['facets'], "Followed" in  options['facets'])
     # some are from neo4j some are from directly mongo for now !
@@ -241,11 +240,15 @@ class ActivityAppController extends AppController
         fetchfromneo = true
 
     if fetchfromneo
+      console.log("KD.remote.api.CActivity.fetchFolloweeContents - " + JSON.stringify(options) )
       KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
-        if err then callback err
+        if err
+          console.log("err" + err)
+          callback err
         else
-          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+          callback null, activities
     else
+      console.log("calling KD.remote.api.CActivity.fetchFacets - ")
       KD.remote.api.CActivity.fetchFacets options, (err, activities)->
         if err then callback err
         else
