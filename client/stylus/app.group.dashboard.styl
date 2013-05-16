@@ -31,24 +31,28 @@
       line-height               60px
       padding                   0 20px
       rel()
-      // &.checked
-      //   bg                      color, rgba(0, 0, 0, .05)
       label
         display                 block
         margin-left             90px
         font-size               14px
       input
-        top                     22px
-        left                    90px
-        margin                  0
-        abs()
+        display                 none
+
       &.active
-        bg                      color, rgba(0, 0, 0, .05)
-      &:hover
         bg                      color, rgba(0, 0, 0, .05)
         &:before
           bg                    position, -460px -620px
           opacity               .9
+        &.company:before
+          bg                    position, -460px -680px
+        &.project:before
+          bg                    position, -460px -740px
+        &.custom:before
+          bg                    position, -460px -800px
+
+      &:hover
+        bg                      color, rgba(0, 0, 0, .05)
+
       &:before
         content                 ""
         size                    60px, 60px
@@ -64,12 +68,6 @@
         bg                      position, -400px -740px
       &.custom:before
         bg                      position, -400px -800px
-      &.company:hover:before
-        bg                      position, -460px -680px
-      &.project:hover:before
-        bg                      position, -460px -740px
-      &.custom:hover:before
-        bg                      position, -460px -800px
 
   div.general-settings  > .kdformview
     margin-top                5px

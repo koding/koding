@@ -34,6 +34,10 @@ module.exports = class JGuest extends jraphical.Module
     sharedMethods   :
       static        : staticMethods
       instance      : instanceMethods
+    sharedEvents    :
+      static        : [
+        { name: 'NeedsCleanup' }
+      ]
     indexes         :
       guestId       : ['unique', 'descending']
     schema          :

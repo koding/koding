@@ -65,6 +65,10 @@ module.exports = class JUser extends jraphical.Module
       username      : 'unique'
       email         : 'unique'
 
+    sharedEvents    :
+      static        : [
+        { name: 'UserCreated' }
+      ]
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
@@ -552,12 +556,10 @@ module.exports = class JUser extends jraphical.Module
         else
           callback new KodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
-
+  fetchHomepageView:(callback)->
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView clientId, callback
+      else account.fetchHomepageView callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require './emailconfirmation'

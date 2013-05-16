@@ -48,6 +48,13 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+    sharedEvents    :
+      static        : [
+        { name: 'AccountAuthenticated' }
+      ]
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods :
       static      : sharedStaticMethods()
       instance    : sharedInstanceMethods()
@@ -231,24 +238,13 @@ module.exports = class JAccount extends jraphical.Module
 
   @renderHomepage: require './render-homepage'
 
-  fetchHomepageView:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
+  fetchHomepageView:(callback)->
 
-    renderHomepage = (err, roles, session)=>
-      console.warn err  if err
-      callback null, JAccount.renderHomepage {
-        profile       : @profile
-        account       : @
-        counts        : @counts
-        skillTags     : @skillTags
-        isLoggedIn    : session?.username?
-        roles         : roles ? []
-      }
-
-    JGroup = require '../group'
-    JGroup.fetchKodingGroup (err, group)->
-      return renderHomepage err  if err
-      group.fetchRolesByClientId clientId, renderHomepage
+    callback null, JAccount.renderHomepage
+      profile       : @profile
+      account       : this
+      counts        : @counts
+      skillTags     : @skillTags
 
   setHandle: secure (client, data, callback)->
     {delegate}    = client.connection

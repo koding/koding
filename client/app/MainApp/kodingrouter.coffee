@@ -97,18 +97,18 @@ class KodingRouter extends KDRouter
     , maxLength: 100) # max char length of the title
 
   openContent:(name, section, models, route, query, passOptions=no)->
-    method = 'createContentDisplay'
-    [options] = models
+    method   = 'createContentDisplay'
+    [models] = models  if Array.isArray models
 
+    # HK: with passOptions false an application only gets the information
+    # 'hey open content' with this model. But some applications require
+    # more information such as the route. Unfortunately we would need to
+    # refactor a lot legacy. For now we do this new thing opt-in
     if passOptions
       method += 'WithOptions'
-      options = {
-        model : options
-        route
-        query
-      }
+      options = {model:models, route, query}
       
-    KD.getSingleton("appManager").tell section, method, options,
+    KD.getSingleton("appManager").tell section, method, options ? models,
       (contentDisplay)=>
         routeWithoutParams = route.split('?')[0]
         @openRoutes[routeWithoutParams] = contentDisplay
@@ -156,12 +156,28 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
         contentDisplay.emit 'handleQuery', query
-      else if state?
+      else if models?
         @openContent name, section, models, route, query, passOptions
       else
         @loadContent name, section, slug, route, query, passOptions
 
-  clear:(route="/#{KD.config.entryPoint?.slug ? ''}", replaceState=yes)->
+  createStaticContentDisplayHandler:(section, passOptions=no)->
+    (params, models, route)=>
+
+      contentDisplay = @openRoutes[route]
+      if contentDisplay?
+        KD.getSingleton("contentDisplayController")
+          .hideAllContentDisplays contentDisplay
+      else
+        @openContent null, section, models, route, null, passOptions
+
+  clear:(route, replaceState=yes)->
+    unless route
+      {entryPoint} = KD.config
+      if entryPoint?.type is 'group' and entryPoint?.slug?
+        route = "/#{KD.config.entryPoint?.slug}"
+      else
+        route = '?'
     super route, replaceState
 
   getRoutes =->
@@ -182,12 +198,14 @@ class KodingRouter extends KDRouter
     createSectionHandler = (sec)=>
       ({params:{name}, query})=> @openSection sec, name, query
 
-    createContentHandler = @bound 'createContentDisplayHandler'
+    createContentHandler       = @bound 'createContentDisplayHandler'
+    createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
     routes =
 
-      '/' : handleRoot
-      ''  : handleRoot
+      '/'      : handleRoot
+      ''       : handleRoot
+      '/About' : createStaticContentHandler 'Home', yes
 
       # verbs
       '/:name?/Login'     : ({params:{name}})->
@@ -362,7 +380,7 @@ class KodingRouter extends KDRouter
         open =(routeInfo, model)->
           switch model?.bongo_?.constructorName
             when 'JAccount'
-              (createContentHandler 'Members') routeInfo, model
+              (createContentHandler 'Members') routeInfo, [model]
             when 'JGroup'
               (createSectionHandler 'Activity') routeInfo, model
             else

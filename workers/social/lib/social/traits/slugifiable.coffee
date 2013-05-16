@@ -26,23 +26,41 @@ module.exports = class Slugifiable
     if isNaN count then ''          # show empty string instead of zero...
     else "-#{count + 1}"            # otherwise, try the next integer.
 
-  @suggestUniqueSlug = secure (client, source, callback)->
+  @suggestUniqueSlug = secure (client, slug, i, callback)->
+    [client, slug, callback, i] = [client, slug, i, callback] unless callback
+    i ?= 0
     JAccount = require '../models/account'
     {delegate} = client.connection
     unless delegate instanceof JAccount
       return callback new KodingError 'Access denied.'
-    unless source.length then callback null, ''
+    unless slug.length then callback null, ''
     else
       JName = require '../models/name'
-      slug = slugify source
-      selector = name: RegExp "^#{slug}(-\\d+)?$"
-      JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
+      suggestedSlug = if i is 0 then slug else "#{slug}-#{i}"
+      selector = name: suggestedSlug
+      JName.one selector, (err, name)=>
         if err then callback err
-        else cursor.toArray (err, names)->
-          if err then callback err
+        else
+          if name
+            @suggestUniqueSlug client, slug, i+1, callback
           else
-            nextCount = getNextCount names
-            callback null, "#{slug}#{nextCount}"
+            callback null, suggestedSlug
+
+  claimUniqueSlug =(ctx, konstructor, slug, callback)->
+    JName = require '../models/name'
+    {collectionName} = konstructor.getCollection()
+    nextName = {
+      slug            : slug
+      constructorName : konstructor.name
+      usedAsPath      : konstructor.usedAsPath ? 'slug'
+      group           : ctx.group
+      collectionName
+    }
+    nextNameFull = nextName.slug
+    JName.claim nextNameFull, [nextName], konstructor, 'slug', (err, nameDoc)->
+      if err then callback err
+      else
+        callback null, nextName
 
   generateUniqueSlug =(ctx, konstructor, slug, i, template, callback)->
     [callback, template] = [template, callback]  unless callback
@@ -143,3 +161,7 @@ module.exports = class Slugifiable
     {slugTemplate, slugifyFrom} = constructor
     slug = slugify @[slugifyFrom]
     generateUniqueSlug this, constructor, slug, 0, slugTemplate, callback
+
+  useSlug:(slug, callback)->
+    {constructor} = this
+    claimUniqueSlug this, constructor, slug, callback

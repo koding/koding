@@ -29,6 +29,10 @@ module.exports = class JSession extends Model
       lastAccess    :
         type        : Date
         get         : -> new Date
+    sharedEvents    :
+      instance      : [
+        { name: 'updateInstance' }
+      ]
   
   @cycleSession =(clientId, callback=->)->
     @remove {clientId}, (err)=>
