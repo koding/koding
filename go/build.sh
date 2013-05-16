@@ -13,11 +13,11 @@ services=(
   koding/rerouting
   koding/kites/os
   koding/kites/irc
-  koding/virt/proxy
+  koding/virt/vmproxy
   koding/virt/vmtool
   koding/alice
+  koding/kontrol/kontrolclient
   koding/workers/neo4jfeeder
-	koding/kontrol/kontrolclient
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"

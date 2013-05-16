@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/kontrol/helper"
 	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/workerconfig"
+	"koding/kontrol/kontrolhelper"
 	"koding/tools/process"
 	"log"
 )
@@ -14,11 +14,11 @@ func init() {
 	log.SetPrefix("kontrold-client ")
 }
 
-var producer *helper.Producer
+var producer *kontrolhelper.Producer
 
 func main() {
 	var err error
-	producer, err = helper.CreateProducer("client")
+	producer, err = kontrolhelper.CreateProducer("client")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -33,12 +33,12 @@ func main() {
 
 func gatherData() ([]byte, error) {
 	log.Println("gathering information...")
-	buildNumber := helper.ReadVersion()
-	configused := helper.ReadFile("CONFIG_USED")
-	gitbranch := helper.ReadFile("GIT_BRANCH")
-	gitcommit := helper.ReadFile("GIT_COMMIT")
+	buildNumber := kontrolhelper.ReadVersion()
+	configused := kontrolhelper.ReadFile("CONFIG_USED")
+	gitbranch := kontrolhelper.ReadFile("GIT_BRANCH")
+	gitcommit := kontrolhelper.ReadFile("GIT_COMMIT")
 
-	publicHostname := helper.CustomHostname()
+	publicHostname := kontrolhelper.CustomHostname()
 
 	localHostname, err := process.RunCmd("ec2metadata", "--local-hostname")
 	if err != nil {
@@ -94,8 +94,8 @@ func gatherData() ([]byte, error) {
 }
 
 func startConsuming() {
-	connection := helper.CreateAmqpConnection()
-	channel := helper.CreateChannel(connection)
+	connection := kontrolhelper.CreateAmqpConnection()
+	channel := kontrolhelper.CreateChannel(connection)
 
 	err := channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
@@ -142,7 +142,7 @@ func matchAction(action, cmd, hostname string, pid int) {
 		"stop":  stop,
 	}
 
-	if hostname != "" && hostname != helper.CustomHostname() {
+	if hostname != "" && hostname != kontrolhelper.CustomHostname() {
 		log.Println("command is for a different machine")
 		return
 	}

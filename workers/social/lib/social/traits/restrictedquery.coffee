@@ -1,5 +1,5 @@
 module.exports = class RestrictedQuery
-  
+
   {permit} = require '../models/group/permissionset'
 
   makeGroupSelector =(group)->

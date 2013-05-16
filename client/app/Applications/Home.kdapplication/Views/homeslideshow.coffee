@@ -1,9 +1,7 @@
 class HomeSlideShow extends KDView
 
-  constructor:(options = {}, data)->
-    
-    host = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
-    data = [
+  host      = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
+  slideData = [
       {
         bg      : "#{host}/images/bg/blurred/1.jpg"
         title   : "<p><span>A new way for</span><br><span>developers to work.</span></p>"
@@ -18,7 +16,7 @@ class HomeSlideShow extends KDView
         title   : "<p><span>with a real VM and </span><br><span>a real Terminal...</span></p>"
       },{
         bg      : "#{host}/images/bg/blurred/5.jpg"
-        title   : "<p><span>and free for all...</span></p>"
+        title   : "<p><span>and free for everyone...</span></p>"
       },{
         bg      : "#{host}/images/bg/blurred/7.jpg"
         title   : """
@@ -28,18 +26,26 @@ class HomeSlideShow extends KDView
         """
       }
     ]
-    options.tagName or= "section"
-    options.keydown   = 
-      left  : @slideTo.bind this, "prev"
-      right : @slideTo.bind this, "next"
+
+  constructor:(options = {}, data)->
+
+    data                  or= slideData
+    options.tagName       or= "section"
+    options.rotate         ?= yes
+    options.rotationDelay or= 8000
+    options.keydown         =
+      left                  : => @interacted = yes; @slideTo "prev"
+      right                 : => @interacted = yes; @slideTo "next"
 
     super options, data
-    
-    @slides = []
-    @pos    = 0
-    @listenWindowResize()
+
+    @slides     = []
+    @pos        = 0
+    @interacted = no
+    @repeater   = null
 
   viewAppended:->
+
     @leftArrow = new KDCustomHTMLView
       domId    : "home-ss-left-arrow"
       tagName  : "a"
@@ -48,6 +54,8 @@ class HomeSlideShow extends KDView
       click    : (event)=>
         @utils.stopDOMEvent event
         @slideTo "prev"
+        @setKeyView()
+        @interacted = yes
 
     @leftArrow.setX -40
 
@@ -59,14 +67,13 @@ class HomeSlideShow extends KDView
       click    : (event)=>
         @utils.stopDOMEvent event
         @slideTo "next"
+        @setKeyView()
+        @interacted = yes
 
-    @wrapper = new KDScrollView
+    @wrapper = new KDView
       cssClass   : 'clearfix'
       tagName    : 'ul'
       bind       : 'mousewheel'
-      mousewheel : =>
-        @utils.killWait @timer
-        @timer = @utils.wait 300, => @slideTo()
 
     for slide, i in @getData()
       @wrapper.addSubView slide = new KDCustomHTMLView
@@ -74,9 +81,9 @@ class HomeSlideShow extends KDView
         partial    : slide.title
         cssClass   : "to-right" if i > 0
         attributes :
-          style    : "background-image: url('#{slide.bg}'); left: #{i*100}%"
+          style    : "background-image: url('#{slide.bg}'); width: #{100/@getData().length}%"
       @slides.push slide
-    
+
     @setKeyView()
     @slideTo 0
     @$().html ""
@@ -85,7 +92,7 @@ class HomeSlideShow extends KDView
     @addSubView @rightArrow
     @wrapper.on "viewAppended", @bound "_windowDidResize"
     @getSingleton('mainView').on "transitionend", @bound "_windowDidResize"
-    
+
     @on "FirstSlideShown", =>
       @rightArrow.$().css right : 0
       @leftArrow.$().css  left  : -40
@@ -100,12 +107,21 @@ class HomeSlideShow extends KDView
 
     @addSubView @wrapper
 
-  _windowDidResize:->
-
-    @slides.forEach (slide, i)->
-      slide.$().css left : "#{i*100}%"
+    if @getOption "rotate"
+      @utils.wait 5000, =>
+        if @pos is 0
+          @repeater = @utils.repeat @getOption("rotationDelay"), =>
+            unless @interacted
+            then @rotate()
+            else @utils.killRepeat @repeater
 
   click:-> @setKeyView()
+
+  rotate:->
+
+    if @pos is @slides.length - 1
+    then @slideTo 0; @utils.killRepeat @repeater
+    else @slideTo "next"
 
   slideTo:(index)->
 
@@ -116,10 +132,10 @@ class HomeSlideShow extends KDView
     index  = null if addend isnt 0
     amount = @slides.length
     aWidth = 100 / amount
-    pos    = index or @pos
+    pos    = index ? @pos
     pos    = pos + addend
 
-    if pos < 0 
+    if pos < 0
     then pos = 0
     else if pos > amount-1
     then pos = amount - 1
@@ -134,7 +150,7 @@ class HomeSlideShow extends KDView
 
     @pos = pos
     @slides[pos].unsetClass 'to-left to-right'
-    @wrapper.$().animate scrollLeft : (pos * (@wrapper.getScrollWidth() * aWidth / 100)), 300
+    @wrapper.$().css marginLeft : "-#{pos * 100}%"
 
     if pos is 0
     then @emit "FirstSlideShown"
@@ -148,7 +164,7 @@ class HomeSlideShow extends KDView
   #   <ul class="clearfix">
   #   </ul>
   #   """
-    
+
   #   """
   #   <ul class="clearfix">
   #     <li>

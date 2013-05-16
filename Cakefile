@@ -24,6 +24,7 @@ processes          = new (require "processes") main : true
 {daisy}            = require 'sinkrow'
 fs                 = require "fs"
 http               = require 'http'
+hat                = require 'hat'
 url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
@@ -234,19 +235,18 @@ task 'goBroker',(options)->
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
   {broker} = config
+  uuid = hat()
 
   processes.spawn
     name              : 'broker'
-    cmd               : "./go/bin/broker -c #{configFile} #{addFlags options}"
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} #{addFlags options}"
     restart           : yes
     restartTimeout    : 100
     stdout            : process.stdout
     stderr            : process.stderr
     kontrol           :
       enabled         : if config.runKontrol is yes then yes else no
-      startMode       : "many"
-      registerToProxy : yes
-      port            : broker.port
+      binary          : uuid
     verbose           : yes
 
 task 'rerouting',(options)->

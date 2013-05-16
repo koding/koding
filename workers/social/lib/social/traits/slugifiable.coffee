@@ -1,7 +1,9 @@
 
 module.exports = class Slugifiable
 
-  {dash, daisy} = require 'bongo'
+  {dash, daisy, secure} = require 'bongo'
+
+  KodingError = require '../error'
 
   slugify =(str='')->
     slug = str
@@ -23,6 +25,24 @@ module.exports = class Slugifiable
       .pop()                        # the last item is the highest, pop from the tmp array
     if isNaN count then ''          # show empty string instead of zero...
     else "-#{count + 1}"            # otherwise, try the next integer.
+
+  @suggestUniqueSlug = secure (client, source, callback)->
+    JAccount = require '../models/account'
+    {delegate} = client.connection
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+    unless source.length then callback null, ''
+    else
+      JName = require '../models/name'
+      slug = slugify source
+      selector = name: RegExp "^#{slug}(-\\d+)?$"
+      JName.someData selector, {name:1}, {sort:name:-1}, (err, cursor)->
+        if err then callback err
+        else cursor.toArray (err, names)->
+          if err then callback err
+          else
+            nextCount = getNextCount names
+            callback null, "#{slug}#{nextCount}"
 
   generateUniqueSlug =(ctx, konstructor, slug, i, template, callback)->
     [callback, template] = [template, callback]  unless callback

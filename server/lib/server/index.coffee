@@ -2,9 +2,9 @@
 Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
 
-{loggedInPage, loggedOutPage} = require './staticpages'
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
+page = require './staticpages'
 
 webPort = argv.p ? webserver.port
 
@@ -297,6 +297,9 @@ error_404 =->
 error_500 =->
   error_ 500, 'internal server error'
 
+app.get '/koding', (req, res)->
+  res.redirect 302, '/'
+
 app.get '/:name/:section?*', (req, res, next)->
   {JGroup, JName, JSession} = koding.models
   {name} = req.params
@@ -345,18 +348,18 @@ app.get "/", (req, res)->
     res.send 'this is crawlable content'
   else
     {clientId} = req.cookies
-    unless clientId
-      serve loggedOutPage, res
+    unless clientId then serve page(), res
     else
-      {JSession} = koding.models
-      JSession.one {clientId}, (err, session)=>
-        if err
-          console.error err
-          serve loggedOutPage, res
-        else
-          {username} = session?.data
-          if username then serve loggedInPage, res
-          else serve loggedOutPage, res
+      errCb = (err)->
+        console.error err
+        serve page(), res
+
+      {JGroup} = koding.models
+      JGroup.one slug:'koding', (err, group)->
+        return errCb err  if err
+        group.fetchRolesByClientId clientId, (err, roles)->
+          return errCb err  if err
+          serve page(roles), res
 
 ###
 app.get "/-/kd/register/:key", (req, res)->

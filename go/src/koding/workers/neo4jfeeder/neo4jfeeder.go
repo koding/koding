@@ -90,9 +90,11 @@ func startConsuming() {
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
 			} else if message.Event == "RelationshipRemoved" {
-				deleteNode(data)
+				deleteRelationship(data)
 			} else if message.Event == "updateInstance" {
 				updateNode(data)
+			} else if message.Event == "RemovedFromCollection" {
+				deleteNode(data)
 			}
 		}
 	}()
@@ -100,10 +102,57 @@ func startConsuming() {
 
 func checkIfEligible(sourceName, targetName string) bool {
 
-	if sourceName == "JAppStorage" || targetName == "JAppStorage" || sourceName == "JFeed" || targetName == "JFeed" || strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
-		fmt.Println("not eligible " + sourceName + " " + targetName)
-		return false
+	notAllowedNames := []string{
+		"CStatusActivity",
+		"CFolloweeBucketActivity",
+		"CFollowerBucketActivity",
+		"CCodeSnipActivity",
+		"CDiscussionActivity",
+		"CReplieeBucketActivity",
+		"CReplierBucketActivity",
+		"CBlogPostActivity",
+		"CNewMemberBucketActivity",
+		"CTutorialActivity",
+		"CLikeeBucketActivity",
+		"CLikerBucketActivity",
+		"CInstalleeBucketActivity",
+		"CInstallerBucketActivity",
+		"CActivity",
+		"CRunnableActivity",
+		"JAppStorage",
+		"JFeed",
 	}
+	notAllowedSuffixes := []string{
+		"Bucket",
+		"BucketActivity",
+	}
+
+	for _, name := range notAllowedNames {
+		if name == sourceName {
+			fmt.Println("not eligible " + sourceName)
+			return false
+		}
+
+		if name == targetName {
+			fmt.Println("not eligible " + targetName)
+			return false
+		}
+	}
+
+	for _, name := range notAllowedSuffixes {
+
+		if strings.HasSuffix(sourceName, name) {
+			fmt.Println("not eligible " + sourceName)
+			return false
+		}
+
+		if strings.HasSuffix(targetName, name) {
+			fmt.Println("not eligible " + targetName)
+			return false
+		}
+
+	}
+
 	return true
 }
 
@@ -120,7 +169,7 @@ func createNode(data map[string]interface{}) {
 	}
 
 	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
-	fmt.Println(data)
+
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
 		fmt.Println(err)
@@ -147,6 +196,15 @@ func createNode(data map[string]interface{}) {
 }
 
 func deleteNode(data map[string]interface{}) {
+
+	if _, ok := data["_id"]; !ok {
+		return
+	}
+	id := fmt.Sprintf("%s", data["_id"])
+	neo4j.DeleteNode(id)
+}
+
+func deleteRelationship(data map[string]interface{}) {
 	sourceId := fmt.Sprintf("%s", data["sourceId"])
 	targetId := fmt.Sprintf("%s", data["targetId"])
 	as := fmt.Sprintf("%s", data["as"])

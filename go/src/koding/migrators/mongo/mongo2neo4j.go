@@ -51,20 +51,24 @@ func main() {
 	var result *Relationship
 
 	i := 0
-	skip := 0 //51236 + 400959 + 456281 + 26496 + 27752 + 54613 + 10223
-	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Iter()
+	skip := 0
+	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Sort("-timestamp").Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
 		i += 1
-		// fmt.Println(i)
+		fmt.Println(i)
 
-		if result.SourceName == "JAppStorage" || result.TargetName == "JAppStorage" || result.SourceName == "JFeed" || result.TargetName == "JFeed" || strings.HasSuffix(result.SourceName, "Bucket") || strings.HasSuffix(result.TargetName, "Bucket") || strings.HasSuffix(result.SourceName, "BucketActivity") || strings.HasSuffix(result.TargetName, "BucketActivity") {
+		if !checkIfEligible(result.SourceName, result.TargetName) {
 			continue
 		}
 
-		hexSourceId := fmt.Sprintf("%s", result.SourceId.Hex())
-		hexTargetId := fmt.Sprintf("%s", result.TargetId.Hex())
+		// hexSourceId := fmt.Sprintf("%s", result.SourceId.Hex())
+		hexSourceId := result.SourceId.Hex()
+		// fmt.Println(hexSourceId)
+		hexTargetId := result.TargetId.Hex()
+		// hexTargetId := fmt.Sprintf("%s", result.TargetId.Hex())
+		// fmt.Println(hexTargetId)
 
 		// first find source
 		if result.SourceName != "" {
@@ -73,34 +77,26 @@ func main() {
 			var err error
 			if _, ok := SAVED_DATA[hexSourceId]; ok {
 				sourceContent = fmt.Sprintf("%s", SAVED_DATA[hexSourceId])
-				fmt.Println("source allready fetched")
 			} else {
 				sourceContent, err = mongo.FetchContent(result.SourceId, result.SourceName)
-				fmt.Println("sourcefetched")
 			}
 			if err != nil {
 				fmt.Println("source err ", err)
-				fmt.Println(hexSourceId, result.SourceName)
 			} else {
 				//then find target
 				if result.TargetName != "" {
 					if _, ok := SAVED_DATA[hexTargetId]; ok {
 						targetContent = fmt.Sprintf("%s", SAVED_DATA[hexTargetId])
-						fmt.Println("target allready fetched")
 					} else {
 						targetContent, err = mongo.FetchContent(result.TargetId, result.TargetName)
-						fmt.Println("targetfetched")
 					}
 
 					if err != nil {
 						fmt.Println("target err ", err)
-						fmt.Println(hexTargetId, result.TargetName)
 					} else {
 
 						sourceNode := neo4j.CreateUniqueNode(hexSourceId, result.SourceName)
-						fmt.Println("source unique id created")
 						targetNode := neo4j.CreateUniqueNode(hexTargetId, result.TargetName)
-						fmt.Println("target unique id created")
 						source := fmt.Sprintf("%s", sourceNode["create_relationship"])
 						target := fmt.Sprintf("%s", targetNode["self"])
 
@@ -135,4 +131,66 @@ func main() {
 	}
 
 	fmt.Println("Migration completed")
+}
+
+func checkIfEligible(sourceName, targetName string) bool {
+
+	fmt.Println(sourceName)
+	fmt.Println(targetName)
+	notAllowedNames := []string{
+		"CStatusActivity",
+		"CFolloweeBucketActivity",
+		"CFollowerBucketActivity",
+		"CCodeSnipActivity",
+		"CDiscussionActivity",
+		"CReplieeBucketActivity",
+		"CReplierBucketActivity",
+		"CBlogPostActivity",
+		"CNewMemberBucketActivity",
+		"CTutorialActivity",
+		"CLikeeBucketActivity",
+		"CLikerBucketActivity",
+		"CInstalleeBucketActivity",
+		"CInstallerBucketActivity",
+		"CActivity",
+		"CRunnableActivity",
+		"JAppStorage",
+		"JFeed",
+	}
+	notAllowedSuffixes := []string{
+		"Bucket",
+		"BucketActivity",
+	}
+
+	for _, name := range notAllowedNames {
+		if name == sourceName {
+			fmt.Println("not eligible " + sourceName)
+			return false
+		}
+
+		if name == targetName {
+			fmt.Println("not eligible " + targetName)
+			return false
+		}
+	}
+
+	for _, name := range notAllowedSuffixes {
+
+		if strings.HasSuffix(sourceName, name) {
+			fmt.Println("not eligible " + sourceName)
+			return false
+		}
+
+		if strings.HasSuffix(targetName, name) {
+			fmt.Println("not eligible " + targetName)
+			return false
+		}
+
+	}
+
+	if strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
+		fmt.Println("not eligible " + sourceName + " " + targetName)
+		return false
+	}
+	return true
 }
