@@ -398,18 +398,18 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = ->
+      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
       KD.remote.api.JName.one
         name: slugInput.getValue()
       , (err, name)->
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
-            unless err
+          KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+            if newSlug
               slugInput.setTooltip
-                title     : "Suggestion: #{newSlug}"
-                placement : 'right'
-              slugInput.tooltip.show()
+                title     : "Available slug: #{newSlug}"
+                placement : "right"
         else
           slugInput.setValidationResult 'slug', null
           delete slugInput.tooltip
@@ -570,7 +570,7 @@ class GroupsAppController extends AppController
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-    form.buttons.Save.hideLoader()
+      form.buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
