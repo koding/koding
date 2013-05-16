@@ -28,13 +28,13 @@ module.exports = class Graph
       # 'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
       'START koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->members<-[:author]-content'
-      'WHERE koding.name = "JTutorial"'
+      'WHERE content.name = "JTutorial"'
       ' or content.name = "JCodeSnip"'
       ' or content.name = "JDiscussion"'
       ' or content.name = "JBlogPost"'
       ' or content.name = "JStatusUpdate"'
       ' and has(content.`meta.createdAt`)'
-      ' and koding.`meta.createdAt` < {startDate}'
+      ' and content.`meta.createdAt` < {startDate}'
       'return *'
       'order by content.`meta.createdAt` DESC'
       'limit 10'
@@ -65,7 +65,7 @@ module.exports = class Graph
         , ->
           console.log new Date().getTime() - start
           callback null, tempRes
-        resultData = ( result.koding.data for result in results)
+        resultData = ( result.content.data for result in results)
         objectify resultData, (objecteds)->
           for objected in objecteds
             tempRes.push objected
