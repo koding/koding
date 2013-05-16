@@ -4,6 +4,8 @@ module.exports = class JGroupBundle extends JBundle
 
   {permit} = require '../group/permissionset'
 
+  {groupBy} = require 'underscore'
+
   @share()
 
   @trait __dirname, '../../traits/protected'
@@ -34,9 +36,29 @@ module.exports = class JGroupBundle extends JBundle
         ]
         default       : 'not allowed'
 
+  @parsePlanKey = (key)->
+    [ prefix, category, resource, upperBound ] = key.split '_'
+    return { prefix, category, resource, upperBound: +upperBound }
+
   @fetchPlans = permit 'commission resources',
     success: (client, callback) ->
-      (require 'koding-payment').getPlans callback
+      (require 'koding-payment').getPlans (err, plans) =>
+        return callback err  if err
+
+        formattedPlans = plans.map (plan) =>
+          feeInitial  : plan.feeInitial
+          feeMonthly  : plan.feeMonthly
+          code        : plan.code
+          usage       : @parsePlanKey plan.code
+          title       : plan.title
+
+        byCategory = groupBy formattedPlans, (plan)-> plan.usage.category
+
+        for own category, group of byCategory
+          byCategory[category] = groupBy group, (plan)-> plan.usage.resource
+
+        callback null, byCategory
+
 
   fetchLimits$: permit 'change bundle',
     success: (client, callback)-> @fetchLimits callback
@@ -44,7 +66,8 @@ module.exports = class JGroupBundle extends JBundle
   debit$: permit 'commission resources',
     success: (client, debits, callback)->
       JVM = require '../vm'
-      JVM.fetchUsage client.connection.delegate, client.context.group, (err, usage)=>
+      {connection:{delegate}, context:{group}} = client
+      JVM.calculateUsage delegate, group, (err, usage)=>
         return callback err  if err?
 
         # TODO: we need to do some number-crunching with the usage stats
