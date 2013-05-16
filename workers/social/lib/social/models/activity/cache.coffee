@@ -479,18 +479,33 @@ module.exports = class JActivityCache extends jraphical.Module
 
           cache.update
             $unset : unsetModifier
-            $set   : isFull : no
+            $set   : setModifier
           , ->
-            log "activity removed from cache!", Object.keys(cache.activities).length
-            cache.update
-              $pullAll : { overview : [null] }
-            , ->
-              log "nulls in cache.overview removed"
-
-            if Object.keys(cache.activities).length is 0
+            activitiesLength = Object.keys(cache.activities).length
+            log "activity removed from cache!", activitiesLength
+            if activitiesLength is 0
               cache.remove ->
                 log "cache instance removed!"
+            else
+              cache.update
+                $pullAll : { overview : [null] }
+              , ->
+                log "nulls in cache.overview removed"
 
+                # pullAll does not update data in memory of cache object
+                # so we need to do same oction on memory
+                overview = []
+                (overview.push item for item, i in cache.overview when item)
+
+                for overviewItem, index in overview when overviewItem
+                  if overviewItem.type is 'CNewMemberBucketActivity'
+                    if index is cache.newMemberBucketIndex
+                      break
+
+                    cache.update
+                      $set : newMemberBucketIndex : index
+                    , ->
+                      log "newMemberBucketIndex is updated"
 
 
   printOverview = (overview)->
