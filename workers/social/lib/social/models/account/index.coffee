@@ -233,12 +233,11 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchHomepageView:(callback)->
 
-    callback null, JAccount.renderHomepage {
+    callback null, JAccount.renderHomepage
       profile       : @profile
-      account       : @
+      account       : this
       counts        : @counts
       skillTags     : @skillTags
-    }
 
   setHandle: secure (client, data, callback)->
     {delegate}    = client.connection

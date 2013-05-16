@@ -320,8 +320,8 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    defaultTpl = require './staticpages'
-    serve defaultTpl, res
+    defaultTemplate = require './staticpages'
+    serve defaultTemplate, res
 
 ###
 app.get "/-/kd/register/:key", (req, res)->
