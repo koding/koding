@@ -48,13 +48,10 @@ class ActivityAppController extends AppController
       else @fetchSomeActivities()
 
   loadView:->
-    activityController = @getSingleton('activityController')
-
     # Do we really need this? ~ GG
     # yes - SY
-    activityController.once "ActivityListControllerReady", (controller)=>
-      @attachEvents controller
-      frontApp = @getSingleton('appManager').getFrontApp()
+    @getView().feedWrapper.ready (controller)=>
+      @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
 
     @emit 'ready'
@@ -150,12 +147,11 @@ class ActivityAppController extends AppController
   extractTeasersTimeStamps:(teasers)->
     @lastTo   = teasers.first.meta.createdAt
     @lastFrom = teasers.last.meta.createdAt
-    # debugger
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
-    @lastTo   = cache.to
-    @lastFrom = cache.from
+    #@lastTo   = cache.to
+    #@lastFrom = cache.from
 
   # Refreshes activity feed, used when user has been disconnected
   # for so long, backend connection is long gone.
@@ -309,14 +305,20 @@ class ActivityAppController extends AppController
       url     : "/-/cache/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
-      success : (cache)->
+      success : (cache)=>
         cache.overview.reverse()  if cache?.overview
+        #@lastTo = cache.to
+        #@lastFrom = cache.from
+        #console.log "lastFrom", @lastFrom
+        #console.log "lastTo", @lastTo
         callback null, cache
 
   continueLoadingTeasers:->
 
-    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
-    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    # HACK: this gets called multiple times if there's no wait
+    KD.utils.wait 1000, =>
+      lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed
@@ -387,9 +389,8 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  fetchTeasers:(selector,options,callback)->
-
-    KD.remote.api.CActivity.some selector, options, (err, data) =>
+  fetchTeasers:(options,callback)->
+    KD.remote.api.CActivity.fetchFacets options, (err, data) =>
       if err then callback err
       else
         data = clearQuotes data
