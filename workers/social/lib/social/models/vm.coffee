@@ -96,7 +96,6 @@ module.exports = class JVM extends Model
             return acc
         , @getUsageTemplate()
 
-
   @calculateUsage$ = permit 'list all vms',
     success: (client, groupSlug, callback)->
       {delegate} = client.connection
