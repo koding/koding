@@ -21,7 +21,6 @@ module.exports = class FetchAllActivityParallel
       callback @decorateAll(err, results)
 
   fetchSingles:(callback)->
-
     graph = new Graph @neo4j
     graph.fetchAll @startDate, (err, rawResponse)->
       GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->

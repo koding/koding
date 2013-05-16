@@ -98,10 +98,11 @@ authenticationFailed = (res, err)->
 
 FetchAllActivityParallel = require './graph/fetch'
 fetchFromNeo = (req, res)->
-  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-  startDate = (new Date timestamp).toISOString()
+  timestamp  = req.params?.timestamp
+  rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+  startDate  = Math.floor(rawStartDate/1000)
 
-  console.log req.params, timestamp, startDate
+  console.log "fetchFromNeo", req.params.timestamp, rawStartDate, startDate
 
   fetch = new FetchAllActivityParallel startDate, neo4j
   fetch.get (results)->

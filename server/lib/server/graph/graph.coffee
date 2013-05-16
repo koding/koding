@@ -29,15 +29,15 @@ module.exports = class Graph
       # 'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
       'START koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->members<-[:author]-content'
-      'WHERE content.name = "JTutorial"'
+      'WHERE (content.name = "JTutorial"'
       ' or content.name = "JCodeSnip"'
       ' or content.name = "JDiscussion"'
       ' or content.name = "JBlogPost"'
-      ' or content.name = "JStatusUpdate"'
-      ' and has(content.`meta.createdAt`)'
-      ' and content.`meta.createdAt` < {startDate}'
+      ' or content.name = "JStatusUpdate")'
+      ' and has(content.`meta.createdAtEpoch`)'
+      ' and content.`meta.createdAtEpoch` < {startDate}'
       'return *'
-      'order by content.`meta.createdAt` DESC'
+      'order by content.`meta.createdAtEpoch` DESC'
       'limit 10'
     ].join('\n');
 
@@ -74,9 +74,9 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(id={itemId})'
       'match koding-[r]-all'
-      'where has(koding.`meta.createdAt`)'
+      'where has(koding.`meta.createdAtEpoch`)'
       'return *'
-      'order by koding.`meta.createdAt` DESC'
+      'order by koding.`meta.createdAtEpoch` DESC'
     ].join('\n');
 
     params =
@@ -104,10 +104,10 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(\'id:*\')'
       'match koding-[r:user]->users'
-      'where koding.name="JApp" and r.createdAt > "2012-11-14T23:56:48Z"'
-      'and koding.`meta.createdAt` < {startDate}'
+      'where koding.name="JApp" and r.createdAtEpoch > "2012-11-14T23:56:48Z"'
+      'and koding.`meta.createdAtEpoch` < {startDate}'
       'return *'
-      'order by r.createdAt DESC'
+      'order by r.createdAtEpoch DESC'
       'limit 10'
     ].join('\n');
 
@@ -139,11 +139,11 @@ module.exports = class Graph
       'start  koding=node:koding(id={groupId})'
       'MATCH  koding-[r:member]->members'
       'where  members.name="JAccount"'
-      'and r.createdAt < {startDate}'
-      'and has(koding.`meta.createdAt`)'
-      'and koding.`meta.createdAt` < {startDate}'
+      'and r.createdAtEpoch < {startDate}'
+      'and has(koding.`meta.createdAtEpoch`)'
+      'and koding.`meta.createdAtEpoch` < {startDate}'
       'return members'
-      'order by koding.`meta.createdAt` DESC'
+      'order by koding.`meta.createdAtEpoch` DESC'
       'limit 10'
     ].join('\n');
 
@@ -170,9 +170,9 @@ module.exports = class Graph
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
       'where followees.name="JAccount"'
       'and follower.name="JAccount"'
-      'and r.createdAt < {startDate}'
+      'and r.createdAtEpoch < {startDate}'
       'return r,followees, follower'
-      'order by r.createdAt DESC'
+      'order by r.createdAtEpoch DESC'
       'limit 10'
     ].join('\n');
 
@@ -185,9 +185,9 @@ module.exports = class Graph
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
       'where followees.name="JAccount"'
       'and follower.name="JTag"'
-      'and r.createdAt < {startDate}'
+      'and r.createdAtEpoch < {startDate}'
       'return r,followees, follower'
-      'order by r.createdAt DESC'
+      'order by r.createdAtEpoch DESC'
       'limit 10'
     ].join('\n');
 
