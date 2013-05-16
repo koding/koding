@@ -30,11 +30,14 @@ class GroupsBundleEditView extends JView
     disk  : 0.5
 
   computeUnitVisibility =
-    users : yes
-    vms   : yes
-    cpu   : no
-    ram   : no
-    disk  : no
+    users       : yes
+    vms         : yes
+    cpu         : no
+    ram         : no
+    disk        : no
+    cpuPerUser  : no
+    ramPerUser  : no
+    diskPerUser : no
 
   mapPlansToRadios: (plan) ->
     @plansByCode[plan.code] = plan
