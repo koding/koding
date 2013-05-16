@@ -150,7 +150,7 @@ app.get "/-/kite/login", (req, res) ->
                   host      : 'localhost'
                   rabbitkey : key
 
-                apiServer   = 'api.x.koding.com'
+                apiServer   = 'kontrol.in.koding.com'
                 proxyServer = 'proxy.in.koding.com'
                 # local development
                 # apiServer   = 'localhost:8000'

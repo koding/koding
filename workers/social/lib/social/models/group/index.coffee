@@ -25,7 +25,6 @@ module.exports = class JGroup extends Module
   ]
 
   @trait __dirname, '../../traits/followable'
-  @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
@@ -55,12 +54,16 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'MemberAdded',    filter: -> null }
-        { name: 'MemberRemoved',  filter: -> null }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
+        { name: 'MemberRolesChanged' }
+        { name: 'GroupDestroyed' }
       ]
       instance      : [
-        { name: 'MemberAdded',    filter: -> null }
-        { name: 'MemberRemoved',  filter: -> null }
+        { name: 'GroupCreated' }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
+        { name: 'NewInvitationRequest' }
       ]
     sharedMethods   :
       static        : [
@@ -277,7 +280,7 @@ module.exports = class JGroup extends Module
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
-        -> group.createSlug (err, slug)->
+        -> group.useSlug group.slug, (err, slug)->
           if err then callback err
           else unless slug?
             callback new KodingError "Couldn't claim the slug!"
@@ -342,6 +345,33 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  @byRelevance = secure (client, seed, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    {limit, blacklist, skip}  = options
+    limit     ?= 10
+    blacklist or= []
+    blacklist = blacklist.map(ObjectId)
+    cleanSeed = seed.replace(/[^\w\s-]/).trim() #TODO: this is wrong for international charsets
+    startsWithSeedTest = RegExp '^'+cleanSeed, "i"
+    startsWithOptions = {limit, blacklist, skip}
+    @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
+      if err
+        callback err
+      else if limit is suggestions.length
+          callback null, suggestions
+      else
+        containsSeedTest = RegExp cleanSeed, 'i'
+        containsOptions =
+          skip      : skip
+          limit     : limit-suggestions.length
+          blacklist : blacklist.concat(suggestions.map (o)-> o.getId())
+        @findSuggestions client, containsSeedTest, containsOptions, (err, moreSuggestions)->
+          if err
+            callback err
+          else
+            allSuggestions = suggestions.concat moreSuggestions
+            callback null, allSuggestions
 
   @fetchSecretChannelName =(groupSlug, callback)->
     JName = require '../name'
