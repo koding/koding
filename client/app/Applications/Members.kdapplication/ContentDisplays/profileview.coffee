@@ -34,6 +34,7 @@ class ProfileView extends JView
 
     @skillTags = @putSkillTags()
 
+    {nickname} = memberData.profile
     @followers = new KDView
       tagName     : 'a'
       attributes  :
@@ -42,8 +43,7 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.followers is 0
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Followers", {state:memberData, entryPoint}
+        KD.getSingleton('router').handleRoute "/#{nickname}/Followers", {state:memberData}
     , memberData
 
     @following = new KDView
@@ -54,8 +54,7 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Following", {state:memberData, entryPoint}
+        KD.getSingleton('router').handleRoute "/#{nickname}/Following", {state:memberData}
     , memberData
 
     @likes = new KDView
@@ -66,8 +65,7 @@ class ProfileView extends JView
       click       : (event)->
         event.preventDefault()
         return if memberData.counts.following is 0
-        {entryPoint} = KD.config
-        KD.getSingleton('router').handleRoute "/#{entryPoint.slug}/Likes", {state:memberData, entryPoint}
+        KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
