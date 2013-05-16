@@ -96,15 +96,21 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-{fetchAllActivityParallel} = require './graph/fetch'
+FetchAllActivityParallel = require './graph/fetch'
+fetchFromNeo = (req, res)->
+  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+  startDate = (new Date timestamp).toISOString()
+
+  console.log req.params, timestamp, startDate
+
+  fetch = new FetchAllActivityParallel startDate, neo4j
+  fetch.get (results)->
+    res.send results
 
 app.get "/-/cache/latest", (req, res)->
   # if neo4j enabled fetch results from neo4j
   if neo4j.enabled
-    timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-    startDate = (new Date timestamp).toISOString()
-    fetchAllActivityParallel startDate, neo4j, (results)->
-      res.send results
+    fetchFromNeo req, res
   else
   #if not enabled fetch from cacheworker
     {JActivityCache} = koding.models
@@ -116,13 +122,7 @@ app.get "/-/cache/latest", (req, res)->
 
 app.get "/-/cache/before/:timestamp", (req, res)->
   if neo4j.enabled
-    timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-    startDate = (new Date timestamp).toISOString()
-
-    console.log req.params, timestamp, startDate
-
-    fetchAllActivityParallel startDate, neo4j, (results)->
-      res.send results
+    fetchFromNeo req, res
   else
     {JActivityCache} = koding.models
     JActivityCache.before req.params.timestamp, (err, cache)->
