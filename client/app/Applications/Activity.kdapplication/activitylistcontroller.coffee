@@ -118,7 +118,6 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-    console.log("list activities ---- 2")
     return @showNoItemWidget() unless cache.overview?
 
     activityIds = []
@@ -153,6 +152,7 @@ class ActivityListController extends KDListViewController
         if likeView
           likeView.likeLink.updatePartial 'Unlike'
           likeView._currentState = yes
+
   getLastItemTimeStamp: ->
 
     if item = hiddenItems.first
