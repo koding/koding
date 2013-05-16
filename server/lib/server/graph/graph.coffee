@@ -25,16 +25,18 @@ module.exports = class Graph
   fetchAll:(startDate, callback)->
     start = new Date().getTime()
     query = [
-      'start koding=node:koding(\'id:*\')'
-      'where koding.name = "JTutorial"'
-      ' or koding.name = "JCodeSnip"'
-      ' or koding.name = "JDiscussion"'
-      ' or koding.name = "JBlogPost"'
-      ' or koding.name = "JStatusUpdate"'
-      ' and has(koding.`meta.createdAt`)'
+      # 'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
+      'START koding=node:koding(id={groupId})'
+      'MATCH koding-[:member]->members<-[:author]-content'
+      'WHERE koding.name = "JTutorial"'
+      ' or content.name = "JCodeSnip"'
+      ' or content.name = "JDiscussion"'
+      ' or content.name = "JBlogPost"'
+      ' or content.name = "JStatusUpdate"'
+      ' and has(content.`meta.createdAt`)'
       ' and koding.`meta.createdAt` < {startDate}'
       'return *'
-      'order by koding.`meta.createdAt` DESC'
+      'order by content.`meta.createdAt` DESC'
       'limit 10'
     ].join('\n');
 
