@@ -7,6 +7,7 @@ class HomeAppView extends KDView
 
     super options, data
 
+
   viewAppended:->
 
     account = KD.whoami()
@@ -25,34 +26,47 @@ class HomeAppView extends KDView
       domId    : "home-counter-bar"
       tagName  : "section"
     ,
-      "Members"          : count : 0
+      "MEMBERS"          : count : 0
       "Virtual Machines" : count : 0
       "Lines of Code"    : count : 0
-      "Groups"           : count : 0
-      "Topics"           : count : 0
+      "GROUPS"           : count : 0
+      "TOPICS"           : count : 0
+      "Thoughts shared"  : count : 0
 
-    @counterBar.counters.Members.ready =>
-      KD.remote.api.JAccount.count "", (err, count)=>
-        @counterBar.counters.Members.update count or 0
+    vms          = @counterBar.counters["Virtual Machines"]
+    loc          = @counterBar.counters["Lines of Code"]
+    members      = @counterBar.counters.MEMBERS
+    groups       = @counterBar.counters.GROUPS
+    topics       = @counterBar.counters.TOPICS
+    activities   = @counterBar.counters["Thoughts shared"]
+    vmController = @getSingleton("vmController")
+    {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
-    @counterBar.counters["Virtual Machines"].ready =>
-      @getSingleton("vmController").getTotalVMCount (err, count)=>
-        @counterBar.counters["Virtual Machines"].update count or 0
-
-    @counterBar.counters["Lines of Code"].ready =>
-      @getSingleton("vmController").getTotalLoC (err, count)=>
-        @counterBar.counters["Lines of Code"].update count or 0
-
-    @counterBar.counters.Groups.ready =>
-      KD.remote.api.JGroup.count "", (err, count)=>
-        @counterBar.counters.Groups.update count or 0
-
-    @counterBar.counters.Topics.ready =>
-      KD.remote.api.JTag.count "", (err, count)=>
-        @counterBar.counters.Topics.update count or 0
+    members.ready => JAccount.count "",       (err, count)=> members.update count or 0
+    vms.ready => vmController.getTotalVMCount (err, count)=> vms.update count or 0
+    loc.ready => vmController.getTotalLoC     (err, count)=> loc.update count or 0
+    groups.ready => JGroup.count "",          (err, count)=> groups.update count or 0
+    topics.ready => JTag.count "",            (err, count)=> topics.update count or 0
+    activities.ready => CActivity.count "",   (err, count)=> activities.update count or 0
 
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
+
+    @utils.wait 500, => @_windowDidResize()
+    @getSingleton("contentPanel").on "transitionend", (event)=>
+      event.stopPropagation()
+      if $(event.target).is "#content-panel"
+        @_windowDidResize()
+
+  _windowDidResize:->
+    @unsetClass "extra-wide wide medium narrow extra-narrow"
+    w = @getWidth()
+    @setClass if w > 1500    then ""
+    else if 1000 < w < 1500  then "extra-wide"
+    else if 800  < w < 1000  then "wide"
+    else if 600  < w < 800   then "medium"
+    else if 480  < w < 600   then "narrow"
+    else "extra-narrow"
 
   # OLD HOME PISTACHIO
   # left here for reference - SY

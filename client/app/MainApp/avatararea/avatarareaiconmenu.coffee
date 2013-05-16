@@ -5,7 +5,6 @@ class AvatarAreaIconMenu extends JView
     super
 
     @setClass "actions"
-    @setClass "invisible" unless KD.isLoggedIn()
 
     sidebar  = @getDelegate()
 
@@ -99,7 +98,6 @@ class AvatarAreaIconMenu extends JView
     groupSwitcherPopup.listController.removeAllItems()
 
     if KD.isLoggedIn()
-      @unsetClass "invisible"
 
       # Fetch Notifications
       notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
@@ -112,5 +110,3 @@ class AvatarAreaIconMenu extends JView
       groupSwitcherPopup.populateGroups()
       groupSwitcherPopup.populatePendingGroups()
 
-    else
-      @setClass "invisible"

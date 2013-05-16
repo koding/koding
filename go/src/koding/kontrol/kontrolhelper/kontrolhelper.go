@@ -1,11 +1,13 @@
-package helper
+package kontrolhelper
 
 import (
+	"encoding/json"
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"koding/tools/config"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -118,4 +120,73 @@ func CreateProducer(name string) (*Producer, error) {
 	p.Channel = CreateChannel(p.Conn)
 
 	return p, nil
+}
+
+func RegisterToKontrol(name, uuid string, port int) error {
+	connection := CreateAmqpConnection()
+	channel := CreateChannel(connection)
+
+	type workerMessage struct {
+		Command string
+		Option  string
+		Result  string
+	}
+
+	type workerMain struct {
+		Name     string
+		Uuid     string
+		Hostname string
+		Version  int
+		Message  workerMessage
+		Port     int
+	}
+
+	version, err := strconv.Atoi(ReadVersion())
+	if err != nil {
+		log.Println(err)
+	}
+
+	cmd := workerMain{
+		Name:     name,
+		Uuid:     uuid,
+		Hostname: CustomHostname(),
+		Message: workerMessage{
+			Command: "addWithProxy",
+			Option:  "many",
+		},
+		Port:    port,
+		Version: version,
+	}
+
+	type Wrap struct{ Worker workerMain }
+
+	data, err := json.Marshal(&Wrap{cmd})
+	if err != nil {
+		return err
+	}
+
+	msg := amqp.Publishing{
+		Headers:         amqp.Table{},
+		ContentType:     "text/plain",
+		ContentEncoding: "",
+		Body:            data,
+		DeliveryMode:    1, // 1=non-persistent, 2=persistent
+		AppId:           uuid,
+	}
+
+	if err := channel.ExchangeDeclare("workerExchange", "topic", true, false, false, false, nil); err != nil {
+		return err
+	}
+
+	err = channel.Publish("workerExchange", "input.worker", false, false, msg)
+	if err != nil {
+		return err
+	}
+
+	err = channel.Close()
+	if err != nil {
+		log.Println("could not close kontrold publisher amqp channel", err)
+	}
+
+	return nil
 }

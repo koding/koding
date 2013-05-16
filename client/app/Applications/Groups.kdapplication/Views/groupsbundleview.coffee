@@ -30,18 +30,44 @@ class GroupsBundleEditView extends JView
     disk  : 0.5
 
   computeUnitVisibility =
-    users : yes
-    vms   : yes
-    cpu   : no
-    ram   : no
-    disk  : no
+    users       : yes
+    vms         : yes
+    cpu         : no
+    ram         : no
+    disk        : no
+    cpuPerUser  : no
+    ramPerUser  : no
+    diskPerUser : no
+
+  mapPlansToRadios: (plan) ->
+    @plansByCode[plan.code] = plan
+    { category, resource, upperBound } = plan.usage
+    {
+      title       : @getPlanTitle category, resource, upperBound
+      value       : plan.code
+    }
+
+  getResourceTitle =(resource)->
+    switch resource
+      when 'cpu'    then 'virtual cores'
+      when 'user'   then 'group members'
+      else               '(not implemented)'
+
+
+  getPlanTitle: (category, resource, upperBound)=>
+    """
+    Up to #{upperBound} #{getResourceTitle resource}
+    """
+
+  upperBoundSortFn =(a, b)->
+    a.usage.upperBound - b.usage.upperBound
 
   constructor: (options, data) ->
     super
 
-    {group, bundle} = @getData()
+    { group, bundle } = @getData()
 
-    {JLimit} = KD.remote.api
+    { JLimit, JGroupBundle } = KD.remote.api
 
     computeLimit = new JLimit { usage: 0, quota: 0, unit: 'VM', title: 'vms' }
 
@@ -49,6 +75,31 @@ class GroupsBundleEditView extends JView
       return error err      if err?
       limits.splice 1, 0, computeLimit
       @renderLimits limits  if limits?
+
+    @plansByCode = {}
+
+    JGroupBundle.fetchPlans (err, plans) =>
+
+      @computePlans.addSubView computePlans = new KDInputRadioGroup
+        name    : 'computePlan'
+        radios  : plans.vm.cpu
+          .sort(upperBoundSortFn)
+          .map @bound 'mapPlansToRadios'
+        change  : =>
+          plan = @plansByCode[computePlans.getValue()]
+          @changePlan ['cpu','vms','ram','disk'], plan
+
+      @usersPlans.addSubView userPlans = new KDInputRadioGroup
+        name    : 'userPlan'
+        radios  : plans.group.user
+          .sort(upperBoundSortFn)
+          .map @bound 'mapPlansToRadios'
+        change  : =>
+          plan = @plansByCode[userPlans.getValue()]
+          @changePlan ['users'], plan
+
+    @usersPlans = new KDView cssClass: 'group-bundle-plan-chooser'
+    @computePlans = new KDView cssClass: 'group-bundle-plan-chooser'
 
     @usersLabel = new KDLabelView
       title       : 'Users'
@@ -98,7 +149,9 @@ class GroupsBundleEditView extends JView
       title     : "Save bundle"
       callback  : =>
         overagePolicy = @overagePolicy.getValue()
-        group.updateBundle { overagePolicy }
+        quotas = {}
+        quotas[title] = +limit.quota  for own title, limit of @limitsData
+        group.updateBundle { overagePolicy, quotas }
 
     @overageLabel = new KDLabelView
       title     : 'Overage policy'
@@ -113,6 +166,49 @@ class GroupsBundleEditView extends JView
         { value : "allowed",        title : "Allowed for all members" }
       ]
 
+    @advancedModeLabel = new KDLabelView title: 'Advanced mode'
+
+    @advancedMode = new KDOnOffSwitch
+      label     : @advancedModeLabel
+      callback  : @bound 'toggleAdvancedMode'
+
+    @debitButton = new KDButtonView
+      cssClass  : "clean-grey"
+      title     : "Debit..."
+      callback  : =>
+        number = +prompt "How many VMs do you want to debit?", "1"
+        debits =
+          cpu   : number * computeUnitMap.cpu
+          ram   : number * computeUnitMap.ram
+          disk  : number * computeUnitMap.disk
+        bundle.debit debits, (err)->
+          console.error err  if err
+
+  toggleAdvancedMode: (state) ->
+    method = if state then 'show' else 'hide'
+    for own limitName, notHidden of computeUnitVisibility when not notHidden
+      @limits[limitName][method]()
+
+  initializeSlider: (limit) ->
+
+    slider = switch limit.title
+      when 'vms'    then @computeSlider
+      when 'users'  then @usersSlider
+
+    return  unless slider?
+
+    @utils.defer =>
+      {quota} = if limit.title is 'vms' then @limitsData.cpu else limit
+      slider.setValue quota
+      slider.emit 'change'
+
+  changePlan: (types, plan) ->
+    return  unless plan?
+    for type in types
+      limit = @limitsData[type]
+      limit.quota = plan.usage.upperBound * (computeUnitMap[type] ? 1)
+      limit.emit 'update'
+
   renderLimits: (limits) ->
     @limits.destroySubViews()
     @limitsData = {}
@@ -121,19 +217,23 @@ class GroupsBundleEditView extends JView
       cssClass = 'group-bundle-limit'
       cssClass += ' hidden'  unless computeUnitVisibility[limit.title]
       limitView = new GroupsBundleLimitView {cssClass}, limit
+      @limits[limit.title] = limitView
       @addSubView limitView
+      @initializeSlider limit
 
   pistachio: ->
     """
     <h3>Bundle details</h3>
     <p>There will be some cool details here.</p>
     <div class="group-bundle-plan-sliders clearfix">
-      <div>{{> @usersLabel}} {{> @usersSlider}}</div>
-      <div>{{> @computeLabel}}  {{> @computeSlider}}</div>
+      <div>{{> @usersLabel}} {{> @usersPlans}}</div>
+      <div>{{> @computeLabel}} {{> @computePlans}}</div>
       <div>{{> @overageLabel}} {div#overage{> @overagePolicy}}</div>
+      <div>{{> @advancedModeLabel}} {{> @advancedMode}}</div>
     </div>
     {{> @limits}}
     <div>{{> @saveButton}} {{> @destroyButton}}</div>
+    <div>{{> @debitButton}}</div>
     """
 
 # class GroupsBundleLimitWrapper extends KDObject

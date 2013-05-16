@@ -3,17 +3,17 @@ package proxy
 import (
 	"encoding/json"
 	"github.com/streadway/amqp"
-	"koding/kontrol/helper"
+	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"log"
 )
 
-var proxyProducer *helper.Producer
+var proxyProducer *kontrolhelper.Producer
 var proxyConfig *proxyconfig.ProxyConfiguration
 
 func Startup() {
 	var err error
-	proxyProducer, err = helper.CreateProducer("proxy")
+	proxyProducer, err = kontrolhelper.CreateProducer("proxy")
 	if err != nil {
 		log.Println(err)
 	}
@@ -67,7 +67,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		sendResponse("updateProxy", msg.Uuid)
 	case "addRule":
 		log.Println("got 'addRule' json request")
-		err := proxyConfig.AddRule(msg.Uuid, msg.Username, msg.ServiceName, msg.IpRegex)
+		err := proxyConfig.AddRule(msg.Uuid, msg.Username, msg.ServiceName, msg.IpRegex, msg.Countries)
 		if err != nil {
 			log.Println(err)
 		}

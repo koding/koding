@@ -398,18 +398,18 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = ->
+      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
       KD.remote.api.JName.one
         name: slugInput.getValue()
       , (err, name)->
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
-            unless err
+          KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+            if newSlug
               slugInput.setTooltip
-                title     : "Suggestion: #{newSlug}"
-                placement : 'right'
-              slugInput.tooltip.show()
+                title     : "Available slug: #{newSlug}"
+                placement : "right"
         else
           slugInput.setValidationResult 'slug', null
           delete slugInput.tooltip
@@ -570,7 +570,7 @@ class GroupsAppController extends AppController
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-    form.buttons.Save.hideLoader()
+      form.buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
@@ -775,6 +775,10 @@ class GroupsAppController extends AppController
 
   createContentDisplay:(group, callback)->
 
+    unless KD.config.roles? and 'admin' in KD.config.roles
+      routeSlug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+      return KD.getSingleton('router').handleRoute "#{routeSlug}Activity"
+
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
@@ -830,11 +834,10 @@ class GroupsAppController extends AppController
         privacyExpl = 'Koding users can only join with your approval'
 
       body  = """
-        <div class="modalformline">Your group can be accessed via <a class="group-link" href="#{groupUrl}">#{groupUrl}</a></div>
+        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
-        <a class="hidden" id="go-to-group-link" href="/#{group.slug}" target="#{group.slug}">Go to Group</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"

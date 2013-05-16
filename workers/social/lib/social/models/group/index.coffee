@@ -80,7 +80,7 @@ module.exports = class JGroup extends Module
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle'
+        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId'
       ]
     schema          :
       title         :
@@ -281,7 +281,7 @@ module.exports = class JGroup extends Module
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
-        -> group.createSlug (err, slug)->
+        -> group.useSlug group.slug, (err, slug)->
           if err then callback err
           else unless slug?
             callback new KodingError "Couldn't claim the slug!"
@@ -576,10 +576,7 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  renderHomepageHelper: (roles, callback)->
-    [callback, roles] = [roles, callback]  unless callback
-    roles or= []
-
+  fetchHomepageView:(callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
@@ -593,29 +590,21 @@ module.exports = class JGroup extends Module
             @body
             @counts
             content : readme?.html ? readme?.content
-            roles
             @customize
           }
 
-  fetchHomepageView:(clientId, callback)->
+  fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
+    return callback null, []  unless clientId
 
-    unless clientId
-      @renderHomepageHelper callback
-    else
-      JSession = require '../session'
-      JSession.one {clientId}, (err, session)=>
-        if err
-          console.error err
-          callback err
-        else
-          {username} = session.data
-          if username
-            @fetchMembershipStatusesByUsername username, (err, roles)=>
-              if err then callback err
-              else @renderHomepageHelper roles, callback
-          else
-            @renderHomepageHelper callback
+    JSession = require '../session'
+    JSession.one {clientId}, (err, session)=>
+      return callback err  if err
+      {username} = session.data
+      return callback null, []  unless username
+
+      @fetchMembershipStatusesByUsername username, (err, roles)=>
+        callback err, roles or [], session
 
   createRole: permit 'grant permissions',
     success:(client, formData, callback)->
@@ -1175,16 +1164,22 @@ module.exports = class JGroup extends Module
         -> callback null
       ]
 
-  sendNotificationToAdmins: (event, contents)->
-    @fetchAdmins (err, admins)=>
+  sendNotificationToAdmins: (event, contents) ->
+    @fetchAdmins (err, admins) =>
       unless err
         for admin in admins
           admin.sendNotification event, contents
 
-  updateBundle: (formData, callback = (->))->
-    @fetchBundle (err, bundle)->
+  updateBundle: (formData, callback = (->)) ->
+    @fetchBundle (err, bundle) =>
       return callback err  if err?
       bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
+      bundle.fetchLimits (err, limits) ->
+        return callback err  if err?
+        queue = limits.map (limit) -> ->
+          limit.update { $set: quota: formData.quotas[limit.title] }, fin
+        dash queue, callback
+        fin = queue.fin.bind queue
 
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->

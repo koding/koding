@@ -20,7 +20,7 @@ module.exports = class JVM extends Model
       'list all vms'    : ['member','moderator']
       'list default vm' : ['member','moderator']
     sharedMethods       :
-      static            : ['fetchVmsByContext']#,'create']
+      static            : ['fetchVmsByContext','calculateUsage']#,'create']
       instance          : []
     schema              :
       ip                :
@@ -32,6 +32,16 @@ module.exports = class JVM extends Model
       name              : String
       users             : Array
       groups            : Array
+      usage             : # TODO: usage seems like the wrong term for this.
+        cpu             :
+          type          : Number
+          default       : 1
+        ram             :
+          type          : Number
+          default       : 0.25
+        disk            :
+          type          : Number
+          default       : 0.5
       isEnabled         :
         type            : Boolean
         default         : yes
@@ -68,6 +78,28 @@ module.exports = class JVM extends Model
   #     return callback err  if err
   #     target.addLimit limit, 'vm', (err)->
   #       callback err ? null, unless err then limit
+
+  @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
+
+  @calculateUsage = (account, groupSlug, callback)->
+    nickname =
+      if 'string' is typeof account then account
+      else account.profile.nickname
+
+    @all { name: ///$#{groupSlug}~#{nickname}~/// }, (err, vms) =>
+      return callback err  if err?
+      callback null, vms
+        .map((vm) -> vm.usage)
+        .reduce (acc, usage) ->
+          for own field, val of usage
+            acc[field] += val
+            return acc
+        , @getUsageTemplate()
+
+  @calculateUsage$ = permit 'list all vms',
+    success: (client, groupSlug, callback)->
+      {delegate} = client.connection
+      @calculateUsage delegate, groupSlug, callback
 
   @fetchVmsByContext = permit 'list all vms',
     success: (client, options, callback) ->

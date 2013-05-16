@@ -1,4 +1,5 @@
 class AvatarAreaIconLink extends KDCustomHTMLView
+
   constructor:(options,data)->
     options = $.extend
       tagName     : "a"
@@ -21,5 +22,6 @@ class AvatarAreaIconLink extends KDCustomHTMLView
   click:(event)->
     event.preventDefault()
     event.stopPropagation()
+
     popup = @getDelegate()
     popup.show()
