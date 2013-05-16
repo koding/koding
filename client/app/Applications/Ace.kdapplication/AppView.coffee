@@ -215,6 +215,7 @@ class AceView extends JView
       contextMenu       : no
 
     finder = @finderController.getView()
+    @finderController.reset()
 
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null
     finderWrapper.addSubView finder
