@@ -273,15 +273,20 @@ module.exports = class CActivity extends jraphical.Capsule
 
       query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets'][0]) )
 
+
+    if params['to']
+      ts = Math.floor(params['to'] / 1000)
+      query.push('AND items.`meta.createdAtEpoch` < {{created_at}}'.replace("{{created_at}}", ts))
+
     query = query.concat([
              'return myfollowees, items'
-             'order by items.`meta.createdAt` DESC'
+             'order by items.`meta.createdAtEpoch` DESC'
              'LIMIT {resultlimit}'
             ])
     query = query.join('\n')
-#    console.log("------------------------------")
-#    console.log(query)
-#    console.log("------------------------------")
+    console.log("------------------------------")
+    console.log(query)
+    console.log("------------------------------")
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->

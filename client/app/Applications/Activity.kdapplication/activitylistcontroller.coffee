@@ -107,11 +107,24 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    modifiedAt = activities.first.meta.createdAt
-    unless @lastItemTimeStamp > modifiedAt
-      # HACK: activity timestamp is off -200 ms on first get
-      time = new Date(modifiedAt).getTime()+1000
-      @lastItemTimeStamp = new Date(time).toISOString()
+    console.log("trying to set lastitemtimestamp - ", @lastItemTimeStamp)
+    pivot = @lastItemTimeStamp || (new Date()).getTime()
+    console.log("my pivot - " + pivot)
+    for obj in activities
+      obj_ts = (new Date(obj.meta.createdAt)).getTime()
+      console.log(">>>>", obj_ts, pivot, obj_ts < pivot, (new Date(obj.meta.createdAt)))
+      if obj_ts < pivot
+        console.log("changing pivot")
+        pivot = obj_ts
+    @lastItemTimeStamp = pivot
+    console.log("lastitemtimestamp is now - ", @lastItemTimeStamp)
+
+    #modifiedAt = activities.first.meta.createdAt
+    #
+    #unless @lastItemTimeStamp > modifiedAt
+    #  # HACK: activity timestamp is off -200 ms on first get
+    #  time = new Date(modifiedAt).getTime()+1000
+    #  @lastItemTimeStamp = new Date(time).toISOString()
 
     KD.logToMixpanel "populateActivity.success", 5
 
@@ -154,10 +167,12 @@ class ActivityListController extends KDListViewController
           likeView._currentState = yes
 
   getLastItemTimeStamp: ->
-
-    if item = hiddenItems.first
+    item = hiddenItems.first
+    if item
+      console.log("hidden items first ")
       item.getData().createdAt or item.getData().createdAtTimestamps.last
     else
+      console.log("last time stamp - " + @lastItemTimeStamp)
       @lastItemTimeStamp
 
   followedActivityArrived: (activity) ->
