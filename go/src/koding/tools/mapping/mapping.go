@@ -86,7 +86,7 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 		case "bool":
 			result[k] = strconv.FormatBool(v.(bool))
 		case "time.Time":
-			result[k] = v.(time.Time).UTC().Format("2006-01-02T15:04:05.111Z")
+			result[k] = v.(time.Time).UTC().Format("2006-01-02T15:04:05.000Z")
 		case "string":
 			result[k] = v.(string)
 		default:
