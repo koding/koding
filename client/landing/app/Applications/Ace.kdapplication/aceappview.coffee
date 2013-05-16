@@ -65,7 +65,7 @@ class AceAppView extends JView
       cssClass    : "recent-files-menu"
       delegate    : @
       x           : offset.left - 400
-      y           : offset.top  + 130
+      y           : offset.top  + 180
       menuWidth   : 250
       arrow       :
         placement : "right"
