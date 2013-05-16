@@ -8,14 +8,19 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'fanout'
     autoDelete  : yes
 
-  REROUTING_EXCHANGE_OPTIONS = 
+  REROUTING_EXCHANGE_OPTIONS =
     type        : 'fanout'
     autoDelete  : yes
 
+  NOTIFICATION_EXCHANGE_OPTIONS =
+    type        : 'topic'
+    autoDelete  : yes
+
   constructor:(@bongo, options = {})->
-    { @presenceExchange, @reroutingExchange } = options
+    { @presenceExchange, @reroutingExchange, @notificationExchange } = options
     @presenceExchange     ?= 'services-presence'
     @reroutingExchange    ?= 'routing-control'
+    @notificationExchange ?= 'notification'
     @services = {}
     @clients  = {
       bySocketId    : {}
@@ -58,7 +63,7 @@ module.exports = class AuthWorker extends EventEmitter
     servicesOfType.push {serviceUniqueName, serviceGenericName, loadBalancing}
 
   removeService: ({serviceGenericName, serviceUniqueName}) ->
-    servicesOfType = @services[serviceGenericName] 
+    servicesOfType = @services[serviceGenericName]
     [index] = (i for s, i in servicesOfType \
                  when s.serviceUniqueName is serviceUniqueName)
     servicesOfType.splice index, 1
@@ -106,10 +111,10 @@ module.exports = class AuthWorker extends EventEmitter
       callbacks : {}
     }
 
-  setSecretName:(routingKey, secretChannelName)->
-    setSecretNameEvent = "#{routingKey}.setSecretName"
-    message = JSON.stringify secretChannelName
-    @bongo.respondToClient setSecretNameEvent, message
+  setSecretNames:(routingKey, publishingName, subscribingName)->
+    setSecretNamesEvent = "#{routingKey}.setSecretNames"
+    message = JSON.stringify { publishingName, subscribingName }
+    @bongo.respondToClient setSecretNamesEvent, message
 
   publishToService: (exchangeName, routingKey, payload, callback) ->
     {connection} = @bongo.mq
@@ -145,6 +150,20 @@ module.exports = class AuthWorker extends EventEmitter
       callback
     )
 
+  makeExchangeFetcher =(exchangeName, exchangeOptions)->
+    exKey   = "#{exchangeName}_"
+    (callback)->
+      if @[exKey] then return process.nextTick => callback @[exKey]
+      @bongo.mq.connection.exchange(
+        @[exchangeName]
+        exchangeOptions
+        (exchange)=> callback @[exKey] = exchange
+      )
+
+  fetchReroutingExchange: makeExchangeFetcher 'reroutingExchange', REROUTING_EXCHANGE_OPTIONS
+
+  fetchNotificationExchange: makeExchangeFetcher 'notificationExchange', NOTIFICATION_EXCHANGE_OPTIONS
+
   addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
     suffix = ".#{suffix}"  if suffix.length
     @fetchReroutingExchange (exchange)=>
@@ -165,18 +184,23 @@ module.exports = class AuthWorker extends EventEmitter
           queue.subscribe (message)->
             console.log message.data+''
 
-  joinClient: do ->
+  notify:(routingKey, event, contents)->
+    @fetchNotificationExchange (exchange)->
+      exchange.publish routingKey, { event, contents }
 
-    joinClientHelper = (messageData, routingKey, socketId) ->
+  join: do ->
+
+    joinHelper = (messageData, routingKey, socketId) ->
       @authenticate messageData, routingKey, (session) =>
         serviceInfo = @getNextServiceInfo messageData.name
         return console.error "No service info! #{messageData.name}"  unless serviceInfo?
         { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
+
         params = {
           serviceGenericName
           serviceUniqueName
           routingKey
-          username        : session.username
+          username        : session.username ? 'guest'
           correlationName : messageData.correlationName
           # maybe the callback wants this:
           socketId
@@ -191,6 +215,7 @@ module.exports = class AuthWorker extends EventEmitter
             arguments : [message: 'Service unavailable!', code:503]
             callbacks : {}
           }
+
 
     ensureGroupPermission = (group, account, roles, callback) ->
       {JPermissionSet, JGroup} = @bongo.models
@@ -215,7 +240,7 @@ module.exports = class AuthWorker extends EventEmitter
             if err or not account then fail err
             else JGroup.one {slug: messageData.group}, (err, group) =>
               if err or not group then fail err
-              else 
+              else
                 group.fetchRolesByAccount account, (err, roles) =>
                   if err or not roles then fail err
                   else
@@ -224,7 +249,7 @@ module.exports = class AuthWorker extends EventEmitter
                         if err or not secretChannelName
                           @rejectClient routingKey
                         else
-                          @setSecretName routingKey, secretChannelName
+                          @setSecretNames routingKey, secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
       fail = (err)=>
@@ -249,27 +274,36 @@ module.exports = class AuthWorker extends EventEmitter
         JName.fetchSecretName name, (err, secretChannelName)=>
           return console.error err  if err
 
-          personalToken = do require 'hat'
+          personalToken = 'pt' + do require 'hat'
 
-          @addBinding 'chat', secretChannelName, personalToken, session.username
+          bindingKey          = "client.#{personalToken}"
+          consumerRoutingKey  = "chat.#{secretChannelName}"
+
+          {username} = session
+
+          @addBinding 'chat', bindingKey, consumerRoutingKey, username
 
           @_fakePersistenceWorker secretChannelName
-          @setSecretName routingKey, personalToken
+          @notify username, 'chatOpen', {
+            publicName  : name
+            routingKey  : personalToken
+            bindingKey  : consumerRoutingKey
+          }
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
       switch serviceType
         when 'bongo', 'kite'
-          joinClientHelper.call this, messageData, routingKey, socketId
-        
+          joinHelper.call this, messageData, routingKey, socketId
+
         when 'group'
           unless ///^group\.#{messageData.group}\.///.test routingKey
             return @rejectClient routingKey
           joinGroupHelper.call this, messageData, routingKey, socketId
-        
+
         when 'chat'
           joinChatHelper.call this, messageData, routingKey, socketId
-        
+
         when 'notification'
           unless ///^notification\.///.test routingKey
             return @rejectClient routingKey
@@ -277,7 +311,7 @@ module.exports = class AuthWorker extends EventEmitter
 
         when 'secret'
           @addClient socketId, routingKey, routingKey, no
-        
+
         else
           @rejectClient routingKey  unless /^oid./.test routingKey
           # TODO: we're not really handling the oid channels at all (I guess we don't need to) C.T.
@@ -332,7 +366,7 @@ module.exports = class AuthWorker extends EventEmitter
       correlationName, username } = messageData
 
     servicesOfType = @services[serviceGenericName]
-    
+
     [matchingService] = (service for service in servicesOfType \
                          when service.serviceUniqueName is serviceUniqueName)
     params = {
@@ -386,6 +420,6 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'kite.who'
                   @handleKiteWho messageData
                 when "client.auth"
-                  @joinClient messageData, socketId
+                  @join messageData, socketId
                 else
                   @rejectClient routingKey
