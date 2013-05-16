@@ -118,4 +118,4 @@ module.exports = class BaseDecorator
 
     return overview
 
-  convertToISO: (time)-> return (new Date(time)).toISOString()
+  convertToISO: (time)-> return time
