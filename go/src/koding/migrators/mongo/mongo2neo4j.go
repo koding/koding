@@ -84,7 +84,8 @@ func main() {
 
 		//UTC for date time uniqueness
 		//format is a Go woodoo :)
-		relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, result.Timestamp.UTC().Format("2006-01-02T15:04:05.111Z"))
+		createdAt := result.Timestamp.UTC()
+		relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format("2006-01-02T15:04:05.000Z"), createdAt.Unix())
 		neo4j.CreateRelationshipWithData(result.As, source, target, relationshipData)
 
 		if _, ok := SAVED_DATA[hexSourceId]; !ok {
