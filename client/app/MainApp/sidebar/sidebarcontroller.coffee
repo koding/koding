@@ -4,16 +4,17 @@ class SidebarController extends KDViewController
     super
 
     mainController = @getSingleton 'mainController'
-
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
+
+    groupsController = @getSingleton 'groupsController'
+    groupsController.on 'GroupChanged', @bound 'resetGroupSettingsItem'
 
   loadView:->
 
     @accountChanged KD.whoami()
 
   accountChanged:(account)->
-
     {profile} = account
     sidebar   = @getView()
     account or= KD.whoami()
@@ -51,23 +52,28 @@ class SidebarController extends KDViewController
           loggedIn : yes
           callback : -> new AdminModal
 
+    @resetGroupSettingsItem()
+
+  resetGroupSettingsItem:->
+    return unless KD.isLoggedIn()
+
     do =>
       {navController} = @getView()
       groupsController = @getSingleton 'groupsController'
-      groupsController.on 'GroupChanged', ->
-        group = groupsController.getCurrentGroup()
+      group = groupsController.getCurrentGroup()
 
-        # We need to fix that, it happens when you logged-in from entryPoint
-        return unless group
+      # We need to fix that, it happens when you logged-in from entryPoint
+      return unless group
 
-        group.fetchMyRoles (err, roles)=>
-          if err
-            console.warn err
-          else if 'admin' in roles
-            navController.removeItem dashboardLink  if @dashboardLink?
-            @dashboardLink = navController.addItem
-              title     : 'Group Settings'
-              type      : 'admin'
-              loggedIn  : yes
-              callback  : ->
-                KD.getSingleton('router').handleRoute "/#{group.slug}/Dashboard"
+      group.fetchMyRoles (err, roles)=>
+        if err
+          console.warn err
+        else if 'admin' in roles
+          navController.removeItem dashboardLink  if @dashboardLink?
+          @dashboardLink = navController.addItem
+            title     : 'Group Settings'
+            type      : 'admin'
+            loggedIn  : yes
+            callback  : ->
+              slug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+              KD.getSingleton('router').handleRoute "#{slug}Dashboard"
