@@ -18,11 +18,10 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 	for k, v := range data {
 		// k += start
 
-		val := ""
 		// values in database can be null, handle it
 		if v == nil {
 			// preserve null key
-			result[k] = val
+			result[k] = ""
 			//no  need to continue
 			continue
 		}
@@ -66,39 +65,34 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 				}
 			} else {
 				// if array is nil then add key as an empty string
-				result[k] = val
+				result[k] = ""
 			}
 		case "bson.ObjectId":
-			val = v.(bson.ObjectId).Hex()
+			result[k] = v.(bson.ObjectId).Hex()
 		case "int":
 			//integer to ascii
-			val = strconv.Itoa(v.(int))
+			result[k] = v.(int)
 		case "int64":
 			//10-based conversion
-			val = strconv.FormatInt(v.(int64), 10)
+			result[k] = v.(int64)
 		case "uint64":
-			val = strconv.FormatUint(v.(uint64), 10)
+			result[k] = v.(uint64)
 		//convert floats to 64bit-sized version as a string
 		case "float64":
 			// f => (-ddd.dddd, no exponent) most human readable version
 			// -1 => smallest number required precision
 			// 64 => 64bit based
-			val = strconv.FormatFloat(v.(float64), 'f', -1, 64)
+			result[k] = v.(float64)
 		case "bool":
-			val = strconv.FormatBool(v.(bool))
+			result[k] = strconv.FormatBool(v.(bool))
 		case "time.Time":
-			val = v.(time.Time).UTC().Format("2006-01-02T15:04:05Z")
+			result[k] = v.(time.Time).UTC().Format("2006-01-02T15:04:05.111Z")
 		case "string":
-			val = v.(string)
+			result[k] = v.(string)
 		default:
 			//there might be some others but, for now they are OK
 			fmt.Println(typeOfKey)
 			fmt.Println("...")
-			val = ""
-		}
-
-		if val != "" {
-			result[k] = val
 		}
 
 	}
