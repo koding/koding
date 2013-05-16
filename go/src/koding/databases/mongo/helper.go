@@ -3,7 +3,6 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
-	// "koding/databases/neo4j"
 	"koding/tools/mapping"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
