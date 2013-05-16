@@ -17,7 +17,7 @@ class CounterView extends KDCustomHTMLView
 
     options.title        or= ''
     options.digitOptions or= {}
-    options.minDigits     ?= 0
+    options.minDigits     ?= 6
     options.cssClass     or= "counter"
     options.tagName        = "figure"
 
@@ -79,7 +79,6 @@ class CounterDigitView extends KDCustomHTMLView
     options.base    ?= 10
     options.tagName or= 'i'
     data.value      ?= 0
-    options.cssClass = "digit"
 
     super options, data
 
@@ -92,4 +91,4 @@ class CounterDigitView extends KDCustomHTMLView
   viewAppended:-> @updatePartial @partial @getData().value
 
   partial:(value)->
-    """<span class='hinge'/>#{value}"""
+    """<span/>#{value}"""
