@@ -32,7 +32,7 @@ module.exports = class JVM extends Model
       name              : String
       users             : Array
       groups            : Array
-      usage             :
+      usage             : # TODO: usage seems like the wrong term for this.
         cpu             :
           type          : Number
           default       : 1
