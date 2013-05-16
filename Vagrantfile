@@ -22,7 +22,7 @@ if version < "4.2.12r84980"
   puts "", "VirtualBox successfully installed.", ""
 end
 
-if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
+if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.1"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
@@ -33,11 +33,11 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
 
   if not install
     puts "No automatic installation. Please download and install Vagrant manually from:"
-    puts "http://downloads.vagrantup.com/tags/v1.2.2"
+    puts "http://downloads.vagrantup.com/tags/v1.2.1"
     exit 1
   end
 
-  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/7e400d00a3c5a0fdf2809c8b5001a035415a607b/Vagrant-1.2.2.dmg" or exit 1
+  system "wget -O /tmp/Vagrant.dmg http://files.vagrantup.com/packages/a7853fe7b7f08dbedbc934eb9230d33be6bf746f/Vagrant-1.2.1.dmg" or exit 1
   system "hdiutil attach /tmp/Vagrant.dmg" or exit 1
   system "sudo installer -pkg /Volumes/Vagrant/Vagrant.pkg  -target /" or exit 1
   sleep 1 # somehow the installer stays active for some time
@@ -66,14 +66,14 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-5"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-5.box"
+      default.vm.box = "koding-4"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-4.box"
     end
 
     default.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
     default.vm.network :forwarded_port, :guest =>  5672, :host => 5672  # rabbitmq
     default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
-    default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # nginx for rockmongo
+    default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
     
     default.vm.hostname = "vagrant"
 
@@ -101,8 +101,8 @@ Vagrant.configure("2") do |config|
 
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
-      secondary.vm.box = "koding-5"
-      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-5.box"
+      secondary.vm.box = "koding-4"
+      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-4.box"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 
