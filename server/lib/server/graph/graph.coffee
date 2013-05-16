@@ -140,10 +140,8 @@ module.exports = class Graph
       'MATCH  koding-[r:member]->members'
       'where  members.name="JAccount"'
       'and r.createdAtEpoch < {startDate}'
-      'and has(koding.`meta.createdAtEpoch`)'
-      'and koding.`meta.createdAtEpoch` < {startDate}'
       'return members'
-      'order by koding.`meta.createdAtEpoch` DESC'
+      'order by r.createdAtEpoch DESC'
       'limit 10'
     ].join('\n');
 
