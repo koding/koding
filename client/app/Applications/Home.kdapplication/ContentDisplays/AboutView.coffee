@@ -9,7 +9,9 @@ class AboutView extends JView
     @back   = new KDCustomHTMLView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
-      click   : =>
+      click   : (event)=>
+        event.stopPropagation()
+        event.preventDefault()
         @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
 
   viewAppended:->
