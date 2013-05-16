@@ -171,7 +171,13 @@ class KodingRouter extends KDRouter
       else
         @openContent null, section, models, route, null, passOptions
 
-  clear:(route="/#{KD.config.entryPoint?.slug ? ''}", replaceState=yes)->
+  clear:(route, replaceState=yes)->
+    unless route
+      {entryPoint} = KD.config
+      if entryPoint?.type is 'group' and entryPoint?.slug?
+        route = "/#{KD.config.entryPoint?.slug}"
+      else
+        route = '?'
     super route, replaceState
 
   getRoutes =->
