@@ -69,3 +69,13 @@ class HomeAppController extends AppController
 
 
     @mainView.widgetHolder.members = @membersController.getView()
+
+  createContentDisplayWithOptions:(options, callback)->
+    {model, route, query} = options
+
+    switch route
+      when 'About'
+        contentDisplay = new AboutView
+        controller = @getSingleton 'contentDisplayController'
+        controller.emit 'ContentDisplayWantsToBeShown', contentDisplay
+        callback contentDisplay
