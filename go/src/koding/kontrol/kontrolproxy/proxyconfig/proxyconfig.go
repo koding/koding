@@ -62,8 +62,14 @@ type UserProxy struct {
 }
 
 type Restriction struct {
-	IP      string
-	Country []string
+	IP struct {
+		Enabled bool
+		Rule    string
+	}
+	Country struct {
+		Enabled bool
+		Rule    []string
+	}
 }
 
 type UserRules struct {
@@ -217,14 +223,16 @@ func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex, count
 		rules.Services[servicename] = Restriction{}
 	}
 	restriction := rules.Services[servicename]
-	restriction.IP = ipregex
+	restriction.IP.Enabled = true
+	restriction.IP.Rule = ipregex
 
 	cList := make([]string, 0)
 	list := strings.Split(countries, ",")
 	for _, country := range list {
 		cList = append(cList, strings.TrimSpace(country))
 	}
-	restriction.Country = cList
+	restriction.Country.Enabled = true
+	restriction.Country.Rule = cList
 
 	rules.Services[servicename] = restriction
 	proxy.Rules[username] = rules

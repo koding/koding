@@ -131,7 +131,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd(cmd)
 
-	url := fmt.Sprintf("rule '%s' is added for the user %s and service %s", ipregex, username, servicename)
+	url := fmt.Sprintf("rule ipregex: '%s' and country: '%s' is added for the user %s and service %s", ipregex, countries, username, servicename)
 	io.WriteString(writer, url)
 	return
 

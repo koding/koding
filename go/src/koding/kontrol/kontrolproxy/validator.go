@@ -24,12 +24,16 @@ func (v *Validator) addFilter(filter func() bool) {
 }
 
 func (v *Validator) IP() *Validator {
+	if !v.rules.IP.Enabled {
+		return v
+	}
+
 	f := func() bool {
-		if v.rules.IP == "" { // assume allowed for all
+		if v.rules.IP.Rule == "" { // assume allowed for all
 			return false
 		}
 
-		re, err := regexp.Compile(v.rules.IP)
+		re, err := regexp.Compile(v.rules.IP.Rule)
 		if err != nil {
 			return false // dont block anyone if regex compile get wrong
 		}
@@ -44,12 +48,16 @@ func (v *Validator) IP() *Validator {
 }
 
 func (v *Validator) Country() *Validator {
+	if !v.rules.Country.Enabled {
+		return v
+	}
+
 	f := func() bool {
-		if len(v.rules.Country) == 0 {
+		if len(v.rules.Country.Rule) == 0 {
 			return false // dont block if country is empty
 		}
 
-		for _, country := range v.rules.Country {
+		for _, country := range v.rules.Country.Rule {
 			if country == v.user.Country {
 				return true
 			}
