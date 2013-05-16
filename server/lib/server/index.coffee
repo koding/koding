@@ -3,7 +3,6 @@ Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
 {webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
-page = require './staticpages'
 
 webPort = argv.p ? webserver.port
 
@@ -286,8 +285,7 @@ app.get '/:name/:section?*', (req, res, next)->
       if err then next err
       else unless models? then res.send 404, error_404()
       else
-        {clientId} = req.cookies
-        models[models.length-1].fetchHomepageView clientId, (err, view)->
+        models[models.length-1].fetchHomepageView (err, view)->
           if err then next err
           else if view? then res.send view
           else res.send 500, error_500()
@@ -322,19 +320,8 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    {clientId} = req.cookies
-    unless clientId then serve page(), res
-    else
-      errCb = (err)->
-        console.error err
-        serve page(), res
-
-      {JGroup} = koding.models
-      JGroup.one slug:'koding', (err, group)->
-        return errCb err  if err
-        group.fetchRolesByClientId clientId, (err, roles)->
-          return errCb err  if err
-          serve page(roles), res
+    defaultTpl = require './staticpages'
+    serve defaultTpl, res
 
 ###
 app.get "/-/kd/register/:key", (req, res)->
