@@ -70,7 +70,7 @@ decorateAll = (err, decoratedObjects)->
   response.isFull     = true
   response.from       = overview.first.createdAt.last
   response.to         = overview.last.createdAt.first
-  response.newMemberBucketIndex = newMemberBucketIndex  if newMemberBucketIndex
+  response.newMemberBucketIndex = newMemberBucketIndex  if newMemberBucketIndex?
 
   return response
 
@@ -78,7 +78,6 @@ cachedIds = {}
 generateUniqueRandomKey =->
   randomId = Math.floor(Math.random()*1000)
   if cachedIds[randomId]
-    console.log randomId, "already in", cachedIds
     generateUniqueRandomKey()
   else
     cachedIds[randomId] = true
