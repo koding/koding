@@ -1,5 +1,9 @@
 class AvatarPopupGroupSwitcher extends AvatarPopup
 
+  constructor:->
+    @notLoggedInMessage = 'Login required to switch groups'
+    super
+
   viewAppended:->
 
     super
@@ -47,7 +51,6 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
     @avatarPopupContent.addSubView @listController.getView()
 
-
     seeAllView = new KDView
       height   : "auto"
       cssClass : "split sublink"
@@ -69,14 +72,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       sizes     : [130,null]
       views     : [seeAllView,backToKodingView]
       resizable : no
-    @avatarPopupContent.addSubView split
 
-  accountChanged:->
-    @listController.removeAllItems()
+    @avatarPopupContent.addSubView split
 
   populatePendingGroups:->
     @listControllerPending.removeAllItems()
     @listControllerPending.hideLazyLoader()
+
+    return  unless KD.isLoggedIn()
 
     KD.whoami().fetchPendingGroupInvitations (err, groups)=>
       if err then warn err
@@ -91,6 +94,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
   populateGroups:->
     @listController.removeAllItems()
     @listController.showLazyLoader()
+
+    return  unless KD.isLoggedIn()
 
     KD.whoami().fetchGroups (err, groups)=>
       if err then warn err
