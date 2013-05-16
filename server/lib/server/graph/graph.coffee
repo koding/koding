@@ -102,9 +102,9 @@ module.exports = class Graph
 
   fetchNewInstalledApps:(startDate, callback)->
     query = [
-      'start koding=node:koding(\'id:*\')'
-      'match koding-[r:user]->users'
-      'where koding.name="JApp"'
+      'START kd=node:koding(id={groupId})'
+      'MATCH kd-[:member]->users<-[r:user]-koding'
+      'WHERE koding.name="JApp"'
       'and koding.`meta.createdAtEpoch` < {startDate}'
       'return *'
       'order by r.createdAtEpoch DESC'
