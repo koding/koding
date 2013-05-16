@@ -59,15 +59,9 @@ class AccountEditSecurity extends KDView
       cssClass     : "action-link"
       click        : => @passwordSwappable.swapViews()
 
-    @passwordSwappable = new AccountsSwappable
+    passwordForm.addSubView @passwordSwappable = new AccountsSwappable
       views    : [passwordInputs, nonPasswordInputs]
       cssClass : "clearfix"
-
-    passwordEdit.on 'click', ->
-      passwordSwappable.swapViews()
-
-    passwordCancel.on 'click', ->
-      passwordSwappable.swapViews()
 
   passwordDidUpdate:->
     @passwordSwappable.swapViews()
@@ -79,27 +73,3 @@ class AccountEditSecurity extends KDView
   saveNewPassword:(formData)->
     KD.remote.api.JUser.changePassword formData.password,(err,docs)=>
       unless err then do @passwordDidUpdate
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
