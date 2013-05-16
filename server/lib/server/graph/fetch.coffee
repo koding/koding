@@ -8,7 +8,7 @@ module.exports =
     setStartDate startDate
     setNeo4j     neo4j
 
-    async.parallel [fetchSingles], (err, results)->
+    async.parallel [fetchSingles, fetchMemberFollows, fetchInstalls, fetchNewMembers], (err, results)->
       callback decorateAll(err, results)
 
 getStartDate =-> @startDate or {}
@@ -23,9 +23,15 @@ fetchSingles = (callback)->
     GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
       callback err, decoratedResponse
 
-fetchFollows = (callback)->
+fetchTagFollows = (callback)->
   graph = new Graph neo4j
-  graph.fetchNewFollows getStartDate(), (err, rawResponse)->
+  graph.fetchTagFollows getStartDate(), (err, rawResponse)->
+    GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
+      callback err, decoratedResponse
+
+fetchMemberFollows = (callback)->
+  graph = new Graph neo4j
+  graph.fetchMemberFollows getStartDate(), (err, rawResponse)->
     GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
       callback err, decoratedResponse
 
@@ -35,12 +41,13 @@ fetchInstalls = (callback)->
     GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
       callback err, decoratedResponse
 
-fetchMembers = (callback)->
+fetchNewMembers = (callback)->
   graph = new Graph neo4j
   graph.fetchNewMembers getStartDate(), (err, rawResponse)->
     GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
       callback err, decoratedResponse
 
+randomIdToOriginal = {}
 decorateAll = (err, decoratedObjects)->
   cacheObjects    = {}
   overviewObjects = []
@@ -48,7 +55,18 @@ decorateAll = (err, decoratedObjects)->
 
   for objects in decoratedObjects
     for key, value of objects when key isnt "overview"
-      cacheObjects[key] = value
+      randomId = generateUniqueRandomKey()
+      randomIdToOriginal[key] = randomId
+      value._id = randomId
+      cacheObjects[randomId] = value
+
+    for activity in objects.overview
+      ids = []
+      for originalId in activity.ids
+        ids.push randomIdToOriginal[originalId]
+
+      activity.ids = ids
+
     overviewObjects.push objects.overview
 
   overview = _.flatten(overviewObjects)
@@ -64,9 +82,18 @@ decorateAll = (err, decoratedObjects)->
   response.activities = cacheObjects
   response.overview   = overview
   response._id        = "1"
-  response.isFull     = false
+  response.isFull     = true
   response.from       = overview.first.createdAt.last
   response.to         = overview.last.createdAt.first
   response.newMemberBucketIndex = newMemberBucketIndex  if newMemberBucketIndex
 
   return response
+
+cachedIds = {}
+generateUniqueRandomKey =->
+  randomId = Math.floor(Math.random()*1000)
+  if cachedIds[randomId]
+    generateUniqueRandomKey()
+  else
+    cachedIds[randomId] = true
+    return randomId

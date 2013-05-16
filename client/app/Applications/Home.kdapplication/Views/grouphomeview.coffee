@@ -10,7 +10,6 @@ class GroupHomeView extends KDView
   constructor:(options = {}, data)->
 
     options.domId    = "home-group-header"
-    options.cssClass = "screenshots"
 
     super options, data
 

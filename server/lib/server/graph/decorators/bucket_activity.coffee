@@ -55,7 +55,7 @@ module.exports = class BucketActivityDecorator
     overview =
       createdAt : [@convertToISO(createdAt)]
       ids       : [anchorId]
-      type      : @groupName
+      type      : @bucketName
       count     : 1
 
     return overview

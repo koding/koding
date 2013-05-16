@@ -46,15 +46,31 @@
 		<div class="row-fluid">
 			<div class="span5 offset1">
 				<h2>Status</h2>
+
+				<table class="table table-hover table-bordered">
+					<tbody>
+						<tr>
+				<td rowspan="2"><a target="_blank" href="http://new.koding.com/">new.koding.com</a> is using</td> 
+						  <td>server</td>
+						  <td>
+						<a target="_blank" href="http://{{.Status.NewKoding.ServerHost}}">{{.Status.NewKoding.ServerHost}}</a></td>
+						</tr>
+						<tr>
+						  <td>broker</td>
+						  <td>{{.Status.NewKoding.BrokerHost}}</td>
+						</tr>
+						<tr>
+						</tr>
+					</tbody>
+				</table>
 				<table class="table table-hover table-bordered">
 					<thead>
 						<tr>
-							<td><strong>Last Jenkins builds</strong></td>
+							<td>Last Jenkins builds</td>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-
 							<td><a target="_blank" href="{{.Jenkins.LastCompletedBuild.Url}}">Completed</a></td>
 							<td><span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></td>
 						</tr>
@@ -149,7 +165,7 @@
 					</tr>
 					<tr>
 						<td>Shell</td>
-						<td><span class="label label-inverse">{{.Status.MongoLogin}}</span></td>
+						<td><span class="label label-inverse">{{.Server.MongoLogin}}</span></td>
 					</tr>
 				</table>
 

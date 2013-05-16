@@ -35,6 +35,8 @@ module.exports = class Followable
         @constructor.count {}, callback
 
   @fetchMyFollowees = secure (client, ids, callback)->
+    [callback, ids] = [ids, callback]  unless callback
+    return  unless callback
     return callback null  unless ids
     JAccount = require '../models/account'
     unless client.connection.delegate instanceof JAccount

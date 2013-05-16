@@ -3,6 +3,7 @@ neo4j = require "neo4j"
 
 module.exports = class Graph
   constructor:(config)->
+    # todo remove hardcoded id
     @groupId = KD?.getSingleton('groupsController')?.getCurrentGroup()?.getId() or "5150c743f2589b107d000007"
     @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
 
@@ -164,7 +165,22 @@ module.exports = class Graph
         objectify resultData, (objected)->
           callback err, objected
 
-  fetchNewFollows:(startDate, callback)->
+  fetchMemberFollows:(startDate, callback)->
+    #followers
+    query = [
+      'start koding=node:koding(id={groupId})'
+      'MATCH koding-[:member]->followees<-[r:follower]-follower'
+      'where followees.name="JAccount"'
+      'and follower.name="JAccount"'
+      'and r.createdAt < {startDate}'
+      'return r,followees, follower'
+      'order by r.createdAt DESC'
+      'limit 10'
+    ].join('\n');
+
+    @fetchFollows query, startDate, callback
+
+  fetchTagFollows:(startDate, callback)->
     #followers
     query = [
       'start koding=node:koding(id={groupId})'
@@ -174,8 +190,12 @@ module.exports = class Graph
       'and r.createdAt < {startDate}'
       'return r,followees, follower'
       'order by r.createdAt DESC'
-      'limit 20'
+      'limit 10'
     ].join('\n');
+
+    @fetchFollows query, startDate, callback
+
+  fetchFollows:(query, startDate, callback)->
 
     console.log query, startDate
 
