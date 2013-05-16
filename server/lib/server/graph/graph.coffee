@@ -106,7 +106,7 @@ module.exports = class Graph
     query = [
       'start koding=node:koding(\'id:*\')'
       'match koding-[r:user]->users'
-      'where koding.name="JApp" and r.createdAtEpoch > "2012-11-14T23:56:48Z"'
+      'where koding.name="JApp"'
       'and koding.`meta.createdAtEpoch` < {startDate}'
       'return *'
       'order by r.createdAtEpoch DESC'
