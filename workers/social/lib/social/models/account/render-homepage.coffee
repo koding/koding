@@ -23,7 +23,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content,roles})->
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="group">
+  <body>
 
   <div class="kdview" id="kdmaincontainer">
     <header class="kdview" id='main-header'>

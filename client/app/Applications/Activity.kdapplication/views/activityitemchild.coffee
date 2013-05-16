@@ -28,10 +28,15 @@ class ActivityItemChild extends KDView
     #    -> JComment
     if data.bongo_.constructorName in ["JDiscussion","JTutorial"]
       @commentBox = new OpinionView null, data
+      list        = @commentBox.opinionList
     else
       @commentBox = new CommentView null, data
+      list        = @commentBox.commentList
 
-    @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
+    @actionLinks = new ActivityActionsView
+      cssClass : "comment-header"
+      delegate : list
+    , data
 
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'

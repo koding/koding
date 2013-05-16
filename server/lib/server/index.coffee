@@ -99,36 +99,35 @@ authenticationFailed = (res, err)->
 {fetchAllActivityParallel} = require './graph/fetch'
 
 app.get "/-/cache/latest", (req, res)->
-  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-  startDate = (new Date timestamp).toISOString()
-
-  fetchAllActivityParallel startDate, neo4j, (results)->
-    res.send results
+  # if neo4j enabled fetch results from neo4j
+  if neo4j.enabled
+    timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+    startDate = (new Date timestamp).toISOString()
+    fetchAllActivityParallel startDate, neo4j, (results)->
+      res.send results
+  else
+  #if not enabled fetch from cacheworker
+    {JActivityCache} = koding.models
+    startTime = Date.now()
+    JActivityCache.latest (err, cache)->
+      if err then console.warn err
+      # console.log "latest: #{Date.now() - startTime} msecs!"
+      return res.send if cache then cache.data else {}
 
 app.get "/-/cache/before/:timestamp", (req, res)->
-  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-  startDate = (new Date timestamp).toISOString()
+  if neo4j.enabled
+    timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
+    startDate = (new Date timestamp).toISOString()
 
-  console.log req.params, timestamp, startDate
+    console.log req.params, timestamp, startDate
 
-  fetchAllActivityParallel startDate, neo4j, (results)->
-    res.send results
-
-startTime = null
-app.get "/-/oldcache/latest", (req, res)->
-  {JActivityCache} = koding.models
-  startTime = Date.now()
-  JActivityCache.latest (err, cache)->
-    if err then console.warn err
-    # console.log "latest: #{Date.now() - startTime} msecs!"
-    return res.send if cache then cache.data else {}
-
-app.get "/-/oldcache/before/:timestamp", (req, res)->
-  {JActivityCache} = koding.models
-  JActivityCache.before req.params.timestamp, (err, cache)->
-    if err then console.warn err
-    res.send if cache then cache.data else {}
-
+    fetchAllActivityParallel startDate, neo4j, (results)->
+      res.send results
+  else
+    {JActivityCache} = koding.models
+    JActivityCache.before req.params.timestamp, (err, cache)->
+      if err then console.warn err
+      res.send if cache then cache.data else {}
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
