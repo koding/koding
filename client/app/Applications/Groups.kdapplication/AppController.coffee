@@ -66,7 +66,6 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-      isReadOnly  : yes
     }
     # TEMP SY: to be able to work in a vagrantless env
     # to avoid shared authworker's message getting lost

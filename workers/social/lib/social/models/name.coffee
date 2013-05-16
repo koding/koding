@@ -92,7 +92,7 @@ module.exports = class JName extends Model
         newName = {
           slug, collectionName, @usedAsPath, @constructorName
         }
-        kallback =do -> i = 0; (err)->
+        kallback = do -> i = 0; (err)->
           if err then callback err
           else if ++i is 2 then callback null
         @update {$set: slugs: [newName]}, kallback
