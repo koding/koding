@@ -13,8 +13,6 @@ module.exports = class FetchAllActivityParallel
     @overviewObjects      = []
     @newMemberBucketIndex = null
 
-    console.log "constructor", @neo4j, @startDate
-
   get:(callback)->
     methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls]
     holder = []
@@ -23,7 +21,6 @@ module.exports = class FetchAllActivityParallel
       callback @decorateAll(err, results)
 
   fetchSingles:(callback)->
-    console.log "fetchSingles", @neo4j, @startDate, @randomIdToOriginal
 
     graph = new Graph @neo4j
     graph.fetchAll @startDate, (err, rawResponse)->

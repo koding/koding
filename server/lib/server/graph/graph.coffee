@@ -41,8 +41,6 @@ module.exports = class Graph
       'limit 10'
     ].join('\n');
 
-    console.log query, startDate
-
     params =
       groupId   : @groupId
       startDate : startDate
