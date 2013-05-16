@@ -57,6 +57,14 @@ class CounterView extends KDCustomHTMLView
       @["digit#{i}"] = new CounterDigitView digitOptions, {value}
       @digitWrapper.addSubView @["digit#{i}"]
 
+  increment:(val=0)->
+    {count} = @getData()
+    @update count + val
+
+  decrement:(val=0)->
+    {count} = @getData()
+    @update count - val
+
   update:(count)->
     @getData().count = count
     @createDigits()
