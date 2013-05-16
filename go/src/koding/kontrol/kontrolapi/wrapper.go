@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/streadway/amqp"
-	"koding/kontrol/helper"
+	"koding/kontrol/kontrolhelper"
 )
 
 type AmqpWrapper struct {
@@ -11,9 +11,9 @@ type AmqpWrapper struct {
 }
 
 func setupAmqp() *AmqpWrapper {
-	connection := helper.CreateAmqpConnection()
-	channel := helper.CreateChannel(connection)
-	stream := helper.CreateStream(channel, "topic", "infoExchange", "webApi", "output.webapi", true, false)
+	connection := kontrolhelper.CreateAmqpConnection()
+	channel := kontrolhelper.CreateChannel(connection)
+	stream := kontrolhelper.CreateStream(channel, "topic", "infoExchange", "webApi", "output.webapi", true, false)
 
 	return &AmqpWrapper{
 		channel: channel,

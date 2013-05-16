@@ -99,38 +99,13 @@ class AvatarTooltipView extends KDView
       origin    : origin
     , data
 
-    defaultState  = "Follow"
 
     @followButton = new MemberFollowToggleButton
-      style           : "follow-btn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : defaultState
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        top           : 11
-      states          : [
-        title         : "Follow"
-        callback      : (callback)=>
-          @followButton.getData().follow (err, response)=>
-            @followButton.hideLoader()
-            unless err
-              @followButton.setClass 'following-btn'
-              callback? null
-            else
-              log err
-      ,
-        title         : "Unfollow"
-        callback      : (callback)=>
-          @getData()?.unfollow (err, response)=>
-            @followButton.hideLoader()
-            unless err
-              @followButton.unsetClass 'following-btn'
-              callback? null
-            else
-              log err
-      ]
+      style       : "follow-btn"
+      loader      :
+        color     : "#333333"
+        diameter  : 18
+        top       : 11
     , @getData()
 
     @followers = new KDView

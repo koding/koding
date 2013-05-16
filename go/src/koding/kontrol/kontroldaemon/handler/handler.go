@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/streadway/amqp"
-	"koding/kontrol/helper"
 	"koding/kontrol/kontroldaemon/clientconfig"
 	"koding/kontrol/kontroldaemon/handler/proxy"
 	"koding/kontrol/kontroldaemon/workerconfig"
+	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
@@ -35,10 +35,10 @@ type ApiMessage struct {
 
 var kontrolConfig *workerconfig.WorkerConfig
 var clientDB *clientconfig.ClientConfig
-var workerProducer *helper.Producer
-var cliProducer *helper.Producer
-var apiProducer *helper.Producer
-var clientProducer *helper.Producer
+var workerProducer *kontrolhelper.Producer
+var cliProducer *kontrolhelper.Producer
+var apiProducer *kontrolhelper.Producer
+var clientProducer *kontrolhelper.Producer
 
 func init() {
 	log.SetPrefix("kontrol-daemonhandler ")
@@ -46,22 +46,22 @@ func init() {
 
 func Startup() {
 	var err error
-	workerProducer, err = helper.CreateProducer("worker")
+	workerProducer, err = kontrolhelper.CreateProducer("worker")
 	if err != nil {
 		log.Println(err)
 	}
 
-	cliProducer, err = helper.CreateProducer("cli")
+	cliProducer, err = kontrolhelper.CreateProducer("cli")
 	if err != nil {
 		log.Println(err)
 	}
 
-	apiProducer, err = helper.CreateProducer("api")
+	apiProducer, err = kontrolhelper.CreateProducer("api")
 	if err != nil {
 		log.Println(err)
 	}
 
-	clientProducer, err = helper.CreateProducer("client")
+	clientProducer, err = kontrolhelper.CreateProducer("client")
 	if err != nil {
 		log.Println(err)
 	}
@@ -184,11 +184,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		if err != nil {
 			return err
 		}
-		workerJson, err := json.Marshal(res)
-		if err != nil {
-			log.Printf("could not marshall worker: %s", err)
-		}
-		go deliver(workerJson, workerProducer, res.Uuid)
+		go sendWorker(res)
 
 		// register to kontrol proxy
 		if command != "addWithProxy" {
@@ -199,10 +195,6 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			return fmt.Errorf("register to konytol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
-		log.Printf("registerProxy is enabled '%s' on hostname '%s' with uuid '%s'",
-			worker.Name,
-			worker.Hostname,
-			worker.Uuid)
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		cmd := proxyconfig.ProxyMessage{
@@ -235,7 +227,7 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 	}
 
 	if config.Verbose && command != "ack" {
-		log.Printf("'%s' worker '%s' with pid: '%d'", command, worker.Name, worker.Pid)
+		log.Printf("ACTION RECEIVED: --  %s  --", command)
 	}
 
 	err := actions[command](worker)
@@ -433,17 +425,14 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	case "one":
 		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
 		if availableWorkers < 1 {
-			log.Printf("adding worker '%s' on hostname '%s' with uuid '%s'",
-				worker.Name,
-				worker.Hostname,
-				worker.Uuid)
+			log.Printf("adding worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running
 			kontrolConfig.AddWorker(worker)
 			return worker, nil
 		}
 
-		log.Printf("a worker with the name '%s' is already registered. checking for status...", worker.Name)
+		log.Printf("worker '%s' is already registered. checking for status...", worker.Name)
 		err := kontrolConfig.RefreshStatusAll()
 		if err != nil {
 			log.Println("couldn't refresh data", err)
@@ -464,11 +453,9 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		for iter.Next(&result) {
 			kontrolConfig.DeleteWorker(result.Uuid)
 
-			log.Printf("worker with the name '%s' is not alive anymore. permission grant to run", worker.Name)
-			log.Printf("adding new worker '%s' on hostname '%s' with uuid '%s'",
-				worker.Name,
-				worker.Hostname,
-				worker.Uuid)
+			log.Printf("worker '%s' is not alive anymore. permission grant to run for the new worker", worker.Name)
+			log.Printf("adding worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
+
 			worker.Message.Result = "first.start"
 			worker.Status = workerconfig.Running
 
@@ -477,18 +464,14 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		}
 
 		if !gotPermission {
-			log.Printf("another worker is already running. No permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
+			log.Printf("another worker is already running. no permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
 			worker.Message.Result = "added.before"
 		}
 
 		return worker, nil // contains first.start or added.before
 	case "many":
-		log.Printf("adding worker '%s' on hostname '%s' with uuid '%s'",
-			worker.Name,
-			worker.Hostname,
-			worker.Uuid)
-
-		worker.Message.Result = "added.now"
+		log.Printf("adding worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
+		worker.Message.Result = "first.start"
 		worker.Status = workerconfig.Running
 		kontrolConfig.AddWorker(worker)
 		return worker, nil //
@@ -510,7 +493,7 @@ func sendWorker(res workerconfig.MsgWorker) {
 	return
 }
 
-func deliver(data []byte, producer *helper.Producer, appId string) {
+func deliver(data []byte, producer *kontrolhelper.Producer, appId string) {
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",

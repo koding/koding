@@ -1,8 +1,7 @@
 
-module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
+module.exports = ({account,profile,skillTags,counts,isLoggedIn,content,roles})->
   # content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
-
   staticPage ?= {}
   {customize} = staticPage
   {locationTags,meta} = account
@@ -10,6 +9,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
   lastName  ?= 'User'
   nickname  ?= ''
   about     ?= ''
+  roles     ?= []
   title = "#{firstName} #{lastName}"
   slug = nickname
 
@@ -215,7 +215,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
       </div>
     </section>
   </div>
-    #{KONFIG.getConfigScriptTag entryPoint: { slug : profile.nickname, type: "profile" } }
+    #{KONFIG.getConfigScriptTag {entryPoint: { slug : profile.nickname, type: "profile" }, roles}}
     #{getScripts()}
   </body>
   </html>

@@ -71,12 +71,14 @@ var Profile string
 var Current Config
 var LogDebug bool
 var Verbose bool
+var Uuid string
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
 	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 	flag.BoolVar(&Verbose, "v", false, "Enable verbose mode")
+	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
 
 	flag.Parse()
 	if flag.NArg() != 0 {

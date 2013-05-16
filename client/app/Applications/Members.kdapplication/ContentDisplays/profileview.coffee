@@ -30,43 +30,7 @@ class ProfileView extends JView
 
     @followButton = new MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : defaultState
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-      states          : [
-        title         : "Follow"
-        callback      : (callback)->
-          memberData.follow (err, response)=>
-            @hideLoader()
-            unless err
-              memberData.followee = yes
-              @setClass 'following-btn'
-              callback? null
-      ,
-        title         : "Unfollow"
-        callback      : (callback)->
-          memberData.unfollow (err, response)=>
-            @hideLoader()
-            unless err
-              memberData.followee = no
-              @unsetClass 'following-btn'
-              callback? null
-      ]
     , memberData
-
-    unless memberData.followee?
-      KD.whoami().isFollowing? memberData.getId(), "JAccount", (err, following) =>
-        memberData.followee = following
-        warn err  if KD.isLoggedIn()
-        if memberData.followee
-          @followButton.setClass 'following-btn'
-          @followButton.setState "Unfollow"
-        else
-          @followButton.setState "Follow"
-          @followButton.unsetClass 'following-btn'
 
     @skillTags = @putSkillTags()
 
