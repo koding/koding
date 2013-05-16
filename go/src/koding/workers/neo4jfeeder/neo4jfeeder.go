@@ -190,6 +190,13 @@ func createNode(data map[string]interface{}) {
 
 	as := fmt.Sprintf("%s", data["as"])
 
+	// do we need to check timestamp?
+	//{"createdAt" : "2013-05-16T07:58:37.023Z"}
+	createdAt := fmt.Sprintf("%s", data["timestamp"])
+	if bson.IsObjectIdHex(createdAt) {
+		createdAt = bson.ObjectIdHex(createdAt).Time().UTC().Format("2006-01-02T15:04:05.111Z")
+	}
+
 	relationshipData := fmt.Sprintf(`{"createdAt" : "%s"}`, data["timestamp"])
 	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
 
