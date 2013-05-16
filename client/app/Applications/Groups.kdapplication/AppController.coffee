@@ -382,7 +382,6 @@ class GroupsAppController extends AppController
       else
         callback no
         @showGroupCreatedModal group
-        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -832,6 +831,7 @@ class GroupsAppController extends AppController
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a id="go-to-dashboard-link" class="hidden" href="#{groupUrl}/Dashboard" target="#{group.slug}">#{groupUrl}/Dashboard</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
@@ -842,11 +842,13 @@ class GroupsAppController extends AppController
           dashboard  :
             title    : 'Go to Dashboard'
             style    : 'modal-clean-green'
-            callback : -> modal.destroy()
+            callback : ->
+              document.getElementById('go-to-dashboard-link').click()
+              modal.destroy()
           group      :
             title    : 'Go to Group'
             style    : 'modal-clean-gray'
-            callback : =>
+            callback : ->
               document.getElementById('go-to-group-link').click()
               modal.destroy()
           dismiss    :
