@@ -28,7 +28,6 @@ class ContentDisplayControllerMember extends KDViewController
         event.preventDefault()
         contentDisplayController = KD.getSingleton "contentDisplayController"
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
-        history.back()
         no
 
 
