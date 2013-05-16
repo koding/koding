@@ -98,6 +98,7 @@ class KDRouter extends KDObject
 
   handleRoute:(userRoute, options={})->
 
+    userRoute = userRoute.slice 1  if userRoute.indexOf('!') is 0
     @visitedRoutes.push userRoute
 
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'

@@ -307,8 +307,7 @@ class LoginView extends KDScrollView
             router.handleRoute route
             routed = yes
             break
-
-        @clear  unless routed
+        router.clear()  unless routed
 
   animateToForm: (name)->
 
