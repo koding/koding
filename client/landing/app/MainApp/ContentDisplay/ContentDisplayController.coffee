@@ -24,7 +24,7 @@ class ContentDisplayController extends KDController
     @revivedContentDisplay = yes
     return wrapper
 
-  hideContentDisplay:(view)-> history.back()
+  hideContentDisplay:(view)-> KD.getSingleton('router').back()
 
   hideAllContentDisplays:(exceptFor)->
     displayIds =\
