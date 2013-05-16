@@ -572,10 +572,7 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  renderHomepageHelper: (roles, callback)->
-    [callback, roles] = [roles, callback]  unless callback
-    roles or= []
-
+  fetchHomepageView:(callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
@@ -589,29 +586,21 @@ module.exports = class JGroup extends Module
             @body
             @counts
             content : readme?.html ? readme?.content
-            roles
             @customize
           }
 
-  fetchHomepageView:(clientId, callback)->
+  fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
+    return callback null, []  unless clientId
 
-    unless clientId
-      @renderHomepageHelper callback
-    else
-      JSession = require '../session'
-      JSession.one {clientId}, (err, session)=>
-        if err
-          console.error err
-          callback err
-        else
-          {username} = session.data
-          if username
-            @fetchMembershipStatusesByUsername username, (err, roles)=>
-              if err then callback err
-              else @renderHomepageHelper roles, callback
-          else
-            @renderHomepageHelper callback
+    JSession = require '../session'
+    JSession.one {clientId}, (err, session)=>
+      return callback err  if err
+      {username} = session.data
+      return callback null, []  unless username
+
+      @fetchMembershipStatusesByUsername username, (err, roles)=>
+        callback err, roles or [], session
 
   createRole: permit 'grant permissions',
     success:(client, formData, callback)->

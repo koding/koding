@@ -2,7 +2,6 @@
 module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
   # content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
-
   staticPage ?= {}
   {customize} = staticPage
   {locationTags,meta} = account
@@ -23,7 +22,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
     <title>#{title}</title>
     #{getStyles()}
   </head>
-  <body class="group">
+  <body>
 
   <div class="kdview" id="kdmaincontainer">
     <header class="kdview" id='main-header'>
@@ -215,7 +214,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
       </div>
     </section>
   </div>
-    #{KONFIG.getConfigScriptTag entryPoint: { slug : profile.nickname, type: "profile" } }
+    #{KONFIG.getConfigScriptTag entryPoint: { slug : profile.nickname, type: "profile" }}
     #{getScripts()}
   </body>
   </html>

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"time"
 )
@@ -22,6 +23,17 @@ type ConfigFile struct {
 	}
 }
 
+type Domain struct {
+	Username string
+	Name     string
+	Key      string
+	FullUrl  string
+}
+
+type DomainInfo struct {
+	Domains map[string]Domain `json:"domains"`
+}
+
 type ServerInfo struct {
 	BuildNumber string
 	GitBranch   string
@@ -30,6 +42,7 @@ type ServerInfo struct {
 	Config      ConfigFile
 	Hostname    Hostname
 	IP          IP
+	MongoLogin  string
 }
 
 type Hostname struct {
@@ -73,11 +86,14 @@ type WorkerInfo struct {
 
 type StatusInfo struct {
 	BuildNumber string
-	Workers     struct {
+	NewKoding   struct {
+		ServerHost string
+		BrokerHost string
+	}
+	Workers struct {
 		Running int
 		Dead    int
 	}
-	MongoLogin string
 }
 
 type HomePage struct {
@@ -85,6 +101,8 @@ type HomePage struct {
 	Workers []WorkerInfo
 	Jenkins *JenkinsInfo
 	Server  *ServerInfo
+	Builds  []int
+	Domains map[string]Domain
 }
 
 func NewServerInfo() *ServerInfo {
@@ -115,61 +133,80 @@ func main() {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
-	build := r.FormValue("searchbuild")
+	build := r.FormValue("build")
 	if build == "" {
 		build = "latest"
 	}
 
-	var workers []WorkerInfo
-	var server *ServerInfo
-	var err error
-
-	workers, err = workerInfo(build)
+	workers, status, err := workerInfo(build)
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	status := statusInfo()
 	jenkins := jenkinsInfo()
+	builds := buildsInfo()
 
-	server, err = serverInfo(build)
+	domains, err := domainInfo()
+	if err != nil {
+		fmt.Println(err)
+		domains = &DomainInfo{}
+	}
+
+	server, err := serverInfo(build)
 	if err != nil {
 		fmt.Println(err)
 		server = NewServerInfo()
 	}
 
-	status.MongoLogin = parseMongoLogin(server.Config.Mongo)
-
-	for i, val := range workers {
-		switch val.State {
-		case "running":
-			status.Workers.Running++
-			workers[i].Info = "success"
-		case "dead":
-			status.Workers.Dead++
-			workers[i].Info = "error"
-		case "stopped":
-			workers[i].Info = "warning"
-		case "waiting":
-			workers[i].Info = "info"
-		}
-
-		d, err := time.ParseDuration(strconv.Itoa(workers[i].Uptime) + "s")
-		if err != nil {
-			fmt.Println(err)
-		}
-		workers[i].Clock = d.String()
-	}
+	s, b := keyLookup(domains.Domains["new.koding.com"])
+	status.NewKoding.ServerHost = s
+	status.NewKoding.BrokerHost = b
 
 	home := HomePage{
 		Status:  status,
 		Workers: workers,
 		Jenkins: jenkins,
 		Server:  server,
+		Builds:  builds,
+		Domains: domains.Domains,
 	}
 
 	renderTemplate(w, "index", home)
 	return
+}
+
+func keyLookup(domain Domain) (string, string) {
+	workersApi := "http://kontrol.in.koding.com/workers?version=" + domain.Key
+	resp, err := http.Get(workersApi)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	workers := make([]WorkerInfo, 0)
+	err = json.Unmarshal(body, &workers)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var server string
+	var broker string
+	for _, w := range workers {
+		if w.Name == "server" {
+			server = w.Hostname + ":" + strconv.Itoa(w.Port)
+		}
+
+		if w.Name == "broker" {
+			broker = w.Hostname + ":" + strconv.Itoa(w.Port)
+		}
+
+	}
+
+	return server, broker
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
@@ -201,37 +238,83 @@ func jenkinsInfo() *JenkinsInfo {
 	return j
 }
 
-func statusInfo() StatusInfo {
+func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 	s := StatusInfo{}
-	return s
-}
 
-func workerInfo(build string) ([]WorkerInfo, error) {
-	fmt.Println("getting worker info")
 	workersApi := "http://kontrol.in.koding.com/workers?version=" + build
 	resp, err := http.Get(workersApi)
 	if err != nil {
-		return nil, err
+		return nil, s, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, s, err
 	}
 
 	workers := make([]WorkerInfo, 0)
 	err = json.Unmarshal(body, &workers)
 	if err != nil {
-		return nil, err
+		return nil, s, err
 	}
 
-	return workers, nil
+	s.BuildNumber = build
+
+	for i, val := range workers {
+		switch val.State {
+		case "running":
+			s.Workers.Running++
+			workers[i].Info = "success"
+		case "dead":
+			s.Workers.Dead++
+			workers[i].Info = "error"
+		case "stopped":
+			workers[i].Info = "warning"
+		case "waiting":
+			workers[i].Info = "info"
+		}
+
+		d, err := time.ParseDuration(strconv.Itoa(workers[i].Uptime) + "s")
+		if err != nil {
+			fmt.Println(err)
+		}
+		workers[i].Clock = d.String()
+	}
+
+	return workers, s, nil
+}
+
+func buildsInfo() []int {
+	serverApi := "http://kontrol.in.koding.com/deployments"
+	fmt.Println(serverApi)
+	resp, err := http.Get(serverApi)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	s := &[]ServerInfo{}
+	err = json.Unmarshal(body, &s)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	builds := make([]int, 0)
+	for _, serv := range *s {
+		build, _ := strconv.Atoi(serv.BuildNumber)
+		builds = append(builds, build)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(builds)))
+
+	return builds
 }
 
 func serverInfo(build string) (*ServerInfo, error) {
-	fmt.Println("getting server info")
 	serverApi := "http://kontrol.in.koding.com/deployments/" + build
-	fmt.Println(serverApi)
 
 	resp, err := http.Get(serverApi)
 	if err != nil {
@@ -248,6 +331,8 @@ func serverInfo(build string) (*ServerInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	s.MongoLogin = parseMongoLogin(s.Config.Mongo)
 
 	return s, nil
 }
@@ -266,4 +351,25 @@ func parseMongoLogin(login string) string {
 		u.User.Username(),
 		mPass,
 	)
+}
+
+func domainInfo() (*DomainInfo, error) {
+	domainApi := "http://api.x.koding.com/proxies/proxy.in.koding.com/domains"
+	resp, err := http.Get(domainApi)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	d := &DomainInfo{}
+	err = json.Unmarshal(body, &d)
+	if err != nil {
+		return nil, err
+	}
+
+	return d, nil
 }

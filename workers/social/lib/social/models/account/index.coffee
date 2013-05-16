@@ -231,16 +231,13 @@ module.exports = class JAccount extends jraphical.Module
 
   @renderHomepage: require './render-homepage'
 
-  fetchHomepageView:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
-    require("../session").fetchSession clientId, (err, session)=>
-      callback null, JAccount.renderHomepage {
-        profile       : @profile
-        account       : @
-        counts        : @counts
-        skillTags     : @skillTags
-        isLoggedIn    : session?.username?
-      }
+  fetchHomepageView:(callback)->
+
+    callback null, JAccount.renderHomepage
+      profile       : @profile
+      account       : this
+      counts        : @counts
+      skillTags     : @skillTags
 
   setHandle: secure (client, data, callback)->
     {delegate}    = client.connection

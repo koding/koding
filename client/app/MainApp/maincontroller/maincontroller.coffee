@@ -94,6 +94,14 @@ class MainController extends KDController
     @accountReadyState       = 1
     connectedState.connected = yes
 
+    {entryPoint} = KD.config
+    slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
+    KD.remote.cacheable slug, (err, [group])->
+      return warn err  if err
+      group.fetchMyRoles (err, roles)->
+        return warn err  if err
+        KD.config.roles = roles
+
     @accountReady @emit.bind @, "AccountChanged", account, firstLoad
 
     unless @mainViewController
