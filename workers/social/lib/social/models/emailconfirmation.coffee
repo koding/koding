@@ -66,7 +66,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   getSubject:-> '[Koding] Please confirm your email address.'
 
   getTextBody:->
-    {host, protocol} = require('../config.email')
+    { host, protocol } = require '../config.email'
     url = "#{protocol}//#{host}/Verify/#{encodeURIComponent @getAt('token')}"
 
     #
