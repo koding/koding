@@ -19,6 +19,7 @@ class MessagesListController extends KDListViewController
       @emit 'AvatarPopupShouldBeHidden'
 
   fetchMessages:(callback)->
+    return callback? yes  unless KD.isLoggedIn()
     KD.getSingleton("appManager").tell 'Inbox', 'fetchMessages',
       # as          : 'recipient'
       limit       : 3
@@ -104,7 +105,7 @@ class NotificationListItem extends KDListItemView
     myid = KD.whoami()?.getId()
 
     return  unless myid
-    
+
     group = (member for member in group when member.id isnt myid)
 
     @participants = new options.linkGroupClass {group}

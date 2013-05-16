@@ -12,7 +12,8 @@ import (
 )
 
 type RulesPostMessage struct {
-	IpRegex *string
+	IpRegex   *string
+	Countries *string
 }
 
 func GetRules(writer http.ResponseWriter, req *http.Request) {
@@ -93,6 +94,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 
 	var msg RulesPostMessage
 	var ipregex string
+	var countries string
 
 	body, _ := ioutil.ReadAll(req.Body)
 	log.Println(string(body))
@@ -111,16 +113,25 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if msg.Countries != nil {
+		countries = *msg.Countries
+	} else {
+		err := "no 'countries' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
 	var cmd proxyconfig.ProxyMessage
 	cmd.Action = "addRule"
 	cmd.Uuid = uuid
 	cmd.Username = username
 	cmd.ServiceName = servicename
 	cmd.IpRegex = ipregex
+	cmd.Countries = countries
 
 	buildSendProxyCmd(cmd)
 
-	url := fmt.Sprintf("rule '%s' is added for the user %s and service %s", ipregex, username, servicename)
+	url := fmt.Sprintf("rule ipregex: '%s' and country: '%s' is added for the user %s and service %s", ipregex, countries, username, servicename)
 	io.WriteString(writer, url)
 	return
 

@@ -66,7 +66,7 @@ module.exports = class JGroup extends Module
       static        : [
         'one','create','each','count','byRelevance','someWithRelationship'
         '__resetAllGroups','fetchMyMemberships','__importKodingMembers',
-        'suggestUniqueSlug', 'fetchKodingGroup'
+        'suggestUniqueSlug'
       ]
       instance      : [
         'join', 'leave', 'modify', 'fetchPermissions', 'createRole'
@@ -281,7 +281,7 @@ module.exports = class JGroup extends Module
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
-        -> group.createSlug (err, slug)->
+        -> group.useSlug group.slug, (err, slug)->
           if err then callback err
           else unless slug?
             callback new KodingError "Couldn't claim the slug!"
@@ -576,10 +576,7 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  renderHomepageHelper: (roles, callback)->
-    [callback, roles] = [roles, callback]  unless callback
-    roles or= []
-
+  fetchHomepageView:(callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
@@ -593,16 +590,8 @@ module.exports = class JGroup extends Module
             @body
             @counts
             content : readme?.html ? readme?.content
-            roles
             @customize
           }
-
-  fetchHomepageView:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
-
-    @fetchRolesByClientId clientId, (err, roles)=>
-      return callback err  if err
-      @renderHomepageHelper roles, callback
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1232,6 +1221,3 @@ module.exports = class JGroup extends Module
       disk  : { quota: 500 }
       users : { quota: 20 }
     }
-
-  @fetchKodingGroup: (callback)->
-    @one slug:'koding', callback
