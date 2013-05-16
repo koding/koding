@@ -96,17 +96,15 @@ class KodingRouter extends KDRouter
         else                      "#{model.title}#{getSectionName model}"
     , maxLength: 100) # max char length of the title
 
-  openContent:(name, section, models, route, query, passOptions=no)->
+  openContent:(name, section, model, route, query, passOptions=no)->
     method = 'createContentDisplay'
-    [options] = models
+    [model] = model  if Array.isArray model
 
     if passOptions
       method += 'WithOptions'
-      options = {
-        model : options
-        route
-        query
-      }
+      options = {model, route, query}
+    else
+      options = model
       
     KD.getSingleton("appManager").tell section, method, options,
       (contentDisplay)=>
@@ -156,10 +154,20 @@ class KodingRouter extends KDRouter
         KD.getSingleton("contentDisplayController")
           .hideAllContentDisplays contentDisplay
         contentDisplay.emit 'handleQuery', query
-      else if state?
+      else if models?
         @openContent name, section, models, route, query, passOptions
       else
         @loadContent name, section, slug, route, query, passOptions
+
+  createStaticContentDisplayHandler:(section, passOptions=no)->
+    (params, models, route)=>
+
+      contentDisplay = @openRoutes[route]
+      if contentDisplay?
+        KD.getSingleton("contentDisplayController")
+          .hideAllContentDisplays contentDisplay
+      else
+        @openContent null, section, models, route, null, passOptions
 
   clear:(route="/#{KD.config.entryPoint?.slug ? ''}", replaceState=yes)->
     super route, replaceState
@@ -182,12 +190,14 @@ class KodingRouter extends KDRouter
     createSectionHandler = (sec)=>
       ({params:{name}, query})=> @openSection sec, name, query
 
-    createContentHandler = @bound 'createContentDisplayHandler'
+    createContentHandler       = @bound 'createContentDisplayHandler'
+    createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
     routes =
 
-      '/' : handleRoot
-      ''  : handleRoot
+      '/'      : handleRoot
+      ''       : handleRoot
+      '/About' : createStaticContentHandler 'Home', yes
 
       # verbs
       '/:name?/Login'     : ({params:{name}})->
