@@ -105,7 +105,7 @@ module.exports = class Graph
       'START kd=node:koding(id={groupId})'
       'MATCH kd-[:member]->users<-[r:user]-koding'
       'WHERE koding.name="JApp"'
-      'and koding.`meta.createdAtEpoch` < {startDate}'
+      'and r.createdAtEpoch < {startDate}'
       'return *'
       'order by r.createdAtEpoch DESC'
       'limit 10'

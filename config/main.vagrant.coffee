@@ -27,7 +27,7 @@ module.exports =
   mongo         : mongo
   neo4j         :
     enabled     : yes
-    host        : "http://kgraphdb1.in.koding.com"
+    host        : "http://localhost"
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
