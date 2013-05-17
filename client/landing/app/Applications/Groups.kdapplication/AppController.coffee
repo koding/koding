@@ -382,7 +382,6 @@ class GroupsAppController extends AppController
       else
         callback no
         @showGroupCreatedModal group
-        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -398,18 +397,19 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = ->
+      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
       KD.remote.api.JName.one
         name: slugInput.getValue()
-      , (err, name)->
+      , (err, name)=>
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
-            unless err
+          slug = @utils.slugify titleInput.getValue()
+          KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
+            if newSlug
               slugInput.setTooltip
-                title     : "Suggestion: #{newSlug}"
-                placement : 'right'
-              slugInput.tooltip.show()
+                title     : "Available slug: #{newSlug}"
+                placement : "right"
         else
           slugInput.setValidationResult 'slug', null
           delete slugInput.tooltip
@@ -417,7 +417,8 @@ class GroupsAppController extends AppController
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+      slug = @utils.slugify titleInput.getValue()
+      KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
         if err then slugInput.setValue ''
         else
           slugInput.setValue newSlug
@@ -570,7 +571,7 @@ class GroupsAppController extends AppController
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-    form.buttons.Save.hideLoader()
+      form.buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
@@ -830,6 +831,7 @@ class GroupsAppController extends AppController
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a id="go-to-dashboard-link" class="hidden" href="#{groupUrl}/Dashboard" target="#{group.slug}">#{groupUrl}/Dashboard</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
@@ -840,11 +842,13 @@ class GroupsAppController extends AppController
           dashboard  :
             title    : 'Go to Dashboard'
             style    : 'modal-clean-green'
-            callback : -> modal.destroy()
+            callback : ->
+              document.getElementById('go-to-dashboard-link').click()
+              modal.destroy()
           group      :
             title    : 'Go to Group'
             style    : 'modal-clean-gray'
-            callback : =>
+            callback : ->
               document.getElementById('go-to-group-link').click()
               modal.destroy()
           dismiss    :
