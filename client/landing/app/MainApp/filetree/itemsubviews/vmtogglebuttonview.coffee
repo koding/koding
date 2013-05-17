@@ -9,9 +9,13 @@ class NVMToggleButtonView extends JView
     @toggle = new KDOnOffSwitch
       cssClass : "tiny vm-toggle-item"
       callback : (state)=>
-        if state then @vm.start() else @vm.stop()
+        if state
+        then @vm.start @getData().vmName
+        else @vm.stop  @getData().vmName
 
-  checkVMState:(err, info)->
+  checkVMState:(err, vm, info)->
+    return unless vm is @getData().vmName
+
     if err or not info
       @toggle.setDefaultValue no
       return warn err
@@ -25,4 +29,4 @@ class NVMToggleButtonView extends JView
 
   viewAppended:->
     super
-    @vm.info @bound 'checkVMState'
+    @vm.info @getData().vmName, @bound 'checkVMState'
