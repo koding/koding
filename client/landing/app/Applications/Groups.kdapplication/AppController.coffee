@@ -515,6 +515,7 @@ class GroupsAppController extends AppController
                   event              : "blur"
                   rules              :
                     required         : yes
+                    minLength        : 4
                 blur                 : ->
                   @utils.defer =>
                     verifySlug()
