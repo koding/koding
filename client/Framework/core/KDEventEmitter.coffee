@@ -17,7 +17,7 @@ class KDEventEmitter
     registry[eventName].push callback
 
   _unregisterEvent = (registry, eventName, callback)->
-    if eventName is "*"
+    if not eventName or eventName is "*"
       registry = {}
     # reset the listener container so no event3
     # will be propagated to previously registered
@@ -29,6 +29,7 @@ class KDEventEmitter
       registry[eventName] = []
 
   _on = (registry, eventName, callback)->
+    throw new Error 'Try passing an event, genius!'    unless eventName?
     throw new Error 'Try passing a listener, genius!'  unless callback?
     if Array.isArray eventName
       _registerEvent registry, name, callback for name in eventName
@@ -93,8 +94,13 @@ class KDEventEmitter
     listenerStack = listenerStack.concat @_e[eventName].slice(0)
     listenerStack.forEach (listener)=> listener.apply @, args
 
-  on  :(eventName, callback) -> _on  @_e, eventName, callback
-  off :(eventName, callback) -> _off @_e, eventName, callback
+  on  :(eventName, callback) ->
+    _on  @_e, eventName, callback
+    return this
+
+  off :(eventName, callback) ->
+    _off @_e, eventName, callback
+    return this
 
   once:(eventName, callback) ->
     _callback = =>
@@ -103,4 +109,5 @@ class KDEventEmitter
       callback.apply @, args
 
     @on eventName, _callback
+    return this
 
