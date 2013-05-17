@@ -56,6 +56,11 @@ module.exports = class FetchAllActivityParallel
         randomId = @generateUniqueRandomKey()
         @randomIdToOriginal[key] = randomId
         value._id = randomId
+
+        oldSnapshot = JSON.parse(value.snapshot)
+        oldSnapshot._id = randomId
+        value.snapshot = JSON.stringify oldSnapshot
+
         @cacheObjects[randomId] = value
 
       for activity in objects.overview
