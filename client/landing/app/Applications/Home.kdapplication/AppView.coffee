@@ -49,6 +49,9 @@ class HomeAppView extends KDView
     topics.ready => JTag.count "",            (err, count)=> topics.update count or 0
     activities.ready => CActivity.count "",   (err, count)=> activities.update count or 0
 
+    @getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
+      activities.increment newActivities.length
+
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
 
