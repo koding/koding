@@ -125,6 +125,10 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 		return false
 	}
 
+	if len(relationships) < 1 {
+		return false
+	}
+
 	if _, ok := relationships[0]["self"]; !ok {
 		return false
 	}

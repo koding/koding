@@ -4,7 +4,9 @@ neo4j = require "neo4j"
 module.exports = class Graph
   constructor:(config)->
     # todo remove hardcoded id
-    @groupId = KD?.getSingleton('groupsController')?.getCurrentGroup()?.getId() or "5150c743f2589b107d000007"
+
+    @groupId   = "5150c743f2589b107d000007"
+    @groupName = "koding"
     @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
 
   objectify = (incomingObjects, callback)->
@@ -26,7 +28,6 @@ module.exports = class Graph
   fetchAll:(startDate, callback)->
     start = new Date().getTime()
     query = [
-      # 'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
       'START koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->members<-[:author]-content'
       'WHERE (content.name = "JTutorial"'
@@ -34,8 +35,11 @@ module.exports = class Graph
       ' or content.name = "JDiscussion"'
       ' or content.name = "JBlogPost"'
       ' or content.name = "JStatusUpdate")'
+      ' and has(content.group)'
+      ' and content.group = "' + @groupName + '"'
       ' and has(content.`meta.createdAtEpoch`)'
       ' and content.`meta.createdAtEpoch` < {startDate}'
+      ' and content.isLowQuality! is null'
       'return *'
       'order by content.`meta.createdAtEpoch` DESC'
       'limit 20'
@@ -46,7 +50,6 @@ module.exports = class Graph
       startDate : startDate
 
     @db.query query, params, (err, results)=>
-
       tempRes = []
       if err then callback err
       else if results.length is 0 then callback null, []
@@ -183,6 +186,7 @@ module.exports = class Graph
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
       'where followees.name="JAccount"'
       'and follower.name="JTag"'
+      'and follower.name="' + @groupName + '"'
       'and r.createdAtEpoch < {startDate}'
       'return r,followees, follower'
       'order by r.createdAtEpoch DESC'
