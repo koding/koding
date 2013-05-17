@@ -66,7 +66,6 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-      isReadOnly  : yes
     }
     # TEMP SY: to be able to work in a vagrantless env
     # to avoid shared authworker's message getting lost
@@ -242,7 +241,7 @@ class GroupsAppController extends AppController
 
   markPendingRequestGroups:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
-  
+
   markPendingGroupInvitations:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
@@ -357,7 +356,7 @@ class GroupsAppController extends AppController
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
-  
+
   cancelGroupRequest:(group, callback)->
     KD.whoami().cancelRequest group, callback
 
@@ -382,7 +381,6 @@ class GroupsAppController extends AppController
       else
         callback no
         @showGroupCreatedModal group
-        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -405,7 +403,7 @@ class GroupsAppController extends AppController
       , (err, name)=>
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          slug = @utils.slugify titleInput.getValue()
+          slug = KD.utils.slugify titleInput.getValue()
           KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
             if newSlug
               slugInput.setTooltip
@@ -418,7 +416,7 @@ class GroupsAppController extends AppController
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      slug = @utils.slugify titleInput.getValue()
+      slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
         if err then slugInput.setValue ''
         else
@@ -516,6 +514,7 @@ class GroupsAppController extends AppController
                   event              : "blur"
                   rules              :
                     required         : yes
+                    minLength        : 4
                 blur                 : ->
                   @utils.defer =>
                     verifySlug()
@@ -832,6 +831,7 @@ class GroupsAppController extends AppController
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a id="go-to-dashboard-link" class="hidden" href="#{groupUrl}/Dashboard" target="#{group.slug}">#{groupUrl}/Dashboard</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
@@ -842,11 +842,13 @@ class GroupsAppController extends AppController
           dashboard  :
             title    : 'Go to Dashboard'
             style    : 'modal-clean-green'
-            callback : -> modal.destroy()
+            callback : ->
+              document.getElementById('go-to-dashboard-link').click()
+              modal.destroy()
           group      :
             title    : 'Go to Group'
             style    : 'modal-clean-gray'
-            callback : =>
+            callback : ->
               document.getElementById('go-to-group-link').click()
               modal.destroy()
           dismiss    :

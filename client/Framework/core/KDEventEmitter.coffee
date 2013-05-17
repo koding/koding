@@ -6,7 +6,7 @@
 
 class KDEventEmitter
 
-  # listeners will be put inside @KDEventEmitterEvents[className]
+  # static listeners will be put here
   _e = {}
 
   _registerEvent = (registry, eventName, callback)->
@@ -19,7 +19,7 @@ class KDEventEmitter
   _unregisterEvent = (registry, eventName, callback)->
     if eventName is "*"
       registry = {}
-    # reset the listener container so no event
+    # reset the listener container so no event3
     # will be propagated to previously registered
     # listener callbacks.
     else if callback and registry[eventName]
@@ -49,11 +49,8 @@ class KDEventEmitter
     #{event.replace(/\./g,'\\.').replace(/\*/g, '((?:\\w+\\.?)*)')}
     $///
 
-  #
   # STATIC METHODS
-  #####################
-  # user is able to do ClassName.on .emit
-  #
+  # to enable ClassName.on or ClassName.emit
 
   @emit: ->
     # slice the arguments, 1st argument is the event name,
@@ -73,13 +70,19 @@ class KDEventEmitter
     _off _e, eventName, callback
     return this
 
+  # INSTANCE METHODS
+  # to enable anInstance.on or anInstance.emit (anInstance being new ClassName)
+
   constructor:->
+    # static listeners will be put here
     @_e = {}
 
   emit:(eventName, args...)->
     @_e[eventName] ?= []
 
     listenerStack = []
+
+    # event wildcards are disabled until implemented in a performant way
 
     # for own eventToBeFired of @_e
     #   continue if eventToBeFired is eventName
@@ -88,9 +91,7 @@ class KDEventEmitter
     #     listenerStack = listenerStack.concat @_e[eventToBeFired].slice(0)
 
     listenerStack = listenerStack.concat @_e[eventName].slice(0)
-
-    listenerStack.forEach (listener)=>
-      listener.apply @, args
+    listenerStack.forEach (listener)=> listener.apply @, args
 
   on  :(eventName, callback) -> _on  @_e, eventName, callback
   off :(eventName, callback) -> _off @_e, eventName, callback
