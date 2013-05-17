@@ -259,6 +259,9 @@ module.exports = class CActivity extends jraphical.Capsule
           callback null, activities
 
   @fetchFolloweeContents:(params={}, callback)->
+
+    console.log("fetching contents from nee4j !!!", JSON.stringify(params))
+
     params['userId'] ||= "502348600a6f5e381a000005"
     params['resultlimit'] ||= 10
     query = ['start koding=node:koding(id={userId})'

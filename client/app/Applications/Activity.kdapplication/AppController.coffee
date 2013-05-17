@@ -6,6 +6,8 @@ class ActivityAppController extends AppController
     hiddenHandle : yes
 
   activityTypes = [
+    'Public'
+    'Followed'
     'CStatusActivity'
     'CCodeSnipActivity'
     'CFollowerBucketActivity'
@@ -32,6 +34,7 @@ class ActivityAppController extends AppController
     super options
 
     @currentFilter     = activityTypes
+    @filterType = "Public"
     @appStorage        = new AppStorage 'Activity', '1.0'
     @isLoading         = no
     @mainController    = @getSingleton 'mainController'
@@ -93,9 +96,17 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
-      @resetAll()
-      @setFilter data.type
-      @populateActivity()
+
+      console.log("data??????", data)
+      # the filterList on top of the innerNav is clicked
+      if data.filterType
+        @filterType = data.filterType
+        @resetAll()
+        @populateActivity()
+      else
+        @resetAll()
+        @setFilter data.type
+        @populateActivity()
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
@@ -196,6 +207,7 @@ class ActivityAppController extends AppController
       else
         @isExempt (exempt)=>
           console.log("activities, calling this or that exempt " + exempt)
+          console.log("Getfilter", @getFilter())
           if exempt or @getFilter() isnt activityTypes
           then @fetchActivitiesDirectly options, callback
           else @fetchActivitiesFromCache options, callback
@@ -230,9 +242,10 @@ class ActivityAppController extends AppController
 
     console.log(options['facets'], "Followed" in  options['facets'])
     # some are from neo4j some are from directly mongo for now !
-
-    fromneo4j = ["Public", "Followed", "JStatusUpdate", "JBlogPost", "JCodeSnip", "JDiscussion",
+    fromneo4j = ["Everything", "JStatusUpdate", "JBlogPost", "JCodeSnip", "JDiscussion",
                  "JTutorial", "JLink"]
+
+    console.log("my filter type : ", @filterType)
 
     fetchfromneo = false
     for i in options.facets
@@ -240,7 +253,9 @@ class ActivityAppController extends AppController
         fetchfromneo = true
 
     if fetchfromneo
+      options['filterType'] = @filterType
       console.log("KD.remote.api.CActivity.fetchFolloweeContents - " + JSON.stringify(options) )
+
       KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
         if err
           console.log("err" + err)
@@ -321,6 +336,7 @@ class ActivityAppController extends AppController
         callback null, cache
 
   continueLoadingTeasers:->
+    return
     # ?????
     # HACK: this gets called multiple times if there's no wait
     KD.utils.wait 10000, =>
