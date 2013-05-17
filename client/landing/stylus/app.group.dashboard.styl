@@ -285,6 +285,7 @@
       right                   0
       text-align              right
       width                   auto
+      z-index                 1
 
     .edit
       margin-top              44px
@@ -330,6 +331,7 @@
       border-left-color     rgba(255,255,255,.4)
       border-right-color    rgba(0,0,0,.1)
       text-shadow           0 1px 0 white
+      color                 rgba(0,0,0,.7)
       bg                    color, transparent
       borderBox()
       rounded(0)
@@ -352,18 +354,19 @@
       padding                 10px
       borderBox()
       vendor transition,      background-color 0.2s ease-in-out
-      background-color        rgba(248,248,248,0.5)
+      background-color        rgba(0,0,0,0.02)
 
     .invitations section.formline div.formline.kdlistitemview-invitation-request:hover
     .members .kdlistitemview-member-item-inner:hover
     .members .editing .kdlistitemview-member-item-inner
-        background-color      rgba(248,248,248,1)
+        background-color        rgba(0,0,0,0.05)
 
     .members
       section.searchbar
         background            rgba(0, 0, 0, 0.05)
         border-bottom         1px solid rgba(0, 0, 0, 0.05)
         height                50px
+        shadow                0 0 15px rgba(0,0,0,.1)
         input.hitenterview
           top                 9px
           right               20px
