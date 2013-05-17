@@ -101,6 +101,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      useNeo4j: no
       resourceName: socialQueueName
       suppressLogs: no
       version   : version

@@ -25,7 +25,6 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    enabled     : yes
     host        : "http://localhost"
     port        : 7474
   mongo         : mongo
@@ -90,6 +89,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
+      useNeo4j: no
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no

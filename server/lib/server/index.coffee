@@ -108,35 +108,33 @@ fetchFromNeo = (req, res)->
   fetch.get (results)->
     res.send results
 
+app.get "/-/neo4j/latest", (req, res)->
+  fetchFromNeo req, res
+
+app.get "/-/neo4j/before/:timestamp", (req, res)->
+  fetchFromNeo req, res
+
 app.get "/-/cache/latest", (req, res)->
-  # if neo4j enabled fetch results from neo4j
-  if neo4j.enabled
-    fetchFromNeo req, res
-  else
-  #if not enabled fetch from cacheworker
-    {JActivityCache} = koding.models
-    startTime = Date.now()
-    JActivityCache.latest (err, cache)->
-      if err then console.warn err
-      # if you want to jump to previous cache - uncomment if needed
-      if cache and req.query?.previous?
-        timestamp = new Date(cache.from).getTime()
-        return res.redirect 301, "/-/cache/before/#{timestamp}"
-      # console.log "latest: #{Date.now() - startTime} msecs!"
-      return res.send if cache then cache.data else {}
+  {JActivityCache} = koding.models
+  startTime = Date.now()
+  JActivityCache.latest (err, cache)->
+    if err then console.warn err
+    # if you want to jump to previous cache - uncomment if needed
+    if cache and req.query?.previous?
+      timestamp = new Date(cache.from).getTime()
+      return res.redirect 301, "/-/cache/before/#{timestamp}"
+    # console.log "latest: #{Date.now() - startTime} msecs!"
+    return res.send if cache then cache.data else {}
 
 app.get "/-/cache/before/:timestamp", (req, res)->
-  if neo4j.enabled
-    fetchFromNeo req, res
-  else
-    {JActivityCache} = koding.models
-    JActivityCache.before req.params.timestamp, (err, cache)->
-      if err then console.warn err
-      # if you want to jump to previous cache - uncomment if needed
-      if cache and req.query?.previous?
-        timestamp = new Date(cache.from).getTime()
-        return res.redirect 301, "/-/cache/before/#{timestamp}"
-      res.send if cache then cache.data else {}
+  {JActivityCache} = koding.models
+  JActivityCache.before req.params.timestamp, (err, cache)->
+    if err then console.warn err
+    # if you want to jump to previous cache - uncomment if needed
+    if cache and req.query?.previous?
+      timestamp = new Date(cache.from).getTime()
+      return res.redirect 301, "/-/cache/before/#{timestamp}"
+    res.send if cache then cache.data else {}
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
