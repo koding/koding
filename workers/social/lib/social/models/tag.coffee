@@ -13,12 +13,9 @@ module.exports = class JTag extends jraphical.Module
   {permit}    = require './group/permissionset'
 
   @trait __dirname, '../traits/followable'
-  @trait __dirname, '../traits/filterable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
-  @trait __dirname, '../traits/restrictedquery'
-  # @trait __dirname, '../traits/groupable'
   @trait __dirname, '../traits/grouprelated'
 
   @share()
@@ -43,6 +40,10 @@ module.exports = class JTag extends jraphical.Module
       # slug          : 'unique'
       title         : 'sparse'
       # group         : 'sparse'
+    sharedEvents    :
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
@@ -246,6 +247,64 @@ module.exports = class JTag extends jraphical.Module
                       contents.forEach (content)->
                         content.flushSnapshot tagId, (err)->
                           if err then console.log err
+
+  makeGroupSelector =(group)->
+    if Array.isArray group then $in: group else group
+
+  @one$ = permit 'browse content by tag',
+    success:(client, uniqueSelector, options, callback)->
+      uniqueSelector.group = makeGroupSelector client.context.group
+      @one uniqueSelector, options, callback
+
+  @some$ = permit 'browse content by tag',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @some selector, options, callback
+
+  @count$ = permit 'browse content by tag',
+    success:(client, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = makeGroupSelector client.context.group
+      @count selector, callback
+
+  @cursor$ = permit 'browse content by tag',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @cursor selector, options, callback
+
+  @each$ = permit 'browse content by tag',
+    success:(client, selector, fields, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @each selector, fields, options, callback
+
+  @byRelevance = permit 'browse content by tag',
+    success: (client, seed, options, callback)->
+      [callback, options] = [options, callback] unless callback
+      {limit, blacklist, skip}  = options
+      limit     ?= 10
+      blacklist or= []
+      blacklist = blacklist.map(ObjectId)
+      cleanSeed = seed.replace(/[^\w\s-]/).trim() #TODO: this is wrong for international charsets
+      startsWithSeedTest = RegExp '^'+cleanSeed, "i"
+      startsWithOptions = {limit, blacklist, skip}
+      @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
+        if err
+          callback err
+        else if limit is suggestions.length
+            callback null, suggestions
+        else
+          containsSeedTest = RegExp cleanSeed, 'i'
+          containsOptions =
+            skip      : skip
+            limit     : limit-suggestions.length
+            blacklist : blacklist.concat(suggestions.map (o)-> o.getId())
+          @findSuggestions client, containsSeedTest, containsOptions, (err, moreSuggestions)->
+            if err
+              callback err
+            else
+              allSuggestions = suggestions.concat moreSuggestions
+              callback null, allSuggestions
 
 #
 # class JLicense extends JTag

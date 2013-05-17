@@ -101,35 +101,41 @@ module.exports = class JVM extends Model
       {delegate} = client.connection
       @calculateUsage delegate, groupSlug, callback
 
+  @fetchAccountVmsBySelector = (account, selector, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
+
+    options ?= {}
+    options.limit = Math.min options.limit ? 10, 10
+
+    account.fetchUser (err, user) ->
+      return callback err  if err
+
+      selector.users = { $elemMatch: id: user.getId() }
+
+      JVM.someData selector, { name: 1 }, options, (err, cursor)->
+        return callback err  if err
+
+        cursor.toArray (err, arr)->
+          return callback err  if err
+          callback null, arr.map (vm)-> vm.name
+
   @fetchVmsByContext = permit 'list all vms',
     success: (client, options, callback) ->
-      [callback, options] = [options, callback]  unless callback
-
-      options ?= {}
-      options.limit = Math.min options.limit ? 10, 10
-
       JGroup = require './group'
-
-      {context, connection:{delegate}} = client
 
       slug = context.group ? 'koding'
 
-      delegate.fetchUser (err, user) ->
+      JGroup.one {slug}, (err, group) ->
         return callback err  if err
 
-        JGroup.one {slug}, (err, group) ->
-          return callback err  if err
+        selector = groups: { $elemMatch: id: group.getId() }
+        @fetchAccountVmsBySelector selector, options, callback
 
-          selector =
-            groups  : { $elemMatch: id: group.getId() }
-            users   : { $elemMatch: id: user.getId() }
+  @fetchVms = permit 'list all vms',
+    success: (client, options, callback) ->
+      {delegate} = client.connection
+      @fetchAccountVmsBySelector delegate, {}, options, callback
 
-          JVM.someData selector, { name: 1 }, options, (err, cursor)->
-            return callback err  if err
-
-            cursor.toArray (err, arr)->
-              return callback err  if err
-              callback null, arr.map (vm)-> vm.name
 
     # TODO: let's implement something like this:
     # failure: (client, callback) ->

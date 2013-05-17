@@ -25,7 +25,6 @@ module.exports = class JGroup extends Module
   ]
 
   @trait __dirname, '../../traits/followable'
-  @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
@@ -55,12 +54,17 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'MemberAdded',    filter: -> null }
-        { name: 'MemberRemoved',  filter: -> null }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
+        { name: 'MemberRolesChanged' }
+        { name: 'GroupDestroyed' }
+        { name: 'broadcast' }
       ]
       instance      : [
-        { name: 'MemberAdded',    filter: -> null }
-        { name: 'MemberRemoved',  filter: -> null }
+        { name: 'GroupCreated' }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
+        { name: 'NewInvitationRequest' }
       ]
     sharedMethods   :
       static        : [
@@ -290,7 +294,11 @@ module.exports = class JGroup extends Module
             group.slug  = slug.slug
             group.slug_ = slug.slug
             queue.next()
-        -> save_ 'group', group, queue, callback
+        -> save_ 'group', group, queue, (err)->
+           if err
+             JName.release group.slug, => callback err
+           else
+             queue.next()
         -> group.addMember delegate, (err)->
             if err then callback err
             else
@@ -347,6 +355,33 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
+  @byRelevance = secure (client, seed, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    {limit, blacklist, skip}  = options
+    limit     ?= 10
+    blacklist or= []
+    blacklist = blacklist.map(ObjectId)
+    cleanSeed = seed.replace(/[^\w\s-]/).trim() #TODO: this is wrong for international charsets
+    startsWithSeedTest = RegExp '^'+cleanSeed, "i"
+    startsWithOptions = {limit, blacklist, skip}
+    @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
+      if err
+        callback err
+      else if limit is suggestions.length
+          callback null, suggestions
+      else
+        containsSeedTest = RegExp cleanSeed, 'i'
+        containsOptions =
+          skip      : skip
+          limit     : limit-suggestions.length
+          blacklist : blacklist.concat(suggestions.map (o)-> o.getId())
+        @findSuggestions client, containsSeedTest, containsOptions, (err, moreSuggestions)->
+          if err
+            callback err
+          else
+            allSuggestions = suggestions.concat moreSuggestions
+            callback null, allSuggestions
+
   @fetchSecretChannelName =(groupSlug, callback)->
     JName = require '../name'
     JName.fetchSecretName groupSlug, (err, secretName, oldSecretName)->
@@ -379,6 +414,11 @@ module.exports = class JGroup extends Module
       else
         @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
         @emit 'broadcast', "#{secretChannelName}#{event}", message
+        @emit 'notification', "#{groupSlug}#{event}", {
+          routingKey  : groupSlug
+          contents    : message
+          event       : 'feed-new'
+        }
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 

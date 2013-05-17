@@ -8,6 +8,7 @@ module.exports = class CStatusActivity extends CActivity
   
   @set
     encapsulatedBy  : CActivity
+    sharedEvents    : CActivity.sharedEvents
     sharedMethods   : CActivity.sharedMethods
     schema          : CActivity.schema
     relationships   :

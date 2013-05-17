@@ -39,6 +39,10 @@ module.exports = class JApp extends jraphical.Module
       title         : 'ascending'
       slug          : 'unique'
 
+    sharedEvents    :
+      instance      : [
+        { name: 'ReviewIsAdded' }
+      ]
     sharedMethods   :
       instance      : [
         'follow', 'unfollow', 'delete', 'review',
