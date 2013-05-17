@@ -45,9 +45,9 @@ module.exports =
       awsSecretAccessKey  : 'kpKvRUGGa8drtLIzLPtZnoVi82WnRia85kCMT2W7'
       bucket              : 'koding-uploads'
   loggr:
-    push   : no
-    url    : ""
-    apiKey : ""
+    push: yes
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
   librato :
     push      : no
     email     : ""

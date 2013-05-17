@@ -9,6 +9,7 @@ class KDTabView extends KDScrollView
     options.sortable             ?= no
     options.hideHandleContainer  ?= no
     options.hideHandleCloseIcons ?= no
+    options.tabHandleContainer   ?= null
     @handles                      = []
     @panes                        = []
     @selectedIndex                = []
@@ -18,7 +19,7 @@ class KDTabView extends KDScrollView
 
     @activePane = null
 
-    @setTabHandleContainer options.tabHandleContainer ? null
+    @setTabHandleContainer options.tabHandleContainer
 
     @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
