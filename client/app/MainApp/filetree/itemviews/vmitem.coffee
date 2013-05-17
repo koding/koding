@@ -48,7 +48,9 @@ class NVMItemView extends NFileItemView
     contextMenu.positionContextMenu()
     contextMenu.treeController.selectFirstNode()
 
-  checkVMState:(err, info)->
+  checkVMState:(err, vm, info)->
+    return unless vm is @getData().vmName
+
     if err or not info
       @unsetClass 'online'
       # @vmToggle.setDefaultValue no

@@ -80,10 +80,11 @@ class NFinderController extends KDViewController
     path ?= "/home/#{nickname}"
     FSHelper.resetRegistry()
 
-    @mount = FSHelper.createFile
-      name : path
-      path : path
-      type : "vm"
+    @mount   = FSHelper.createFile
+      name   : path
+      path   : path
+      type   : "vm"
+      vmName : (KD.getSingleton 'vmController').getDefaultVmName()
 
     @defaultStructureLoaded = no
     @treeController.initTree [@mount]
