@@ -50,7 +50,6 @@ class HomeAppView extends KDView
     activities.ready => CActivity.count "",   (err, count)=> activities.update count or 0
 
     @getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
-      log "hello", newActivities.length
       activities.increment newActivities.length
 
     @addSubView @homeLoginBar = new HomeLoginBar
