@@ -299,10 +299,6 @@ class ActivityAppController extends AppController
       error   : (err)->   callback? err
       success : (cache)=>
         cache.overview.reverse()  if cache?.overview
-        #@lastTo = cache.to
-        #@lastFrom = cache.from
-        #console.log "lastFrom", @lastFrom
-        #console.log "lastTo", @lastTo
         callback null, cache
 
   continueLoadingTeasers:->
