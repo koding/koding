@@ -46,16 +46,16 @@ class MainController extends KDController
     # appManager.create 'Chat', (chatController)->
     #   KD.registerSingleton "chatController", chatController
 
-    @appReady =>
+    @ready =>
       router.listen()
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
+      @emit 'AppIsReady'
+      @emit 'FrameworkIsReady'
 
     @setFailTimer()
     @attachListeners()
-
-    @accountReadyState = 0
 
     @appStorages = {}
 
@@ -71,32 +71,10 @@ class MainController extends KDController
     storage.fetchStorage()
     return storage
 
-  appReady:do ->
-    applicationIsReady = no
-    queue = []
-    (listener)->
-      if listener
-        if applicationIsReady then listener()
-        else queue.push listener
-      else
-        applicationIsReady = yes
-        listener() for listener in queue
-        queue.length = 0
-
-        @emit 'AppIsReady'
-        @emit 'FrameworkIsReady'
-        @appIsReady = yes
-
-  accountReady:(fn)->
-    if @accountReadyState > 0 then fn()
-    else @once 'AccountChanged', fn
-
   accountChanged:(account, firstLoad = no)->
 
     @userAccount             = account
-    @accountReadyState       = 1
     connectedState.connected = yes
-
     {entryPoint} = KD.config
     slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
     KD.remote.cacheable slug, (err, [group])=>
@@ -105,7 +83,7 @@ class MainController extends KDController
         return warn err  if err
         KD.config.roles = roles
 
-        @accountReady @emit.bind @, "AccountChanged", account, firstLoad
+        @ready @emit.bind @, "AccountChanged", account, firstLoad
 
         unless @mainViewController
 
@@ -118,9 +96,8 @@ class MainController extends KDController
 
           KDView.appendToDOMBody mainView
 
-          @appReady()
-
         @decorateBodyTag()
+        @emit 'ready'
 
         eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
         eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
@@ -143,16 +120,6 @@ class MainController extends KDController
     # fixme: make a old tv switch off animation and reload
     # $('body').addClass "turn-off"
     return location.reload()
-
-    @getSingleton("lazyDomController").showLandingPage =>
-      KD.getSingleton("appManager").quitAll =>
-        @mainViewController.sidebarController.accountChanged account
-
-      new KDNotificationView
-        cssClass  : "login"
-        title     : "<span></span>Come back soon!"
-        duration  : 2000
-
 
   attachListeners:->
 
