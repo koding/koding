@@ -242,7 +242,7 @@ class GroupsAppController extends AppController
 
   markPendingRequestGroups:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
-  
+
   markPendingGroupInvitations:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
@@ -357,7 +357,7 @@ class GroupsAppController extends AppController
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
-  
+
   cancelGroupRequest:(group, callback)->
     KD.whoami().cancelRequest group, callback
 
@@ -404,7 +404,7 @@ class GroupsAppController extends AppController
       , (err, name)=>
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          slug = @utils.slugify titleInput.getValue()
+          slug = KD.utils.slugify titleInput.getValue()
           KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
             if newSlug
               slugInput.setTooltip
@@ -417,7 +417,7 @@ class GroupsAppController extends AppController
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      slug = @utils.slugify titleInput.getValue()
+      slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
         if err then slugInput.setValue ''
         else
