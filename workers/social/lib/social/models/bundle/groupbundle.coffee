@@ -2,9 +2,13 @@ JBundle = require '../bundle'
 
 module.exports = class JGroupBundle extends JBundle
 
+  KodingError = require '../../error'
+
   {permit} = require '../group/permissionset'
 
   {groupBy} = require 'underscore'
+
+  {dash} = require 'bongo'
 
   @share()
 
@@ -23,13 +27,13 @@ module.exports = class JGroupBundle extends JBundle
       'request bundle change'   : ['member','moderator']
       'commission resources'    : ['member','moderator']
     limits            :
-      cpu             : { unit: 'core', quota: 1 }
-      ram             : { unit: 'GB',   quota: 0.25 }
-      disk            : { unit: 'GB',   quota: 0.5 }
-      users           : { unit: 'user', quota: 20 }
-      cpuPerUser      : { unit: 'core', quota: 0, title: 'cpu per user' }
-      ramPerUser      : { unit: 'GB',   quota: 0, title: 'ram per user' }
-      diskPerUser     : { unit: 'GB',   quota: 0, title: 'disk per user' }
+      'cpu'           : { unit: 'core', quota: 1 }
+      'ram'           : { unit: 'GB',   quota: 0.25 }
+      'disk'          : { unit: 'GB',   quota: 0.5 }
+      'users'         : { unit: 'user', quota: 20 }
+      'cpu per user'  : { unit: 'core', quota: 0 }
+      'ram per user'  : { unit: 'GB',   quota: 0 }
+      'disk per user' : { unit: 'GB',   quota: 0 }
     schema            :
       overagePolicy   :
         type          : String
@@ -66,13 +70,54 @@ module.exports = class JGroupBundle extends JBundle
   fetchLimits$: permit 'change bundle',
     success: (client, callback)-> @fetchLimits callback
 
-  debit$: permit 'commission resources',
-    success: (client, debits, callback)->
-      JVM = require '../vm'
-      {connection:{delegate}, context:{group}} = client
-      JVM.calculateUsage delegate, group, (err, usage)=>
-        return callback err  if err?
+  debit$: do ->
 
-        # TODO: we need to do some number-crunching with the usage stats
+    debit = (limit, debitAmount, callback = (->)) ->
+      limit.update { $inc: usage: debitAmount }, callback
 
-        @debit debits, callback
+    permit 'commission resources',
+      success: (client, debits, callback) ->
+        JVM = require '../vm'
+        {connection:{delegate}, context:{group}} = client
+        {overagePolicy} = this
+        JVM.calculateUsage delegate, group, (err, usage) =>
+          return callback err  if err?
+          @fetchLimits (err, limits) =>
+            return callback err  if err
+
+            limitsMap = limits.reduce( (acc, limit) ->
+              acc[limit.title] = limit
+              return acc
+            , {})
+
+            queue = []
+
+            limits.forEach (limit) ->
+
+              debitAmount   = debits[limit.title]
+              personalLimit = limitsMap["#{limit.title} per user"]
+
+              isEnough =
+                (debitAmount? and personalLimit?)         and
+                (not /per user$/.test limit.title)        and
+                (limit.getValue() >= debitAmount)         and
+                ((overagePolicy is 'allowed') or
+                 (personalLimit.getValue() >= debitAmount))
+
+              if isEnough
+                queue.push ->
+                  debit limit, debitAmount
+                  debit personalLimit, debitAmount
+
+              return
+
+            if queue.length and queue.length = (Object.keys debits).length
+              dash queue, ->
+                options     =
+                  usage     : debits
+                  account   : delegate
+                  groupSlug : group
+                JVM.createVm options, (err)-> callback err
+
+            else
+              callback new KodingError 'Insufficient quota.'
