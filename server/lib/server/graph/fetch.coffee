@@ -73,6 +73,10 @@ module.exports = class FetchAllActivityParallel
 
     overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
 
+    # TODO: we're throwing away results if more than 20, ideally we'll only
+    # get the right number of results
+    overview = overview[-20..overview.length]
+
     for activity, index in overview when activity.type is "CNewMemberBucketActivity"
       @newMemberBucketIndex = index
 

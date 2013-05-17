@@ -38,7 +38,7 @@ module.exports = class Graph
       ' and content.`meta.createdAtEpoch` < {startDate}'
       'return *'
       'order by content.`meta.createdAtEpoch` DESC'
-      'limit 10'
+      'limit 20'
     ].join('\n');
 
     params =
@@ -108,7 +108,7 @@ module.exports = class Graph
       'and r.createdAtEpoch < {startDate}'
       'return *'
       'order by r.createdAtEpoch DESC'
-      'limit 10'
+      'limit 20'
     ].join('\n');
 
     console.log query, startDate
@@ -142,7 +142,7 @@ module.exports = class Graph
       'and r.createdAtEpoch < {startDate}'
       'return members'
       'order by r.createdAtEpoch DESC'
-      'limit 10'
+      'limit 20'
     ].join('\n');
 
     console.log query, startDate
@@ -171,7 +171,7 @@ module.exports = class Graph
       'and r.createdAtEpoch < {startDate}'
       'return r,followees, follower'
       'order by r.createdAtEpoch DESC'
-      'limit 10'
+      'limit 20'
     ].join('\n');
 
     @fetchFollows query, startDate, callback
@@ -186,7 +186,7 @@ module.exports = class Graph
       'and r.createdAtEpoch < {startDate}'
       'return r,followees, follower'
       'order by r.createdAtEpoch DESC'
-      'limit 10'
+      'limit 20'
     ].join('\n');
 
     @fetchFollows query, startDate, callback
