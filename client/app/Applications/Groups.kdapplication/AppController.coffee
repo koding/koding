@@ -836,8 +836,6 @@ class GroupsAppController extends AppController
       modal = new KDModalView
         title        : "#{group.title} has been created!"
         content      : body
-        click        : (event)->
-          if $(event.target).is 'a.group-link' then modal.destroy()
         buttons      :
           dashboard  :
             title    : 'Go to Dashboard'
