@@ -33,21 +33,27 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     recurlyPlan.lastUpdate = new Date()
     recurlyPlan.save -> callback
 
-  @getPlans = secure (client, prefix, callback)->
+  @getPlans = secure (client, filter..., callback)->
+    [prefix, category, item] = filter
+    selector = {}
+    selector["product.prefix"] = prefix  if prefix
+    selector["product.category"] = category  if category
+    selector["product.item"] = item  if item
+
     unless forceRefresh
-      JRecurlyPlan.all {'product.prefix': prefix}, callback
+      JRecurlyPlan.all selector, callback
     else
       JRecurlyPlan.one {}, (err, plan)=>
         callback err  if err
         unless plan
-          @updateCache -> JRecurlyPlan.all {'product.prefix': prefix}, callback
+          @updateCache -> JRecurlyPlan.all selector, callback
         else
           plan.lastUpdate ?= 0
-          now = new Date()
-          if now - plan.lastUpdate > 100 * 60 * 30
-            @updateCache -> JRecurlyPlan.all {'product.prefix': prefix}, callback
+          now = (new Date()).getTime()
+          if now - plan.lastUpdate > 1000 * 60 * 2
+            @updateCache -> JRecurlyPlan.all selector, callback
           else
-            JRecurlyPlan.all {'product.prefix': prefix}, callback
+            JRecurlyPlan.all selector, callback
 
   # Recurly web hook will use this method to invalidate the cache.
   @updateCache = (callback)->
@@ -76,11 +82,11 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             unless code.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
               cb()
             else
-              if k not in mapCached
+              if k not in Object.keys(mapCached)
                 plan = new JRecurlyPlan
                 plan.code = code
               else
-                plan = mapAll[k]
+                plan = mapCached[k]
 
               plan.title = title
               plan.desc = desc
@@ -91,7 +97,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
               version = +version
               plan.product = {prefix, category, item, version}
 
-              plan.lastUpdate = new Date()
+              plan.lastUpdate = (new Date()).getTime()
 
               plan.save ->
                 cb null, plan
