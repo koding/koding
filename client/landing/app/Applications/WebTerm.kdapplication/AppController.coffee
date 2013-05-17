@@ -15,10 +15,11 @@ class WebTermController extends AppController
 
   constructor:(options = {}, data)->
 
-    options.view    = new WebTermAppView
+    vmName          = options.params?.vmName or KD.nick()
+    options.view    = new WebTermAppView {vmName}
     options.appInfo =
-      title        : "Terminal"
-      cssClass     : "webterm"
+      title         : "Terminal on #{vmName}"
+      cssClass      : "webterm"
 
     super options, data
 
