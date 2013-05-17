@@ -43,8 +43,8 @@ class GroupsBundleEditView extends JView
     @plansByCode[plan.code] = plan
     { category, resource, upperBound } = plan.usage
     {
-      title       : @getPlanTitle category, resource, upperBound
-      value       : plan.code
+      title: @getPlanTitle category, resource, upperBound
+      value: plan.code
     }
 
   getResourceTitle =(resource)->
@@ -178,11 +178,12 @@ class GroupsBundleEditView extends JView
       cssClass  : "clean-grey"
       title     : "Debit..."
       callback  : =>
+        { cpu, ram, disk } = computeUnitMap
         number = +prompt "How many VMs do you want to debit?", "1"
         debits =
-          cpu   : number * computeUnitMap.cpu
-          ram   : number * computeUnitMap.ram
-          disk  : number * computeUnitMap.disk
+          cpu   : number * cpu
+          ram   : number * ram
+          disk  : number * disk
         bundle.debit debits, (err)->
           console.error err  if err
 
