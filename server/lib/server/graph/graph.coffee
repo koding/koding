@@ -39,6 +39,7 @@ module.exports = class Graph
       ' and content.group = "' + @groupName + '"'
       ' and has(content.`meta.createdAtEpoch`)'
       ' and content.`meta.createdAtEpoch` < {startDate}'
+      ' and content.isLowQuality! is null'
       'return *'
       'order by content.`meta.createdAtEpoch` DESC'
       'limit 20'
