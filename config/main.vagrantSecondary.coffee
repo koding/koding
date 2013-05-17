@@ -26,7 +26,7 @@ module.exports =
     port        : 1337
   neo4j         :
     enabled     : yes
-    host        : "http://neo4j-dev"
+    host        : "http://localhost"
     port        : 7474
   mongo         : mongo
   runNeo4jFeeder: yes
