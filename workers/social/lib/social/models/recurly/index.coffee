@@ -14,7 +14,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     indexes:
       code         : 'unique'
     sharedMethods  :
-      static       : ['getPlans', 'setUserAccount', 'getUserAccount']
+      static       : [
+        'getPlans',
+        'setUserAccount', 'getUserAccount', 'getUserTransactions'
+      ]
       instance     : []
     schema         :
       code         : String
@@ -42,7 +45,11 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   @getUserAccount = secure (client, callback)->
     {delegate}    = client.connection
-    payment.getAccount "user_#{delegate.profile.nickname}", callback    
+    payment.getAccount "user_#{delegate.profile.nickname}", callback
+
+  @getUserTransactions = secure (client, callback)->
+    {delegate}    = client.connection
+    payment.getUserTransactions "user_#{delegate.profile.nickname}", callback
 
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
