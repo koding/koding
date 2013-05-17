@@ -416,32 +416,32 @@ module.exports = class JInvitation extends jraphical.Module
                       @sendInviteEmail invite,client,customMessage,limit,callback
 
   @createViaGroup = secure (client, group, emails, callback=->)->
-      {delegate} = client.connection
-      emails.forEach (email)=>
-        selector =
-          inviteeEmail : email
-          group        : group.slug
+    {delegate} = client.connection
+    emails.forEach (email)=>
+      selector =
+        inviteeEmail : email
+        group        : group.slug
 
-        JInvitation.one selector, (err, existingInvite)=>
-          return callback err if err
-          if existingInvite
-            @sendEmailForInviteViaGroup client, existingInvite, group, callback
-          else
-            code = @generateInvitationCode email, group.slug
-            invite = new JInvitation
-              code         : code
-              maxUses      : 1
-              inviteeEmail : email
-              origin       : ObjectRef(delegate)
-              group        : group.slug
+      JInvitation.one selector, (err, existingInvite)=>
+        return callback err if err
+        if existingInvite
+          @sendEmailForInviteViaGroup client, existingInvite, group, callback
+        else
+          code = @generateInvitationCode email, group.slug
+          invite = new JInvitation
+            code         : code
+            maxUses      : 1
+            inviteeEmail : email
+            origin       : ObjectRef(delegate)
+            group        : group.slug
 
-            invite.save (err)=>
-              if err then callback err
-              else
-                invite.addInvitedBy delegate, (err)=>
-                  if err then callback err
-                  else
-                    @sendEmailForInviteViaGroup client, invite, group, callback
+          invite.save (err)=>
+            if err then callback err
+            else
+              invite.addInvitedBy delegate, (err)=>
+                if err then callback err
+                else
+                  @sendEmailForInviteViaGroup client, invite, group, callback
 
   redeem:secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}

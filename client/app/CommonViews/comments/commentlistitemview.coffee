@@ -56,6 +56,9 @@ class CommentListItemView extends KDListItemView
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
+    data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
+    data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
+
   applyTooltips:->
     @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""

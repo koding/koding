@@ -98,14 +98,14 @@ module.exports = class CActivity extends jraphical.Capsule
     {to, from, lowQuality, types, limit, sort} = options
 
     selector =
-      # group        : 'koding'
+      group        : 'koding'
       createdAt    :
         $lt        : new Date to
         $gt        : new Date from
       type         :
         $in        : types
       isLowQuality :
-        $ne        : lowQuality
+        $ne        : not lowQuality
 
     fields  =
       type      : 1
@@ -192,13 +192,14 @@ module.exports = class CActivity extends jraphical.Capsule
                                  'sorts.likesCount'   : meta?.likes or 0
                               CActivity.update {_id}, op, -> queue.fin()
 
-  fetchTeaser:(callback)->
+  fetchTeaser:(callback, showIsLowQuality=no)->
     @fetchSubject (err, subject)->
       if err
         callback err
       else
         subject.fetchTeaser (err, teaser)->
           callback err, teaser
+        , showIsLowQuality
 
   @teasers =(selector, options, callback)->
     [callback, options] = [options, callback] unless callback
@@ -220,7 +221,6 @@ module.exports = class CActivity extends jraphical.Capsule
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
       {to, limit, facets, lowQuality, originId} = options
-
       lowQuality  ?= yes
       facets      ?= defaultFacets
       to          ?= Date.now()
@@ -228,10 +228,10 @@ module.exports = class CActivity extends jraphical.Capsule
       selector =
         type         : { $in : facets }
         createdAt    : { $lt : new Date to }
-        isLowQuality : { $ne : lowQuality }
         group        : client.groupName ? 'koding'
 
       selector.originId = originId if originId
+      selector.isLowQuality = $ne : yes unless lowQuality
 
       options =
         limit : limit or 20
@@ -272,3 +272,13 @@ module.exports = class CActivity extends jraphical.Capsule
           likedIds.push likedRel.sourceId
 
         callback err, likedIds
+
+  notifyCache = (event, contents)->
+    routingKey = contents.group or 'koding'
+    @emit 'cacheWorker', {routingKey, event, contents}
+
+  @on 'ActivityIsCreated', notifyCache.bind this, 'ActivityIsCreated'
+  @on 'PostIsUpdated',     notifyCache.bind this, 'PostIsUpdated'
+  @on 'PostIsDeleted',     notifyCache.bind this, 'PostIsDeleted'
+  @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
+  @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'

@@ -43,6 +43,9 @@ class MainController extends KDController
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
 
+    # appManager.create 'Chat', (chatController)->
+    #   KD.registerSingleton "chatController", chatController
+
     @appReady =>
       router.listen()
       KD.registerSingleton "activityController", new ActivityController
@@ -96,39 +99,39 @@ class MainController extends KDController
 
     {entryPoint} = KD.config
     slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
-    KD.remote.cacheable slug, (err, [group])->
+    KD.remote.cacheable slug, (err, [group])=>
       return warn err  if err
-      group.fetchMyRoles (err, roles)->
+      group.fetchMyRoles (err, roles)=>
         return warn err  if err
         KD.config.roles = roles
 
-    @accountReady @emit.bind @, "AccountChanged", account, firstLoad
+        @accountReady @emit.bind @, "AccountChanged", account, firstLoad
 
-    unless @mainViewController
+        unless @mainViewController
 
-      @loginScreen = new LoginView
-      KDView.appendToDOMBody @loginScreen
+          @loginScreen = new LoginView
+          KDView.appendToDOMBody @loginScreen
 
-      @mainViewController  = new MainViewController
-        view    : mainView = new MainView
-          domId : "kdmaincontainer"
+          @mainViewController  = new MainViewController
+            view    : mainView = new MainView
+              domId : "kdmaincontainer"
 
-      KDView.appendToDOMBody mainView
+          KDView.appendToDOMBody mainView
 
-      @appReady()
+          @appReady()
 
-    @decorateBodyTag()
+        @decorateBodyTag()
 
-    eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
-    eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
+        eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
+        eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
 
-    # this emits following events
-    # -> "pageLoaded.as.loggedIn"
-    # -> "pageLoaded.as.loggedOut"
-    # -> "accountChanged.to.loggedIn"
-    # -> "accountChanged.to.loggedOut"
+        # this emits following events
+        # -> "pageLoaded.as.loggedIn"
+        # -> "pageLoaded.as.loggedOut"
+        # -> "accountChanged.to.loggedIn"
+        # -> "accountChanged.to.loggedOut"
 
-    @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
+        @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
   doLogout:->
 

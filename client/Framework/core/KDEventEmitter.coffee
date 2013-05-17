@@ -19,7 +19,7 @@ class KDEventEmitter
   _unregisterEvent = (registry, eventName, callback)->
     if eventName is "*"
       registry = {}
-    # reset the listener container so no event
+    # reset the listener container so no event3
     # will be propagated to previously registered
     # listener callbacks.
     else if callback and registry[eventName]
