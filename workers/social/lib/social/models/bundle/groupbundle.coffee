@@ -27,9 +27,9 @@ module.exports = class JGroupBundle extends JBundle
       ram             : { unit: 'GB',   quota: 0.25 }
       disk            : { unit: 'GB',   quota: 0.5 }
       users           : { unit: 'user', quota: 20 }
-      cpuPerUser      : { unit: 'core', quota: 0 }
-      ramPerUser      : { unit: 'GB',   quota: 0 }
-      diskPerUser     : { unit: 'GB',   quota: 0 }
+      cpuPerUser      : { unit: 'core', quota: 0, title: 'cpu per user' }
+      ramPerUser      : { unit: 'GB',   quota: 0, title: 'ram per user' }
+      diskPerUser     : { unit: 'GB',   quota: 0, title: 'disk per user' }
     schema            :
       overagePolicy   :
         type          : String
