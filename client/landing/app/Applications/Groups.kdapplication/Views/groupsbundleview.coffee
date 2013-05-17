@@ -30,14 +30,14 @@ class GroupsBundleEditView extends JView
     disk  : 0.5
 
   computeUnitVisibility =
-    users       : yes
-    vms         : yes
-    cpu         : no
-    ram         : no
-    disk        : no
-    cpuPerUser  : no
-    ramPerUser  : no
-    diskPerUser : no
+    'users'         : yes
+    'vms'           : yes
+    'cpu'           : no
+    'ram'           : no
+    'disk'          : no
+    'cpu per user'  : no
+    'ram per user'  : no
+    'disk per user' : no
 
   mapPlansToRadios: (plan) ->
     @plansByCode[plan.code] = plan
@@ -79,6 +79,8 @@ class GroupsBundleEditView extends JView
     @plansByCode = {}
 
     JGroupBundle.fetchPlans (err, plans) =>
+
+      # TODO: DRY
 
       @computePlans.addSubView computePlans = new KDInputRadioGroup
         name    : 'computePlan'
@@ -249,18 +251,23 @@ class GroupsBundleEditView extends JView
 #     console.log this
 #     @emit 'update'
 
-class GroupsBundleLimitPerUserView extends JView
+# class GroupsBundleLimitPerUserView extends JView
 
-  pistachio: ->
-    """
-    {h2{#(title)}}
-    {h3{#(usage)}}
-    <h3>/</h3>
-    <h3>{.per-user{#(perUserQuota)}} - {.total{#(quota)}}</h3>
-    {h4{#(unit)}}
-    """
+#   pistachio: ->
+#     """
+#     {h2{#(title)}}
+#     {h3{#(usage)}}
+#     <h3>/</h3>
+#     <h3>{.per-user{#(perUserQuota)}} - {.total{#(quota)}}</h3>
+#     {h4{#(unit)}}
+#     """
 
 class GroupsBundleLimitView extends JView
+
+  click:->
+    limit = @getData()
+    limit.quota = prompt 'enter a value', limit.quota
+    limit.emit 'update'
 
   pistachio: ->
     """
