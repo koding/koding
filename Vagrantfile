@@ -74,7 +74,6 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest =>  5672, :host => 5672  # rabbitmq
     default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
     default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
-    
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"

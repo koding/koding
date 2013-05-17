@@ -13,8 +13,6 @@ module.exports = class FetchAllActivityParallel
     @overviewObjects      = []
     @newMemberBucketIndex = null
 
-    console.log "constructor", @neo4j, @startDate
-
   get:(callback)->
     methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls]
     holder = []
@@ -23,8 +21,6 @@ module.exports = class FetchAllActivityParallel
       callback @decorateAll(err, results)
 
   fetchSingles:(callback)->
-    console.log "fetchSingles", @neo4j, @startDate, @randomIdToOriginal
-
     graph = new Graph @neo4j
     graph.fetchAll @startDate, (err, rawResponse)->
       GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
@@ -60,6 +56,11 @@ module.exports = class FetchAllActivityParallel
         randomId = @generateUniqueRandomKey()
         @randomIdToOriginal[key] = randomId
         value._id = randomId
+
+        oldSnapshot = JSON.parse(value.snapshot)
+        oldSnapshot._id = randomId
+        value.snapshot = JSON.stringify oldSnapshot
+
         @cacheObjects[randomId] = value
 
       for activity in objects.overview
@@ -76,6 +77,10 @@ module.exports = class FetchAllActivityParallel
     return {}  if overview.length is 0
 
     overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
+
+    # TODO: we're throwing away results if more than 20, ideally we'll only
+    # get the right number of results
+    overview = overview[-20..overview.length]
 
     for activity, index in overview when activity.type is "CNewMemberBucketActivity"
       @newMemberBucketIndex = index

@@ -98,10 +98,11 @@ authenticationFailed = (res, err)->
 
 FetchAllActivityParallel = require './graph/fetch'
 fetchFromNeo = (req, res)->
-  timestamp  = if req.params?.timestamp? then parseInt(req.params.timestamp, 10) else new Date
-  startDate = (new Date timestamp).toISOString()
+  timestamp  = req.params?.timestamp
+  rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+  startDate  = Math.floor(rawStartDate/1000)
 
-  console.log req.params, timestamp, startDate
+  console.log "fetchFromNeo", req.params.timestamp, rawStartDate, startDate
 
   fetch = new FetchAllActivityParallel startDate, neo4j
   fetch.get (results)->
@@ -173,7 +174,7 @@ app.get "/-/kite/login", (req, res) ->
                   host      : 'localhost'
                   rabbitkey : key
 
-                apiServer   = 'api.x.koding.com'
+                apiServer   = 'kontrol.in.koding.com'
                 proxyServer = 'proxy.in.koding.com'
                 # local development
                 # apiServer   = 'localhost:8000'
@@ -296,12 +297,10 @@ error_404 =->
 error_500 =->
   error_ 500, 'internal server error'
 
-app.get '/koding', (req, res)->
-  res.redirect 302, '/'
-
 app.get '/:name/:section?*', (req, res, next)->
   {JGroup, JName, JSession} = koding.models
   {name} = req.params
+  return res.redirect 302, req.url.substring 7  if name is 'koding'
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
     next()
@@ -310,8 +309,7 @@ app.get '/:name/:section?*', (req, res, next)->
       if err then next err
       else unless models? then res.send 404, error_404()
       else
-        {clientId} = req.cookies
-        models[models.length-1].fetchHomepageView clientId, (err, view)->
+        models[models.length-1].fetchHomepageView (err, view)->
           if err then next err
           else if view? then res.send view
           else res.send 500, error_500()
@@ -346,19 +344,8 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    {clientId} = req.cookies
-    unless clientId then serve page(), res
-    else
-      errCb = (err)->
-        console.error err
-        serve page(), res
-
-      {JGroup} = koding.models
-      JGroup.one slug:'koding', (err, group)->
-        return errCb err  if err
-        group.fetchRolesByClientId clientId, (err, roles)->
-          return errCb err  if err
-          serve page(roles), res
+    defaultTemplate = require './staticpages'
+    serve defaultTemplate, res
 
 ###
 app.get "/-/kd/register/:key", (req, res)->

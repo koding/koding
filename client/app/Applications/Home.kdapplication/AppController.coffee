@@ -23,3 +23,13 @@ class HomeAppController extends AppController
     super options,data
 
   loadView:(mainView)->
+
+  createContentDisplayWithOptions:(options, callback)->
+    {model, route, query} = options
+
+    controller = @getSingleton 'contentDisplayController'
+    switch route
+      when 'About'
+        contentDisplay = new AboutView
+        controller.emit 'ContentDisplayWantsToBeShown', contentDisplay
+        callback contentDisplay

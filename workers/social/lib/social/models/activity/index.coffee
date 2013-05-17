@@ -35,12 +35,11 @@ module.exports = class CActivity extends jraphical.Capsule
 
     permissions             :
       'read activity'       : ['guest','member','moderator']
-
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets',
-        'checkIfLikedBefore', 'fetchFolloweeContents', 'count'
+        'checkIfLikedBefore', 'count', 'fetchFolloweeContents'
       ]
       instance        : ['fetchTeaser']
     schema            :

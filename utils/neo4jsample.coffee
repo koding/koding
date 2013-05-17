@@ -1,5 +1,5 @@
 neo4j = require "neo4j"
-db = new neo4j.GraphDatabase('http://kgraphdb1.in.koding.com:7474');
+db = new neo4j.GraphDatabase('http://localhost:7474');
 # db = new neo4j.GraphDatabase('http://neo4j-dev:7474');
 
   # name: 'JAccount',
@@ -75,7 +75,6 @@ query = [
   # 'order by koding.`meta.createdAt` DESC'
   'limit 10'
 ].join('\n');
-console.log query
 # query = [
 #   'start koding=node:koding(\'id:*\')'
 #   'where koding.name = "JTutorial"'
@@ -94,30 +93,26 @@ console.log query
 groupId : "5150c743f2589b107d000007"
 
 query = [
-  # 'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
-  'START koding=node:koding(id={groupId})'
-  'MATCH koding-[:member]->members<-[:author]-content'
-  'WHERE koding.name = "JTutorial"'
-  ' or content.name = "JCodeSnip"'
-  ' or content.name = "JDiscussion"'
-  ' or content.name = "JBlogPost"'
-  ' or content.name = "JStatusUpdate"'
-  ' and has(content.`meta.createdAt`)'
-  ' and koding.`meta.createdAt` < {startDate}'
+
+  'start  kd=node:koding(id={groupId})'
+  'MATCH  kd-[:member]->users<-[r:user]-koding'
+  'where koding.name="JApp"'
+  'and koding.`meta.createdAtEpoch` < {startDate}'
   'return *'
-  'order by content.`meta.createdAt` DESC'
+  'order by r.createdAtEpoch DESC'
   'limit 10'
 ].join('\n');
 
+console.log query
 params =
   groupId   : "5150c743f2589b107d000007"
-  startDate : "2013-05-15T22:06:38Z"
+  startDate : 1352435032
 
 
 db.query query, params, (err, results) ->
   if err then throw err;
   for result in results
-    console.log result.content.data
+    console.log result
     # console.log result
 
   # koding = results.map (res) ->

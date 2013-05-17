@@ -242,7 +242,7 @@ module.exports = class Builder
     index = index.replace "css/kd.css", "css/kd.#{@config.client.version}.css?" + Date.now()
     index = index.replace "rollbar-env", @getEnvForRollbar()
     index = index.replace "rollbar-version", @config.client.version
-    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag() # entryPoint: 'koding'
+    index = index.replace '<!--KONFIG-->', @config.getConfigScriptTag(roles:[]) # entryPoint: 'koding'
     if @config.client.useStaticFileServer is no
       st = "https://api.koding.com"  # CHANGE THIS TO SOMETHING THAT MAKES SENSE tbd
       index = index.replace ///#{st}///g,""

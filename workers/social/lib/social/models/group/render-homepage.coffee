@@ -1,4 +1,4 @@
-module.exports = ({slug, title, content, body, avatar, counts, policy, roles, customize})->
+module.exports = ({slug, title, content, body, avatar, counts, policy, customize})->
 
   content ?= getDefaultGroupContents(title)
 
@@ -94,7 +94,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, roles, cu
     </section>
   </div>
 
-  #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group" }, roles: roles}}
+  #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group"}, roles:[]}}
   #{getScripts()}
   </body>
   </html>

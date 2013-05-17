@@ -232,13 +232,12 @@ class ActivityListController extends KDListViewController
   addItem:(activity, index, animation) ->
     dataId = activity.getId?()
 
-    #if dataId?
-      #if @itemsIndexed[dataId]
-        #log "duplicate entry", activity.bongo_?.constructorName, dataId
-      #else
-        #@itemsIndexed[dataId] = activity
-
-    super(activity, index, animation)
+    if dataId?
+      if @itemsIndexed[dataId]
+        log "duplicate entry", activity.bongo_?.constructorName, dataId
+      else
+        @itemsIndexed[dataId] = activity
+        super(activity, index, animation)
 
   ownActivityArrived:(activity)->
 
