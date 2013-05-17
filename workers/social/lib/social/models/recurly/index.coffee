@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
+JUser = require '../user'
+payment = require 'koding-payment'
 
-#
 forceRefresh = yes
 
 module.exports = class JRecurlyPlan extends jraphical.Module
@@ -13,7 +14,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     indexes:
       code         : 'unique'
     sharedMethods  :
-      static       : ['getPlans']
+      static       : ['getPlans', 'setUserAccount', 'getUserAccount']
       instance     : []
     schema         :
       code         : String
@@ -27,6 +28,21 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         item       : String
         version    : Number
       lastUpdate   : Number
+
+  @setUserAccount = secure (client, data, callback)->
+    {delegate}    = client.connection
+
+    data.ipAddress = '0.0.0.0'
+    data.firstName = delegate.profile.firstName
+    data.lastName = delegate.profile.lastName
+
+    JUser.fetchUser client, (e, r) ->
+      data.email = r.email
+      payment.setAccount "user_#{delegate.profile.nickname}", data, callback
+
+  @getUserAccount = secure (client, callback)->
+    {delegate}    = client.connection
+    payment.getAccount "user_#{delegate.profile.nickname}", callback    
 
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
@@ -53,7 +69,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   # Recurly web hook will use this method to invalidate the cache.
   @updateCache = (callback)->
     console.log "Updating Recurly plans..."
-    payment = require 'koding-payment'
 
     payment.getPlans (err, allPlans)->
       mapAll = {}
