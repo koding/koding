@@ -107,7 +107,7 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-      
+
     KD.getSingleton("appManager").tell section, method, options ? models,
       (contentDisplay)=>
         routeWithoutParams = route.split('?')[0]
@@ -186,12 +186,12 @@ class KodingRouter extends KDRouter
     clear = @bound 'clear'
 
     requireLogin =(fn)->
-      mainController.accountReady ->
+      mainController.ready ->
         if KD.isLoggedIn() then __utils.defer fn
         else clear()
 
     requireLogout =(fn)->
-      mainController.accountReady ->
+      mainController.ready ->
         unless KD.isLoggedIn() then __utils.defer fn
         else clear()
 
