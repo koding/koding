@@ -98,7 +98,7 @@ module.exports = class CActivity extends jraphical.Capsule
     {to, from, lowQuality, types, limit, sort} = options
 
     selector =
-      # group        : 'koding'
+      group        : 'koding'
       createdAt    :
         $lt        : new Date to
         $gt        : new Date from
