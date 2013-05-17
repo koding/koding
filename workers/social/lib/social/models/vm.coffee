@@ -51,22 +51,21 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  # @createVm = (target, groupSlug, limit, callback)->
-  #   unless 0 < limit.getValue()
-  #     callback new KodingError 'Quota exceeded'
-  #   else
-  #     target.fetchUser (err, user)->
-  #       return callback err  if err
-  #       { usage } = limit
-  #       vm = new JVM {
-  #         name: "#{user.username}#{unless usage then '' else "~#{usage}"}"
-  #         users: [{ id: user.getId(),  sudo: yes }]
-  #       }
-  #       vm.save (err)->
-  #         return callback err  if err
-  #         limit.update {$inc: usage: 1}, (err)->
-  #           return callback err  if err
-  #           callback null, vm
+  @createVm = ({account, groupSlug, usage}, callback)->
+    JGroup = require '../group'
+    JGroup.one {slug: groupSlug}, (err, group) ->
+      return callback err  if err
+      account.fetchUser (err, user) ->
+        return callback err  if err
+        vm = new JVM {
+          name    : "#{groupSlug}~#{user.username}"
+          users   : [{ id: user.getId(), sudo: yes }]
+          groups  : [{ id: group.getId() }]
+          usage
+        }
+        vm.save (err) ->
+          return callback err  if err
+          callback null, vm
 
   # @create = permit 'create vms',
   #   success: (client, callback) ->
