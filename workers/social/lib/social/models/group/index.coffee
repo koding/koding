@@ -289,7 +289,11 @@ module.exports = class JGroup extends Module
             group.slug  = slug.slug
             group.slug_ = slug.slug
             queue.next()
-        -> save_ 'group', group, queue, callback
+        -> save_ 'group', group, queue, (err)->
+           if err
+             JName.release group.slug, => callback err
+           else
+             queue.next()
         -> group.addMember delegate, (err)->
             if err then callback err
             else
