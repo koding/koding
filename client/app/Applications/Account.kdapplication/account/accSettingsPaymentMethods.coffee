@@ -113,7 +113,7 @@ class AccountPaymentMethodsListController extends KDListViewController
             type         : res.cardType
             cardNumber   : res.cardNumber
             cardExpiry   : res.cardMonth + '/' + res.cardYear
-            cardAddress  : res.address1 + '<br>' + res.address2
+            cardAddress  : res.address1 + ' ' + res.address2
             cardCity     : res.city
             cardState    : res.state
             cardZip      : res.zip
@@ -287,7 +287,7 @@ class AccountPaymentMethodsListItem extends KDListItemView
   partial:(data)->
     """
       <div class="credit-card-info">
-        <p class="lightText"><strong>#{data.type}</strong></p>
+        <p class="lightText"><strong>#{data.title} - #{data.type}</strong></p>
         <p class="lightText"><strong>#{data.cardNumber}</strong> - <strong>#{data.cardExpiry}</strong></p>
         <p class="darkText">
           #{data.cardAddress}<br>
