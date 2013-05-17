@@ -224,7 +224,7 @@ func (vm *VM) MountRBD(mountDir string) error {
 			return commandError("rbd info failed.", err, out)
 		}
 
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String(), "--format", "2").CombinedOutput(); err != nil {
+		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
 			return commandError("rbd create failed.", err, out)
 		}
 
