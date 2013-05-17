@@ -28,11 +28,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         version    : Number
       lastUpdate   : Number
 
-  @create = (data, callback)->
-    recurlyPlan = new JRecurlyPlan
-    recurlyPlan.lastUpdate = new Date()
-    recurlyPlan.save -> callback
-
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
     selector = {}
