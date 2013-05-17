@@ -43,8 +43,8 @@ class MainController extends KDController
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
 
-    appManager.create 'Chat', (chatController)->
-      KD.registerSingleton "chatController", chatController
+    # appManager.create 'Chat', (chatController)->
+    #   KD.registerSingleton "chatController", chatController
 
     @appReady =>
       router.listen()
