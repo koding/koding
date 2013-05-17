@@ -190,8 +190,8 @@ app.get "/-/kite/login", (req, res) ->
                   password  : data.password
                   vhost     : mq.vhost
                 console.log creds
-                res.status 200
-                res.send creds
+                res.header "Content-Type", "application/json"
+                res.send 200, JSON.stringify creds
 
 # gate for kd
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
