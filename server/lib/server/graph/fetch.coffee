@@ -65,8 +65,6 @@ module.exports = class FetchAllActivityParallel
         value._id = randomId
 
         if @bucketNames()[value.type]
-          console.log "decorateAll", value.type
-
           oldSnapshot = JSON.parse(value.snapshot)
           oldSnapshot._id = randomId
           value.snapshot = JSON.stringify oldSnapshot
