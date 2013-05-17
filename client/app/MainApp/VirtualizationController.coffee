@@ -4,14 +4,9 @@ class VirtualizationController extends KDController
     super
 
     @kc = KD.singletons.kiteController
-
-    @lastState =
-      state    : 'STOPPED'
-
     @dialogIsOpen = no
 
-  run:(command, callback)->
-
+  run:(vm, command, callback)->
     KD.requireLogin
       callback : =>
         @askForApprove command, (approved)=>
@@ -21,31 +16,42 @@ class VirtualizationController extends KDController
             @kc.run
               kiteName : 'os'
               method   : command
+              vmName   : vm
             , cb
-          else unless command is 'vm.info' then @info()
+          else unless command is 'vm.info' then @info vm
       onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
       onFail    : =>
         unless command is 'vm.info' then callback yes
         else callback null, state: 'STOPPED'
       silence   : yes
 
-  start:(callback)->
-    @run 'vm.start', callback
+  _runWraper:(command, vm, callback)->
+    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    vm or= @getDefaultVmName vm
+    @run vm, command, callback
 
-  stop:(callback)->
-    @run 'vm.stop', callback
+  start:(vm, callback)->
+    @_runWraper 'vm.start', vm, callback
 
-  reinitialize:(callback)->
-    @run 'vm.reinitialize', callback
+  stop:(vm, callback)->
+    @_runWraper 'vm.stop', vm, callback
 
-  info:(callback)->
-    @run 'vm.info', (err, info)=>
-      unless err then @lastState = info
-      else warn "[VM]", err
+  reinitialize:(vm, callback)->
+    @_runWraper 'vm.reinitialize', vm, callback
 
-      @emit 'StateChanged', err, info
-      callback? err, info
+  info:(vm, callback)->
+    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    vm or= @getDefaultVmName vm
+    @_runWraper 'vm.info', vm, (err, info)=>
+      warn "[VM-#{vm}]", err  if err
+      @emit 'StateChanged', err, vm, info
+      callback? err, vm, info
     , no
+
+  getDefaultVmName:->
+    currentGroup = (KD.getSingleton 'groupsController').getGroupSlug()
+    if not currentGroup or currentGroup is 'koding' then KD.nick()
+    else currentGroup
 
   # fixme GG!
   getTotalVMCount:(callback)->
@@ -54,7 +60,6 @@ class VirtualizationController extends KDController
   # fixme GG!
   getTotalLoC:(callback)->
     callback null, "776M+"
-
 
   _cbWrapper:(callback)->
     return (rest...)=>
