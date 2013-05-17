@@ -293,8 +293,13 @@ class ActivityAppController extends AppController
 
   fetchCachedActivity:(options = {}, callback)->
 
+    urlPrefix = "cache"
+
+    if KD.config.useNeo4j
+      urlPrefix = "neo4j"
+
     $.ajax
-      url     : "/-/cache/#{options.slug or 'latest'}"
+      url     : "/-/#{urlPrefix}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
       success : (cache)=>
