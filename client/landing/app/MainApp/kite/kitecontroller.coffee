@@ -89,10 +89,12 @@ class KiteController extends KDController
     options.method   or= "exec"
     # options.correlationName or= currentGroupName
 
-    kite = @getKite options.kiteName,
-      if not currentGroupName or currentGroupName is 'koding'
-      then KD.whoami().profile.nickname
-      else currentGroupName
+    vmName = if options.vmName then options.vmName \
+             else if not currentGroupName or currentGroupName is 'koding'
+             then KD.whoami().profile.nickname
+             else currentGroupName
+
+    kite = @getKite options.kiteName, vmName
 
     if command
       options.withArgs = command
