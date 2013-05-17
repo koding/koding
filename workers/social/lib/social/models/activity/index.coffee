@@ -220,7 +220,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
-      {to, limit, facets, lowQuality, originId} = options
+      {to, limit, facets, lowQuality, originId, sort, skip} = options
       lowQuality  ?= yes
       facets      ?= defaultFacets
       to          ?= Date.now()
@@ -234,8 +234,9 @@ module.exports = class CActivity extends jraphical.Capsule
       selector.isLowQuality = $ne : yes unless lowQuality
 
       options =
-        limit : limit or 20
-        sort  : createdAt : -1
+        limit : limit ? 20
+        sort  : sort  or createdAt : -1
+        skip  : skip  ? 0
 
       @some selector, options, (err, activities)->
         if err then callback err
