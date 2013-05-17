@@ -20,7 +20,7 @@ module.exports = class JVM extends Model
       'list all vms'    : ['member','moderator']
       'list default vm' : ['member','moderator']
     sharedMethods       :
-      static            : ['fetchVmsByContext','calculateUsage']#,'create']
+      static            : ['fetchVms','fetchVmsByContext','calculateUsage']
       instance          : []
     schema              :
       ip                :
