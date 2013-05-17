@@ -15,8 +15,13 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       type: "filterme"
       itemClass: FilterActivityItem
     , @filterMenuData
-    @addSubView filterFirstController.getView()
-    filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
+
+    console.log("KONFIG", JSON.stringify(KD.config))
+
+    useNeo4j = false
+    if useNeo4j
+      @addSubView filterFirstController.getView()
+      filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
 
     filterController = @setListController
       type : "showme"
