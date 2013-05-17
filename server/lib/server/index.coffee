@@ -180,7 +180,7 @@ app.get "/-/kite/login", (req, res) ->
           when 'openservice'
             rabbitAPI.newUser key, name, (err, data) =>
               if err?
-                console.log "ERROR", error
+                console.log "ERROR", err
                 res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
               else
                 creds =
