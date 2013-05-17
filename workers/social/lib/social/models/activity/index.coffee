@@ -37,9 +37,11 @@ module.exports = class CActivity extends jraphical.Capsule
       'read activity'       : ['guest','member','moderator']
     sharedMethods     :
       static          : [
+        'fetchPublicContents',
         'one','some','someData','each','cursor','teasers'
-        'captureSortCounts','addGlobalListener','fetchFacets',
-        'checkIfLikedBefore', 'count', 'fetchFolloweeContents'
+        'captureSortCounts','addGlobalListener','fetchFacets'
+        'checkIfLikedBefore', 'count'
+        'fetchFolloweeContents'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -256,6 +258,44 @@ module.exports = class CActivity extends jraphical.Capsule
               activities[index].snapshot = activities[index].snapshot.replace(/(&quot;)/g, '\\"')
 
           callback null, activities
+
+
+
+  @fetchPublicContents:(params={}, callback)->
+
+    console.log("fetching contents from nee4j for public !!!", JSON.stringify(params))
+
+    params['groupId'] ||= "5150c743f2589b107d000007"
+    params['resultlimit'] ||= 10
+
+    query = [
+      'START koding=node:koding(id={groupId})'
+      'MATCH koding-[:member]->members<-[:author]-items'
+      'WHERE has(items.`meta.createdAtEpoch`)'
+    ]
+
+    if params['facets'][0][0] == 'J'
+      if params['facets'][0] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
+                             "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
+        throw new Exception("Wrong object type")
+
+      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets'][0]) )
+
+
+    if params['to']
+      ts = Math.floor(params['to'] / 1000)
+      query.push('AND items.`meta.createdAtEpoch` < {{created_at}}'.replace("{{created_at}}", ts))
+
+    query = query.concat([
+             'return items'
+             'order by items.`meta.createdAtEpoch` DESC'
+             'LIMIT {resultlimit}'
+            ])
+    query = query.join('\n')
+    console.log("------------------------------")
+    console.log(query)
+    console.log("------------------------------")
+    neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   @fetchFolloweeContents:(params={}, callback)->
 

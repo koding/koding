@@ -255,13 +255,20 @@ class ActivityAppController extends AppController
     if fetchfromneo
       options['filterType'] = @filterType
       console.log("KD.remote.api.CActivity.fetchFolloweeContents - " + JSON.stringify(options) )
-
-      KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
-        if err
-          console.log("err" + err)
-          callback err
-        else
-          callback null, activities
+      if @filterType == "Public"
+        KD.remote.api.CActivity.fetchPublicContents options, (err, activities)->
+          if err
+            console.log("err" + err)
+            callback err
+          else
+            callback null, activities
+      else
+        KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
+          if err
+            console.log("err" + err)
+            callback err
+          else
+            callback null, activities
     else
       console.log("calling KD.remote.api.CActivity.fetchFacets - ")
       KD.remote.api.CActivity.fetchFacets options, (err, activities)->
