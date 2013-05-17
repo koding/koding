@@ -50,6 +50,13 @@ module.exports = class FetchAllActivityParallel
       GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
+  bucketNames:->
+    return {
+      "CFollowerBucketActivity"  : true
+      "CInstallerBucketActivity" : true
+      "CNewMemberBucketActivity" : true
+    }
+
   decorateAll: (err, decoratedObjects)->
     for objects in decoratedObjects
       for key, value of objects when key isnt "overview"
@@ -57,9 +64,12 @@ module.exports = class FetchAllActivityParallel
         @randomIdToOriginal[key] = randomId
         value._id = randomId
 
-        oldSnapshot = JSON.parse(value.snapshot)
-        oldSnapshot._id = randomId
-        value.snapshot = JSON.stringify oldSnapshot
+        if @bucketNames()[value.type]
+          console.log "decorateAll", value.type
+
+          oldSnapshot = JSON.parse(value.snapshot)
+          oldSnapshot._id = randomId
+          value.snapshot = JSON.stringify oldSnapshot
 
         @cacheObjects[randomId] = value
 
