@@ -23,7 +23,7 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 	rabbitClient := userInfo.Username + "-" + userInfo.Servicename + "-" + rabbitKey
 
 	if _, ok := connections[rabbitClient]; !ok {
-		queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
+		queue, err := amqpStream.channel.QueueDeclare("", false, true, true, false, nil)
 		if err != nil {
 			return nil, err
 		}

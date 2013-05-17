@@ -138,7 +138,6 @@ class ActivityListController extends KDListViewController
     @checkIfLikedBefore activityIds
 
     @lastItemTimeStamp = cache.from
-    console.log "lastItemTimeStamp", @lastItemTimeStamp
 
     KD.logToMixpanel "populateActivity.cache.success", 5
 

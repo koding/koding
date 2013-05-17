@@ -36,7 +36,7 @@ module.exports = deepFreeze
     enabled     : no
     host        : "http://kgraphdb1.in.koding.com"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes

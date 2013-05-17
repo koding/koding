@@ -276,19 +276,19 @@ class MembersAppController extends AppController
     selector = {}
     KD.remote.api.JAccount.someWithRelationship selector, options, callback
 
-#  fetchSomeMembers:(options = {}, callback)->
-#
-#    options.limit or= 6
-#    options.skip  or= 0
-#    options.sort  or= "meta.modifiedAt" : -1
-#    selector        = options.selector or {}
-#
-#    console.log {selector}
-#
-#    delete options.selector if options.selector
-#
-#    KD.remote.api.JAccount.byRelevance selector, options, callback
-#
+  fetchSomeMembers:(options = {}, callback)->
+
+    options.limit or= 6
+    options.skip  or= 0
+    options.sort  or= "meta.modifiedAt" : -1
+    selector        = options.selector or {}
+
+    console.log {selector}
+
+    delete options.selector if options.selector
+
+    KD.remote.api.JAccount.byRelevance selector, options, callback
+
 
 class MembersListViewController extends KDListViewController
   # _windowDidResize:()->
