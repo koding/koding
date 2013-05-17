@@ -297,11 +297,11 @@ module.exports = class CActivity extends jraphical.Capsule
     console.log("------------------------------")
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
-  @fetchFolloweeContents:(params={}, callback)->
-
-    console.log("fetching contents from nee4j !!!", JSON.stringify(params))
-
-    params['userId'] ||= "502348600a6f5e381a000005"
+  @fetchFolloweeContents: secure (client, params, callback)->
+    console.log("fetching contents from neo4j !!!", JSON.stringify(client))
+    #"502348600a6f5e381a000005"
+    # TODO: ??? connection.getId or something ???
+    params['userId'] = client.connection.delegate._id
     params['resultlimit'] ||= 10
     query = ['start koding=node:koding(id={userId})'
              'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
