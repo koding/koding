@@ -128,8 +128,7 @@ class KDTooltip extends KDView
       @avoidDestroy = no
       @delayedRemove()
 
-    @on 'ReceivedClickElsewhere', =>
-      @delayedRemove 0
+    @on 'ReceivedClickElsewhere', @bound "remove"
 
   isCurrentlyRemovable:-> @avoidDestroy
 
