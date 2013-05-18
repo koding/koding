@@ -99,6 +99,7 @@ koding.on 'authenticateUser', (client, callback)->
 
 #     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
+  (require './init').init koding
 
   # create default roles for groups
   JGroupRole = require './models/group/role'
