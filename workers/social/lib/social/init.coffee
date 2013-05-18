@@ -43,27 +43,29 @@ initKodingGroup = ->
   fin = dash continuation, kodingAdmins.map (userData) -> ->
 
     JUser.createUser userData, (err, user, account) ->
+      JUser.emit 'UserCreated', user
       error err  if err
       adminAccounts.push account
       fin()
 
 init = ->
   console.log 'init'
-  initGuests()
+  # initGuests()
 
 exports.init = (koding) ->
+  console.warn 'Initialization code is temporarily disabled.'
   # JGroup = require './models/group'
   # JGroup.count (err, count) ->
   #   return console.error err  if err
   #   initKodingGroup()  if count is 0
   # If we need to create initialize the DB, do it now:
-  counter = (require 'koding-counter') {
-    db          : koding.getClient()
-    counterName : 'dbinit'
-  }
-  counter.reset -> counter.count (err, count) ->
-    throw err  if err
-    if count is 0
-      counter.next (err, seq) ->
-        throw err  if err
-        init()
+  # counter = (require 'koding-counter') {
+  #   db          : koding.getClient()
+  #   counterName : 'dbinit'
+  # }
+  # counter.reset -> counter.count (err, count) ->
+  #   throw err  if err
+  #   if count is 0
+  #     counter.next (err, seq) ->
+  #       throw err  if err
+  #       init()
