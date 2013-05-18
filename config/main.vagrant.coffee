@@ -26,11 +26,10 @@ module.exports =
     port        : 3526
   mongo         : mongo
   neo4j         :
-    enabled     : yes
   #  host        : "http://kgraphdb1.in.koding.com"
     host        : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
@@ -92,6 +91,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost'
     runtimeOptions:
+      useNeo4j: no
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no

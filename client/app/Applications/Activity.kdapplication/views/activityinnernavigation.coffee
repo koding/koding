@@ -16,10 +16,9 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       itemClass: FilterActivityItem
     , @filterMenuData
 
-    console.log("KONFIG", JSON.stringify(KD.config))
+    console.log(JSON.stringify(KD.config))
 
-    useNeo4j = false
-    if useNeo4j
+    if KD.config.useNeo4j
       @addSubView filterFirstController.getView()
       filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
 

@@ -33,10 +33,9 @@ module.exports = deepFreeze
     port        : sourceServerPort
   mongo         : mongo
   neo4j         :
-    enabled     : no
     host        : "http://kgraphdb1.in.koding.com"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
@@ -99,6 +98,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
+      useNeo4j: no
       logToExternal: yes  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: yes

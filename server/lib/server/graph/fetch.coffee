@@ -1,3 +1,5 @@
+# TODO: refactor this ugliness
+
 module.exports = class FetchAllActivityParallel
   _              = require "underscore"
   async          = require "async"
@@ -22,33 +24,40 @@ module.exports = class FetchAllActivityParallel
 
   fetchSingles:(callback)->
     graph = new Graph @neo4j
-    graph.fetchAll @startDate, (err, rawResponse)->
+    graph.fetchAll @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchTagFollows: (callback)->
     graph = new Graph @neo4j
-    graph.fetchTagFollows @startDate, (err, rawResponse)->
+    graph.fetchTagFollows @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchMemberFollows: (callback)->
     graph = new Graph @neo4j
-    graph.fetchMemberFollows @startDate, (err, rawResponse)->
+    graph.fetchMemberFollows @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchInstalls: (callback)->
     graph = new Graph @neo4j
-    graph.fetchNewInstalledApps @startDate, (err, rawResponse)->
+    graph.fetchNewInstalledApps @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchNewMembers: (callback)->
     graph = new Graph @neo4j
-    graph.fetchNewMembers @startDate, (err, rawResponse)->
+    graph.fetchNewMembers @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
+
+  bucketNames:->
+    return {
+      "CFollowerBucketActivity"  : true
+      "CInstallerBucketActivity" : true
+      "CNewMemberBucketActivity" : true
+    }
 
   decorateAll: (err, decoratedObjects)->
     for objects in decoratedObjects
@@ -57,9 +66,10 @@ module.exports = class FetchAllActivityParallel
         @randomIdToOriginal[key] = randomId
         value._id = randomId
 
-        oldSnapshot = JSON.parse(value.snapshot)
-        oldSnapshot._id = randomId
-        value.snapshot = JSON.stringify oldSnapshot
+        if @bucketNames()[value.type]
+          oldSnapshot = JSON.parse(value.snapshot)
+          oldSnapshot._id = randomId
+          value.snapshot = JSON.stringify oldSnapshot
 
         @cacheObjects[randomId] = value
 

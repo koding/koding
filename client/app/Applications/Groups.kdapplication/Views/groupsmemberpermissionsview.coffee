@@ -4,32 +4,46 @@ class GroupsMemberPermissionsView extends JView
 
     options.cssClass = "groups-member-permissions-view"
 
-    super
+    super options, data
+
+    @_searchValue = null
+
+    @search = new KDHitEnterInputView
+      placeholder  : "Search..."
+      name         : "searchInput"
+      cssClass     : "header-search-input"
+      type         : "text"
+      callback     : =>
+        @_searchValue = @search.getValue()
+        @timestamp = new Date 0
+        @listController.removeAllItems()
+        @fetchSomeMembers()
+        @search.focus()
+      keyup        : =>
+        if @search.getValue() is ""
+          @_searchValue = null
+          @refresh()
+
+    @searchIcon = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'icon search'
 
     @listController = new KDListViewController
       itemClass             : GroupsMemberPermissionsListItemView
       lazyLoadThreshold     : .99
     @listWrapper    = @listController.getView()
 
-    @loader         = new KDLoaderView
-      cssClass      : 'loader'
-    @loaderText     = new KDView
-      partial       : 'Loading Member Permissions…'
-      cssClass      : ' loader-text'
-
     @listController.getListView().on 'ItemWasAdded', (view)=>
       view.on 'RolesChanged', @bound 'memberRolesChange'
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
+
     @on 'teasersLoaded', =>
       unless @listController.scrollView.hasScrollBars()
-        @loader.show()
-        @loaderText.show()
         @continueLoadingTeasers()
 
-    @loader.show()
-    @loaderText.show()
     @refresh()
+    @listenWindowResize()
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -40,32 +54,40 @@ class GroupsMemberPermissionsView extends JView
       list.getOptions().roles = roles
 
   fetchSomeMembers:(selector={})->
+    @listController.showLazyLoader no
     options =
       limit : 20
       sort  : { timestamp: -1 }
-    @getData().fetchMembers selector, options, (err, members)=>
-      return warn err if err
-      @loader.hide()
-      @loaderText.hide()
-      @listController.hideLazyLoader()
-      if members.length > 0
-        ids = (member._id for member in members)
-        @getData().fetchUserRoles ids, (err, userRoles)=>
-          return warn err if err
-          userRolesHash = {}
-          for userRole in userRoles
-            userRolesHash[userRole.targetId] ?= []
-            userRolesHash[userRole.targetId].push userRole.as
+    # return
+    if @_searchValue
+      {JAccount} = KD.remote.api
+      JAccount.byRelevance @_searchValue, options, (err, members)=> @populateMembers err, members
+    else
+      @getData().fetchMembers selector, options, (err, members)=> @populateMembers err, members
 
-          list = @listController.getListView()
-          list.getOptions().userRoles ?= []
-          list.getOptions().userRoles = _.extend(
-            list.getOptions().userRoles, userRolesHash
-          )
+  populateMembers:(err, members)->
+    return warn err if err
+    @listController.hideLazyLoader()
+    if members.length > 0
+      ids = (member._id for member in members)
+      @getData().fetchUserRoles ids, (err, userRoles)=>
+        return warn err if err
+        userRolesHash = {}
+        for userRole in userRoles
+          userRolesHash[userRole.targetId] ?= []
+          userRolesHash[userRole.targetId].push userRole.as
 
-          @listController.instantiateListItems members
-          @timestamp = new Date members.last.timestamp_
-          @emit 'teasersLoaded'
+        list = @listController.getListView()
+        list.getOptions().userRoles ?= []
+        list.getOptions().userRoles = _.extend(
+          list.getOptions().userRoles, userRolesHash
+        )
+
+        @listController.instantiateListItems members
+        @timestamp = new Date members.last.timestamp_
+        @emit 'teasersLoaded' if members.length is 20
+    else
+      @listController.showNoItemWidget()
 
   refresh:->
     @listController.removeAllItems()
@@ -80,12 +102,18 @@ class GroupsMemberPermissionsView extends JView
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
 
   viewAppended:->
+
     super
-    @loader.show()
+    @_windowDidResize()
+
+  _windowDidResize:->
+
+    @listWrapper.setHeight @parent.getHeight() - @$('section.searchbar.kdheaderview').height()
 
   pistachio:->
     """
-    {{> @loader}}
-    {{> @loaderText}}
+    <section class='searchbar kdheaderview'>
+      <span class='title'>{{ #(title)}} Members</span>{{> @search}}{{> @searchIcon}}
+    </section>
     {{> @listWrapper}}
     """

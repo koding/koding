@@ -24,7 +24,6 @@ class ActivityAppController extends AppController
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
       activity
 
-
   constructor:(options={})->
 
     options.view    = new ActivityAppView
@@ -235,24 +234,11 @@ class ActivityAppController extends AppController
       limit       : options.limit    or 20
       to          : options.to       or Date.now()
       facets      : options.facets   or @getFilter()
-      lowQuality  : options.exempt   or no
       originId    : options.originId or null
       sort        :
         createdAt : -1
 
-    console.log(options['facets'], "Followed" in  options['facets'])
-    # some are from neo4j some are from directly mongo for now !
-    fromneo4j = ["Everything", "JStatusUpdate", "JBlogPost", "JCodeSnip", "JDiscussion",
-                 "JTutorial", "JLink"]
-
-    console.log("my filter type : ", @filterType)
-
-    fetchfromneo = false
-    for i in options.facets
-      if i in fromneo4j
-        fetchfromneo = true
-
-    if fetchfromneo
+    if KD.config.useNeo4j
       options['filterType'] = @filterType
       console.log("KD.remote.api.CActivity.fetchFolloweeContents - " + JSON.stringify(options) )
       if @filterType == "Public"
@@ -270,15 +256,26 @@ class ActivityAppController extends AppController
           else
             callback null, activities
     else
-      console.log("calling KD.remote.api.CActivity.fetchFacets - ")
-      KD.remote.api.CActivity.fetchFacets options, (err, activities)->
-        if err then callback err
-        else
-          console.log('------------------------------')
-          console.log('------------------------------')
-          console.log(activities)
-          console.log('------------------------------')
-          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+      @isExempt (exempt)->
+        options.lowQuality = exempt
+        KD.remote.api.CActivity.fetchFacets options, (err, activities)->
+          if err then callback err
+          else if not exempt
+            KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+          else
+            # trolls and admins in show troll mode will load data on request
+            # as the snapshots do not include troll comments
+            stack = []
+            activities.forEach (activity)->
+              stack.push (cb)->
+                activity.fetchTeaser (err, teaser)->
+                  if err then console.warn 'could not fetch teaser'
+                  else
+                    cb err, teaser
+                , yes
+
+            async.parallel stack, (err, res)->
+              callback null, res
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
@@ -330,16 +327,17 @@ class ActivityAppController extends AppController
 
   fetchCachedActivity:(options = {}, callback)->
 
+    urlPrefix = "cache"
+
+    if KD.config.useNeo4j
+      urlPrefix = "neo4j"
+
     $.ajax
-      url     : "/-/cache/#{options.slug or 'latest'}"
+      url     : "/-/#{urlPrefix}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
       success : (cache)=>
         cache.overview.reverse()  if cache?.overview
-        #@lastTo = cache.to
-        #@lastFrom = cache.from
-        #console.log "lastFrom", @lastFrom
-        #console.log "lastTo", @lastTo
         callback null, cache
 
   continueLoadingTeasers:->

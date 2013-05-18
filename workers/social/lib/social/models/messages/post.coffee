@@ -237,7 +237,11 @@ module.exports = class JPost extends jraphical.Message
       dash queue, =>
         callback null
         @emit 'PostIsDeleted', 1
-        CActivity.emit "PostIsDeleted", {teaserId : id, createdAt}
+        CActivity.emit "PostIsDeleted", {
+          teaserId : id
+          createdAt
+          group    : @group
+        }
     else
       callback new KodingError 'Access denied!'
 
@@ -283,6 +287,31 @@ module.exports = class JPost extends jraphical.Message
             'sorts.repliesCount'  : teaser.repliesCount
           $pullAll:
             snapshotIds: removedSnapshotIds
+        }, -> queue.next()
+      callback
+    ]
+    daisy queue
+
+  updateSnapshot:(callback)->
+    teaser = null
+    activityId = null
+    queue = [
+      =>
+        @fetchActivityId (err, activityId_)->
+          activityId = activityId_
+          queue.next()
+      =>
+        @fetchTeaser (err, teaser_)->
+          return callback createKodingError err if err
+          teaser = teaser_
+          queue.next()
+      =>
+        CActivity.update _id: activityId, {
+          $set:
+            snapshot              : JSON.stringify teaser
+            'sorts.repliesCount'  : teaser.repliesCount
+          $addToSet:
+            snapshotIds: @getId()
         }, -> queue.next()
       callback
     ]
@@ -367,16 +396,18 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
-  fetchTeaser:(callback)->
+  fetchTeaser:(callback, showIsLowQuality=no)->
+    query = 
+      targetName  : 'JComment'
+      as          : 'reply'
+      'data.deletedAt':
+        $exists   : no
+
+    query['data.flags.isLowQuality'] = $ne: yes unless showIsLowQuality
+
     @beginGraphlet()
       .edges
-        query         :
-          targetName  : 'JComment'
-          as          : 'reply'
-          'data.deletedAt':
-            $exists   : no
-          'data.flags.isLowQuality':
-            $ne       : yes
+        query         : query
         limit         : 3
         sort          :
           timestamp   : -1
@@ -442,8 +473,9 @@ module.exports = class JPost extends jraphical.Message
     super
 
   triggerCache:->
-    CActivity.emit "post-updated",
+    CActivity.emit "PostIsUpdated",
       teaserId  : @getId()
+      group     : @group
       createdAt : @meta.createdAt
 
   update:(rest..., callback)->

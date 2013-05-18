@@ -32,6 +32,11 @@ module.exports =
     enabled     : yes
     port        : 1337
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+  neo4j         :
+    enabled     : no
+    host        : "http://neo4j-dev.in.koding.com"
+    port        : 7474
+  runNeo4jFeeder: no
   runGoBroker   : no
   runKontrol    : no
   compileGo     : no
@@ -101,6 +106,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      useNeo4j: no
       resourceName: socialQueueName
       suppressLogs: no
       version   : version

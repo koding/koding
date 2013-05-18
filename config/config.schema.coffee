@@ -57,7 +57,6 @@ config =
       port        : 1
     mongo         : 1
     neo4j         :
-      enabled     : 1
       host        : 1
       port        : 1
     runNeo4jFeeder: 1
@@ -126,6 +125,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
+        useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
         suppressLogs  : 1
