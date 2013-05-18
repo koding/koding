@@ -22,10 +22,15 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       @addSubView filterFirstController.getView()
       filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
 
+    if KD.config.useNeo4j
+      menudata = @followerMenuData
+    else
+      menudata = @showMenuData
+
     filterController = @setListController
       type : "showme"
       itemClass : ListGroupShowMeItem
-    , @followerMenuData
+    , menudata
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
 
@@ -57,3 +62,18 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Tutorials", type : "JTutorial" }
         { title : "Links", type : "JLink", disabledForBeta : yes }
     ]
+
+  showMenuData :
+    title : "SHOW ME"
+    items : [
+        { title : "Everything" }
+        { title : "Status Updates",   type : "CStatusActivity" }
+        { title : "Blog Posts",       type : "CBlogPostActivity" }
+        { title : "Code Snippets",    type : "CCodeSnipActivity" }
+        { title : "Discussions",      type : "CDiscussionActivity" }
+        { title : "Tutorials",        type : "CTutorialActivity" }
+        { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
+        # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
+        # { title : "Commits",          type : "commit", disabledForBeta : yes }
+        # { title : "Projects",         type : "newproject", disabledForBeta : yes }
+      ]
