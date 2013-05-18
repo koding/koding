@@ -38,11 +38,10 @@ module.exports = class CActivity extends jraphical.Capsule
       'read activity'       : ['guest','member','moderator']
     sharedMethods     :
       static          : [
-        'fetchPublicContents',
+        'fetchPublicContents', 'fetchFolloweeContents'
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count'
-        'fetchFolloweeContents'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -223,6 +222,18 @@ module.exports = class CActivity extends jraphical.Capsule
       'CBlogPostActivity'
     ]
 
+  neo4jFacets = [
+    "JLink"
+    "JBlogPost"
+    "JTutorial"
+    "JStatusUpdate"
+    "JComment"
+    "JOpinion"
+    "JDiscussion"
+    "JCodeSnip"
+    "JCodeShare"
+  ]
+
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
       {to, limit, facets, lowQuality, originId, sort, skip} = options
@@ -231,7 +242,7 @@ module.exports = class CActivity extends jraphical.Capsule
       to          ?= Date.now()
 
       selector =
-        type         : { $in : [facets] }
+        type         : { $in : facets }
         createdAt    : { $lt : new Date to }
         group        : client.groupName ? 'koding'
 
@@ -260,8 +271,8 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
 
-  @fetchPublicContents:(params={}, callback)->
-    {groupId, facets, to, limit} = params
+  @fetchPublicContents:(options={}, callback)->
+    {groupId, facets, to, limit} = options
     if not groupId
       return callback new KodingError  "GroupId is not set"
 
@@ -271,11 +282,13 @@ module.exports = class CActivity extends jraphical.Capsule
       'WHERE has(items.`meta.createdAtEpoch`)'
     ]
 
-    if facets and 'Everything' isnt facets
-      if facets not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
-                             "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        return callback new KodingError  "Unknown facet: " + facets
-        query.push "AND items.name='#{facets}'"
+    if facets and 'Everything' not in facets
+      s = []
+      for facet in facets
+        if facet not in neo4jFacets
+          return callback new KodingError "Unknown facet: " + facets.join()
+        s.push("items.name='#{facet}'")
+      query.push("AND (" + s.join(' OR ') + ")")
 
     if to
       ts = Math.floor(to / 1000)
@@ -287,21 +300,23 @@ module.exports = class CActivity extends jraphical.Capsule
              "LIMIT #{limit}"
             ])
     query = query.join('\n')
-    neo4jhelper.fetchFromNeo4j(query, params, callback)
+    neo4jhelper.fetchFromNeo4j(query, options, callback)
 
-  @fetchFolloweeContents: secure ({connection:{delegate}}, params, callback)->
+  @fetchFolloweeContents: secure ({connection:{delegate}}, options, callback)->
     userId = delegate.getId()
-    {facets, to, limit} = params
+    {facets, to, limit} = options
     query = ["start koding=node:koding(id='#{userId}')"
              'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
              'where myfollowees.name="JAccount"'
             ]
 
-    if facets and 'Everything' isnt facets
-      if facets not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
-                             "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        return callback new KodingError  "Unknown facet"+facets
-      query.push("AND items.name='#{facets}'")
+    if facets and 'Everything' not in facets
+      s = []
+      for facet in facets
+        if facet not in neo4jFacets
+          return callback new KodingError "Unknown facet: " + facets.join()
+        s.push("items.name='#{facet}'")
+      query.push("AND (" + s.join(' OR ') + ")")
 
     if to
       ts = Math.floor(to / 1000)
@@ -315,7 +330,7 @@ module.exports = class CActivity extends jraphical.Capsule
     query = query.join('\n')
     console.log("query:")
     console.log(query)
-    neo4jhelper.fetchFromNeo4j(query, params, callback)
+    neo4jhelper.fetchFromNeo4j(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
