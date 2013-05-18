@@ -155,26 +155,16 @@ func checkIfEligible(sourceName, targetName string) bool {
 	}
 
 	for _, name := range notAllowedNames {
-		if name == sourceName {
-			log.Debug("not eligible " + sourceName)
-			return false
-		}
-
-		if name == targetName {
-			log.Debug("not eligible " + targetName)
+		if name == sourceName || name == targetName {
+			log.Debug("not eligible " + name)
 			return false
 		}
 	}
 
 	for _, name := range notAllowedSuffixes {
 
-		if strings.HasSuffix(sourceName, name) {
-			log.Debug("not eligible " + sourceName)
-			return false
-		}
-
-		if strings.HasSuffix(targetName, name) {
-			log.Debug("not eligible " + targetName)
+		if strings.HasSuffix(sourceName, name) || strings.HasSuffix(targetName, name) {
+			log.Debug("not eligible " + name)
 			return false
 		}
 
