@@ -1041,7 +1041,7 @@ button.cancel-edit-button
   borderBox()
   .feeder-header
     padding            0 18px
-    // line-height        12px
+    min-height         29px
     line-height        28px
     font-size          13px
     color              #4F4F4F
@@ -1049,25 +1049,30 @@ button.cancel-edit-button
     height             auto
     top                0
     z-index            2
-    bg(color,rgba(255,255,255,.9))
+    bg                color,rgba(255,255,255,.9)
     borderBox()
     > p
       height           28px
       line-height      28px
+      bg               color, white
+      rel()
 
   .onboarding-wrapper
-    size                    auto, 0
-    margin                  0
-    padding                 0 18px
+    size                    auto, auto
+    margin-top              -1000px
+    margin-bottom           18px
+    padding                 18px
     color                   #90756d
     overflow                hidden
+    opacity                 .1
     bg                      color, #f5ede3
-    vendor                  transition, all .3s ease
+    vendor                  transition, margin-top .4s ease-in\,\
+                                        opacity .4s ease-in
     rel()
+    &.no-anim
+      vendor                transition, none!important
     &.in
-      margin                10px 0 18px 0
-      padding               18px
-      height                auto
+      opacity               1
     .onboarding-close
       right                 18px
       top                   18px
