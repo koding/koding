@@ -46,7 +46,7 @@ class NFinderController extends KDViewController
     @watchers = {}
 
   stopWatching:(pathToStop)->
-    for path, watcher of @watchers  when ///^#{pathToStop}///.test path
+    for path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 
@@ -70,57 +70,76 @@ class NFinderController extends KDViewController
     if @getOptions().useStorage
       @appStorage = @getSingleton('mainController').\
                       getAppStorageSingleton 'Finder', '1.0'
-      @appStorage.once "storageFetched", => @createRootStructure()
+      @appStorage.once "storageFetched", @bound 'loadVms'
     else
-      @createRootStructure()
-
-  createRootStructure:(path, callback)->
-    {nickname} = KD.whoami().profile
-
-    path ?= "/home/#{nickname}"
-    FSHelper.resetRegistry()
-
-    @mount   = FSHelper.createFile
-      name   : path
-      path   : path
-      type   : "vm"
-      vmName : (KD.getSingleton 'vmController').getDefaultVmName()
-
-    @defaultStructureLoaded = no
-    @treeController.initTree [@mount]
-    @loadDefaultStructure()
-    callback?()
+      @loadVms()
 
   loadDefaultStructure:->
 
-    return if @defaultStructureLoaded
     return unless KD.isLoggedIn()
-
+    return if @defaultStructureLoaded
     @defaultStructureLoaded = yes
-    kiteController          = KD.getSingleton('kiteController')
 
+    kiteController = KD.getSingleton('kiteController')
     timer = Date.now()
-    @mount.emit "fs.job.started"
+
+    @vms.forEach (vmFs)->
+      {treeController} = KD.getSingleton 'finderController'
+      vmFs.emit "fs.job.started"
+      kiteController.run
+        method     : 'fs.readDirectory'
+        vmName     : vmFs.vmName
+        withArgs   :
+          path     : FSHelper.plainPath vmFs.path
+          onChange : (change)=>
+            FSHelper.folderOnChange vmFs.vmName, vmFs.path, change, treeController
+      , (err, response)=>
+
+        if response
+          vmFs.registerWatcher response
+          files = FSHelper.parseWatcher vmFs.vmName, vmFs.path, response.files
+          treeController.addNodes files
+          treeController.emit 'fs.retry.success'
+          treeController.hideNotification()
+
+        log "#{(Date.now()-timer)/1000}sec !"
+        vmFs.emit "fs.job.finished"
+
+  loadVms:(vmNames, callback)->
+
+    unless vmNames
+      vmNames = [(KD.getSingleton 'vmController').getDefaultVmName()]
+
+    return callback? "vmNames should be an Array"  unless Array.isArray vmNames
+
+    FSHelper.resetRegistry()
     @stopAllWatchers()
 
-    {nickname} = KD.whoami().profile
-    kiteController.run
-      method     : 'fs.readDirectory'
-      withArgs   :
-        onChange : (change)=>
-          FSHelper.folderOnChange @mount.path, change, @treeController
-        path     : @mount.path
-    , (err, response)=>
+    @vms = []
+    for vm in vmNames
+      [vmName, path] = vm.split ":"
+      path          ?= "/home/#{KD.nick()}"
+      @vms.push FSHelper.createFile {
+        name   : "#{path}"
+        path   : "[#{vmName}]#{path}"
+        type   : "vm"
+        vmName : vmName
+      }
 
-      if response
-        @mount.registerWatcher response
-        files = FSHelper.parseWatcher @mount.path, response.files
-        @treeController.addNodes files
-        @treeController.emit 'fs.retry.success'
-        @treeController.hideNotification()
+    @defaultStructureLoaded = no
+    @treeController.initTree @vms
+    @loadDefaultStructure()
+    callback?()
 
-      log "#{(Date.now()-timer)/1000}sec !"
-      @mount.emit "fs.job.finished"
+  updateVMRoot:(vmName, path, callback)->
+    # I know this looks ugly, I'll make it better later ~ GG
+    newVms = []
+    for vm in @vms
+      if vm.vmName is vmName
+      then newPath = path
+      else newPath = FSHelper.plainPath vm.path
+      newVms.push "#{vm.vmName}:#{newPath}"
+    @loadVms newVms, callback
 
   setRecentFile:(filePath, callback)->
 

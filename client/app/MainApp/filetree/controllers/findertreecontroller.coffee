@@ -80,8 +80,9 @@ class NFinderTreeController extends JTreeViewController
     KD.getSingleton('vmController').reinitialize()
 
   makeTopFolder:(nodeView)->
-    KD.getSingleton('finderController').createRootStructure \
-      nodeView.getData().path
+    finder = KD.getSingleton('finderController')
+    {vmName, path} = nodeView.getData()
+    finder.updateVMRoot vmName, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
 
