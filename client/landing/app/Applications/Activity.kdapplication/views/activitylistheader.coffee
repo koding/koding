@@ -34,10 +34,11 @@ class ActivityListHeader extends JView
           @appStorage.setValue 'showLowQualityContent', state, =>
 
       @refreshLink = new KDCustomHTMLView
-        pistachio : "<a href=#>Refresh</a>"
-        click : (event)=>
-          @getSingleton('activityController')
-          @getSingleton('activityController').emit "Refresh"
+        tagName  : 'a'
+        cssClass : 'fr'
+        partial  : 'Refresh'
+        click    : (event)=>
+          @getSingleton('activityController').emit 'Refresh'
 
     else
       @lowQualitySwitch = new KDCustomHTMLView
