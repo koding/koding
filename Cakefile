@@ -65,10 +65,26 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
-task 'initializeJCountersFIXME', ->
-  console.warn "FIXME: this is a kludge for patching the koding-8.box"
-  (require 'child_process').exec \
-  'mongo koding2 --eval "db.jCounters.count() || db.jCounters.save({ \\"_id\\" : \\"vm_ip\\", \\"v\\" : 176161307 });"', console.log
+initializeDB = do ->
+
+  { exec } = (require 'child_process')
+
+  commands = [
+    'mongo koding2 --eval "db.dropDatabase()"'
+    'mongorestore ./dump/koding2'
+    'mongo koding2 --eval "db.jCounters.count() ||'+
+    ' db.jCounters.save({ \\"_id\\" : \\"vm_ip\\", \\"v\\" : 176161307 });"'
+  ]
+
+  (err, out) ->
+    console.error err  if err
+    console.log out    if out
+    if (command = do commands.shift)? then exec command, initializeDB
+
+
+task 'initializeDB', ->
+  console.warn "FIXME: this is a temporary kludge"
+  initializeDB()
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
@@ -386,9 +402,7 @@ task 'checkConfig',({configFile})->
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
-  compileGoBinaries configFile,->
-    invoke 'initializeJCountersFIXME'
-
+  compileGoBinaries configFile, ->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
