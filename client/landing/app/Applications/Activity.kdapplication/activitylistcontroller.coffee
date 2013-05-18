@@ -106,9 +106,9 @@ class ActivityListController extends KDListViewController
 
     pivot = @lastItemTimeStamp || (new Date()).getTime()
     for obj in activities
-      obj_ts = (new Date(obj.meta.createdAt)).getTime()
-      if obj_ts < pivot
-        pivot = obj_ts
+      objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
+      if objectTimestamp < pivot
+        pivot = objectTimestamp
     @lastItemTimeStamp = pivot
 
     KD.logToMixpanel "populateActivity.success", 5

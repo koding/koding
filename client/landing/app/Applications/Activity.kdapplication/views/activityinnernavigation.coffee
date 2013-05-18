@@ -1,11 +1,3 @@
-class FilterActivityItem extends CommonInnerNavigationListItem
-  click: (event) ->
-    if @getData().disabledForBeta
-      new KDNotificationView
-        title : "Coming Soon!"
-        duration : 1000
-      return no
-
 
 class ActivityInnerNavigation extends CommonInnerNavigation
 
@@ -13,7 +5,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
     filterFirstController = @setListController
       type: "filterme"
-      itemClass: FilterActivityItem
+      itemClass: ListGroupShowMeItem
     , @filterMenuData
 
     if KD.config.useNeo4j

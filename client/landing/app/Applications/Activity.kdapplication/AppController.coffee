@@ -234,7 +234,7 @@ class ActivityAppController extends AppController
         createdAt : -1
 
     if KD.config.useNeo4j
-      options['filterType'] = @filterType
+      options.filterType = @filterType
       if @filterType == "Public"
         KD.remote.api.CActivity.fetchPublicContents options, (err, activities)->
           if err
