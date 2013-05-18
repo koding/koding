@@ -11,7 +11,7 @@ class VirtualizationController extends KDController
       callback : =>
         @askForApprove command, (approved)=>
           if approved
-            cb = unless command is 'vm.info' then @_cbWrapper callback \
+            cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
                  else callback
             @kc.run
               kiteName : 'os'
@@ -61,9 +61,9 @@ class VirtualizationController extends KDController
   getTotalLoC:(callback)->
     callback null, "776M+"
 
-  _cbWrapper:(callback)->
+  _cbWrapper:(vm, callback)->
     return (rest...)=>
-      @info callback? rest...
+      @info vm, callback? rest...
 
   askForApprove:(command, callback)->
 
