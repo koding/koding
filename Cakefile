@@ -65,6 +65,11 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
+task 'initializeJCountersFIXME', ->
+  console.warn "FIXME: this is a kludge for patching the koding-8.box"
+  (require 'child_process').exec \
+  'mongo koding2 --eval "db.jCounters.count() || db.jCounters.save({ \\"_id\\" : \\"vm_ip\\", \\"v\\" : 176161307 });"', console.log
+
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
 
@@ -382,6 +387,8 @@ run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   compileGoBinaries configFile,->
+    invoke 'initializeJCountersFIXME'
+
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
