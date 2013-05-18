@@ -321,7 +321,8 @@ class JTreeViewController extends KDViewController
 
     if nodeData in @indexedNodes
       index = @indexedNodes.indexOf nodeData
-      @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
+      # Disable this for now, useless for most cases, FIXME GG
+      # @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
       @indexedNodes.splice index, 1
       # todo: make decoration with events
       if @nodes[@getNodePId nodeData] and not \
