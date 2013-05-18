@@ -292,18 +292,21 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
+  # Enables switching between cache/neo4j.
+  getCacheUrl:->
+
+    defaultUrlPrefix = "cache"
+    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
+
+    return defaultUrlPrefix
+
   fetchCachedActivity:(options = {}, callback)->
 
-    urlPrefix = "cache"
-
-    if KD.config.useNeo4j
-      urlPrefix = "neo4j"
-
     $.ajax
-      url     : "/-/#{urlPrefix}/#{options.slug or 'latest'}"
+      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
-      success : (cache)=>
+      success : (cache)->
         cache.overview.reverse()  if cache?.overview
         callback null, cache
 
@@ -311,7 +314,6 @@ class ActivityAppController extends AppController
 
     return  if @isLoading
 
-    # HACK: this gets called multiple times if there's no wait
     lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
