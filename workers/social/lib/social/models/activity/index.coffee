@@ -1,6 +1,7 @@
 jraphical      = require 'jraphical'
 
 neo4jhelper = require '../neo4jhelper'
+KodingError = require '../../error'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -260,60 +261,60 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
   @fetchPublicContents:(params={}, callback)->
-
-    params['groupId'] ||= "5150c743f2589b107d000007"
-    params['resultlimit'] ||= 10
+    {groupId, facets, to, limit} = params
+    if not groupId
+      return callback new KodingError  "GroupId is not set"
 
     query = [
-      'START koding=node:koding(id={groupId})'
+      "START koding=node:koding(id='#{groupId}')"
       'MATCH koding-[:member]->members<-[:author]-items'
       'WHERE has(items.`meta.createdAtEpoch`)'
     ]
 
-    if params['facets'][0] == 'J'
-      if params['facets'] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
+    if facets and facets != 'Everything'
+      if facets not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        throw "Wrong object type: " + params['facets']
-      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets']) )
+        return callback new KodingError  "Unknown facet: " + facets
+        query.push "AND items.name='#{facets}'"
 
-    if params['to']
-      ts = Math.floor(params['to'] / 1000)
-      query.push('AND items.`meta.createdAtEpoch` < {{created_at}}'.replace("{{created_at}}", ts))
+    if to
+      ts = Math.floor(to / 1000)
+      query.push "AND items.`meta.createdAtEpoch` < #{ts}"
 
     query = query.concat([
              'return items'
              'order by items.`meta.createdAtEpoch` DESC'
-             'LIMIT {resultlimit}'
+             "LIMIT #{limit}"
             ])
     query = query.join('\n')
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   @fetchFolloweeContents: secure (client, params, callback)->
-    params['userId'] = client.connection.delegate._id
-    params['resultlimit'] ||= 10
-    query = ['start koding=node:koding(id={userId})'
+    userId = client.connection.delegate._id
+    {facets, to, limit} = params
+    query = ["start koding=node:koding(id='#{userId}')"
              'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
              'where myfollowees.name="JAccount"'
             ]
 
-    if params['facets'][0] == 'J'
-      if params['facets'] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
+    if facets and facets != 'Everything'
+      if facets not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        throw "Wrong object type: " + params['facets'][0]
+        return callback new KodingError  "Unknown facet"+facets
+      query.push("AND items.name='#{facets}'")
 
-      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets']) )
-
-
-    if params['to']
-      ts = Math.floor(params['to'] / 1000)
-      query.push('AND items.`meta.createdAtEpoch` < {{created_at}}'.replace("{{created_at}}", ts))
+    if to
+      ts = Math.floor(to / 1000)
+      query.push("AND items.`meta.createdAtEpoch` < #{ts}")
 
     query = query.concat([
              'return myfollowees, items'
              'order by items.`meta.createdAtEpoch` DESC'
-             'LIMIT {resultlimit}'
+             "LIMIT #{limit}"
             ])
     query = query.join('\n')
+    console.log("query:")
+    console.log(query)
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
