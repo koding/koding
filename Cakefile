@@ -276,7 +276,7 @@ task 'proxy',({configFile})->
 
   processes.spawn
     name  : 'proxy'
-    cmd   : "./go/bin/vmproxy -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL vmproxy; sudo ./go/bin-vagrant/vmproxy -c #{configFile}'" else "./go/bin/vmproxy -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
