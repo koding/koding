@@ -25,7 +25,8 @@ module.exports =
     enabled     : no
     port        : 1337
   neo4j         :
-    host        : "http://neo4j-dev.in.koding.com"
+    enabled     : no
+    host        : "http://kgraphdb1.in.koding.com"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding_dev2_copy'
   runNeo4jFeeder: no
