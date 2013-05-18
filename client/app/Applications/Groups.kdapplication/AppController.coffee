@@ -110,22 +110,31 @@ class GroupsAppController extends AppController
       group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
+  onboardingText =
+    everything : """
+      <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+      your interests.</h3>
+
+      <p>When you join a group such as your univeristy or your company, you can share virtual
+      machines, collaborate on projects and stay up to date on the activites of others in your
+      group.</p>
+
+      <h3 class='title'>Easy to get started</h3>
+
+      <p>Groups are free to create. You decide who can join, what actions they can do inside the
+      group and what they see.</p>
+      """
+    pending   : """
+      <h3 class='title'>These are the groups that you are waiting an invitation.</h3>
+      <p>When you ask for an invitation to a group, an admin of that group should accept your request and send you an invitation link in order you to gain access to that group.</p>
+      """
+    requested : """
+      <h3 class='title'>These are the groups that you asked for an access request...</h3>
+      <p>...but still waiting for a group admin to approve.</p>
+      <p>When you request access to a group, an admin of that group should accept your request. If the admin approves you'll gain access to the group right away and you'll see it under 'My Groups'.</p>
+      """
+
   createFeed:(view, loadFeed = no)->
-
-    onboardingText =
-      """
-        <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
-        your interests.</h3>
-
-        <p>When you join a group such as your univeristy or your company, you can share virtual
-        machines, collaborate on projects and stay up to date on the activites of others in your
-        group.</p>
-
-        <h3 class='title'>Easy to get started</h3>
-
-        <p>Groups are free to create. You decide who can join, what actions they can do inside the
-        group and what they see.</p>
-      """
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
@@ -138,8 +147,9 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          : onboardingText
-        mine                : onboardingText
+        everything          : onboardingText.everything
+        pending             : onboardingText.pending
+        requested           : onboardingText.requested
       filter                :
         everything          :
           title             : "All groups"
@@ -178,7 +188,7 @@ class GroupsAppController extends AppController
             @markGroupRelationship mine, ids
 
         pending             :
-          title             : "Invited Groups"
+          title             : "Invitation pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
@@ -189,7 +199,7 @@ class GroupsAppController extends AppController
             @markPendingGroupInvitations pending, ids
 
         requested             :
-          title             : "Requested Groups"
+          title             : "Request pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchPendingGroupRequests options, (err, groups)->
