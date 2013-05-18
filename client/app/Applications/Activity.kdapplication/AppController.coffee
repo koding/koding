@@ -6,8 +6,6 @@ class ActivityAppController extends AppController
     hiddenHandle : yes
 
   activityTypes = [
-    'Public'
-    'Followed'
     'CStatusActivity'
     'CCodeSnipActivity'
     'CFollowerBucketActivity'
@@ -64,7 +62,11 @@ class ActivityAppController extends AppController
     @listController.resetList()
     @listController.removeAllItems()
 
-  setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
+  setFilter:(type) ->
+    if type?
+      @currentFilter = type
+    else
+      @currentFilter = activityTypes
 
   getFilter: -> @currentFilter
 
@@ -120,11 +122,11 @@ class ActivityAppController extends AppController
       callback exempt
 
   fetchActivitiesDirectly:(options = {}, callback)->
-    console.log("starting to fetch activities ... !!!" + options)
+    console.log("starting to fetch activities ... !!!" + JSON.stringify(options) )
     KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
-    console.log("fetching activity now ")
+    console.log("fetching activity now ", @filterType)
     @fetchActivity options, (err, teasers)=>
       console.log("got it now ?")
       @isLoading = no
@@ -188,7 +190,7 @@ class ActivityAppController extends AppController
     @status.reconnect()
 
   populateActivity:(options = {}, callback)->
-
+    console.log("populating activities - 1")
     return if @isLoading
 
     @listController.showLazyLoader()
@@ -201,15 +203,21 @@ class ActivityAppController extends AppController
 
     fetch = (slug)=>
       console.log("activities ---- !!!! fetch - slug:" + slug)
-      unless slug is 'koding'
+
+      if KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
-      else
-        @isExempt (exempt)=>
-          console.log("activities, calling this or that exempt " + exempt)
-          console.log("Getfilter", @getFilter())
-          if exempt or @getFilter() isnt activityTypes
-          then @fetchActivitiesDirectly options, callback
-          else @fetchActivitiesFromCache options, callback
+      else:
+        unless slug is 'koding'
+          @fetchActivitiesDirectly options, callback
+        else
+          @isExempt (exempt)=>
+            console.log("activities, calling this or that exempt " + exempt)
+            if exempt or @getFilter() isnt activityTypes
+              console.log("fetching activities directly")
+              @fetchActivitiesDirectly options, callback
+            else
+              console.log("fetching activities from cache")
+              @fetchActivitiesFromCache options, callback
 
     unless isReady
     then groupsController.once 'groupChanged', fetch
@@ -256,13 +264,19 @@ class ActivityAppController extends AppController
           else
             callback null, activities
     else
+
       @isExempt (exempt)->
         options.lowQuality = exempt
+        console.log("fetching -- ", JSON.stringify(options))
         KD.remote.api.CActivity.fetchFacets options, (err, activities)->
-          if err then callback err
+          if err
+            console.log("err", err)
+            callback err
           else if not exempt
+            console.log("11111 = ?????", activities.length)
             KD.remote.reviveFromSnapshots clearQuotes(activities), callback
           else
+            console.log("22222 = ?????")
             # trolls and admins in show troll mode will load data on request
             # as the snapshots do not include troll comments
             stack = []

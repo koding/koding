@@ -230,7 +230,7 @@ module.exports = class CActivity extends jraphical.Capsule
       to          ?= Date.now()
 
       selector =
-        type         : { $in : facets }
+        type         : { $in : [facets] }
         createdAt    : { $lt : new Date to }
         group        : client.groupName ? 'koding'
 
@@ -272,13 +272,12 @@ module.exports = class CActivity extends jraphical.Capsule
       'WHERE has(items.`meta.createdAtEpoch`)'
     ]
 
-    if params['facets'][0][0] == 'J'
-      if params['facets'][0] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
+    if params['facets'][0] == 'J'
+      if params['facets'] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        throw new Exception("Wrong object type")
-
-      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets'][0]) )
-
+        console.log("Wrong object type:", params['facets'])
+        throw "Wrong object type: " + params['facets']
+      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets']) )
 
     if params['to']
       ts = Math.floor(params['to'] / 1000)
@@ -309,7 +308,7 @@ module.exports = class CActivity extends jraphical.Capsule
     if params['facets'][0][0] == 'J'
       if params['facets'][0] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        throw new Exception("Wrong object type")
+        throw "Wrong object type: " + params['facets'][0]
 
       query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets'][0]) )
 
