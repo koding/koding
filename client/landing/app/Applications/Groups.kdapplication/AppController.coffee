@@ -66,7 +66,6 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-      isReadOnly  : yes
     }
     # TEMP SY: to be able to work in a vagrantless env
     # to avoid shared authworker's message getting lost
@@ -242,7 +241,7 @@ class GroupsAppController extends AppController
 
   markPendingRequestGroups:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
-  
+
   markPendingGroupInvitations:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
@@ -357,7 +356,7 @@ class GroupsAppController extends AppController
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
-  
+
   cancelGroupRequest:(group, callback)->
     KD.whoami().cancelRequest group, callback
 
@@ -404,7 +403,7 @@ class GroupsAppController extends AppController
       , (err, name)=>
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          slug = @utils.slugify titleInput.getValue()
+          slug = KD.utils.slugify titleInput.getValue()
           KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
             if newSlug
               slugInput.setTooltip
@@ -417,7 +416,7 @@ class GroupsAppController extends AppController
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      slug = @utils.slugify titleInput.getValue()
+      slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
         if err then slugInput.setValue ''
         else
@@ -515,6 +514,7 @@ class GroupsAppController extends AppController
                   event              : "blur"
                   rules              :
                     required         : yes
+                    minLength        : 4
                 blur                 : ->
                   @utils.defer =>
                     verifySlug()
@@ -836,8 +836,6 @@ class GroupsAppController extends AppController
       modal = new KDModalView
         title        : "#{group.title} has been created!"
         content      : body
-        click        : (event)->
-          if $(event.target).is 'a.group-link' then modal.destroy()
         buttons      :
           dashboard  :
             title    : 'Go to Dashboard'
