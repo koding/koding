@@ -98,12 +98,12 @@ module.exports = class JGroupBundle extends JBundle
               debitAmount   = debits[limit.title]
               personalLimit = limitsMap["#{limit.title} per user"]
 
-              theyHaveEnough =
-                ( debitAmount? and personalLimit? )   and
+              theyHaveEnough = ( debitAmount is 0 )   or
                 ( not /per user$/.test limit.title )  and
                 ( debitAmount <= limit )              and
-                (( overagePolicy is 'allowed' ) or
-                 ( debitAmount <= personalLimit ))
+                (( overagePolicy is 'allowed' ) or 
+                  ( personalLimit? )            and
+                  ( debitAmount <= personalLimit ))
 
               if theyHaveEnough then queue.push ->
                 debit limit, debitAmount
