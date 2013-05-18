@@ -71,15 +71,18 @@ initializeDB = do ->
 
   commands = [
     'mongo koding2 --eval "db.dropDatabase()"'
-    'mongorestore ./dump/koding2'
+    'mongorestore /opt/koding/dump/koding2'
     'mongo koding2 --eval "db.jCounters.count() ||'+
     ' db.jCounters.save({ \\"_id\\" : \\"vm_ip\\", \\"v\\" : 176161307 });"'
   ]
 
+  inVagrant = (cmd) -> "vagrant ssh default -c '#{cmd}'"
+
   (err, out) ->
     console.error err  if err
     console.log out    if out
-    if (command = do commands.shift)? then exec command, initializeDB
+    if (command = do commands.shift)?
+      exec inVagrant(command), initializeDB
 
 
 task 'initializeDB', ->
