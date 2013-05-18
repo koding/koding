@@ -236,6 +236,9 @@ class ActivityAppController extends AppController
     if KD.config.useNeo4j
       options.filterType = @filterType
       if @filterType == "Public"
+
+        options.groupId = KD.getSingleton("groupsController").getCurrentGroup().getId()
+
         KD.remote.api.CActivity.fetchPublicContents options, (err, activities)->
           if err
             callback err
