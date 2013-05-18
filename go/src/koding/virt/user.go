@@ -14,7 +14,10 @@ type User struct {
 	Salt     string        `bson:"salt"`
 }
 
-var RootUser = User{Uid: 0, Name: "root"}
+const UserIdOffset = 1000000
+const RootIdOffset = 500000
+
+var RootUser = User{Uid: RootIdOffset, Name: "root"}
 
 func (user *User) HasPassword(password string) bool {
 	hash := sha1.New()
