@@ -67,11 +67,7 @@ class GroupsAppController extends AppController
       group       : group.slug
       isExclusive : yes
     }
-    # TEMP SY: to be able to work in a vagrantless env
-    # to avoid shared authworker's message getting lost
-    if location.hostname is "localhost"
-    then do callback
-    else @groupChannel.once 'setSecretName', callback
+    @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroupName is groupName
@@ -86,10 +82,10 @@ class GroupsAppController extends AppController
           else
             @setGroup groupName
             @currentGroupData.setGroup group
-            @openGroupChannel group, =>
-              @isReady = yes
-              callback null, groupName, group
-              @emit 'GroupChanged', groupName, group
+            @isReady = yes
+            callback null, groupName, group
+            @emit 'GroupChanged', groupName, group
+            @openGroupChannel group, => @emit 'GroupChannelReady'
 
   getUserArea:-> @userArea
 
