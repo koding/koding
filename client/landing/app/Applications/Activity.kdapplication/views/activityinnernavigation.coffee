@@ -8,11 +8,13 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       itemClass: ListGroupShowMeItem
     , @filterMenuData
 
-    if KD.config.useNeo4j
+    {useNeo4j} = KD.config
+
+    if useNeo4j
       @addSubView filterFirstController.getView()
       filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
 
-    if KD.config.useNeo4j
+    if useNeo4j
       menudata = @followerMenuData
     else
       menudata = @showMenuData
@@ -21,6 +23,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       type : "showme"
       itemClass : ListGroupShowMeItem
     , menudata
+    
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
 
@@ -37,20 +40,20 @@ class ActivityInnerNavigation extends CommonInnerNavigation
   filterMenuData :
     title: 'FILTER'
     items: [
-      {title: "Public", filterType: "Public" },
-      {title: "Following", filterType: "Followed"}
+      {title: "Public",    type: "Public" },
+      {title: "Following", type: "Followed"}
     ]
 
   followerMenuData :
     title : "SHOW ME"
     items : [
-        { title: "Everything", type: "Everything" }
+        { title: "Everything",      type: "Everything" }
         { title : "Status Updates", type : "JStatusUpdate" }
-        { title : "Blog Posts", type : "JBlogPost" }
-        { title : "Code Snippets", type : "JCodeSnip" }
-        { title : "Discussions", type : "JDiscussion" }
-        { title : "Tutorials", type : "JTutorial" }
-        { title : "Links", type : "JLink", disabledForBeta : yes }
+        { title : "Blog Posts",     type : "JBlogPost" }
+        { title : "Code Snippets",  type : "JCodeSnip" }
+        { title : "Discussions",    type : "JDiscussion" }
+        { title : "Tutorials",      type : "JTutorial" }
+        { title : "Links",          type : "JLink", disabledForBeta : yes }
     ]
 
   showMenuData :

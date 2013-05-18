@@ -104,12 +104,12 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    pivot = @lastItemTimeStamp || (new Date()).getTime()
+    @lastItemTimeStamp or= Date.now()
+    
     for obj in activities
       objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
-      if objectTimestamp < pivot
-        pivot = objectTimestamp
-    @lastItemTimeStamp = pivot
+      if objectTimestamp < @lastItemTimeStamp
+        @lastItemTimeStamp = objectTimestamp
 
     KD.logToMixpanel "populateActivity.success", 5
 
@@ -151,8 +151,8 @@ class ActivityListController extends KDListViewController
           likeView._currentState = yes
 
   getLastItemTimeStamp: ->
-    item = hiddenItems.first
-    if item
+
+    if item = hiddenItems.first
       item.getData().createdAt or item.getData().createdAtTimestamps.last
     else
       @lastItemTimeStamp

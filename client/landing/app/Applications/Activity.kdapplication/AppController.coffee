@@ -30,13 +30,13 @@ class ActivityAppController extends AppController
 
     super options
 
-    @currentFilter     = activityTypes
-    @filterType = "Public"
-    @appStorage        = new AppStorage 'Activity', '1.0'
-    @isLoading         = no
-    @mainController    = @getSingleton 'mainController'
-    @lastTo            = null
-    @lastFrom          = null
+    @currentFilter  = activityTypes
+    @feedType       = "Public"
+    @appStorage     = new AppStorage 'Activity', '1.0'
+    @isLoading      = no
+    @mainController = @getSingleton 'mainController'
+    @lastTo         = null
+    @lastFrom       = null
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -62,11 +62,7 @@ class ActivityAppController extends AppController
     @listController.resetList()
     @listController.removeAllItems()
 
-  setFilter:(type) ->
-    if type?
-      @currentFilter = type
-    else
-      @currentFilter = activityTypes
+  setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
 
   getFilter: -> @currentFilter
 
@@ -100,8 +96,8 @@ class ActivityAppController extends AppController
       @isLoading = no
       @resetAll()
       # the filterList on top of the innerNav is clicked
-      if data.filterType
-        @filterType = data.filterType
+      if data.type in ["Public", "Followed"]
+        @feedType = data.type
       else
         @setFilter data.type
       @populateActivity()
@@ -196,15 +192,14 @@ class ActivityAppController extends AppController
     fetch = (slug)=>
       if KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
-      else:
+      else
         unless slug is 'koding'
           @fetchActivitiesDirectly options, callback
         else
           @isExempt (exempt)=>
             if exempt or @getFilter() isnt activityTypes
-              @fetchActivitiesDirectly options, callback
-            else
-              @fetchActivitiesFromCache options, callback
+            then @fetchActivitiesDirectly options, callback
+            else @fetchActivitiesFromCache options, callback
 
     unless isReady
     then groupsController.once 'groupChanged', fetch
@@ -233,28 +228,21 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
+    {CActivity}   = KD.remote.api
+    
     if KD.config.useNeo4j
-      options.filterType = @filterType
-      if @filterType == "Public"
+      options.feedType = @feedType
 
+      if @feedType is "Public"
         options.groupId = KD.getSingleton("groupsController").getCurrentGroup().getId()
-
-        KD.remote.api.CActivity.fetchPublicContents options, (err, activities)->
-          if err
-            callback err
-          else
-            callback null, activities
+        CActivity.fetchPublicContents options, callback
       else
-        KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
-          if err
-            callback err
-          else
-            callback null, activities
+        CActivity.fetchFolloweeContents options, callback
+    
     else
-
       @isExempt (exempt)->
         options.lowQuality = exempt
-        KD.remote.api.CActivity.fetchFacets options, (err, activities)->
+        CActivity.fetchFacets options, (err, activities)->
           if err
             callback err
           else if not exempt
