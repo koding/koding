@@ -355,7 +355,6 @@ class ActivityAppController extends AppController
         callback null, cache
 
   continueLoadingTeasers:->
-    return
     # ?????
     # HACK: this gets called multiple times if there's no wait
     KD.utils.wait 10000, =>
