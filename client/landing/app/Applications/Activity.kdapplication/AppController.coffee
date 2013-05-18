@@ -97,24 +97,14 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
-<<<<<<< HEAD
-
-      console.log("data??????", data)
+      @isLoading = no
+      @resetAll()
       # the filterList on top of the innerNav is clicked
       if data.filterType
         @filterType = data.filterType
-        @resetAll()
-        @populateActivity()
       else
-        @resetAll()
         @setFilter data.type
-        @populateActivity()
-=======
-      @isLoading = no
-      @resetAll()
-      @setFilter data.type
       @populateActivity()
->>>>>>> 8f04135d33d4da3e5351f103c3518b1d7931eb75
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
