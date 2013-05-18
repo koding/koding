@@ -261,8 +261,6 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchPublicContents:(params={}, callback)->
 
-    console.log("fetching contents from nee4j for public !!!", JSON.stringify(params))
-
     params['groupId'] ||= "5150c743f2589b107d000007"
     params['resultlimit'] ||= 10
 
@@ -275,7 +273,6 @@ module.exports = class CActivity extends jraphical.Capsule
     if params['facets'][0] == 'J'
       if params['facets'] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
-        console.log("Wrong object type:", params['facets'])
         throw "Wrong object type: " + params['facets']
       query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets']) )
 
@@ -289,15 +286,9 @@ module.exports = class CActivity extends jraphical.Capsule
              'LIMIT {resultlimit}'
             ])
     query = query.join('\n')
-    console.log("------------------------------")
-    console.log(query)
-    console.log("------------------------------")
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   @fetchFolloweeContents: secure (client, params, callback)->
-    console.log("fetching contents from neo4j !!!", JSON.stringify(client))
-    #"502348600a6f5e381a000005"
-    # TODO: ??? connection.getId or something ???
     params['userId'] = client.connection.delegate._id
     params['resultlimit'] ||= 10
     query = ['start koding=node:koding(id={userId})'
@@ -323,9 +314,6 @@ module.exports = class CActivity extends jraphical.Capsule
              'LIMIT {resultlimit}'
             ])
     query = query.join('\n')
-    console.log("------------------------------")
-    console.log(query)
-    console.log("------------------------------")
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
