@@ -112,6 +112,7 @@ class NFinderController extends KDViewController
 
     return callback? "vmNames should be an Array"  unless Array.isArray vmNames
 
+    @treeController.removeAllNodes()
     FSHelper.resetRegistry()
     @stopAllWatchers()
 
