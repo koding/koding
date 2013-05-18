@@ -60,39 +60,7 @@ class FeederResultsController extends KDViewController
     pane.addSubView pane.listHeader = header = new CommonListHeader
       title : filter.optional_title or filter.title
 
-
-    if onboarding
-      pane.onboarding = if onboarding[name] instanceof KDView
-        onboarding[name]
-      else if typeof onboarding[name] is "string"
-        new FeederOnboardingView
-          pistachio : onboarding[name]
-
-      if pane.onboarding
-        pane.onboarding.setOption "name", name
-        pane.onboarding.hide()
-        header.once "ready", ->
-          header.addSubView pane.onboarding
-
-        appManager = @getSingleton("appManager")
-        app        = appManager.getFrontApp()
-        app.appStorage?.fetchValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", (value)=>
-          unless value
-            pane.onboarding.show()
-            # pane.onboarding.once "viewAppended", =>
-            @utils.defer ->
-              # pane.onboarding.setHeight pane.onboarding.getHeight()
-              pane.onboarding.setClass 'in'
-              KD.utils.wait 400, tabView.bound "_windowDidResize"
-
-        pane.onboarding.on "OnboardingMessageCloseIconClicked", ->
-          pane.onboarding.unsetClass 'in'
-          # ux illusion: real values will be put
-          # with _windowDidResize
-          p.listWrapper.setHeight window.innerHeight for p in tabView.panes
-          KD.utils.wait 400, ->
-            pane.onboarding.hide()
-            tabView._windowDidResize()
+    @putOnboardingView name if onboarding
 
     pane.addSubView pane.listWrapper = listController.getView()
 
@@ -103,3 +71,50 @@ class FeederResultsController extends KDViewController
         header.unsetClass "scrolling-up-outset"
 
     callback? listController
+
+  putOnboardingView:(name)->
+    pane         = @panes[name]
+    tabView      = @getView()
+    {onboarding} = @getOptions()
+    header       = pane.listHeader
+
+    view = if onboarding[name] instanceof KDView
+      onboarding[name]
+    else if typeof onboarding[name] is "string"
+      new FeederOnboardingView pistachio : onboarding[name]
+
+    return unless view
+
+    appManager = @getSingleton("appManager")
+    app        = appManager.getFrontApp()
+
+    cb = ->
+      view.bindTransitionEnd()
+      view.setOption "name", name
+      header.ready ->
+        header.addSubView view
+        view.setClass 'no-anim'
+        view.$().css marginTop : -view.getHeight() - 50 # some
+        view.unsetClass 'no-anim'
+        KD.utils.wait 1000, ->
+          view.once 'transitionend', tabView.bound "_windowDidResize"
+          view.$().css marginTop : 1
+          view.setClass 'in'
+
+      view.on "OnboardingMessageCloseIconClicked", ->
+        view.once 'transitionend', tabView.bound "_windowDidResize"
+        view.$().css marginTop : -view.getHeight() - 50
+        view.unsetClass 'in'
+        # ux illusion: real values will be put
+        # with _windowDidResize
+        pane.listWrapper.setHeight window.innerHeight
+
+    unless KD.isLoggedIn()
+      log "hello"
+      KD.utils.wait 1000, cb
+    else
+      log "is it me"
+      app.appStorage?.fetchValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", (value)->
+        return if value
+        KD.utils.wait 1000, cb
+

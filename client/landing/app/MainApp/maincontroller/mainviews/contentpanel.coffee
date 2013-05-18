@@ -67,10 +67,8 @@ class ContentPanel extends KDView
     @state = 'develop'
 
   adjustForSocial:->
-    @once 'transitionend', =>
-      offset = parseInt(@$().css("left"),10)
-      @setWidth @windowController.winWidth - offset - @chatMargin
-
+    offset = if @windowController.winWidth < 768 then 50 else 160
+    @setWidth @windowController.winWidth - offset - @chatMargin
     @setClass 'social'
     @state = 'social'
 
