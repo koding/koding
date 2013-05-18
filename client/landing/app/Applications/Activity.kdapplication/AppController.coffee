@@ -97,6 +97,7 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
+<<<<<<< HEAD
 
       console.log("data??????", data)
       # the filterList on top of the innerNav is clicked
@@ -108,6 +109,12 @@ class ActivityAppController extends AppController
         @resetAll()
         @setFilter data.type
         @populateActivity()
+=======
+      @isLoading = no
+      @resetAll()
+      @setFilter data.type
+      @populateActivity()
+>>>>>>> 8f04135d33d4da3e5351f103c3518b1d7931eb75
 
   activitiesArrived:(activities)->
     for activity in activities when activity.bongo_.constructorName in @getFilter()
@@ -339,27 +346,29 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
+  # Enables switching between cache/neo4j.
+  getCacheUrl:->
+
+    defaultUrlPrefix = "cache"
+    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
+
+    return defaultUrlPrefix
+
   fetchCachedActivity:(options = {}, callback)->
 
-    urlPrefix = "cache"
-
-    if KD.config.useNeo4j
-      urlPrefix = "neo4j"
-
     $.ajax
-      url     : "/-/#{urlPrefix}/#{options.slug or 'latest'}"
+      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
-      success : (cache)=>
+      success : (cache)->
         cache.overview.reverse()  if cache?.overview
         callback null, cache
 
   continueLoadingTeasers:->
-    # ?????
-    # HACK: this gets called multiple times if there's no wait
-    KD.utils.wait 10000, =>
-      lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
-      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    return  if @isLoading
+
+    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
+    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed
