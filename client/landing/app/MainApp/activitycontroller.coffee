@@ -8,7 +8,7 @@ class ActivityController extends KDObject
 
     groupChannel = null
 
-    groupsController.on 'GroupChanged', =>
+    groupsController.on 'GroupChannelReady', =>
       oldChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
       groupChannel.on 'feed-new', (activities)=>
