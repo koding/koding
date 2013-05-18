@@ -119,13 +119,10 @@ class ActivityAppController extends AppController
       callback exempt
 
   fetchActivitiesDirectly:(options = {}, callback)->
-    console.log("starting to fetch activities ... !!!" + JSON.stringify(options) )
     KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
-    console.log("fetching activity now ", @filterType)
     @fetchActivity options, (err, teasers)=>
-      console.log("got it now ?")
       @isLoading = no
       @listController.hideLazyLoader()
       KD.timeEnd "Activity fetch took"
@@ -172,7 +169,6 @@ class ActivityAppController extends AppController
     @populateActivityWithTimeout()
 
   populateActivityWithTimeout:->
-    console.log("populateActivityWithTimeout 1")
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
@@ -187,7 +183,6 @@ class ActivityAppController extends AppController
     @status.reconnect()
 
   populateActivity:(options = {}, callback)->
-    console.log("populating activities - 1")
     return if @isLoading
 
     @listController.showLazyLoader()
@@ -199,8 +194,6 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      console.log("activities ---- !!!! fetch - slug:" + slug)
-
       if KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
       else:
@@ -208,12 +201,9 @@ class ActivityAppController extends AppController
           @fetchActivitiesDirectly options, callback
         else
           @isExempt (exempt)=>
-            console.log("activities, calling this or that exempt " + exempt)
             if exempt or @getFilter() isnt activityTypes
-              console.log("fetching activities directly")
               @fetchActivitiesDirectly options, callback
             else
-              console.log("fetching activities from cache")
               @fetchActivitiesFromCache options, callback
 
     unless isReady
@@ -245,18 +235,15 @@ class ActivityAppController extends AppController
 
     if KD.config.useNeo4j
       options['filterType'] = @filterType
-      console.log("KD.remote.api.CActivity.fetchFolloweeContents - " + JSON.stringify(options) )
       if @filterType == "Public"
         KD.remote.api.CActivity.fetchPublicContents options, (err, activities)->
           if err
-            console.log("err" + err)
             callback err
           else
             callback null, activities
       else
         KD.remote.api.CActivity.fetchFolloweeContents options, (err, activities)->
           if err
-            console.log("err" + err)
             callback err
           else
             callback null, activities
@@ -264,16 +251,12 @@ class ActivityAppController extends AppController
 
       @isExempt (exempt)->
         options.lowQuality = exempt
-        console.log("fetching -- ", JSON.stringify(options))
         KD.remote.api.CActivity.fetchFacets options, (err, activities)->
           if err
-            console.log("err", err)
             callback err
           else if not exempt
-            console.log("11111 = ?????", activities.length)
             KD.remote.reviveFromSnapshots clearQuotes(activities), callback
           else
-            console.log("22222 = ?????")
             # trolls and admins in show troll mode will load data on request
             # as the snapshots do not include troll comments
             stack = []
@@ -291,7 +274,6 @@ class ActivityAppController extends AppController
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
   fetchSomeActivities:(options = {}) ->
-    console.log("fetching some activities")
     return if @isLoading
     @isLoading = yes
 
@@ -299,11 +281,9 @@ class ActivityAppController extends AppController
     unless lastItemCreatedAt? or lastItemCreatedAt is ""
       @isLoading = no
       log "lastItemCreatedAt is empty"
-
       # if lastItemCreatedAt is null, we assume there are no entries
       # and refresh the entire feed
       @refresh()
-
       return
 
     selector       =
