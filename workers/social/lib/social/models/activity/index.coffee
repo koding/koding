@@ -271,7 +271,7 @@ module.exports = class CActivity extends jraphical.Capsule
       'WHERE has(items.`meta.createdAtEpoch`)'
     ]
 
-    if facets and facets != 'Everything'
+    if facets and 'Everything' isnt facets
       if facets not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
         return callback new KodingError  "Unknown facet: " + facets
@@ -289,15 +289,15 @@ module.exports = class CActivity extends jraphical.Capsule
     query = query.join('\n')
     neo4jhelper.fetchFromNeo4j(query, params, callback)
 
-  @fetchFolloweeContents: secure (client, params, callback)->
-    userId = client.connection.delegate._id
+  @fetchFolloweeContents: secure ({connection:{delegate}}, params, callback)->
+    userId = delegate.getId()
     {facets, to, limit} = params
     query = ["start koding=node:koding(id='#{userId}')"
              'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
              'where myfollowees.name="JAccount"'
             ]
 
-    if facets and facets != 'Everything'
+    if facets and 'Everything' isnt facets
       if facets not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
         return callback new KodingError  "Unknown facet"+facets

@@ -48,13 +48,13 @@ module.exports = class Neo4jHelper
       if results.length == 0
         callback null, []
 
-      wants_in_order = []
+      wantedOrder = []
       collections = {}
       for result in results
         oid = result["items"]["_data"]["data"]["id"]
         otype = result["items"]["_data"]["data"]["name"]
-        wants_in_order.push({id: oid, collection: otype, idx: oid+'_'+otype})
+        wantedOrder.push({id: oid, collection: otype, idx: oid+'_'+otype})
         collections[otype] ||= []
         collections[otype].push(oid)
-      @fetchObjectsFromMongo(collections, wants_in_order, callback)
+      @fetchObjectsFromMongo(collections, wantedOrder, callback)
 

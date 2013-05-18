@@ -28,7 +28,7 @@ module.exports =
   neo4j         :
     host        : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
@@ -90,7 +90,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      useNeo4j: no
+      useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
