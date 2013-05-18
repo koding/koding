@@ -305,12 +305,12 @@ module.exports = class CActivity extends jraphical.Capsule
              'where myfollowees.name="JAccount"'
             ]
 
-    if params['facets'][0][0] == 'J'
-      if params['facets'][0] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
+    if params['facets'][0] == 'J'
+      if params['facets'] not in ["JLink","JBlogPost","JTutorial","JStatusUpdate","JComment",
                              "JOpinion","JDiscussion","JCodeSnip","JCodeShare"]
         throw "Wrong object type: " + params['facets'][0]
 
-      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets'][0]) )
+      query.push('AND items.name="{{objectType}}"'.replace('{{objectType}}', params['facets']) )
 
 
     if params['to']
