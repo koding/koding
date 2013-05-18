@@ -111,7 +111,7 @@ module.exports = class JGroupBundle extends JBundle
 
               return
 
-            if queue.length and queue.length = (Object.keys debits).length
+            if queue.length and queue.length is (Object.keys debits).length
               dash queue, ->
                 options     =
                   usage     : debits
