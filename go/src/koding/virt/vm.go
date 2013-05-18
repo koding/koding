@@ -21,15 +21,13 @@ type VM struct {
 	LdapPassword string        `bson:"ldapPassword"`
 	IP           net.IP        `bson:"ip"`
 	HostKite     string        `bson:"hostKite"`
+	hostname     string
 }
 
 type UserEntry struct {
 	Id   bson.ObjectId `bson:"id"`
 	Sudo bool          `bson:"sudo"`
 }
-
-const UserIdOffset = 1000000
-const RootIdOffset = 500000
 
 var templateDir string
 var Templates = template.New("lxc")
@@ -71,8 +69,12 @@ func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
+func (vm *VM) SetHostname(hostname string) {
+	vm.hostname = hostname
+}
+
 func (vm *VM) Hostname() string {
-	return vm.Name + ".koding.com"
+	return vm.hostname
 }
 
 func (vm *VM) RbdDevice() string {
