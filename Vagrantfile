@@ -22,7 +22,7 @@ if version < "4.2.12r84980"
   puts "", "VirtualBox successfully installed.", ""
 end
 
-if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.3"
+if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
