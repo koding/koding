@@ -49,7 +49,7 @@ class AboutView extends JView
       <div class="location-wrapper">
         <div class="location">
           <p class="loc-first">
-            We're located at <strong>SOMA</strong> district in <strong>San Francisco, California.</strong>
+            We're located in the <strong>SOMA</strong> district of <strong>San Francisco, California.</strong>
           </p>
           <address>
             <span class='icon fl'></span>
