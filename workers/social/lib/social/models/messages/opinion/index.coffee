@@ -26,6 +26,10 @@ module.exports = class JOpinion extends JPost
     emitFollowingActivities: yes
     taggedContentRole : 'content'
     tagRole           : 'tag'
+    sharedEvents    :
+      instance      : [
+        { name: 'OpinionIsDeleted' }
+      ]
     sharedMethods     :
       static          : ['create','one','updateAllSlugs',"fetchRelated"]
       instance        : [

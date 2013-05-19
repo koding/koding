@@ -75,14 +75,16 @@ func Send(event url.Values) {
 		return
 	}
 
-	event.Add("apikey", config.Current.Loggr.ApiKey)
-	resp, err := http.PostForm(config.Current.Loggr.Url, event)
-	if err != nil || resp.StatusCode != http.StatusCreated {
-		fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
-	}
-	if resp != nil && resp.Body != nil {
-		resp.Body.Close()
-	}
+	go func() {
+		event.Add("apikey", config.Current.Loggr.ApiKey)
+		resp, err := http.PostForm(config.Current.Loggr.Url, event)
+		if err != nil || resp.StatusCode != http.StatusCreated {
+			fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
+		}
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
+	}()
 }
 
 func Log(level int, text string, data ...interface{}) {

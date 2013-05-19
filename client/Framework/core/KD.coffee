@@ -1,4 +1,4 @@
-Function::bind3 or= (context) ->
+Function::bind or= (context) ->
   if 1 < arguments.length
     args = [].slice.call arguments, 1
     return => @apply context, if arguments.length then args.concat [].slice.call arguments else args

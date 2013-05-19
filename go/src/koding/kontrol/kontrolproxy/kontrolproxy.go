@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,7 +14,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -153,31 +150,18 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func validateHost(user UserInfo) error {
+func validateUser(user UserInfo) bool {
 	rules, ok := proxy.Rules[user.Username]
 	if !ok { // if not available assume allowed for all
-		return nil
+		return true
 	}
 
 	restriction, ok := rules.Services[user.Servicename]
 	if !ok { // if not available assume allowed for all
-		return nil
+		return true
 	}
 
-	if restriction.IP == "" { // assume allowed for all
-		return nil
-	}
-
-	validator, err := regexp.Compile(restriction.IP)
-	if err != nil {
-		return nil // dont block anyone if regex compile get wrong
-	}
-
-	if validator.MatchString(user.IP) {
-		return fmt.Errorf("IP is not validated '%s'", user.IP)
-	}
-
-	return nil
+	return validator(restriction, user).IP().Country().Check()
 }
 
 func parseKey(host string) (UserInfo, error) {
@@ -472,9 +456,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	err = validateHost(userInfo)
-	if err != nil {
-		log.Printf("validation error: %s", err.Error())
+	ok := validateUser(userInfo)
+	if !ok {
+		log.Println("not validated user")
 		http.NotFound(rw, req)
 		return
 	}
@@ -584,100 +568,18 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			outreq.Header.Set("X-Forwarded-For", clientIP)
 		}
 
-		// Test values, will be removed - arslan
-		// outreq.URL.Host = "localhost:3000"
-		// outreq.Host = "localhost:3000"
-		// outreq.URL.Host = "67.169.70.88"
-		// outreq.Host = "67.169.70.88"
-
 		res := new(http.Response)
-
 		rabbitKey := lookupRabbitKey(userInfo.Username, userInfo.Servicename, userInfo.Key)
 
 		if rabbitKey != "" {
-			requestHost := outreq.Host
-			log.Printf("proxy via rabbitmq to '%s'", requestHost)
-			output := new(bytes.Buffer)
-			outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
-
-			err := outreq.WriteProxy(output)
+			log.Printf("proxy via rabbitmq to '%s'", outreq.Host)
+			res, err = rabbitTransport(outreq, userInfo, rabbitKey)
 			if err != nil {
-				io.WriteString(rw, fmt.Sprint(err))
-				return
-			}
-
-			rabbitClient := userInfo.Username + "-" + userInfo.Servicename + "-" + rabbitKey
-
-			if _, ok := connections[rabbitClient]; !ok {
-				queue, err := amqpStream.channel.QueueDeclare("", false, true, false, false, nil)
-				if err != nil {
-					log.Printf("queue.declare: %s", err)
-					io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-					return
-				}
-				if err := amqpStream.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
-					log.Printf("queue.bind: %s", err)
-					io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-					return
-				}
-				messages, err := amqpStream.channel.Consume("", "", true, false, false, false, nil)
-				if err != nil {
-					log.Printf("basic.consume: %s", err)
-					io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-					return
-				}
-
-				connections[rabbitClient] = RabbitChannel{
-					ReplyTo: queue.Name,
-					Receive: make(chan []byte, 1),
-				}
-
-				go func() {
-					for msg := range messages {
-						log.Printf("got rabbit http message for %s", connections[rabbitClient].ReplyTo)
-						connections[rabbitClient].Receive <- msg.Body
-
-					}
-				}()
-			}
-
-			log.Println("publishing http request to rabbit")
-			msg := amqp.Publishing{
-				ContentType: "text/plain",
-				Body:        output.Bytes(),
-				ReplyTo:     connections[rabbitClient].ReplyTo,
-			}
-
-			amqpStream.channel.Publish("kontrol-rabbitproxy", rabbitClient, false, false, msg)
-
-			var respData []byte
-			// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
-			t := time.NewTimer(20 * time.Second)
-			log.Println("...waiting for http response from rabbit")
-			select {
-			case respData = <-connections[rabbitClient].Receive:
-			case <-t.C:
-				log.Println("timeout. no rabbit proxy message receieved")
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"kontrolproxy could not connect to rabbit-client %s'\"}\n", requestHost))
-				return
-			}
-			t.Stop()
-
-			if respData == nil {
-				rw.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			buf := bytes.NewBuffer(respData)
-			respreader := bufio.NewReader(buf)
-
-			// ok got now response from rabbit :)
-			res, err = http.ReadResponse(respreader, outreq)
-			if err != nil {
-				io.WriteString(rw, fmt.Sprint(err))
+				log.Printf("rabbit proxy %s", err.Error())
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 				return
 			}
 		} else {
-
 			// add :80 if not available
 			ok := hasPort(outreq.URL.Host)
 			if !ok {

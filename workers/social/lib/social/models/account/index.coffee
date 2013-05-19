@@ -16,12 +16,12 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
-  @trait __dirname, '../../traits/notifiable'
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
 
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
+  CActivity = require '../activity'
 
   @getFlagRole = 'content'
 
@@ -48,6 +48,13 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+    sharedEvents    :
+      static        : [
+        { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
+      ]
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods :
       static      : sharedStaticMethods()
       instance    : sharedInstanceMethods()
@@ -547,7 +554,7 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "aleksey-m", "gokmen", "chris",
-                  "arvidkahl", "testdude", "blum", "neelance", "fatihacet" ]
+                  "arvidkahl", "testdude", "blum", "neelance", "halk", "fatihacet"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -557,6 +564,7 @@ module.exports = class JAccount extends jraphical.Module
       if flag is 'exempt'
         console.log 'is exempt'
         @markAllContentAsLowQuality()
+        @cleanCacheFromActivities()
       else
         console.log 'aint exempt'
     else
@@ -568,7 +576,7 @@ module.exports = class JAccount extends jraphical.Module
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
       if flag is 'exempt'
-        console.log 'is exempt'
+        console.log 'was exempt'
         @unmarkAllContentAsLowQuality()
       else
         console.log 'aint exempt'
@@ -787,14 +795,25 @@ module.exports = class JAccount extends jraphical.Module
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, console.log
-        item.emit 'ContentMarkedAsLowQuality', null
+        item.update {$set: isLowQuality: yes}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.flagIsLowQuality ->
+              item.emit 'ContentMarkedAsLowQuality', null
+          else
+            item.emit 'ContentMarkedAsLowQuality', null
 
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, console.log
-        item.emit 'ContentUnmarkedAsLowQuality', null
+        item.update {$set: isLowQuality: no}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.unflagIsLowQuality ->
+              item.emit 'ContentUnmarkedAsLowQuality', null
+          else
+            item.emit 'ContentUnmarkedAsLowQuality', null
+
+  cleanCacheFromActivities:->
+    CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->
@@ -807,6 +826,11 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
+  sendNotification:(event, contents)->
+    @emit 'notification', {
+      routingKey: @profile.nickname
+      event, contents
+    }
   getInvitiationRequestRelationships:(options, status, callback)->
     JInvitationRequest = require '../invitationrequest'
 
@@ -841,7 +865,7 @@ module.exports = class JAccount extends jraphical.Module
     @getInvitiationRequestRelationships options, 'pending', (err, rels)->
       return callback err if err
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
-  
+
   fetchPendingGroupInvitations:(options, callback)->
     [callback, options] = [options, callback]  unless callback
     JGroup = require '../group'
@@ -887,7 +911,6 @@ module.exports = class JAccount extends jraphical.Module
     @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
       return callback err if err or not request
       request.ignoreInvitationByInvitee client, callback
-
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate
   #   id = delegate?.getId()

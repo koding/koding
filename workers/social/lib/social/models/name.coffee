@@ -92,7 +92,7 @@ module.exports = class JName extends Model
         newName = {
           slug, collectionName, @usedAsPath, @constructorName
         }
-        kallback =do -> i = 0; (err)->
+        kallback = do -> i = 0; (err)->
           if err then callback err
           else if ++i is 2 then callback null
         @update {$set: slugs: [newName]}, kallback
@@ -144,7 +144,7 @@ module.exports = class JName extends Model
     }
     nameDoc.save (err)->
       if err?.code is 11000
-        err = new KodingError "The fullName #{fullName} is not available."
+        err = new KodingError "The slug #{fullName} is not available."
         err.code = 11000
         callback err
       else if err

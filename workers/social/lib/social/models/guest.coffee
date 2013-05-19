@@ -4,10 +4,8 @@ module.exports = class JGuest extends jraphical.Module
 
   error =(err)->
     message:
-      if 'string' is typeof err
-        err
-      else
-        err.message
+      if 'string' is typeof err then err
+      else err.message
 
   {secure, dash} = require 'bongo'
 
@@ -34,6 +32,10 @@ module.exports = class JGuest extends jraphical.Module
     sharedMethods   :
       static        : staticMethods
       instance      : instanceMethods
+    sharedEvents    :
+      static        : [
+        { name: 'NeedsCleanup' }
+      ]
     indexes         :
       guestId       : ['unique', 'descending']
     schema          :
@@ -57,19 +59,21 @@ module.exports = class JGuest extends jraphical.Module
         avatar      : String
         status      : String
 
-  @_resetAllGuests =(count=1e4)->
+  @resetAllGuests =(count=1e4)->
     @drop ->
       queue = [0...count].map (guestId)->->
         guest = new JGuest {guestId}
         guest.save (err)->
+          console.trace()
           console.log 'saved a guest!'
           queue.fin err
       dash queue, ->
         console.log 'done restting guests!'
 
-  @resetAllGuests =(client, callback)->
+  @resetAllGuests$ =(client)->
+    console.trace()
     {delegate} = client.connection
-    @_resetAllGuests() if delegate.can('reset guests')
+    @resetAllGuests() if delegate.can('reset guests')
 
   @recycle =(guest, callback=->) ->
     guestId = if guest instanceof @ then guest.getId() else guest
@@ -86,7 +90,7 @@ module.exports = class JGuest extends jraphical.Module
       createId = require 'hat'
       if clientId?
         if obtaining[clientId]
-          @once "ready.#{clientId}", (guest)-> console.log 'finally got', clientId; callback null, guest
+          @once "ready.#{clientId}", (guest)-> callback null, guest
           return
         obtaining[clientId] = yes
       {delegate} = client?.connection
