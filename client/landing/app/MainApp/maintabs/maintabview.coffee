@@ -59,11 +59,11 @@ class MainTabView extends KDTabView
     if options.route is '/Develop'
       appManager.showInstance appInstance
 
-  showHandleContainer:()->
+  showHandleContainer:->
     @tabHandleContainer.$().css top : -25
     @handlesHidden = no
 
-  hideHandleContainer:()->
+  hideHandleContainer:->
     @tabHandleContainer.$().css top : 0
     @handlesHidden = yes
 

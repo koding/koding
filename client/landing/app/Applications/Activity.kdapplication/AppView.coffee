@@ -52,8 +52,10 @@ class ActivityAppView extends KDScrollView
 
 
   decorate:->
+    @unsetClass "guest"
+    {entryPoint, roles} = KD.config
+    @setClass "guest" unless "member" in roles
     if KD.isLoggedIn()
-      {entryPoint, roles} = KD.config
       @setClass 'loggedin'
       if entryPoint?.type is 'group' and 'member' not in roles
       then @widget.hide()

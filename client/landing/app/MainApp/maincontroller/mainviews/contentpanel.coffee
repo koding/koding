@@ -8,6 +8,7 @@ class ContentPanel extends KDView
     @bindTransitionEnd()
     @listenWindowResize()
     @state = 'full'
+    @chatMargin = 0
     @windowController or= @getSingleton 'windowController'
 
     @navOpenedOnce = if KD.isLoggedIn() then yes else no
@@ -39,6 +40,12 @@ class ContentPanel extends KDView
 
     @adjustLayoutHelper name, type
 
+  resetToCurrentState:->
+    switch @state
+      when 'develop' then @adjustForDevelop()
+      when 'social'  then @adjustForSocial()
+      when 'full'    then @adjustForFullWidth()
+
   adjustShadow:(hideTabs)->
     @[if hideTabs then 'setClass' else 'unsetClass'] "no-shadow"
 
@@ -49,21 +56,19 @@ class ContentPanel extends KDView
 
   adjustForFullWidth:->
     @setX 0
-    @setWidth @windowController.winWidth
+    @setWidth @windowController.winWidth - @chatMargin
     @setClass 'full'
     @state = 'full'
 
   adjustForDevelop:->
     @setX 260
-    @setWidth @windowController.winWidth - 260
+    @setWidth @windowController.winWidth - 260 - @chatMargin
     @setClass 'develop'
     @state = 'develop'
 
   adjustForSocial:->
-    @once 'transitionend', =>
-      offset = parseInt(@$().css("left"),10)
-      @setWidth @windowController.winWidth - offset
-
+    offset = if @windowController.winWidth < 768 then 50 else 160
+    @setWidth @windowController.winWidth - offset - @chatMargin
     @setClass 'social'
     @state = 'social'
 
