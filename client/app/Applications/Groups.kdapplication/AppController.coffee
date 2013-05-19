@@ -108,7 +108,7 @@ class GroupsAppController extends AppController
 
   onboardingText =
     everything : """
-      <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
+      <h3 class='title'>Koding groups are a simple way to connect and interact with people who share
       your interests.</h3>
 
       <p>When you join a group such as your univeristy or your company, you can share virtual
