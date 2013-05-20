@@ -1,12 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"regexp"
 )
 
+type filter struct {
+	block    bool
+	validate func() bool
+}
+
 type Validator struct {
-	filters map[bool]func() bool
+	filters map[string]filter
 	rules   proxyconfig.Restriction
 	user    UserInfo
 }
@@ -15,13 +21,16 @@ func validator(rules proxyconfig.Restriction, user UserInfo) *Validator {
 	validator := &Validator{
 		rules:   rules,
 		user:    user,
-		filters: make(map[bool]func() bool),
+		filters: make(map[string]filter),
 	}
 	return validator
 }
 
-func (v *Validator) addFilter(filter func() bool, mode bool) {
-	v.filters[mode] = filter
+func (v *Validator) addFilter(name string, mode bool, validateFn func() bool) {
+	v.filters[name] = filter{
+		block:    mode,
+		validate: validateFn,
+	}
 }
 
 func (v *Validator) IP() *Validator {
@@ -30,18 +39,20 @@ func (v *Validator) IP() *Validator {
 	}
 
 	f := func() bool {
-		if v.rules.IP.Rule == "" { // assume allowed for all
-			return false
+		if v.rules.IP.Rule == "" {
+			v.rules.IP.Block = false
+			return true // assume allowed for all
 		}
 
 		rule, err := regexp.Compile(v.rules.IP.Rule)
 		if err != nil {
-			return false // dont block anyone if regex compile get wrong
+			v.rules.IP.Block = false
+			return true // dont block anyone if regex compile get wrong
 		}
 
 		return rule.MatchString(v.user.IP)
 	}
-	v.addFilter(f, v.rules.IP.Block)
+	v.addFilter("ip", v.rules.IP.Block, f)
 	return v
 }
 
@@ -52,7 +63,8 @@ func (v *Validator) Country() *Validator {
 
 	f := func() bool {
 		if len(v.rules.Country.Rule) == 0 {
-			return false // dont block if country is empty
+			v.rules.Country.Block = false
+			return true // assume all
 		}
 
 		for _, country := range v.rules.Country.Rule {
@@ -64,15 +76,16 @@ func (v *Validator) Country() *Validator {
 		return false
 	}
 
-	v.addFilter(f, v.rules.Country.Block)
+	v.addFilter("domain", v.rules.Country.Block, f)
 	return v
 }
 
 func (v *Validator) Check() bool {
-	for deny, filter := range v.filters {
-		if deny && filter() {
+	for name, filter := range v.filters {
+		fmt.Printf("checking for filter %s\n", name)
+		if filter.block && filter.validate() {
 			return false //block
-		} else if !deny && !filter() {
+		} else if !filter.block && !filter.validate() {
 			return false //block
 		}
 	}
