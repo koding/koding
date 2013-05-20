@@ -40,13 +40,11 @@ func (v *Validator) IP() *Validator {
 
 	f := func() bool {
 		if v.rules.IP.Rule == "" {
-			v.rules.IP.Block = false
 			return true // assume allowed for all
 		}
 
 		rule, err := regexp.Compile(v.rules.IP.Rule)
 		if err != nil {
-			v.rules.IP.Block = false
 			return true // dont block anyone if regex compile get wrong
 		}
 
@@ -62,15 +60,24 @@ func (v *Validator) Country() *Validator {
 	}
 
 	f := func() bool {
+		// assume matched for an empty array
 		if len(v.rules.Country.Rule) == 0 {
-			v.rules.Country.Block = false
 			return true // assume all
 		}
 
+		emptystrings := 0
 		for _, country := range v.rules.Country.Rule {
+			if country == "" {
+				emptystrings++
+			}
 			if country == v.user.Country {
 				return true
 			}
+		}
+
+		// if the array has all empty slices assume matched
+		if emptystrings == len(v.rules.Country.Rule) {
+			return true //
 		}
 
 		return false
