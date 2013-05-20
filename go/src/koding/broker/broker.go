@@ -273,11 +273,18 @@ func main() {
 			prefix := routingKey[:pos]
 			routeMapMutex.Lock()
 			routeSessions := routeMap[prefix]
-			for _, routeSession := range routeSessions {
+
+			sessionsToDelete := make([]int, 0)
+			for i, routeSession := range routeSessions {
 				if !routeSession.Send(jsonMessage) {
 					routeSession.Close()
+					sessionsToDelete = append(sessionsToDelete, i)
 					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
 				}
+			}
+			for i := len(sessionsToDelete) - 1; i >= 0; i-- {
+				routeSessions[sessionsToDelete[i]] = routeSessions[len(routeSessions)-1]
+				routeSessions = routeSessions[:len(routeSessions)-1]
 			}
 			routeMapMutex.Unlock()
 		}
