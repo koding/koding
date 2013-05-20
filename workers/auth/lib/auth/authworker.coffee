@@ -353,10 +353,10 @@ module.exports = class AuthWorker extends EventEmitter
       exchange  : @presenceExchange
       member    : @resourceName
     }
-    @presence.on 'join', (serviceKey)=>
+    @presence.on 'join', (serviceKey) =>
       try @addService parseServiceKey serviceKey
       catch e then console.error e
-    @presence.on 'leave', (serviceKey)=>
+    @presence.on 'leave', (serviceKey) =>
       try @removeService parseServiceKey serviceKey
       catch e then console.error e
     @presence.listen()
@@ -365,10 +365,6 @@ module.exports = class AuthWorker extends EventEmitter
     { serviceGenericName, serviceUniqueName, routingKey
       correlationName, username } = messageData
 
-    servicesOfType = @services[serviceGenericName]
-
-    [matchingService] = (service for service in servicesOfType \
-                         when service.serviceUniqueName is serviceUniqueName)
     params = {
       serviceGenericName
       serviceUniqueName
@@ -377,6 +373,11 @@ module.exports = class AuthWorker extends EventEmitter
       username
     }
 
+    servicesOfType = @services[serviceGenericName]
+
+    [matchingService] = (service for service in servicesOfType \
+                                 when service.serviceUniqueName \
+                                   is serviceUniqueName)
     if matchingService?
       @sendAuthJoin params
     else

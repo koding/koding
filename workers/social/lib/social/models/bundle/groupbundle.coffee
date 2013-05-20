@@ -82,6 +82,7 @@ module.exports = class JGroupBundle extends JBundle
         {overagePolicy} = this
         JVM.calculateUsage delegate, group, (err, usage) =>
           return callback err  if err?
+          
           @fetchLimits (err, limits) =>
             return callback err  if err
 
@@ -97,21 +98,20 @@ module.exports = class JGroupBundle extends JBundle
               debitAmount   = debits[limit.title]
               personalLimit = limitsMap["#{limit.title} per user"]
 
-              isEnough =
-                (debitAmount? and personalLimit?)         and
-                (not /per user$/.test limit.title)        and
-                (limit.getValue() >= debitAmount)         and
-                ((overagePolicy is 'allowed') or
-                 (personalLimit.getValue() >= debitAmount))
+              theyHaveEnough = ( debitAmount is 0 )   or
+                ( not /per user$/.test limit.title )  and
+                ( debitAmount <= limit )              and
+                (( overagePolicy is 'allowed' ) or 
+                  ( personalLimit? )            and
+                  ( debitAmount <= personalLimit ))
 
-              if isEnough
-                queue.push ->
-                  debit limit, debitAmount
-                  debit personalLimit, debitAmount
+              if theyHaveEnough then queue.push ->
+                debit limit, debitAmount
+                debit personalLimit, debitAmount
 
               return
 
-            if queue.length and queue.length = (Object.keys debits).length
+            if queue.length and queue.length is (Object.keys debits).length
               dash queue, ->
                 options     =
                   usage     : debits
