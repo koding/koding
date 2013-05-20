@@ -341,7 +341,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					}
 					defer file.Close()
 				    
-				    rootVos.Remove("/etc/apache2/sites-available/000-default")
+				    err := rootVos.Remove("/etc/apache2/sites-available/000-default")
+					if err != nil {
+						panic(err)
+					}
 					
 					if err := virt.Templates.ExecuteTemplate(file, "apache-site", vm); err != nil {
 						panic(err)
