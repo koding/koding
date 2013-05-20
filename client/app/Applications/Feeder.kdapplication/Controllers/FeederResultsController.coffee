@@ -110,10 +110,8 @@ class FeederResultsController extends KDViewController
         pane.listWrapper.setHeight window.innerHeight
 
     unless KD.isLoggedIn()
-      log "hello"
       KD.utils.wait 1000, cb
     else
-      log "is it me"
       app.appStorage?.fetchValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", (value)->
         return if value
         KD.utils.wait 1000, cb
