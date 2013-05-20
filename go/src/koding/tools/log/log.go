@@ -103,7 +103,7 @@ func Log(level int, text string, data ...interface{}) {
 	logCounter += 1
 	if MaxPerSecond > 0 && logCounter > MaxPerSecond {
 		if logCounter == MaxPerSecond+1 {
-			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.")))
+			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond)))
 		}
 		return
 	}
