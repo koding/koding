@@ -355,8 +355,7 @@ class KodingRouter extends KDRouter
             """
             return showModal title, content
 
-          KD.remote.api.JKodingKey.fetchByUserKey
-            username: KD.whoami().profile.nickname
+          KD.remote.api.JKodingKey.fetchByKey
             key: key
           , (err, kodingKey) =>
             unless kodingKey
