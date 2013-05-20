@@ -25,7 +25,6 @@ module.exports = class JGroup extends Module
   ]
 
   @trait __dirname, '../../traits/followable'
-  @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/joinable'
@@ -55,12 +54,17 @@ module.exports = class JGroup extends Module
       slug          : 'unique'
     sharedEvents    :
       static        : [
-        { name: 'MemberAdded',    filter: -> null }
-        { name: 'MemberRemoved',  filter: -> null }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
+        { name: 'MemberRolesChanged' }
+        { name: 'GroupDestroyed' }
+        { name: 'broadcast' }
       ]
       instance      : [
-        { name: 'MemberAdded',    filter: -> null }
-        { name: 'MemberRemoved',  filter: -> null }
+        { name: 'GroupCreated' }
+        { name: 'MemberAdded',      filter: -> null }
+        { name: 'MemberRemoved',    filter: -> null }
+        { name: 'NewInvitationRequest' }
       ]
     sharedMethods   :
       static        : [
@@ -255,7 +259,7 @@ module.exports = class JGroup extends Module
           else
             @one {_id: targetId}, callback
 
-  @create = do->
+  @create = do ->
 
     save_ =(label, model, queue, callback)->
       model.save (err)->
@@ -264,20 +268,16 @@ module.exports = class JGroup extends Module
           console.log "#{label} is saved"
           queue.next()
 
-    create = secure (client, formData, callback)->
-      JAccount = require '../account'
-      {delegate} = client.connection
-      unless delegate instanceof JAccount
-        return callback new KodingError 'Access denied.'
-
-      JPermissionSet = require './permissionset'
-      JMembershipPolicy = require './membershippolicy'
-      JName = require '../name'
-      group                 = new this formData
+    create = (groupData, owner, callback) ->
+      console.log {owner}
+      JPermissionSet        = require './permissionset'
+      JMembershipPolicy     = require './membershippolicy'
+      JName                 = require '../name'
+      group                 = new this groupData
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
-        -> group.createSlug (err, slug)->
+        -> group.useSlug group.slug, (err, slug)->
           if err then callback err
           else unless slug?
             callback new KodingError "Couldn't claim the slug!"
@@ -286,18 +286,22 @@ module.exports = class JGroup extends Module
             group.slug  = slug.slug
             group.slug_ = slug.slug
             queue.next()
-        -> save_ 'group', group, queue, callback
-        -> group.addMember delegate, (err)->
+        -> save_ 'group', group, queue, (err)->
+           if err
+             JName.release group.slug, => callback err
+           else
+             queue.next()
+        -> group.addMember owner, (err)->
             if err then callback err
             else
               console.log 'member is added'
               queue.next()
-        -> group.addAdmin delegate, (err)->
+        -> group.addAdmin owner, (err)->
             if err then callback err
             else
               console.log 'admin is added'
               queue.next()
-        -> group.addOwner delegate, (err)->
+        -> group.addOwner owner, (err)->
             if err then callback err
             else
               console.log 'owner is added'
@@ -323,11 +327,21 @@ module.exports = class JGroup extends Module
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
+
       queue.push =>
-        @emit 'GroupCreated', { group, creator: delegate }
+        @emit 'GroupCreated', { group, creator: owner }
         callback null, group
 
       daisy queue
+
+  @create$ = secure (client, formData, callback)->
+    JAccount = require '../account'
+    {delegate} = client.connection
+
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+
+    @create formData, delegate, callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -342,6 +356,33 @@ module.exports = class JGroup extends Module
       limit
       sort    : 'title' : 1
     }, callback
+
+  @byRelevance = secure (client, seed, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    {limit, blacklist, skip}  = options
+    limit     ?= 10
+    blacklist or= []
+    blacklist = blacklist.map(ObjectId)
+    cleanSeed = seed.replace(/[^\w\s-]/).trim() #TODO: this is wrong for international charsets
+    startsWithSeedTest = RegExp '^'+cleanSeed, "i"
+    startsWithOptions = {limit, blacklist, skip}
+    @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
+      if err
+        callback err
+      else if limit is suggestions.length
+          callback null, suggestions
+      else
+        containsSeedTest = RegExp cleanSeed, 'i'
+        containsOptions =
+          skip      : skip
+          limit     : limit-suggestions.length
+          blacklist : blacklist.concat(suggestions.map (o)-> o.getId())
+        @findSuggestions client, containsSeedTest, containsOptions, (err, moreSuggestions)->
+          if err
+            callback err
+          else
+            allSuggestions = suggestions.concat moreSuggestions
+            callback null, allSuggestions
 
   @fetchSecretChannelName =(groupSlug, callback)->
     JName = require '../name'
@@ -375,6 +416,11 @@ module.exports = class JGroup extends Module
       else
         @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
         @emit 'broadcast', "#{secretChannelName}#{event}", message
+        @emit 'notification', "#{groupSlug}#{event}", {
+          routingKey  : groupSlug
+          contents    : message
+          event       : 'feed-new'
+        }
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 

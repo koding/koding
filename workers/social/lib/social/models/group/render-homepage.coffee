@@ -94,7 +94,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, customize
     </section>
   </div>
 
-  #{KONFIG.getConfigScriptTag entryPoint: { slug : slug, type: "group" }}
+  #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group"}, roles:[]}}
   #{getScripts()}
   </body>
   </html>

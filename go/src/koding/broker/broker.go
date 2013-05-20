@@ -275,11 +275,6 @@ func main() {
 				if !routeSession.Send(jsonMessage) {
 					routeSession.Close()
 					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
-					if str, err := json.Marshal(jsonMessage); err != nil {
-						log.Warn("Error mashaling JSON: %s", err)
-					} else {
-						log.Warn("Failed payload: %s", str)
-					}
 				}
 			}
 			routeMapMutex.Unlock()

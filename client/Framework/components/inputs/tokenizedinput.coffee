@@ -33,16 +33,16 @@ class KDTokenizedInput extends JView
 
   keyDownOnInput:(event)->
     @decorateLayer()
-    # @layer.setClass "hide-tokens"
 
   keyUpOnInput:(event)->
     {_oldMatches} = @
     matchRules = @getOptions().match
     val = @input.getValue()
     @decorateLayer()
-    # @layer.unsetClass "hide-tokens"
     {input} = @
-    # log _oldMatches
+
+    # log "Caret Pos:", input.getCaretPosition()
+
     if matchRules
       for rule, ruleSet of matchRules
         val = val.slice(0, input.getCaretPosition())
@@ -96,21 +96,30 @@ class KDTokenizedInput extends JView
       @decorateLayer()
       @getOptions().match[rule].added? data
 
-  decorateLayer:->
+  decorateLayer:(event)->
 
     value  = @input.getValue()
+
     $layer = @layer.$()
     $input = @input.$()
     $layer.text value
     replacedTextHash = {}
+
+    # log "VALUE", value
+
+    cp     = @input.getCaretPosition()
+    caret  = "<span class='caret'></span>"
+    inner  = $layer.html()
+    inner  = inner[...cp] + caret + inner[cp...]
+
     $layer.scrollTop $input.scrollTop()
     for rule, tokens of @registeredTokens
       for dataSet in tokens
         replacedTextHash[dataSet.replacedText] = dataSet
         replacedTextHash[dataSet.replacedText].rule = rule
-        inner = $layer.html()
         inner = inner.replace dataSet.replacedText, "<b#{if c = @getOptions().match[rule].wrapperClass then ' class=\"'+c+'\"' else ''}>#{dataSet.replacedText}</b>"
-        $layer.html inner
+
+    $layer.html inner
 
     for replacedText, dataSet of replacedTextHash
       if @input.getValue().indexOf(replacedText) is -1
@@ -145,3 +154,74 @@ class KDTokenizedInput extends JView
       {{> @input}}
     </div>
     """
+
+# Example
+
+# addSubView button = new BottomChatRoom
+
+# class BottomChatRoom extends JView
+#   constructor:->
+#     super
+#     @tokenInput = tokenInput = new KDTokenizedInput
+#       cssClass             : 'chat-input'
+#       input                :
+#         keydown            :
+#           "alt super+right"   : (e)->
+#             tokenInput.emit "chat.ui.splitPanel", e.which
+#             e.preventDefault()
+#           "alt alt+right"     : (e)->
+#             tokenInput.emit "chat.ui.focusNextPanel"
+#           "alt alt+left"      : (e)->
+#             tokenInput.emit "chat.ui.focusPrevPanel"
+#           "alt alt+backspace" : (e)->
+#             tokenInput.emit "chat.ui.focusPrevPanel"
+#       match                :
+#         topic              :
+#           regex            : /\B#\w.*/
+#           # throttle         : 2000
+#           wrapperClass     : "highlight-tag"
+#           replaceSignature : "{{#(title)}}"
+#           added            : (data)->
+#             log "tag is added to the input", data
+#           removed          : (data)->
+#             log "tag is removed from the input", data
+#           dataSource       : (token)->
+#             appManager.tell "Topics", "fetchSomeTopics", selector : token.slice(1), (err, topics)->
+#               # log err, topics
+#               if not err and topics.length > 0
+#                 tokenInput.showMenu {token, rule : "topic"}, topics
+#         username           :
+#           regex            : /\B@\w.+/
+#           wrapperClass     : "highlight-user"
+#           replaceSignature : "{{#(profile.firstName)}} {{#(profile.lastName)}}"
+#           added            : (data)->
+#             log "user is added to the input", data
+#           removed          : (data)->
+#             log "user is removed from the input", data
+#           dataSource       : (token)->
+#             # log token, "member"
+#             appManager.tell "Members", "fetchSomeMembers", selector : token.slice(1), (err, members)->
+#               # log err, members
+#               if not err and members.length > 0
+#                 tokenInput.showMenu {
+#                   rule             : "username"
+#                   itemChildClass   : MembersListItemView
+#                   itemChildOptions :
+#                     cssClass       : "honolulu"
+#                     userInput      : token.slice(1)
+#                   token
+#                 }, members
+#
+#     @outputController = new KDListViewController
+#     @output = @outputController.getView()
+#     @sidebar = new KDView
+#       cssClass : "room-sidebar"
+#
+#   pistachio:->
+#     """
+#       <section>
+#         {{> @output}}
+#         {{> @tokenInput}}
+#       </section>
+#       {{> @sidebar}}
+#     """

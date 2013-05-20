@@ -1,5 +1,5 @@
 class AccountKodingKeyListController extends KDListViewController
-  
+
   constructor:(options, data)->
     options.cssClass = "koding-keys"
     super options,data
@@ -14,9 +14,9 @@ class AccountKodingKeyListController extends KDListViewController
 class AccountKodingKeyList extends KDListView
 
   constructor:(options, data)->
-    defaults =
-      tagName       : "ul"
-      itemClass  : AccountKodingKeyListItem
+    defaults    =
+      tagName   : "ul"
+      itemClass : AccountKodingKeyListItem
     options = defaults extends options
     super options, data
 
@@ -24,9 +24,9 @@ class AccountKodingKeyList extends KDListView
 class AccountKodingKeyListItem extends KDListItemView
 
   constructor:(options, data)->
-    defaults =
-      tagName       : "li"
-    options = defaults extends options
+    defaults  =
+      tagName : "li"
+    options   = defaults extends options
     super options, data
 
     @addSubView deleteKey = new KDCustomHTMLView
@@ -92,14 +92,6 @@ class AccountKodingKeyListItem extends KDListItemView
 
   partial:(data)->
     """
-      <div class='labelish'>
-        <span class='lightText'>#{data.hostname}</span>
-      </div>
+      <span class="labelish">#{data.hostname or "Unknown Host"}</span>
+      <span class="ttag">#{data.key}</span>
     """
-
-
-
-
-
-
-

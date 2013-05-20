@@ -22,9 +22,9 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
-    enabled     : no
+    enabled     : yes
     port        : 1337
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding_dev2_copy'
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
   runGoBroker   : no
   runKontrol    : yes
   runRerouting  : no
@@ -45,9 +45,9 @@ module.exports =
       awsSecretAccessKey  : 'kpKvRUGGa8drtLIzLPtZnoVi82WnRia85kCMT2W7'
       bucket              : 'koding-uploads'
   loggr:
-    push   : no
-    url    : ""
-    apiKey : ""
+    push: yes
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
   librato :
     push      : no
     email     : ""
@@ -105,7 +105,7 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
+      sourceUri : 'http://webserver-build-koding-#{version}.in.koding.com:1337'
   mq            :
     host        : 'internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com'
     port        : 5672
@@ -114,7 +114,7 @@ module.exports =
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 10
+    heartbeat   : 60
     vhost       : 'new'
   broker        :
     ip          : ""

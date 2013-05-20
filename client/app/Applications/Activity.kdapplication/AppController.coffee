@@ -22,7 +22,6 @@ class ActivityAppController extends AppController
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
       activity
 
-
   constructor:(options={})->
 
     options.view    = new ActivityAppView
@@ -219,15 +218,30 @@ class ActivityAppController extends AppController
       limit       : options.limit    or 20
       to          : options.to       or Date.now()
       facets      : options.facets   or @getFilter()
-      lowQuality  : options.exempt   or no
       originId    : options.originId or null
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities)->
-      if err then callback err
-      else
-        KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+    @isExempt (exempt)->
+      options.lowQuality = exempt
+      KD.remote.api.CActivity.fetchFacets options, (err, activities)->
+        if err then callback err
+        else if not exempt
+          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+        else
+          # trolls and admins in show troll mode will load data on request
+          # as the snapshots do not include troll comments
+          stack = []
+          activities.forEach (activity)->
+            stack.push (cb)->
+              activity.fetchTeaser (err, teaser)->
+                if err then console.warn 'could not fetch teaser'
+                else
+                  cb err, teaser
+              , yes
+
+          async.parallel stack, (err, res)->
+            callback null, res
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.

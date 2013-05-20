@@ -37,6 +37,13 @@ module.exports = class JDiscussion extends JPost
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
+    sharedEvents    :
+      instance      : [
+        { name: 'ReplyIsAdded' }
+        { name: 'ReplyIsRemoved' }
+        { name: 'CommentIsAdded' }
+        { name: 'CommentIsRemoved' }
+      ]
     sharedMethods     :
       static          : ['create','one']
       instance        : [

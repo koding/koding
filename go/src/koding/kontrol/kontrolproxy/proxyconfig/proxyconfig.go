@@ -6,6 +6,7 @@ import (
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"strings"
 )
 
 type ProxyMessage struct {
@@ -19,6 +20,7 @@ type ProxyMessage struct {
 	HostData    string `json:"hostdata"`
 	Uuid        string `json:"uuid"`
 	IpRegex     string `json:"ipregex"`
+	Countries   string `json:"countries"`
 }
 
 type ProxyResponse struct {
@@ -60,7 +62,14 @@ type UserProxy struct {
 }
 
 type Restriction struct {
-	IP string
+	IP struct {
+		Enabled bool
+		Rule    string
+	}
+	Country struct {
+		Enabled bool
+		Rule    []string
+	}
 }
 
 type UserRules struct {
@@ -193,7 +202,7 @@ func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, f
 	return nil
 }
 
-func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex string) error {
+func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex, countries string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key is not possible. '%s'", err)
@@ -214,7 +223,16 @@ func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex string
 		rules.Services[servicename] = Restriction{}
 	}
 	restriction := rules.Services[servicename]
-	restriction.IP = ipregex
+	restriction.IP.Enabled = true
+	restriction.IP.Rule = ipregex
+
+	cList := make([]string, 0)
+	list := strings.Split(countries, ",")
+	for _, country := range list {
+		cList = append(cList, strings.TrimSpace(country))
+	}
+	restriction.Country.Enabled = true
+	restriction.Country.Rule = cList
 
 	rules.Services[servicename] = restriction
 	proxy.Rules[username] = rules

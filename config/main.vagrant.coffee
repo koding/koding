@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@localhost:27017/koding'
+mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -12,7 +12,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost"
+    address     : "http://localhost:3020"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -31,7 +31,7 @@ module.exports =
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
-  runProxy      : no
+  runProxy      : yes
   misc          :
     claimGlobalNamesForUsers: no
     updateAllSlugs : no
@@ -84,7 +84,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost'
+    staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
@@ -94,7 +94,7 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://localhost'
+      mainUri   : 'http://localhost:3020'
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://localhost:3526'
   mq            :

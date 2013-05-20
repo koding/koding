@@ -21,7 +21,7 @@ func (vm *VM) OS(user *User) *VOS {
 
 func (vos *VOS) resolve(name string) (string, error) {
 	entry := vos.vm.GetUserEntry(vos.user)
-	if entry == nil && vos.user.Uid != 0 {
+	if entry == nil && vos.user.Uid != RootIdOffset {
 		return "", &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
 	}
 
@@ -66,7 +66,7 @@ func (vos *VOS) resolve(name string) (string, error) {
 
 			// check permissions
 			sysinfo := info.Sys().(*syscall.Stat_t)
-			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == 0
+			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == RootIdOffset
 			if !readable {
 				return "", &os.PathError{Op: "path", Path: constructedPath + "/" + segment, Err: errors.New("permission denied")}
 			}
@@ -89,7 +89,7 @@ func (vos *VOS) ensureWritable(name string) error {
 	}
 
 	sysinfo := info.Sys().(*syscall.Stat_t)
-	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == 0
+	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == RootIdOffset
 	if !writable {
 		return &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
 	}

@@ -21,6 +21,10 @@ module.exports = class JStatusUpdate extends JPost
 
   @set
     slugifyFrom       : 'body'
+    sharedEvents    :
+      instance      : [
+        { name: 'TagsChanged' }
+      ]
     sharedMethods     :
       static          : ['create','one','fetchDataFromEmbedly','updateAllSlugs']
       instance        : [
