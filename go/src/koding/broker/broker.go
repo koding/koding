@@ -181,6 +181,7 @@ func main() {
 		}
 	})
 	defer service.Close()
+	service.MaxReceivedPerSecond = 50
 	service.ErrorHandler = log.LogError
 
 	go func() {
