@@ -90,8 +90,14 @@ module.exports = class JActivityCache extends jraphical.Module
 
     @one selector, options, (err, cache)-> kallback err, cache, callback
 
-  @init = (from, to)->
+  @countActivities =(callback)->
+    CActivity = require './index'
+    CActivity.count {}, (err, count)=>
+      if err then @activityCount = 0
+      else @activityCount = count
+      callback()
 
+  @init = (from, to)->    
     log "JActivityCache inits..."
 
     CActivity = require './index'
@@ -261,12 +267,17 @@ module.exports = class JActivityCache extends jraphical.Module
 
           log "total in this batch: #{overview.length}"
 
-          if not options.latest and overview.length < lengthPerCache
-            options.to    = options.from
-            options.from -= timespan
-            console.warn "last query wasn't enough asking again..."
-            @prepareCacheData options, callback
-            return
+          unless options.latest
+            fetchMore =->
+              if overview.length < lengthPerCache and @activityCount > lengthPerCache
+                options.to    = options.from
+                options.from -= timespan
+                console.warn "last query wasn't enough asking again..."
+                @prepareCacheData options, callback
+                return
+
+            unless @activityCount then @countActivities fetchMore
+            else fetchMore()
 
           log "#{overview.length} items prepared for caching..."
 

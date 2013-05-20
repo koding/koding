@@ -49,7 +49,7 @@ do ->
 
     JName.one name:'koding', (err, name)->
       return console.error err if err
-      JSecretName.one name:name._id, (err, secretName)->
+      JSecretName.one name:name.name, (err, secretName)->
         return console.error err if err
         routingKey = "cacheWorker.#{secretName.secretName}"
         # notify rerouter
