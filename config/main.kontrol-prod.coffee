@@ -114,7 +114,7 @@ module.exports =
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 1
+    heartbeat   : 60
     vhost       : 'new'
   broker        :
     ip          : ""
