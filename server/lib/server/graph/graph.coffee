@@ -49,6 +49,8 @@ module.exports = class Graph
       groupId   : @groupId
       startDate : startDate
 
+    console.log query, startDate, @groupId
+
     @db.query query, params, (err, results)=>
       tempRes = []
       if err then callback err
