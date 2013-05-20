@@ -30,7 +30,10 @@ class ActivityAppController extends AppController
 
     super options
 
-    @currentFilter  = activityTypes
+    if KD.config.useNeo4j
+      @setfilter "Everything"
+    else
+      @currentFilter  = activityTypes
     @feedType       = "Public"
     @appStorage     = new AppStorage 'Activity', '1.0'
     @isLoading      = no
@@ -229,7 +232,6 @@ class ActivityAppController extends AppController
         createdAt : -1
 
     {CActivity}   = KD.remote.api
-    
     if KD.config.useNeo4j
       options.feedType = @feedType
 

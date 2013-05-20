@@ -328,8 +328,6 @@ module.exports = class CActivity extends jraphical.Capsule
              "LIMIT #{limit}"
             ])
     query = query.join('\n')
-    console.log("query:")
-    console.log(query)
     neo4jhelper.fetchFromNeo4j(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
