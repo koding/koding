@@ -28,6 +28,9 @@ class KodingAppsController extends KDController
     @manifests      = KodingAppsController.manifests
     @getPublishedApps()
 
+    @createExtensionToAppMap()
+    @fetchUserDefaultAppConfig()
+
   getAppPath:(manifest, escaped=no)->
 
     {profile} = KD.whoami()
@@ -598,6 +601,29 @@ class KodingAppsController extends KDController
             @appManager.open manifest.name
             modal.destroy()
             @skipUpdate = no
+
+  createExtensionToAppMap: ->
+    @extensionToApp = map = {}
+    @fetchApps (err, res) =>
+      # TODO: Find a better way to add Ace extensions to this map. (fatihacet)
+      res.Ace =
+        name     : "Ace"
+        fileTypes: [
+          "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
+          "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
+          "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
+        ]
+      for key, app of res
+        fileTypes = app.fileTypes
+        if fileTypes
+          for type in fileTypes
+            map[type] = [] unless map[type]
+            map[type].push app.name
+
+  fetchUserDefaultAppConfig: ->
+    appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
+    appConfigStorage.fetchStorage (storage) ->
+      log storage
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
