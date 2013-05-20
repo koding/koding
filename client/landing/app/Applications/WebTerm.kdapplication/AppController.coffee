@@ -14,8 +14,8 @@ class WebTermController extends AppController
         KD.singletons.vmController.askToTurnOn 'WebTerm', cb
 
   constructor:(options = {}, data)->
-
-    vmName          = options.params?.vmName or KD.nick()
+    vmName          = options.params?.vmName or \
+                      KD.singletons.vmController.getDefaultVmName()
     options.view    = new WebTermAppView {vmName}
     options.appInfo =
       title         : "Terminal on #{vmName}"
