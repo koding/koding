@@ -12,8 +12,10 @@ import (
 )
 
 type RulesPostMessage struct {
-	IpRegex   *string
-	Countries *string
+	RuleName    *string `json:"name"`
+	Rule        *string `json:"rule"`
+	RuleEnabled *bool   `json:"enabled"`
+	RuleMode    *bool   `json:"block"`
 }
 
 func GetRules(writer http.ResponseWriter, req *http.Request) {
@@ -93,8 +95,10 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 	username := vars["username"]
 
 	var msg RulesPostMessage
-	var ipregex string
-	var countries string
+	var rule string
+	var ruleName string
+	var ruleEnabled bool
+	var ruleMode bool
 
 	body, _ := ioutil.ReadAll(req.Body)
 	log.Println(string(body))
@@ -105,18 +109,34 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if msg.IpRegex != nil {
-		ipregex = *msg.IpRegex
+	if msg.RuleName != nil {
+		ruleName = *msg.RuleName
 	} else {
-		err := "no 'ipregex' available"
+		err := "no 'rule name' available"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
-	if msg.Countries != nil {
-		countries = *msg.Countries
+	if msg.Rule != nil {
+		rule = *msg.Rule
 	} else {
-		err := "no 'countries' available"
+		err := "no 'rule' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.RuleEnabled != nil {
+		ruleEnabled = *msg.RuleEnabled
+	} else {
+		err := "no 'ruleEnabled' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	if msg.RuleMode != nil {
+		ruleMode = *msg.RuleMode
+	} else {
+		err := "no 'ruleEnabled' available"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
@@ -126,12 +146,14 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 	cmd.Uuid = uuid
 	cmd.Username = username
 	cmd.ServiceName = servicename
-	cmd.IpRegex = ipregex
-	cmd.Countries = countries
+	cmd.RuleName = ruleName
+	cmd.Rule = rule
+	cmd.RuleMode = ruleMode
+	cmd.RuleEnabled = ruleEnabled
 
 	buildSendProxyCmd(cmd)
 
-	url := fmt.Sprintf("rule ipregex: '%s' and country: '%s' is added for the user %s and service %s", ipregex, countries, username, servicename)
+	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and block mode '%t'", ruleName, rule, ruleEnabled, ruleMode)
 	io.WriteString(writer, url)
 	return
 

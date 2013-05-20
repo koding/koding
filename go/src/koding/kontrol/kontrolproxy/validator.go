@@ -6,21 +6,22 @@ import (
 )
 
 type Validator struct {
-	filters []func() bool
+	filters map[bool]func() bool
 	rules   proxyconfig.Restriction
 	user    UserInfo
 }
 
 func validator(rules proxyconfig.Restriction, user UserInfo) *Validator {
 	validator := &Validator{
-		rules: rules,
-		user:  user,
+		rules:   rules,
+		user:    user,
+		filters: make(map[bool]func() bool),
 	}
 	return validator
 }
 
-func (v *Validator) addFilter(filter func() bool) {
-	v.filters = append(v.filters, filter)
+func (v *Validator) addFilter(filter func() bool, mode bool) {
+	v.filters[mode] = filter
 }
 
 func (v *Validator) IP() *Validator {
@@ -33,17 +34,14 @@ func (v *Validator) IP() *Validator {
 			return false
 		}
 
-		re, err := regexp.Compile(v.rules.IP.Rule)
+		rule, err := regexp.Compile(v.rules.IP.Rule)
 		if err != nil {
 			return false // dont block anyone if regex compile get wrong
 		}
 
-		if re.MatchString(v.user.IP) {
-			return true
-		}
-		return false
+		return rule.MatchString(v.user.IP)
 	}
-	v.addFilter(f)
+	v.addFilter(f, v.rules.IP.Block)
 	return v
 }
 
@@ -62,24 +60,21 @@ func (v *Validator) Country() *Validator {
 				return true
 			}
 		}
+
 		return false
 	}
 
-	v.addFilter(f)
+	v.addFilter(f, v.rules.Country.Block)
 	return v
 }
 
 func (v *Validator) Check() bool {
-	matchedFilters := 0
-	for _, filter := range v.filters {
-		if filter() {
-			matchedFilters++
+	for deny, filter := range v.filters {
+		if deny && filter() {
+			return false //block
+		} else if !deny && !filter() {
+			return false //block
 		}
-	}
-
-	// user is not validated because one of the rules applied to him
-	if matchedFilters >= 1 {
-		return false
 	}
 
 	// user is validated because none of the rules applied to him

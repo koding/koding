@@ -67,7 +67,7 @@ func DoProxy(msg proxyconfig.ProxyMessage) {
 		sendResponse("updateProxy", msg.Uuid)
 	case "addRule":
 		log.Println("got 'addRule' json request")
-		err := proxyConfig.AddRule(msg.Uuid, msg.Username, msg.ServiceName, msg.IpRegex, msg.Countries)
+		err := proxyConfig.AddRule(msg.Uuid, msg.Username, msg.ServiceName, msg.RuleName, msg.Rule, msg.RuleEnabled, msg.RuleMode)
 		if err != nil {
 			log.Println(err)
 		}
