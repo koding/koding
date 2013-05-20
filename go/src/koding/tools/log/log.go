@@ -24,6 +24,9 @@ type Gauge struct {
 var loggrSource string
 var libratoSource string
 var tags string
+var currentSecond int64
+var logCounter int
+var MaxPerSecond int = 10
 
 var gauges = make([]*Gauge, 0)
 var GaugeChanges = make(chan func())
@@ -91,6 +94,20 @@ func Log(level int, text string, data ...interface{}) {
 	if level == DEBUG && !config.LogDebug {
 		return
 	}
+
+	t := time.Now().Unix()
+	if currentSecond != t {
+		currentSecond = t
+		logCounter = 0
+	}
+	logCounter += 1
+	if MaxPerSecond > 0 && logCounter > MaxPerSecond {
+		if logCounter == MaxPerSecond+1 {
+			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.")))
+		}
+		return
+	}
+
 	Send(NewEvent(level, text, data...))
 }
 
