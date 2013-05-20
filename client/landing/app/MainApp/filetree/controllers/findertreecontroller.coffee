@@ -58,11 +58,12 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
-  openFile:(nodeView, event)->
+  openFile:(nodeView, contextMenuItem)->
 
     return unless nodeView
     file = nodeView.getData()
-    KD.getSingleton("appManager").openFile file
+    app  = contextMenuItem?.getData().title or null
+    @getSingleton("appManager").openFile file, app
 
   previewFile:(nodeView, event)->
 
@@ -479,7 +480,7 @@ class NFinderTreeController extends JTreeViewController
   cmUpload:       (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
   cmDownload:     (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
   cmGitHubClone:  (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
+  cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView, contextMenuItem
   cmPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
   cmCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
   cmRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
