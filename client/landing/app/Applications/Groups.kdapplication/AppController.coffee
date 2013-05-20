@@ -66,13 +66,8 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-      isReadOnly  : yes
     }
-    # TEMP SY: to be able to work in a vagrantless env
-    # to avoid shared authworker's message getting lost
-    if location.hostname is "localhost"
-    then do callback
-    else @groupChannel.once 'setSecretName', callback
+    @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroupName is groupName
@@ -87,10 +82,10 @@ class GroupsAppController extends AppController
           else
             @setGroup groupName
             @currentGroupData.setGroup group
-            @openGroupChannel group, =>
-              @isReady = yes
-              callback null, groupName, group
-              @emit 'GroupChanged', groupName, group
+            @isReady = yes
+            callback null, groupName, group
+            @emit 'GroupChanged', groupName, group
+            @openGroupChannel group, => @emit 'GroupChannelReady'
 
   getUserArea:-> @userArea
 
@@ -111,22 +106,31 @@ class GroupsAppController extends AppController
       group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
+  onboardingText =
+    everything : """
+      <h3 class='title'>Koding groups are a simple way to connect and interact with people who share
+      your interests.</h3>
+
+      <p>When you join a group such as your univeristy or your company, you can share virtual
+      machines, collaborate on projects and stay up to date on the activites of others in your
+      group.</p>
+
+      <h3 class='title'>Easy to get started</h3>
+
+      <p>Groups are free to create. You decide who can join, what actions they can do inside the
+      group and what they see.</p>
+      """
+    pending   : """
+      <h3 class='title'>These are the groups that you are waiting an invitation.</h3>
+      <p>When you ask for an invitation to a group, an admin of that group should accept your request and send you an invitation link in order you to gain access to that group.</p>
+      """
+    requested : """
+      <h3 class='title'>These are the groups that you asked for an access request...</h3>
+      <p>...but still waiting for a group admin to approve.</p>
+      <p>When you request access to a group, an admin of that group should accept your request. If the admin approves you'll gain access to the group right away and you'll see it under 'My Groups'.</p>
+      """
+
   createFeed:(view, loadFeed = no)->
-
-    onboardingText =
-      """
-        <h3 class='title'>Koding groups is a simple way to connect and interact with people who share
-        your interests.</h3>
-
-        <p>When you join a group such as your univeristy or your company, you can share virtual
-        machines, collaborate on projects and stay up to date on the activites of others in your
-        group.</p>
-
-        <h3 class='title'>Easy to get started</h3>
-
-        <p>Groups are free to create. You decide who can join, what actions they can do inside the
-        group and what they see.</p>
-      """
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
@@ -139,8 +143,9 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          : onboardingText
-        mine                : onboardingText
+        everything          : onboardingText.everything
+        pending             : onboardingText.pending
+        requested           : onboardingText.requested
       filter                :
         everything          :
           title             : "All groups"
@@ -179,7 +184,7 @@ class GroupsAppController extends AppController
             @markGroupRelationship mine, ids
 
         pending             :
-          title             : "Invited Groups"
+          title             : "Invitation pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
@@ -190,7 +195,7 @@ class GroupsAppController extends AppController
             @markPendingGroupInvitations pending, ids
 
         requested             :
-          title             : "Requested Groups"
+          title             : "Request pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchPendingGroupRequests options, (err, groups)->
@@ -242,7 +247,7 @@ class GroupsAppController extends AppController
 
   markPendingRequestGroups:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
-  
+
   markPendingGroupInvitations:(controller, ids)->
     controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
@@ -357,7 +362,7 @@ class GroupsAppController extends AppController
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
-  
+
   cancelGroupRequest:(group, callback)->
     KD.whoami().cancelRequest group, callback
 
@@ -382,7 +387,6 @@ class GroupsAppController extends AppController
       else
         callback no
         @showGroupCreatedModal group
-        @createContentDisplay group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -398,18 +402,19 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = ->
+      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
       KD.remote.api.JName.one
         name: slugInput.getValue()
-      , (err, name)->
+      , (err, name)=>
         if name
           slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          KD.remote.api.JGroup.suggestUniqueSlug name.name, (err, newSlug)->
-            unless err
+          slug = KD.utils.slugify titleInput.getValue()
+          KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
+            if newSlug
               slugInput.setTooltip
-                title     : "Suggestion: #{newSlug}"
-                placement : 'right'
-              slugInput.tooltip.show()
+                title     : "Available slug: #{newSlug}"
+                placement : "right"
         else
           slugInput.setValidationResult 'slug', null
           delete slugInput.tooltip
@@ -417,7 +422,8 @@ class GroupsAppController extends AppController
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
       slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      KD.remote.api.JGroup.suggestUniqueSlug titleInput.getValue(), (err, newSlug)->
+      slug = KD.utils.slugify titleInput.getValue()
+      KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
         if err then slugInput.setValue ''
         else
           slugInput.setValue newSlug
@@ -514,6 +520,7 @@ class GroupsAppController extends AppController
                   event              : "blur"
                   rules              :
                     required         : yes
+                    minLength        : 4
                 blur                 : ->
                   @utils.defer =>
                     verifySlug()
@@ -570,7 +577,7 @@ class GroupsAppController extends AppController
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-    form.buttons.Save.hideLoader()
+      form.buttons.Save.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
@@ -830,21 +837,22 @@ class GroupsAppController extends AppController
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a id="go-to-dashboard-link" class="hidden" href="#{groupUrl}/Dashboard" target="#{group.slug}">#{groupUrl}/Dashboard</a>
         """
       modal = new KDModalView
         title        : "#{group.title} has been created!"
         content      : body
-        click        : (event)->
-          if $(event.target).is 'a.group-link' then modal.destroy()
         buttons      :
           dashboard  :
             title    : 'Go to Dashboard'
             style    : 'modal-clean-green'
-            callback : -> modal.destroy()
+            callback : ->
+              document.getElementById('go-to-dashboard-link').click()
+              modal.destroy()
           group      :
             title    : 'Go to Group'
             style    : 'modal-clean-gray'
-            callback : =>
+            callback : ->
               document.getElementById('go-to-group-link').click()
               modal.destroy()
           dismiss    :

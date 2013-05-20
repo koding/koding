@@ -357,8 +357,6 @@ class Sidebar extends JView
         title    : "Chat",
         loggedIn : yes,
         callback : ->
-          # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
-          # unless location.hostname is "localhost"
-          new KDNotificationView title : "Coming soon..."
+          @getSingleton('mainController').emit "ToggleChatPanel"
       }
     ]

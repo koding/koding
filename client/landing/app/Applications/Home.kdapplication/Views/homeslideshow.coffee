@@ -1,24 +1,23 @@
 class HomeSlideShow extends KDView
 
-  host      = unless /koding\.com/.test location.hostname then "" else "https://api.koding.com"
   slideData = [
       {
-        bg      : "#{host}/images/bg/blurred/1.jpg"
+        bg      : "/images/bg/blurred/1.jpg"
         title   : "<p><span>A new way for</span><br><span>developers to work.</span></p>"
       },{
-        bg      : "#{host}/images/bg/blurred/2.jpg"
+        bg      : "/images/bg/blurred/2.jpg"
         title   : "<p><span>Real software development</span><br><span>in the browser...</span></p>"
       },{
-        bg      : "#{host}/images/bg/blurred/3.jpg"
+        bg      : "/images/bg/blurred/3.jpg"
         title   : "<p><span>with a great community </span><br><span>of developers...</span></p>"
       },{
-        bg      : "#{host}/images/bg/blurred/4.jpg"
+        bg      : "/images/bg/blurred/4.jpg"
         title   : "<p><span>with a real VM and </span><br><span>a real Terminal...</span></p>"
       },{
-        bg      : "#{host}/images/bg/blurred/5.jpg"
+        bg      : "/images/bg/blurred/5.jpg"
         title   : "<p><span>and free for everyone...</span></p>"
       },{
-        bg      : "#{host}/images/bg/blurred/7.jpg"
+        bg      : "/images/bg/blurred/7.jpg"
         title   : """
           <figure class='video'>
             <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>

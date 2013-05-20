@@ -9,6 +9,7 @@ class MainView extends KDView
     @createMainTabView()
     @setStickyNotification()
     @createSideBar()
+    # @createChatPanel()
     @listenWindowResize()
 
     @utils.defer => @_windowDidResize()
@@ -126,6 +127,9 @@ class MainView extends KDView
     mc                   = @getSingleton 'mainController'
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
+
+  createChatPanel:->
+    @addSubView @chatPanel = new MainChatPanel
 
   setStickyNotification:->
     # sticky = @getSingleton('windowController')?.stickyNotification
