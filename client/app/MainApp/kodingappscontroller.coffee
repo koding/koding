@@ -211,7 +211,7 @@ class KodingAppsController extends KDController
       warn "AppManager doesn't know what to run, no options passed!"
       return
 
-    if @isAppUpdateAvailable(manifest.name, manifest.version) and not manifest.devMode and not @skipUpdate
+    if @isAppUpdateAvailable(manifest.name, manifest.version) and not manifest.devMode and manifest.forceUpdate
       @showUpdateRequiredModal manifest
       return callback?()
 
