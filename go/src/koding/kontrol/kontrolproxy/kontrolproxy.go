@@ -9,6 +9,9 @@ import (
 	"io"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
+	"koding/tools/db"
+	"koding/virt"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net"
 	"net/http"
@@ -172,9 +175,21 @@ func parseKey(host string) (UserInfo, error) {
 		// host is in form {name}.x.koding.com, used for domain forwarding
 		userInfo, err := lookupDomain(host)
 		if err != nil {
-			log.Println(err)
-			return UserInfo{}, err
+			// if not available in our proxy make a db lookup for Vm subdomains
+			vmName := strings.SplitN(host, ".", 2)[0]
+
+			var vm virt.VM
+			if err := db.VMs.Find(bson.M{"name": vmName}).One(&vm); err != nil {
+				return UserInfo{FullUrl: "www.koding.com/notfound.html"}, errors.New("redirect")
+			}
+
+			if vm.IP == nil {
+				return UserInfo{FullUrl: "www.koding.com/notactive.html"}, errors.New("redirect")
+			}
+
+			return UserInfo{FullUrl: vm.IP.String()}, nil
 		}
+
 		return userInfo, nil
 	case counts == 1:
 		// host is in form {name}-{key}.x.koding.com, used by koding
@@ -435,6 +450,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	userInfo, err := parseKey(outreq.Host)
 	if err != nil {
+		if err.Error() == "redirect" {
+			http.Redirect(rw, req, userInfo.FullUrl, http.StatusTemporaryRedirect)
+			return
+		}
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
 		return
