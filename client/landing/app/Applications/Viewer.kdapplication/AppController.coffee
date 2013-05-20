@@ -19,3 +19,7 @@ class ViewerAppController extends KDViewController
   open:(path)->
 
     @getView().openPath path
+
+  openFile: (nodeView) ->
+    # TODO: Need to handle file types such as images.
+    @getView().openPath nodeView.path
