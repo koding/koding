@@ -2,14 +2,14 @@ class FeederOnboardingView extends KDCustomHTMLView
 
   constructor:(options = {}, data)->
 
-    options.cssClass  = "onboarding-wrapper hidden"
-    p                 = options.pistachio
-    @pistachio        = -> "{{> @close}}#{p}"
-    options.pistachio =  null
-
+    options.cssClass  = "onboarding-wrapper"
     super options, data
+    @addCloseButton()
 
-    @close = new CustomLinkView
+
+  addCloseButton:->
+
+    @addSubView @close = new CustomLinkView
       title      : ''
       cssClass   : 'onboarding-close'
       icon       :
@@ -22,5 +22,3 @@ class FeederOnboardingView extends KDCustomHTMLView
           {name} = @getOptions()
           app.appStorage.setValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", yes
           @emit "OnboardingMessageCloseIconClicked"
-
-  viewAppended: JView::viewAppended

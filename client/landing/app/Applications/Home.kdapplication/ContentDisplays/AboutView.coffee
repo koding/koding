@@ -49,7 +49,7 @@ class AboutView extends JView
       <div class="location-wrapper">
         <div class="location">
           <p class="loc-first">
-            We're located at <strong>SOMA</strong> district in <strong>San Francisco, California.</strong>
+            We're located in the <strong>SOMA</strong> district of <strong>San Francisco, California.</strong>
           </p>
           <address>
             <span class='icon fl'></span>
@@ -89,11 +89,11 @@ class AboutView extends JView
         nickname  : 'chris'
         job       : 'Director of Engineering'
         image     : '../images/people/chris.jpg'
-      ,
-        name      : 'Aleksey Mykhailov'
-        nickname  : 'aleksey-m'
-        job       : 'Sys Admin &amp; node.js Developer'
-        image     : '../images/people/aleksey.jpg'
+#      ,
+#        name      : 'Aleksey Mykhailov'
+#        nickname  : 'aleksey-m'
+#        job       : 'Sys Admin &amp; node.js Developer'
+#        image     : '../images/people/aleksey.jpg'
       ,
         name      : 'Gökmen Göksel'
         nickname  : 'gokmen'
