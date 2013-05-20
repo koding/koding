@@ -19,8 +19,10 @@ type ProxyMessage struct {
 	Host        string `json:"host"`
 	HostData    string `json:"hostdata"`
 	Uuid        string `json:"uuid"`
-	IpRegex     string `json:"ipregex"`
-	Countries   string `json:"countries"`
+	RuleName    string `json:"rulename"`
+	Rule        string `json:"rule"`
+	RuleEnabled bool   `json:"enabled"`
+	RuleMode    string `json:"mode"`
 }
 
 type ProxyResponse struct {
@@ -63,12 +65,14 @@ type UserProxy struct {
 
 type Restriction struct {
 	IP struct {
-		Enabled bool
-		Rule    string
+		Enabled bool   // To disable or enable current rule
+		Mode    string // Rule is either allowing matches or denying
+		Rule    string // Regex string
 	}
 	Country struct {
 		Enabled bool
-		Rule    []string
+		Mode    string   // Rule is either allowing matches or denying
+		Rule    []string // A slice of country names, i.e.:["Turkey", "Germany"]
 	}
 }
 
@@ -202,7 +206,7 @@ func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, f
 	return nil
 }
 
-func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex, countries string) error {
+func (p *ProxyConfiguration) AddRule(uuid, username, servicename, rulename, rule, mode string, enabled bool) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key is not possible. '%s'", err)
@@ -222,17 +226,24 @@ func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex, count
 	if !ok {
 		rules.Services[servicename] = Restriction{}
 	}
-	restriction := rules.Services[servicename]
-	restriction.IP.Enabled = true
-	restriction.IP.Rule = ipregex
 
-	cList := make([]string, 0)
-	list := strings.Split(countries, ",")
-	for _, country := range list {
-		cList = append(cList, strings.TrimSpace(country))
+	restriction := rules.Services[servicename]
+
+	switch rulename {
+	case "ip", "file":
+		restriction.IP.Enabled = enabled
+		restriction.IP.Mode = mode
+		restriction.IP.Rule = strings.TrimSpace(rule)
+	case "domain":
+		restriction.Country.Enabled = enabled
+		restriction.Country.Mode = mode
+		cList := make([]string, 0)
+		list := strings.Split(rule, ",")
+		for _, country := range list {
+			cList = append(cList, strings.TrimSpace(country))
+		}
+		restriction.Country.Rule = cList
 	}
-	restriction.Country.Enabled = true
-	restriction.Country.Rule = cList
 
 	rules.Services[servicename] = restriction
 	proxy.Rules[username] = rules
