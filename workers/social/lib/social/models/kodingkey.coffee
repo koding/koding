@@ -16,7 +16,7 @@ module.exports = class JKodingKey extends jraphical.Module
     softDelete        : yes
     sharedMethods     :
       instance        : ['revoke']
-      static          : ['create', 'fetchAll', 'fetchByKey', 'fetchByUserKey']
+      static          : ['create', 'fetchAll', 'fetchByKey']
     indexes           :
       key             : ['unique']
     schema            :
