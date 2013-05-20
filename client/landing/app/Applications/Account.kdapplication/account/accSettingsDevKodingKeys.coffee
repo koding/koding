@@ -93,5 +93,4 @@ class AccountKodingKeyListItem extends KDListItemView
   partial:(data)->
     """
       <span class="labelish">#{data.hostname or "Unknown Host"}</span>
-      <span class="ttag">#{data.key}</span>
     """
