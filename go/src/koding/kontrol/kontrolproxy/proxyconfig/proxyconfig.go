@@ -22,7 +22,7 @@ type ProxyMessage struct {
 	RuleName    string `json:"rulename"`
 	Rule        string `json:"rule"`
 	RuleEnabled bool   `json:"enabled"`
-	RuleMode    bool   `json:"mode"`
+	RuleMode    string `json:"mode"`
 }
 
 type ProxyResponse struct {
@@ -66,12 +66,12 @@ type UserProxy struct {
 type Restriction struct {
 	IP struct {
 		Enabled bool   // To disable or enable current rule
-		Block   bool   // Rule is either allowing matches or denying
+		Mode    string // Rule is either allowing matches or denying
 		Rule    string // Regex string
 	}
 	Country struct {
 		Enabled bool
-		Block   bool
+		Mode    string   // Rule is either allowing matches or denying
 		Rule    []string // A slice of country names, i.e.:["Turkey", "Germany"]
 	}
 }
@@ -206,7 +206,7 @@ func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, f
 	return nil
 }
 
-func (p *ProxyConfiguration) AddRule(uuid, username, servicename, rulename, rule string, enabled, mode bool) error {
+func (p *ProxyConfiguration) AddRule(uuid, username, servicename, rulename, rule, mode string, enabled bool) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key is not possible. '%s'", err)
@@ -232,11 +232,11 @@ func (p *ProxyConfiguration) AddRule(uuid, username, servicename, rulename, rule
 	switch rulename {
 	case "ip", "file":
 		restriction.IP.Enabled = enabled
-		restriction.IP.Block = mode
+		restriction.IP.Mode = mode
 		restriction.IP.Rule = strings.TrimSpace(rule)
 	case "domain":
 		restriction.Country.Enabled = enabled
-		restriction.Country.Block = mode
+		restriction.Country.Mode = mode
 		cList := make([]string, 0)
 		list := strings.Split(rule, ",")
 		for _, country := range list {

@@ -7,7 +7,7 @@ import (
 )
 
 type filter struct {
-	block    bool
+	mode     string
 	validate func() bool
 }
 
@@ -26,9 +26,9 @@ func validator(rules proxyconfig.Restriction, user UserInfo) *Validator {
 	return validator
 }
 
-func (v *Validator) addFilter(name string, mode bool, validateFn func() bool) {
+func (v *Validator) addFilter(name, mode string, validateFn func() bool) {
 	v.filters[name] = filter{
-		block:    mode,
+		mode:     mode,
 		validate: validateFn,
 	}
 }
@@ -50,7 +50,7 @@ func (v *Validator) IP() *Validator {
 
 		return rule.MatchString(v.user.IP)
 	}
-	v.addFilter("ip", v.rules.IP.Block, f)
+	v.addFilter("ip", v.rules.IP.Mode, f)
 	return v
 }
 
@@ -83,16 +83,16 @@ func (v *Validator) Country() *Validator {
 		return false
 	}
 
-	v.addFilter("domain", v.rules.Country.Block, f)
+	v.addFilter("domain", v.rules.Country.Mode, f)
 	return v
 }
 
 func (v *Validator) Check() bool {
 	for name, filter := range v.filters {
 		fmt.Printf("checking for filter %s\n", name)
-		if filter.block && filter.validate() {
+		if filter.mode == "blacklist" && filter.validate() {
 			return false //block
-		} else if !filter.block && !filter.validate() {
+		} else if filter.mode == "whitelist" && !filter.validate() {
 			return false //block
 		}
 	}

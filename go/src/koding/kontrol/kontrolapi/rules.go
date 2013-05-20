@@ -15,7 +15,7 @@ type RulesPostMessage struct {
 	RuleName    *string `json:"name"`
 	Rule        *string `json:"rule"`
 	RuleEnabled *bool   `json:"enabled"`
-	RuleMode    *bool   `json:"block"`
+	RuleMode    *string `json:"mode"`
 }
 
 func GetRules(writer http.ResponseWriter, req *http.Request) {
@@ -98,7 +98,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 	var rule string
 	var ruleName string
 	var ruleEnabled bool
-	var ruleMode bool
+	var ruleMode string
 
 	body, _ := ioutil.ReadAll(req.Body)
 	log.Println(string(body))
@@ -153,7 +153,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd(cmd)
 
-	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and block mode '%t'", ruleName, rule, ruleEnabled, ruleMode)
+	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%t'", ruleName, rule, ruleEnabled, ruleMode)
 	io.WriteString(writer, url)
 	return
 
