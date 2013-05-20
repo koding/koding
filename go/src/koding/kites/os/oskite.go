@@ -61,6 +61,7 @@ func main() {
 	for _, dir := range dirs {
 		if strings.HasPrefix(dir.Name(), "vm-") {
 			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			db.VMs.FindId(vm.Id).One(&vm)
 			if err := vm.Unprepare(); err != nil {
 				log.Warn(err.Error())
 			}
