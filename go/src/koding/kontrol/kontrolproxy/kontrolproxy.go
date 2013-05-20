@@ -172,7 +172,7 @@ func parseKey(host string) (UserInfo, error) {
 
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
-		// host is in form {name}.x.koding.com, used for domain forwarding
+		// host is in form {name}.kd.io, used for domain forwarding
 		userInfo, err := lookupDomain(host)
 		if err != nil {
 			// if not available in our proxy make a db lookup for Vm subdomains
@@ -180,11 +180,11 @@ func parseKey(host string) (UserInfo, error) {
 
 			var vm virt.VM
 			if err := db.VMs.Find(bson.M{"name": vmName}).One(&vm); err != nil {
-				return UserInfo{FullUrl: "www.koding.com/notfound.html"}, errors.New("redirect")
+				return UserInfo{FullUrl: "http://www.koding.com/notfound.html"}, errors.New("redirect")
 			}
 
 			if vm.IP == nil {
-				return UserInfo{FullUrl: "www.koding.com/notactive.html"}, errors.New("redirect")
+				return UserInfo{FullUrl: "http://www.koding.com/notactive.html"}, errors.New("redirect")
 			}
 
 			return UserInfo{FullUrl: vm.IP.String()}, nil
@@ -192,7 +192,7 @@ func parseKey(host string) (UserInfo, error) {
 
 		return userInfo, nil
 	case counts == 1:
-		// host is in form {name}-{key}.x.koding.com, used by koding
+		// host is in form {name}-{key}.kd.io, used by koding
 		partsFirst := strings.Split(host, ".")
 		firstSub := partsFirst[0]
 
@@ -202,7 +202,7 @@ func parseKey(host string) (UserInfo, error) {
 
 		return *NewUserInfo("koding", servicename, key, ""), nil
 	case counts > 1:
-		// host is in form {name}-{key}-{username}.x.koding.com, used by users
+		// host is in form {name}-{key}-{username}.kd.io, used by users
 		partsFirst := strings.Split(host, ".")
 		firstSub := partsFirst[0]
 
