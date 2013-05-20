@@ -107,7 +107,7 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-      
+
     KD.getSingleton("appManager").tell section, method, options ? models,
       (contentDisplay)=>
         routeWithoutParams = route.split('?')[0]
@@ -196,7 +196,11 @@ class KodingRouter extends KDRouter
         else clear()
 
     createSectionHandler = (sec)=>
-      ({params:{name}, query})=> @openSection sec, name, query
+      ({params:{name, slug}, query})=>
+        if sec is "Develop"
+          @openSection slug, name, query
+        else
+          @openSection sec, name, query
 
     createContentHandler       = @bound 'createContentDisplayHandler'
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
@@ -226,6 +230,7 @@ class KodingRouter extends KDRouter
       '/:name?/Members'                 : createSectionHandler 'Members'
       '/:name?/Topics'                  : createSectionHandler 'Topics'
       '/:name?/Develop'                 : createSectionHandler 'StartTab'
+      '/:name?/Develop/:slug'           : createSectionHandler 'Develop'
       '/:name?/Apps'                    : createSectionHandler 'Apps'
       '/:name?/Account'                 : createSectionHandler 'Account'
 
