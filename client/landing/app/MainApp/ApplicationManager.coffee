@@ -20,15 +20,16 @@ class ApplicationManager extends KDObject
 
     @appControllers = {}
     @frontApp       = null
+    @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
+
+    # temp fix, until router logic is complete
+    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
+
     @defaultApps    =
       text  : "Ace"
       video : "Viewer"
       image : "Viewer"
       sound : "Viewer"
-    @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
-
-    # temp fix, until router logic is complete
-    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
 
   # temp fix, until router logic is complete
   setMissingRoute:(appController, appView, appOptions)->
@@ -95,7 +96,7 @@ class ApplicationManager extends KDObject
           options.requestedFromAppManager = yes
           @open name, options, callback
         return
-      else if appOptions?.thirdParty and not options.requestedFromAppsController
+      else if appOptions?.thirdParty and not options.requestedFromAppsController and not @appControllers[appOptions.name]
         kodingAppsController.runApp (KD.getAppOptions name), callback
         return
 
@@ -139,16 +140,18 @@ class ApplicationManager extends KDObject
       callback?()
 
 
-  openFile:(file)->
+  openFile: (file, app) ->
 
     type = FSItem.getFileType file.getExtension()
 
     switch type
       when 'code','text','unknown'
         log "open with a text editor"
-        @open @defaultApps.text, (appController)-> appController.openFile file
+        @open app or @defaultApps.text,  (appController = @getFrontApp()) =>
+          appController.openFile file
       when 'image'
-        log "open with an image processing app"
+        @open app or @defaultApps.image, (appController = @getFrontApp()) =>
+          appController.openFile file
       when 'video'
         log "open with a video app"
       when 'sound'
@@ -321,9 +324,6 @@ class ApplicationManager extends KDObject
       index = optionSet.instances.indexOf appInstance
       if index is -1 then optionSet.lastActiveIndex = null
       else optionSet.lastActiveIndex = index
-
-
-
 
 
   # setGroup:-> console.log 'setGroup', arguments
