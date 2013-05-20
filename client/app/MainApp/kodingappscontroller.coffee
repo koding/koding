@@ -607,6 +607,7 @@ class KodingAppsController extends KDController
       multiple      : no
       background    : no
       hiddenHandle  : no
+      forceUpdate   : no
       openWith      : "lastActive"
       behavior      : "application"
       version       : "0.1"
@@ -615,6 +616,7 @@ class KodingAppsController extends KDController
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
       homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
       author        : "#{fullName}"
+      authorNick    : "#{profile.nickname}"
       repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."
       category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
@@ -629,7 +631,8 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
-      menu: []
+      menu          : []
+      fileTypes     : []
 
     json = JSON.stringify raw, null, 2
 
