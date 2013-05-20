@@ -153,7 +153,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 
 	buildSendProxyCmd(cmd)
 
-	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%t'", ruleName, rule, ruleEnabled, ruleMode)
+	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%s'", ruleName, rule, ruleEnabled, ruleMode)
 	io.WriteString(writer, url)
 	return
 
