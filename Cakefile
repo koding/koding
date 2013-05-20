@@ -65,6 +65,30 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
+initializeDB = do ->
+
+  { exec } = (require 'child_process')
+
+  commands = [
+    'mongo koding2 --eval "db.dropDatabase()"'
+    'mongorestore /opt/koding/dump/koding2'
+    'mongo koding2 --eval "db.jCounters.count() ||'+
+    ' db.jCounters.save({ \\"_id\\" : \\"vm_ip\\", \\"v\\" : 176161307 });"'
+  ]
+
+  inVagrant = (cmd) -> "vagrant ssh default -c '#{cmd}'"
+
+  (err, out) ->
+    console.error err  if err
+    console.log out    if out
+    if (command = do commands.shift)?
+      exec inVagrant(command), initializeDB
+
+
+task 'initializeDB', ->
+  console.warn "FIXME: this is a temporary kludge"
+  initializeDB()
+
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
 
@@ -381,7 +405,7 @@ task 'checkConfig',({configFile})->
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
-  compileGoBinaries configFile,->
+  compileGoBinaries configFile, ->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting

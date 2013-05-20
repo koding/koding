@@ -263,7 +263,7 @@ module.exports = class JGroup extends Module
           else
             @one {_id: targetId}, callback
 
-  @create = do->
+  @create = do ->
 
     save_ =(label, model, queue, callback)->
       model.save (err)->
@@ -272,16 +272,12 @@ module.exports = class JGroup extends Module
           console.log "#{label} is saved"
           queue.next()
 
-    create = secure (client, formData, callback)->
-      JAccount = require '../account'
-      {delegate} = client.connection
-      unless delegate instanceof JAccount
-        return callback new KodingError 'Access denied.'
-
-      JPermissionSet = require './permissionset'
-      JMembershipPolicy = require './membershippolicy'
-      JName = require '../name'
-      group                 = new this formData
+    create = (groupData, owner, callback) ->
+      console.log {owner}
+      JPermissionSet        = require './permissionset'
+      JMembershipPolicy     = require './membershippolicy'
+      JName                 = require '../name'
+      group                 = new this groupData
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
       queue = [
@@ -299,17 +295,17 @@ module.exports = class JGroup extends Module
              JName.release group.slug, => callback err
            else
              queue.next()
-        -> group.addMember delegate, (err)->
+        -> group.addMember owner, (err)->
             if err then callback err
             else
               console.log 'member is added'
               queue.next()
-        -> group.addAdmin delegate, (err)->
+        -> group.addAdmin owner, (err)->
             if err then callback err
             else
               console.log 'admin is added'
               queue.next()
-        -> group.addOwner delegate, (err)->
+        -> group.addOwner owner, (err)->
             if err then callback err
             else
               console.log 'owner is added'
@@ -335,11 +331,21 @@ module.exports = class JGroup extends Module
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
+
       queue.push =>
-        @emit 'GroupCreated', { group, creator: delegate }
+        @emit 'GroupCreated', { group, creator: owner }
         callback null, group
 
       daisy queue
+
+  @create$ = secure (client, formData, callback)->
+    JAccount = require '../account'
+    {delegate} = client.connection
+
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+
+    @create formData, delegate, callback
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options

@@ -24,7 +24,7 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding_dev2_copy'
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
   runGoBroker   : no
   runKontrol    : yes
   runRerouting  : no
@@ -114,7 +114,7 @@ module.exports =
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 10
+    heartbeat   : 60
     vhost       : 'new'
   broker        :
     ip          : ""
