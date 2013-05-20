@@ -1,4 +1,5 @@
-<VirtualHost {{.Hostname}}>
+<VirtualHost *:80>
+  ServerName {{.Hostname}}
   DocumentRoot /home/{{.Name}}/Sites/{{.Hostname}}/
 
   <Directory />
