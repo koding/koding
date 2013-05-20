@@ -5,7 +5,7 @@ module.exports = class Graph
   constructor:(config)->
     # todo remove hardcoded id
 
-    @groupId   = "5150c743f2589b107d000007"
+    @groupId   = "5196fcb2bc9bdb0000000027"
     @groupName = "koding"
     @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
 
