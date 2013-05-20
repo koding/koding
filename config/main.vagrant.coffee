@@ -66,7 +66,7 @@ module.exports =
     login       : 'prod-social'
     watch       : yes
     queueName   : socialQueueName+'cache'
-    run         : no
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
