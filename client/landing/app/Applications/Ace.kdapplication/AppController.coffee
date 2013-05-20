@@ -61,6 +61,11 @@ class AceAppController extends AppController
         eventName : "exit"
       }
     ]
+    "fileTypes": [
+      "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
+      "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
+      "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
+    ]
     # mimeTypes    : "text"
 
   constructor: (options = {}, data)->
