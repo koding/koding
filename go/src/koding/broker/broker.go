@@ -166,6 +166,7 @@ func main() {
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
 							panic(err)
 						}
+						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
 					}
 
