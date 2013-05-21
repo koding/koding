@@ -25,6 +25,9 @@ class ActivityListHeader extends JView
         @getSingleton('activityController').flags = liveUpdates : state
         @getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
+    @getSingleton('mainController').on 'AccountChanged', @bound 'decorateLiveUpdateButton'
+    @decorateLiveUpdateButton()
+
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
         defaultValue : off
@@ -57,6 +60,10 @@ class ActivityListHeader extends JView
   newActivityArrived:->
     @_newItemsCount++
     @updateShowNewItemsLink()
+
+  decorateLiveUpdateButton:->
+    if KD.isLoggedIn() then @liveUpdateButton.show()
+    else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0
