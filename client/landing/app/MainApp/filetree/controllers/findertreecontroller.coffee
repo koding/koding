@@ -490,6 +490,7 @@ class NFinderTreeController extends JTreeViewController
   cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmOpenTerminal: (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
+  cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
 
@@ -721,3 +722,105 @@ class NFinderTreeController extends JTreeViewController
 
     {nickname} = KD.whoami().profile
     @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+
+  showOpenWithModal: (nodeView) ->
+    appManager     = @getSingleton "appManager"
+    appsController = @getSingleton "kodingAppsController"
+    fileName       = FSHelper.getFileNameFromPath nodeView.getData().path
+    fileExtension  = FSItem.getFileExtension fileName
+
+    appsController.fetchApps (err, apps) =>
+      modal = new KDModalView
+        title         : "Choose application to open #{fileName}"
+        cssClass      : "open-with-modal"
+        overlay       : yes
+        width         : 400
+        buttons       :
+          Open        :
+            title     : "Open"
+            style     : "modal-clean-green"
+            callback  : =>
+              appName = modal.selectedApp.getData().name
+
+              if @alwaysOpenWith.getValue()
+                appsController.emit "UpdateDefaultApp", fileExtension, appName
+
+              appManager.openFile nodeView.getData(), appName
+              modal.destroy()
+          Cancel     :
+            title    : "Cancel"
+            style    : "modal-cancel"
+            callback : => modal.destroy()
+
+      {extensionToApp} = appsController
+      supportedApps    = extensionToApp[fileExtension] or extensionToApp.txt
+
+      for appName in supportedApps
+        modal.addSubView new OpenWithModalApp
+          supported : yes
+          delegate  : modal
+        , apps[appName]
+
+      modal.addSubView new KDView
+        cssClass     : "separator"
+
+      for appName, manifest of apps when supportedApps.indexOf(appName) is -1
+        modal.addSubView new OpenWithModalApp { delegate: modal }, manifest
+
+      label = new KDLabelView
+        title        : "Always open with..."
+        attributes   :
+          "for"      : "alwaysOpenWith"
+
+      @alwaysOpenWith = new KDInputView
+        type         : "checkbox"
+        domId        : "alwaysOpenWith"
+
+      modal.buttonHolder.addSubView @alwaysOpenWith
+      modal.buttonHolder.addSubView label
+
+class OpenWithModalApp extends JView
+
+  constructor: (options= {}, data) ->
+
+    options.cssClass = "app"
+
+    super options, data
+
+    {authorNick, name, version, icns} = manifest = @getData()
+
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
+
+    if manifest.devMode
+      resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
+
+    thumb  = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+
+    for size in [64, 128, 160, 256, 512]
+      if icns and icns[String size]
+        thumb = "#{resourceRoot}/#{icns[String size]}"
+        break
+
+    @img = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : =>
+        @img.$().attr "src", "/images/default.app.thumb.png"
+      attributes  :
+        src       : thumb
+
+    @setClass "not-supported" unless @getOptions().supported
+
+    @on "click", =>
+      delegate = @getDelegate()
+      delegate.selectedApp.unsetClass "selected" if delegate.selectedApp
+      @setClass "selected"
+      delegate.selectedApp = @
+
+  pistachio: ->
+    data = @getData()
+
+    return """
+      {{> @img}}
+      <div class="app-name">#{data.name}</div>
+    """
