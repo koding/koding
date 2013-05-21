@@ -25,6 +25,7 @@ class ApplicationManager extends KDObject
       video : "Viewer"
       image : "Viewer"
       sound : "Viewer"
+
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
 
     # temp fix, until router logic is complete
