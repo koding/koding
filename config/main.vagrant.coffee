@@ -29,7 +29,7 @@ module.exports =
   neo4j         :
     host        : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: no
+  runNeo4jFeeder: yes
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
