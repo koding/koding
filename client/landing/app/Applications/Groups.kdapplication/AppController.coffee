@@ -577,9 +577,9 @@ class GroupsAppController extends AppController
                 itemClass            : KDOnOffSwitch
                 name                 : "group-vm"
                 defaultValue         : yes
-              
+
               # # Members VMs are a future feature
-              
+
               # "Member VM"            :
               #   label                : "Create server(s) for each group member"
               #   itemClass            : KDOnOffSwitch
