@@ -178,8 +178,8 @@ module.exports = class JVM extends Model
 
     JGroup.on 'GroupCreated', ({group, creator})->
       group.fetchBundle (err, bundle)->
-        return callback err  if err
-        if bundle
+        if err then handleError err
+        else if bundle
           creator.fetchUser (err, user)->
             if err then handleError err
             else
