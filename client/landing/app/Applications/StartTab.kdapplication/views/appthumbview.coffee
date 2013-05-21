@@ -36,9 +36,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
         thumb = "#{resourceRoot}/#{icns[String size]}"
         break
 
-    if location.hostname is "localhost"
-      thumb = "/images/default.app.thumb.png"
-
     @img = new KDCustomHTMLView
       tagName     : "img"
       bind        : "error"
