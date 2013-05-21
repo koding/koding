@@ -31,6 +31,9 @@ class KodingAppsController extends KDController
     @createExtensionToAppMap()
     @fetchUserDefaultAppConfig()
 
+    @on "UpdateDefaultApp", (extension, appName) =>
+      @updateDefaultAppConfig extension, appName
+
   getAppPath:(manifest, escaped=no)->
 
     {profile} = KD.whoami()
@@ -621,9 +624,17 @@ class KodingAppsController extends KDController
             map[type].push app.name
 
   fetchUserDefaultAppConfig: ->
-    appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
-    appConfigStorage.fetchStorage (storage) ->
-      log storage
+    @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
+    @appConfigStorage.fetchStorage (storage) =>
+      settings = @appConfigStorage.getValue "settings"
+      for extension, appName of settings
+        @appManager.defaultApps[extension] = appName
+
+  updateDefaultAppConfig: (extension, appName) ->
+    {defaultApps} = @appManager
+    defaultApps[extension] = appName
+    @appConfigStorage.setValue "settings", defaultApps
+
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
