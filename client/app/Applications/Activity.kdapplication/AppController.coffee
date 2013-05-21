@@ -35,7 +35,7 @@ class ActivityAppController extends AppController
     @isLoading         = no
     @mainController    = @getSingleton 'mainController'
     @lastTo            = null
-    @lastFrom          = null
+    @lastFrom          = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -292,28 +292,36 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
+  # Enables switching between cache/neo4j.
+  getCacheUrl:->
+
+    defaultUrlPrefix = "cache"
+    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
+
+    return defaultUrlPrefix
+
   fetchCachedActivity:(options = {}, callback)->
 
-    urlPrefix = "cache"
-
-    if KD.config.useNeo4j
-      urlPrefix = "neo4j"
-
     $.ajax
-      url     : "/-/#{urlPrefix}/#{options.slug or 'latest'}"
+      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
-      success : (cache)=>
+      success : (cache)->
         cache.overview.reverse()  if cache?.overview
         callback null, cache
 
   continueLoadingTeasers:->
 
-    return  if @isLoading
+    KD.utils.wait 1000, =>
+      return  unless @lastFrom?
 
-    # HACK: this gets called multiple times if there's no wait
-    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
-    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+      console.log "lastFrom: #{@lastFrom}"
+
+      lastTimeStamp = (new Date @lastFrom).getTime()
+
+      console.log "lastTimeStamp: #{lastTimeStamp}"
+
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed

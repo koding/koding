@@ -21,6 +21,8 @@ type Session struct {
 	lastSendTime                 time.Time
 	closed                       bool
 	closeMutex                   sync.Mutex
+	currentSecond                int64
+	receiveCounter               int
 	cookie                       string
 	IsWebsocket                  bool
 	Tag                          string
@@ -78,13 +80,27 @@ func (s *Session) ReadMessages(data []byte) bool {
 
 	if messages, ok := obj.([]interface{}); ok {
 		for _, message := range messages {
-			s.ReceiveChan <- message
+			s.receiveMessage(message)
 		}
 		return true
 	}
 
-	s.ReceiveChan <- obj
+	s.receiveMessage(obj)
 	return true
+}
+
+func (s *Session) receiveMessage(message interface{}) {
+	t := time.Now().Unix()
+	if s.currentSecond != t {
+		s.currentSecond = t
+		s.receiveCounter = 0
+	}
+	s.receiveCounter += 1
+	if s.Service.MaxReceivedPerSecond > 0 && s.receiveCounter > s.Service.MaxReceivedPerSecond {
+		time.Sleep(time.Second)
+	}
+
+	s.ReceiveChan <- message
 }
 
 func (s *Session) WriteFrames(w http.ResponseWriter, streaming, chunked bool, frameStart, frameEnd []byte, escape bool) {

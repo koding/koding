@@ -598,9 +598,9 @@ __utils =
     if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
       group = KD.config.entryPoint.slug
     else
-      group = ''
+      group = 'koding'
 
-    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err
         KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else

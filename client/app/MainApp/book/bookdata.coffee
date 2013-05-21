@@ -66,7 +66,7 @@ __bookPages = [
   ,
     title     : "Terminal"
     content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console.</p>
-                   <p>It's a Centos VM that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Other than being root, everything is possible. This VM is not a simulation, it is a real computer, and it's yours.</p>"""
+                   <p>It's an Ubuntu VM that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Everything is possible. This VM is not a simulation, it is a real computer, and it's yours.</p>"""
   ,
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>

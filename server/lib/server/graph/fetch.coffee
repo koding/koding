@@ -16,7 +16,7 @@ module.exports = class FetchAllActivityParallel
     @newMemberBucketIndex = null
 
   get:(callback)->
-    methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls]
+    methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls, @fetchNewMembers]
     holder = []
     boundMethods = holder.push method.bind this for method in methods
     async.parallel holder, (err, results)=>
@@ -87,6 +87,9 @@ module.exports = class FetchAllActivityParallel
     return {}  if overview.length is 0
 
     overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
+    allTimes = _.map(overview, (activity)-> activity.createdAt)
+    allTimes = _.flatten allTimes
+    sortedAllTimes = _.sortBy(allTimes, (activity)-> activity)
 
     # TODO: we're throwing away results if more than 20, ideally we'll only
     # get the right number of results
@@ -95,16 +98,16 @@ module.exports = class FetchAllActivityParallel
     for activity, index in overview when activity.type is "CNewMemberBucketActivity"
       @newMemberBucketIndex = index
 
-    return @decorateResponse overview
+    return @decorateResponse overview, sortedAllTimes
 
-  decorateResponse: (overview)->
+  decorateResponse: (overview, sortedAllTimes)->
     response            = {}
     response.activities = @cacheObjects
     response.overview   = overview
     response._id        = "1"
     response.isFull     = true
-    response.from       = overview.first.createdAt.last
-    response.to         = overview.last.createdAt.first
+    response.from       = sortedAllTimes.first
+    response.to         = sortedAllTimes.last
     response.newMemberBucketIndex = @newMemberBucketIndex  if @newMemberBucketIndex
 
     return response

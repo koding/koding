@@ -14,11 +14,12 @@ import (
 )
 
 type Service struct {
-	Callback     func(*Session)
-	Websocket    bool
-	CookieNeeded bool
-	StreamLimit  int
-	ErrorHandler func(err interface{}, stackOffset int)
+	Callback             func(*Session)
+	Websocket            bool
+	CookieNeeded         bool
+	StreamLimit          int
+	MaxReceivedPerSecond int
+	ErrorHandler         func(err interface{}, stackOffset int)
 
 	iFrameContent []byte
 	iFrameETag    string
