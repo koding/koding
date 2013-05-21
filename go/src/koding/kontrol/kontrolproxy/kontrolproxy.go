@@ -9,6 +9,9 @@ import (
 	"io"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
+	"koding/tools/db"
+	"koding/virt"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net"
 	"net/http"
@@ -169,15 +172,27 @@ func parseKey(host string) (UserInfo, error) {
 
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
-		// host is in form {name}.x.koding.com, used for domain forwarding
+		// host is in form {name}.kd.io, used for domain forwarding
 		userInfo, err := lookupDomain(host)
 		if err != nil {
-			log.Println(err)
-			return UserInfo{}, err
+			// if not available in our proxy make a db lookup for Vm subdomains
+			vmName := strings.SplitN(host, ".", 2)[0]
+
+			var vm virt.VM
+			if err := db.VMs.Find(bson.M{"name": vmName}).One(&vm); err != nil {
+				return UserInfo{FullUrl: "http://www.koding.com/notfound.html"}, errors.New("redirect")
+			}
+
+			if vm.IP == nil {
+				return UserInfo{FullUrl: "http://www.koding.com/notactive.html"}, errors.New("redirect")
+			}
+
+			return UserInfo{FullUrl: vm.IP.String()}, nil
 		}
+
 		return userInfo, nil
 	case counts == 1:
-		// host is in form {name}-{key}.x.koding.com, used by koding
+		// host is in form {name}-{key}.kd.io, used by koding
 		partsFirst := strings.Split(host, ".")
 		firstSub := partsFirst[0]
 
@@ -187,7 +202,7 @@ func parseKey(host string) (UserInfo, error) {
 
 		return *NewUserInfo("koding", servicename, key, ""), nil
 	case counts > 1:
-		// host is in form {name}-{key}-{username}.x.koding.com, used by users
+		// host is in form {name}-{key}-{username}.kd.io, used by users
 		partsFirst := strings.Split(host, ".")
 		firstSub := partsFirst[0]
 
@@ -435,6 +450,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	userInfo, err := parseKey(outreq.Host)
 	if err != nil {
+		if err.Error() == "redirect" {
+			http.Redirect(rw, req, userInfo.FullUrl, http.StatusTemporaryRedirect)
+			return
+		}
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
 		return
