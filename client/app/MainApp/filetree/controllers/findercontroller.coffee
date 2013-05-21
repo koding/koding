@@ -116,16 +116,20 @@ class NFinderController extends KDViewController
     FSHelper.resetRegistry()
     @stopAllWatchers()
 
-    @vms = []
+    @vms      = []
+    _inUseVMs = []
     for vm in vmNames
       [vmName, path] = vm.split ":"
-      path          ?= "/home/#{KD.nick()}"
-      @vms.push FSHelper.createFile {
-        name   : "#{path}"
-        path   : "[#{vmName}]#{path}"
-        type   : "vm"
-        vmName : vmName
-      }
+      path         or= "/home/#{KD.nick()}"
+      unless vmName in _inUseVMs
+        _inUseVMs.push vmName
+        @vms.push FSHelper.createFile {
+          name   : "#{path}"
+          path   : "[#{vmName}]#{path}"
+          type   : "vm"
+          vmName : vmName
+        }
+      else warn "Ignoring already in use VM, named #{vmName}"
 
     @defaultStructureLoaded = no
     @treeController.initTree @vms
