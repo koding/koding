@@ -327,9 +327,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
 						panic(err)
 					}
-					if err := rootVos.Remove("/etc/apache2/sites-enabled/000-default"); err != nil && !os.IsNotExist(err) {
-						panic(err)
-					}
 				}
 			}
 
