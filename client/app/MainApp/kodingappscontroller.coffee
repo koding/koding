@@ -606,13 +606,13 @@ class KodingAppsController extends KDController
     @extensionToApp = map = {}
     @fetchApps (err, res) =>
       # TODO: Find a better way to add Ace extensions to this map. (fatihacet)
-      res.Ace =
-        name     : "Ace"
-        fileTypes: [
-          "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
-          "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
-          "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
-        ]
+      # res.Ace =
+      #   name     : "Ace"
+      #   fileTypes: [
+      #     "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
+      #     "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
+      #     "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
+      #   ]
       for key, app of res
         fileTypes = app.fileTypes
         if fileTypes
