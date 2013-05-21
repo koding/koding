@@ -13,28 +13,27 @@ class ApplicationTabView extends KDTabView
     super options, data
 
     @isSessionEnabled = options.saveSession and options.sessionName
+    appManager        = KD.getSingleton 'appManager'
 
-    appView = @getDelegate()
-
-    @on 'PaneRemoved', =>
-      if @panes.length is 0
-        appView.emit 'AllViewsClosed'
-        if options.closeAppWhenAllTabsClosed
-          appManager = KD.getSingleton 'appManager'
-          appManager.quit appManager.frontApp
-
-      @tabHandleContainer.repositionPlusHandle @handles
-      @removeFromSession yes
-
-    @on 'PaneAdded', =>
+    @on 'PaneAdded', (pane)=>
       @tabHandleContainer.repositionPlusHandle @handles
       @initSession @panes.last, @bound "updateSession" if @isSessionEnabled
+
+      tabView = this
+      pane.on "KDTabPaneDestroy", ->
+        # -1 because the pane is still there but will be destroyed after this event
+        if tabView.panes.length - 1 is 0 and options.closeAppWhenAllTabsClosed
+          appManager.quit appManager.getFrontApp()
+        tabView.tabHandleContainer.repositionPlusHandle tabView.handles
+        tabView.removeFromSession yes
 
     @on 'SaveSession', (data) =>
       @appStorage.setValue @getOptions().sessionKey, data
 
-    # appView.on "AceAppDidQuit", => @removeFromSession no
 
+
+  # FIXME: @fatihacet ace related stuff can not live here in this file
+  # please generalize this - SY
   # session related methods
 
   fetchStorage: (callback) ->
