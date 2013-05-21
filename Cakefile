@@ -65,9 +65,9 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
-task 'populateNeo', ({configFile})->
-  migrator = "go/src/koding/migrators/mongo/mongo2neo4j.go"
-  processes.exec "go run #{migrator} -c #{configFile}"
+task 'populateNeo4j', ({configFile})->
+  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
+  processes.exec migrator
 
 initializeDB = do ->
 
