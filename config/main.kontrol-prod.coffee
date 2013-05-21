@@ -13,6 +13,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "#{version}.x.koding.com"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :

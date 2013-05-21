@@ -44,6 +44,7 @@ config =
       secret      : 1
     uri           :
       address     : 1
+    userSitesDomain: 1
     projectRoot   : 1
     version       : 1
     webserver     :
