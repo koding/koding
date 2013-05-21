@@ -23,6 +23,14 @@ module.exports = class JReview extends Reply
     sharedMethods  :
       static       : ['fetchRelated']
       instance     : ['delete', 'like', 'fetchLikedByes', 'checkIfLikedBefore']
+    sharedEvents   :
+      instance     : [
+        { name: 'TagsChanged' }
+        { name: 'ReplyIsAdded' }
+        { name: 'LikeIsAdded' }
+        { name: 'updateInstance' }
+      ]
+      static       : []
     schema         :
       isLowQuality : Boolean
       body         :

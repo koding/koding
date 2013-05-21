@@ -132,3 +132,56 @@ db.query query, params, (err, results) ->
   # console.log users
 
 # start activity=node:koding('id:*') return activity.`meta.createdAt` order by activity.`meta.createdAt` DESC limit 50
+
+"""
+START koding=node:koding(id={groupId})
+MATCH koding-[:member]->members<-[:author]-content
+WHERE (content.name = "JTutorial"
+ or content.name = "JCodeSnip"
+ or content.name = "JDiscussion"
+ or content.name = "JBlogPost"
+ or content.name = "JStatusUpdate")
+ and has(content.group)
+ and content.group = "koding"
+ and has(content.`meta.createdAtEpoch`)
+ and content.`meta.createdAtEpoch` < {startDate}
+ and content.isLowQuality! is null
+return *
+order by content.`meta.createdAtEpoch` DESC
+limit 20 1368928928 '5196fcb2bc9bdb0000000027'
+
+start koding=node:koding(id={groupId})
+MATCH koding-[:member]->followees<-[r:follower]-follower
+where followees.name="JAccount"
+and follower.name="JTag"
+and follower.group="koding"
+and r.createdAtEpoch < {startDate}
+return r,followees, follower
+order by r.createdAtEpoch DESC
+limit 20 1368928928
+
+start koding=node:koding(id={groupId})
+MATCH koding-[:member]->followees<-[r:follower]-follower
+where followees.name="JAccount"
+and follower.name="JAccount"
+and r.createdAtEpoch < {startDate}
+return r,followees, follower
+order by r.createdAtEpoch DESC
+limit 20 1368928928
+
+START kd=node:koding(id={groupId})
+MATCH kd-[:member]->users<-[r:user]-koding
+WHERE koding.name="JApp"
+and r.createdAtEpoch < {startDate}
+return *
+order by r.createdAtEpoch DESC
+limit 20 1368928928
+
+start  koding=node:koding(id={groupId})
+MATCH  koding-[r:member]->members
+where  members.name="JAccount"
+and r.createdAtEpoch < {startDate}
+return members
+order by r.createdAtEpoch DESC
+limit 20 1368928928
+"""

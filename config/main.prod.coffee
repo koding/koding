@@ -20,6 +20,7 @@ module.exports = deepFreeze
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "https://koding.com"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :

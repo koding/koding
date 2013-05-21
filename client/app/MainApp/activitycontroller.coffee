@@ -1,6 +1,6 @@
 class ActivityController extends KDObject
 
-  constructor:->
+  constructor: ->
 
     super
 
@@ -8,9 +8,9 @@ class ActivityController extends KDObject
 
     groupChannel = null
 
-    groupsController.on 'GroupChanged', =>
+    groupsController.on 'GroupChannelReady', =>
       oldChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
-      groupChannel.on 'feed-new', (activities)=>
+      groupChannel.on 'feed-new', (activities) =>
         @emit 'ActivitiesArrived',
           (KD.remote.revive activity for activity in activities)

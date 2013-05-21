@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@localhost:27017/koding'
+mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -13,6 +13,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://localhost:3020"
+  userSitesDomain: 'localhost'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -28,7 +29,7 @@ module.exports =
   neo4j         :
     host        : "http://localhost"
     port        : 7474
-  runNeo4jFeeder: no
+  runNeo4jFeeder: yes
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
@@ -70,7 +71,7 @@ module.exports =
     login       : 'prod-social'
     watch       : yes
     queueName   : socialQueueName+'cache'
-    run         : no
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"

@@ -5,6 +5,7 @@ import (
 	"koding/databases/mongo"
 	"koding/databases/neo4j"
 	"koding/tools/config"
+	"koding/tools/log"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
@@ -36,8 +37,9 @@ func main() {
 		fmt.Println(MONGO_CONN_STRING)
 		MONGO_CONNECTION, err = mgo.Dial(MONGO_CONN_STRING)
 		if err != nil {
-			fmt.Println(err)
+			log.Warn("Connection error: " + err.Error())
 		}
+
 	}
 
 	defer MONGO_CONNECTION.Close()
@@ -51,8 +53,8 @@ func main() {
 	var result *Relationship
 
 	i := 0
-	skip := 0 //25812 + 27752 + 54945
-	iter := relationshipColl.Find(nil).Skip(skip).Limit(0).Sort("-timestamp").Iter()
+	skip := 0
+	iter := relationshipColl.Find(nil).Batch(1000).Skip(skip).Limit(0).Sort("-timestamp").Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
@@ -101,7 +103,7 @@ func main() {
 	}
 
 	if iter.Err() != nil {
-		fmt.Println("err during iteration", iter.Err())
+		log.Warn("Error during iteration: ", iter.Err())
 	}
 
 	fmt.Println("Migration completed")
@@ -117,7 +119,7 @@ func getContent(objectId bson.ObjectId, name string) string {
 	} else {
 		content, err = mongo.FetchContent(objectId, name)
 		if err != nil {
-			fmt.Println("source err ", err)
+			log.Debug("source err ", err)
 			content = ""
 		}
 	}
@@ -127,8 +129,6 @@ func getContent(objectId bson.ObjectId, name string) string {
 
 func checkIfEligible(sourceName, targetName string) bool {
 
-	fmt.Println(sourceName)
-	fmt.Println(targetName)
 	notAllowedNames := []string{
 		"CStatusActivity",
 		"CFolloweeBucketActivity",
@@ -155,33 +155,23 @@ func checkIfEligible(sourceName, targetName string) bool {
 	}
 
 	for _, name := range notAllowedNames {
-		if name == sourceName {
-			fmt.Println("not eligible " + sourceName)
-			return false
-		}
-
-		if name == targetName {
-			fmt.Println("not eligible " + targetName)
+		if name == sourceName || name == targetName {
+			log.Debug("not eligible " + name)
 			return false
 		}
 	}
 
 	for _, name := range notAllowedSuffixes {
 
-		if strings.HasSuffix(sourceName, name) {
-			fmt.Println("not eligible " + sourceName)
-			return false
-		}
-
-		if strings.HasSuffix(targetName, name) {
-			fmt.Println("not eligible " + targetName)
+		if strings.HasSuffix(sourceName, name) || strings.HasSuffix(targetName, name) {
+			log.Debug("not eligible " + name)
 			return false
 		}
 
 	}
 
 	if strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
-		fmt.Println("not eligible " + sourceName + " " + targetName)
+		log.Debug("not eligible " + sourceName + " " + targetName)
 		return false
 	}
 	return true

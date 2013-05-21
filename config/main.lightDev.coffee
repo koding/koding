@@ -19,6 +19,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://localhost:3000"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
