@@ -35,7 +35,7 @@ class ActivityAppController extends AppController
     @isLoading         = no
     @mainController    = @getSingleton 'mainController'
     @lastTo            = null
-    @lastFrom          = null
+    @lastFrom          = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -312,10 +312,16 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    return  if @isLoading
+    KD.utils.wait 1000, =>
+      return  unless @lastFrom?
 
-    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
-    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+      console.log "lastFrom: #{@lastFrom}"
+
+      lastTimeStamp = (new Date @lastFrom).getTime()
+
+      console.log "lastTimeStamp: #{lastTimeStamp}"
+
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed
