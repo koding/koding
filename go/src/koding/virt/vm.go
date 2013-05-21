@@ -15,17 +15,17 @@ import (
 )
 
 type VM struct {
-	Id           bson.ObjectId `bson:"_id"`
-	Name         string        `bson:"name"`
-	Users        []*UserEntry  `bson:"users"`
-	LdapPassword string        `bson:"ldapPassword"`
-	IP           net.IP        `bson:"ip"`
-	HostKite     string        `bson:"hostKite"`
-	SnapshotOf   bson.ObjectId `bson:"snapshotOf"`
+	Id           bson.ObjectId  `bson:"_id"`
+	Name         string         `bson:"name"`
+	Users        []*Permissions `bson:"users"`
+	LdapPassword string         `bson:"ldapPassword"`
+	IP           net.IP         `bson:"ip"`
+	HostKite     string         `bson:"hostKite"`
+	SnapshotOf   bson.ObjectId  `bson:"snapshotOf"`
 	hostname     string
 }
 
-type UserEntry struct {
+type Permissions struct {
 	Id   bson.ObjectId `bson:"id"`
 	Sudo bool          `bson:"sudo"`
 }
@@ -94,7 +94,7 @@ func (vm *VM) PtsDir() string {
 	return vm.File("rootfs/dev/pts")
 }
 
-func (vm *VM) GetUserEntry(user *User) *UserEntry {
+func (vm *VM) GetPermissions(user *User) *Permissions {
 	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
 			return entry
