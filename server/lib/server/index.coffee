@@ -2,7 +2,9 @@
 Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
+
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
+page = require './staticpages'
 
 webPort = argv.p ? webserver.port
 
@@ -51,6 +53,9 @@ koding.connect ->
     leave: (serviceKey) ->
       incService serviceKey, -1
 
+# TODO: DRY this
+_        = require 'underscore'
+async    = require 'async'
 {extend} = require 'underscore'
 express  = require 'express'
 Broker   = require 'broker'
@@ -91,10 +96,27 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-startTime = null
+FetchAllActivityParallel = require './graph/fetch'
+fetchFromNeo = (req, res)->
+  timestamp  = req.params?.timestamp
+  rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+  startDate  = Math.floor(rawStartDate/1000)
+
+  console.log "fetchFromNeo", req.params.timestamp, rawStartDate, startDate
+
+  fetch = new FetchAllActivityParallel startDate, neo4j
+  fetch.get (results)->
+    res.send results
+
+app.get "/-/neo4j/latest", (req, res)->
+  fetchFromNeo req, res
+
+app.get "/-/neo4j/before/:timestamp", (req, res)->
+  fetchFromNeo req, res
+
 app.get "/-/cache/latest", (req, res)->
   {JActivityCache} = koding.models
-  # startTime = Date.now()
+  startTime = Date.now()
   JActivityCache.latest (err, cache)->
     if err then console.warn err
     # if you want to jump to previous cache - uncomment if needed
@@ -379,5 +401,4 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
-
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

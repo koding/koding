@@ -89,6 +89,9 @@ class WebTermView extends KDView
     @terminal.setTitleCallback = (title) =>
       #@tabPane.setTitle title
 
+    @terminal.flushedCallback = =>
+      @emit 'WebTerm.flushed'
+
     @listenWindowResize()
 
     @focused = true
