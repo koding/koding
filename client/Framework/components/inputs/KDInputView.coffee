@@ -117,7 +117,7 @@ class KDInputView extends KDView
     @$().val @getDefaultValue()
 
   setDefaultValue:(value) ->
-    if @getOption("type") is "checkbox"
+    if @getOption("type") is "checkbox" and value isnt ""
       @getDomElement().attr checked : value
     else
       @getDomElement().val value if value isnt ""
