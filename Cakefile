@@ -459,6 +459,7 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
+  console.log "if you did not migrate your db to neo4j yet, please run \"cake -c #{configFile} populateNeo4j\" "
 
 
 task 'accounting', (options)->
