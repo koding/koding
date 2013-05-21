@@ -209,7 +209,7 @@ func createProducer() (*Producer, error) {
 
 	log.Printf("creating publisher connections")
 
-	p.conn = amqputil.CreateConnection("deneme")
+	p.conn = amqputil.CreateConnection("routing")
 	p.channel = amqputil.CreateChannel(p.conn)
 
 	return p, nil

@@ -397,7 +397,7 @@ module.exports = class JPost extends jraphical.Message
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
   fetchTeaser:(callback, showIsLowQuality=no)->
-    query = 
+    query =
       targetName  : 'JComment'
       as          : 'reply'
       'data.deletedAt':

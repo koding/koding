@@ -280,15 +280,21 @@ task 'goBroker',(options)->
 task 'rerouting',(options)->
 
   {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  uuid = hat()
 
   processes.spawn
     name           : 'rerouting'
-    cmd            : "./go/bin/rerouting -c #{configFile}"
+    cmd            : "./go/bin/rerouting -c #{configFile} -u #{uuid}"
     restart        : yes
     restartTimeout : 100
     stdout         : process.stdout
     stderr         : process.stderr
     verbose        : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+      binary       : uuid
 
 task 'osKite',({configFile})->
 

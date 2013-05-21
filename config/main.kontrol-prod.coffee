@@ -13,6 +13,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "#{version}.x.koding.com"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -73,7 +74,7 @@ module.exports =
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 20
+    numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -111,7 +112,7 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://webserver-build-koding-#{version}.in.koding.com:1337'
+      sourceUri : "http://webserver-build-koding-#{version}.in.koding.com:1337"
   mq            :
     host        : 'internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com'
     port        : 5672
