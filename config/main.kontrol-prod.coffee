@@ -69,7 +69,7 @@ module.exports =
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 20
+    numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
