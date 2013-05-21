@@ -7,6 +7,7 @@ do ->
   modalTimerId     = null
   currentModal     = null
   currentModalSize = null
+  firstLoad        = yes
 
   mainController.tempStorage = {}
 
