@@ -60,7 +60,7 @@ class AccountKodingKeyListItem extends KDListItemView
               style    : "modal-clean-red"
               callback : (event)=>
                 @revokeAccess options, data
-                @.$().remove()
+                @destroy()
                 modal.destroy()
             "Close"    :
               style    : "modal-clean-gray"
@@ -79,7 +79,7 @@ class AccountKodingKeyListItem extends KDListItemView
           content      : """
           <div class='modalformline'>
             <p>
-              Please don't share that key anyone!
+              Please do not share this key anyone!
             </p>
             <p>
               <code>#{data.key}</code>
