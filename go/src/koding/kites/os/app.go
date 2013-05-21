@@ -41,7 +41,7 @@ var appsBucket = s3.New(
 ).Bucket("koding-apps")
 
 func registerAppMethods(k *kite.Kite) {
-	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.install", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Owner, Identifier, Version, AppPath string
 		}
@@ -63,7 +63,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.download", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Owner, Identifier, Version, AppPath string
 		}
@@ -141,7 +141,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.publish", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			AppPath string
 		}
@@ -161,11 +161,11 @@ func registerAppMethods(k *kite.Kite) {
 			return nil, err
 		}
 
-		if manifest.AuthorNick != user.Name {
+		if manifest.AuthorNick != vos.User.Name {
 			return nil, fmt.Errorf("The authorNick in manifest.json must be your nickname.")
 		}
 
-		bucketPath := fmt.Sprintf("%s/%s/%s", user.Name, manifest.Identifier, manifest.Version)
+		bucketPath := fmt.Sprintf("%s/%s/%s", vos.User.Name, manifest.Identifier, manifest.Version)
 
 		result, err := appsBucket.List(bucketPath+".tar.gz", "", "", 1)
 		if err != nil {
@@ -268,7 +268,7 @@ func registerAppMethods(k *kite.Kite) {
 		return true, nil
 	})
 
-	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "app.skeleton", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Type, AppPath string
 		}

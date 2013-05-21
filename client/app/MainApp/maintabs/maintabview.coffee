@@ -1,7 +1,5 @@
 class MainTabView extends KDTabView
 
-  lastOpenPaneIndex = null
-
   constructor:(options,data)->
     options.resizeTabHandles    = yes
     options.lastTabHandleMargin = 40
@@ -9,15 +7,13 @@ class MainTabView extends KDTabView
     @visibleHandles             = []
     @totalSize                  = 0
     super options,data
+    @router                     = @getSingleton 'router'
+    @appManager                 = @getSingleton("appManager")
 
-    appManager = @getSingleton("appManager")
-
-    appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
-
+    @appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
       if view.parent
-        @showPane view.parent
-      else
-        @createTabPane options, view
+      then @showPane view.parent
+      else @createTabPane options, view
 
     @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
       if e.target is @getSingleton("contentPanel").domElement[0]
@@ -41,23 +37,17 @@ class MainTabView extends KDTabView
         @showHandleContainer()
 
 
-  # temp fix sinan 27 Nov 12
-  # not calling @removePane but @_removePane
   handleClicked:(index, event)->
     pane        = @getPaneByIndex index
     appView     = pane.getMainView()
-    appInstance = appManager.getByView appView
+    appInstance = @appManager.getByView appView
     options     = appInstance.getOptions()
-    @getSingleton('router').handleRoute "#{options.route}"
 
     if $(event.target).hasClass "close-tab"
-      pane.mainView.destroy()
+      @appManager.quit appInstance
       return no
-
-    # this is a temporary fix for third party apps
-    # until router handles everything correctly
-    if options.route is '/Develop'
-      appManager.showInstance appInstance
+    else
+      @appManager.showInstance appInstance
 
   showHandleContainer:->
     @tabHandleContainer.$().css top : -25
@@ -69,47 +59,37 @@ class MainTabView extends KDTabView
 
   showPane:(pane)->
 
-    lastOpenPaneIndex = @getPaneIndex @getActivePane()
-
     # this is to hide stale static tabs
     @$("> .kdtabpaneview").removeClass "active"
     @$("> .kdtabpaneview").addClass "kdhiddentab"
 
     super pane
 
-    # FIXME: SY
-    # paneMainView = pane.getMainView()
-    # if paneMainView.data?.constructor.name is 'FSFile'
-    #   @getSingleton('mainController').emit "SelectedFileChanged", paneMainView
-
     @emit "MainTabPaneShown", pane
 
     return pane
 
   removePane: (pane) ->
+    # we don't want to use ::showPane
+    # to show the previousPane when a pane
+    # is removed, that's why we override it to use
+    # kodingrouter
     pane.emit "KDTabPaneDestroy"
-    index        = @getPaneIndex pane
+    index = @getPaneIndex pane
     isActivePane = @getActivePane() is pane
-    @panes.splice(index,1)
+    @panes.splice index, 1
     pane.destroy()
     handle = @getHandleByIndex index
-    @handles.splice(index,1)
+    @handles.splice index, 1
     handle.destroy()
-
-    appPanes = []
-    for pane in @panes
-      appPanes.push pane if pane.options.type is "application"
-
-    if isActivePane
-      if @getPaneByIndex(lastOpenPaneIndex)?
-        @showPane @getPaneByIndex(lastOpenPaneIndex)
-      else if firstPane = @getPaneByIndex 0
-        @showPane firstPane
-
     @emit "PaneRemoved"
+    if isActivePane
+      if prevPane = @getPaneByIndex @lastOpenPaneIndex
+        appInstance = @appManager.getByView prevPane.mainView
+        @appManager.showInstance appInstance
+      else
+        @router.back()
 
-    if appPanes.length is 0
-      @emit "AllApplicationPanesClosed"
 
   createTabPane:(options = {}, mainView)->
 
@@ -130,7 +110,7 @@ class MainTabView extends KDTabView
 
     paneInstance.once "viewAppended", =>
       @applicationPaneReady paneInstance, mainView
-      appController = appManager.getByView mainView
+      appController = @appManager.getByView mainView
       {appInfo}     = appController.getOptions()
       paneInstance.setTitle appInfo.title  if appInfo?.title
 
@@ -142,8 +122,7 @@ class MainTabView extends KDTabView
     if pane.getOption("behavior") is "application"
       mainView.setClass 'application-page'
     pane.setMainView mainView
-    mainView.on "KDObjectWillBeDestroyed", =>
-      @removePane pane
+    mainView.on "KDObjectWillBeDestroyed", @removePane.bind this, pane
 
   rearrangeVisibleHandlesArray:->
     @visibleHandles = []

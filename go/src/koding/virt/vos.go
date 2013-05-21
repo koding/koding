@@ -11,26 +11,27 @@ import (
 )
 
 type VOS struct {
-	vm   *VM
-	user *User
+	VM          *VM
+	User        *User
+	Permissions *Permissions
 }
 
-func (vm *VM) OS(user *User) *VOS {
-	return &VOS{vm, user}
+func (vm *VM) OS(user *User) (*VOS, error) {
+	permissions := vm.GetPermissions(user)
+	if permissions == nil && user.Uid != RootIdOffset {
+		return nil, errors.New("Permission denied.")
+	}
+
+	return &VOS{vm, user, permissions}, nil
 }
 
 func (vos *VOS) resolve(name string) (string, error) {
-	entry := vos.vm.GetUserEntry(vos.user)
-	if entry == nil && vos.user.Uid != RootIdOffset {
-		return "", &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
-	}
-
 	tildePrefix := strings.HasPrefix(name, "~/")
 	if !path.IsAbs(name) || tildePrefix {
 		if tildePrefix {
 			name = name[2:]
 		}
-		name = "/home/" + vos.user.Name + "/" + name
+		name = "/home/" + vos.User.Name + "/" + name
 	}
 
 	constructedPath := ""
@@ -40,7 +41,7 @@ func (vos *VOS) resolve(name string) (string, error) {
 			return "", &os.PathError{Op: "path", Path: name, Err: errors.New("error while processing path")}
 		}
 
-		fullPath := vos.vm.File("rootfs/" + constructedPath + "/" + segment)
+		fullPath := vos.VM.File("rootfs/" + constructedPath + "/" + segment)
 		info, err := os.Lstat(fullPath)
 		if err != nil {
 			if !os.IsNotExist(err) {
@@ -66,7 +67,7 @@ func (vos *VOS) resolve(name string) (string, error) {
 
 			// check permissions
 			sysinfo := info.Sys().(*syscall.Stat_t)
-			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == RootIdOffset
+			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
 			if !readable {
 				return "", &os.PathError{Op: "path", Path: constructedPath + "/" + segment, Err: errors.New("permission denied")}
 			}
@@ -89,7 +90,7 @@ func (vos *VOS) ensureWritable(name string) error {
 	}
 
 	sysinfo := info.Sys().(*syscall.Stat_t)
-	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.user.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.user.Uid) || vos.user.Uid == RootIdOffset
+	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
 	if !writable {
 		return &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
 	}
@@ -97,7 +98,7 @@ func (vos *VOS) ensureWritable(name string) error {
 }
 
 func (vos *VOS) inVosContext(name string, writeAccess bool, f func(name string) error) error {
-	vmRoot := vos.vm.File("rootfs")
+	vmRoot := vos.VM.File("rootfs")
 	vmPath, err := vos.resolve(name)
 	if err == nil && writeAccess {
 		err = vos.ensureWritable(vmRoot + vmPath)
@@ -142,7 +143,7 @@ func (vos *VOS) Symlink(oldname, newname string) error {
 		if err := os.Symlink(oldname, resolved); err != nil {
 			return err
 		}
-		return os.Lchown(resolved, vos.user.Uid, vos.user.Uid)
+		return os.Lchown(resolved, vos.User.Uid, vos.User.Uid)
 	})
 }
 
@@ -159,7 +160,7 @@ func (vos *VOS) Mkdir(name string, perm os.FileMode) error {
 		if err := os.Mkdir(resolved, perm); err != nil {
 			return err
 		}
-		return os.Lchown(resolved, vos.user.Uid, vos.user.Uid)
+		return os.Lchown(resolved, vos.User.Uid, vos.User.Uid)
 	})
 }
 
@@ -196,7 +197,7 @@ func (vos *VOS) OpenFile(name string, flag int, perm os.FileMode) (file *os.File
 			return err
 		}
 		if flag&os.O_CREATE != 0 {
-			if err := file.Chown(vos.user.Uid, vos.user.Uid); err != nil {
+			if err := file.Chown(vos.User.Uid, vos.User.Uid); err != nil {
 				file.Close()
 				return err
 			}
