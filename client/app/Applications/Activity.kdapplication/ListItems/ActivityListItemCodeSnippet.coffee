@@ -12,7 +12,7 @@ class CodesnipActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
-    codeSnippetData = @getData().attachments[0]
+    codeSnippetData = @getData().attachments?[0] or ""
     codeSnippetData.title = @getData().title
 
     if @getData().fake then codeSnippetData.content = Encoder.htmlEncode codeSnippetData.content

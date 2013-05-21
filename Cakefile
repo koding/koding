@@ -65,6 +65,10 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
+task 'populateNeo4j', ({configFile})->
+  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
+  processes.exec migrator
+
 initializeDB = do ->
 
   { exec } = (require 'child_process')
@@ -312,6 +316,16 @@ task 'proxy',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
+task 'neo4jfeeder',({configFile})->
+
+  processes.spawn
+    name    : 'proxy'
+    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
@@ -416,6 +430,7 @@ run =({configFile})->
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
     invoke 'proxy'          if config.runProxy
+    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
@@ -444,6 +459,7 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
+  console.log "if you did not migrate your db to neo4j yet, please run \"cake -c #{configFile} populateNeo4j\" "
 
 
 task 'accounting', (options)->

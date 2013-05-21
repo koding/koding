@@ -23,6 +23,11 @@ type Config struct {
 		Password      string
 		Vhost         string
 	}
+	Neo4j struct {
+		Host    string
+		Port    int
+		Enabled bool
+	}
 	Broker struct {
 		IP       string
 		Port     int

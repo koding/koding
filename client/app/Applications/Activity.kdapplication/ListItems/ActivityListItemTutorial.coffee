@@ -202,7 +202,7 @@ class TutorialActivityItemView extends ActivityItemChild
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
 
-    if str.length > 500
+    if str?.length > 500
       visiblePart = str.substr 0, 500
       # this breaks the markdown sanitizer
       # morePart = "<span class='more'><a href='#' class='more-link'>show more...</a>#{str.substr 501}<a href='#' class='less-link'>...show less</a></span>"

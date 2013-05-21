@@ -57,6 +57,11 @@ class GroupsAppController extends AppController
     mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
     mainController.on 'loginRequired',           @loginRequired.bind this
 
+  ready:(callback)->
+    {entryPoint} = KD.config
+    slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
+    @changeGroup slug, callback
+
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -67,10 +72,11 @@ class GroupsAppController extends AppController
       group       : group.slug
       isExclusive : yes
     }
-    @groupChannel.once 'setSecretNames', callback
+    @groupChannel.once 'setSecretName', callback
 
   changeGroup:(groupName='koding', callback=->)->
-    return callback()  if @currentGroupName is groupName
+    if @currentGroupName is groupName
+      return callback null, @currentGroupName, @currentGroupData.data
     throw new Error 'Cannot change the group!'  if @currentGroupName?
     unless @currentGroupName is groupName
       KD.remote.cacheable groupName, (err, models)=>

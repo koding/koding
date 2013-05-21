@@ -35,7 +35,7 @@ class ActivityAppController extends AppController
     @isLoading         = no
     @mainController    = @getSingleton 'mainController'
     @lastTo            = null
-    @lastFrom          = null
+    @lastFrom          = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -92,6 +92,7 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
+      @isLoading = no
       @resetAll()
       @setFilter data.type
       @populateActivity()
@@ -110,7 +111,7 @@ class ActivityAppController extends AppController
 
   fetchActivitiesDirectly:(options = {}, callback)->
 
-    KD.time "Activity fetch took"
+    KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
     @fetchActivity options, (err, teasers)=>
@@ -291,10 +292,18 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
+  # Enables switching between cache/neo4j.
+  getCacheUrl:->
+
+    defaultUrlPrefix = "cache"
+    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
+
+    return defaultUrlPrefix
+
   fetchCachedActivity:(options = {}, callback)->
 
     $.ajax
-      url     : "/-/cache/#{options.slug or 'latest'}"
+      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
       success : (cache)->
@@ -303,8 +312,16 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
 
-    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
-    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    KD.utils.wait 1000, =>
+      return  unless @lastFrom?
+
+      console.log "lastFrom: #{@lastFrom}"
+
+      lastTimeStamp = (new Date @lastFrom).getTime()
+
+      console.log "lastTimeStamp: #{lastTimeStamp}"
+
+      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed
