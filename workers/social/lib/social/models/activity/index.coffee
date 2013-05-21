@@ -1,4 +1,5 @@
 jraphical      = require 'jraphical'
+neo4j = require "neo4j"
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
