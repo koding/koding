@@ -7,15 +7,18 @@ class SidebarController extends KDViewController
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
     mainController.on 'AccountChanged', @bound 'accountChanged'
-    mainController.ready @bound 'accountChanged'
 
     groupsController = @getSingleton 'groupsController'
     groupsController.on 'GroupChanged', @bound 'resetGroupSettingsItem'
 
+  loadView:->
+
+    @accountChanged KD.whoami()
+
   accountChanged:(account)->
-    account or= KD.whoami()
-    sidebar   = @getView()
     {profile} = account
+    sidebar   = @getView()
+    account or= KD.whoami()
 
     {
      avatar, finderHeader, navController
