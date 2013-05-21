@@ -331,6 +331,13 @@ module.exports = class JGroup extends Module
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
+      if groupData['group-vm'] is 'on'
+        queue.push -> group.createBundle (err)->
+          if err then callback err
+          else
+            console.log 'group bundle created'
+            queue.next()
+
 
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }
