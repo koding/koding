@@ -101,9 +101,12 @@ class ApplicationManager extends KDObject
         kodingAppsController.runApp (KD.getAppOptions name), callback
         return
 
+      appParams = options.params or {}
+
       if appOptions?.multiple
         if options.forceNew or appOptions.openWith is "forceNew"
-          @create name, (appInstance)=> @showInstance appInstance, callback
+          @create name, appParams, (appInstance)=>
+            @showInstance appInstance, callback
           return
 
         switch appOptions.openWith
@@ -119,7 +122,7 @@ class ApplicationManager extends KDObject
                   @show appInstance, callback
                 else if openNew
                   # user wants to open a fresh instance
-                  @create name, callback
+                  @create name, appParams, callback
                 else
                   warn "user cancelled app to open"
             else do defaultCallback
