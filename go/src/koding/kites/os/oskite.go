@@ -87,66 +87,52 @@ func main() {
 		return vm.HostKite
 	}
 
-	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil || !userEntry.Sudo {
+	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
 			return nil, errors.New("Permission denied.")
 		}
-
-		return vm.Start()
+		return vos.VM.Start()
 	})
 
-	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil || !userEntry.Sudo {
+	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
 			return nil, errors.New("Permission denied.")
 		}
-
-		return vm.Shutdown()
+		return vos.VM.Shutdown()
 	})
 
-	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil || !userEntry.Sudo {
+	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
 			return nil, errors.New("Permission denied.")
 		}
-
-		return vm.Stop()
+		return vos.VM.Stop()
 	})
 
-	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil || !userEntry.Sudo {
+	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
 			return nil, errors.New("Permission denied.")
 		}
-
-		vm.Prepare(getUsers(vm), true)
-		return vm.Start()
+		vos.VM.Prepare(getUsers(vos.VM), true)
+		return vos.VM.Start()
 	})
 
-	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil {
-			return nil, errors.New("Permission denied.")
-		}
-
-		info := infos[vm.Id]
-		info.State = vm.GetState()
+	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		info := infos[vos.VM.Id]
+		info.State = vos.VM.GetState()
 		return info, nil
 	})
 
-	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil || !userEntry.Sudo {
+	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
 			return nil, errors.New("Permission denied.")
 		}
 
 		snippet := virt.VM{
 			Id:         bson.NewObjectId(),
-			SnapshotOf: vm.Id,
+			SnapshotOf: vos.VM.Id,
 		}
 
-		if err := vm.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
+		if err := vos.VM.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
 			return nil, err
 		}
 
@@ -157,30 +143,20 @@ func main() {
 		return snippet.Id.Hex(), nil
 	})
 
-	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil {
-			return nil, errors.New("Permission denied.")
-		}
-
+	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var command []string
 		if args.Unmarshal(&command) != nil {
 			return nil, &kite.ArgumentError{Expected: "array of strings"}
 		}
-		return vm.AttachCommand(user.Uid, "", command...).CombinedOutput()
+		return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 	})
 
-	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, user *virt.User, vm *virt.VM, vos *virt.VOS) (interface{}, error) {
-		userEntry := vm.GetUserEntry(user)
-		if userEntry == nil {
-			return nil, errors.New("Permission denied.")
-		}
-
+	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var line string
 		if args.Unmarshal(&line) != nil {
 			return nil, &kite.ArgumentError{Expected: "string"}
 		}
-		return vm.AttachCommand(user.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
+		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
 
 	registerFileSystemMethods(k)
@@ -190,7 +166,7 @@ func main() {
 	k.Run()
 }
 
-func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.User, *virt.VM, *virt.VOS) (interface{}, error)) {
+func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
@@ -216,6 +192,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					return nil, &kite.WrongChannelError{}
 				}
 				vm.HostKite = k.ServiceUniqueName
+			}
+
+			permissions := vm.GetPermissions(&user)
+			if vm.SnapshotOf == "" && permissions == nil {
+				return nil, errors.New("Permission denied.")
 			}
 
 			if vm.SnapshotOf != "" {
@@ -285,8 +266,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}
 
-		rootVos := vm.OS(&virt.RootUser)
-		userVos := vm.OS(&user)
+		rootVos, err := vm.OS(&virt.RootUser)
+		if err != nil {
+			panic(err)
+		}
+		userVos, err := vm.OS(&user)
+		if err != nil {
+			panic(err)
+		}
 
 		if !vm.IsTemporary() {
 			if _, err := rootVos.Stat("/home/" + user.Name); err != nil {
@@ -353,7 +340,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}
 
-		return callback(args, channel, &user, vm, userVos)
+		return callback(args, channel, userVos)
 	})
 }
 
