@@ -142,7 +142,12 @@ class ApplicationManager extends KDObject
 
   openFile: (file, app) ->
 
-    type = FSItem.getFileType file.getExtension()
+    extension = file.getExtension()
+    type      = FSItem.getFileType extension
+
+    if @defaultApps[extension] and not app
+      return @open @defaultApps[extension], (appController = @getFrontApp()) =>
+        appController.openFile file
 
     switch type
       when 'code','text','unknown'
