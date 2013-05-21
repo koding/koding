@@ -368,6 +368,7 @@ class NFinderContextMenuController extends KDController
       items[appName] = action: "openFile"
 
     items["separator"]            = type     : "separator"
+    items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
     items["Search the App Store"] = disabled : yes
     items["Contribute an Editor"] = disabled : yes
 
