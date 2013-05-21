@@ -377,7 +377,7 @@ class KodingRouter extends KDRouter
                   """
                 showModal title, content
             else
-              title   = 'You\'ve already connected the host!'
+              title   = "You've already connected the host!"
               content = """
               <p>You've already connected to Koding. If you want to renew your Koding key, you should
               run <code>$ kd register renew</code> on command line interface.</p>

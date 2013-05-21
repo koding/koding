@@ -38,17 +38,18 @@ module.exports = class JKodingKey extends jraphical.Module
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
     JKodingKey.all
-      owner : delegate._id
+      owner : delegate.getId()
     , (err, keys)->
       callback err, keys
 
   @fetchByKey = secure ({connection:{delegate}}, options, callback)->
     JKodingKey.all
-      owner : delegate._id
+      owner : delegate.getId()
       key   : options.key
     , (err, keys)->
       callback err, keys
 
+  # TODO: Do not use username. Use secure instead.
   @fetchByUserKey = (options, callback)->
     JAccount.one
       'profile.nickname': options.username
@@ -64,4 +65,8 @@ module.exports = class JKodingKey extends jraphical.Module
           callback err, key
 
   revoke: secure ({connection:{delegate}}, callback)->
-    @remove callback
+    JKodingKey.one
+      owner : delegate.getId()
+      _id    : @getId()
+    , (err, key)->
+      key.remove callback
