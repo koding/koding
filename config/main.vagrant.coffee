@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@localhost:27017/koding'
+mongo           = 'localhost:27017/koding2'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -70,7 +70,7 @@ module.exports =
     login       : 'prod-social'
     watch       : yes
     queueName   : socialQueueName+'cache'
-    run         : no
+    run         : yes
   feeder        :
     queueName   : "koding-feeder"
     exchangePrefix: "followable-"
