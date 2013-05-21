@@ -7,17 +7,19 @@ import (
 	"github.com/streadway/amqp"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 )
 
-func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) (*http.Response, error) {
+func rabbitTransport(outreq *http.Request, userInfo *UserInfo, rabbitKey string) (*http.Response, string, error) {
+	var l []string
 	requestHost := outreq.Host
 	output := new(bytes.Buffer)
 	outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
 
 	err := outreq.WriteProxy(output)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	rabbitClient := userInfo.Username + "-" + userInfo.Servicename + "-" + rabbitKey
@@ -25,14 +27,14 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 	if _, ok := connections[rabbitClient]; !ok {
 		queue, err := amqpStream.channel.QueueDeclare("", false, true, true, false, nil)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		if err := amqpStream.channel.QueueBind("", "", "kontrol-rabbitproxy", false, nil); err != nil {
-			return nil, err
+			return nil, "", err
 		}
 		messages, err := amqpStream.channel.Consume("", "", true, false, false, false, nil)
 		if err != nil {
-			return nil, err
+			return nil, "", err
 		}
 
 		connections[rabbitClient] = RabbitChannel{
@@ -48,7 +50,7 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 		}()
 	}
 
-	log.Println("publishing http request to rabbit")
+	l = append(l, fmt.Sprintln("published http request to rabbit, waiting for request"))
 	msg := amqp.Publishing{
 		ContentType: "text/plain",
 		Body:        output.Bytes(),
@@ -60,17 +62,16 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 	var respData []byte
 	// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
 	t := time.NewTimer(20 * time.Second)
-	log.Println("...waiting for http response from rabbit")
 	select {
 	case respData = <-connections[rabbitClient].Receive:
 	case <-t.C:
-		log.Println("timeout. no rabbit proxy message receieved")
-		return nil, fmt.Errorf("kontrolproxy could not connect to rabbit-client %s\n", requestHost)
+		l = append(l, fmt.Sprintln("timeout. no rabbit proxy message receieved"))
+		return nil, "", fmt.Errorf("kontrolproxy could not connect to rabbit-client %s\n", requestHost)
 	}
 	t.Stop()
 
 	if respData == nil {
-		return nil, fmt.Errorf("status interal %d", http.StatusInternalServerError)
+		return nil, "", fmt.Errorf("status interal %d", http.StatusInternalServerError)
 	}
 	buf := bytes.NewBuffer(respData)
 	respreader := bufio.NewReader(buf)
@@ -78,8 +79,8 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 	// ok got now response from rabbit :)
 	res, err := http.ReadResponse(respreader, outreq)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return res, nil
+	return res, strings.Join(l, ""), nil
 }

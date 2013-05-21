@@ -14,6 +14,7 @@ class KDTabView extends KDScrollView
     @panes                        = []
     @selectedIndex                = []
     @tabConstructor               = options.tabClass ? KDTabPaneView
+    @lastOpenPaneIndex            = 0
 
     super options, data
 
@@ -108,8 +109,11 @@ class KDTabView extends KDScrollView
     @handles.splice index, 1
     handle.destroy()
     if isActivePane
-      newIndex = if @getPaneByIndex(index-1)? then index-1 else 0
-      @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
+      if prevPane = @getPaneByIndex @lastOpenPaneIndex
+        @showPane prevPane
+      else if firstPane = @getPaneByIndex 0
+        @showPane firstPane
+
     @emit "PaneRemoved"
 
   removePaneByName:(name)->
@@ -149,6 +153,7 @@ class KDTabView extends KDScrollView
   #SHOW/HIDE ELEMENTS
   showPane:(pane)->
     return unless pane
+    @lastOpenPaneIndex = @getPaneIndex @getActivePane()
     @hideAllPanes()
     pane.show()
     index  = @getPaneIndex pane
