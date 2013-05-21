@@ -463,7 +463,7 @@ class GroupsAppController extends AppController
         hideHandleContainer          : yes
         callback                     : (formData)=>
           _createGroupHandler.call @, formData, (err) =>
-            modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
+            modal.modalTabs.forms["VM Settings"].buttons.Save.hideLoader()
             unless err
               modal.destroy()
         forms                        :
@@ -491,7 +491,7 @@ class GroupsAppController extends AppController
           "General Settings"         :
             title                    : 'Create a group'
             buttons                  :
-              "Save"                 :
+              "Next"                 :
                 style                : "modal-clean-gray"
                 type                 : "submit"
                 loader               :
@@ -558,26 +558,49 @@ class GroupsAppController extends AppController
                   { title : "Visible in group listings",    value : "visible" }
                   { title : "Hidden in group listings",     value : "hidden" }
                 ]
-              # # Group VM should be there for every group
-              #
-              # "Group VM"             :
-              #   label                : "Create a shared server for the group"
-              #   itemClass            : KDOnOffSwitch
-              #   name                 : "group-vm"
-              #   defaultValue         : no
-              #
+          "VM Settings"              :
+            title                    : 'VM Settings'
+            buttons                  :
+              "Save"                 :
+                style                : "modal-clean-gray"
+                type                 : "submit"
+                loader               :
+                  color              : "#444444"
+                  diameter           : 12
+              "Back"                 :
+                style                : "modal-cancel"
+                callback             : -> modal.modalTabs.showPreviousPane()
+            fields                   :
+              # Group VM should be there for every group
+              "Group VM"             :
+                label                : "Create a shared server for the group"
+                itemClass            : KDOnOffSwitch
+                name                 : "group-vm"
+                defaultValue         : yes
+              
               # # Members VMs are a future feature
-              #
+              
               # "Member VM"            :
-              #   label                : "Create a server for each group member"
+              #   label                : "Create server(s) for each group member"
               #   itemClass            : KDOnOffSwitch
               #   name                 : "member-vm"
-              #   defaultValue         : no
+              #   defaultValue         : yes
+              #   callback             : ->
+              #     form = modal.modalTabs.forms["VM Settings"]
+              #     if form.inputs["Member VM"].getValue() is no
+              #       form.fields["Number of VMs"].hide()
+              #     else
+              #       form.fields["Number of VMs"].show()
+              # "Number of VMs"        :
+              #   label                : "Number of VMs"
+              #   itemClass            : KDInputView
+              #   name                 : "member-vm-limit"
+              #   defaultValue         : 1
 
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-      form.buttons.Save.hideLoader()
+      form.buttons.Next.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
