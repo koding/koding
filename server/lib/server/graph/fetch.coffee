@@ -16,7 +16,7 @@ module.exports = class FetchAllActivityParallel
     @newMemberBucketIndex = null
 
   get:(callback)->
-    methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls]
+    methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls, @fetchNewMembers]
     holder = []
     boundMethods = holder.push method.bind this for method in methods
     async.parallel holder, (err, results)=>
