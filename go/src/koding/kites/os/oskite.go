@@ -15,7 +15,6 @@ import (
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
 	"net"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -38,16 +37,9 @@ type VMInfo struct {
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
-var userSiteDomain string
 
 func main() {
 	lifecycle.Startup("kite.os", true)
-	u, err := url.Parse(config.Current.Client.StaticFilesBaseUrl)
-	if err != nil {
-		log.LogError(err, 0)
-		return
-	}
-	userSiteDomain = strings.Split(u.Host, ":")[0]
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return
@@ -283,7 +275,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				vm.LdapPassword = ldapPassword
 			}
 
-			vm.SetHostname(vm.Name + "." + userSiteDomain)
+			vm.SetHostname(vm.Name + "." + config.Current.UserSitesDomain)
 			vm.Prepare(getUsers(vm), false)
 			if out, err := vm.Start(); err != nil {
 				log.Err("Could not start VM.", err, out)

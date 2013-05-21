@@ -9,9 +9,10 @@ import (
 )
 
 type Config struct {
-	BuildNumber int
-	ProjectRoot string
-	Client      struct {
+	BuildNumber     int
+	ProjectRoot     string
+	UserSitesDomain string
+	Client          struct {
 		StaticFilesBaseUrl string
 	}
 	Mongo string
