@@ -10,7 +10,11 @@ module.exports = class Neo4jHelper
         return
       ret = []
       for i in wantedOrder
-        ret.push(objects[i['idx']])
+        obj = objects[i['idx']]
+        if obj
+          ret.push(obj)
+        else
+          console.log("!!!!!!!! id in neo4j but not in mongo, maybe a sync problem ??? " + i['idx'])
       callback null, ret
 
     ret = {}
