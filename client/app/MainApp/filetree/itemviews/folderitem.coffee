@@ -5,10 +5,6 @@ class NFolderItemView extends NFileItemView
     options.cssClass  or= "folder"
     super options, data
 
-    # data.on "fs.chmod.finished", (recursive)=>
-    #   warn "todo : refresh folder" if recursive
-
-
     # FIXME GG Remove that here use watcher features instead
     {nickname} = KD.whoami().profile
 

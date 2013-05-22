@@ -74,7 +74,7 @@ module.exports = class JPermissionSet extends Module
         target.slug
       else
         module = target.constructor.name
-        target.group ? 'koding'
+        target.group ? client.context.group ? 'koding'
 
     client.groupName = groupName
     JGroup.one {slug: groupName}, (err, group)->

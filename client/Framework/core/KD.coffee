@@ -83,6 +83,8 @@ unless window.event?
   appScripts      : {}
   lastFuncCall    : null
 
+  nick:-> KD.whoami().profile.nickname
+
   whoami:-> KD.getSingleton('mainController').userAccount
 
   logout:->

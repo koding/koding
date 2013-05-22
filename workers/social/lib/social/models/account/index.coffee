@@ -114,7 +114,7 @@ module.exports = class JAccount extends jraphical.Module
               customType      :
                 type          : String
                 default       : 'defaultImage'
-                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
               customValue     :
                 type          : String
                 default       : '1'
@@ -554,7 +554,8 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "aleksey-m", "gokmen", "chris",
-                  "arvidkahl", "testdude", "blum", "neelance", "halk", "fatihacet"]
+                  "arvidkahl", "testdude", "blum", "neelance", "halk",
+                  "fatihacet", "chrisblum" ]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection

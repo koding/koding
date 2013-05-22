@@ -75,7 +75,9 @@ class MainController extends KDController
 
     @userAccount             = account
     connectedState.connected = yes
-    (KD.getSingleton 'groupsController').ready (err, groupSlug, group)=>
+    {entryPoint} = KD.config
+    slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
+    KD.remote.cacheable slug, (err, [group])=>
       return warn err  if err
       group.fetchMyRoles (err, roles)=>
         return warn err  if err

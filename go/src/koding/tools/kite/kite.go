@@ -144,7 +144,7 @@ func (k *Kite) Run() {
 
 						handler, found := k.Handlers[method]
 						if !found {
-							resultCallback("Method '"+method+"' not known.", nil)
+							resultCallback(CreateErrorObject(&UnknownMethodError{Method: method}), nil)
 							return
 						}
 
@@ -162,7 +162,7 @@ func (k *Kite) Run() {
 									return
 								}
 
-								resultCallback(err.Error(), result)
+								resultCallback(CreateErrorObject(err), result)
 								return
 							}
 

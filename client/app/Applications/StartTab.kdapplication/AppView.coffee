@@ -94,9 +94,10 @@ class StartTabMainView extends JView
     @appsController.refreshApps =>
       @hideLoader()
 
-    # Refresh Applications Folder
-    finder = @getSingleton("finderController").treeController
-    finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
+    # FIXME Use Default VM ~ GG
+    # # Refresh Applications Folder
+    # finder = @getSingleton("finderController").treeController
+    # finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
 
   pistachio:->
     """

@@ -49,8 +49,6 @@ module.exports = class Graph
       groupId   : @groupId
       startDate : startDate
 
-    console.log query, startDate, @groupId
-
     @db.query query, params, (err, results)=>
       tempRes = []
       if err then callback err
@@ -116,8 +114,6 @@ module.exports = class Graph
       'limit 20'
     ].join('\n');
 
-    console.log query, startDate
-
     params =
       groupId   : @groupId
       startDate : startDate
@@ -149,8 +145,6 @@ module.exports = class Graph
       'order by r.createdAtEpoch DESC'
       'limit 20'
     ].join('\n');
-
-    console.log query, startDate
 
     params =
       groupId   : @groupId
@@ -198,8 +192,6 @@ module.exports = class Graph
     @fetchFollows query, startDate, callback
 
   fetchFollows:(query, startDate, callback)->
-
-    console.log query, startDate
 
     params =
       groupId   : @groupId
