@@ -73,19 +73,21 @@ class FSHelper
 
       callback? result
 
-  @exists = (path, callback=noop)->
-    @getInfo path, (err, res)->
+  @exists = (path, vmName, callback=noop)->
+    @getInfo path, vmName, (err, res)->
       callback err, res?
 
-  @getInfo = (path, callback=noop)->
+  @getInfo = (path, vmName, callback=noop)->
     KD.getSingleton('kiteController').run
       method   : "fs.getInfo"
+      vmName   : vmName
       withArgs : {path}
     , callback
 
-  @ensureNonexistentPath = (path, callback=noop)->
+  @ensureNonexistentPath = (path, vmName, callback=noop)->
     KD.getSingleton('kiteController').run
       method   : "fs.ensureNonexistentPath"
+      vmName   : vmName
       withArgs : {path}
     , callback
 
@@ -161,7 +163,7 @@ class FSHelper
     return /^\s\"/.test path
 
   @escapeFilePath = (name) ->
-    return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
+    return FSHelper.plainPath name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
 
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
