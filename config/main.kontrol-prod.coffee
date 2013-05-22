@@ -12,14 +12,14 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "#{version}.x.koding.com"
+    address     : "new.koding.com"
   userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
     port        : 3000
-    clusterSize : 1
+    clusterSize : 2
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
@@ -98,16 +98,16 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "http://#{version}.x.koding.com"
+    staticFilesBaseUrl: "http://new.koding.com"
     runtimeOptions:
       useNeo4j: no
       logToExternal : no
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "http://#{version}.x.koding.com"
+      mainUri   : "http://new.koding.com"
       broker    :
-        sockJS   : "http://broker-#{version}.x.koding.com/subscribe"
+        sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
@@ -131,7 +131,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "#{version}.x.koding.com"
+    host        : "new.koding.com"
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
