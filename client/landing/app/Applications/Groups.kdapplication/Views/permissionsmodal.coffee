@@ -152,8 +152,8 @@ class PermissionsModal extends KDFormViewWithFields
     cascadeData[current]= {
       name
       cssClass
-      itemClass: KDCheckBox
-      defaultValue: isChecked ? no
+      itemClass    : KDCheckBox
+      defaultValue : isChecked ? no
     }
 
     if current in ['admin','owner']
