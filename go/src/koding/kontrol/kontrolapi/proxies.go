@@ -29,6 +29,7 @@ type ProxyPostMessage struct {
 	Name      *string
 	Username  *string
 	Domain    *string
+	Mode      *string
 	Key       *string
 	RabbitKey *string
 	Host      *string
@@ -168,6 +169,29 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	io.WriteString(writer, resp)
 }
 
+func GetProxyDomain(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	domain := vars["domain"]
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+
+	domains := proxyMachine.DomainRoutingTable
+	singleDomain, ok := domains.Domains[domain]
+	if !ok {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"domain '%s' is not available\"}\n", domain))
+		return
+	}
+
+	data, err := json.MarshalIndent(singleDomain, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
 func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
@@ -191,6 +215,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	domain := vars["domain"]
 
 	var msg ProxyPostMessage
+	var mode string
 	var name string
 	var username string
 	var key string
@@ -205,25 +230,38 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if msg.Name != nil {
-		name = *msg.Name
+	// can be one of the followings:
+	// internal	: to point name-key.in.koding.com
+	// direct	: to point host
+	// vm		: to point username.kd.io
+	if msg.Mode != nil {
+		mode = *msg.Mode
 	} else {
-		err := "no 'name' available"
+		err := "no 'mode' available. must be one of: internal, direct, vm"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
 	if msg.Username != nil {
 		username = *msg.Username
-	} else {
+	} else if mode == "vm" || mode == "internal" {
 		err := "no 'username' available"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
+	if msg.Name != nil {
+		name = *msg.Name
+	} else if mode == "internal" {
+		err := "no 'name' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+
+	}
+
 	if msg.Key != nil {
 		key = *msg.Key
-	} else {
+	} else if mode == "internal" {
 		err := "no 'key' available"
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
@@ -232,6 +270,10 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	// this is optional feature
 	if msg.Host != nil {
 		host = *msg.Host
+	} else if mode == "direct" {
+		err := "no 'host' available"
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
 	}
 
 	// for default proxy assume that the main proxy will handle this. until
@@ -247,16 +289,20 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	cmd.Key = key
 	cmd.ServiceName = name
 	cmd.DomainName = domain
+	cmd.DomainMode = mode
 	cmd.Host = host
 	cmd.HostData = "FromKontrolAPI"
 
 	buildSendProxyCmd(cmd)
 
 	var resp string
-	if host != "" {
+	switch mode {
+	case "internal":
+		resp = fmt.Sprintf("'%s' will proxy to '%s-%s.kd.io'", domain, name, key)
+	case "direct":
 		resp = fmt.Sprintf("'%s' will proxy to '%s'", domain, host)
-	} else {
-		resp = fmt.Sprintf("'%s' will proxy to '%s-%s.x.koding.com'", domain, name, key)
+	case "vm":
+		resp = fmt.Sprintf("'%s' will proxy to '%s.kd.io'", domain, username)
 	}
 
 	io.WriteString(writer, resp)

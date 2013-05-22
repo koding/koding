@@ -14,10 +14,10 @@ type filter struct {
 type Validator struct {
 	filters map[string]filter
 	rules   proxyconfig.Restriction
-	user    UserInfo
+	user    *UserInfo
 }
 
-func validator(rules proxyconfig.Restriction, user UserInfo) *Validator {
+func validator(rules proxyconfig.Restriction, user *UserInfo) *Validator {
 	validator := &Validator{
 		rules:   rules,
 		user:    user,
@@ -87,16 +87,15 @@ func (v *Validator) Country() *Validator {
 	return v
 }
 
-func (v *Validator) Check() bool {
+func (v *Validator) Check() (string, bool) {
 	for name, filter := range v.filters {
-		fmt.Printf("checking for filter %s\n", name)
 		if filter.mode == "blacklist" && filter.validate() {
-			return false //block
+			return fmt.Sprintf("user is blocked via %s\n", name), false
 		} else if filter.mode == "whitelist" && !filter.validate() {
-			return false //block
+			return fmt.Sprintf("user is blocked via %s\n", name), false
 		}
 	}
 
 	// user is validated because none of the rules applied to him
-	return true
+	return fmt.Sprintf("user is validated\n"), true
 }

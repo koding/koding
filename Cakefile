@@ -65,6 +65,10 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
+task 'populateNeo4j', ({configFile})->
+  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
+  processes.exec migrator
+
 initializeDB = do ->
 
   { exec } = (require 'child_process')
@@ -312,6 +316,16 @@ task 'proxy',({configFile})->
     stderr  : process.stderr
     verbose : yes
 
+task 'neo4jfeeder',({configFile})->
+
+  processes.spawn
+    name    : 'proxy'
+    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
@@ -416,6 +430,7 @@ run =({configFile})->
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
     invoke 'proxy'          if config.runProxy
+    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
@@ -424,7 +439,17 @@ run =({configFile})->
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
+    invoke 'alertUserToRunNeo4jMigrator'
 
+task 'alertUserToRunNeo4jMigrator', (options)->
+  {configFile} = options
+  text =  "\n"
+  text += "RED ALERT: \n"
+  text += "Please run \"cake -c #{configFile} populateNeo4j\" if you haven't already.\n"
+  text += "Usually you need to run it only once when you initialize a new vagrant box\n"
+  text += "or you nuked your neo4j db.\n"
+
+  console.log text
 
 task 'run', (options)->
   {configFile} = options
@@ -444,7 +469,6 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
-
 
 task 'accounting', (options)->
 

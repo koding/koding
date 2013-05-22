@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/nranchev/go-libGeoIP"
 	"github.com/streadway/amqp"
@@ -12,13 +11,9 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
-	"sync"
-	"time"
 )
 
 func init() {
@@ -32,24 +27,6 @@ type IncomingMessage struct {
 type RabbitChannel struct {
 	ReplyTo string
 	Receive chan []byte
-}
-
-type UserInfo struct {
-	Username    string
-	Servicename string
-	Key         string
-	FullUrl     string
-	IP          string
-	Country     string
-}
-
-func NewUserInfo(username, servicename, key, fullurl string) *UserInfo {
-	return &UserInfo{
-		Username:    username,
-		Servicename: servicename,
-		Key:         key,
-		FullUrl:     fullurl,
-	}
 }
 
 var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
@@ -150,161 +127,6 @@ func handleInput(input <-chan amqp.Delivery, uuid string) {
 	}
 }
 
-func validateUser(user UserInfo) bool {
-	rules, ok := proxy.Rules[user.Username]
-	if !ok { // if not available assume allowed for all
-		return true
-	}
-
-	restriction, ok := rules.Services[user.Servicename]
-	if !ok { // if not available assume allowed for all
-		return true
-	}
-
-	return validator(restriction, user).IP().Country().Check()
-}
-
-func parseKey(host string) (UserInfo, error) {
-	log.Printf("parse host '%s' to get key and name", host)
-
-	switch counts := strings.Count(host, "-"); {
-	case counts == 0:
-		// host is in form {name}.x.koding.com, used for domain forwarding
-		userInfo, err := lookupDomain(host)
-		if err != nil {
-			log.Println(err)
-			return UserInfo{}, err
-		}
-		return userInfo, nil
-	case counts == 1:
-		// host is in form {name}-{key}.x.koding.com, used by koding
-		partsFirst := strings.Split(host, ".")
-		firstSub := partsFirst[0]
-
-		partsSecond := strings.Split(firstSub, "-")
-		servicename := partsSecond[0]
-		key := partsSecond[1]
-
-		return *NewUserInfo("koding", servicename, key, ""), nil
-	case counts > 1:
-		// host is in form {name}-{key}-{username}.x.koding.com, used by users
-		partsFirst := strings.Split(host, ".")
-		firstSub := partsFirst[0]
-
-		partsSecond := strings.SplitN(firstSub, "-", 3)
-		servicename := partsSecond[0]
-		key := partsSecond[1]
-		username := partsSecond[2]
-
-		return *NewUserInfo(username, servicename, key, ""), nil
-	default:
-		return UserInfo{}, errors.New("no data available for proxy")
-	}
-
-}
-
-func lookupDomain(domainname string) (UserInfo, error) {
-	log.Printf("lookup domain table for domain '%s'", domainname)
-
-	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		return UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
-	}
-
-	return *NewUserInfo(domain.Username, domain.Name, domain.Key, domain.FullUrl), nil
-}
-
-func targetUrl(username, servicename, key string) (*url.URL, error) {
-	var target *url.URL
-	host, err := targetHost(username, servicename, key)
-	if err != nil {
-		return nil, err
-	}
-
-	target, err = url.Parse("http://" + host)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("proxy to %s (key: %s)", target.Host, key)
-
-	return target, nil
-}
-
-func lookupRabbitKey(username, servicename, key string) string {
-	var rabbitkey string
-
-	_, ok := proxy.RoutingTable[username]
-	if !ok {
-		log.Println("no user available in the db. rabbitkey not found")
-		return rabbitkey
-	}
-	user := proxy.RoutingTable[username]
-
-	keyRoutingTable := user.Services[servicename]
-	keyDataList := keyRoutingTable.Keys[key]
-
-	for _, keyData := range keyDataList {
-		rabbitkey = keyData.RabbitKey
-	}
-
-	return rabbitkey //returns empty if not found
-}
-
-func targetHost(username, servicename, key string) (string, error) {
-	var hostname string
-
-	_, ok := proxy.RoutingTable[username]
-	if !ok {
-		return "", errors.New("no users availalable in the db. targethost not found")
-	}
-
-	user := proxy.RoutingTable[username]
-	keyRoutingTable := user.Services[servicename]
-
-	v := len(keyRoutingTable.Keys)
-	if v == 0 {
-		return "", fmt.Errorf("no keys are available for user %s", username)
-	} else {
-		if key == "latest" {
-			// get all keys and sort them
-			listOfKeys := make([]int, len(keyRoutingTable.Keys))
-			i := 0
-			for k, _ := range keyRoutingTable.Keys {
-				listOfKeys[i], _ = strconv.Atoi(k)
-				i++
-			}
-			sort.Ints(listOfKeys)
-
-			// give precedence to the largest key number
-			key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
-		}
-
-		_, ok := keyRoutingTable.Keys[key]
-		if !ok {
-			return "", fmt.Errorf("no key %s is available for user %s", key, username)
-		}
-
-		// use round-robin algorithm for each hostname
-		for i, value := range keyRoutingTable.Keys[key] {
-			currentIndex := value.CurrentIndex
-			if currentIndex == i {
-				hostname = value.Host
-				for k, _ := range keyRoutingTable.Keys[key] {
-					if len(keyRoutingTable.Keys[key])-1 == currentIndex {
-						keyRoutingTable.Keys[key][k].CurrentIndex = 0 // reached end
-					} else {
-						keyRoutingTable.Keys[key][k].CurrentIndex = currentIndex + 1
-					}
-				}
-				break
-			}
-		}
-	}
-
-	return hostname, nil
-}
-
 /*************************************************
 *
 *  util functions
@@ -356,10 +178,6 @@ func checkServer(host string) error {
 *  - arslan
 *************************************************/
 
-// onExitFlushLoop is a callback set by tests to detect the state of the
-// flushLoop() goroutine.
-var onExitFlushLoop func()
-
 // ReverseProxy is an HTTP Handler that takes an incoming request and
 // sends it to another server, proxying the response back to the
 // client.
@@ -367,12 +185,6 @@ type ReverseProxy struct {
 	// The transport used to perform proxy requests.
 	// If nil, http.DefaultTransport is used.
 	Transport http.RoundTripper
-
-	// FlushInterval specifies the flush interval
-	// to flush to the client while copying the
-	// response body.
-	// If zero, no periodic flushing is done.
-	FlushInterval time.Duration
 }
 
 func singleJoiningSlash(a, b string) string {
@@ -409,76 +221,38 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	fmt.Println("--")
-
-	conn_hdr := ""
-	conn_hdrs := req.Header["Connection"]
-	log.Printf("Connection headers: %v", conn_hdrs)
-	if len(conn_hdrs) > 0 {
-		conn_hdr = conn_hdrs[0]
-	}
-
-	upgrade_websocket := false
-	if strings.ToLower(conn_hdr) == "upgrade" {
-		log.Printf("got Connection: Upgrade")
-		upgrade_hdrs := req.Header["Upgrade"]
-		log.Printf("Upgrade headers: %v", upgrade_hdrs)
-		if len(upgrade_hdrs) > 0 {
-			upgrade_websocket = (strings.ToLower(upgrade_hdrs[0]) == "websocket")
-		}
-	}
-
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	var target *url.URL
+	websocket := checkWebsocket(outreq)
 
-	userInfo, err := parseKey(outreq.Host)
+	userInfo, err := populateUser(outreq)
 	if err != nil {
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
 		return
 	}
+	fmt.Printf("--\nconnected user information %v\n", userInfo)
 
-	host, port, err := net.SplitHostPort(req.RemoteAddr)
-	if err != nil {
-		log.Printf("could not split host and port: %s", err.Error())
-	} else {
-		log.Printf("new connection from %s:%s\n", host, port)
-		userInfo.IP = host
-	}
-
-	if geoIP != nil {
-		loc := geoIP.GetLocationByIP(host)
-		if loc != nil {
-			fmt.Printf("country: %s (%s)\n", loc.CountryName, loc.CountryCode)
-			userInfo.Country = loc.CountryName
-		}
-	}
-
-	ok := validateUser(userInfo)
+	result, ok := validateUser(userInfo)
 	if !ok {
-		log.Println("not validated user")
 		http.NotFound(rw, req)
 		return
 	}
+	fmt.Printf("validation result: %s\n", result)
 
-	if userInfo.FullUrl != "" {
-		target, err = url.Parse("http://" + userInfo.FullUrl)
-		if err != nil {
-			log.Printf("error running fullurl %s: %v", userInfo.FullUrl, err)
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+	// either userInfo.FullUrl or userInfo.Servicename-Key lookup will be made
+	target, err := targetHost(userInfo)
+	if err != nil {
+		if err.Error() == "redirect" {
+			http.Redirect(rw, req, target.String(), http.StatusTemporaryRedirect)
 			return
 		}
-	} else {
-		// otherwise lookup for matches in our database
-		target, err = targetUrl(userInfo.Username, userInfo.Servicename, userInfo.Key)
-		if err != nil {
-			log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-			return
-		}
+		log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
+		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+		return
 	}
+	fmt.Printf("proxy to %s\n", target.Host)
 
 	// Reverseproxy.Director closure
 	targetQuery := target.RawQuery
@@ -497,7 +271,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.Close = false
 
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
-	if upgrade_websocket {
+	if websocket {
+		fmt.Println("connection via websocket")
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
@@ -572,7 +347,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rabbitKey := lookupRabbitKey(userInfo.Username, userInfo.Servicename, userInfo.Key)
 
 		if rabbitKey != "" {
-			log.Printf("proxy via rabbitmq to '%s'", outreq.Host)
+			fmt.Println("connection via rabbitmq")
 			res, err = rabbitTransport(outreq, userInfo, rabbitKey)
 			if err != nil {
 				log.Printf("rabbit proxy %s", err.Error())
@@ -580,13 +355,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 		} else {
+			fmt.Println("connection via normal http")
 			// add :80 if not available
 			ok := hasPort(outreq.URL.Host)
 			if !ok {
 				outreq.URL.Host = addPort(outreq.URL.Host, "80")
 			}
 
-			log.Println("proxy trough http ...")
 			res, err = transport.RoundTrip(outreq)
 			if err != nil {
 				io.WriteString(rw, fmt.Sprint(err))
@@ -604,57 +379,5 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
-	if p.FlushInterval != 0 {
-		if wf, ok := dst.(writeFlusher); ok {
-			mlw := &maxLatencyWriter{
-				dst:     wf,
-				latency: p.FlushInterval,
-				done:    make(chan bool),
-			}
-			go mlw.flushLoop()
-			defer mlw.stop()
-			dst = mlw
-		}
-	}
-
 	io.Copy(dst, src)
 }
-
-type writeFlusher interface {
-	io.Writer
-	http.Flusher
-}
-
-type maxLatencyWriter struct {
-	dst     writeFlusher
-	latency time.Duration
-
-	lk   sync.Mutex // protects Write + Flush
-	done chan bool
-}
-
-func (m *maxLatencyWriter) Write(p []byte) (int, error) {
-	m.lk.Lock()
-	defer m.lk.Unlock()
-	return m.dst.Write(p)
-}
-
-func (m *maxLatencyWriter) flushLoop() {
-	t := time.NewTicker(m.latency)
-	defer t.Stop()
-	for {
-		select {
-		case <-m.done:
-			if onExitFlushLoop != nil {
-				onExitFlushLoop()
-			}
-			return
-		case <-t.C:
-			m.lk.Lock()
-			m.dst.Flush()
-			m.lk.Unlock()
-		}
-	}
-}
-
-func (m *maxLatencyWriter) stop() { m.done <- true }

@@ -66,16 +66,17 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-6"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-6.box"
+      default.vm.box = "koding-9"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
     default.vm.network :forwarded_port, :guest => 27017, :host => 27017 # mongodb
     default.vm.network :forwarded_port, :guest =>  5672, :host =>  5672 # rabbitmq
     default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
-    default.vm.network :forwarded_port, :guest =>  8000, :host =>  8000 # rockmongo
-    
+    default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
+    default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
+
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"
@@ -102,8 +103,9 @@ Vagrant.configure("2") do |config|
 
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
-      secondary.vm.box = "koding-6"
-      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-6.box"
+
+      secondary.vm.box = "koding-9"
+      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 

@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) (*http.Response, error) {
+func rabbitTransport(outreq *http.Request, userInfo *UserInfo, rabbitKey string) (*http.Response, error) {
 	requestHost := outreq.Host
 	output := new(bytes.Buffer)
 	outreq.Host = outreq.URL.Host // WriteProxy overwrites outreq.URL.Host otherwise..
@@ -48,7 +48,7 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 		}()
 	}
 
-	log.Println("publishing http request to rabbit")
+	fmt.Println("published http request to rabbit, waiting for request")
 	msg := amqp.Publishing{
 		ContentType: "text/plain",
 		Body:        output.Bytes(),
@@ -60,11 +60,10 @@ func rabbitTransport(outreq *http.Request, userInfo UserInfo, rabbitKey string) 
 	var respData []byte
 	// why we don't use time.After: https://groups.google.com/d/msg/golang-dev/oZdV_ISjobo/5UNiSGZkrVoJ
 	t := time.NewTimer(20 * time.Second)
-	log.Println("...waiting for http response from rabbit")
 	select {
 	case respData = <-connections[rabbitClient].Receive:
 	case <-t.C:
-		log.Println("timeout. no rabbit proxy message receieved")
+		fmt.Println("timeout. no rabbit proxy message receieved")
 		return nil, fmt.Errorf("kontrolproxy could not connect to rabbit-client %s\n", requestHost)
 	}
 	t.Stop()

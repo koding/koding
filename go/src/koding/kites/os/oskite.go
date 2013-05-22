@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"io"
 	"io/ioutil"
 	"koding/kites/os/ldapserver"
@@ -89,28 +88,28 @@ func main() {
 
 	registerVmMethod(k, "vm.start", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
-			return nil, errors.New("Permission denied.")
+			return nil, &kite.PermissionError{}
 		}
 		return vos.VM.Start()
 	})
 
 	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
-			return nil, errors.New("Permission denied.")
+			return nil, &kite.PermissionError{}
 		}
 		return vos.VM.Shutdown()
 	})
 
 	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
-			return nil, errors.New("Permission denied.")
+			return nil, &kite.PermissionError{}
 		}
 		return vos.VM.Stop()
 	})
 
 	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
-			return nil, errors.New("Permission denied.")
+			return nil, &kite.PermissionError{}
 		}
 		vos.VM.Prepare(getUsers(vos.VM), true)
 		return vos.VM.Start()
@@ -124,7 +123,7 @@ func main() {
 
 	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
-			return nil, errors.New("Permission denied.")
+			return nil, &kite.PermissionError{}
 		}
 
 		snippet := virt.VM{
@@ -166,6 +165,14 @@ func main() {
 	k.Run()
 }
 
+type VMNotFoundError struct {
+	Name string
+}
+
+func (err *VMNotFoundError) Error() string {
+	return "There is no VM with name/id '" + err.Name + "'."
+}
+
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
 	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var user virt.User
@@ -183,7 +190,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 			if vm == nil {
 				if err := db.VMs.Find(bson.M{"name": channel.CorrelationName}).One(&vm); err != nil {
-					return nil, errors.New("There is no VM with name/id '" + channel.CorrelationName + "'.")
+					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
 
@@ -196,7 +203,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 			permissions := vm.GetPermissions(&user)
 			if vm.SnapshotOf == "" && permissions == nil {
-				return nil, errors.New("Permission denied.")
+				return nil, &kite.PermissionError{}
 			}
 
 			if vm.SnapshotOf != "" {
@@ -325,9 +332,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					}
 
 					if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
-						panic(err)
-					}
-					if err := rootVos.Remove("/etc/apache2/sites-enabled/000-default"); err != nil && !os.IsNotExist(err) {
 						panic(err)
 					}
 				}

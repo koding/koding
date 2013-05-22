@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'localhost:27017/koding2'
+mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -26,6 +26,10 @@ module.exports =
     enabled     : yes
     port        : 3526
   mongo         : mongo
+  neo4j         :
+    host        : "http://localhost"
+    port        : 7474
+  runNeo4jFeeder: yes
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
@@ -87,6 +91,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
