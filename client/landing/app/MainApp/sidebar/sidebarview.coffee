@@ -90,6 +90,8 @@ class Sidebar extends JView
 
     # @virtualizationButtons = new VirtualizationControls
 
+    @finderController.on 'ManageResources', @bound 'toggleResources'
+
   resetAdminNavController:->
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
@@ -254,6 +256,9 @@ class Sidebar extends JView
     @$('#finder-bottom-controls').removeClass 'go-down'
     # @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
 
+  toggleResources:->
+    @$('#finder-bottom-controls').toggleClass 'show-resources'
+
   _windowDidResize:->
 
     {winWidth} = @getSingleton('windowController')
@@ -320,11 +325,14 @@ class Sidebar extends JView
       #   title   : "Manage Databases", icon : "databases",
       #   action  : "manageDatabases"
       # }
-      { title   : "Add Resources",      icon : "resources" }
       { title   : "Settings",           icon : "cog" }
       {
         title   : "Keyboard Shortcuts", icon : "shortcuts",
         action  : "showShortcuts"
+      }
+      {
+        title   : "Manage Resources",   icon : "resources",
+        action  : "manageResources"
       }
     ]
 
