@@ -69,11 +69,13 @@ module.exports = class JVM extends Model
         }
         vm.save (err) =>
           return callback err  if err
-          if type is 'group'
-            @addVmUsers vm, group, ->
+          group.addVm vm, (err)=>
+            return callback err  if err
+            if type is 'group'
+              @addVmUsers vm, group, ->
+                callback null, vm
+            else
               callback null, vm
-          else
-            callback null, vm
 
   @addVmUsers = (vm, group, callback)->
     group.fetchMembers (err, members)->
