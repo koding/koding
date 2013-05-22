@@ -42,7 +42,6 @@ module.exports =
     enabled     : yes
     port        : sourceServerPort
   neo4j         :
-    enabled     : no
     host        : "http://kgraphdb1.in.koding.com"
     port        : 7474
   mongo         : mongo
