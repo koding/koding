@@ -2,11 +2,7 @@ neo4j = require "neo4j"
 {race} = require 'sinkrow'
 
 module.exports = class Graph
-  constructor:(config)->
-    # todo remove hardcoded id
-
-    @groupId   = "5196fcb2bc9bdb0000000027"
-    @groupName = "koding"
+  constructor:({config})->
     @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
 
   objectify = (incomingObjects, callback)->
@@ -25,7 +21,9 @@ module.exports = class Graph
       generatedObjects.push generatedObject
     callback generatedObjects
 
-  fetchAll:(startDate, callback)->
+  fetchAll:(group, startDate, callback)->
+    {groupName, groupId} = group
+
     start = new Date().getTime()
     query = [
       'START koding=node:koding(id={groupId})'
@@ -36,7 +34,7 @@ module.exports = class Graph
       ' or content.name = "JBlogPost"'
       ' or content.name = "JStatusUpdate")'
       ' and has(content.group)'
-      ' and content.group = "' + @groupName + '"'
+      ' and content.group = "' + groupName + '"'
       ' and has(content.`meta.createdAtEpoch`)'
       ' and content.`meta.createdAtEpoch` < {startDate}'
       ' and content.isLowQuality! is null'
@@ -46,10 +44,8 @@ module.exports = class Graph
     ].join('\n');
 
     params =
-      groupId   : @groupId
+      groupId   : groupId
       startDate : startDate
-
-    console.log query, startDate, @groupId
 
     @db.query query, params, (err, results)=>
       tempRes = []
@@ -105,7 +101,9 @@ module.exports = class Graph
         callback err, respond
 
 
-  fetchNewInstalledApps:(startDate, callback)->
+  fetchNewInstalledApps:(group, startDate, callback)->
+    {groupId} = group
+
     query = [
       'START kd=node:koding(id={groupId})'
       'MATCH kd-[:member]->users<-[r:user]-koding'
@@ -116,10 +114,8 @@ module.exports = class Graph
       'limit 20'
     ].join('\n');
 
-    console.log query, startDate
-
     params =
-      groupId   : @groupId
+      groupId   : groupId
       startDate : startDate
 
     @db.query query, params, (err, results) =>
@@ -127,6 +123,7 @@ module.exports = class Graph
       @generateInstalledApps [], results, callback
 
   generateInstalledApps:(resultData, results, callback)->
+
     if results? and results.length < 1 then return callback null, resultData
     result = results.shift()
     data = {}
@@ -139,7 +136,9 @@ module.exports = class Graph
           resultData.push data
           @generateInstalledApps resultData, results, callback
 
-  fetchNewMembers:(startDate, callback)->
+  fetchNewMembers:(group, startDate, callback)->
+    {groupId} = group
+
     query = [
       'start  koding=node:koding(id={groupId})'
       'MATCH  koding-[r:member]->members'
@@ -150,10 +149,8 @@ module.exports = class Graph
       'limit 20'
     ].join('\n');
 
-    console.log query, startDate
-
     params =
-      groupId   : @groupId
+      groupId   : groupId
       startDate : startDate
 
     @db.query query, params, (err, results) ->
@@ -166,7 +163,7 @@ module.exports = class Graph
         objectify resultData, (objected)->
           callback err, objected
 
-  fetchMemberFollows:(startDate, callback)->
+  fetchMemberFollows:(group, startDate, callback)->
     #followers
     query = [
       'start koding=node:koding(id={groupId})'
@@ -179,30 +176,33 @@ module.exports = class Graph
       'limit 20'
     ].join('\n');
 
-    @fetchFollows query, startDate, callback
+    @fetchFollows query, group, startDate, callback
 
-  fetchTagFollows:(startDate, callback)->
+  fetchTagFollows:(group, startDate, callback)->
     #followers
+    {groupName} = group
     query = [
       'start koding=node:koding(id={groupId})'
       'MATCH koding-[:member]->followees<-[r:follower]-follower'
       'where followees.name="JAccount"'
       'and follower.name="JTag"'
-      'and follower.group="' + @groupName + '"'
+      'and follower.name="' + groupName + '"'
       'and r.createdAtEpoch < {startDate}'
       'return r,followees, follower'
       'order by r.createdAtEpoch DESC'
       'limit 20'
     ].join('\n');
 
-    @fetchFollows query, startDate, callback
+    @fetchFollows query, group, startDate, callback
 
-  fetchFollows:(query, startDate, callback)->
+  fetchFollows:(query, group, startDate, callback)->
 
-    console.log query, startDate
+
+    {groupId} = group
+
 
     params =
-      groupId   : @groupId
+      groupId   : groupId
       startDate : startDate
 
     @db.query query, params, (err, results)=>
