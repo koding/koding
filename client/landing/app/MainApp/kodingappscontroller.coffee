@@ -170,9 +170,10 @@ class KodingAppsController extends KDController
           callback err, script
 
   getPublishedApps: ->
-    KD.remote.api.JApp.some {}, {}, (err, apps) =>
+    return unless KD.isLoggedIn()
+    KD.remote.api.JApp.someWithRelationship {}, {}, (err, apps) =>
       @publishedApps = map = {}
-      map[app.manifest.name] = app for app in apps when app.approved
+      map[app.manifest.name] = app for app in apps
 
   isAppUpdateAvailable: (appName, appVersion) ->
     if @publishedApps[appName]
@@ -190,7 +191,7 @@ class KodingAppsController extends KDController
       # TODO: Error handling
       @refreshApps =>
         notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
-        KD.remote.api.JApp.some { "manifest.name": appName }, {}, (err, app) =>
+        KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
           @installApp app[0], "latest", =>
             @refreshApps()
