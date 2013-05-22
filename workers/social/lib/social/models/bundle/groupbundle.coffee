@@ -20,7 +20,7 @@ module.exports = class JGroupBundle extends JBundle
       instance        : []
     sharedMethods     :
       static          : ['fetchPlans']
-      instance        : ['fetchLimits', 'debit']
+      instance        : ['fetchLimits', 'debit', 'debitGroup']
     permissions       :
       'manage payment methods'  : []
       'change bundle'           : []
@@ -70,58 +70,65 @@ module.exports = class JGroupBundle extends JBundle
   fetchLimits$: permit 'change bundle',
     success: (client, callback)-> @fetchLimits callback
 
-  debit$: do ->
+  debit$: permit 'commission resources',
+    success: (client, debits, callback)-> @debitResource client, 'user', debits, callback
+
+  debitGroup$: permit 'change bundle',
+    success: (client, debits, callback)-> @debitResource client, 'group', debits, callback
+
+  debitResource: (client, type, debits, callback)->
 
     debit = (limit, debitAmount, callback = (->)) ->
       limit.update { $inc: usage: debitAmount }, callback
 
-    permit 'commission resources',
-      success: (client, debits, callback) ->
-        JVM = require '../vm'
-        {connection:{delegate}, context:{group}} = client
-        {overagePolicy} = this
-        JVM.calculateUsage delegate, group, (err, usage) =>
-          return callback err  if err?
-          
-          @fetchLimits (err, limits) =>
-            return callback err  if err
+    JVM = require '../vm'
+    {connection:{delegate}, context:{group}} = client
+    {overagePolicy} = this
+    JVM.calculateUsage delegate, group, (err, usage) =>
+      return callback err  if err?
+      
+      @fetchLimits (err, limits) =>
+        return callback err  if err
 
-            limitsMap = limits.reduce( (acc, limit) ->
-              acc[limit.title] = limit
-              return acc
-            , {})
+        limitsMap = limits.reduce( (acc, limit) ->
+          acc[limit.title] = limit
+          return acc
+        , {})
 
-            queue = []
+        queue = []
 
-            limits.forEach (limit) ->
+        limits.forEach (limit) ->
 
-              debitAmount   = debits[limit.title]
-              personalLimit = limitsMap["#{limit.title} per user"]
+          debitAmount   = debits[limit.title]
+          personalLimit = limitsMap["#{limit.title} per user"]
 
-              theyHaveEnough = ( debitAmount is 0 )   or
-                ( not /per user$/.test limit.title )  and
-                ( debitAmount <= limit.getValue() )              and
-                (( overagePolicy is 'allowed' ) or 
-                  ( personalLimit? )            and
-                  ( debitAmount <= personalLimit.getValue() ))
+          theyHaveEnough = ( debitAmount is 0 )   or
+            ( not /per user$/.test limit.title )  and
+            ( debitAmount <= limit.getValue() )              and
+            (( overagePolicy is 'allowed' ) or 
+              ( personalLimit? )            and
+              ( debitAmount <= personalLimit.getValue() ))
 
-              if theyHaveEnough
-                queue.push ->
-                  debit limit, debitAmount, ->
-                    debit personalLimit, debitAmount, ->
-                      queue.next()
-
-            console.log queue
-            console.log debits
-            if queue.length and queue.length is (Object.keys debits).length
-              queue.push ->
-                options     =
-                  usage     : debits
-                  account   : delegate
-                  groupSlug : group
-                JVM.createVm options, callback
+          if type is 'group' and ( (debitAmount is 0) or debitAmount <= limit.getValue() )
+            queue.push ->
+              debit limit, debitAmount, ->
                 queue.next()
-              daisy queue
+          else if type is 'user' and theyHaveEnough
+            queue.push ->
+              debit limit, debitAmount, ->
+                debit personalLimit, debitAmount, ->
+                  queue.next()
 
-            else
-              callback new KodingError 'Insufficient quota.'
+        if queue.length and queue.length is (Object.keys debits).length
+          queue.push ->
+            options     =
+              usage     : debits
+              type      : type
+              account   : delegate
+              groupSlug : group
+            JVM.createVm options, callback
+            queue.next()
+          daisy queue
+
+        else
+          callback new KodingError 'Insufficient quota.'

@@ -51,21 +51,43 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, groupSlug, usage}, callback)->
+  @createVm = ({account, type, groupSlug, usage}, callback)->
     JGroup = require './group'
-    JGroup.one {slug: groupSlug}, (err, group) ->
+    JGroup.one {slug: groupSlug}, (err, group) =>
       return callback err  if err
-      account.fetchUser (err, user) ->
+      account.fetchUser (err, user) =>
         return callback err  if err
+        if type is 'group'
+          name = "#{groupSlug}~#{(new Date()).getTime()}"
+        else if type is 'user'
+          name = "#{groupSlug}~#{user.username}-#{(new Date()).getTime()}"
         vm = new JVM {
-          name    : "#{groupSlug}~#{user.username}-#{(new Date()).getTime()}"
+          name    : name
           users   : [{ id: user.getId(), sudo: yes }]
           groups  : [{ id: group.getId() }]
           usage
         }
-        vm.save (err) ->
+        vm.save (err) =>
           return callback err  if err
-          callback null, vm
+          if type is 'group'
+            @addVmUsers vm, group, ->
+              callback null, vm
+          else
+            callback null, vm
+
+  @addVmUsers = (vm, group, callback)->
+    group.fetchMembers (err, members)->
+      return callback err  if err
+      members.forEach (member)->
+        member.fetchUser (err, user)->
+          if err then callback err
+          else
+            member.checkPermission group, 'sudoer', (err, hasPermission)->
+              if err then handleError err
+              else
+                vm.update {
+                  $addToSet: users: { id: user.getId(), sudo: hasPermission }
+                }, callback
 
   # @create = permit 'create vms',
   #   success: (client, callback) ->
