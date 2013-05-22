@@ -30,6 +30,20 @@ class AppsAppController extends AppController
           title             : "All Apps"
           dataSource        : (selector, options, callback)=>
             KD.remote.api.JApp.someWithRelationship selector, options, callback
+        updates             :
+          title             : "Updates"
+          dataSource        : (selector, options, callback)=>
+            appsController  = @getSingleton "kodingAppsController"
+            {publishedApps} = appsController
+            availableApps   = []
+
+            appsController.fetchApps (err, apps) =>
+              for appName, app of apps
+                if appsController.isAppUpdateAvailable app.name, app.version
+                  availableApps.push publishedApps[app.name]
+              callback null, availableApps
+
+              @addUpdateAllButton availableApps unless @isUpdateAllButtonAdded
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
@@ -56,20 +70,6 @@ class AppsAppController extends AppController
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
             KD.remote.api.JApp.someWithRelationship selector, options, callback
-        updateAvailable     :
-          title             : "Update Available"
-          dataSource        : (selector, options, callback)=>
-            appsController  = @getSingleton "kodingAppsController"
-            {publishedApps} = appsController
-            availableApps   = []
-
-            appsController.fetchApps (err, apps) =>
-              for appName, app of apps
-                if appsController.isAppUpdateAvailable app.name, app.version
-                  availableApps.push publishedApps[app.name]
-              callback null, availableApps
-
-              @addUpdateAllButton availableApps unless @isUpdateAllButtonAdded
 
       sort                  :
         'meta.modifiedAt'   :
