@@ -76,7 +76,7 @@ __utils =
     newPath.join ""
 
   slugify:(title = "")->
-    url = title
+    url = String(title)
       .toLowerCase()                # change everything to lowercase
       .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
       .replace(/[_|\s]+/g, "-")     # change all spaces and underscores to a hyphen
@@ -111,7 +111,7 @@ __utils =
     if url is ""
       "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else
-      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
+      '/-/imageProxy?url=' + encodeURIComponent(url)
 
   applyMarkdown: (text)->
     # problems with markdown so far:
@@ -119,14 +119,13 @@ __utils =
     return null unless text
 
     marked.setOptions
-      gfm: true
-      pedantic: false
-      sanitize: true
-      highlight:(text,lang)->
+      gfm       : true
+      pedantic  : false
+      sanitize  : true
+      highlight :(text, lang)->
         if hljs.LANGUAGES[lang]?
-          hljs.highlight(lang,text).value
-        else
-          text
+        then hljs.highlight(lang,text).value
+        else text
 
     text = marked Encoder.htmlDecode text
 

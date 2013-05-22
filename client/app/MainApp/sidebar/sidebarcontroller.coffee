@@ -11,14 +11,12 @@ class SidebarController extends KDViewController
     groupsController = @getSingleton 'groupsController'
     groupsController.on 'GroupChanged', @bound 'resetGroupSettingsItem'
 
-  loadView:->
-
-    @accountChanged KD.whoami()
+    mainController.ready @bound 'accountChanged'
 
   accountChanged:(account)->
+    account or= KD.whoami()
     {profile} = account
     sidebar   = @getView()
-    account or= KD.whoami()
 
     {
      avatar, finderHeader, navController

@@ -8,13 +8,14 @@ class FSFolder extends FSFile
     @kiteController.run
       kiteName   : 'os'
       method     : 'fs.readDirectory'
+      vmName     : @vmName
       withArgs   :
         onChange : if dontWatch then null else (change)=>
-          FSHelper.folderOnChange @path, change, @treeController
-        path     : @path
+          FSHelper.folderOnChange @vmName, @path, change, @treeController
+        path     : FSHelper.plainPath @path
     , (err, response)=>
       if not err and response?.files
-        files = FSHelper.parseWatcher @path, response.files
+        files = FSHelper.parseWatcher @vmName, @path, response.files
         @registerWatcher response
         @emit "fs.job.finished", err, files
       else
@@ -27,8 +28,10 @@ class FSFolder extends FSFile
 
     @kiteController.run
       kiteName  : 'os'
+      vmName    : @vmName
       method    : 'fs.createDirectory'
-      withArgs  : {@path}
+      withArgs  :
+        path    : FSHelper.plainPath @path
     , (err, res)=>
       if err then warn err
       @emit "fs.save.finished", err, res
@@ -49,4 +52,4 @@ class FSFolder extends FSFile
   registerWatcher:(response)->
     {@stopWatching} = response
     finder = KD.getSingleton 'finderController'
-    finder.registerWatcher @path, @stopWatching
+    finder.registerWatcher @path, @stopWatching  if @stopWatching

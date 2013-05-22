@@ -152,8 +152,8 @@ class PermissionsModal extends KDFormViewWithFields
     cascadeData[current]= {
       name
       cssClass
-      itemClass: KDCheckBox
-      defaultValue: isChecked ? no
+      itemClass    : KDCheckBox
+      defaultValue : isChecked ? no
     }
 
     if current in ['admin','owner']
@@ -224,9 +224,7 @@ class PermissionsModal extends KDFormViewWithFields
   createReducedList =(values)->
     cache = {}
     values.reduce (acc, {module, role, permission})->
-      storageKey = module+':'+role
-
-      console.log {storageKey}
+      storageKey = "#{module}:#{role}"
       cached = cache[storageKey]
       if cached?
         cached.permissions.push permission
