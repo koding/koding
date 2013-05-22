@@ -221,6 +221,10 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if req.TLS == nil && req.Host == "new.koding.com" {
+		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+	}
+
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
