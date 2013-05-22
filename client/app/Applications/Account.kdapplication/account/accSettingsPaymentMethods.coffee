@@ -38,34 +38,34 @@ submitAccountPaymentForm = (form, callback) ->
 
 showAccountPaymentErrors = (fields, inputs, err) ->
   ERRORS =
-    'address1'           :
+    address1             :
       input              : inputs.address1
       field              : fields.address1
-    'address2'           :
+    address2             :
       input              : inputs.address2
       field              : fields.address2
-    'city'               :
+    city                 :
       input              : inputs.city
       field              : fields.city
-    'state'              :
+    state                :
       input              : inputs.state
       field              : fields.state
-    'country'            :
+    country              :
       input              : inputs.country
       field              : fields.country
-    'first_name'         :
+    first_name           :
       input              : inputs.cardFirstName
       field              : fields.cardFirstName
-    'last_name'          :
+    last_name            :
       input              : inputs.cardLastName
       field              : fields.cardLastName
-    'number'             :
+    number               :
       input              : inputs.cardNumber
       field              : fields.cardNumber
-    'zip'                :
+    zip                  :
       input              : inputs.zip
       field              : fields.zip
-    'verification_value' :
+    verification_value   :
       input              : inputs.cardCV
       field              : fields.cardCV
 
@@ -109,7 +109,7 @@ class AccountPaymentMethodsListController extends KDListViewController
       unless err
         if res.cardNumber
           accounts.push
-            title        : res.cardFirstName + ' ' + res.cardLastName
+            title        : "#{res.cardFirstName} #{res.cardLastName}"
             type         : res.cardType
             cardNumber   : res.cardNumber
             cardExpiry   : res.cardMonth + '/' + res.cardYear
