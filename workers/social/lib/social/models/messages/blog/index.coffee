@@ -50,6 +50,14 @@ module.exports = class JBlogPost extends JPost
         'like','fetchLikedByes','mark','unmark','fetchTags'
         'delete','modify','fetchRelativeComments','checkIfLikedBefore'
       ]
+    sharedEvents      :
+      instance        : [
+        { name: 'TagsChanged' }
+        { name: 'ReplyIsAdded' }
+        { name: 'LikeIsAdded' }
+        { name: 'updateInstance' }
+      ]
+      static          : []
     schema            : schema
     relationships     : JPost.relationships
 

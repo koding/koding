@@ -38,7 +38,6 @@ module.exports = class Followable
     [callback, ids] = [ids, callback]  unless callback
     return  unless callback
     return callback null  unless ids
-
     JAccount = require '../models/account'
     unless client.connection.delegate instanceof JAccount
       return callback new KodingError 'Access denied'

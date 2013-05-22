@@ -13,6 +13,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "#{version}.x.koding.com"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -24,7 +25,11 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
+  neo4j         :
+    host        : "http://kgraphdb1.in.koding.com"
+    port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
+  runNeo4jFeeder: no
   runGoBroker   : no
   runKontrol    : yes
   runRerouting  : no
@@ -68,7 +73,7 @@ module.exports =
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 20
+    numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -95,6 +100,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "http://#{version}.x.koding.com"
     runtimeOptions:
+      useNeo4j: no
       logToExternal : no
       resourceName: socialQueueName
       suppressLogs: no
@@ -105,16 +111,16 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://webserver-build-koding-#{version}.in.koding.com:1337'
+      sourceUri : "http://webserver-build-koding-#{version}.in.koding.com:1337"
   mq            :
-    host        : 'internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com'
+    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
     port        : 5672
-    apiAddress  : "internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com"
+    apiAddress  : "internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 10
+    heartbeat   : 20
     vhost       : 'new'
   broker        :
     ip          : ""

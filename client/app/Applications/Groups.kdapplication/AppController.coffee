@@ -67,7 +67,7 @@ class GroupsAppController extends AppController
       group       : group.slug
       isExclusive : yes
     }
-    @groupChannel.once 'setSecretName', callback
+    @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='koding', callback=->)->
     return callback()  if @currentGroupName is groupName

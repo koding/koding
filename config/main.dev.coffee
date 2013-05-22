@@ -12,6 +12,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://localhost:3000"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -23,7 +24,11 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
-  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+  neo4j         :
+    host        : "http://kgraphdb1.in.koding.com"
+    port        : 7474
+  mongo         : mongo
+  runNeo4jFeeder: no
   runGoBroker   : no
   runKontrol    : no
   runRerouting  : no
@@ -94,6 +99,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      useNeo4j: no
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no

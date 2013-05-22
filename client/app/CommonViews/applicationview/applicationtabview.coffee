@@ -11,22 +11,21 @@ class ApplicationTabView extends KDTabView
 
     super options, data
 
+    appManager        = KD.getSingleton 'appManager'
     @isSessionEnabled = options.saveSession and options.sessionName
 
-    @initSession() if @isSessionEnabled
-
-    @on "PaneRemoved", =>
-      if @panes.length is 0
-        @getDelegate().emit "AllViewsClosed"
-        if options.closeAppWhenAllTabsClosed
-          appManager = KD.getSingleton "appManager"
-          appManager.quit appManager.frontApp
-
-      @tabHandleContainer.repositionPlusHandle @handles
+	@initSession() if @isSessionEnabled
 
     @on "PaneAdded", =>
       @tabHandleContainer.repositionPlusHandle @handles
       @updateSession() if @isSessionEnabled and @sessionData
+
+      tabView = this
+      pane.on "KDTabPaneDestroy", ->
+        # -1 because the pane is still there but will be destroyed after this event
+        if tabView.panes.length - 1 is 0 and options.closeAppWhenAllTabsClosed
+          appManager.quit appManager.getFrontApp()
+        tabView.tabHandleContainer.repositionPlusHandle tabView.handles
 
     @on "SaveSessionData", (data) =>
       @appStorage.setValue "sessions", data if @isSessionEnabled
