@@ -58,7 +58,8 @@ config =
       port        : 1
     mongo         : 1
     neo4j         :
-      host        : 1
+      read        : 1
+      write       : 1
       port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
