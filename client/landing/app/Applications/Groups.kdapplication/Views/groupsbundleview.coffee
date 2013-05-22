@@ -9,7 +9,7 @@ class GroupsBundleCreateView extends JView
       style     : "clean-gray"
       title     : "Create bundle"
       callback  : =>
-        group.createBundle (err, bundle) =>
+        group.createBundle {}, (err, bundle) =>
           return error err  if err?
 
           @emit 'BundleCreated', bundle
