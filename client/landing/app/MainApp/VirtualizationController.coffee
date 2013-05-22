@@ -49,7 +49,8 @@ class VirtualizationController extends KDController
     , no
 
   getDefaultVmName:->
-    currentGroup = (KD.getSingleton 'groupsController').getGroupSlug()
+    {entryPoint} = KD.config
+    currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
     if not currentGroup or currentGroup is 'koding' then KD.nick()
     else currentGroup
 
