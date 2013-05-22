@@ -197,11 +197,7 @@ func (p *ProxyConfiguration) AddDomain(mode, username, domainname, servicename, 
 		return fmt.Errorf("adding domain is not possible '%s'", err)
 	}
 
-	_, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(mode, username, servicename, key, fullurl)
-	}
-
+	proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(mode, username, servicename, key, fullurl)
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err

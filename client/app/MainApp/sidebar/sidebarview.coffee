@@ -10,6 +10,7 @@ class Sidebar extends JView
     @_finderExpanded  = no
     @_popupIsActive   = no
 
+    # Avatar area
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
@@ -21,6 +22,10 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
+    @statusLEDs = new KDView
+      cssClass : 'status-leds'
+
+    # Main Navigations
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -31,6 +36,7 @@ class Sidebar extends JView
 
     @nav = @navController.getView()
 
+    # Main Navigations Footer Menu
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
@@ -41,17 +47,22 @@ class Sidebar extends JView
 
     @footerMenu = @footerMenuController.getView()
 
+    # Finder Header
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
       pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
     , account
 
+    # File Tree
     @finderController = new NFinderController
       useStorage        : yes
       addOrphansToRoot  : no
 
     @finder = @finderController.getView()
+    KD.registerSingleton "finderController", @finderController
+    @finderController.on 'ManageResources', @bound 'toggleResources'
 
+    # Finder Bottom Controls
     @finderBottomControlsController = new KDListViewController
       view        : new FinderBottomControls
       wrapper     : no
@@ -78,13 +89,7 @@ class Sidebar extends JView
           callback?()
       ]
 
-    KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
-
-    @statusLEDs = new KDView
-      cssClass : 'status-leds'
-
-    @finderController.on 'ManageResources', @bound 'toggleResources'
 
   resetAdminNavController:->
     @utils.wait 1000, =>
