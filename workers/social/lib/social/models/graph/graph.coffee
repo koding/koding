@@ -3,7 +3,7 @@ neo4j = require "neo4j"
 
 module.exports = class Graph
   constructor:({config})->
-    @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
+    @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
 
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
