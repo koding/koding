@@ -309,36 +309,33 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
-  # Enables switching between cache/neo4j.
-  getCacheUrl:->
-
-    defaultUrlPrefix = "cache"
-    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
-
-    return defaultUrlPrefix
-
   fetchCachedActivity:(options = {}, callback)->
 
-    $.ajax
-      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
-      cache   : no
-      error   : (err)->   callback? err
-      success : (cache)->
-        cache.overview.reverse()  if cache?.overview
-        callback null, cache
+
+    if KD.config.useNeo4j
+      if options.to
+        options.timestamp = options.to
+
+      options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+      KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
+        return callback err, result
+    else
+      $.ajax
+        url     : "/-/cache/#{options.slug or 'latest'}"
+        cache   : no
+        error   : (err)->   callback? err
+        success : (cache)->
+          cache.overview.reverse()  if cache?.overview
+          callback null, cache
 
   continueLoadingTeasers:->
     return  if @isLoading
 
+    # HACK: this gets called multiple times if there's no wait
     KD.utils.wait 1000, =>
       return  unless @lastFrom?
 
-      console.log "lastFrom: #{@lastFrom}"
-
       lastTimeStamp = (new Date @lastFrom).getTime()
-
-      console.log "lastTimeStamp: #{lastTimeStamp}"
-
       @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
