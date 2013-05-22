@@ -502,7 +502,9 @@ module.exports = class JGroup extends Module
       else
         cursor.toArray (err, arr)->
           if err then callback err
-          else callback null, (doc.as for doc in arr)
+          else
+            roles = if arr.length > 0 then (doc.as for doc in arr) else ['guest']
+            callback null, roles
 
   fetchMyRoles: secure (client, callback)->
     @fetchRolesByAccount client.connection.delegate, callback

@@ -933,3 +933,19 @@ module.exports = class JAccount extends jraphical.Module
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
+
+  fetchMyPermissions: secure (client, callback)->
+    JGroup = require '../group'
+
+    slug = client.context.group ? 'koding'
+    JGroup.one {slug}, (err, group)->
+      return callback err  if err
+      group.fetchMyRoles client, (err, roles)->
+        return callback err  if err
+        group.fetchPermissionSet (err, permissionSet)->
+          return callback err  if err
+          perms = (perm.permissions.slice(0, perm.permissions.length)\
+                  for perm in permissionSet.permissions\
+                  when perm.role in roles)
+          {flatten} = require 'underscore'
+          callback null, flatten perms
