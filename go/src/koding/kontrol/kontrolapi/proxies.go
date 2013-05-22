@@ -169,6 +169,29 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	io.WriteString(writer, resp)
 }
 
+func GetProxyDomain(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	domain := vars["domain"]
+
+	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+
+	domains := proxyMachine.DomainRoutingTable
+	singleDomain, ok := domains.Domains[domain]
+	if !ok {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"domain '%s' is not available\"}\n", domain))
+		return
+	}
+
+	data, err := json.MarshalIndent(singleDomain, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
 func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
