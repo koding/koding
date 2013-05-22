@@ -19,16 +19,18 @@ type UserInfo struct {
 	Servicename string
 	Key         string
 	FullUrl     string
+	DomainMode  string
 	IP          string
 	Country     string
 }
 
-func NewUserInfo(username, servicename, key, fullurl string) *UserInfo {
+func NewUserInfo(username, servicename, key, fullurl, mode string) *UserInfo {
 	return &UserInfo{
 		Username:    username,
 		Servicename: servicename,
 		Key:         key,
 		FullUrl:     fullurl,
+		DomainMode:  mode,
 	}
 }
 
@@ -48,7 +50,7 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 		}
 	}
 
-	userInfo, err = parseKey(outreq.Host)
+	userInfo, err = parseDomain(outreq.Host)
 	if err != nil {
 		return userInfo, err
 	}
@@ -56,26 +58,9 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 	return userInfo, nil
 }
 
-func parseKey(host string) (*UserInfo, error) {
+func parseDomain(host string) (*UserInfo, error) {
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
-		// host doesn't have subdomains that contains dashes, like example.com,
-		// fatih.kd.io and so on
-		domain := strings.SplitN(host, ".", 2)[1]
-
-		// if based on "kd.io" than proxy it to our db
-		if domain == "kd.io" {
-			var vm virt.VM
-			vmName := strings.SplitN(host, ".", 2)[0]
-			if err := db.VMs.Find(bson.M{"name": vmName}).One(&vm); err != nil {
-				return &UserInfo{FullUrl: "http://www.koding.com/notfound.html"}, errors.New("redirect")
-			}
-			if vm.IP == nil {
-				return &UserInfo{FullUrl: "http://www.koding.com/notactive.html"}, errors.New("redirect")
-			}
-			return &UserInfo{FullUrl: vm.IP.String()}, nil
-		}
-
 		// otherwise lookup to our list of domains
 		userInfo, err := lookupDomain(host)
 		if err != nil {
@@ -83,6 +68,7 @@ func parseKey(host string) (*UserInfo, error) {
 		}
 
 		return userInfo, nil
+
 	case counts == 1:
 		// host is in form {name}-{key}.kd.io, used by koding
 		partsFirst := strings.Split(host, ".")
@@ -92,7 +78,7 @@ func parseKey(host string) (*UserInfo, error) {
 		servicename := partsSecond[0]
 		key := partsSecond[1]
 
-		return NewUserInfo("koding", servicename, key, ""), nil
+		return NewUserInfo("koding", servicename, key, "", "internal"), nil
 	case counts > 1:
 		// host is in form {name}-{key}-{username}.kd.io, used by users
 		partsFirst := strings.Split(host, ".")
@@ -103,7 +89,7 @@ func parseKey(host string) (*UserInfo, error) {
 		key := partsSecond[1]
 		username := partsSecond[2]
 
-		return NewUserInfo(username, servicename, key, ""), nil
+		return NewUserInfo(username, servicename, key, "", "internal"), nil
 	default:
 		return &UserInfo{}, errors.New("no data available for proxy")
 	}
@@ -111,12 +97,18 @@ func parseKey(host string) (*UserInfo, error) {
 }
 
 func lookupDomain(domainname string) (*UserInfo, error) {
+	d := strings.SplitN(domainname, ".", 2)[1]
+	if d == "kd.io" {
+		vmName := strings.SplitN(domainname, ".", 2)[0]
+		return NewUserInfo(vmName, "", "", "", "vm"), nil
+	}
+
 	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
 	if !ok {
 		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 	}
 
-	return NewUserInfo(domain.Username, domain.Name, domain.Key, domain.FullUrl), nil
+	return NewUserInfo(domain.Username, domain.Name, domain.Key, domain.FullUrl, domain.Mode), nil
 }
 
 func lookupRabbitKey(username, servicename, key string) string {
@@ -146,12 +138,30 @@ func targetHost(user *UserInfo) (*url.URL, error) {
 	servicename := user.Servicename
 	key := user.Key
 
-	if user.FullUrl != "" {
+	switch user.DomainMode {
+	case "direct":
 		target, err := url.Parse("http://" + user.FullUrl)
 		if err != nil {
 			return nil, err
 		}
 		return target, nil
+	case "vm":
+		var vm virt.VM
+		if err := db.VMs.Find(bson.M{"name": username}).One(&vm); err != nil {
+			target, _ := url.Parse("http://www.koding.com/notfound.html")
+			return target, errors.New("redirect")
+		}
+		if vm.IP == nil {
+			target, _ := url.Parse("http://www.koding.com/notactive.html")
+			return target, errors.New("redirect")
+		}
+		target, err := url.Parse("http://" + vm.IP.String())
+		if err != nil {
+			return nil, err
+		}
+		return target, nil
+	case "internal":
+		break // internal is done below
 	}
 
 	_, ok := proxy.RoutingTable[username]

@@ -228,10 +228,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	userInfo, err := populateUser(outreq)
 	if err != nil {
-		if err.Error() == "redirect" {
-			http.Redirect(rw, req, userInfo.FullUrl, http.StatusTemporaryRedirect)
-			return
-		}
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
 		return
@@ -248,6 +244,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// either userInfo.FullUrl or userInfo.Servicename-Key lookup will be made
 	target, err := targetHost(userInfo)
 	if err != nil {
+		if err.Error() == "redirect" {
+			http.Redirect(rw, req, target.String(), http.StatusTemporaryRedirect)
+			return
+		}
 		log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
