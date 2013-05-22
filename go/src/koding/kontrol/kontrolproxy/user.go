@@ -58,22 +58,27 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 func parseKey(host string) (*UserInfo, error) {
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
-		// host is in form {name}.kd.io, used for domain forwarding
-		userInfo, err := lookupDomain(host)
-		if err != nil {
-			// if not available in our proxy make a db lookup for Vm subdomains
-			vmName := strings.SplitN(host, ".", 2)[0]
+		// host doesn't have subdomains that contains dashes, like example.com,
+		// fatih.kd.io and so on
+		domain := strings.SplitN(host, ".", 2)[1]
 
+		// if based on "kd.io" than proxy it to our db
+		if domain == "kd.io" {
 			var vm virt.VM
+			vmName := strings.SplitN(host, ".", 2)[0]
 			if err := db.VMs.Find(bson.M{"name": vmName}).One(&vm); err != nil {
 				return &UserInfo{FullUrl: "http://www.koding.com/notfound.html"}, errors.New("redirect")
 			}
-
 			if vm.IP == nil {
 				return &UserInfo{FullUrl: "http://www.koding.com/notactive.html"}, errors.New("redirect")
 			}
-
 			return &UserInfo{FullUrl: vm.IP.String()}, nil
+		}
+
+		// otherwise lookup to our list of domains
+		userInfo, err := lookupDomain(host)
+		if err != nil {
+			return nil, err
 		}
 
 		return userInfo, nil
