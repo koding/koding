@@ -577,25 +577,12 @@ class GroupsAppController extends AppController
                 itemClass            : KDOnOffSwitch
                 name                 : "group-vm"
                 defaultValue         : yes
+              "Member VM"            :
+                label                : "Create server(s) for each group member"
+                itemClass            : KDOnOffSwitch
+                name                 : "member-vm"
+                defaultValue         : no
 
-              # # Members VMs are a future feature
-
-              # "Member VM"            :
-              #   label                : "Create server(s) for each group member"
-              #   itemClass            : KDOnOffSwitch
-              #   name                 : "member-vm"
-              #   defaultValue         : yes
-              #   callback             : ->
-              #     form = modal.modalTabs.forms["VM Settings"]
-              #     if form.inputs["Member VM"].getValue() is no
-              #       form.fields["Number of VMs"].hide()
-              #     else
-              #       form.fields["Number of VMs"].show()
-              # "Number of VMs"        :
-              #   label                : "Number of VMs"
-              #   itemClass            : KDInputView
-              #   name                 : "member-vm-limit"
-              #   defaultValue         : 1
 
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]

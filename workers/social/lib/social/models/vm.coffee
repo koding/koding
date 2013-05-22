@@ -52,13 +52,13 @@ module.exports = class JVM extends Model
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
   @createVm = ({account, groupSlug, usage}, callback)->
-    JGroup = require '../group'
+    JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group) ->
       return callback err  if err
       account.fetchUser (err, user) ->
         return callback err  if err
         vm = new JVM {
-          name    : "#{groupSlug}~#{user.username}"
+          name    : "#{groupSlug}~#{user.username}-#{(new Date()).getTime()}"
           users   : [{ id: user.getId(), sudo: yes }]
           groups  : [{ id: group.getId() }]
           usage
@@ -104,7 +104,7 @@ module.exports = class JVM extends Model
     [callback, options] = [options, callback]  unless callback
 
     options ?= {}
-    options.limit = Math.min options.limit ? 10, 10
+    # options.limit = Math.min options.limit ? 10, 10
 
     account.fetchUser (err, user) ->
       return callback err  if err

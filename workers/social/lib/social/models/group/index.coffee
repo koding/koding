@@ -332,12 +332,26 @@ module.exports = class JGroup extends Module
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
       if groupData['group-vm'] is 'on'
-        queue.push -> group.createBundle (err)->
+        if groupData['member-vm'] is 'on'
+          limits =
+            cpu             : { quota: 100 }
+            ram             : { quota: 100 }
+            disk            : { quota: 100 }
+            users           : { quota: 100 }
+            'cpu per user'  : { quota: 5 }
+            'ram per user'  : { quota: 5 }
+            'disk per user' : { quota: 5 }
+        else
+          limits =
+            cpu             : { quota: 100 }
+            ram             : { quota: 100 }
+            disk            : { quota: 100 }
+            users           : { quota: 100 }
+        queue.push -> group.createBundle limits, (err)->
           if err then callback err
           else
             console.log 'group bundle created'
             queue.next()
-
 
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }
@@ -1248,29 +1262,29 @@ module.exports = class JGroup extends Module
   destroyBundle$: permit 'change bundle',
     success: (client, callback) -> @destroyBundle callback
 
-  createBundle: (callback) ->
+  createBundle: (limits, callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle exists!'  if bundle?
 
       JGroupBundle = require '../bundle/groupbundle'
 
-      bundle = new JGroupBundle {}, @getDefaultLimits()
+      bundle = new JGroupBundle {}, limits
       bundle.save (err) =>
         return callback err  if err?
 
         @addBundle bundle, callback
 
   createBundle$: permit 'change bundle',
-    success: (client, callback) -> @createBundle callback
+    success: (client, limits, callback) -> @createBundle limits, callback
 
   fetchBundle$: permit 'change bundle',
     success: (client, rest...) -> @fetchBundle rest...
 
   getDefaultLimits:->
     {
-      cpu   : { quota: 1 }
-      ram   : { quota: 64 }
-      disk  : { quota: 500 }
-      users : { quota: 20 }
+      cpu             : { quota: 1 }
+      ram             : { quota: 64 }
+      disk            : { quota: 500 }
+      users           : { quota: 20 }
     }

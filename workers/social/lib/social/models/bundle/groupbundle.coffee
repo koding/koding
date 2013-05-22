@@ -8,7 +8,7 @@ module.exports = class JGroupBundle extends JBundle
 
   {groupBy} = require 'underscore'
 
-  {dash} = require 'bongo'
+  {daisy} = require 'bongo'
 
   @share()
 
@@ -100,24 +100,28 @@ module.exports = class JGroupBundle extends JBundle
 
               theyHaveEnough = ( debitAmount is 0 )   or
                 ( not /per user$/.test limit.title )  and
-                ( debitAmount <= limit )              and
+                ( debitAmount <= limit.getValue() )              and
                 (( overagePolicy is 'allowed' ) or 
                   ( personalLimit? )            and
-                  ( debitAmount <= personalLimit ))
+                  ( debitAmount <= personalLimit.getValue() ))
 
-              if theyHaveEnough then queue.push ->
-                debit limit, debitAmount
-                debit personalLimit, debitAmount
+              if theyHaveEnough
+                queue.push ->
+                  debit limit, debitAmount, ->
+                    debit personalLimit, debitAmount, ->
+                      queue.next()
 
-              return
-
+            console.log queue
+            console.log debits
             if queue.length and queue.length is (Object.keys debits).length
-              dash queue, ->
+              queue.push ->
                 options     =
                   usage     : debits
                   account   : delegate
                   groupSlug : group
-                JVM.createVm options, (err)-> callback err
+                JVM.createVm options, callback
+                queue.next()
+              daisy queue
 
             else
               callback new KodingError 'Insufficient quota.'
