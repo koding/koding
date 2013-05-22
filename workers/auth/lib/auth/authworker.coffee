@@ -188,7 +188,7 @@ module.exports = class AuthWorker extends EventEmitter
     @fetchNotificationExchange (exchange)->
       exchange.publish routingKey, { event, contents }
 
-  respondServiceUnavailable:->
+  respondServiceUnavailable: (routingKey) ->
     @bongo.respondToClient routingKey, {
       method    : 'error'
       arguments : [message: 'Service unavailable!', code:503]
@@ -203,7 +203,7 @@ module.exports = class AuthWorker extends EventEmitter
         serviceInfo = @getNextServiceInfo messageData.name
 
         unless serviceInfo?
-          @respondServiceUnavailable()
+          @respondServiceUnavailable routingKey
           return console.error "No service info! #{messageData.name}"
 
         { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
@@ -221,7 +221,7 @@ module.exports = class AuthWorker extends EventEmitter
         then @sendAuthWho params
         else if serviceUniqueName?
         then @sendAuthJoin params
-        else @respondServiceUnavailable()
+        else @respondServiceUnavailable routingKey
 
     ensureGroupPermission = (group, account, callback) ->
       {JPermissionSet, JGroup} = @bongo.models
