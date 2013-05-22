@@ -1,38 +1,246 @@
+deleteAccountPaymentMethod = (callback) ->
+  modal = new KDModalView
+    title        : "Warning"
+    content      : "<div class='modalformline'>Are you sure you want to delete your billing information?</div>"
+    height       : "auto"
+    overlay      : yes
+    buttons      :
+      Yes        :
+        loader   :
+          color  : "#ffffff"
+          diameter : 16
+        style    : "modal-clean-gray"
+        callback : ->
+          KD.remote.api.JPayment.deleteAccountPaymentMethod {}, (err, res) ->
+            modal.destroy()
+            callback?()
+
+submitAccountPaymentForm = (form, callback) ->
+  formData = form.getFormData()
+
+  if formData.cardNumber.indexOf('...') > -1
+    delete formData['cardNumber']
+  if formData.cardCV == 'XXX'
+    delete formData['cardCV']
+
+  KD.remote.api.JPayment.setAccount formData, (err, res) =>
+    if err
+      showAccountPaymentErrors form.fields, form.inputs, err
+      callback? yes
+    else
+      showAccountPaymentErrors form.fields, form.inputs, []
+      KD.remote.api.JPayment.getAccount {}, (e, r) =>
+        unless e
+          for k, v of r
+            if form.inputs[k]
+              form.inputs[k].setValue v
+      callback? no
+
+showAccountPaymentErrors = (fields, inputs, err) ->
+  ERRORS =
+    address1             :
+      input              : inputs.address1
+      field              : fields.address1
+    address2             :
+      input              : inputs.address2
+      field              : fields.address2
+    city                 :
+      input              : inputs.city
+      field              : fields.city
+    state                :
+      input              : inputs.state
+      field              : fields.state
+    country              :
+      input              : inputs.country
+      field              : fields.country
+    first_name           :
+      input              : inputs.cardFirstName
+      field              : fields.cardFirstName
+    last_name            :
+      input              : inputs.cardLastName
+      field              : fields.cardLastName
+    number               :
+      input              : inputs.cardNumber
+      field              : fields.cardNumber
+    zip                  :
+      input              : inputs.zip
+      field              : fields.zip
+    verification_value   :
+      input              : inputs.cardCV
+      field              : fields.cardCV
+
+  for key, val of ERRORS
+    val.input.giveValidationFeedback no
+
+  for e in err
+    if e.field == 'account.base'
+      val.input.showValidationError e.message
+      if e.message.indexOf('card') > -1
+        inputs.cardNumber.giveValidationFeedback yes
+    else
+      for key, val of ERRORS
+        if e.field.indexOf(key) > -1
+          val.input.giveValidationFeedback yes
+          field = val.field.subViews[0].labelTitle
+          val.input.showValidationError "#{field} #{e.message}"
+
 class AccountPaymentMethodsListController extends KDListViewController
   constructor:(options,data)->
-    data = $.extend
-      items : [
-        { title : "Payment methods are coming soon" }
-      ]
-    ,data
-    # data = $.extend
-    #   items : [
-    #     {
-    #       title : "My personal card",   type : "visa", cardNumber : "432* **** **** *029"
-    #       cardOwner : "Ryan Goodman", cardAddress : "Somewhere in LA", cardCity : "Los Angeles"
-    #       cardZip : "11111", cardState : "CA", cardExpiry : "03/2013"
-    #     }
-    #     ,
-    #     {
-    #       title : "Corporate Amex",     type : "amex", cardNumber : "370*********834"
-    #       cardOwner : "Ryan Goodman", cardAddress : "780A Valencia St", cardCity : "San Francisco"
-    #       cardZip : "94110", cardState : "CA", cardExpiry : "11/2015"
-    #     }
-    #   ]
-    # ,data
     super options,data
+
+    @loadItems()
+
+    @on "reload", (data)=>
+      @loadItems()
+
+    list = @getListView()
+    list.on 'reload', (data)=>
+      @loadItems()
+
+  loadItems: ()->
+    @removeAllItems()
+    @showLazyLoader no
+
+    KD.remote.api.JRecurlyPlan.getUserAccount (err, res) =>
+      accounts = []
+      if err
+        @instantiateListItems []
+        @hideLazyLoader()
+      unless err
+        if res.cardNumber
+          accounts.push
+            title        : "#{res.cardFirstName} #{res.cardLastName}"
+            type         : res.cardType
+            cardNumber   : res.cardNumber
+            cardExpiry   : res.cardMonth + '/' + res.cardYear
+            cardAddress  : res.address1 + ' ' + res.address2
+            cardCity     : res.city
+            cardState    : res.state
+            cardZip      : res.zip
+        @instantiateListItems accounts
+        @hideLazyLoader()
 
   loadView:->
     super
-    # @getView().parent.addSubView addButton = new KDButtonView
-    #   style     : "clean-gray account-header-button"
-    #   title     : ""
-    #   icon      : yes
-    #   iconOnly  : yes
-    #   iconClass : "plus"
-    #   callback  : =>
-    #     @getListView().showModal()
+    @getView().parent.addSubView addButton = new KDButtonView
+      style     : "clean-gray account-header-button"
+      title     : ""
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "plus"
+      callback  : =>
+        @getListView().showModal @
 
+createAccountPaymentMethodModal = (data, callback) ->
+  modal = new KDModalViewWithForms
+    title                       : "Billing Information"
+    content                     : ''
+    helpContent                 :
+      """
+      """
+    overlay                     : yes
+    width                       : 500
+    height                      : "auto"
+    cssClass                    : "payments-modal"
+    tabs                        :
+      navigable                 : yes
+      goToNextFormOnSubmit      : no
+      forms                     :
+        "Billing Info"          :
+          buttons               :
+            Add                 :
+              title             : "Add"
+              style             : "modal-clean-green"
+              type              : "submit"
+              loader            :
+                color           : "#444444"
+                diameter        : 12
+              callback          : =>
+                tabs = modal.modalTabs
+                form = tabs.forms["Billing Info"]
+                button = form.buttons["Add"]
+                onError = ->
+                    button.hideLoader()
+                onSuccess = ->
+                    modal.destroy()
+                callback form.getFormData(), onError, onSuccess
+          fields                :
+            cardFirstName       :
+              label             : "Name"
+              itemClass         : KDInputView
+              name              : "cardFirstName"
+              placeholder       : "First Name"
+              nextElementFlat   :
+                cardLastName    :
+                  itemClass     : KDInputView
+                  name          : "cardLastName"
+                  placeholder   : "Last Name"
+            cardNumber          :
+              label             : "Card Number"
+              itemClass         : KDInputView
+              name              : "cardNumber"
+              placeholder       : 'Card Number'
+              # validate          :
+              #   event           : "blur"
+              #   rules           : "creditCard"
+              nextElementFlat   :
+                cardCV          :
+                  tooltip       :
+                    placement   : 'right'
+                    direction   : 'center'
+                    title       : 'The location of this verification number depends on the issuer of your credit card'
+                  itemClass     : KDInputView
+                  name          : "cardCV"
+                  placeholder   : "CV Number"
+            cardMonth           :
+              label             : "Expire Date"
+              itemClass         : KDSelectBox
+              type              : "select"
+              name              : "cardMonth"
+              selectOptions     : __utils.getMonthOptions()
+              nextElementFlat   :
+                cardYear        :
+                  itemClass     : KDSelectBox
+                  type          : "select"
+                  name          : "cardYear"
+                  selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+25))
+                  defaultValue  : (new Date().getFullYear())
+            address1            :
+              label             : "Address"
+              itemClass         : KDInputView
+              name              : "address1"
+              placeholder       : "Street Name & Number"
+            address2            :
+              label             : " "
+              itemClass         : KDInputView
+              name              : "address2"
+              placeholder       : "Apartment/Suite Number"
+            city                :
+              label             : "City & State"
+              itemClass         : KDInputView
+              name              : "city"
+              placeholder       : "City Name"
+              nextElementFlat   :
+                state           :
+                  itemClass     : KDInputView
+                  name          : "state"
+                  placeholder   : "State"
+            zip                 :
+              label             : "ZIP & Country"
+              itemClass         : KDInputView
+              name              : "zipCode"
+              placeholder       : "ZIP Code"
+              nextElementFlat   :
+                country         :
+                  itemClass     : KDInputView
+                  name          : "country"
+                  placeholder   : "Country"
+
+  form = modal.modalTabs.forms["Billing Info"]
+  for k, v of data
+    if form.inputs[k]
+      form.inputs[k].setValue v
+  return modal
 
 class AccountPaymentMethodsList extends KDListView
   constructor:(options,data)->
@@ -42,43 +250,44 @@ class AccountPaymentMethodsList extends KDListView
     ,options
     super options,data
 
-  showModal:->
-    form = new AccountCreditCardForm
-      callback : @formSubmit
-      cssClass : "clearfix"
+  showModal: (controller) ->
+    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+      if err or not data
+        data = {}
 
-    modal = new KDModalView
-      title     : "Add a new payment method"
-      content   : ""
-      overlay   : yes
-      cssClass  : "new-kdmodal"
-      width     : 500
-      height    : 300
-      view      : form
-      buttons   :
-        "Add Payment Method" :
-          style     : "modal-clean-gray"
-          callback  : (event)->
-            if form.submit(event)
-              form.destroy()
-              modal.destroy()
-        Cancel   :
-          style     : "modal-cancel"
-          callback  : (event)->
-            form.destroy()
-            modal.destroy()
+      modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess) ->
+        KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
+          if err
+            onError()
+          else
 
-    modal.addSubView helpBox = new HelpBox, ".kdmodal-buttons"
+            controller.emit 'reload'
+            onSuccess()
 
+      form = modal.modalTabs.forms["Billing Info"]
 
-class AccountCreditCardInfo extends KDView
+      # Credit card icon
+      form.fields['cardNumber'].addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
+
+      form.inputs['cardNumber'].on "CreditCardTypeIdentified", (type)=>
+        cardType = type.toLowerCase()
+        $icon = icon.$()
+        unless $icon.hasClass cardType
+          $icon.removeClass "visa mastercard discover amex"
+          $icon.addClass cardType
+
+class AccountPaymentMethodsListItem extends KDListItemView
+  constructor:(options,data)->
+    options.tagName = "li"
+    super options,data
+
   viewAppended:->
     @setPartial @partial @data
 
   partial:(data)->
     """
       <div class="credit-card-info">
-        <p class="lightText"><strong>#{data.type}</strong></p>
+        <p class="lightText"><strong>#{data.title} - #{data.type}</strong></p>
         <p class="lightText"><strong>#{data.cardNumber}</strong> - <strong>#{data.cardExpiry}</strong></p>
         <p class="darkText">
           #{data.cardAddress}<br>
@@ -86,170 +295,3 @@ class AccountCreditCardInfo extends KDView
         </p>
       </div>
     """
-
-class AccountCreditCardForm extends KDFormView
-  viewAppended:->
-    super
-
-    @addSubView formline1                = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "modalformline"
-    formline1.addSubView cardNumber      = new AccountCreditCardInput
-
-    @addSubView formline2                = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "modalformline"
-
-    formline2.addSubView cardOwner       = new KDInputView name : "card-owner", placeholder : "Card Owner..."
-
-    @addSubView formline3          = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "modalformline"
-
-    formline3.addSubView expiryLabel     = new KDLabelView title : "Expiry Date"
-    formline3.addSubView expiryMonths    = new KDSelectBox
-      type : "select"
-      name : "card-exp-month"
-      cssClass : "select"
-      label : expiryLabel
-      defaultValue  : (new Date().getMonth())
-      selectOptions : __utils.getMonthOptions()
-
-    formline3.addSubView expiryMonths    = new KDSelectBox
-      type : "select"
-      name : "card-exp-year"
-      cssClass : "select"
-      label : expiryLabel
-      defaultValue  : (new Date().getFullYear())
-      selectOptions : __utils.getYearOptions((new Date().getFullYear()),(new Date().getFullYear()+10))
-
-    @addSubView formline4          = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "modalformline"
-
-    formline4.addSubView cvc       = new KDInputView name : "card-cvc", cssClass : "small", placeholder:"cvc"
-
-    formline4.addSubView linkholder = new KDCustomHTMLView
-      tagName      : "div"
-      cssClass     : "kdview linkholder"
-
-    linkholder.addSubView cvcLink   = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "What is verification code?"
-      cssClass     : "propagateWhatIsCvc"
-
-    linkholder.addSubView ppLink   = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "Privacy Policy"
-      cssClass     : "propagatePrivacyPolicy"
-
-  putEditButtons:->
-    @addSubView buttons = new KDView
-      cssClass : "formline"
-
-    @addSubView actionsWrapper = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "actions-wrapper"
-
-    actionsWrapper.addSubView cancelLink = new KDCustomHTMLView
-      tagName  : "a"
-      partial  : "Cancel"
-      click    : => @emit "FormCancelled"
-
-    buttons.addSubView okButton = new KDButtonView title: 'Change payment method', style: 'cupid-green'
-
-
-class AccountCreditCardInput extends KDView
-  InputView = class CCInput extends KDInputView
-    # setValidationResult:(didPass,message)->
-    #   if didPass
-    #     @valid = yes
-    #     @inputValidationMessage = message if message
-    #     @inputClearValidationError()
-    #     @inputValidationNotification.destroy() if @inputValidationNotification?
-    #   else
-    #     @valid = no
-    #     @inputValidationMessage = message
-    #     @showValidationError message
-
-  viewAppended:->
-    @setClass "credit-card-input-view"
-    @addSubView @input = new CCInput
-      name            : "card-number"
-      placeholder     : "xxxx xxxx xxxx xxxx"
-      validate        :
-        event         : "blur"
-        rules         : "creditCard"
-
-    @addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
-
-    @input.on "CreditCardTypeIdentified", (type)=>
-      cardType = event.creditCardType.toLowerCase()
-      $icon = icon.$()
-      $icon.removeClass "visa mastercard discover amex"
-      $icon.addClass cardType
-        # iconWrapper.$(".icon.#{cardType}").fadeIn 100,()->
-        #   iconWrapper.$(".icon.#{cardType}").siblings().fadeOut 100
-        # log event.creditCardType
-        # KDInputValidator::ruleCreditCard pubInst,event
-        # new KDNotificationView
-        #   title     : "That's a '#{event.creditCardType} Card"
-        #   duration  : 500
-
-
-
-
-
-class AccountPaymentMethodsListItem extends KDListItemView
-  constructor:(options,data)->
-    options = tagName : "li"
-    super options,data
-
-  # viewAppended:()->
-  #   super
-  #
-  #   form = new AccountCreditCardForm
-  #     delegate : @
-  #     cssClass : "posstatic"
-  #   ,@data
-  #
-  #   info = new AccountCreditCardInfo
-  #     delegate : @
-  #     cssClass : "posstatic"
-  #   ,@data
-  #
-  #   info.addSubView editLink = new KDCustomHTMLView
-  #     tagName  : "a"
-  #     partial  : "Edit"
-  #     cssClass : "action-link"
-  #     click    : @bound "swapSwappable"
-  #
-  #   @swappable = swappable = new AccountsSwappable
-  #     views : [form,info]
-  #     cssClass : "posstatic"
-  #
-  #   @addSubView swappable,".swappable-wrapper"
-  #   form.putEditButtons()
-  #
-  #   form.on "FormCancelled", @bound "swapSwappable"
-
-  swapSwappable:->
-    @swappable.swapViews()
-
-  click:(event)->
-    if $(event.target).is "a.delete-icon"
-      @getDelegate().emit "UnlinkAccount", accountType : @getData().type
-
-  partial:(data)->
-    """
-      <span class='darkText'>#{data.title}</span>
-    """
-    # """
-    #   <div class='labelish'>
-    #     <span class='payment-method-title'>#{data.title}</span>
-    #   </div>
-    #   <div class='swappableish swappable-wrapper posstatic'>
-    #   </div>
-    # """
-
-
