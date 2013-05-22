@@ -77,7 +77,12 @@ class NFinderTreeController extends JTreeViewController
       appManager.openFile publicPath, "Viewer"
 
   resetVm:(nodeView)->
-    KD.getSingleton('vmController').reinitialize()
+    {vmName} = nodeView.data
+    KD.getSingleton('vmController').reinitialize vmName
+
+  unmountVm:(nodeView)->
+    {vmName} = nodeView.data
+    KD.getSingleton('finderController').unmountVm vmName
 
   makeTopFolder:(nodeView)->
     finder = KD.getSingleton('finderController')
@@ -469,6 +474,7 @@ class NFinderTreeController extends JTreeViewController
   cmMakeTopFolder:(nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
   cmResetVm:      (nodeView, contextMenuItem)-> @resetVm nodeView
+  cmUnmountVm:    (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
   cmCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
   cmRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
