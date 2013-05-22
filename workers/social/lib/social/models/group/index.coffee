@@ -334,19 +334,19 @@ module.exports = class JGroup extends Module
       if groupData['group-vm'] is 'on'
         if groupData['member-vm'] is 'on'
           limits =
-            cpu             : { quota: 100 }
-            ram             : { quota: 100 }
-            disk            : { quota: 100 }
-            users           : { quota: 100 }
-            'cpu per user'  : { quota: 5 }
-            'ram per user'  : { quota: 5 }
-            'disk per user' : { quota: 5 }
+            cpu             : { quota: groupData['vm-cpu'] }
+            ram             : { quota: groupData['vm-ram'] }
+            disk            : { quota: groupData['vm-disk'] }
+            users           : { quota: groupData['vm-user'] }
+            'cpu per user'  : { quota: groupData['vm-cpu-member'] }
+            'ram per user'  : { quota: groupData['vm-ram-member'] }
+            'disk per user' : { quota: groupData['vm-disk-member'] }
         else
           limits =
-            cpu             : { quota: 100 }
-            ram             : { quota: 100 }
-            disk            : { quota: 100 }
-            users           : { quota: 100 }
+            cpu             : { quota: groupData['vm-cpu'] }
+            ram             : { quota: groupData['vm-ram'] }
+            disk            : { quota: groupData['vm-disk'] }
+            users           : { quota: groupData['vm-user'] }
         queue.push -> group.createBundle limits, (err)->
           if err then callback err
           else
