@@ -3,80 +3,115 @@
 Compile the binary
 
 ```
-cd proxy/
+cd kontrolproxy/
 go build
 ```
 
 Start kontrol proxy 
 
 ```
-./proxy -c "dev"
+./kontrolproxy -c "prod"
 ```
 
-This will start with the porst http (80) and https (443). You can change them easily:
+By default proxy starts with ports http (80) and https (443). You can change
+them easily in the main.{config}.coffee files under the section kontrold/proxy
 
-```
-./proxy -c "dev" --port 8080 --portSSL 9090
-
-```
 
 # Usage of Kontrol Proxy
 
-You can test proxy with curl request. You can use the test-dummy-server to
-represent backend servers:
+KontrolProxy first tries himself to register to kontrol. After an "updateProxy"
+message it fetches all necessary routing configurations from the mongodb and
+stores them in the memory. Kontroldaemon and mongodb are necessaries to run
+kontrol proxy.
 
-```
-go run test/proxy-dummy-server.go -p 8002
-```
+Every single lookup is made on these values. Each request just creates a single
+struct and every single function uses pointers to these struct, which basically
+makes the proxy very fast. 
 
-This will create a dummy server on localhost:8004. You can run several dummy
-servers. After setting up these dummy servers you have to create configuration.
-Please refer to kontrol-api for creating and managing proxy configuration.
+* Dynamic configuration
 
-An example of using this api for the uuid `kontrol.local-2000` is:
+Every worker which has a port can be registered automatically to kontrol proxy
+via the kontrol processes wrapper. For example we use webserver and gobroker
+for that case. Kontrol adds them to proxy automatically everytime they start.
 
-After starting you can push new configuration via the API:
+* RESTful API for configurations
 
-```
-http POST "localhost:8000/proxies/kontrol.local-2000" key=1 host=localhost:8002
-http POST "localhost:8000/proxies/kontrol.local-2000" key=1 host=localhost:8003
-http POST "localhost:8000/proxies/kontrol.local-2000" key=1 host=localhost:8004
-```
+Kontrolproxy has a powerful restful api that lets you directly remove, change,
+update or add any resource it uses. For more info look at the kontrolapi readme
+please. Below is a simple list of current API calls you can use:
 
-The POST requests above will create three backend servers that fujin will proxy
-the incoming requests. It uses round-robin by default. 
+	GET     /proxies"
+	POST    /proxies"
+	DELETE  /proxies/{uuid}"
 
-* If any of the servers from the same key(in our example `1`) dies or is not
-more reachable, round robin balancing will be applied only to alives one. (i.e
-when the server with port 8003 dies, roundrobin will be iterating only
-trough 8002 and 8004)
+	GET     /proxies/{uuid}/services"
+	GET     /proxies/{uuid}/services/{username}"
+	POST    /proxies/{uuid}/services/{username}"
+	POST    /proxies/{uuid}/services/{username}/{servicename}"
+	GET     /proxies/{uuid}/services/{username}/{servicename}"
+	DELETE  /proxies/{uuid}/services/{username}/{servicename}"
+	DELETE  /proxies/{uuid}/services/{username}/{servicename}/{key}"
 
-* If all of the servers are not more reachable, it fallbacks to
-`localhost:8000`. This is not configurable currently and is hardcoded.
+	GET     /proxies/{uuid}/domains"
+	GET     /proxies/{uuid}/domains/{domain}"
+	POST    /proxies/{uuid}/domains/{domain}"
+	DELETE  /proxies/{uuid}/domains/{domain}"
 
-
-If you push a new host with a key greater than the previous:
-
-```
-http POST "localhost:8000/proxies/kontrol.local-2000" key=2 host=localhost:8002
-```
-
-Then proxy will automatically use the information with keys `2`. The old routes
-are still available.
-
-
-# Features
+	GET     /proxies/{uuid}/rules"
+	GET     /proxies/{uuid}/rules/{username}"kj
+	GET     /proxies/{uuid}/rules/{username}/{servicename}"
+	POST    /proxies/{uuid}/rules/{username}/{servicename}"
 
 * Load balancing via round-robin
-* Dynamic configuration
-* Remote control mechanism (via kontrold). You can list, add or delete domains
-remotely via a custom JSON message format.
+
+Each host is defined by their `servicename` and `key`. You can add several
+hosts to a single `key`. If kontrolproxy detects that it has more than one host
+it will use round-robin balancing between your servers. The only exception for this is the 'broker' process. Round-robin for broker is disabled.
+
 * SSL support
+
+Kontrolproxy has support for SSL. It looks for the files `cert.pem` and
+`key.pem` in the same directory it was executed. If it finds both files and the
+files are correct it starts a seperate server which listens to https requests.
+
+* Websocket support
+
+Kontrolproxy has support for websocket. It automatically detects it and uses
+hijacking for to reach the underlying tcp connection.
+
 * Stored configuration on MongoDB instance
-* Fallback mechanism for death servers
+
+All the configuration is stored in a mongodb instance. However lookups are made
+on a loaded variable in the memory. Kontrolproxy loads the configuration only
+everytime if a configurations has been changed. This is made whenever it
+receives a 'updateProxy' message from kontrol. Therefore it is quite fast
+because it is not doing any db lookup. It only make db lookup for VM IP's (to
+map foo.kd.io -> VM IP)
+
+* Builtin firewall
+
+Kontrolproxy has `rules` to support basic firewalling for certain rules.
+Currently you can filter visits by IP regex and Countries. Each rule can be
+either a whitelist or a blacklist. 
+
+It is based on waterfall criterias. It first looks for the IP rule and then to
+the Country rule. That means if the IP rule doesn't satisfy the incoming
+request, than the validator tries to match it with the Country rule. If the
+request country matches with the country validator than the user/client is
+either blocked (if blacklist mode is used) or is allowd (if whitelist mode is
+used)
+
+* HTTP proxy over RabbitMq (experimental)
+
+This is an experimental feature that proxy the incomnig HTTP request trough
+RabbitMq to a RabbitMq client that sits on a remote host. They communicate
+trough a qunique id which is generated by the koding.com website. There is
+still work here to be done.
+
 
 
 # Improvements
+* Fallback mechanism for death servers (not supported yet)
 * custom HTML error pages (i.e. for death backends)
 * wildcard support for fronted domains
 * improve routing table for paths (example.com/)
