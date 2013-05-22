@@ -27,6 +27,8 @@ module.exports = class JAccount extends jraphical.Module
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
+  {permit} = require '../group/permissionset'
+
   @share()
   Experience =
     company           : String
@@ -927,3 +929,7 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
+
+  @byRelevance$ = permit 'list members',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
