@@ -14,9 +14,9 @@ class ApplicationTabView extends KDTabView
     appManager        = KD.getSingleton 'appManager'
     @isSessionEnabled = options.saveSession and options.sessionName
 
-	@initSession() if @isSessionEnabled
+    @initSession() if @isSessionEnabled
 
-    @on "PaneAdded", =>
+    @on "PaneAdded", (pane) =>
       @tabHandleContainer.repositionPlusHandle @handles
       @updateSession() if @isSessionEnabled and @sessionData
 
