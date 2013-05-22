@@ -108,7 +108,10 @@ class AceAppView extends JView
   reopenLastSession: ->
     data   = @sessionData
     latest = data.latestSessions
-    @emit "SessionItemClicked", data[latest[latest.length - 2]]
+    if latest?.length > 0
+      @emit "SessionItemClicked", data[latest.first]
+    else
+      @getActiveAceView().ace.notify "No recent file.", "error"
 
   viewAppended:->
     super
