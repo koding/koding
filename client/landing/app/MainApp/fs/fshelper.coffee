@@ -23,9 +23,10 @@ class FSHelper
       z = [x for x in files when x.isDir is p][0].sort (x,y)-> x.name > y.name
       sortedFiles.push x for x in z
 
-    {nickname} = KD.whoami().profile
+    nickname = KD.nick()
     for file in sortedFiles
-      data.push FSHelper.createFile parseWatcherFile vm, parentPath, file, nickname
+      data.push FSHelper.createFile \
+        parseWatcherFile vm, parentPath, file, nickname
 
     return data
 
