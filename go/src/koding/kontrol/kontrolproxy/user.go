@@ -33,11 +33,7 @@ func NewUserInfo(username, servicename, key, fullurl string) *UserInfo {
 }
 
 func populateUser(outreq *http.Request) (*UserInfo, error) {
-	userInfo, err := parseKey(outreq.Host)
-	if err != nil {
-		return nil, err
-	}
-
+	userInfo := &UserInfo{}
 	host, _, err := net.SplitHostPort(outreq.RemoteAddr)
 	if err != nil {
 		fmt.Printf("could not split host and port: %s", err.Error())
@@ -50,6 +46,11 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 		if loc != nil {
 			userInfo.Country = loc.CountryName
 		}
+	}
+
+	userInfo, err = parseKey(outreq.Host)
+	if err != nil {
+		return userInfo, err
 	}
 
 	return userInfo, nil
