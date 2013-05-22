@@ -270,10 +270,10 @@ class Sidebar extends JView
         title   : "Keyboard Shortcuts", icon : "shortcuts",
         action  : "showShortcuts"
       }
-      {
-        title   : "Manage Resources",   icon : "resources",
-        action  : "manageResources"
-      }
+      # {
+      #   title   : "Manage Resources",   icon : "resources",
+      #   action  : "manageResources"
+      # }
     ]
 
   adminNavItems =
