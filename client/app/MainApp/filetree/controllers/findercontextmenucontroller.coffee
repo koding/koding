@@ -214,6 +214,8 @@ class NFinderContextMenuController extends KDController
       customView                  : new NVMToggleButtonView {}, vmName: fileData.vmName
       'Re-initialize VM'          :
         action                    : 'resetVm'
+      'Unmount VM'                :
+        action                    : 'unmountVm'
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'

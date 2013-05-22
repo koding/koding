@@ -74,77 +74,64 @@ class NFinderController extends KDViewController
     else
       @loadVms()
 
-  loadDefaultStructure:->
-
-    return unless KD.isLoggedIn()
-    return if @defaultStructureLoaded
-    @defaultStructureLoaded = yes
-
-    kiteController = KD.getSingleton('kiteController')
-    timer = Date.now()
-
-    @vms.forEach (vmFs)->
-      {treeController} = KD.getSingleton 'finderController'
-      vmFs.emit "fs.job.started"
-      kiteController.run
-        method     : 'fs.readDirectory'
-        vmName     : vmFs.vmName
-        withArgs   :
-          path     : FSHelper.plainPath vmFs.path
-          onChange : (change)=>
-            FSHelper.folderOnChange vmFs.vmName, vmFs.path, change, treeController
-      , (err, response)=>
-
-        if response
-          vmFs.registerWatcher response
-          files = FSHelper.parseWatcher vmFs.vmName, vmFs.path, response.files
-          treeController.addNodes files
-          treeController.emit 'fs.retry.success'
-          treeController.hideNotification()
-
-        log "#{(Date.now()-timer)/1000}sec !"
-        vmFs.emit "fs.job.finished"
-
   loadVms:(vmNames, callback)->
-
     unless vmNames
       vmNames = [(KD.getSingleton 'vmController').getDefaultVmName()]
 
     return callback? "vmNames should be an Array"  unless Array.isArray vmNames
 
+    @cleanup()
+    @mountVm vm  for vm in vmNames
+    callback?()
+
+  getVmNode:(vmName)->
+    return null  unless vmName
+    for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
+      return vmItem  if vmItem.data.vmName is vmName
+
+  mountVm:(vm, fetchContent = yes)->
+    return unless KD.isLoggedIn()
+    return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
+
+    [vmName, path] = vm.split ":"
+    path or= "/home/#{KD.nick()}"
+
+    if vmItem = @getVmNode vmName
+      return warn "VM #{vmName} is already mounted!"
+
+    @vms.push FSHelper.createFile
+      name   : "#{path}"
+      path   : "[#{vmName}]#{path}"
+      type   : "vm"
+      vmName : vmName
+
+    @treeController.addNode @vms.last
+
+    vmItem = @getVmNode vmName
+    @treeController.expandFolder vmItem  if fetchContent and vmItem
+
+  unmountVm:(vmName)->
+    return unless KD.isLoggedIn()
+    return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+
+    if vmItem
+      @stopWatching vmItem.data.path
+      FSHelper.deregisterVmFiles vmName
+      @treeController.removeNodeView vmItem
+      @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
+
+  updateVMRoot:(vmName, path, callback)->
+    return warn 'VM name and new path required!'  unless vmName or path
+
+    @unmountVm vmName
+    callback?()
+    @mountVm "#{vmName}:#{path}"
+
+  cleanup:->
     @treeController.removeAllNodes()
     FSHelper.resetRegistry()
     @stopAllWatchers()
-
-    @vms      = []
-    _inUseVMs = []
-    for vm in vmNames
-      [vmName, path] = vm.split ":"
-      path         or= "/home/#{KD.nick()}"
-      unless vmName in _inUseVMs
-        _inUseVMs.push vmName
-        @vms.push FSHelper.createFile {
-          name   : "#{path}"
-          path   : "[#{vmName}]#{path}"
-          type   : "vm"
-          vmName : vmName
-        }
-      else warn "Ignoring already in use VM, named #{vmName}"
-
-    @defaultStructureLoaded = no
-    @treeController.initTree @vms
-    @loadDefaultStructure()
-    callback?()
-
-  updateVMRoot:(vmName, path, callback)->
-    # I know this looks ugly, I'll make it better later ~ GG
-    newVms = []
-    for vm in @vms
-      if vm.vmName is vmName
-      then newPath = path
-      else newPath = FSHelper.plainPath vm.path
-      newVms.push "#{vm.vmName}:#{newPath}"
-    @loadVms newVms, callback
+    @vms = []
 
   setRecentFile:(filePath, callback)->
 
