@@ -15,7 +15,9 @@ class FSFile extends FSItem
     @kiteController.run
       kiteName  : 'os'
       method    : 'fs.readFile'
-      withArgs  : {@path}
+      vmName    : @vmName
+      withArgs  :
+        path    : FSHelper.plainPath @path
     , (err, response)=>
 
       if err then warn err
@@ -30,11 +32,10 @@ class FSFile extends FSItem
 
   saveAs:(contents, name, parentPath, callback)->
 
-    oldPath = @path
-    newPath = "#{parentPath}/#{name}"
+    newPath = FSHelper.plainPath "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
 
-    FSHelper.ensureNonexistentPath "#{newPath}", (err, response)=>
+    FSHelper.ensureNonexistentPath "#{newPath}", @vmName, (err, response)=>
       if err
         callback? err, response
         warn err
@@ -47,9 +48,6 @@ class FSFile extends FSItem
 
   save:(contents, callback)->
 
-    # if FSHelper.isEscapedPath @path
-    #   @path = FSHelper.unescapeFilePath @path
-
     @emit "fs.save.started"
 
     # Convert to base64
@@ -58,7 +56,10 @@ class FSFile extends FSItem
     @kiteController.run
       kiteName  : 'os'
       method    : 'fs.writeFile'
-      withArgs  : {@path, content}
+      vmName    : @vmName
+      withArgs  :
+        path    : FSHelper.plainPath @path
+        content : content
     , (err, res)=>
 
       if err then warn err

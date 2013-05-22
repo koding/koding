@@ -28,7 +28,7 @@ class FSFolder extends FSFile
 
     @kiteController.run
       kiteName  : 'os'
-      vmName    : @getData().vmName
+      vmName    : @vmName
       method    : 'fs.createDirectory'
       withArgs  :
         path    : FSHelper.plainPath @path

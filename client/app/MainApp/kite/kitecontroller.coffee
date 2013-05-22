@@ -93,6 +93,7 @@ class KiteController extends KDController
              else if not currentGroupName or currentGroupName is 'koding'
              then KD.nick()
              else currentGroupName
+    options.vmName = vmName
 
     kite = @getKite options.kiteName, vmName
 

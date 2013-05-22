@@ -587,7 +587,7 @@ class NFinderTreeController extends JTreeViewController
     return nodeView if lastEnteredNode is nodeView or nodeView in @selectedNodes
     lastEnteredNode = nodeView
     clearTimeout @expandTimeout
-    if nodeView.getData().type is ("folder" or "mount")
+    if nodeView.getData().type in ["folder","mount","vm"]
       @expandTimeout = setTimeout (=> @expandFolder nodeView), 800
     @showDragOverFeedback nodeView, event
     e = event.originalEvent
@@ -615,7 +615,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-    return unless nodeView.getData?().type in ['folder', 'mount']
+    return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView
