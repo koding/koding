@@ -57,25 +57,33 @@ module.exports = class JVM extends Model
       return callback err  if err
       account.fetchUser (err, user) =>
         return callback err  if err
-        if type is 'group'
-          name = "#{groupSlug}~#{(new Date()).getTime()}"
-        else if type is 'user'
-          name = "#{groupSlug}~#{user.username}-#{(new Date()).getTime()}"
-        vm = new JVM {
-          name    : name
-          users   : [{ id: user.getId(), sudo: yes }]
-          groups  : [{ id: group.getId() }]
-          usage
+        name = "#{groupSlug}~"
+        if type is 'user'
+          name = "#{name}#{user.username}-"
+
+        nameFactory = (require 'koding-counter') {
+          db          : JVM.getClient()
+          counterName : name
+          offset      : 0
         }
-        vm.save (err) =>
+
+        nameFactory.next (err, uid)=>
           return callback err  if err
-          group.addVm vm, (err)=>
+          vm = new JVM {
+            name    : "#{name}#{uid}"
+            users   : [{ id: user.getId(), sudo: yes }]
+            groups  : [{ id: group.getId() }]
+            usage
+          }
+          vm.save (err) =>
             return callback err  if err
-            if type is 'group'
-              @addVmUsers vm, group, ->
+            group.addVm vm, (err)=>
+              return callback err  if err
+              if type is 'group'
+                @addVmUsers vm, group, ->
+                  callback null, vm
+              else
                 callback null, vm
-            else
-              callback null, vm
 
   @addVmUsers = (vm, group, callback)->
     group.fetchMembers (err, members)->
