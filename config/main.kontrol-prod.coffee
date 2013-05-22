@@ -113,14 +113,14 @@ module.exports =
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : "http://webserver-build-koding-#{version}.in.koding.com:1337"
   mq            :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
     port        : 5672
-    apiAddress  : "rabbitmq1.in.koding.com"
+    apiAddress  : "internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 60
+    heartbeat   : 20
     vhost       : 'new'
   broker        :
     ip          : ""
