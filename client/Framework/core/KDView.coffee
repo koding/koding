@@ -371,11 +371,18 @@ class KDView extends KDObject
   getRelativeX:-> @$().position().left
   getRelativeY:-> @$().position().top
 
+  destroyChild: (prop) ->
+    if @[prop]?
+      @[prop].destroy?()
+      delete @[prop]
+      yes
+    else no
+
 # #
 # ADD/DESTROY VIEW INSTANCES
 # #
 
-  destroy:->
+  destroy: ->
     # instance destroys own subviews
     @destroySubViews()  if @getSubViews().length > 0
 
@@ -394,7 +401,7 @@ class KDView extends KDObject
     # and delete instance from KD.instances registry
     super
 
-  destroySubViews:()->
+  destroySubViews: ->
     # (subView.destroy() for subView in @getSubViews())
 
     for subView in @getSubViews().slice()

@@ -4,18 +4,23 @@ module.exports = class JVM extends Model
 
   {permit} = require './group/permissionset'
 
+  KodingError = require '../error'
+
   @share()
 
   @trait __dirname, '../traits/protected'
+
+  @bound = require 'koding-bound'
 
   @set
     softDelete          : yes
     permissions         :
       'sudoer'          : []
+      'create vms'      : ['member','moderator']
       'list all vms'    : ['member','moderator']
       'list default vm' : ['member','moderator']
     sharedMethods       :
-      static            : ['fetchVmsByContext']
+      static            : ['fetchVms','fetchVmsByContext','calculateUsage']
       instance          : []
     schema              :
       ip                :
@@ -27,6 +32,16 @@ module.exports = class JVM extends Model
       name              : String
       users             : Array
       groups            : Array
+      usage             : # TODO: usage seems like the wrong term for this.
+        cpu             :
+          type          : Number
+          default       : 1
+        ram             :
+          type          : Number
+          default       : 0.25
+        disk            :
+          type          : Number
+          default       : 0.5
       isEnabled         :
         type            : Boolean
         default         : yes
@@ -34,35 +49,114 @@ module.exports = class JVM extends Model
         type            : Boolean
         default         : no
 
+  # TODO: this needs to be rethought in terms of bundles, as per the
+  # discussion between Devrim, Chris T. and Badahir  C.T.
+  @createVm = ({account, type, groupSlug, usage}, callback)->
+    JGroup = require './group'
+    JGroup.one {slug: groupSlug}, (err, group) =>
+      return callback err  if err
+      account.fetchUser (err, user) =>
+        return callback err  if err
+        if type is 'group'
+          name = "#{groupSlug}~#{(new Date()).getTime()}"
+        else if type is 'user'
+          name = "#{groupSlug}~#{user.username}-#{(new Date()).getTime()}"
+        vm = new JVM {
+          name    : name
+          users   : [{ id: user.getId(), sudo: yes }]
+          groups  : [{ id: group.getId() }]
+          usage
+        }
+        vm.save (err) =>
+          return callback err  if err
+          if type is 'group'
+            @addVmUsers vm, group, ->
+              callback null, vm
+          else
+            callback null, vm
+
+  @addVmUsers = (vm, group, callback)->
+    group.fetchMembers (err, members)->
+      return callback err  if err
+      members.forEach (member)->
+        member.fetchUser (err, user)->
+          if err then callback err
+          else
+            member.checkPermission group, 'sudoer', (err, hasPermission)->
+              if err then handleError err
+              else
+                vm.update {
+                  $addToSet: users: { id: user.getId(), sudo: hasPermission }
+                }, callback
+
+  # @create = permit 'create vms',
+  #   success: (client, callback) ->
+
+  # @initializeVmLimits =(target, callback)->
+  #   JLimit = require './limit'
+  #   limit = new JLimit { quota: 5 }
+  #   limit.save (err)->
+  #     return callback err  if err
+  #     target.addLimit limit, 'vm', (err)->
+  #       callback err ? null, unless err then limit
+
+  @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
+
+  @calculateUsage = (account, groupSlug, callback)->
+    nickname =
+      if 'string' is typeof account then account
+      else account.profile.nickname
+
+    @all { name: ///$#{groupSlug}~#{nickname}~/// }, (err, vms) =>
+      return callback err  if err?
+      callback null, vms
+        .map((vm) -> vm.usage)
+        .reduce (acc, usage) ->
+          for own field, val of usage
+            acc[field] += val
+            return acc
+        , @getUsageTemplate()
+
+  @calculateUsage$ = permit 'list all vms',
+    success: (client, groupSlug, callback)->
+      {delegate} = client.connection
+      @calculateUsage delegate, groupSlug, callback
+
+  @fetchAccountVmsBySelector = (account, selector, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
+
+    options ?= {}
+    # options.limit = Math.min options.limit ? 10, 10
+
+    account.fetchUser (err, user) ->
+      return callback err  if err
+
+      selector.users = { $elemMatch: id: user.getId() }
+
+      JVM.someData selector, { name: 1 }, options, (err, cursor)->
+        return callback err  if err
+
+        cursor.toArray (err, arr)->
+          return callback err  if err
+          callback null, arr.map (vm)-> vm.name
+
   @fetchVmsByContext = permit 'list all vms',
     success: (client, options, callback) ->
-      [callback, options] = [options, callback]  unless callback
-
-      options ?= {}
-      options.limit = Math.min options.limit ? 10, 10
-
       JGroup = require './group'
-
-      {context, connection:{delegate}} = client
 
       slug = context.group ? 'koding'
 
-      delegate.fetchUser (err, user) ->
+      JGroup.one {slug}, (err, group) ->
         return callback err  if err
 
-        JGroup.one {slug}, (err, group) ->
-          return callback err  if err
+        selector = groups: { $elemMatch: id: group.getId() }
+        @fetchAccountVmsBySelector selector, options, callback
 
-          selector =
-            groups  : { $elemMatch: id: group.getId() }
-            users   : { $elemMatch: id: user.getId() }
+  @fetchVms = permit 'list all vms',
+    success: (client, options, callback) ->
+      {delegate} = client.connection
+      @fetchAccountVmsBySelector delegate, {}, options, callback
 
-          JVM.someData selector, { name: 1 }, options, (err, cursor)->
-            return callback err  if err
-
-            cursor.toArray (err, arr)->
-              return callback err  if err
-              callback null, arr.map (vm)-> vm.name
 
     # TODO: let's implement something like this:
     # failure: (client, callback) ->
@@ -105,16 +199,19 @@ module.exports = class JVM extends Model
         else user.update { $set: { uid } }, handleError
 
     JGroup.on 'GroupCreated', ({group, creator})->
-      creator.fetchUser (err, user)->
+      group.fetchBundle (err, bundle)->
         if err then handleError err
-        else
-          addVm {
-            user
-            target  : group
-            sudo    : yes
-            name    : group.slug
-            groups  : wrapGroup group
-          }
+        else if bundle
+          creator.fetchUser (err, user)->
+            if err then handleError err
+            else
+              addVm {
+                user
+                target  : group
+                sudo    : yes
+                name    : group.slug
+                groups  : wrapGroup group
+              }
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->

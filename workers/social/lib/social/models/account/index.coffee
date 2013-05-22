@@ -114,7 +114,7 @@ module.exports = class JAccount extends jraphical.Module
               customType      :
                 type          : String
                 default       : 'defaultImage'
-                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
               customValue     :
                 type          : String
                 default       : '1'

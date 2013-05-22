@@ -1614,3 +1614,69 @@ span.main-nav-icon
 
   span
     color               #ffb500
+
+// payment modal
+.kdmodal.payments-modal
+
+  form
+    max-height          400px
+    overflow            auto
+
+    .formline
+
+      > label.kdlabel
+        float           none
+        display         inline-block
+
+      &.cardMonth
+        .input-wrapper
+          width auto
+
+      &.cardNumber
+
+        > div.input-wrapper:first-of-type
+          width 270px
+
+        > div.input-wrapper:last-of-type
+          width 70px
+
+
+        span.icon
+          abs()
+          right         116px
+          top           13px
+          size          30px, 20px
+          sprite()
+          bg position,  30px 20px
+
+          &.mastercard
+            bg position, -70px -440px
+
+          &.amex
+            bg position, -70px -460px
+
+          &.visa
+            bg position, -40px -440px
+
+          &.discover
+            bg position, -40px -460px
+
+      &.address1, &.address2
+
+        .input-wrapper
+          width         350px
+
+      .input-wrapper
+        display         inline-block
+        width           170px
+        margin-right    10px
+
+        > .kdinput
+          width         100%
+
+        > input, > textarea
+          borderBox()
+          min-width     10px
+
+  .no-payment-found
+    padding       15px
