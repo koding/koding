@@ -44,7 +44,7 @@ class LinkGroup extends KDCustomHTMLView
     #   return
 
     for participant, index in participants when participant
-      if participant?.bongo_.constructorName is "ObjectRef"
+      if participant?.bongo_?.constructorName is "ObjectRef"
         itemOptions.origin = participant
         @["participant#{index}"] = new itemClass itemOptions
       else

@@ -137,11 +137,7 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    sortedActivities = _.sortBy cache.activities, (activity) ->
-      activity.modifiedAt
-
-    modifiedAt = sortedActivities.last.modifiedAt
-    @lastItemTimeStamp = modifiedAt  unless @lastItemTimeStamp > modifiedAt
+    @lastItemTimeStamp = cache.from
 
     KD.logToMixpanel "populateActivity.cache.success", 5
 
