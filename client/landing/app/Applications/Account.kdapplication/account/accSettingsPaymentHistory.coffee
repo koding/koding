@@ -20,7 +20,7 @@ class AccountPaymentHistoryListController extends KDListViewController
         @hideLazyLoader()
       unless err
         for t in trans
-          if t.amount + t.tax == 0
+          if t.amount + t.tax is 0
             continue
           transactions.push
             status     : t.status
