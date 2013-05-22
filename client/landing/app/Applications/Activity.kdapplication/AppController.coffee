@@ -316,11 +316,8 @@ class ActivityAppController extends AppController
     if @continueLoadingTeasersLastTimeStamp is lastTimeStamp
       return
 
-    # HACK: this gets called multiple times if there's no wait
-    KD.utils.wait 1000, =>
-      return  unless @lastFrom?
-      lastTimeStamp = (new Date @lastFrom).getTime()
-      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    lastTimeStamp = (new Date @lastFrom).getTime()
+    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed
