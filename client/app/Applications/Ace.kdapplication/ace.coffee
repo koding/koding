@@ -54,17 +54,17 @@ class Ace extends KDView
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
-    @addKeyCombo "save", "Ctrl-S", "Command-S", @bound "requestSave"
+    @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
 
-    @addKeyCombo "saveAs", "Ctrl-Shift-S", "Command-Shift-S", @bound "requestSaveAs"
+    @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
 
-    @addKeyCombo "find", "Ctrl-F", "Command-F", => @showFindReplaceView no
+    @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
 
-    @addKeyCombo "replace", "Ctrl-Shift-F", "Command-Shift-F", => @showFindReplaceView yes
+    @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
 
-    @addKeyCombo "compileAndRun", "Ctrl-Shift-C", "Command-Shift-C", => @getDelegate().compileAndRun()
+    @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
 
-    @addKeyCombo "preview", "Ctrl-Shift-P", "Command-Shift-P", => @getDelegate().preview()
+    @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
     @getSingleton('windowController').on "keydown", (e) =>
       {findAndReplaceView} = @getDelegate()
@@ -87,7 +87,8 @@ class Ace extends KDView
     findAndReplaceView.setTextIntoFindInput selectedText
     findAndReplaceView.on "FindAndReplaceViewClosed", => @focus()
 
-  addKeyCombo: (name, winKey, macKey, callback) ->
+  addKeyCombo: (name, winKey, callback, macKey) ->
+    macKey or= winKey.replace "Ctrl", "Command"
     @editor.commands.addCommand
       name    : name
       bindKey :
