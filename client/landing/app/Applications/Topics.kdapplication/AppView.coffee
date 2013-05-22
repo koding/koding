@@ -8,8 +8,12 @@ class TopicsMainView extends KDView
 
   createCommons:->
 
-    @addSubView header = new HeaderViewSection
+    @addSubView @header = new HeaderViewSection
       type  : "big"
       title : "Topics"
 
-    header.setSearchInput()
+    @getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
+    @setSearchInput()
+
+  setSearchInput:->
+    @header.setSearchInput()  if 'read tags' in KD.config.permissions
