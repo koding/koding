@@ -83,29 +83,26 @@ class MainController extends KDController
 
       @ready @emit.bind @, "AccountChanged", account, firstLoad
 
-      unless @mainViewController
-        @loginScreen = new LoginView
-        KDView.appendToDOMBody @loginScreen
+      @createMainViewController()  unless @mainViewController
 
-        @mainViewController  = new MainViewController
-          view    : mainView = new MainView
-            domId : "kdmaincontainer"
+      @decorateBodyTag()
+      @emit 'ready'
+      # this emits following events
+      # -> "pageLoaded.as.loggedIn"
+      # -> "pageLoaded.as.loggedOut"
+      # -> "accountChanged.to.loggedIn"
+      # -> "accountChanged.to.loggedOut"
+      eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
+      eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
+      @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-        KDView.appendToDOMBody mainView
-
-        @decorateBodyTag()
-        @emit 'ready'
-
-        eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
-        eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
-
-        # this emits following events
-        # -> "pageLoaded.as.loggedIn"
-        # -> "pageLoaded.as.loggedOut"
-        # -> "accountChanged.to.loggedIn"
-        # -> "accountChanged.to.loggedOut"
-
-        @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
+  createMainViewController:->
+    @loginScreen = new LoginView
+    KDView.appendToDOMBody @loginScreen
+    @mainViewController  = new MainViewController
+      view    : mainView = new MainView
+        domId : "kdmaincontainer"
+    KDView.appendToDOMBody mainView
 
   doLogout:->
 
