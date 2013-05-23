@@ -34,7 +34,8 @@ module.exports = deepFreeze
     port        : sourceServerPort
   mongo         : mongo
   neo4j         :
-    host        : "http://kgraphdb1.in.koding.com"
+    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
+    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
   runNeo4jFeeder: no
   runGoBroker   : yes
