@@ -66,7 +66,8 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           @fetchAndPopulate controller
     else
       controller.on 'teasersLoaded', (count)=>
-        controller.moreLink?.show() if count >= @requestLimit
+        controller.moreLink?.show()    if count >= @requestLimit
+        controller.hideNoItemWidget()  if count > 0
       controller.on 'ShowMoreRequested', @showListModal.bind this, options
 
     return [controller, controller.getView()]
