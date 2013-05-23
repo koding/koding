@@ -84,6 +84,7 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
+        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
     schema          :
@@ -118,6 +119,9 @@ module.exports = class JGroup extends Module
             default       : '1'
           customOptions   : Object
     relationships   :
+      bundle        :
+        targetType  : 'JGroupBundle'
+        as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
@@ -328,6 +332,27 @@ module.exports = class JGroup extends Module
       ]
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
+      if groupData['group-vm'] is 'on'
+        if groupData['member-vm'] is 'on'
+          limits =
+            cpu             : { quota: groupData['vm-cpu'] }
+            ram             : { quota: groupData['vm-ram'] }
+            disk            : { quota: groupData['vm-disk'] }
+            users           : { quota: groupData['vm-user'] }
+            'cpu per user'  : { quota: groupData['vm-cpu-member'] }
+            'ram per user'  : { quota: groupData['vm-ram-member'] }
+            'disk per user' : { quota: groupData['vm-disk-member'] }
+        else
+          limits =
+            cpu             : { quota: groupData['vm-cpu'] }
+            ram             : { quota: groupData['vm-ram'] }
+            disk            : { quota: groupData['vm-disk'] }
+            users           : { quota: groupData['vm-user'] }
+        queue.push -> group.createBundle limits, (err)->
+          if err then callback err
+          else
+            console.log 'group bundle created'
+            queue.next()
 
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }
@@ -1194,3 +1219,55 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
+ 
+  updateBundle: (formData, callback = (->)) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
+      bundle.fetchLimits (err, limits) ->
+        return callback err  if err?
+        queue = limits.map (limit) -> ->
+          limit.update { $set: quota: formData.quotas[limit.title] }, fin
+        dash queue, callback
+        fin = queue.fin.bind queue
+ 
+  updateBundle$: permit 'change bundle',
+    success: (client, formData, callback)->
+      @updateBundle formData, callback
+ 
+  destroyBundle: (callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      return callback new KodingError 'Bundle not found!'  unless bundle?
+ 
+      bundle.remove callback
+ 
+  destroyBundle$: permit 'change bundle',
+    success: (client, callback) -> @destroyBundle callback
+ 
+  createBundle: (limits, callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      return callback new KodingError 'Bundle exists!'  if bundle?
+ 
+      JGroupBundle = require '../bundle/groupbundle'
+ 
+      bundle = new JGroupBundle {}, limits
+      bundle.save (err) =>
+        return callback err  if err?
+ 
+        @addBundle bundle, callback
+ 
+  createBundle$: permit 'change bundle',
+    success: (client, limits, callback) -> @createBundle limits, callback
+ 
+  fetchBundle$: permit 'change bundle',
+    success: (client, rest...) -> @fetchBundle rest...
+ 
+  getDefaultLimits:->
+    {
+      cpu             : { quota: 1 }
+      ram             : { quota: 64 }
+      disk            : { quota: 500 }
+      users           : { quota: 20 }
+    }
