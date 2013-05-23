@@ -117,6 +117,17 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
+  fetchUpdateAvailableApps: (callback) ->
+    return callback? null, @updateAvailableApps if @updateAvailableApps
+    {publishedApps}      = @
+    @updateAvailableApps = []
+
+    @fetchApps (err, apps) =>
+      for appName, app of apps
+        if @isAppUpdateAvailable app.name, app.version
+          @updateAvailableApps.push publishedApps[app.name]
+      callback? null, @updateAvailableApps
+
   fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
@@ -188,7 +199,7 @@ class KodingAppsController extends KDController
 
     folder = FSHelper.createFileFromPath manifest.path, "folder"
     folder.remove (err, res) =>
-      # TODO: Error handling
+      return warn err if err
       @refreshApps =>
         notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
         KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>

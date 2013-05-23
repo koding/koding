@@ -34,16 +34,10 @@ class AppsAppController extends AppController
           title             : "Updates"
           dataSource        : (selector, options, callback)=>
             appsController  = @getSingleton "kodingAppsController"
-            {publishedApps} = appsController
-            availableApps   = []
+            appsController.fetchUpdateAvailableApps (err, res) =>
+              callback err, res
+              @manageUpdateAllButton res
 
-            appsController.fetchApps (err, apps) =>
-              for appName, app of apps
-                if appsController.isAppUpdateAvailable app.name, app.version
-                  availableApps.push publishedApps[app.name]
-              callback null, availableApps
-
-              @addUpdateAllButton availableApps unless @isUpdateAllButtonAdded
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
