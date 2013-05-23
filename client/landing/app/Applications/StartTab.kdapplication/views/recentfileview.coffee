@@ -4,7 +4,7 @@ class StartTabRecentFileItemView extends JView
 
     options.cssClass or= 'finder-item file clearfix'
     options.tooltip  or=
-      title            : "<p class='file-path'>#{data}</p>"
+      title            : "<p class='file-path'>#{FSHelper.plainPath data}</p>"
       template         : '<div class="twipsy-arrow"></div><div class="twipsy-inner twipsy-inner-wide"></div>'
 
     super options, data
@@ -33,8 +33,12 @@ class StartTabRecentFileItemView extends JView
 
   click:(event)->
 
-    # KD.getSingleton("appManager").notify()
-    file = FSHelper.createFileFromPath @getData()
+    path = @getData()
+
+    vmName = FSHelper.getVMNameFromPath path
+    path   = FSHelper.plainPath path
+    file   = FSHelper.createFile {path, vmName, type:'file'}
+
     @loader.show()
     file.fetchContents (err, contents)=>
       @loader.hide()
