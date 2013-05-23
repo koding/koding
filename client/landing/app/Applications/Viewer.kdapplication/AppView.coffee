@@ -2,7 +2,7 @@ class PreviewerView extends KDView
 
   constructor:(options = {},data)->
     options.cssClass = 'previewer-body'
-    super options,data
+    super options, data
 
   openPath:(path)->
 
@@ -32,3 +32,6 @@ class PreviewerView extends KDView
     @addSubView @viewerHeader = new ViewerTopBar {}, @path
     @addSubView @iframe = new KDCustomHTMLView
       tagName : 'iframe'
+
+    {path} = @getOption 'params'
+    if path then @utils.defer => @openPath path
