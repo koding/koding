@@ -87,7 +87,10 @@ class GroupsAppController extends AppController
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
 
-  getUserArea:-> @userArea
+  getUserArea:->
+    @userArea ?
+      if KD.config.entryPoint?.type is 'group'
+      then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
@@ -312,11 +315,12 @@ class GroupsAppController extends AppController
       @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
-    if policy.explanation?
-      title = "Request Access"
+
+    if policy.explanation
+      title   = "Request Access"
       content = __utils.applyMarkdown policy.explanation
       success = "Your request has been sent to the group's admin."
-    else if policy.approvalEnabled?
+    else if policy.approvalEnabled
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
       success = "Thanks! You'll be notified when group's admin accepts you."
@@ -925,7 +929,7 @@ class GroupsAppController extends AppController
     group.fetchMembershipPolicy (err, policy)=>
       return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
-      port = if location.port isnt 80 then ":#{location.port}" else ''
+      port = if location.port then ":#{location.port}" else ''
       groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
 
       if group.privacy is 'public'

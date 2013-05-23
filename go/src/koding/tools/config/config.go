@@ -53,6 +53,7 @@ type Config struct {
 		Proxy struct {
 			Port    int
 			PortSSL int
+			SSLIPS	string
 		}
 		Mongo struct {
 			Host string

@@ -107,6 +107,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
       useNeo4j: no
       resourceName: socialQueueName
       suppressLogs: no

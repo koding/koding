@@ -7,20 +7,18 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
-	"sync"
 	"time"
 )
 
 type Session struct {
 	Service                      *Service
 	ReceiveChan                  chan interface{}
+	Closed                       bool
 	sendChan                     chan interface{}
 	doConnCheck, connCheckResult chan bool
 	readSemaphore                chan bool
 	writeOpenFrame               bool
 	lastSendTime                 time.Time
-	closed                       bool
-	closeMutex                   sync.Mutex
 	currentSecond                int64
 	receiveCounter               int
 	cookie                       string
@@ -31,8 +29,8 @@ type Session struct {
 func newSession(service *Service, isWebsocket bool) *Session {
 	return &Session{
 		Service:        service,
-		ReceiveChan:    make(chan interface{}, 1024),
-		sendChan:       make(chan interface{}, 1024),
+		ReceiveChan:    make(chan interface{}, 1000),
+		sendChan:       make(chan interface{}, 1000),
 		readSemaphore:  make(chan bool, 1),
 		writeOpenFrame: true,
 		lastSendTime:   time.Now(),
@@ -42,7 +40,7 @@ func newSession(service *Service, isWebsocket bool) *Session {
 }
 
 func (s *Session) Send(data interface{}) bool {
-	if s.closed {
+	if s.Closed {
 		return true
 	}
 	select {
@@ -55,20 +53,17 @@ func (s *Session) Send(data interface{}) bool {
 }
 
 func (s *Session) Close() {
-	go func() {
-		s.closeMutex.Lock()
-		defer s.closeMutex.Unlock()
-		if !s.closed {
-			s.closed = true
-			close(s.ReceiveChan)
-		}
-	}()
+	s.Closed = true
+	select {
+	case s.ReceiveChan <- nil:
+		// successful
+	default:
+		// never block
+	}
 }
 
 func (s *Session) ReadMessages(data []byte) bool {
-	s.closeMutex.Lock()
-	defer s.closeMutex.Unlock()
-	if s.closed {
+	if s.Closed {
 		return true
 	}
 

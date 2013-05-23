@@ -100,6 +100,7 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
       useNeo4j: no
       logToExternal: yes  # rollbar, mixpanel etc.
       resourceName: socialQueueName

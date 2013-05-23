@@ -127,6 +127,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
+        userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
@@ -179,6 +180,7 @@ config =
       proxy         :
         port        : 1
         portssl     : 1
+        sslips      : 1
       mongo         :
         host        : 1
       rabbitmq      :

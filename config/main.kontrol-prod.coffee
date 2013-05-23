@@ -12,7 +12,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "#{version}.x.koding.com"
+    address     : "new.koding.com"
   userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
@@ -30,7 +30,7 @@ module.exports =
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
-  runNeo4jFeeder: no
+  runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
   runRerouting  : no
@@ -99,17 +99,18 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "http://#{version}.x.koding.com"
+    staticFilesBaseUrl: "https://new.koding.com"
     runtimeOptions:
-      useNeo4j: no
+      userSitesDomain: 'kd.io'
+      useNeo4j: yes
       logToExternal : no
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "http://#{version}.x.koding.com"
+      mainUri   : "http://new.koding.com"
       broker    :
-        sockJS   : "http://broker-#{version}.x.koding.com/subscribe"
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : "http://webserver-build-koding-#{version}.in.koding.com:1337"
@@ -132,7 +133,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "#{version}.x.koding.com"
+    host        : "new.koding.com"
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -157,6 +158,7 @@ module.exports =
     proxy         :
       port        : 80
       portssl     : 443
+      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     mongo         :
       host        : 'kontrol.in.koding.com'
     rabbitmq      :
