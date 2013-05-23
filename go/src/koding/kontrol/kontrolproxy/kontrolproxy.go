@@ -81,16 +81,17 @@ func main() {
 
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
-	for _, sslip := range strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",") {
-		go func() {
+	for _, sslip := range sslips {
+		go func(sslip string) {
 			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
 			if err != nil {
-				log.Println("https mode is disabled. please add cert.pem and key.pem files.")
+				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
 			} else {
 				log.Printf("https mode is enabled. serving at :%s ...", portssl)
 			}
-		}()
+		}(sslip)
 	}
 
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
