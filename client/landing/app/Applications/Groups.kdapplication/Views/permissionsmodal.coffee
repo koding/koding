@@ -121,11 +121,11 @@ class PermissionsModal extends KDFormViewWithFields
 
   readableText = (text)->
     dictionary =
-      "JTag" : "Tags"
-      "JGroup": 'Groups'
-      "JPost":'Posts'
-      "JVocabulary": 'Vocabularies'
-      "JVM": "Compute"
+      "JTag"        : "Tags"
+      "JGroup"      : 'Groups'
+      "JPost"       :'Posts'
+      "JVocabulary" : 'Vocabularies'
+      "JVM"         : "Compute"
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->

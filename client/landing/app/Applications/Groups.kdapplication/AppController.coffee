@@ -312,11 +312,12 @@ class GroupsAppController extends AppController
       @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
-    if policy.explanation?
-      title = "Request Access"
+
+    if policy.explanation
+      title   = "Request Access"
       content = __utils.applyMarkdown policy.explanation
       success = "Your request has been sent to the group's admin."
-    else if policy.approvalEnabled?
+    else if policy.approvalEnabled
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
       success = "Thanks! You'll be notified when group's admin accepts you."
