@@ -874,40 +874,6 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
-  requestInvitation: secure (client, invitationType, callback)->
-    {delegate} = client.connection
-    JInvitationRequest = require '../invitationrequest'
-    JUser              = require '../user'
-
-    JUser.one username:delegate.profile.nickname, (err, user)=>
-      return callback err if err
-      selector =
-        group: @slug
-        status: $not: $in: JInvitationRequest.resolvedStatuses
-        $or: [
-          {'koding.username': delegate.profile.nickname}
-          {email: user.email}
-        ]
-      JInvitationRequest.one selector, (err, invitationRequest)=>
-        return callback err if err
-        if invitationRequest
-          callback null
-        else
-          invitationRequest = new JInvitationRequest {
-            invitationType
-            koding  : { username: delegate.profile.nickname }
-            email   : user.email
-            group   : @slug,
-            status  : 'pending'
-          }
-          invitationRequest.save (err)=>
-            return callback err if err
-            @addInvitationRequest invitationRequest, (err)=>
-              return callback err if err
-              if invitationType is 'basic approval'
-                invitationRequest.sendRequestNotification client, callback
-              @emit 'NewInvitationRequest'
-
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
 
@@ -927,11 +893,20 @@ module.exports = class JGroup extends Module
           queue.push -> callback null
           daisy queue
 
-  requestAccess: secure (client, callback)->
-    @requestAccessFor client, callback
+  requestAccess: secure (client, formData, callback)->
+    @requestAccessFor client, formData, callback
 
-  requestAccessFor: (account, callback)->
+  requestAccessFor: (account, formData, callback)->
+    JInvitationRequest = require '../invitationrequest'
+    JUser              = require '../user'
+    JAccount           = require '../account'
+
+    [callback, formData] = [formData, callback]  unless callback
+    formData ?= {}
+
     account = connection:delegate:account unless account.connection?
+    {delegate} = account.connection
+
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
@@ -940,7 +915,58 @@ module.exports = class JGroup extends Module
         else
           invitationType = 'basic approval'
 
-        @requestInvitation account, invitationType, callback
+        cb = (email, kallback)=>
+          selector =
+            group: @slug
+            status: $not: $in: JInvitationRequest.resolvedStatuses
+
+          if delegate instanceof JAccount
+            selector['$or'] = [
+              'koding.username' : delegate.profile.nickname
+              {email}
+            ]
+          else
+            selector.email = email
+
+          JInvitationRequest.one selector, (err, invitationRequest)=>
+            return kallback err if err
+            # here we use callback instead of kallback as we simulate success here
+            # but don't do any further actions
+            if invitationRequest then callback null
+            else
+              invitationRequest = new JInvitationRequest {
+                invitationType
+                email   : email
+                group   : @slug,
+                status  : 'pending'
+              }
+
+              if delegate instanceof JAccount
+                invitationRequest.koding = {}
+                invitationRequest.koding.username = delegate.profile.nickname
+
+              invitationRequest.save (err)=>
+                return kallback err if err
+                @addInvitationRequest invitationRequest, (err)=>
+                  return kallback err if err
+                  @emit 'NewInvitationRequest'
+                  # HK: disabling admin notification for non-koding users for now
+                  #     as JMailNotification is not compatible with non-users
+                  if invitationType is 'basic approval' and not delegate instanceof JAccount
+                    invitationRequest.sendRequestNotification account, kallback
+                  else
+                    kallback null
+
+        unless delegate instanceof JAccount
+          return callback 'Email address is missing'  unless formData?.email
+          cb formData.email, (err)=>
+            return callback err  if err
+            JInvitation = require '../invitation'
+            JInvitation.createViaGroupWithoutNotification account, this, [formData.email], callback
+        else
+          JUser.one username:delegate.profile.nickname, (err, user)=>
+            return callback err if err
+            cb user.email, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback

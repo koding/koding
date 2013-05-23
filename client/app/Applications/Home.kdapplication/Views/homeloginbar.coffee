@@ -43,15 +43,16 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Join"
       click       : (event)=>
-        if entryPoint?.type is 'group'
-          @utils.stopDOMEvent event
+        @utils.stopDOMEvent event
+        {entryPoint} = KD.config
+        if entryPoint
           requiresLogin =>
             @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
               unless err
                 @request.hide()
                 @requested.show()
         else
-          handler.call @request, event
+          @getSingleton('router').handleRoute "/Join", {entryPoint}
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -198,12 +199,16 @@ class HomeLoginBar extends JView
   decorateButtons:->
 
     {entryPoint} = KD.config
+    entryPoint or=
+      slug       : "koding"
+      type       : "group"
+
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
       else @request.hide()
       return
 
-    if entryPoint and 'member' not in KD.config.roles
+    if 'member' not in KD.config.roles
       if KD.isLoggedIn()
         @login.hide()
         @register.hide()
@@ -236,8 +241,7 @@ class HomeLoginBar extends JView
                   @invited.show()
                 else
                   @requested.show()
-
-    else if KD.isLoggedIn()
+    else
       @hide()
 
   viewAppended:->

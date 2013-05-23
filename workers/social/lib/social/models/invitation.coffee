@@ -422,6 +422,11 @@ module.exports = class JInvitation extends jraphical.Module
                       @sendInviteEmail invite,client,customMessage,limit,callback
 
   @createViaGroup = secure (client, group, emails, callback=->)->
+    @createViaGroupWithoutNotification client, group, emails, (err)=>
+      return callback err  if err
+      @sendEmailForInviteViaGroup client, invite, group, callback
+
+  @createViaGroupWithoutNotification = secure (client, group, emails, callback=->)->
     {delegate} = client.connection
     emails.forEach (email)=>
       selector =
@@ -429,25 +434,23 @@ module.exports = class JInvitation extends jraphical.Module
         group        : group.slug
 
       JInvitation.one selector, (err, existingInvite)=>
-        return callback err if err
-        if existingInvite
-          @sendEmailForInviteViaGroup client, existingInvite, group, callback
-        else
-          code = @generateInvitationCode email, group.slug
-          invite = new JInvitation
-            code         : code
-            maxUses      : 1
-            inviteeEmail : email
-            origin       : ObjectRef(delegate)
-            group        : group.slug
+        return callback err   if err
+        return callback null  if existingInvite
 
-          invite.save (err)=>
-            if err then callback err
-            else
-              invite.addInvitedBy delegate, (err)=>
-                if err then callback err
-                else
-                  @sendEmailForInviteViaGroup client, invite, group, callback
+        code = @generateInvitationCode email, group.slug
+        invite = new JInvitation
+          code         : code
+          maxUses      : 1
+          inviteeEmail : email
+          origin       : ObjectRef(delegate)
+          group        : group.slug
+
+        invite.save (err)=>
+          return callback err  if err
+          if delegate instanceof JAccount
+            invite.addInvitedBy delegate, callback
+          else 
+            callback null
 
   redeem:secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}
