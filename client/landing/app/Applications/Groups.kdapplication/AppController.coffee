@@ -890,7 +890,7 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
-    # @prepareBundleTab()
+    @prepareBundleTab()
     # @prepareVocabularyTab()
 
     if 'private' is group.privacy
