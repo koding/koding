@@ -4,29 +4,33 @@
 dateFormat  = require 'dateformat'
 
 flags =
-  comment              :
-    definition         : "comment"
-  likeActivities       :
-    definition         : "like"
-  followActions        :
-    definition         : "follow"
-  privateMessage       :
-    definition         : "private message"
-  groupInvite          :
-    definition         : "group invite"
-    fullDefinition     : "has invited you to"
-  groupRequest         :
-    definition         : "group access request"
-    fullDefinition     : "has requested access to"
-  groupApproved        :
-    definition         : "group access approval"
-    fullDefinition     : "has approved your access request to"
+  comment                 :
+    definition            : "comment"
+  likeActivities          :
+    definition            : "like"
+  followActions           :
+    definition            : "follow"
+  privateMessage          :
+    definition            : "private message"
+  groupInvite             :
+    definition            : "group invite"
+    fullDefinition        : "has invited you to"
+  groupRequest            :
+    'ApprovalRequested'   :
+      definition          : "group access request"
+      fullDefinition      : "has requested access to"
+    'InvitationRequested' :
+      definition          : "group invitation request"
+      fullDefinition      : "has requested invitation to"
+  groupApproved           :
+    definition            : "group access approval"
+    fullDefinition        : "has approved your access request to"
 
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
 gravatar  = (m, size = 20) ->
   """<img width="#{size}px" height="#{size}px" style="border:none; margin-right:8px; float:left; margin-top:3px;"
-          src="https://gravatar.com/avatar/#{m.sender.profile.hash}?size=#{size}&d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.#{size}.png" />"""
+          src="https://gravatar.com/avatar/#{m.sender.profile?.hash}?size=#{size}&d=https%3A%2F%2Fapi.koding.com%2Fimages%2Fdefaultavatar%2Fdefault.avatar.#{size}.png" />"""
 
 Templates =
 
@@ -92,7 +96,7 @@ Templates =
       <td style="border-right: 1px solid #CCC; text-align:right;
                  padding-right:10px;"></td>
       <td style="padding-left: 10px;" colspan="2">
-        #{turnOffLink} <br/>
+        #{turnOffLink}
         #{link "https://koding.com", "Koding"}, Inc. 358 Brannan, San Francisco, CA 94107
       </td>
     </tr>
@@ -101,8 +105,11 @@ Templates =
   singleEvent : (m)->
 
     action       = ''
-    sender       = link "#{uri.address}/#{m.sender.profile.nickname}", \
-                   "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+    if m.sender.profile?
+      sender     = link "#{uri.address}/#{m.sender.profile.nickname}", \
+                        "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+    else
+      sender     = m.sender
     avatar       = gravatar m
     activityTime = dateFormat m.notification.dateIssued, "HH:MM"
     preview      = ''
@@ -135,6 +142,9 @@ Templates =
       when 'ApprovalRequested'
         action  = 'has requested access to the group'
         preview = ''
+      when 'InvitationRequested'
+        action  = 'has requested invitation to the group'
+        preview = ''
       when 'Approved'
         action  = 'has approved your access request to the group'
         preview = ''
@@ -157,11 +167,15 @@ Templates =
     """
 
   instantMail  : (m)->
-    turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
-    eventName   = flags[m.notification.eventFlag].definition
-    turnOffAllURL = link turnOffLink+"/all","all"
-    turnOffSpecificType = link turnOffLink, eventName
-    turnOffLink = """Unsubscribe from #{turnOffSpecificType} notifications / Unsubscribe from #{turnOffAllURL} emails from Koding."""
+    unless m.sender.profile?
+      turnOffLink = ''
+    else
+      eventName   = flags[m.notification.eventFlag].definition
+      turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
+      turnOffAllURL = link turnOffLink+"/all","all"
+      turnOffSpecificType = link turnOffLink, eventName
+      turnOffLink = """Unsubscribe from #{turnOffSpecificType} notifications / Unsubscribe from #{turnOffAllURL} emails from Koding.<br/>"""
+
     Templates.mainTemplate m, \
       Templates.singleEvent(m), Templates.footerTemplate turnOffLink
 
@@ -174,14 +188,20 @@ Templates =
     Templates.mainTemplate m, content, Templates.footerTemplate(turnOffLink), description
 
   commonHeader : (m)->
-    if flags[m.notification.eventFlag].fullDefinition?
-      sender = "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+    eventFlag = flags[m.notification.eventFlag][m.event] ? flags[m.notification.eventFlag]
+
+    if eventFlag.fullDefinition?
+      if m.sender.profile?
+        sender = "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+      else
+        sender = m.sender
       contentName = m.realContent?.title
-      sentence = flags[m.notification.eventFlag].fullDefinition
+      sentence = eventFlag.fullDefinition
       return "#{sender} #{sentence} #{contentName}!"
 
-    eventName   = flags[m.notification.eventFlag].definition
+    eventName   = eventFlag.definition
     return """You have a new #{eventName}"""
+
   dailyHeader  : (m)->
     currentDate  = dateFormat m.notification.dateIssued, "mmm dd"
     return """Your Koding Activity for today: #{currentDate}"""
