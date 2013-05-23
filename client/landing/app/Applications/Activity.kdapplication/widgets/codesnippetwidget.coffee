@@ -163,8 +163,8 @@ class ActivityCodeSnippetWidget extends KDFormView
     fillForm = =>
       @title.setValue Encoder.htmlDecode title
       @description.setValue Encoder.htmlDecode body
-      @ace.setContents Encoder.htmlDecode content
-      @hiddenAceInputClone.setValue content
+      @ace.setContents Encoder.htmlDecode Encoder.XSSEncode content
+      @hiddenAceInputClone.setValue Encoder.htmlDecode Encoder.XSSEncode content
       @hiddenAceInputClone.setClass 'warn-on-unsaved-data'
       @syntaxSelect.setValue Encoder.htmlDecode syntax
 
@@ -198,7 +198,7 @@ class ActivityCodeSnippetWidget extends KDFormView
         # Shadowing the Ace contents so the onbeforeunload catch-all does
         # not need special jquery calls
 
-        @hiddenAceInputClone.setValue @ace.getContents()
+        @hiddenAceInputClone.setValue Encoder.XSSEncode @ace.getContents()
         unless @hiddenAceInputClone.getValue() in ['',@aceDefaultContent]
           @hiddenAceInputClone.setClass "warn-on-unsaved-data"
         else
