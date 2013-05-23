@@ -101,6 +101,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "http://new.koding.com"
     runtimeOptions:
+      userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : no
       resourceName: socialQueueName

@@ -127,6 +127,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
+        userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
