@@ -31,13 +31,14 @@ class FSItem extends KDObject
 
     sourceItem.emit "fs.job.started"
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
-    FSHelper.ensureNonexistentPath targetPath, @vmName, (err, response)->
+    vmName = targetItem.vmName or FSHelper.getVMNameFromPath targetPath
+    FSHelper.ensureNonexistentPath targetPath, vmName, (err, response)->
       if err
         warn err
         callback? err, response
       else
         KD.getSingleton('kiteController').run
-          vmName   : @vmName
+          vmName   : vmName
           withArgs : "cp -R #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
           sourceItem.emit "fs.job.finished"
@@ -50,13 +51,14 @@ class FSItem extends KDObject
 
     sourceItem.emit "fs.job.started"
     targetPath = FSHelper.plainPath "#{targetItem.path}/#{sourceItem.name}"
-    FSHelper.ensureNonexistentPath targetPath, @vmName, (err, response)->
+    vmName = targetItem.vmName or FSHelper.getVMNameFromPath targetPath
+    FSHelper.ensureNonexistentPath targetPath, vmName, (err, response)->
       if err
         warn err
         callback? err, response
       else
         KD.getSingleton('kiteController').run
-          vmName   : @vmName
+          vmName   : vmName
           withArgs : "mv #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
           sourceItem.emit "fs.job.finished"
@@ -68,8 +70,9 @@ class FSItem extends KDObject
   @compress:(file, type, callback)->
 
     file.emit "fs.job.started"
-    targetPath = FSHelper.plainPath "#{file.path}.#{type}"
-    FSHelper.ensureNonexistentPath targetPath, @vmName, (err, response)->
+    path = FSHelper.plainPath "#{file.path}.#{type}"
+    vmName = file.vmName or FSHelper.getVMNameFromPath path
+    FSHelper.ensureNonexistentPath path, vmName, (err, response)->
       if err
         warn err
         callback? err, response
@@ -78,7 +81,7 @@ class FSItem extends KDObject
           when "tar.gz" then "tar -pczf #{escapeFilePath response} #{escapeFilePath file.path}"
           else "zip -r #{escapeFilePath response} #{escapeFilePath file.path}"
         KD.getSingleton('kiteController').run
-          vmName   : @vmName
+          vmName   : vmName
           withArgs : command
         , (err, res)->
           file.emit "fs.job.finished"
@@ -89,7 +92,8 @@ class FSItem extends KDObject
 
     file.emit "fs.job.started"
     path = FSHelper.plainPath file.path
-    FSItem.create path, "folder", (err, folder)=>
+    vmName = file.vmName or FSHelper.getVMNameFromPath path
+    FSItem.create path, "folder", vmName, (err, folder)=>
       if err then warn err
       else
         command = if /\.tar\.gz$/.test file.name
@@ -97,7 +101,7 @@ class FSItem extends KDObject
         else if /\.zip$/.test file.name
           "cd #{escapeFilePath file.parentPath};unzip #{escapeFilePath file.name} -d #{folder.path}"
       KD.getSingleton('kiteController').run
-        vmName   : @vmName
+        vmName   : vmName
         withArgs : command
       , (err, res)->
         file.emit "fs.job.finished"
