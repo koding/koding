@@ -99,7 +99,7 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "http://new.koding.com"
+    staticFilesBaseUrl: "https://new.koding.com"
     runtimeOptions:
       useNeo4j: yes
       logToExternal : no
