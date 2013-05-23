@@ -7,10 +7,10 @@ class WebTermController extends AppController
     hiddenHandle : no
     behavior     : "application"
     preCondition :
-      condition  : (cb)->
+      condition  : (options, cb)->
         KD.singletons.vmController.info (err, vm, info)=>
           cb  if info?.state is 'RUNNING' then yes else no
-      failure    : (cb)->
+      failure    : (options, cb)->
         KD.singletons.vmController.askToTurnOn 'WebTerm', cb
 
   constructor:(options = {}, data)->
