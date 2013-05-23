@@ -165,7 +165,6 @@ class Sidebar extends JView
       </div>
       <div id='finder-bottom-controls'>
         {{> @finderBottomControlPin}}
-        <span class='horizontal-handler'></span>
         {{> @finderBottomControls}}
       </div>
     </div>
@@ -270,9 +269,13 @@ class Sidebar extends JView
         title   : "Keyboard Shortcuts", icon : "shortcuts",
         action  : "showShortcuts"
       }
+      # {
+      #   title   : "Manage Resources",   icon : "resources",
+      #   action  : "manageResources"
+      # }
       {
-        title   : "Manage Resources",   icon : "resources",
-        action  : "manageResources"
+        title   : "Create a new VM",      icon : "plus",
+        action  : "createNewVM"
       }
     ]
 

@@ -96,6 +96,55 @@ class VirtualizationController extends KDController
     return (rest...)=>
       @info vm, callback? rest...
 
+  createNewVM:->
+    return  if @dialogIsOpen
+
+    vmCreateCallback = (err, vm)->
+      if err
+        warn err
+        return new KDNotificationView
+          title : err.message or "Something bad happened while creating VM"
+      else
+        KD.singletons.finderController.mountVm vm.name
+      modal.destroy()
+
+    group = KD.singletons.groupsController.getGroupSlug()
+
+    buttons =
+      'Create a Personal VM' :
+        style    : "modal-clean-gray"
+        callback : => @createGroupVM 'personal', vmCreateCallback
+
+    if "owner" in KD.config.roles
+      content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
+                   <b>#{group}</b>. If you prefer to create a shared VM, all
+                   members in <b>#{group}</b> will be able to use that VM.
+                """
+      buttons['Create a Shared VM'] =
+        style      : "modal-clean-gray"
+        callback   : => @createGroupVM 'shared', vmCreateCallback
+
+    else if "member" in KD.config.roles and group isnt 'koding'
+      content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
+
+    else
+      return new KDNotificationView
+        title : "You are not authorized to create VMs in #{group} group"
+
+    buttons.Cancel =
+      style      : "modal-cancel"
+      callback   : -> modal.destroy()
+
+    modal     = new KDModalView
+      title   : "Create a new VM"
+      content : "<div class='modalformline'><p>#{content}</p></div>"
+      height  : "auto"
+      overlay : yes
+      buttons : buttons
+
+    @dialogIsOpen = yes
+    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+
   askForApprove:(command, callback)->
 
     switch command
