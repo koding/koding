@@ -260,7 +260,7 @@ module.exports = class JInvitationRequest extends Model
               if err then callback new KodingError "Could not send"
               else callback null
 
-  sendRequestNotification:(client, callback)->
+  sendRequestNotification:(client, email, invitationType, callback=->)->
     JUser             = require './user'
     JAccount          = require './account'
     JGroup            = require './group'
@@ -271,24 +271,26 @@ module.exports = class JInvitationRequest extends Model
       else unless group?
         callback new KodingError "No group! #{@group}"
       else
-        {delegate} = client.connection
-        JAccount.one _id: delegate.getId(), (err, actor)=>
-          if err then callback err
-          else
-            group.fetchAdmins (err, accounts)=>
+        cb = (actor, actorData)=>
+          group.fetchAdmins (err, accounts)=>
               if err then callback err
+
+              if invitationType is 'invitation'
+                event = 'InvitationRequested'
+              else
+                event = 'ApprovalRequested'
 
               for account in accounts when account
                 data =
                   actor             : actor
                   receiver          : account
-                  event             : 'ApprovalRequested'
+                  event             : event
                   contents          :
                     subject         : ObjectRef(group).data
                     actionType      : 'approvalRequest'
                     actorType       : 'requester'
                     approvalRequest : ObjectRef(@).data
-                    requester       : ObjectRef(actor).data
+                    requester       : actorData
 
                 account.sendNotification 'GroupAccessRequested',
                   actionType : 'groupAccessRequested'
@@ -299,6 +301,14 @@ module.exports = class JInvitationRequest extends Model
                 JMailNotification.create data, (err)->
                   if err then callback new KodingError "Could not send"
                   else callback null
+
+        {delegate} = client.connection
+        if delegate instanceof JAccount
+          JAccount.one _id: delegate.getId(), (err, actor)=>
+            return callback err  if err
+            cb actor, ObjectRef(actor).data
+        else
+          cb email, email
 
   sendRequestApprovedNotification:(client, group, account, callback)->
     JAccount          = require './account'
