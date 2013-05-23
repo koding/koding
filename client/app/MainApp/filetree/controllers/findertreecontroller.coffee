@@ -64,17 +64,9 @@ class NFinderTreeController extends JTreeViewController
     file = nodeView.getData()
     KD.getSingleton("appManager").openFile file
 
-  previewFile:(nodeView, event)->
-
-    file       = nodeView.getData()
-    appManager = KD.getSingleton("appManager")
-    publicPath = file.path.replace /.*\/(.*\.koding.com)\/website\/(.*)/, 'http://$1/$2'
-
-    if publicPath is file.path
-      {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
-    else
-      appManager.openFile publicPath, "Viewer"
+  previewFile:(nodeView)->
+    {vmName, path} = nodeView.getData()
+    appManager.open "Viewer", params: {path, vmName}
 
   resetVm:(nodeView)->
     {vmName} = nodeView.data
@@ -85,8 +77,8 @@ class NFinderTreeController extends JTreeViewController
     KD.getSingleton('finderController').unmountVm vmName
 
   makeTopFolder:(nodeView)->
-    finder = KD.getSingleton('finderController')
     {vmName, path} = nodeView.getData()
+    finder = KD.getSingleton 'finderController'
     finder.updateVMRoot vmName, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->

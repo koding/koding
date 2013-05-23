@@ -61,11 +61,6 @@ class NFinderController extends KDViewController
     @utils.wait 2500, =>
       @getSingleton("mainView").sidebar._windowDidResize()
 
-  resetInitialPath:->
-    {nickname}   = KD.whoami().profile
-    initialPath  = "/Sites/#{nickname}.koding.com/website"
-    @initialPath = @expandInitialPath initialPath
-
   reset:->
     if @getOptions().useStorage
       @appStorage = @getSingleton('mainController').\
