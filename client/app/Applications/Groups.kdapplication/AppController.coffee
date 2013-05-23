@@ -87,7 +87,10 @@ class GroupsAppController extends AppController
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
 
-  getUserArea:-> @userArea
+  getUserArea:->
+    @userArea ?
+      if KD.config.entryPoint?.type is 'group'
+      then KD.config.entryPoint.slug
 
   setUserArea:(userArea)->
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
