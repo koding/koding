@@ -910,10 +910,10 @@ module.exports = class JGroup extends Module
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
-        if policy?.invitationsEnabled
-          invitationType = 'invitation'
-        else
+        if policy?.approvalEnabled
           invitationType = 'basic approval'
+        else
+          invitationType = 'invitation'
 
         cb = (email, kallback)=>
           selector =

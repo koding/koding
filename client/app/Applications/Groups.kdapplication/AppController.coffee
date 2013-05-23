@@ -840,7 +840,7 @@ class GroupsAppController extends AppController
             kallback @inviteByUsername, err
 
         invitationRequestView.on 'RequestIsApproved', (request, callback)->
-          request.approveInvitation callback
+          request.approve callback
 
         invitationRequestView.on 'RequestIsDeclined', (request, callback)->
           request.declineInvitation callback
