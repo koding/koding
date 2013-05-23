@@ -181,7 +181,7 @@ app.get "/-/kite/login", (req, res) ->
                   rabbitkey : key
 
                 apiServer   = 'kontrol.in.koding.com'
-                proxyServer = 'proxy.in.koding.com'
+                proxyServer = 'proxy-2.in.koding.com'
                 # local development
                 # apiServer   = 'localhost:8000'
                 # proxyServer = 'mahlika.local'
