@@ -130,26 +130,26 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
-  emailSender   :
-    run         : no
-  guests        :
+  emailSender     :
+    run           : no
+  guests          :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
-    poolSize        : 1e4
-    batchSize       : undefined
-    cleanupCron     : '*/10 * * * * *'
-  pidFile       : '/tmp/koding.server.pid'
-  loggr:
-    push: no
-    url: ""
-    apiKey: ""
-  librato:
-    push: no
-    email: ""
-    token: ""
-    interval: 60000
-  haproxy:
-    webPort     : 3020
+    poolSize      : 1e4
+    batchSize     : undefined
+    cleanupCron   : '*/10 * * * * *'
+  pidFile         : '/tmp/koding.server.pid'
+  loggr           :
+    push          : no
+    url           : ""
+    apiKey        : ""
+  librato         :
+    push          : no
+    email         : ""
+    token         : ""
+    interval      : 60000
+  haproxy         :
+    webPort       : 3020
   kontrold        :
     api           :
       port        : 8000
