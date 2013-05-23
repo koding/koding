@@ -84,7 +84,7 @@ func main() {
 
 	for _, sslip := range strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",") {
 		go func() {
-			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+".pem", sslip+".pem", nil)
+			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
 			if err != nil {
 				log.Println("https mode is disabled. please add cert.pem and key.pem files.")
 			} else {

@@ -158,7 +158,7 @@ module.exports =
     proxy         :
       port        : 80
       portssl     : 443
-      sslips      : '10.1.1.1,10.1.1.2'
+      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     mongo         :
       host        : 'kontrol.in.koding.com'
     rabbitmq      :
