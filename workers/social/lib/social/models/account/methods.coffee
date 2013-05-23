@@ -24,5 +24,6 @@ module.exports =
       'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
       'fetchPendingGroupInvitations', 'fetchPendingGroupRequests', 
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
-      'getInvitationRequestByGroup', 'fetchMyPermissions'
+      'getInvitationRequestByGroup', 'fetchMyPermissions',
+      'fetchMyPermissionsAndRoles'
     ]

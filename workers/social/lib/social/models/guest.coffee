@@ -129,15 +129,9 @@ module.exports = class JGuest extends jraphical.Module
     callback null, new JAppStorage options
 
   fetchMyPermissions: secure (client, callback)->
-    JGroup = require './group'
+    JAccount = require './account'
+    JAccount.prototype.fetchMyPermissions.call this, client, callback
 
-    slug = client.context.group ? 'koding'
-    JGroup.one {slug}, (err, group)->
-      return callback err  if err
-      group.fetchPermissionSet (err, permissionSet)->
-        return callback err  if err
-        perms = (perm.permissions.slice(0, perm.permissions.length)\
-                for perm in permissionSet.permissions\
-                when perm.role is 'guest')
-        {flatten} = require 'underscore'
-        callback null, flatten perms
+  fetchMyPermissionsAndRoles: secure (client, callback)->
+    JAccount = require './account'
+    JAccount.prototype.fetchMyPermissionsAndRoles.call this, client, callback
