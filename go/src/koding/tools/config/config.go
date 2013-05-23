@@ -24,7 +24,8 @@ type Config struct {
 		Vhost         string
 	}
 	Neo4j struct {
-		Host    string
+		Read    string
+		Write   string
 		Port    int
 		Enabled bool
 	}
@@ -52,6 +53,7 @@ type Config struct {
 		Proxy struct {
 			Port    int
 			PortSSL int
+			SSLIPS	string
 		}
 		Mongo struct {
 			Host string

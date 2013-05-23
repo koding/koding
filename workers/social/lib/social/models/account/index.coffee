@@ -27,6 +27,8 @@ module.exports = class JAccount extends jraphical.Module
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
+  {permit} = require '../group/permissionset'
+
   @share()
   Experience =
     company           : String
@@ -928,3 +930,32 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
+
+  @byRelevance$ = permit 'list members',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
+
+  fetchMyPermissions: secure (client, callback)->
+    @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
+      callback err, permissions
+
+  fetchMyPermissionsAndRoles: secure (client, callback)->
+    JGroup = require '../group'
+
+    slug = client.context.group ? 'koding'
+    JGroup.one {slug}, (err, group)=>
+      return callback err  if err
+      group.fetchPermissionSet (err, permissionSet)=>
+        return callback err  if err
+        cb = (err, roles)=>
+          return callback err  if err
+          perms = (perm.permissions.slice()\
+                  for perm in permissionSet.permissions\
+                  when perm.role in roles)
+          {flatten} = require 'underscore'
+          callback null, flatten(perms), roles
+
+        if this instanceof JAccount
+          group.fetchMyRoles client, cb
+        else
+          cb null, ['guest']

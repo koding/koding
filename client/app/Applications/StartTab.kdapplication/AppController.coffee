@@ -6,8 +6,10 @@ class StartTabAppController extends AppController
     behavior     : "application"
     multiple     : yes
     preCondition :
-      condition  : (cb)-> cb KD.isLoggedIn()
-      failure    : (cb)-> KD.requireLogin onFailMsg: 'Login to start...' # getSingleton('router').handleRoute "/Activity"
+      condition  : (options, cb)->
+        cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.requireLogin onFailMsg: 'Login to start...' # getSingleton('router').handleRoute "/Activity"
 
   constructor:(options = {}, data)->
 

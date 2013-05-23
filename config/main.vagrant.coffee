@@ -27,7 +27,8 @@ module.exports =
     port        : 3526
   mongo         : mongo
   neo4j         :
-    host        : "http://localhost"
+    read        : "http://localhost"
+    write       : "http://localhost"
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
@@ -91,6 +92,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
@@ -130,32 +132,33 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
-  emailSender   :
-    run         : no
-  guests        :
+  emailSender     :
+    run           : no
+  guests          :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
-    poolSize        : 1e4
-    batchSize       : undefined
-    cleanupCron     : '*/10 * * * * *'
-  pidFile       : '/tmp/koding.server.pid'
-  loggr:
-    push: no
-    url: ""
-    apiKey: ""
-  librato:
-    push: no
-    email: ""
-    token: ""
-    interval: 60000
-  haproxy:
-    webPort     : 3020
+    poolSize      : 1e4
+    batchSize     : undefined
+    cleanupCron   : '*/10 * * * * *'
+  pidFile         : '/tmp/koding.server.pid'
+  loggr           :
+    push          : no
+    url           : ""
+    apiKey        : ""
+  librato         :
+    push          : no
+    email         : ""
+    token         : ""
+    interval      : 60000
+  haproxy         :
+    webPort       : 3020
   kontrold        :
     api           :
       port        : 8000
     proxy         :
       port        : 8080
       portssl     : 8081
+      sslips      : '127.0.0.1'
     mongo         :
       host        : '127.0.0.1'
     rabbitmq      :

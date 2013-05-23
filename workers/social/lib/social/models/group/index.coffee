@@ -24,6 +24,7 @@ module.exports = class JGroup extends Module
     {permission: 'edit own groups', validateWith: Validators.own}
   ]
 
+  @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
@@ -83,8 +84,8 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId'
+        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
     schema          :
       title         :
@@ -112,7 +113,7 @@ module.exports = class JGroup extends Module
           customType      :
             type          : String
             default       : 'defaultImage'
-            enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+            enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
           customValue     :
             type          : String
             default       : '1'
@@ -382,32 +383,10 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
-  @byRelevance = secure (client, seed, options, callback)->
-    [callback, options] = [options, callback] unless callback
-    {limit, blacklist, skip}  = options
-    limit     ?= 10
-    blacklist or= []
-    blacklist = blacklist.map(ObjectId)
-    cleanSeed = seed.replace(/[^\w\s-]/).trim() #TODO: this is wrong for international charsets
-    startsWithSeedTest = RegExp '^'+cleanSeed, "i"
-    startsWithOptions = {limit, blacklist, skip}
-    @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
-      if err
-        callback err
-      else if limit is suggestions.length
-          callback null, suggestions
-      else
-        containsSeedTest = RegExp cleanSeed, 'i'
-        containsOptions =
-          skip      : skip
-          limit     : limit-suggestions.length
-          blacklist : blacklist.concat(suggestions.map (o)-> o.getId())
-        @findSuggestions client, containsSeedTest, containsOptions, (err, moreSuggestions)->
-          if err
-            callback err
-          else
-            allSuggestions = suggestions.concat moreSuggestions
-            callback null, allSuggestions
+  # currently groups in a group show global groups, so it does not
+  # make sense to allow this method based on current group's permissions
+  @byRelevance$ = secure (client, seed, options, callback)->
+    @byRelevance client, seed, options, callback
 
   @fetchSecretChannelName =(groupSlug, callback)->
     JName = require '../name'
@@ -548,7 +527,9 @@ module.exports = class JGroup extends Module
       else
         cursor.toArray (err, arr)->
           if err then callback err
-          else callback null, (doc.as for doc in arr)
+          else
+            roles = if arr.length > 0 then (doc.as for doc in arr) else ['guest']
+            callback null, roles
 
   fetchMyRoles: secure (client, callback)->
     @fetchRolesByAccount client.connection.delegate, callback
@@ -757,6 +738,8 @@ module.exports = class JGroup extends Module
 
   canEditGroup: permit 'grant permissions'
 
+  canReadActivity: permit 'read activity'
+
   canOpenGroup: permit 'open group',
     failure:(client, callback)->
       @fetchMembershipPolicy (err, policy)->
@@ -891,40 +874,6 @@ module.exports = class JGroup extends Module
       if err then callback err
       else callback null, (if count is 0 then no else yes)
 
-  requestInvitation: secure (client, invitationType, callback)->
-    {delegate} = client.connection
-    JInvitationRequest = require '../invitationrequest'
-    JUser              = require '../user'
-
-    JUser.one username:delegate.profile.nickname, (err, user)=>
-      return callback err if err
-      selector =
-        group: @slug
-        status: $not: $in: JInvitationRequest.resolvedStatuses
-        $or: [
-          {'koding.username': delegate.profile.nickname}
-          {email: user.email}
-        ]
-      JInvitationRequest.one selector, (err, invitationRequest)=>
-        return callback err if err
-        if invitationRequest
-          callback null
-        else
-          invitationRequest = new JInvitationRequest {
-            invitationType
-            koding  : { username: delegate.profile.nickname }
-            email   : user.email
-            group   : @slug,
-            status  : 'pending'
-          }
-          invitationRequest.save (err)=>
-            return callback err if err
-            @addInvitationRequest invitationRequest, (err)=>
-              return callback err if err
-              if invitationType is 'basic approval'
-                invitationRequest.sendRequestNotification client, callback
-              @emit 'NewInvitationRequest'
-
   fetchInvitationRequests$: permit 'send invitations',
     success: (client, rest...)-> @fetchInvitationRequests rest...
 
@@ -944,11 +893,20 @@ module.exports = class JGroup extends Module
           queue.push -> callback null
           daisy queue
 
-  requestAccess: secure (client, callback)->
-    @requestAccessFor client, callback
+  requestAccess: secure (client, formData, callback)->
+    @requestAccessFor client, formData, callback
 
-  requestAccessFor: (account, callback)->
+  requestAccessFor: (account, formData, callback)->
+    JInvitationRequest = require '../invitationrequest'
+    JUser              = require '../user'
+    JAccount           = require '../account'
+
+    [callback, formData] = [formData, callback]  unless callback
+    formData ?= {}
+
     account = connection:delegate:account unless account.connection?
+    {delegate} = account.connection
+
     @fetchMembershipPolicy (err, policy)=>
       if err then callback err
       else
@@ -957,7 +915,58 @@ module.exports = class JGroup extends Module
         else
           invitationType = 'basic approval'
 
-        @requestInvitation account, invitationType, callback
+        cb = (email, kallback)=>
+          selector =
+            group: @slug
+            status: $not: $in: JInvitationRequest.resolvedStatuses
+
+          if delegate instanceof JAccount
+            selector['$or'] = [
+              'koding.username' : delegate.profile.nickname
+              {email}
+            ]
+          else
+            selector.email = email
+
+          JInvitationRequest.one selector, (err, invitationRequest)=>
+            return kallback err if err
+            # here we use callback instead of kallback as we simulate success here
+            # but don't do any further actions
+            if invitationRequest then callback null
+            else
+              invitationRequest = new JInvitationRequest {
+                invitationType
+                email   : email
+                group   : @slug,
+                status  : 'pending'
+              }
+
+              if delegate instanceof JAccount
+                invitationRequest.koding = {}
+                invitationRequest.koding.username = delegate.profile.nickname
+
+              invitationRequest.save (err)=>
+                return kallback err if err
+                @addInvitationRequest invitationRequest, (err)=>
+                  return kallback err if err
+                  @emit 'NewInvitationRequest'
+                  # HK: disabling admin notification for non-koding users for now
+                  #     as JMailNotification is not compatible with non-users
+                  if invitationType is 'basic approval' and not delegate instanceof JAccount
+                    invitationRequest.sendRequestNotification account, kallback
+                  else
+                    kallback null
+
+        unless delegate instanceof JAccount
+          return callback 'Email address is missing'  unless formData?.email
+          cb formData.email, (err)=>
+            return callback err  if err
+            JInvitation = require '../invitation'
+            JInvitation.createViaGroupWithoutNotification account, this, [formData.email], callback
+        else
+          JUser.one username:delegate.profile.nickname, (err, user)=>
+            return callback err if err
+            cb user.email, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
@@ -1231,12 +1240,12 @@ module.exports = class JGroup extends Module
         -> callback null
       ]
 
-  sendNotificationToAdmins: (event, contents) ->
-    @fetchAdmins (err, admins) =>
+  sendNotificationToAdmins: (event, contents)->
+    @fetchAdmins (err, admins)=>
       unless err
         for admin in admins
           admin.sendNotification event, contents
-
+ 
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
@@ -1247,40 +1256,40 @@ module.exports = class JGroup extends Module
           limit.update { $set: quota: formData.quotas[limit.title] }, fin
         dash queue, callback
         fin = queue.fin.bind queue
-
+ 
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->
       @updateBundle formData, callback
-
+ 
   destroyBundle: (callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle not found!'  unless bundle?
-
+ 
       bundle.remove callback
-
+ 
   destroyBundle$: permit 'change bundle',
     success: (client, callback) -> @destroyBundle callback
-
+ 
   createBundle: (limits, callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle exists!'  if bundle?
-
+ 
       JGroupBundle = require '../bundle/groupbundle'
-
+ 
       bundle = new JGroupBundle {}, limits
       bundle.save (err) =>
         return callback err  if err?
-
+ 
         @addBundle bundle, callback
-
+ 
   createBundle$: permit 'change bundle',
     success: (client, limits, callback) -> @createBundle limits, callback
-
+ 
   fetchBundle$: permit 'change bundle',
     success: (client, rest...) -> @fetchBundle rest...
-
+ 
   getDefaultLimits:->
     {
       cpu             : { quota: 1 }

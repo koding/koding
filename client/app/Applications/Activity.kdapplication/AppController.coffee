@@ -19,7 +19,7 @@ class ActivityAppController extends AppController
   @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
-      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '\\\"'
       activity
 
   constructor:(options={})->
@@ -311,12 +311,16 @@ class ActivityAppController extends AppController
         callback null, cache
 
   continueLoadingTeasers:->
-
+    # fix me
+    # this is a monkeypatch
+    # find the original problem and get rid of @continueLoadingTeasersLastTimeStamp
+    # and isNaN - SY
     lastTimeStamp = (new Date @lastFrom).getTime()
-    if @continueLoadingTeasersLastTimeStamp is lastTimeStamp
+    if isNaN(lastTimeStamp) or @continueLoadingTeasersLastTimeStamp is lastTimeStamp
+      @listController.hideLazyLoader()
       return
 
-    lastTimeStamp = (new Date @lastFrom).getTime()
+    @continueLoadingTeasersLastTimeStamp = lastTimeStamp
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->

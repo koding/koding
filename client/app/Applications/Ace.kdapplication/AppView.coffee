@@ -64,14 +64,8 @@ class AceView extends JView
         @getData().emit "file.requests.save", contents
 
   preview: ->
-    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
-    publicPath     = @getData().path.replace publicUrlCheck, 'http://$1/$2'
-    appManager     = KD.getSingleton "appManager"
-    if publicPath is @getData().path
-      {nickname} = KD.whoami().profile
-      return appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
-    appManager.open "Viewer", (appInstance)->
-      appInstance.open publicPath
+    {vmName, path} = @getData()
+    appManager.open "Viewer", params: {path, vmName}
 
   compileAndRun: ->
     manifest = KodingAppsController.getManifestFromPath @getData().path

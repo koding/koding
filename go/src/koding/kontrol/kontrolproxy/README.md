@@ -111,6 +111,7 @@ still work here to be done.
 
 
 # Improvements
+
 * Fallback mechanism for death servers (not supported yet)
 * custom HTML error pages (i.e. for death backends)
 * wildcard support for fronted domains

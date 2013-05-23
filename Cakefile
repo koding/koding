@@ -69,30 +69,6 @@ task 'populateNeo4j', ({configFile})->
   migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
   processes.exec migrator
 
-initializeDB = do ->
-
-  { exec } = (require 'child_process')
-
-  commands = [
-    'mongo koding2 --eval "db.dropDatabase()"'
-    'mongorestore /opt/koding/dump/koding2'
-    'mongo koding2 --eval "db.jCounters.count() ||'+
-    ' db.jCounters.save({ \\"_id\\" : \\"vm_ip\\", \\"v\\" : 176161307 });"'
-  ]
-
-  inVagrant = (cmd) -> "vagrant ssh default -c '#{cmd}'"
-
-  (err, out) ->
-    console.error err  if err
-    console.log out    if out
-    if (command = do commands.shift)?
-      exec inVagrant(command), initializeDB
-
-
-task 'initializeDB', ->
-  console.warn "FIXME: this is a temporary kludge"
-  initializeDB()
-
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
 
