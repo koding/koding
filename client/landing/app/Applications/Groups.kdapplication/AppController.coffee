@@ -925,7 +925,7 @@ class GroupsAppController extends AppController
     group.fetchMembershipPolicy (err, policy)=>
       return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
-      port = if location.port isnt 80 then ":#{location.port}" else ''
+      port = if location.port then ":#{location.port}" else ''
       groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
 
       if group.privacy is 'public'
