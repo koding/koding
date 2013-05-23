@@ -121,13 +121,12 @@ div.screenshots
   .home-links
     size                100%, 80px
     text-align          left
-    // gradient            #666, #505050
     opacity             0
-    bg                  color, transparent
-    transition          opacity .15s 3s ease-in-out
+    transition          opacity .15s ease-in-out
     overflow            hidden
     margin-top          -80px
     text-align          right
+    bg                  color, transparent
     abs()
     &.in
       opacity           1
@@ -148,9 +147,11 @@ div.screenshots
         display         inline-block
         padding         15px 0 0 15px
         overflow        visible
+        vertical-align  top
         borderBox()
         rel()
-        vertical-align  top
+        &:hover
+          z-index       1
         &:last-child
           padding       15px 15px 0 15px
 
@@ -292,8 +293,17 @@ figure.counter
       > span
         font-size   24px
   .home-links
-    &.in
-      height        30px
+    height          50px
+    margin-top      -50px
+    text-align      center
+    > ul
+      width         100%
+      > li
+        max-width   25%
+        padding     5px 0 0 5px
+        &:last-child
+          padding   5px 5px 0 5px
+
     .custom-link-view
       padding       0 7px 0 5px
       height        30px
@@ -315,8 +325,16 @@ figure.counter
       > span
         font-size   36px
   .home-links
-    &.in
-      height        40px
+    height          60px
+    margin-top      -60px
+    text-align      center
+    > ul
+      width         100%
+      > li
+        max-width   25%
+        padding     10px 0 0 10px
+        &:last-child
+          padding   10px 10px 0 10px
     .custom-link-view
       padding       0 13px 0 10px
       height        40px
