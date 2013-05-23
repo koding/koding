@@ -5,6 +5,7 @@ class VirtualizationController extends KDController
 
     @kc = KD.singletons.kiteController
     @dialogIsOpen = no
+    @resetVMData()
 
   run:(vm, command, callback)->
     KD.requireLogin
@@ -53,6 +54,35 @@ class VirtualizationController extends KDController
     currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
     if not currentGroup or currentGroup is 'koding' then KD.nick()
     else currentGroup
+
+  createGroupVM:(type='personal', callback)->
+    defaultVMOptions = {cpu : 1, disk : 1, ram : 1}
+    group = KD.singletons.groupsController.getCurrentGroup()
+
+    if group.slug is 'koding'
+      return callback "Koding group does not support to create additional VMs"
+
+    group.fetchBundle (err, bundle)->
+      switch type
+        when 'personal'
+          bundle.debit defaultVMOptions, callback
+        else
+          bundle.debitGroup defaultVMOptions, callback
+
+  fetchVMs:(callback)->
+    return callback null, @vms  if @vms
+    KD.remote.api.JVM.fetchVms (err, vms)=>
+      @vms = vms  unless err
+      callback err, vms
+
+  fetchGroupVMs:(callback)->
+    return callback null, @groupVms  if @groupVms
+    KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
+      @groupVms = vms  unless err
+      callback err, vms
+
+  resetVMData:->
+    @vms = @groupVms = null
 
   # fixme GG!
   getTotalVMCount:(callback)->
