@@ -12,6 +12,7 @@ import (
 type ProxyMessage struct {
 	Action      string `json:"action"`
 	DomainName  string `json:"domainName"`
+	DomainMode  string `json:"domainMode"`
 	ServiceName string `json:"serviceName"`
 	Username    string `json:"username"`
 	Key         string `json:"key"`
@@ -49,6 +50,7 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 }
 
 type DomainData struct {
+	Mode     string
 	Username string
 	Name     string
 	Key      string
@@ -102,8 +104,9 @@ func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyDat
 	}
 }
 
-func NewDomainData(username, name, key, fullurl string) *DomainData {
+func NewDomainData(mode, username, name, key, fullurl string) *DomainData {
 	return &DomainData{
+		Mode:     mode,
 		Username: username,
 		Name:     name,
 		Key:      key,
@@ -188,17 +191,13 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, fullurl, uuid string) error {
+func (p *ProxyConfiguration) AddDomain(mode, username, domainname, servicename, key, fullurl, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding domain is not possible '%s'", err)
 	}
 
-	_, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(username, servicename, key, fullurl)
-	}
-
+	proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(mode, username, servicename, key, fullurl)
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -294,21 +293,18 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 		return nil
 	}
 
-	// delete old key
-	delete(keyRoutingTable.Keys, key)
-
-	// and replace it with the new one
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-
-	/* check for existing hostnames, if exist abort. Comment out if you want
-	 add multiple entities for a single key. Useful to use  round-robin.
-	for _, value := range keyRoutingTable.Keys[key] {
-	    if value.Host == host {
-	        return nil
-	    }
+	// check for existing hostnames, if exist abort.
+	if name != "broker" {
+		for _, value := range keyRoutingTable.Keys[key] {
+			if value.Host == host {
+				return nil
+			}
+		}
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+	} else { // delete old one and replace it
+		delete(keyRoutingTable.Keys, key)
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
 	}
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-	*/
 
 	user.Services[name] = keyRoutingTable
 	proxy.RoutingTable[username] = user

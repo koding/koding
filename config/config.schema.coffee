@@ -58,7 +58,8 @@ config =
       port        : 1
     mongo         : 1
     neo4j         :
-      host        : 1
+      read        : 1
+      write       : 1
       port        : 1
     runNeo4jFeeder: 1
     runGoBroker   : 1
@@ -126,6 +127,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
+        userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
@@ -178,6 +180,7 @@ config =
       proxy         :
         port        : 1
         portssl     : 1
+        sslips      : 1
       mongo         :
         host        : 1
       rabbitmq      :

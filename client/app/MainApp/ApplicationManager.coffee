@@ -74,12 +74,13 @@ class ApplicationManager extends KDObject
       # if it returns true then continue, otherwise call failure
       # method of preCondition if exists
       if appOptions?.preCondition? and not options.conditionPassed
-        appOptions.preCondition.condition (state)=>
+        appOptions.preCondition.condition appParams, (state, newParams)=>
           if state
             options.conditionPassed = yes
+            options.params = newParams  if newParams
             @open name, options, callback
           else
-            appOptions.preCondition.failure? callback
+            appOptions.preCondition.failure? appParams, callback
         return
 
       # if there is no registered appController

@@ -81,15 +81,18 @@ func main() {
 
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
-	go func() {
-		err = http.ListenAndServeTLS(":"+portssl, "cert.pem", "key.pem", nil)
-		if err != nil {
-			log.Println("https mode is disabled. please add cert.pem and key.pem files.")
-		} else {
-			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-		}
-	}()
+	for _, sslip := range sslips {
+		go func(sslip string) {
+			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
+			if err != nil {
+				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+			} else {
+				log.Printf("https mode is enabled. serving at :%s ...", portssl)
+			}
+		}(sslip)
+	}
 
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
 	err = http.ListenAndServe(":"+port, nil)
@@ -221,7 +224,10 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	var l []string
+	if req.TLS == nil && req.Host == "new.koding.com" {
+		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+	}
+
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
@@ -229,31 +235,31 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	userInfo, err := populateUser(outreq)
 	if err != nil {
-		if err.Error() == "redirect" {
-			http.Redirect(rw, req, userInfo.FullUrl, http.StatusTemporaryRedirect)
-			return
-		}
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
 		return
 	}
-	l = append(l, fmt.Sprintf("----\nconnection user %v\n", userInfo))
+	fmt.Printf("--\nconnected user information %v\n", userInfo)
 
 	result, ok := validateUser(userInfo)
 	if !ok {
 		http.NotFound(rw, req)
 		return
 	}
-	l = append(l, result)
+	fmt.Printf("validation result: %s\n", result)
 
 	// either userInfo.FullUrl or userInfo.Servicename-Key lookup will be made
 	target, err := targetHost(userInfo)
 	if err != nil {
+		if err.Error() == "redirect" {
+			http.Redirect(rw, req, target.String(), http.StatusTemporaryRedirect)
+			return
+		}
 		log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
 	}
-	l = append(l, fmt.Sprintf("proxy to %s\n", target.Host))
+	fmt.Printf("proxy to %s\n", target.Host)
 
 	// Reverseproxy.Director closure
 	targetQuery := target.RawQuery
@@ -273,7 +279,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
 	if websocket {
-		l = append(l, fmt.Sprintln("connection via websocket"))
+		fmt.Println("connection via websocket")
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
@@ -303,7 +309,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		go p.copyResponse(rConn, conn)
 		p.copyResponse(conn, rConn)
-		log.Println(strings.Join(l, "")) // print final log
 
 	} else {
 		transport := p.Transport
@@ -349,17 +354,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rabbitKey := lookupRabbitKey(userInfo.Username, userInfo.Servicename, userInfo.Key)
 
 		if rabbitKey != "" {
-			var logRes string
-			l = append(l, fmt.Sprintln("connection via rabbitmq"))
-			res, logRes, err = rabbitTransport(outreq, userInfo, rabbitKey)
+			fmt.Println("connection via rabbitmq")
+			res, err = rabbitTransport(outreq, userInfo, rabbitKey)
 			if err != nil {
 				log.Printf("rabbit proxy %s", err.Error())
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 				return
 			}
-			l = append(l, logRes)
 		} else {
-			l = append(l, fmt.Sprintln("connection via normal http"))
+			fmt.Println("connection via normal http")
 			// add :80 if not available
 			ok := hasPort(outreq.URL.Host)
 			if !ok {
@@ -378,7 +381,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		copyHeader(rw.Header(), res.Header)
 		rw.WriteHeader(res.StatusCode)
 		p.copyResponse(rw, res.Body)
-		log.Println(strings.Join(l, "")) // print final log
 	}
 
 }

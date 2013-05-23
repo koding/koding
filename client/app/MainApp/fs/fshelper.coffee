@@ -1,18 +1,18 @@
 class FSHelper
 
-  parseWatcherFile = (parentPath, file, user)->
+  parseWatcherFile = (vm, parentPath, file, user)->
 
     {name, size, mode} = file
     type      = if file.isBroken then 'brokenLink' else \
                 if file.isDir then 'folder' else 'file'
-    path      = if parentPath is '/' then "/#{name}" else \
+    path      = if parentPath is "[#{vm}]/" then "[#{vm}]/#{name}" else \
                 "#{parentPath}/#{name}"
     group     = user
     createdAt = file.time
+    return { size, user, group, createdAt, mode, type, \
+             parentPath, path, name, vmName:vm }
 
-    return { size, user, group, createdAt, mode, type, parentPath, path, name }
-
-  @parseWatcher = (parentPath, files)->
+  @parseWatcher = (vm, parentPath, files)->
 
     data = []
     return data unless files
@@ -23,34 +23,26 @@ class FSHelper
       z = [x for x in files when x.isDir is p][0].sort (x,y)-> x.name > y.name
       sortedFiles.push x for x in z
 
-    {nickname} = KD.whoami().profile
+    nickname = KD.nick()
     for file in sortedFiles
-      data.push FSHelper.createFile parseWatcherFile parentPath, file, nickname
+      data.push FSHelper.createFile \
+        parseWatcherFile vm, parentPath, file, nickname
 
     return data
 
-  @folderOnChange = (path, change, treeController)->
-    console.log "THEY CHANGED:", change, treeController
-    file = @parseWatcher(path, change.file).first
+  @folderOnChange = (vm, path, change, treeController)->
+    console.log "THEY CHANGED:", vm, path, change, treeController
+    file = @parseWatcher(vm, path, change.file).first
     switch change.event
       when "added"
-
-        # Sort example for adding new files to filetree in correct place ~ GG
-        # index = 0
-        # lc = treeController.listControllers[file.parentPath]
-        # if lc
-        #   for item, ix in lc.itemsOrdered
-        #     if item.data.type is file.type and file.name > item.data.name
-        #       index = ix
-        #       index++
-        #       break
-
         treeController.addNode file
       when "removed"
         for npath, node of treeController.nodes
           if npath is file.path
             treeController.removeNodeView node
             break
+
+  @plainPath:(path)-> path.replace /\[.*\]/, ''
 
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
@@ -81,19 +73,21 @@ class FSHelper
 
       callback? result
 
-  @exists = (path, callback=noop)->
-    @getInfo path, (err, res)->
+  @exists = (path, vmName, callback=noop)->
+    @getInfo path, vmName, (err, res)->
       callback err, res?
 
-  @getInfo = (path, callback=noop)->
+  @getInfo = (path, vmName, callback=noop)->
     KD.getSingleton('kiteController').run
       method   : "fs.getInfo"
+      vmName   : vmName
       withArgs : {path}
     , callback
 
-  @ensureNonexistentPath = (path, callback=noop)->
+  @ensureNonexistentPath = (path, vmName, callback=noop)->
     KD.getSingleton('kiteController').run
       method   : "fs.ensureNonexistentPath"
+      vmName   : vmName
       withArgs : {path}
     , callback
 
@@ -105,8 +99,12 @@ class FSHelper
     @setFileListeners file
     @registry[file.path] = file
 
-  @deregister = (file)->
-    delete @registry[file.path]
+  @deregister = (path)->
+    delete @registry[path]
+
+  @deregisterVmFiles = (vmName)->
+    for path, file of @registry  when (path.indexOf "[#{vmName}]") is 0
+      @deregister path
 
   @updateInstance = (fileData)->
     for prop, value of fileData
@@ -138,6 +136,9 @@ class FSHelper
     unless data and data.type and data.path
       return warn "pass a path and type to create a file instance"
 
+    unless data.vmName?
+      data.vmName = KD.getSingleton('vmController').getDefaultVmName()
+
     if @registry[data.path]
       instance = @registry[data.path]
       @updateInstance data
@@ -162,7 +163,7 @@ class FSHelper
     return /^\s\"/.test path
 
   @escapeFilePath = (name) ->
-    return name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
+    return FSHelper.plainPath name.replace(/\'/g, '\\\'').replace(/\"/g, '\\"').replace(/\ /g, '\\ ')
 
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')

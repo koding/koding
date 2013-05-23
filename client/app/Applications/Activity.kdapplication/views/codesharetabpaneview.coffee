@@ -78,7 +78,7 @@ class CodeShareTabPaneView extends KDTabPaneView
       callback  : ->
         fileName      = "localfile:/#{CodeShareItemTitle}"
         file          = FSHelper.createFileFromPath fileName
-        file.contents = Encoder.htmlDecode(CodeShareItemSource)
+        file.contents = Encoder.htmlDecode Encoder.XSSEncode CodeShareItemSource
         file.syntax   = CodeShareItemType.syntax
         KD.getSingleton("appManager").openFile file
 
@@ -105,7 +105,7 @@ class CodeShareTabPaneView extends KDTabPaneView
     @codeView.on "ace.ready", =>
       @codeViewLoader.destroy()
       @codeView.setShowGutter no
-      @codeView.setContents Encoder.htmlDecode data.CodeShareItemSource or "//your code snippet goes here..."
+      @codeView.setContents Encoder.htmlDecode Encoder.XSSEncode data.CodeShareItemSource or "//your code snippet goes here..."
       @codeView.setTheme()
       @codeView.setFontSize(12, no)
       @codeView.setSyntax data.CodeShareItemType.syntax or "javascript"
@@ -264,7 +264,7 @@ class CodeShareView extends KDCustomHTMLView
       callback  : ->
         fileName      = "localfile:/#{CodeShareItemTitle}"
         file          = FSHelper.createFileFromPath fileName
-        file.contents = Encoder.htmlDecode(CodeShareItemSource)
+        file.contents = Encoder.htmlDecode Encoder.XSSEncode CodeShareItemSource
         file.syntax   = CodeShareItemType.syntax
         KD.getSingleton("appManager").openFile file
 

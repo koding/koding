@@ -426,7 +426,8 @@ class KodingAppsController extends KDController
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
 
-                  FSHelper.exists appPath, (err, exists)=>
+                  # FIXME Use default VM ~ GG
+                  FSHelper.exists appPath, null, (err, exists)=>
                     if exists
                       newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                       new KDNotificationView

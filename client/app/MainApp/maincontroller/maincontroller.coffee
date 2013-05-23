@@ -78,26 +78,23 @@ class MainController extends KDController
 
     @userAccount             = account
     connectedState.connected = yes
-    {entryPoint} = KD.config
-    slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
-    KD.remote.cacheable slug, (err, [group])=>
+
+    KD.whoami().fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
-      group.fetchMyRoles (err, roles)=>
-        return warn err  if err
-        KD.config.roles = roles
+      KD.config.roles       = roles
+      KD.config.permissions = permissions
 
-        @ready @emit.bind @, "AccountChanged", account, firstLoad
+      @ready @emit.bind @, "AccountChanged", account, firstLoad
 
-        unless @mainViewController
+      unless @mainViewController
+        @loginScreen = new LoginView
+        KDView.appendToDOMBody @loginScreen
 
-          @loginScreen = new LoginView
-          KDView.appendToDOMBody @loginScreen
+        @mainViewController  = new MainViewController
+          view    : mainView = new MainView
+            domId : "kdmaincontainer"
 
-          @mainViewController  = new MainViewController
-            view    : mainView = new MainView
-              domId : "kdmaincontainer"
-
-          KDView.appendToDOMBody mainView
+        KDView.appendToDOMBody mainView
 
         @decorateBodyTag()
         @emit 'ready'

@@ -84,7 +84,7 @@ getIds = (username, callback)->
     callback null, {uid:+uid, gid:+gid}
 
 slugify = (title = "")->
-  url = title
+  url = String(title)
     .toLowerCase()                # change everything to lowercase
     .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
     .replace(/[_|\s]+/g, "-")     # change all spaces and underscores to a hyphen

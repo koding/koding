@@ -127,3 +127,6 @@ module.exports = class JGuest extends jraphical.Module
   fetchStorage: secure (client, options, callback)->
     JAppStorage = require './appstorage'
     callback null, new JAppStorage options
+
+  fetchMyPermissions: (require './account')::fetchMyPermissions
+  fetchMyPermissionsAndRoles: (require './account')::fetchMyPermissionsAndRoles

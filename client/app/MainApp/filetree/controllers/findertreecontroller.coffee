@@ -64,24 +64,22 @@ class NFinderTreeController extends JTreeViewController
     file = nodeView.getData()
     KD.getSingleton("appManager").openFile file
 
-  previewFile:(nodeView, event)->
-
-    file       = nodeView.getData()
-    appManager = KD.getSingleton("appManager")
-    publicPath = file.path.replace /.*\/(.*\.koding.com)\/website\/(.*)/, 'http://$1/$2'
-
-    if publicPath is file.path
-      {nickname} = KD.whoami().profile
-      appManager.notify "File must be under: /#{nickname}/Sites/#{nickname}.#{location.hostname}/website/"
-    else
-      appManager.openFile publicPath, "Viewer"
+  previewFile:(nodeView)->
+    {vmName, path} = nodeView.getData()
+    appManager.open "Viewer", params: {path, vmName}
 
   resetVm:(nodeView)->
-    KD.getSingleton('vmController').reinitialize()
+    {vmName} = nodeView.data
+    KD.getSingleton('vmController').reinitialize vmName
+
+  unmountVm:(nodeView)->
+    {vmName} = nodeView.data
+    KD.getSingleton('finderController').unmountVm vmName
 
   makeTopFolder:(nodeView)->
-    KD.getSingleton('finderController').createRootStructure \
-      nodeView.getData().path
+    {vmName, path} = nodeView.getData()
+    finder = KD.getSingleton 'finderController'
+    finder.updateVMRoot vmName, FSHelper.plainPath path
 
   refreshFolder:(nodeView, callback)->
 
@@ -468,6 +466,7 @@ class NFinderTreeController extends JTreeViewController
   cmMakeTopFolder:(nodeView, contextMenuItem)-> @makeTopFolder nodeView
   cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
   cmResetVm:      (nodeView, contextMenuItem)-> @resetVm nodeView
+  cmUnmountVm:    (nodeView, contextMenuItem)-> @unmountVm nodeView
   cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
   cmCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
   cmRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
@@ -580,7 +579,7 @@ class NFinderTreeController extends JTreeViewController
     return nodeView if lastEnteredNode is nodeView or nodeView in @selectedNodes
     lastEnteredNode = nodeView
     clearTimeout @expandTimeout
-    if nodeView.getData().type is ("folder" or "mount")
+    if nodeView.getData().type in ["folder","mount","vm"]
       @expandTimeout = setTimeout (=> @expandFolder nodeView), 800
     @showDragOverFeedback nodeView, event
     e = event.originalEvent
@@ -608,7 +607,7 @@ class NFinderTreeController extends JTreeViewController
   drop: (nodeView, event)->
 
     return if nodeView in @selectedNodes
-    return unless nodeView.getData?().type in ['folder', 'mount']
+    return unless nodeView.getData?().type in ['folder', 'mount', 'vm']
 
     if event.altKey
       @copyFiles @selectedNodes, nodeView

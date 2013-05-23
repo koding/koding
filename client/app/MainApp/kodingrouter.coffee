@@ -248,26 +248,19 @@ class KodingRouter extends KDRouter
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
-        mainController.appReady =>
-          # TODO: DRY this one
-          $('body').addClass 'login'
-          mainController.loginScreen.show()
-          mainController.loginScreen.$().css marginTop : 0
-          mainController.loginScreen.hidden = no
 
-          recoveryToken = decodeURIComponent recoveryToken
-          {JPasswordRecovery} = KD.remote.api
-          JPasswordRecovery.validate recoveryToken, (err, isValid)=>
-            if err or !isValid
-              new KDNotificationView
-                title   : 'Something went wrong.'
-                content : err?.message or """
-                  That doesn't seem to be a valid recovery token!
-                  """
-            else
-              {loginScreen} = mainController
-              loginScreen.headBannerShowRecovery recoveryToken
-            @clear()
+        recoveryToken = decodeURIComponent recoveryToken
+        {JPasswordRecovery} = KD.remote.api
+        JPasswordRecovery.validate recoveryToken, (err, isValid)=>
+          if err or !isValid
+            new KDNotificationView
+              title   : 'Something went wrong.'
+              content : err?.message or """
+                That doesn't seem to be a valid recovery token!
+                """
+          else
+            mainController.loginScreen.headBannerShowRecovery recoveryToken
+          @clear()
 
       '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})->
         inviteToken = decodeURIComponent inviteToken
@@ -280,8 +273,7 @@ class KodingRouter extends KDRouter
             new KDNotificationView
               title: 'Invalid invitation code!'
           else
-            {loginScreen} = mainController
-            loginScreen.handleInvitation invite
+            mainController.loginScreen.headBannerShowInvitation invite
           @clear()
 
       '/:name?/Verify/:confirmationToken': ({params:{confirmationToken}})->
