@@ -70,7 +70,7 @@ class Kite extends KDObject
 
     @pingTimeoutId = setTimeout =>
       @pingChannel()
-    , 5000
+    , 10000
 
   handleChannelMessage: (args) ->
 
