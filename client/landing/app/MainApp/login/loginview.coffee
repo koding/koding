@@ -296,7 +296,12 @@ class LoginView extends KDScrollView
         router = KD.getSingleton('router')
         routed = no
         for route in router.visitedRoutes by -1
-          unless route in ['/Login', '/Register', '/Join', '/Recover']
+          {entryPoint} = KD.config
+          routeWithoutEntryPoint =
+            if entryPoint?.type is 'group' and entryPoint.slug
+            then route.replace "/#{entryPoint.slug}", ''
+            else route
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
             router.handleRoute route
             routed = yes
             break
