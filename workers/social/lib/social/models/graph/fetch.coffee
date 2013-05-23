@@ -8,8 +8,6 @@ module.exports = class FetchAllActivityParallel
 
   constructor:(requestOptions)->
     {startDate, neo4j, group} = requestOptions
-    console.log "requestOptions"
-    console.log requestOptions
 
     @graph = new Graph {config : neo4j}
     @startDate            = startDate

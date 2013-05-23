@@ -27,13 +27,13 @@ do ->
     log 'kd remote connected'
 
   status.on 'reconnected', (options={})->
-    log "kd remote re-connected, modalSize: #{modalSize}"
-
     destroyCurrentModal()
 
     modalSize  = options.modalSize  or= "big"
     notifyUser = options.notifyUser or= "yes"
     state      = "reconnected"
+
+    log "kd remote re-connected, modalSize: #{modalSize}"
 
     clearTimeout modalTimerId
     modalTimerId = null
@@ -45,13 +45,13 @@ do ->
       showModal modalSize, state
 
   status.on 'disconnected', (options={})->
-    log "disconnected",\
-    "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"
-
     reason     = options.reason     or= "unknown"
     modalSize  = options.modalSize  or= "big"
     notifyUser = options.notifyUser or= "yes"
     state      = "disconnected"
+
+    log "disconnected",\
+    "reason: #{reason}, modalSize: #{modalSize}, notifyUser: #{notifyUser}"
 
     if notifyUser
       # timeout to prevent user from seeing minor interruptions

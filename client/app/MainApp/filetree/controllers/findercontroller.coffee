@@ -26,14 +26,13 @@ class NFinderController extends KDViewController
 
     if options.useStorage
 
-      @treeController.on "file.opened", (file)=>
-        @setRecentFile file.path
+      @treeController.on "file.opened", @bound 'setRecentFile'
 
-      @treeController.on "folder.expanded", (folder)=>
-        @setRecentFolder folder.path
+      # @treeController.on "folder.expanded", (folder)=>
+      #   @setRecentFolder folder.path
 
       @treeController.on "folder.collapsed", ({path})=>
-        @unsetRecentFolder path
+        # @unsetRecentFolder path
         @stopWatching path
 
   watchers: {}
@@ -70,14 +69,21 @@ class NFinderController extends KDViewController
       @loadVms()
 
   loadVms:(vmNames, callback)->
+    mountVms = (vms)=>
+      @cleanup()
+      @mountVm vm  for vm in vms
+      callback?()
+
     unless vmNames
-      vmNames = [(KD.getSingleton 'vmController').getDefaultVmName()]
-
-    return callback? "vmNames should be an Array"  unless Array.isArray vmNames
-
-    @cleanup()
-    @mountVm vm  for vm in vmNames
-    callback?()
+      KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
+        return callback? err  if err
+        if vms.length is 0
+          vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
+        mountVms vms
+    else if Array.isArray vmNames
+      mountVms vmNames
+    else
+        return callback? "vmNames should be an Array"  unless Array.isArray vmNames
 
   getVmNode:(vmName)->
     return null  unless vmName
@@ -128,43 +134,38 @@ class NFinderController extends KDViewController
     @stopAllWatchers()
     @vms = []
 
-  setRecentFile:(filePath, callback)->
+  setRecentFile:({path})->
 
     recentFiles = @appStorage.getValue('recentFiles')
     recentFiles = [] unless Array.isArray recentFiles
 
-    unless filePath in recentFiles
+    unless path in recentFiles
       if recentFiles.length is @treeController.getOptions().maxRecentFiles
         recentFiles.pop()
-      recentFiles.unshift filePath
+      recentFiles.unshift path
 
     @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
       @emit 'recentfiles.updated', recentFiles
 
-  setRecentFolder:(folderPath, callback)->
+  # FIXME Recent Folders support ~ GG
 
-    recentFolders = @appStorage.getValue('recentFolders')
-    recentFolders = [] unless Array.isArray recentFolders
+  # setRecentFolder:(folderPath, callback)->
+  #   recentFolders = @appStorage.getValue('recentFolders')
+  #   recentFolders = [] unless Array.isArray recentFolders
+  #   unless folderPath in recentFolders
+  #     recentFolders.push folderPath
+  #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
+  #   @appStorage.setValue 'recentFolders', recentFolders, callback
 
-    unless folderPath in recentFolders
-      recentFolders.push folderPath
-
-    recentFolders.sort (path)-> if path is folderPath then -1 else 0
-
-    @appStorage.setValue 'recentFolders', recentFolders, callback
-
-  unsetRecentFolder:(folderPath, callback)->
-
-    recentFolders = @appStorage.getValue('recentFolders')
-    recentFolders = [] unless Array.isArray recentFolders
-
-    splicer = ->
-      recentFolders.forEach (recentFolderPath)->
-        if recentFolderPath.search(folderPath) > -1
-          recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
-          splicer()
-          return
-    splicer()
-
-    recentFolders.sort (path)-> if path is folderPath then -1 else 0
-    @appStorage.setValue 'recentFolders', recentFolders, callback
+  # unsetRecentFolder:(folderPath, callback)->
+  #   recentFolders = @appStorage.getValue('recentFolders')
+  #   recentFolders = [] unless Array.isArray recentFolders
+  #   splicer = ->
+  #     recentFolders.forEach (recentFolderPath)->
+  #       if recentFolderPath.search(folderPath) > -1
+  #         recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
+  #         splicer()
+  #         return
+  #   splicer()
+  #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
+  #   @appStorage.setValue 'recentFolders', recentFolders, callback
