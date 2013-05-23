@@ -52,7 +52,6 @@ class HomeLoginBar extends JView
                 @request.hide()
                 @requested.show()
         else
-          log "helloo  asd asdasdas"
           @getSingleton('router').handleRoute "/Join", {entryPoint}
 
     @login        = new CustomLinkView
