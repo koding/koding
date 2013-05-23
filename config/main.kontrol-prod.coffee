@@ -19,7 +19,7 @@ module.exports =
   webserver     :
     login       : 'prod-webserver'
     port        : 3000
-    clusterSize : 2
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
