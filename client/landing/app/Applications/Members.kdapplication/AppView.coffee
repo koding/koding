@@ -2,11 +2,15 @@ class MembersMainView extends KDView
 
   createCommons:->
 
-    @addSubView header = new HeaderViewSection
+    @addSubView @header = new HeaderViewSection
       type  : "big"
       title : "Members"
 
-    header.setSearchInput()
+    @getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
+    @setSearchInput()
+
+  setSearchInput:->
+    @header.setSearchInput()  if 'list members' in KD.config.permissions
 
 class MembersListItemView extends KDListItemView
   constructor:(options, data)->

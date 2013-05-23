@@ -49,6 +49,7 @@ class ActivityAppView extends KDScrollView
     @utils.wait 1500, =>
       {navController} = @mainController.sidebarController.getView()
       navController.selectItemByName 'Home'
+      @_windowDidResize()
 
 
   decorate:->

@@ -50,13 +50,6 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'groupAccessRequested',    @showRequestAccessModal.bind this
-    mainController.on 'groupJoinRequested',      @joinGroup.bind this
-    mainController.on 'groupInvitationAccepted', @acceptInvitation.bind this
-    mainController.on 'groupInvitationIgnored',  @ignoreInvitation.bind this
-    mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
-    mainController.on 'loginRequired',           @loginRequired.bind this
-
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -87,7 +80,10 @@ class GroupsAppController extends AppController
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
 
-  getUserArea:-> @userArea
+  getUserArea:->
+    @userArea ?
+      if KD.config.entryPoint?.type is 'group'
+      then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
@@ -312,11 +308,12 @@ class GroupsAppController extends AppController
       @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
-    if policy.explanation?
-      title = "Request Access"
+
+    if policy.explanation
+      title   = "Request Access"
       content = __utils.applyMarkdown policy.explanation
       success = "Your request has been sent to the group's admin."
-    else if policy.approvalEnabled?
+    else if policy.approvalEnabled
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
       success = "Thanks! You'll be notified when group's admin accepts you."
@@ -358,7 +355,10 @@ class GroupsAppController extends AppController
         @getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
-    KD.whoami().acceptInvitation group, callback
+    KD.whoami().acceptInvitation group, (err, res)=>
+      mainController = KD.getSingleton "mainController"
+      mainController.once "AccountChanged", callback.bind this, err, res
+      mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
@@ -907,33 +907,18 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
-  loginRequired:(callback)->
-    new KDNotificationView
-      type     : 'mini'
-      cssClass : 'error'
-      title    : 'Login is required for this action'
-      duration : 5000
-
-    {entryPoint} = KD.config
-
-    @getSingleton('router').handleRoute "/Login", {entryPoint}
-    @getSingleton('mainController').once 'AccountChanged', ->
-      if KD.isLoggedIn()
-        callback()
-
   showGroupCreatedModal:(group)->
     group.fetchMembershipPolicy (err, policy)=>
       return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
-      port = if location.port isnt 80 then ":#{location.port}" else ''
-      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+      @feedController.reload() if @feedController
 
-      if group.privacy is 'public'
-        privacyExpl = 'Koding users can join anytime without approval'
+      groupUrl    = "//#{location.host}/#{group.slug}"
+      privacyExpl = if group.privacy is 'public'
+      then 'Koding users can join anytime without approval'
       else if policy.invitationsEnabled
-        privacyExpl = 'and only invited users can join'
-      else
-        privacyExpl = 'Koding users can only join with your approval'
+      then 'and only invited users can join'
+      else 'Koding users can only join with your approval'
 
       body  = """
         <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>

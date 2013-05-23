@@ -43,6 +43,7 @@ class FSHelper
             break
 
   @plainPath:(path)-> path.replace /\[.*\]/, ''
+  @getVMNameFromPath:(path)-> (/\[([^\]]+)\]/g.exec path)?[1]
 
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
