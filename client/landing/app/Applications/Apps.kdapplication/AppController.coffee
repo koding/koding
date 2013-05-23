@@ -128,23 +128,17 @@ class AppsAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
-  addUpdateAllButton: (apps) ->
-    {listHeader}   = @feedController.resultsController.getView().getActivePane()
-    appsController = @getSingleton "kodingAppsController"
-
-    listHeader.addSubView updateAllButton = new KDCustomHTMLView
-      tagName  : "span"
-      partial  : "Update All"
-      cssClass : "appstore-update-all"
-      click    : =>
-        stack = []
-        apps.forEach (app) =>
-          stack.push (cb) =>
-            appsController.updateUserApp app.manifest, cb
-        async.series stack
-
-    updateAllButton.hide() if apps.length is 0
-    @isUpdateAllButtonAdded = yes
+  manageUpdateAllButton: (apps) ->
+    {updateAppsButton} = @getView()
+    {filterController} = @feedController.facetsController
+    filterController.on "NavItemReceivedClick", (item) =>
+      if item.title isnt "Updates" and updateAppsButton.getData().length
+        updateAppsButton.hide()
+      else
+        updateAppsButton.show()
+    if apps.length
+      updateAppsButton.show()
+      updateAppsButton.setData apps
 
   putAddAnAppButton:->
     {facetsController} = @feedController
