@@ -338,10 +338,15 @@ class GroupsAppController extends AppController
           callback   : (event)->
             group.requestAccess (err)->
               modal.buttons.request.hideLoader()
-              callback err
-              new KDNotificationView title:
-                if err then err.message else success
-              modal.destroy() unless err
+              if err
+                warn err
+                new KDNotificationView title:
+                  if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                return callback err
+
+              new KDNotificationView title: success
+              modal.destroy()
+              callback null
 
   joinGroup:(group)->
     group.join (err, response)=>
@@ -840,7 +845,7 @@ class GroupsAppController extends AppController
             kallback @inviteByUsername, err
 
         invitationRequestView.on 'RequestIsApproved', (request, callback)->
-          request.approveInvitation callback
+          request.approve callback
 
         invitationRequestView.on 'RequestIsDeclined', (request, callback)->
           request.declineInvitation callback

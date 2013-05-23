@@ -274,6 +274,10 @@ class LoginView extends KDScrollView
     @setY -@getSingleton('windowController').winHeight
 
     cb = =>
+      @requestForm.email.show()
+      @requestForm.button.show()
+      @$('.flex-wrapper').removeClass 'expanded'
+
       @emit "LoginViewHidden"
       @hidden = yes
       callback?()
@@ -338,7 +342,7 @@ class LoginView extends KDScrollView
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
-    if entryPoint?.slug isnt 'koding'
+    if entryPoint and entryPoint.slug isnt 'koding'
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"
