@@ -217,21 +217,22 @@ class LoginView extends KDScrollView
         @hide()
 
   doRequest:(formData)->
-
-    KD.remote.api.JInvitationRequest.create formData, (err, result)=>
-
-      if err
-        msg = if err.code is 11000 then "This email was used for a request before!"
-        else "Something went wrong, please try again!"
-        new KDNotificationView
-          title     : msg
-          duration  : 2000
-      else
-        @requestForm.reset()
-        @requestForm.email.hide()
-        @requestForm.button.hide()
-        @$('.flex-wrapper').addClass 'expanded'
-      @requestForm.button.hideLoader()
+    {entryPoint} = KD.config
+    slug = if entryPoint?.type is 'group' and entryPoint.slug\
+           then entryPoint.slug else 'koding'
+    KD.remote.cacheable slug, (err, [group])=>
+      group.requestAccess formData, (err)=>
+        if err
+          warn err
+          new KDNotificationView
+            title     : 'Something went wrong, please try again!'
+            duration  : 2000
+        else
+          @requestForm.reset()
+          @requestForm.email.hide()
+          @requestForm.button.hide()
+          @$('.flex-wrapper').addClass 'expanded'
+        @requestForm.button.hideLoader()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
