@@ -6,9 +6,9 @@ class FSItem extends KDObject
 
   escapeFilePath = FSHelper.escapeFilePath
 
-  @create:(path, type, callback)->
+  @create:(path, type, vmName, callback)->
 
-    FSHelper.ensureNonexistentPath path, @vmName, (err, response)->
+    FSHelper.ensureNonexistentPath path, vmName, (err, response)->
       if err
         callback? err, response
         warn err
@@ -16,6 +16,7 @@ class FSItem extends KDObject
         KD.getSingleton('kiteController').run
           method           : if type is 'folder' then "fs.createDirectory" \
                              else "fs.writeFile"
+          vmName           : vmName
           withArgs         :
             path           : FSHelper.plainPath response
             content        : ""
@@ -23,7 +24,7 @@ class FSItem extends KDObject
         , (err, res)->
           if err then warn err
           else
-            file = FSHelper.createFileFromPath response, type
+            file = FSHelper.createFile {path:response, type, vmName}
           callback? err, file
 
   @copy:(sourceItem, targetItem, callback)->
