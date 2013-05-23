@@ -77,7 +77,7 @@ class HomeLoginBar extends JView
       click       : (event)=>
         @utils.stopDOMEvent event
         requiresLogin =>
-          @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
+          @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
             unless err
               @access.hide()
               @requested.show()
