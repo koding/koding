@@ -30,6 +30,14 @@ class AppsAppController extends AppController
           title             : "All Apps"
           dataSource        : (selector, options, callback)=>
             KD.remote.api.JApp.someWithRelationship selector, options, callback
+        updates             :
+          title             : "Updates"
+          dataSource        : (selector, options, callback)=>
+            appsController  = @getSingleton "kodingAppsController"
+            appsController.fetchUpdateAvailableApps (err, res) =>
+              callback err, res
+              @manageUpdateAllButton res
+
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
@@ -56,6 +64,7 @@ class AppsAppController extends AppController
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
             KD.remote.api.JApp.someWithRelationship selector, options, callback
+
       sort                  :
         'meta.modifiedAt'   :
           title             : "Latest activity"
@@ -118,6 +127,18 @@ class AppsAppController extends AppController
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
+
+  manageUpdateAllButton: (apps) ->
+    {updateAppsButton} = @getView()
+    {filterController} = @feedController.facetsController
+    filterController.on "NavItemReceivedClick", (item) =>
+      if item.title isnt "Updates" and updateAppsButton.getData().length
+        updateAppsButton.hide()
+      else
+        updateAppsButton.show()
+    if apps.length
+      updateAppsButton.show()
+      updateAppsButton.setData apps
 
   putAddAnAppButton:->
     {facetsController} = @feedController
