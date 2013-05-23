@@ -311,7 +311,10 @@ module.exports = class JUser extends jraphical.Module
     @addToGroup account, 'koding', (err)=>
       if err then callback err
       else if invite.group or entryPoint
-        @addToGroup account, invite.group or entryPoint, invite.group?, callback
+        if invite.group is 'koding'
+          invite.markAccepted connection:delegate:account, callback
+        else
+          @addToGroup account, invite.group or entryPoint, invite.group?, callback
       else callback null
 
   @createUser = ({ username, email, password, firstName, lastName }, callback)->

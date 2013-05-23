@@ -24,7 +24,7 @@ module.exports = class JInvitationRequest extends Model
       instance        : [
         'sendInvitation'
         'deleteInvitation'
-        'approveInvitation'
+        'approve'
         'declineInvitation'
         'acceptInvitationByInvitee'
         'ignoreInvitationByInvitee'
@@ -127,8 +127,14 @@ module.exports = class JInvitationRequest extends Model
         Unimplemented: we can't fetch an account from this type of invitation
         """
 
-  approveInvitation: permit 'send invitations',
+  approve: permit 'send invitations',
     success: (client, callback=->)->
+      if @invitationType is 'basic approval'
+        @approveRequest client, callback
+      else
+        @approveInvitation client, callback
+
+  approveRequest: (client, callback=->)->
       JGroup = require './group'
       JGroup.one { slug: @group }, (err, group)=>
         if err then callback err
@@ -142,6 +148,24 @@ module.exports = class JInvitationRequest extends Model
               @update $set:{ status: 'approved' }, (err)=>
                 return callback err if err
                 @sendRequestApprovedNotification client, group, account, callback
+
+  approveInvitation: (client, callback=->)->
+      JGroup      = require './group'
+      JInvitation = require './invitation'
+
+      JGroup.one { slug: @group }, (err, group)=>
+        if err then callback err
+        else unless group?
+          callback new KodingError "No group! #{@group}"
+        else
+          @update $set:{ status: 'sent' }, (err)=>
+            return callback err if err
+            if @koding?.username
+              @sendInviteMailToKodingUser client, @koding, group, callback
+            else
+              JInvitation.one {inviteeEmail: @email}, (err, invite)->
+                return callback err if err
+                JInvitation.sendEmailForInviteViaGroup client, invite, group, callback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection

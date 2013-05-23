@@ -421,8 +421,9 @@ module.exports = class JInvitation extends jraphical.Module
                     else
                       @sendInviteEmail invite,client,customMessage,limit,callback
 
+  # we may find better names for these two methods :) HK
   @createViaGroup = secure (client, group, emails, callback=->)->
-    @createViaGroupWithoutNotification client, group, emails, (err)=>
+    @createViaGroupWithoutNotification client, group, emails, (err, invite)=>
       return callback err  if err
       @sendEmailForInviteViaGroup client, invite, group, callback
 
@@ -448,16 +449,22 @@ module.exports = class JInvitation extends jraphical.Module
         invite.save (err)=>
           return callback err  if err
           if delegate instanceof JAccount
-            invite.addInvitedBy delegate, callback
+            invite.addInvitedBy delegate, (err)-> callback err, invite
           else 
-            callback null
+            callback null, invite
 
   redeem:secure ({connection:{delegate}}, callback=->)->
     operation = $inc: {uses: 1}
     isRedeemed = if @type is 'multiuse' then @uses + 1 >= @maxUses else yes
     operation.$set = {status: 'redeemed'} if isRedeemed
     @update operation, (err)=>
-      if err
-        callback err
-      else
-        @addRedeemer delegate, (err)-> callback err
+      return callback err  if err
+      @addRedeemer delegate, callback
+
+  markAccepted: secure (client, callback)->
+    @redeem client, (err)=>
+      return callback err  if err
+      JInvitationRequest = require './invitationrequest'
+      JInvitationRequest.one {email:@inviteeEmail}, (err, request)->
+        return callback err  if err
+        request.update $set:status:'accepted', callback
