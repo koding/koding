@@ -3,7 +3,9 @@ class AceAppView extends JView
 
     super options, data
 
-    @aceViews       = {}
+    @aceViews   = {}
+    @timestamp  = Date.now()
+    @appManager = @getSingleton "appManager"
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: @
@@ -14,31 +16,21 @@ class AceAppView extends JView
       saveSession          : yes
       sessionName          : "AceTabHistory"
 
-    @on 'UpdateSessionData', (openPanes, data = {}) =>
-      paths = []
-      paths.push pane.getOptions().aceView.getData().path for pane in openPanes
+    @on "SessionDataCreated", (@sessionData) =>
 
-      data[@id] = paths
-      data.latestSessions or= []
-
-      data.latestSessions.push @id if data.latestSessions.indexOf(@id) is -1
-      if data.latestSessions.length > 3
-        shifted = data.latestSessions.shift()
-        delete data[shifted]
-
-      @tabView.emit 'SaveSession', data
-
-    @on "SessionListCreated", (pane, sessionList) => @sessionList = sessionList
+    @on "UpdateSessionData", (openPanes, data) =>
+      @sessionData = @createSessionData openPanes, data
+      @tabView.emit "SaveSessionData", @sessionData
 
     @on "SessionItemClicked", (items) =>
       if items.length > 1
-        @getSingleton("appManager").open "Ace", { forceNew: true }, (appController) =>
+        @appManager.open "Ace", { forceNew: true }, (appController) =>
           appView = appController.getView()
           appView.openFile FSHelper.createFileFromPath file for file in items
       else
         @openFile FSHelper.createFileFromPath file for file in items
 
-    @tabView.on 'PaneDidShow', (pane) =>
+    @tabView.on "PaneDidShow", (pane) =>
       {ace} = pane.getOptions().aceView
       @_windowDidResize()
       ace.on "ace.ready", -> ace.focus()
@@ -58,16 +50,7 @@ class AceAppView extends JView
       # ace.on "AceDidSaveAs", (name, parentPath) =>
       #   update tooltip title here
 
-    @on "menu.save", => @getActiveAceView().ace.requestSave()
-
-    @on "menu.saveAs", => @getActiveAceView().ace.requestSaveAs()
-
-    @on "menu.compileAndRun", => @getActiveAceView().compileAndRun()
-
-    @on "menu.preview", => @getActiveAceView().preview()
-
-    @on "menu.recents", (eventName, item, contextmenu, offset) =>
-      @createOpenRecentsMenu eventName, item, contextmenu, offset
+    @bindAppMenuEvents()
 
     @listenWindowResize()
 
@@ -76,16 +59,59 @@ class AceAppView extends JView
     @tabView.setHeight @getHeight() - @tabHandleContainer.getHeight() - 10
 
   createOpenRecentsMenu: (eventName, item, contextmenu, offset) ->
+    items = @createSessionListItems()
+    return unless Object.keys(items).length
     contextMenu = new JContextMenu
       cssClass    : "recent-files-menu"
       delegate    : @
       x           : offset.left - 400
-      y           : offset.top  + 130
+      y           : offset.top  + 180
       menuWidth   : 250
       arrow       :
         placement : "right"
         margin    : -5
-    , @sessionList
+    , items
+
+  createSessionData: (openPanes, data = {}) ->
+    paths     = []
+    recordKey = "#{@id}-#{@timestamp}"
+
+    for pane in openPanes
+      {path} = pane.getOptions().aceView.getData()
+      paths.push path if path.indexOf("localfile") is -1
+
+    data[recordKey] = paths
+
+    latest = data.latestSessions or= []
+    latest.push recordKey if latest.indexOf(recordKey) is -1
+    if latest.length > 10
+      shifted = latest.shift()
+      delete data[shifted]
+
+    return @sessionData = data
+
+  createSessionListItems: ->
+    items       = {}
+    sessionData = @sessionData
+    {nickname}  = KD.whoami().profile
+    itemCount   = 0
+    for sessionId in sessionData.latestSessions
+      return items if itemCount > 14
+      sessionItems = sessionData[sessionId]
+      sessionItems.forEach (path, i) =>
+        filePath = path.replace("/home/#{nickname}", "~")
+        items[filePath] = callback: => @emit "SessionItemClicked", [path]
+        itemCount++
+
+    return items
+
+  reopenLastSession: ->
+    data   = @sessionData
+    latest = data.latestSessions
+    if latest?.length > 0
+      @emit "SessionItemClicked", data[latest.first]
+    else
+      @getActiveAceView().ace.notify "No recent file.", "error"
 
   viewAppended:->
     super
@@ -143,6 +169,26 @@ class AceAppView extends JView
   clearFileRecords: (view) ->
     file = view.getData()
     delete @aceViews[file.path]
+
+  bindAppMenuEvents: ->
+    @on "saveMenuItemClicked", => @getActiveAceView().ace.requestSave()
+
+    @on "saveAsMenuItemClicked", => @getActiveAceView().ace.requestSaveAs()
+
+    @on "compileAndRunMenuItemClicked", => @getActiveAceView().compileAndRun()
+
+    @on "previewMenuItemClicked", => @getActiveAceView().preview()
+
+    @on "recentsMenuItemClicked", (eventName, item, contextmenu, offset) =>
+      @createOpenRecentsMenu eventName, item, contextmenu, offset
+
+    @on "reopenMenuItemClicked", => @reopenLastSession()
+
+    @on "findMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView()
+
+    @on "findAndReplaceMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView yes
+
+    @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 
   pistachio: ->
     """
