@@ -76,24 +76,11 @@ class MainController extends KDController
     @userAccount             = account
     connectedState.connected = yes
 
-    stack = [
-      (cb)-> 
-        {entryPoint} = KD.config
-        slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
-        KD.remote.cacheable slug, (err, [group])=>
-          return cb err  if err
-          group.fetchMyRoles (err, roles)->
-            return cb err  if err
-            KD.config.roles = roles
-            cb null, roles
-      (cb)->
-        KD.whoami().fetchMyPermissions (err, permissions)->
-          return cb err  if err
-          KD.config.permissions = permissions
-          cb null, permissions
-    ]
-    async.parallel stack, (err)=>
-      warn err  if err
+    KD.whoami().fetchMyPermissionsAndRoles (err, permissions, roles)=>
+      return warn err  if err
+      KD.config.roles       = roles
+      KD.config.permissions = permissions
+
       @ready @emit.bind @, "AccountChanged", account, firstLoad
 
       unless @mainViewController
