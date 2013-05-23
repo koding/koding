@@ -83,9 +83,6 @@ class MonitorStatus extends KDObject
       @printReport()
       @reset()
 
-    @on "webtermDown", (channel) ->
-      @emit "onlyChannelDown", "webterm"
-
     @on "internetDown", ->
       status = KD.getSingleton "status"
       status.internetDown()
@@ -96,12 +93,9 @@ class MonitorStatus extends KDObject
     notifications =
       internetUp : "All systems go!"
       internetDown: "Your internet is down."
-      kodingDown: "Koding is down."
+      brokerDown: "Broker is down."
       kitesDown: "Kites are down."
-      sharedHostingDown: "SharedHosting is down."
-      webtermDown: "Webterm is down."
-      bongoDown: "Bongo is down"
-      brokerDown: "Broker is Down."
+      bongoDown: "Bongo is down."
       undefined: "Sorry, something went wrong."
 
     msg = notifications[reason] or notifications["undefined"]
@@ -127,11 +121,9 @@ class MonitorStatus extends KDObject
   deductReasonForFailure: ->
     reasons = {}
     reasons.internetDown      = ["bongo", "broker", "external"]
-    reasons.kodingDown        = ["bongo", "broker"]
-    reasons.kitesDown         = ["sharedHosting", "webterm"]
     reasons.brokerDown        = ["broker"]
+    reasons.kitesDown         = ["os"]
     reasons.bongoDown         = ["bongo"]
-    reasons.webtermDown       = ["webterm"]
 
     for reason, items of reasons
       intersection = _.intersection items, @failedPings
@@ -180,18 +172,24 @@ do ->
 
   KD.troubleshoot = (showNotifications=true)->
     monitorItems = KD.getSingleton("monitorItems").items
+
+    if monitorItems.length == 1
+      log "no services connected; possible auth/social worker down"
+      return
+
     monitor = new MonitorStatus monitorItems
     monitor.showNotifications = showNotifications
     monitor.run()
 
-  window.jsonp = ->
-    KD.externalPong()
+  window.jsonp =-> KD.externalPong()
 
-  brokerInterval  = null
-  failureCallback = null
-  lastPong        = null
+  brokerInterval       = null
+  failureCallback      = null
+  lastPong             = null
+  timesTroubleshootRan = 0
 
   # use broker ping to determine internet connection
+  # TODO: refactor this ugliness
   pingBrokerOnInterval = ->
     brokerInterval = setInterval ->
       clearTimeout failureCallback
@@ -215,23 +213,25 @@ do ->
         lastPong = Date.now()
 
       failureCallback = setTimeout ->
-        log 'broker ping failed, running troubleshoot', failureCallback
-        KD.troubleshoot(false)
+        if timesTroubleshootRan > 3
+          log "broker ping failed too many times, stopping troubleshoot"
+          return
+
+        log 'broker ping failed, running troubleshoot'
+        KD.troubleshoot false
+        timesTroubleshootRan++
       , 3000
 
       KD.remote.mq.ping -> brokerPong()
-
     , 5000
 
   KD.remote.on 'connected', ->
+    resetIntervals()
     pingBrokerOnInterval()
-    log 'connected, starting broker ping', brokerInterval
 
-  KD.remote.on 'disconnected', ->
-    return unless brokerInterval?
+  KD.remote.on 'disconnected', -> resetIntervals()
 
-    log 'disconnected, stopping broker ping'
-
+  resetIntervals =->
     clearInterval brokerInterval
     clearTimeout failureCallback
     brokerInterval  = null
