@@ -102,8 +102,6 @@ fetchFromNeo = (req, res)->
   rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
   startDate  = Math.floor(rawStartDate/1000)
 
-  console.log "fetchFromNeo", req.params.timestamp, rawStartDate, startDate
-
   fetch = new FetchAllActivityParallel startDate, neo4j
   fetch.get (results)->
     res.send results
