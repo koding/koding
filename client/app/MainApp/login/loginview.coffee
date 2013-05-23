@@ -82,7 +82,7 @@ class LoginView extends KDScrollView
       callback : (formData)=> @doRequest formData
 
     @headBanner = new KDCustomHTMLView
-      lazyDomId: "invite-recovery-notification-bar"
+      domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
@@ -256,13 +256,6 @@ class LoginView extends KDScrollView
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
-  handleInvitation:(invite)->
-    @headBannerShowInvitation invite
-    sgc = @getSingleton 'staticGroupController'
-    sgc.once "status.guest", ->
-      sgc.requestButton.hide()
-    sgc.userButtonBar.registerButton.setClass 'green'
-
   headBannerShowInvitation:(invite)->
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
@@ -303,7 +296,12 @@ class LoginView extends KDScrollView
         router = KD.getSingleton('router')
         routed = no
         for route in router.visitedRoutes by -1
-          unless route in ['/Login', '/Register', '/Join', '/Recover']
+          {entryPoint} = KD.config
+          routeWithoutEntryPoint =
+            if entryPoint?.type is 'group' and entryPoint.slug
+            then route.replace "/#{entryPoint.slug}", ''
+            else route
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
             router.handleRoute route
             routed = yes
             break
@@ -337,7 +335,7 @@ class LoginView extends KDScrollView
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
-    if entryPoint and entryPoint.slug isnt 'koding'
-      return "/#{entryPoint}/#{route}"
+    if entryPoint?.slug isnt 'koding'
+      return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"

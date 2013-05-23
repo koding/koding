@@ -7,7 +7,7 @@ module.exports = class Graph
 
     @groupId   = "5196fcb2bc9bdb0000000027"
     @groupName = "koding"
-    @db = new neo4j.GraphDatabase(config.host + ":" + config.port);
+    @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
 
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)

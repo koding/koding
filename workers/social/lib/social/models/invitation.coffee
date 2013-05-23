@@ -1,7 +1,7 @@
 jraphical = require 'jraphical'
 
 module.exports = class JInvitation extends jraphical.Module
-  
+
   @trait __dirname, '../traits/grouprelated'
 
   fs = require 'fs'
@@ -9,11 +9,13 @@ module.exports = class JInvitation extends jraphical.Module
   nodePath = require 'path'
   {uniq} = require 'underscore'
 
+  {permit} = require './group/permissionset'
+
   # Emailer = require '../emailer'
 
   @isEnabledGlobally = yes
 
-  {ObjectRef, dash, daisy, secure, permit} = require 'bongo'
+  {ObjectRef, dash, daisy, secure} = require 'bongo'
 
   JAccount = require './account'
   JLimit = require './limit'
@@ -29,11 +31,16 @@ module.exports = class JInvitation extends jraphical.Module
     sharedMethods   :
       static        : ['create','byCode','sendBetaInviteFromClient',
                        'grantInvitesFromClient','markAsSent',
-                       'betaInviteCount', 'createViaGroup']
+                       'betaInviteCount', 'createViaGroup',
+                       'createMultiuse' ]
     schema          :
-      code          : String
+      code          :
+        type        : String
+        required    : yes
       inviteeEmail  : String
-      group         : String
+      group         :
+        type        : String
+        required    : yes
       customMessage :
         subject     : String
         body        : String
@@ -111,25 +118,24 @@ module.exports = class JInvitation extends jraphical.Module
 
           callback null, "Done." if emails.length == 0
           counter = 0
-          daisy queue = emails.map (item)->
-            ->
-              continueLooping = ->
-                counter += 1
-                callback null, "Done." if emails.length == counter
-                setTimeout (-> queue.next()), 50
+          daisy queue = emails.map (item) -> ->
+            continueLooping = ->
+              counter += 1
+              callback null, "Done." if emails.length == counter
+              setTimeout (-> queue.next()), 50
 
-              JInvitation.sendBetaInvite email:item.email,(err,res)->
-                if err
-                  callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
+            JInvitation.sendBetaInvite email:item.email,(err,res)->
+              if err
+                callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
+                continueLooping()
+              else
+                item.update $set:sent:yes, (err)->
+                  if err
+                    callback 'err',"#{item.email}something went wrong saving the item as sent."
+                  else
+                    callback null,"#{item.email} is sent and marked as sent."
+                    console.log "#{item.email} is sent and marked as sent."
                   continueLooping()
-                else
-                  item.update $set:sent:yes, (err)->
-                    if err
-                      callback 'err',"#{item.email}something went wrong saving the item as sent."
-                    else
-                      callback null,"#{item.email} is sent and marked as sent."
-                      console.log "#{item.email} is sent and marked as sent."
-                    continueLooping()
       else
         JInvitation.sendBetaInvite options,callback
 
@@ -288,26 +294,26 @@ module.exports = class JInvitation extends jraphical.Module
 
   @byCode = (code, callback)-> @one {code}, callback
 
-  @__createMultiuse = secure (client, options, callback)->
-    {delegate} = client.connection
-    {code, maxUses} = options
-    invite = new JInvitation {
-      code
-      maxUses   : maxUses
-      type      : 'multiuse'
-      origin    : ObjectRef(delegate)
-    }
-    invite.save (err)->
-      if err
-        callback err
-      else
-        invite.addInvitedBy delegate, callback
+  @createMultiuse = permit 'send invitations',
+    success: (client, options, callback) ->
+      {connection:{delegate}, context:{group}} = client
+      {code, maxUses} = options
+      invite = new JInvitation {
+        code
+        group
+        maxUses   : maxUses
+        type      : 'multiuse'
+        origin    : ObjectRef(delegate)
+      }
+      invite.save (err) ->
+        if err then callback err
+        else invite.addInvitedBy delegate, (err) -> callback err
 
   @generateInvitationCode = (email, group)->
-    code = crypto.createHmac('sha1', 'kodingsecret')
-    code.update(email)
-    code.update(group) if group
-    code.digest('hex')
+    code = crypto.createHmac 'sha1', 'kodingsecret'
+    code.update email
+    code.update group  if group
+    code.digest 'hex'
 
   @getHostAndProtocol = do->
     {host, protocol} = require('../config').email
