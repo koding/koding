@@ -545,7 +545,7 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
-       @update ($set: 'counts.following': count), ->
+      @update ($set: 'counts.following': count), ->
 
     # Tag Following count
     Relationship.count
