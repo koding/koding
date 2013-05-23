@@ -74,12 +74,12 @@ dimmedNeighbor()
 
   .chevron
     abs()
-    top               1px
-    right             10px
-    z-index           1
+    top               0
+    right             4px
+    z-index           2
     float             none
     display           none
-    size              16px,16px
+    size              22px,22px
     margin            0
     sprite()
     bg                position,-180px -360px
@@ -271,7 +271,7 @@ dimmedNeighbor()
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
     rounded             2px
-    margin-top          -38px
+    margin-top          -14px
     padding             0
     .kdnotification-title
       text-shadow       none
@@ -325,7 +325,7 @@ dimmedNeighbor()
   abs()
   bottom                    0
   margin                    0
-  size                      100%, 130px
+  size                      100%, 103px
   vendor                    transition, height .2s
   shadow                    0 0 8px rgba(0,0,0,0.15)
   background-color          #e2e2e2
@@ -774,7 +774,7 @@ div.led-wrapper
 
   .vm
     margin-left     0 !important
-    height          22px
+    height          32px
     padding-top     1px
     padding-bottom  3px
 
@@ -797,6 +797,14 @@ div.led-wrapper
       display       none
       bg            position, -220px -540px
       sprite()
+      abs()
+
+    span.vm-info
+      top           15px
+      left          22px
+      font-size     10px
+      font-style    italic
+      opacity       .7
       abs()
 
     div.vm-toggle

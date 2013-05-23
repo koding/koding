@@ -1,6 +1,7 @@
 class WebTermView extends KDView
 
-  constructor: (@appStorage) ->
+  constructor: (options = {}, data)->
+
     @appStorage = new AppStorage 'WebTerm', '1.0'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
@@ -8,6 +9,7 @@ class WebTermView extends KDView
       @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @updateSettings()
+
     super
 
   viewAppended: ->
@@ -115,13 +117,14 @@ class WebTermView extends KDView
     @bindEvent 'contextmenu'
 
     KD.singletons.kiteController.run
-      kiteName: 'os',
-      method: 'webterm.createSession',
-      withArgs:
-        remote: @terminal.clientInterface
-        name: "none"
-        sizeX: @terminal.sizeX
-        sizeY: @terminal.sizeY
+      kiteName : 'os',
+      method   : 'webterm.createSession',
+      vmName   : @getOption('delegate').getOption('vmName')
+      withArgs :
+        remote : @terminal.clientInterface
+        name   : "none"
+        sizeX  : @terminal.sizeX
+        sizeY  : @terminal.sizeY
     , (err, remote) =>
       @terminal.server = remote
       remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime

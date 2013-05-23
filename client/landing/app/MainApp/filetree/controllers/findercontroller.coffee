@@ -46,7 +46,7 @@ class NFinderController extends KDViewController
     @watchers = {}
 
   stopWatching:(pathToStop)->
-    for path, watcher of @watchers  when ///^#{pathToStop}///.test path
+    for path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 
@@ -61,65 +61,72 @@ class NFinderController extends KDViewController
     @utils.wait 2500, =>
       @getSingleton("mainView").sidebar._windowDidResize()
 
-  resetInitialPath:->
-    {nickname}   = KD.whoami().profile
-    initialPath  = "/Sites/#{nickname}.koding.com/website"
-    @initialPath = @expandInitialPath initialPath
-
   reset:->
     if @getOptions().useStorage
       @appStorage = @getSingleton('mainController').\
                       getAppStorageSingleton 'Finder', '1.0'
-      @appStorage.once "storageFetched", => @createRootStructure()
+      @appStorage.once "storageFetched", @bound 'loadVms'
     else
-      @createRootStructure()
+      @loadVms()
 
-  createRootStructure:(path, callback)->
-    {nickname} = KD.whoami().profile
+  loadVms:(vmNames, callback)->
+    unless vmNames
+      vmNames = [(KD.getSingleton 'vmController').getDefaultVmName()]
 
-    path ?= "/home/#{nickname}"
-    FSHelper.resetRegistry()
+    return callback? "vmNames should be an Array"  unless Array.isArray vmNames
 
-    @mount = FSHelper.createFile
-      name : path
-      path : path
-      type : "vm"
-
-    @defaultStructureLoaded = no
-    @treeController.initTree [@mount]
-    @loadDefaultStructure()
+    @cleanup()
+    @mountVm vm  for vm in vmNames
     callback?()
 
-  loadDefaultStructure:->
+  getVmNode:(vmName)->
+    return null  unless vmName
+    for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
+      return vmItem  if vmItem.data.vmName is vmName
 
-    return if @defaultStructureLoaded
+  mountVm:(vm, fetchContent = yes)->
     return unless KD.isLoggedIn()
+    return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
-    @defaultStructureLoaded = yes
-    kiteController          = KD.getSingleton('kiteController')
+    [vmName, path] = vm.split ":"
+    path or= "/home/#{KD.nick()}"
 
-    timer = Date.now()
-    @mount.emit "fs.job.started"
+    if vmItem = @getVmNode vmName
+      return warn "VM #{vmName} is already mounted!"
+
+    @vms.push FSHelper.createFile
+      name   : "#{path}"
+      path   : "[#{vmName}]#{path}"
+      type   : "vm"
+      vmName : vmName
+
+    @treeController.addNode @vms.last
+
+    vmItem = @getVmNode vmName
+    @treeController.expandFolder vmItem  if fetchContent and vmItem
+
+  unmountVm:(vmName)->
+    return unless KD.isLoggedIn()
+    return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+
+    if vmItem
+      @stopWatching vmItem.data.path
+      FSHelper.deregisterVmFiles vmName
+      @treeController.removeNodeView vmItem
+      @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
+
+  updateVMRoot:(vmName, path, callback)->
+    return warn 'VM name and new path required!'  unless vmName or path
+
+    @unmountVm vmName
+    callback?()
+    @mountVm "#{vmName}:#{path}"
+
+  cleanup:->
+    @treeController.removeAllNodes()
+    FSHelper.resetRegistry()
     @stopAllWatchers()
-
-    {nickname} = KD.whoami().profile
-    kiteController.run
-      method     : 'fs.readDirectory'
-      withArgs   :
-        onChange : (change)=>
-          FSHelper.folderOnChange @mount.path, change, @treeController
-        path     : @mount.path
-    , (err, response)=>
-
-      if response
-        @mount.registerWatcher response
-        files = FSHelper.parseWatcher @mount.path, response.files
-        @treeController.addNodes files
-        @treeController.emit 'fs.retry.success'
-        @treeController.hideNotification()
-
-      log "#{(Date.now()-timer)/1000}sec !"
-      @mount.emit "fs.job.finished"
+    @vms = []
 
   setRecentFile:(filePath, callback)->
 
