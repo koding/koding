@@ -90,7 +90,7 @@ class GroupsAppController extends AppController
   getUserArea:->
     @userArea ?
       if KD.config.entryPoint?.type is 'group'
-      then KD.config.entryPoint.slug
+      then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
