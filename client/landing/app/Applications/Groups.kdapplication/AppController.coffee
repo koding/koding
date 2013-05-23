@@ -50,13 +50,6 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'groupAccessRequested',    @showRequestAccessModal.bind this
-    mainController.on 'groupJoinRequested',      @joinGroup.bind this
-    mainController.on 'groupInvitationAccepted', @acceptInvitation.bind this
-    mainController.on 'groupInvitationIgnored',  @ignoreInvitation.bind this
-    mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
-    mainController.on 'loginRequired',           @loginRequired.bind this
-
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -362,7 +355,10 @@ class GroupsAppController extends AppController
         @getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
-    KD.whoami().acceptInvitation group, callback
+    KD.whoami().acceptInvitation group, (err, res)=>
+      mainController = KD.getSingleton "mainController"
+      mainController.once "AccountChanged", callback.bind this, err, res
+      mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
@@ -911,26 +907,11 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
-  loginRequired:(callback)->
-    new KDNotificationView
-      type     : 'mini'
-      cssClass : 'error'
-      title    : 'Login is required for this action'
-      duration : 5000
-
-    {entryPoint} = KD.config
-
-    @getSingleton('router').handleRoute "/Login", {entryPoint}
-    @getSingleton('mainController').once 'AccountChanged', ->
-      if KD.isLoggedIn()
-        callback()
-
   showGroupCreatedModal:(group)->
     group.fetchMembershipPolicy (err, policy)=>
       return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
-      port = if location.port then ":#{location.port}" else ''
-      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+      groupUrl = "//#{location.host}/#{group.slug}"
 
       if group.privacy is 'public'
         privacyExpl = 'Koding users can join anytime without approval'
