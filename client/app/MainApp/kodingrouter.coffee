@@ -317,6 +317,7 @@ class KodingRouter extends KDRouter
                     modal.destroy()
             @clear()
 
+      # REFACTOR HERE! PUBLIC KEY SHOULDN'T BE SENT, TRY WITH A TOKEN
       '/:name?/KD/Register/:hostname/:key':
         ({params:{key, hostname}})->
           key = decodeURIComponent key
@@ -346,28 +347,33 @@ class KodingRouter extends KDRouter
             """
             return showModal title, content
 
-          KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
-
-            if err or not data
-              title   = 'An error occured'
-              content = """
-              <p>
-              You provided an invalid Koding Key. Please try with another one.
-              You can renew your Koding key using <code>$ kd register renew</code> on command
-              line interface.
-              </p>
-              """
-              log err
+          KD.remote.api.JKodingKey.fetchByKey
+            key: key
+          , (err, kodingKey) =>
+            unless kodingKey?.length
+              KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
+                if err or not data
+                  title   = 'An error occured'
+                  content = """
+                  <p>You provided an invalid Koding Key. Please try with another one.
+                  You can renew your Koding key using <code>$ kd register renew</code> on command
+                  line interface.</p>
+                  """
+                  log err
+                else
+                  title   = 'Host Connected!'
+                  content = """
+                  <p>You've connected your Koding Key! It will help you to use Koding command line interface
+                  with more features!</p>
+                  """
+                showModal title, content
             else
-              title   = 'Host Connected!'
+              title   = "You've already connected the host!"
               content = """
-              <p>
-              You've connected your Koding Key! It will help you to use Koding command line interface
-              with more features!
-              </p>
+              <p>You've already connected to Koding. If you want to renew your Koding key, you should
+              run <code>$ kd register renew</code> on command line interface.</p>
               """
-            showModal title, content
-
+              showModal title, content
       # top level names
       '/:name':do->
         open =(routeInfo, model)->

@@ -209,15 +209,36 @@ app.get "/-/kite/login", (req, res) ->
                     res.send JSON.stringify creds
           when 'openservice'
             rabbitAPI.newUser key, name, (err, data) =>
-              creds =
-                protocol  : 'amqp'
-                host      : mq.apiAddress
-                username  : data.username
-                password  : data.password
-                vhost     : mq.vhost
-              console.log creds
-              res.status 200
-              res.send creds
+              if err?
+                console.log "ERROR", err
+                res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
+              else
+                creds =
+                  protocol  : 'amqp'
+                  host      : mq.apiAddress
+                  username  : data.username
+                  password  : data.password
+                  vhost     : mq.vhost
+                console.log creds
+                res.header "Content-Type", "application/json"
+                res.send 200, JSON.stringify creds
+
+# gate for kd
+app.post "/-/kd/:command", express.bodyParser(), (req, res)->
+  switch req.params.command
+    when "register-check"
+      {username, key} = req.body
+      {JKodingKey} = koding.models
+
+      JKodingKey.fetchByUserKey
+        username: username
+        key     : key
+      , (err, kodingKey)=>
+        if err or not kodingKey
+          res.send 418 # I'm a teapot :P
+        else
+          res.status 200
+          res.send "OK"
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'

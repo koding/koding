@@ -152,15 +152,16 @@ module.exports = class JVM extends Model
 
   @fetchVmsByContext = permit 'list all vms',
     success: (client, options, callback) ->
+      {connection:{delegate}, context:{group}} = client
       JGroup = require './group'
 
-      slug = context.group ? 'koding'
+      slug = group ? 'koding'
 
-      JGroup.one {slug}, (err, group) ->
+      JGroup.one {slug}, (err, group) =>
         return callback err  if err
 
         selector = groups: { $elemMatch: id: group.getId() }
-        @fetchAccountVmsBySelector selector, options, callback
+        @fetchAccountVmsBySelector delegate, selector, options, callback
 
   @fetchVms = permit 'list all vms',
     success: (client, options, callback) ->
