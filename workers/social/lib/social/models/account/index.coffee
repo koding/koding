@@ -545,7 +545,7 @@ module.exports = class JAccount extends jraphical.Module
       targetId   : @getId()
       sourceName : 'JAccount'
     , (err, count)=>
-      @update ($set: 'counts.following': count), ->
+       @update ($set: 'counts.following': count), ->
 
     # Tag Following count
     Relationship.count
@@ -605,7 +605,7 @@ module.exports = class JAccount extends jraphical.Module
             return yes
     no
 
-  isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
+  isDummyAdmin = (nickname)-> !!(nickname in dummyAdmins)
 
   @getFlagRole =-> 'owner'
 
