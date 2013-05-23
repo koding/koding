@@ -10,6 +10,8 @@ class HomeLoginBar extends JView
 
     super options, data
 
+    @appManager = @getSingleton('appManager')
+
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
       @utils.stopDOMEvent event
@@ -47,7 +49,7 @@ class HomeLoginBar extends JView
         {entryPoint} = KD.config
         if entryPoint
           requiresLogin =>
-            @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
+            @appManager.tell 'groups', "showRequestAccessModal", @group, @policy, (err)=>
               unless err
                 @request.hide()
                 @requested.show()
@@ -89,7 +91,7 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        requiresLogin => @getSingleton('mainController').emit "groupJoinRequested", @group
+        requiresLogin => @appManager.tell 'groups', "joinGroup", @group
 
     @requested    = new CustomLinkView
       tagName     : "a"
@@ -120,15 +122,14 @@ class HomeLoginBar extends JView
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
-                  @getSingleton('mainController').emit 'groupRequestCancelled', @group, (err)=>
+                  @appManager.tell 'groups', 'cancelGroupRequest', @group, (err)=>
                     modal.buttons.Cancel.hideLoader()
                     @handleBackendResponse err, 'Successfully cancelled request!'
                     modal.destroy()
                     @requested.hide()
                     if @policy.approvalEnabled
-                      @access.show()
-                    else
-                      @request.show()
+                    then @access.show()
+                    else @request.show()
               Dismiss      :
                 style      : "modal-cancel"
                 callback   : -> modal.destroy()
@@ -155,7 +156,7 @@ class HomeLoginBar extends JView
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
-                  @getSingleton('mainController').emit 'groupInvitationAccepted', @group, (err)=>
+                  @appManager.tell 'Groups', 'acceptInvitation', @group, (err)=>
                     modal.buttons.Accept.hideLoader()
                     @handleBackendResponse err, 'Successfully accepted invitation!'
                     unless err
@@ -167,7 +168,7 @@ class HomeLoginBar extends JView
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
-                  @getSingleton('mainController').emit 'groupInvitationIgnored', @group, (err)=>
+                  @appManager.tell 'Groups', 'ignoreInvitation', @group, (err)=>
                     modal.buttons.Ignore.hideLoader()
                     @handleBackendResponse err, 'Successfully ignored invitation!'
                     unless err

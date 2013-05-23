@@ -233,21 +233,23 @@ class NFinderTreeController extends JTreeViewController
 
     @notify "creating a new #{type}!"
     nodeData = nodeView.getData()
+    {vmName} = nodeData
 
     if nodeData.type is "file"
       {parentPath} = nodeData
     else
       parentPath = nodeData.path
 
-    path = "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
+    path = FSHelper.plainPath \
+      "#{parentPath}/New#{type.capitalize()}#{if type is 'file' then '.txt' else ''}"
 
-    FSItem.create path, type, (err, file)=>
+    FSItem.create path, type, vmName, (err, file)=>
       if err
         @notify null, null, err
       else
         @refreshFolder @nodes[parentPath], =>
           @notify "#{type} created!", "success"
-          node = @nodes[file.path]
+          node = @nodes["[#{file.vmName}]#{file.path}"]
           @selectNode node
           @showRenameDialog node
 
