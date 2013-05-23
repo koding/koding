@@ -911,14 +911,14 @@ class GroupsAppController extends AppController
     group.fetchMembershipPolicy (err, policy)=>
       return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
-      groupUrl = "//#{location.host}/#{group.slug}"
+      @feedController.reload() if @feedController
 
-      if group.privacy is 'public'
-        privacyExpl = 'Koding users can join anytime without approval'
+      groupUrl    = "//#{location.host}/#{group.slug}"
+      privacyExpl = if group.privacy is 'public'
+      then 'Koding users can join anytime without approval'
       else if policy.invitationsEnabled
-        privacyExpl = 'and only invited users can join'
-      else
-        privacyExpl = 'Koding users can only join with your approval'
+      then 'and only invited users can join'
+      else 'Koding users can only join with your approval'
 
       body  = """
         <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
