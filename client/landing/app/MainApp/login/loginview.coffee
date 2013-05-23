@@ -82,7 +82,7 @@ class LoginView extends KDScrollView
       callback : (formData)=> @doRequest formData
 
     @headBanner = new KDCustomHTMLView
-      lazyDomId: "invite-recovery-notification-bar"
+      domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
@@ -256,13 +256,6 @@ class LoginView extends KDScrollView
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
-  handleInvitation:(invite)->
-    @headBannerShowInvitation invite
-    sgc = @getSingleton 'staticGroupController'
-    sgc.once "status.guest", ->
-      sgc.requestButton.hide()
-    sgc.userButtonBar.registerButton.setClass 'green'
-
   headBannerShowInvitation:(invite)->
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
@@ -337,7 +330,7 @@ class LoginView extends KDScrollView
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
-    if entryPoint and entryPoint.slug isnt 'koding'
-      return "/#{entryPoint}/#{route}"
+    if entryPoint?.slug isnt 'koding'
+      return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"
