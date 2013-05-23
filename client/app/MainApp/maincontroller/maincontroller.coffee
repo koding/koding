@@ -185,9 +185,8 @@ class MainController extends KDController
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
-      $('body').addClass 'super'
-    else
-      $('body').removeClass 'super'
+    then $('body').addClass 'super'
+    else $('body').removeClass 'super'
 
   setFailTimer: do->
     modal = null
