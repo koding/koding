@@ -158,6 +158,7 @@ module.exports =
     proxy         :
       port        : 8080
       portssl     : 8081
+      sslips      : '127.0.0.1'
     mongo         :
       host        : '127.0.0.1'
     rabbitmq      :
