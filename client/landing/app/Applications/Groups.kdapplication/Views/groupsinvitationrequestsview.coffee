@@ -14,6 +14,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     [@resRequestsListController, @resolvedRequestsList]       = @prepareResolvedRequestsList()
     [@resInvitationsListController, @resolvedInvitationsList] = @prepareResolvedInvitationsList()
 
+    @createMultiuseButton = new KDButtonView
+      title    : 'Create invitation code'
+      cssClass : 'clean-gray'
+      callback : @bound 'showMultiuseModal'
     @inviteByEmailButton = new KDButtonView
       title    : 'Invite by Email'
       cssClass : 'clean-gray'
@@ -62,7 +66,8 @@ class GroupsInvitationRequestsView extends GroupsRequestView
           @fetchAndPopulate controller
     else
       controller.on 'teasersLoaded', (count)=>
-        controller.moreLink?.show() if count >= @requestLimit
+        controller.moreLink?.show()    if count >= @requestLimit
+        controller.hideNoItemWidget()  if count > 0
       controller.on 'ShowMoreRequested', @showListModal.bind this, options
 
     return [controller, controller.getView()]
@@ -122,6 +127,46 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       title           : 'Resolved Invitations'
       noItemFound     : 'No resolved invitations.'
       noMoreItemFound : 'No more resolved invitations found.'
+
+
+  createMultiuseInvitation: (formData) ->
+    KD.remote.api.JInvitation.createMultiuse formData, ->
+      console.log {arguments}
+
+  showMultiuseModal:->
+    modal = new KDModalViewWithForms
+      title                   : "Create a multiuse invitation code"
+      tabs                    :
+        forms                 :
+          createInvitation    :
+            callback          : @bound 'createMultiuseInvitation'
+            buttons           :
+              Save            :
+                itemClass     : KDButtonView
+                type          : 'submit'
+                loader        :
+                  color       : '#444444'
+                  diameter    : 12
+              Cancel          :
+                style         : 'modal-cancel'
+                callback      : -> modal.destroy()
+            fields            :
+              invitationCode  :
+                label         : "Invitation code"
+                itemClass     : KDInputView
+                name          : "code"
+                placeholder   : "Enter a creative invitation code!"
+              maxUses         :
+                label         : "Maximum uses"
+                itemClass     : KDInputView
+                name          : "maxUses"
+                placeholder   : "How many people can redeem this code?"
+
+
+    form = modal.modalTabs.forms.createInvitation
+    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+
+    return modal
 
   showModalForm:(options)->
     modal = new KDModalViewWithForms
@@ -232,7 +277,8 @@ class GroupsInvitationRequestsView extends GroupsRequestView
   pistachio:->
     """
     <div class="button-bar">
-      {{> @batchApproveButton}} {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
+      {{> @createMultiuseButton}} {{> @batchApproveButton}}
+      {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
     </div>
     <section class="formline status-quo">
       <h2>Status quo</h2>
