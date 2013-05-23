@@ -119,14 +119,17 @@ div.screenshots
           width           100%
 
   .home-links
-    size                auto, 0
+    size                100%, 80px
     text-align          left
-    gradient            #666, #505050
-    transition          height .15s ease-in-out
+    opacity             0
+    transition          opacity .15s ease-in-out
     overflow            hidden
-    rel()
+    margin-top          -80px
+    text-align          right
+    bg                  color, transparent
+    abs()
     &.in
-      height            50px
+      opacity           1
 
     .overlay
       abs()
@@ -134,27 +137,47 @@ div.screenshots
       z-index           10
       bg                color, transparent
     > ul
+      size              auto, 100%
       z-index           0
+      font-size         0
+      display           inline-block
+      vertical-align    top
+      li
+        size            auto, 100%
+        display         inline-block
+        padding         15px 0 0 15px
+        overflow        visible
+        vertical-align  top
+        borderBox()
+        rel()
+        &:hover
+          z-index       1
+        &:last-child
+          padding       15px 15px 0 15px
+
     .custom-link-view
-      size              25%, 50px
-      padding           0 26px 0 20px
-      margin            0
-      // rounded           4px
-      line-height       49px
-      gradient          #666, #505050
-      // border-right      1px solid rgba(255,255,255,.2)
-      border-top        1px solid rgba(255,255,255,.3)
-      border-left       1px solid rgba(0,0,0,.1)
-      text-shadow       0 1px 0 rgba(0,0,0,.9)
-      shadow            0 -1px 0 rgba(0, 0, 0, .3)\,\
-                        0 1px 0 rgba(255, 255, 255, .6)
+      size              auto, 50px
+      padding           0 26px 0 16px
+      rounded           25px
+      line-height       50px
+      font-size         13px
+      text-align        left
+      gradient          #666, #4a4a4a
+      // border            1px solid rgba(0,0,0,.2)
+      // border-top        none
+      border            none
+      text-shadow       0 -1px 0 rgba(0,0,0,.9)
+      shadow            0 4px 12px rgba(0, 0, 0, .3)\,\
+                        0 1px 1px rgba(255, 255, 255, .5) inset\,\
+                        0 -1px 1px rgba(0, 0, 0, .4) inset
+      overflow          hidden
+      vertical-align    top
       borderBox()
-      fl()
       .title
         color           rgba(255,255,255,.9)
         width           100%
       .icon
-        margin          15px 1px 0 0
+        margin          15px 3px 0 0
       &:hover
         .title
           color         rgba(255,255,255,1)
@@ -183,13 +206,14 @@ div.screenshots
           bg            position, -220px -379px
       &.browse
         .icon
-          bg            position, -220px -400px
+          bg            position, -220px -399px
       &.green
-        border-top      1px solid rgba(255,255,255,.4)
+        text-shadow     0 -1px 0 rgba(0,0,0,.6)
         gradient        #68B43B, #5B9D33
       &.orange
-        border-top      1px solid rgba(255,255,255,.4)
+        text-shadow     0 -1px 0 rgba(0,0,0,.6)
         gradient        rgb(233, 142, 27), rgb(223, 118, 4)
+
 
 #home-counter-bar
   padding               30px 0
@@ -269,8 +293,17 @@ figure.counter
       > span
         font-size   24px
   .home-links
-    &.in
-      height        30px
+    height          50px
+    margin-top      -50px
+    text-align      center
+    > ul
+      width         100%
+      > li
+        max-width   25%
+        padding     5px 0 0 5px
+        &:last-child
+          padding   5px 5px 0 5px
+
     .custom-link-view
       padding       0 7px 0 5px
       height        30px
@@ -292,8 +325,16 @@ figure.counter
       > span
         font-size   36px
   .home-links
-    &.in
-      height        40px
+    height          60px
+    margin-top      -60px
+    text-align      center
+    > ul
+      width         100%
+      > li
+        max-width   25%
+        padding     10px 0 0 10px
+        &:last-child
+          padding   10px 10px 0 10px
     .custom-link-view
       padding       0 13px 0 10px
       height        40px
