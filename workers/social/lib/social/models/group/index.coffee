@@ -24,6 +24,7 @@ module.exports = class JGroup extends Module
     {permission: 'edit own groups', validateWith: Validators.own}
   ]
 
+  @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/taggable'
   @trait __dirname, '../../traits/protected'
@@ -357,32 +358,10 @@ module.exports = class JGroup extends Module
       sort    : 'title' : 1
     }, callback
 
-  @byRelevance = secure (client, seed, options, callback)->
-    [callback, options] = [options, callback] unless callback
-    {limit, blacklist, skip}  = options
-    limit     ?= 10
-    blacklist or= []
-    blacklist = blacklist.map(ObjectId)
-    cleanSeed = seed.replace(/[^\w\s-]/).trim() #TODO: this is wrong for international charsets
-    startsWithSeedTest = RegExp '^'+cleanSeed, "i"
-    startsWithOptions = {limit, blacklist, skip}
-    @findSuggestions client, startsWithSeedTest, startsWithOptions, (err, suggestions)=>
-      if err
-        callback err
-      else if limit is suggestions.length
-          callback null, suggestions
-      else
-        containsSeedTest = RegExp cleanSeed, 'i'
-        containsOptions =
-          skip      : skip
-          limit     : limit-suggestions.length
-          blacklist : blacklist.concat(suggestions.map (o)-> o.getId())
-        @findSuggestions client, containsSeedTest, containsOptions, (err, moreSuggestions)->
-          if err
-            callback err
-          else
-            allSuggestions = suggestions.concat moreSuggestions
-            callback null, allSuggestions
+  # currently groups in a group show global groups, so it does not
+  # make sense to allow this method based on current group's permissions
+  @byRelevance$ = secure (client, seed, options, callback)->
+    @byRelevance client, seed, options, callback
 
   @fetchSecretChannelName =(groupSlug, callback)->
     JName = require '../name'
@@ -523,7 +502,9 @@ module.exports = class JGroup extends Module
       else
         cursor.toArray (err, arr)->
           if err then callback err
-          else callback null, (doc.as for doc in arr)
+          else
+            roles = if arr.length > 0 then (doc.as for doc in arr) else ['guest']
+            callback null, roles
 
   fetchMyRoles: secure (client, callback)->
     @fetchRolesByAccount client.connection.delegate, callback

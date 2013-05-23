@@ -26,7 +26,8 @@ module.exports = class JPost extends jraphical.Message
 
   {log} = console
 
-  {permit} = require '../group/permissionset'
+  Validators = require '../group/validators'
+  {permit}   = require '../group/permissionset'
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
@@ -194,9 +195,12 @@ module.exports = class JPost extends jraphical.Message
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
 
-  modify: secure (client, formData, callback)->
-    {delegate} = client.connection
-    if delegate.getId().equals @originId
+  modify: permit
+    advanced: [
+      { permission: 'edit own posts', validateWith: Validators.own }
+      { permission: 'edit posts' }
+    ]
+    success: (client, formData, callback)->
       {tags} = formData.meta if formData.meta?
       delete formData.meta
       daisy queue = [
@@ -210,11 +214,13 @@ module.exports = class JPost extends jraphical.Message
         =>
           @update $set: formData, callback
       ]
-    else
-      callback createKodingError "Access denied"
 
-  delete: secure ({connection:{delegate}}, callback)->
-    if delegate.can 'delete', this
+  delete: permit
+    advanced: [
+      { permission: 'delete own posts', validateWith: Validators.own }
+      { permission: 'delete posts' }
+    ]
+    success: ({connection:{delegate}}, callback)->
       id                = @getId()
       createdAt         = @meta.createdAt
       {getDeleteHelper} = Relationship
@@ -242,8 +248,6 @@ module.exports = class JPost extends jraphical.Message
           createdAt
           group    : @group
         }
-    else
-      callback new KodingError 'Access denied!'
 
   fetchActivityId:(callback)->
     Relationship.one {
@@ -484,3 +488,71 @@ module.exports = class JPost extends jraphical.Message
       @triggerCache()
 
     jraphical.Message::update.apply @, rest.concat kallback
+
+  makeGroupSelector =(group)->
+    if Array.isArray group then $in: group else group
+
+  @update$ = permit 'edit posts',
+    success:(client, selector, operation, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @update selector, operation, options, callback
+
+  @one$ = permit 'read posts',
+    success:(client, uniqueSelector, options, callback)->
+      # TODO: this needs more security?
+      uniqueSelector.group = makeGroupSelector client.context.group
+      @one uniqueSelector, options, callback
+
+  @all$ = permit 'read posts',
+    success:(client, selector, callback)->
+      selector.group = client.context.group
+      @all selector, callback
+
+  @remove$ = permit 'delete posts',
+    success:(client, selector, callback)->
+      selector.group = client.context.group
+      @remove selector, callback
+
+  @removeById$ = permit 'delete posts',
+    success:(client, _id, callback)->
+      selector = {
+        _id, group : makeGroupSelector client.context.group
+      }
+      @remove selector, callback
+
+  @count$ = permit 'read posts',
+    success:(client, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = makeGroupSelector client.context.group
+      @count selector, callback
+
+  @some$ = permit 'read posts',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @some selector, options, callback
+
+  @someData$ = permit 'read posts',
+    success:(client, selector, options, fields, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @someData selector, options, fields, callback
+
+  @cursor$ = permit 'read posts',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @cursor selector, options, callback
+
+  @each$ = permit 'read posts',
+    success:(client, selector, fields, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @each selector, fields, options, callback
+
+  @hose$ = permit 'read posts',
+    success:(client, selector, rest...)->
+      selector.group = makeGroupSelector client.context.group
+      @someData selector, rest...
+
+  @teasers$ = permit 'read posts',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @teasers selector, options, callback
