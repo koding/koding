@@ -25,6 +25,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
   <body>
 
   <div class="kdview" id="kdmaincontainer">
+    <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
     <header class="kdview" id='main-header'>
       <a id="koding-logo" href="#"><span></span></a>
     </header>
