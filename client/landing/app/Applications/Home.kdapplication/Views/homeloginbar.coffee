@@ -49,7 +49,7 @@ class HomeLoginBar extends JView
         {entryPoint} = KD.config
         if entryPoint
           requiresLogin =>
-            @appManager.tell 'groups', "showRequestAccessModal", @group, @policy, (err)=>
+            @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
               unless err
                 @request.hide()
                 @requested.show()
@@ -77,7 +77,7 @@ class HomeLoginBar extends JView
       click       : (event)=>
         @utils.stopDOMEvent event
         requiresLogin =>
-          @getSingleton('mainController').emit "groupAccessRequested", @group, @policy, (err)=>
+          @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
             unless err
               @access.hide()
               @requested.show()
@@ -91,7 +91,7 @@ class HomeLoginBar extends JView
         href      : "#"
       click       : (event)=>
         @utils.stopDOMEvent event
-        requiresLogin => @appManager.tell 'groups', "joinGroup", @group
+        requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
     @requested    = new CustomLinkView
       tagName     : "a"
@@ -109,7 +109,7 @@ class HomeLoginBar extends JView
             height         : 'auto'
             overlay        : yes
             buttons        :
-              Okay         :
+              Dismiss      :
                 style      : 'modal-clean-green'
                 loader     :
                   color    : "#ffffff"
@@ -122,7 +122,7 @@ class HomeLoginBar extends JView
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
-                  @appManager.tell 'groups', 'cancelGroupRequest', @group, (err)=>
+                  @appManager.tell 'Groups', 'cancelGroupRequest', @group, (err)=>
                     modal.buttons.Cancel.hideLoader()
                     @handleBackendResponse err, 'Successfully cancelled request!'
                     modal.destroy()
@@ -130,9 +130,6 @@ class HomeLoginBar extends JView
                     if @policy.approvalEnabled
                     then @access.show()
                     else @request.show()
-              Dismiss      :
-                style      : "modal-cancel"
-                callback   : -> modal.destroy()
 
     @invited      = new CustomLinkView
       tagName     : "a"
