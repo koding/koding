@@ -54,11 +54,10 @@ class GroupsAppController extends AppController
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
-    @groupChannel = KD.remote.subscribe "group.#{group.slug}", {
+    @groupChannel = KD.remote.subscribe "group.#{group.slug}",
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-    }
     @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='koding', callback=->)->
@@ -400,31 +399,31 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = ->
-      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      KD.remote.api.JName.one
-        name: slugInput.getValue()
-      , (err, name)=>
-        if name
-          slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          slug = KD.utils.slugify titleInput.getValue()
-          KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-            if newSlug
-              slugInput.setTooltip
-                title     : "Available slug: #{newSlug}"
-                placement : "right"
-        else
-          slugInput.setValidationResult 'slug', null
-          delete slugInput.tooltip
+      # titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
+      # slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
+      # KD.remote.api.JName.one
+      #   name: slugInput.getValue()
+      # , (err, name)=>
+      #   if name
+      #     slugInput.setValidationResult 'slug', "Slug is already being used.", yes
+      #     slug = KD.utils.slugify titleInput.getValue()
+      #     KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
+      #       if newSlug
+      #         slugInput.setTooltip
+      #           title     : "Available slug: #{newSlug}"
+      #           placement : "right"
+      #   else
+      #     slugInput.setValidationResult 'slug', null
+      #     delete slugInput.tooltip
 
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
+      slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
       slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-        if err then slugInput.setValue ''
+        if err then slugView.updatePartial "#{location.protocol}//#{location.host}/"
         else
-          slugInput.setValue newSlug
+          slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
           verifySlug()
 
     getGroupType = ->
@@ -512,27 +511,27 @@ class GroupsAppController extends AppController
 
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
-                label                : "Slug"
-                name                 : "slug"
-                validate             :
-                  event              : "blur"
-                  rules              :
-                    required         : yes
-                    minLength        : 4
-                blur                 : ->
-                  @utils.defer =>
-                    verifySlug()
-
-                defaultValue         : ""
-                placeholder          : 'This value will be automatically generated'
-              "Description"          :
-                label                : "Description"
-                type                 : "textarea"
-                name                 : "body"
-                defaultValue         : ""
-                placeholder          : "Please enter a description for your group here..."
+                label                : "Address"
+                partial              : "#{location.protocol}//#{location.host}/"
+                itemClass            : KDCustomHTMLView
+                # name                 : "slug"
+                # validate             :
+                #   event              : "blur"
+                #   rules              :
+                #     required         : yes
+                #     minLength        : 4
+                # blur                 : -> @utils.defer -> verifySlug()
+                # defaultValue         : ''
+                # placeholder          : 'your-group-url'
+                # disabled             : yes
+              # "Description"          :
+              #   label                : "Description"
+              #   type                 : "textarea"
+              #   name                 : "body"
+              #   defaultValue         : ""
+              #   placeholder          : "Please enter a description for your group here..."
               "Privacy"              :
-                label                : "Privacy settings"
+                label                : "Privacy/Visibility"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "privacy"
@@ -546,16 +545,22 @@ class GroupsAppController extends AppController
                     { title : "By access request",   value : "by-request" }
                     { title : "In same domain",      value : "same-domain" }
                   ]
-              "Visibility"           :
-                label                : "Visibility settings"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "visibility"
-                defaultValue         : "visible"
-                selectOptions        : [
-                  { title : "Visible in group listings",    value : "visible" }
-                  { title : "Hidden in group listings",     value : "hidden" }
-                ]
+                nextElement          :
+                  "Visibility"       :
+                    itemClass        : KDSelectBox
+                    type             : "select"
+                    name             : "visibility"
+                    defaultValue     : "visible"
+                    cssClass         : "visibility"
+                    selectOptions    : [
+                      { title : "Visible in group listings",    value : "visible" }
+                      { title : "Hidden in group listings",     value : "hidden" }
+                    ]
+              "Group VM"             :
+                label                : "Create virtual machines for the group"
+                itemClass            : KDOnOffSwitch
+                name                 : "group-vm"
+                defaultValue         : yes
           "VM Settings"              :
             title                    : 'VM Settings'
             buttons                  :
@@ -569,102 +574,41 @@ class GroupsAppController extends AppController
                 style                : "modal-cancel"
                 callback             : -> modal.modalTabs.showPreviousPane()
             fields                   :
-              # Group VM should be there for every group
-              "Group VM"             :
-                label                : "Create a shared server for the group"
-                itemClass            : KDOnOffSwitch
-                name                 : "group-vm"
-                defaultValue         : yes
-              "User Limit"           :
-                label                : "User Limit"
+              "VM Host"               :
+                label                : "VM Host"
                 itemClass            : KDSelectBox
                 type                 : "select"
-                name                 : "vm-user"
-                defaultValue         : "10"
+                name                 : "vm-host"
+                defaultValue         : "1"
                 selectOptions        : [
-                  { title : "10 users",    value : "10" }
-                  { title : "25 users",    value : "25" }
-                  { title : "50 users",    value : "50" }
-                  { title : "100 user",    value : "100" }
-                  { title : "200 users",   value : "200" }
+                  { title : "2GHz, 4GB RAM, 20GB Disk",      value : "1" }
+                  { title : "4GHz, 4GB RAM, 40GB Disk",      value : "2" }
+                  { title : "8GHz, 8GB RAM, 60GB Disk",      value : "3" }
+                  { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
+                  { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
                 ]
-              "CPU Limit"            :
-                label                : "CPU Limit"
+              "Usage Policy"         :
+                label                : "Usage Policy"
                 itemClass            : KDSelectBox
                 type                 : "select"
-                name                 : "vm-cpu"
-                defaultValue         : "10"
+                name                 : "vm-policy"
+                defaultValue         : "single"
                 selectOptions        : [
-                  { title : "10 CPU units",    value : "10" }
-                  { title : "25 CPU units",    value : "25" }
-                  { title : "50 CPU units",    value : "50" }
-                  { title : "100 CPU units",   value : "100" }
-                  { title : "200 CPU units",   value : "200" }
+                  { title : "All users share same VM host.",                  value : "single" }
+                  { title : "Limit users per VM, create new when necessary.", value : "multiple" }
                 ]
-              "RAM Limit"            :
-                label                : "RAM Limit"
+              "Users per VM"         :
+                label                : "Users per VM"
                 itemClass            : KDSelectBox
                 type                 : "select"
-                name                 : "vm-ram"
-                defaultValue         : "5"
+                name                 : "vm-users"
+                defaultValue         : "25"
                 selectOptions        : [
-                  { title : "5 GBs",     value : "5" }
-                  { title : "10 GBs",    value : "10" }
-                  { title : "20 GBs",    value : "20" }
-                  { title : "30 GBs",    value : "30" }
-                  { title : "40 GBs",    value : "40" }
-                ]
-              "Disk Limit"           :
-                label                : "Disk Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-disk"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 GBs",    value : "10" }
-                  { title : "25 GBs",    value : "25" }
-                  { title : "50 GBs",    value : "50" }
-                  { title : "100 GBs",   value : "100" }
-                ]
-              "Member VM"            :
-                label                : "Create server(s) for each group member"
-                itemClass            : KDOnOffSwitch
-                name                 : "member-vm"
-                defaultValue         : yes
-              "Member CPU Limit"     :
-                label                : "CPU Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-cpu-member"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 CPU units",    value : "10" }
-                  { title : "20 CPU units",    value : "20" }
-                  { title : "30 CPU units",    value : "30" }
-                  { title : "40 CPU units",    value : "40" }
-                  { title : "50 CPU units",    value : "50" }
-                ]
-              "Member RAM Limit"     :
-                label                : "RAM Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-ram-member"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 GBs",    value : "10" }
-                  { title : "20 GBs",    value : "20" }
-                  { title : "30 GBs",    value : "30" }
-                ]
-              "Member Disk Limit"    :
-                label                : "Disk Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-disk-member"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 GBs",    value : "10" }
-                  { title : "20 GBs",    value : "20" }
-                  { title : "30 GBs",    value : "30" }
+                  { title : "5",     value : "5" }
+                  { title : "10",     value : "10" }
+                  { title : "25",     value : "25" }
+                  { title : "50",     value : "50" }
+                  { title : "100",     value : "100" }
                 ]
 
     modal = new KDModalViewWithForms modalOptions

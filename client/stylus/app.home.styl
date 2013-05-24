@@ -125,7 +125,7 @@ div.screenshots
     transition          opacity .15s ease-in-out
     overflow            hidden
     margin-top          -80px
-    text-align          right
+    text-align          center
     bg                  color, transparent
     abs()
     &.in
@@ -155,27 +155,29 @@ div.screenshots
         &:last-child
           padding       15px 15px 0 15px
 
-    .custom-link-view
+    .custom-link-view.button
       size              auto, 50px
       padding           0 26px 0 16px
       rounded           25px
       line-height       50px
-      font-size         13px
       text-align        left
       gradient          #666, #4a4a4a
       // border            1px solid rgba(0,0,0,.2)
       // border-top        none
       border            none
-      text-shadow       0 -1px 0 rgba(0,0,0,.9)
       shadow            0 4px 12px rgba(0, 0, 0, .3)\,\
                         0 1px 1px rgba(255, 255, 255, .5) inset\,\
                         0 -1px 1px rgba(0, 0, 0, .4) inset
       overflow          hidden
       vertical-align    top
       borderBox()
+      &:first-child
+        padding-top     0
       .title
         color           rgba(255,255,255,.9)
         width           100%
+        font-size       17px
+        text-shadow     0 -1px 0 rgba(0,0,0,.9)
       .icon
         margin          15px 3px 0 0
       &:hover
@@ -184,15 +186,6 @@ div.screenshots
       &.open
         .icon
           bg            position, -200px -340px
-      &.logout
-        .icon
-          bg            position, -200px -320px
-      &.login
-        .icon
-          bg            position, -220px -320px
-      &.register
-        .icon
-          bg            position, -220px -341px
       &.customize
         .icon
           bg            position, -200px -380px
@@ -213,6 +206,25 @@ div.screenshots
       &.orange
         text-shadow     0 -1px 0 rgba(0,0,0,.6)
         gradient        rgb(233, 142, 27), rgb(223, 118, 4)
+    .custom-link-view
+      display           block
+      text-align        left
+      &:first-child
+        padding-top     4px
+      span.title
+        font-size       12px
+        color           white
+        text-shadow     0 1px 0 rgba(0,0,0,.9)
+
+      &.register
+        .icon
+          bg            position, -220px -341px
+      &.logout
+        .icon
+          bg            position, -200px -320px
+      &.login
+        .icon
+          bg            position, -220px -320px
 
 
 #home-counter-bar
@@ -297,20 +309,28 @@ figure.counter
     margin-top      -50px
     text-align      center
     > ul
-      width         100%
       > li
-        max-width   25%
         padding     5px 0 0 5px
         &:last-child
           padding   5px 5px 0 5px
 
-    .custom-link-view
-      padding       0 7px 0 5px
-      height        30px
-      line-height   29px
-      font-size     11px
+    .custom-link-view.button
+      padding         0 7px 0 5px
+      height          30px
+      line-height     29px
+      font-size       11px
       .icon
-        margin-top  5px
+        margin-top    5px
+      .title
+        font-size     12px
+    .custom-link-view
+      line-height     15px
+      &:first-child
+        padding-top   0
+      span.title
+        font-size     10px
+      span.icon
+        margin-top    -3px
 
 .medium.screenshots
   figure.counter
@@ -329,19 +349,25 @@ figure.counter
     margin-top      -60px
     text-align      center
     > ul
-      width         100%
       > li
-        max-width   25%
         padding     10px 0 0 10px
         &:last-child
           padding   10px 10px 0 10px
-    .custom-link-view
-      padding       0 13px 0 10px
-      height        40px
-      line-height   39px
-      font-size     12px
+    .custom-link-view.button
+      padding         0 13px 0 10px
+      height          40px
+      line-height     39px
+      font-size       12px
       .icon
-        margin-top  10px
+        margin-top    10px
+      .title
+        font-size     14px
+    .custom-link-view
+      line-height     18px
+      &:first-child
+        padding-top   0
+      span.title
+        font-size     12px
 
 .extra-wide.screenshots
   #home-counter-bar

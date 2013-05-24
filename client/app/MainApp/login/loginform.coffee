@@ -18,6 +18,7 @@ class LoginInlineForm extends LoginViewInlineForm
         forceCase     : "lowercase"
         placeholder   : "Enter Koding Username"
         validate      :
+          container   : this
           rules       :
             required  : yes
           messages    :
@@ -29,6 +30,7 @@ class LoginInlineForm extends LoginViewInlineForm
         type          : "password"
         placeholder   : "Enter Koding Password"
         validate      :
+          container   : this
           rules       :
             required  : yes
           messages    :
