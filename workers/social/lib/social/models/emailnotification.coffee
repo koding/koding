@@ -1,4 +1,5 @@
 {Model, Base, ObjectId, secure} = require 'bongo'
+{extend} = require 'underscore'
 
 createId = require 'hat'
 
@@ -25,6 +26,7 @@ module.exports = class JMailNotification extends Model
       event          : String
       eventFlag      : String
       unsubscribeId  : String
+      senderEmail    : String
       receiver       : ObjectId
       sender         : ObjectId
       contentId      : ObjectId
@@ -61,7 +63,7 @@ module.exports = class JMailNotification extends Model
       contentTypes       : ['JGroup'],
       definition         : "when someone invites you to their group"
     groupRequest         :
-      eventType          : ['ApprovalRequested']
+      eventType          : ['ApprovalRequested', 'InvitationRequested']
       contentTypes       : ['JGroup'],
       definition         : "when someone requests membership to group"
     groupApproved        :
@@ -97,7 +99,7 @@ module.exports = class JMailNotification extends Model
     {actor, receiver, event, contents} = data
 
     username = receiver.getAt 'profile.nickname'
-    sender   = actor._id
+    sender   = actor._id ? actor
     receiver = receiver._id
 
     activity =
@@ -124,12 +126,15 @@ module.exports = class JMailNotification extends Model
                              when contentType in type.contentTypes \
                              and event in type.eventType][0][0]?[0]
 
-    JMailNotification.count {event, sender, receiver, contentId}, \
-    (err, count)->
+    selector = {event, receiver, contentId}
+    if sender instanceof ObjectId 
+    then selector.sender = sender
+    else selector.senderEmail = sender
+
+    JMailNotification.count selector, (err, count)->
       if not err and count is 0
-        notification = new JMailNotification {
-          event, sender, receiver, eventFlag, contentId, activity, \
-          unsubscribeId: getUniqueId()+getUniqueId()+''
+        notification = new JMailNotification extend selector, {
+          eventFlag, activity, unsubscribeId: getUniqueId()+getUniqueId()+''
         }
         # console.log "OK good to go."
         notification.save (err)->
