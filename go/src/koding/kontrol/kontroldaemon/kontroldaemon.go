@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontroldaemon/handler"
-	"koding/kontrol/kontroldaemon/handler/proxy"
 	"koding/kontrol/kontrolhelper"
 	"log"
 )
@@ -14,7 +13,6 @@ func init() {
 
 func main() {
 	handler.Startup()
-	proxy.Startup()
 	startRouting()
 }
 
@@ -32,7 +30,6 @@ func startRouting() {
 	bindings := []bind{ // redeclaring the same exchange is OK, we are doing it once
 		bind{"cli", "kontrol-cli", "input.cli", "infoExchange", "topic"},
 		bind{"api", "kontrol-api", "input.api", "infoExchange", "topic"},
-		bind{"proxy", "kontrol-proxy", "input.proxy", "infoExchange", "topic"},
 		bind{"worker", "kontrol-worker", "input.worker", "workerExchange", "topic"},
 		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
 	}
@@ -56,8 +53,6 @@ func startRouting() {
 			handler.HandleApiMessage(d.Body, d.AppId)
 		case d := <-streams["api"]:
 			handler.HandleApiMessage(d.Body, "")
-		case d := <-streams["proxy"]:
-			proxy.HandleMessage(d.Body)
 		case d := <-streams["worker"]:
 			handler.HandleWorkerMessage(d.Body)
 		case d := <-streams["client"]:

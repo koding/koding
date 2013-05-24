@@ -14,7 +14,7 @@ import (
 
 var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
-var proxyConfig *proxyconfig.ProxyConfiguration
+var proxyDB *proxyconfig.ProxyConfiguration
 var amqpWrapper *AmqpWrapper
 
 func init() {
@@ -30,7 +30,7 @@ func main() {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
 	}
 
-	proxyConfig, err = proxyconfig.Connect()
+	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
@@ -65,9 +65,10 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}/services", GetProxyUsers).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetProxyService).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetKeyList).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", GetKey).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
 
 	// Proxy domain handlers
@@ -77,10 +78,10 @@ func main() {
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
 
 	// Proxy rule handlers
-	rout.HandleFunc("/proxies/{uuid}/rules", GetRules).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/rules/{username}", GetUserRules).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", GetUserServiceRules).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", CreateUserServiceRules).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}/rules", GetRulesUsers).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}", GetRulesServices).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", GetRule).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", CreateRule).Methods("POST")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")

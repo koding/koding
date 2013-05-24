@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontroldaemon/clientconfig"
-	"koding/kontrol/kontroldaemon/handler/proxy"
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -29,12 +28,13 @@ type IncomingMessage struct {
 
 type ApiMessage struct {
 	Worker *workerconfig.Request
-	Proxy  *proxyconfig.ProxyMessage
 	Cli    *cliRequest
 }
 
 var kontrolConfig *workerconfig.WorkerConfig
+var proxyDB *proxyconfig.ProxyConfiguration
 var clientDB *clientconfig.ClientConfig
+
 var workerProducer *kontrolhelper.Producer
 var cliProducer *kontrolhelper.Producer
 var apiProducer *kontrolhelper.Producer
@@ -79,6 +79,11 @@ func Startup() {
 	clientDB, err = clientconfig.Connect()
 	if err != nil {
 		log.Fatalf("wokerconfig mongodb connect: %s", err)
+	}
+
+	proxyDB, err = proxyconfig.Connect()
+	if err != nil {
+		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
 	// cleanup death workers at intervals
@@ -159,8 +164,6 @@ func HandleApiMessage(data []byte, appId string) {
 		if err != nil {
 			log.Println(err)
 		}
-	} else if msg.Proxy != nil {
-		proxy.DoProxy(*msg.Proxy)
 	} else if msg.Cli != nil {
 		err = DoRequest(msg.Cli.Command, msg.Cli.Hostname, msg.Cli.Uuid, msg.Cli.Data, appId)
 		if err != nil {
@@ -192,24 +195,24 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 		}
 
 		if worker.Port == 0 { // but not if it has port of 0
-			return fmt.Errorf("register to konytol proxy not possible. port number is '0' for %s", worker.Name)
+			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
-		cmd := proxyconfig.ProxyMessage{
-			Action:      "addKey",
-			Username:    "koding",
-			DomainName:  "",
-			ServiceName: worker.Name,
-			Key:         key,
-			RabbitKey:   worker.RabbitKey, // this is empty, thus proxy will not use it
-			Host:        worker.Hostname + ":" + port,
-			HostData:    "FromKontrolDaemon",
-			Uuid:        "proxy.in.koding.com",
+		err = proxyDB.AddKey(
+			"koding",
+			worker.Name, //service name
+			key,
+			worker.Hostname+":"+port, // host
+			"FromKontrolDaemon",
+			"proxy-2.in.koding.com", // proxy uuid
+			"",
+		)
+		if err != nil {
+			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())
 		}
 
-		proxy.DoProxy(cmd)
 		return nil
 	}
 
