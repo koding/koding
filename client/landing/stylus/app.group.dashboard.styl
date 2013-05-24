@@ -33,41 +33,43 @@
       rel()
       label
         display                 block
-        margin-left             90px
         font-size               14px
       input
         display                 none
 
       &.active
         bg                      color, rgba(0, 0, 0, .05)
-        &:before
-          bg                    position, -460px -620px
-          opacity               .9
-        &.company:before
-          bg                    position, -460px -680px
-        &.project:before
-          bg                    position, -460px -740px
-        &.custom:before
-          bg                    position, -460px -800px
+        label
+          &:before
+            bg                    position, -460px -620px
+            opacity               .9
+          &.company:before
+            bg                    position, -460px -680px
+          &.project:before
+            bg                    position, -460px -740px
+          &.custom:before
+            bg                    position, -460px -800px
 
       &:hover
         bg                      color, rgba(0, 0, 0, .05)
 
-      &:before
-        content                 ""
-        size                    60px, 60px
-        bg                      color, pink
-        bg                      position, -400px -620px
-        top                     5px
-        opacity                 .4
-        sprite()
-        abs()
-      &.company:before
-        bg                      position, -400px -680px
-      &.project:before
-        bg                      position, -400px -740px
-      &.custom:before
-        bg                      position, -400px -800px
+      label
+        &:before
+          content                 ""
+          size                    60px, 60px
+          bg                      color, pink
+          bg                      position, -400px -620px
+          top                     5px
+          opacity                 .4
+          float                   left
+          margin-right            10px
+          sprite()
+        &.company:before
+          bg                      position, -400px -680px
+        &.project:before
+          bg                      position, -400px -740px
+        &.custom:before
+          bg                      position, -400px -800px
 
   div.general-settings  > .kdformview
     margin-top                5px
