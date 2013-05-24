@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
 	"log"
 	"net/http"
 )
@@ -18,77 +17,65 @@ type RulesPostMessage struct {
 	RuleMode    *string `json:"mode"`
 }
 
-func GetRules(writer http.ResponseWriter, req *http.Request) {
+func GetRulesUsers(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	users := make([]string, 0)
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-	for username := range proxyMachine.Rules {
-		users = append(users, username)
+
+	res, err := proxyDB.GetRulesUsers(uuid)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
 	}
 
-	data, err := json.MarshalIndent(users, "", "  ")
+	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
 	writer.Write([]byte(data))
 }
 
-func GetUserRules(writer http.ResponseWriter, req *http.Request) {
+func GetRulesServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	username := vars["username"]
-	services := make([]string, 0)
 
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-	_, ok := proxyMachine.Rules[username]
-	if !ok {
-		resp := fmt.Sprintf("getting services of user rules is not possible. no user %s exists", username)
-		io.WriteString(writer, resp)
+	res, err := proxyDB.GetRulesServices(uuid, username)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	rules := proxyMachine.Rules[username]
-	for name, _ := range rules.Services {
-		services = append(services, name)
-	}
-
-	data, err := json.MarshalIndent(services, "", "  ")
+	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 	writer.Write([]byte(data))
 }
 
-func GetUserServiceRules(writer http.ResponseWriter, req *http.Request) {
+func GetRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	username := vars["username"]
 	servicename := vars["servicename"]
 
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-	_, ok := proxyMachine.Rules[username]
-	if !ok {
-		resp := fmt.Sprintf("getting services of user rules is not possible. no user %s exists", username)
-		io.WriteString(writer, resp)
+	res, err := proxyDB.GetRule(uuid, username, servicename)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	rules := proxyMachine.Rules[username]
-	restriction := rules.Services[servicename]
-
-	data, err := json.MarshalIndent(restriction, "", "  ")
+	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 	writer.Write([]byte(data))
 }
 
-func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
+func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
@@ -105,7 +92,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -113,7 +100,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 		ruleName = *msg.RuleName
 	} else {
 		err := "no 'rule name' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -121,7 +108,7 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 		rule = *msg.Rule
 	} else {
 		err := "no 'rule' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -129,29 +116,22 @@ func CreateUserServiceRules(writer http.ResponseWriter, req *http.Request) {
 		ruleEnabled = *msg.RuleEnabled
 	} else {
 		err := "no 'ruleEnabled' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
 	if msg.RuleMode != nil {
 		ruleMode = *msg.RuleMode
 	} else {
-		err := "no 'ruleEnabled' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		err := "no 'ruleMode' available"
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "addRule"
-	cmd.Uuid = uuid
-	cmd.Username = username
-	cmd.ServiceName = servicename
-	cmd.RuleName = ruleName
-	cmd.Rule = rule
-	cmd.RuleMode = ruleMode
-	cmd.RuleEnabled = ruleEnabled
-
-	buildSendProxyCmd(cmd)
+	proxyDB.AddRule(uuid, username, servicename, ruleName, rule, ruleMode, ruleEnabled)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+	}
 
 	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%s'", ruleName, rule, ruleEnabled, ruleMode)
 	io.WriteString(writer, url)

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"sort"
 	"strconv"
@@ -19,8 +18,8 @@ func LimiterLoop() {
 		// collect memory stats and calculate limit
 		vmCount := len(infos)
 		memoryUsages := make([]int, 0, vmCount)
-		for name, info := range infos {
-			usage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.usage_in_bytes", name))
+		for _, info := range infos {
+			usage := ReadIntFile("/sys/fs/cgroup/memory/lxc/" + info.vmName + "/memory.usage_in_bytes")
 			info.MemoryUsage = usage
 			memoryUsages = append(memoryUsages, usage)
 		}
@@ -46,8 +45,8 @@ func LimiterLoop() {
 		}
 
 		// apply limits
-		for name, info := range infos {
-			newTotalCpuUsage := ReadIntFile(fmt.Sprintf("/sys/fs/cgroup/cpuacct/lxc/%s/cpuacct.usage", name))
+		for _, info := range infos {
+			newTotalCpuUsage := ReadIntFile("/sys/fs/cgroup/cpuacct/lxc/" + info.vmName + "/cpuacct.usage")
 
 			info.CpuUsage = 0
 			if newTotalCpuUsage > info.totalCpuUsage {
@@ -66,8 +65,8 @@ func LimiterLoop() {
 
 			info.MemoryLimit = memoryLimit
 
-			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/cpu/lxc/%s/cpu.shares", name), []byte(strconv.Itoa(info.CpuShares)), 0644)
-			ioutil.WriteFile(fmt.Sprintf("/sys/fs/cgroup/memory/lxc/%s/memory.limit_in_bytes", name), []byte(strconv.Itoa(info.MemoryLimit)), 0644)
+			ioutil.WriteFile("/sys/fs/cgroup/cpu/lxc/"+info.vmName+"/cpu.shares", []byte(strconv.Itoa(info.CpuShares)), 0644)
+			ioutil.WriteFile("/sys/fs/cgroup/memory/lxc/"+info.vmName+"/memory.limit_in_bytes", []byte(strconv.Itoa(info.MemoryLimit)), 0644)
 		}
 
 		infosMutex.Unlock()

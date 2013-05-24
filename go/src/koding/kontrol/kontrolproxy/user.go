@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bradfitz/gomemcache/memcache"
 	"koding/tools/db"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
@@ -14,6 +16,8 @@ import (
 	"strings"
 )
 
+const CACHE_TIMEOUT_VM = 60 //seconds
+
 type UserInfo struct {
 	Username    string
 	Servicename string
@@ -22,6 +26,8 @@ type UserInfo struct {
 	DomainMode  string
 	IP          string
 	Country     string
+	Target      *url.URL
+	Redirect    bool
 }
 
 func NewUserInfo(username, servicename, key, fullurl, mode string) *UserInfo {
@@ -35,27 +41,49 @@ func NewUserInfo(username, servicename, key, fullurl, mode string) *UserInfo {
 }
 
 func populateUser(outreq *http.Request) (*UserInfo, error) {
-	userInfo := &UserInfo{}
-	host, _, err := net.SplitHostPort(outreq.RemoteAddr)
+	user, err := parseDomain(outreq.Host)
 	if err != nil {
-		fmt.Printf("could not split host and port: %s", err.Error())
-	} else {
-		userInfo.IP = host
+		return nil, err
 	}
 
+	host, err := user.populateIP(outreq.RemoteAddr)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		user.populateCountry(host)
+	}
+
+	err = user.populateTarget()
+	if err != nil {
+		return nil, err
+	}
+
+	_, ok := user.validate()
+	if !ok {
+		return nil, errors.New("not validated user")
+	}
+
+	fmt.Printf("--\nconnected user information %v\n", user)
+	return user, nil
+}
+
+func (u *UserInfo) populateIP(remoteAddr string) (string, error) {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		fmt.Printf("could not split host and port: %s", err.Error())
+		return "", err
+	}
+	u.IP = host
+	return host, nil
+}
+
+func (u *UserInfo) populateCountry(host string) {
 	if geoIP != nil {
 		loc := geoIP.GetLocationByIP(host)
 		if loc != nil {
-			userInfo.Country = loc.CountryName
+			u.Country = loc.CountryName
 		}
 	}
-
-	userInfo, err = parseDomain(outreq.Host)
-	if err != nil {
-		return userInfo, err
-	}
-
-	return userInfo, nil
 }
 
 func parseDomain(host string) (*UserInfo, error) {
@@ -103,84 +131,105 @@ func lookupDomain(domainname string) (*UserInfo, error) {
 		return NewUserInfo(vmName, "", "", "", "vm"), nil
 	}
 
-	domain, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
+	domain, err := proxyDB.GetDomain(uuid, domainname)
+	if err != nil {
 		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+
 	}
 
-	return NewUserInfo(domain.Username, domain.Name, domain.Key, domain.FullUrl, domain.Mode), nil
+	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode), nil
 }
 
 func lookupRabbitKey(username, servicename, key string) string {
 	var rabbitkey string
 
-	_, ok := proxy.RoutingTable[username]
-	if !ok {
-		fmt.Println("no user available in the db. rabbitkey not found")
+	res, err := proxyDB.GetKey(uuid, username, servicename, key)
+	if err != nil {
+		fmt.Printf("no rabbitkey available for user '%s' in the db. disabling rabbit proxy\n", username)
 		return rabbitkey
 	}
-	user := proxy.RoutingTable[username]
 
-	keyRoutingTable := user.Services[servicename]
-	keyDataList := keyRoutingTable.Keys[key]
-
-	for _, keyData := range keyDataList {
-		rabbitkey = keyData.RabbitKey
+	if len(res) >= 1 {
+		fmt.Printf("round-robin is disabled for rabbit proxy %s\n", username)
+		return rabbitkey
 	}
 
-	return rabbitkey //returns empty if not found
+	return res[0].RabbitKey
 }
 
-func targetHost(user *UserInfo) (*url.URL, error) {
+func (u *UserInfo) populateTarget() error {
 	var hostname string
+	var err error
 
-	username := user.Username
-	servicename := user.Servicename
-	key := user.Key
+	username := u.Username
+	servicename := u.Servicename
+	key := u.Key
 
-	switch user.DomainMode {
+	switch u.DomainMode {
 	case "direct":
-		target, err := url.Parse("http://" + user.FullUrl)
+		u.Target, err = url.Parse("http://" + u.FullUrl)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		return target, nil
+		return nil
 	case "vm":
 		var vm virt.VM
-		if err := db.VMs.Find(bson.M{"name": username}).One(&vm); err != nil {
-			target, _ := url.Parse("http://www.koding.com/notfound.html")
-			return target, errors.New("redirect")
-		}
-		if vm.IP == nil {
-			target, _ := url.Parse("http://www.koding.com/notactive.html")
-			return target, errors.New("redirect")
-		}
-		target, err := url.Parse("http://" + vm.IP.String())
+		mcKey := uuid + username + "kontrolproxyvm"
+		it, err := memCache.Get(mcKey)
 		if err != nil {
-			return nil, err
+			fmt.Println("got vm ip from mongodb")
+			if err := db.VMs.Find(bson.M{"name": username}).One(&vm); err != nil {
+				u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
+				u.Redirect = true
+				return nil
+			}
+			if vm.IP == nil {
+				u.Target, _ = url.Parse("http://www.koding.com/notactive.html")
+				u.Redirect = true
+				return nil
+			}
+			u.Target, err = url.Parse("http://" + vm.IP.String())
+			if err != nil {
+				return err
+			}
+
+			data, err := json.Marshal(u.Target)
+			if err != nil {
+				fmt.Printf("could not marshall worker: %s", err)
+			}
+
+			memCache.Set(&memcache.Item{
+				Key:        mcKey,
+				Value:      data,
+				Expiration: int32(CACHE_TIMEOUT_VM),
+			})
+
+			return nil
 		}
-		return target, nil
+		fmt.Println("got vm ip from memcached")
+		err = json.Unmarshal(it.Value, &u.Target)
+		if err != nil {
+			fmt.Printf("unmarshall memcached value: %s", err)
+		}
+		return nil
 	case "internal":
 		break // internal is done below
 	}
 
-	_, ok := proxy.RoutingTable[username]
-	if !ok {
-		return nil, errors.New("no users availalable in the db. targethost not found")
+	keys, err := proxyDB.GetKeyList(uuid, username, servicename)
+	if err != nil {
+		return errors.New("no users availalable in the db. targethost not found")
 	}
 
-	userConfig := proxy.RoutingTable[username]
-	keyRoutingTable := userConfig.Services[servicename]
-
-	v := len(keyRoutingTable.Keys)
-	if v == 0 {
-		return nil, fmt.Errorf("no keys are available for user %s", username)
+	lenKeys := len(keys)
+	if lenKeys == 0 {
+		return fmt.Errorf("no keys are available for user %s", username)
 	} else {
 		if key == "latest" {
 			// get all keys and sort them
-			listOfKeys := make([]int, len(keyRoutingTable.Keys))
+			listOfKeys := make([]int, lenKeys)
 			i := 0
-			for k, _ := range keyRoutingTable.Keys {
+			for k, _ := range keys {
 				listOfKeys[i], _ = strconv.Atoi(k)
 				i++
 			}
@@ -190,21 +239,21 @@ func targetHost(user *UserInfo) (*url.URL, error) {
 			key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
 		}
 
-		_, ok := keyRoutingTable.Keys[key]
+		_, ok := keys[key]
 		if !ok {
-			return nil, fmt.Errorf("no key %s is available for user %s", key, username)
+			return fmt.Errorf("no key %s is available for user %s", key, username)
 		}
 
 		// use round-robin algorithm for each hostname
-		for i, value := range keyRoutingTable.Keys[key] {
+		for i, value := range keys[key] {
 			currentIndex := value.CurrentIndex
 			if currentIndex == i {
 				hostname = value.Host
-				for k, _ := range keyRoutingTable.Keys[key] {
-					if len(keyRoutingTable.Keys[key])-1 == currentIndex {
-						keyRoutingTable.Keys[key][k].CurrentIndex = 0 // reached end
+				for k, _ := range keys[key] {
+					if len(keys[key])-1 == currentIndex {
+						keys[key][k].CurrentIndex = 0 // reached end
 					} else {
-						keyRoutingTable.Keys[key][k].CurrentIndex = currentIndex + 1
+						keys[key][k].CurrentIndex = currentIndex + 1
 					}
 				}
 				break
@@ -212,12 +261,13 @@ func targetHost(user *UserInfo) (*url.URL, error) {
 		}
 	}
 
-	target, err := url.Parse("http://" + hostname)
+	u.Target, err = url.Parse("http://" + hostname)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	u.Redirect = false
 
-	return target, nil
+	return nil
 }
 
 func checkWebsocket(req *http.Request) bool {
@@ -238,16 +288,11 @@ func checkWebsocket(req *http.Request) bool {
 	return upgrade_websocket
 }
 
-func validateUser(user *UserInfo) (string, bool) {
-	rules, ok := proxy.Rules[user.Username]
-	if !ok { // if not available assume allowed for all
-		return fmt.Sprintf("no rule available for servicename %s\n", user.Username), true
+func (u *UserInfo) validate() (string, bool) {
+	res, err := proxyDB.GetRule(uuid, u.Username, u.Servicename)
+	if err != nil {
+		return fmt.Sprintf("no rule available for servicename %s\n", u.Username), true
 	}
 
-	restriction, ok := rules.Services[user.Servicename]
-	if !ok { // if not available assume allowed for all
-		return fmt.Sprintf("no restriction available for servicename %s\n", user.Username), true
-	}
-
-	return validator(restriction, user).IP().Country().Check()
+	return validator(res, u).IP().Country().Check()
 }

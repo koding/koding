@@ -1,35 +1,17 @@
 package proxyconfig
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bradfitz/gomemcache/memcache"
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
 )
 
-type ProxyMessage struct {
-	Action      string `json:"action"`
-	DomainName  string `json:"domainName"`
-	DomainMode  string `json:"domainMode"`
-	ServiceName string `json:"serviceName"`
-	Username    string `json:"username"`
-	Key         string `json:"key"`
-	RabbitKey   string `json:"rabbitKey"`
-	Host        string `json:"host"`
-	HostData    string `json:"hostdata"`
-	Uuid        string `json:"uuid"`
-	RuleName    string `json:"rulename"`
-	Rule        string `json:"rule"`
-	RuleEnabled bool   `json:"enabled"`
-	RuleMode    string `json:"mode"`
-}
-
-type ProxyResponse struct {
-	Action string `json:"action"`
-	Uuid   string `json:"uuid"`
-}
+const CACHE_TIMEOUT = 60 //seconds
 
 type KeyData struct {
 	Key          string
@@ -49,20 +31,17 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 	}
 }
 
-type DomainData struct {
-	Mode     string
-	Username string
-	Name     string
-	Key      string
-	FullUrl  string
-}
-
-type DomainRoutingTable struct {
-	Domains map[string]DomainData `json:"domains"`
-}
-
 type UserProxy struct {
 	Services map[string]KeyRoutingTable
+}
+
+type Domain struct {
+	Domainname  string
+	Mode        string
+	Username    string
+	Servicename string
+	Key         string
+	FullUrl     string
 }
 
 type Restriction struct {
@@ -83,15 +62,10 @@ type UserRules struct {
 }
 
 type Proxy struct {
-	Uuid               string
-	RoutingTable       map[string]UserProxy
-	DomainRoutingTable DomainRoutingTable
-	Rules              map[string]UserRules
-}
-
-type ProxyConfiguration struct {
-	Session    *mgo.Session
-	Collection *mgo.Collection
+	Uuid         string
+	RoutingTable map[string]UserProxy
+	Domains      []Domain `json:"domains"`
+	Rules        map[string]UserRules
 }
 
 func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyData {
@@ -104,22 +78,23 @@ func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyDat
 	}
 }
 
-func NewDomainData(mode, username, name, key, fullurl string) *DomainData {
-	return &DomainData{
-		Mode:     mode,
-		Username: username,
-		Name:     name,
-		Key:      key,
-		FullUrl:  fullurl,
+func NewDomain(domainname, mode, username, servicename, key, fullurl string) *Domain {
+	return &Domain{
+		Domainname:  domainname,
+		Mode:        mode,
+		Username:    username,
+		Servicename: servicename,
+		Key:         key,
+		FullUrl:     fullurl,
 	}
 }
 
 func NewProxy(uuid string) *Proxy {
 	return &Proxy{
-		Uuid:               uuid,
-		RoutingTable:       make(map[string]UserProxy),
-		DomainRoutingTable: *NewDomainRoutingTable(),
-		Rules:              make(map[string]UserRules),
+		Uuid:         uuid,
+		RoutingTable: make(map[string]UserProxy),
+		Domains:      make([]Domain, 0),
+		Rules:        make(map[string]UserRules),
 	}
 }
 
@@ -129,10 +104,10 @@ func NewUserProxy() *UserProxy {
 	}
 }
 
-func NewDomainRoutingTable() *DomainRoutingTable {
-	return &DomainRoutingTable{
-		Domains: make(map[string]DomainData),
-	}
+type ProxyConfiguration struct {
+	Session    *mgo.Session
+	Collection *mgo.Collection
+	MemCache   *memcache.Client
 }
 
 func Connect() (*ProxyConfiguration, error) {
@@ -141,14 +116,15 @@ func Connect() (*ProxyConfiguration, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	session.SetMode(mgo.Strong, true)
 
 	col := session.DB("kontrol").C("proxies")
+	mc := memcache.New("127.0.0.1:11211", "127.0.0.1:11211")
 
 	pr := &ProxyConfiguration{
 		Session:    session,
 		Collection: col,
+		MemCache:   mc,
 	}
 
 	return pr, nil
@@ -159,6 +135,7 @@ func (p *ProxyConfiguration) Add(proxy Proxy) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -191,13 +168,14 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddDomain(mode, username, domainname, servicename, key, fullurl, uuid string) error {
+func (p *ProxyConfiguration) AddDomain(domainname, mode, username, servicename, key, fullurl, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding domain is not possible '%s'", err)
 	}
 
-	proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(mode, username, servicename, key, fullurl)
+	proxy.Domains = append(proxy.Domains, *NewDomain(domainname, mode, username, servicename, key, fullurl))
+
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -315,23 +293,15 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteDomain(domainname, uuid string) error {
-	proxy, err := p.GetProxy(uuid)
-	if err != nil {
-		return fmt.Errorf("deleting domain not possible '%s'", err)
-	}
-
-	_, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		return errors.New("deleting domain is not possible. domain name is wrong")
-	}
-
-	delete(proxy.DomainRoutingTable.Domains, domainname)
-	err = p.UpdateProxy(proxy)
+func (p *ProxyConfiguration) DeleteDomain(uuid, domainname string) error {
+	err := p.Collection.Update(
+		bson.M{
+			"uuid":         uuid,
+			"domains.name": domainname},
+		bson.M{"$pull": bson.M{"domains": bson.M{"name": domainname}}})
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -385,7 +355,7 @@ func (p *ProxyConfiguration) DeleteServiceName(username, name, uuid string) erro
 	return nil
 }
 
-func (p *ProxyConfiguration) DeleteKey(username, name, key, host, hostdata, uuid string) error {
+func (p *ProxyConfiguration) DeleteKey(uuid, username, name, key string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("deleting key not possible '%s'", err)
@@ -433,6 +403,18 @@ func (p *ProxyConfiguration) HasUuid(uuid string) error {
 	return nil
 }
 
+func (p *ProxyConfiguration) GetProxies() []string {
+	proxies := make([]string, 0)
+	proxy := Proxy{}
+	iter := p.Collection.Find(nil).Iter()
+	for iter.Next(&proxy) {
+		proxies = append(proxies, proxy.Uuid)
+
+	}
+
+	return proxies
+}
+
 func (p *ProxyConfiguration) GetProxy(uuid string) (Proxy, error) {
 	result := Proxy{}
 	err := p.Collection.Find(bson.M{"uuid": uuid}).One(&result)
@@ -441,4 +423,179 @@ func (p *ProxyConfiguration) GetProxy(uuid string) (Proxy, error) {
 	}
 
 	return result, nil
+}
+
+func (p *ProxyConfiguration) GetDomain(uuid, domainname string) (Domain, error) {
+	mcKey := uuid + domainname
+	it, err := p.MemCache.Get(mcKey)
+	if err != nil {
+		fmt.Println("get domain from mongo db")
+		result, err := p.GetProxy(uuid)
+		if err != nil {
+			return Domain{}, err
+		}
+
+		if len(result.Domains) == 0 {
+			return Domain{}, errors.New("domain is not created yet")
+		}
+
+		for _, domain := range result.Domains {
+			if domain.Domainname == domainname {
+				data, err := json.Marshal(domain)
+				if err != nil {
+					fmt.Printf("could not marshall worker: %s", err)
+				}
+
+				p.MemCache.Set(&memcache.Item{
+					Key:        mcKey,
+					Value:      data,
+					Expiration: int32(CACHE_TIMEOUT),
+				})
+				return domain, nil
+			}
+		}
+	}
+
+	fmt.Println("get domain from memcached")
+	domain := Domain{}
+	err = json.Unmarshal(it.Value, &domain)
+	if err != nil {
+		fmt.Printf("unmarshall memcached value: %s", err)
+	}
+	return domain, nil
+}
+
+func (p *ProxyConfiguration) GetKeyList(uuid, username, servicename string) (map[string][]KeyData, error) {
+	mcKey := uuid + username + servicename
+	it, err := p.MemCache.Get(mcKey)
+	if err != nil {
+		fmt.Println("get keylist from mongo db")
+		result := Proxy{}
+		keyPath := fmt.Sprintf("routingtable.%s.services.%s", username, servicename)
+		err := p.Collection.Find(bson.M{"uuid": uuid, keyPath: bson.M{"$exists": true}}).One(&result)
+		if err != nil {
+			return nil, fmt.Errorf("mongo lookup %s", err.Error())
+		}
+
+		for _, value := range result.RoutingTable {
+			for name, v := range value.Services {
+				if name == servicename {
+
+					data, err := json.Marshal(v.Keys)
+					if err != nil {
+						fmt.Printf("could not marshall worker: %s", err)
+					}
+
+					p.MemCache.Set(&memcache.Item{
+						Key:        mcKey,
+						Value:      data,
+						Expiration: int32(CACHE_TIMEOUT),
+					})
+					return v.Keys, nil
+				}
+			}
+		}
+	}
+
+	fmt.Println("get keylist from memcached")
+
+	keyList := make(map[string][]KeyData)
+	err = json.Unmarshal(it.Value, &keyList)
+	if err != nil {
+		fmt.Printf("unmarshall memcached value: %s", err)
+	}
+
+	return keyList, nil
+}
+
+func (p *ProxyConfiguration) GetKey(uuid, username, servicename, key string) ([]KeyData, error) {
+	keyList, err := p.GetKeyList(uuid, username, servicename)
+	if err != nil {
+		return nil, fmt.Errorf("mongo lookup %s", err.Error())
+
+	}
+
+	keyData, ok := keyList[key]
+	if !ok {
+		return nil, fmt.Errorf("no keys data available for the username %s, service %s and key %s exist.", username, servicename, key)
+	}
+
+	return keyData, nil
+}
+
+func (p *ProxyConfiguration) GetRules(uuid string) (map[string]UserRules, error) {
+	mcKey := uuid + "kontrolproxyrules"
+	it, err := p.MemCache.Get(mcKey)
+	if err != nil {
+		fmt.Println("get rules from memcached")
+		result := Proxy{}
+		err := p.Collection.Find(bson.M{"uuid": uuid, "rules": bson.M{"$exists": true}}).Select(bson.M{"rules": 1}).One(&result)
+		if err != nil {
+			return nil, fmt.Errorf("mongo lookup %s", err.Error())
+		}
+
+		if len(result.Rules) == 0 {
+			return nil, errors.New("rule is not created yet")
+		}
+
+		data, err := json.Marshal(result.Rules)
+		if err != nil {
+			fmt.Printf("could not marshall worker: %s", err)
+		}
+
+		p.MemCache.Set(&memcache.Item{
+			Key:        mcKey,
+			Value:      data,
+			Expiration: int32(CACHE_TIMEOUT),
+		})
+	}
+
+	fmt.Println("get rules from memcached")
+
+	rules := make(map[string]UserRules)
+	err = json.Unmarshal(it.Value, &rules)
+	if err != nil {
+		fmt.Printf("unmarshall memcached value: %s", err)
+	}
+
+	return rules, nil
+}
+
+func (p *ProxyConfiguration) GetRulesUsers(uuid string) ([]string, error) {
+	res, err := p.GetRules(uuid)
+	if err != nil {
+		return nil, fmt.Errorf("mongo lookup %s", err.Error())
+	}
+
+	users := make([]string, 0)
+	for username := range res {
+		users = append(users, username)
+	}
+
+	return users, nil
+}
+
+func (p *ProxyConfiguration) GetRulesServices(uuid, username string) ([]string, error) {
+	res, err := p.GetRules(uuid)
+	if err != nil {
+		return nil, fmt.Errorf("mongo lookup %s", err.Error())
+	}
+
+	services := make([]string, 0)
+	rules := res[username]
+	for name, _ := range rules.Services {
+		services = append(services, name)
+	}
+
+	return services, nil
+}
+
+func (p *ProxyConfiguration) GetRule(uuid, username, servicename string) (Restriction, error) {
+	res, err := p.GetRules(uuid)
+	if err != nil {
+		return Restriction{}, fmt.Errorf("mongo lookup %s", err.Error())
+	}
+
+	rules := res[username]
+	return rules.Services[servicename], nil
 }
