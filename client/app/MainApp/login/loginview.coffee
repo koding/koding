@@ -82,7 +82,7 @@ class LoginView extends KDScrollView
       callback : (formData)=> @doRequest formData
 
     @headBanner = new KDCustomHTMLView
-      lazyDomId: "invite-recovery-notification-bar"
+      domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
@@ -214,24 +214,27 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
+        mainController.emit "UserLoggedIn"
+
         @hide()
 
   doRequest:(formData)->
-
-    KD.remote.api.JInvitationRequest.create formData, (err, result)=>
-
-      if err
-        msg = if err.code is 11000 then "This email was used for a request before!"
-        else "Something went wrong, please try again!"
-        new KDNotificationView
-          title     : msg
-          duration  : 2000
-      else
-        @requestForm.reset()
-        @requestForm.email.hide()
-        @requestForm.button.hide()
-        @$('.flex-wrapper').addClass 'expanded'
-      @requestForm.button.hideLoader()
+    {entryPoint} = KD.config
+    slug = if entryPoint?.type is 'group' and entryPoint.slug\
+           then entryPoint.slug else 'koding'
+    KD.remote.cacheable slug, (err, [group])=>
+      group.requestAccess formData, (err)=>
+        if err
+          warn err
+          new KDNotificationView
+            title     : 'Something went wrong, please try again!'
+            duration  : 2000
+        else
+          @requestForm.reset()
+          @requestForm.email.hide()
+          @requestForm.button.hide()
+          @$('.flex-wrapper').addClass 'expanded'
+        @requestForm.button.hideLoader()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
@@ -256,13 +259,6 @@ class LoginView extends KDScrollView
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
-  handleInvitation:(invite)->
-    @headBannerShowInvitation invite
-    sgc = @getSingleton 'staticGroupController'
-    sgc.once "status.guest", ->
-      sgc.requestButton.hide()
-    sgc.userButtonBar.registerButton.setClass 'green'
-
   headBannerShowInvitation:(invite)->
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
@@ -278,6 +274,10 @@ class LoginView extends KDScrollView
     @setY -@getSingleton('windowController').winHeight
 
     cb = =>
+      @requestForm.email.show()
+      @requestForm.button.show()
+      @$('.flex-wrapper').removeClass 'expanded'
+
       @emit "LoginViewHidden"
       @hidden = yes
       callback?()
@@ -303,7 +303,12 @@ class LoginView extends KDScrollView
         router = KD.getSingleton('router')
         routed = no
         for route in router.visitedRoutes by -1
-          unless route in ['/Login', '/Register', '/Join', '/Recover']
+          {entryPoint} = KD.config
+          routeWithoutEntryPoint =
+            if entryPoint?.type is 'group' and entryPoint.slug
+            then route.replace "/#{entryPoint.slug}", ''
+            else route
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
             router.handleRoute route
             routed = yes
             break
@@ -338,6 +343,6 @@ class LoginView extends KDScrollView
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
     if entryPoint and entryPoint.slug isnt 'koding'
-      return "/#{entryPoint}/#{route}"
+      return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"

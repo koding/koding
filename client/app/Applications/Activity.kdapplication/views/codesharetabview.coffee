@@ -12,7 +12,7 @@ class CodeShareTabView extends KDTabView
         data=pane.getData()
         fileName      = "localfile:/#{data.CodeShareItemTitle}_#{i}"
         file          = FSHelper.createFileFromPath fileName
-        file.contents = Encoder.htmlDecode(data.CodeShareItemSource)
+        file.contents = Encoder.htmlDecode Encoder.XSSEncode(data.CodeShareItemSource)
         file.syntax   = data.CodeShareItemType.syntax
         KD.getSingleton("appManager").openFile file
 

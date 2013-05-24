@@ -154,6 +154,9 @@ class FeedController extends KDViewController
       else if (firstVar > secondVar) then return -1
       else return 0
 
+  reload:->
+    {selection, defaultSort} = this
+    @changeActiveSort selection.activeSort or defaultSort.title
 
   loadFeed:(filter = @selection)=>
 

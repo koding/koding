@@ -188,7 +188,7 @@ module.exports = class AuthWorker extends EventEmitter
     @fetchNotificationExchange (exchange)->
       exchange.publish routingKey, { event, contents }
 
-  respondServiceUnavailable:->
+  respondServiceUnavailable: (routingKey) ->
     @bongo.respondToClient routingKey, {
       method    : 'error'
       arguments : [message: 'Service unavailable!', code:503]
@@ -203,7 +203,7 @@ module.exports = class AuthWorker extends EventEmitter
         serviceInfo = @getNextServiceInfo messageData.name
 
         unless serviceInfo?
-          @respondServiceUnavailable()
+          @respondServiceUnavailable routingKey
           return console.error "No service info! #{messageData.name}"
 
         { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
@@ -221,9 +221,9 @@ module.exports = class AuthWorker extends EventEmitter
         then @sendAuthWho params
         else if serviceUniqueName?
         then @sendAuthJoin params
-        else @respondServiceUnavailable()
+        else @respondServiceUnavailable routingKey
 
-    ensureGroupPermission = (group, account, roles, callback) ->
+    ensureGroupPermission = (group, account, callback) ->
       {JPermissionSet, JGroup} = @bongo.models
       client = {context: group.slug, connection: delegate: account}
       JPermissionSet.checkPermission client, "read activity", group,
@@ -243,20 +243,17 @@ module.exports = class AuthWorker extends EventEmitter
         unless session then fail()
         else JAccount.one {'profile.nickname': session.username},
           (err, account) =>
-            if err or not account then fail err
+            if err then fail err
             else JGroup.one {slug: messageData.group}, (err, group) =>
               if err or not group then fail err
               else
-                group.fetchRolesByAccount account, (err, roles) =>
-                  if err or not roles then fail err
-                  else
-                    ensureGroupPermission.call this, group, account, roles,
-                      (err, secretChannelName) =>
-                        if err or not secretChannelName
-                          @rejectClient routingKey
-                        else
-                          @addBinding 'broadcast', secretChannelName, routingKey
-                          @setSecretNames routingKey, secretChannelName
+                ensureGroupPermission.call this, group, account,
+                  (err, secretChannelName) =>
+                    if err or not secretChannelName
+                      @rejectClient routingKey
+                    else
+                      @addBinding 'broadcast', secretChannelName, routingKey
+                      @setSecretNames routingKey, secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
       fail = (err)=>
@@ -360,10 +357,10 @@ module.exports = class AuthWorker extends EventEmitter
       exchange  : @presenceExchange
       member    : @resourceName
     }
-    @presence.on 'join', (serviceKey)=>
+    @presence.on 'join', (serviceKey) =>
       try @addService parseServiceKey serviceKey
       catch e then console.error e
-    @presence.on 'leave', (serviceKey)=>
+    @presence.on 'leave', (serviceKey) =>
       try @removeService parseServiceKey serviceKey
       catch e then console.error e
     @presence.listen()
@@ -372,10 +369,6 @@ module.exports = class AuthWorker extends EventEmitter
     { serviceGenericName, serviceUniqueName, routingKey
       correlationName, username } = messageData
 
-    servicesOfType = @services[serviceGenericName]
-
-    [matchingService] = (service for service in servicesOfType \
-                         when service.serviceUniqueName is serviceUniqueName)
     params = {
       serviceGenericName
       serviceUniqueName
@@ -384,6 +377,11 @@ module.exports = class AuthWorker extends EventEmitter
       username
     }
 
+    servicesOfType = @services[serviceGenericName]
+
+    [matchingService] = (service for service in servicesOfType \
+                                 when service.serviceUniqueName \
+                                   is serviceUniqueName)
     if matchingService?
       @sendAuthJoin params
     else

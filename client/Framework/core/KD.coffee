@@ -83,6 +83,8 @@ unless window.event?
   appScripts      : {}
   lastFuncCall    : null
 
+  nick:-> KD.whoami().profile.nickname
+
   whoami:-> KD.getSingleton('mainController').userAccount
 
   logout:->
@@ -258,7 +260,7 @@ unless window.event?
       KD.error   = error   = if console?.error   then console.error.bind(console)   else noop
       KD.time    = time    = if console?.time    then console.time .bind(console)   else noop
       KD.timeEnd = timeEnd = if console?.timeEnd then console.timeEnd.bind(console) else noop
-
+      KD.logsEnabled = yes
       return "Logs are enabled now."
 
   exportKDFramework:->

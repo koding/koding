@@ -15,7 +15,8 @@ module.exports = class JKodingKey extends jraphical.Module
   @set
     softDelete        : yes
     sharedMethods     :
-      static          : ['create', 'fetchAll', 'fetchByKey', 'fetchByUserKey']
+      instance        : ['revoke']
+      static          : ['create', 'fetchAll', 'fetchByKey']
     indexes           :
       key             : ['unique']
     schema            :
@@ -26,8 +27,9 @@ module.exports = class JKodingKey extends jraphical.Module
   @create = secure (client, data, callback)->
     {delegate} = client.connection
     key = new JKodingKey
-      key   : data.key
-      owner : delegate._id
+      key     : data.key
+      hostname: data.hostname
+      owner   : delegate._id
     key.save (err)->
       if err
         callback err
@@ -36,17 +38,18 @@ module.exports = class JKodingKey extends jraphical.Module
 
   @fetchAll = secure ({connection:{delegate}}, options, callback)->
     JKodingKey.all
-      owner : delegate._id
+      owner : delegate.getId()
     , (err, keys)->
       callback err, keys
 
   @fetchByKey = secure ({connection:{delegate}}, options, callback)->
     JKodingKey.all
-      owner : delegate._id
+      owner : delegate.getId()
       key   : options.key
     , (err, keys)->
       callback err, keys
 
+  # TODO: Do not use username. Use secure instead.
   @fetchByUserKey = (options, callback)->
     JAccount.one
       'profile.nickname': options.username
@@ -60,3 +63,10 @@ module.exports = class JKodingKey extends jraphical.Module
           owner : account._id
         , (err, key)->
           callback err, key
+
+  revoke: secure ({connection:{delegate}}, callback)->
+    JKodingKey.one
+      owner : delegate.getId()
+      _id    : @getId()
+    , (err, key)->
+      key.remove callback

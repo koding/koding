@@ -25,7 +25,8 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    host        : "http://kgraphdb1.in.koding.com"
+    read        : "http://neo4j-dev.in.koding.com"
+    write       : "http://neo4j-dev.in.koding.com"
     port        : 7474
   mongo         : mongo
   runNeo4jFeeder: no
@@ -99,6 +100,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
       useNeo4j: no
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
@@ -155,6 +157,7 @@ module.exports =
     proxy         :
       port        : 8080
       portssl     : 8081
+      sslips      : '127.0.0.1'
     mongo         :
       host        : '127.0.0.1'
     rabbitmq      :

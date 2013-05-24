@@ -17,15 +17,15 @@ class AvatarPopup extends KDView
   show:->
     @utils.killWait @loaderTimeout
     @_windowDidResize()
-    @_windowController.addLayer @
+    @_windowController.addLayer this
     @getSingleton('mainController').emit "AvatarPopupIsActive"
     @setClass "active"
-    @
+    return this
 
   hide:->
     @getSingleton('mainController').emit "AvatarPopupIsInactive"
     @unsetClass "active"
-    @
+    return this
 
   viewAppended:->
 

@@ -101,7 +101,7 @@ func main() {
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 					log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-					session.Send(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
+					sendToClient(session, map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 				}
 			}()
 		}
@@ -130,6 +130,9 @@ func main() {
 		}()
 
 		for data := range session.ReceiveChan {
+			if data == nil || session.Closed {
+				break
+			}
 			func() {
 				defer log.RecoverAndLog()
 
@@ -140,9 +143,17 @@ func main() {
 				switch action {
 				case "subscribe":
 					routingKeyPrefix := message["routingKeyPrefix"].(string)
+					if subscriptions[routingKeyPrefix] {
+						log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+					}
+					if len(subscriptions) >= 1000 {
+						session.Close()
+						log.Warn("Dropped session because of too many subscriptions.", session.Tag)
+						return
+					}
 					addToRouteMap(routingKeyPrefix)
 					subscriptions[routingKeyPrefix] = true
-					session.Send(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
+					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 
 				case "unsubscribe":
 					routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -171,7 +182,7 @@ func main() {
 					}
 
 				case "ping":
-					session.Send(map[string]string{"routingKey": "broker.pong"})
+					sendToClient(session, map[string]string{"routingKey": "broker.pong"})
 
 				default:
 					log.Warn("Invalid action.", message, socketId)
@@ -272,21 +283,17 @@ func main() {
 			}
 			prefix := routingKey[:pos]
 			routeMapMutex.Lock()
-			routeSessions := routeMap[prefix]
-
-			sessionsToDelete := make([]int, 0)
-			for i, routeSession := range routeSessions {
-				if !routeSession.Send(jsonMessage) {
-					routeSession.Close()
-					sessionsToDelete = append(sessionsToDelete, i)
-					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
-				}
-			}
-			for i := len(sessionsToDelete) - 1; i >= 0; i-- {
-				routeSessions[sessionsToDelete[i]] = routeSessions[len(routeSessions)-1]
-				routeSessions = routeSessions[:len(routeSessions)-1]
+			for _, routeSession := range routeMap[prefix] {
+				sendToClient(routeSession, jsonMessage)
 			}
 			routeMapMutex.Unlock()
 		}
+	}
+}
+
+func sendToClient(session *sockjs.Session, data interface{}) {
+	if !session.Send(data) {
+		session.Close()
+		log.Warn("Dropped session because of broker to client buffer overflow.", session.Tag)
 	}
 }

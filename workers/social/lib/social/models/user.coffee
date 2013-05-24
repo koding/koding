@@ -303,7 +303,7 @@ module.exports = class JUser extends jraphical.Module
     isInvited ?= no
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
-      else if not isInvited and group.privacy is 'private'
+      else if not isInvited and group.privacy is 'private' and group.slug isnt 'koding'
         group.requestAccessFor account, callback
       else group.approveMember account, callback
 
@@ -311,7 +311,10 @@ module.exports = class JUser extends jraphical.Module
     @addToGroup account, 'koding', (err)=>
       if err then callback err
       else if invite.group or entryPoint
-        @addToGroup account, invite.group or entryPoint, invite.group?, callback
+        if invite.group is 'koding'
+          invite.markAccepted connection:delegate:account, callback
+        else
+          @addToGroup account, invite.group or entryPoint, invite.group?, callback
       else callback null
 
   @createUser = ({ username, email, password, firstName, lastName }, callback)->

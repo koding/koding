@@ -81,15 +81,18 @@ func main() {
 
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
-	go func() {
-		err = http.ListenAndServeTLS(":"+portssl, "cert.pem", "key.pem", nil)
-		if err != nil {
-			log.Println("https mode is disabled. please add cert.pem and key.pem files.")
-		} else {
-			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-		}
-	}()
+	for _, sslip := range sslips {
+		go func(sslip string) {
+			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
+			if err != nil {
+				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+			} else {
+				log.Printf("https mode is enabled. serving at :%s ...", portssl)
+			}
+		}(sslip)
+	}
 
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
 	err = http.ListenAndServe(":"+port, nil)
@@ -221,6 +224,10 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if req.TLS == nil && req.Host == "new.koding.com" {
+		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+	}
+
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 

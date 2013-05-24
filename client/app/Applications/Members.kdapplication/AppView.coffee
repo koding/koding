@@ -2,11 +2,15 @@ class MembersMainView extends KDView
 
   createCommons:->
 
-    @addSubView header = new HeaderViewSection
+    @addSubView @header = new HeaderViewSection
       type  : "big"
       title : "Members"
 
-    header.setSearchInput()
+    @getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
+    @setSearchInput()
+
+  setSearchInput:->
+    @header.setSearchInput()  if 'list members' in KD.config.permissions
 
 class MembersListItemView extends KDListItemView
   constructor:(options, data)->
@@ -45,11 +49,7 @@ class MembersListItemView extends KDListItemView
     @profileLink = new ProfileLinkView {}, memberData
 
   click:(event)->
-    $trg = $(event.target)
-    more = "span.collapsedtext a.more-link"
-    less = "span.collapsedtext a.less-link"
-    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
-    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+    KD.utils.showMoreClickHandler.call this, event
     member = @getData()
     targetATag = $(event.target).closest('a')
     if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
