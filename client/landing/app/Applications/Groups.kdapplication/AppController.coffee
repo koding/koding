@@ -417,13 +417,18 @@ class GroupsAppController extends AppController
       #     delete slugInput.tooltip
 
     makeSlug = =>
-      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
+      form = modal.modalTabs.forms["General Settings"]
+      titleInput = form.inputs.Title
+      slugView   = form.inputs.Slug
+      slugInput  = form.inputs.HiddenSlug
       slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-        if err then slugView.updatePartial "#{location.protocol}//#{location.host}/"
+        if err
+          slugView.updatePartial "#{location.protocol}//#{location.host}/"
+          slugInput.setValue ''
         else
           slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
+          slugInput.setValue newSlug
           verifySlug()
 
     getGroupType = ->
@@ -454,7 +459,6 @@ class GroupsAppController extends AppController
       cssClass                       : "group-admin-modal compose-message-modal admin-kdmodal"
       width                          : 500
       overlay                        : yes
-      goToNextFormOnSubmit           : no
       tabs                           :
         navigable                    : no
         goToNextFormOnSubmit         : yes
@@ -486,19 +490,18 @@ class GroupsAppController extends AppController
                 ]
           "General Settings"         :
             title                    : 'Create a group'
+            callback                 : ->
+              form = modal.modalTabs.forms["General Settings"]
+              unless form.inputs["Group VM"].getValue()
+                modal.modalTabs.removePaneByName "VM Settings"
+                modal.modalTabs.fireFinalCallback()
             buttons                  :
               "Next"                 :
                 style                : "modal-clean-gray"
-                type                 : "button"
+                type                 : "submit"
                 loader               :
                   color              : "#444444"
                   diameter           : 12
-                callback             : ->
-                  form = modal.modalTabs.forms["General Settings"]
-                  if form.inputs["Group VM"].getValue()
-                    modal.modalTabs.showNextPane()
-                  else
-                    modal.modalTabs.fireFinalCallback()
               "Back"                 :
                 style                : "modal-cancel"
                 callback             : ->
@@ -513,10 +516,15 @@ class GroupsAppController extends AppController
                   event              : "blur"
                   rules              :
                     required         : yes
+                    minLength        : 4
                 keydown              : (pubInst, event)->
                   @utils.defer =>
                     makeSlug()
                 placeholder          : 'Please enter your group title...'
+              "HiddenSlug"           :
+                name                 : "slug"
+                type                 : "hidden"
+                cssClass             : "hidden"
               "Slug"                 :
                 label                : "Address"
                 partial              : "#{location.protocol}//#{location.host}/"
@@ -531,12 +539,12 @@ class GroupsAppController extends AppController
                 # defaultValue         : ''
                 # placeholder          : 'your-group-url'
                 # disabled             : yes
-              # "Description"          :
-              #   label                : "Description"
-              #   type                 : "textarea"
-              #   name                 : "body"
-              #   defaultValue         : ""
-              #   placeholder          : "Please enter a description for your group here..."
+              "Description"          :
+                label                : "Description"
+                type                 : "textarea"
+                name                 : "body"
+                defaultValue         : ""
+                placeholder          : "Please enter a description for your group here..."
               "Privacy"              :
                 label                : "Privacy/Visibility"
                 itemClass            : KDSelectBox
