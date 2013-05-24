@@ -639,39 +639,39 @@ class GroupsAppController extends AppController
                 name                 : "member-vm"
                 defaultValue         : yes
               "Member CPU Limit"     :
-                label                : "CPU Limit per Member"
+                label                : "CPU Limit"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "vm-cpu-member"
-                defaultValue         : "1"
+                defaultValue         : "10"
                 selectOptions        : [
-                  { title : "1 CPU unit",    value : "1" }
-                  { title : "2 CPU units",    value : "2" }
-                  { title : "3 CPU units",    value : "3" }
-                  { title : "4 CPU units",    value : "4" }
-                  { title : "5 CPU units",    value : "5" }
+                  { title : "10 CPU units",    value : "10" }
+                  { title : "20 CPU units",    value : "20" }
+                  { title : "30 CPU units",    value : "30" }
+                  { title : "40 CPU units",    value : "40" }
+                  { title : "50 CPU units",    value : "50" }
                 ]
               "Member RAM Limit"     :
-                label                : "RAM Limit per Member"
+                label                : "RAM Limit"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "vm-ram-member"
-                defaultValue         : "1"
+                defaultValue         : "10"
                 selectOptions        : [
-                  { title : "1 GB",     value : "1" }
-                  { title : "2 GBs",    value : "2" }
-                  { title : "5 GBs",    value : "5" }
+                  { title : "10 GBs",    value : "10" }
+                  { title : "20 GBs",    value : "20" }
+                  { title : "30 GBs",    value : "30" }
                 ]
               "Member Disk Limit"    :
-                label                : "Disk Limit per Member"
+                label                : "Disk Limit"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "vm-disk-member"
-                defaultValue         : "1"
+                defaultValue         : "10"
                 selectOptions        : [
-                  { title : "1 GB",     value : "1" }
-                  { title : "2 GBs",    value : "2" }
-                  { title : "5 GBs",    value : "5" }
+                  { title : "10 GBs",    value : "10" }
+                  { title : "20 GBs",    value : "20" }
+                  { title : "30 GBs",    value : "30" }
                 ]
 
     modal = new KDModalViewWithForms modalOptions
