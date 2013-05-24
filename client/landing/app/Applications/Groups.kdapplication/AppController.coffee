@@ -595,7 +595,6 @@ class GroupsAppController extends AppController
                 defaultValue         : "single"
                 selectOptions        : [
                   { title : "All users share same VM host.",                  value : "single" }
-                  { title : "Limit users per VM host.",                       value : "limited" }
                   { title : "Limit users per VM, create new when necessary.", value : "multiple" }
                 ]
               "Users per VM"         :
