@@ -22,12 +22,12 @@ module.exports = class AuthWorker extends EventEmitter
     @reroutingExchange    ?= 'routing-control'
     @notificationExchange ?= 'notification'
     @services = {}
-    @clients  = {
+    @clients  =
       bySocketId    : {}
       byExchange    : {}
       byRoutingKey  : {}
-    }
     @counts   = {}
+    @waitingAuthWhos = {}
 
   bound: require 'koding-bound'
 
@@ -72,11 +72,10 @@ module.exports = class AuthWorker extends EventEmitter
 
   cycleClient: (client) ->
     {routingKey} = client
-    @bongo.respondToClient routingKey, {
+    @bongo.respondToClient routingKey,
       method      : 'cycleChannel'
       arguments   : []
       callbacks   : {}
-    }
 
   removeClient: (rest...) ->
     if rest.length is 1
@@ -89,11 +88,10 @@ module.exports = class AuthWorker extends EventEmitter
 
   addClient: (socketId, exchange, routingKey, sendOk=yes) ->
     if sendOk
-      @bongo.respondToClient routingKey, {
+      @bongo.respondToClient routingKey,
         method    : 'auth.authOk'
         arguments : []
         callbacks : {}
-      }
     clientsBySocketId   = @clients.bySocketId[socketId]     ?= []
     clientsByExchange   = @clients.byExchange[exchange]     ?= []
     clientsByRoutingKey = @clients.byRoutingKey[routingKey] ?= []
@@ -105,11 +103,10 @@ module.exports = class AuthWorker extends EventEmitter
   rejectClient:(routingKey, message)->
     console.log 'rejecting', routingKey
     return console.trace()  unless routingKey?
-    @bongo.respondToClient routingKey, {
+    @bongo.respondToClient routingKey,
       method    : 'error'
       arguments : [message: message ? 'Access denied']
       callbacks : {}
-    }
 
   setSecretNames:(routingKey, publishingName, subscribingName)->
     setSecretNamesEvent = "#{routingKey}.setSecretNames"
@@ -135,12 +132,20 @@ module.exports = class AuthWorker extends EventEmitter
 
   sendAuthJoin: (options) ->
     { socketId, serviceUniqueName, routingKey } = options
-    options.callback = => @addClient socketId, serviceUniqueName, routingKey
+    options.callback = =>
+      key = getWaitingAuthWhoKey options
+      socketId ?= @waitingAuthWhos[key]
+      delete @waitingAuthWhos[key]
+      @addClient socketId, serviceUniqueName, routingKey
     options.method = 'auth.join'
     @sendAuthMessage options
 
+  getWaitingAuthWhoKey = (o) ->
+    "#{o.username}!#{o.correlationName}!#{o.serviceGenericName}"
+
   sendAuthWho: (options) ->
     options.method = 'auth.who'
+    @waitingAuthWhos[getWaitingAuthWhoKey options] = options.socketId
     @sendAuthMessage options
 
   fetchReroutingExchange:(callback)->
@@ -189,11 +194,10 @@ module.exports = class AuthWorker extends EventEmitter
       exchange.publish routingKey, { event, contents }
 
   respondServiceUnavailable: (routingKey) ->
-    @bongo.respondToClient routingKey, {
+    @bongo.respondToClient routingKey,
       method    : 'error'
       arguments : [message: 'Service unavailable!', code:503]
       callbacks : {}
-    }
 
   join: do ->
 
