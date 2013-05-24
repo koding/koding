@@ -88,6 +88,8 @@ func (k *Kite) Run() {
 
 			switch message.RoutingKey {
 			case "auth.join":
+				log.Debug("auth.join", message)
+
 				var channel Channel
 				err := json.Unmarshal(message.Body, &channel)
 				if err != nil || channel.Username == "" || channel.RoutingKey == "" {
@@ -207,6 +209,8 @@ func (k *Kite) Run() {
 				}()
 
 			case "auth.leave":
+				log.Debug("auth.leave", message)
+
 				var client struct {
 					RoutingKey string
 				}
