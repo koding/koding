@@ -50,13 +50,6 @@ class GroupsAppController extends AppController
     @groups = {}
     @currentGroupData = new GroupData
 
-    mainController.on 'groupAccessRequested',    @showRequestAccessModal.bind this
-    mainController.on 'groupJoinRequested',      @joinGroup.bind this
-    mainController.on 'groupInvitationAccepted', @acceptInvitation.bind this
-    mainController.on 'groupInvitationIgnored',  @ignoreInvitation.bind this
-    mainController.on 'groupRequestCancelled',   @cancelGroupRequest.bind this
-    mainController.on 'loginRequired',           @loginRequired.bind this
-
   getCurrentGroup:->
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
@@ -87,7 +80,10 @@ class GroupsAppController extends AppController
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
 
-  getUserArea:-> @userArea
+  getUserArea:->
+    @userArea ?
+      if KD.config.entryPoint?.type is 'group'
+      then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
     @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
@@ -312,11 +308,12 @@ class GroupsAppController extends AppController
       @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
-    if policy.explanation?
-      title = "Request Access"
+
+    if policy.explanation
+      title   = "Request Access"
       content = __utils.applyMarkdown policy.explanation
       success = "Your request has been sent to the group's admin."
-    else if policy.approvalEnabled?
+    else if policy.approvalEnabled
       title   = 'Request Access'
       content = 'Membership to this group requires administrative approval.'
       success = "Thanks! You'll be notified when group's admin accepts you."
@@ -341,10 +338,15 @@ class GroupsAppController extends AppController
           callback   : (event)->
             group.requestAccess (err)->
               modal.buttons.request.hideLoader()
-              callback err
-              new KDNotificationView title:
-                if err then err.message else success
-              modal.destroy() unless err
+              if err
+                warn err
+                new KDNotificationView title:
+                  if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                return callback err
+
+              new KDNotificationView title: success
+              modal.destroy()
+              callback null
 
   joinGroup:(group)->
     group.join (err, response)=>
@@ -358,7 +360,10 @@ class GroupsAppController extends AppController
         @getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
-    KD.whoami().acceptInvitation group, callback
+    KD.whoami().acceptInvitation group, (err, res)=>
+      mainController = KD.getSingleton "mainController"
+      mainController.once "AccountChanged", callback.bind this, err, res
+      mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
     KD.whoami().ignoreInvitation group, callback
@@ -463,7 +468,7 @@ class GroupsAppController extends AppController
         hideHandleContainer          : yes
         callback                     : (formData)=>
           _createGroupHandler.call @, formData, (err) =>
-            modal.modalTabs.forms["General Settings"].buttons.Save.hideLoader()
+            modal.modalTabs.forms["VM Settings"].buttons.Save.hideLoader()
             unless err
               modal.destroy()
         forms                        :
@@ -491,7 +496,7 @@ class GroupsAppController extends AppController
           "General Settings"         :
             title                    : 'Create a group'
             buttons                  :
-              "Save"                 :
+              "Next"                 :
                 style                : "modal-clean-gray"
                 type                 : "submit"
                 loader               :
@@ -558,26 +563,121 @@ class GroupsAppController extends AppController
                   { title : "Visible in group listings",    value : "visible" }
                   { title : "Hidden in group listings",     value : "hidden" }
                 ]
-              # # Group VM should be there for every group
-              #
-              # "Group VM"             :
-              #   label                : "Create a shared server for the group"
-              #   itemClass            : KDOnOffSwitch
-              #   name                 : "group-vm"
-              #   defaultValue         : no
-              #
-              # # Members VMs are a future feature
-              #
-              # "Member VM"            :
-              #   label                : "Create a server for each group member"
-              #   itemClass            : KDOnOffSwitch
-              #   name                 : "member-vm"
-              #   defaultValue         : no
+          "VM Settings"              :
+            title                    : 'VM Settings'
+            buttons                  :
+              "Save"                 :
+                style                : "modal-clean-gray"
+                type                 : "submit"
+                loader               :
+                  color              : "#444444"
+                  diameter           : 12
+              "Back"                 :
+                style                : "modal-cancel"
+                callback             : -> modal.modalTabs.showPreviousPane()
+            fields                   :
+              # Group VM should be there for every group
+              "Group VM"             :
+                label                : "Create a shared server for the group"
+                itemClass            : KDOnOffSwitch
+                name                 : "group-vm"
+                defaultValue         : yes
+              "User Limit"           :
+                label                : "User Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-user"
+                defaultValue         : "10"
+                selectOptions        : [
+                  { title : "10 users",    value : "10" }
+                  { title : "25 users",    value : "25" }
+                  { title : "50 users",    value : "50" }
+                  { title : "100 user",    value : "100" }
+                  { title : "200 users",   value : "200" }
+                ]
+              "CPU Limit"            :
+                label                : "CPU Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-cpu"
+                defaultValue         : "10"
+                selectOptions        : [
+                  { title : "10 CPU units",    value : "10" }
+                  { title : "25 CPU units",    value : "25" }
+                  { title : "50 CPU units",    value : "50" }
+                  { title : "100 CPU units",   value : "100" }
+                  { title : "200 CPU units",   value : "200" }
+                ]
+              "RAM Limit"            :
+                label                : "RAM Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-ram"
+                defaultValue         : "5"
+                selectOptions        : [
+                  { title : "5 GBs",     value : "5" }
+                  { title : "10 GBs",    value : "10" }
+                  { title : "20 GBs",    value : "20" }
+                  { title : "30 GBs",    value : "30" }
+                  { title : "40 GBs",    value : "40" }
+                ]
+              "Disk Limit"           :
+                label                : "Disk Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-disk"
+                defaultValue         : "10"
+                selectOptions        : [
+                  { title : "10 GBs",    value : "10" }
+                  { title : "25 GBs",    value : "25" }
+                  { title : "50 GBs",    value : "50" }
+                  { title : "100 GBs",   value : "100" }
+                ]
+              "Member VM"            :
+                label                : "Create server(s) for each group member"
+                itemClass            : KDOnOffSwitch
+                name                 : "member-vm"
+                defaultValue         : yes
+              "Member CPU Limit"     :
+                label                : "CPU Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-cpu-member"
+                defaultValue         : "10"
+                selectOptions        : [
+                  { title : "10 CPU units",    value : "10" }
+                  { title : "20 CPU units",    value : "20" }
+                  { title : "30 CPU units",    value : "30" }
+                  { title : "40 CPU units",    value : "40" }
+                  { title : "50 CPU units",    value : "50" }
+                ]
+              "Member RAM Limit"     :
+                label                : "RAM Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-ram-member"
+                defaultValue         : "10"
+                selectOptions        : [
+                  { title : "10 GBs",    value : "10" }
+                  { title : "20 GBs",    value : "20" }
+                  { title : "30 GBs",    value : "30" }
+                ]
+              "Member Disk Limit"    :
+                label                : "Disk Limit"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-disk-member"
+                defaultValue         : "10"
+                selectOptions        : [
+                  { title : "10 GBs",    value : "10" }
+                  { title : "20 GBs",    value : "20" }
+                  { title : "30 GBs",    value : "30" }
+                ]
 
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
     form.on "FormValidationFailed", ->
-      form.buttons.Save.hideLoader()
+      form.buttons.Next.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
@@ -745,7 +845,7 @@ class GroupsAppController extends AppController
             kallback @inviteByUsername, err
 
         invitationRequestView.on 'RequestIsApproved', (request, callback)->
-          request.approveInvitation callback
+          request.approve callback
 
         invitationRequestView.on 'RequestIsDeclined', (request, callback)->
           request.declineInvitation callback
@@ -773,6 +873,13 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
+  prepareBundleTab: ->
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Bundle', GroupsBundleView,
+      (pane, bundleView) ->
+        console.log 'bundle view', bundleView
+
   createContentDisplay:(group, callback)->
 
     unless KD.config.roles? and 'admin' in KD.config.roles
@@ -788,7 +895,8 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
-#    @prepareVocabularyTab()
+    @prepareBundleTab()
+    # @prepareVocabularyTab()
 
     if 'private' is group.privacy
       @prepareMembershipPolicyTab()
@@ -804,33 +912,18 @@ class GroupsAppController extends AppController
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
-  loginRequired:(callback)->
-    new KDNotificationView
-      type     : 'mini'
-      cssClass : 'error'
-      title    : 'Login is required for this action'
-      duration : 5000
-
-    {entryPoint} = KD.config
-
-    @getSingleton('router').handleRoute "/Login", {entryPoint}
-    @getSingleton('mainController').once 'AccountChanged', ->
-      if KD.isLoggedIn()
-        callback()
-
   showGroupCreatedModal:(group)->
     group.fetchMembershipPolicy (err, policy)=>
       return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
-      port = if location.port isnt 80 then ":#{location.port}" else ''
-      groupUrl = "#{location.protocol}//#{location.hostname}#{port}/#{group.slug}"
+      @feedController.reload() if @feedController
 
-      if group.privacy is 'public'
-        privacyExpl = 'Koding users can join anytime without approval'
+      groupUrl    = "//#{location.host}/#{group.slug}"
+      privacyExpl = if group.privacy is 'public'
+      then 'Koding users can join anytime without approval'
       else if policy.invitationsEnabled
-        privacyExpl = 'and only invited users can join'
-      else
-        privacyExpl = 'Koding users can only join with your approval'
+      then 'and only invited users can join'
+      else 'Koding users can only join with your approval'
 
       body  = """
         <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>

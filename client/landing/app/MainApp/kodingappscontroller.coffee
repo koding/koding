@@ -23,8 +23,10 @@ class KodingAppsController extends KDController
 
     super
 
-    @kiteController = @getSingleton('kiteController')
-    @manifests = KodingAppsController.manifests
+    @appManager     = @getSingleton "appManager"
+    @kiteController = @getSingleton "kiteController"
+    @manifests      = KodingAppsController.manifests
+    @getPublishedApps()
 
   getAppPath:(manifest, escaped=no)->
 
@@ -115,6 +117,17 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
+  fetchUpdateAvailableApps: (callback) ->
+    return callback? null, @updateAvailableApps if @updateAvailableApps
+    {publishedApps}      = @
+    @updateAvailableApps = []
+
+    @fetchApps (err, apps) =>
+      for appName, app of apps
+        if @isAppUpdateAvailable app.name, app.version
+          @updateAvailableApps.push publishedApps[app.name]
+      callback? null, @updateAvailableApps
+
   fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
@@ -167,6 +180,39 @@ class KodingAppsController extends KDController
           @defineApp name, script
           callback err, script
 
+  getPublishedApps: ->
+    return unless KD.isLoggedIn()
+    KD.remote.api.JApp.someWithRelationship {}, {}, (err, apps) =>
+      @publishedApps = map = {}
+      map[app.manifest.name] = app for app in apps
+
+  isAppUpdateAvailable: (appName, appVersion) ->
+    if @publishedApps[appName]
+      return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
+
+  updateUserApp: (manifest, callback) ->
+    appName = manifest.name
+    notification = new KDNotificationView
+      type     : "mini"
+      title    : "Updating #{appName}: Deleting old app files"
+      duration : 120000
+
+    folder = FSHelper.createFileFromPath manifest.path, "folder"
+    folder.remove (err, res) =>
+      return warn err if err
+      @refreshApps =>
+        notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
+        KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
+          notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
+          @installApp app[0], "latest", =>
+            @refreshApps()
+            callback?()
+            notification.setClass "success"
+            notification.notificationSetTitle "#{appName} has been updated successfully"
+            @utils.wait 3000, => notification.destroy()
+            @appManager.open appName
+      , yes
+
   # #
   # KITE INTERACTIONS
   # #
@@ -177,6 +223,10 @@ class KodingAppsController extends KDController
       warn "AppManager doesn't know what to run, no options passed!"
       return
 
+    if @isAppUpdateAvailable(manifest.name, manifest.version) and not manifest.devMode and not @skipUpdate
+      @showUpdateRequiredModal manifest
+      return callback?()
+
     {options, name} = manifest
 
     putStyleSheets manifest
@@ -185,7 +235,7 @@ class KodingAppsController extends KDController
       if err then warn err
       else
         if options and options.type is "tab"
-          KD.getSingleton("appManager").open manifest.name,
+          @appManager.open manifest.name,
             requestedFromAppsController : yes
           , (appInstance)->
 
@@ -244,13 +294,13 @@ class KodingAppsController extends KDController
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
             manifest   : manifest
 
-          KD.getSingleton("appManager").tell "Apps", "createApp", jAppData, (err, app)=>
+          @appManager.tell "Apps", "createApp", jAppData, (err, app)=>
             if err
               warn err
               callback? err
             else
-              KD.getSingleton("appManager").open "Apps"
-              KD.getSingleton("appManager").tell "Apps", "updateApps"
+              @appManager.open "Apps"
+              @appManager.tell "Apps", "updateApps"
               callback?()
 
   compileApp:(name, callback)->
@@ -335,7 +385,7 @@ class KodingAppsController extends KDController
                     else
                       app.install (err)=>
                         warn err  if err
-                        KD.getSingleton("appManager").open "StartTab"
+                        @appManager.open "StartTab"
                         @refreshApps()
                         callback?()
 
@@ -376,7 +426,8 @@ class KodingAppsController extends KDController
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
 
-                  FSHelper.exists appPath, (err, exists)=>
+                  # FIXME Use default VM ~ GG
+                  FSHelper.exists appPath, null, (err, exists)=>
                     if exists
                       newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                       new KDNotificationView
@@ -532,6 +583,34 @@ class KodingAppsController extends KDController
                 # <pre>#{error.stack}</pre>
 
     console.warn error.message, error
+
+  showUpdateRequiredModal: (manifest) ->
+    modal = new KDModalView
+      title          : "App Update Available"
+      content        : """
+        <div class="app-update-modal">
+          <p>An update available for #{manifest.name}. You can update the app now or you can continue to use old version you have.</p>
+          <p><span class="app-update-warning">Warning:</span> Updating the app will delete it's current folder to install new version. This cannot be undone. If you have updated files, back up them now.</p>
+        </div>
+      """
+      overlay        : yes
+      buttons        :
+        Update       :
+          style      : "modal-clean-green"
+          loader     :
+            color    : "#FFFFFF"
+            diameter : 12
+          callback   : =>
+            @updateUserApp manifest, ->
+              modal.buttons.Update.hideLoader()
+              modal.destroy()
+        "Use This Version" :
+          style      : "modal-clean-gray"
+          callback   : =>
+            @skipUpdate = yes
+            @appManager.open manifest.name
+            modal.destroy()
+            @skipUpdate = no
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
