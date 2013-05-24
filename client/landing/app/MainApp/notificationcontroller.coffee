@@ -19,7 +19,7 @@ class NotificationController extends KDObject
 
     @getSingleton('mainController').on "AccountChanged", =>
       @off 'NotificationHasArrived'
-      @notificationChannel?.off().unsubscribe()
+      @notificationChannel?.close().off()
       @setListeners()
 
   setListeners:->
