@@ -36,7 +36,7 @@ class ActivityAppController extends AppController
     @isLoading      = no
     @mainController = @getSingleton 'mainController'
     @lastTo         = null
-    @lastFrom          = Date.now()
+    @lastFrom       = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -86,7 +86,8 @@ class ActivityAppController extends AppController
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
-    KD.whoami().on "FollowedActivityArrived", (activityId) =>
+    @on "FollowedActivity", (event) =>
+      console.log("!------- FollowedActivityArrived ", event)
       KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
         if activity.constructor.name in @getFilter()
           activities = clearQuotes [activity]
@@ -311,7 +312,6 @@ class ActivityAppController extends AppController
 
   fetchCachedActivity:(options = {}, callback)->
 
-
     if KD.config.useNeo4j
       if options.to
         options.timestamp = options.to
@@ -330,6 +330,14 @@ class ActivityAppController extends AppController
 
   continueLoadingTeasers:->
     return  if @isLoading
+
+    # GUARD, if we loaded the teasers, for this timestamp dont reload
+    # the same activities again and again and again....
+    lastTimeStamp = (new Date @lastFrom).getTime()
+    if @continueLoadingTeasersLastTimeStamp is lastTimeStamp
+      return
+
+    @continueLoadingTeasersLastTimeStamp = lastTimeStamp
 
     # HACK: this gets called multiple times if there's no wait
     KD.utils.wait 1000, =>
@@ -422,3 +430,18 @@ class ActivityAppController extends AppController
 
   getNewItemsCount: (callback) ->
     callback? @listController?.activityHeader?.getNewItemsCount() or 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
