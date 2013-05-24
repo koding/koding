@@ -333,21 +333,14 @@ module.exports = class JGroup extends Module
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
       if groupData['group-vm'] is 'on'
-        if groupData['member-vm'] is 'on'
-          limits =
-            cpu             : { quota: groupData['vm-cpu'] }
-            ram             : { quota: groupData['vm-ram'] }
-            disk            : { quota: groupData['vm-disk'] }
-            users           : { quota: groupData['vm-user'] }
-            'cpu per user'  : { quota: groupData['vm-cpu-member'] }
-            'ram per user'  : { quota: groupData['vm-ram-member'] }
-            'disk per user' : { quota: groupData['vm-disk-member'] }
-        else
-          limits =
-            cpu             : { quota: groupData['vm-cpu'] }
-            ram             : { quota: groupData['vm-ram'] }
-            disk            : { quota: groupData['vm-disk'] }
-            users           : { quota: groupData['vm-user'] }
+        limits =
+          users           : { quota: 100 }
+          cpu             : { quota: 100 }
+          ram             : { quota: 100 }
+          disk            : { quota: 100 }
+          'cpu per user'  : { quota: 100 }
+          'ram per user'  : { quota: 100 }
+          'disk per user' : { quota: 100 }
         queue.push -> group.createBundle limits, (err)->
           if err then callback err
           else
@@ -950,15 +943,14 @@ module.exports = class JGroup extends Module
                 @addInvitationRequest invitationRequest, (err)=>
                   return kallback err if err
                   @emit 'NewInvitationRequest'
-                  # HK: disabling admin notification for non-koding users for now
-                  #     as JMailNotification is not compatible with non-users
-                  if invitationType is 'basic approval' and not delegate instanceof JAccount
-                    invitationRequest.sendRequestNotification account, kallback
-                  else
-                    kallback null
+                  unless @slug is 'koding' # comment out to test with koding group
+                    invitationRequest.sendRequestNotification(
+                      account, email, invitationType
+                    )
+                  kallback null
 
         unless delegate instanceof JAccount
-          return callback 'Email address is missing'  unless formData?.email
+          return callback new KodingError 'Email address is missing'  unless formData?.email
           cb formData.email, (err)=>
             return callback err  if err
             JInvitation = require '../invitation'
@@ -1287,7 +1279,7 @@ module.exports = class JGroup extends Module
   createBundle$: permit 'change bundle',
     success: (client, limits, callback) -> @createBundle limits, callback
  
-  fetchBundle$: permit 'change bundle',
+  fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
  
   getDefaultLimits:->

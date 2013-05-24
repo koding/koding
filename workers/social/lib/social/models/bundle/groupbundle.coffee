@@ -86,7 +86,7 @@ module.exports = class JGroupBundle extends JBundle
     {overagePolicy} = this
     JVM.calculateUsage delegate, group, (err, usage) =>
       return callback err  if err?
-      
+
       @fetchLimits (err, limits) =>
         return callback err  if err
 
@@ -104,8 +104,8 @@ module.exports = class JGroupBundle extends JBundle
 
           theyHaveEnough = ( debitAmount is 0 )   or
             ( not /per user$/.test limit.title )  and
-            ( debitAmount <= limit.getValue() )              and
-            (( overagePolicy is 'allowed' ) or 
+            ( debitAmount <= limit.getValue() )   and
+            (( overagePolicy is 'allowed' ) or
               ( personalLimit? )            and
               ( debitAmount <= personalLimit.getValue() ))
 

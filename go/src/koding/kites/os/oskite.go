@@ -22,6 +22,7 @@ import (
 
 type VMInfo struct {
 	vmId          bson.ObjectId
+	vmName        string
 	channels      map[*kite.Channel]bool
 	timeout       *time.Timer
 	totalCpuUsage int
@@ -410,6 +411,7 @@ func getUsers(vm *virt.VM) []virt.User {
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vmId:          vm.Id,
+		vmName:        vm.String(),
 		channels:      make(map[*kite.Channel]bool),
 		totalCpuUsage: utils.MaxInt,
 		CpuShares:     1000,

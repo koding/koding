@@ -1,11 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/nranchev/go-libGeoIP"
-	"github.com/streadway/amqp"
 	"io"
+	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/config"
 	"log"
@@ -20,34 +20,36 @@ func init() {
 	log.SetPrefix("kontrol-proxy ")
 }
 
-type IncomingMessage struct {
-	ProxyResponse *proxyconfig.ProxyResponse
-}
-
 type RabbitChannel struct {
 	ReplyTo string
 	Receive chan []byte
 }
 
-var proxy proxyconfig.Proxy // this will be only updated whenever we receive a msg from kontrold
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
-var start chan bool
-var first bool = true
 var connections map[string]RabbitChannel
 var geoIP *libgeo.GeoIP
+var memCache *memcache.Client
+
+var uuid = kontrolhelper.CustomHostname()
 
 func main() {
 	log.Printf("kontrol proxy started ")
-	start = make(chan bool)
 	connections = make(map[string]RabbitChannel)
 
-	// open kontrol-daemon database connection
+	// open and read from DB
 	var err error
 	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
+
+	err = proxyDB.AddProxy(uuid)
+	if err != nil {
+		log.Println(err)
+	}
+
+	memCache = memcache.New("127.0.0.1:11211") // used for vm lookup
 
 	// load GeoIP db into memory
 	dbFile := "GeoIP.dat"
@@ -56,22 +58,8 @@ func main() {
 		log.Printf("load GeoIP.dat: %s\n", err.Error())
 	}
 
-	// register proxy instance to kontrol-daemon
+	// create amqpStream for rabbitmq proxyieng
 	amqpStream = setupAmqp()
-
-	// declare rabbitproxy exchange. this is used by rabbitclients to create
-	// artifical host in form {name}-{key}-{username}.x.koding.com and use it
-	err = amqpStream.channel.ExchangeDeclare("kontrol-rabbitproxy", "direct", true, false, false, false, nil)
-	if err != nil {
-		log.Printf("exchange.declare: %s\n", err.Error())
-	}
-
-	log.Printf("register proxy to kontrold with uuid '%s'", amqpStream.uuid)
-	amqpStream.Publish("infoExchange", "input.proxy", buildProxyCmd("addProxy", amqpStream.uuid))
-	log.Println("register command is send. waiting for response from kontrold...")
-	go handleInput(amqpStream.input, amqpStream.uuid)
-
-	<-start // wait until we got message from kontrold or exit via above chan
 
 	reverseProxy := &ReverseProxy{}
 	// http.HandleFunc("/", reverseProxy.ServeHTTP) this works for 1.1
@@ -101,55 +89,12 @@ func main() {
 	}
 }
 
-func handleInput(input <-chan amqp.Delivery, uuid string) {
-	for d := range input {
-		var msg IncomingMessage
-		err := json.Unmarshal(d.Body, &msg)
-		if err != nil {
-			log.Print("bad json incoming msg: ", err)
-		}
-
-		if msg.ProxyResponse != nil {
-			if msg.ProxyResponse.Action == "updateProxy" {
-				log.Println("update action received from kontrold. updating proxy route table")
-				var err error
-				proxy, err = proxyDB.GetProxy(uuid)
-				if err != nil {
-					log.Println(err)
-				}
-
-				if first {
-					start <- true
-					first = false
-					log.Println("routing tables updated. ready to start servers.")
-				}
-			}
-		} else {
-			log.Println("incoming message is in wrong format")
-		}
-	}
-}
-
 /*************************************************
 *
 *  util functions
 *
 *  - arslan
 *************************************************/
-
-func buildProxyCmd(action, uuid string) []byte {
-	var req proxyconfig.ProxyMessage
-	req.Action = action
-	req.Uuid = uuid
-
-	data, err := json.Marshal(req)
-	if err != nil {
-		log.Println("json marshall error", err)
-	}
-
-	return data
-}
-
 // Given a string of the form "host", "host:port", or "[ipv6::address]:port",
 // return true if the string includes a port.
 func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
@@ -233,32 +178,18 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	websocket := checkWebsocket(outreq)
 
-	userInfo, err := populateUser(outreq)
+	user, err := populateUser(outreq)
 	if err != nil {
-		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-		log.Printf("error parsing subdomain %s: %v", outreq.Host, err)
-		return
-	}
-	fmt.Printf("--\nconnected user information %v\n", userInfo)
-
-	result, ok := validateUser(userInfo)
-	if !ok {
-		http.NotFound(rw, req)
-		return
-	}
-	fmt.Printf("validation result: %s\n", result)
-
-	// either userInfo.FullUrl or userInfo.Servicename-Key lookup will be made
-	target, err := targetHost(userInfo)
-	if err != nil {
-		if err.Error() == "redirect" {
-			http.Redirect(rw, req, target.String(), http.StatusTemporaryRedirect)
-			return
-		}
-		log.Printf("error running key proxy %s: %v", userInfo.FullUrl, err)
+		log.Printf("error populating user %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
 	}
+
+	if user.Redirect {
+		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
+		return
+	}
+	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
 
 	// Reverseproxy.Director closure
@@ -351,11 +282,11 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		res := new(http.Response)
-		rabbitKey := lookupRabbitKey(userInfo.Username, userInfo.Servicename, userInfo.Key)
+		rabbitKey := lookupRabbitKey(user.Username, user.Servicename, user.Key)
 
 		if rabbitKey != "" {
 			fmt.Println("connection via rabbitmq")
-			res, err = rabbitTransport(outreq, userInfo, rabbitKey)
+			res, err = rabbitTransport(outreq, user, rabbitKey)
 			if err != nil {
 				log.Printf("rabbit proxy %s", err.Error())
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))

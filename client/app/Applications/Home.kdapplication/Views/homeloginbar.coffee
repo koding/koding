@@ -109,7 +109,7 @@ class HomeLoginBar extends JView
             height         : 'auto'
             overlay        : yes
             buttons        :
-              Okay         :
+              Dismiss      :
                 style      : 'modal-clean-green'
                 loader     :
                   color    : "#ffffff"
@@ -130,9 +130,6 @@ class HomeLoginBar extends JView
                     if @policy.approvalEnabled
                     then @access.show()
                     else @request.show()
-              Dismiss      :
-                style      : "modal-cancel"
-                callback   : -> modal.destroy()
 
     @invited      = new CustomLinkView
       tagName     : "a"

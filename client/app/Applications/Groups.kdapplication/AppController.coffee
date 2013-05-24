@@ -40,7 +40,6 @@ class GroupsAppController extends AppController
     mainController = @getSingleton 'mainController'
     router         = @getSingleton 'router'
     {entryPoint}   = KD.config
-    mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
       return unless pageInfo.path
       if pageInfo.topLevel
@@ -86,7 +85,6 @@ class GroupsAppController extends AppController
       then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
-    @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
   getGroupSlug:-> @currentGroupName
@@ -95,11 +93,6 @@ class GroupsAppController extends AppController
     @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: KD.whoami().profile.nickname
-    }
-
-  resetUserArea:(account)->
-    @setUserArea {
-      group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
   onboardingText =
@@ -338,10 +331,15 @@ class GroupsAppController extends AppController
           callback   : (event)->
             group.requestAccess (err)->
               modal.buttons.request.hideLoader()
-              callback err
-              new KDNotificationView title:
-                if err then err.message else success
-              modal.destroy() unless err
+              if err
+                warn err
+                new KDNotificationView title:
+                  if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                return callback err
+
+              new KDNotificationView title: success
+              modal.destroy()
+              callback null
 
   joinGroup:(group)->
     group.join (err, response)=>
@@ -558,6 +556,11 @@ class GroupsAppController extends AppController
                   { title : "Visible in group listings",    value : "visible" }
                   { title : "Hidden in group listings",     value : "hidden" }
                 ]
+              "Group VM"             :
+                label                : "Create virtual machines for the group"
+                itemClass            : KDOnOffSwitch
+                name                 : "group-vm"
+                defaultValue         : yes
           "VM Settings"              :
             title                    : 'VM Settings'
             buttons                  :
@@ -571,102 +574,41 @@ class GroupsAppController extends AppController
                 style                : "modal-cancel"
                 callback             : -> modal.modalTabs.showPreviousPane()
             fields                   :
-              # Group VM should be there for every group
-              "Group VM"             :
-                label                : "Create a shared server for the group"
-                itemClass            : KDOnOffSwitch
-                name                 : "group-vm"
-                defaultValue         : yes
-              "User Limit"           :
-                label                : "User Limit"
+              "VM Host"               :
+                label                : "VM Host"
                 itemClass            : KDSelectBox
                 type                 : "select"
-                name                 : "vm-user"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 users",    value : "10" }
-                  { title : "25 users",    value : "25" }
-                  { title : "50 users",    value : "50" }
-                  { title : "100 user",    value : "100" }
-                  { title : "200 users",   value : "200" }
-                ]
-              "CPU Limit"            :
-                label                : "CPU Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-cpu"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 CPU units",    value : "10" }
-                  { title : "25 CPU units",    value : "25" }
-                  { title : "50 CPU units",    value : "50" }
-                  { title : "100 CPU units",   value : "100" }
-                  { title : "200 CPU units",   value : "200" }
-                ]
-              "RAM Limit"            :
-                label                : "RAM Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-ram"
-                defaultValue         : "5"
-                selectOptions        : [
-                  { title : "5 GBs",     value : "5" }
-                  { title : "10 GBs",    value : "10" }
-                  { title : "20 GBs",    value : "20" }
-                  { title : "30 GBs",    value : "30" }
-                  { title : "40 GBs",    value : "40" }
-                ]
-              "Disk Limit"           :
-                label                : "Disk Limit"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-disk"
-                defaultValue         : "10"
-                selectOptions        : [
-                  { title : "10 GBs",    value : "10" }
-                  { title : "25 GBs",    value : "25" }
-                  { title : "50 GBs",    value : "50" }
-                  { title : "100 GBs",   value : "100" }
-                ]
-              "Member VM"            :
-                label                : "Create server(s) for each group member"
-                itemClass            : KDOnOffSwitch
-                name                 : "member-vm"
-                defaultValue         : yes
-              "Member CPU Limit"     :
-                label                : "CPU Limit per Member"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-cpu-member"
+                name                 : "vm-host"
                 defaultValue         : "1"
                 selectOptions        : [
-                  { title : "1 CPU unit",    value : "1" }
-                  { title : "2 CPU units",    value : "2" }
-                  { title : "3 CPU units",    value : "3" }
-                  { title : "4 CPU units",    value : "4" }
-                  { title : "5 CPU units",    value : "5" }
+                  { title : "2GHz, 4GB RAM, 20GB Disk",      value : "1" }
+                  { title : "4GHz, 4GB RAM, 40GB Disk",      value : "2" }
+                  { title : "8GHz, 8GB RAM, 60GB Disk",      value : "3" }
+                  { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
+                  { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
                 ]
-              "Member RAM Limit"     :
-                label                : "RAM Limit per Member"
+              "Usage Policy"         :
+                label                : "Usage Policy"
                 itemClass            : KDSelectBox
                 type                 : "select"
-                name                 : "vm-ram-member"
-                defaultValue         : "1"
+                name                 : "vm-policy"
+                defaultValue         : "single"
                 selectOptions        : [
-                  { title : "1 GB",     value : "1" }
-                  { title : "2 GBs",    value : "2" }
-                  { title : "5 GBs",    value : "5" }
+                  { title : "All users share same VM host.",                  value : "single" }
+                  { title : "Limit users per VM, create new when necessary.", value : "multiple" }
                 ]
-              "Member Disk Limit"    :
-                label                : "Disk Limit per Member"
+              "Users per VM"         :
+                label                : "Users per VM"
                 itemClass            : KDSelectBox
                 type                 : "select"
-                name                 : "vm-disk-member"
-                defaultValue         : "1"
+                name                 : "vm-users"
+                defaultValue         : "25"
                 selectOptions        : [
-                  { title : "1 GB",     value : "1" }
-                  { title : "2 GBs",    value : "2" }
-                  { title : "5 GBs",    value : "5" }
+                  { title : "5",     value : "5" }
+                  { title : "10",     value : "10" }
+                  { title : "25",     value : "25" }
+                  { title : "50",     value : "50" }
+                  { title : "100",     value : "100" }
                 ]
 
     modal = new KDModalViewWithForms modalOptions

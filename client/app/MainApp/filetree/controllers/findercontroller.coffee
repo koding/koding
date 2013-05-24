@@ -70,20 +70,18 @@ class NFinderController extends KDViewController
 
   loadVms:(vmNames, callback)->
     mountVms = (vms)=>
+      unless Array.isArray vms
+        return callback? "vmNames should be an Array"
       @cleanup()
       @mountVm vm  for vm in vms
       callback?()
 
-    unless vmNames
-      KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
-        return callback? err  if err
-        if vms.length is 0
-          vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
-        mountVms vms
-    else if Array.isArray vmNames
-      mountVms vmNames
-    else
-        return callback? "vmNames should be an Array"  unless Array.isArray vmNames
+    if vmNames then mountVms vmNames
+    else KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
+      return callback? err  if err
+      if not vms or vms.length is 0
+        vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
+      mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName

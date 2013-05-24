@@ -21,3 +21,7 @@ class NavigationController extends KDListViewController
       else
         continue if itemData.loggedIn
       @getListView().addItem itemData
+
+  removeItemByTitle:(name)->
+    for navItem in @itemsOrdered when navItem?.name is name
+      @removeItem navItem

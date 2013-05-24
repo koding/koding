@@ -168,6 +168,8 @@ prepareEmail = (notification, daily = no, cb, callback=->)->
             JAccount.one {_id:notification.sender}, (err, sender)->
               if err then callback err
               else
+                # string usually email if sender is not a user
+                sender ?= notification.senderEmail
                 details = {sender, receiver, event, email, key, notification}
                 if event is 'FollowHappened'
                   cb details

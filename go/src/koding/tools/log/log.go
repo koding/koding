@@ -27,6 +27,7 @@ var tags string
 var currentSecond int64
 var logCounter int
 var MaxPerSecond int = 10
+var sendChannel = make(chan url.Values, 1000)
 
 var gauges = make([]*Gauge, 0)
 var GaugeChanges = make(chan func())
@@ -45,6 +46,29 @@ func Init(service string) {
 		runtime.ReadMemStats(&m)
 		return float64(m.Alloc)
 	})
+
+	go func() {
+		for event := range sendChannel {
+			if !config.Current.Loggr.Push {
+				fmt.Printf("%-30s %s\n", "["+event.Get("tags")+"]", event.Get("text"))
+				if event.Get("data") != "" {
+					for _, line := range strings.Split(event.Get("data"), "\n") {
+						fmt.Printf("%-30s %s\n", "", line)
+					}
+				}
+				continue
+			}
+
+			event.Add("apikey", config.Current.Loggr.ApiKey)
+			resp, err := http.PostForm(config.Current.Loggr.Url, event)
+			if err != nil || resp.StatusCode != http.StatusCreated {
+				fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
+			}
+			if resp != nil && resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+	}()
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
@@ -67,29 +91,6 @@ func NewEvent(level int, text string, data ...interface{}) url.Values {
 	return event
 }
 
-func Send(event url.Values) {
-	if !config.Current.Loggr.Push {
-		fmt.Printf("%-30s %s\n", "["+event.Get("tags")+"]", event.Get("text"))
-		if event.Get("data") != "" {
-			for _, line := range strings.Split(event.Get("data"), "\n") {
-				fmt.Printf("%-30s %s\n", "", line)
-			}
-		}
-		return
-	}
-
-	go func() {
-		event.Add("apikey", config.Current.Loggr.ApiKey)
-		resp, err := http.PostForm(config.Current.Loggr.Url, event)
-		if err != nil || resp.StatusCode != http.StatusCreated {
-			fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
-		}
-		if resp != nil && resp.Body != nil {
-			resp.Body.Close()
-		}
-	}()
-}
-
 func Log(level int, text string, data ...interface{}) {
 	if level == DEBUG && !config.LogDebug {
 		return
@@ -103,12 +104,12 @@ func Log(level int, text string, data ...interface{}) {
 	logCounter += 1
 	if !config.LogDebug && MaxPerSecond > 0 && logCounter > MaxPerSecond {
 		if logCounter == MaxPerSecond+1 {
-			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond)))
+			sendChannel <- NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond))
 		}
 		return
 	}
 
-	Send(NewEvent(level, text, data...))
+	sendChannel <- NewEvent(level, text, data...)
 }
 
 const (

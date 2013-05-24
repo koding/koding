@@ -257,11 +257,10 @@ task 'rerouting',(options)->
 
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
-  uuid = hat()
 
   processes.spawn
     name           : 'rerouting'
-    cmd            : "./go/bin/rerouting -c #{configFile} -u #{uuid}"
+    cmd            : "./go/bin/rerouting -c #{configFile}"
     restart        : yes
     restartTimeout : 100
     stdout         : process.stdout
@@ -270,7 +269,6 @@ task 'rerouting',(options)->
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
-      binary       : uuid
 
 task 'osKite',({configFile})->
 
@@ -294,6 +292,8 @@ task 'proxy',({configFile})->
 
 task 'neo4jfeeder',({configFile})->
 
+  config = require('koding-config-manager').load("main.#{configFile}")
+
   processes.spawn
     name    : 'proxy'
     cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
@@ -301,6 +301,9 @@ task 'neo4jfeeder',({configFile})->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
 
 task 'libratoWorker',({configFile})->
 
