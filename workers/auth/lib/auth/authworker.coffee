@@ -227,6 +227,31 @@ module.exports = class AuthWorker extends EventEmitter
           else
             JGroup.fetchSecretChannelName group.slug, callback
 
+    joinFollowingHelper =(messageData, routingKey, socketId)->
+      console.log("111111111 ===== join Following helper")
+      {JAccount, JName} = @bongo.models
+      {name} = messageData
+
+      fail = (err) =>
+        console.error err  if err
+        @rejectClient routingKey
+
+      JName.fetchSecretName name, (err, secretChannelName)=>
+        return console.error err  if err
+        console.log("secretChannelName", secretChannelName)
+      
+        @authenticate messageData, routingKey, (session) =>
+          unless session then fail()
+          else JAccount.one {'profile.nickname': session.username},
+            (err, account) =>
+              console.log("22222 ===== join Following helper", account)
+              console.log("33333 ===== ", routingKey)
+              if err or not account then fail err
+              bindingKey = session.username
+              @addBinding 'followersmessage', bindingKey, routingKey
+              #@setSecretNames routingKey, secretChannelName
+
+
     joinGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
       fail = (err) =>
@@ -292,6 +317,8 @@ module.exports = class AuthWorker extends EventEmitter
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType} = messageData
+      console.log("serviceType = ", serviceType, "routingKey=", routingKey, "channel=", channel)
+      console.log(JSON.stringify(messageData))
       switch serviceType
         when 'bongo', 'kite'
           joinHelper.call this, messageData, routingKey, socketId

@@ -41,22 +41,24 @@ module.exports = class Neo4jHelper
   @fetchFromNeo4j:(query, params, callback)->
     # gets ids from neo4j, fetches objects from mongo, returns in the same order
     neo4jConfig = KONFIG['neo4j']
+    resultsKey = params['resultsKey'] or "items"
     @db = new neo4j.GraphDatabase(neo4jConfig.host + ":" + neo4jConfig.port);
-
     @db.query query, params, (err, results)=>
-
       if err
         console.log("error in neo4j query: " + err)
+        console.log("query was ==================")
+        console.log(query)
+        console.log("============================")
         return callback err
 
       if results.length == 0
         callback null, []
-
+      console.log("4")
       wantedOrder = []
       collections = {}
       for result in results
-        oid = result["items"]["_data"]["data"]["id"]
-        otype = result["items"]["_data"]["data"]["name"]
+        oid = result[resultsKey]["_data"]["data"]["id"]
+        otype = result[resultsKey]["_data"]["data"]["name"]
         wantedOrder.push({id: oid, collection: otype, idx: oid+'_'+otype})
         collections[otype] ||= []
         collections[otype].push(oid)

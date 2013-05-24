@@ -927,3 +927,18 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
+
+  fetchFollowersFromNeo4j:(options={}, callback)->
+      # returns accounts that follow this account
+      neo4jhelper = require '../neo4jhelper'
+      query = [
+        "start  koding=node:koding(id='#{@getId()}')"
+        'MATCH koding-[:follower]->followers'
+        'where followers.name="JAccount"'
+      ]
+      query = query.concat([
+               'return followers'
+              ])
+      query = query.join('\n')
+      options['resultsKey'] = 'followers'
+      neo4jhelper.fetchFromNeo4j(query, options, callback)

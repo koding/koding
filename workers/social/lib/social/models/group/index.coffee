@@ -411,11 +411,35 @@ module.exports = class JGroup extends Module
       [message, event] = [event, message]
       event = ''
     @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
+
+      console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! channel name", secretChannelName, event)
+
       if err? then console.error err
       else unless secretChannelName? then console.error 'unknown channel'
       else
         @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
-        @emit 'broadcast', "#{secretChannelName}#{event}", message
+
+        console.debug("notifications!!!!!", groupSlug, event, message, message[0].originType)
+        JAccount = require '../account'
+        for m in message
+          console.log("m.originType", m.originType)
+          if m.originType is 'JAccount'
+            JAccount.one {_id: m.data.originId}, (err, account)=>
+              console.log("HHHHHHHHHH")
+              if not err and account
+                console.debug("===========================================")
+                console.log("publishing account", account)
+                account.fetchFollowersFromNeo4j {}, (err, followers)=>
+                  for follower in followers
+                    console.log("publishing activity to:", follower.profile.nickname, follower)
+                    follower.sendNotification("FollowedActivity", message)
+              else
+                console.log "we got an error", err, m.data.originId
+        console.log("!!!!!!!!!!!!!!!!!!!!!!!!!! channel name", secretChannelName, event)
+
+        # THIS actually sends the live events in activity feed.
+        #@emit 'broadcast', "#{secretChannelName}#{event}", message
+
         @emit 'notification', "#{groupSlug}#{event}", {
           routingKey  : groupSlug
           contents    : message
