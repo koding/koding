@@ -102,7 +102,12 @@ class KiteController extends KDController
     else
       options.withArgs or= {}
 
-    notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
+    if KD.logsEnabled
+      notify """
+              Calling <b>#{options.method}</b> method,
+              from <b>#{options.kiteName}</b> kite
+             """
+
     log "Kite Request:", options
 
     kite.tell options, (err, response)=>
