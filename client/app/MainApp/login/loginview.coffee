@@ -320,12 +320,12 @@ class LoginView extends KDScrollView
 
           KD.remote.api.JUser.isRegistrationEnabled (status)=>
             if status is no
-              @registerForm.$('div').hide()
-              @registerForm.$('section').show()
               log "Registrations are disabled!!!"
+              @registerForm.$('.main-part').addClass 'hidden'
+              @registerForm.disabledNotice.show()
             else
-              @registerForm.$('section').hide()
-              @registerForm.$('div').show()
+              @registerForm.disabledNotice.hide()
+              @registerForm.$('.main-part').removeClass 'hidden'
         when "home"
           parent.notification?.destroy()
           if @headBannerMsg?

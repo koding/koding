@@ -8,6 +8,7 @@ class RequestInlineForm extends LoginViewInlineForm
         name          : "email"
         placeholder   : "Enter your email address"
         validate      :
+          container   : this
           rules       :
             required  : yes
             email     : yes

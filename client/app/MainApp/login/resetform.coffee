@@ -7,6 +7,7 @@ class ResetInlineForm extends LoginViewInlineForm
         type          : "password"
         placeholder   : "Enter a new password"
         validate      :
+          container   : this
           rules       :
             required  : yes
             minLength : 8
@@ -20,6 +21,7 @@ class ResetInlineForm extends LoginViewInlineForm
         type          : "password"
         placeholder   : "Confirm your password"
         validate      :
+          container   : this
           rules       :
             required  : yes
             match     : @password.input
