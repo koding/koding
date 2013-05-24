@@ -1286,7 +1286,7 @@ module.exports = class JGroup extends Module
   createBundle$: permit 'change bundle',
     success: (client, limits, callback) -> @createBundle limits, callback
  
-  fetchBundle$: permit 'change bundle',
+  fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
  
   getDefaultLimits:->
