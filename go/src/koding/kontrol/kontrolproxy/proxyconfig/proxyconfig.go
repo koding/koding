@@ -12,6 +12,7 @@ import (
 type ProxyMessage struct {
 	Action      string `json:"action"`
 	DomainName  string `json:"domainName"`
+	DomainMode  string `json:"domainMode"`
 	ServiceName string `json:"serviceName"`
 	Username    string `json:"username"`
 	Key         string `json:"key"`
@@ -49,6 +50,7 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 }
 
 type DomainData struct {
+	Mode     string
 	Username string
 	Name     string
 	Key      string
@@ -102,8 +104,9 @@ func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyDat
 	}
 }
 
-func NewDomainData(username, name, key, fullurl string) *DomainData {
+func NewDomainData(mode, username, name, key, fullurl string) *DomainData {
 	return &DomainData{
+		Mode:     mode,
 		Username: username,
 		Name:     name,
 		Key:      key,
@@ -188,17 +191,13 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, fullurl, uuid string) error {
+func (p *ProxyConfiguration) AddDomain(mode, username, domainname, servicename, key, fullurl, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding domain is not possible '%s'", err)
 	}
 
-	_, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(username, servicename, key, fullurl)
-	}
-
+	proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(mode, username, servicename, key, fullurl)
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err

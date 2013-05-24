@@ -1,7 +1,6 @@
 package ldapserver
 
 import (
-	"fmt"
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/tools/db"
@@ -28,18 +27,22 @@ func Listen() {
 		}
 	}()
 
-	ln, err := net.Listen("tcp", ":389")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	for {
-		conn, err := ln.Accept()
+		ln, err := net.Listen("tcp", ":389")
 		if err != nil {
-			fmt.Println(err)
+			log.LogError(err, 0)
+			time.Sleep(time.Second)
 			continue
 		}
-		go handleConnection(conn)
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.LogError(err, 0)
+				break
+			}
+			go handleConnection(conn)
+		}
+		ln.Close()
 	}
 }
 
