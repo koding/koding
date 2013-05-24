@@ -400,31 +400,31 @@ class GroupsAppController extends AppController
   showGroupSubmissionView:->
 
     verifySlug = ->
-      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
-      KD.remote.api.JName.one
-        name: slugInput.getValue()
-      , (err, name)=>
-        if name
-          slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-          slug = KD.utils.slugify titleInput.getValue()
-          KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-            if newSlug
-              slugInput.setTooltip
-                title     : "Available slug: #{newSlug}"
-                placement : "right"
-        else
-          slugInput.setValidationResult 'slug', null
-          delete slugInput.tooltip
+      # titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
+      # slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
+      # KD.remote.api.JName.one
+      #   name: slugInput.getValue()
+      # , (err, name)=>
+      #   if name
+      #     slugInput.setValidationResult 'slug', "Slug is already being used.", yes
+      #     slug = KD.utils.slugify titleInput.getValue()
+      #     KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
+      #       if newSlug
+      #         slugInput.setTooltip
+      #           title     : "Available slug: #{newSlug}"
+      #           placement : "right"
+      #   else
+      #     slugInput.setValidationResult 'slug', null
+      #     delete slugInput.tooltip
 
     makeSlug = =>
       titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      slugInput = modal.modalTabs.forms["General Settings"].inputs.Slug
+      slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
       slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-        if err then slugInput.setValue ''
+        if err then slugView.updatePartial "#{location.protocol}//#{location.host}/"
         else
-          slugInput.setValue newSlug
+          slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
           verifySlug()
 
     getGroupType = ->
@@ -512,27 +512,27 @@ class GroupsAppController extends AppController
 
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
-                label                : "Slug"
-                name                 : "slug"
-                validate             :
-                  event              : "blur"
-                  rules              :
-                    required         : yes
-                    minLength        : 4
-                blur                 : ->
-                  @utils.defer =>
-                    verifySlug()
-
-                defaultValue         : ""
-                placeholder          : 'This value will be automatically generated'
-              "Description"          :
-                label                : "Description"
-                type                 : "textarea"
-                name                 : "body"
-                defaultValue         : ""
-                placeholder          : "Please enter a description for your group here..."
+                label                : "Address"
+                partial              : "#{location.protocol}//#{location.host}/"
+                itemClass            : KDCustomHTMLView
+                # name                 : "slug"
+                # validate             :
+                #   event              : "blur"
+                #   rules              :
+                #     required         : yes
+                #     minLength        : 4
+                # blur                 : -> @utils.defer -> verifySlug()
+                # defaultValue         : ''
+                # placeholder          : 'your-group-url'
+                # disabled             : yes
+              # "Description"          :
+              #   label                : "Description"
+              #   type                 : "textarea"
+              #   name                 : "body"
+              #   defaultValue         : ""
+              #   placeholder          : "Please enter a description for your group here..."
               "Privacy"              :
-                label                : "Privacy settings"
+                label                : "Privacy/Visibility"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "privacy"
@@ -546,16 +546,17 @@ class GroupsAppController extends AppController
                     { title : "By access request",   value : "by-request" }
                     { title : "In same domain",      value : "same-domain" }
                   ]
-              "Visibility"           :
-                label                : "Visibility settings"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "visibility"
-                defaultValue         : "visible"
-                selectOptions        : [
-                  { title : "Visible in group listings",    value : "visible" }
-                  { title : "Hidden in group listings",     value : "hidden" }
-                ]
+                nextElement          :
+                  "Visibility"       :
+                    itemClass        : KDSelectBox
+                    type             : "select"
+                    name             : "visibility"
+                    defaultValue     : "visible"
+                    cssClass         : "visibility"
+                    selectOptions    : [
+                      { title : "Visible in group listings",    value : "visible" }
+                      { title : "Hidden in group listings",     value : "hidden" }
+                    ]
               "Group VM"             :
                 label                : "Create virtual machines for the group"
                 itemClass            : KDOnOffSwitch
