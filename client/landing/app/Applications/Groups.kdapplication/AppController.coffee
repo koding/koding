@@ -54,11 +54,10 @@ class GroupsAppController extends AppController
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
-    @groupChannel = KD.remote.subscribe "group.#{group.slug}", {
+    @groupChannel = KD.remote.subscribe "group.#{group.slug}",
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-    }
     @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='koding', callback=->)->
