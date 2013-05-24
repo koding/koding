@@ -274,6 +274,10 @@ class LoginView extends KDScrollView
     @setY -@getSingleton('windowController').winHeight
 
     cb = =>
+      @requestForm.email.show()
+      @requestForm.button.show()
+      @$('.flex-wrapper').removeClass 'expanded'
+
       @emit "LoginViewHidden"
       @hidden = yes
       callback?()
