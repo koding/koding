@@ -8,6 +8,44 @@ app.about.styl
 */
 }
 
+#about-text
+  abs()
+  vendor           perspective, 800
+  vendor           perspective-origin, center 300px
+  top              0
+  left             0
+  z-index          2
+  transition       opacity 1s ease-in
+  opacity          0
+  &.in
+    opacity        1
+  .perspective
+    margin         0 auto
+    size           125%, auto
+    max-width      1000px
+    // left           -12.5%
+    color          rgb(245,255,0)
+    text-align     center
+    font-size      36px
+    line-height    72px
+    vendor         animation, crawl 180s ease-out
+    vendor         animation-iteration-count, 1
+    vendor         transform-style, preserve-3d
+    vendor         transform, rotateX(40deg) translateZ(300px) translateY(-7000px)
+    rel()
+
+.about-overlay
+  z-index           1
+  top               0
+  left              0
+  opacity           0
+  transition        opacity 1s ease-in
+  bg                color, black
+  abs()
+  &.in
+    opacity         1
+
+
 #about-button
   background            none
   border                none
