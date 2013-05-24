@@ -29,6 +29,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://new.koding.com:#{webPort}"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -40,7 +41,12 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : sourceServerPort
+  neo4j         :
+    read        : "http://neo4j-dev.in.koding.com"
+    write       : "http://neo4j-dev.in.koding.com"
+    port        : 7474
   mongo         : mongo
+  runNeo4jFeeder: no
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
@@ -102,6 +108,8 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://new.koding.com:#{webPort}'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
+      useNeo4j: no
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: yes

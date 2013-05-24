@@ -123,6 +123,17 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
+  fetchUpdateAvailableApps: (callback) ->
+    return callback? null, @updateAvailableApps if @updateAvailableApps
+    {publishedApps}      = @
+    @updateAvailableApps = []
+
+    @fetchApps (err, apps) =>
+      for appName, app of apps
+        if @isAppUpdateAvailable app.name, app.version
+          @updateAvailableApps.push publishedApps[app.name]
+      callback? null, @updateAvailableApps
+
   fetchCompiledAppSource:(manifest, callback)->
 
     indexJs = FSHelper.createFileFromPath "#{@getAppPath manifest}/index.js"
@@ -176,9 +187,10 @@ class KodingAppsController extends KDController
           callback err, script
 
   getPublishedApps: ->
-    KD.remote.api.JApp.some {}, {}, (err, apps) =>
+    return unless KD.isLoggedIn()
+    KD.remote.api.JApp.someWithRelationship {}, {}, (err, apps) =>
       @publishedApps = map = {}
-      map[app.manifest.name] = app for app in apps when app.approved
+      map[app.manifest.name] = app for app in apps
 
   isAppUpdateAvailable: (appName, appVersion) ->
     if @publishedApps[appName]
@@ -193,10 +205,10 @@ class KodingAppsController extends KDController
 
     folder = FSHelper.createFileFromPath manifest.path, "folder"
     folder.remove (err, res) =>
-      # TODO: Error handling
+      return warn err if err
       @refreshApps =>
         notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
-        KD.remote.api.JApp.some { "manifest.name": appName }, {}, (err, app) =>
+        KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
           @installApp app[0], "latest", =>
             @refreshApps()
@@ -420,7 +432,8 @@ class KodingAppsController extends KDController
                   manifest    = JSON.parse manifestStr
                   appPath     = @getAppPath manifest
 
-                  FSHelper.exists appPath, (err, exists)=>
+                  # FIXME Use default VM ~ GG
+                  FSHelper.exists appPath, null, (err, exists)=>
                     if exists
                       newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                       new KDNotificationView

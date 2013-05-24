@@ -1,4 +1,4 @@
-Function::bind3 or= (context) ->
+Function::bind or= (context) ->
   if 1 < arguments.length
     args = [].slice.call arguments, 1
     return => @apply context, if arguments.length then args.concat [].slice.call arguments else args
@@ -82,6 +82,8 @@ unless window.event?
   appClasses      : {}
   appScripts      : {}
   lastFuncCall    : null
+
+  nick:-> KD.whoami().profile.nickname
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -258,7 +260,7 @@ unless window.event?
       KD.error   = error   = if console?.error   then console.error.bind(console)   else noop
       KD.time    = time    = if console?.time    then console.time .bind(console)   else noop
       KD.timeEnd = timeEnd = if console?.timeEnd then console.timeEnd.bind(console) else noop
-
+      KD.logsEnabled = yes
       return "Logs are enabled now."
 
   exportKDFramework:->

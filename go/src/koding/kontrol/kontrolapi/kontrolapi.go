@@ -72,6 +72,7 @@ func main() {
 
 	// Proxy domain handlers
 	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
+	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", GetProxyDomain).Methods("GET")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
 

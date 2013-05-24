@@ -6,11 +6,13 @@ import (
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"strings"
 )
 
 type ProxyMessage struct {
 	Action      string `json:"action"`
 	DomainName  string `json:"domainName"`
+	DomainMode  string `json:"domainMode"`
 	ServiceName string `json:"serviceName"`
 	Username    string `json:"username"`
 	Key         string `json:"key"`
@@ -18,7 +20,10 @@ type ProxyMessage struct {
 	Host        string `json:"host"`
 	HostData    string `json:"hostdata"`
 	Uuid        string `json:"uuid"`
-	IpRegex     string `json:"ipregex"`
+	RuleName    string `json:"rulename"`
+	Rule        string `json:"rule"`
+	RuleEnabled bool   `json:"enabled"`
+	RuleMode    string `json:"mode"`
 }
 
 type ProxyResponse struct {
@@ -45,6 +50,7 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 }
 
 type DomainData struct {
+	Mode     string
 	Username string
 	Name     string
 	Key      string
@@ -60,7 +66,16 @@ type UserProxy struct {
 }
 
 type Restriction struct {
-	IP string
+	IP struct {
+		Enabled bool   // To disable or enable current rule
+		Mode    string // Rule is either allowing matches or denying
+		Rule    string // Regex string
+	}
+	Country struct {
+		Enabled bool
+		Mode    string   // Rule is either allowing matches or denying
+		Rule    []string // A slice of country names, i.e.:["Turkey", "Germany"]
+	}
 }
 
 type UserRules struct {
@@ -89,8 +104,9 @@ func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyDat
 	}
 }
 
-func NewDomainData(username, name, key, fullurl string) *DomainData {
+func NewDomainData(mode, username, name, key, fullurl string) *DomainData {
 	return &DomainData{
+		Mode:     mode,
 		Username: username,
 		Name:     name,
 		Key:      key,
@@ -175,17 +191,13 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, fullurl, uuid string) error {
+func (p *ProxyConfiguration) AddDomain(mode, username, domainname, servicename, key, fullurl, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding domain is not possible '%s'", err)
 	}
 
-	_, ok := proxy.DomainRoutingTable.Domains[domainname]
-	if !ok {
-		proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(username, servicename, key, fullurl)
-	}
-
+	proxy.DomainRoutingTable.Domains[domainname] = *NewDomainData(mode, username, servicename, key, fullurl)
 	err = p.UpdateProxy(proxy)
 	if err != nil {
 		return err
@@ -193,7 +205,7 @@ func (p *ProxyConfiguration) AddDomain(username, domainname, servicename, key, f
 	return nil
 }
 
-func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex string) error {
+func (p *ProxyConfiguration) AddRule(uuid, username, servicename, rulename, rule, mode string, enabled bool) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
 		return fmt.Errorf("adding key is not possible. '%s'", err)
@@ -213,8 +225,24 @@ func (p *ProxyConfiguration) AddRule(uuid, username, servicename, ipregex string
 	if !ok {
 		rules.Services[servicename] = Restriction{}
 	}
+
 	restriction := rules.Services[servicename]
-	restriction.IP = ipregex
+
+	switch rulename {
+	case "ip", "file":
+		restriction.IP.Enabled = enabled
+		restriction.IP.Mode = mode
+		restriction.IP.Rule = strings.TrimSpace(rule)
+	case "domain":
+		restriction.Country.Enabled = enabled
+		restriction.Country.Mode = mode
+		cList := make([]string, 0)
+		list := strings.Split(rule, ",")
+		for _, country := range list {
+			cList = append(cList, strings.TrimSpace(country))
+		}
+		restriction.Country.Rule = cList
+	}
 
 	rules.Services[servicename] = restriction
 	proxy.Rules[username] = rules
@@ -265,21 +293,18 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 		return nil
 	}
 
-	// delete old key
-	delete(keyRoutingTable.Keys, key)
-
-	// and replace it with the new one
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-
-	/* check for existing hostnames, if exist abort. Comment out if you want
-	 add multiple entities for a single key. Useful to use  round-robin.
-	for _, value := range keyRoutingTable.Keys[key] {
-	    if value.Host == host {
-	        return nil
-	    }
+	// check for existing hostnames, if exist abort.
+	if name != "broker" {
+		for _, value := range keyRoutingTable.Keys[key] {
+			if value.Host == host {
+				return nil
+			}
+		}
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
+	} else { // delete old one and replace it
+		delete(keyRoutingTable.Keys, key)
+		keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
 	}
-	keyRoutingTable.Keys[key] = append(keyRoutingTable.Keys[key], *NewKeyData(key, host, hostdata, rabbitkey, 0))
-	*/
 
 	user.Services[name] = keyRoutingTable
 	proxy.RoutingTable[username] = user

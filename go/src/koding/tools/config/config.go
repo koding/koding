@@ -9,9 +9,10 @@ import (
 )
 
 type Config struct {
-	BuildNumber int
-	ProjectRoot string
-	Client      struct {
+	BuildNumber     int
+	ProjectRoot     string
+	UserSitesDomain string
+	Client          struct {
 		StaticFilesBaseUrl string
 	}
 	Mongo string
@@ -21,6 +22,12 @@ type Config struct {
 		ComponentUser string
 		Password      string
 		Vhost         string
+	}
+	Neo4j struct {
+		Read    string
+		Write   string
+		Port    int
+		Enabled bool
 	}
 	Broker struct {
 		IP       string
@@ -46,6 +53,7 @@ type Config struct {
 		Proxy struct {
 			Port    int
 			PortSSL int
+			SSLIPS	string
 		}
 		Mongo struct {
 			Host string

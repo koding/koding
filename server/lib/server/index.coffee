@@ -2,7 +2,9 @@
 Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth} = KONFIG
+
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
+page = require './staticpages'
 
 webPort = argv.p ? webserver.port
 
@@ -51,6 +53,9 @@ koding.connect ->
     leave: (serviceKey) ->
       incService serviceKey, -1
 
+# TODO: DRY this
+_        = require 'underscore'
+async    = require 'async'
 {extend} = require 'underscore'
 express  = require 'express'
 Broker   = require 'broker'
@@ -91,12 +96,31 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-startTime = null
+FetchAllActivityParallel = require './graph/fetch'
+fetchFromNeo = (req, res)->
+  timestamp  = req.params?.timestamp
+  rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+  startDate  = Math.floor(rawStartDate/1000)
+
+  fetch = new FetchAllActivityParallel startDate, neo4j
+  fetch.get (results)->
+    res.send results
+
+app.get "/-/neo4j/latest", (req, res)->
+  fetchFromNeo req, res
+
+app.get "/-/neo4j/before/:timestamp", (req, res)->
+  fetchFromNeo req, res
+
 app.get "/-/cache/latest", (req, res)->
   {JActivityCache} = koding.models
   startTime = Date.now()
   JActivityCache.latest (err, cache)->
     if err then console.warn err
+    # if you want to jump to previous cache - uncomment if needed
+    if cache and req.query?.previous?
+      timestamp = new Date(cache.from).getTime()
+      return res.redirect 301, "/-/cache/before/#{timestamp}"
     # console.log "latest: #{Date.now() - startTime} msecs!"
     return res.send if cache then cache.data else {}
 
@@ -104,6 +128,10 @@ app.get "/-/cache/before/:timestamp", (req, res)->
   {JActivityCache} = koding.models
   JActivityCache.before req.params.timestamp, (err, cache)->
     if err then console.warn err
+    # if you want to jump to previous cache - uncomment if needed
+    if cache and req.query?.previous?
+      timestamp = new Date(cache.from).getTime()
+      return res.redirect 301, "/-/cache/before/#{timestamp}"
     res.send if cache then cache.data else {}
 
 app.get "/-/imageProxy", (req, res)->
@@ -150,8 +178,8 @@ app.get "/-/kite/login", (req, res) ->
                   host      : 'localhost'
                   rabbitkey : key
 
-                apiServer   = 'api.x.koding.com'
-                proxyServer = 'proxy.in.koding.com'
+                apiServer   = 'kontrol.in.koding.com'
+                proxyServer = 'proxy-2.in.koding.com'
                 # local development
                 # apiServer   = 'localhost:8000'
                 # proxyServer = 'mahlika.local'
@@ -179,15 +207,36 @@ app.get "/-/kite/login", (req, res) ->
                     res.send JSON.stringify creds
           when 'openservice'
             rabbitAPI.newUser key, name, (err, data) =>
-              creds =
-                protocol  : 'amqp'
-                host      : mq.apiAddress
-                username  : data.username
-                password  : data.password
-                vhost     : mq.vhost
-              console.log creds
-              res.status 200
-              res.send creds
+              if err?
+                console.log "ERROR", err
+                res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
+              else
+                creds =
+                  protocol  : 'amqp'
+                  host      : mq.apiAddress
+                  username  : data.username
+                  password  : data.password
+                  vhost     : mq.vhost
+                console.log creds
+                res.header "Content-Type", "application/json"
+                res.send 200, JSON.stringify creds
+
+# gate for kd
+app.post "/-/kd/:command", express.bodyParser(), (req, res)->
+  switch req.params.command
+    when "register-check"
+      {username, key} = req.body
+      {JKodingKey} = koding.models
+
+      JKodingKey.fetchByUserKey
+        username: username
+        key     : key
+      , (err, kodingKey)=>
+        if err or not kodingKey
+          res.send 418 # I'm a teapot :P
+        else
+          res.status 200
+          res.send "OK"
 
 app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
@@ -371,5 +420,4 @@ app.get '*', (req,res)->
   res.send 302
 
 app.listen webPort
-
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"

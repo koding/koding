@@ -76,7 +76,7 @@ __utils =
     newPath.join ""
 
   slugify:(title = "")->
-    url = title
+    url = String(title)
       .toLowerCase()                # change everything to lowercase
       .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
       .replace(/[_|\s]+/g, "-")     # change all spaces and underscores to a hyphen
@@ -111,7 +111,7 @@ __utils =
     if url is ""
       "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
     else
-      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
+      '/-/imageProxy?url=' + encodeURIComponent(url)
 
   applyMarkdown: (text)->
     # problems with markdown so far:
@@ -119,14 +119,13 @@ __utils =
     return null unless text
 
     marked.setOptions
-      gfm: true
-      pedantic: false
-      sanitize: true
-      highlight:(text,lang)->
+      gfm       : true
+      pedantic  : false
+      sanitize  : true
+      highlight :(text, lang)->
         if hljs.LANGUAGES[lang]?
-          hljs.highlight(lang,text).value
-        else
-          text
+        then hljs.highlight(lang,text).value
+        else text
 
     text = marked Encoder.htmlDecode text
 
@@ -151,6 +150,13 @@ __utils =
   applyLineBreaks: (text)->
     return null unless text
     text.replace /\n/g, "<br />"
+
+  showMoreClickHandler:(event)->
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
   applyTextExpansions: (text, shorten)->
     return null unless text
@@ -594,9 +600,13 @@ __utils =
 
     return if location.hostname isnt "localhost"
 
-    status = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    body  = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
+      group = KD.config.entryPoint.slug
+    else
+      group = 'koding'
 
-    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err
         KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else

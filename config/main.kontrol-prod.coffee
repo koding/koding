@@ -12,7 +12,8 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "#{version}.x.koding.com"
+    address     : "new.koding.com"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -22,9 +23,14 @@ module.exports =
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
-    enabled     : no
+    enabled     : yes
     port        : 1337
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding_dev2_copy'
+  neo4j         :
+    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
+    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
+    port        : 7474
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
+  runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
   runRerouting  : no
@@ -45,9 +51,9 @@ module.exports =
       awsSecretAccessKey  : 'kpKvRUGGa8drtLIzLPtZnoVi82WnRia85kCMT2W7'
       bucket              : 'koding-uploads'
   loggr:
-    push   : no
-    url    : ""
-    apiKey : ""
+    push: yes
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
   librato :
     push      : no
     email     : ""
@@ -68,7 +74,7 @@ module.exports =
     watch       : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 20
+    numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -93,28 +99,30 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "http://#{version}.x.koding.com"
+    staticFilesBaseUrl: "https://new.koding.com"
     runtimeOptions:
+      userSitesDomain: 'kd.io'
+      useNeo4j: yes
       logToExternal : no
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "http://#{version}.x.koding.com"
+      mainUri   : "http://new.koding.com"
       broker    :
-        sockJS   : "http://broker-#{version}.x.koding.com/subscribe"
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://web-kontrol-test.in.koding.com:1337'
+      sourceUri : "http://webserver-build-koding-#{version}.in.koding.com:1337"
   mq            :
-    host        : 'internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com'
+    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
     port        : 5672
-    apiAddress  : "internal-VPC-AQMP-LB-513118248.us-east-1.elb.amazonaws.com"
+    apiAddress  : "internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 10
+    heartbeat   : 20
     vhost       : 'new'
   broker        :
     ip          : ""
@@ -125,7 +133,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "#{version}.x.koding.com"
+    host        : "new.koding.com"
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -150,6 +158,7 @@ module.exports =
     proxy         :
       port        : 80
       portssl     : 443
+      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     mongo         :
       host        : 'kontrol.in.koding.com'
     rabbitmq      :

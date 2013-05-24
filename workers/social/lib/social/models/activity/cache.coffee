@@ -90,9 +90,15 @@ module.exports = class JActivityCache extends jraphical.Module
 
     @one selector, options, (err, cache)-> kallback err, cache, callback
 
-  @init = (from, to)->
+  @countActivities =(callback)->
+    CActivity = require './index'
+    CActivity.count {}, (err, count)=>
+      if err then @activityCount = 0
+      else @activityCount = count
+      callback()
 
-    console.log "JActivityCache inits...\n"
+  @init = (from, to)->    
+    log "JActivityCache inits..."
 
     CActivity = require './index'
 
@@ -124,7 +130,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
             cacheQueue.push ->
               latest.cap remainderOverview, ->
-                console.log "capped latest with #{remainderOverview.length} new items!"
+                log "capped latest with #{remainderOverview.length} new items!"
                 cacheQueue.next()
 
             # cancel only if there are no new items to be cached
@@ -138,12 +144,8 @@ module.exports = class JActivityCache extends jraphical.Module
           # create new cache instances
           overview2d = []
 
-          # splice remainders amount of newest items to
-          # finish the batch with even lengthPerCache items
-          overview2d.push overview.splice 0, overview.length%lengthPerCache
-
           # create batches of lengthPerCache
-          while overview.length >= lengthPerCache
+          while overview.length > 0
             overview2d.push overview.splice 0,lengthPerCache
 
           # printBatches overview2d
@@ -163,7 +165,7 @@ module.exports = class JActivityCache extends jraphical.Module
           console.warn "there are no cache instances, run JActivityCache.init first!"
           return
 
-        console.log "wohooo, going deeper in time, namely to: #{earliest.from}...\n"
+        log "wohooo, going deeper in time, namely to: #{earliest.from}...\n"
 
       options =
         to    : earliest.from.getTime()
@@ -197,7 +199,7 @@ module.exports = class JActivityCache extends jraphical.Module
     daisy cacheQueue
 
   processCache = (cursorArr)->
-    console.log "processing activity cache..."
+    log "processing activity cache..."
     lastDocType = null
 
     # group newmember buckets
@@ -263,16 +265,21 @@ module.exports = class JActivityCache extends jraphical.Module
             callback "no items to be cached, cancelling..."
             return
 
-          console.log "total in this batch: #{overview.length}"
+          log "total in this batch: #{overview.length}"
 
-          if not options.latest and overview.length < lengthPerCache
-            options.to    = options.from
-            options.from -= timespan
-            console.warn "last query wasn't enough asking again...\n"
-            @prepareCacheData options, callback
-            return
+          unless options.latest
+            fetchMore =->
+              if overview.length < lengthPerCache and @activityCount > lengthPerCache
+                options.to    = options.from
+                options.from -= timespan
+                console.warn "last query wasn't enough asking again..."
+                @prepareCacheData options, callback
+                return
 
-          console.log "#{overview.length} items prepared for caching...\n"
+            unless @activityCount then @countActivities fetchMore
+            else fetchMore()
+
+          log "#{overview.length} items prepared for caching..."
 
           callback? null, overview.slice()
           overview = []
@@ -302,7 +309,7 @@ module.exports = class JActivityCache extends jraphical.Module
         instance.save (err, inst)->
           if err then console.warn err
           else
-            console.log "cache instance saved! from: #{instance.from} to: #{instance.to}"
+            log "cache instance saved! from: #{instance.from} to: #{instance.to}"
             callback? null, inst[0]
 
 
@@ -322,6 +329,7 @@ module.exports = class JActivityCache extends jraphical.Module
         activityHash = {}
         for activity in activities
           actvivityId = activity._id
+          activity.snapshot = activity.snapshot.replace(/(&quot;)/g, '\\"')
           activityHash[actvivityId] = activity
 
         callback null, activityHash
@@ -382,14 +390,13 @@ module.exports = class JActivityCache extends jraphical.Module
         # only keep CNewMemberBucketActivity's of newIds
         for id, activity of @activities
           if activity.type == 'CNewMemberBucketActivity'
-            found = false
+            found = no
             for _id in newIds when _id.equals id
-              found = true
-            if not found
-              unsetModifier["activities.#{id}"] = 1
+              found = yes
+            unsetModifier["activities.#{id}"] = 1 if not found
 
         if _.size(unsetModifier)
-          console.log "removing #{_.size(unsetModifier)} obsolete activities..."
+          log "removing #{_.size(unsetModifier)} obsolete activities..."
 
       if overview.length
         @update $pushAll: pushAllModifier, ->
@@ -406,7 +413,7 @@ module.exports = class JActivityCache extends jraphical.Module
 
     {teaserId, createdAt} = teaser
 
-    log "modifying cache instance by teaser..."
+    log "modifying cache instance by teaser id #{teaserId}..."
 
     @containsTimestamp createdAt, (err, cache)->
       if err then callback? err
@@ -417,7 +424,7 @@ module.exports = class JActivityCache extends jraphical.Module
         # this is to get the activity
         idToUpdate = null
         for id, activity of cache.activities
-          if activity.snapshotIds[0].equals teaserId
+          if activity.snapshotIds[0] and activity.snapshotIds[0].equals teaserId
             idToUpdate = id
             break
 
@@ -479,30 +486,84 @@ module.exports = class JActivityCache extends jraphical.Module
 
           cache.update
             $unset : unsetModifier
-            $set   : isFull : no
+            $set   : setModifier
           , ->
-            log "activity removed from cache!", Object.keys(cache.activities).length
-            cache.update
-              $pullAll : { overview : [null] }
-            , ->
-              log "nulls in cache.overview removed"
-
-            if Object.keys(cache.activities).length is 0
+            activitiesLength = Object.keys(cache.activities).length
+            log "activity removed from cache!", activitiesLength
+            if activitiesLength is 0
               cache.remove ->
                 log "cache instance removed!"
+            else
+              cache.update
+                $pullAll : { overview : [null] }
+              , ->
+                log "nulls in cache.overview removed"
 
+                # pullAll does not update data in memory of cache object
+                # so we need to do same oction on memory
+                overview = []
+                (overview.push item for item, i in cache.overview when item)
 
+                for overviewItem, index in overview when overviewItem
+                  if overviewItem.type is 'CNewMemberBucketActivity'
+                    if index is cache.newMemberBucketIndex
+                      break
+
+                    cache.update
+                      $set : newMemberBucketIndex : index
+                    , ->
+                      log "newMemberBucketIndex is updated"
+
+  @cleanCacheFromActivitiesOfUser = (userId)->
+    log "got task to clean cache from activities of user #{userId}"
+
+    since = new Date()
+    since.setDate(since.getDate() - timespan / 1000 / 60 / 60 / 24)
+
+    @some {to: $gte: since}, {sort: to: 1}, (err, caches)=>
+      if err then log err
+      else
+        return log "no caches found since #{since}... No actions performed." unless caches
+
+        foundInCache = null
+        removedCollections = 0
+
+        queue = caches.map (cache)->->
+          # look for activity of user
+          if not foundInCache
+            for id, activity of cache.activities
+              if activity.originType == 'JAccount' and activity.originId.equals userId
+                log "found activities of user in cache from #{cache.from}..."
+                log "starting removing all cache collections from then..."
+                foundInCache = cache
+
+            return queue.next() unless foundInCache
+
+          cache.remove ->
+            log "removed cache collection #{cache._id}"
+            removedCollections++
+            queue.next()
+
+        queue.push =>
+          return log "no activities found of this user since #{since}." unless foundInCache
+
+          log "#{removedCollections} collections removed. Re-generating cache..."
+
+          # regenerate cache from first cache's from value
+          @init(foundInCache.from)
+
+        daisy queue
 
   printOverview = (overview)->
     # TEST - better not to delete this
     # logs all items' dates
 
-    console.log item.createdAt[0] for item in overview when item
+    log item.createdAt[0] for item in overview when item
 
   printBatches = (overview2d)->
     # TEST - better not to delete this
     # logs item dates in batches
 
     for ov,i in overview2d
-      console.log "batch #{i}:\n"
+      log "batch #{i}:\n"
       printOverview ov

@@ -123,9 +123,16 @@ class ActivityListController extends KDListViewController
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
+        anchors = []
+        for id in overviewItem.ids
+          if cache.activities[id].teaser?
+            anchors.push cache.activities[id].teaser.anchor
+          else
+            KD.logToExternal msg:'no teaser for activity', activityId:id
+
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
+          anchors             : anchors
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
@@ -137,11 +144,7 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    sortedActivities = _.sortBy cache.activities, (activity) ->
-      activity.modifiedAt
-
-    modifiedAt = sortedActivities.last.modifiedAt
-    @lastItemTimeStamp = modifiedAt  unless @lastItemTimeStamp > modifiedAt
+    @lastItemTimeStamp = cache.from
 
     KD.logToMixpanel "populateActivity.cache.success", 5
 

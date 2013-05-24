@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
 
 class JToken extends Model
-  
+
   @setSchema
     token       : String
     expires     : Date
@@ -29,7 +29,11 @@ module.exports = class JSession extends Model
       lastAccess    :
         type        : Date
         get         : -> new Date
-  
+    sharedEvents    :
+      instance      : [
+        { name: 'updateInstance' }
+      ]
+
   @cycleSession =(clientId, callback=->)->
     @remove {clientId}, (err)=>
       if err
@@ -40,7 +44,7 @@ module.exports = class JSession extends Model
             callback err
           else
             callback null, guest, session.clientId
-   
+
   @createSession =(callback)->
     clientId = createId()
     JGuest.obtain null, clientId, (err, guest)=>

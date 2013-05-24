@@ -56,6 +56,9 @@ class CommentListItemView extends KDListItemView
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
+    data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
+    data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
+
   applyTooltips:->
     @$("p.status-body > span.data > a").each (i,element)->
       href = $(element).attr("data-original-url") or $(element).attr("href") or ""
@@ -80,13 +83,7 @@ class CommentListItemView extends KDListItemView
 
   click:(event)->
 
-    if $(event.target).is("span.collapsedtext a.more-link")
-      @$("span.collapsedtext").addClass "show"
-      @$("span.collapsedtext").removeClass "hide"
-
-    if $(event.target).is("span.collapsedtext a.less-link")
-      @$("span.collapsedtext").removeClass "show"
-      @$("span.collapsedtext").addClass "hide"
+    KD.utils.showMoreClickHandler.call this, event
 
     if $(event.target).is "span.avatar a, a.user-fullname"
       {originType, originId} = @getData()

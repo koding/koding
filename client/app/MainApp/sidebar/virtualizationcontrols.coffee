@@ -32,7 +32,7 @@ class VirtualizationControls extends JView
         title      : "Re-initialize your VM"
       callback     : => @vm.reinitialize()
 
-  checkVMState:(err, info)->
+  checkVMState:(err, vm, info)->
     if err or not info
       @statusLED.setOff()
       return warn err

@@ -13,6 +13,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, customize
   <body class="group">
 
   <div class="kdview" id="kdmaincontainer">
+    <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
     <header class="kdview" id='main-header'>
       <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
     </header>
@@ -94,7 +95,7 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, customize
     </section>
   </div>
 
-  #{KONFIG.getConfigScriptTag entryPoint: { slug : slug, type: "group" }}
+  #{KONFIG.getConfigScriptTag {entryPoint: { slug : slug, type: "group"}, roles:['guest'], permissions:[]}}
   #{getScripts()}
   </body>
   </html>

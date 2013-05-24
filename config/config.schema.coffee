@@ -44,6 +44,7 @@ config =
       secret      : 1
     uri           :
       address     : 1
+    userSitesDomain: 1
     projectRoot   : 1
     version       : 1
     webserver     :
@@ -56,6 +57,11 @@ config =
       enabled     : 1
       port        : 1
     mongo         : 1
+    neo4j         :
+      read        : 1
+      write       : 1
+      port        : 1
+    runNeo4jFeeder: 1
     runGoBroker   : 1
     runKontrol    : 1
     runRerouting  : 1
@@ -121,6 +127,8 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
+        userSitesDomain: 1
+        useNeo4j      : 1
         logToExternal : 1
         resourceName  : 1
         suppressLogs  : 1
@@ -172,6 +180,7 @@ config =
       proxy         :
         port        : 1
         portssl     : 1
+        sslips      : 1
       mongo         :
         host        : 1
       rabbitmq      :

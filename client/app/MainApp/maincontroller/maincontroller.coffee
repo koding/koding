@@ -43,20 +43,26 @@ class MainController extends KDController
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
 
-    @appReady =>
+    # appManager.create 'Chat', (chatController)->
+    #   KD.registerSingleton "chatController", chatController
+
+    @ready =>
       router.listen()
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       #KD.registerSingleton "bottomPanelController", new BottomPanelController
+      @emit 'AppIsReady'
+      @emit 'FrameworkIsReady'
 
     @setFailTimer()
     @attachListeners()
 
-    @accountReadyState = 0
-
     @appStorages = {}
 
     @introductionTooltipController = new IntroductionTooltipController
+
+    @on "UserLoggedIn", ->
+      @getSingleton("kodingAppsController").getPublishedApps()
 
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
@@ -68,67 +74,38 @@ class MainController extends KDController
     storage.fetchStorage()
     return storage
 
-  appReady:do ->
-    applicationIsReady = no
-    queue = []
-    (listener)->
-      if listener
-        if applicationIsReady then listener()
-        else queue.push listener
-      else
-        applicationIsReady = yes
-        listener() for listener in queue
-        queue.length = 0
-
-        @emit 'AppIsReady'
-        @emit 'FrameworkIsReady'
-        @appIsReady = yes
-
-  accountReady:(fn)->
-    if @accountReadyState > 0 then fn()
-    else @once 'AccountChanged', fn
-
   accountChanged:(account, firstLoad = no)->
 
     @userAccount             = account
-    @accountReadyState       = 1
     connectedState.connected = yes
 
-    {entryPoint} = KD.config
-    slug = if entryPoint?.type is 'group' then entryPoint.slug else 'koding'
-    KD.remote.cacheable slug, (err, [group])->
+    KD.whoami().fetchMyPermissionsAndRoles (err, permissions, roles)=>
       return warn err  if err
-      group.fetchMyRoles (err, roles)->
-        return warn err  if err
-        KD.config.roles = roles
+      KD.config.roles       = roles
+      KD.config.permissions = permissions
 
-    @accountReady @emit.bind @, "AccountChanged", account, firstLoad
+      @ready @emit.bind @, "AccountChanged", account, firstLoad
 
-    unless @mainViewController
+      @createMainViewController()  unless @mainViewController
 
-      @loginScreen = new LoginView
-      KDView.appendToDOMBody @loginScreen
+      @decorateBodyTag()
+      @emit 'ready'
+      # this emits following events
+      # -> "pageLoaded.as.loggedIn"
+      # -> "pageLoaded.as.loggedOut"
+      # -> "accountChanged.to.loggedIn"
+      # -> "accountChanged.to.loggedOut"
+      eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
+      eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
+      @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-      @mainViewController  = new MainViewController
-        view    : mainView = new MainView
-          domId : "kdmaincontainer"
-
-      KDView.appendToDOMBody mainView
-
-      @appReady()
-
-    @decorateBodyTag()
-
-    eventPrefix = if firstLoad then "pageLoaded.as" else "accountChanged.to"
-    eventSuffix = if @isUserLoggedIn() then "loggedIn" else "loggedOut"
-
-    # this emits following events
-    # -> "pageLoaded.as.loggedIn"
-    # -> "pageLoaded.as.loggedOut"
-    # -> "accountChanged.to.loggedIn"
-    # -> "accountChanged.to.loggedOut"
-
-    @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
+  createMainViewController:->
+    @loginScreen = new LoginView
+    KDView.appendToDOMBody @loginScreen
+    @mainViewController  = new MainViewController
+      view    : mainView = new MainView
+        domId : "kdmaincontainer"
+    KDView.appendToDOMBody mainView
 
   doLogout:->
 
@@ -140,16 +117,6 @@ class MainController extends KDController
     # fixme: make a old tv switch off animation and reload
     # $('body').addClass "turn-off"
     return location.reload()
-
-    @getSingleton("lazyDomController").showLandingPage =>
-      KD.getSingleton("appManager").quitAll =>
-        @mainViewController.sidebarController.accountChanged account
-
-      new KDNotificationView
-        cssClass  : "login"
-        title     : "<span></span>Come back soon!"
-        duration  : 2000
-
 
   attachListeners:->
 
@@ -218,9 +185,8 @@ class MainController extends KDController
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
-      $('body').addClass 'super'
-    else
-      $('body').removeClass 'super'
+    then $('body').addClass 'super'
+    else $('body').removeClass 'super'
 
   setFailTimer: do->
     modal = null

@@ -39,6 +39,10 @@ module.exports = class JApp extends jraphical.Module
       title         : 'ascending'
       slug          : 'unique'
 
+    sharedEvents    :
+      instance      : [
+        { name: 'ReviewIsAdded' }
+      ]
     sharedMethods   :
       instance      : [
         'follow', 'unfollow', 'delete', 'review',
@@ -48,7 +52,7 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        'one', 'create', 'someWithRelationship', 'updateAllSlugs', 'some'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
       ]
 
     schema          :

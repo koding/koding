@@ -65,6 +65,10 @@ compileGoBinaries = (configFile,callback)->
   else
     callback null
 
+task 'populateNeo4j', ({configFile})->
+  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
+  processes.exec migrator
+
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
 
@@ -252,6 +256,7 @@ task 'goBroker',(options)->
 task 'rerouting',(options)->
 
   {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.spawn
     name           : 'rerouting'
@@ -261,6 +266,9 @@ task 'rerouting',(options)->
     stdout         : process.stdout
     stderr         : process.stderr
     verbose        : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
 
 task 'osKite',({configFile})->
 
@@ -276,11 +284,26 @@ task 'proxy',({configFile})->
 
   processes.spawn
     name  : 'proxy'
-    cmd   : "./go/bin/vmproxy -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL vmproxy; sudo ./go/bin-vagrant/vmproxy -c #{configFile}'" else "./go/bin/vmproxy -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+
+task 'neo4jfeeder',({configFile})->
+
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    name    : 'proxy'
+    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
 
 task 'libratoWorker',({configFile})->
 
@@ -381,11 +404,12 @@ task 'checkConfig',({configFile})->
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
-  compileGoBinaries configFile,->
+  compileGoBinaries configFile, ->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
     invoke 'proxy'          if config.runProxy
+    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
@@ -394,7 +418,17 @@ run =({configFile})->
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
+    invoke 'alertUserToRunNeo4jMigrator'
 
+task 'alertUserToRunNeo4jMigrator', (options)->
+  {configFile} = options
+  text =  "\n"
+  text += "RED ALERT: \n"
+  text += "Please run \"cake -c #{configFile} populateNeo4j\" if you haven't already.\n"
+  text += "Usually you need to run it only once when you initialize a new vagrant box\n"
+  text += "or you nuked your neo4j db.\n"
+
+  console.log text
 
 task 'run', (options)->
   {configFile} = options
@@ -414,7 +448,6 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
-
 
 task 'accounting', (options)->
 

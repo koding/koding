@@ -73,6 +73,7 @@ class KDObject extends KDEventEmitter
   getDelegate:->@delegate
 
   destroy:->
+    @isDestroyed = yes
     @emit 'KDObjectWillBeDestroyed'
     KD.deleteInstance @id
 

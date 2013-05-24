@@ -90,7 +90,7 @@ class ActivityItemChild extends KDView
     if data.originId is KD.whoami().getId()
       menu =
         'Edit'     :
-          callback : =>
+          callback : ->
             mainController.emit 'ActivityItemEditLinkClicked', data
         'Delete'   :
           callback : =>
@@ -99,16 +99,20 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      menu =
-        'MARK USER AS TROLL' :
-          callback : =>
-            mainController.markUserAsTroll data
-        'UNMARK USER AS TROLL' :
-          callback : =>
-            mainController.unmarkUserAsTroll data
-        'Delete Post' :
-          callback : =>
-            @confirmDeletePost data
+      if data.isLowQuality
+        menu =
+          'Unmark User as Troll' :
+            callback             : ->
+              mainController.unmarkUserAsTroll data
+      else
+        menu =
+          'Mark User as Troll' :
+            callback           : ->
+              mainController.markUserAsTroll data
+
+      menu['Delete Post'] =
+        callback : =>
+          @confirmDeletePost data
 
       return menu
 
@@ -136,12 +140,7 @@ class ActivityItemChild extends KDView
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
 
-  click:(event)->
-    $trg = $(event.target)
-    more = "span.collapsedtext a.more-link"
-    less = "span.collapsedtext a.less-link"
-    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
-    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+  click: KD.utils.showMoreClickHandler
 
   viewAppended:->
     super

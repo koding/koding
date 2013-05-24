@@ -192,7 +192,7 @@ class KDView extends KDObject
   setDomId:(id)->
     @domElement.attr "id",id
 
-  setDataId:()->
+  setDataId:->
     @domElement.data "data-id",@getId()
 
   setDomAttributes:(attributes)->
@@ -298,6 +298,9 @@ class KDView extends KDObject
     @$().toggleClass cssClass
     @
 
+  hasClass:(cssClass)->
+    @$().hasClass cssClass
+
   getBounds:()->
     #return false unless @viewDidAppend
     bounds =
@@ -368,11 +371,18 @@ class KDView extends KDObject
   getRelativeX:-> @$().position().left
   getRelativeY:-> @$().position().top
 
+  destroyChild: (prop) ->
+    if @[prop]?
+      @[prop].destroy?()
+      delete @[prop]
+      yes
+    else no
+
 # #
 # ADD/DESTROY VIEW INSTANCES
 # #
 
-  destroy:->
+  destroy: ->
     # instance destroys own subviews
     @destroySubViews()  if @getSubViews().length > 0
 
@@ -391,7 +401,7 @@ class KDView extends KDObject
     # and delete instance from KD.instances registry
     super
 
-  destroySubViews:()->
+  destroySubViews: ->
     # (subView.destroy() for subView in @getSubViews())
 
     for subView in @getSubViews().slice()
@@ -616,7 +626,13 @@ class KDView extends KDObject
       if eventNames.test(eventName) and "function" is typeof cb
         @on eventName, cb
 
-  setEmptyDragState: ->
+  setEmptyDragState:(moveBacktoInitialPosition = no)->
+
+    if moveBacktoInitialPosition and @dragState
+      el = @$()
+      el.css 'left', 0
+      el.css 'top' , 0
+
     @dragState =
       containment : null     # a parent KDView
       handle      : null     # a parent KDView or a child selector
@@ -650,7 +666,7 @@ class KDView extends KDObject
     options = {} if options is yes
 
     @setEmptyDragState()
-    handle = if options.handle and options.handle instanceof KDView then handle else @
+    handle = if options.handle instanceof KDView then options.handle else @
 
     handle.on "mousedown", (event)=>
       if "string" is typeof options.handle

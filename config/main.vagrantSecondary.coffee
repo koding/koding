@@ -12,7 +12,8 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost"
+    address     : "http://localhost:3020"
+  userSitesDomain: 'localhost'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -24,7 +25,12 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
+  neo4j         :
+    read        : "http://localhost"
+    write       : "http://localhost"
+    port        : 7474
   mongo         : mongo
+  runNeo4jFeeder: yes
   runGoBroker   : yes
   runRerouting  : yes
   compileGo     : yes
@@ -83,8 +89,10 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost'
+    staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      userSitesDomain: 'localhost'
+      useNeo4j: no
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
@@ -93,7 +101,7 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://localhost'
+      mainUri   : 'http://localhost:3020'
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://localhost:1337'
   mq            :

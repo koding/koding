@@ -16,17 +16,19 @@ module.exports = class JAccount extends jraphical.Module
   @trait __dirname, '../../traits/followable'
   @trait __dirname, '../../traits/filterable'
   @trait __dirname, '../../traits/taggable'
-  @trait __dirname, '../../traits/notifiable'
   @trait __dirname, '../../traits/notifying'
   @trait __dirname, '../../traits/flaggable'
 
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
+  CActivity = require '../activity'
 
   @getFlagRole = 'content'
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
+  {permit} = require '../group/permissionset'
+
   @share()
   Experience =
     company           : String
@@ -48,6 +50,13 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+    sharedEvents    :
+      static        : [
+        { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
+      ]
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods :
       static      : sharedStaticMethods()
       instance    : sharedInstanceMethods()
@@ -107,7 +116,7 @@ module.exports = class JAccount extends jraphical.Module
               customType      :
                 type          : String
                 default       : 'defaultImage'
-                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
               customValue     :
                 type          : String
                 default       : '1'
@@ -547,7 +556,8 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "aleksey-m", "gokmen", "chris",
-                  "arvidkahl", "testdude", "blum", "neelance", "fatihacet" ]
+                  "arvidkahl", "testdude", "blum", "neelance", "halk",
+                  "fatihacet", "chrisblum" ]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -557,6 +567,7 @@ module.exports = class JAccount extends jraphical.Module
       if flag is 'exempt'
         console.log 'is exempt'
         @markAllContentAsLowQuality()
+        @cleanCacheFromActivities()
       else
         console.log 'aint exempt'
     else
@@ -568,7 +579,7 @@ module.exports = class JAccount extends jraphical.Module
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
       if flag is 'exempt'
-        console.log 'is exempt'
+        console.log 'was exempt'
         @unmarkAllContentAsLowQuality()
       else
         console.log 'aint exempt'
@@ -594,7 +605,7 @@ module.exports = class JAccount extends jraphical.Module
             return yes
     no
 
-  isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
+  isDummyAdmin = (nickname)-> !!(nickname in dummyAdmins)
 
   @getFlagRole =-> 'owner'
 
@@ -787,14 +798,25 @@ module.exports = class JAccount extends jraphical.Module
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, console.log
-        item.emit 'ContentMarkedAsLowQuality', null
+        item.update {$set: isLowQuality: yes}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.flagIsLowQuality ->
+              item.emit 'ContentMarkedAsLowQuality', null
+          else
+            item.emit 'ContentMarkedAsLowQuality', null
 
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, console.log
-        item.emit 'ContentUnmarkedAsLowQuality', null
+        item.update {$set: isLowQuality: no}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.unflagIsLowQuality ->
+              item.emit 'ContentUnmarkedAsLowQuality', null
+          else
+            item.emit 'ContentUnmarkedAsLowQuality', null
+
+  cleanCacheFromActivities:->
+    CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->
@@ -807,6 +829,11 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
+  sendNotification:(event, contents)->
+    @emit 'notification', {
+      routingKey: @profile.nickname
+      event, contents
+    }
   getInvitiationRequestRelationships:(options, status, callback)->
     JInvitationRequest = require '../invitationrequest'
 
@@ -841,7 +868,7 @@ module.exports = class JAccount extends jraphical.Module
     @getInvitiationRequestRelationships options, 'pending', (err, rels)->
       return callback err if err
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
-  
+
   fetchPendingGroupInvitations:(options, callback)->
     [callback, options] = [options, callback]  unless callback
     JGroup = require '../group'
@@ -887,7 +914,6 @@ module.exports = class JAccount extends jraphical.Module
     @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
       return callback err if err or not request
       request.ignoreInvitationByInvitee client, callback
-
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate
   #   id = delegate?.getId()
@@ -904,3 +930,32 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
+
+  @byRelevance$ = permit 'list members',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
+
+  fetchMyPermissions: secure (client, callback)->
+    @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
+      callback err, permissions
+
+  fetchMyPermissionsAndRoles: secure (client, callback)->
+    JGroup = require '../group'
+
+    slug = client.context.group ? 'koding'
+    JGroup.one {slug}, (err, group)=>
+      return callback err  if err
+      group.fetchPermissionSet (err, permissionSet)=>
+        return callback err  if err
+        cb = (err, roles)=>
+          return callback err  if err
+          perms = (perm.permissions.slice()\
+                  for perm in permissionSet.permissions\
+                  when perm.role in roles)
+          {flatten} = require 'underscore'
+          callback null, flatten(perms), roles
+
+        if this instanceof JAccount
+          group.fetchMyRoles client, cb
+        else
+          cb null, ['guest']

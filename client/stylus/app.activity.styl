@@ -10,6 +10,15 @@ app.activity.styl
 */
 }
 
+body.group
+  .content-area-pane.activity
+    #content-page-activity.fixed.loggedin.guest
+      .common-inner-nav
+        top                  51px
+      .activity-content
+        margin-top           0
+
+
 .content-area-pane.activity
   overflow                     hidden
   #content-page-activity
@@ -146,21 +155,31 @@ h1.kdheaderview.notification-header
   overflow                auto
   size                    100%, auto
   .feeder-header
-    .header-wrapper
-      max-width           800px
     height                28px
     line-height           28px
+    .header-wrapper
+      max-width           800px
+      > a
+       font-size         88%
+       color             linkColor1
+       noTextDeco()
+      > span
+        fl()
     div.on-off
       margin              1px 0 0 12px
       font-size           88%
       color               #AAA
       fr()
-
       > a
-        text-decoration   none
         font-size         88%
 
     .new-updates
+      font-size           88%
+      margin-left         12px
+      fr()
+      > a
+       color             linkColor1
+       noTextDeco()
       span
         rounded           3px
         background-color  #FF9200

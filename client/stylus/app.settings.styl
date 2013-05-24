@@ -238,11 +238,13 @@ positiveGreen = rgba(58,200,2,1)
 .payment-methods,
 .your-subscriptions,
 .pending-invitations,
+.koding-keys
 .billing-history,
 .editor-settings,
 .repository-settings,
 .manage-mounts,
 .ssh-keys,
+.koding-keys,
 .database-settings
   text-shadow         0 -1px 1px rgba(0,0,0,.6)
 
@@ -345,6 +347,7 @@ positiveGreen = rgba(58,200,2,1)
     margin-top        -8px
     a
       cursor          pointer
+
 #account-content-wrapper
   line-height         20px
   font-size           13px
@@ -366,6 +369,7 @@ positiveGreen = rgba(58,200,2,1)
 
   .posrelative
     rel()
+
   .posstatic
     sta()
   .posabsolute
@@ -445,6 +449,7 @@ positiveGreen = rgba(58,200,2,1)
       border           1px solid rgba(0,0,0,.9)
       text-shadow      0 1px 1px rgba(255,255,255,.70)
 
+.koding-keys
 .billing-history
   .labelish
     font-weight       bold
@@ -474,6 +479,13 @@ positiveGreen = rgba(58,200,2,1)
     span,strong,cite
       padding-left        5px
       font-style          normal
+
+.koding-keys
+  span.ttag
+    max-width             100% !important
+    margin-top            3px
+    font-size             12px
+    font-weight           normal
 
 .editor-settings
   span.icon
@@ -608,4 +620,21 @@ button.kdbutton.account-header-second-button
 button.kdbutton.account-header-second-button
   right             50px
 
+.personal-emailNotifications .kdformview
+  float             left
 
+@media (min-width: 0) and (max-width: 1144px)
+  .personal-emailNotifications .kdformview
+    width          100%
+
+@media (min-width: 1144px) and (max-width: 1600px)
+  .personal-emailNotifications .kdformview
+    width           50%
+
+@media (min-width: 1600px) and (max-width: 2050px)
+  .personal-emailNotifications .kdformview
+    width           33.3%
+
+@media (min-width: 2050px)
+  .personal-emailNotifications .kdformview
+    width           25%
