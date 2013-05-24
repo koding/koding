@@ -308,7 +308,6 @@ module.exports = [
 
   # LOGIN VIEWS
   "app/MainApp/login/loginview.coffee",
-  "app/MainApp/login/oldloginview.coffee",
   "app/MainApp/login/loginform.coffee",
   "app/MainApp/login/logininputs.coffee",
   "app/MainApp/login/loginoptions.coffee",
@@ -382,6 +381,20 @@ module.exports = [
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
   "app/Applications/StartTab.kdapplication/AppController.coffee",
+
+  # chat
+  "app/Applications/Chat.kdapplication/AppController.coffee",
+  "app/Applications/Chat.kdapplication/Controllers/commonchatcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Controllers/conversationlistcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Controllers/chatmessagelistcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationlistview.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationlistitem.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationlistitemtitle.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatconversationwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatmessagelistview.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatmessagelistitem.coffee",
+  "app/Applications/Chat.kdapplication/Views/chatinputwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
@@ -521,6 +534,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsbundleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
@@ -627,8 +641,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
-  "app/Applications/Account.kdapplication/account/accKiteList.coffee",
-  "app/Applications/Account.kdapplication/account/accMyKiteList.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # CONTENT DISPLAY VIEWS
@@ -700,7 +712,7 @@ module.exports = [
   "stylus/app.aceeditor.styl",
   "stylus/app.activity.styl",
   "stylus/app.contextmenu.styl",
-  # "stylus/app.chat.styl",
+  "stylus/app.chat.styl",
   "stylus/app.settings.styl",
   "stylus/app.inbox.styl",
   # "stylus/app.envsettings.styl",

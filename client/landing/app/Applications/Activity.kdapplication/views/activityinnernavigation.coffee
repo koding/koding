@@ -2,6 +2,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
   viewAppended:()->
 
+    # everything...
     filterController = @setListController
       type : "showme"
       itemClass : ListGroupShowMeItem

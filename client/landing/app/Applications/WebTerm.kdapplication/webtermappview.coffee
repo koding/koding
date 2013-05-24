@@ -21,7 +21,7 @@ class WebTermAppView extends JView
       webTermView.terminal?.setFocused yes
 
       webTermView.on "WebTerm.terminated", (server) =>
-        if @tabView.getActivePane() == pane
+        if not pane.isDestroyed and @tabView.getActivePane() is pane
           @tabView.removePane pane
 
   _windowDidResize:->

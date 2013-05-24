@@ -89,17 +89,25 @@ class KiteController extends KDController
     options.method   or= "exec"
     # options.correlationName or= currentGroupName
 
-    kite = @getKite options.kiteName,
-      if not currentGroupName or currentGroupName is 'koding'
-      then KD.whoami().profile.nickname
-      else currentGroupName
+    vmName = if options.vmName then options.vmName \
+             else if not currentGroupName or currentGroupName is 'koding'
+             then KD.nick()
+             else currentGroupName
+    options.vmName = vmName
+
+    kite = @getKite options.kiteName, vmName
 
     if command
       options.withArgs = command
     else
       options.withArgs or= {}
 
-    notify "Calling <b>#{options.method}</b> method, from <b>#{options.kiteName}</b> kite"
+    if KD.logsEnabled
+      notify """
+              Calling <b>#{options.method}</b> method,
+              from <b>#{options.kiteName}</b> kite
+             """
+
     log "Kite Request:", options
 
     kite.tell options, (err, response)=>

@@ -19,9 +19,8 @@ class ActivityAppController extends AppController
   @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
-      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
       activity
-
 
   constructor:(options={})->
 
@@ -36,7 +35,7 @@ class ActivityAppController extends AppController
     @isLoading         = no
     @mainController    = @getSingleton 'mainController'
     @lastTo            = null
-    @lastFrom          = null
+    @lastFrom          = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -93,6 +92,7 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
+      @isLoading = no
       @resetAll()
       @setFilter data.type
       @populateActivity()
@@ -111,7 +111,7 @@ class ActivityAppController extends AppController
 
   fetchActivitiesDirectly:(options = {}, callback)->
 
-    KD.time "Activity fetch took"
+    KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
     @fetchActivity options, (err, teasers)=>
@@ -219,15 +219,30 @@ class ActivityAppController extends AppController
       limit       : options.limit    or 20
       to          : options.to       or Date.now()
       facets      : options.facets   or @getFilter()
-      lowQuality  : options.exempt   or no
       originId    : options.originId or null
       sort        :
         createdAt : -1
 
-    KD.remote.api.CActivity.fetchFacets options, (err, activities)->
-      if err then callback err
-      else
-        KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+    @isExempt (exempt)->
+      options.lowQuality = exempt
+      KD.remote.api.CActivity.fetchFacets options, (err, activities)->
+        if err then callback err
+        else if not exempt
+          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+        else
+          # trolls and admins in show troll mode will load data on request
+          # as the snapshots do not include troll comments
+          stack = []
+          activities.forEach (activity)->
+            stack.push (cb)->
+              activity.fetchTeaser (err, teaser)->
+                if err then console.warn 'could not fetch teaser'
+                else
+                  cb err, teaser
+              , yes
+
+          async.parallel stack, (err, res)->
+            callback null, res
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
@@ -277,10 +292,18 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
+  # Enables switching between cache/neo4j.
+  getCacheUrl:->
+
+    defaultUrlPrefix = "cache"
+    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
+
+    return defaultUrlPrefix
+
   fetchCachedActivity:(options = {}, callback)->
 
     $.ajax
-      url     : "/-/cache/#{options.slug or 'latest'}"
+      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
       cache   : no
       error   : (err)->   callback? err
       success : (cache)->
@@ -288,8 +311,16 @@ class ActivityAppController extends AppController
         callback null, cache
 
   continueLoadingTeasers:->
+    # fix me
+    # this is a monkeypatch
+    # find the original problem and get rid of @continueLoadingTeasersLastTimeStamp
+    # and isNaN - SY
+    lastTimeStamp = (new Date @lastFrom).getTime()
+    if isNaN(lastTimeStamp) or @continueLoadingTeasersLastTimeStamp is lastTimeStamp
+      @listController.hideLazyLoader()
+      return
 
-    lastTimeStamp = (new Date @lastFrom or Date.now()).getTime()
+    @continueLoadingTeasersLastTimeStamp = lastTimeStamp
     @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->

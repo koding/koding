@@ -1,18 +1,48 @@
 class AccountPaymentHistoryListController extends KDListViewController
 
   constructor:(options,data)->
-    data = $.extend
-      items : [
-        { title : "n/a" }
-        # { createdAt : "01/01/2011", status : "paid",      amount : "42.50", currency : "$", paidVia : "Amex 4456" }
-        # { createdAt : "13/02/2011", status : "pending",   amount : "12.00", currency : "$", paidVia : "Visa 1256" }
-        # { createdAt : "31/03/2011", status : "cancelled", amount : "22.50", currency : "$", paidVia : "Amex 4456" }
-        # { createdAt : "05/04/2011", status : "paid",      amount : "2.25",  currency : "$", paidVia : "PayPal" }
-        # { createdAt : "23/07/2011", status : "paid",      amount : "32.50", currency : "$", paidVia : "PayPal" }
-        # { createdAt : "01/12/2011", status : "paid",      amount : "12.50", currency : "$", paidVia : "Visa 1256" }
-      ]
-    ,data
     super options,data
+
+    @list = @getListView()
+    @list.on "Reload", (uuid)=>
+      @loadItems()
+
+    @loadItems()
+
+  loadItems:->
+    @removeAllItems()
+    @showLazyLoader no
+    
+    transactions = []
+    KD.remote.api.JRecurlyPlan.getUserTransactions (err, trans) =>
+      if err
+        @instantiateListItems []
+        @hideLazyLoader()
+      unless err
+        for t in trans
+          if t.amount + t.tax is 0
+            continue
+          transactions.push
+            status     : t.status
+            amount     : ((t.amount + t.tax) / 100).toFixed(2)
+            currency   : 'USD'
+            createdAt  : t.datetime
+            paidVia    : t.card
+            owner      : t.owner
+            refundable : t.refundable
+        @instantiateListItems transactions
+        @hideLazyLoader()
+
+  loadView:->
+    super
+    @getView().parent.addSubView reloadButton = new KDButtonView
+      style     : "clean-gray account-header-button"
+      title     : ""
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "refresh"
+      callback  : =>
+        @getListView().emit "Reload"
 
 class AccountPaymentHistoryList extends KDListView
 
@@ -30,10 +60,10 @@ class AccountPaymentHistoryListItem extends KDListItemView
 
   viewAppended:()->
     super
-    # @addSubView editLink = new KDCustomHTMLView
-    #   tagName      : "a"
-    #   partial      : "View invoice"
-    #   cssClass     : "action-link"
+    @addSubView editLink = new KDCustomHTMLView
+      tagName      : "a"
+      partial      : "View invoice"
+      cssClass     : "action-link"
 
   click:(event)->
     if $(event.target).is "a.delete-icon"
@@ -43,14 +73,14 @@ class AccountPaymentHistoryListItem extends KDListItemView
     """
       <span class='darkText'>#{data.title}</span>
     """
-    # cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
-    # """
-    #   <div class='labelish'>
-    #     <span class='invoice-date'>#{data.createdAt}</span>
-    #   </div>
-    #   <div class='swappableish swappable-wrapper posstatic'>
-    #     <span class='tag #{data.status}'>#{data.status}</span>
-    #     <strong>#{data.currency}#{data.amount}</strong>
-    #     <cite>#{data.paidVia}</cite>
-    #   </div>
-    # """
+    cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
+    """
+      <div class='labelish'>
+        <span class='invoice-date'>#{data.createdAt}</span>
+      </div>
+      <div class='swappableish swappable-wrapper posstatic'>
+        <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
+        <strong>$#{data.amount}</strong>
+        <cite>#{data.paidVia}</cite>
+      </div>
+    """

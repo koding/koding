@@ -9,12 +9,8 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
-    cb = (account)-> mainController.sidebarController?.accountChanged account
-
-    mainController.on 'AccountChanged', (account)=>
-      if KD.isLoggedIn()
-      then mainController.loginScreen.hide cb.bind this, account
-      else cb account
+    mainController.on 'accountChanged.to.loggedIn', (account)=>
+      mainController.loginScreen.hide()
 
     # mainView.on "BottomPanelCreated", (bottomPanel)=>
     #   @bottomPanelController = new BottomPanelController view : bottomPanel
@@ -23,6 +19,8 @@ class MainViewController extends KDViewController
       book = mainView.addBook()
       book.fillPage index
 
+    # mainController.on "ToggleChatPanel", =>
+    #   mainView.chatPanel.toggle()
 
   loadView:(mainView)->
 

@@ -1151,20 +1151,16 @@ span.main-nav-icon
     overflow            visible
     bg                  color,rgb(244,244,244)
   .section-title
-    margin              29px 0 0 25px
-    letter-spacing      0
     font-size           18px
-    padding             0
-    margin              0
     font-weight         300
     padding             30px 0px 0px 25px
     line-height         18px
     text-shadow         0px 1px 0px rgba(255,255,255,1)
     color               #222
     fl()
-  .header-search-input.hitenterview.active
-    font-size           12px
+  .header-search-input.hitenterview
     abs()
+    font-size           12px
     right               24px
     top                 24px
     padding             5px 24px 5px 10px
@@ -1618,3 +1614,69 @@ span.main-nav-icon
 
   span
     color               #ffb500
+
+// payment modal
+.kdmodal.payments-modal
+
+  form
+    max-height          400px
+    overflow            auto
+
+    .formline
+
+      > label.kdlabel
+        float           none
+        display         inline-block
+
+      &.cardMonth
+        .input-wrapper
+          width auto
+
+      &.cardNumber
+
+        > div.input-wrapper:first-of-type
+          width 270px
+
+        > div.input-wrapper:last-of-type
+          width 70px
+
+
+        span.icon
+          abs()
+          right         116px
+          top           13px
+          size          30px, 20px
+          sprite()
+          bg position,  30px 20px
+
+          &.mastercard
+            bg position, -70px -440px
+
+          &.amex
+            bg position, -70px -460px
+
+          &.visa
+            bg position, -40px -440px
+
+          &.discover
+            bg position, -40px -460px
+
+      &.address1, &.address2
+
+        .input-wrapper
+          width         350px
+
+      .input-wrapper
+        display         inline-block
+        width           170px
+        margin-right    10px
+
+        > .kdinput
+          width         100%
+
+        > input, > textarea
+          borderBox()
+          min-width     10px
+
+  .no-payment-found
+    padding       15px

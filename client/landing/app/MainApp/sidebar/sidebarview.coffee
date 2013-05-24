@@ -10,6 +10,7 @@ class Sidebar extends JView
     @_finderExpanded  = no
     @_popupIsActive   = no
 
+    # Avatar area
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
@@ -21,6 +22,10 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
+    @statusLEDs = new KDView
+      cssClass : 'status-leds'
+
+    # Main Navigations
     @navController = new NavigationController
       view           : new NavigationList
         type         : "navigation"
@@ -31,6 +36,7 @@ class Sidebar extends JView
 
     @nav = @navController.getView()
 
+    # Main Navigations Footer Menu
     @footerMenuController = new NavigationController
       view           : new NavigationList
         type         : "footer-menu"
@@ -41,20 +47,22 @@ class Sidebar extends JView
 
     @footerMenu = @footerMenuController.getView()
 
+    # Finder Header
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
       pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
     , account
 
-    # @finderResizeHandle = new SidebarResizeHandle
-    #   cssClass  : "finder-resize-handle"
-
+    # File Tree
     @finderController = new NFinderController
       useStorage        : yes
       addOrphansToRoot  : no
 
     @finder = @finderController.getView()
+    KD.registerSingleton "finderController", @finderController
+    @finderController.on 'ManageResources', @bound 'toggleResources'
 
+    # Finder Bottom Controls
     @finderBottomControlsController = new KDListViewController
       view        : new FinderBottomControls
       wrapper     : no
@@ -81,14 +89,7 @@ class Sidebar extends JView
           callback?()
       ]
 
-    KD.registerSingleton "finderController", @finderController
     @listenWindowResize()
-
-    # @statusLEDs = new StatusLEDView
-    @statusLEDs = new KDView
-      cssClass : 'status-leds'
-
-    # @virtualizationButtons = new VirtualizationControls
 
   resetAdminNavController:->
     @utils.wait 1000, =>
@@ -111,48 +112,6 @@ class Sidebar extends JView
 
     mainController.on "AvatarPopupIsActive",   => @_popupIsActive = yes
     mainController.on "AvatarPopupIsInactive", => @_popupIsActive = no
-
-    # @finderResizeHandle.on "ClickedButNotDragged", =>
-    #   unless fpLastWidth
-    #     fpLastWidth = parseInt $fp.css("width"), 10
-    #     cp.$().css left : 65, width : @wc.winWidth - 65
-    #     @utils.wait 300, -> $fp.css "width", 13
-    #   else
-    #     fpLastWidth = 208 if fpLastWidth < 100
-    #     $fp.css "width", fpLastWidth
-    #     cpWidth = @wc.winWidth - 52 - fpLastWidth
-    #     cp.$().css left : 52 + fpLastWidth, width : cpWidth
-    #     cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
-    #     fpLastWidth = null
-    #   @finderResizeHandle.$().css left: ''
-
-    # @finderResizeHandle.on "DragStarted", (e, dragState)=>
-    #   cp._left  = parseInt cp.$().css("left"), 10
-    #   cp._left  = parseInt cp.$().css("left"), 10
-    #   @_fpWidth = parseInt $fp.css("width"), 10
-    #   cp._width = parseInt @wc.winWidth - 52 - @_fpWidth, 10
-    #   cp.unsetClass "transition"
-
-    # @finderResizeHandle.on "DragFinished", (e, dragState)=>
-    #   delete cp._left
-    #   delete cp._width
-    #   delete @_fpWidth
-    #   unless @finderResizeHandle._dragged
-    #     @finderResizeHandle.emit "ClickedButNotDragged"
-    #   else
-    #     fpLastWidth = null
-    #   delete @finderResizeHandle._dragged
-    #   cp.setClass "transition"
-
-    # @finderResizeHandle.on "DragInAction", (x, y)=>
-    #   @finderResizeHandle._dragged = yes
-    #   newFpWidth = @_fpWidth + x
-    #   return @finderResizeHandle.$().css left: '' if newFpWidth < 13
-    #   cpWidth = cp._width - x
-    #   cp.$().css left : cp._left + x, width : cpWidth
-    #   @finderResizeHandle.$().css left: ''
-    #   $fp.css "width", newFpWidth
-    #   cp.emit "ViewResized", {newWidth : cpWidth, unit: "px"}
 
     # exception - Sinan, Jan 2013
     # we bind this with jquery directly bc #main-nav is no KDView but just HTML
@@ -185,7 +144,6 @@ class Sidebar extends JView
     @setListeners()
 
   pistachio:->
-    # {{> @finderResizeHandle}} removed until fixed
     """
     <div id="main-nav">
       <div class="avatar-placeholder">
@@ -207,7 +165,6 @@ class Sidebar extends JView
       </div>
       <div id='finder-bottom-controls'>
         {{> @finderBottomControlPin}}
-        <span class='horizontal-handler'></span>
         {{> @finderBottomControls}}
       </div>
     </div>
@@ -252,18 +209,13 @@ class Sidebar extends JView
 
   showBottomControls:->
     @$('#finder-bottom-controls').removeClass 'go-down'
-    # @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
+
+  toggleResources:->
+    @$('#finder-bottom-controls').toggleClass 'show-resources'
 
   _windowDidResize:->
 
     {winWidth} = @getSingleton('windowController')
-    # if KD.isLoggedIn()
-    #   if @contentPanel.$().hasClass "with-finder"
-    #     @contentPanel.setWidth winWidth - parseInt(@$('#finder-panel').css("width"), 10) - 52
-    #   else
-    #     @contentPanel.setWidth winWidth - 160
-    # else
-    #   @contentPanel.setWidth winWidth
 
     bottomListHeight = @$("#finder-bottom-controls").height() or 109
     @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
@@ -312,19 +264,18 @@ class Sidebar extends JView
         title   : "Launch Terminal", icon : "terminal",
         appPath : "WebTerm", isWebTerm : yes
       }
-      # {
-      #   title   : "Manage Remotes", icon : "remotes",
-      #   action  : "manageRemotes"
-      # }
-      # {
-      #   title   : "Manage Databases", icon : "databases",
-      #   action  : "manageDatabases"
-      # }
-      { title   : "Add Resources",      icon : "resources" }
       { title   : "Settings",           icon : "cog" }
       {
         title   : "Keyboard Shortcuts", icon : "shortcuts",
         action  : "showShortcuts"
+      }
+      # {
+      #   title   : "Manage Resources",   icon : "resources",
+      #   action  : "manageResources"
+      # }
+      {
+        title   : "Create a new VM",      icon : "plus",
+        action  : "createNewVM"
       }
     ]
 
@@ -332,7 +283,6 @@ class Sidebar extends JView
     id    : "admin-navigation"
     title : "admin-navigation"
     items : [
-      # { title : "Kite selector", loggedIn : yes, callback : -> new KiteSelectorModal }
       {
         title    : "Admin Panel",
         loggedIn : yes,
@@ -357,8 +307,6 @@ class Sidebar extends JView
         title    : "Chat",
         loggedIn : yes,
         callback : ->
-          # @getSingleton('bottomPanelController').emit "TogglePanel", "chat"
-          # unless location.hostname is "localhost"
-          new KDNotificationView title : "Coming soon..."
+          @getSingleton('mainController').emit "ToggleChatPanel"
       }
     ]

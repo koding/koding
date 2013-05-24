@@ -31,24 +31,28 @@
       line-height               60px
       padding                   0 20px
       rel()
-      // &.checked
-      //   bg                      color, rgba(0, 0, 0, .05)
       label
         display                 block
         margin-left             90px
         font-size               14px
       input
-        top                     22px
-        left                    90px
-        margin                  0
-        abs()
+        display                 none
+
       &.active
-        bg                      color, rgba(0, 0, 0, .05)
-      &:hover
         bg                      color, rgba(0, 0, 0, .05)
         &:before
           bg                    position, -460px -620px
           opacity               .9
+        &.company:before
+          bg                    position, -460px -680px
+        &.project:before
+          bg                    position, -460px -740px
+        &.custom:before
+          bg                    position, -460px -800px
+
+      &:hover
+        bg                      color, rgba(0, 0, 0, .05)
+
       &:before
         content                 ""
         size                    60px, 60px
@@ -64,12 +68,6 @@
         bg                      position, -400px -740px
       &.custom:before
         bg                      position, -400px -800px
-      &.company:hover:before
-        bg                      position, -460px -680px
-      &.project:hover:before
-        bg                      position, -460px -740px
-      &.custom:hover:before
-        bg                      position, -460px -800px
 
   div.general-settings  > .kdformview
     margin-top                5px
@@ -245,12 +243,19 @@
     display                   none
 
   .sub-header
-    gradient                  #fff, #f8f8f8
+    gradient                  #fff, #e9e8e8
     width                     100%
     z-index                   100
+    border-bottom-color       rgba(0,0,0,.15)
     fix()
     &.shadow
       shadow                  0 0 15px rgba(0,0,0,.1)
+    > a
+      line-height             28px
+      margin                  0
+      width                   auto
+      padding                 0
+      text-shadow             0 1px 0 white
 
   .loader
     fl()
@@ -262,40 +267,39 @@
     margin-top                8px
     padding-left              5px
 
-  .readme
   .invitations
     .button-bar
       margin-top              10px
       margin-bottom           5px
       text-align              right
       width                   auto
-      opacity                 0.95
-      vendor transition,      opacity 0.2s linear
-      &:hover
-        opacity               1
 
-  .readme
+  .kdtabpaneview.readme
     borderBox()
-    padding                   0px 20px
+    padding                   20px
     width                     100%
 
-    .data
-      borderBox()
-      border                  none
-      padding                 10px 0 0 0
+    .button-bar
+      abs()
+      top                     0
+      right                   0
+      text-align              right
+      width                   auto
+      z-index                 1
 
     .edit
-      margin-top              10px
-      borderBox()
+      margin-top              44px
       width                   100%
       min-height              200px
       max-height              400px
+      borderBox()
       .preview_content
         padding               10px
+
     .edit-cancel
       font-size               12px
-      margin-top              4px
       margin-right            5px
+      line-height             26px
       span
         noTextDeco()
         color                 #aaa
@@ -303,92 +307,109 @@
     border-bottom             1px solid #f2f2f2
     padding                   20px 0
 
-  .group-content
+  nav.kdtabhandlecontainer
+    top                     0
+    left                    70px
+    height                  28px
+    padding                 0
+    border-bottom           none
+    border-left             1px solid rgba(0,0,0,.1)
+    bg                      color, transparent
     borderBox()
-    // height                    auto
+    abs()
 
-    .kdtabpaneview
-      padding-top             55px
-      &.permissions
-        padding-top           70px
-
-
-    .kdtabhandlecontainer
-      padding-top             0
-      position                fixed
-      top                     79px
-      z-index                 12
-      // background              linear-gradient(top, #555 0%,#666 93.7%)
-      height                  27px
-      padding                 0px 10px 0px 10px
-      // shadow                inset 0 2px 5px rgba(0,0,0,.1)
-      bg color,               #f8f8f8
+    .kdtabhandle
+      border-width          0 1px
+      height                27px
+      line-height           27px
+      font-size             12px
+      font-weight           400
+      padding               0 20px
+      min-width             120px
+      width                 auto!important
+      text-align            center
+      border-left-color     rgba(255,255,255,.4)
+      border-right-color    rgba(0,0,0,.1)
+      text-shadow           0 1px 0 white
+      color                 rgba(0,0,0,.7)
+      bg                    color, transparent
       borderBox()
-      border-bottom           1px solid #e8e8e8
+      rounded(0)
+      b
+        margin-right        0
+        font-weight         normal
+      &.active
+        gradient            #5e5e5e, #444
+        border-left-color   rgba(0,0,0,.1)
+        color               white
+        text-shadow         0 1px 0 black
 
-      .kdtabhandle
-        border-width          0
-        height                27px
-        line-height           27px
-        color                 #aaa
-        font-size             13px
-        padding               0 40px 0 10px
-        width                 auto!important
-        borderBox()
-        rounded(0)
-        b
-          margin-right        0
-          font-weight         normal
-        &.active
-          // border-color      #ccc
-          border              none
-          bg color,           transparent
-          height              21px
-          // background        linear-gradient(top, #ffaf43 0%,linkColor1 100%)
-          color               #444
-          // text-shadow       0 -1px 0 rgba(0,0,0,.05)
-          // shadow            inset 0 2px 2px -2px rgba(0,0,0,0.40)
-          b
-            // text-decoration underline
-            font-weight       600
+  .kdtabview.group-content
+    margin-top                28px
+    borderBox()
 
     .invitations section.formline div.formline.kdlistitemview-invitation-request
     .members .kdlistitemview-member-item-inner
       min-width               350px
-      display                 inline-block
-      margin                  2px
       padding                 10px
       borderBox()
       vendor transition,      background-color 0.2s ease-in-out
-      background-color        rgba(248,248,248,0.5)
+      background-color        rgba(0,0,0,0.02)
 
     .invitations section.formline div.formline.kdlistitemview-invitation-request:hover
     .members .kdlistitemview-member-item-inner:hover
     .members .editing .kdlistitemview-member-item-inner
-        background-color      rgba(248,248,248,1)
+        background-color        rgba(0,0,0,0.05)
 
     .members
+      section.searchbar
+        background            rgba(0, 0, 0, 0.05)
+        border-bottom         1px solid rgba(0, 0, 0, 0.05)
+        height                50px
+        shadow                0 0 15px rgba(0,0,0,.2)
+        input.hitenterview
+          top                 9px
+          right               20px
+        span.title
+          font-size           18px
+          font-weight         300
+          margin              0 0 0 20px
+          line-height         50px
+          text-shadow         0px 1px 0px white
+          color               linkColor1
+        span.icon.search
+          display             block
+          bg                  position, -100px -480px
+          size                20px, 20px
+          top                 15px
+          right               27px
+          opacity             .7
+          sprite()
+          abs()
       .listview-wrapper
-        borderBox()
-        padding               20px
-        overflow              hidden
+        .kdscrollview
+          padding             0 20px
+          borderBox()
+        .lazy-loader
+          font-weight         600
+          background          rgba(0, 0, 0, 0.01)
+          border-bottom       1px solid rgba(0, 0, 0, 0.05)
+          font-size           12px
+          color               #5F5F5F
+          .kdview.kdloader
+            display           inline-block
         .kdlistview
           overflow            visible
         .kdlistitemview-member-item
           position            relative
           overflow            visible
-          width               auto
+          width               50%
           min-width           350px
-          height              76px
+          height              auto
           display             inline-block
-          &.editing .kdlistitemview-member-item-inner
-            z-index         50
+          vertical-align      top
           .kdlistitemview-member-item-inner
-            border            2px solid #fff
-            margin            0
-            position          absolute
-            top               0
-            left              0
+            margin            3px 3px 0 0
           section
             .profile
               borderBox()
@@ -698,21 +719,20 @@
       //   display           block
       //   margin            10px auto
 
-      form>.permissions-header:first-child
+      form > .permissions-header:first-child
         position              fixed
-        top                   106px
+        top                   79px
         width                 100%
         min-width             600px
         z-index               99
         height                33px
-        bg color,             white
-        shadow             0 5px 15px -5px rgba(0,0,0,0.1)
+        bg                    color, rgba(255, 255, 255, .75)
+        shadow                0 5px 15px -5px rgba(0,0,0,0.2)
 
       .permissions-form
         overflow-y            scroll
         overflow-x            hidden
-        // max-height 300px
-        margin-top            30px
+        margin-top            33px
 
         fraction(full,divisor)
           fraction = full/divisor

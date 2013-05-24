@@ -143,6 +143,13 @@ class GroupsListItemView extends KDListItemView
     unless @memberBadge.stopUpdatingPartial?
       @memberBadge.updatePartial "<span class='fold'/>You are an admin"
 
+  applyTextExpansions:(body)->
+    if body.length > 800
+      @utils.applyTextExpansions body, yes
+    else body
+
+  click: KD.utils.showMoreClickHandler
+
   pistachio:->
     """
     <div class="wrapper">
@@ -150,7 +157,7 @@ class GroupsListItemView extends KDListItemView
       <p>
         {{> @memberCount}}
       </p>
-      {article{ #(body)}}
+      {article{ @applyTextExpansions #(body)}}
     </div>
     <div class='members-list-wrapper hidden'>
       {{> @members}}

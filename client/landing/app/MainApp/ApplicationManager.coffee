@@ -20,16 +20,16 @@ class ApplicationManager extends KDObject
 
     @appControllers = {}
     @frontApp       = null
-    @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
-
-    # temp fix, until router logic is complete
-    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
-
     @defaultApps    =
       text  : "Ace"
       video : "Viewer"
       image : "Viewer"
       sound : "Viewer"
+
+    @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
+
+    # temp fix, until router logic is complete
+    @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
 
   # temp fix, until router logic is complete
   setMissingRoute:(appController, appView, appOptions)->
@@ -46,7 +46,7 @@ class ApplicationManager extends KDObject
 
   open: do ->
 
-    createOrShow = (appOptions, callback = noop)->
+    createOrShow = (appOptions, appParams, callback = noop)->
 
       name = appOptions?.name
       return warn "No such application!"  unless name
@@ -55,7 +55,7 @@ class ApplicationManager extends KDObject
       appInstance = appManager.get name
       cb          = -> appManager.show appOptions, callback
       if appInstance then do cb
-      else appManager.create name, cb
+      else appManager.create name, appParams, cb
 
     (name, options, callback)->
 
@@ -66,19 +66,21 @@ class ApplicationManager extends KDObject
       return warn "ApplicationManager::open called without an app name!"  unless name
 
       appOptions           = KD.getAppOptions name
-      defaultCallback      = -> createOrShow appOptions, callback
+      appParams            = options.params or {}
+      defaultCallback      = -> createOrShow appOptions, appParams, callback
       kodingAppsController = @getSingleton("kodingAppsController")
 
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
       # method of preCondition if exists
       if appOptions?.preCondition? and not options.conditionPassed
-        appOptions.preCondition.condition (state)=>
+        appOptions.preCondition.condition appParams, (state, newParams)=>
           if state
             options.conditionPassed = yes
+            options.params = newParams  if newParams
             @open name, options, callback
           else
-            appOptions.preCondition.failure? callback
+            appOptions.preCondition.failure? appParams, callback
         return
 
       # if there is no registered appController
@@ -100,9 +102,12 @@ class ApplicationManager extends KDObject
         kodingAppsController.runApp (KD.getAppOptions name), callback
         return
 
+      appParams = options.params or {}
+
       if appOptions?.multiple
         if options.forceNew or appOptions.openWith is "forceNew"
-          @create name, (appInstance)=> @showInstance appInstance, callback
+          @create name, appParams, (appInstance)=>
+            @showInstance appInstance, callback
           return
 
         switch appOptions.openWith
@@ -118,7 +123,7 @@ class ApplicationManager extends KDObject
                   @show appInstance, callback
                 else if openNew
                   # user wants to open a fresh instance
-                  @create name, callback
+                  @create name, appParams, callback
                 else
                   warn "user cancelled app to open"
             else do defaultCallback
@@ -177,11 +182,14 @@ class ApplicationManager extends KDObject
     if app then cb app
     else @create name, cb
 
-  create:(name, callback)->
+  create:(name, params, callback)->
 
-    AppClass   = KD.getAppClass name
-    appOptions = KD.getAppOptions name
-    @register appInstance = new AppClass($.extend {}, true, appOptions)  if AppClass
+    [callback, params] = [params, callback]  unless callback
+
+    AppClass              = KD.getAppClass name
+    appOptions            = $.extend {}, true, KD.getAppOptions name
+    appOptions.params     = params
+    @register appInstance = new AppClass appOptions  if AppClass
     @utils.defer -> callback? appInstance
 
   show:(appOptions, callback)->

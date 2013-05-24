@@ -8,6 +8,24 @@ class AppsMainView extends KDView
 
   createCommons:->
 
-    @addSubView header = new HeaderViewSection
+    header = new HeaderViewSection
       type  : "big"
       title : "App Catalog"
+
+    header.addSubView @updateAppsButton = new KDButtonView
+      title     : "Update All"
+      style     : "cupid-green update-apps-button"
+      callback  : ->
+        appsController = @getSingleton "kodingAppsController"
+        apps           = @getData()
+        stack          = []
+
+        apps.forEach (app) =>
+          stack.push (callback) =>
+            appsController.updateUserApp app.manifest, callback
+
+        async.series stack
+
+    @updateAppsButton.hide()
+
+    @addSubView header

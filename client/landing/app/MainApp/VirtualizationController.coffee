@@ -4,48 +4,85 @@ class VirtualizationController extends KDController
     super
 
     @kc = KD.singletons.kiteController
-
-    @lastState =
-      state    : 'STOPPED'
-
     @dialogIsOpen = no
+    @resetVMData()
 
-  run:(command, callback)->
-
+  run:(vm, command, callback)->
     KD.requireLogin
       callback : =>
         @askForApprove command, (approved)=>
           if approved
-            cb = unless command is 'vm.info' then @_cbWrapper callback \
+            cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
                  else callback
             @kc.run
               kiteName : 'os'
               method   : command
+              vmName   : vm
             , cb
-          else unless command is 'vm.info' then @info()
+          else unless command is 'vm.info' then @info vm
       onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
       onFail    : =>
         unless command is 'vm.info' then callback yes
         else callback null, state: 'STOPPED'
       silence   : yes
 
-  start:(callback)->
-    @run 'vm.start', callback
+  _runWraper:(command, vm, callback)->
+    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    vm or= @getDefaultVmName vm
+    @run vm, command, callback
 
-  stop:(callback)->
-    @run 'vm.stop', callback
+  start:(vm, callback)->
+    @_runWraper 'vm.start', vm, callback
 
-  reinitialize:(callback)->
-    @run 'vm.reinitialize', callback
+  stop:(vm, callback)->
+    @_runWraper 'vm.stop', vm, callback
 
-  info:(callback)->
-    @run 'vm.info', (err, info)=>
-      unless err then @lastState = info
-      else warn "[VM]", err
+  reinitialize:(vm, callback)->
+    @_runWraper 'vm.reinitialize', vm, callback
 
-      @emit 'StateChanged', err, info
-      callback? err, info
+  info:(vm, callback)->
+    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    vm or= @getDefaultVmName vm
+    @_runWraper 'vm.info', vm, (err, info)=>
+      warn "[VM-#{vm}]", err  if err
+      @emit 'StateChanged', err, vm, info
+      callback? err, vm, info
     , no
+
+  getDefaultVmName:->
+    {entryPoint} = KD.config
+    currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
+    if not currentGroup or currentGroup is 'koding' then KD.nick()
+    else currentGroup
+
+  createGroupVM:(type='personal', callback)->
+    defaultVMOptions = {cpu : 1, disk : 1, ram : 1}
+    group = KD.singletons.groupsController.getCurrentGroup()
+
+    if group.slug is 'koding'
+      return callback "Koding group does not support to create additional VMs"
+
+    group.fetchBundle (err, bundle)->
+      switch type
+        when 'personal'
+          bundle.debit defaultVMOptions, callback
+        else
+          bundle.debitGroup defaultVMOptions, callback
+
+  fetchVMs:(callback)->
+    return callback null, @vms  if @vms
+    KD.remote.api.JVM.fetchVms (err, vms)=>
+      @vms = vms  unless err
+      callback err, vms
+
+  fetchGroupVMs:(callback)->
+    return callback null, @groupVms  if @groupVms
+    KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
+      @groupVms = vms  unless err
+      callback err, vms
+
+  resetVMData:->
+    @vms = @groupVms = null
 
   # fixme GG!
   getTotalVMCount:(callback)->
@@ -55,10 +92,58 @@ class VirtualizationController extends KDController
   getTotalLoC:(callback)->
     callback null, "776M+"
 
-
-  _cbWrapper:(callback)->
+  _cbWrapper:(vm, callback)->
     return (rest...)=>
-      @info callback? rest...
+      @info vm, callback? rest...
+
+  createNewVM:->
+    return  if @dialogIsOpen
+
+    vmCreateCallback = (err, vm)->
+      if err
+        warn err
+        return new KDNotificationView
+          title : err.message or "Something bad happened while creating VM"
+      else
+        KD.singletons.finderController.mountVm vm.name
+      modal.destroy()
+
+    group = KD.singletons.groupsController.getGroupSlug()
+
+    buttons =
+      'Create a Personal VM' :
+        style    : "modal-clean-gray"
+        callback : => @createGroupVM 'personal', vmCreateCallback
+
+    if "owner" in KD.config.roles
+      content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
+                   <b>#{group}</b>. If you prefer to create a shared VM, all
+                   members in <b>#{group}</b> will be able to use that VM.
+                """
+      buttons['Create a Shared VM'] =
+        style      : "modal-clean-gray"
+        callback   : => @createGroupVM 'shared', vmCreateCallback
+
+    else if "member" in KD.config.roles and group isnt 'koding'
+      content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
+
+    else
+      return new KDNotificationView
+        title : "You are not authorized to create VMs in #{group} group"
+
+    buttons.Cancel =
+      style      : "modal-cancel"
+      callback   : -> modal.destroy()
+
+    modal     = new KDModalView
+      title   : "Create a new VM"
+      content : "<div class='modalformline'><p>#{content}</p></div>"
+      height  : "auto"
+      overlay : yes
+      buttons : buttons
+
+    @dialogIsOpen = yes
+    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
   askForApprove:(command, callback)->
 
