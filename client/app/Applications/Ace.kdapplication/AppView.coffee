@@ -175,6 +175,7 @@ class AceView extends JView
       loadFilesOnInit   : yes
 
     finder = @finderController.getView()
+    @finderController.reset()
 
     form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog file-container",null
     finderWrapper.addSubView finder
