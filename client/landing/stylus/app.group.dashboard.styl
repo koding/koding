@@ -71,7 +71,7 @@
         &.custom:before
           bg                      position, -400px -800px
 
-  div.general-settings  > .kdformview
+  div.general-settings > .kdformview
     margin-top                5px
     > .formline
       width                   100%
@@ -79,11 +79,24 @@
       border-bottom           1px solid rgba(0, 0, 0, .1)
       padding                 5px 0px 7px 18px
       borderBox()
+      &.Slug
+        label
+          color               transparent
+        .input-wrapper
+          line-height         24px
+          color               #888
+      &.privacy
+        .visibility
+          margin-right        5px
+
       &.button-field
         padding-right         20px
         padding-top           10px
       .input-wrapper
         overflow              visible
+
+  div.vm-settings > .kdformview > .formline .kdselectbox
+    margin-right              0
 
   > .kdformview
     max-width                 800px
