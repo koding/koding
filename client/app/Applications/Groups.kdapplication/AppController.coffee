@@ -454,20 +454,19 @@ class GroupsAppController extends AppController
       cssClass                       : "group-admin-modal compose-message-modal admin-kdmodal"
       width                          : 500
       overlay                        : yes
+      goToNextFormOnSubmit           : no
       tabs                           :
         navigable                    : no
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     : (formData)=>
           _createGroupHandler.call @, formData, (err) =>
-            modal.modalTabs.forms["VM Settings"].buttons.Save.hideLoader()
+            modal.modalTabs.forms["VM Settings"].buttons["Create Group"].hideLoader()
             unless err
               modal.destroy()
         forms                        :
           "Select group type"        :
             title                    : 'Group type'
-            callback                 :(formData)=>
-              log "here"
             buttons                  :
               "Next"                 :
                 style                : "modal-clean-gray"
@@ -490,13 +489,22 @@ class GroupsAppController extends AppController
             buttons                  :
               "Next"                 :
                 style                : "modal-clean-gray"
-                type                 : "submit"
+                type                 : "button"
                 loader               :
                   color              : "#444444"
                   diameter           : 12
+                callback             : ->
+                  form = modal.modalTabs.forms["General Settings"]
+                  if form.inputs["Group VM"].getValue()
+                    modal.modalTabs.showNextPane()
+                  else
+                    modal.modalTabs.fireFinalCallback()
               "Back"                 :
                 style                : "modal-cancel"
-                callback             : -> modal.modalTabs.showPreviousPane()
+                callback             : ->
+                  form = modal.modalTabs.forms["Select group type"]
+                  form.buttons.Next.hideLoader()
+                  modal.modalTabs.showPreviousPane()
             fields                   :
               "Title"                :
                 label                : "Title"
@@ -508,7 +516,6 @@ class GroupsAppController extends AppController
                 keydown              : (pubInst, event)->
                   @utils.defer =>
                     makeSlug()
-
                 placeholder          : 'Please enter your group title...'
               "Slug"                 :
                 label                : "Address"
@@ -561,10 +568,14 @@ class GroupsAppController extends AppController
                 itemClass            : KDOnOffSwitch
                 name                 : "group-vm"
                 defaultValue         : yes
+                callback             : (state)->
+                  form = modal.modalTabs.forms["General Settings"]
+                  form.buttons.Next.setTitle unless state then "Create Group" \
+                                                          else "Next"
           "VM Settings"              :
             title                    : 'VM Settings'
             buttons                  :
-              "Save"                 :
+              "Create Group"         :
                 style                : "modal-clean-gray"
                 type                 : "submit"
                 loader               :
@@ -572,7 +583,10 @@ class GroupsAppController extends AppController
                   diameter           : 12
               "Back"                 :
                 style                : "modal-cancel"
-                callback             : -> modal.modalTabs.showPreviousPane()
+                callback             : ->
+                  modal.modalTabs.showPreviousPane()
+                  form = modal.modalTabs.forms["General Settings"]
+                  form.buttons.Next.hideLoader()
             fields                   :
               "VM Host"               :
                 label                : "VM Host"
