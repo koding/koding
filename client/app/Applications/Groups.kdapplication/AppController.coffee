@@ -40,7 +40,6 @@ class GroupsAppController extends AppController
     mainController = @getSingleton 'mainController'
     router         = @getSingleton 'router'
     {entryPoint}   = KD.config
-    mainController.on 'AccountChanged', @bound 'resetUserArea'
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
       return unless pageInfo.path
       if pageInfo.topLevel
@@ -86,7 +85,6 @@ class GroupsAppController extends AppController
       then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
-    @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
   getGroupSlug:-> @currentGroupName
@@ -95,11 +93,6 @@ class GroupsAppController extends AppController
     @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: KD.whoami().profile.nickname
-    }
-
-  resetUserArea:(account)->
-    @setUserArea {
-      group: @currentGroupName ? 'koding', user: account.profile.nickname
     }
 
   onboardingText =
