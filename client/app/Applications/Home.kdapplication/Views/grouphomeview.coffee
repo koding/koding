@@ -31,16 +31,16 @@ class GroupHomeView extends KDView
         @addSubView @homeLoginBar = new HomeLoginBar
           domId : "group-home-links"
 
-        group.fetchReadme (err, readme)=>
-          @addSubView @readmeView = new KDView
-            partial   : @utils.applyMarkdown(readme?.content)or \
-              GroupReadmeView::getDefaultGroupReadme.call @, group.title
-            cssClass  : 'has-markdown'
-            tagName   : 'figure'
-            domId     : "home-group-readme"
-          , group
+        # group.fetchReadme (err, readme)=>
+        #   @addSubView @readmeView = new KDView
+        #     partial   : @utils.applyMarkdown(readme?.content)or \
+        #       GroupReadmeView::getDefaultGroupReadme.call @, group.title
+        #     cssClass  : 'has-markdown'
+        #     tagName   : 'figure'
+        #     domId     : "home-group-readme"
+        #   , group
 
-          GroupReadmeView::highlightCode.call @
+        #   GroupReadmeView::highlightCode.call @
 
           @emit "ready"
 
