@@ -109,9 +109,8 @@ __utils =
 
   proxifyUrl:(url="")->
     if url is ""
-      "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-    else
-      '/-/imageProxy?url=' + encodeURIComponent(url)
+    then "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    else "#{location.protocol}//#{location.host}/-/imageProxy?url=#{encodeURIComponent(url)}"
 
   applyMarkdown: (text)->
     # problems with markdown so far:
@@ -133,11 +132,9 @@ __utils =
 
     # Proxify images
 
-    proxify = (str, p1, offset, s)=>
-      @proxifyUrl str
-
     sanitizeText.find("img").each (i,element) =>
-      $(element).attr("src", $(element).attr("src")?.replace(/.*/, proxify))
+      src = element.getAttribute 'src'
+      element.setAttribute "src", src?.replace /.*/, @proxifyUrl
 
     # Give all outbound links a target blank
     sanitizeText.find("a").each (i,element) =>
