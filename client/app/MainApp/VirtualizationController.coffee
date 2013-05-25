@@ -85,12 +85,12 @@ class VirtualizationController extends KDController
     @vms = @groupVms = null
 
   # fixme GG!
-  getTotalVMCount:(callback)->
-    callback null, "58K+"
+  fetchTotalVMCount:(callback)->
+    callback null, "0"
 
   # fixme GG!
-  getTotalLoC:(callback)->
-    callback null, "776M+"
+  fetchTotalLoC:(callback)->
+    callback null, "0"
 
   _cbWrapper:(vm, callback)->
     return (rest...)=>
