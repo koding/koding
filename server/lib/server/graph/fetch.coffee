@@ -87,13 +87,14 @@ module.exports = class FetchAllActivityParallel
     return {}  if overview.length is 0
 
     overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
-    allTimes = _.map(overview, (activity)-> activity.createdAt)
-    allTimes = _.flatten allTimes
-    sortedAllTimes = _.sortBy(allTimes, (activity)-> activity)
 
     # TODO: we're throwing away results if more than 20, ideally we'll only
     # get the right number of results
     overview = overview[-20..overview.length]
+
+    allTimes = _.map(overview, (activity)-> activity.createdAt)
+    allTimes = _.flatten allTimes
+    sortedAllTimes = _.sortBy(allTimes, (activity)-> activity)
 
     for activity, index in overview when activity.type is "CNewMemberBucketActivity"
       @newMemberBucketIndex = index
