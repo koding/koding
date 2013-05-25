@@ -99,7 +99,7 @@ class ProfileView extends JView
 
   pistachio:->
     account      = @getData()
-    userDomain   = "#{account.profile.nickname}.koding.com"
+    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     {nickname}   = account.profile
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     """
