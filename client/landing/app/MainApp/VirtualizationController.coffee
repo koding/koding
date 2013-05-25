@@ -59,9 +59,6 @@ class VirtualizationController extends KDController
     defaultVMOptions = {cpu : 1, disk : 1, ram : 1}
     group = KD.singletons.groupsController.getCurrentGroup()
 
-    if group.slug is 'koding'
-      return callback "Koding group does not support to create additional VMs"
-
     group.fetchBundle (err, bundle)->
       switch type
         when 'personal'
