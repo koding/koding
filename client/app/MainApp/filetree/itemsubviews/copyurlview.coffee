@@ -3,8 +3,9 @@ class NCopyUrlView extends JView
   constructor: ->
     super
 
-    publicUrlCheck = /.*\/(.*\.koding.com)\/website\/(.*)/
-    @publicPath = @getData().path.replace publicUrlCheck, 'http://$1/$2'
+    @path = FSHelper.plainPath @getData().path
+    @publicPath = @path.replace \
+      ///.*\/(.*\.#{KD.config.userSitesDomain})\/(.*)///, '//$1/$2'
 
     @inputUrlLabel  = new KDLabelView
       cssClass      : 'public-url-label'
@@ -27,7 +28,7 @@ class NCopyUrlView extends JView
     super
 
   pistachio:->
-    hasNoPublicPath = @publicPath is @getData().path
+    hasNoPublicPath = @publicPath is @path
 
     if hasNoPublicPath
       """
