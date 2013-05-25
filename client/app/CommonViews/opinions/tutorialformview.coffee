@@ -78,9 +78,6 @@ class TutorialFormView extends KDFormView
       @discussionEmbedLink.setValue Encoder.htmlDecode data.link?.link_url
       @discussionTitle.setValue Encoder.htmlDecode data.title
 
-    @on "discussion.changeMarkdown", (value) ->
-      # once markdown usage can be switched on and off, this will be used
-
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"
       type                : "tags"
@@ -127,11 +124,8 @@ class TutorialFormView extends KDFormView
 
     if @getDelegate().embedBox.hasValidContent
       @addCustomData "link",
-        link_cache: @getDelegate().embedBox.getEmbedCache()
-        link_url : @getDelegate().embedBox.getEmbedURL()
+        link_url   : @getDelegate().embedBox.getEmbedURL()
         link_embed : @getDelegate().embedBox.getEmbedDataForSubmit()
-        link_embed_hidden_items:@getDelegate().embedBox.getEmbedHiddenItems()
-        link_embed_image_index:@getDelegate().embedBox.getEmbedImageIndex()
     super
 
   pistachio:->

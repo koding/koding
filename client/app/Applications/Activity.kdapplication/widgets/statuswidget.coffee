@@ -169,36 +169,24 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @largeInput.setValue @sanitizeUrls @largeInput.getValue()
 
-    unless "embed" in @embedBox.getEmbedHiddenItems() or @requestEmbedLock is on
-
+    unless @requestEmbedLock is on
       @requestEmbedLock = on
 
       setTimeout =>
-        firstUrl = @largeInput.getValue().match(/([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g)
-        if firstUrl?
+        firstUrl = @largeInput.getValue().match /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g
+        return @requestEmbedLock = off  unless firstUrl?
 
-          if @initialRequest
-            @initialRequest = no
+        @initialRequest = no  if @initialRequest
 
-          @embedBox.embedLinks.setLinks firstUrl
-          @embedBox.show()
+        @embedBox.embedLinks.setLinks firstUrl
+        @embedBox.show()
 
-          unless (@previousURL in firstUrl)
-            @embedBox.embedUrl firstUrl?[0], {
-              maxWidth: 525
-            }, (embedData)=>
+        return @requestEmbedLock = off  if @previousURL in firstUrl
 
-              # add favicon to link list if possible
-              # @embedLinks?.linkList?.items?[0]?.setFavicon embedData.favicon_url
-
-              @requestEmbedLock = off
-              @previousURL = firstUrl?[0]
-
-          else
-            @requestEmbedLock = off
-        else
+        @embedBox.embedUrl firstUrl?[0], maxWidth: 525, (embedData)=>
           @requestEmbedLock = off
-      ,50
+          @previousURL = firstUrl?[0]
+      , 50
 
   switchToSmallView:->
 
@@ -269,13 +257,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @switchToLargeView()
 
   submit:->
-
-
-    @addCustomData "link_cache", @embedBox.getEmbedCache() or []
     @addCustomData "link_url", @embedBox.getEmbedURL() or ""
     @addCustomData "link_embed", @embedBox.getEmbedDataForSubmit() or {}
-    @addCustomData "link_embed_hidden_items", @embedBox.getEmbedHiddenItems() or []
-    @addCustomData "link_embed_image_index", @embedBox.getEmbedImageIndex() or 0
 
     @once 'FormValidationPassed', => @reset yes
 
