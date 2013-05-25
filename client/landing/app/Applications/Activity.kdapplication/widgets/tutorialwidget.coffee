@@ -157,11 +157,8 @@ class ActivityTutorialWidget extends KDFormView
 
     if @embedBox.hasValidContent
       @addCustomData "link", {
-        link_cache: @embedBox.getEmbedCache()
         link_url : @embedBox.getEmbedURL()
         link_embed : @embedBox.getEmbedDataForSubmit()
-        link_embed_hidden_items:@embedBox.getEmbedHiddenItems()
-        link_embed_image_index:@embedBox.getEmbedImageIndex()
       }
 
     super

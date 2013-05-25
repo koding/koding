@@ -16,9 +16,10 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     }
 
     if data.link?
-      @embedBox = new EmbedBox @embedOptions, data?.link
+      @embedBox = new EmbedBox @embedOptions, data.link
     else
       @embedBox = new KDView
+
     origin =
       constructorName  : data.originType
       id               : data.originId
