@@ -417,13 +417,18 @@ class GroupsAppController extends AppController
       #     delete slugInput.tooltip
 
     makeSlug = =>
-      titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
+      form = modal.modalTabs.forms["General Settings"]
+      titleInput = form.inputs.Title
+      slugView   = form.inputs.Slug
+      slugInput  = form.inputs.HiddenSlug
       slug = KD.utils.slugify titleInput.getValue()
       KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-        if err then slugView.updatePartial "#{location.protocol}//#{location.host}/"
+        if err
+          slugView.updatePartial "#{location.protocol}//#{location.host}/"
+          slugInput.setValue ''
         else
           slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
+          slugInput.setValue newSlug
           verifySlug()
 
     getGroupType = ->
@@ -460,14 +465,12 @@ class GroupsAppController extends AppController
         hideHandleContainer          : yes
         callback                     : (formData)=>
           _createGroupHandler.call @, formData, (err) =>
-            modal.modalTabs.forms["VM Settings"].buttons.Save.hideLoader()
+            modal.modalTabs.forms["VM Settings"].buttons["Create Group"].hideLoader()
             unless err
               modal.destroy()
         forms                        :
           "Select group type"        :
             title                    : 'Group type'
-            callback                 :(formData)=>
-              log "here"
             buttons                  :
               "Next"                 :
                 style                : "modal-clean-gray"
@@ -487,6 +490,11 @@ class GroupsAppController extends AppController
                 ]
           "General Settings"         :
             title                    : 'Create a group'
+            callback                 : ->
+              form = modal.modalTabs.forms["General Settings"]
+              unless form.inputs["Group VM"].getValue()
+                modal.modalTabs.removePaneByName "VM Settings"
+                modal.modalTabs.fireFinalCallback()
             buttons                  :
               "Next"                 :
                 style                : "modal-clean-gray"
@@ -496,7 +504,10 @@ class GroupsAppController extends AppController
                   diameter           : 12
               "Back"                 :
                 style                : "modal-cancel"
-                callback             : -> modal.modalTabs.showPreviousPane()
+                callback             : ->
+                  form = modal.modalTabs.forms["Select group type"]
+                  form.buttons.Next.hideLoader()
+                  modal.modalTabs.showPreviousPane()
             fields                   :
               "Title"                :
                 label                : "Title"
@@ -505,11 +516,15 @@ class GroupsAppController extends AppController
                   event              : "blur"
                   rules              :
                     required         : yes
+                    minLength        : 4
                 keydown              : (pubInst, event)->
                   @utils.defer =>
                     makeSlug()
-
                 placeholder          : 'Please enter your group title...'
+              "HiddenSlug"           :
+                name                 : "slug"
+                type                 : "hidden"
+                cssClass             : "hidden"
               "Slug"                 :
                 label                : "Address"
                 partial              : "#{location.protocol}//#{location.host}/"
@@ -524,12 +539,12 @@ class GroupsAppController extends AppController
                 # defaultValue         : ''
                 # placeholder          : 'your-group-url'
                 # disabled             : yes
-              # "Description"          :
-              #   label                : "Description"
-              #   type                 : "textarea"
-              #   name                 : "body"
-              #   defaultValue         : ""
-              #   placeholder          : "Please enter a description for your group here..."
+              "Description"          :
+                label                : "Description"
+                type                 : "textarea"
+                name                 : "body"
+                defaultValue         : ""
+                placeholder          : "Please enter a description for your group here..."
               "Privacy"              :
                 label                : "Privacy/Visibility"
                 itemClass            : KDSelectBox
@@ -561,10 +576,14 @@ class GroupsAppController extends AppController
                 itemClass            : KDOnOffSwitch
                 name                 : "group-vm"
                 defaultValue         : yes
+                callback             : (state)->
+                  form = modal.modalTabs.forms["General Settings"]
+                  form.buttons.Next.setTitle unless state then "Create Group" \
+                                                          else "Next"
           "VM Settings"              :
             title                    : 'VM Settings'
             buttons                  :
-              "Save"                 :
+              "Create Group"         :
                 style                : "modal-clean-gray"
                 type                 : "submit"
                 loader               :
@@ -572,7 +591,10 @@ class GroupsAppController extends AppController
                   diameter           : 12
               "Back"                 :
                 style                : "modal-cancel"
-                callback             : -> modal.modalTabs.showPreviousPane()
+                callback             : ->
+                  modal.modalTabs.showPreviousPane()
+                  form = modal.modalTabs.forms["General Settings"]
+                  form.buttons.Next.hideLoader()
             fields                   :
               "VM Host"               :
                 label                : "VM Host"

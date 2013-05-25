@@ -66,5 +66,5 @@ class SidebarController extends KDViewController
         type      : 'admin'
         loggedIn  : yes
         callback  : ->
-          slug = if slug is 'koding' then '/' else "/#{slug}/"
+          slug = if slug in ['koding', ''] then '/' else "/#{slug}/"
           KD.getSingleton('router').handleRoute "#{slug}Dashboard"
