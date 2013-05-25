@@ -109,11 +109,11 @@ class GroupsAppController extends AppController
       group and what they see.</p>
       """
     pending   : """
-      <h3 class='title'>These are the groups that you are waiting an invitation.</h3>
+      <h3 class='title'>Groups that you are waiting for an invitation will be listed here.</h3>
       <p>When you ask for an invitation to a group, an admin of that group should accept your request and send you an invitation link in order you to gain access to that group.</p>
       """
     requested : """
-      <h3 class='title'>These are the groups that you asked for an access request...</h3>
+      <h3 class='title'>These are the groups that you requested access...</h3>
       <p>...but still waiting for a group admin to approve.</p>
       <p>When you request access to a group, an admin of that group should accept your request. If the admin approves you'll gain access to the group right away and you'll see it under 'My Groups'.</p>
       """
