@@ -221,12 +221,17 @@ task 'emailWorker',({configFile})->
           processes.kill "emailWorker"
 
 task 'emailSender',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
     name           : 'emailSender'
     cmd            : "./workers/emailsender/index -c #{configFile}"
     restart        : yes
     restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
   watcher = new Watcher
     groups        :

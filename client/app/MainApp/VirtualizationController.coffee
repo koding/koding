@@ -115,7 +115,7 @@ class VirtualizationController extends KDController
         style    : "modal-clean-gray"
         callback : => @createGroupVM 'personal', vmCreateCallback
 
-    if "owner" in KD.config.roles
+    if "owner" in KD.config.roles or "admin" in KD.config.roles
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
                    <b>#{group}</b>. If you prefer to create a shared VM, all
                    members in <b>#{group}</b> will be able to use that VM.
@@ -124,7 +124,7 @@ class VirtualizationController extends KDController
         style      : "modal-clean-gray"
         callback   : => @createGroupVM 'shared', vmCreateCallback
 
-    else if "member" in KD.config.roles and group isnt 'koding'
+    else if "member" in KD.config.roles
       content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
 
     else
