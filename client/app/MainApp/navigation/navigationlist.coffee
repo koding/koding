@@ -10,6 +10,10 @@ class NavigationList extends KDListView
       options.childClass = NavigationInviteLink
       return options
 
+    else if data.title is "Apps"
+      options.childClass = NavigationAppsLink
+      return options
+
     if data.type is "separator"
       options.childClass = NavigationSeparator
       options.selectable = no
