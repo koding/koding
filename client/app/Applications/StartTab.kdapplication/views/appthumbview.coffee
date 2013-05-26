@@ -11,6 +11,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
+    @appsController = @getSingleton("kodingAppsController")
+
     {icns, name, version, author, description,
      authorNick, additionalinfo} = manifest = @getData()
 
@@ -87,6 +89,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 diameter : 16
               callback   : => @appDeleteCall manifest
 
+    @updateView  = new KDView
+
     if @getData().devMode
       @compile = new KDCustomHTMLView
         tagName  : "span"
@@ -105,7 +109,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
       @devModeView = new KDCustomHTMLView
         partial  : "Dev Mode"
-        cssClass : "dev-mode"
+        cssClass : "top-badge dev-mode"
         tooltip  :
           title  : "Dev-Mode enabled, click for help."
         click    : =>
@@ -123,14 +127,40 @@ class StartTabAppThumbView extends KDCustomHTMLView
     else
       @compile     = new KDView
       @devModeView = new KDView
+      @putUpdateView()
+
+  putUpdateView: ->
+    manifest          = @getData()
+    isUpdateAvailable = @appsController.isAppUpdateAvailable manifest.name, manifest.version
+    return unless isUpdateAvailable
+
+    updateClass       = "available"
+    updateText        = "Update Available"
+    updateTooltip     = "An update available for this app. Click here to see."
+
+    if manifest.forceUpdate is yes
+      updateClass     = "required"
+      updateText      = "Update Required"
+      updateTooltip   = "You must update this app. Click here to see."
+
+    @updateView       = new KDCustomHTMLView
+      partial         : updateText
+      cssClass        : @utils.curryCssClass "top-badge update", updateClass
+      tooltip         :
+        title         : updateTooltip
+      click           : (e) =>
+        e.preventDefault()
+        e.stopPropagation()
+        jApp = @appsController.publishedApps[manifest.name]
+        @getSingleton("appManager").open "Apps", =>
+          @getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
 
   appDeleteCall:(manifest)->
-    apps      = @getSingleton("kodingAppsController")
-    appPath   = apps.getAppPath manifest.path, yes
+    appPath   = @appsController.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
     appFolder.remove (err, res) =>
       unless err
-        apps.refreshApps =>
+        @appsController.refreshApps =>
           @deleteModal.destroy()
           @destroy()
         , no
@@ -152,7 +182,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
               $(event.target).closest('.dev-mode').length > 0
     manifest = @getData()
     @showLoader()
-    @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
+    @appsController.runApp manifest, => @hideLoader()
 
   showLoader:->
 
@@ -167,6 +197,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
   pistachio:->
     """
       {{> @devModeView}}
+      {{> @updateView}}
       <div class='icon-container'>
         {{> @delete}}
         {{> @info}}
