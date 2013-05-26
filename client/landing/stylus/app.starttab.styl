@@ -81,16 +81,27 @@ app.starttab.styl
   overflow                visible
   borderBox()
 
-  .dev-mode
+  .top-badge
     position              absolute
     top                   8px
-    background-color      rgba(114, 114, 114, 0.25)
     left                  9px
     border-radius         4px
-    color                 white
-    font-size             10px
-    border                1px solid rgba(186, 196, 186, 0.98)
+    font-size             9px
     padding               0 3px 1px 3px
+    color                 #fff
+
+  .dev-mode
+    background-color      rgba(114, 114, 114, 0.25)
+    border                1px solid rgba(186, 196, 186, 0.98)
+
+  .update
+    &.available
+      border              1px solid #63a62f
+      border-color        #63a62f #63a62f #5b992b #63a62f
+      gradient            #7fbf4d, #63a62f
+    &.required
+      border              1px solid #f76f14
+      bg                  color, #ff9200
 
   figure
     display               inline-block
