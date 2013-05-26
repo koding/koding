@@ -154,11 +154,24 @@ class AppView extends KDView
 
     @openButton.hide()
 
+    @updateButton = new KDButtonView
+      title       : "Update"
+      style       : "clean-gray"
+      callback    : =>
+        appsController.updateUserApp app.manifest, ->
+          @getSingleton("router").handleRoute "Develop"
+
     appsController.fetchApps (err, manifests) =>
       # user have the app, show just show open button
       if app.title in Object.keys manifests
         @installButton.hide()
         @openButton.show()
+
+      appName   = app.manifest.name
+      {version} = manifests[appName]
+      unless appsController.isAppUpdateAvailable appName, version
+        @updateButton.hide()
+
 
     {icns, name, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
@@ -190,6 +203,7 @@ class AppView extends KDView
       <div class="installerbar clearfix">
         {{> @installButton}}
         {{> @openButton}}
+        {{> @updateButton}}
         <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>
