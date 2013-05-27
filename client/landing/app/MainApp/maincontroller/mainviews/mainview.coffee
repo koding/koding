@@ -31,6 +31,10 @@ class MainView extends KDView
 
     @utils.defer -> overlay.setClass 'in'
 
+    {winHeight} = @getSingleton('windowController')
+
+    offset = if winHeight > 400 then (winHeight - 400) / 2 else 0
+
     KDView.appendToDOMBody about = new AboutView
       domId   : 'about-text'
       click   : =>
@@ -41,6 +45,7 @@ class MainView extends KDView
           overlay.unsetClass 'in'
         about.unsetClass 'in'
 
+    about.setY offset
     about.bindTransitionEnd()
 
   addBook:-> @addSubView new BookView
