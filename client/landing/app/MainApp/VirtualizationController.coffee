@@ -52,7 +52,7 @@ class VirtualizationController extends KDController
   getDefaultVmName:->
     {entryPoint} = KD.config
     currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
-    if not currentGroup or currentGroup is 'koding' then KD.nick()
+    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}"
     else currentGroup
 
   createGroupVM:(type='personal', callback)->
