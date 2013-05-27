@@ -242,10 +242,11 @@ class KDInputView extends KDView
 
   showValidationError:(message)->
 
-    if @inputValidationNotifications[message]
-      @inputValidationNotifications[message].destroy()
+    @inputValidationNotifications[message]?.destroy()
 
+    {container} = @getOptions('validate')
     @inputValidationNotifications[message] = notice = new KDNotificationView
+      container : container if container
       title     : message
       type      : 'growl'
       cssClass  : 'mini'

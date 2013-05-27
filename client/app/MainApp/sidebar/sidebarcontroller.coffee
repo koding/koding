@@ -51,28 +51,20 @@ class SidebarController extends KDViewController
           loggedIn : yes
           callback : -> new AdminModal
 
-    @resetGroupSettingsItem()
+      @resetGroupSettingsItem()
 
   resetGroupSettingsItem:->
     return unless KD.isLoggedIn()
 
-    do =>
+    if 'admin' in KD.config.roles
       {navController} = @getView()
-      groupsController = @getSingleton 'groupsController'
-      group = groupsController.getCurrentGroup()
+      {slug} = KD.config.entryPoint or {slug:'koding'}
 
-      # We need to fix that, it happens when you logged-in from entryPoint
-      return unless group
-
-      group.fetchMyRoles (err, roles)=>
-        if err
-          console.warn err
-        else if 'admin' in roles
-          navController.removeItem dashboardLink  if @dashboardLink?
-          @dashboardLink = navController.addItem
-            title     : 'Group Settings'
-            type      : 'admin'
-            loggedIn  : yes
-            callback  : ->
-              slug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
-              KD.getSingleton('router').handleRoute "#{slug}Dashboard"
+      navController.removeItemByTitle 'Group Settings'
+      navController.addItem
+        title     : 'Group Settings'
+        type      : 'admin'
+        loggedIn  : yes
+        callback  : ->
+          slug = if slug in ['koding', ''] then '/' else "/#{slug}/"
+          KD.getSingleton('router').handleRoute "#{slug}Dashboard"

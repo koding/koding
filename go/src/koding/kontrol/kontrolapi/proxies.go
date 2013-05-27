@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
 	"log"
 	"net/http"
 )
@@ -38,15 +37,8 @@ type ProxyPostMessage struct {
 }
 
 func GetProxies(writer http.ResponseWriter, req *http.Request) {
-	proxies := make([]string, 0)
-	proxy := proxyconfig.Proxy{}
-	iter := proxyConfig.Collection.Find(nil).Iter()
-	for iter.Next(&proxy) {
-		proxies = append(proxies, proxy.Uuid)
-
-	}
-
-	data, err := json.MarshalIndent(proxies, "", "  ")
+	res := proxyDB.GetProxies()
+	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
@@ -59,18 +51,19 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "deleteProxy"
-	cmd.Uuid = uuid
+	err := proxyDB.DeleteProxy(uuid)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
-	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("'%s' is deleted", uuid)
 	io.WriteString(writer, resp)
 }
 
 func CreateProxy(writer http.ResponseWriter, req *http.Request) {
-	var msg ProxyPostMessage
 	var uuid string
+	var msg ProxyPostMessage
 
 	body, _ := ioutil.ReadAll(req.Body)
 	log.Println(string(body))
@@ -93,11 +86,11 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "addProxy"
-	cmd.Uuid = uuid
-
-	buildSendProxyCmd(cmd)
+	err = proxyDB.AddProxy(uuid)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
 	resp := fmt.Sprintf("'%s' is registered", uuid)
 	io.WriteString(writer, resp)
@@ -108,12 +101,11 @@ func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 	username := vars["username"]
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "addUser"
-	cmd.Uuid = uuid
-	cmd.Username = username
-
-	buildSendProxyCmd(cmd)
+	err := proxyDB.AddUser(uuid, username)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 	resp := fmt.Sprintf("user '%s' is added to proxy uuid: '%s'", username, uuid)
 	io.WriteString(writer, resp)
 }
@@ -123,14 +115,12 @@ func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
 	username := vars["username"]
+	err := proxyDB.DeleteServiceName(uuid, username, servicename)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "deleteServiceName"
-	cmd.Uuid = uuid
-	cmd.ServiceName = servicename
-	cmd.Username = username
-
-	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("service: '%s' is deleted on proxy uuid: '%s'", servicename, uuid)
 	io.WriteString(writer, resp)
 }
@@ -142,14 +132,11 @@ func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 	servicename := vars["servicename"]
 	username := vars["username"]
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "deleteKey"
-	cmd.Uuid = uuid
-	cmd.Key = key
-	cmd.ServiceName = servicename
-	cmd.Username = username
-
-	buildSendProxyCmd(cmd)
+	err := proxyDB.DeleteKey(uuid, username, servicename, key)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 	resp := fmt.Sprintf("key: '%s' is deleted for service: '%s'", key, servicename)
 	io.WriteString(writer, resp)
 }
@@ -159,12 +146,12 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 	domain := vars["domain"]
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "deleteDomain"
-	cmd.Uuid = uuid
-	cmd.DomainName = domain
+	err := proxyDB.DeleteDomain(uuid, domain)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
-	buildSendProxyCmd(cmd)
 	resp := fmt.Sprintf("domain: '%s' is deleted on proxy uuid: '%s'", domain, uuid)
 	io.WriteString(writer, resp)
 }
@@ -172,18 +159,16 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 func GetProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	domain := vars["domain"]
+	domainname := vars["domain"]
 
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-
-	domains := proxyMachine.DomainRoutingTable
-	singleDomain, ok := domains.Domains[domain]
-	if !ok {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"domain '%s' is not available\"}\n", domain))
+	domain, err := proxyDB.GetDomain(uuid, domainname)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
+
 	}
 
-	data, err := json.MarshalIndent(singleDomain, "", "  ")
+	data, err := json.MarshalIndent(domain, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
@@ -196,11 +181,9 @@ func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	proxyMachine, _ := proxyDB.GetProxy(uuid)
 
-	domains := proxyMachine.DomainRoutingTable
-
-	data, err := json.MarshalIndent(domains, "", "  ")
+	data, err := json.MarshalIndent(proxyMachine.Domains, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
@@ -226,7 +209,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -238,7 +221,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		mode = *msg.Mode
 	} else {
 		err := "no 'mode' available. must be one of: internal, direct, vm"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -246,7 +229,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		username = *msg.Username
 	} else if mode == "vm" || mode == "internal" {
 		err := "no 'username' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -254,7 +237,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		name = *msg.Name
 	} else if mode == "internal" {
 		err := "no 'name' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 
 	}
@@ -263,7 +246,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		key = *msg.Key
 	} else if mode == "internal" {
 		err := "no 'key' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -272,7 +255,7 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		host = *msg.Host
 	} else if mode == "direct" {
 		err := "no 'host' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -282,27 +265,20 @@ func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "addDomain"
-	cmd.Username = username
-	cmd.Uuid = uuid
-	cmd.Key = key
-	cmd.ServiceName = name
-	cmd.DomainName = domain
-	cmd.DomainMode = mode
-	cmd.Host = host
-	cmd.HostData = "FromKontrolAPI"
-
-	buildSendProxyCmd(cmd)
+	err = proxyDB.AddDomain(domain, mode, username, name, key, host, uuid)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
 	var resp string
 	switch mode {
 	case "internal":
-		resp = fmt.Sprintf("'%s' will proxy to '%s-%s.kd.io'", domain, name, key)
+		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", name, key)
 	case "direct":
-		resp = fmt.Sprintf("'%s' will proxy to '%s'", domain, host)
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", host)
 	case "vm":
-		resp = fmt.Sprintf("'%s' will proxy to '%s.kd.io'", domain, username)
+		resp = fmt.Sprintf("{\"host\":\"%s.kd.io\"}\n", username)
 	}
 
 	io.WriteString(writer, resp)
@@ -326,7 +302,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -334,7 +310,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		key = *msg.Key
 	} else {
 		err := "no 'key' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -342,7 +318,7 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		host = *msg.Host
 	} else {
 		err := "no 'host' available"
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
@@ -365,23 +341,18 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		uuid = "proxy.in.koding.com"
 	}
 
-	var cmd proxyconfig.ProxyMessage
-	cmd.Action = "addKey"
-	cmd.Uuid = uuid
-	cmd.Key = key
-	cmd.RabbitKey = rabbitkey
-	cmd.ServiceName = servicename
-	cmd.Username = username
-	cmd.Host = host
-	cmd.HostData = hostdata
-
-	buildSendProxyCmd(cmd)
+	err = proxyDB.AddKey(username, servicename, key, host, hostdata, uuid, rabbitkey)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
 	var url string
 	if username == "koding" {
-		url = fmt.Sprintf("http://%s-%s.x.koding.com", servicename, key)
+		url = fmt.Sprintf("{\"host\":\"%s-%s.x.koding.com\"}\n", servicename, key)
+
 	} else {
-		url = fmt.Sprintf("http://%s-%s-%s.kd.io", servicename, key, username)
+		url = fmt.Sprintf("{\"host\":\"%s-%s-%s.kd.io\"}\n", servicename, key, username)
 	}
 	io.WriteString(writer, url)
 	return
@@ -392,7 +363,7 @@ func GetProxyUsers(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 
 	users := make([]string, 0)
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	proxyMachine, _ := proxyDB.GetProxy(uuid)
 
 	for username := range proxyMachine.RoutingTable {
 		users = append(users, username)
@@ -413,7 +384,7 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	username := vars["username"]
 
 	services := make([]string, 0)
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
+	proxyMachine, _ := proxyDB.GetProxy(uuid)
 
 	_, ok := proxyMachine.RoutingTable[username]
 	if !ok {
@@ -436,79 +407,45 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetProxyService(writer http.ResponseWriter, req *http.Request) {
+func GetKeyList(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
 	servicename := vars["servicename"]
 	username := vars["username"]
 
-	v := req.URL.Query()
-	key := v.Get("key")
-	host := v.Get("host")
-	hostdata := v.Get("hostdata")
-
-	p := make(Proxies, 0)
-	proxyMachine, _ := proxyConfig.GetProxy(uuid)
-
-	_, ok := proxyMachine.RoutingTable[username]
-	if !ok {
-		resp := fmt.Sprintf("getting proxy service is not possible. no user %s exists", username)
-		io.WriteString(writer, resp)
+	res, err := proxyDB.GetKeyList(uuid, username, servicename)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
-	}
-	user := proxyMachine.RoutingTable[username]
-
-	keyRoutingTable := user.Services[servicename]
-
-	for _, keys := range keyRoutingTable.Keys {
-		for _, proxy := range keys {
-			p = append(p, Proxy{proxy.Key, proxy.Host, proxy.HostData, proxy.RabbitKey})
-		}
-	}
-
-	s := make([]interface{}, len(p))
-	for i, v := range p {
-		s[i] = v
-	}
-
-	t := NewMatcher(s).
-		ByString("Key", key).
-		ByString("Host", host).
-		ByString("Hostdata", hostdata).
-		Run()
-
-	matchedProxies := make(Proxies, len(t))
-	for i, item := range t {
-		w, _ := item.(Proxy)
-		matchedProxies[i] = w
-	}
-
-	var res []Proxy
-	if len(v) == 0 { // no query available, means return all proxies
-		res = p
-	} else {
-		res = matchedProxies
 	}
 
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
 	writer.Write([]byte(data))
 }
 
-func buildSendProxyCmd(cmd proxyconfig.ProxyMessage) {
-	log.Println("Sending cmd to kontrold:", cmd)
+func GetKey(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
+	servicename := vars["servicename"]
+	username := vars["username"]
+	key := vars["key"]
 
-	// Wrap message for dynamic unmarshaling at endpoint
-	type Wrap struct{ Proxy proxyconfig.ProxyMessage }
-
-	data, err := json.Marshal(&Wrap{cmd})
+	res, err := proxyDB.GetKey(uuid, username, servicename, key)
 	if err != nil {
-		log.Println("Json marshall error", data)
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
 	}
 
-	amqpWrapper.Publish(data)
+	data, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	writer.Write([]byte(data))
 }

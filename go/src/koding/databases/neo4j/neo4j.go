@@ -168,6 +168,10 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 
 	node := GetNode(id)
 
+	if len(node) < 1 {
+		return nil
+	}
+
 	//if self is not there!
 	if _, ok := node[0]["self"]; !ok {
 		return nil
@@ -191,6 +195,15 @@ func UpdateNode(id, propertiesJSON string) map[string]interface{} {
 func DeleteNode(id string) bool {
 
 	node := GetNode(id)
+
+	if len(node) < 1 {
+		return false
+	}
+
+	//if self is not there!
+	if _, ok := node[0]["self"]; !ok {
+		return false
+	}
 
 	nodeURL := fmt.Sprintf("%s", node[0]["self"])
 

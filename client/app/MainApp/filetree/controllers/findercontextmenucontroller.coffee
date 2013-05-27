@@ -145,11 +145,11 @@ class NFinderContextMenuController extends KDController
         children                  :
           customView              : new NCopyUrlView {}, fileData
         separator                 : yes
-      'Open Terminal from here'   :
-        action                    : 'openTerminal'
-        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
+      # 'Open Terminal from here'   :
+      #   action                    : 'openTerminal'
+      #   separator                 : yes
       #   separator                 : yes
       # 'Create a CodeShare'        :
       #   action                    : 'codeShare'
@@ -205,6 +205,9 @@ class NFinderContextMenuController extends KDController
         action                    : 'resetVm'
       'Unmount VM'                :
         action                    : 'unmountVm'
+        separator                 : yes
+      'Open VM Terminal'          :
+        action                    : 'openVmTerminal'
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'
