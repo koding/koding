@@ -87,8 +87,10 @@ class Ace extends KDView
     findAndReplaceView.setTextIntoFindInput selectedText
     findAndReplaceView.on "FindAndReplaceViewClosed", => @focus()
 
-  addKeyCombo: (name, winKey, callback, macKey) ->
-    macKey or= winKey.replace "Ctrl", "Command"
+  addKeyCombo: (name, winKey, macKey, callback) ->
+    if typeof macKey is "function"
+      callback = macKey
+      macKey   = winKey.replace "Ctrl", "Command"
     @editor.commands.addCommand
       name    : name
       bindKey :
