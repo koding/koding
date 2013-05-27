@@ -161,16 +161,17 @@ class AppView extends KDView
         appsController.updateUserApp app.manifest, =>
           @getSingleton("router").handleRoute "Develop"
 
+    @updateButton.hide()
+
     appsController.fetchApps (err, manifests) =>
       # user have the app, show just show open button
       if app.title in Object.keys manifests
         @installButton.hide()
         @openButton.show()
 
-      appName   = app.manifest.name
-      {version} = manifests[appName]
-      unless appsController.isAppUpdateAvailable appName, version
-        @updateButton.hide()
+      appName = app.manifest.name
+      if appsController.isAppUpdateAvailable appName, manifests[appName]?.version
+        @updateButton.show()
 
 
     {icns, name, version, authorNick} = app.manifest
