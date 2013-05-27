@@ -32,7 +32,7 @@ class NavigationAppsLink extends KDCustomHTMLView
           @getUpdateRequiredAppsCount()
           @isFetchedAgain = yes
 
-      for name, jApp of publishedApps
+      for name, jApp of publishedApps when apps[name]
         @counter++ if appsController.isAppUpdateAvailable name, apps[name].version
 
       if @counter > 0
