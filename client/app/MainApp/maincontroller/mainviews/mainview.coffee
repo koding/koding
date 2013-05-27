@@ -16,18 +16,37 @@ class MainView extends KDView
 
   putAbout:->
 
-    @putOverlay
-      color   : "rgba(0,0,0,0.9)"
-      animated: yes
-    @$('section').addClass "scale"
+    KDView.appendToDOMBody overlay = new KDView
+      cssClass : 'about-overlay'
+    overlay.bindTransitionEnd()
 
-    @utils.wait 500, =>
-      @addSubView about = new AboutView
-        domId   : "about-text"
-        click   : @bound "removeOverlay"
+    logo = new KDCustomHTMLView
+      cssClass : 'main-loading'
+      partial  : '<ul><li/><li/><li/><li/><li/><li/></ul>'
 
-      @once "OverlayWillBeRemoved", about.bound "destroy"
-      @once "OverlayWillBeRemoved", => @$('section').removeClass "scale"
+    overlay.once 'transitionend', ->
+      overlay.addSubView logo
+      KD.utils.defer -> logo.$('>ul').addClass 'in'
+      KD.utils.wait 4000, -> about.setClass 'in'
+
+    @utils.defer -> overlay.setClass 'in'
+
+    {winHeight} = @getSingleton('windowController')
+
+    offset = if winHeight > 400 then (winHeight - 400) / 2 else 0
+
+    KDView.appendToDOMBody about = new AboutView
+      domId   : 'about-text'
+      click   : =>
+        about.once 'transitionend', ->
+          about.destroy()
+          overlay.once 'transitionend', ->
+            overlay.destroy()
+          overlay.unsetClass 'in'
+        about.unsetClass 'in'
+
+    about.setY offset
+    about.bindTransitionEnd()
 
   addBook:-> @addSubView new BookView
 

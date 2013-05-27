@@ -148,7 +148,6 @@ class KDListViewController extends KDViewController
 
     @getListView().removeItem itemInstance, itemData, index
     @putDefaultItem @getListView().items
-    dataId = itemData.getId?()
 
   registerItem:(view, index)->
 

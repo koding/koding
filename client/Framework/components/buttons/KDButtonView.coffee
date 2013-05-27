@@ -117,7 +117,7 @@ class KDButtonView extends KDView
   hideLoader:->
     {icon, iconOnly} = @getOptions()
     @unsetClass "loading"
-    @loader.hide()
+    @loader?.hide()
     @showIcon() if icon and not iconOnly
 
   disable:-> @$().attr "disabled",yes

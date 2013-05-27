@@ -97,5 +97,6 @@ func (v *Validator) Check() (string, bool) {
 	}
 
 	// user is validated because none of the rules applied to him
+	fmt.Println("user is validated")
 	return fmt.Sprintf("user is validated\n"), true
 }

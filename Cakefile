@@ -221,12 +221,17 @@ task 'emailWorker',({configFile})->
           processes.kill "emailWorker"
 
 task 'emailSender',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
     name           : 'emailSender'
     cmd            : "./workers/emailsender/index -c #{configFile}"
     restart        : yes
     restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -257,11 +262,10 @@ task 'rerouting',(options)->
 
   {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
-  uuid = hat()
 
   processes.spawn
     name           : 'rerouting'
-    cmd            : "./go/bin/rerouting -c #{configFile} -u #{uuid}"
+    cmd            : "./go/bin/rerouting -c #{configFile}"
     restart        : yes
     restartTimeout : 100
     stdout         : process.stdout
@@ -270,7 +274,6 @@ task 'rerouting',(options)->
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
-      binary       : uuid
 
 task 'osKite',({configFile})->
 
@@ -294,13 +297,18 @@ task 'proxy',({configFile})->
 
 task 'neo4jfeeder',({configFile})->
 
+  config = require('koding-config-manager').load("main.#{configFile}")
+
   processes.spawn
-    name    : 'proxy'
+    name    : 'neo4jfeeder'
     cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
     restart : yes
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
 
 task 'libratoWorker',({configFile})->
 

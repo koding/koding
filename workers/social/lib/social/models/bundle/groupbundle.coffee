@@ -104,7 +104,7 @@ module.exports = class JGroupBundle extends JBundle
 
           theyHaveEnough = ( debitAmount is 0 )   or
             ( not /per user$/.test limit.title )  and
-            ( debitAmount <= limit.getValue() )              and
+            ( debitAmount <= limit.getValue() )   and
             (( overagePolicy is 'allowed' ) or
               ( personalLimit? )            and
               ( debitAmount <= personalLimit.getValue() ))

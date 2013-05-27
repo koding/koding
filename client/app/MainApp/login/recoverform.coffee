@@ -8,6 +8,7 @@ class RecoverInlineForm extends LoginViewInlineForm
         name          : "username-or-email"
         placeholder   : "Enter username or email"
         validate      :
+          container   : this
           rules       :
             required  : yes
           messages    :

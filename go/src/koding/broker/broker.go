@@ -212,14 +212,14 @@ func main() {
 		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
 		if err != nil {
 			log.LogError(err, 0)
-			os.Exit(1)
+			log.SendLogsAndExit(1)
 		}
 
 		if config.Current.Broker.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
 			if err != nil {
 				log.LogError(err, 0)
-				os.Exit(1)
+				log.SendLogsAndExit(1)
 			}
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -244,7 +244,7 @@ func main() {
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
-					os.Exit(1)
+					log.SendLogsAndExit(1)
 				}
 				lastErrorTime = time.Now()
 			}
@@ -289,6 +289,8 @@ func main() {
 			routeMapMutex.Unlock()
 		}
 	}
+
+	time.Sleep(5 * time.Second) // give amqputil time to log connection error
 }
 
 func sendToClient(session *sockjs.Session, data interface{}) {
