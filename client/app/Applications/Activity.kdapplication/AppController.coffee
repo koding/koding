@@ -201,7 +201,7 @@ class ActivityAppController extends AppController
             if exempt or @getFilter() isnt activityTypes
             then @fetchActivitiesDirectly options, callback
             else @fetchActivitiesFromCache options, callback
-
+    
     unless isReady
     then groupsController.once 'groupChanged', fetch
     else fetch currentGroup.slug
@@ -311,7 +311,6 @@ class ActivityAppController extends AppController
         log "fetchSomeActivities timeout reached"
 
   fetchCachedActivity:(options = {}, callback)->
-
     if KD.config.useNeo4j
       if options.to
         options.timestamp = options.to
