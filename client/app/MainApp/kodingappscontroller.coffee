@@ -621,20 +621,17 @@ class KodingAppsController extends KDController
   createExtensionToAppMap: ->
     @extensionToApp = map = {}
     @fetchApps (err, res) =>
-      # TODO: Find a better way to add Ace extensions to this map. (fatihacet)
-      # res.Ace =
-      #   name     : "Ace"
-      #   fileTypes: [
-      #     "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
-      #     "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
-      #     "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
-      #   ]
       for key, app of res
         fileTypes = app.fileTypes
         if fileTypes
           for type in fileTypes
             map[type] = [] unless map[type]
             map[type].push app.name
+
+      # Still there should be a more elagant way to add ace file types into map.
+      for type in KD.getAppOptions("Ace").fileTypes
+        map[type] = [] unless map[type]
+        map[type].push "Ace"
 
   fetchUserDefaultAppConfig: ->
     @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"

@@ -363,7 +363,6 @@ class NFinderContextMenuController extends KDController
     return items
 
   getOpenWithMenuItems: (fileView) ->
-    # TODO: acet, test for non existing file extension
     items            = {}
     fileExtension    = FSItem.getFileExtension fileView.getData().path
     appsController   = @getSingleton "kodingAppsController"

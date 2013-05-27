@@ -765,7 +765,7 @@ class NFinderTreeController extends JTreeViewController
         modal.addSubView new OpenWithModalApp
           supported : yes
           delegate  : modal
-        , apps[appName]
+        , if appName is "Ace" then KD.getAppOptions("Ace") else apps[appName]
 
       modal.addSubView new KDView
         cssClass     : "separator"
@@ -800,7 +800,8 @@ class OpenWithModalApp extends JView
     if manifest.devMode
       resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
 
-    thumb  = "#{KD.apiUri + '/images/default.app.thumb.png'}"
+    image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
+    thumb  = "#{KD.apiUri}/images/#{image}.png"
 
     for size in [64, 128, 160, 256, 512]
       if icns and icns[String size]
