@@ -13,6 +13,10 @@ class NavigationAppsLink extends KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon-top-badge"
       partial   : ""
+      click     : (e) =>
+        e.preventDefault()
+        e.stopPropagation()
+        @getSingleton("router").handleRoute "/Apps?filter=updates"
 
     @count.hide()
 
