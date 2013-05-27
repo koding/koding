@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -49,11 +50,17 @@ func Init(service string) {
 
 	go func() {
 		for event := range sendChannel {
+			if event.Get("exit") != "" {
+				code, _ := strconv.Atoi(event.Get("exit"))
+				os.Exit(code)
+			}
+
 			if !config.Current.Loggr.Push {
-				fmt.Printf("%-30s %s\n", "["+event.Get("tags")+"]", event.Get("text"))
+				fmt.Printf("%s [%s]\n", time.Now().Format(time.StampMilli), event.Get("tags"))
+				fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), event.Get("text"))
 				if event.Get("data") != "" {
 					for _, line := range strings.Split(event.Get("data"), "\n") {
-						fmt.Printf("%-30s %s\n", "", line)
+						fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), line)
 					}
 				}
 				continue
@@ -110,6 +117,11 @@ func Log(level int, text string, data ...interface{}) {
 	}
 
 	sendChannel <- NewEvent(level, text, data...)
+}
+
+func SendLogsAndExit(code int) {
+	sendChannel <- url.Values{"exit": {strconv.Itoa(code)}}
+	time.Sleep(time.Hour) // wait for exit
 }
 
 const (
