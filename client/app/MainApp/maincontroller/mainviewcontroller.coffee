@@ -23,6 +23,10 @@ class MainViewController extends KDViewController
       new KDNotificationView title : "Coming soon!"
       # mainView.chatPanel.toggle()
 
+    @on "AnAppHasBeenUpdated", =>
+      link = mainView.sidebar.navController.selectItemByName("Apps").getSubViews()[0]
+      link.emit "AnAppHasBeenUpdated"
+
   loadView:(mainView)->
 
     mainView.mainTabView.on "MainTabPaneShown", (pane)=>
