@@ -7,32 +7,101 @@ ABOUT stylesheet
 app.about.styl
 */
 }
+@keyframes crawl
+  0%
+    vendor       transform, rotateX(50deg) translateZ(0) translateY(700px)
+  100%
+    vendor       transform, rotateX(50deg) translateZ(0) translateY(-14000px)
 
 #about-text
   abs()
-  vendor           perspective, 800
-  vendor           perspective-origin, center 300px
-  top              0
-  left             0
-  z-index          2
-  transition       opacity 1s ease-in
-  opacity          0
+  max-height            400px
+  padding               0 15%
+  top                   0
+  left                  0
+  z-index               2
+  opacity               0
+  transition            opacity 1s ease-in
+  vendor                perspective, 400
+  vendor                perspective-origin, center 80%
+  borderBox()
   &.in
-    opacity        1
+    opacity             1
   .perspective
-    margin         0 auto
-    size           125%, auto
-    max-width      1000px
-    // left           -12.5%
-    color          rgb(245,255,0)
-    text-align     center
-    font-size      36px
-    line-height    72px
-    vendor         animation, crawl 180s ease-out
-    vendor         animation-iteration-count, 1
-    vendor         transform-style, preserve-3d
-    vendor         transform, rotateX(40deg) translateZ(300px) translateY(-7000px)
+    overflow            visible
+    font-family         Ubuntu
+    margin              0 auto
+    size                60%, 100%
+    max-width           1000px
+    color               yellow
+    text-align          justify
+    font-size           18px
+    line-height         27px
+    vendor              animation, crawl 360s linear
+    vendor              animation-iteration-count, 1
+    vendor              transform-style, preserve-3d
+    vendor              transform, rotateX(50deg) translateZ(0) translateY(-14000px)
+    borderBox()
     rel()
+    .wrapper
+      height            10000px
+    h2
+      text-align        center
+      color             linkColor1
+      text-transform    uppercase
+      margin            24px 0
+      font-size         36px
+      line-height       48px
+  > figure
+    abs()
+    top                 0
+    left                0
+    width               100%
+    height              50%
+    z-index             1
+    gradient1           rgba(0,0,0,.6), 50%, rgba(0,0,0,0), 100%
+  
+  .team
+    margin              60px 0
+  
+  .teammember
+    height                  145px
+    color                   #777
+    display                 block
+    font-size               11px
+    margin-bottom           35px
+    overflow                visible
+    p
+      padding               55px 0 0 20px
+      fl()
+    img
+      fl()
+    &:nth-child(2n)
+      text-align            right
+      img
+        fr()
+      p
+        padding             55px 20px 0 0
+        fr()
+
+    a
+      display               block
+      color                 linkColor1
+      font-size             32px
+      noTextDeco()
+
+    strong
+      font-size             14px
+
+    img
+      width                 200px
+      border                8px solid rgba(255, 255, 255, .1)
+      margin-bottom         10px
+      box-sizing            border-box
+  address
+    color                   linkColor1
+    margin                  60px 0
+
 
 .about-overlay
   z-index           1
@@ -44,7 +113,6 @@ app.about.styl
   abs()
   &.in
     opacity         1
-
 
 #about-button
   background            none
@@ -63,196 +131,3 @@ app.about.styl
     border                none
     box-shadow            none
 
-.kdview.about-pane
-  border-bottom           5px solid #ff920
-  height                  auto
-  bg                      image, url(../images/sf2.jpg)
-  bg                      position, center bottom
-  bg                      repeat,no-repeat
-  bg                      size, 100%
-  min-width               400px
-  padding-bottom          400px
-
-  a
-    color                   #ff9200
-    noTextDeco()
-
-
-  .about-page-right
-    abs()
-    width                 30%
-    height                auto
-    top                   0
-    right                 0
-    border-left           1px solid rgba(0, 0, 0, .12)
-    padding               40px 50px
-    borderBox()
-
-  .about-page-left
-    width                 70%
-    padding               40px 50px
-    overflow              visible
-    borderBox()
-
-    h2
-      color                 #111
-      line-height           55px
-      font-size             36px
-      margin                0 0 29px 0
-      padding-left          0
-      size                  auto,auto
-
-    h3
-      color                 #111
-      font-size             24px
-      margin                24px 0
-      size                  auto,auto
-
-      span
-        color                 #FC5C32
-        text-shadow           0 -4px 10px #FED487, 0 0
-        -webkit-text-stroke   1px rgba(255,216,2,0.5)
-
-    p
-      color                   #444
-      font-size               14px
-      max-width               700px
-      margin                  16px 0
-      line-height             1.5
-
-      strong
-        display               block
-        font-weight           700
-
-  .about-page-right
-    h3
-      margin-top              0
-      margin-bottom           24px
-
-    .teammember
-      color                   #777
-      display                 block
-      font-size               11px
-      margin-bottom           35px
-      overflow                visible
-
-      a
-        display               block
-        vendor                transition, color .15s linear
-        &:hover
-          color               #333
-
-      strong
-        font-size             14px
-
-      img
-        width                 100%
-        max-width             200px
-        border                8px solid white
-        box-shadow            0 0 5px rgba(0, 0, 0, 0.17)
-        margin-bottom         10px
-        display               block
-        box-sizing            border-box
-
-
-  .sub-header
-    padding               0px 0px 0px 17px
-    line-height           12px
-    font-size             13px
-    height                27px
-    color                 #4F4F4F
-    border-bottom         1px solid #ECECEC
-    rel()
-    a
-      width               50px
-      display             inline-block
-      margin-right        20px
-      padding-top         7px
-      font-weight         400
-      cursor              pointer
-
-.location-wrapper
-  abs()
-  size                    100%, 400px
-  bottom                  0
-
-  .location
-    rel()
-    display               block
-    border-radius         6px
-    padding               20px
-    width                 60%
-    max-width             700px
-    margin-left           50px
-    color                 white
-    bg                    color,#333
-    borderBox()
-
-    p
-      font-size           13px
-      line-height         25px
-      color               rgba(255, 255, 255, 0.7)
-      &.loc-first
-        margin-top        -4px
-
-      strong
-        color             #fff
-
-    address
-      font-style          normal
-      line-height         25px
-      font-size           13px
-      margin-top          10px
-      font-weight         300
-      strong
-        color             white
-        font-size         14px
-        display           block
-        font-weight       300
-      span.icon
-        bg                position, -530px -120px
-        size              30px, 50px
-        margin            12px 20px 10px 10px
-        opacity           .3
-        sprite()
-
-    a
-      display             inline-block
-      padding-right       24px
-      width               auto
-      &:hover
-        text-decoration   underline
-
-    // &:after
-    //   content             ""
-    //   display             block
-    //   size                20px,30px
-    //   bg                  position,-200px 0
-    //   abs()
-    //   top                 24px
-    //   left                29px
-    //   sprite()
-
-  .first-line
-    height                50px
-    border-right          2px solid #333
-    display               block
-    width                 28%
-
-  .second-line
-    rel()
-    size                  14%, 50px
-    margin                0 0 80px 28%
-    border                2px solid #333
-    border-width          2px 2px 0 0
-    overflow              visible
-    &:after
-      content               ""
-      display               block
-      abs()
-      bottom                -2px
-      right                 -9px
-      size                  0,0
-      border-left           8px solid transparent
-      border-right          8px solid transparent
-      border-top            8px solid #333
