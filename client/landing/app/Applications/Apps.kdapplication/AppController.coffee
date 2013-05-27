@@ -132,7 +132,7 @@ class AppsAppController extends AppController
     {updateAppsButton} = @getView()
     {filterController} = @feedController.facetsController
     filterController.on "NavItemReceivedClick", (item) =>
-      if item.title isnt "Updates" and updateAppsButton.getData().length
+      if item.title isnt "Updates" and updateAppsButton.getData()?
         updateAppsButton.hide()
       else
         updateAppsButton.show()
