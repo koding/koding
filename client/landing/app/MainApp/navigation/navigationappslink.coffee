@@ -22,6 +22,12 @@ class NavigationAppsLink extends KDCustomHTMLView
 
     @getUpdateRequiredAppsCount()
 
+    @on "AnAppHasBeenUpdated", =>
+      return if @counter is 0
+      @counter--
+      return @count.hide() if @counter is 0
+      @count.updatePartial @counter
+
   getUpdateRequiredAppsCount: ->
     appsController = @getSingleton "kodingAppsController"
     appsController.fetchApps (err, apps) =>
