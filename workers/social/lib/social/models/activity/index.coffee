@@ -1,5 +1,7 @@
 jraphical      = require 'jraphical'
 
+Graph          = require "../graph/graph"
+
 neo4jhelper = require '../neo4jhelper'
 KodingError = require '../../error'
 
@@ -301,7 +303,8 @@ module.exports = class CActivity extends jraphical.Capsule
              "LIMIT #{limit}"
             ])
     query = query.join('\n')
-    neo4jhelper.fetchFromNeo4j(query, options, callback)
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchFromNeo4j(query, options, callback)
 
   @fetchFolloweeContents: secure ({connection:{delegate}}, options, callback)->
     userId = delegate.getId()
@@ -329,7 +332,8 @@ module.exports = class CActivity extends jraphical.Capsule
              "LIMIT #{limit}"
             ])
     query = query.join('\n')
-    neo4jhelper.fetchFromNeo4j(query, options, callback)
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchFromNeo4j(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

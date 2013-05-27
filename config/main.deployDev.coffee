@@ -34,7 +34,8 @@ module.exports =
     port        : 1337
   mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
   neo4j         :
-    host        : "http://kgraphdb1.in.koding.com"
+    read        : "http://neo4j-dev.in.koding.com"
+    write       : "http://neo4j-dev.in.koding.com"
     port        : 7474
   runNeo4jFeeder: no
   runGoBroker   : no
@@ -106,6 +107,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
       useNeo4j: no
       resourceName: socialQueueName
       suppressLogs: no

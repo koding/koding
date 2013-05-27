@@ -93,13 +93,7 @@ class ProfileView extends JView
     else
       @trollSwitch = new KDCustomHTMLView
 
-  click:(event)->
-
-    $trg = $(event.target)
-    more = "span.collapsedtext a.more-link"
-    less = "span.collapsedtext a.less-link"
-    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
-    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+  click: KD.utils.showMoreClickHandler
 
   putNick:(nick)-> "@#{nick}"
 

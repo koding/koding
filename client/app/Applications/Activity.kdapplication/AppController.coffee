@@ -19,7 +19,7 @@ class ActivityAppController extends AppController
   @clearQuotes = clearQuotes = (activities)->
 
     return activities = for activityId, activity of activities
-      activity.snapshot = activity.snapshot?.replace /&quot;/g, '"'
+      activity.snapshot = activity.snapshot?.replace /&quot;/g, '\\\"'
       activity
 
   constructor:(options={})->
@@ -329,22 +329,17 @@ class ActivityAppController extends AppController
           callback null, cache
 
   continueLoadingTeasers:->
-    return  if @isLoading
-
-    # GUARD, if we loaded the teasers, for this timestamp dont reload
-    # the same activities again and again and again....
+    # fix me
+    # this is a monkeypatch
+    # find the original problem and get rid of @continueLoadingTeasersLastTimeStamp
+    # and isNaN - SY
     lastTimeStamp = (new Date @lastFrom).getTime()
-    if @continueLoadingTeasersLastTimeStamp is lastTimeStamp
+    if isNaN(lastTimeStamp) or @continueLoadingTeasersLastTimeStamp is lastTimeStamp
+      @listController.hideLazyLoader()
       return
 
     @continueLoadingTeasersLastTimeStamp = lastTimeStamp
-
-    # HACK: this gets called multiple times if there's no wait
-    KD.utils.wait 1000, =>
-      return  unless @lastFrom?
-
-      lastTimeStamp = (new Date @lastFrom).getTime()
-      @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
 
   teasersLoaded:->
     # the page structure has changed

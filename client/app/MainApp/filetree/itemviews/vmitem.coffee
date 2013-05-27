@@ -14,6 +14,12 @@ class NVMItemView extends NFileItemView
       delegate : @
       click    : @bound "createRootContextMenu"
 
+    vmName = if data.vmName is KD.nick() then "Koding" else data.vmName
+    @vmInfo = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'vm-info'
+      partial  : "on <strong>#{vmName}</strong> VM"
+
   createRootContextMenu:->
     offset = @changePathButton.$().offset()
     finder = KD.getSingleton('finderController')
@@ -39,16 +45,19 @@ class NVMItemView extends NFileItemView
       parents.push "/#{path}"
     parents.reverse()
 
-    for path in parents
+    vm = @getData().vmName
+    parents.forEach (path)=>
       contextMenu.treeController.addNode
         title    : path
-        callback : finder.createRootStructure.bind finder, path, \
-                   contextMenu.bound("destroy")
+        callback : ->
+          finder.updateVMRoot vm, path, contextMenu.bound("destroy")
 
     contextMenu.positionContextMenu()
     contextMenu.treeController.selectFirstNode()
 
-  checkVMState:(err, info)->
+  checkVMState:(err, vm, info)->
+    return unless vm is @getData().vmName
+
     if err or not info
       @unsetClass 'online'
       # @vmToggle.setDefaultValue no
@@ -65,7 +74,7 @@ class NVMItemView extends NFileItemView
 
   viewAppended:->
     super
-    @vm.info @bound 'checkVMState'
+    @vm.info @getData().vmName, @bound 'checkVMState'
 
   pistachio:->
 
@@ -74,5 +83,6 @@ class NVMItemView extends NFileItemView
       {{> @loader}}
       {span.title{ #(name)}}
       {{> @changePathButton}}
+      {{> @vmInfo}}
       <span class='chevron'></span>
     """

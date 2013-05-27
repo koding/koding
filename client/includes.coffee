@@ -534,6 +534,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsbundleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
@@ -640,8 +641,6 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsPaymentHistory.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsPaymentMethods.coffee",
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
-  "app/Applications/Account.kdapplication/account/accKiteList.coffee",
-  "app/Applications/Account.kdapplication/account/accMyKiteList.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
   # CONTENT DISPLAY VIEWS

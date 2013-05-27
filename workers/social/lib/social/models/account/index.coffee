@@ -27,6 +27,8 @@ module.exports = class JAccount extends jraphical.Module
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
+  {permit} = require '../group/permissionset'
+
   @share()
   Experience =
     company           : String
@@ -114,7 +116,7 @@ module.exports = class JAccount extends jraphical.Module
               customType      :
                 type          : String
                 default       : 'defaultImage'
-                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
               customValue     :
                 type          : String
                 default       : '1'
@@ -603,7 +605,7 @@ module.exports = class JAccount extends jraphical.Module
             return yes
     no
 
-  isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
+  isDummyAdmin = (nickname)-> !!(nickname in dummyAdmins)
 
   @getFlagRole =-> 'owner'
 
@@ -943,3 +945,32 @@ module.exports = class JAccount extends jraphical.Module
       query = query.join('\n')
       options['resultsKey'] = 'followers'
       neo4jhelper.fetchFromNeo4j(query, options, callback)
+
+  @byRelevance$ = permit 'list members',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
+
+  fetchMyPermissions: secure (client, callback)->
+    @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
+      callback err, permissions
+
+  fetchMyPermissionsAndRoles: secure (client, callback)->
+    JGroup = require '../group'
+
+    slug = client.context.group ? 'koding'
+    JGroup.one {slug}, (err, group)=>
+      return callback err  if err
+      group.fetchPermissionSet (err, permissionSet)=>
+        return callback err  if err
+        cb = (err, roles)=>
+          return callback err  if err
+          perms = (perm.permissions.slice()\
+                  for perm in permissionSet.permissions\
+                  when perm.role in roles)
+          {flatten} = require 'underscore'
+          callback null, flatten(perms), roles
+
+        if this instanceof JAccount
+          group.fetchMyRoles client, cb
+        else
+          cb null, ['guest']

@@ -121,11 +121,11 @@ class PermissionsModal extends KDFormViewWithFields
 
   readableText = (text)->
     dictionary =
-      "JTag" : "Tags"
-      "JGroup": 'Groups'
-      "JPost":'Posts'
-      "JVocabulary": 'Vocabularies'
-      "JVM": "Compute"
+      "JTag"        : "Tags"
+      "JGroup"      : 'Groups'
+      "JPost"       :'Posts'
+      "JVocabulary" : 'Vocabularies'
+      "JVM"         : "Compute"
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->
@@ -152,8 +152,8 @@ class PermissionsModal extends KDFormViewWithFields
     cascadeData[current]= {
       name
       cssClass
-      itemClass: KDCheckBox
-      defaultValue: isChecked ? no
+      itemClass    : KDCheckBox
+      defaultValue : isChecked ? no
     }
 
     if current in ['admin','owner']
@@ -224,9 +224,7 @@ class PermissionsModal extends KDFormViewWithFields
   createReducedList =(values)->
     cache = {}
     values.reduce (acc, {module, role, permission})->
-      storageKey = module+':'+role
-
-      console.log {storageKey}
+      storageKey = "#{module}:#{role}"
       cached = cache[storageKey]
       if cached?
         cached.permissions.push permission
