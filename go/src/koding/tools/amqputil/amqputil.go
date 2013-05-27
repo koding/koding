@@ -5,7 +5,6 @@ import (
 	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/log"
-	"os"
 	"strings"
 )
 
@@ -20,13 +19,13 @@ func CreateConnection(component string) *amqp.Connection {
 	}.String())
 	if err != nil {
 		log.LogError(err, 0)
-		os.Exit(1)
+		log.SendLogsAndExit(1)
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
 			log.Err("AMQP connection: " + err.Error())
-			os.Exit(1)
+			log.SendLogsAndExit(1)
 		}
 	}()
 
