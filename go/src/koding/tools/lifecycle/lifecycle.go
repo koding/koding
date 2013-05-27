@@ -40,7 +40,7 @@ func CreateClientsGauge() func(int) {
 			*value += diff
 			if ShuttingDown && *value == 0 {
 				log.Info("Shutdown complete. Terminating.")
-				os.Exit(0)
+				log.SendLogsAndExit(0)
 			}
 		}
 	}
