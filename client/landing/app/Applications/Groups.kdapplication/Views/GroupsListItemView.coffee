@@ -144,7 +144,7 @@ class GroupsListItemView extends KDListItemView
       @memberBadge.updatePartial "<span class='fold'/>You are an admin"
 
   applyTextExpansions:(body)->
-    if body.length > 800
+    if body?.length > 800
       @utils.applyTextExpansions body, yes
     else body
 
