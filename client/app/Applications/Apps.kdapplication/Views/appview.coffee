@@ -170,9 +170,10 @@ class AppView extends KDView
         @openButton.show()
 
       appName = app.manifest.name
-      if appsController.isAppUpdateAvailable appName, manifests[appName]?.version
-        @updateButton.show()
+      version = manifests?[appName]?.version # strange, but it's not working with { ... }
 
+      if version and appsController.isAppUpdateAvailable appName, version
+        @updateButton.show()
 
     {icns, name, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
