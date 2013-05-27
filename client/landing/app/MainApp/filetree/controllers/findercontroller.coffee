@@ -26,14 +26,13 @@ class NFinderController extends KDViewController
 
     if options.useStorage
 
-      @treeController.on "file.opened", (file)=>
-        @setRecentFile file.path
+      @treeController.on "file.opened", @bound 'setRecentFile'
 
-      @treeController.on "folder.expanded", (folder)=>
-        @setRecentFolder folder.path
+      # @treeController.on "folder.expanded", (folder)=>
+      #   @setRecentFolder folder.path
 
       @treeController.on "folder.collapsed", ({path})=>
-        @unsetRecentFolder path
+        # @unsetRecentFolder path
         @stopWatching path
 
   watchers: {}
@@ -46,7 +45,7 @@ class NFinderController extends KDViewController
     @watchers = {}
 
   stopWatching:(pathToStop)->
-    for path, watcher of @watchers  when ///^#{pathToStop}///.test path
+    for path, watcher of @watchers  when (path.indexOf pathToStop) is 0
       watcher.stop()
       delete @watchers[path]
 
@@ -61,103 +60,110 @@ class NFinderController extends KDViewController
     @utils.wait 2500, =>
       @getSingleton("mainView").sidebar._windowDidResize()
 
-  resetInitialPath:->
-    {nickname}   = KD.whoami().profile
-    initialPath  = "/Sites/#{nickname}.koding.com/website"
-    @initialPath = @expandInitialPath initialPath
-
   reset:->
     if @getOptions().useStorage
       @appStorage = @getSingleton('mainController').\
                       getAppStorageSingleton 'Finder', '1.0'
-      @appStorage.once "storageFetched", => @createRootStructure()
+      @appStorage.once "storageFetched", @bound 'loadVms'
     else
-      @createRootStructure()
+      @loadVms()
 
-  createRootStructure:(path, callback)->
-    {nickname} = KD.whoami().profile
+  loadVms:(vmNames, callback)->
+    mountVms = (vms)=>
+      unless Array.isArray vms
+        return callback? "vmNames should be an Array"
+      @cleanup()
+      @mountVm vm  for vm in vms
+      callback?()
 
-    path ?= "/home/#{nickname}"
-    FSHelper.resetRegistry()
+    if vmNames then mountVms vmNames
+    else KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
+      return callback? err  if err
+      if not vms or vms.length is 0
+        vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
+      mountVms vms
 
-    @mount = FSHelper.createFile
-      name : path
-      path : path
-      type : "vm"
+  getVmNode:(vmName)->
+    return null  unless vmName
+    for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
+      return vmItem  if vmItem.data.vmName is vmName
 
-    @defaultStructureLoaded = no
-    @treeController.initTree [@mount]
-    @loadDefaultStructure()
-    callback?()
-
-  loadDefaultStructure:->
-
-    return if @defaultStructureLoaded
+  mountVm:(vm, fetchContent = yes)->
     return unless KD.isLoggedIn()
+    return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
-    @defaultStructureLoaded = yes
-    kiteController          = KD.getSingleton('kiteController')
+    [vmName, path] = vm.split ":"
+    path or= "/home/#{KD.nick()}"
 
-    timer = Date.now()
-    @mount.emit "fs.job.started"
+    if vmItem = @getVmNode vmName
+      return warn "VM #{vmName} is already mounted!"
+
+    @vms.push FSHelper.createFile
+      name   : "#{path}"
+      path   : "[#{vmName}]#{path}"
+      type   : "vm"
+      vmName : vmName
+
+    @treeController.addNode @vms.last
+
+    vmItem = @getVmNode vmName
+    @treeController.expandFolder vmItem  if fetchContent and vmItem
+
+  unmountVm:(vmName)->
+    return unless KD.isLoggedIn()
+    return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+
+    if vmItem
+      @stopWatching vmItem.data.path
+      FSHelper.deregisterVmFiles vmName
+      @treeController.removeNodeView vmItem
+      @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
+
+  updateVMRoot:(vmName, path, callback)->
+    return warn 'VM name and new path required!'  unless vmName or path
+
+    @unmountVm vmName
+    callback?()
+    @mountVm "#{vmName}:#{path}"
+
+  cleanup:->
+    @treeController.removeAllNodes()
+    FSHelper.resetRegistry()
     @stopAllWatchers()
+    @vms = []
 
-    {nickname} = KD.whoami().profile
-    kiteController.run
-      method     : 'fs.readDirectory'
-      withArgs   :
-        onChange : (change)=>
-          FSHelper.folderOnChange @mount.path, change, @treeController
-        path     : @mount.path
-    , (err, response)=>
-
-      if response
-        @mount.registerWatcher response
-        files = FSHelper.parseWatcher @mount.path, response.files
-        @treeController.addNodes files
-        @treeController.emit 'fs.retry.success'
-        @treeController.hideNotification()
-
-      log "#{(Date.now()-timer)/1000}sec !"
-      @mount.emit "fs.job.finished"
-
-  setRecentFile:(filePath, callback)->
+  setRecentFile:({path})->
 
     recentFiles = @appStorage.getValue('recentFiles')
     recentFiles = [] unless Array.isArray recentFiles
 
-    unless filePath in recentFiles
+    unless path in recentFiles
       if recentFiles.length is @treeController.getOptions().maxRecentFiles
         recentFiles.pop()
-      recentFiles.unshift filePath
+      recentFiles.unshift path
 
     @appStorage.setValue 'recentFiles', recentFiles.slice(0,10), =>
       @emit 'recentfiles.updated', recentFiles
 
-  setRecentFolder:(folderPath, callback)->
+  # FIXME Recent Folders support ~ GG
 
-    recentFolders = @appStorage.getValue('recentFolders')
-    recentFolders = [] unless Array.isArray recentFolders
+  # setRecentFolder:(folderPath, callback)->
+  #   recentFolders = @appStorage.getValue('recentFolders')
+  #   recentFolders = [] unless Array.isArray recentFolders
+  #   unless folderPath in recentFolders
+  #     recentFolders.push folderPath
+  #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
+  #   @appStorage.setValue 'recentFolders', recentFolders, callback
 
-    unless folderPath in recentFolders
-      recentFolders.push folderPath
-
-    recentFolders.sort (path)-> if path is folderPath then -1 else 0
-
-    @appStorage.setValue 'recentFolders', recentFolders, callback
-
-  unsetRecentFolder:(folderPath, callback)->
-
-    recentFolders = @appStorage.getValue('recentFolders')
-    recentFolders = [] unless Array.isArray recentFolders
-
-    splicer = ->
-      recentFolders.forEach (recentFolderPath)->
-        if recentFolderPath.search(folderPath) > -1
-          recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
-          splicer()
-          return
-    splicer()
-
-    recentFolders.sort (path)-> if path is folderPath then -1 else 0
-    @appStorage.setValue 'recentFolders', recentFolders, callback
+  # unsetRecentFolder:(folderPath, callback)->
+  #   recentFolders = @appStorage.getValue('recentFolders')
+  #   recentFolders = [] unless Array.isArray recentFolders
+  #   splicer = ->
+  #     recentFolders.forEach (recentFolderPath)->
+  #       if recentFolderPath.search(folderPath) > -1
+  #         recentFolders.splice recentFolders.indexOf(recentFolderPath), 1
+  #         splicer()
+  #         return
+  #   splicer()
+  #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
+  #   @appStorage.setValue 'recentFolders', recentFolders, callback
