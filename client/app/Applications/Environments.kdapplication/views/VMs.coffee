@@ -14,6 +14,8 @@ class VMMainView extends JView
         itemClass         : VMListItemView
 
     @vmListView = @vmListController.getView()
+    @vmListView.on "Clicked", (data)->
+      @getVMInfo data.name
 
     @splitView = new KDSplitView
       type      : 'vertical'
@@ -22,6 +24,14 @@ class VMMainView extends JView
       views     : [@vmListView, null]
 
     @loadItems()
+
+  getVMInfo:(vmName, callback)->
+    kc = KD.singletons.kiteController
+    kc.run
+      kiteName: 'os',
+      vmName: vmName,
+      method: 'vm.info'
+    , callback
 
   loadItems:->
     @vmListController.removeAllItems()
@@ -32,15 +42,22 @@ class VMMainView extends JView
         @vmListController.hideLazyLoader()
       else
         stack = []
-        vms.forEach (name)->
-          stack.push (cb)->
-            setTimeout ->
+        vms.forEach (name)=>
+          stack.push (cb)=>
+
+            @getVMInfo name, (err, info)->
+              if err or info.state != 'RUNNING'
+                status = 'off'
+              else
+                status = 'on'
+
               cb null, {
                 name   : name
                 group  : 'Koding'
                 domain : 'bahadir.kd.io'
+                type   : 'personal'
+                status : status
               }
-            , 3 * 1000
 
         async.parallel stack, (err, results)=>
           @vmListController.hideLazyLoader()
@@ -55,13 +72,18 @@ class VMMainView extends JView
 class VMListItemView extends KDListItemView
   constructor: (options, data) ->
     options.cssClass or= "vm-item"
+    options.click = @bound "clicked"
     super options, data
 
-  partial: =>
+  clicked: (event)->
+    @getDelegate().emit "Clicked", @getData()
+
+  partial: ->
     data = @getData()
     """
     <div>
-      <span class="vm-icon personal"></span>
+      <span class="vm-icon #{data.type}"></span>
+      <span class="vm-status #{data.status}"></span>
       <span class="vm-title">
         #{data.name} - #{data.group}
       </span>
