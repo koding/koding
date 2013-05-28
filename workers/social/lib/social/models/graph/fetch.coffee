@@ -6,9 +6,12 @@ module.exports = class FetchAllActivityParallel
   Graph          = require "./graph"
   GraphDecorator = require "./graph_decorator"
 
-  constructor:(startDate, neo4j)->
+  constructor:(requestOptions)->
+    {startDate, neo4j, group} = requestOptions
+
+    @graph = new Graph {config : neo4j}
     @startDate            = startDate
-    @neo4j                = neo4j
+    @group                = group
     @randomIdToOriginal   = {}
     @usedIds              = {}
     @cacheObjects         = {}
@@ -23,32 +26,27 @@ module.exports = class FetchAllActivityParallel
       callback @decorateAll(err, results)
 
   fetchSingles:(callback)->
-    graph = new Graph @neo4j
-    graph.fetchAll @startDate, (err, rawResponse=[])->
+    @graph.fetchAll @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchTagFollows: (callback)->
-    graph = new Graph @neo4j
-    graph.fetchTagFollows @startDate, (err, rawResponse=[])->
+    @graph.fetchTagFollows @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchMemberFollows: (callback)->
-    graph = new Graph @neo4j
-    graph.fetchMemberFollows @startDate, (err, rawResponse=[])->
+    @graph.fetchMemberFollows @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchInstalls: (callback)->
-    graph = new Graph @neo4j
-    graph.fetchNewInstalledApps @startDate, (err, rawResponse=[])->
+    @graph.fetchNewInstalledApps @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchNewMembers: (callback)->
-    graph = new Graph @neo4j
-    graph.fetchNewMembers @startDate, (err, rawResponse=[])->
+    @graph.fetchNewMembers @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
@@ -86,12 +84,12 @@ module.exports = class FetchAllActivityParallel
 
     return {}  if overview.length is 0
 
-    overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
 
     # TODO: we're throwing away results if more than 20, ideally we'll only
     # get the right number of results
     overview = overview[-20..overview.length]
 
+    overview = _.sortBy(overview, (activity)-> activity.createdAt.first)
     allTimes = _.map(overview, (activity)-> activity.createdAt)
     allTimes = _.flatten allTimes
     sortedAllTimes = _.sortBy(allTimes, (activity)-> activity)
