@@ -1,8 +1,8 @@
 class CommonInnerNavigation extends KDView
 
-  constructor:(options={}, data)->
+  constructor:(options = {}, data)->
 
-    options.cssClass or= "common-inner-nav"
+    options.cssClass = KD.utils.curryCssClass "common-inner-nav", options.cssClass
     super options, data
 
   setListController:(options,data,isSorter = no)->
