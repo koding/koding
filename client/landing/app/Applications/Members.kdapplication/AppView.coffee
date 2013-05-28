@@ -203,17 +203,22 @@ class MemberFollowToggleButton extends KDToggleButton
 
     super options, data
 
-    unless @getData().followee?
+    decorator = (following)=>
+      if @getData().followee
+        @setClass 'following-btn'
+        @setState "Unfollow"
+      else
+        @setState "Follow"
+        @unsetClass 'following-btn'
+
+    if @getData().followee?
+      decorator @getData().followee
+    else
       KD.whoami().isFollowing? @getData().getId(), "JAccount", \
         (err, following) =>
           @getData().followee = following
           warn err  if err and KD.isLoggedIn()
-          if @getData().followee
-            @setClass 'following-btn'
-            @setState "Unfollow"
-          else
-            @setState "Follow"
-            @unsetClass 'following-btn'
+          decorator following
 
   decorateState:(name)->
 
