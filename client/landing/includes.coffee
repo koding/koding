@@ -507,6 +507,12 @@ module.exports = [
   "app/Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee",
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
+  # VMs
+  "app/Applications/Environments.kdapplication/views/VMs.coffee",
+  "app/Applications/Environments.kdapplication/views/Domains.coffee",
+  "app/Applications/Environments.kdapplication/AppView.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
+
   # GROUPS
 
   # groups controllers
@@ -734,6 +740,7 @@ module.exports = [
   "stylus/app.group.summary.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
+  "stylus/app.vm.styl",
   "stylus/temp.styl",
   # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",
