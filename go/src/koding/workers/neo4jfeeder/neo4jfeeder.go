@@ -39,7 +39,7 @@ func jsonDecode(data string) (*Message, error) {
 	source := &Message{}
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		fmt.Println("Marshalling error:", err)
+		log.Println("Marshalling error:", err)
 		return source, err
 	}
 
@@ -86,7 +86,7 @@ func startConsuming() {
 			}
 			data := message.Payload[0]
 
-			fmt.Println(message.Event)
+			log.Println(message.Event)
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
 			} else if message.Event == "RelationshipRemoved" {
@@ -129,12 +129,12 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range notAllowedNames {
 		if name == sourceName {
-			fmt.Println("not eligible " + sourceName)
+			log.Println("not eligible " + sourceName)
 			return false
 		}
 
 		if name == targetName {
-			fmt.Println("not eligible " + targetName)
+			log.Println("not eligible " + targetName)
 			return false
 		}
 	}
@@ -142,12 +142,12 @@ func checkIfEligible(sourceName, targetName string) bool {
 	for _, name := range notAllowedSuffixes {
 
 		if strings.HasSuffix(sourceName, name) {
-			fmt.Println("not eligible " + sourceName)
+			log.Println("not eligible " + sourceName)
 			return false
 		}
 
 		if strings.HasSuffix(targetName, name) {
-			fmt.Println("not eligible " + targetName)
+			log.Println("not eligible " + targetName)
 			return false
 		}
 
@@ -172,7 +172,7 @@ func createNode(data map[string]interface{}) {
 
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	} else {
 		neo4j.UpdateNode(sourceId, sourceContent)
 	}
@@ -180,7 +180,7 @@ func createNode(data map[string]interface{}) {
 	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
 	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	} else {
 		neo4j.UpdateNode(targetId, targetContent)
 	}
@@ -204,7 +204,7 @@ func createNode(data map[string]interface{}) {
 
 		neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
 	} else {
-		fmt.Println("id is not in correct format")
+		log.Println("id is not in correct format")
 	}
 
 }
@@ -225,9 +225,9 @@ func deleteRelationship(data map[string]interface{}) {
 
 	result := neo4j.DeleteRelationship(sourceId, targetId, as)
 	if result {
-		fmt.Println("Relationship deleted")
+		log.Println("Relationship deleted")
 	} else {
-		fmt.Println("Relationship couldnt be deleted")
+		log.Println("Relationship couldnt be deleted")
 	}
 }
 
@@ -253,7 +253,7 @@ func updateNode(data map[string]interface{}) {
 	neo4j.CreateUniqueNode(sourceId, sourceName)
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	} else {
 		neo4j.UpdateNode(sourceId, sourceContent)
 	}

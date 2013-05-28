@@ -97,7 +97,7 @@ class MainTabView extends KDTabView
     o.cssClass = @utils.curryCssClass "content-area-pane", options.cssClass
     o.class  or= KDView
 
-    # this is a temporary hack
+    # adding a domId is a temporary hack
     # for reviving the main tabs
     # a better solution tbdl - SY
 
@@ -106,6 +106,7 @@ class MainTabView extends KDTabView
     o.name          = options.name
     o.behavior      = options.behavior
     o.hiddenHandle  = options.hiddenHandle
+    o.view          = mainView
     paneInstance    = new MainTabPane o
 
     paneInstance.once "viewAppended", =>
@@ -121,7 +122,7 @@ class MainTabView extends KDTabView
   applicationPaneReady: (pane, mainView) ->
     if pane.getOption("behavior") is "application"
       mainView.setClass 'application-page'
-    pane.setMainView mainView
+
     mainView.on "KDObjectWillBeDestroyed", @removePane.bind this, pane
 
   rearrangeVisibleHandlesArray:->

@@ -26,12 +26,13 @@ class ActivityAppView extends KDScrollView
     @mainController.on "JoinedGroup", => @widget.show()
     @mainController.on "NavigationLinkTitleClick", @bound "navigateHome"
 
-    do =>
-      bindChangePage = => @on 'scroll', @bound "changePageToActivity"
-      if KD.isLoggedIn()
-      then do bindChangePage
-      else @mainController.once "AccountChanged", bindChangePage
+    # do =>
+    #   bindChangePage = => @on 'scroll', @bound "changePageToActivity"
+    #   if KD.isLoggedIn()
+    #   then do bindChangePage
+    #   else @mainController.once "AccountChanged", bindChangePage
 
+    @on 'scroll', @bound "changePageToActivity"
     @header.bindTransitionEnd()
 
     @decorate()
@@ -68,12 +69,13 @@ class ActivityAppView extends KDScrollView
 
   changePageToActivity:(event)->
 
-    if not @$().hasClass("fixed") and @getScrollTop() > headerHeight
+    if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
       {navController} = @mainController.sidebarController.getView()
       navController.selectItemByName 'Activity'
       @setClass "fixed"
       @header.once "transitionend", @header.bound "hide"
       @header.$().css marginTop : -headerHeight
+      @getSingleton('mainViewController').emit "browseRequested"
 
 
   navigateHome:(itemData)->
@@ -83,9 +85,9 @@ class ActivityAppView extends KDScrollView
         @header.show()
         @header._windowDidResize()
         @scrollTo {duration : 300, top : 0}, =>
-          if KD.isLoggedIn()
-            @unsetClass "fixed"
-            @header.$().css marginTop : 0
+          # if KD.isLoggedIn()
+          @unsetClass "fixed"
+          @header.$().css marginTop : 0
       when "Activity"
         if KD.isLoggedIn()
           @header.once "transitionend", =>
@@ -96,7 +98,7 @@ class ActivityAppView extends KDScrollView
           @scrollTo {duration : 300, top : @header.getHeight()}
 
   _windowDidResize:->
-
+    return unless @header
     headerHeight = @header.getHeight()
     @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
 

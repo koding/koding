@@ -76,6 +76,10 @@ class NFinderTreeController extends JTreeViewController
     {vmName} = nodeView.data
     KD.getSingleton('finderController').unmountVm vmName
 
+  openVmTerminal:(nodeView)->
+    {vmName} = nodeView.data
+    appManager.open "WebTerm", params: {vmName}, forceNew: yes
+
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
     finder = KD.getSingleton 'finderController'
@@ -463,33 +467,34 @@ class NFinderTreeController extends JTreeViewController
   CONTEXT MENU OPERATIONS
   ###
 
-  cmExpand:       (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
-  cmCollapse:     (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
-  cmMakeTopFolder:(nodeView, contextMenuItem)-> @makeTopFolder nodeView
-  cmRefresh:      (nodeView, contextMenuItem)-> @refreshFolder nodeView
-  cmResetVm:      (nodeView, contextMenuItem)-> @resetVm nodeView
-  cmUnmountVm:    (nodeView, contextMenuItem)-> @unmountVm nodeView
-  cmCreateFile:   (nodeView, contextMenuItem)-> @createFile nodeView
-  cmCreateFolder: (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
-  cmRename:       (nodeView, contextMenuItem)-> @showRenameDialog nodeView
-  cmDelete:       (nodeView, contextMenuItem)-> @confirmDelete nodeView
-  cmDuplicate:    (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
-  cmExtract:      (nodeView, contextMenuItem)-> @extractFiles nodeView
-  cmZip:          (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
-  cmTarball:      (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:       (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmDownload:     (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmGitHubClone:  (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmOpenFile:     (nodeView, contextMenuItem)-> @openFile nodeView
-  cmPreviewFile:  (nodeView, contextMenuItem)-> @previewFile nodeView
-  cmCompile:      (nodeView, contextMenuItem)-> @compileApp nodeView
-  cmRunApp:       (nodeView, contextMenuItem)-> @runApp nodeView
-  cmMakeNewApp:   (nodeView, contextMenuItem)-> @makeNewApp nodeView
-  cmDownloadApp:  (nodeView, contextMenuItem)-> @downloadAppSource nodeView
-  cmCloneRepo:    (nodeView, contextMenuItem)-> @cloneRepo nodeView
-  cmPublish:      (nodeView, contextMenuItem)-> @publishApp nodeView
-  cmCodeShare:    (nodeView, contextMenuItem)-> @createCodeShare nodeView
-  cmOpenTerminal: (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
+  cmExpand:        (nodeView, contextMenuItem)-> @expandFolder node for node in @selectedNodes
+  cmCollapse:      (nodeView, contextMenuItem)-> @collapseFolder node for node in @selectedNodes # error fix this
+  cmMakeTopFolder: (nodeView, contextMenuItem)-> @makeTopFolder nodeView
+  cmRefresh:       (nodeView, contextMenuItem)-> @refreshFolder nodeView
+  cmResetVm:       (nodeView, contextMenuItem)-> @resetVm nodeView
+  cmUnmountVm:     (nodeView, contextMenuItem)-> @unmountVm nodeView
+  cmOpenVmTerminal:(nodeView, contextMenuItem)-> @openVmTerminal nodeView
+  cmCreateFile:    (nodeView, contextMenuItem)-> @createFile nodeView
+  cmCreateFolder:  (nodeView, contextMenuItem)-> @createFile nodeView, "folder"
+  cmRename:        (nodeView, contextMenuItem)-> @showRenameDialog nodeView
+  cmDelete:        (nodeView, contextMenuItem)-> @confirmDelete nodeView
+  cmDuplicate:     (nodeView, contextMenuItem)-> @duplicateFiles @selectedNodes
+  cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
+  cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
+  cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
+  cmUpload:        (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmDownload:      (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmGitHubClone:   (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
+  cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
+  cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
+  cmRunApp:        (nodeView, contextMenuItem)-> @runApp nodeView
+  cmMakeNewApp:    (nodeView, contextMenuItem)-> @makeNewApp nodeView
+  cmDownloadApp:   (nodeView, contextMenuItem)-> @downloadAppSource nodeView
+  cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
+  cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
+  cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
+  cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
 
