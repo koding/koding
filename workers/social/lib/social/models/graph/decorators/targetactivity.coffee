@@ -1,4 +1,4 @@
-module.exports = class TargetActivityDecorator
+module.exports = class target_activityDecorator
   constructor:(@datum, @targetName, @groupByName, @activityName)->
     @target   = @datum[@targetName].first
     @groupBy  = @datum[@groupByName].first

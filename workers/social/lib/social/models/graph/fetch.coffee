@@ -4,7 +4,7 @@ module.exports = class FetchAllActivityParallel
   _              = require "underscore"
   async          = require "async"
   Graph          = require "./graph"
-  GraphDecorator = require "./graph_decorator"
+  GraphDecorator = require "./graphdecorator"
 
   constructor:(requestOptions)->
     {startDate, neo4j, group} = requestOptions
