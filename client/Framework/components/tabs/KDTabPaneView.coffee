@@ -48,5 +48,7 @@ class KDTabPaneView extends KDView
 
     {itemClass, options, data} = view
     @mainView = @addSubView if itemClass then new itemClass options, data else view
+    @emit "KDTabPaneLazyViewAdded", @mainView
+    return @mainView
 
   getMainView:-> @mainView
