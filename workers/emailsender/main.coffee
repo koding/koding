@@ -50,25 +50,32 @@ htmlify = (content)->
       .replace emailAddressPattern, "<a #{template.linkStyle} target='_blank' href='mailto:$1'>$1</a>"
 
 sendEmail = (emailContent)->
-  {from, replyto, email, subject, content} = emailContent
-  email     = emailWorker.defaultRecepient or email
-  Emailer.send
-    From      : from
-    To        : email
-    Subject   : subject or "[Koding] Notification"
-    HtmlBody  : template.htmlTemplate htmlify content
-    TextBody  : template.textTemplate content
-    ReplyTo   : replyto
-  , (err, status)->
-    dateAttempted = new Date()
-    status        = 'attempted'
-    unless err then log "An e-mail sent to #{email}"
-    else
-      log "An error occured: #{err}"
-      status = 'failed'
+  {from, replyto, email, subject, content, unsubscribeId} = emailContent
 
-    emailContent.update $set: {status, dateAttempted}, (err)->
-      console.error err if err
+  emailContent.isUnsubscribed (err, unsubscribed)->
+    if err or unsubscribed
+      console.error err  if err
+      return emailContent.update $set: {status: 'unsubscribed'}, (err)->
+        console.error err  if err
+
+    email     = emailWorker.defaultRecepient or email
+    Emailer.send
+      From      : from
+      To        : email
+      Subject   : subject or "[Koding] Notification"
+      HtmlBody  : template.htmlTemplate htmlify(content), unsubscribeId
+      TextBody  : template.textTemplate content, unsubscribeId
+      ReplyTo   : replyto
+    , (err, status)->
+      dateAttempted = new Date()
+      status        = 'attempted'
+      unless err then log "An e-mail sent to #{email}"
+      else
+        log "An error occured: #{err}"
+        status = 'failed'
+
+      emailContent.update $set: {status, dateAttempted}, (err)->
+        console.error err if err
 
 emailSender = ->
   {JMail} = worker.models

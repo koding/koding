@@ -1,6 +1,7 @@
 {Model} = require 'bongo'
 
-# TODO Implement a global unsubscribe for all e-mails
+createId = require 'hat'
+getUniqueId= -> createId 256
 
 module.exports = class JMail extends Model
 
@@ -9,8 +10,8 @@ module.exports = class JMail extends Model
   @set
     indexes          :
       status         : 'sparse'
-    # sharedMethods    :
-    #   static         : ['unsubscribeWithId']
+    sharedMethods    :
+      static         : ['unsubscribeWithId']
     schema           :
       dateIssued     :
         type         : Date
@@ -30,8 +31,29 @@ module.exports = class JMail extends Model
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted',
-                                           'sending', 'failed']]
+        enum         : ['Invalid status', ['queued', 'attempted', 'sending', 
+                                           'failed', 'unsubscribed']]
       subject        : String
       content        : String
-      # unsubscribeId  : String
+      unsubscribeId  : String
+
+  save:(callback)->
+    @unsubscribeId = getUniqueId()+''  unless @_id?
+    super
+
+  isUnsubscribed:(callback)->
+    JUnsubscribedMail = require './unsubscribedmail'
+    JUnsubscribedMail.isUnsubscribed @email, callback
+
+  @unsubscribeWithId = (unsubscribeId, opt, callback)->
+    JMail.one {unsubscribeId}, (err, mail)->
+      return callback err  if err or not mail
+
+      selector = {email: mail.email}
+      JUnsubscribedMail = require './unsubscribedmail'
+      JUnsubscribedMail.one selector, (err, unsubscribed)->
+        return callback err  if err or unsubscribed
+
+        unsubscribed = new JUnsubscribedMail selector
+        unsubscribed.save (err)->
+          callback err, unless err then 'Successfully unsubscribed' else null

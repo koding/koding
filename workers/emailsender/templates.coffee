@@ -6,20 +6,24 @@ dateFormat  = require 'dateformat'
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
 
+unsubscribeLink = (unsubscribeId)->
+  link "#{uri.address}/Unsubscribe/#{unsubscribeId}/email", 'Unsubscribe'
+
 Templates =
 
   linkStyle    : """ style="text-decoration:none; color:#ff9200;" """
-  textTemplate : (content)->
+  textTemplate : (content, unsubscribeId)->
 
     """
      Hello,
 
      #{content}
 
+     #{unsubscribeLink unsubscribeId} if you do not want to receive this.
      Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
     """
 
-  htmlTemplate : (content)->
+  htmlTemplate : (content, unsubscribeId)->
 
     currentDate  = dateFormat Date.now(), "mmm dd"
     activityTime = dateFormat Date.now(), "HH:MM"
@@ -81,6 +85,7 @@ Templates =
               <td style="border-right: 1px solid #CCC; text-align:right;
                          padding-right:10px;"></td>
               <td style="padding-left: 10px;" colspan="2">
+                #{unsubscribeLink unsubscribeId} if you do not want to receive this.<br/>
                 #{link "https://koding.com", "Koding"}, Inc. 358 Brannan Street, San Francisco, CA 94107
               </td>
             </tr>
