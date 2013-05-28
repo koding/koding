@@ -747,7 +747,6 @@ module.exports = [
   "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
-  "stylus/app.vm.styl",
   "stylus/temp.styl",
   # "stylus/app.landing.styl",
   # "stylus/app.predefined.styl",
