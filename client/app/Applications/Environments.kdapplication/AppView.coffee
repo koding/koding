@@ -18,7 +18,7 @@ class EnvironmentsMainView extends JView
     @header = new HeaderViewSection type : "big", title : "Environments"
     @nav    = new CommonInnerNavigation
     @tabs   = new KDTabView
-      cssClass            : 'group-content'
+      cssClass            : 'environment-content'
       hideHandleContainer : yes
     , data
 
