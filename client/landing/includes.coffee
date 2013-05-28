@@ -718,6 +718,7 @@ module.exports = [
   "stylus/app.aceeditor.styl",
   "stylus/app.activity.styl",
   "stylus/app.contextmenu.styl",
+  "stylus/app.environments.styl",
   "stylus/app.chat.styl",
   "stylus/app.settings.styl",
   "stylus/app.inbox.styl",
