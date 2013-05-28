@@ -58,13 +58,10 @@ class SidebarController extends KDViewController
 
     if 'admin' in KD.config.roles
       {navController} = @getView()
-      {slug} = KD.config.entryPoint or {slug:'koding'}
 
       navController.removeItemByTitle 'Group Settings'
       navController.addItem
         title     : 'Group Settings'
-        type      : 'admin'
+        type      : 'account'
+        path      : "/Dashboard"
         loggedIn  : yes
-        callback  : ->
-          slug = if slug in ['koding', ''] then '/' else "/#{slug}/"
-          KD.getSingleton('router').handleRoute "#{slug}Dashboard"

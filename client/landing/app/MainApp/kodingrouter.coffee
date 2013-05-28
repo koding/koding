@@ -229,13 +229,14 @@ class KodingRouter extends KDRouter
       '/:name?/Apps'                    : createSectionHandler 'Apps'
       '/:name?/Account'                 : createSectionHandler 'Account'
       '/:name?/Demos'                   : createSectionHandler 'Demos'
+      '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
 
       # group dashboard
-      '/:name?/Dashboard'               : (routeInfo, state, route)->
-        {name} = routeInfo.params
-        n = name ? 'koding'
-        KD.remote.cacheable n, (err, groups, nameObj)=>
-          @openContent name, 'Groups', groups, route
+      # '/:name?/Dashboard'               : (routeInfo, state, route)->
+      #   {name} = routeInfo.params
+      #   n = name ? 'koding'
+      #   KD.remote.cacheable n, (err, groups, nameObj)=>
+      #     @openContent name, 'Groups', groups, route
 
       # content
       '/:name?/Topics/:slug'            : createContentHandler 'Topics'
