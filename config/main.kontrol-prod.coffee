@@ -117,7 +117,7 @@ module.exports =
   mq            :
     host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
     port        : 5672
-    apiAddress  : "internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com"
+    apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
