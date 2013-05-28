@@ -9,5 +9,41 @@ app.environments.styl
 }
 
 .environment-content
-  .vms
-    background-color   #eee
+  .vm-list
+    .vm-item
+      height           50px
+      width            280px
+      margin           1px
+      border           1px solid #ddd
+
+      &:hover
+        bg             color, #eee
+
+      .vm-icon
+        top            10px
+        left           7px
+        width          30px
+        height         30px
+        abs()
+
+      .shared
+        sprite()
+        bg position,   -360px -300px
+
+      .personal
+        sprite()
+        bg position,   -360px -390px
+
+      .vm-title
+        font-weight    bold
+        color          #ff9600
+        top            10px
+        left           50px
+        abs()
+
+      .vm-domain
+        font-size      10px
+        color          #888
+        top            26px
+        left           50px
+        abs()
