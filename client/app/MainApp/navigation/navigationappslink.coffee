@@ -8,6 +8,7 @@ class NavigationAppsLink extends KDCustomHTMLView
 
     @isFetchedAgain = no
     @counter        = 0
+    @appsController = @getSingleton "kodingAppsController"
 
     @count = new KDCustomHTMLView
       tagName   : "span"
@@ -32,22 +33,20 @@ class NavigationAppsLink extends KDCustomHTMLView
       return @count.hide() if @counter is 0
       @count.updatePartial @counter
 
+    @appsController.on "AppsRefreshed", =>
+      @setCounter yes
+
   getUpdateRequiredAppsCount: ->
-    appsController = @getSingleton "kodingAppsController"
-    appsController.fetchApps (err, apps) =>
-      {publishedApps} = appsController
-      # just a fallback for any race condition, however not think so required
-      if not publishedApps and not isFetchedAgain
-        return @utils.wait 1500, =>
-          @getUpdateRequiredAppsCount()
-          @isFetchedAgain = yes
+    return @setCounter() if @appsController.publishedApps
+    @appsController.on "UserAppModelsFetched", => @setCounter()
 
-      for name, jApp of publishedApps when apps[name]
-        @counter++ if appsController.isAppUpdateAvailable name, apps[name].version
+  setCounter: (useTheForce = no) ->
+    @appsController.fetchUpdateAvailableApps (err, availables) =>
+      @counter = availables.length
 
-      if @counter > 0
-        @count.updatePartial @counter
-        @count.show()
+      @count.updatePartial @counter
+      if @counter > 0 then @count.show() else @count.hide()
+    , useTheForce
 
   viewAppended:->
     @setTemplate @pistachio()

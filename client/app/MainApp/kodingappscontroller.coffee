@@ -117,8 +117,8 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
-  fetchUpdateAvailableApps: (callback) ->
-    return callback? null, @updateAvailableApps if @updateAvailableApps
+  fetchUpdateAvailableApps: (callback, useTheForce) ->
+    return callback? null, @updateAvailableApps if @updateAvailableApps and not useTheForce
     {publishedApps}      = @
     @updateAvailableApps = []
 
@@ -180,11 +180,21 @@ class KodingAppsController extends KDController
           @defineApp name, script
           callback err, script
 
-  getPublishedApps: ->
+  getPublishedApps: (callback) ->
     return unless KD.isLoggedIn()
-    KD.remote.api.JApp.someWithRelationship {}, {}, (err, apps) =>
-      @publishedApps = map = {}
-      map[app.manifest.name] = app for app in apps
+    @fetchApps (err, apps) =>
+      query = []
+      for appName, manifest of apps
+        query.push { name: "JApp", identifier: manifest.identifier }
+
+      KD.remote.cacheable query, (err, apps) =>
+        @publishedApps = map = {}
+        apps.forEach (app) =>
+          log app, apps, app.manifest.name
+          map[app.manifest.name] = app
+        @emit "UserAppModelsFetched", map
+        callback? map
+        log map
 
   isAppUpdateAvailable: (appName, appVersion) ->
     if @publishedApps[appName]

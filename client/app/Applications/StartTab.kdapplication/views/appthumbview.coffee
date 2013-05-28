@@ -89,7 +89,14 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 diameter : 16
               callback   : => @appDeleteCall manifest
 
-    @updateView  = new KDView
+    @updateView  = new KDCustomHTMLView
+      cssClass   : "top-badge update"
+      click      : (e) =>
+        e.preventDefault()
+        e.stopPropagation()
+        jApp = @appsController.publishedApps[manifest.name]
+        @getSingleton("appManager").open "Apps", =>
+          @getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
 
     if @getData().devMode
       @compile = new KDCustomHTMLView
@@ -102,9 +109,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
             left : -5
         click    : =>
           @showLoader()
-          @getSingleton("kodingAppsController").compileApp \
-            manifest.name, (err)=>
-              @hideLoader()
+          @appsController.compileApp manifest.name, (err)=>
+            @hideLoader()
           no
 
       @devModeView = new KDCustomHTMLView
@@ -127,7 +133,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
     else
       @compile     = new KDView
       @devModeView = new KDView
-      @putUpdateView()
+      if @appsController.publishedApps then @putUpdateView()
+      else @appsController.on "UserAppModelsFetched", (apps) =>
+        @putUpdateView()
 
   putUpdateView: ->
     manifest          = @getData()
@@ -143,17 +151,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
       updateText      = "Update Required"
       updateTooltip   = "You must update this app. Click here to see."
 
-    @updateView       = new KDCustomHTMLView
-      partial         : updateText
-      cssClass        : @utils.curryCssClass "top-badge update", updateClass
-      tooltip         :
-        title         : updateTooltip
-      click           : (e) =>
-        e.preventDefault()
-        e.stopPropagation()
-        jApp = @appsController.publishedApps[manifest.name]
-        @getSingleton("appManager").open "Apps", =>
-          @getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
+    @updateView.updatePartial updateText
+    @updateView.setClass      updateClass
+    @updateView.setTooltip    title : updateTooltip
 
   appDeleteCall:(manifest)->
     appPath   = @appsController.getAppPath manifest.path, yes
