@@ -325,7 +325,7 @@ dimmedNeighbor()
   abs()
   bottom                    0
   margin                    0
-  size                      100%, 108px
+  size                      100%, 27px
   vendor                    transition, height .2s
   shadow                    0 0 8px rgba(0,0,0,0.15)
   background-color          #e2e2e2
@@ -342,26 +342,19 @@ dimmedNeighbor()
 
   .finder-bottom-pin
     right           0
-    top             2px
+    top             0
     border          none
     background      none
     opacity         .4
     z-index         4
     abs()
 
-  &.show-resources
+  &.show-environments
     height                  50%
-    // .finder-bottom-pin
-    //   display               none
-    // li
-    //   display               none
-    // li:last-of-type
-    //   display                 block
-    //   font-weight           bold
 
-    &.show-resources
+    &.show-environments
       &.go-down
-        size                100%, 130px
+        size                100%, 27px
         ul
           opacity           1
 
@@ -373,7 +366,7 @@ dimmedNeighbor()
   ul
     min-width               208px
     margin                  0 5px 0 5px
-    padding                 12px 0 5px 0
+    padding                 4px 0 5px 0
     transition              opacity .2s ease-in
     li
       margin                0 10px 2px 10px
