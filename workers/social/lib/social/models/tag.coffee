@@ -149,8 +149,7 @@ module.exports = class JTag extends jraphical.Module
           tagRefs.forEach (tagRef, i)->
             if tagRef?.$suggest?
               {group} = client.context
-              newTag = {title: tagRef.$suggest.trim()}
-              newTag.group = group if group isnt 'koding'
+              newTag = {title: tagRef.$suggest.trim(), group}
               JTag.one newTag, (err, tag)->
                 if err
                   callbackForEach err
