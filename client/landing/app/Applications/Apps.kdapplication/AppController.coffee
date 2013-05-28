@@ -14,6 +14,8 @@ class AppsAppController extends AppController
 
     super options, data
 
+    @appsController = @getSingleton "kodingAppsController"
+
   loadView:(mainView)->
 
     mainView.createCommons()
@@ -33,11 +35,10 @@ class AppsAppController extends AppController
         updates             :
           title             : "Updates"
           dataSource        : (selector, options, callback)=>
-            appsController  = @getSingleton "kodingAppsController"
-            appsController.fetchUpdateAvailableApps (err, res) =>
-              callback err, res
-              @manageUpdateAllButton res
-
+            log "inside source"
+            return @putUpdateAvailableApps callback if @appsController.publishedApps
+            @appsController.on "UserAppModelsFetched", =>
+              @putUpdateAvailableApps callback
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
@@ -107,6 +108,24 @@ class AppsAppController extends AppController
       @emit 'ready'
       # @putAddAnAppButton()
 
+      {updateAppsButton} = @getView()
+      {filterController} = @feedController.facetsController
+      filterController.on "NavItemReceivedClick", (item) =>
+        if item.title is "Updates"
+          @resetUpdateAllButton()
+        if item.title isnt "Updates"
+          updateAppsButton.hide()
+        else if updateAppsButton.getData()
+          updateAppsButton.show()
+
+  putUpdateAvailableApps: (callback) ->
+    log "inside put button"
+    @appsController.fetchUpdateAvailableApps (err, res) =>
+      log "fetched update apps"
+      log res
+      callback err, res
+      @manageUpdateAllButton res
+
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
     KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
       unless err
@@ -128,17 +147,27 @@ class AppsAppController extends AppController
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
-  manageUpdateAllButton: (apps) ->
-    {updateAppsButton} = @getView()
-    {filterController} = @feedController.facetsController
-    filterController.on "NavItemReceivedClick", (item) =>
-      if item.title isnt "Updates" and updateAppsButton.getData()?
+  resetUpdateAllButton: ->
+    @appsController.fetchUpdateAvailableApps (res, apps) =>
+      {updates} = @feedController.resultsController.listControllers
+      unless apps?.length
+        updates.removeAllItems()
+        updates.showNoItemWidget()
+        {updateAppsButton} = @getView()
         updateAppsButton.hide()
-      else
-        updateAppsButton.show()
-    if apps.length
+        updateAppsButton.setData []
+
+  manageUpdateAllButton: (apps) ->
+    log "inside manage app button", apps
+    return unless apps
+    {updateAppsButton} = @getView()
+
+    if apps?.length
       updateAppsButton.show()
       updateAppsButton.setData apps
+    else
+      updateAppsButton.hide()
+      updateAppsButton.setData []
 
   putAddAnAppButton:->
     {facetsController} = @feedController
