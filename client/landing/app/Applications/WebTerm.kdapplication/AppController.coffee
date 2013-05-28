@@ -1,6 +1,6 @@
 class WebTermController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "WebTerm"
     route        : "/Develop"
     multiple     : yes

@@ -1,6 +1,6 @@
 class GroupsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes

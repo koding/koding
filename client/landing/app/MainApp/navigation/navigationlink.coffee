@@ -22,7 +22,7 @@ class NavigationLink extends KDListItemView
       appPath   : appPath or title
       path      : path
       topLevel  : topLevel
-      navItem   : @
+      navItem   : this
 
   partial:(data)->
     "<a class='title'><span class='main-nav-icon #{@utils.slugify data.title}'></span>#{data.title}</a>"
