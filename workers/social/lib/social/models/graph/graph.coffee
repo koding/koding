@@ -68,6 +68,7 @@ module.exports = class Graph
         order by content.`meta.createdAtEpoch` DESC
         limit 20
       """
+
     params =
       groupId   : groupId
       startDate : startDate
