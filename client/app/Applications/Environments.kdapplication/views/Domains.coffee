@@ -9,7 +9,7 @@ class DomainMainView extends KDView
     @domainsListViewController = new DomainsListViewController
       viewOptions:
         cssClass : 'domain-list'
-      
+
     @domainsListView = @domainsListViewController.getView()
 
     @addNewDomainButton = new KDButtonView
@@ -56,7 +56,7 @@ class DomainMainView extends KDView
     {{> @refreshDomainsButton}}
     </div>
     {{> @splitView}}
-    """  
+    """
 
   decorateMapperView:(item)->
     @domainMapperView.updateContent item
@@ -99,7 +99,6 @@ class DomainsListItemView extends KDListItemView
   click: (event)->
     listView = @getDelegate()
     listView.emit "domainsListItemViewClicked", this
-    
 
   viewAppended:->
     @setTemplate @pistachio()
