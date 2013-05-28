@@ -120,26 +120,21 @@ class KDButtonView extends KDView
     @loader?.hide()
     @showIcon() if icon and not iconOnly
 
-  disable:-> @$().attr "disabled",yes
+  disable:-> @$().attr "disabled", yes
 
-  enable:-> @$().attr "disabled",no
+  enable:-> @$().attr "disabled", no
 
   focus:-> @$().trigger "focus"
 
   click:(event)->
-    if @loader and @loader.active
-      event.stopPropagation()
-      event.preventDefault()
-      return no
-    if @loader and not @loader.active
-      @showLoader()
 
-    {type} = @getOptions()
-    if type is "button"
-      event.stopPropagation()
-      event.preventDefault()
+    return @utils.stopDOMEvent()  if @loader?.active
 
-    @getCallback().call @,event
-    no
+    @showLoader()          if @loader and not @loader.active
+    @utils.stopDOMEvent()  if @getOption('type') is "button"
+
+    @getCallback().call @, event
+
+    return no
 
   triggerClick:-> @doOnSubmit()
