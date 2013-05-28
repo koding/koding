@@ -416,33 +416,40 @@ module.exports = class JUser extends jraphical.Module
                     userData = {
                       username, password, email, firstName, lastName
                     }
-                    @createUser userData, (err, user, account) =>
+                    @removeUnsubscription userData, (err)=>
                       return callback err  if err
-                      @addToGroups account, invite, entryPoint, (err) ->
-                        if err then callback err
-                        else if silence
-                          JUser.grantInitialInvitations user.username
-                          createNewMemberActivity account
-                          callback null, account
-                        else
-                          replacementToken = createId()
-                          session.update {
-                            $set:
-                              username      : user.username
-                              lastLoginDate : new Date
-                              clientId      : replacementToken
-                            $unset          :
-                              guestId       : 1
-                          }, (err, docs) ->
-                            if err then callback err
-                            else
-                              user.sendEmailConfirmation()
-                              JUser.grantInitialInvitations user.username
-                              JUser.emit 'UserCreated', user
-                              createNewMemberActivity account
-                              JAccount.emit "AccountAuthenticated", account
-                              callback null, account, replacementToken
+                      @createUser userData, (err, user, account) =>
+                        return callback err  if err
+                        @addToGroups account, invite, entryPoint, (err) ->
+                          if err then callback err
+                          else if silence
+                            JUser.grantInitialInvitations user.username
+                            createNewMemberActivity account
+                            callback null, account
+                          else
+                            replacementToken = createId()
+                            session.update {
+                              $set:
+                                username      : user.username
+                                lastLoginDate : new Date
+                                clientId      : replacementToken
+                              $unset          :
+                                guestId       : 1
+                            }, (err, docs) ->
+                              if err then callback err
+                              else
+                                user.sendEmailConfirmation()
+                                JUser.grantInitialInvitations user.username
+                                JUser.emit 'UserCreated', user
+                                createNewMemberActivity account
+                                JAccount.emit "AccountAuthenticated", account
+                                callback null, account, replacementToken
 
+  @removeUnsubscription:({email}, callback)->
+    JUnsubscribedMail = require './unsubscribedmail'
+    JUnsubscribedMail.one {email}, (err, unsubscribed)->
+      return callback err  if err or not unsubscribed
+      unsubscribed.remove callback
 
   @grantInitialInvitations = (username)->
     JInvitation.grant {'profile.nickname': username}, 3, (err)->
