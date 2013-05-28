@@ -641,8 +641,8 @@ module.exports = [
 
   # GROUP DASHBOARD
 
-  # "app/Applications/Dashboard.kdapplication/AppController.coffee",
-  # "app/Applications/Dashboard.kdapplication/AppView.coffee",
+  "app/Applications/Dashboard.kdapplication/AppController.coffee",
+  "app/Applications/Dashboard.kdapplication/AppView.coffee",
 
 
   # CONTENT DISPLAY VIEWS
