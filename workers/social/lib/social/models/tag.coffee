@@ -57,6 +57,7 @@ module.exports = class JTag extends jraphical.Module
         'one','on','some','create', 'count' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
         'cursor','cursorWithRelationship','fetchMyFollowees','each'
+        'fetchSkillTags', 'byRelevanceForSkills'
         ]
     schema          :
       title         :
@@ -249,6 +250,15 @@ module.exports = class JTag extends jraphical.Module
                       contents.forEach (content)->
                         content.flushSnapshot tagId, (err)->
                           if err then console.log err
+
+  @fetchSkillTags:(selector, options, callback)->
+    selector.group = 'koding'
+    @some selector, options, callback
+
+  @byRelevanceForSkills = permit 'read tags',
+    success: (client, seed, options, callback)->
+      client.context.group = 'koding'
+      @byRelevance client, seed, options, callback
 
   makeGroupSelector =(group)->
     if Array.isArray group then $in: group else group
