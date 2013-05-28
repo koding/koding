@@ -76,7 +76,7 @@ func startStressTest() {
 			"",    // name
 			false, // durable
 			true,  // auto-delete
-			true,  // exclusive
+			false, // exclusive
 			false, // no-wait
 			nil,   // args
 		)
@@ -92,7 +92,7 @@ func startStressTest() {
 		deliveries, err := channel.Consume(
 			"",    // name
 			"",    // consumer tag
-			false, // no ack
+			true,  // auto ack
 			false, // exclusive
 			false, // no local
 			false, // no wait
