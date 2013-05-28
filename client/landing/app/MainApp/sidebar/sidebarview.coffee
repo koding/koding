@@ -60,7 +60,7 @@ class Sidebar extends JView
 
     @finder = @finderController.getView()
     KD.registerSingleton "finderController", @finderController
-    @finderController.on 'ManageResources', @bound 'toggleResources'
+    @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
     # Finder Bottom Controls
     @finderBottomControlsController = new KDListViewController
@@ -74,7 +74,7 @@ class Sidebar extends JView
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
-      defaultState : "hide"
+      defaultState : "show"
       states       : [
         title      : "show"
         iconClass  : "up"
@@ -164,8 +164,8 @@ class Sidebar extends JView
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
-        {{> @finderBottomControlPin}}
         {{> @finderBottomControls}}
+        {{> @finderBottomControlPin}}
       </div>
     </div>
     """
@@ -203,15 +203,11 @@ class Sidebar extends JView
       callback?()
       @emit "NavigationPanelWillCollapse"
 
-  hideBottomControls:->
-    @$('#finder-bottom-controls').addClass 'go-down'
-    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
-
   showBottomControls:->
-    @$('#finder-bottom-controls').removeClass 'go-down'
+    @$('#finder-bottom-controls').addClass 'show-environments'
 
-  toggleResources:->
-    @$('#finder-bottom-controls').toggleClass 'show-resources'
+  hideBottomControls:->
+    @$('#finder-bottom-controls').removeClass 'show-environments'
 
   _windowDidResize:->
 
@@ -260,23 +256,23 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      {
-        title   : "Launch Terminal", icon : "terminal",
-        appPath : "WebTerm", isWebTerm : yes
-      }
-      { title   : "Settings",           icon : "cog" }
-      {
-        title   : "Keyboard Shortcuts", icon : "shortcuts",
-        action  : "showShortcuts"
-      }
       # {
-      #   title   : "Manage Resources",   icon : "resources",
-      #   action  : "manageResources"
+      #   title   : "Launch Terminal", icon : "terminal",
+      #   appPath : "WebTerm", isWebTerm : yes
+      # }
+      # { title   : "Settings",           icon : "cog" }
+      # {
+      #   title   : "Keyboard Shortcuts", icon : "shortcuts",
+      #   action  : "showShortcuts"
       # }
       {
-        title   : "Create a new VM",      icon : "plus",
-        action  : "createNewVM"
+        title   : "Environments",   icon : "resources",
+        action  : "showEnvironments"
       }
+      # {
+      #   title   : "Create a new VM",      icon : "plus",
+      #   action  : "createNewVM"
+      # }
     ]
 
   adminNavItems =
