@@ -265,6 +265,7 @@ module.exports = [
   "app/MainApp/filetree/controllers/findercontroller.coffee",
   "app/MainApp/filetree/controllers/findertreecontroller.coffee",
   "app/MainApp/filetree/controllers/findercontextmenucontroller.coffee",
+  "app/MainApp/filetree/controllers/resourcescontroller.coffee",
 
   "app/MainApp/filetree/itemviews/finderitem.coffee",
   "app/MainApp/filetree/itemviews/fileitem.coffee",
