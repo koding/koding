@@ -486,7 +486,7 @@ class NFinderTreeController extends JTreeViewController
   cmUpload:        (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
   cmDownload:      (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
+  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView, contextMenuItem
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
   cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
   cmRunApp:        (nodeView, contextMenuItem)-> @runApp nodeView
