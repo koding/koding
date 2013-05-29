@@ -9,7 +9,7 @@ class MainView extends KDView
     @createMainTabView()
     @setStickyNotification()
     @createSideBar()
-    # @createChatPanel()
+    @createChatPanel()
     @listenWindowResize()
 
     @utils.defer => @_windowDidResize()
