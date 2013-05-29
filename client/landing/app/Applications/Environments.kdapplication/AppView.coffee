@@ -44,7 +44,6 @@ class EnvironmentsMainView extends JView
     data = @getData()
 
     for {name, lazy, itemClass} in tabData
-      console.log name, lazy, itemClass
       @tabs.addPane new KDTabPaneView {
         view : {itemClass, data}
         name
