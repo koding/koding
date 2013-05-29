@@ -6,21 +6,22 @@ dateFormat  = require 'dateformat'
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
 
-unsubscribeLink = (unsubscribeId)->
-  link "#{uri.address}/Unsubscribe/#{unsubscribeId}/email", 'Unsubscribe'
+unsubscribeText = (unsubscribeId, suffix)->
+  return ''  unless unsubscribeId
+
+  l = link "#{uri.address}/Unsubscribe/#{unsubscribeId}/email", 'Unsubscribe'
+  "#{l} if you do not want to receive this.#{suffix}"
 
 Templates =
 
   linkStyle    : """ style="text-decoration:none; color:#ff9200;" """
   textTemplate : (content, unsubscribeId)->
-
     """
      Hello,
 
      #{content}
 
-     #{unsubscribeLink unsubscribeId} if you do not want to receive this.
-     Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
+     #{unsubscribeText unsubscribeId, "\n"}Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
     """
 
   htmlTemplate : (content, unsubscribeId)->
@@ -85,8 +86,7 @@ Templates =
               <td style="border-right: 1px solid #CCC; text-align:right;
                          padding-right:10px;"></td>
               <td style="padding-left: 10px;" colspan="2">
-                #{unsubscribeLink unsubscribeId} if you do not want to receive this.<br/>
-                #{link "https://koding.com", "Koding"}, Inc. 358 Brannan Street, San Francisco, CA 94107
+                #{unsubscribeText unsubscribeId, "<br/>"}#{link "https://koding.com", "Koding"}, Inc. 358 Brannan Street, San Francisco, CA 94107
               </td>
             </tr>
           </table>

@@ -50,19 +50,15 @@ htmlify = (content)->
       .replace emailAddressPattern, "<a #{template.linkStyle} target='_blank' href='mailto:$1'>$1</a>"
 
 sendEmail = (emailContent)->
-  {from, replyto, email, subject, content, unsubscribeId} = emailContent
+  {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
 
-  emailContent.isUnsubscribed (err, unsubscribed)->
-    if err or unsubscribed
-      console.error err  if err
-      return emailContent.update $set: {status: 'unsubscribed'}, (err)->
-        console.error err  if err
-
-    email     = emailWorker.defaultRecepient or email
+  cb = ->
+    email = emailWorker.defaultRecepient or email
+    from  = if from is 'hello@koding.com' then "Koding <#{from}>" else from
     Emailer.send
       From      : from
       To        : email
-      Subject   : subject or "[Koding] Notification"
+      Subject   : subject or "Notification"
       HtmlBody  : template.htmlTemplate htmlify(content), unsubscribeId
       TextBody  : template.textTemplate content, unsubscribeId
       ReplyTo   : replyto
@@ -76,6 +72,16 @@ sendEmail = (emailContent)->
 
       emailContent.update $set: {status, dateAttempted}, (err)->
         console.error err if err
+
+  unless force
+    emailContent.isUnsubscribed (err, unsubscribed)->
+      if err or unsubscribed
+        console.error err  if err
+        return emailContent.update $set: {status: 'unsubscribed'}, (err)->
+          console.error err  if err
+          cb()
+  else
+    cb()
 
 emailSender = ->
   {JMail} = worker.models

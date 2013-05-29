@@ -33,12 +33,15 @@ module.exports = class JMail extends Model
         default      : 'queued'
         enum         : ['Invalid status', ['queued', 'attempted', 'sending', 
                                            'failed', 'unsubscribed']]
+      force          :
+        type         : Boolean
+        default      : false
       subject        : String
       content        : String
       unsubscribeId  : String
 
   save:(callback)->
-    @unsubscribeId = getUniqueId()+''  unless @_id?
+    @unsubscribeId = getUniqueId()+''  unless @_id? or @force
     super
 
   isUnsubscribed:(callback)->
