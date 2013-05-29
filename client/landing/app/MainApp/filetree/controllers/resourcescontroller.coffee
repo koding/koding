@@ -14,9 +14,18 @@ class ResourcesController extends KDListViewController
     @reset()
 
   reset:->
+    cmp = (a, b)->
+      [groupA, vmA] = a.split('~')
+      [groupB, vmB] = b.split('~')
+      if groupA == groupB
+        vmA > vmB
+      else
+        groupA > groupB
+
     KD.singletons.vmController.resetVMData()
-    KD.singletons.vmController.fetchGroupVMs (err, vms)=>
+    KD.singletons.vmController.fetchVMs (err, vms)=>
       @removeAllItems()
+      vms.sort cmp
       @instantiateListItems vms  unless err
       @deselectAllItems()
 
