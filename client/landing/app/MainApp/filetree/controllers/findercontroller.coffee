@@ -80,11 +80,11 @@ class NFinderController extends KDViewController
     else
       groupSlug  = KD.singletons.groupsController.getGroupSlug()
       groupSlug ?= 'koding'
-      appStorage = new AppStorage "vm-list", "1.0"
-      appStorage.fetchValue groupSlug, (vms)->
-        vms or= []
-        if vms.length > 0
-          mountVms vms
+      @appStorage.fetchValue "mountedVM", (vms)->
+        vms or= {}
+        vms[groupSlug] or= []
+        if vms[groupSlug]
+          mountVms vms[groupSlug]
         else
           KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
             return callback? err  if err
@@ -97,17 +97,18 @@ class NFinderController extends KDViewController
     for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
       return vmItem  if vmItem.data.vmName is vmName
 
-  saveMountState:(vmName, state)->
+  updateMountState:(vmName, state)->
     groupSlug  = KD.singletons.groupsController.getGroupSlug()
     groupSlug ?= 'koding'
-    appStorage = new AppStorage "vm-list", "1.0"
-    appStorage.fetchValue groupSlug, (vms)->
-      vms or= []
-      if state and vmName not in vms
-        vms.push vmName
-      else if not state and vmName in vms
-        vms.splice vms.indexOf(vmName), 1
-      appStorage.setValue groupSlug, vms
+    @appStorage.fetchValue "mountedVM", (vms)=>
+      vms or= {}
+      vms[groupSlug] or= []
+      items = vms[groupSlug]
+      if state and vmName not in items
+        items.push vmName
+      else if not state and vmName in items
+        items.splice items.indexOf(vmName), 1
+      @appStorage.setValue "mountedVM", vms
 
   mountVm:(vm, fetchContent = yes)->
     return unless KD.isLoggedIn()
@@ -119,7 +120,7 @@ class NFinderController extends KDViewController
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
 
-    @saveMountState vmName, yes
+    @updateMountState vmName, yes
 
     @vms.push FSHelper.createFile
       name   : "#{path}"
@@ -136,7 +137,7 @@ class NFinderController extends KDViewController
     return unless KD.isLoggedIn()
     return warn 'No such VM!'  unless vmItem = @getVmNode vmName
 
-    @saveMountState vmName, no
+    @updateMountState vmName, no
 
     if vmItem
       @stopWatching vmItem.data.path
