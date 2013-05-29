@@ -9,11 +9,16 @@ class ResourcesController extends KDListViewController
 
     super options, data
 
+    @getView().on 'DeselectAllItems', @bound 'deselectAllItems'
+    KD.singletons.vmController.on 'VMListChanged', @bound 'reset'
+    @reset()
+
+  reset:->
+    KD.singletons.vmController.resetVMData()
     KD.singletons.vmController.fetchVMs (err, vms)=>
+      @removeAllItems()
       @instantiateListItems vms  unless err
       @deselectAllItems()
-
-    @getView().on 'DeselectAllItems', @bound 'deselectAllItems'
 
 class ResourcesView extends KDListView
 
