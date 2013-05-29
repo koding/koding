@@ -1,6 +1,6 @@
 class WebTermController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "WebTerm"
     route        : "/Develop"
     multiple     : yes
@@ -11,7 +11,7 @@ class WebTermController extends AppController
         KD.singletons.vmController.info (err, vm, info)=>
           cb  if info?.state is 'RUNNING' then yes else no
       failure    : (options, cb)->
-        KD.singletons.vmController.askToTurnOn 'WebTerm', cb
+        KD.singletons.vmController.askToTurnOn 'Terminal', cb
 
   constructor:(options = {}, data)->
     vmName          = options.params?.vmName or \

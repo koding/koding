@@ -50,7 +50,7 @@ class Sidebar extends JView
     # Finder Header
     @finderHeader = new KDCustomHTMLView
       tagName   : "h2"
-      pistachio : "{{#(profile.nickname)}}.#{location.hostname}"
+      pistachio : "{{#(profile.nickname)}}.#{KD.config.userSitesDomain}"
     , account
 
     # File Tree

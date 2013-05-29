@@ -17,7 +17,7 @@ class CounterView extends KDCustomHTMLView
 
     options.title        or= ''
     options.digitOptions or= {}
-    options.minDigits     ?= 6
+    options.minDigits     ?= 0
     options.cssClass     or= "counter"
     options.tagName        = "figure"
 
@@ -50,8 +50,8 @@ class CounterView extends KDCustomHTMLView
     # if minDigits option is passed
     if @prevCount.length < minDigits
       for i in [@prevCount.length...minDigits]
-        @prevCount = '0' + @prevCount
-    # create digit subViews if they are not created alread
+        @prevCount = ' ' + @prevCount
+    # create digit subViews if they are not created already
     # and add the subView
     for value, i in @prevCount when not @["digit#{i}"]
       @["digit#{i}"] = new CounterDigitView digitOptions, {value}

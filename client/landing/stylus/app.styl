@@ -72,11 +72,13 @@ body
   100%
     opacity .5
 
-// @keyframes shrink
-//   0%
-//     vendor       transform, scale(1)
-//   100%
-//     vendor       transform, scale(0)
+@keyframes shrink
+  0%
+    vendor       transform, scale(1)
+  70%
+    vendor       transform, scale(1)
+  100%
+    vendor       transform, scale(0)
 
 @keyframes fade-in-out
   0%
@@ -88,54 +90,27 @@ body
   100%
     opacity      0
 
-@keyframes crawl
-  0%
-    vendor       transform, rotateX(40deg) translateZ(100px) translateY(1100px)
-    opacity      1
-  40%
-    vendor       transform, rotateX(40deg) translateZ(300px) translateY(0px)
-    opacity      1
-  80%
-    vendor       transform, rotateX(40deg) translateZ(900px) translateY(-1100px)
-    opacity      0
-  100%
-    vendor       transform, rotateX(40deg) translateZ(1800px) translateY(-1800px)
-    opacity      0
-
-#about-text
-  abs()
-  z-index        100000
-  vendor         perspective, 800
-  vendor         perspective-origin, center 300px
-  top            0
-  left           0
-  >div
-    height         auto
-    color          #f2f2f2
-    text-align     center
-    font-size      36px
-    line-height    72px
-    vendor         animation, crawl 30s linear
-    vendor         animation-iteration-count, 1
-    // vendor         animation-delay, 1s
-    vendor         transform-style, preserve-3d
-  h2.sub-header
-    display       none
-
 .pulsing
   vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
   vendor            animation, pulse 1.5s ease-in-out 100
 
 .main-loading
-  vendor            transition, margin .6s ease-in-out\, opacity .3s ease-in-out
+  vendor            animation, shrink 5s ease-in-out
+  vendor            animation-iteration-count, 1
+  vendor            transform, scale(0)
+  size              100%, 100%
+  rel()
   ul
-    abs()
+    opacity         0
+    transition      opacity 1s ease-in
     top             50%
     left            50%
     margin          -75px 0 0 -57px
     size            115px, 149px
+    abs()
+    &.in
+      opacity       1
     li
-      vendor        animation, pulse 1.5s ease-in-out infinite
       margin-bottom 12px
       size          100%, 12px
       gradient      #f8f8f8, #d0d0d0
@@ -147,7 +122,6 @@ body
         width       81px
       &:last-child
         width       69px
-
 
 /* moz hack for font weights */
 @css {
@@ -165,6 +139,11 @@ body
 #kdmaincontainer
   vendor            transition, opacity .6s ease-in-out
   overflow          visible
+  &.scale
+    vendor         animation, shrink 1s ease-out
+    vendor         animation-iteration-count, 1
+    vendor         transform-style, preserve-3d
+    vendor         transform, scale(0)
 
   > header
     margin            0
@@ -198,8 +177,6 @@ body
   > section
     overflow          visible
     display           block
-    &.scale
-      vendor          transform, scale(0)
 
 // body.loggedIn
 //   #kdmaincontainer

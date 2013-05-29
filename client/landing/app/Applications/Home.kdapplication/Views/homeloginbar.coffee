@@ -20,26 +20,15 @@ class HomeLoginBar extends JView
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
-      title       : "Register an Account"
+      title       : "Have an invite code?"
       icon        : {}
       attributes  :
         href      : "/Register"
       click       : (event)=> handler.call @register, event
 
-    @browse       = new CustomLinkView
-      tagName     : "a"
-      cssClass    : "browse orange"
-      title       : "Learn more..."
-      icon        : {}
-      attributes  :
-        href      : ""
-      click       : (event)=>
-        @utils.stopDOMEvent event
-        @getSingleton('mainViewController').emit "browseRequested"
-
     @request      = new CustomLinkView
       tagName     : "a"
-      cssClass    : "join green"
+      cssClass    : "join green button"
       title       : "Request an Invite"
       icon        : {}
       attributes  :
@@ -58,7 +47,7 @@ class HomeLoginBar extends JView
 
     @login        = new CustomLinkView
       tagName     : "a"
-      title       : "Login"
+      title       : "Already a user?"
       icon        : {}
       cssClass    : "login"
       attributes  :
@@ -71,7 +60,7 @@ class HomeLoginBar extends JView
       tagName     : "a"
       title       : "Request access"
       icon        : {}
-      cssClass    : "request green hidden"
+      cssClass    : "request green hidden button"
       attributes  :
         href      : "#"
       click       : (event)=>
@@ -86,7 +75,7 @@ class HomeLoginBar extends JView
       tagName     : "a"
       title       : "Join Group"
       icon        : {}
-      cssClass    : "join green hidden"
+      cssClass    : "join green hidden button"
       attributes  :
         href      : "#"
       click       : (event)=>
@@ -97,7 +86,7 @@ class HomeLoginBar extends JView
       tagName     : "a"
       title       : "Request pending"
       icon        : {}
-      cssClass    : "request-pending green hidden"
+      cssClass    : "request-pending green hidden button"
       attributes  :
         href      : "#"
       click       : (event)=>
@@ -135,7 +124,7 @@ class HomeLoginBar extends JView
       tagName     : "a"
       title       : "Invited"
       icon        : {}
-      cssClass    : "invitation-pending green hidden"
+      cssClass    : "invitation-pending green hidden button"
       attributes  :
         href      : "#"
       click       : (event)=>
@@ -251,9 +240,10 @@ class HomeLoginBar extends JView
     """
     <div class='overlay'></div>
     <ul>
-      <li>{{> @browse}}</li>
       <li>{{> @request}}{{> @access}}{{> @join}}{{> @invited}}{{> @requested}}</li>
-      <li>{{> @register}}</li>
-      <li>{{> @login}}</li>
+      <li>
+        {{> @register}}
+        {{> @login}}
+      </li>
     </ul>
     """

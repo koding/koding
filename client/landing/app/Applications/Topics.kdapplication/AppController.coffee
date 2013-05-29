@@ -1,6 +1,6 @@
 class TopicsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Topics"
     route        : "/Topics"
     hiddenHandle : yes

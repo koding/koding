@@ -50,8 +50,8 @@ __bookPages = [
                    <p>For example, double click on a file, it will show its contents, edit it, save it and see it!</p>"""
   ,
     cssClass  : "develop more-1"
-    content   : """<p>Looking for a somewhere to start? We’ve provided some example pages inside your “website” folder. Just navigate your file tree to:</p>
-                   <strong>{{#(profile.nickname)}}/Sites/{{#(profile.nickname)}}.koding.com/website/</strong>
+    content   : """<p>Looking for a somewhere to start? We’ve provided some example pages inside your “Sites” folder. Just navigate your file tree to:</p>
+                   <strong>{{#(profile.nickname)}}/Sites/{{#(profile.nickname)}}.#{KD.config.userSitesDomain}/</strong>
                    <p>This is where all of your public files are located. Here is also where you’ll want to build your webpage.</p>
                    <p>Brand new to web development? Read Building a Website to get started with the basics.</p>"""
   ,
