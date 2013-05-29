@@ -18,13 +18,37 @@ class VMMainView extends JView
     @on "Clicked", (item)=>
       @vmListController.deselectAllItems()
       @vmListController.selectSingleItem item
-      # console.log @vmListController.selectedItems
+
+    @on "State", (item, state)=>
+      # cmd = if state then 'vm.start' else 'vm.stop'
+      # kc = KD.singletons.kiteController
+      # kc.run
+      #   kiteName  : 'os',
+      #   vmName    : item,
+      #   method    : cmd
+      # , ->
+      #   console.log arguments
+
+    @graphView = new KDView
+
+    @graphView.addSubView @netView = new KDCustomHTMLView
+      tagName: 'img'
+      attributes:
+        src: "http://chart.googleapis.com/chart?chxl=0:|%2B0.50%25|%2B0.25%25|0.00%25|-0.25%25&chxt=r&chs=400x200&cht=ls&chco=DA3B15,F7A10A,4582E7&chd=s:abdegedbageba,somedabelprmnr,PRTSPNQYWROQTXYRQ_&chls=1|1|1"
+
+    @graphView.addSubView new KDCustomHTMLView
+      tagName: 'br'
+
+    @graphView.addSubView @cpuView = new KDCustomHTMLView
+      tagName: 'img'
+      attributes:
+        src: "http://chart.googleapis.com/chart?chs=150x100&cht=gm&chco=000000,00FF00|FFCC33|FF0000&chd=t:70&chma=|0,4&chtt=CPU+Utilization&chts=676767,14"
 
     @splitView = new KDSplitView
       type      : 'vertical'
       resizable : no
-      sizes     : ['30%', null]
-      views     : [@vmListView, null]
+      sizes     : ['30%', '70%']
+      views     : [@vmListView, @graphView]
 
     @loadItems()
 
@@ -79,10 +103,24 @@ class VMListItemView extends KDListItemView
     options.click = @bound "clicked"
     super options, data
 
+    @switch = new KDOnOffSwitch
+      size         : 'tiny'
+      labels       : ['I', 'O']
+      defaultValue : data.status == 'on'
+      cssClass     : 'fr'
+      callback     : (state)=>
+        @getData().controller.emit "State", @, state
+
   clicked: (event)->
     @getData().controller.emit "Clicked", @
 
-  partial: ->
+  viewAppended:()->
+    super()
+
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio: ->
     data = @getData()
     """
     <div>
@@ -92,5 +130,6 @@ class VMListItemView extends KDListItemView
         #{data.name} - #{data.group}
       </span>
       <span class="vm-domain">http://#{data.domain}</span>
+      {{> @switch }}
     </div>
     """

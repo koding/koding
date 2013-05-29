@@ -10,6 +10,8 @@ app.environments.styl
 
 .environment-content
   border-left          1px solid #ddd
+  padding-left         10px
+  padding-top          10px
 
   .vm-list
     .selected
@@ -17,13 +19,8 @@ app.environments.styl
 
     .vm-item
       height           50px
-      width            280px
+      width            100%
       margin           1px
-      // border           1px solid #ddd
-
-      // &:hover
-      //   bg             color, #eee
-      //   cursor         hand
 
       .vm-icon
         top            10px
@@ -61,7 +58,12 @@ app.environments.styl
         height         5px
         abs()
 
-      .off
+      .vm-status.off
         bg             color, #B40404
-      .on
+      .vm-status.on
         bg             color, #04B404
+
+      .on-off
+        top            15px
+        right          3px
+        abs()
