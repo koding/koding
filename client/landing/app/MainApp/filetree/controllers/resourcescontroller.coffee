@@ -93,6 +93,8 @@ class ResourcesListItem extends KDListItemView
         callback         : ->
           appManager.open "WebTerm", params: {vmName}, forceNew: yes
           @destroy()
+        separator        : yes
+      customView3        : new NVMDetailsView {}, {vmName}
 
   checkVMState:(err, vm, info)->
     return unless vm is @getData()
