@@ -114,6 +114,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	prepareDir(vm.File(""), 0)
 	vm.generateFile(vm.File("config"), "config", 0, false)
 	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
+	vm.generateFile(vm.File("ip-address"), "ip-address", 0, false)
 
 	// map rbd image to block device
 	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
@@ -183,16 +184,22 @@ func (vm *VM) Unprepare() error {
 	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
 	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
 
-	// remove ebtables entry
-	if vm.IP != nil {
-		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
-			firstError = commandError("ebtables rule deletion failed.", err, out)
+	if vm.IP == nil {
+		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
+			vm.IP = net.ParseIP(string(ip))
 		}
 	}
 
-	// remove the static route so it is no longer redistribed by BGP
-	if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
-		firstError = commandError("Removing route failed.", err, out)
+	if vm.IP != nil {
+		// remove ebtables entry
+		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
+			firstError = commandError("ebtables rule deletion failed.", err, out)
+		}
+
+		// remove the static route so it is no longer redistribed by BGP
+		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+			firstError = commandError("Removing route failed.", err, out)
+		}
 	}
 
 	// unmount and unmap everything
@@ -209,6 +216,7 @@ func (vm *VM) Unprepare() error {
 	// remove VM directory
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
+	os.Remove(vm.File("ip-address"))
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.File("rootfs.hold"))
 	os.Remove(vm.File(""))
