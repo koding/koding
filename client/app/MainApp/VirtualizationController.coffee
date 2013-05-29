@@ -35,6 +35,9 @@ class VirtualizationController extends KDController
     @_runWraper 'vm.start', vm, callback
 
   stop:(vm, callback)->
+    @_runWraper 'vm.shutdown', vm, callback
+
+  halt:(vm, callback)->
     @_runWraper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
@@ -147,7 +150,7 @@ class VirtualizationController extends KDController
   askForApprove:(command, callback)->
 
     switch command
-      when 'vm.stop'
+      when 'vm.stop', 'vm.shutdown'
         content = """Turning off your VM will <b>stop</b> running Terminal
                      instances and all running proccesess that you have on
                      your VM. Do you want to continue?"""
