@@ -1,6 +1,6 @@
 class AppsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Apps"
     route        : "/Apps"
     hiddenHandle : yes

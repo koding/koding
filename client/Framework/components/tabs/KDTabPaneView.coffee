@@ -13,6 +13,7 @@ class KDTabPaneView extends KDView
     @on "KDTabPaneActive",   @becameActive
     @on "KDTabPaneInactive", @becameInactive
     @on "KDTabPaneDestroy",  @aboutToBeDestroyed
+    @on "KDTabPaneActive",   @bound "setMainView"
 
   becameActive: noop
   becameInactive: noop
@@ -40,3 +41,14 @@ class KDTabPaneView extends KDView
 
   hideTabCloseIcon:()->
     @getDelegate().hideCloseIcon @
+
+  setMainView:->
+    {view} = @getOptions()
+    return if @mainView or not view
+
+    {itemClass, options, data} = view
+    @mainView = @addSubView if itemClass then new itemClass options, data else view
+    @emit "KDTabPaneLazyViewAdded", @mainView
+    return @mainView
+
+  getMainView:-> @mainView

@@ -1,6 +1,6 @@
 class ChatAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Chat"
     route        : "Chat"
     background   : yes

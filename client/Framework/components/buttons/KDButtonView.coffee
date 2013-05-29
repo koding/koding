@@ -89,15 +89,15 @@ class KDButtonView extends KDView
     loaderSize = @getHeight()
     @loader = new KDLoaderView
       size          :
-        width       : loader.diameter || loaderSize
+        width       : loader.diameter  ? loaderSize
       loaderOptions :
-        color       : loader.color    || "#222222"
-        shape       : loader.shape    || "spiral"
-        diameter    : loader.diameter || loaderSize
-        density     : loader.density  || 30
-        range       : loader.range    || 0.4
-        speed       : loader.speed    || 1.5
-        FPS         : loader.FPS      || 24
+        color       : loader.color    or "#222222"
+        shape       : loader.shape    or "spiral"
+        diameter    : loader.diameter  ? loaderSize
+        density     : loader.density   ? 30
+        range       : loader.range     ? 0.4
+        speed       : loader.speed     ? 1.5
+        FPS         : loader.FPS       ? 24
 
     @addSubView @loader, null, yes
     @loader.$().css

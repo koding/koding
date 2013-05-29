@@ -238,6 +238,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
   showInviteByEmailModal:->
     @inviteByEmail = @showModalForm
       title            : 'Invite by Email'
+      cssClass         : 'invite-by-email'
       callback         : @emit.bind @, 'InviteByEmail'
       fields           :
         emails         :
@@ -250,6 +251,11 @@ class GroupsInvitationRequestsView extends GroupsRequestView
               required : yes
             messages   :
               required : 'At least one email address required!'
+        report         :
+          itemClass    : KDScrollView
+          cssClass     : 'report'
+
+    @inviteByEmail.modalTabs.forms.invite.fields.report.hide()
 
   showBatchApproveModal:->
     @batchApprove = @showModalForm

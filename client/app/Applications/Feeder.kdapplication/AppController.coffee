@@ -1,6 +1,6 @@
 class FeederAppController extends KDController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name       : "Feeder"
     background : yes
 

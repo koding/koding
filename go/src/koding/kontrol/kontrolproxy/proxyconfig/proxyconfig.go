@@ -297,8 +297,8 @@ func (p *ProxyConfiguration) DeleteDomain(uuid, domainname string) error {
 	err := p.Collection.Update(
 		bson.M{
 			"uuid":         uuid,
-			"domains.name": domainname},
-		bson.M{"$pull": bson.M{"domains": bson.M{"name": domainname}}})
+			"domains.domainname": domainname},
+		bson.M{"$pull": bson.M{"domains": bson.M{"domainname": domainname}}})
 	if err != nil {
 		return err
 	}
