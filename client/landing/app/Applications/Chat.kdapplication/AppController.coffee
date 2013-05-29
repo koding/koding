@@ -24,13 +24,7 @@ class ChatAppController extends AppController
     JChatConversation.create invitees, (err, conversation)=>
       return callback err  if err
       chatChannel = @subscribe conversation.publicName
-      chatPanel.createConversation {chatChannel, conversation, invitees}
       callback null, new ChannelWrapper chatChannel
-
-      @handleChatRequest {
-        invitee     : KD.whoami().profile.nickname
-        publicName  : chatConversation.publicName
-      }, callback
 
   subscribe:(publicName)->
     options = { serviceType: 'chat', isP2P: yes, exchange: 'chat' }
