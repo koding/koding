@@ -65,6 +65,27 @@ class ResourcesListItem extends KDListItemView
     @delegate.once 'ReceivedClickElsewhere', =>
       @delegate.emit "DeselectAllItems"
 
+    offset = @chevron.$().offset()
+
+    contextMenu = new JContextMenu
+      menuWidth   : 200
+      delegate    : @chevron
+      x           : offset.left + 26
+      y           : offset.top  - 19
+      arrow       :
+        placement : "left"
+        margin    : 19
+      lazyLoad    : yes
+    ,
+      customView         : new NVMToggleButtonView {}, vmName: @getData()
+      'Re-initialize VM' :
+        action           : 'resetVm'
+      'Unmount VM'       :
+        action           : 'unmountVm'
+        separator        : yes
+      'Open VM Terminal' :
+        action           : 'openVmTerminal'
+
   checkVMState:(err, vm, info)->
     return unless vm is @getData()
 
