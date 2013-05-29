@@ -113,7 +113,6 @@ class ContentDisplayControllerMember extends KDViewController
 
     @getView().$('div.lazy').remove()
 
-
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
       itemClass             : ActivityListItemView
