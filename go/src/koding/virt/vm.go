@@ -153,11 +153,11 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount devpts
 	prepareDir(vm.PtsDir(), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
 		panic(commandError("mount devpts failed.", err, out))
 	}
 	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
+	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
 
 	// add ebtables entry to restrict IP and MAC
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {

@@ -1,6 +1,6 @@
 class StartTabAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "StartTab"
     route        : "/Develop"
     behavior     : "application"

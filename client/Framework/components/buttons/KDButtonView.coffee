@@ -89,15 +89,15 @@ class KDButtonView extends KDView
     loaderSize = @getHeight()
     @loader = new KDLoaderView
       size          :
-        width       : loader.diameter || loaderSize
+        width       : loader.diameter  ? loaderSize
       loaderOptions :
-        color       : loader.color    || "#222222"
-        shape       : loader.shape    || "spiral"
-        diameter    : loader.diameter || loaderSize
-        density     : loader.density  || 30
-        range       : loader.range    || 0.4
-        speed       : loader.speed    || 1.5
-        FPS         : loader.FPS      || 24
+        color       : loader.color    or "#222222"
+        shape       : loader.shape    or "spiral"
+        diameter    : loader.diameter  ? loaderSize
+        density     : loader.density   ? 30
+        range       : loader.range     ? 0.4
+        speed       : loader.speed     ? 1.5
+        FPS         : loader.FPS       ? 24
 
     @addSubView @loader, null, yes
     @loader.$().css
@@ -120,26 +120,21 @@ class KDButtonView extends KDView
     @loader?.hide()
     @showIcon() if icon and not iconOnly
 
-  disable:-> @$().attr "disabled",yes
+  disable:-> @$().attr "disabled", yes
 
-  enable:-> @$().attr "disabled",no
+  enable:-> @$().attr "disabled", no
 
   focus:-> @$().trigger "focus"
 
   click:(event)->
-    if @loader and @loader.active
-      event.stopPropagation()
-      event.preventDefault()
-      return no
-    if @loader and not @loader.active
-      @showLoader()
 
-    {type} = @getOptions()
-    if type is "button"
-      event.stopPropagation()
-      event.preventDefault()
+    return @utils.stopDOMEvent()  if @loader?.active
 
-    @getCallback().call @,event
-    no
+    @showLoader()          if @loader and not @loader.active
+    @utils.stopDOMEvent()  if @getOption('type') is "button"
+
+    @getCallback().call @, event
+
+    return no
 
   triggerClick:-> @doOnSubmit()

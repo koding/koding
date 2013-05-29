@@ -1,6 +1,6 @@
 class GroupsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes
@@ -783,10 +783,21 @@ class GroupsAppController extends AppController
       (pane, invitationRequestView)->
 
         kallback = (modal, err)=>
-          modal.modalTabs.forms.invite.buttons.Send.hideLoader()
-          return invitationRequestView.showErrorMessage err if err
-          new KDNotificationView title:'Invitation sent!'
+          form = modal.modalTabs.forms.invite
+          form.buttons.Send.hideLoader()
           invitationRequestView.refresh()
+          if err
+            unless Array.isArray err or form.fields.report
+              return invitationRequestView.showErrorMessage err
+            else
+              form.fields.report.show()
+              scrollView = form.fields.report.subViews.first.subViews.first
+              err.forEach (errLine)->
+                errLine = if errLine?.message then errLine.message else errLine
+                scrollView.setPartial "#{errLine}<br/>"
+              return scrollView.scrollTo top:scrollView.getScrollHeight()
+
+          new KDNotificationView title:'Invitation sent!'
           modal.destroy()
 
         invitationRequestView.on 'BatchApproveRequests', (formData)->
