@@ -365,11 +365,8 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-  @fetchPublicActivityFeed: secure (client, options, callback)->
-    {delegate} = client.connection
-    if not delegate
-      callback null, []
-    else
+  @fetchPublicActivityFeed: permit 'list members',
+    success: (client, seed, options, callback)->
       groupName = options.groupName
       unless groupName then return callback new Error "Group name is undefined"
       JGroup = require '../group'
@@ -397,3 +394,4 @@ module.exports = class CActivity extends jraphical.Capsule
           fetch = new FetchAllActivityParallel requestOptions
           fetch.get (results)->
             callback null, results
+

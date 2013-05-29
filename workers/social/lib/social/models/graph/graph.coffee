@@ -47,10 +47,6 @@ module.exports = class Graph
     # gets ids from neo4j, fetches objects from mongo, returns in the same order
     @db.query query, params, (err, results)=>
       if err
-        console.log("error in neo4j query: " + err)
-        console.log("query was ==================")
-        console.log(query)
-        console.log("============================")
         return callback err
 
       if results.length == 0

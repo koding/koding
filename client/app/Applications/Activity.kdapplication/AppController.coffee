@@ -424,18 +424,4 @@ class ActivityAppController extends AppController
 
   getNewItemsCount: (callback) ->
     callback? @listController?.activityHeader?.getNewItemsCount() or 0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
