@@ -14,8 +14,11 @@ class VMMainView extends JView
         itemClass         : VMListItemView
 
     @vmListView = @vmListController.getView()
-    @vmListView.on "Clicked", (data)->
-      @getVMInfo data.name
+
+    @on "Clicked", (item)=>
+      @vmListController.deselectAllItems()
+      @vmListController.selectSingleItem item
+      # console.log @vmListController.selectedItems
 
     @splitView = new KDSplitView
       type      : 'vertical'
@@ -25,12 +28,12 @@ class VMMainView extends JView
 
     @loadItems()
 
-  getVMInfo:(vmName, callback)->
+  getVMInfo: (vmName, callback)->
     kc = KD.singletons.kiteController
     kc.run
-      kiteName: 'os',
-      vmName: vmName,
-      method: 'vm.info'
+      kiteName  : 'os',
+      vmName    : vmName,
+      method    : 'vm.info'
     , callback
 
   loadItems:->
@@ -45,7 +48,7 @@ class VMMainView extends JView
         vms.forEach (name)=>
           stack.push (cb)=>
 
-            @getVMInfo name, (err, info)->
+            @getVMInfo name, (err, info)=>
               if err or info.state != 'RUNNING'
                 status = 'off'
               else
@@ -57,6 +60,7 @@ class VMMainView extends JView
                 domain : 'bahadir.kd.io'
                 type   : 'personal'
                 status : status
+                controller : @
               }
 
         async.parallel stack, (err, results)=>
@@ -76,7 +80,7 @@ class VMListItemView extends KDListItemView
     super options, data
 
   clicked: (event)->
-    @getDelegate().emit "Clicked", @getData()
+    @getData().controller.emit "Clicked", @
 
   partial: ->
     data = @getData()
