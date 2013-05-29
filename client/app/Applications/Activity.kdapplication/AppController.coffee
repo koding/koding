@@ -86,13 +86,6 @@ class ActivityAppController extends AppController
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
-    # added this for live updates but didnt work as intended, ybrs
-    @on "FollowedActivity", (event) =>
-      KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
-        if activity.constructor.name in @getFilter()
-          activities = clearQuotes [activity]
-          controller.followedActivityArrived activities.first
-
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
       @isLoading = no
       @resetAll()
@@ -424,4 +417,3 @@ class ActivityAppController extends AppController
 
   getNewItemsCount: (callback) ->
     callback? @listController?.activityHeader?.getNewItemsCount() or 0
-    
