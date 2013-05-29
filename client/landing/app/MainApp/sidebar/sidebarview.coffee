@@ -89,6 +89,9 @@ class Sidebar extends JView
           callback?()
       ]
 
+    @resourcesController = new ResourcesController
+    @resourcesWidget     = @resourcesController.getView()
+
     @listenWindowResize()
 
   resetAdminNavController:->
@@ -166,6 +169,7 @@ class Sidebar extends JView
       <div id='finder-bottom-controls'>
         {{> @finderBottomControls}}
         {{> @finderBottomControlPin}}
+        {{> @resourcesWidget}}
       </div>
     </div>
     """
@@ -266,7 +270,7 @@ class Sidebar extends JView
       #   action  : "showShortcuts"
       # }
       {
-        title   : "Environments",   icon : "resources",
+        title   : "your environments",   icon : "resources",
         action  : "showEnvironments"
       }
       # {
