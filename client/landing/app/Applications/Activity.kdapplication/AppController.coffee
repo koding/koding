@@ -1,3 +1,5 @@
+{dash} = require 'bongo'
+
 class ActivityAppController extends AppController
 
   KD.registerAppClass this,
