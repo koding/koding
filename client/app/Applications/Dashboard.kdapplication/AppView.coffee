@@ -1,18 +1,5 @@
 class DashboardAppView extends JView
 
-  tabData = [
-    { name : 'Readme',            lazy : no,  itemClass : GroupReadmeView }
-    { name : 'Settings',          lazy : yes, itemClass : GroupGeneralSettingsView }
-    { name : 'Permissions',       lazy : yes, itemClass : GroupPermissionsView }
-    { name : 'Members',           lazy : yes, itemClass : GroupsMemberPermissionsView }
-    { name : 'Membership policy', lazy : yes, itemClass : GroupsMembershipPolicyView }
-    { name : 'Invitations',       lazy : yes, itemClass : GroupsInvitationRequestsView }
-  ]
-
-  navData =
-    title : "SHOW ME"
-    items : ({ title : name } for {name} in tabData)
-
   constructor:(options={}, data)->
 
     options.cssClass or= "content-page"
@@ -27,32 +14,43 @@ class DashboardAppView extends JView
     , data
 
     @setListeners()
-    @createTabs()
-    @once 'viewAppended', @bound "_windowDidResize"
+    @once 'viewAppended', =>
+      @createTabs()
+      @_windowDidResize()
+
+
+    @myView = new KDInputView
+      focus: => @setKeyView()
 
   setListeners:->
 
     @listenWindowResize()
     @nav.on "viewAppended", =>
-      navController = @nav.setListController
+      @navController = @nav.setListController
         itemClass : ListGroupShowMeItem
-      , navData
+      ,
+        title     : "SHOW ME"
+        items     : []
 
-      @nav.addSubView navController.getView()
-      navController.selectItem navController.itemsOrdered.first
+      @nav.addSubView @navController.getView()
 
     @nav.on "NavItemReceivedClick", ({title})=> @tabs.showPaneByName title
 
   createTabs:->
 
     data = @getData()
+    @getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
+      navItems = []
+      for {name, viewOptions}, i in tabData
+        viewOptions.data = data
+        @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), !(~i+1) # making 0 true the rest false
+        navItems.push { title : name }
 
-    for {name, lazy, itemClass} in tabData
-      @tabs.addPane new KDTabPaneView {
-        view : {itemClass, data}
-        name
-        lazy
-      }
+      @navController.instantiateListItems navItems
+      @navController.selectItem @navController.itemsOrdered.first
+
+
+
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()
