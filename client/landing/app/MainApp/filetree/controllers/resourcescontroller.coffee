@@ -66,7 +66,7 @@ class ResourcesListItem extends KDListItemView
       @delegate.emit "DeselectAllItems"
 
     offset = @chevron.$().offset()
-
+    vmName = @getData()
     contextMenu = new JContextMenu
       menuWidth   : 200
       delegate    : @chevron
@@ -77,14 +77,17 @@ class ResourcesListItem extends KDListItemView
         margin    : 19
       lazyLoad    : yes
     ,
-      customView         : new NVMToggleButtonView {}, vmName: @getData()
+      customView1        : new NVMToggleButtonView {}, {vmName}
+      customView2        : new NMountToggleButtonView {}, {vmName}
       'Re-initialize VM' :
-        action           : 'resetVm'
-      'Unmount VM'       :
-        action           : 'unmountVm'
+        callback         : ->
+          KD.singletons.vmController.reinitialize vmName
+          @destroy()
         separator        : yes
       'Open VM Terminal' :
-        action           : 'openVmTerminal'
+        callback         : ->
+          appManager.open "WebTerm", params: {vmName}, forceNew: yes
+          @destroy()
 
   checkVMState:(err, vm, info)->
     return unless vm is @getData()
