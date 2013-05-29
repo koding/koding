@@ -1,6 +1,6 @@
 class ActivityAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Activity"
     route        : "/Activity"
     hiddenHandle : yes
