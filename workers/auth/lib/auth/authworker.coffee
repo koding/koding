@@ -300,8 +300,6 @@ module.exports = class AuthWorker extends EventEmitter
 
     joinClient =(messageData, socketId)->
       {channel, routingKey, serviceType, wrapperRoutingKeyPrefix} = messageData
-      console.log("serviceType = ", serviceType, "routingKey=", routingKey, "channel=", channel)
-      console.log(JSON.stringify(messageData))
       switch serviceType
         when 'bongo', 'kite'
           joinHelper.call this, messageData, routingKey, socketId

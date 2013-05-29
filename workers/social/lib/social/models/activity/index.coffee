@@ -296,11 +296,7 @@ module.exports = class CActivity extends jraphical.Capsule
       ts = Math.floor(to / 1000)
       query.push "AND items.`meta.createdAtEpoch` < #{ts}"
 
-    query = query.concat([
-             'return items'
-             'order by items.`meta.createdAtEpoch` DESC'
-             "LIMIT #{limit}"
-            ])
+    query.push 'return items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
     query = query.join('\n')
     graph = new Graph({config:KONFIG['neo4j']})
     graph.fetchFromNeo4j(query, options, callback)
@@ -325,11 +321,7 @@ module.exports = class CActivity extends jraphical.Capsule
       ts = Math.floor(to / 1000)
       query.push("AND items.`meta.createdAtEpoch` < #{ts}")
 
-    query = query.concat([
-             'return myfollowees, items'
-             'order by items.`meta.createdAtEpoch` DESC'
-             "LIMIT #{limit}"
-            ])
+    query.push 'return myfollowees, items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
     query = query.join('\n')
     graph = new Graph({config:KONFIG['neo4j']})
     graph.fetchFromNeo4j(query, options, callback)
@@ -365,7 +357,7 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-  @fetchPublicActivityFeed: permit 'list members',
+  @fetchPublicActivityFeed: permit 'read activity',
     success: (client, seed, options, callback)->
       groupName = options.groupName
       unless groupName then return callback new Error "Group name is undefined"
@@ -373,25 +365,22 @@ module.exports = class CActivity extends jraphical.Capsule
       JGroup.one slug : groupName, (err, group)=>
         if err then return callback err
         unless group then return callback {error: "Group not found"}
-        group.canOpenGroup client, (err, res)->
-          if err then return callback {error: "Not allowed to open this group"}
 
-          timestamp  = options.timestamp
-          rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
-          # this is for unix and javascript timestamp differance
-          startDate  = Math.floor(rawStartDate/1000)
+        timestamp  = options.timestamp
+        rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+        # this is for unix and javascript timestamp differance
+        startDate  = Math.floor(rawStartDate/1000)
 
-          neo4jConfig = KONFIG.neo4j
-          requestOptions =
-            startDate : startDate
-            neo4j : neo4jConfig
-            group :
-              groupName : group.slug
-              groupId : group._id
+        neo4jConfig = KONFIG.neo4j
+        requestOptions =
+          startDate : startDate
+          neo4j : neo4jConfig
+          group :
+            groupName : group.slug
+            groupId : group._id
 
-
-          FetchAllActivityParallel = require './../graph/fetch'
-          fetch = new FetchAllActivityParallel requestOptions
-          fetch.get (results)->
-            callback null, results
+        FetchAllActivityParallel = require './../graph/fetch'
+        fetch = new FetchAllActivityParallel requestOptions
+        fetch.get (results)->
+          callback null, results
 

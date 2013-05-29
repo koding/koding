@@ -247,15 +247,16 @@ class ActivityAppController extends AppController
             # trolls and admins in show troll mode will load data on request
             # as the snapshots do not include troll comments
             stack = []
-            activities.forEach (activity)->
-              stack.push (cb)->
+
+            stack = activities.map (activity)->
                 activity.fetchTeaser (err, teaser)->
                   if err then console.warn 'could not fetch teaser'
                   else
                     cb err, teaser
                 , yes
+                return cb
 
-            async.parallel stack, (err, res)->
+            dash stack, (err, res)->
               callback null, res
 
   # Fetches activities that occured after the first entry in user feed,
