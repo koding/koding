@@ -15,7 +15,7 @@ class ResourcesController extends KDListViewController
 
   reset:->
     KD.singletons.vmController.resetVMData()
-    KD.singletons.vmController.fetchVMs (err, vms)=>
+    KD.singletons.vmController.fetchGroupVMs (err, vms)=>
       @removeAllItems()
       @instantiateListItems vms  unless err
       @deselectAllItems()
