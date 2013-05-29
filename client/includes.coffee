@@ -281,6 +281,7 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
+  "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
