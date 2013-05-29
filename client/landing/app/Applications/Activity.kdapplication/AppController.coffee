@@ -246,15 +246,12 @@ class ActivityAppController extends AppController
           else
             # trolls and admins in show troll mode will load data on request
             # as the snapshots do not include troll comments
-            stack = []
-
-            stack = activities.map (activity)->
+            stack = activities.map (activity)-> ->
                 activity.fetchTeaser (err, teaser)->
                   if err then console.warn 'could not fetch teaser'
                   else
                     cb err, teaser
                 , yes
-                return cb
 
             dash stack, (err, res)->
               callback null, res
