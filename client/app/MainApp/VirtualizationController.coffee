@@ -110,7 +110,8 @@ class VirtualizationController extends KDController
     buttons =
       'Create a Personal VM' :
         style    : "modal-clean-gray"
-        callback : => @createGroupVM 'personal', vmCreateCallback
+        callback : =>
+          KD.singletons.vmController.createGroupVM 'personal', vmCreateCallback
 
     if "owner" in KD.config.roles or "admin" in KD.config.roles
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
@@ -119,7 +120,8 @@ class VirtualizationController extends KDController
                 """
       buttons['Create a Shared VM'] =
         style      : "modal-clean-gray"
-        callback   : => @createGroupVM 'shared', vmCreateCallback
+        callback   : =>
+          KD.singletons.vmController.createGroupVM 'shared', vmCreateCallback
 
     else if "member" in KD.config.roles
       content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
