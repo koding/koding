@@ -15,8 +15,10 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -45,19 +47,15 @@ func main() {
 		return
 	}
 
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		log.LogError(err, 0)
-		return
-	}
-	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
-			if err := vm.Unprepare(); err != nil {
-				log.Warn(err.Error())
-			}
-		}
-	}
+	unprepareAll()
+
+	go func() {
+		sigtermChannel := make(chan os.Signal)
+		signal.Notify(sigtermChannel, syscall.SIGTERM)
+		<-sigtermChannel
+		unprepareAll()
+		log.SendLogsAndExit(0)
+	}()
 
 	go ldapserver.Listen()
 	go LimiterLoop()
@@ -457,4 +455,20 @@ func (info *VMInfo) startTimeout() {
 
 		delete(infos, vm.Id)
 	})
+}
+
+func unprepareAll() {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		log.LogError(err, 0)
+		return
+	}
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			if err := vm.Unprepare(); err != nil {
+				log.Warn(err.Error())
+			}
+		}
+	}
 }
