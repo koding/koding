@@ -5,7 +5,6 @@ neo4j = require "neo4j"
 
 module.exports = class Graph
   constructor:({config})->
-    console.log ">>>>>>", config
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
 
   fetchObjectsFromMongo:(collections, wantedOrder, callback)->
@@ -19,7 +18,7 @@ module.exports = class Graph
         if obj
           ret.push(obj)
         else
-          console.log("!!!!!!!! id in neo4j but not in mongo, maybe a sync problem ??? " + i['idx'])
+          console.log("id in neo4j but not in mongo, maybe a sync problem ??? " + i['idx'])
       callback null, ret
 
     ret = {}

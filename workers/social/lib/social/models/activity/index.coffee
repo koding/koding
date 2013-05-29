@@ -2,7 +2,6 @@ jraphical      = require 'jraphical'
 
 Graph          = require "../graph/graph"
 
-neo4jhelper = require '../neo4jhelper'
 KodingError = require '../../error'
 
 module.exports = class CActivity extends jraphical.Capsule
