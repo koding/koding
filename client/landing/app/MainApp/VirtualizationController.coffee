@@ -106,6 +106,7 @@ class VirtualizationController extends KDController
           title : err.message or "Something bad happened while creating VM"
       else
         KD.singletons.finderController.mountVm vm.name
+        KD.singletons.vmController.emit 'VMListChanged'
       modal.destroy()
 
     group = KD.singletons.groupsController.getGroupSlug()

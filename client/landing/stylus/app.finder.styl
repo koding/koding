@@ -326,7 +326,8 @@ dimmedNeighbor()
   bottom                    0
   margin                    0
   size                      100%, 27px
-  vendor                    transition, height .2s
+  min-height                27px
+  vendor                    transition, max-height .8s
   shadow                    0 0 8px rgba(0,0,0,0.15)
   background-color          #e2e2e2
   border-top                1px solid rgba(255,255,255,0.5)
@@ -350,7 +351,9 @@ dimmedNeighbor()
     abs()
 
   &.show-environments
-    height                  280px
+    height                  auto
+    max-height              100%
+    padding-bottom          16px
 
   ul
     min-width               208px
@@ -762,8 +765,9 @@ div.led-wrapper
   background-color    #e2e2e2
   shadow              0 0 8px rgba(0,0,0,0.15)
   border-top          1px solid rgba(255,255,255,0.5)
-  max-height          200px !important
+  // height              196px !important
   padding-top         6px
+  padding-bottom      6px
   overflow            auto
 
   .vm
