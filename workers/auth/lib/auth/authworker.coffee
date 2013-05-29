@@ -233,10 +233,10 @@ module.exports = class AuthWorker extends EventEmitter
       JPermissionSet.checkPermission client, "read activity", group,
         (err, hasPermission) ->
           if err then callback err
-          else unless hasPermission
-            callback {message: 'Access denied!', code: 403}
-          else
+          else if hasPermission
             JGroup.fetchSecretChannelName group.slug, callback
+          else
+            callback {message: 'Access denied!', code: 403}
 
     joinGroupHelper =(messageData, routingKey, socketId)->
       {JAccount, JGroup} = @bongo.models
@@ -299,7 +299,7 @@ module.exports = class AuthWorker extends EventEmitter
           }
 
     joinClient =(messageData, socketId)->
-      {channel, routingKey, serviceType} = messageData
+      {channel, routingKey, serviceType, wrapperRoutingKeyPrefix} = messageData
       switch serviceType
         when 'bongo', 'kite'
           joinHelper.call this, messageData, routingKey, socketId
@@ -318,7 +318,7 @@ module.exports = class AuthWorker extends EventEmitter
           joinNotificationHelper.call this, messageData, routingKey, socketId
 
         when 'secret'
-          @addClient socketId, routingKey, routingKey, no
+          @addClient socketId, 'routing-control', wrapperRoutingKeyPrefix, no
 
         else
           @rejectClient routingKey  unless /^oid./.test routingKey

@@ -1,18 +1,53 @@
 class AboutView extends JView
 
+  AudioContext = null
+  context      = null
+  march        = null
+  marchURL     = "/techno.wav"
+  marchURL     = "/star-wars.m4a"
+  marchBuffer  = null
+  onError      = (err)-> error err
+
+  init = ->
+    try
+      # Fix up for prefixing
+      AudioContext = window.AudioContext or window.webkitAudioContext
+      context      = new AudioContext()
+      loadSound marchURL, (buffer)->
+        march = play buffer
+
+    catch err
+      log 'Web Audio API is not supported in this browser'
+
+  loadSound = (url, callback)->
+    request = new XMLHttpRequest()
+    request.open 'GET', url, yes
+    request.responseType = 'arraybuffer'
+    request.onload = ->
+      context.decodeAudioData request.response, (buffer)->
+        callback buffer
+      , onError
+    request.send()
+
+  play = (buffer, time=0)->
+    source        = context.createBufferSource()
+    source.buffer = buffer
+    source.loop   = yes
+    source.connect context.destination
+    source.start time
+    return source
+
+  stop = (source)->
+    source.stop = source.noteOff unless source.stop
+    source.stop 0
+
   constructor:(options = {}, data)->
 
-    options.cssClass = "about about-pane content-display"
+    options.cssClass = "about"
 
     super options, data
-
-    @back   = new KDCustomHTMLView
-      tagName : "a"
-      partial : "<span>&laquo;</span> Back"
-      click   : (event)=>
-        event.stopPropagation()
-        event.preventDefault()
-        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
+    @utils.wait 6000, init
+    @on 'KDObjectWillBeDestroyed', -> stop march  if march
 
   viewAppended:->
 
@@ -22,48 +57,29 @@ class AboutView extends JView
   pistachio:->
 
     """
-      <h2 class="sub-header">{{> @back}}</h2>
-      <div class="about-page-left">
-        <h2>About Koding</h2>
-        <p class="about-sub">Koding is a developer community and cloud development environment where developers come together and code – in the browser… with a real development server to run their code.</p>
-        <p>We’ve created a platform for developers where getting started is easy. Developers can work, collaborate, write and run apps without jumping through hoops and spending hard earned money.</p>
-        <h3>How We Started</h3>
-        <p>Koding started with two brothers… Myself (Devrim) &amp; Sinan coming together to give something back to the developer community.</p>
-        <p>How did it start? Well, in the summer of 2008—7 years later than the last time we had developed a website—I just wanted to make a website and learn PHP at the same time… maybe install WordPress and do a blog. I hoped that things would be much faster and smarter than it was 7 years before. Once I got started, I quickly realized that not much had changed.</p>
-        <h3>Barriers To Entry AKA <span>Developer Hell</span></h3>
-        <p>I had to download the zip, I had to unzip it, (it was even more fun with tar.gz). I had to have FTP running on the server and an FTP client on my local computer, I had to upload those files after I changed config.inc, I had to have the correct database setup and wait until I got everything uploaded (waiting for FTP to finish a thousand files was the best time to meditate), not to mention, user permissions, apache settings, SVN setup, dealing with hosting companies, going through all sorts of nonsese... and worst of all, at every turn being asked for money. Need hosting? BUY NOW! $2 for crappy shared hosting, $50 for a less crappy VPS, Not enough? pay $100 for a dedicated server, learn to be a sys admin and dedicate yourself to those sort of problems problems. Call support if your dedication isn’t enough and pay little more. Oh I almost forgot, we just wanted to code right? So you need a code editor? Prices are from $50 to $500. Don’t we all love notepad?</p>
-        <p>We thought this was unfair as much as it was stupid. Unfair because, we ran an outsourcing company for years, and we saw that what you call 'affordable' here, is not affordable 'there'. What you call a 'cool gadget' here, is an unreachable dream to many over there. You know where. Stupid because <em>the current process of getting web apps to run is far behind what can be achieved with today's technology</em>.</p>
-        <h3>Making The Web A Better Place</h3>
-        <p>So… if open source is about collaboration and giving developers equal chances, we thought, If we could first remove those stupid barriers, uploading, downloading, setting up servers; secondly and most importantly, we felt obliged to do something for those who can only spare a few bucks a month to send it to their families.</p>
-        <p>I wanted to have a tool like this for myself too. And we decided to get this done.</p>
-        <p>And here we are today with Koding. We hope while you enjoy using the system, you will take a moment to think, the difference we all can make for those of us who do not have the resources to make their dreams come true.</p>
-        <h3>Let’s Be Free</h3>
-        <p>Koding was originally seeded and funded by us up until this summer, when we met some amazing people who shared our dream of a better world for developers.</p>
-        <p>Our plan is this: our free accounts will always be free, and be enough for every developer to go out, develop and make money without worrying about how to get crack software or how to pay for legal software. Our free accounts are not designed to frustrate developers so that they end up paying or leaving; They are designed to make them happy and stay here as long as they want.</p>
-        <p>As we build in more features, we'll eventually have some premium features for companies to build teams and have their own Koding as well as the ability to purchase more resources. We will only require a paid-plan if you want to have a lot of storage and traffic, private domains etc. This is a project that will ask companies to pay fees per user and it will stay free for developers forever with the features that developers need to get their apps running.</p>
-        <p>Welcome to our community!</p>
-        <p><strong>Devrim Yasar</strong>Co-Founder and CEO</p>
-        <p>-on behalf of the Koding team!</p>
-      </div>
-      <div class="about-page-right"></div>
-      <div class="location-wrapper">
-        <div class="location">
-          <p class="loc-first">
-            We're located in the <strong>SOMA</strong> district of <strong>San Francisco, California.</strong>
-          </p>
-          <address>
-            <span class='icon fl'></span>
-            <p class='right-overflow'>
+      <figure></figure>
+      <div class='perspective'>
+        <div class='wrapper'>
+          <div class='bio'>
+            <h2>About Koding</h2>
+            <p>Chuck ipsum. Chuck Norris built a time machine and went back in time to stop the JFK assassination. As Oswald shot, Chuck Norris met all three bullets with his beard, deflecting them. JFK's head exploded out of sheer amazement. Chuck Norris built a time machine and went back in time to stop the JFK assassination. As Oswald shot, Chuck Norris met all three bullets with his beard, deflecting them. JFK's head exploded out of sheer amazement. If you have five dollars and Chuck Norris has five dollars, Chuck Norris has more money than you. Chuck Norris found out about Conan O'Brien's lever that shows clips from "Walker: Texas Ranger" and is working on a way to make it show clips of Norris having sex with Conan's wife. Chuck Norris built a time machine and went back in time to stop the JFK assassination. As Oswald shot, Chuck Norris met all three bullets with his beard, deflecting them. JFK's head exploded out of sheer amazement. There is no chin behind Chuck Norris' beard. There is only another fist. When observing a Chuck Norris roundhouse kick in slow motion, one finds that Chuck Norris actually rapes his victim in the ass, smokes a cigarette with Dennis Leary, and then roundhouse kicks them in the face. Chuck Norris used live ammunition during all shoot-outs. When a director once said he couldn’t, he replied, “Of course I can, I’m Chuck Norris,” and roundhouse kicked him in the face.  After much debate, President Truman decided to drop the atomic bomb on Hiroshima rather than the alternative of sending Chuck Norris. It was more "humane". Chuck Norris does not use spell check. If he happens to misspell a word, Oxford will simply change the actual spelling of it.  Although it is not common knowledge, there are actually three sides to the Force: the light side, the dark side, and Chuck Norris. Chuck Norris doesn't see dead people. He makes people dead. Chuck Norris once tried to wear glasses. The result was him seeing around the world to the point where he was looking at the back of his own head. A Handicap parking sign does not signify that this spot is for handicapped people. It is actually in fact a warning, that the spot belongs to Chuck Norris and that you will be handicapped if you park there. Chuck Norris is Luke Skywalker’s real father. Chuck Norris once kicked a baby elephant into puberty. If you want a list of Chuck Norris’ enemies, just check the extinct species list.  Chuck Norris' evil twin brother, Richard Simmons, once approached Chuck with the hope of reconciliation, but at the sight of Richard's curly, well kept hair, Chuck Norris became so enraged that he turned green with hate and ripped Richard Simmons arms and legs off. This action was the origin of the Marvel Comic badass, The Incredible Hulk. </p>
+            <h2>Let's be free</h2>
+            <p>When observing a Chuck Norris roundhouse kick in slow motion, one finds that Chuck Norris actually rapes his victim in the ass, smokes a cigarette with Dennis Leary, and then roundhouse kicks them in the face.Chuck Norris sent Jesus a birthday card on December 25th and it wasn't Jesus’ birthday. Jesus was to scared to correct Chuck Norris and to this day December 25th is known as Jesus' birthday.Chuck Norris doesn’t believe in Germany. Chuck Norris once tried to defeat Garry Kasparov in a game of chess. When Norris lost, he won in life by roundhouse kicking Kasparov in the side of the face. Chuck Norris isn’t lactose intolerant. He just doesn’t put up with lactose’s sh*t. Chuck Norris does not hunt because the word hunting infers the probability of failure. Chuck Norris goes killing.A blind man once stepped on Chuck Norris' shoe. Chuck replied, "Don't you know who I am? I'm Chuck Norris!" The mere mention of his name cured this man blindness. Sadly the first, last, and only thing this man ever saw, was a fatal roundhouse delivered by Chuck Norris.Scientists used to believe that diamond was the world’s hardest substance. But then they met Chuck Norris, who gave them a roundhouse kick to the face so hard, and with so much heat and pressure, that the scientists turned into artificial Chuck Norris. Chuck Norris sleeps with a night light. Not because Chuck Norris is afraid of the dark, but the dark is afraid of Chuck NorrisChuck Norris once tried to defeat Garry Kasparov in a game of chess. When Norris lost, he won in life by roundhouse kicking Kasparov in the side of the face. Chuck Norris does not procreate, he breedsAfter much debate, President Truman decided to drop the atomic bomb on Hiroshima rather than the alternative of sending Chuck Norris. It was more "humane".Ironically, Chuck Norris’ hidden talent is invisibility. When Chuck Norris had surgery, the anesthesia was applied to the doctors.Chuck Norris is what Willis was talking about</p>
+          </div>
+          <div class="team"></div>
+          <div>
+            <p>
+              We're located in the <strong>SOMA</strong> district of <strong>San Francisco, California.</strong>
+            </p>
+            <address>
               <strong>Koding, Inc.</strong>
               <a href="http://goo.gl/maps/XGWr" target="_blank">
                 358 Brannan<br>
                 San Francisco, CA 94107
               </a>
-            </p>
-          </address>
+            </address>
+          </div>
         </div>
-        <div class="first-line"></div>
-        <div class="second-line"></div>
       </div>
     """
 
@@ -71,7 +87,7 @@ class AboutView extends JView
 
     for memberData in @theTeam
       member = new AboutMemberView {}, memberData
-      @addSubView member, ".about-page-right"
+      @addSubView member, ".team"
 
   theTeam:
     [
@@ -89,21 +105,11 @@ class AboutView extends JView
         nickname  : 'chris'
         job       : 'Director of Engineering'
         image     : '../images/people/chris.jpg'
-#      ,
-#        name      : 'Aleksey Mykhailov'
-#        nickname  : 'aleksey-m'
-#        job       : 'Sys Admin &amp; node.js Developer'
-#        image     : '../images/people/aleksey.jpg'
       ,
         name      : 'Gökmen Göksel'
         nickname  : 'gokmen'
         job       : 'Software Engineer'
         image     : '../images/people/gokmen.jpg'
-      # ,
-      #   name      : 'Son Tran-Nguyen'
-      #   nickname  : 'sntran'
-      #   job       : 'Software Engineer'
-      #   image     : '../images/people/son.jpg'
       ,
         name      : 'Arvid Kahl'
         nickname  : 'arvidkahl'
@@ -119,6 +125,76 @@ class AboutView extends JView
         nickname  : 'blum'
         job       : 'System Administrator'
         image     : '../images/people/nelson.jpg'
+      ,
+        name      : 'Bahadir Kandemir'
+        nickname  : 'bahadir'
+        job       : 'Software Engineer'
+        image     : '../images/people/bahadir.jpg'
+      ,
+        name      : 'Fatih Arslan'
+        nickname  : 'arslan'
+        job       : 'Software Engineer'
+        image     : '../images/people/arslan.jpg'
+      ,
+        name      : 'Fatih Acet'
+        nickname  : 'fatihacet'
+        job       : 'Front-End Developer'
+        image     : '../images/people/acet.jpg'
+      ,
+        name      : 'Fatih Kadir Akin'
+        nickname  : 'fkadev'
+        job       : 'Software Engineer'
+        image     : '../images/people/fka.jpg'
+      ,
+        name      : 'Senthil Arivudainambi'
+        nickname  : 'sent-hil'
+        job       : 'Software Engineer'
+        image     : '../images/people/senthil.jpg'
+      ,
+        name      : 'Armagan Kimyonoglu'
+        nickname  : 'armagan'
+        job       : 'Software Engineer'
+        image     : '../images/people/armagan.jpg'
+      ,
+        name      : 'Cihangir Savas'
+        nickname  : 'siesta'
+        job       : 'Software Engineer'
+        image     : '../images/people/cihangir.jpg'
+      ,
+        name      : 'Halil Köklü'
+        nickname  : 'halk'
+        job       : 'Software Engineer'
+        image     : '../images/people/halk.jpg'
+      ,
+        name      : 'Geraint Jones'
+        nickname  : 'geraint'
+        job       : 'System Administrator'
+        image     : '../images/people/geraint.jpg'
+      ,
+        name      : 'Aybars Badur'
+        nickname  : 'ybrs'
+        job       : 'Software Engineer'
+        image     : '../images/people/aybars.jpg'
+      ,
+        name      : 'Erdinc Akkaya'
+        nickname  : 'ybrs'
+        job       : 'Software Engineer'
+        image     : '../images/people/erdinc.jpg'
+      ,
+        name      : 'Nicole Bacon'
+        nickname  : 'bacon'
+        job       : 'XEO &amp; Office Manager &amp; Mom'
+        image     : '../images/people/nicole.jpg'
+     # ,
+     #   name      : 'Aleksey Mykhailov'
+     #   nickname  : 'aleksey-m'
+     #   job       : 'Sys Admin &amp; node.js Developer'
+     #   image     : '../images/people/aleksey.jpg'
+     #  ,
+     #    name      : 'Son Tran-Nguyen'
+     #    nickname  : 'sntran'
+     #    job       : 'Software Engineer'
+     #    image     : '../images/people/son.jpg'
     ]
 
 

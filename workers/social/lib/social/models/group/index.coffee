@@ -333,21 +333,14 @@ module.exports = class JGroup extends Module
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy -> queue.next()
       if groupData['group-vm'] is 'on'
-        if groupData['member-vm'] is 'on'
-          limits =
-            cpu             : { quota: groupData['vm-cpu'] }
-            ram             : { quota: groupData['vm-ram'] }
-            disk            : { quota: groupData['vm-disk'] }
-            users           : { quota: groupData['vm-user'] }
-            'cpu per user'  : { quota: groupData['vm-cpu-member'] }
-            'ram per user'  : { quota: groupData['vm-ram-member'] }
-            'disk per user' : { quota: groupData['vm-disk-member'] }
-        else
-          limits =
-            cpu             : { quota: groupData['vm-cpu'] }
-            ram             : { quota: groupData['vm-ram'] }
-            disk            : { quota: groupData['vm-disk'] }
-            users           : { quota: groupData['vm-user'] }
+        limits =
+          users           : { quota: 100 }
+          cpu             : { quota: 100 }
+          ram             : { quota: 100 }
+          disk            : { quota: 100 }
+          'cpu per user'  : { quota: 100 }
+          'ram per user'  : { quota: 100 }
+          'disk per user' : { quota: 100 }
         queue.push -> group.createBundle limits, (err)->
           if err then callback err
           else
@@ -812,11 +805,13 @@ module.exports = class JGroup extends Module
 
   inviteByEmails: permit 'send invitations',
     success: (client, emails, callback)->
-      queue = emails.split(/\n/).map (email)=>=>
+      {uniq} = require 'underscore'
+      errors = []
+      queue = uniq(emails.split(/\n/)).map (email)=>=>
         @inviteByEmail client, email.trim(), (err)->
-          return callback err if err
+          errors.push err  if err
           queue.next()
-      queue.push -> callback null
+      queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
 
   inviteByUsername: permit 'send invitations',

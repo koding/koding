@@ -83,7 +83,7 @@ module.exports =
     login       : 'prod-social'
     watch       : no
     queueName   : socialQueueName+'cache'
-    run         : yes
+    run         : no
   social        :
     login       : 'prod-social'
     numberOfWorkers: 10
@@ -149,7 +149,7 @@ module.exports =
     run         : yes
     defaultRecepient : 'chris@koding.com'
   emailSender   :
-    run         : no
+    run         : yes
   guests        :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.

@@ -153,7 +153,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount devpts
 	prepareDir(vm.PtsDir(), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
 		panic(commandError("mount devpts failed.", err, out))
 	}
 	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
