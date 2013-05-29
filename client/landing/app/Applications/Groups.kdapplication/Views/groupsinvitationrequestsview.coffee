@@ -1,9 +1,8 @@
 class GroupsInvitationRequestsView extends GroupsRequestView
 
-  constructor:(options, data)->
+  constructor:(options={}, data)->
     options.cssClass = 'groups-invitation-request-view'
-
-    super
+    super options, data
 
     group = @getData()
     @currentState = new KDView cssClass: 'formline'
