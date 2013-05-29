@@ -14,7 +14,7 @@ module.exports = class Graph
         return
       ret = []
       for i in wantedOrder
-        obj = objects[i['idx']]
+        obj = objects[i.idx]
         if obj
           ret.push(obj)
         else
@@ -43,7 +43,7 @@ module.exports = class Graph
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
   fetchFromNeo4j:(query, params, callback)->
-    resultsKey = params['resultsKey'] or "items"
+    resultsKey = params.resultsKey or "items"
     # gets ids from neo4j, fetches objects from mongo, returns in the same order
     @db.query query, params, (err, results)=>
       if err
