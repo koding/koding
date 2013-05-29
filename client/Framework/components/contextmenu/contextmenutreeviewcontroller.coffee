@@ -11,7 +11,7 @@ class JContextMenuTreeViewController extends JTreeViewController
 
     for title, options of items
       id = null
-      if title is "customView"
+      if (title.indexOf "customView") is 0
         newItem = { type : 'customView', parentId : pId, view : options }
         results.push newItem
         continue
