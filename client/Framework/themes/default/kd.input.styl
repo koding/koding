@@ -1,8 +1,11 @@
 @import "./client/Framework/themes/default/kdfn"
 
+@css {
 /*
-**  KDInput STYLES
+KDInputView styles
 */
+}
+
 label.kdlabel
   line-height 1.8em
   margin-right 5px
@@ -76,6 +79,12 @@ select.kdinput.select
     border            1px solid rgba(125,190,241,1)
     shadow            0 0 3px rgba(125,190,241,.7)
 
+@css {
+/*
+KDInputView > KDSelectBox styles
+*/
+}
+
 div.kdselectbox
   rel()
   z-index             100
@@ -145,9 +154,11 @@ div.kdselectbox
   label
     display           inline-block
 
-// #####
-// # KD Switch
-// #####
+@css {
+/*
+KDInputView > KDSwitch styles
+*/
+}
 
 .kdinputswitch
   background          transparent url("../images/switch_anim_orange_large1.png") no-repeat left bottom
@@ -162,9 +173,11 @@ div.kdselectbox
 .kdinputswitch.on
   background-position left top
 
-// #####
-// # Ryan's Switch
-// #####
+@css {
+/*
+KDInputView > KDOnOffSwitch styles
+*/
+}
 
 .on-off
   font-family           sans
@@ -352,3 +365,58 @@ span.kdinputhint
   abs()
   top               0
   left              0
+
+@css {
+/*
+KDInputView > KDTokenizedInput styles
+*/
+}
+
+.kdtokenizedinput
+  size                      100%, 100%
+
+  .kdtokenizedinput-inner-wrapper
+    rel()
+    size                    100%, 100%
+    borderBox()
+
+  .layer
+    size                  100%, 100px
+    padding               5px
+    font-size             12px
+    line-height           16px
+    // color                 #444
+    display               block
+    borderBox()
+
+    &.presentation
+      bg                  color, transparent
+      white-space         pre-wrap
+      z-index             1
+      overflow            hidden
+      &.hide-tokens b
+        hidden()
+      b
+        font-weight       normal
+        vendor            transition, background-color .15s linear
+        bg                color, transparent
+        // &.highlight-tag
+        //   bg              color, gold
+        // &.highlight-user
+        //   bg              color, lightblue
+
+      .caret
+        width             2px
+        height            16px
+        background-color  red
+        position          absolute
+
+    &.input
+      abs()
+      top                 0
+      left                0
+      background-color    transparent
+      color               transparent
+      border              none
+      z-index             2
+

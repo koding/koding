@@ -805,11 +805,13 @@ module.exports = class JGroup extends Module
 
   inviteByEmails: permit 'send invitations',
     success: (client, emails, callback)->
-      queue = emails.split(/\n/).map (email)=>=>
+      {uniq} = require 'underscore'
+      errors = []
+      queue = uniq(emails.split(/\n/)).map (email)=>=>
         @inviteByEmail client, email.trim(), (err)->
-          return callback err if err
+          errors.push err  if err
           queue.next()
-      queue.push -> callback null
+      queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
 
   inviteByUsername: permit 'send invitations',
