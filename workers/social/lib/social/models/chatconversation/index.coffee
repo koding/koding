@@ -37,7 +37,7 @@ module.exports = class JChatConversation extends Module
 
   @fetch = secure (client, publicName, callback)->
     {delegate} = client.connection
-    @one { publicName, invitees: delegate.profile.nickname }, callback
+    @one { publicName, invitees: $in: [delegate.profile.nickname] }, callback
 
   @fetchSome = secure (client, options, callback)->
     [callback, options] = [options, callback] unless callback
@@ -56,6 +56,8 @@ module.exports = class JChatConversation extends Module
   @create = secure (client, initialInvitees, callback)->
     {delegate} = client.connection
     {nickname} = delegate.profile
+
+    initialInvitees.push nickname
 
     conversation = new this {
       publicName  : createId()
