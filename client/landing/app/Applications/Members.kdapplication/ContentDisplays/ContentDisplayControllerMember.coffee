@@ -100,19 +100,19 @@ class ContentDisplayControllerMember extends KDViewController
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
 
+  createFilter:(title, account, facets)->
+    filter =
+      title             : title
+      dataSource        : (selector, options, callback)=>
+        options.originId = account.getId()
+        options.facets   = facets
+        KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, callback
+    return filter
+
   addActivityView:(account)->
 
     @getView().$('div.lazy').remove()
 
-    @createFilter = (title, facets)->
-      filter =
-        title             : title
-        dataSource        : (selector, options, callback)=>
-          options.originId = account.getId()
-          options.facets   = facets
-          KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
-            callback null, data
-      return filter
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       domId                 : 'members-feeder-split-view' unless @revivedContentDisplay
@@ -126,15 +126,14 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
-        everything          : @createFilter("Everything", [
-          'CStatusActivity', 'CCodeSnipActivity', 'CFolloweeBucketActivity', 'CNewMemberBucket'
-          'CDiscussionActivity',"CTutorialActivity", "CBlogPostActivity"
-          ])
-        statuses            : @createFilter("Status Updates", ['CStatusActivity'])
-        codesnips           : @createFilter("Code Snippets", ['CCodeSnipActivity'])
-        blogposts           : @createFilter("Blog Posts", ['CBlogPostActivity'])
-        discussions         : @createFilter("Discussions", ['CDiscussionActivity'])
-        tutorials           : @createFilter("Tutorials", ['CTutorialActivity'])
+        everything          : @createFilter("Everything", account,
+          [ 'CStatusActivity', 'CCodeSnipActivity', 'CFolloweeBucketActivity', 'CNewMemberBucket'
+          'CDiscussionActivity',"CTutorialActivity", "CBlogPostActivity" ])
+        statuses            : @createFilter("Status Updates", account, ['CStatusActivity'])
+        codesnips           : @createFilter("Code Snippets", account, ['CCodeSnipActivity'])
+        blogposts           : @createFilter("Blog Posts", account, ['CBlogPostActivity'])
+        discussions         : @createFilter("Discussions", account, ['CDiscussionActivity'])
+        tutorials           : @createFilter("Tutorials", account, ['CTutorialActivity'])
       sort                  :
         'sorts.likesCount'  :
           title             : "Most popular"
