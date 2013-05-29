@@ -1,6 +1,6 @@
 class AccountAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Account"
     route        : "/Account"
     behavior     : "hideTabs"
