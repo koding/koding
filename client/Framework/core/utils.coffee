@@ -634,8 +634,10 @@ __utils =
   tempStorage:-> KD.getSingleton("mainController").tempStorage
 
   stopDOMEvent :(event)->
+    return no  unless event
     event.preventDefault()
     event.stopPropagation()
+    return no
 
   utf8Encode:(string)->
     string = string.replace(/\r\n/g, "\n")

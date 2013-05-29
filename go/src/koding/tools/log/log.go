@@ -217,10 +217,9 @@ func RunGaugesLoop() {
 
 func LogGauges(reportTime int64) {
 	if !config.Current.Librato.Push {
-		tagPrefix := "[gauges " + tags + "]"
+		fmt.Printf("%s [gauges %s]\n", time.Now().Format(time.StampMilli), tags)
 		for _, gauge := range gauges {
-			fmt.Printf("%-30s %s: %v\n", tagPrefix, gauge.Name, gauge.input())
-			tagPrefix = ""
+			fmt.Printf("%s %s: %v\n", strings.Repeat(" ", len(time.StampMilli)), gauge.Name, gauge.input())
 		}
 		return
 	}

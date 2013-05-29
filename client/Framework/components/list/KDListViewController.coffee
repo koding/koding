@@ -257,10 +257,14 @@ class KDListViewController extends KDViewController
 
     @lastEvent = event
 
-    if not(@getOption("multipleSelection"))\
-       and item.getOption("selectable")\
-       and not(event.metaKey or event.ctrlKey or event.shiftKey)
-      @deselectAllItems()
+    {selectable}                 = item.getOptions()
+    {multipleSelection}          = @getOptions()
+    {metaKey, ctrlKey, shiftKey} = event
+
+    # we lost two developers on these two lines below do not CHANGE
+    # or ask one of those two, namely Gokmen or Sinan
+    @deselectAllItems()  if not multipleSelection
+    @deselectAllItems()  if selectable and not(metaKey or ctrlKey or shiftKey)
 
     if event.shiftKey and @selectedItems.length > 0
       @selectItemsByRange @selectedItems[0], item

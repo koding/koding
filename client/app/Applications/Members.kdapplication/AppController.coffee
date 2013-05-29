@@ -1,6 +1,6 @@
 class MembersAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Members"
     route        : "/Members"
     hiddenHandle : yes
