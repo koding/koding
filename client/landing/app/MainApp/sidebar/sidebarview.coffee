@@ -217,16 +217,14 @@ class Sidebar extends JView
 
   showBottomControls:->
     @$('#finder-bottom-controls').addClass 'show-environments'
+    @utils.wait 400, @bound '_windowDidResize'
 
   hideBottomControls:->
     @$('#finder-bottom-controls').removeClass 'show-environments'
+    @utils.wait 300, @bound '_windowDidResize'
 
   _windowDidResize:->
-
-    {winWidth} = @getSingleton('windowController')
-
-    bottomListHeight = @$("#finder-bottom-controls").height() or 109
-    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
+    @$("#finder-holder").height @getHeight() - @$("#finder-bottom-controls").height() - 50
 
   navItems =
     # temp until groups are implemented
