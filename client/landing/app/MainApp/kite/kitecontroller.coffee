@@ -83,16 +83,11 @@ class KiteController extends KDController
       command = options
       options = {}
 
-    currentGroupName = (KD.getSingleton 'groupsController').getGroupSlug()
-
     options.kiteName or= "os"
     options.method   or= "exec"
-    # options.correlationName or= currentGroupName
 
     vmName = if options.vmName then options.vmName \
-             else if not currentGroupName or currentGroupName is 'koding'
-             then KD.nick()
-             else currentGroupName
+             else KD.singletons.vmController.getDefaultVmName()
     options.vmName = vmName
 
     kite = @getKite options.kiteName, vmName
