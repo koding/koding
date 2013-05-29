@@ -220,6 +220,10 @@ class WebTerm.Terminal
     else
       @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
 
+  setScrollbackLimit: (limit) ->
+    @screenBuffer.scrollbackLimit = limit
+    @screenBuffer.flush()
+
   inspectString: (string) ->
     escaped = string.replace /[\x00-\x1f\\]/g, (character) ->
       special = SPECIAL_CHARS[character]
