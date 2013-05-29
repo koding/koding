@@ -67,19 +67,19 @@ class VirtualizationController extends KDController
           bundle.debitGroup defaultVMOptions, callback
 
   fetchVMs:(callback)->
-    return callback null, @vms  if @vms
+    return callback null, @vms  if @vms.length > 0
     KD.remote.api.JVM.fetchVms (err, vms)=>
       @vms = vms  unless err
       callback err, vms
 
   fetchGroupVMs:(callback)->
-    return callback null, @groupVms  if @groupVms
+    return callback null, @groupVms  if @groupVms.length > 0
     KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @groupVms = vms  unless err
       callback err, vms
 
   resetVMData:->
-    @vms = @groupVms = null
+    @vms = @groupVms = []
 
   # fixme GG!
   fetchTotalVMCount:(callback)->
