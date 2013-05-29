@@ -1,6 +1,6 @@
 class KodingAppsController extends KDController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name       : "KodingAppsController"
     background : yes
 

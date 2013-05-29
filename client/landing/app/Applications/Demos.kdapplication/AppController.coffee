@@ -1,6 +1,6 @@
 class DemosAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Demos"
     route        : "/Demos"
     hiddenHandle : yes

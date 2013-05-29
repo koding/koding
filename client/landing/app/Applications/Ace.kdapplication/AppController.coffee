@@ -1,6 +1,6 @@
 class AceAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name          : "Ace"
     multiple      : yes
     hiddenHandle  : no

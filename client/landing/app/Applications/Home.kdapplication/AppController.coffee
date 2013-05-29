@@ -1,6 +1,6 @@
 class HomeAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Home"
     route        : "/Home"
     hiddenHandle : yes
