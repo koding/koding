@@ -228,19 +228,15 @@ func main() {
 		}
 
 		go func() {
-			sigtermChannel := make(chan os.Signal)
-			signal.Notify(sigtermChannel, syscall.SIGTERM)
-			<-sigtermChannel
-			lifecycle.BeginShutdown()
+			sigusr1Channel := make(chan os.Signal)
+			signal.Notify(sigusr1Channel, syscall.SIGUSR1)
+			<-sigusr1Channel
 			listener.Close()
 		}()
 
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
-			if lifecycle.ShuttingDown {
-				break
-			}
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
