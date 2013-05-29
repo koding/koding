@@ -52,7 +52,7 @@ module.exports = class JApp extends jraphical.Module
         'fetchRelativeReviews', 'approve'
       ]
       static        : [
-        'one', 'create', 'someWithRelationship', 'updateAllSlugs'
+        'one', 'create', 'someWithRelationship', 'updateAllSlugs', 'some'
       ]
 
     schema          :
@@ -336,9 +336,10 @@ module.exports = class JApp extends jraphical.Module
            (delegate.checkFlag 'app-publisher' and \
             delegate.getId().equals app.originId)
           return callback null, app
-        return callback null
+        return callback new KodingError 'No such application.'
       callback null, app
 
+  @some$: @someWithRelationship
   @someWithRelationship: secure (client, selector, options, callback)->
     {delegate} = client.connection
     selector or= {}
