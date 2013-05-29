@@ -92,6 +92,13 @@ class Sidebar extends JView
     @resourcesController = new ResourcesController
     @resourcesWidget     = @resourcesController.getView()
 
+    @createNewVMButton   = new KDButtonView
+      title     : "Create New VM"
+      icon      : yes
+      iconClass : "plus-orange"
+      cssClass  : "clean-gray create-vm"
+      callback  : KD.singletons.vmController.createNewVM
+
     @listenWindowResize()
 
   resetAdminNavController:->
@@ -170,6 +177,7 @@ class Sidebar extends JView
         {{> @finderBottomControls}}
         {{> @finderBottomControlPin}}
         {{> @resourcesWidget}}
+        {{> @createNewVMButton}}
       </div>
     </div>
     """
