@@ -18,12 +18,10 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     # saves the URL of the previous request to avoid
     # multiple embed calls for one URL
-    @previousURL = ""
-
+    @previousURL = ''
     # prevents multiple calls to embed.ly functionality
     # at the same time
     @requestEmbedLock = off
-
     # will show the loader/embed box instantly when embed
     # requests gets parsed/sent. this is only needed if the
     # box is hidden (as it is when the widget is empty or reset)
@@ -42,23 +40,17 @@ class ActivityStatusUpdateWidget extends KDFormView
           maxLength : 3000
         messages    :
           required  : "Please type a message..."
-
-      paste:=>
-        @requestEmbed()
-
+      paste         : @bound 'requestEmbed'
       # # this will cause problems when clicking on a embedLinks url
       # # right after entering the url -> double request
       # the request lock should circumvent this problem.
-
-      blur:=>
-        @utils.wait 1000, =>
-          @requestEmbed()
-
-      keyup:(event)=>
+      blur          : => @utils.wait 1000, => @requestEmbed()
+      keyup         : (event)=>
         # this needs to be refactored, this will only capture URLS when the user
         # adds a space after them or tabs out
-        if ($(event.which)[0] is 32) or ($(event.which)[0] is 9) # when space key is hit, URL is usually complete
-          @requestEmbed()
+        # when space key is hit, URL is usually complete
+        which = $(event.which)[0]
+        @requestEmbed()  if which in [32, 9]
 
     @cancelBtn = new KDButtonView
       title       : "Cancel"
@@ -73,29 +65,25 @@ class ActivityStatusUpdateWidget extends KDFormView
       type        : "submit"
 
     embedOptions = $.extend {}, options,
-      delegate  : @
-      hasConfig : yes
-      click:->
-        no
+      delegate    : @
+      hasConfig   : yes
 
     @embedBox = new EmbedBox embedOptions, data
 
     @embedUnhideLink = new KDCustomHTMLView
-      cssClass : 'unhide-embed-link'
-      tagName : "a"
-      partial : "Re-enable embedding URLs"
-      attributes :
-        href : ""
-      click :(event)=>
+      cssClass    : 'unhide-embed-link'
+      tagName     : 'a'
+      partial     : 'Re-enable embedding URLs'
+      attributes  :
+        href      : ''
+      click       : (event)=>
         event.preventDefault()
         event.stopPropagation()
         @embedBox.show()
-        @embedBox.removeEmbedHiddenItem "embed"
         @embedUnhideLink.hide()
 
     @embedUnhideLink.hide()
-    @embedBox.on "EmbedIsHidden", =>
-      @embedUnhideLink.show()
+    @embedBox.on "EmbedIsHidden", @embedUnhideLink.show.bind this
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
@@ -166,7 +154,6 @@ class ActivityStatusUpdateWidget extends KDFormView
         url
 
   requestEmbed:->
-
     @largeInput.setValue @sanitizeUrls @largeInput.getValue()
 
     unless @requestEmbedLock is on
@@ -174,18 +161,17 @@ class ActivityStatusUpdateWidget extends KDFormView
 
       setTimeout =>
         firstUrl = @largeInput.getValue().match /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g
-        return @requestEmbedLock = off  unless firstUrl?
-
-        @initialRequest = no  if @initialRequest
-
+        return @requestEmbedLock = off  unless firstUrl
+        
+        @initialRequest = no
         @embedBox.embedLinks.setLinks firstUrl
         @embedBox.show()
 
         return @requestEmbedLock = off  if @previousURL in firstUrl
 
-        @embedBox.embedUrl firstUrl?[0], maxWidth: 525, (embedData)=>
+        @embedBox.embedUrl firstUrl[0], maxWidth: 525, (embedData)=>
           @requestEmbedLock = off
-          @previousURL = firstUrl?[0]
+          @previousURL = firstUrl[0]
       , 50
 
   switchToSmallView:->
@@ -238,27 +224,22 @@ class ActivityStatusUpdateWidget extends KDFormView
         bodyUrls.unshift selected[0]
         @embedBox.embedLinks.setLinks bodyUrls
 
-      @previousURL = link.link_url
+      @previousURL     = link.link_url
+      @embedBox.oembed = link.link_embed
+      @embedBox.url    = link.link_url
 
-      @embedBox.setEmbedData link.link_embed
-      @embedBox.setEmbedURL link.link_url
-      @embedBox.setEmbedImageIndex link.link_embed_image_index
-      @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
-      @embedBox.setEmbedCache link.link_cache
-
-      # when in edit mode, show the embed and remove any "embed" from hidden
-      @embedBox.embedExistingData link.link_embed, {forceShow:yes}, =>
+      # when in edit mode, show the embed
+      @embedBox.embedExistingData link.link_embed, {}, =>
         @embedBox.show()
         @embedUnhideLink.hide()
-      , link.link_cache
     else
       @embedBox.hide()
 
     @switchToLargeView()
 
   submit:->
-    @addCustomData "link_url", @embedBox.getEmbedURL() or ""
-    @addCustomData "link_embed", @embedBox.getEmbedDataForSubmit() or {}
+    @addCustomData "link_url", @embedBox.url or ""
+    @addCustomData "link_embed", @embedBox.getDataForSubmit() or {}
 
     @once 'FormValidationPassed', => @reset yes
 
@@ -274,10 +255,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       @submitBtn.setTitle "Submit"
       @removeCustomData "activity"
       @removeCustomData "link_url"
-      @removeCustomData "link_cache"
       @removeCustomData "link_embed"
-      @removeCustomData "link_embed_hidden_items"
-      @removeCustomData "link_embed_image_index"
       @embedBox.resetEmbedAndHide()
       @previousURL = ""
       @initialRequest = yes

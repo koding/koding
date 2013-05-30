@@ -21,16 +21,16 @@ class StaticTutorialActivityItemView extends StaticActivityItemChild
 
     @embedOptions = $.extend {}, options,
       hasDropdown : no
-      delegate : @
+      delegate    : this
 
     @previewImage = new KDCustomHTMLView
-      tagName : "img"
-      cssClass : "tutorial-preview-image"
-      attributes:
-        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
-        title:"View the full Tutorial"
-        alt:"View the full tutorial"
-        "data-paths":"preview"
+      tagName     : "img"
+      cssClass    : "tutorial-preview-image"
+      attributes  :
+        src       : @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title     : "View the full Tutorial"
+        alt       : "View the full tutorial"
+        "data-paths": "preview"
 
     @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
