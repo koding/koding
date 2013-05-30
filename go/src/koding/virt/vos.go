@@ -183,7 +183,7 @@ func (vos *VOS) MkdirAll(name string, perm os.FileMode) error {
 	}
 
 	dir, _ := path.Split(name)
-	if dir != "" {
+	if dir != "" && dir != "/" {
 		if err := vos.MkdirAll(dir[:len(dir)-1], perm); err != nil {
 			return err
 		}

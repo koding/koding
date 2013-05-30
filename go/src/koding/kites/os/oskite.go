@@ -291,7 +291,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					panic(err)
 				}
 
-				if err := rootVos.Mkdir("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
+				if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
 				if err := rootVos.Chown("/home/"+user.Name, user.Uid, user.Uid); err != nil {
