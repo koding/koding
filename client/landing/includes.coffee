@@ -265,6 +265,7 @@ module.exports = [
   "app/MainApp/filetree/controllers/findercontroller.coffee",
   "app/MainApp/filetree/controllers/findertreecontroller.coffee",
   "app/MainApp/filetree/controllers/findercontextmenucontroller.coffee",
+  "app/MainApp/filetree/controllers/resourcescontroller.coffee",
 
   "app/MainApp/filetree/itemviews/finderitem.coffee",
   "app/MainApp/filetree/itemviews/fileitem.coffee",
@@ -279,6 +280,7 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee",
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
+  "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",

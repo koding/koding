@@ -60,7 +60,7 @@ class Sidebar extends JView
 
     @finder = @finderController.getView()
     KD.registerSingleton "finderController", @finderController
-    @finderController.on 'ManageResources', @bound 'toggleResources'
+    @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
     # Finder Bottom Controls
     @finderBottomControlsController = new KDListViewController
@@ -74,7 +74,7 @@ class Sidebar extends JView
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
-      defaultState : "hide"
+      defaultState : "show"
       states       : [
         title      : "show"
         iconClass  : "up"
@@ -88,6 +88,16 @@ class Sidebar extends JView
           @hideBottomControls()
           callback?()
       ]
+
+    @resourcesController = new ResourcesController
+    @resourcesWidget     = @resourcesController.getView()
+
+    @createNewVMButton   = new KDButtonView
+      title     : "Create New VM"
+      icon      : yes
+      iconClass : "plus-orange"
+      cssClass  : "clean-gray create-vm"
+      callback  : KD.singletons.vmController.createNewVM
 
     @listenWindowResize()
 
@@ -164,8 +174,10 @@ class Sidebar extends JView
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
-        {{> @finderBottomControlPin}}
         {{> @finderBottomControls}}
+        {{> @finderBottomControlPin}}
+        {{> @resourcesWidget}}
+        {{> @createNewVMButton}}
       </div>
     </div>
     """
@@ -203,22 +215,16 @@ class Sidebar extends JView
       callback?()
       @emit "NavigationPanelWillCollapse"
 
-  hideBottomControls:->
-    @$('#finder-bottom-controls').addClass 'go-down'
-    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
-
   showBottomControls:->
-    @$('#finder-bottom-controls').removeClass 'go-down'
+    @$('#finder-bottom-controls').addClass 'show-environments'
+    @utils.wait 400, @bound '_windowDidResize'
 
-  toggleResources:->
-    @$('#finder-bottom-controls').toggleClass 'show-resources'
+  hideBottomControls:->
+    @$('#finder-bottom-controls').removeClass 'show-environments'
+    @utils.wait 300, @bound '_windowDidResize'
 
   _windowDidResize:->
-
-    {winWidth} = @getSingleton('windowController')
-
-    bottomListHeight = @$("#finder-bottom-controls").height() or 109
-    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
+    @$("#finder-holder").height @getHeight() - @$("#finder-bottom-controls").height() - 50
 
   navItems =
     # temp until groups are implemented
@@ -260,23 +266,23 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      {
-        title   : "Launch Terminal", icon : "terminal",
-        appPath : "WebTerm", isWebTerm : yes
-      }
-      { title   : "Settings",           icon : "cog" }
-      {
-        title   : "Keyboard Shortcuts", icon : "shortcuts",
-        action  : "showShortcuts"
-      }
       # {
-      #   title   : "Manage Resources",   icon : "resources",
-      #   action  : "manageResources"
+      #   title   : "Launch Terminal", icon : "terminal",
+      #   appPath : "WebTerm", isWebTerm : yes
+      # }
+      # { title   : "Settings",           icon : "cog" }
+      # {
+      #   title   : "Keyboard Shortcuts", icon : "shortcuts",
+      #   action  : "showShortcuts"
       # }
       {
-        title   : "Create a new VM",      icon : "plus",
-        action  : "createNewVM"
+        title   : "your environments",   icon : "resources",
+        action  : "showEnvironments"
       }
+      # {
+      #   title   : "Create a new VM",      icon : "plus",
+      #   action  : "createNewVM"
+      # }
     ]
 
   adminNavItems =
