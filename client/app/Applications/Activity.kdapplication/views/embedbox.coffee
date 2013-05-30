@@ -10,12 +10,13 @@ class EmbedBox extends KDView
 
   constructor:(options={}, data={})->
 
-    @embeddedData    = data.link_embed or data.link?.link_embed or {}
-    @embeddedUrl     = data.link_url or data.link?.link_url or ''
-    @embeddedCache   = []
+    @oembed     = data.link_embed or {}
+    @url        = data.link_url or ''
+    @cache      = []
+    @imageIndex = 0
     @hasValidContent = no
 
-    super options,data
+    super options, data
 
     # top right corner either has the remove-embed button
     # or the report-button (to report malicious content)
@@ -72,8 +73,10 @@ class EmbedBox extends KDView
             $(element).removeAttr 'data-src'
           element
 
-  refreshEmbed:->
-    @populateEmbed @embeddedData, @embeddedUrl, {}
+  addToCache:(item)-> @cache.push item  if item.url? and item not in @cache
+  setImageIndex:(@imageIndex)->
+
+  refreshEmbed:-> @populateEmbed @oembed, @url, {}
 
   resetEmbedAndHide:->
     @resetEmbed()
@@ -83,14 +86,12 @@ class EmbedBox extends KDView
 
   # these resets only concern the currently displayed embed
   resetEmbed:->
-    @embeddedData = {}
-    @embeddedUrl  = ''
+    @oembed     = {}
+    @url        = ''
+    @imageIndex = 0
 
-  addToCache:(item)->
-    @embeddedCache.push item  if item.url? and item not in @embeddedCache
-
-  getembeddedDataForSubmit:->
-    data             = @embeddedData
+  getDataForSubmit:->
+    data             = @oembed
     embedText        = @embedContainer.embedText
     data.title       = embedText?.embedTitle?.titleInput?.getValue() or ''
     data.description = embedText?.embedDescription?.descriptionInput?.getValue() or ''
@@ -105,38 +106,12 @@ class EmbedBox extends KDView
 
   getRichEmbedWhitelist:-> [] # add provider name here if we dont want to embed
 
-  fetchEmbed:(url='#',options={},callback=noop)->
+  populateEmbed:(data={}, options={})->
+    console.log data
+    @oembed = data
+    @url    = data.url
 
-    # if there is no protocol, supply one! embedly doesn't support //
-    unless /^(ht|f)tp(s?)\:\/\//.test url then url = 'http://'+url
-
-    # prepare embed.ly options
-    embedlyOptions = $.extend {}, {
-      endpoint  : 'preview'
-      maxWidth  : 530
-      maxHeight : 200
-      wmode     : 'transparent'
-      error     : (node, dict)=> callback? dict
-    }, options
-
-    # fetch embed.ly data from the server api
-    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (embeddedData)=>
-      oembed = JSON.parse Encoder.htmlDecode embeddedData
-
-      # embed.ly returns an array with x objects for x urls requested
-      @embeddedData    = oembed[0]
-      @embeddedUrl     = url
-      @hasValidContent = yes
-
-      @addToCache oembed[0]
-
-      callback oembed[0], embedlyOptions
-
-  populateEmbed:(data={},url='#',options={},cache=[])->
-    @embeddedData = data
-    @embeddedUrl  = url
-
-    displayEmbedType=(embedType)=>
+    displayEmbedType=(embedType, data)=>
       @hasValidContent = yes
 
       embedOptions = _.extend {}, @options, {
@@ -144,19 +119,14 @@ class EmbedBox extends KDView
         delegate : @
       }
 
-      @embedContainer.destroy()
-
       switch embedType
-        when 'link'
-          @embedContainer = new EmbedBoxLinkView embedOptions, @getData()
-        when 'image'
-          @embedContainer = new EmbedBoxImageView embedOptions, @getData()
-        when 'object'
-          @embedContainer = new EmbedBoxObjectView embedOptions, @getData()
-        else
-          @embedContainer = new EmbedBoxLinkView embedOptions, @getData()
+        when 'image'  then containerClass = EmbedBoxImageView
+        when 'object' then containerClass = EmbedBoxObjectView
+        else               containerClass = EmbedBoxLinkView
 
-      @embedContainer?.show()
+      @embedContainer.destroy()
+      @embedContainer = new containerClass embedOptions, data
+      @embedContainer.show()
       @addSubView @embedContainer
       @show()
 
@@ -169,19 +139,17 @@ class EmbedBox extends KDView
 
       populateData =
         link_embed   : data
-        link_url     : url
+        link_url     : data.url
         link_options : _.extend {}, options, @options
-        link_cached  : @embeddedCache
+        link_cached  : @cache
 
       switch type
         when 'audio', 'xml', 'json', 'ppt', 'rss', 'atom'
-          displayEmbedType 'object'
-          @embedContainer.populate populateData
+          displayEmbedType 'object', populateData
 
         # this is usually just a single image
         when 'photo','image'
-          displayEmbedType 'image'
-          @embedContainer.populate populateData
+          displayEmbedType 'image', populateData
 
         # rich is a html object for things like twitter posts
         # link is fallback for things that may or may not have any kind of preview
@@ -192,20 +160,16 @@ class EmbedBox extends KDView
           # Unless the provider is whitelisted by us, we will not allow the custom HTML
           # that embedly provides to be displayed, rather use our own small box
           # that shows a  thumbnail, some info about the author and a desc.
-          if (data?.provider_name in @getRichEmbedWhitelist())
-            displayEmbedType 'object'
-            @embedContainer.populate populateData
+          if data?.provider_name in @getRichEmbedWhitelist()
+            displayEmbedType 'object', populateData
 
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
           else if data?.type in ['html', 'xml', 'text', 'video']
-
-            if (not @options.forceType? and not options.forceType?)
-              displayEmbedType 'link'
+            unless @options.forceType? and options.forceType?
+              displayEmbedType 'link', populateData
             else
-              displayEmbedType options.forceType or @options.forceType
-
-            @embedContainer.populate populateData
+              displayEmbedType options.forceType or @options.forceType, populateData
 
           # this can be audio or video files
           else
@@ -229,38 +193,53 @@ class EmbedBox extends KDView
       log 'EmbedBox encountered an Error!',data?.error_type,data?.error_message
       @hide()
 
-  embedExistingData:(data={}, options={}, callback=noop, cache=[])->
+  embedExistingData:(data={}, options={}, callback=noop)->
     unless data.type is 'error'
-      @clearEmbed()
-      @populateEmbed data, data.url, options, cache
+      @populateEmbed data, options
       @show()
       callback data
     else
       @hide()  unless @options.hasConfig
       callback no
 
-  embedUrl:(url,options={},callback=noop)->
+  fetchEmbed:(url='#', options={}, callback=noop)->
 
+    # if there is no protocol, supply one! embedly doesn't support //
+    unless /^(ht|f)tp(s?)\:\/\//.test url then url = 'http://'+url
+
+    # prepare embed.ly options
+    embedlyOptions = $.extend {}, {
+      endpoint  : 'preview'
+      maxWidth  : 530
+      maxHeight : 200
+      wmode     : 'transparent'
+      error     : (node, dict)=> callback? dict
+    }, options
+
+    # fetch embed.ly data from the server api
+    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (oembed)=>
+      oembed = JSON.parse Encoder.htmlDecode oembed
+      callback oembed[0], embedlyOptions
+
+  embedUrl:(url,options={},callback=noop)->
     # Checking if we have the URL in cached data before requesting it from embedly
     # user URL should be checked for domain, since embedly returns
     # urls without www. even if they are requested with www.
     url_ = url.replace /www\./, ""
 
-    for embed,i in @embeddedCache when embed.url?
+    for embed,i in @cache when embed.url?
       # remove trailing slash
-      embeddedUrl = embed.url.replace /\/$/, ""
-      if embed.url is url or embeddedUrl.indexOf(url_,embeddedUrl.length-url_.length) >= 0
-        @embeddedData = @embeddedCache[i]
-        @embeddedUrl  = url
-        @embedExistingData @embeddedCache[i], options, callback, @embeddedCache
-        return no
+      embedUrl = embed.url.replace /\/$/, ""
+      if embed.url is url or embedUrl.indexOf(url_,embedUrl.length-url_.length) >= 0
+        return @embedExistingData @cache[i], options, callback
 
     @embedLoader.show()
     @$('div.link-embed').addClass 'loading'
-    @fetchEmbed url, options, (data,embedlyOptions)=>
+    @fetchEmbed url, options, (data, embedlyOptions)=>
       unless data.type is 'error'
         @resetEmbed()
-        @populateEmbed data, url, embedlyOptions
+        @addToCache data
+        @populateEmbed data, embedlyOptions
         @show()
         callback data
       else

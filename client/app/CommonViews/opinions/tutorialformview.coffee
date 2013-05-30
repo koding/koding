@@ -37,27 +37,17 @@ class TutorialFormView extends KDFormView
       title           : "your Video"
       type            : "text"
       placeholder     : "The URL to your video"
-      keyup :=>
+      keyup           : =>
         if @discussionEmbedLink.getValue() is ""
           @getDelegate().embedBox.resetEmbedAndHide()
-      focus:=>
-        # @getDelegate().embedBox.show()
-      blur:=>
-        # @getDelegate().embedBox.hide()
-      paste:=>
+      paste           : =>
           @utils.defer =>
-
             @discussionEmbedLink.setValue @sanitizeUrls @discussionEmbedLink.getValue()
-
             url = @discussionEmbedLink.getValue()
-
             if /^((http(s)?\:)?\/\/)/.test url
               # parse this for URL
-              @getDelegate().embedBox.embedUrl url,
-                maxWidth: 540
-                maxHeight: 200
-              , =>
-                @getDelegate().embedBox.show()
+              embedOptions = maxWidth: 540, maxHeight: 200
+              @getDelegate().embedBox.embedUrl url, embedOptions, @getDelegate().embedBox.show.bind this
 
     @discussionTitle = new KDInputView
       cssClass        : "tutorial-title"
@@ -121,11 +111,10 @@ class TutorialFormView extends KDFormView
   submit:->
     # @once "FormValidationPassed", => @reset()
     @removeCustomData "link"
-
     if @getDelegate().embedBox.hasValidContent
       @addCustomData "link",
-        link_url   : @getDelegate().embedBox.getEmbedURL()
-        link_embed : @getDelegate().embedBox.getEmbedDataForSubmit()
+        link_url   : @getDelegate().embedBox.url
+        link_embed : @getDelegate().embedBox.getDataForSubmit()
     super
 
   pistachio:->

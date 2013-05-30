@@ -12,11 +12,9 @@ module.exports = class JStatusUpdate extends JPost
 
   schema = extend {}, JPost.schema, {
     link :
-      link_cache              : Array
-      link_url                : String
-      link_embed              : Object
-      link_embed_hidden_items : Array
-      link_embed_image_index  : Number
+      link_cache : Array
+      link_url   : String
+      link_embed : Object
   }
 
   @set
@@ -42,10 +40,8 @@ module.exports = class JStatusUpdate extends JPost
   @getActivityType =-> require './statusactivity'
 
   @fetchDataFromEmbedly = (url, options, callback)->
-
     {log}      = console
     util       = require "util"
-
     {Api}      = require "embedly"
 
     embedly = new Api
@@ -68,12 +64,10 @@ module.exports = class JStatusUpdate extends JPost
       group       : data.group
 
     if data.link_url and data.link_embed
-      statusUpdate.link         =
-        link_cache              : data.link_cache
-        link_url                : data.link_url
-        link_embed              : data.link_embed
-        link_embed_hidden_items : data.link_embed_hidden_items
-        link_embed_image_index  : data.link_embed_image_index
+      statusUpdate.link =
+        link_cache : data.link_cache
+        link_url   : data.link_url
+        link_embed : data.link_embed
 
     JPost.create.call @, client, statusUpdate, callback
 
@@ -85,11 +79,9 @@ module.exports = class JStatusUpdate extends JPost
 
     if data.link_url and data.link_embed
       statusUpdate.link         =
-        link_cache              : data.link_cache
-        link_url                : data.link_url
-        link_embed              : data.link_embed
-        link_embed_hidden_items : data.link_embed_hidden_items
-        link_embed_image_index  : data.link_embed_image_index
+        link_cache : data.link_cache
+        link_url   : data.link_url
+        link_embed : data.link_embed
 
     JPost::modify.call @, client, statusUpdate, callback
 

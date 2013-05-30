@@ -9,11 +9,10 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     super options,data
 
-    embedOptions = $.extend {}, options, {
+    embedOptions = $.extend {}, options,
       hasDropdown : no
-      delegate : @
-      maxWidth : 700
-    }
+      delegate    : this
+      maxWidth    : 700
 
     if data.link?
       @embedBox = new EmbedBox @embedOptions, data.link
@@ -54,36 +53,20 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     @template.update()
 
     # load embed on next callstack
-
     @utils.defer =>
 
       # If there is embed data in the model, use that!
-      if @getData().link?.link_url? and not (@getData().link.link_url is "")
+      if @getData().link?.link_url? and @getData().link.link_url isnt ''
+        @embedBox.show()
+        @embedBox.$().fadeIn 200
 
-        if not ("embed" in @getData()?.link?.link_embed_hidden_items)
+        firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        @embedBox.embedLinks.setLinks firstUrl  if firstUrl?
 
-          @embedBox.show()
-          @embedBox.$().fadeIn 200
-
-          firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
-          if firstUrl?
-            @embedBox.embedLinks.setLinks firstUrl
-
-          @embedBox.embedExistingData @getData().link.link_embed, {
-            maxWidth: 700
-            maxHeight: 300
-          }, =>
-
-            @embedBox.setActiveLink @getData().link.link_url
-
-          , @getData().link.link_cache
-
-
-          @embedBox.embedLinks.hide()
-
-        else
-          @embedBox.hide()
-
+        embedOptions = maxWidth: 700, maxHeight: 300
+        @embedBox.embedExistingData @getData().link.link_embed, embedOptions, =>
+          @embedBox.setActiveLink @getData().link.link_url
+        @embedBox.embedLinks.hide()
       else
         @embedBox.hide()
 
@@ -120,21 +103,17 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
     super
 
     {link} = @getData()
-
     if link?
       if @embedBox.constructor.name is "KDView"
         @embedBox = new EmbedBox @embedOptions, link
-      @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
-      @embedBox.setEmbedImageIndex link.link_embed_image_index
-      @embedBox.embedExistingData link.link_embed, {} ,=>
-        if "embed" in link.link_embed_hidden_items
-          @embedBox.hide()
-      , link.link_cache
+
+      @embedBox.embedExistingData link.link_embed, {}, =>
+        @embedBox.hide()  unless @embedBox.hasValidContent
 
       @embedBox.setActiveLink link.link_url
-
     else
       @embedBox = new KDView
+
     @attachTooltipAndEmbedInteractivity()
 
   pistachio:->

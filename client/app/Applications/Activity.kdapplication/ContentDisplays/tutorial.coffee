@@ -35,22 +35,20 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       partial  : @opinionHeaderCountString data.opinionCount
 
     @embedOptions = $.extend {}, options,
-      delegate  : @
+      delegate  : this
       hasConfig : no
       forceType : "object"
-
     @embedBox = new EmbedBox @embedOptions, data
 
     @previewImage = new KDCustomHTMLView
-      tagName : "img"
-      cssClass : "tutorial-preview-image"
-      attributes:
-        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
-        title:"View the full Tutorial"
-        alt:"View the full tutorial"
-        "data-paths":"preview"
-
-    @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
+      tagName    : "img"
+      cssClass   : "tutorial-preview-image"
+      attributes :
+        src      : @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title    : "View the full Tutorial"
+        alt      : "View the full tutorial"
+        "data-paths": "preview"
+    @previewImage.hide()  unless data.link?.link_embed?.images?[0]?.url
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
@@ -133,8 +131,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
                   else
                     @editDiscussionForm.setClass "hidden"
                     @$(".tutorial-body .data").show()
-                    @utils.defer =>
-                      @embedBox.show() if @embedBox.hasValidContent
+                    @utils.defer => @embedBox.show()  if @embedBox.hasValidContent
             , data
 
             @addSubView @editDiscussionForm, "p.tutorial-body", yes
@@ -234,15 +231,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
-        @embedBox.show() unless (("embed" in @embedBox.getEmbedHiddenItems()) or\
-                                 (@embedBox.hasValidContent is no))
-      ,@getData().link.link_cache
-
-            # <div class="tutorial-navigation-container clear clearfix">
-            #   {{> @listAnchorPrevious}}
-            #   {{> @comingUpNextAnchor}}
-            #   {{> @listAnchorNext}}
-            # </div>
+        @embedBox.show()  unless @embedBox.hasValidContent is no
 
   click:(event)->
     if $(event.target).is("[data-paths~=preview]")
