@@ -5,109 +5,106 @@
 @import "nib/vendor"
 
 
-.grouptabhandle.dirty .new
-  background-color            #0a92ba
-  color                       white
-  font-weight                 bold
-  font-size                   11px
-  line-height                 1
-  padding                     1px 4px
-  rounded                     3px
+@css {
+/*
+Dashboard main styles
+*/
+}
+
+.content-area-pane.dashboard
+  section.searchbar
+    top                   24px
+    right                 24px
+    size                  200px, 32px
+    abs()
+    .header-search-input.hitenterview
+      top                 0
+      right               0
+      // rel()
+    span.title
+      font-size           18px
+      font-weight         300
+      margin              0 0 0 20px
+      line-height         50px
+      text-shadow         0px 1px 0px white
+      color               linkColor1
+    span.icon.search
+      display             block
+      bg                  position, -100px -480px
+      size                20px, 20px
+      top                 7px
+      right               7px
+      opacity             .7
+      sprite()
+      abs()
+
+  .dashboard-tabs
+    border-left           1px solid #f5f5f5
+    borderBox()
+
+    .kdhiddentab
+      display             none
+
+    > .kdtabpaneview
+      > .kdview
+        overflow          auto
 
 
-.group-admin-modal
+@css {
+/*
+Dashboard Readme Styles
+*/
+}
+.dashboard-tabs
+  .kdtabpaneview.readme
+    borderBox()
+    padding                   20px
+    width                     100%
 
-  &.admin-kdmodal
-    .kdselectbox
-      margin-right              22px
+    .button-bar
+      abs()
+      top                     0
+      right                   0
+      text-align              right
+      width                   auto
+      z-index                 1
 
-  .kdview.formline.type.group-type
-    padding                     0
-    border-bottom               none
-  .group-type
-    margin                      11px 0
-    .kd-radio-holder
-      height                    60px
-      line-height               60px
-      padding                   0 20px
-      rel()
-      label
-        display                 block
-        font-size               14px
-      input
-        display                 none
-
-      &.active
-        bg                      color, rgba(0, 0, 0, .05)
-        label
-          &:before
-            bg                    position, -460px -620px
-            opacity               .9
-          &.company:before
-            bg                    position, -460px -680px
-          &.project:before
-            bg                    position, -460px -740px
-          &.custom:before
-            bg                    position, -460px -800px
-
-      &:hover
-        bg                      color, rgba(0, 0, 0, .05)
-
-      label
-        &:before
-          content                 ""
-          size                    60px, 60px
-          bg                      color, pink
-          bg                      position, -400px -620px
-          top                     5px
-          opacity                 .4
-          float                   left
-          margin-right            10px
-          sprite()
-        &.company:before
-          bg                      position, -400px -680px
-        &.project:before
-          bg                      position, -400px -740px
-        &.custom:before
-          bg                      position, -400px -800px
-
-  div.general-settings > .kdformview
-    margin-top                5px
-    > .formline
+    .edit
+      margin-top              44px
       width                   100%
-      overflow                auto
-      border-bottom           1px solid rgba(0, 0, 0, .1)
-      padding                 5px 0px 7px 18px
+      min-height              200px
+      max-height              400px
       borderBox()
-      &.Slug
-        label
-          color               transparent
-        .input-wrapper
-          line-height         24px
-          color               #888
-      &.privacy
-        .visibility
-          margin-right        5px
+      .preview_content
+        padding               10px
 
-      &.button-field
-        padding-right         20px
-        padding-top           10px
-      .input-wrapper
-        overflow              visible
+    .edit-cancel
+      font-size               12px
+      margin-right            5px
+      line-height             26px
+      span
+        noTextDeco()
+        color                 #aaa
+
+@css {
+/*
+Dashboard Settings Styles
+*/
+}
+
+
+.general-settings-view
 
   div.vm-settings > .kdformview > .formline .kdselectbox
     margin-right              0
 
   > .kdformview
+    min-height                100%
     max-width                 800px
-    margin                    20px auto
-    border                    1px solid #e8e8e8
-    rounded(5px)
+    border-right              1px solid #f5f5f5
 
     > .formline
-      width                   100%
-      borderBox()
-      overflow                auto
+      border-bottom-color     #f5f5f5
 
       .kdinput.text
         width                 100%
@@ -123,24 +120,82 @@
         margin-left           0
         margin-top            0
         padding               20px
-  .kdselectbox
-    fr()
-  .kdinput.on-off
-    margin-right              25px
-    fr()
-    > span
-      hidden()
 
-.groups-invitation-request-view
-.groups-member-permissions-view
 
+@css {
+/*
+Dashboard Member List styles
+*/
+}
+
+.kdtabpaneview.members
+
+  .listview-wrapper
+
+    .lazy-loader
+      font-weight         600
+      background          rgba(0, 0, 0, 0.01)
+      border-bottom       1px solid rgba(0, 0, 0, 0.05)
+      font-size           12px
+      color               #5F5F5F
+      .kdview.kdloader
+        display           inline-block
+    .kdlistview
+      overflow            visible
+    .kdlistitemview-member-item
+      border-bottom       1px solid #f5f5f5
+      &:nth-child(1n)
+        border-right      1px solid #f5f5f5
+
+      .kdlistitemview-member-item-inner
+        margin            3px 3px 0 0
+
+      section
+        .profile
+          borderBox()
+          margin-left     60px
+          padding         2px
+          display         block
+        .role
+          borderBox()
+          margin-left     60px
+          padding         2px
+          display         block
+        .edit-link
+        .save-link
+        .cancel-link
+          fr()
+        .edit-link
+          hidden()
+
+      &:hover
+        section .edit-link
+          visible()
+
+@css {
+/*
+Dashboard member listing related common styles
+*/
+}
+
+.member-related
+  overflow                    visible
   .kdview.kdloader
     display                   block
     margin                    10px auto
 
-  .kdview.kdlistitemview.kdlistitemview-invitation-request
-  .kdview.kdlistitemview.kdlistitemview-member-item
+  .kdview.kdlistitemview
     line-height               24px
+    position                  relative
+    overflow                  visible
+    width                     50%
+    min-width                 350px
+    height                    auto
+    display                   inline-block
+    vertical-align            top
+    borderBox()
+    &.editing
+      bg                      color, rgba(255, 146, 0, 0.1)
 
     .kdselectbox
       display                 inline-block
@@ -177,667 +232,168 @@
 
 
   .edit-container
-    padding                   5px 10px
-    border                    1px solid #ccc
-    rounded                   4px
-    bg                        color, #f5f5f5
+    padding                   10px
+    bg                        color, rgba(255, 146, 0, 0.1)
     borderBox()
+    .checkboxes
+      border-bottom           1px solid rgba(255, 146, 0, 0.1)
 
     .buttons
-      margin                  10px 0 5px 0
-      padding                 10px
-      bg                      color, #e2e2e2
-      rounded                 3px
-      border                  1px solid #ccc
+      margin                  10px 0 0
       .kdbutton
         width                 auto
         margin-right          10px
 
-.invitation-request
-  .username
-    font-weight               bold
-    color                     #ff9200
-  &.invitation-sent
-    background-color          #eee
+@css {
+/*
+Dashboard Membership Policy styles
+*/
+}
 
-.group-header
-  margin-top                  20px
-  padding                     20px 20px 0
-  borderBox()
-  .avatar
-    margin-right              20px
-    fl()
-    span
-      display                 block
-      border                  1px solid #eee
-      padding                 1px
-      size                    60px, 60px
-  section
-    height                    auto
-    rel()
+.kdtabpaneview.membership-policy
+  .policy-view-wrapper
+    > div.on-off
+      margin              20px 0 0 25px
+      width               auto
+      fl()
+
+    > a.edit-link
+      margin              16px 0 0 25px
+      width               60px
+      text-align          center
+      fl()
+
+  .button-bar
+    margin-right          20px
+
+  section.formline
+    margin-left           100px
+    margin-top            10px
+    padding               10px
+
     h2
-      font-size               36px
-      font-weight             normal
-      line-height             64px
-      height                  64px
-      border-bottom           none
-      padding                 0
-      overflow                ellipsis
-      margin-right            180px
-    .buttons
-      top                     0
-      right                   0
-      size                    auto, 100%
-      padding                 18px 5px
-      borderBox()
-      abs()
-      .custom-link-view.enter-group
-        margin-right          5px
-  .navbar
-    bg                        color, #f5f5f5
-    height                    60px
-    margin                    20px 0 0
-    borderBox()
-    .custom-link-view
-      margin                  20px 20px 0
-      span.title
-        color                 #aaa
-        // noTextDeco()
-      &.enter-group
-        margin-left           20px
-      .icon
-        &.enter-group
-          bg                  position, -180px -518px
-          opacity             .2
-        &.admin
-          bg                  position, -180px -439px
-          opacity             .5
+      padding-left        0
+      padding-bottom      0px
+      height              17px
+      // font-weight 600
+      font-size           14px
+      // border none
+    h3
+      font-size           12px
+      padding-bottom      10px
 
-.group-content-display
-  .kdhiddentab
-    display                   none
+    > div > p
+      margin-top          0px
+      margin-bottom       15px
+      padding-left        0px
 
-  .sub-header
-    gradient                  #fff, #e9e8e8
-    width                     100%
-    z-index                   100
-    border-bottom-color       rgba(0,0,0,.15)
-    fix()
-    &.shadow
-      shadow                  0 0 15px rgba(0,0,0,.1)
     > a
-      line-height             28px
-      margin                  0
-      width                   auto
-      padding                 0
-      text-shadow             0 1px 0 white
+      margin-left         10px
 
-  .loader
-    fl()
-    margin-top                10px
-  .loader-text
-    display                   block
-    width                     auto
-    height                    auto
-    margin-top                8px
-    padding-left              5px
+    button
+      height              24px
+      line-height         8px
 
-  .invitations
-    .button-bar
-      margin-top              10px
-      margin-bottom           5px
-      text-align              right
-      width                   auto
+    .policylanguage-editor
+      width               auto
+      display             block
+      clear               both
+      button
+        margin            10px 10px 0 0
+      textarea
+        width             100%
+        min-width         400px
+        min-height        100px
 
-  .kdtabpaneview.readme
-    borderBox()
-    padding                   20px
-    width                     100%
-
-    .button-bar
-      abs()
-      top                     0
-      right                   0
-      text-align              right
-      width                   auto
-      z-index                 1
-
-    .edit
-      margin-top              44px
-      width                   100%
-      min-height              200px
-      max-height              400px
+    div.formline
       borderBox()
-      .preview_content
-        padding               10px
+      margin              0
+      padding             10px 0
+      bg color,           transparent
+      border              none
 
-    .edit-cancel
-      font-size               12px
-      margin-right            5px
-      line-height             26px
-      span
-        noTextDeco()
-        color                 #aaa
-  .desc
-    border-bottom             1px solid #f2f2f2
-    padding                   20px 0
+      > span
+        margin-left       20px
+        display           inline-block
+        hidden()
 
-  nav.kdtabhandlecontainer
-    top                     0
-    left                    70px
-    height                  28px
-    padding                 0
-    border-bottom           none
-    border-left             1px solid rgba(0,0,0,.1)
-    bg                      color, transparent
-    borderBox()
-    abs()
+  .policy-language-image-wrapper
+    fr()
+    width                       auto
+    border                      1px solid #e8e8e8
+    rounded                     5px
+    bg                          color, #fbfbfb
+    margin-left                 10px
+    img
+      width                     auto
+      height                    auto
+      margin                    3px 3px 0
+    span
+      border-top                1px solid #e8e8e8
+      display                   block
+      padding                   10px
+      font-size                 11px
 
-    .kdtabhandle
-      border-width          0 1px
-      height                27px
-      line-height           27px
-      font-size             12px
-      font-weight           400
-      padding               0 20px
-      min-width             120px
-      width                 auto!important
-      text-align            center
-      border-left-color     rgba(255,255,255,.4)
-      border-right-color    rgba(0,0,0,.1)
-      text-shadow           0 1px 0 white
-      color                 rgba(0,0,0,.7)
-      bg                    color, transparent
-      borderBox()
-      rounded(0)
-      b
-        margin-right        0
-        font-weight         normal
-      &.active
-        gradient            #5e5e5e, #444
-        border-left-color   rgba(0,0,0,.1)
-        color               white
-        text-shadow         0 1px 0 black
+@css {
+/*
+Dashboard invitations tab styles
+*/
+}
 
-  .kdtabview.group-content
-    margin-top                28px
-    borderBox()
+.kdtabview.dashboard-tabs .invitations
 
-    .invitations section.formline div.formline.kdlistitemview-invitation-request
-    .members .kdlistitemview-member-item-inner
-      min-width               350px
-      padding                 10px
-      borderBox()
-      vendor transition,      background-color 0.2s ease-in-out
-      background-color        rgba(0,0,0,0.02)
+  .button-bar
+    height                auto
+    padding               20px
+    border-bottom         1px solid #f2f2f2
+    bg                    color, rgba(0,0,0,.02)
+    text-align            right
 
-    .invitations section.formline div.formline.kdlistitemview-invitation-request:hover
-    .members .kdlistitemview-member-item-inner:hover
-    .members .editing .kdlistitemview-member-item-inner
-        background-color        rgba(0,0,0,0.05)
+  .member-related
+    > section
+      padding               10px
+      border-bottom         1px solid #f2f2f2
+      min-height            200px
+      &.status-quo .state
+      .lazy-loader
+        text-align            left
+        color                 #888
 
-    .members
-      section.searchbar
-        background            rgba(0, 0, 0, 0.05)
-        border-bottom         1px solid rgba(0, 0, 0, 0.05)
-        height                50px
-        shadow                0 0 15px rgba(0,0,0,.2)
-        input.hitenterview
-          top                 9px
-          right               20px
-        span.title
-          font-size           18px
-          font-weight         300
-          margin              0 0 0 20px
-          line-height         50px
-          text-shadow         0px 1px 0px white
-          color               linkColor1
-        span.icon.search
-          display             block
-          bg                  position, -100px -480px
-          size                20px, 20px
-          top                 15px
-          right               27px
-          opacity             .7
-          sprite()
-          abs()
-      .listview-wrapper
-        .kdscrollview
-          padding             0 20px
-          borderBox()
-        .lazy-loader
-          font-weight         600
-          background          rgba(0, 0, 0, 0.01)
-          border-bottom       1px solid rgba(0, 0, 0, 0.05)
-          font-size           12px
-          color               #5F5F5F
-          .kdview.kdloader
-            display           inline-block
-        .kdlistview
-          overflow            visible
-        .kdlistitemview-member-item
-          position            relative
-          overflow            visible
-          width               50%
-          min-width           350px
-          height              auto
-          display             inline-block
-          vertical-align      top
-          .kdlistitemview-member-item-inner
-            margin            3px 3px 0 0
-          section
-            .profile
-              borderBox()
-              margin-left         60px
-              padding             2px
-              display             block
-            .role
-              borderBox()
-              margin-left     60px
-              padding         2px
-              display         block
-            .edit-link
-            .save-link
-            .cancel-link
-              fr()
-            .edit-link
-              hidden()
 
-          &:hover
-            section .edit-link
-              visible()
+      h2
+        color               linkColor1
+        line-height         27px
+        font-size           18px
+        font-weight         400
 
-    .policy-view-wrapper
-      padding-top             20px
+      h3
+        line-height         21px
+        font-size           14px
+      p
+        margin-top          0px
+        margin-bottom       15px
+        padding-left        0px
 
-    .invitations
-    .membership-policy
-    .approval-requests
+      > a
+        margin-left         10px
 
-      .button-bar
-        margin-right          20px
-
-      section.formline
-        margin-left           100px
-        margin-top            10px
-        padding               10px
-
-        h2
-          padding-left        0
-          padding-bottom      0px
-          height              17px
-          // font-weight 600
-          font-size           14px
-          // border none
-        h3
-          font-size           12px
-          padding-bottom      10px
-
-        p
-          margin-top          0px
-          margin-bottom       15px
-          padding-left        0px
-
-        > a
-          margin-left         10px
-
-        button
-          height              24px
-          line-height         8px
-
-        .policylanguage-editor
-          width               auto
-          display             block
-          button
-            margin            10px 10px 0 0
-          textarea
-            width             100%
-            min-width         400px
-            min-height        100px
-
-        div.formline
-          borderBox()
-          margin              0
-          padding             10px 0
-          bg color,           transparent
-          border              none
-
-          > span
-            margin-left       20px
-            display           inline-block
-            hidden()
-
-      a.edit-link
-      > div.kdview > div.on-off
-        fl()
-        margin-left           25px
-        margin-top            20px
-        display               inline-block
-        width                 auto
-
-      a.edit-link
-        margin-top            16px
-        padding-left          17px
-
-    .invitations
-    .approval-requests
-
-      div.formline.button-field
-        margin                0
-        padding               0
-        height                auto
+      button
+        height              24px
+        line-height         8px
 
       div.formline
-        overflow              hidden
-        width                 100%
-
-      section.formline
-        overflow              hidden
-        min-width             200px
-        width                 50%
         borderBox()
-        margin                0
-        padding               20px 20px 0
-        fl()
+        margin              0
+        padding             10px 0
+        bg color,           transparent
+        border              none
 
-        &.status-quo
-          width               100%
+        > span
+          margin-left       20px
+          display           inline-block
+          hidden()
 
-    .approval-requests
-      section.formline
-        button
-          margin-left         10px
-          width               60px
 
-    .permissions
-      height: auto;
-
-    .form-generator
-      min-width               600px
-      overflow                hidden
-      .wrapper
-        width                 auto
-        border                1px solid #e8e8e8
-        rounded               4px
-        bg color,             #f5f5f5
-
-      .form-builder
-        width                 100%
-      .add-header
-        bg color,             #fbfbfb
-        border-bottom         1px solid #e8e8e8
-        rounded               5px 5px 0 0
-        div
-          color               #444
-          borderBox()
-          padding             5px 8px 4px 8px
-          margin              0
-          width               150px
-          font-weight         bold
-          font-size           12px
-          display             inline-block
-          vertical-align      top
-          &:first-child
-            width             100px
-      .add-inputs
-        padding-top           10px
-        // border-top 1px solid #f5f5f5
-        bg color,             #fbfbfb
-        // bg color, #f5f5f5
-        width                 auto
-        rounded               0 0 5px 5px
-        .add-input
-          width               150px
-          borderBox()
-          display             inline-block
-          padding             4px 9px
-          vertical-align      top
-          &:first-child
-            width             100px
-            .kdselectbox
-              width           80px
-
-          &.button
-            padding           0
-            width             auto
-
-          &.select
-            display           block
-
-          .kdinput
-            width             140px
-
-          .kdselectbox
-            width             130px
-        .select-fields
-        .radio-fields
-          margin-left         405px
-          padding             5px
-          width               250px
-          borderBox()
-          border              1px solid #e8e8e8
-          bg color,           #f5f5f5
-          rounded             4px
-          > input.text
-            display           inline-block
-          h3
-            // bg color, #f5f5f5
-            // color #444
-            padding           5px 5px 5px 0
-          .form-builder-select
-          .form-builder-radio
-            margin-bottom     10px
-            .default-item
-              color           #aaa
-            .kdlistitemview
-              width           auto
-              bg color,       white
-              margin          3px
-              padding         5px 5px 0px 5px
-              span.value
-                color         #aaa
-              .title
-                display       inline-block
-                width         auto
-              .remove-button
-                display       inline-block
-                width         auto
-                margin-left   5px
-                fr()
-      .form-item
-        borderBox()
-        width                 auto
-        border-bottom         1px solid #e8e8e8
-        bg color,             white
-        padding-top           2px
-        &:hover
-          bg color,           #f5f5f5
-        > div
-          borderBox()
-          border-right        1px solid #f5f5f5
-          overflow-x          hidden
-          overflow-y          hidden
-          text-overflow       ellipsis
-          white-space         nowrap
-          width               150px
-          // min-width 200px
-          display             inline-block
-          padding             3px 9px
-          margin              0
-          border              none
-          line-height         1.5
-          vertical-align      middle
-          &:first-child
-            width             100px
-
-          &.title
-            font-weight       500
-          // height 25px
-          .kdselectbox
-            margin-top        -4px
-            height            18px
-            width             130px
-            span.title
-              height          18px
-              line-height     18px
-              overflow        hidden
-              text-overflow   ellipsis
-            span.arrows
-              top             0
-          div.default
-          fieldset
-            &.textarea
-              white-space     normal
-            opacity           0.5
-            vendor transition, opacity 0.15s ease-in-out
-            &:hover
-              opacity         1
-            span
-              color           #aaa
-              &.title
-                color         #444
-          &:first-child
-            border-left       none
-          &:last-child
-            border-right      1px solid #f5f5f5
-        &:last-child //> div
-          padding-bottom      4px
-    span.add-button
-      noTextDeco()
-      cursor                  pointer
-      margin                  0 0 0 5px
-      span.title
-        noTextDeco()
-        color                 black
-        line-height           2.5
-        font-weight           600
-
-    button.save-button
-      margin-left             10px
-
-    span.remove-button
-      borderBox()
-      noTextDeco()
-      display                 inline-block
-      margin                  0 0 0 5px
-      cursor                  pointer
-      span.title
-        noTextDeco()
-
-    .permissions-view
-      borderBox()
-      // padding                 0 20px
-      overflow                auto
-      min-width               600px
-
-      // .kdview.kdloader
-      //   display           block
-      //   margin            10px auto
-
-      form > .permissions-header:first-child
-        position              fixed
-        top                   79px
-        width                 100%
-        min-width             600px
-        z-index               99
-        height                33px
-        bg                    color, rgba(255, 255, 255, .75)
-        shadow                0 5px 15px -5px rgba(0,0,0,0.2)
-
-      .permissions-form
-        overflow-y            scroll
-        overflow-x            hidden
-        margin-top            33px
-
-        fraction(full,divisor)
-          fraction = full/divisor
-
-        for num in 2 3 4 5 6 7 8 9 10 11 12
-          &.col-{num}
-            .formline .input-wrapper
-              width fraction(340,num)px
-
-        .formline
-
-          &.button-field
-            fixed()
-            bottom            0
-            width             100%
-            height            50px
-            padding           15px 20px 0 15px
-            border-top        1px solid #e5e5e5
-            shadow            0 -5px 10px -3px rgba(0,0,0,0.1)
-            background-color  rgba(255,255,255,0.9) !important
-            borderBox()
-
-            button.add-role
-              fl()
-
-          &:nth-last-child(2)
-            margin-bottom       50px
-            border-bottom-color transparent
-
-          &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
-            bg color,         rgba(0,0,0,0.025)
-
-          borderBox()
-          padding             7px 10px
-          // border-bottom       1px solid #f5f5f5
-          // border-left         1px solid #f5f5f5
-          // border-right        1px solid #f5f5f5
-          border            none
-
-          .input-wrapper:first-child
-            border-left       none
-            width             160px
-            > .kdview
-              borderBox()
-              min-height      15px
-              line-height     15px
-              padding         3px
-              padding-left    7px
-              display         inline-block
-              width           160px
-              overflow        hidden
-              text-overflow   ellipsis
-              white-space     nowrap
-              text-align      left
-
-          input.kdinput.permission-checkbox
-            display           inline
-            margin-right      2px
-            width             auto
-            margin-top        5px
-            vertical-align    middle
-          .input-wrapper
-            // border-left       1px solid #f5f5f5
-            borderBox()
-            display           inline-block
-            width             100%
-            height            20px
-            vertical-align    top
-            text-align        center
-            > .input-wrapper
-              vertical-align  middle
-
-        .permissions-module
-          // background          linear-gradient(top, #555 0%,#666 93.7%)
-          color               #444
-          font-weight         bold
-          padding-top         25px
-
-          &:nth-child(2) // Header is first, first subgroup is 2
-            padding-top       0
-
-          .input-wrapper
-            text-align        left
-
-    .vocabulary > .kdview
-      padding                 0 20px
-
-.group-content .invitations
-.group-content .approval-requests
-.invitations-request-modal
   .request-list
     .formline.kdlistitemview-invitation-request
       .buttons
@@ -905,6 +461,14 @@
           bg(repeat,no-repeat)
           size(30px,30px)
 
+
+@css {
+/*
+Dashboard Invitations Modal Styles
+*/
+}
+
+
 .invitations-request-modal .request-list
   .formline.kdlistitemview-invitation-request
     padding                   10px
@@ -916,7 +480,7 @@
     .details .requested-at
       margin-top              5px
 
-.kdmodal.invite-by-email 
+.kdmodal.invite-by-email
   textarea.emails-input
     height                    80px !important
   .report
@@ -960,6 +524,442 @@
       display         block
       overflow        hidden
 
+
+
+
+
+
+
+//
+// FIX THIS HUGE BLOCK
+//
+
+
+
+.kdtabview.dashboard-tabs
+  .loader
+    fl()
+    margin-top                10px
+  .loader-text
+    display                   block
+    width                     auto
+    height                    auto
+    margin-top                8px
+    padding-left              5px
+
+  .desc
+    border-bottom             1px solid #f2f2f2
+    padding                   20px 0
+
+  .invitations section.formline div.formline.kdlistitemview-invitation-request
+  .members .kdlistitemview-member-item-inner
+    min-width               350px
+    padding                 10px
+    // background-color        rgba(0,0,0,0.02)
+    // vendor transition,      background-color 0.2s ease-in-out
+    borderBox()
+
+  // .invitations section.formline div.formline.kdlistitemview-invitation-request:hover
+  // .members .kdlistitemview-member-item-inner:hover
+  // .members .editing .kdlistitemview-member-item-inner
+  //     background-color        rgba(0,0,0,0.05)
+
+
+
+
+  // .invitations
+  // .membership-policy
+  // .approval-requests
+
+  //   .button-bar
+  //     margin-right          20px
+
+  //   section.formline
+  //     margin-left           100px
+  //     margin-top            10px
+  //     padding               10px
+
+  //     h2
+  //       padding-left        0
+  //       padding-bottom      0px
+  //       height              17px
+  //       // font-weight 600
+  //       font-size           14px
+  //       // border none
+  //     h3
+  //       font-size           12px
+  //       padding-bottom      10px
+
+  //     p
+  //       margin-top          0px
+  //       margin-bottom       15px
+  //       padding-left        0px
+
+  //     > a
+  //       margin-left         10px
+
+  //     button
+  //       height              24px
+  //       line-height         8px
+
+  //     .policylanguage-editor
+  //       width               auto
+  //       display             block
+  //       button
+  //         margin            10px 10px 0 0
+  //       textarea
+  //         width             100%
+  //         min-width         400px
+  //         min-height        100px
+
+  //     div.formline
+  //       borderBox()
+  //       margin              0
+  //       padding             10px 0
+  //       bg color,           transparent
+  //       border              none
+
+  //       > span
+  //         margin-left       20px
+  //         display           inline-block
+  //         hidden()
+
+  //   a.edit-link
+  //   > div.kdview > div.on-off
+  //     fl()
+  //     margin-left           25px
+  //     margin-top            20px
+  //     display               inline-block
+  //     width                 auto
+
+  //   a.edit-link
+  //     margin-top            16px
+  //     padding-left          17px
+
+
+
+
+
+
+
+  // .invitations
+  // .approval-requests
+
+  //   div.formline.button-field
+  //     margin                0
+  //     padding               0
+  //     height                auto
+
+  //   div.formline
+  //     overflow              hidden
+  //     width                 100%
+
+  //   section.formline
+  //     overflow              hidden
+  //     min-width             200px
+  //     width                 50%
+  //     borderBox()
+  //     margin                0
+  //     padding               20px 20px 0
+  //     fl()
+
+  //     &.status-quo
+  //       width               100%
+
+  .approval-requests
+    section.formline
+      button
+        margin-left         10px
+        width               60px
+
+  .permissions
+    height: auto;
+
+  .form-generator
+    min-width               600px
+    overflow                hidden
+    .wrapper
+      width                 auto
+      border                1px solid #e8e8e8
+      rounded               4px
+      bg color,             #f5f5f5
+
+    .form-builder
+      width                 100%
+    .add-header
+      bg color,             #fbfbfb
+      border-bottom         1px solid #e8e8e8
+      rounded               5px 5px 0 0
+      div
+        color               #444
+        borderBox()
+        padding             5px 8px 4px 8px
+        margin              0
+        width               150px
+        font-weight         bold
+        font-size           12px
+        display             inline-block
+        vertical-align      top
+        &:first-child
+          width             100px
+    .add-inputs
+      padding-top           10px
+      // border-top 1px solid #f5f5f5
+      bg color,             #fbfbfb
+      // bg color, #f5f5f5
+      width                 auto
+      rounded               0 0 5px 5px
+      .add-input
+        width               150px
+        borderBox()
+        display             inline-block
+        padding             4px 9px
+        vertical-align      top
+        &:first-child
+          width             100px
+          .kdselectbox
+            width           80px
+
+        &.button
+          padding           0
+          width             auto
+
+        &.select
+          display           block
+
+        .kdinput
+          width             140px
+
+        .kdselectbox
+          width             130px
+      .select-fields
+      .radio-fields
+        margin-left         405px
+        padding             5px
+        width               250px
+        borderBox()
+        border              1px solid #e8e8e8
+        bg color,           #f5f5f5
+        rounded             4px
+        > input.text
+          display           inline-block
+        h3
+          // bg color, #f5f5f5
+          // color #444
+          padding           5px 5px 5px 0
+        .form-builder-select
+        .form-builder-radio
+          margin-bottom     10px
+          .default-item
+            color           #aaa
+          .kdlistitemview
+            width           auto
+            bg color,       white
+            margin          3px
+            padding         5px 5px 0px 5px
+            span.value
+              color         #aaa
+            .title
+              display       inline-block
+              width         auto
+            .remove-button
+              display       inline-block
+              width         auto
+              margin-left   5px
+              fr()
+    .form-item
+      borderBox()
+      width                 auto
+      border-bottom         1px solid #e8e8e8
+      bg color,             white
+      padding-top           2px
+      &:hover
+        bg color,           #f5f5f5
+      > div
+        borderBox()
+        border-right        1px solid #f5f5f5
+        overflow-x          hidden
+        overflow-y          hidden
+        text-overflow       ellipsis
+        white-space         nowrap
+        width               150px
+        // min-width 200px
+        display             inline-block
+        padding             3px 9px
+        margin              0
+        border              none
+        line-height         1.5
+        vertical-align      middle
+        &:first-child
+          width             100px
+
+        &.title
+          font-weight       500
+        // height 25px
+        .kdselectbox
+          margin-top        -4px
+          height            18px
+          width             130px
+          span.title
+            height          18px
+            line-height     18px
+            overflow        hidden
+            text-overflow   ellipsis
+          span.arrows
+            top             0
+        div.default
+        fieldset
+          &.textarea
+            white-space     normal
+          opacity           0.5
+          vendor transition, opacity 0.15s ease-in-out
+          &:hover
+            opacity         1
+          span
+            color           #aaa
+            &.title
+              color         #444
+        &:first-child
+          border-left       none
+        &:last-child
+          border-right      1px solid #f5f5f5
+      &:last-child //> div
+        padding-bottom      4px
+  span.add-button
+    noTextDeco()
+    cursor                  pointer
+    margin                  0 0 0 5px
+    span.title
+      noTextDeco()
+      color                 black
+      line-height           2.5
+      font-weight           600
+
+  button.save-button
+    margin-left             10px
+
+  span.remove-button
+    borderBox()
+    noTextDeco()
+    display                 inline-block
+    margin                  0 0 0 5px
+    cursor                  pointer
+    span.title
+      noTextDeco()
+
+  .permissions-view
+    borderBox()
+    // padding                 0 20px
+    overflow                auto
+    min-width               600px
+
+    // .kdview.kdloader
+    //   display           block
+    //   margin            10px auto
+
+    form > .permissions-header:first-child
+      position              fixed
+      top                   128px
+      width                 100%
+      min-width             600px
+      z-index               99
+      height                33px
+      bg                    color, rgba(255, 255, 255, .75)
+      shadow                0 5px 15px -5px rgba(0,0,0,0.2)
+
+    .permissions-form
+      overflow-y            scroll
+      overflow-x            hidden
+      margin-top            33px
+
+      fraction(full,divisor)
+        fraction = full/divisor
+
+      for num in 2 3 4 5 6 7 8 9 10 11 12
+        &.col-{num}
+          .formline .input-wrapper
+            width fraction(340,num)px
+
+      .formline
+
+        &.button-field
+          fixed()
+          bottom            0
+          width             100%
+          height            50px
+          padding           15px 20px 0 15px
+          border-top        1px solid #e5e5e5
+          shadow            0 -5px 10px -3px rgba(0,0,0,0.1)
+          background-color  rgba(255,255,255,0.9) !important
+          borderBox()
+
+          button.add-role
+            fl()
+
+        &:nth-last-child(2)
+          margin-bottom       50px
+          border-bottom-color transparent
+
+        &:nth-child(2n+1):not(.permissions-module):not(.permissions-header)
+          bg color,         rgba(0,0,0,0.025)
+
+        borderBox()
+        padding             7px 10px
+        // border-bottom       1px solid #f5f5f5
+        // border-left         1px solid #f5f5f5
+        // border-right        1px solid #f5f5f5
+        border            none
+
+        .input-wrapper:first-child
+          border-left       none
+          width             160px
+          > .kdview
+            borderBox()
+            min-height      15px
+            line-height     15px
+            padding         3px
+            padding-left    7px
+            display         inline-block
+            width           160px
+            overflow        hidden
+            text-overflow   ellipsis
+            white-space     nowrap
+            text-align      left
+
+        input.kdinput.permission-checkbox
+          display           inline
+          margin-right      2px
+          width             auto
+          margin-top        5px
+          vertical-align    middle
+        .input-wrapper
+          // border-left       1px solid #f5f5f5
+          borderBox()
+          display           inline-block
+          width             100%
+          height            20px
+          vertical-align    top
+          text-align        center
+          > .input-wrapper
+            vertical-align  middle
+
+      .permissions-module
+        // background          linear-gradient(top, #555 0%,#666 93.7%)
+        color               #444
+        font-weight         bold
+        padding-top         25px
+
+        &:nth-child(2) // Header is first, first subgroup is 2
+          padding-top       0
+
+        .input-wrapper
+          text-align        left
+
+  .vocabulary > .kdview
+    padding                 0 20px
+
+
+
 @media screen and (max-width:1000px)
 
   .group-content-display .group-content
@@ -978,24 +978,6 @@
   display                     inline-block
   margin-top                  3px
   color                       white
-
-.policy-language-image-wrapper
-  fr()
-  width                       auto
-  border                      1px solid #e8e8e8
-  rounded                     5px
-  bg                          color, #fbfbfb
-  margin-left                 10px
-  img
-    width                     auto
-    height                    auto
-    margin                    3px 3px 0
-  span
-    border-top                1px solid #e8e8e8
-    display                   block
-    padding                   10px
-    font-size                 11px
-    bg                        color, white
 
 .add-role-dialog
   // z-index               100000
@@ -1025,3 +1007,26 @@
     fl()
   // div.kdselectbox.copy-permissions
   //   margin-top          9px
+
+
+
+
+// PUT THESE UNDER CORRECT PARENTS
+
+.grouptabhandle.dirty .new
+  background-color            #0a92ba
+  color                       white
+  font-weight                 bold
+  font-size                   11px
+  line-height                 1
+  padding                     1px 4px
+  rounded                     3px
+
+
+
+.invitation-request
+  .username
+    font-weight               bold
+    color                     #ff9200
+  &.invitation-sent
+    background-color          #eee

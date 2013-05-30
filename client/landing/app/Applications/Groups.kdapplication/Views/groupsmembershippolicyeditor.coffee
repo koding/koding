@@ -13,6 +13,8 @@ class GroupsMembershipPolicyLanguageEditor extends JView
       type            : 'textarea'
       defaultValue    : policy.explanation
       keydown         : => @saveButton.enable()
+      preview         :
+        showInitially : no
 
     @cancelButton = new KDButtonView
       title     : "Cancel"

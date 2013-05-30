@@ -47,6 +47,13 @@ class CommonInnerNavigationListController extends KDListViewController
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
 
+  selectItemByName:(name)->
+    item = null
+    for navItem in @itemsOrdered when navItem.getData()?.title is name
+      @selectItem item = navItem
+      break
+    return item
+
 class CommonInnerNavigationList extends KDListView
   constructor : (options = {},data)->
     options.tagName or= "ul"
