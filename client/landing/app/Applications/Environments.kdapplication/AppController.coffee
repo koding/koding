@@ -3,7 +3,8 @@ class EnvironmentsAppController extends AppController
   KD.registerAppClass @,
     name         : "Environments"
     route        : "/Environments"
-    hiddenHandle : yes
+    hiddenHandle : no
+    behavior     : "application"
 
   constructor:(options = {}, data)->
 
