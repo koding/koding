@@ -48,15 +48,15 @@ module.exports = class JMail extends Model
     JUnsubscribedMail = require './unsubscribedmail'
     JUnsubscribedMail.isUnsubscribed @email, callback
 
-  @unsubscribeWithId = (unsubscribeId, opt, callback)->
-    JMail.one {unsubscribeId}, (err, mail)->
+  @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
+    JMail.one {email, unsubscribeId}, (err, mail)->
       return callback err  if err or not mail
 
-      selector = {email: mail.email}
       JUnsubscribedMail = require './unsubscribedmail'
-      JUnsubscribedMail.one selector, (err, unsubscribed)->
-        return callback err  if err or unsubscribed
+      JUnsubscribedMail.one {email}, (err, unsubscribed)->
+        return callback err  if err
+        return callback null, 'Email was already unsubscribed'  if unsubscribed
 
-        unsubscribed = new JUnsubscribedMail selector
+        unsubscribed = new JUnsubscribedMail {email}
         unsubscribed.save (err)->
           callback err, unless err then 'Successfully unsubscribed' else null

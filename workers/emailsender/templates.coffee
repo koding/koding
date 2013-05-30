@@ -6,25 +6,25 @@ dateFormat  = require 'dateformat'
 link      = (addr, text)   ->
   """<a href="#{addr}" #{Templates.linkStyle}>#{text}</a>"""
 
-unsubscribeText = (unsubscribeId, suffix)->
+unsubscribeText = (unsubscribeId, email, suffix)->
   return ''  unless unsubscribeId
 
-  l = link "#{uri.address}/Unsubscribe/#{unsubscribeId}/email", 'Unsubscribe'
+  l = link "#{uri.address}/Unsubscribe/#{unsubscribeId}/#{encodeURIComponent email}/email", 'Unsubscribe'
   "#{l} if you do not want to receive this.#{suffix}"
 
 Templates =
 
   linkStyle    : """ style="text-decoration:none; color:#ff9200;" """
-  textTemplate : (content, unsubscribeId)->
+  textTemplate : (content, unsubscribeId, email)->
     """
      Hello,
 
      #{content}
 
-     #{unsubscribeText unsubscribeId, "\n"}Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
+     #{unsubscribeText unsubscribeId, email, "\n"}Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
     """
 
-  htmlTemplate : (content, unsubscribeId)->
+  htmlTemplate : (content, unsubscribeId, email)->
 
     currentDate  = dateFormat Date.now(), "mmm dd"
     activityTime = dateFormat Date.now(), "HH:MM"
@@ -86,7 +86,7 @@ Templates =
               <td style="border-right: 1px solid #CCC; text-align:right;
                          padding-right:10px;"></td>
               <td style="padding-left: 10px;" colspan="2">
-                #{unsubscribeText unsubscribeId, "<br/>"}#{link "https://koding.com", "Koding"}, Inc. 358 Brannan Street, San Francisco, CA 94107
+                #{unsubscribeText unsubscribeId, email, "<br/>"}#{link "https://koding.com", "Koding"}, Inc. 358 Brannan Street, San Francisco, CA 94107
               </td>
             </tr>
           </table>

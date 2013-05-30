@@ -53,19 +53,19 @@ sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
 
   cb = ->
-    email = emailWorker.defaultRecepient or email
+    to    = emailWorker.defaultRecepient or email
     from  = if from is 'hello@koding.com' then "Koding <#{from}>" else from
     Emailer.send
       From      : from
-      To        : email
+      To        : to
       Subject   : subject or "Notification"
-      HtmlBody  : template.htmlTemplate htmlify(content), unsubscribeId
-      TextBody  : template.textTemplate content, unsubscribeId
+      HtmlBody  : template.htmlTemplate htmlify(content), unsubscribeId, email
+      TextBody  : template.textTemplate content, unsubscribeId, email
       ReplyTo   : replyto
     , (err, status)->
       dateAttempted = new Date()
       status        = 'attempted'
-      unless err then log "An e-mail sent to #{email}"
+      unless err then log "An e-mail sent to #{to}"
       else
         log "An error occured: #{err}"
         status = 'failed'
