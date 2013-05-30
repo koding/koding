@@ -416,9 +416,9 @@ module.exports = class JUser extends jraphical.Module
                     userData = {
                       username, password, email, firstName, lastName
                     }
-                    @removeUnsubscription userData, (err)=>
+                    @createUser userData, (err, user, account) =>
                       return callback err  if err
-                      @createUser userData, (err, user, account) =>
+                      @removeUnsubscription userData, (err)=>
                         return callback err  if err
                         @addToGroups account, invite, entryPoint, (err) ->
                           if err then callback err
