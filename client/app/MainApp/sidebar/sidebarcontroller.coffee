@@ -59,9 +59,9 @@ class SidebarController extends KDViewController
     if 'admin' in KD.config.roles
       {navController} = @getView()
 
-      navController.removeItemByTitle 'Group Settings'
+      navController.removeItemByTitle 'Group'
       navController.addItem
-        title     : 'Group Settings'
+        title     : 'Group'
         type      : 'account'
         path      : "/Dashboard"
         loggedIn  : yes
