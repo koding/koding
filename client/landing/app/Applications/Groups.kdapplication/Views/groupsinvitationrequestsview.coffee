@@ -129,11 +129,15 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
 
   createMultiuseInvitation: (formData) ->
-    KD.remote.api.JInvitation.createMultiuse formData, ->
-      console.log {arguments}
+    KD.remote.api.JInvitation.createMultiuse formData, (err)=>
+      @multiuseModal.modalTabs.forms.createInvitation.buttons.Save.hideLoader()
+      return @showErrorMessage err  if err
+
+      new KDNotificationView title: "Successfully created invitation #{formData.code}"
+      @multiuseModal.destroy()
 
   showMultiuseModal:->
-    modal = new KDModalViewWithForms
+    @multiuseModal = modal = new KDModalViewWithForms
       title                   : "Create a multiuse invitation code"
       tabs                    :
         forms                 :
@@ -163,7 +167,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
 
     form = modal.modalTabs.forms.createInvitation
-    form.on 'FormValidationFailed', => form.buttons.Send.hideLoader()
+    form.on 'FormValidationFailed', => form.buttons.Save.hideLoader()
 
     return modal
 
