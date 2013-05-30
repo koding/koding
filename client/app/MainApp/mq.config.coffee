@@ -34,7 +34,7 @@ KD.remote = new Bongo
         err = null
         queue = name.slugs.map (slug) => =>
           selector = {}
-          selector[slug.usedAsPath] = name.name
+          selector[slug.usedAsPath] = slug.slug
           @api[slug.constructorName].one? selector, (err, model)->
             if err then callback err
             else
