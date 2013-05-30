@@ -1,11 +1,25 @@
-
-class GroupsMembershipPolicyDetailView extends JView
+class GroupsMembershipPolicyDetailView extends KDView
 
   constructor:(options, data)->
     super
-    policy = @getData()
+    group = @getData()
 
     @setClass 'policy-view-wrapper'
+
+    group.fetchMembershipPolicy (err, policy)=>
+      if err
+        new KDNotificationView { title: err.message, duration: 1000 }
+      else
+        @on 'MembershipPolicyChanged', (formData)->
+          KD.getSingleton('appManager').tell 'Groups',
+            'updateMembershipPolicy',
+            group,
+            policy,
+            formData
+        @createSubViews policy
+
+
+  createSubViews:(policy)->
 
     {webhookEndpoint, approvalEnabled, dataCollectionEnabled} = policy
     webhookExists = !!(webhookEndpoint and webhookEndpoint.length)
@@ -22,13 +36,19 @@ class GroupsMembershipPolicyDetailView extends JView
 
     @enableDataCollection = new KDOnOffSwitch
       defaultValue  : dataCollectionEnabled
-      callback      : (state) =>
+      callback      : (state)=>
+        if state
+          @enableDataCollection.setValue no
+          return new KDNotificationView title : "Currently disabled!"
         @emit 'MembershipPolicyChanged', dataCollectionEnabled: state
         @formGenerator[if state then 'show' else 'hide']()
 
     @enableWebhooks = new KDOnOffSwitch
       defaultValue  : webhookExists
       callback      : (state) =>
+        if state
+          @enableWebhooks.setValue no
+          return new KDNotificationView title : "Currently disabled!"
         @webhook.hide()
         @webhookEditor[if state then 'show' else 'hide']()
         if state then @webhookEditor.setFocus()
@@ -69,7 +89,6 @@ class GroupsMembershipPolicyDetailView extends JView
     @showPolicyLanguageLink = new CustomLinkView
       cssClass  : "edit-link #{if policyLanguageExists then 'hidden' else ''}"
       title     : 'Edit'
-      href      : './edit'
       click     :(event)=>
         event.preventDefault()
         @showPolicyLanguageLink.hide()
@@ -93,6 +112,8 @@ class GroupsMembershipPolicyDetailView extends JView
       cssClass : unless dataCollectionEnabled then 'hidden'
       delegate : @
     , policy
+
+    JView::viewAppended.call this
 
   pistachio:->
     """
@@ -128,7 +149,7 @@ class GroupsMembershipPolicyDetailView extends JView
       {{> @webhookEditor}}
     </section>
     {{> @showPolicyLanguageLink}}
-    <section class="formline">
+    <section class="formline clearfix">
       <h2>Policy language</h2>
       <div class="formline">
         <div class='policy-language-image-wrapper'>

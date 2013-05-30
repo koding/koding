@@ -20,6 +20,7 @@ class KDWindowController extends KDController
     @keyView               = null
     @dragView              = null
     @scrollingEnabled      = yes
+    @layers                = []
 
     @bindEvents()
     @setWindowProperties()
@@ -70,7 +71,7 @@ class KDWindowController extends KDController
       @setDragInAction no
     , yes
 
-    @layers = layers = []
+    layers = @layers
 
     document.body.addEventListener 'mousedown', (e)=>
       # $('.twipsy').remove() # temporary for beta
