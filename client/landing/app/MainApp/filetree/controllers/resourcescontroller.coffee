@@ -93,6 +93,7 @@ class ResourcesListItem extends KDListItemView
       iconOnly : yes
       cssClass : 'vm-dashboard'
       callback :->
+        appManager.open "Environments", params: {vmName}
 
     @addSubView @chevron = new KDCustomHTMLView
       tagName   : "span"
@@ -127,6 +128,10 @@ class ResourcesListItem extends KDListItemView
       'Open VM Terminal' :
         callback         : ->
           appManager.open "WebTerm", params: {vmName}, forceNew: yes
+          @destroy()
+      'Open Dashboard'   :
+        callback         : ->
+          appManager.open "Environments", params: {vmName}
           @destroy()
 
   checkVMState:(err, vm, info)->
