@@ -8,6 +8,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   {secure} = require 'bongo'
 
+  JRecurlyToken = require './token'
+  JRecurlySubscription = require './subscription'
+
   @share()
 
   @set
@@ -18,7 +21,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         'getPlans',
         'setUserAccount', 'getUserAccount', 'getUserTransactions'
       ]
-      instance     : []
+      instance     : [
+        'getToken', 'subscribe'
+      ]
     schema         :
       code         : String
       title        : String
@@ -35,21 +40,22 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   @setUserAccount = secure (client, data, callback)->
     {delegate}    = client.connection
 
+    data.username  = delegate.profile.nickname 
     data.ipAddress = '0.0.0.0'
     data.firstName = delegate.profile.firstName
-    data.lastName = delegate.profile.lastName
+    data.lastName  = delegate.profile.lastName
 
     JUser.fetchUser client, (e, r) ->
       data.email = r.email
-      payment.setAccount "user_#{delegate.profile.nickname}", data, callback
+      payment.setAccount "user_#{delegate._id}", data, callback
 
   @getUserAccount = secure (client, callback)->
     {delegate}    = client.connection
-    payment.getAccount "user_#{delegate.profile.nickname}", callback
+    payment.getAccount "user_#{delegate._id}", callback
 
   @getUserTransactions = secure (client, callback)->
     {delegate}    = client.connection
-    payment.getUserTransactions "user_#{delegate.profile.nickname}", callback
+    payment.getUserTransactions "user_#{delegate._id}", callback
 
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
@@ -119,7 +125,29 @@ module.exports = class JRecurlyPlan extends jraphical.Module
               plan.save ->
                 cb null, plan
 
-
         async = require 'async'
         async.parallel stack, (err, results)->
           callback()
+
+  getToken: secure (client, data, callback)->
+    {delegate} = client.connection
+    JRecurlyToken.createToken client,
+      planCode: @code
+    , callback
+
+  subscribe: secure (client, data, callback)->
+    {delegate} = client.connection
+    JRecurlyToken.checkToken client, {planCode: @code, pin: data.pin}, (status)=>
+      unless status
+        callback yes, {}
+      else
+        payment.addUserSubscription "user_#{delegate._id}",
+          plan : @code
+        , (err, result)->
+          return callback err  if err
+          sub = new JRecurlySubscription
+            planCode : result.code
+            userCode : "user_#{delegate._id}"
+            uuid     : result.uuid
+          sub.save ->
+            callback no, sub
