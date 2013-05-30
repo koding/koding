@@ -6,6 +6,10 @@ class VMMainView extends JView
     data or= {}
     super options, data
 
+    @vm = KD.getSingleton 'vmController'
+    @vm.on 'StateChanged', @bound 'checkVMState'
+    @vmList = []
+
     @vmListController = new KDListViewController
       startWithLazyLoader : no
       viewOptions         :
@@ -37,6 +41,12 @@ class VMMainView extends JView
 
     @loadItems()
 
+  checkVMState:(err, vm, info)->
+    return  if not @vmList[vm]
+    if err or not info or not info.state is "RUNNING"
+    then @vmList[vm].updateStatus no
+    else @vmList[vm].updateStatus yes
+
   getVMInfo: (vmName, callback)->
     kc = KD.singletons.kiteController
     kc.run
@@ -59,12 +69,12 @@ class VMMainView extends JView
 
             @getVMInfo name, (err, info)=>
               if err or info.state != 'RUNNING'
-                status = 'off'
+                status = no
               else
-                status = 'on'
+                status = yes
 
               cb null, {
-                name   : name
+                vmName : name
                 group  : 'Koding'
                 domain : 'bahadir.kd.io'
                 type   : 'personal'
@@ -93,16 +103,35 @@ class VMListItemView extends KDListItemView
     options.click = @bound "clicked"
     super options, data
 
+    {controller,vmName} = @getData()
+    controller.vmList[vmName] = @
+
+    @statusIcon = new KDCustomHTMLView
+      tagName  : "span"
+      cssClass : "vm-status"
+
     @switch = new KDOnOffSwitch
       size         : 'tiny'
       labels       : ['I', 'O']
-      defaultValue : data.status == 'on'
+      defaultValue : data.status
       cssClass     : 'fr'
-      callback     : (state)=>
-        @getData().controller.emit "State", @, state
+      callback : (state)=>
+        if state
+        then controller.vm.start vmName
+        else controller.vm.stop  vmName
+
+    @updateStatus @getData().status
 
   clicked: (event)->
     @getData().controller.emit "Clicked", @
+
+  updateStatus:(state)->
+    unless state
+      @statusIcon.unsetClass "vm-status-on"
+      @switch.setOff no
+    else
+      @statusIcon.setClass "vm-status-on"
+      @switch.setOn no
 
   viewAppended:()->
     super()
@@ -115,9 +144,9 @@ class VMListItemView extends KDListItemView
     """
     <div>
       <span class="vm-icon #{data.type}"></span>
-      <span class="vm-status #{data.status}"></span>
+      {{> @statusIcon }}
       <span class="vm-title">
-        #{data.name} - #{data.group}
+        #{data.vmName} - #{data.group}
       </span>
       <span class="vm-domain">http://#{data.domain}</span>
       {{> @switch }}
