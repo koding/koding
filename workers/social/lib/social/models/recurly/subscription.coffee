@@ -21,6 +21,11 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       uuid         : String
       planCode     : String
       userCode     : String
+      quantity     : Number
+      status       : String
+      datetime     : String
+      expires      : String
+      renew        : String
       lastUpdate   : Number
 
   # Recurly web hook will use this method to invalidate the cache.
@@ -37,6 +42,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         mapCached = {}
         cachedPlans.forEach (cSub)->
           mapCached[cSub.uuid] = cSub
+        console.log mapCached
         stack = []
         Object.keys(mapCached).forEach (k)->
           if k not in Object.keys(mapAll)
@@ -47,16 +53,20 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         Object.keys(mapAll).forEach (k)->
           # create or update
           stack.push (cb)->
-            {uuid, plan} = mapAll[k]
+            {uuid, plan, quantity, status, datetime, expires, renew} = mapAll[k]
             if k not in Object.keys(mapCached)
               sub = new JRecurlySubscription
               sub.uuid = uuid
             else
               sub = mapCached[k]
 
-            console.log uuid
-
+            sub.userCode = userCode
             sub.planCode = plan
+            sub.quantity = quantity
+            sub.status   = status
+            sub.datetime = datetime
+            sub.expires  = expires
+            sub.renew    = renew
 
             sub.save ->
               console.log arguments

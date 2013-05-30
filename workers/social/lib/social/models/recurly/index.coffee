@@ -129,7 +129,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         async.parallel stack, (err, results)->
           callback()
 
-  getToken: secure (client, data, callback)->
+  getToken: secure (client, callback)->
     {delegate} = client.connection
     JRecurlyToken.createToken client,
       planCode: @code
@@ -149,5 +149,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             planCode : result.code
             userCode : "user_#{delegate._id}"
             uuid     : result.uuid
+            quantity : result.quantity
+            status   : result.status
+            datetime : result.datetime
+            expires  : result.expires
+            renew    : result.renew
           sub.save ->
             callback no, sub
