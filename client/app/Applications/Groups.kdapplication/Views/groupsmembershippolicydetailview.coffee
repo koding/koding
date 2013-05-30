@@ -15,8 +15,7 @@ class GroupsMembershipPolicyDetailView extends KDView
             'updateMembershipPolicy',
             group,
             policy,
-            formData,
-            membershipPolicyView
+            formData
         @createSubViews policy
 
 
@@ -90,7 +89,6 @@ class GroupsMembershipPolicyDetailView extends KDView
     @showPolicyLanguageLink = new CustomLinkView
       cssClass  : "edit-link #{if policyLanguageExists then 'hidden' else ''}"
       title     : 'Edit'
-      href      : './edit'
       click     :(event)=>
         event.preventDefault()
         @showPolicyLanguageLink.hide()
