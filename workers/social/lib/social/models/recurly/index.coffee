@@ -137,12 +137,14 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   subscribe: secure (client, data, callback)->
     {delegate} = client.connection
+    data.quantity ?= 1
     JRecurlyToken.checkToken client, {planCode: @code, pin: data.pin}, (status)=>
       unless status
         callback yes, {}
       else
         payment.addUserSubscription "user_#{delegate._id}",
-          plan : @code
+          plan     : @code
+          quantity : data.quantity
         , (err, result)->
           return callback err  if err
           sub = new JRecurlySubscription
