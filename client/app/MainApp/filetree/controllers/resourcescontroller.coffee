@@ -26,8 +26,21 @@ class ResourcesController extends KDListViewController
     KD.singletons.vmController.fetchVMs (err, vms)=>
       @removeAllItems()
       vms.sort cmp
-      @instantiateListItems vms  unless err
-      @deselectAllItems()
+      stack = []
+      vms.forEach (vmName)=>
+        stack.push (cb)->
+          KD.remote.api.JGroup.one
+            slug: vmName.split('~')[0]
+          , (err, group)->
+            return cb err  if err
+            data =
+              vmName     : vmName
+              groupSlug  : group.slug
+              groupTitle : group.title
+            cb null, data
+      async.parallel stack, (err, result)=>
+        @instantiateListItems result  unless err
+        @deselectAllItems()
 
 class ResourcesView extends KDListView
 
@@ -51,7 +64,7 @@ class ResourcesListItem extends KDListItemView
 
   viewAppended:->
 
-    vmName = @getData()
+    {vmName} = @getData()
 
     @addSubView @icon = new KDCustomHTMLView
       tagName   : "span"
@@ -68,6 +81,19 @@ class ResourcesListItem extends KDListItemView
       partial  : if (vmName.indexOf KD.nick()) < 0 then 'Shared VM' \
                                                    else 'Personal VM'
 
+    @addSubView @buttonTerm = new KDButtonView
+      icon     : yes
+      iconOnly : yes
+      cssClass : 'vm-terminal'
+      callback :->
+        appManager.open "WebTerm", params: {vmName}, forceNew: yes
+
+    @addSubView @buttonDashboard = new KDButtonView
+      icon     : yes
+      iconOnly : yes
+      cssClass : 'vm-dashboard'
+      callback :->
+
     @addSubView @chevron = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "chevron"
@@ -80,7 +106,7 @@ class ResourcesListItem extends KDListItemView
       @delegate.emit "DeselectAllItems"
 
     offset = @chevron.$().offset()
-    vmName = @getData()
+    {vmName} = @getData()
     contextMenu = new JContextMenu
       menuWidth   : 200
       delegate    : @chevron
