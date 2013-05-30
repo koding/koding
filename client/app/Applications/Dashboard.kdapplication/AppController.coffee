@@ -14,11 +14,11 @@ class DashboardAppController extends AppController
     super options, data
 
     @tabData = [
-        name        : 'Readme'
-        viewOptions :
-          viewClass : GroupReadmeView
-          lazy      : no
-      ,
+      #   name        : 'Readme'
+      #   viewOptions :
+      #     viewClass : GroupReadmeView
+      #     lazy      : no
+      # ,
         name        : 'Settings'
         viewOptions :
           viewClass : GroupGeneralSettingsView
@@ -37,7 +37,7 @@ class DashboardAppController extends AppController
       ,
         name        : 'Membership policy'
         viewOptions :
-          viewClass : GroupsMembershipPolicyView
+          viewClass : GroupsMembershipPolicyDetailView
           lazy      : yes
           callback  : @policyViewAdded
       ,
@@ -46,18 +46,21 @@ class DashboardAppController extends AppController
           viewClass : GroupsInvitationRequestsView
           lazy      : yes
           callback  : @invitationsViewAdded
-      ,
-        name        : 'Vocabulary'
-        viewOptions :
-          viewClass : GroupsVocabulariesView
-          lazy      : yes
-          callback  : @vocabularyViewAdded
-      ,
-        name        : 'Bundle'
-        viewOptions :
-          viewClass : GroupsBundleView
-          lazy      : yes
-          callback  : @bundleViewAdded
+
+      # CURRENTLY DISABLED
+
+      # ,
+      #   name        : 'Vocabulary'
+      #   viewOptions :
+      #     viewClass : GroupsVocabulariesView
+      #     lazy      : yes
+      #     callback  : @vocabularyViewAdded
+      # ,
+      #   name        : 'Bundle'
+      #   viewOptions :
+      #     viewClass : GroupsBundleView
+      #     lazy      : yes
+      #     callback  : @bundleViewAdded
     ]
 
   fetchTabData:(callback)-> callback @tabData
@@ -73,20 +76,6 @@ class DashboardAppController extends AppController
       # tabHandle.markDirty()
 
   policyViewAdded:(pane, view)->
-    group = view.getData()
-    group.fetchMembershipPolicy (err, policy)=>
-      view.loader.hide()
-      view.loaderText.hide()
-      membershipPolicyView = new GroupsMembershipPolicyDetailView {}, policy
-      membershipPolicyView.on 'MembershipPolicyChanged', (formData)->
-        KD.getsingleton('appManager').tell 'Groups',
-          'updateMembershipPolicy',
-          group,
-          policy,
-          formData,
-          membershipPolicyView
-      membershipPolicyView.on 'MembershipPolicyChangeSaved', -> log 'sssaved'
-      view.addSubView membershipPolicyView
 
   invitationsViewAdded:(pane, view)->
     group = view.getData()

@@ -1,11 +1,11 @@
 class GroupsInvitationRequestsView extends GroupsRequestView
 
   constructor:(options={}, data)->
-    options.cssClass = 'groups-invitation-request-view'
+    options.cssClass = 'member-related'
     super options, data
 
     group = @getData()
-    @currentState = new KDView cssClass: 'formline'
+    @currentState = new KDView cssClass: 'state'
     @invitationTypeFilter = options.invitationTypeFilter ? ['basic approval','invitation']
 
     [@penRequestsListController, @pendingRequestsList]        = @preparePendingRequestsList()
@@ -285,30 +285,26 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       {{> @createMultiuseButton}} {{> @batchApproveButton}}
       {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
     </div>
-    <section class="formline status-quo">
+    <section class="status-quo">
       <h2>Status quo</h2>
       {{> @currentState}}
     </section>
-    <div class="formline">
-      <section class="formline pending">
-        <h2>Pending requests</h2>
-        {{> @pendingRequestsList}}
-      </section>
-      <section class="formline sent">
-        <h2>Sent invitations</h2>
-        {{> @pendingInvitationsList}}
-      </section>
-    </div>
-    <div class="formline">
-      <section class="formline resolved">
-        <h2>Resolved requests</h2>
-        {{> @resolvedRequestsList}}
-      </section>
-      <section class="formline resolved">
-        <h2>Resolved invitations</h2>
-        {{> @resolvedInvitationsList}}
-      </section>
-    </div>
+    <section class="pending">
+      <h2>Pending requests</h2>
+      {{> @pendingRequestsList}}
+    </section>
+    <section class="sent">
+      <h2>Sent invitations</h2>
+      {{> @pendingInvitationsList}}
+    </section>
+    <section class="resolved">
+      <h2>Resolved requests</h2>
+      {{> @resolvedRequestsList}}
+    </section>
+    <section class="resolved">
+      <h2>Resolved invitations</h2>
+      {{> @resolvedInvitationsList}}
+    </section>
     """
 
   fetchBlacklistForInviteByUsernameModal:(callback)->
