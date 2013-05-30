@@ -6,7 +6,7 @@ class DashboardAppView extends JView
     data or= @getSingleton("groupsController").getCurrentGroup()
     super options, data
 
-    @header = new HeaderViewSection type : "big", title : "Dashboard"
+    @header = new HeaderViewSection type : "big", title : "Group Dashboard"
     @nav    = new CommonInnerNavigation
     @tabs   = new KDTabView
       cssClass            : 'dashboard-tabs'
