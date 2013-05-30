@@ -21,7 +21,7 @@ class SidebarController extends KDViewController
     {
      avatar, finderHeader, navController
      avatarAreaIconMenu, finderController
-     footerMenuController
+     footerMenuController, resourcesController
     } = sidebar
 
     avatar.setData account
@@ -39,6 +39,7 @@ class SidebarController extends KDViewController
     avatarAreaIconMenu.accountChanged account
 
     finderController.reset()
+    resourcesController.reset()
 
   resetAdminNavItems:->
     return unless KD.isLoggedIn()
