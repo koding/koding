@@ -50,13 +50,11 @@ class MembersListItemView extends KDListItemView
 
   click:(event)->
     KD.utils.showMoreClickHandler.call this, event
-    member = @getData()
     targetATag = $(event.target).closest('a')
     if targetATag.is(".followers") and targetATag.find('.data').text() isnt '0'
-      KD.getSingleton("appManager").tell "Members", "createFollowsContentDisplay", member, 'followers'
+      KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}/Followers"
     else if targetATag.is(".following") and targetATag.find('.data').text() isnt '0'
-      KD.getSingleton("appManager").tell "Members", "createFollowsContentDisplay", @getData(), 'following'
-
+      KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}/Following"
 
   clickOnMyItem:(event)->
     if $(event.target).is ".propagateProfile"
@@ -203,17 +201,22 @@ class MemberFollowToggleButton extends KDToggleButton
 
     super options, data
 
-    unless @getData().followee?
+    decorator = (following)=>
+      if @getData().followee
+        @setClass 'following-btn'
+        @setState "Unfollow"
+      else
+        @setState "Follow"
+        @unsetClass 'following-btn'
+
+    if @getData().followee?
+      decorator @getData().followee
+    else
       KD.whoami().isFollowing? @getData().getId(), "JAccount", \
         (err, following) =>
           @getData().followee = following
           warn err  if err and KD.isLoggedIn()
-          if @getData().followee
-            @setClass 'following-btn'
-            @setState "Unfollow"
-          else
-            @setState "Follow"
-            @unsetClass 'following-btn'
+          decorator following
 
   decorateState:(name)->
 

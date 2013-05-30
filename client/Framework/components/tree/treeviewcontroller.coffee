@@ -1,10 +1,3 @@
-###
-todo:
-
-  - multipleselection is broken with implementing it as optional
-
-###
-
 class JTreeViewController extends KDViewController
 
   keyMap = ->
@@ -347,7 +340,8 @@ class JTreeViewController extends KDViewController
       id                 : "#{@getId()}_#{listId}"
       wrapper            : no
       scrollView         : no
-      selection          : no
+      selection          : options.selection ? no
+      multipleSelection  : options.multipleSelection ? no
       view               : new options.listViewClass
         tagName          : "ul"
         type             : options.type
