@@ -166,8 +166,9 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     if id?
       straight = node[listenerKey]
-      node[listenerKey] = (listener for listener in straight \
-                           when listener isnt id)
+      if straight?
+        node[listenerKey] = (listener for listener in straight \
+                             when listener isnt id)
     else
       node[listenerKey].length = 0
 
