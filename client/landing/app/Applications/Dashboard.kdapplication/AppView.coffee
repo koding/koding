@@ -9,7 +9,7 @@ class DashboardAppView extends JView
     @header = new HeaderViewSection type : "big", title : "Dashboard"
     @nav    = new CommonInnerNavigation
     @tabs   = new KDTabView
-      cssClass            : 'group-content'
+      cssClass            : 'dashboard-tabs'
       hideHandleContainer : yes
     , data
 
@@ -18,9 +18,36 @@ class DashboardAppView extends JView
       @createTabs()
       @_windowDidResize()
 
+    @searchWrapper = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'searchbar'
 
-    @myView = new KDInputView
-      focus: => @setKeyView()
+    @search = new KDHitEnterInputView
+      placeholder  : "Search..."
+      name         : "searchInput"
+      cssClass     : "header-search-input"
+      type         : "text"
+      focus        : => @tabs.showPaneByName "Members"
+      callback     : =>
+        pane = @tabs.getPaneByName "Members"
+        {mainView} = pane
+        return unless mainView
+        mainView.emit "MemberSearchInputChanged", @search.getValue()
+        @search.focus()
+      keyup        : =>
+        return unless @search.getValue() is ""
+        pane = @tabs.getPaneByName "Members"
+        {mainView} = pane
+        return unless mainView
+        mainView.emit "MemberSearchInputChanged", ""
+
+    @searchIcon = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'icon search'
+
+    @searchWrapper.addSubView @search
+    @searchWrapper.addSubView @searchIcon
+    @header.addSubView @searchWrapper
 
   setListeners:->
 
@@ -35,6 +62,7 @@ class DashboardAppView extends JView
       @nav.addSubView @navController.getView()
 
     @nav.on "NavItemReceivedClick", ({title})=> @tabs.showPaneByName title
+    @tabs.on "PaneDidShow", (pane)=> @navController.selectItemByName pane.name
 
   createTabs:->
 
@@ -48,9 +76,6 @@ class DashboardAppView extends JView
 
       @navController.instantiateListItems navItems
       @navController.selectItem @navController.itemsOrdered.first
-
-
-
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()
