@@ -104,6 +104,9 @@ module.exports = class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
       emailFrequency: Object
+      status        :
+        type        : String
+        enum        : ['invalid status',['online','offline']]
 
     relationships       :
       ownAccount        :

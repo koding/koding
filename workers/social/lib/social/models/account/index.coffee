@@ -130,6 +130,9 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
+      status                :
+        type                : String
+        enum                : ['invalid status',['online','offline','do not disturb']]
     relationships           : ->
       JPrivateMessage = require '../messages/privatemessage'
 
@@ -933,14 +936,14 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchFollowersFromNeo4j:(options={}, callback)->
       # returns accounts that follow this account
-      query = 
+      query =
         """
         start  koding=node:koding(id='#{@getId()}')
         MATCH koding-[:follower]->followers
         where followers.name="JAccount
         return followers
         """
-                      
+
       options['resultsKey'] = 'followers'
       Graph          = require "../graph/graph"
       graph = new Graph(config:KONFIG['neo4j'])
