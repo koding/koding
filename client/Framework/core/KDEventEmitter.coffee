@@ -176,13 +176,25 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
   emit: (eventName, rest...) ->
 
+    if @hasOwnProperty 'event' then oldEvent = @event
+
+    @event = eventName
+
     listeners = getAllListeners @_e, eventName.split @_delim
 
     listener.apply this, rest  for listener in listeners
+
+    if oldEvent?
+      @event = oldEvent
+
+    else
+      delete @event
+
     return this
 
   off: (eventName, listener) ->
-    removeAllListeners @_e, (eventName.split @_delim), listener
+    removeAllListeners @_e, ((eventName ? '*').split @_delim), listener
+    return this
 
   on: (eventName, listener) ->
     unless 'function' is typeof listener
