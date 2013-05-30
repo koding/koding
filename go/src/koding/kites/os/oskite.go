@@ -15,8 +15,10 @@ import (
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -45,20 +47,15 @@ func main() {
 		return
 	}
 
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		log.LogError(err, 0)
-		return
-	}
-	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
-			db.VMs.FindId(vm.Id).One(&vm)
-			if err := vm.Unprepare(); err != nil {
-				log.Warn(err.Error())
-			}
-		}
-	}
+	unprepareAll()
+
+	go func() {
+		sigtermChannel := make(chan os.Signal)
+		signal.Notify(sigtermChannel, syscall.SIGTERM)
+		<-sigtermChannel
+		unprepareAll()
+		log.SendLogsAndExit(0)
+	}()
 
 	go ldapserver.Listen()
 	go LimiterLoop()
@@ -243,25 +240,30 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		infosMutex.Unlock()
 
-		if !isExistingState {
-			if vm.IP == nil {
-				ipInt := db.NextCounterValue("vm_ip")
-				ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-				if !vm.IsTemporary() {
-					if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-						panic(err)
-					}
+		if vm.IP == nil {
+			ipInt := db.NextCounterValue("vm_ip")
+			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
+			if !vm.IsTemporary() {
+				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+					panic(err)
 				}
-				vm.IP = ip
 			}
-			if vm.LdapPassword == "" {
-				ldapPassword := utils.RandomString()
-				if !vm.IsTemporary() {
-					if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
-						panic(err)
-					}
+			vm.IP = ip
+		}
+
+		if vm.LdapPassword == "" {
+			ldapPassword := utils.RandomString()
+			if !vm.IsTemporary() {
+				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+					panic(err)
 				}
-				vm.LdapPassword = ldapPassword
+			}
+			vm.LdapPassword = ldapPassword
+		}
+
+		if _, err := os.Stat(vm.File("")); err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
 			}
 
 			vm.SetHostname(vm.Name + "." + config.Current.UserSitesDomain)
@@ -453,4 +455,20 @@ func (info *VMInfo) startTimeout() {
 
 		delete(infos, vm.Id)
 	})
+}
+
+func unprepareAll() {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		log.LogError(err, 0)
+		return
+	}
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			if err := vm.Unprepare(); err != nil {
+				log.Warn(err.Error())
+			}
+		}
+	}
 }
