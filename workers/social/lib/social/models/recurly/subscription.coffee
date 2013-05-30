@@ -2,6 +2,8 @@ jraphical = require 'jraphical'
 JUser = require '../user'
 payment = require 'koding-payment'
 
+forceRefresh = yes
+
 module.exports = class JRecurlySubscription extends jraphical.Module
 
   {secure} = require 'bongo'
@@ -14,7 +16,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     sharedMethods  :
       static       : [
         'all', 'one', 'some',
-        'updateUserSubscriptions'
+        'getSubscriptions'
       ]
       instance     : []
     schema         :
@@ -28,8 +30,28 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       renew        : String
       lastUpdate   : Number
 
+  @getSubscriptions = secure (client, callback)->
+    {delegate} = client.connection
+    selector =
+      userCode : "user_#{delegate._id}"
+
+    unless forceRefresh
+      JRecurlySubscription.all selector, callback
+    else
+      JRecurlySubscription.one {}, (err, sub)=>
+        callback err  if err
+        unless sub
+          @updateCache client, -> JRecurlySubscription.all selector, callback
+        else
+          sub.lastUpdate ?= 0
+          now = (new Date()).getTime()
+          if now - sub.lastUpdate > 1000 * 60 * 2
+            @updateCache client, -> JRecurlySubscription.all selector, callback
+          else
+            JRecurlySubscription.all selector, callback
+
   # Recurly web hook will use this method to invalidate the cache.
-  @updateUserSubscriptions = secure (client, callback)->
+  @updateCache = secure (client, callback)->
     console.log "Updating Recurly user subscription..."
     {delegate} = client.connection
     userCode = "user_#{delegate._id}"
@@ -66,6 +88,8 @@ module.exports = class JRecurlySubscription extends jraphical.Module
             sub.datetime = datetime
             sub.expires  = expires
             sub.renew    = renew
+
+            sub.lastUpdate = (new Date()).getTime()
 
             sub.save ->
               cb null, sub
