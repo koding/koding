@@ -22,7 +22,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         'setUserAccount', 'getUserAccount', 'getUserTransactions'
       ]
       instance     : [
-        'getToken', 'subscribe'
+        'getToken', 'subscribe', 'getSubscription'
       ]
     schema         :
       code         : String
@@ -158,3 +158,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             renew    : result.renew
           sub.save ->
             callback no, sub
+
+  getSubscription: secure (client, callback)->
+    {delegate} = client.connection
+    JRecurlySubscription.one
+      userCode : "user_#{delegate._id}"
+      planCode : @code
+    , callback

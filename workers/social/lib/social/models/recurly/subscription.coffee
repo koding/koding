@@ -42,7 +42,6 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         mapCached = {}
         cachedPlans.forEach (cSub)->
           mapCached[cSub.uuid] = cSub
-        console.log mapCached
         stack = []
         Object.keys(mapCached).forEach (k)->
           if k not in Object.keys(mapAll)
@@ -69,7 +68,6 @@ module.exports = class JRecurlySubscription extends jraphical.Module
             sub.renew    = renew
 
             sub.save ->
-              console.log arguments
               cb null, sub
 
         async = require 'async'
