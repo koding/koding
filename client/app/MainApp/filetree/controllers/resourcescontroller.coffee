@@ -88,13 +88,6 @@ class ResourcesListItem extends KDListItemView
       callback :->
         appManager.open "WebTerm", params: {vmName}, forceNew: yes
 
-    @addSubView @buttonDashboard = new KDButtonView
-      icon     : yes
-      iconOnly : yes
-      cssClass : 'vm-dashboard'
-      callback :->
-        appManager.open "Environments", params: {vmName}
-
     @addSubView @chevron = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "chevron"
@@ -129,11 +122,9 @@ class ResourcesListItem extends KDListItemView
         callback         : ->
           appManager.open "WebTerm", params: {vmName}, forceNew: yes
           @destroy()
-      'Open Dashboard'   :
-        callback         : ->
-          appManager.open "Environments", params: {vmName}
-          @destroy()
-
+        separator        : yes
+      customView3        : new NVMDetailsView {}, {vmName}
+      
   checkVMState:(err, vm, info)->
     return unless vm is @getData()
 
