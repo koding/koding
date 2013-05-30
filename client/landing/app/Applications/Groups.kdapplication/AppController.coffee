@@ -669,7 +669,7 @@ class GroupsAppController extends AppController
 
   updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
     group.modifyMembershipPolicy formData, ->
-      membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+      policy.emit 'MembershipPolicyChangeSaved'
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -770,7 +770,7 @@ class GroupsAppController extends AppController
       else 'Koding users can only join with your approval'
 
       body  = """
-        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
+        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{location.protocol}#{groupUrl}</a></div>
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
