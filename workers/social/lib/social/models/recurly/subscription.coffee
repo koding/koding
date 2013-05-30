@@ -18,7 +18,9 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         'all', 'one', 'some',
         'getSubscriptions'
       ]
-      instance     : []
+      instance     : [
+        'cancel', 'resume'
+      ]
     schema         :
       uuid         : String
       planCode     : String
@@ -97,3 +99,33 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         async = require 'async'
         async.parallel stack, (err, results)->
           callback()
+
+  cancel: secure (client, callback)->
+    {delegate} = client.connection
+    userCode = "user_#{delegate._id}"
+    payment.cancelUserSubscription userCode,
+      uuid: @uuid
+    , (err, sub)=>
+      @status   = sub.status
+      @datetime = sub.datetime
+      @expires  = sub.expires
+      @plan     = sub.plan
+      @quantity = sub.quantity
+      @renew    = sub.renew
+      @save =>
+        callback no, @
+
+  resume: secure (client, callback)->
+    {delegate} = client.connection
+    userCode = "user_#{delegate._id}"
+    payment.reactivateUserSubscription userCode,
+      uuid: @uuid
+    , (err, sub)=>
+      @status   = sub.status
+      @datetime = sub.datetime
+      @expires  = sub.expires
+      @plan     = sub.plan
+      @quantity = sub.quantity
+      @renew    = sub.renew
+      @save =>
+        callback no, @
