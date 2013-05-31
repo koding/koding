@@ -153,10 +153,11 @@ func (c *Consumer) Shutdown() error {
 func handle(deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
 		log.Printf(
-			"got %dB delivery: [%v] %s",
+			"got %dB delivery: [%v] %s %v",
 			len(d.Body),
 			d.DeliveryTag,
 			d.Body,
+			d.Headers,
 		)
 	}
 	log.Printf("handle: deliveries channel closed")
