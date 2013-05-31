@@ -170,7 +170,7 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
         node[listenerKey] = (listener for listener in straight \
                              when listener isnt id)
     else
-      node[listenerKey].length = 0
+      node[listenerKey] = []
 
     return
 
