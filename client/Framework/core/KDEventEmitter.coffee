@@ -14,7 +14,7 @@ class KDEventEmitter
 
   @registerWildcardEmitter = ->
     source = @Wildcard.prototype
-    @::[prop] = val  for own prop, val of source
+    @::[prop] = val  for own prop, val of source when prop isnt 'constructor'
 
   @registerStaticEmitter = ->
     # static listeners will be put here
