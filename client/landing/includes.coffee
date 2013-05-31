@@ -6,15 +6,17 @@ module.exports = [
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
 
+  # --- Base class ---
+  "Framework/core/utils.coffee",
+  "Framework/core/KD.coffee",
+  "Framework/core/KDEventEmitter.coffee",
+
   # --- Framework ---
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
 
   # core
-  "Framework/core/utils.coffee",
-  "Framework/core/KD.coffee",
-  "Framework/core/KDEventEmitter.coffee",
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
   "Framework/core/JView.coffee",
