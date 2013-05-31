@@ -35,16 +35,19 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       @parent.on 'NewInvitationActionArrived', @bound 'refresh'
 
   fetchAndPopulate:(controller, removeAllItems=no)->
-    controller.showLazyLoader()
-    controller.setLastTimestamp null if removeAllItems
+    controller.showLazyLoader no
+    controller.setLastTimestamp null  if removeAllItems
+
     @fetchSomeRequests @invitationTypeFilter, controller.getStatuses(), controller.getLastTimestamp(), (err, requests)=>
       controller.hideLazyLoader()
-      return warn err if err
-      controller.removeAllItems() if removeAllItems
+      return warn err  if err
+
+      controller.removeAllItems()  if removeAllItems
       controller.instantiateListItems requests
+
       if requests?.length > 0
         controller.setLastTimestamp requests.last.timestamp_
-        controller.emit 'teasersLoaded', requests.length
+        controller.emit 'teasersLoaded', requests.length  if requests.length is @requestLimit
       else
         controller.emit 'noItemsFound'
 
@@ -59,10 +62,12 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     controller = new InvitationRequestListController options
 
     if options.isModal
-      controller.on 'LazyLoadThresholdReached', @fetchAndPopulate.bind this, controller
+      controller.on 'LazyLoadThresholdReached', =>
+        return controller.hideLazyLoader()  if controller.noItemLeft
+        @fetchAndPopulate controller
+
       controller.on 'teasersLoaded', =>
-        unless controller.scrollView.hasScrollBars()
-          @fetchAndPopulate controller
+        @fetchAndPopulate controller  unless controller.scrollView.hasScrollBars()
     else
       controller.on 'teasersLoaded', (count)=>
         controller.moreLink?.show()    if count >= @requestLimit
@@ -340,8 +345,7 @@ class GroupsInvitationRequestsModalView extends KDModalView
   _windowDidResize:->
     super
     {winHeight} = @getSingleton('windowController')
-    log @$('.kdmodal-content .kdscrollview')
-    @$('.kdmodal-content .kdscrollview').css 'max-height', winHeight - 200
+    @$('.kdmodal-content .kdscrollview').css 'max-height', winHeight - 400
 
 class InviteByUsernameAutoCompleteItemView extends KDAutoCompleteListItemView
   constructor:(options, data)->
