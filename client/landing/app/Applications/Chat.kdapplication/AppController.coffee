@@ -17,6 +17,8 @@ class ChatAppController extends AppController
 
   handleChatOpen:({routingKey, bindingKey, publicName})->
     channel = KD.remote.mq.setP2PKeys publicName, { routingKey, bindingKey }, 'secret'
+    channel.on '*', ->
+      console.log @event, arguments
 
   create:(invitees, callback)->
     chatPanel = KD.getSingleton 'chatPanel'
