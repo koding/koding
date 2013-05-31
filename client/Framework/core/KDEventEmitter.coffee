@@ -89,7 +89,7 @@ class KDEventEmitter
   # INSTANCE METHODS
   # to enable anInstance.on or anInstance.emit (anInstance being new ClassName)
 
-  constructor: (options = {})->
+  constructor: (options = {}) ->
     { maxListeners } = options
     @_e             = {}
     @_maxListeners  = if maxListeners > 0 then maxListeners else 10
@@ -129,7 +129,7 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
   wildcardKey = '*'
   listenerKey = '_listeners'
 
-  constructor:(options = {})->
+  constructor: (options = {}) ->
     super
     @_delim = options.delimiter or '.'
 
@@ -139,13 +139,13 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     listeners = []
 
-    edge = edges[i]
+    edge      = edges[i]
 
+    straight  = node[listenerKey]  if i is edges.length
     wild      = node[wildcardKey]
-    straight  = node[listenerKey]
     nextNode  = node[edge]
 
-    if straight? and i is edges.length
+    if straight?
       listeners = listeners.concat straight
 
     if wild?
@@ -156,27 +156,25 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     return listeners
 
-  removeAllListeners = (node, edges, id, i = 0) ->
+  removeAllListeners = (node, edges, it, i = 0) ->
     edge = edges[i]
 
     nextNode = node[edge]
 
     if nextNode?
-      return removeAllListeners nextNode, edges, id, i + 1
+      return removeAllListeners nextNode, edges, it, i + 1
 
-    if id?
-      straight = node[listenerKey]
-      if straight?
-        node[listenerKey] = (listener for listener in straight \
-                             when listener isnt id)
-    else
-      node[listenerKey] = []
+    if it? and (straight = node[listenerKey])?
+      
+      node[listenerKey] = (listener for listener in straight \
+                                    when it isnt listener)
+    
+    else node[listenerKey] = []
 
     return
 
   emit: (eventName, rest...) ->
-
-    if @hasOwnProperty 'event' then oldEvent = @event
+    oldEvent = @event  if @hasOwnProperty 'event'
 
     @event = eventName
 
@@ -184,11 +182,7 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     listener.apply this, rest  for listener in listeners
 
-    if oldEvent?
-      @event = oldEvent
-
-    else
-      delete @event
+    if oldEvent? then @event = oldEvent else delete @event
 
     return this
 
@@ -206,8 +200,7 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     node = @_e
 
-    for edge in edges
-      node = node[edge] ?= {}
+    node = node[edge] ?= {}  for edge in edges
 
     listeners = node[listenerKey] ?= []
 
