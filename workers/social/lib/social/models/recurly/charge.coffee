@@ -2,7 +2,8 @@ jraphical = require 'jraphical'
 JUser = require '../user'
 payment = require 'koding-payment'
 
-forceRefresh = yes
+forceRefresh  = yes
+forceInterval = 60 * 5
 
 module.exports = class JRecurlyCharge extends jraphical.Module
 
@@ -45,7 +46,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
         else
           charge.lastUpdate ?= 0
           now = (new Date()).getTime()
-          if now - charge.lastUpdate > 1000 * 60 * 2
+          if now - charge.lastUpdate > 1000 * forceInterval
             @updateCache client, -> JRecurlyCharge.all selector, callback
           else
             JRecurlyCharge.all selector, callback
