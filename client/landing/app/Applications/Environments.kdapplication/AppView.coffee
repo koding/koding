@@ -3,12 +3,11 @@ class EnvironmentsMainView extends JView
   tabData = [
     name        : 'VMS'
     viewOptions :
-      lazy      : no
       viewClass : VMMainView
   ,
     name        : 'Domains'
     viewOptions :
-      lazy      : yes
+      lazy      : no
       viewClass : DomainMainView
   ]
 
