@@ -96,7 +96,7 @@ Templates =
       <td style="border-right: 1px solid #CCC; text-align:right;
                  padding-right:10px;"></td>
       <td style="padding-left: 10px;" colspan="2">
-        #{turnOffLink}
+        #{turnOffLink}<br/>
         #{link "https://koding.com", "Koding"}, Inc. 358 Brannan, San Francisco, CA 94107
       </td>
     </tr>
@@ -167,20 +167,17 @@ Templates =
     """
 
   instantMail  : (m)->
-    unless m.sender.profile?
-      turnOffLink = ''
-    else
-      eventName   = flags[m.notification.eventFlag].definition
-      turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
-      turnOffAllURL = link turnOffLink+"/all","all"
-      turnOffSpecificType = link turnOffLink, eventName
-      turnOffLink = """Unsubscribe from #{turnOffSpecificType} notifications / Unsubscribe from #{turnOffAllURL} emails from Koding.<br/>"""
+    eventName   = flags[m.notification.eventFlag].definition
+    turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}/#{encodeURIComponent m.email}"
+    turnOffAllURL = link turnOffLink+"/all","all"
+    turnOffSpecificType = link turnOffLink, eventName
+    turnOffLink = """Unsubscribe from #{turnOffSpecificType} notifications / Unsubscribe from #{turnOffAllURL} emails from Koding."""
 
     Templates.mainTemplate m, \
       Templates.singleEvent(m), Templates.footerTemplate turnOffLink
 
   dailyMail    : (m, content)->
-    turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}"
+    turnOffLink = "#{uri.address}/Unsubscribe/#{m.notification.unsubscribeId}/#{encodeURIComponent m.email}"
     turnOffDailyURL = link "#{turnOffLink}/daily", "daily emails"
     turnOffAllEmailsURL = link "#{turnOffLink}/all", "all"
     turnOffLink = """Unsubscribe from #{turnOffDailyURL} or Unsubscribe from #{turnOffAllEmailsURL} emails from Koding."""

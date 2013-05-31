@@ -274,7 +274,6 @@ module.exports = class JGroup extends Module
           queue.next()
 
     create = (groupData, owner, callback) ->
-      console.log {owner}
       JPermissionSet        = require './permissionset'
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
@@ -330,8 +329,10 @@ module.exports = class JGroup extends Module
               console.log 'roles are added'
               queue.next()
       ]
+
       if 'private' is group.privacy
-        queue.push -> group.createMembershipPolicy -> queue.next()
+        queue.push -> group.createMembershipPolicy groupData.requestType, -> queue.next()
+
       if groupData['group-vm'] is 'on'
         limits =
           users           : { quota: 100 }
@@ -664,11 +665,14 @@ module.exports = class JGroup extends Module
         else
           callback err, null
 
-  createMembershipPolicy:(queue, callback)->
+  createMembershipPolicy:(requestType, queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
     queue ?= []
+    
     JMembershipPolicy = require './membershippolicy'
     membershipPolicy  = new JMembershipPolicy
+    membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
+
     queue.push(
       -> membershipPolicy.save (err)->
         if err then callback err
