@@ -1,5 +1,6 @@
 {Model, Base, ObjectId, secure} = require 'bongo'
 {extend} = require 'underscore'
+KodingError = require '../error'
 
 createId = require 'hat'
 
@@ -145,7 +146,7 @@ module.exports = class JMailNotification extends Model
       # else
       #   console.log "Already exists"
 
-  @unsubscribeWithId = (unsubscribeId, opt, callback)->
+  @unsubscribeWithId = (unsubscribeId, email, opt, callback)->
 
     JMailNotification.one {unsubscribeId}, (err, notification)->
       if err or not notification then callback err
@@ -167,6 +168,8 @@ module.exports = class JMailNotification extends Model
             JUser = require './user'
             JUser.one {username}, (err, user)->
               if err or not user then callback err
+              else if user.email isnt email
+                callback new KodingError 'Unsubscribe token does not match given email.'
               else account.setEmailPreferences user, prefs, (err)->
                 if err then callback err
                 else

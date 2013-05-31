@@ -149,7 +149,9 @@ class LoginView extends KDScrollView
         new KDNotificationView
           title : "An error occurred: #{err.message}"
       else
-        @animateToForm "login"
+        @recoverForm.reset()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute '/Login', {entryPoint}
         new KDNotificationView
           title     : "Check your email"
           content   : "We've sent you a password recovery token."
