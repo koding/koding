@@ -1,58 +1,81 @@
 class DashboardAppView extends JView
 
-  tabData = [
-    { name : 'Readme',            lazy : no,  itemClass : GroupReadmeView }
-    { name : 'Settings',          lazy : yes, itemClass : GroupGeneralSettingsView }
-    { name : 'Permissions',       lazy : yes, itemClass : GroupPermissionsView }
-    { name : 'Members',           lazy : yes, itemClass : GroupsMemberPermissionsView }
-    { name : 'Membership policy', lazy : yes, itemClass : GroupsMembershipPolicyView }
-    { name : 'Invitations',       lazy : yes, itemClass : GroupsInvitationRequestsView }
-  ]
-
-  navData =
-    title : "SHOW ME"
-    items : ({ title : name } for {name} in tabData)
-
   constructor:(options={}, data)->
 
     options.cssClass or= "content-page"
     data or= @getSingleton("groupsController").getCurrentGroup()
     super options, data
 
-    @header = new HeaderViewSection type : "big", title : "Dashboard"
+    @header = new HeaderViewSection type : "big", title : "Group Dashboard"
     @nav    = new CommonInnerNavigation
     @tabs   = new KDTabView
-      cssClass            : 'group-content'
+      cssClass            : 'dashboard-tabs'
       hideHandleContainer : yes
     , data
 
     @setListeners()
-    @createTabs()
-    @once 'viewAppended', @bound "_windowDidResize"
+    @once 'viewAppended', =>
+      @createTabs()
+      @_windowDidResize()
+
+    @searchWrapper = new KDCustomHTMLView
+      tagName  : 'section'
+      cssClass : 'searchbar'
+
+    @search = new KDHitEnterInputView
+      placeholder  : "Search..."
+      name         : "searchInput"
+      cssClass     : "header-search-input"
+      type         : "text"
+      focus        : => @tabs.showPaneByName "Members"
+      callback     : =>
+        pane = @tabs.getPaneByName "Members"
+        {mainView} = pane
+        return unless mainView
+        mainView.emit "MemberSearchInputChanged", @search.getValue()
+        @search.focus()
+      keyup        : =>
+        return unless @search.getValue() is ""
+        pane = @tabs.getPaneByName "Members"
+        {mainView} = pane
+        return unless mainView
+        mainView.emit "MemberSearchInputChanged", ""
+
+    @searchIcon = new KDCustomHTMLView
+      tagName  : 'span'
+      cssClass : 'icon search'
+
+    @searchWrapper.addSubView @search
+    @searchWrapper.addSubView @searchIcon
+    @header.addSubView @searchWrapper
 
   setListeners:->
 
     @listenWindowResize()
     @nav.on "viewAppended", =>
-      navController = @nav.setListController
+      @navController = @nav.setListController
         itemClass : ListGroupShowMeItem
-      , navData
+      ,
+        title     : "SHOW ME"
+        items     : []
 
-      @nav.addSubView navController.getView()
-      navController.selectItem navController.itemsOrdered.first
+      @nav.addSubView @navController.getView()
 
     @nav.on "NavItemReceivedClick", ({title})=> @tabs.showPaneByName title
+    @tabs.on "PaneDidShow", (pane)=> @navController.selectItemByName pane.name
 
   createTabs:->
 
     data = @getData()
+    @getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
+      navItems = []
+      for {name, hiddenHandle, viewOptions}, i in tabData
+        viewOptions.data = data
+        @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), !(~i+1) # making 0 true the rest false
+        navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
 
-    for {name, lazy, itemClass} in tabData
-      @tabs.addPane new KDTabPaneView {
-        view : {itemClass, data}
-        name
-        lazy
-      }
+      @navController.instantiateListItems navItems
+      @navController.selectItem @navController.itemsOrdered.first
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()

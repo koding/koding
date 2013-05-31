@@ -1794,13 +1794,21 @@ textarea.kdinputwithpreview
   font-family 'Monaco','Courier New','Courier','Andale Mono',monospace, sans-serif
   font-size 12px!important
 
+.modal-fullscreen-text
+  div.kdinputwithpreview.input_preview
+    div.preview_content
+      margin-top       5px
+    div.preview_switch
+      top              7px
+      rounded          0px 0 0 4px
+
 div.kdinputwithpreview.input_preview
+  overflow            visible
+  margin-top          -1px
+  padding-top         1px
+  min-height          24px
   borderBox()
-  margin              0 0 0px 0
-  padding             5px 0 0 0
-  min-height          40px
   rel()
-  overflow            auto
 
   & textarea
     font-family monospace
@@ -1808,32 +1816,37 @@ div.kdinputwithpreview.input_preview
   &.content-hidden
     margin-bottom     0px
 
-  div.preview_switch
+  div.preview_content
+    border                  1px solid #e8e8e8
+    border-bottom-color     #e0e0e0
+    padding                 10px
+    margin-top              30px
+    max-height              300px
+    min-height              24px
+    overflow                auto
+    rounded                 4px
     borderBox()
+
+    span.data
+      display               block
+
+    > *:last-child
+      margin-bottom         0
+
+  div.preview_switch
     abs()
-    right             1px
-    top               6px
+    right             0
+    top               1px
     float             none
-    bg                color, #F4F4F4
-    rounded           0px 4px 0px 4px
     padding           1px 3px
-    border-left       1px solid
-    border-bottom     1px solid
-    border-color      #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
+    border            1px solid #e8e8e8
+    border-top        none
     height            23px
     width             auto
     min-width         auto
-
-    &.content-hidden
-      rounded         4px
-      border          1px solid
-      top             5px
-      right           0px
-      height          24px
-      border-color    #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
-      width           auto
-      min-width       auto
-      white-space     nowrap
+    bg                color, #F4F4F4
+    rounded           0px 0 4px 4px
+    borderBox()
 
     a.markdown-link
       noTextDeco()
@@ -1957,23 +1970,6 @@ div.kdinputwithpreview.input_preview
             shadow          none
             &.off
               shadow        none
-
-  div.preview_content
-    borderBox()
-    border                  1px solid
-    border-color            #e8e8e8 #e8e8e8 #e0e0e0 #e8e8e8
-    padding                 20px 10px 10px 10px
-    rounded                 4px
-    max-height              300px
-    min-height              24px
-    overflow                auto
-    vendor                  transition, all 0.1s linear
-
-    span.data
-      display               block
-
-    > *:last-child
-      margin-bottom         0
 
 .content-display-main-section .activity-item-right-col
   h3.blog-post-title
