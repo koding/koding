@@ -133,6 +133,12 @@ func generateUniqueConsumerTag(bindingKey string) string {
 	return bindingKey + "." + base64.StdEncoding.EncodeToString(r)
 }
 
+func generateUniqueQueueName() string {
+	r := make([]byte, 32/8)
+	rand.Read(r)
+	return base64.StdEncoding.EncodeToString(r)
+}
+
 func declareExchange(c *Consumer, exchange string) {
 	if exchanges[exchange] <= 0 {
 		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
@@ -159,15 +165,17 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix s
 		routingKey += suffix
 	}
 
-	if _, err := c.channel.QueueDeclare("", false, true, true, false, nil); err != nil {
+	uniqueQueueName := generateUniqueQueueName()
+
+	if _, err := c.channel.QueueDeclare(uniqueQueueName, false, true, true, false, nil); err != nil {
 		log.Fatalf("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", bindingKey, exchange, false, nil); err != nil {
+	if err := c.channel.QueueBind(uniqueQueueName, bindingKey, exchange, false, nil); err != nil {
 		log.Fatalf("queue.bind: %s", err)
 	}
 
-	messages, err := c.channel.Consume("", consumerTag, true, false, false, false, nil)
+	messages, err := c.channel.Consume(uniqueQueueName, consumerTag, true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("basic.consume: %s", err)
 	}
