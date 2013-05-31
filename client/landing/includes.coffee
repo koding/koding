@@ -396,6 +396,7 @@ module.exports = [
   "app/Applications/Chat.kdapplication/Views/chatmessagelistview.coffee",
   "app/Applications/Chat.kdapplication/Views/chatmessagelistitem.coffee",
   "app/Applications/Chat.kdapplication/Views/chatinputwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchathandler.coffee",
   "app/Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
   # new ace
