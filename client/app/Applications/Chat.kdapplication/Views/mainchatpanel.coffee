@@ -11,13 +11,20 @@ class MainChatPanel extends JView
     @conversationListController = new ChatConversationListController
       view : @conversationList
 
-  createConversation:(channel)->
-    @conversationListController.addItem channel
+    @on 'PanelVisibilityChanged', (visible)=>
+      if visible
+        @getSingleton('windowController').addLayer @
+        @once 'ReceivedClickElsewhere', @bound 'hide'
+
+  createConversation:(data)->
+    # Data includes chatChannel and the conversation
+    @conversationListController.addItem data
 
   viewAppended:->
     @addSubView @header
     @addSubView @conversationList
     @conversationListController.loadItems()
+    @show()
 
   show:->
     @setClass 'visible'
