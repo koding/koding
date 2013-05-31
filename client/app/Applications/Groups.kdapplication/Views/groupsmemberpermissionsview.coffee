@@ -2,31 +2,11 @@ class GroupsMemberPermissionsView extends JView
 
   constructor:(options = {}, data)->
 
-    options.cssClass = "groups-member-permissions-view"
+    options.cssClass = "member-related"
 
     super options, data
 
     @_searchValue = null
-
-    @search = new KDHitEnterInputView
-      placeholder  : "Search..."
-      name         : "searchInput"
-      cssClass     : "header-search-input"
-      type         : "text"
-      callback     : =>
-        @_searchValue = @search.getValue()
-        @timestamp = new Date 0
-        @listController.removeAllItems()
-        @fetchSomeMembers()
-        @search.focus()
-      keyup        : =>
-        if @search.getValue() is ""
-          @_searchValue = null
-          @refresh()
-
-    @searchIcon = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'icon search'
 
     @listController = new KDListViewController
       itemClass             : GroupsMemberPermissionsListItemView
@@ -43,7 +23,15 @@ class GroupsMemberPermissionsView extends JView
         @continueLoadingTeasers()
 
     @refresh()
-    @listenWindowResize()
+
+    @on "MemberSearchInputChanged", (value)=>
+      @_searchValue = value
+      if value isnt ""
+        @timestamp = new Date 0
+        @listController.removeAllItems()
+        @fetchSomeMembers()
+      else @refresh()
+
 
   fetchRoles:(callback=->)->
     groupData = @getData()
@@ -101,19 +89,7 @@ class GroupsMemberPermissionsView extends JView
   memberRolesChange:(member, roles)->
     @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
 
-  viewAppended:->
-
-    super
-    @_windowDidResize()
-
-  _windowDidResize:->
-
-    @listWrapper.setHeight @parent.getHeight() - @$('section.searchbar.kdheaderview').height()
-
   pistachio:->
     """
-    <section class='searchbar kdheaderview'>
-      <span class='title'>{{ #(title)}} Members</span>{{> @search}}{{> @searchIcon}}
-    </section>
     {{> @listWrapper}}
     """
