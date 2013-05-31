@@ -3,18 +3,16 @@ class EnvironmentsMainView extends JView
   tabData = [
     name        : 'VMS'
     viewOptions :
-      lazy      : no
       viewClass : VMMainView
   ,
     name        : 'Domains'
     viewOptions :
-      lazy      : yes
       viewClass : DomainMainView
   ]
 
-  navData =
+  navData = 
     title : "Settings"
-    items : ({ title : name } for {name} in tabData)
+    items : ({title:item.name, hiddenHandle:'hidden'} for item in tabData)
 
   constructor:(options={}, data)->
 
@@ -22,35 +20,24 @@ class EnvironmentsMainView extends JView
     super options, data
 
     @header = new HeaderViewSection type : "big", title : "Environments"
-    @nav    = new CommonInnerNavigation
+    @nav    = new KDView
+      cssClass : "common-inner-nav"
     @tabs   = new KDTabView
-      cssClass            : 'environment-content'
-      hideHandleContainer : yes
+      cssClass           : 'environment-content'
+      tabHandleContainer : @nav
     , data
 
-    @setListeners()
-    @createTabs()
-    @once 'viewAppended', @bound "_windowDidResize"
-
-  setListeners:->
-
     @listenWindowResize()
-    @nav.on "viewAppended", =>
-      navController = @nav.setListController
-        itemClass : ListGroupShowMeItem
-      , navData
-
-      @nav.addSubView navController.getView()
-      navController.selectItem navController.itemsOrdered.first
-
-    @nav.on "NavItemReceivedClick", ({title})=> @tabs.showPaneByName title
+    
+    @once 'viewAppended', =>
+      @createTabs()
+      @_windowDidResize()
 
   createTabs:->
+    for {name, viewOptions}, i in tabData
+      @tabs.addPane new KDTabPaneView {name, viewOptions}, i is 0
 
-    data = @getData()
-
-    for {name, viewOptions} in tabData
-      @tabs.addPane new KDTabPaneView {name, viewOptions}
+    # @navController.selectItem @navController.itemsOrdered.first
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()
