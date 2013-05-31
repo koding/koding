@@ -11,7 +11,6 @@ import (
 
 var version string
 var changeClientsGauge func(int)
-var ShuttingDown bool = false
 
 func Startup(serviceName string, needRoot bool) {
 	if needRoot && os.Getuid() != 0 {
@@ -26,22 +25,12 @@ func Startup(serviceName string, needRoot bool) {
 	log.Info(fmt.Sprintf("Process '%v' started (version '%v').", serviceName, version))
 }
 
-func BeginShutdown() {
-	ShuttingDown = true
-	changeClientsGauge(0)
-	log.Info("Beginning shutdown.")
-}
-
 func CreateClientsGauge() func(int) {
 	value := new(int)
 	log.CreateGauge("clients", func() float64 { return float64(*value) })
 	changeClientsGauge = func(diff int) {
 		log.GaugeChanges <- func() {
 			*value += diff
-			if ShuttingDown && *value == 0 {
-				log.Info("Shutdown complete. Terminating.")
-				os.Exit(0)
-			}
 		}
 	}
 	return changeClientsGauge

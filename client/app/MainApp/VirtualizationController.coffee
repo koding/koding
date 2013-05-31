@@ -35,6 +35,9 @@ class VirtualizationController extends KDController
     @_runWraper 'vm.start', vm, callback
 
   stop:(vm, callback)->
+    @_runWraper 'vm.shutdown', vm, callback
+
+  halt:(vm, callback)->
     @_runWraper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
@@ -52,7 +55,7 @@ class VirtualizationController extends KDController
   getDefaultVmName:->
     {entryPoint} = KD.config
     currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
-    if not currentGroup or currentGroup is 'koding' then KD.nick()
+    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}"
     else currentGroup
 
   createGroupVM:(type='personal', callback)->
@@ -67,19 +70,19 @@ class VirtualizationController extends KDController
           bundle.debitGroup defaultVMOptions, callback
 
   fetchVMs:(callback)->
-    return callback null, @vms  if @vms
+    return callback null, @vms  if @vms.length > 0
     KD.remote.api.JVM.fetchVms (err, vms)=>
       @vms = vms  unless err
       callback err, vms
 
   fetchGroupVMs:(callback)->
-    return callback null, @groupVms  if @groupVms
+    return callback null, @groupVms  if @groupVms.length > 0
     KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @groupVms = vms  unless err
       callback err, vms
 
   resetVMData:->
-    @vms = @groupVms = null
+    @vms = @groupVms = []
 
   # fixme GG!
   fetchTotalVMCount:(callback)->
@@ -103,6 +106,7 @@ class VirtualizationController extends KDController
           title : err.message or "Something bad happened while creating VM"
       else
         KD.singletons.finderController.mountVm vm.name
+        KD.singletons.vmController.emit 'VMListChanged'
       modal.destroy()
 
     group = KD.singletons.groupsController.getGroupSlug()
@@ -110,7 +114,8 @@ class VirtualizationController extends KDController
     buttons =
       'Create a Personal VM' :
         style    : "modal-clean-gray"
-        callback : => @createGroupVM 'personal', vmCreateCallback
+        callback : =>
+          KD.singletons.vmController.createGroupVM 'personal', vmCreateCallback
 
     if "owner" in KD.config.roles or "admin" in KD.config.roles
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
@@ -119,7 +124,8 @@ class VirtualizationController extends KDController
                 """
       buttons['Create a Shared VM'] =
         style      : "modal-clean-gray"
-        callback   : => @createGroupVM 'shared', vmCreateCallback
+        callback   : =>
+          KD.singletons.vmController.createGroupVM 'shared', vmCreateCallback
 
     else if "member" in KD.config.roles
       content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
@@ -145,7 +151,7 @@ class VirtualizationController extends KDController
   askForApprove:(command, callback)->
 
     switch command
-      when 'vm.stop'
+      when 'vm.stop', 'vm.shutdown'
         content = """Turning off your VM will <b>stop</b> running Terminal
                      instances and all running proccesess that you have on
                      your VM. Do you want to continue?"""

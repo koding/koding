@@ -300,7 +300,7 @@ task 'neo4jfeeder',({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.spawn
-    name    : 'neo4j'
+    name    : 'neo4jfeeder'
     cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
     restart : yes
     stdout  : process.stdout

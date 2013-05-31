@@ -1,6 +1,6 @@
 class KodingAppsController extends KDController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name       : "KodingAppsController"
     background : yes
 
@@ -617,6 +617,7 @@ class KodingAppsController extends KDController
     fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
+      authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
       hiddenHandle  : no

@@ -6,7 +6,3 @@ class MainTabPane extends KDTabPaneView
     options.type = options.behavior
 
     super options, data
-
-  setMainView:(view)-> @addSubView @mainView = view
-
-  getMainView:()-> @mainView

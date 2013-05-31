@@ -959,3 +959,8 @@ module.exports = class JAccount extends jraphical.Module
           group.fetchMyRoles client, cb
         else
           cb null, ['guest']
+
+  oldAddTags = @::addTags
+  addTags: secure (client, tags, options, callback)->
+    client.context.group = 'koding'
+    oldAddTags.call this, client, tags, options, callback

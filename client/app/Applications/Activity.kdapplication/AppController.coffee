@@ -1,6 +1,6 @@
 class ActivityAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Activity"
     route        : "/Activity"
     hiddenHandle : yes
@@ -399,8 +399,7 @@ class ActivityAppController extends AppController
         data = clearQuotes data
         KD.remote.reviveFromSnapshots data, (err, instances)->
           if err then callback err
-          else
-            callback instances
+          else callback null, instances
 
   unhideNewItems: ->
     @listController?.activityHeader.updateShowNewItemsLink yes

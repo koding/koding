@@ -265,6 +265,7 @@ module.exports = [
   "app/MainApp/filetree/controllers/findercontroller.coffee",
   "app/MainApp/filetree/controllers/findertreecontroller.coffee",
   "app/MainApp/filetree/controllers/findercontextmenucontroller.coffee",
+  "app/MainApp/filetree/controllers/resourcescontroller.coffee",
 
   "app/MainApp/filetree/itemviews/finderitem.coffee",
   "app/MainApp/filetree/itemviews/fileitem.coffee",
@@ -279,6 +280,7 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee",
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
+  "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
@@ -505,7 +507,6 @@ module.exports = [
   "app/Applications/Topics.kdapplication/AppView.coffee",
   "app/Applications/Topics.kdapplication/ContentDisplays/Topic.coffee",
   "app/Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee",
-  "app/Applications/Topics.kdapplication/Views/TopicsInnerNavigation.coffee",
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
   # GROUPS
@@ -522,7 +523,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
-  "app/Applications/Groups.kdapplication/Views/GroupsInnerNavigation.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
@@ -552,7 +552,6 @@ module.exports = [
   # APPS VIEWS
   "app/Applications/Apps.kdapplication/AppView.coffee",
 
-  "app/Applications/Apps.kdapplication/Views/AppsInnerNavigation.coffee",
   "app/Applications/Apps.kdapplication/Views/AppsListItemView.coffee",
   "app/Applications/Apps.kdapplication/Views/AppSubmission.coffee",
   "app/Applications/Apps.kdapplication/Views/appinfoview.coffee",
@@ -562,7 +561,6 @@ module.exports = [
   "app/Applications/Apps.kdapplication/Views/appdetailsview.coffee",
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",
-  "app/Applications/Apps.kdapplication/ContentDisplays/SingleAppNavigation.coffee",
 
   # MEMBERS VIEWS
   "app/Applications/Members.kdapplication/AppView.coffee",
@@ -643,6 +641,12 @@ module.exports = [
   "app/Applications/Account.kdapplication/account/accSettingsSubscriptions.coffee",
   "app/Applications/Account.kdapplication/AppView.coffee",
 
+  # GROUP DASHBOARD
+
+  # "app/Applications/Dashboard.kdapplication/AppController.coffee",
+  # "app/Applications/Dashboard.kdapplication/AppView.coffee",
+
+
   # CONTENT DISPLAY VIEWS
   "app/MainApp/ContentDisplay/ContentDisplay.coffee",
   "app/MainApp/ContentDisplay/ContentDisplayController.coffee",
@@ -702,11 +706,9 @@ module.exports = [
   "Framework/themes/default/kd.tooltip.styl",
 
   "stylus/app.styl",
-  "stylus/app.landing.styl",
   "stylus/app.bottom.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
-  # "stylus/app.predefined.styl",
   "stylus/app.editor.styl",
   "stylus/app.finder.styl",
   "stylus/app.aceeditor.styl",
@@ -715,7 +717,6 @@ module.exports = [
   "stylus/app.chat.styl",
   "stylus/app.settings.styl",
   "stylus/app.inbox.styl",
-  # "stylus/app.envsettings.styl",
   "stylus/app.members.styl",
   "stylus/app.comments.styl",
   "stylus/app.bootstrap.styl",
@@ -732,11 +733,14 @@ module.exports = [
   "stylus/app.codeshare.styl",
   "stylus/app.group.general.styl",
   "stylus/app.group.dashboard.styl",
-  "stylus/app.group.landing.styl",
   "stylus/app.group.summary.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   "stylus/temp.styl",
+  # "stylus/app.landing.styl",
+  # "stylus/app.predefined.styl",
+  # "stylus/app.envsettings.styl",
+  # "stylus/app.group.landing.styl",
 
   # mediaqueries should stay at the bottom
   "stylus/app.1200.styl",

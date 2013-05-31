@@ -11,8 +11,11 @@ class TagGroup extends KDCustomHTMLView
     @template.update()
 
   fetchTags:(stringTags, callback)->
+    @_fetchTags 'some', stringTags, callback
+
+  _fetchTags:(method, stringTags, callback)->
     if stringTags.length > 0
-      KD.remote.api.JTag.some
+      KD.remote.api.JTag[method]
         title     :
           $in     : stringTags
       ,
@@ -55,6 +58,9 @@ class SkillTagGroup extends TagGroup
           controller.instantiateListItems tags
 
     @getData().watch "skillTags", -> controller.replaceAllItems @skillTags
+
+  fetchTags:(stringTags, callback)->
+    @_fetchTags 'fetchSkillTags', stringTags, callback
 
   pistachio:->
     if not @skillTags.length or @skillTags[0] is "No Tags"
