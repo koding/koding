@@ -439,7 +439,7 @@ class GroupsAppController extends AppController
       switch getGroupType()
         when 'educational'  then 'by-request'
         when 'company'      then 'by-invite'
-        when 'project'      then'public'
+        when 'project'      then 'public'
         when 'custom'       then 'public'
 
     getVisibilityDefault = ->
@@ -458,7 +458,7 @@ class GroupsAppController extends AppController
       title                          : 'Create a new group'
       height                         : 'auto'
       cssClass                       : "group-admin-modal compose-message-modal admin-kdmodal"
-      width                          : 500
+      width                          : 684
       overlay                        : yes
       tabs                           :
         navigable                    : no
@@ -480,7 +480,7 @@ class GroupsAppController extends AppController
             fields                   :
               "type"                 :
                 name                 : "type"
-                itemClass            : KDInputRadioGroup
+                itemClass            : GroupCreationSelector
                 defaultValue         : "project"
                 cssClass             : "group-type"
                 radios               : [
@@ -489,6 +489,8 @@ class GroupsAppController extends AppController
                   { title : "Project",           value : "project"}
                   { title : "Other",             value : "custom"}
                 ]
+                change               : -> log @getValue()
+
           "General Settings"         :
             title                    : 'Create a group'
             callback                 : ->
