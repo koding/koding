@@ -21,10 +21,10 @@ class GroupsInvitationRequestsView extends GroupsRequestView
       title    : 'Invite by Email'
       cssClass : 'clean-gray'
       callback : @bound 'showInviteByEmailModal'
-    @inviteByUsernameButton = new KDButtonView
-      title    : 'Invite by Username'
-      cssClass : 'clean-gray'
-      callback : @bound 'showInviteByUsernameModal'
+    # @inviteByUsernameButton = new KDButtonView
+    #   title    : 'Invite by Username'
+    #   cssClass : 'clean-gray'
+    #   callback : @bound 'showInviteByUsernameModal'
     @batchApproveButton = new KDButtonView
       title    : 'Batch Approve Requests'
       cssClass : 'clean-gray'
@@ -205,43 +205,43 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     return modal
 
-  showInviteByUsernameModal:->
-    @inviteByUsername = @showModalForm
-      cssClass         : 'invite-by-username'
-      title            : 'Invite by Username'
-      callback         : @emit.bind @, 'InviteByUsername'
-      fields           :
-        recipient      :
-          label        : 'Username'
-          type         : 'hidden'
+  # showInviteByUsernameModal:->
+  #   @inviteByUsername = @showModalForm
+  #     cssClass         : 'invite-by-username'
+  #     title            : 'Invite by Username'
+  #     callback         : @emit.bind @, 'InviteByUsername'
+  #     fields           :
+  #       recipient      :
+  #         label        : 'Username'
+  #         type         : 'hidden'
 
-    recipientField = @inviteByUsername.modalTabs.forms.invite.fields.recipient
-    recipientsWrapper = new KDView
-      cssClass: 'completed-items'
+  #   recipientField = @inviteByUsername.modalTabs.forms.invite.fields.recipient
+  #   recipientsWrapper = new KDView
+  #     cssClass: 'completed-items'
 
-    @inviteByUsername.on 'AutoCompleteNeedsMemberData', (event)=>
-      {callback,blacklist,inputValue} = event
-      @fetchBlacklistForInviteByUsernameModal (ids)->
-        blacklist.push id for id in ids
-        KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err,accounts)->
-          callback accounts
+  #   @inviteByUsername.on 'AutoCompleteNeedsMemberData', (event)=>
+  #     {callback,blacklist,inputValue} = event
+  #     @fetchBlacklistForInviteByUsernameModal (ids)->
+  #       blacklist.push id for id in ids
+  #       KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err,accounts)->
+  #         callback accounts
 
-    recipient = new KDAutoCompleteController
-      name                : 'recipient'
-      itemClass           : InviteByUsernameAutoCompleteItemView
-      selectedItemClass   : InviteByUsernameAutoCompletedItemView
-      outputWrapper       : recipientsWrapper
-      form                : @inviteByUsername.modalTabs.forms.invite
-      itemDataPath        : 'profile.nickname'
-      listWrapperCssClass : 'users'
-      submitValuesAsText  : yes
-      dataSource          : (args, callback)=>
-        {inputValue} = args
-        blacklist = (data.getId() for data in recipient.getSelectedItemData())
-        @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,blacklist,callback}
+  #   recipient = new KDAutoCompleteController
+  #     name                : 'recipient'
+  #     itemClass           : InviteByUsernameAutoCompleteItemView
+  #     selectedItemClass   : InviteByUsernameAutoCompletedItemView
+  #     outputWrapper       : recipientsWrapper
+  #     form                : @inviteByUsername.modalTabs.forms.invite
+  #     itemDataPath        : 'profile.nickname'
+  #     listWrapperCssClass : 'users'
+  #     submitValuesAsText  : yes
+  #     dataSource          : (args, callback)=>
+  #       {inputValue} = args
+  #       blacklist = (data.getId() for data in recipient.getSelectedItemData())
+  #       @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,blacklist,callback}
 
-    recipientField.addSubView recipient.getView()
-    recipientField.addSubView recipientsWrapper
+  #   recipientField.addSubView recipient.getView()
+  #   recipientField.addSubView recipientsWrapper
 
   showInviteByEmailModal:->
     @inviteByEmail = @showModalForm
@@ -292,7 +292,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
     """
     <div class="button-bar">
       {{> @createMultiuseButton}} {{> @batchApproveButton}}
-      {{> @inviteByEmailButton}} {{> @inviteByUsernameButton}}
+      {{> @inviteByEmailButton}}
     </div>
     <section class="status-quo">
       <h2>Status quo</h2>
