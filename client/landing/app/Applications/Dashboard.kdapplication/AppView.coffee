@@ -69,10 +69,10 @@ class DashboardAppView extends JView
     data = @getData()
     @getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
       navItems = []
-      for {name, viewOptions}, i in tabData
+      for {name, hiddenHandle, viewOptions}, i in tabData
         viewOptions.data = data
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), !(~i+1) # making 0 true the rest false
-        navItems.push { title : name }
+        navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
 
       @navController.instantiateListItems navItems
       @navController.selectItem @navController.itemsOrdered.first

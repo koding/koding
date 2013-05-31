@@ -1,23 +1,20 @@
 class GroupsMembershipPolicyDetailView extends KDView
 
-  constructor:(options, data)->
-    super
-    group = @getData()
+  constructor:(options = {}, data)->
+    super options, data
 
     @setClass 'policy-view-wrapper'
 
+    group = @getData()
     group.fetchMembershipPolicy (err, policy)=>
       if err
         new KDNotificationView { title: err.message, duration: 1000 }
       else
         @on 'MembershipPolicyChanged', (formData)->
-          KD.getSingleton('appManager').tell 'Groups',
-            'updateMembershipPolicy',
-            group,
-            policy,
-            formData
-        @createSubViews policy
+          KD.getSingleton('appManager').tell 'Groups', 
+            'updateMembershipPolicy', group, policy, formData
 
+        @createSubViews policy
 
   createSubViews:(policy)->
 
