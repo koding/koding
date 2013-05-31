@@ -400,6 +400,10 @@ module.exports = class AuthWorker extends EventEmitter
       {connection} = bongo.mq
       @monitorPresence connection
 
+      # FIXME: this is a hack to hold the chat exchange open for the meantime
+      connection.exchange 'chat', NOTIFICATION_EXCHANGE_OPTIONS, (chatExchange) ->
+        # *chirp chirp chirp chirp*
+
       connection.exchange 'authAll', AUTH_EXCHANGE_OPTIONS, (authAllExchange) =>
         connection.queue '', {exclusive:yes}, (authAllQueue) =>
           authAllQueue.bind authAllExchange, ''
