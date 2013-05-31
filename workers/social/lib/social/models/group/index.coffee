@@ -83,7 +83,7 @@ module.exports = class JGroup extends Module
         'countInvitationRequests', 'fetchInvitationRequestCounts',
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
-        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
+        'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername', 
         'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
       ]
