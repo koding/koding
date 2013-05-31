@@ -185,11 +185,6 @@ class KDInputViewWithPreview extends KDInputView
               left      : 35
             overlay     : yes
             buttons     :
-              Cancel    :
-                title   : "Discard changes"
-                style   : "modal-clean-gray"
-                callback:=>
-                  modal.destroy()
               Apply     :
                 title   : "Apply changes"
                 style   : "modal-clean-gray"
@@ -197,6 +192,10 @@ class KDInputViewWithPreview extends KDInputView
                   @setValue @text.getValue()
                   @generatePreview()
                   modal.destroy()
+              Cancel    :
+                title   : "cancel"
+                style   : "modal-cancel"
+                callback: -> modal.destroy()
 
 
           @utils.defer =>
