@@ -18,33 +18,35 @@ class DashboardAppController extends AppController
       #     viewClass : GroupReadmeView
       #     lazy      : no
       # ,
-        name        : 'Settings'
-        viewOptions :
-          viewClass : GroupGeneralSettingsView
-          lazy      : yes
+        name         : 'Settings'
+        viewOptions  :
+          viewClass  : GroupGeneralSettingsView
+          lazy       : yes
       ,
-        name        : 'Permissions'
-        viewOptions :
-          viewClass : GroupPermissionsView
-          lazy      : yes
+        name         : 'Permissions'
+        viewOptions  :
+          viewClass  : GroupPermissionsView
+          lazy       : yes
       ,
-        name        : 'Members'
-        viewOptions :
-          viewClass : GroupsMemberPermissionsView
-          lazy      : yes
-          callback  : @membersViewAdded
+        name         : 'Members'
+        viewOptions  :
+          viewClass  : GroupsMemberPermissionsView
+          lazy       : yes
+          callback   : @membersViewAdded
       ,
-        name        : 'Membership policy'
-        viewOptions :
-          viewClass : GroupsMembershipPolicyDetailView
-          lazy      : yes
-          callback  : @policyViewAdded
+        name         : 'Membership policy'
+        hiddenHandle : data.privacy is 'public'
+        viewOptions  :
+          viewClass  : GroupsMembershipPolicyDetailView
+          lazy       : yes
+          callback   : @policyViewAdded
       ,
-        name        : 'Invitations'
-        viewOptions :
-          viewClass : GroupsInvitationRequestsView
-          lazy      : yes
-          callback  : @invitationsViewAdded
+        name         : 'Invitations'
+        hiddenHandle : data.privacy is 'public'
+        viewOptions  :
+          viewClass  : GroupsInvitationRequestsView
+          lazy       : yes
+          callback   : @invitationsViewAdded
 
       # CURRENTLY DISABLED
 

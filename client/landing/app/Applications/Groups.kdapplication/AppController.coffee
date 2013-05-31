@@ -373,7 +373,8 @@ class GroupsAppController extends AppController
   _createGroupHandler =(formData, callback)->
 
     if formData.privacy in ['by-invite', 'by-request', 'same-domain']
-      formData.privacy = 'private'
+      formData.requestType = formData.privacy
+      formData.privacy     = 'private'
 
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err

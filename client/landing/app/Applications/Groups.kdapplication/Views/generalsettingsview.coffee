@@ -21,12 +21,12 @@ class GroupGeneralSettingsView extends JView
             return new KDNotificationView { title: err.message, duration: 1000 }  if err
             if formData.privacy isnt group.privacy
               group.privacy = formData.privacy
-              if formData.privacy is 'private'
-                appManager.tell 'Groups', 'prepareMembershipPolicyTab'
-                appManager.tell 'Groups', 'prepareInvitationsTab'
-              else
-                @parent.parent.removePaneByName 'Membership policy'
-                @parent.parent.removePaneByName 'Invitations'
+              for navTitle in ['Membership policy', 'Invitations']
+                navController = @parent.parent.parent.navController
+                if formData.privacy is 'private'
+                  navController.getItemByName(navTitle).unsetClass 'hidden'
+                else
+                  navController.getItemByName(navTitle).setClass 'hidden'
 
             new KDNotificationView
               title: 'Group was updated!'
