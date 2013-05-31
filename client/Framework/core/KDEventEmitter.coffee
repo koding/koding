@@ -167,7 +167,7 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
     if it? and (listeners = node[listenerKey])?
       
       node[listenerKey] = (listener for listener in listeners \
-                                    when it isnt listener)
+                                    when listener isnt it)
     
     else node[listenerKey] = []
 
