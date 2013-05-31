@@ -6,10 +6,7 @@ class MainChatPanel extends JView
 
     @registerSingleton "chatPanel", @, yes
 
-    @header = new HeaderViewSection
-      type    : "big"
-      title   : "Conversations"
-
+    @header = new MainChatHeader
     @conversationList = new ChatConversationListView
     @conversationListController = new ChatConversationListController
       view : @conversationList
