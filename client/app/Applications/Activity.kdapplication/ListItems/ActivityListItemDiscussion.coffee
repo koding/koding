@@ -172,12 +172,13 @@ class DiscussionActivityItemView extends ActivityItemChild
   click:(event)->
     if $(event.target).is("[data-paths~=title]")
       # if not $(event.target).is("a.action-link, a.count, .like-view")
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      {entryPoint} = KD.config
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
 
   applyTextExpansions:(str = "")->
     str = @utils.expandUsernames str
 
-    if str.length > 500
+    if str?.length > 500
       visiblePart = str.substr 0, 500
       # this breaks the markdown sanitizer
       # morePart = "<span class='more'><a href='#' class='more-link'>show more...</a>#{str.substr 501}<a href='#' class='less-link'>...show less</a></span>"

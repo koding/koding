@@ -33,5 +33,3 @@ class ContentDisplayControllerApps extends KDViewController
       cssClass : "info-wrapper"
       delegate : mainView
     , app
-
-

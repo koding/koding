@@ -14,8 +14,8 @@ class ActivityContentDisplay extends KDScrollView
       tagName : "a"
       partial : "<span>&laquo;</span> Back"
       click   : (event)=>
-        event?.stopPropagation()
-        event?.preventDefault()
+        event.stopPropagation()
+        event.preventDefault()
         @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
 
 

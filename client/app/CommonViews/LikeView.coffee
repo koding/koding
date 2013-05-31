@@ -30,9 +30,7 @@ class LikeView extends KDView
       , data
 
     @likeLink = new ActivityActionLink
-      # click:(event)->
-      #   event.preventDefault()
-      #   super
+
     @setTemplate @pistachio()
 
     if options.checkIfLikedBefore
@@ -45,7 +43,7 @@ class LikeView extends KDView
     data = @getData()
 
     return if @_lastUpdatedCount is data.meta.likes
-    @likeCount.getTooltip().update { title: "Loading..." }
+    @likeCount.getTooltip().update title: "Loading..."
 
     if data.meta.likes is 0
       @likeLink.updatePartial "Like"
@@ -80,16 +78,18 @@ class LikeView extends KDView
 
   click:(event)->
     event.preventDefault()
+
     if $(event.target).is("a.action-link")
-      if KD.isLoggedIn()
-        @getData().like (err)=>
-          if err
-            log "Something went wrong while like:", err
-          else
-            @_currentState = not @_currentState
-            @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
-      else
-        @getSingleton('staticProfileController')?.emit 'StaticInteractionHappened', @
+      KD.requireLogin
+        callback  : =>
+          @getData().like (err)=>
+            if err
+              log "Something went wrong while like:", err
+            else
+              @_currentState = not @_currentState
+              @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
+        tryAgain  : yes
+        onFailMsg : 'Login required to like activities'
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""

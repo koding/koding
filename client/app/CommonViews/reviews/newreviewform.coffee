@@ -8,14 +8,12 @@ class NewReviewForm extends NewCommentForm
     super options,data
 
   commentInputReceivedEnter:(instance,event)->
-    if KD.isLoggedIn()
-      review = @commentInput.getValue()
-      @commentInput.setValue ''
-      @commentInput.blur()
-      @commentInput.$().blur()
-      @getDelegate().emit 'ReviewSubmitted', review
-    else
-      new KDNotificationView
-        type      : "growl"
-        title     : "please login to post a review!"
-        duration  : 1500
+    KD.requireLogin
+      callback : =>
+        review = @commentInput.getValue()
+        @commentInput.setValue ''
+        @commentInput.blur()
+        @commentInput.$().blur()
+        @getDelegate().emit 'ReviewSubmitted', review
+      onFailMsg : "Login required to post a review!"
+      tryAgain  : yes

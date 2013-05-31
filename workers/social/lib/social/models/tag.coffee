@@ -12,23 +12,25 @@ module.exports = class JTag extends jraphical.Module
   Validators  = require './group/validators'
   {permit}    = require './group/permissionset'
 
-  @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/filterable'
+  @trait __dirname, '../traits/followable'
   @trait __dirname, '../traits/taggable'
   @trait __dirname, '../traits/protected'
   @trait __dirname, '../traits/slugifiable'
+  @trait __dirname, '../traits/grouprelated'
   @trait __dirname, '../traits/restrictedquery'
-  # @trait __dirname, '../traits/groupable'
 
   @share()
 
   @set
+    softDelete      : yes
     slugifyFrom     : 'title'
     slugTemplate    : ->
       """
       #{if @group is 'koding' then '' else "#{@group}/"}Topics/\#{slug}
       """
     permissions     :
+      'read tags'             : ['member', 'moderator']
       'create tags'           : ['member', 'moderator']
       'freetag content'       : ['member', 'moderator']
       'browse content by tag' : ['member', 'moderator']
@@ -41,6 +43,10 @@ module.exports = class JTag extends jraphical.Module
       # slug          : 'unique'
       title         : 'sparse'
       # group         : 'sparse'
+    sharedEvents    :
+      instance      : [
+        { name: 'updateInstance' }
+      ]
     sharedMethods   :
       instance      : [
         'modify','follow', 'unfollow', 'fetchFollowersWithRelationship'
@@ -48,7 +54,7 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        'one','on','some','create' #,'updateAllSlugs'
+        'one','on','some','create', 'count' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
         'cursor','cursorWithRelationship','fetchMyFollowees','each'
         ]
@@ -100,7 +106,7 @@ module.exports = class JTag extends jraphical.Module
   modify: permit
     advanced: [
       { permission: 'edit own tags', validateWith: Validators.own }
-      { permission: 'edit groups' }
+      { permission: 'edit tags' }
     ]
     success: (client, formData, callback)->
       {delegate} = client.connection
@@ -142,7 +148,9 @@ module.exports = class JTag extends jraphical.Module
           fin =(i)-> if i is tagRefs.length-1 then queue.next()
           tagRefs.forEach (tagRef, i)->
             if tagRef?.$suggest?
+              {group} = client.context
               newTag = {title: tagRef.$suggest.trim()}
+              newTag.group = group if group isnt 'koding'
               JTag.one newTag, (err, tag)->
                 if err
                   callbackForEach err
@@ -178,7 +186,7 @@ module.exports = class JTag extends jraphical.Module
         if err then callback err
         else
           tag.slug = slug.slug
-          tag.slug_ = slug.slug      
+          tag.slug_ = slug.slug
           tag.save (err)->
             if err
               callback err
@@ -243,21 +251,36 @@ module.exports = class JTag extends jraphical.Module
                         content.flushSnapshot tagId, (err)->
                           if err then console.log err
 
-#
-# class JLicense extends JTag
-#
-#   @share()
-#
-#   @set
-#     encapsulatedBy  : JTag
-#     schema          : JTag.schema
-#
-# class JSkill extends JTag
-#
-#   @share()
-#
-#   @set
-#     encapsulatedBy  : JTag
-#     schema          : JTag.schema
-#
-#
+  makeGroupSelector =(group)->
+    if Array.isArray group then $in: group else group
+
+  @one$ = permit 'read tags',
+    success:(client, uniqueSelector, options, callback)->
+      uniqueSelector.group = makeGroupSelector client.context.group
+      @one uniqueSelector, options, callback
+
+  @some$ = permit 'read tags',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @some selector, options, callback
+
+  @count$ = permit 'read tags',
+    success:(client, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = makeGroupSelector client.context.group
+      @count selector, callback
+
+  @cursor$ = permit 'read tags',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @cursor selector, options, callback
+
+  @each$ = permit 'read tags',
+    success:(client, selector, fields, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @each selector, fields, options, callback
+
+  @byRelevance$ = permit 'read tags',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback

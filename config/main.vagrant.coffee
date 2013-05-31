@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -12,20 +12,28 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://koding.local"
+    address     : "http://localhost:3020"
+  userSitesDomain: 'localhost'
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
     port        : 3020
-    clusterSize : 2
+    clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
   sourceServer  :
     enabled     : yes
-    port        : 1337
+    port        : 3526
   mongo         : mongo
+  neo4j         :
+    read        : "http://localhost"
+    write       : "http://localhost"
+    port        : 7474
+  runNeo4jFeeder: yes
   runGoBroker   : yes
+  runKontrol    : no
+  runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -82,22 +90,25 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://koding.local'
+    staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      userSitesDomain: 'localhost'
+      useNeo4j: yes
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
-        sockJS  : 'http://koding.local:8008/subscribe'
+        sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://koding.local'
+      mainUri   : 'http://localhost:3020'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://koding.local:1337'
+      sourceUri : 'http://localhost:3526'
   mq            :
-    host        : 'koding.local'
+    host        : 'localhost'
     port        : 5672
-    apiAddress  : "koding.local"
+    apiAddress  : "localhost"
     apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
@@ -113,7 +124,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'koding.local'
+    host        : 'localhost'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -121,26 +132,41 @@ module.exports =
     cronDaily   : '0 10 0 * * *'
     run         : no
     defaultRecepient : undefined
-  emailSender   :
-    run         : no
-  guests        :
+  emailSender     :
+    run           : no
+  guests          :
     # define this to limit the number of guset accounts
     # to be cleaned up per collection cycle.
-    poolSize        : 1e4
-    batchSize       : undefined
-    cleanupCron     : '*/10 * * * * *'
-  pidFile       : '/tmp/koding.server.pid'
-  loggr:
-    push: no
-    url: ""
-    apiKey: ""
-  librato:
-    push: no
-    email: ""
-    token: ""
-    interval: 60000
-  haproxy:
-    webPort     : 3020
+    poolSize      : 1e4
+    batchSize     : undefined
+    cleanupCron   : '*/10 * * * * *'
+  pidFile         : '/tmp/koding.server.pid'
+  loggr           :
+    push          : no
+    url           : ""
+    apiKey        : ""
+  librato         :
+    push          : no
+    email         : ""
+    token         : ""
+    interval      : 60000
+  haproxy         :
+    webPort       : 3020
+  kontrold        :
+    api           :
+      port        : 8000
+    proxy         :
+      port        : 8080
+      portssl     : 8081
+      sslips      : '127.0.0.1'
+    mongo         :
+      host        : '127.0.0.1'
+    rabbitmq      :
+      host        : 'localhost'
+      port        : '5672'
+      login       : 'guest'
+      password    : 'guest'
+      vhost       : '/'
   # crypto :
   #   encrypt: (str,key=Math.floor(Date.now()/1000/60))->
   #     crypto = require "crypto"
@@ -158,3 +184,5 @@ module.exports =
   #     decipher.update(str,'hex')
   #     b = decipher.final('utf-8')
   #     return b
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

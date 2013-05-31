@@ -1,13 +1,15 @@
 class AvatarPopup extends KDView
-  constructor:->
 
+  constructor:->
     super
 
     @sidebar = @getDelegate()
-
     @sidebar.on "NavigationPanelWillCollapse", => @hide()
 
     @on 'ReceivedClickElsewhere', => @hide()
+
+    {mainController} = KD.singletons
+    mainController.on "accountChanged.to.loggedIn", @bound 'accountChanged'
 
     @_windowController = @getSingleton('windowController')
     @listenWindowResize()
@@ -15,21 +17,29 @@ class AvatarPopup extends KDView
   show:->
     @utils.killWait @loaderTimeout
     @_windowDidResize()
-    @_windowController.addLayer @
+    @_windowController.addLayer this
     @getSingleton('mainController').emit "AvatarPopupIsActive"
     @setClass "active"
-    @
+    return this
 
   hide:->
     @getSingleton('mainController').emit "AvatarPopupIsInactive"
     @unsetClass "active"
-    @
+    return this
 
   viewAppended:->
+
     @setClass "avatararea-popup"
     @addSubView @avatarPopupTab = new KDView cssClass : 'tab', partial : '<span class="avatararea-popup-close"></span>'
     @setPopupListener()
-    @addSubView @avatarPopupContent = new KDView cssClass : 'content'
+
+    @addSubView @avatarPopupContent = new KDView cssClass : 'content hidden'
+    @addSubView @notLoggedInWarning = new KDView
+      height   : "auto"
+      cssClass : "content sublink"
+      partial  : @notLoggedInMessage or "Login required."
+
+    @accountChanged()  if KD.isLoggedIn()
 
   setPopupListener:->
     @avatarPopupTab.on 'click', (event)=> @hide()
@@ -40,3 +50,7 @@ class AvatarPopup extends KDView
       windowHeight    = $(window).height()
       avatarTopOffset = @$().offset().top
       @listController.scrollView.$().css maxHeight : windowHeight - avatarTopOffset - 80
+
+  accountChanged:->
+    @notLoggedInWarning.hide()
+    @avatarPopupContent.show()

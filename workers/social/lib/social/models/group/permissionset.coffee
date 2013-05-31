@@ -18,6 +18,7 @@ module.exports = class JPermissionSet extends Module
   @share()
 
   @set
+    softDelete              : yes
     indexes                 :
       'permissions.module'  : 'sparse'
       'permissions.roles'   : 'sparse'
@@ -73,7 +74,8 @@ module.exports = class JPermissionSet extends Module
         target.slug
       else
         module = target.constructor.name
-        target.group
+        target.group ? client.context.group ? 'koding'
+
     client.groupName = groupName
     JGroup.one {slug: groupName}, (err, group)->
       if err then callback err, no

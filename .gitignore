@@ -23,6 +23,7 @@ sftp-config.json
 ebin
 /website/dev/*.json
 /go/bin
+/go/bin-vagrant
 /go/build
 /go/pkg
 /kites/webterm
@@ -66,3 +67,5 @@ kites/proxy
 
 .idea/*
 /saltstack
+
+tags

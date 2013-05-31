@@ -1,50 +1,42 @@
 class GroupsInvitationListItemView extends KDListItemView
-  constructor:(options, data)->
-    options.cssClass = 'invitation-request formline clearfix'
+
+  constructor:(options = {}, data)->
+
+    options.cssClass = 'formline clearfix'
+    options.type     = 'invitation-request'
 
     super
 
-    invitationRequest = @getData()
+    data = @getData()
 
-    @avatar = new AvatarStaticView
+    @avatar      = new AvatarStaticView
       size :
-        width : 40
+        width  : 40
         height : 40
+    @profileLink = new KDCustomHTMLView 
+      tagName : 'span'
+      partial : data.email
 
-    if @getData().koding
-      @recipient = @getData().koding.username
-      KD.remote.cacheable @recipient, (err, [account])=>
+    if data.koding?.username
+      @profileLink = new ProfileLinkView {}
+      KD.remote.cacheable data.koding.username, (err, [account])=>
         @avatar.setData account
         @avatar.render()
-    else
-      @recipient = @getData().email
-
-    @getData().on 'update', => @updateStatus()
-    @updateStatus()
-
-  updateStatus:->
-    isSent = @getData().sent
-    @[if isSent then 'setClass' else 'unsetClass'] 'invitation-sent'
-    @inviteButton.disable()  if isSent
+        @profileLink.setData account
+        @profileLink.render()
 
   viewAppended:->
     JView::viewAppended.call this
 
-  getStatusText:(status)->
-    switch status
-      when 'approved' then '✓ Approved'
-      when 'pending'  then '… Pending'
-      when 'sent'     then '… Sent'
-      when 'declined' then '✗ Declined'
-
   pistachio:->
+    {status} = @getData()
     """
-    <div class="fl">
+    <section>
+      <div class="status #{status}"><span class="icon"></span><span class="title">#{status.capitalize()}</span></div>
       <span class="avatar">{{> @avatar}}</span>
-      <div class="request">
-        <div class="username">#{@recipient}</div>
-        <div class="requested-at">Requested on {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
-        <div class="is-sent">Status is <span class='status'>{{@getStatusText #(status)}}</span></div>
+      <div class="details">
+        {{> @profileLink}}
+        <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
       </div>
-    </div>
+    </section>
     """

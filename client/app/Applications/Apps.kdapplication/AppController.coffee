@@ -1,8 +1,8 @@
 class AppsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Apps"
-    route        : "Apps"
+    route        : "/Apps"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->
@@ -22,7 +22,7 @@ class AppsAppController extends AppController
   createFeed:(view)->
 
     options =
-      itemClass          : AppsListItemView
+      itemClass             : AppsListItemView
       limitPerPage          : 10
       noItemFoundText       : "There is no app."
       filter                :
@@ -30,6 +30,14 @@ class AppsAppController extends AppController
           title             : "All Apps"
           dataSource        : (selector, options, callback)=>
             KD.remote.api.JApp.someWithRelationship selector, options, callback
+        updates             :
+          title             : "Updates"
+          dataSource        : (selector, options, callback)=>
+            appsController  = @getSingleton "kodingAppsController"
+            appsController.fetchUpdateAvailableApps (err, res) =>
+              callback err, res
+              @manageUpdateAllButton res
+
         webApps             :
           title             : "Web Apps"
           dataSource        : (selector, options, callback)=>
@@ -56,6 +64,7 @@ class AppsAppController extends AppController
           dataSource        : (selector, options, callback)=>
             selector['manifest.category'] = 'misc'
             KD.remote.api.JApp.someWithRelationship selector, options, callback
+
       sort                  :
         'meta.modifiedAt'   :
           title             : "Latest activity"
@@ -106,18 +115,30 @@ class AppsAppController extends AppController
         log "there was an error fetching topics #{err.message}"
 
   updateApps:->
-    @utils.wait 100, @feedController.changeActiveSort "meta.modifiedAt"
+    @utils.wait 100, @feedController?.changeActiveSort "meta.modifiedAt"
 
   createContentDisplay:(app, callback)->
-    controller = @showContentDisplay app
-    @utils.defer => callback controller
+    contentDisplay = @showContentDisplay app
+    @utils.defer => callback contentDisplay
 
-  showContentDisplay:(content, callback=->)->
+  showContentDisplay:(content)->
     contentDisplayController = @getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
-    callback contentDisplay
+    return contentDisplay
+
+  manageUpdateAllButton: (apps) ->
+    {updateAppsButton} = @getView()
+    {filterController} = @feedController.facetsController
+    filterController.on "NavItemReceivedClick", (item) =>
+      if item.title isnt "Updates" and updateAppsButton.getData().length
+        updateAppsButton.hide()
+      else
+        updateAppsButton.show()
+    if apps.length
+      updateAppsButton.show()
+      updateAppsButton.setData apps
 
   putAddAnAppButton:->
     {facetsController} = @feedController
@@ -131,7 +152,7 @@ class AppsAppController extends AppController
     log formData,"in createApp"
     # log JSON.stringify formData
     KD.remote.api.JApp.create formData, (err, app)->
-      callback? err,app
+      callback? err, app
 
   showAppSubmissionView:->
     modal       = new AppSubmissionModal

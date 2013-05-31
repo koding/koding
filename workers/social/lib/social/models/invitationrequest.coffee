@@ -1,6 +1,9 @@
 {Model} = require 'bongo'
 
 module.exports = class JInvitationRequest extends Model
+
+  @trait __dirname, '../traits/grouprelated'
+
   {ObjectRef, daisy, secure}   = require 'bongo'
 
   {permit} = require './group/permissionset'
@@ -21,7 +24,7 @@ module.exports = class JInvitationRequest extends Model
       instance        : [
         'sendInvitation'
         'deleteInvitation'
-        'approveInvitation'
+        'approve'
         'declineInvitation'
         'acceptInvitationByInvitee'
         'ignoreInvitationByInvitee'
@@ -48,6 +51,8 @@ module.exports = class JInvitationRequest extends Model
           'sent'
           'declined'
           'approved'
+          'ignored'
+          'accepted'
         ]]
         default       : 'pending'
       invitationType  :
@@ -57,6 +62,13 @@ module.exports = class JInvitationRequest extends Model
           'basic approval'
         ]]
         default       : 'invitation'
+
+  @resolvedStatuses = [
+    'declined'
+    'approved'
+    'ignored'
+    'accepted'
+  ]
 
   @create =({email}, callback)->
     invite = new @ {email}
@@ -115,8 +127,14 @@ module.exports = class JInvitationRequest extends Model
         Unimplemented: we can't fetch an account from this type of invitation
         """
 
-  approveInvitation: permit 'send invitations',
+  approve: permit 'send invitations',
     success: (client, callback=->)->
+      if @invitationType is 'basic approval'
+        @approveRequest client, callback
+      else
+        @approveInvitation client, callback
+
+  approveRequest: (client, callback=->)->
       JGroup = require './group'
       JGroup.one { slug: @group }, (err, group)=>
         if err then callback err
@@ -124,19 +142,30 @@ module.exports = class JInvitationRequest extends Model
           callback new KodingError "No group! #{@group}"
         else
           @fetchAccount (err, account)=>
-            if err then callback err
+            return callback err if err
+            group.approveMember account, (err)=>
+              return callback err if err
+              @update $set:{ status: 'approved' }, (err)=>
+                return callback err if err
+                @sendRequestApprovedNotification client, group, account, callback
+
+  approveInvitation: (client, callback=->)->
+      JGroup      = require './group'
+      JInvitation = require './invitation'
+
+      JGroup.one { slug: @group }, (err, group)=>
+        if err then callback err
+        else unless group?
+          callback new KodingError "No group! #{@group}"
+        else
+          @update $set:{ status: 'sent' }, (err)=>
+            return callback err if err
+            if @koding?.username
+              @sendInviteMailToKodingUser client, @koding, group, callback
             else
-              # send the invitation in any case:
-              @sendInvitation client
-              if account?
-                group.approveMember account, (err)=>
-                  if err then callback err
-                  else @update $set:{ status: 'approved' }, (err)=>
-                    if err then callback err
-                    else
-                      @sendRequestApprovedNotification client, group, account, callback
-              else
-                @update $set:{ status: 'sent' }, callback
+              JInvitation.one {inviteeEmail: @email}, (err, invite)->
+                return callback err if err
+                JInvitation.sendEmailForInviteViaGroup client, invite, group, callback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection
@@ -159,7 +188,7 @@ module.exports = class JInvitationRequest extends Model
       else
         group.approveMember account, (err)=>
           if err then callback err
-          else @update $set:{status:'approved'}, (err)->
+          else @update $set:{status:'accepted'}, (err)->
             if err then callback err
             else callback null
 
@@ -167,7 +196,7 @@ module.exports = class JInvitationRequest extends Model
     @fetchDataForAcceptOrIgnore client, (err, account, group)=>
       if err then callback err
       else
-        @update $set:{status:'declined'}, (err)->
+        @update $set:{status:'ignored'}, (err)->
           if err then callback err
           else callback null
 
@@ -221,12 +250,17 @@ module.exports = class JInvitationRequest extends Model
                 invite     : ObjectRef(@).data
                 admin      : ObjectRef(client).data
 
+            receiver.sendNotification 'GroupInvited',
+              actionType : 'groupInvited'
+              actorType  : 'inviter'
+              inviter    : ObjectRef(actor).data
+              subject    : ObjectRef(group).data
+
             JMailNotification.create data, (err)->
               if err then callback new KodingError "Could not send"
-              else
-                callback null
+              else callback null
 
-  sendRequestNotification:(client, callback)->
+  sendRequestNotification:(client, email, invitationType, callback=->)->
     JUser             = require './user'
     JAccount          = require './account'
     JGroup            = require './group'
@@ -237,29 +271,44 @@ module.exports = class JInvitationRequest extends Model
       else unless group?
         callback new KodingError "No group! #{@group}"
       else
-        {delegate} = client.connection
-        JAccount.one _id: delegate.getId(), (err, actor)=>
-          if err then callback err
-          else
-            group.fetchAdmins (err, accounts)=>
+        cb = (actor, actorData)=>
+          group.fetchAdmins (err, accounts)=>
               if err then callback err
+
+              if invitationType is 'invitation'
+                event = 'InvitationRequested'
+              else
+                event = 'ApprovalRequested'
 
               for account in accounts when account
                 data =
                   actor             : actor
                   receiver          : account
-                  event             : 'ApprovalRequested'
+                  event             : event
                   contents          :
                     subject         : ObjectRef(group).data
                     actionType      : 'approvalRequest'
                     actorType       : 'requester'
                     approvalRequest : ObjectRef(@).data
-                    requester       : ObjectRef(actor).data
+                    requester       : actorData
+
+                account.sendNotification 'GroupAccessRequested',
+                  actionType : 'groupAccessRequested'
+                  actorType  : 'requester'
+                  requester  : ObjectRef(actor).data
+                  subject    : ObjectRef(group).data
 
                 JMailNotification.create data, (err)->
                   if err then callback new KodingError "Could not send"
-                  else
-                    callback null
+                  else callback null
+
+        {delegate} = client.connection
+        if delegate instanceof JAccount
+          JAccount.one _id: delegate.getId(), (err, actor)=>
+            return callback err  if err
+            cb actor, ObjectRef(actor).data
+        else
+          cb email, email
 
   sendRequestApprovedNotification:(client, group, account, callback)->
     JAccount          = require './account'
@@ -280,7 +329,12 @@ module.exports = class JInvitationRequest extends Model
             approved        : ObjectRef(@).data
             requester       : ObjectRef(actor).data
 
+        account.sendNotification 'GroupRequestApproved',
+          actionType : 'groupRequestApproved'
+          actorType  : 'admin'
+          subject    : ObjectRef(group).data
+          admin      : ObjectRef(account).data
+
         JMailNotification.create data, (err)->
           if err then callback new KodingError "Could not send"
-          else
-            callback null
+          else callback null

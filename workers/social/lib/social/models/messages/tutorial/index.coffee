@@ -12,10 +12,12 @@ module.exports = class JTutorial extends JPost
 
   {Base,ObjectId,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = require 'jraphical'
-
+  {permit} = require '../../group/permissionset'
   {log} = console
 
   {once, extend} = require 'underscore'
+
+  @trait __dirname, '../../../traits/grouprelated'
 
   @share()
 
@@ -109,82 +111,83 @@ module.exports = class JTutorial extends JPost
     ]
     daisy queue
 
-  reply: secure (client, comment, callback)->
-    {delegate} = client.connection
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      {delegate} = client.connection
 
-    JAccount = require '../../account'
+      JAccount = require '../../account'
 
-    unless delegate instanceof JAccount
-      callback new Error 'Log in required!'
-    else
-      JComment = require '../comment'
-      JOpinion = require '../opinion'
+      unless delegate instanceof JAccount
+        callback new Error 'Log in required!'
+      else
+        JComment = require '../comment'
+        JOpinion = require '../opinion'
 
-      comment = new JOpinion
-        body: comment.body
-        title: comment.body
-        meta: comment.meta
-      exempt = delegate.checkFlag('exempt')
-      if exempt
-        comment.isLowQuality = yes
-      comment
-        .sign(delegate)
-        .save (err)=>
-          if err
-            callback err
-          else
-            delegate.addContent comment, (err)->
-              if err
-                log 'JDiscussion error adding content to delegate', err
-            @addOpinion comment,
-              flags:
-                isLowQuality    : exempt
-            , (err, docs)=>
-              if err
-                callback err
-              else
-                if exempt
-                  callback null, comment
+        comment = new JOpinion
+          body: comment.body
+          title: comment.body
+          meta: comment.meta
+        exempt = delegate.checkFlag('exempt')
+        if exempt
+          comment.isLowQuality = yes
+        comment
+          .sign(delegate)
+          .save (err)=>
+            if err
+              callback err
+            else
+              delegate.addContent comment, (err)->
+                if err
+                  log 'JDiscussion error adding content to delegate', err
+              @addOpinion comment,
+                flags:
+                  isLowQuality    : exempt
+              , (err, docs)=>
+                if err
+                  callback err
                 else
-                  Relationship.count {
-                    sourceId                    : @getId()
-                    as                          : 'opinion'
-                    'data.flags.isLowQuality'   : $ne: yes
-                  }, (err, count)=>
-                    if err
-                      callback err
-                    else
-                      @update $set: opinionCount: count, (err)=>
-                        if err
-                          callback err
-                        else
-                              callback null, comment
-                              @fetchActivityId (err, id)->
+                  if exempt
+                    callback null, comment
+                  else
+                    Relationship.count {
+                      sourceId                    : @getId()
+                      as                          : 'opinion'
+                      'data.flags.isLowQuality'   : $ne: yes
+                    }, (err, count)=>
+                      if err
+                        callback err
+                      else
+                        @update $set: opinionCount: count, (err)=>
+                          if err
+                            callback err
+                          else
+                                callback null, comment
+                                @fetchActivityId (err, id)->
 
-                                CActivity = require '../../activity'
+                                  CActivity = require '../../activity'
 
-                                CActivity.update {_id: id}, {
-                                  $set:
-                                    'sorts.opinionCount'  : count
-                                }, log
-                              @fetchOrigin (err, origin)=>
-                                if err
-                                  log "Couldn't fetch the origin"
-                                else
-                                  unless exempt
-                                    @emit 'ReplyIsAdded', {
-                                      origin
-                                      subject       : ObjectRef(@).data
-                                      actorType     : 'replier'
-                                      actionType    : 'opinion'
-                                      replier       : ObjectRef(delegate).data
-                                      opinion       : ObjectRef(comment).data
-                                      opinionCount  : count
-                                      relationship  : docs[0]
-                                      # opinionData   : JSON.stringify comment
-                                    }
-                                  @follow client, emitActivity: no, (err)->
-                                  @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                                  CActivity.update {_id: id}, {
+                                    $set:
+                                      'sorts.opinionCount'  : count
+                                  }, log
+                                @fetchOrigin (err, origin)=>
+                                  if err
+                                    log "Couldn't fetch the origin"
+                                  else
+                                    unless exempt
+                                      @emit 'ReplyIsAdded', {
+                                        origin
+                                        subject       : ObjectRef(@).data
+                                        actorType     : 'replier'
+                                        actionType    : 'opinion'
+                                        replier       : ObjectRef(delegate).data
+                                        opinion       : ObjectRef(comment).data
+                                        opinionCount  : count
+                                        relationship  : docs[0]
+                                        # opinionData   : JSON.stringify comment
+                                      }
+                                    @follow client, emitActivity: no, (err)->
+                                    @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   updateTeaser:(callback)->
     activity = null

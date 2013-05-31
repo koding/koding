@@ -12,6 +12,7 @@ class NFinderContextMenuController extends KDController
     else
       [fileView] = fileViews
       switch fileView.getData().type
+        when "vm"         then @getVmMenu fileView
         when "file"       then @getFileMenu fileView
         when "folder"     then @getFolderMenu fileView
         when "mount"      then @getMountMenu fileView
@@ -118,6 +119,9 @@ class NFinderContextMenuController extends KDController
       Collapse                    :
         action                    : "collapse"
         separator                 : yes
+      'Make this top Folder'      :
+        action                    : 'makeTopFolder'
+        separator                 : yes
       Delete                      :
         action                    : 'delete'
         separator                 : yes
@@ -152,11 +156,11 @@ class NFinderContextMenuController extends KDController
         children                  :
           customView              : new NCopyUrlView {}, fileData
         separator                 : yes
-      'Open Terminal from here'   :
-        action                    : 'openTerminal'
-        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
+      # 'Open Terminal from here'   :
+      #   action                    : 'openTerminal'
+      #   separator                 : yes
       #   separator                 : yes
       # 'Create a CodeShare'        :
       #   action                    : 'codeShare'
@@ -201,6 +205,44 @@ class NFinderContextMenuController extends KDController
         action : 'delete'
 
     items
+
+  getVmMenu:(fileView)->
+
+    fileData = fileView.getData()
+
+    items =
+      customView                  : new NVMToggleButtonView {}, vmName: fileData.vmName
+      'Re-initialize VM'          :
+        action                    : 'resetVm'
+      'Unmount VM'                :
+        action                    : 'unmountVm'
+        separator                 : yes
+      'Open VM Terminal'          :
+        action                    : 'openVmTerminal'
+        separator                 : yes
+      Refresh                     :
+        action                    : 'refresh'
+        separator                 : yes
+      Expand                      :
+        action                    : 'expand'
+        separator                 : yes
+      Collapse                    :
+        action                    : 'collapse'
+        separator                 : yes
+      'New File'                  :
+        action                    : 'createFile'
+      'New Folder'                :
+        action                    : 'createFolder'
+      'Upload file...'            :
+        disabled                  : yes
+        action                    : 'upload'
+
+    if fileView.expanded
+      delete items.Expand
+    else
+      delete items.Collapse
+
+    return items
 
   getMountMenu:(fileView)->
 

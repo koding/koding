@@ -15,31 +15,47 @@ import (
 )
 
 type VM struct {
-	Id           bson.ObjectId `bson:"_id"`
-	Name         string        `bson:"name"`
-	Users        []*UserEntry  `bson:"users"`
-	LdapPassword string        `bson:"ldapPassword"`
-	IP           net.IP        `bson:"ip,omitempty"`
+	Id           bson.ObjectId  `bson:"_id"`
+	Name         string         `bson:"name"`
+	Users        []*Permissions `bson:"users"`
+	LdapPassword string         `bson:"ldapPassword"`
+	IP           net.IP         `bson:"ip"`
+	HostKite     string         `bson:"hostKite"`
+	SnapshotOf   bson.ObjectId  `bson:"snapshotOf"`
+	hostname     string
 }
 
-type UserEntry struct {
+type Permissions struct {
 	Id   bson.ObjectId `bson:"id"`
 	Sudo bool          `bson:"sudo"`
 }
 
-const UserIdOffset = 1000000
-const RootIdOffset = 50000000
-
 var templateDir string
-var templates *template.Template
+var Templates = template.New("lxc")
 
-func LoadTemplates(dir string) {
-	templateDir = dir
-	var err error
-	templates, err = template.ParseGlob(templateDir + "/lxc/*")
+func LoadTemplates(dir string) error {
+	interf, err := net.InterfaceByName("lxcbr0")
 	if err != nil {
-		panic(err)
+		return err
 	}
+	addrs, err := interf.Addrs()
+	if err != nil {
+		return err
+	}
+	hostIP, _, err := net.ParseCIDR(addrs[0].String())
+	if err != nil {
+		return err
+	}
+
+	templateDir = dir
+	Templates.Funcs(template.FuncMap{
+		"hostIP": func() string { return hostIP.String() },
+	})
+	if _, err := Templates.ParseGlob(templateDir + "/vm/*"); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (vm *VM) String() string {
@@ -54,8 +70,12 @@ func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
+func (vm *VM) SetHostname(hostname string) {
+	vm.hostname = hostname
+}
+
 func (vm *VM) Hostname() string {
-	return vm.Name + ".koding.com"
+	return vm.hostname
 }
 
 func (vm *VM) RbdDevice() string {
@@ -74,7 +94,7 @@ func (vm *VM) PtsDir() string {
 	return vm.File("rootfs/dev/pts")
 }
 
-func (vm *VM) GetUserEntry(user *User) *UserEntry {
+func (vm *VM) GetPermissions(user *User) *Permissions {
 	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
 			return entry
@@ -94,14 +114,11 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	prepareDir(vm.File(""), 0)
 	vm.generateFile(vm.File("config"), "config", 0, false)
 	vm.generateFile(vm.File("fstab"), "fstab", 0, false)
+	vm.generateFile(vm.File("ip-address"), "ip-address", 0, false)
 
 	// map rbd image to block device
-	vm.mapRBD()
-
-	// mount block device to overlay
-	prepareDir(vm.OverlayFile("/"), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", vm.RbdDevice(), vm.OverlayFile("")).CombinedOutput(); err != nil {
-		panic(commandError("mount rbd failed.", err, out))
+	if err := vm.MountRBD(vm.OverlayFile("")); err != nil {
+		panic(err)
 	}
 
 	// remove all except /home on reinitialize
@@ -117,36 +134,10 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 		}
 	}
 
-	// prepare directories in overlay
+	// prepare overlay
 	prepareDir(vm.OverlayFile("/"), RootIdOffset)           // for chown
 	prepareDir(vm.OverlayFile("/lost+found"), RootIdOffset) // for chown
 	prepareDir(vm.OverlayFile("/etc"), RootIdOffset)
-	prepareDir(vm.OverlayFile("/home"), RootIdOffset)
-
-	// create user homes
-	for i, user := range users {
-		if prepareDir(vm.OverlayFile("/home/"+user.Name), user.Uid) && i == 0 {
-			prepareDir(vm.OverlayFile("/home/"+user.Name+"/Sites"), user.Uid)
-			prepareDir(vm.OverlayFile("/home/"+user.Name+"/Sites/"+vm.Hostname()), user.Uid)
-			websiteDir := "/home/" + user.Name + "/Sites/" + vm.Hostname() + "/website"
-			prepareDir(vm.OverlayFile(websiteDir), user.Uid)
-			files, err := ioutil.ReadDir(templateDir + "/website")
-			if err != nil {
-				panic(err)
-			}
-			for _, file := range files {
-				if err := copyFile(templateDir+"/website/"+file.Name(), vm.OverlayFile(websiteDir+"/"+file.Name()), user.Uid); err != nil {
-					panic(err)
-				}
-			}
-			prepareDir(vm.OverlayFile("/var"), RootIdOffset)
-			if err := os.Symlink(websiteDir, vm.OverlayFile("/var/www")); err != nil {
-				panic(err)
-			}
-		}
-	}
-
-	// generate overlay files
 	vm.generateFile(vm.OverlayFile("/etc/hostname"), "hostname", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/hosts"), "hosts", RootIdOffset, false)
 	vm.generateFile(vm.OverlayFile("/etc/ldap.conf"), "ldap.conf", RootIdOffset, false)
@@ -163,15 +154,20 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount devpts
 	prepareDir(vm.PtsDir(), RootIdOffset)
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "devpts", "-o", "rw,noexec,nosuid,newinstance,gid="+strconv.Itoa(RootIdOffset+5)+",mode=0620,ptmxmode=0666", "devpts", vm.PtsDir()).CombinedOutput(); err != nil {
 		panic(commandError("mount devpts failed.", err, out))
 	}
 	chown(vm.PtsDir(), RootIdOffset, RootIdOffset)
-	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset+5)
+	chown(vm.PtsDir()+"/ptmx", RootIdOffset, RootIdOffset)
 
 	// add ebtables entry to restrict IP and MAC
 	if out, err := exec.Command("/sbin/ebtables", "--append", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil {
 		panic(commandError("ebtables rule addition failed.", err, out))
+	}
+
+	// add a static route so it is redistributed by BGP
+	if out, err := exec.Command("/sbin/route", "add", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+		panic(commandError("adding route failed.", err, out))
 	}
 }
 
@@ -188,10 +184,21 @@ func (vm *VM) Unprepare() error {
 	os.Mkdir("/var/lib/lxc/dpkg-statuses", 0755)
 	copyFile(vm.OverlayFile("/var/lib/dpkg/status"), "/var/lib/lxc/dpkg-statuses/"+vm.String(), RootIdOffset)
 
-	// remove ebtables entry
+	if vm.IP == nil {
+		if ip, err := ioutil.ReadFile(vm.File("ip-address")); err == nil {
+			vm.IP = net.ParseIP(string(ip))
+		}
+	}
+
 	if vm.IP != nil {
+		// remove ebtables entry
 		if out, err := exec.Command("/sbin/ebtables", "--delete", "VMS", "--protocol", "IPv4", "--source", vm.MAC().String(), "--ip-src", vm.IP.String(), "--in-interface", vm.VEth(), "--jump", "ACCEPT").CombinedOutput(); err != nil && firstError == nil {
 			firstError = commandError("ebtables rule deletion failed.", err, out)
+		}
+
+		// remove the static route so it is no longer redistribed by BGP
+		if out, err := exec.Command("/sbin/route", "del", vm.IP.String(), "lxcbr0").CombinedOutput(); err != nil {
+			firstError = commandError("Removing route failed.", err, out)
 		}
 	}
 
@@ -202,41 +209,41 @@ func (vm *VM) Unprepare() error {
 	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount overlay failed.", err, out)
 	}
-	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("umount rbd failed.", err, out)
-	}
-	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
-		firstError = commandError("rbd unmap failed.", err, out)
+	if err := vm.UnmountRBD(vm.OverlayFile("")); err != nil && firstError == nil {
+		firstError = err
 	}
 
 	// remove VM directory
 	os.Remove(vm.File("config"))
 	os.Remove(vm.File("fstab"))
+	os.Remove(vm.File("ip-address"))
 	os.Remove(vm.File("rootfs"))
 	os.Remove(vm.File("rootfs.hold"))
-	os.Remove(vm.OverlayFile("/"))
 	os.Remove(vm.File(""))
 
 	return firstError
 }
 
-func (vm *VM) mapRBD() {
+func (vm *VM) MountRBD(mountDir string) error {
 	makeFileSystem := false
-	if err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).Run(); err != nil {
+
+	// create image if it does not exist
+	if out, err := exec.Command("/usr/bin/rbd", "info", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
 		exitError, isExitError := err.(*exec.ExitError)
 		if !isExitError || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-			panic(err)
+			return commandError("rbd info failed.", err, out)
 		}
 
-		// create disk and try to map again
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", vm.String()).CombinedOutput(); err != nil {
-			panic(commandError("rbd create failed.", err, out))
-		}
-		if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", vm.String()).CombinedOutput(); err != nil {
-			panic(commandError("rbd map failed.", err, out))
+		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
+			return commandError("rbd create failed.", err, out)
 		}
 
 		makeFileSystem = true
+	}
+
+	// map image
+	if out, err := exec.Command("/usr/bin/rbd", "map", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+		return commandError("rbd map failed.", err, out)
 	}
 
 	// wait for rbd device to appear
@@ -246,16 +253,109 @@ func (vm *VM) mapRBD() {
 			break
 		}
 		if !os.IsNotExist(err) {
-			panic(err)
+			return err
 		}
 		time.Sleep(time.Second / 2)
 	}
 
 	if makeFileSystem {
 		if out, err := exec.Command("/sbin/mkfs.ext4", vm.RbdDevice()).CombinedOutput(); err != nil {
-			panic(commandError("mkfs.ext4 failed.", err, out))
+			return commandError("mkfs.ext4 failed.", err, out)
 		}
 	}
+
+	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
+		return err
+	}
+	if out, err := exec.Command("/bin/mount", "-t", "ext4", vm.RbdDevice(), mountDir).CombinedOutput(); err != nil {
+		os.Remove(mountDir)
+		return commandError("mount rbd failed.", err, out)
+	}
+
+	return nil
+}
+
+func (vm *VM) UnmountRBD(mountDir string) error {
+	var firstError error
+	if out, err := exec.Command("/bin/umount", vm.OverlayFile("")).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("umount rbd failed.", err, out)
+	}
+	if out, err := exec.Command("/usr/bin/rbd", "unmap", vm.RbdDevice()).CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("rbd unmap failed.", err, out)
+	}
+	os.Remove(mountDir)
+	return firstError
+}
+
+const FIFREEZE = 0xC0045877
+const FITHAW = 0xC0045878
+
+func (vm *VM) FreezeFileSystem() error {
+	return vm.controlOverlay(FIFREEZE)
+}
+
+func (vm *VM) ThawFileSystem() error {
+	return vm.controlOverlay(FITHAW)
+}
+
+func (vm *VM) controlOverlay(action uintptr) error {
+	fd, err := os.Open(vm.OverlayFile(""))
+	if err != nil {
+		return err
+	}
+	defer fd.Close()
+	if _, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd.Fd(), action, 0); errno != 0 {
+		return errno
+	}
+	return nil
+}
+
+func (vm *VM) CreateConsistentSnapshot(snapshotName string) error {
+	if err := vm.FreezeFileSystem(); err != nil {
+		return err
+	}
+	defer vm.ThawFileSystem()
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "create", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Creating snapshot failed.", err, out)
+	}
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "protect", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Protecting snapshot failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) DeleteSnapshot(snapshotName string) error {
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "unprotect", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Unprotecting snapshot failed.", err, out)
+	}
+	if out, err := exec.Command("/usr/bin/rbd", "snap", "rm", "--pool", "vms", "--image", vm.String(), "--snap", snapshotName).CombinedOutput(); err != nil {
+		return commandError("Removing snapshot failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) CreateTemporaryVM() (*VM, error) {
+	temporaryVM := VM{
+		Id:         bson.NewObjectId(),
+		SnapshotOf: vm.SnapshotOf,
+	}
+
+	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotOf.Hex(), "--snap", vm.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
+		return nil, commandError("Cloning snapshot failed.", err, out)
+	}
+
+	return &temporaryVM, nil
+}
+
+func (vm *VM) Destroy() error {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+		return commandError("Removing image failed.", err, out)
+	}
+	return nil
+}
+
+func (vm *VM) IsTemporary() bool {
+	return vm.SnapshotOf != ""
 }
 
 func commandError(message string, err error, out []byte) error {
@@ -263,18 +363,11 @@ func commandError(message string, err error, out []byte) error {
 }
 
 // may panic
-func prepareDir(p string, id int) bool {
-	created := true
-	if err := os.Mkdir(p, 0755); err != nil {
-		if !os.IsExist(err) {
-			panic(err)
-		}
-		created = false
+func prepareDir(p string, id int) {
+	if err := os.Mkdir(p, 0755); err != nil && !os.IsExist(err) {
+		panic(err)
 	}
-
 	chown(p, id, id)
-
-	return created
 }
 
 // may panic
@@ -289,7 +382,7 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) {
 	}
 	defer file.Close()
 
-	if err := templates.ExecuteTemplate(file, template, vm); err != nil {
+	if err := Templates.ExecuteTemplate(file, template, vm); err != nil {
 		panic(err)
 	}
 

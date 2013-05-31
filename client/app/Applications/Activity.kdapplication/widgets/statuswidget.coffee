@@ -54,7 +54,7 @@ class ActivityStatusUpdateWidget extends KDFormView
         @utils.wait 1000, =>
           @requestEmbed()
 
-      keyup:=>
+      keyup:(event)=>
         # this needs to be refactored, this will only capture URLS when the user
         # adds a space after them or tabs out
         if ($(event.which)[0] is 32) or ($(event.which)[0] is 9) # when space key is hit, URL is usually complete

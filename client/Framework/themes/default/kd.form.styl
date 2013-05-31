@@ -13,28 +13,29 @@ kd.formview.styl
 .kdformview
 
   .formline
-    border-bottom       1px solid #e5e5e5
-    padding             11px 20px 11px 20px
-    size                auto,auto
-    overflow            visible
+    border-bottom         1px solid #e5e5e5
+    padding               11px 20px 11px 20px
+    size                  auto,auto
+    overflow              visible
     &:last-child
-      border-bottom     none
+      border-bottom       none
 
     > label
-      min-width         90px
+      min-width           90px
+      margin-top          2px
       fl()
 
     .input-wrapper
       overflow          hidden
 
-    > input
-    > textarea
-      min-width         160px
-      width             100%
-      border            1px solid #c9c9c9
-      color             #282521 !important
-      line-height       14px
-      display           block
+      > input
+      > textarea
+        min-width         160px
+        width             100%
+        // border            1px solid #c9c9c9
+        color             #282521 !important
+        line-height       14px
+        display           block
 
     .on-off
       // float             right

@@ -1,6 +1,5 @@
 class ActivityListController extends KDListViewController
 
-  lastItemTimeStamp         = null
   hiddenItems               = []
   hiddenNewMemberItemGroups = [[]]
   hiddenItemCount           = 0
@@ -35,17 +34,39 @@ class ActivityListController extends KDListViewController
 
     super
 
-    @newActivityArrivedList = {}
+    @resetList()
 
     @_state = 'public'
+
+    @getListView().on "ItemIsBeingDestroyed", @bound "addNoItemFoundWidget"
+
+    @getListView().on "ItemWasAdded", @bound "removeNoItemFoundWidget"
 
     @scrollView.on 'scroll', (event) =>
       if event.delegateTarget.scrollTop > 0
         @activityHeader.setClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue off
       else
+        @emit "scrolledToTopOfPage"
+
         @activityHeader.unsetClass "scrolling-up-outset"
         @activityHeader.liveUpdateButton.setValue on
+
+  removeNoItemFoundWidget:->
+    if @getItemCount() is 1
+      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+      noItemFoundWidget.destroy() if noItemFoundWidget
+
+  addNoItemFoundWidget:->
+    if @getItemCount() is 0
+      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
+      noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
+      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
+
+  resetList:->
+    @newActivityArrivedList = {}
+    @lastItemTimeStamp = null
 
   loadView:(mainView)->
 
@@ -85,11 +106,13 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    modifiedAt = _.compact(activities).first.meta.modifiedAt
-    unless lastItemTimeStamp > modifiedAt
+    modifiedAt = activities.first.meta.createdAt
+    unless @lastItemTimeStamp > modifiedAt
       # HACK: activity timestamp is off -200 ms on first get
-      time = new Date(modifiedAt).getTime()
-      lastItemTimeStamp = new Date(time+1000).toString()
+      time = new Date(modifiedAt).getTime()+1000
+      @lastItemTimeStamp = new Date(time).toISOString()
+
+    KD.logToMixpanel "populateActivity.success", 5
 
     @emit "teasersLoaded"
 
@@ -100,9 +123,16 @@ class ActivityListController extends KDListViewController
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
+        anchors = []
+        for id in overviewItem.ids
+          if cache.activities[id].teaser?
+            anchors.push cache.activities[id].teaser.anchor
+          else
+            KD.logToExternal msg:'no teaser for activity', activityId:id
+
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : (cache.activities[id].teaser.anchor for id in overviewItem.ids)
+          anchors             : anchors
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
@@ -114,11 +144,9 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    sortedActivities = _.sortBy cache.activities, (activity) ->
-      activity.modifiedAt
+    @lastItemTimeStamp = cache.from
 
-    modifiedAt = sortedActivities.last.modifiedAt
-    lastItemTimeStamp = modifiedAt  unless lastItemTimeStamp > modifiedAt
+    KD.logToMixpanel "populateActivity.cache.success", 5
 
     @emit "teasersLoaded"
 
@@ -135,7 +163,7 @@ class ActivityListController extends KDListViewController
     if item = hiddenItems.first
       item.getData().createdAt or item.getData().createdAtTimestamps.last
     else
-      lastItemTimeStamp
+      @lastItemTimeStamp
 
   followedActivityArrived: (activity) ->
 
@@ -148,7 +176,7 @@ class ActivityListController extends KDListViewController
     return unless id
 
     if @newActivityArrivedList[id]
-      KD.logToExternal msg:"duplicate new activity", activity:activity
+      log "duplicate new activity", activity
     else
       @newActivityArrivedList[id] = true
 
@@ -203,7 +231,7 @@ class ActivityListController extends KDListViewController
 
   ownActivityArrived:(activity)->
 
-    lastItemTimeStamp = activity.createdAt
+    @lastItemTimeStamp = activity.createdAt or activity.meta.createdAt
     if fakeItems.length > 0
       itemToBeRemoved = fakeItems.shift()
       @removeItem null, itemToBeRemoved
@@ -223,7 +251,7 @@ class ActivityListController extends KDListViewController
 
     instance = @getListView().addHiddenItem activity, index, animation
     hiddenItems.push instance
-    lastItemTimeStamp = activity.createdAt
+    @lastItemTimeStamp = activity.createdAt
 
     return instance
 

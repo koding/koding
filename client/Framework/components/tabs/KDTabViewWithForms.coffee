@@ -33,17 +33,18 @@ class KDTabViewWithForms extends KDTabView
 
     oldCallback = formData.callback
     formData.callback = (formData)=>
-      log formData, "><><><"
       @showNextPane() if @getOptions().goToNextFormOnSubmit
       oldCallback? formData
-      if index is @getOptions().forms.length - 1
+      # debugger
+      {forms} = @getOptions()
+      if forms and index is Object.keys(forms).length - 1
         @fireFinalCallback()
 
     @createForm formData,tab
     return tab
 
   createTabs:(forms)->
-    forms.forEach @bound 'createTab'
+    forms.forEach (formData, i)=> @createTab formData, i
 
   createForm:(formData,parentTab)->
     parentTab.addSubView form = new KDFormViewWithFields formData

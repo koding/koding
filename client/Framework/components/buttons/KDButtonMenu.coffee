@@ -5,6 +5,9 @@ class JButtonMenu extends JContextMenu
     options.cssClass        = @utils.curryCssClass "kdbuttonmenu", options.cssClass
     # options.type            = "buttonmenu"
     options.listViewClass or= JContextMenuTreeView
+    # options.offset        or= {}
+    # options.offset.top    or= 0
+    # options.offset.left   or= 0
 
     super options, data
 
@@ -15,6 +18,7 @@ class JButtonMenu extends JContextMenu
 
   positionContextMenu:()->
 
+    # options       = @getOptions()
     button        = @getDelegate()
     mainHeight    = $(window).height()
     buttonHeight  = button.getHeight()
@@ -38,3 +42,10 @@ class JButtonMenu extends JContextMenu
     @$().css
       top       : top
       left      : button.getX() + buttonWidth - menuWidth
+
+    # left here for reference to be able to put menu left or right for button menus
+    # it needs some work decided to be left as TBDL - SY
+
+    # @$().css
+    #   top       : top + options.offset.top
+    #   left      : button.getX() + buttonWidth - menuWidth + options.offset.left

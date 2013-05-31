@@ -1,16 +1,4 @@
 
-{KDView}                = KD.classes
-{KDSplitView}           = KD.classes
-{KDInputView}           = KD.classes
-{KDModalView}           = KD.classes
-{KDButtonView}          = KD.classes
-{KDHeaderView}          = KD.classes
-{KDOnOffSwitch}         = KD.classes
-{KDListItemView}        = KD.classes
-{KDNotificationView}    = KD.classes
-{KDListViewController}  = KD.classes
-{KDModalViewWithForms}  = KD.classes
-
 class SampleApp extends KDView
 
   viewAppended:->
@@ -46,7 +34,7 @@ class SampleApp extends KDView
           Basically every single frontend functionality you see on Koding, will be made available to you piece by piece.</p><br/>
           <p>We will open source KDFramework and publish it to Github so that you can contribute to it, but at this stage
           it's api is not to be relied upon, and everything can change.</p><br/>
-          
+
           <p>Please bear with us, and use its basic functionalities, soon enough you will be able to make amazing realtime applications with it. Enjoy! :)</p>
       """
 
@@ -140,13 +128,13 @@ class SampleApp extends KDView
                       diameter    : 12
                     callback      : ->
                       command = modal.modalTabs.forms.form.inputs.Command.getValue()
-                      
+
                       setTimeout ->
                         if modal.modalTabs.forms.form.buttons.Run.loader.active
                           showError()
                           modal.modalTabs.forms.form.buttons.Clear.getCallback()()
                       , 8000
-                      
+
                       kiteController.run command, (err, res)->
                         showError() if err
                         modal.modalTabs.forms.form.inputs.Output.setValue err or res

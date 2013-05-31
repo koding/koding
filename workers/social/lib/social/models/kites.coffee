@@ -13,13 +13,14 @@ module.exports = class JKite extends jraphical.Module
   @share()
 
   @set
+    softDelete : yes
     permissions: [
       'read kites'
       'create kites'
       'edit kites'
       'delete kites'
       'delete own kites'
-    ]  
+    ]
     sharedMethods   :
       instance      : [
           'delete'

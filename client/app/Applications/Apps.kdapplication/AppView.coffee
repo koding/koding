@@ -8,17 +8,24 @@ class AppsMainView extends KDView
 
   createCommons:->
 
-    @addSubView header = new HeaderViewSection
+    header = new HeaderViewSection
       type  : "big"
       title : "App Catalog"
 
-  showContentDisplay:(content,contentType)->
-    contentDisplayController = @getSingleton "contentDisplayController"
-    controller = new ContentDisplayControllerApps null, content
-    contentDisplay = controller.getView()
-    contentDisplayController.emit "ContentDisplayWantsToBeShown",contentDisplay
+    header.addSubView @updateAppsButton = new KDButtonView
+      title     : "Update All"
+      style     : "cupid-green update-apps-button"
+      callback  : ->
+        appsController = @getSingleton "kodingAppsController"
+        apps           = @getData()
+        stack          = []
 
-  _windowDidResize:()->
-    # @appsSplitView.setRightColumnClass()
-    # @appsSplitView.panels[1].$(".listview-wrapper").height @appsSplitView.getHeight() - 28
+        apps.forEach (app) =>
+          stack.push (callback) =>
+            appsController.updateUserApp app.manifest, callback
 
+        async.series stack
+
+    @updateAppsButton.hide()
+
+    @addSubView header

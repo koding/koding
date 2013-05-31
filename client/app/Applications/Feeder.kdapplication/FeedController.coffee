@@ -9,6 +9,7 @@ class FeedController extends KDViewController
     options.limitPerPage  or= 10
     options.dataType      or= null
     options.onboarding    or= null
+    options.domId         or= ''
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
@@ -27,6 +28,7 @@ class FeedController extends KDViewController
         delegate  : @
 
       options.view or= new FeederSplitView
+        domId   : options.domId
         views   : [
           @facetsController.getView()
           @resultsController.getView()
@@ -138,20 +140,23 @@ class FeedController extends KDViewController
     if @noItemFound? then @noItemFound.destroy()
     controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
       cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no item found."
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
     @noItemFound.hide()
 
-  # this is a temporary solution for a bug that 
+  # this is a temporary solution for a bug that
   # bongo returns correct result set in a wrong order
   sortByKey : (array, key) ->
     array.sort (first, second) ->
       firstVar  = JsPath.getAt first,  key
       secondVar = JsPath.getAt second, key
       #quick sort-ware
-      if (firstVar < secondVar) then return 1 
-      else if (firstVar > secondVar) then return -1 
+      if (firstVar < secondVar) then return 1
+      else if (firstVar > secondVar) then return -1
       else return 0
 
+  reload:->
+    {selection, defaultSort} = this
+    @changeActiveSort selection.activeSort or defaultSort.title
 
   loadFeed:(filter = @selection)=>
 
@@ -164,8 +169,8 @@ class FeedController extends KDViewController
       @emitLoadCompleted filter
     else
       filter.dataSource selector, options, (err, items, rest...)=>
+        listController = @emitLoadCompleted filter
         if items?
-          listController = @emitLoadCompleted filter
           unless err
             if items.length is 0 and listController.getItemCount() is 0
               @noItemFound.show()
@@ -177,6 +182,8 @@ class FeedController extends KDViewController
           else
             warn err
         else unless err
+          if listController.getItemCount() is 0
+            @noItemFound.show()
           filter.dataEnd? @, rest...
         else
           filter.dataError? @, err

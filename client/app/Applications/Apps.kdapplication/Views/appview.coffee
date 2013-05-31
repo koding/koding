@@ -1,6 +1,6 @@
 class AppView extends KDView
 
-  constructor:->
+  constructor:(options, data)->
 
     super
 
@@ -9,12 +9,14 @@ class AppView extends KDView
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
       dataPath        : "followee"
-      defaultState    : if app.followee then "Unfollow" else "Follow"
+      defaultState    : "Follow"
       states          : [
         title         : "Follow"
-        callback      : (callback)->
-          app.follow (err)->
-            callback? err
+        callback      : (cb)->
+          KD.requireLogin
+            callback  : => app.follow (err)-> cb? err
+            onFailMsg : "Login required to follow Apps"
+            tryAgain  : yes
       ,
         title         : "Unfollow"
         callback      : (callback)->
@@ -25,11 +27,14 @@ class AppView extends KDView
 
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
+      defaultState    : 'Like'
       states          : [
         title         : "Like"
-        callback      : (callback)->
-          app.like (err)->
-            callback? err
+        callback      : (cb)->
+          KD.requireLogin
+            callback  : => app.like (err)-> cb? err
+            onFailMsg : "Login required to like Apps"
+            tryAgain  : yes
       ,
         title         : "Unlike"
         callback      : (callback)->
@@ -37,6 +42,11 @@ class AppView extends KDView
             callback? err
       ]
     , app
+
+    if KD.isLoggedIn()
+      KD.whoami().isFollowing? app.getId(), "JApp", (err, following) =>
+        app.followee = following
+        @followButton.setState "Unfollow"  if following
 
     appsController = @getSingleton("kodingAppsController")
 
@@ -48,18 +58,13 @@ class AppView extends KDView
         states          : [
           title         : "Approve"
           callback      : (callback)->
-            appsController.approveApp app, (err)=>
-              if not err
-                app.approve yes, (err)->
-                  if err then warn err
-                  callback? err
-              else
-                callback? err
+            app.approve yes, (err)->
+              if err then warn err
+              callback? err
         ,
           title         : "Disapprove"
           callback      : (callback)->
-            app.approve no, (err)->
-              callback? err
+            app.approve no, (err)-> callback? err
         ]
       , app
 
@@ -98,13 +103,13 @@ class AppView extends KDView
       @approveButton = new KDView
       @removeButton  = new KDView
 
-    app.checkIfLikedBefore (err, likedBefore)=>
+    if KD.isLoggedIn() then app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
         @likeButton.setState "Unlike"
       else
         @likeButton.setState "Like"
 
-    if app.versions?.length > 1
+    if app.versions?.length > 1 and KD.isLoggedIn()
       menu = {}
 
       for version,i in app.versions
@@ -141,6 +146,19 @@ class AppView extends KDView
           appsController.installApp app, 'latest', (err)=>
             @hideLoader()
 
+    @openAppButton = new KDButtonView
+      title     : "Open App"
+      style     : "cupid-green"
+      callback  : =>
+        @getSingleton("appManager").open app.title
+
+    @openAppButton.hide()
+
+    appsController.fetchApps (err, manifests) =>
+      if app.title in Object.keys manifests
+        @installButton.hide()
+        @openAppButton.show()
+
     {icns, name, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
       "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
@@ -170,6 +188,7 @@ class AppView extends KDView
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
       <div class="installerbar clearfix">
         {{> @installButton}}
+        {{> @openAppButton}}
         <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>

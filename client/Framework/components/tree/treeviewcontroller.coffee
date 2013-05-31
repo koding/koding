@@ -1,10 +1,3 @@
-###
-todo:
-
-  - multipleselection is broken with implementing it as optional
-
-###
-
 class JTreeViewController extends KDViewController
 
   keyMap = ->
@@ -248,9 +241,17 @@ class JTreeViewController extends KDViewController
 
   removeAllNodes:->
 
-    if @listControllers["0"]
-      @listControllers["0"].itemsOrdered.forEach (itemView)=>
-        @removeNodeView itemView
+    for id, listController of @listControllers
+      listController.itemsOrdered.forEach @bound 'removeNodeView'
+      listController?.getView().destroy()
+      delete @listControllers[id]
+      delete @listData[id]
+
+    @nodes           = {}
+    @listData        = {}
+    @indexedNodes    = []
+    @selectedNodes   = []
+    @listControllers = {}
 
   removeChildNodes:(id)->
 
@@ -313,7 +314,8 @@ class JTreeViewController extends KDViewController
 
     if nodeData in @indexedNodes
       index = @indexedNodes.indexOf nodeData
-      @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
+      # Disable this for now, useless for most cases, FIXME GG
+      # @selectNode @nodes[@getNodeId @indexedNodes[index-1]] if index-1 >= 0
       @indexedNodes.splice index, 1
       # todo: make decoration with events
       if @nodes[@getNodePId nodeData] and not \
@@ -338,7 +340,8 @@ class JTreeViewController extends KDViewController
       id                 : "#{@getId()}_#{listId}"
       wrapper            : no
       scrollView         : no
-      selection          : no
+      selection          : options.selection ? no
+      multipleSelection  : options.multipleSelection ? no
       view               : new options.listViewClass
         tagName          : "ul"
         type             : options.type
@@ -607,37 +610,20 @@ class JTreeViewController extends KDViewController
       event.preventDefault()
       event.stopPropagation()
       return no
+
     @dragIsActive = yes
     e = event.originalEvent
     e.dataTransfer.effectAllowed = 'copyMove' # only dropEffect='copy' will be dropable
-    transferredData = (JSON.stringify node.getData() for node in @selectedNodes)
+
+    # We need to look it at later FIXME GG
+    # transferredData = (JSON.stringify node.getData() for node in @selectedNodes)
+    transferredData = (@getNodeId node.getData() for node in @selectedNodes)
+
     e.dataTransfer.setData('Text', transferredData.join()) # required otherwise doesn't work
 
     if @selectedNodes.length > 1
       e.dataTransfer.setDragImage dragHelper, -10, 0
 
-    # this doesnt work in webkit only firefox
-
-    # items = for node in @selectedNodes
-    #   node.getData()
-    #
-    # options = @getOptions()
-    # draggedListController = new KDListViewController
-    #   wrapper        : no
-    #   scrollView     : no
-    #   selection      : no
-    #   view           : new JTreeView
-    #     tagName      : "ul"
-    #     type         : "jtree"
-    #     cssClass     : "drag-helper-list"
-    #     itemClass : JTreeItemView
-    # , {items}
-    #
-    # @tempDragList = draggedListController.getView()
-    # KDView.appendToDOMBody @tempDragList
-    # @tempDragList.$().css top : e.pageY, left : e.pageY
-    # draggedList = @tempDragList.$()[0]
-    # e.dataTransfer.addElement(draggedList);
     nodeView.setClass "drag-started"
 
   dragEnter: (nodeView, event)->

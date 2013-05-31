@@ -39,4 +39,6 @@ __webtermSettings =
         {title:'Black on White' , value:'black-on-white'}
         {title:'Gray on Black'  , value:'gray-on-black'}
         {title:'Green on Black' , value:'green-on-black'}
+        {title:'Solarized Dark' , value:'solarized-dark'}
+        {title:'Solarized Light' , value:'solarized-light'}
     ]

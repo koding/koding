@@ -13,6 +13,9 @@ module.exports = class JCodeSnip extends JPost
 
   {secure} = require 'bongo'
   {extend} = require 'underscore'
+  {permit} = require '../../group/permissionset'
+
+  @trait __dirname, '../../../traits/grouprelated'
 
   @share()
 
@@ -28,6 +31,14 @@ module.exports = class JCodeSnip extends JPost
     indexes       :
       slug        : 'unique'
     sharedMethods : JPost.sharedMethods
+    sharedEvents  :
+      instance    : [
+        { name: 'TagsChanged' }
+        { name: 'ReplyIsAdded' }
+        { name: 'LikeIsAdded' }
+        { name: 'updateInstance' }
+      ]
+      static      : []
     schema        : schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
@@ -57,6 +68,7 @@ module.exports = class JCodeSnip extends JPost
       meta        : data.meta
     JPost::modify.call @, client, codeSnip, callback
 
-  reply: secure (client, comment, callback)->
-    JComment = require '../comment'
-    JPost::reply.call @, client, JComment, comment, callback
+  reply: permit 'reply to posts',
+    success:(client, comment, callback)->
+      JComment = require '../comment'
+      JPost::reply.call @, client, JComment, comment, callback

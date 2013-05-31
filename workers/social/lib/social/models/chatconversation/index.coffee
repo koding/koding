@@ -15,7 +15,7 @@ module.exports = class JChatConversation extends Module
       static        : []
       instance      : ['updateInstance','notification']
     sharedMethods   :
-      static        : ['create']
+      static        : ['create','fetch','fetchSome']
       instance      : ['invite']
     schema          :
       publicName    : String
@@ -35,14 +35,35 @@ module.exports = class JChatConversation extends Module
         default     : -> []
       tags          : [ObjectRef]
 
+  @fetch = secure (client, publicName, callback)->
+    {delegate} = client.connection
+    @one { publicName, invitees: delegate.profile.nickname }, callback
+
+  @fetchSome = secure (client, options, callback)->
+    [callback, options] = [options, callback] unless callback
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+
+    options  or= limit: 20
+    selector   =
+      $or: [
+        {createdBy : nickname}
+        {invitees  : nickname}
+      ]
+
+    @some selector, options, callback
+
   @create = secure (client, initialInvitees, callback)->
     {delegate} = client.connection
+    {nickname} = delegate.profile
+
+    initialInvitees.push nickname
 
     conversation = new this {
       publicName  : createId()
-      createdBy   : delegate.profile.nickname
+      createdBy   : nickname
     }
-    
+
     conversation.save (err)->
       if err then callback err
       else
@@ -66,6 +87,3 @@ module.exports = class JChatConversation extends Module
         routingKey  : invitee
         contents    : { invitee, @publicName }
       }
-
-
-

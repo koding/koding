@@ -1,10 +1,15 @@
 class StartTabAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "StartTab"
-    route        : "Develop"
+    route        : "/Develop"
     behavior     : "application"
     multiple     : yes
+    preCondition :
+      condition  : (options, cb)->
+        cb KD.isLoggedIn()
+      failure    : (options, cb)->
+        KD.requireLogin onFailMsg: 'Login to start...' # getSingleton('router').handleRoute "/Activity"
 
   constructor:(options = {}, data)->
 

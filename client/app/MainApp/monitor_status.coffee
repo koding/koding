@@ -83,9 +83,6 @@ class MonitorStatus extends KDObject
       @printReport()
       @reset()
 
-    @on "webtermDown", (channel) ->
-      @emit "onlyChannelDown", "webterm"
-
     @on "internetDown", ->
       status = KD.getSingleton "status"
       status.internetDown()
@@ -96,12 +93,9 @@ class MonitorStatus extends KDObject
     notifications =
       internetUp : "All systems go!"
       internetDown: "Your internet is down."
-      kodingDown: "Koding is down."
+      brokerDown: "Broker is down."
       kitesDown: "Kites are down."
-      sharedHostingDown: "SharedHosting is down."
-      webtermDown: "Webterm is down."
-      bongoDown: "Bongo is down"
-      brokerDown: "Broker is Down."
+      bongoDown: "Bongo is down."
       undefined: "Sorry, something went wrong."
 
     msg = notifications[reason] or notifications["undefined"]
@@ -127,11 +121,9 @@ class MonitorStatus extends KDObject
   deductReasonForFailure: ->
     reasons = {}
     reasons.internetDown      = ["bongo", "broker", "external"]
-    reasons.kodingDown        = ["bongo", "broker"]
-    reasons.kitesDown         = ["sharedHosting", "webterm"]
     reasons.brokerDown        = ["broker"]
+    reasons.kitesDown         = ["os"]
     reasons.bongoDown         = ["bongo"]
-    reasons.webtermDown       = ["webterm"]
 
     for reason, items of reasons
       intersection = _.intersection items, @failedPings
@@ -158,32 +150,90 @@ class MonitorStatus extends KDObject
       item.run()
 
 class ExternalPing extends KDObject
-  constructor: (@url) ->
-    super
+  constructor: (@url) -> super
 
   ping: (callback) ->
     @callback = callback
     KD.externalPong = @pong.bind(this)
     $.ajax
-      url : url+"?callback"+KD.externalPong
-      timeout: 3000
+      url : @url+"?callback"+KD.externalPong
+      timeout: 5000
       dataType: "jsonp"
       error : ->
 
-  pong: ->
-    @callback()
+  pong: -> @callback()
 
-url = "https://s3.amazonaws.com/koding-ping/ping.json"
-external = new ExternalPing url
+do ->
+  url = "https://s3.amazonaws.com/koding-ping/ping.json"
+  external = new ExternalPing url
 
-monitorItems = new MonitorItems
-monitorItems.register {external}
+  monitorItems = new MonitorItems
+  monitorItems.register {external}
 
-KD.troubleshoot = (showNotifications=true)->
-  monitorItems = KD.getSingleton("monitorItems").items
-  monitor = new MonitorStatus monitorItems
-  monitor.showNotifications = showNotifications
-  monitor.run()
+  KD.troubleshoot = (showNotifications=true)->
+    monitorItems = KD.getSingleton("monitorItems").items
 
-window.jsonp = ->
-  KD.externalPong()
+    if monitorItems.length == 1
+      log "no services connected; possible auth/social worker down"
+      return
+
+    monitor = new MonitorStatus monitorItems
+    monitor.showNotifications = showNotifications
+    monitor.run()
+
+  window.jsonp =-> KD.externalPong()
+
+  brokerInterval       = null
+  failureCallback      = null
+  lastPong             = null
+  timesTroubleshootRan = 0
+
+  # use broker ping to determine internet connection
+  # TODO: refactor this ugliness
+  pingBrokerOnInterval = ->
+    brokerInterval = setInterval ->
+      clearTimeout failureCallback
+      failureCallback = null
+
+      brokerPong = ->
+        # account for people disconnecting at night, then reconnecting in the
+        # morning; if reconnection happens before failureCallback is trigged,
+        # we won't know that disconnection has happened.
+        if lastPong && (Date.now() - lastPong) > 600*1000  # 10 minutes
+          log "lastPong too long ago, possible computer sleep; disconnecting"
+          KD.logToMixpanel "computer woke up from sleep"
+
+          status = KD.getSingleton "status"
+          status.disconnect
+            reason:"internetDownForLongTime"
+            notify:no
+
+        clearTimeout failureCallback
+        failureCallback = null
+        lastPong = Date.now()
+
+      failureCallback = setTimeout ->
+        if timesTroubleshootRan > 3
+          log "broker ping failed too many times, stopping troubleshoot"
+          return
+
+        log 'broker ping failed, running troubleshoot'
+        KD.troubleshoot false
+        timesTroubleshootRan++
+      , 3000
+
+      KD.remote.mq.ping -> brokerPong()
+    , 5000
+
+  KD.remote.on 'connected', ->
+    resetIntervals()
+    pingBrokerOnInterval()
+
+  KD.remote.on 'disconnected', -> resetIntervals()
+
+  resetIntervals =->
+    clearInterval brokerInterval
+    clearTimeout failureCallback
+    brokerInterval  = null
+    failureCallback = null
+    lastPong        = null

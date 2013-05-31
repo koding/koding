@@ -2,6 +2,8 @@ CActivity = require '../../activity'
 
 module.exports = class CLinkActivity extends CActivity
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @set

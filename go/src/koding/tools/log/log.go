@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -24,6 +25,10 @@ type Gauge struct {
 var loggrSource string
 var libratoSource string
 var tags string
+var currentSecond int64
+var logCounter int
+var MaxPerSecond int = 10
+var sendChannel = make(chan url.Values, 1000)
 
 var gauges = make([]*Gauge, 0)
 var GaugeChanges = make(chan func())
@@ -42,6 +47,35 @@ func Init(service string) {
 		runtime.ReadMemStats(&m)
 		return float64(m.Alloc)
 	})
+
+	go func() {
+		for event := range sendChannel {
+			if event.Get("exit") != "" {
+				code, _ := strconv.Atoi(event.Get("exit"))
+				os.Exit(code)
+			}
+
+			if !config.Current.Loggr.Push {
+				fmt.Printf("%s [%s]\n", time.Now().Format(time.StampMilli), event.Get("tags"))
+				fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), event.Get("text"))
+				if event.Get("data") != "" {
+					for _, line := range strings.Split(event.Get("data"), "\n") {
+						fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), line)
+					}
+				}
+				continue
+			}
+
+			event.Add("apikey", config.Current.Loggr.ApiKey)
+			resp, err := http.PostForm(config.Current.Loggr.Url, event)
+			if err != nil || resp.StatusCode != http.StatusCreated {
+				fmt.Printf("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
+			}
+			if resp != nil && resp.Body != nil {
+				resp.Body.Close()
+			}
+		}
+	}()
 }
 
 func NewEvent(level int, text string, data ...interface{}) url.Values {
@@ -64,32 +98,30 @@ func NewEvent(level int, text string, data ...interface{}) url.Values {
 	return event
 }
 
-func Send(event url.Values) {
-	if !config.Current.Loggr.Push {
-		fmt.Printf("%-30s %s\n", "["+event.Get("tags")+"]", event.Get("text"))
-		if event.Get("data") != "" {
-			for _, line := range strings.Split(event.Get("data"), "\n") {
-				fmt.Printf("%-30s %s\n", "", line)
-			}
-		}
-		return
-	}
-
-	event.Add("apikey", config.Current.Loggr.ApiKey)
-	resp, err := http.PostForm(config.Current.Loggr.Url, event)
-	if err != nil || resp.StatusCode != http.StatusCreated {
-		fmt.Println("logger error: http.PostForm failed.\n%v\n%v\n%v\n", event, resp, err)
-	}
-	if resp != nil && resp.Body != nil {
-		resp.Body.Close()
-	}
-}
-
 func Log(level int, text string, data ...interface{}) {
 	if level == DEBUG && !config.LogDebug {
 		return
 	}
-	Send(NewEvent(level, text, data...))
+
+	t := time.Now().Unix()
+	if currentSecond != t {
+		currentSecond = t
+		logCounter = 0
+	}
+	logCounter += 1
+	if !config.LogDebug && MaxPerSecond > 0 && logCounter > MaxPerSecond {
+		if logCounter == MaxPerSecond+1 {
+			sendChannel <- NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond))
+		}
+		return
+	}
+
+	sendChannel <- NewEvent(level, text, data...)
+}
+
+func SendLogsAndExit(code int) {
+	sendChannel <- url.Values{"exit": {strconv.Itoa(code)}}
+	time.Sleep(time.Hour) // wait for exit
 }
 
 const (
@@ -185,10 +217,9 @@ func RunGaugesLoop() {
 
 func LogGauges(reportTime int64) {
 	if !config.Current.Librato.Push {
-		tagPrefix := "[gauges " + tags + "]"
+		fmt.Printf("%s [gauges %s]\n", time.Now().Format(time.StampMilli), tags)
 		for _, gauge := range gauges {
-			fmt.Printf("%-30s %s: %v\n", tagPrefix, gauge.Name, gauge.input())
-			tagPrefix = ""
+			fmt.Printf("%s %s: %v\n", strings.Repeat(" ", len(time.StampMilli)), gauge.Name, gauge.input())
 		}
 		return
 	}

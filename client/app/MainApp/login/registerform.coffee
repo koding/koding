@@ -14,6 +14,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "firstName"
         placeholder   : "Your first name"
         validate      :
+          container   : this
           event       : "blur"
           rules       :
             required  : yes
@@ -27,6 +28,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         # defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
+          container   : this
           event       : "blur"
           rules       :
             required  : yes
@@ -38,6 +40,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "email"
         placeholder   : "Your email address"
         validate      :
+          container   : this
           event       : "blur"
           rules       :
             required  : yes
@@ -80,6 +83,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         forceCase        : "lowercase"
         placeholder      : "Desired username"
         validate         :
+          container      : this
           rules          :
             required     : yes
             rangeLength  : [4,25]
@@ -113,6 +117,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         type          : "password"
         placeholder   : "Create a password"
         validate      :
+          container   : this
           event       : "blur"
           rules       :
             required  : yes
@@ -131,6 +136,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         type          : "password"
         placeholder   : "Confirm your password"
         validate      :
+          container   : this
           event       : "blur"
           rules       :
             required  : yes
@@ -172,11 +178,18 @@ class RegisterInlineForm extends LoginViewInlineForm
         placeholder   : "your code..."
         # defaultValue  : "111"
         validate      :
+          container   : this
           event       : "blur"
           rules       :
             required  : yes
           messages    :
             required  : "Please enter your invitation code."
+
+    @entryPoint = new LoginInputView
+      inputOptions    :
+        name          : 'entryPoint'
+        type          : 'hidden'
+        defaultValue  : KD.config.entryPoint?.slug
 
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
@@ -307,28 +320,31 @@ class RegisterInlineForm extends LoginViewInlineForm
   pistachio:->
 
     """
-    <div>{{> @firstName}}{{> @lastName}}</div>
-    <div>{{> @email}}{{> @avatar}}</div>
-    <div>{{> @username}}</div>
-    <div>{{> @password}}</div>
-    <div>
-      {{> @passwordConfirm}}
-      <p class='kodingen-user-notification'>
-        <b>This</b> is a reserved Kodingen username, if you own this
-        account please type your Kodingen password above to unlock your old
-        username for the new Koding.
-      </p>
-    </div>
-    <div class='invitation-field invited-by hidden'>
-      <span class='icon'></span>
-      Invited by:
-      <span class='wrapper'></span>
-    </div>
-    <div class='invitation-field clearfix'>
+    <div class='invitation-field main-part clearfix'>
       <span class='icon'></span>
       Invitation code:
       {{> @invitationCode}}
     </div>
+    <section class='main-part'>
+      <div>{{> @firstName}}{{> @lastName}}</div>
+      <div>{{> @email}}{{> @avatar}}</div>
+      <div>{{> @username}}</div>
+      <div>{{> @password}}</div>
+      <div>
+        {{> @passwordConfirm}}
+        <p class='kodingen-user-notification'>
+          <b>This</b> is a reserved Kodingen username, if you own this
+          account please type your Kodingen password above to unlock your old
+          username for the new Koding.
+        </p>
+      </div>
+      <div class='invitation-field invited-by hidden'>
+        <span class='icon'></span>
+        Invited by:
+        <span class='wrapper'></span>
+      </div>
+    </section>
     <div>{{> @button}}</div>
     {{> @disabledNotice}}
+    {{> @entryPoint}}
     """

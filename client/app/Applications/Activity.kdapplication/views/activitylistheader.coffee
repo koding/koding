@@ -25,6 +25,9 @@ class ActivityListHeader extends JView
         @getSingleton('activityController').flags = liveUpdates : state
         @getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
+    @getSingleton('mainController').on 'AccountChanged', @bound 'decorateLiveUpdateButton'
+    @decorateLiveUpdateButton()
+
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
         defaultValue : off
@@ -32,8 +35,18 @@ class ActivityListHeader extends JView
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>
+
+      @refreshLink = new KDCustomHTMLView
+        tagName  : 'a'
+        cssClass : 'fr'
+        partial  : 'Refresh'
+        click    : (event)=>
+          @getSingleton('activityController').emit 'Refresh'
+
     else
       @lowQualitySwitch = new KDCustomHTMLView
+      @refreshLink      = new KDCustomHTMLView
+        tagName: "span"
 
     @appStorage.fetchStorage (storage)=>
       state = @appStorage.getValue('liveUpdates') or off
@@ -42,11 +55,15 @@ class ActivityListHeader extends JView
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   pistachio:(newCount)->
-    "<span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}}{{> @showNewItemsLink}}"
+    "<div class='header-wrapper'><span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     @_newItemsCount++
     @updateShowNewItemsLink()
+
+  decorateLiveUpdateButton:->
+    if KD.isLoggedIn() then @liveUpdateButton.show()
+    else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0

@@ -28,13 +28,13 @@ class AccountMyKiteListController extends KDListViewController
     ##################### Events ############################
     list.on "DeleteKiteSubmitted", @bound "deleteKite"
 
-    list.on "UpdateKiteSubmitted", @bound "updateDatabase"
+    list.on "UpdateKiteSubmitted", @bound "updateKite"
 
     list.on "CreateKiteSubmitted", @bound "createKite"
 
     @on "KiteDeleted", list.bound "removeItem"
 
-    @on "KiteUpdated", list.bound ""
+    # @on "KiteUpdated", list.bound ""
 
     @on "KiteCreated", (itemData)=>
       list.addItem itemData, null, {type : "slideDown", duration : 100}
@@ -95,7 +95,7 @@ class AccountMyKiteListController extends KDListViewController
     KD.remote.api.JKite.create data,(err, kite) =>
       if err
         @notify err.message, "fail"
-        form.modal.modalTabs.forms.MyKites.buttons.Create.hideLoader()
+        form.modal.modalTabs.forms.MyKites.buttons.create.hideLoader()
       else
         @notify 'Your kite is created', "success"
         @emit "KiteCreated", kite
@@ -131,7 +131,7 @@ class AccountMyKiteList extends KDListView
         forms                         :
           MyKites                     :
             callback                  : =>
-              @modal.modalTabs.forms.MyKites.buttons.Create.showLoader()
+              @modal.modalTabs.forms.MyKites.buttons.create.showLoader()
               @emit "CreateKiteSubmitted", @
             buttons                   :
               create                  :

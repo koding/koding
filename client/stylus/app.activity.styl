@@ -10,10 +10,22 @@ app.activity.styl
 */
 }
 
-#maintabpane-activity
+body.group
+  .content-area-pane.activity
+    #content-page-activity.fixed.loggedin.guest
+      .common-inner-nav
+        top                  51px
+      .activity-content
+        margin-top           0
+
+
+.content-area-pane.activity
   overflow                     hidden
   #content-page-activity
     height                     100%
+    .kdview.screenshots
+      margin-top               0
+      transition               margin-top .3s ease
     &.fixed
       .common-inner-nav
         top                    51px
@@ -23,20 +35,16 @@ app.activity.styl
         top                    51px
         fix()
       .activity-content
-        margin                 28px 0 0 138px
-      .feeder-header
-        top                    51px
-        fix()
+        margin                 0 0 0 138px
       &.loggedin
         .common-inner-nav
           top                  128px
         .activity-content
-          margin-top           105px
-        .feeder-header
-          top                  128px
+          margin-top           77px
 
 
   .activity-content
+    height                     auto
     min-height                 100%
     borderBox()
 
@@ -78,6 +86,7 @@ h1.kdheaderview.notification-header
     abs()
     bg                  position, -480px -100px
     sprite()
+    hidden()
   span
     font-size           18px
     padding             0
@@ -148,17 +157,29 @@ h1.kdheaderview.notification-header
   .feeder-header
     height                28px
     line-height           28px
+    .header-wrapper
+      max-width           800px
+      > a
+       font-size         88%
+       color             linkColor1
+       noTextDeco()
+      > span
+        fl()
     div.on-off
       margin              1px 0 0 12px
       font-size           88%
       color               #AAA
       fr()
-
       > a
-        text-decoration   none
         font-size         88%
 
     .new-updates
+      font-size           88%
+      margin-left         12px
+      fr()
+      > a
+       color             linkColor1
+       noTextDeco()
       span
         rounded           3px
         background-color  #FF9200
@@ -294,13 +315,13 @@ h1.kdheaderview.notification-header
 
     &.blog-post
       .type-icon
-        bg(position,-399px -376px)
+        bg(position,-707px -816px)
 
       // bg color,         #f5f5f5
       .read-this-link
         span.title
           color             #444
-          line-height       100%
+          line-height       1.25
           // font-size         24px
           // font-weight       bold
 
@@ -387,7 +408,7 @@ h1.kdheaderview.notification-header
     font-weight           500
     cursor                pointer
     display               inline-block
-  > p > span
+  > p:not(.blog-post-body) > span
     cursor                pointer
   p
     color                 #5F5F5F
@@ -2445,82 +2466,6 @@ div.activity-content-container
 //   div.led
 //     box-shadow                          none !important
 //     bg color,                           none !important
-
-div.virt-controls
-  width                                 auto
-  height                                25px
-  background-color                      white
-  padding                               2px
-
-  .vm-toggle
-    right                               20px
-    top                                 6px
-    abs()
-
-div.led-wrapper
-  borderBox()
-  width                                 auto
-  display                               inline-block
-  opacity 1
-  vendor transition, opacity .1s ease-in-out
-
-  div.label
-    padding-left                        22px
-    padding-top                         5px
-    font-size                           11px
-    font-weight                         bold
-    cursor                              pointer
-
-  div.led
-    left                                10px
-    top                                 10px
-    width                               6px
-    height                              6px
-    border-radius                       50%
-    display inline-block
-    abs()
-    borderBox()
-    vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out \, opacity 0.25s ease-in-out
-  &.red
-    .led
-      background-color                  #ff9200
-      // box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
-      animation-name                    pulseAlert
-      animation-duration                1s
-      animation-iteration-count         infinite
-  &.green
-    .led
-      animation-name                    pulseOnce
-      animation-duration                1s
-      animation-iteration-count         1
-      background-color                  #5f5f5f
-      // box-shadow                        rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
-      // box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 5px, #555 0 2px 14px
-  &.yellow
-    .led
-      background-color                  #ff0
-  &.blue
-    .led
-      background-color                  #00f
-      // box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
-  &.off
-    .led
-      background-color                  rgba(0,0,0,0)
-      // box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
-
-  &:hover
-    &.green
-      .led
-        bg color,                       #0f0
-    &.red
-      .led
-        bg color,                       #f60
-
-  &.pulse
-    .led
-      animation-name                    pulseOnce
-      animation-duration                1s
-      animation-iteration-count         1
 
 // ---
 div.status-leds

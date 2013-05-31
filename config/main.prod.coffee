@@ -20,6 +20,7 @@ module.exports = deepFreeze
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "https://koding.com"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -32,7 +33,14 @@ module.exports = deepFreeze
     enabled     : yes
     port        : sourceServerPort
   mongo         : mongo
+  neo4j         :
+    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
+    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
+    port        : 7474
+  runNeo4jFeeder: no
   runGoBroker   : yes
+  runKontrol    : no
+  runRerouting  : yes
   compileGo     : yes
   buildClient   : yes
   misc          :
@@ -71,7 +79,7 @@ module.exports = deepFreeze
     run         : yes
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 10
+    numberOfWorkers: 20
     watch       : no
     queueName   : socialQueueName
   feeder        :
@@ -92,6 +100,9 @@ module.exports = deepFreeze
     useStaticFileServer: no
     staticFilesBaseUrl: 'https://koding.com'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
+      useNeo4j: no
+      logToExternal: yes  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: yes
       version   : version
@@ -144,4 +155,5 @@ module.exports = deepFreeze
     email: "devrim@koding.com"
     token: "3f79eeb972c201a6a8d3461d4dc5395d3a1423f4b7a2764ec140572e70a7bce0"
     interval: 60000
-
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

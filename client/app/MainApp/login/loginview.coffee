@@ -6,9 +6,7 @@ class LoginView extends KDScrollView
 
   constructor:(options = {}, data)->
 
-    entryPoint = if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-      KD.config.profileEntryPoint or KD.config.groupEntryPoint
-    else ''
+    {entryPoint} = KD.config
 
     super options, data
 
@@ -17,10 +15,8 @@ class LoginView extends KDScrollView
     @bindTransitionEnd()
 
     handler =(route, event)=>
-      route = "/#{entryPoint}#{route}" if entryPoint
       stop event
-      log route
-      @getSingleton('router').handleRoute route
+      @getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -86,7 +82,7 @@ class LoginView extends KDScrollView
       callback : (formData)=> @doRequest formData
 
     @headBanner = new KDCustomHTMLView
-      lazyDomId: "invite-recovery-notification-bar"
+      domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
@@ -181,7 +177,7 @@ class LoginView extends KDScrollView
           duration  : 2000
         KD.getSingleton('router').clear()
         setTimeout =>
-          @animateToForm "login"
+          @hide()
           @registerForm.reset()
           @registerForm.button.hideLoader()
           # setTimeout =>
@@ -193,6 +189,9 @@ class LoginView extends KDScrollView
     credentials.username = credentials.username.toLowerCase()
     KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
       @loginForm.button.hideLoader()
+
+      {entryPoint} = KD.config
+
       if error
         new KDNotificationView
           title   : error.message
@@ -206,7 +205,7 @@ class LoginView extends KDScrollView
         mainView.show()
         mainView.$().css "opacity", 1
 
-        @getSingleton('router').handleRoute @getRouteWithEntryPoint('Activity'), replaceState: yes
+        @getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
 
         new KDNotificationView
           cssClass  : "login"
@@ -215,27 +214,27 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
+        mainController.emit "UserLoggedIn"
+
         @hide()
 
-        if KD.config.profileEntryPoint? or KD.config.groupEntryPoint?
-          @getSingleton('lazyDomController').hideLandingPage()
-
   doRequest:(formData)->
-
-    KD.remote.api.JInvitationRequest.create formData, (err, result)=>
-
-      if err
-        msg = if err.code is 11000 then "This email was used for a request before!"
-        else "Something went wrong, please try again!"
-        new KDNotificationView
-          title     : msg
-          duration  : 2000
-      else
-        @requestForm.reset()
-        @requestForm.email.hide()
-        @requestForm.button.hide()
-        @$('.flex-wrapper').addClass 'expanded'
-      @requestForm.button.hideLoader()
+    {entryPoint} = KD.config
+    slug = if entryPoint?.type is 'group' and entryPoint.slug\
+           then entryPoint.slug else 'koding'
+    KD.remote.cacheable slug, (err, [group])=>
+      group.requestAccess formData, (err)=>
+        if err
+          warn err
+          new KDNotificationView
+            title     : 'Something went wrong, please try again!'
+            duration  : 2000
+        else
+          @requestForm.reset()
+          @requestForm.email.hide()
+          @requestForm.button.hide()
+          @$('.flex-wrapper').addClass 'expanded'
+        @requestForm.button.hideLoader()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
@@ -260,13 +259,6 @@ class LoginView extends KDScrollView
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
 
-  handleInvitation:(invite)->
-    @headBannerShowInvitation invite
-    sgc = @getSingleton 'staticGroupController'
-    sgc.once "status.guest", ->
-      sgc.requestButton.hide()
-    sgc.userButtonBar.registerButton.setClass 'green'
-
   headBannerShowInvitation:(invite)->
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
@@ -279,9 +271,13 @@ class LoginView extends KDScrollView
 
   hide:(callback)->
 
-    @setY -@getSingleton('windowController').winWidth
+    @setY -@getSingleton('windowController').winHeight
 
     cb = =>
+      @requestForm.email.show()
+      @requestForm.button.show()
+      @$('.flex-wrapper').removeClass 'expanded'
+
       @emit "LoginViewHidden"
       @hidden = yes
       callback?()
@@ -303,10 +299,20 @@ class LoginView extends KDScrollView
 
   click:(event)->
     if $(event.target).is('.login-screen')
-      @hide =>
-        {groupEntryPoint} = KD.config
-        route = if groupEntryPoint then "/#{groupEntryPoint}/Activity" else "/Activity"
-        @getSingleton('router').handleRoute route
+      @hide ->
+        router = KD.getSingleton('router')
+        routed = no
+        for route in router.visitedRoutes by -1
+          {entryPoint} = KD.config
+          routeWithoutEntryPoint =
+            if entryPoint?.type is 'group' and entryPoint.slug
+            then route.replace "/#{entryPoint.slug}", ''
+            else route
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
+            router.handleRoute route
+            routed = yes
+            break
+        router.clear()  unless routed
 
   animateToForm: (name)->
 
@@ -318,12 +324,12 @@ class LoginView extends KDScrollView
 
           KD.remote.api.JUser.isRegistrationEnabled (status)=>
             if status is no
-              @registerForm.$('div').hide()
-              @registerForm.$('section').show()
               log "Registrations are disabled!!!"
+              @registerForm.$('.main-part').addClass 'hidden'
+              @registerForm.disabledNotice.show()
             else
-              @registerForm.$('section').hide()
-              @registerForm.$('div').show()
+              @registerForm.disabledNotice.hide()
+              @registerForm.$('.main-part').removeClass 'hidden'
         when "home"
           parent.notification?.destroy()
           if @headBannerMsg?
@@ -335,8 +341,8 @@ class LoginView extends KDScrollView
       @setClass name
 
   getRouteWithEntryPoint:(route)->
-    {groupEntryPoint} = KD.config
-    if groupEntryPoint and groupEntryPoint isnt 'koding'
-      return "/#{groupEntryPoint}/#{route}"
+    {entryPoint} = KD.config
+    if entryPoint and entryPoint.slug isnt 'koding'
+      return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"

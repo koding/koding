@@ -85,7 +85,7 @@ class MainTabHandleHolder extends KDView
           contextMenu.treeController.addNode app, index
           index++
 
-  removePlusHandle:()->
+  removePlusHandle:->
     @plusHandle.destroy()
 
   _repositionPlusHandle:(event)->

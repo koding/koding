@@ -6,7 +6,7 @@ class AdminModal extends KDModalViewWithForms
       title                   : "Admin Panel"
       content                 : "<div class='modalformline'>With great power comes great responsibility. ~ Stan Lee</div>"
       overlay                 : yes
-      width                   : 500
+      width                   : 600
       height                  : "auto"
       cssClass                : "admin-kdmodal"
       tabs                    :
@@ -316,7 +316,8 @@ class AdminModal extends KDModalViewWithForms
                     cssClass  : 'type-explain'
                     itemClass : KDView
                     partial   : 'This will show a timer.'
-
+          "Introduction":
+            fields            : {}
 
     super options, data
 
@@ -327,6 +328,7 @@ class AdminModal extends KDModalViewWithForms
 
     @initInviteTab()
     @initMigrateTab()
+    @initIntroductionTab()
     @createUserAutoComplete()
 
   createUserAutoComplete:->
@@ -390,3 +392,7 @@ class AdminModal extends KDModalViewWithForms
     fields.Invites.show()
     inputs.Invites.setPlaceHolder 'Loading...'
     buttons.Update.show()
+
+  initIntroductionTab: ->
+    parentView = @modalTabs.forms["Introduction"]
+    parentView.addSubView new IntroductionAdmin { parentView }

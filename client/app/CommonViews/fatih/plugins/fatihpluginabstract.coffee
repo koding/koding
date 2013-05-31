@@ -48,13 +48,11 @@ class FatihPluginAbstract extends KDController
 
       @createList items, itemClass
 
-      @createShowMoreLink list.length - maxItemCount if hasMoreItem
+      @createShowMoreLink list, itemClass, list.length - maxItemCount if hasMoreItem
 
       callback()
 
       @fatihView.emit "PluginViewReadyToShow", @listController.getView()
-
-    @registerIndex()
 
   createList: (items, itemClass) ->
     @listController = new KDListViewController
@@ -69,7 +67,7 @@ class FatihPluginAbstract extends KDController
         itemClass : itemClass
     , items       : items
 
-  createShowMoreLink: (diff) ->
+  createShowMoreLink: (list, itemClass, diff) ->
     @listController.on "AllItemsAddedToList", =>
       @listController.getView().addSubView new KDView
         cssClass : "fatih-plugin-show-more"

@@ -1,5 +1,7 @@
 class KDTabHandleView extends KDView
-  constructor:(options = {})->
+
+  constructor: (options = {}, data) ->
+
     options.hidden   ?= no        # yes or no
     options.title    ?= "Title"   # a String
     options.pane     ?= null      # a KDTabPaneView instance
@@ -11,12 +13,14 @@ class KDTabHandleView extends KDView
       options.draggable  = axis: "x"
       @dragStartPosX = null
 
-    super options
+    super options, data
 
     @on "DragStarted", (event, dragState) =>
+      @startedDragFromCloseElement = $(event.target).hasClass "close-tab"
       @handleDragStart event, dragState
 
     @on "DragInAction", (x, y) =>
+      @dragIsAllowed = no if @startedDragFromCloseElement
       @handleDragInAction x, y
 
     @on "DragFinished", (event) =>

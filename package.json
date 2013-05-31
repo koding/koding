@@ -18,6 +18,7 @@
     "aws2js"          : "0.8.2",
     "aws-sdk"         : "0.9.5-pre.6",
     "bitly"           : "1.2.4",
+    "cli-table"       : "0.2.0",
     "coffee-script"   : "1.6.2",
     "colors"          : "0.6.0-1",
     "commander"       : "1.0.4",
@@ -54,7 +55,9 @@
     "underscore"      : "1.2.3",
     "url"             : "0.4.9",
     "validator"       : "0.2.0",
-    "ws"              : "0.4.25"
+    "neo4j"           : "0.2.20",
+    "ws"              : "0.4.25",
+    "xml2js"          : "0.2.6"
   },
   "devDependencies": {},
   "optionalDependencies": {},

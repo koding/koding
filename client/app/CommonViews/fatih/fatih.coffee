@@ -4,7 +4,6 @@ class Fatih extends KDModalView
 
     options.cssClass       = "fatih"
     options.width          = 500
-    options.sticky         = yes
     options.position       =
       top : "10%"
 
@@ -78,7 +77,10 @@ class Fatih extends KDModalView
       @fetchStorage =>
         @getFromStorage "preferences", (prefs) =>
           @updatePluginsKeyword prefs
+
       @addDefaultPlugins()
+
+      @plugins[plugin].registerIndex() for plugin of @plugins when @isUserLoggedIn()
 
     # @on "ReceivedClickElsewhere", => @destroy()
 
@@ -90,7 +92,7 @@ class Fatih extends KDModalView
 
       @utils.wait 300, => @lastPressedKey = null if isOptionPressed
 
-      if (isOptionPressed and isLastPressedKeyOption) or isCtrlAndSpacePressed
+      if ((isOptionPressed and isLastPressedKeyOption) or isCtrlAndSpacePressed) and @isUserLoggedIn()
         @show()
         @showStaticViews()
         @input.setFocus()
@@ -156,6 +158,7 @@ class Fatih extends KDModalView
     @addPlugin plugin
 
   createPluginInstance: (ClassName, options = {}, data = {}) ->
+    return unless ClassName
     options.delegate = @
     new ClassName options, data
 
@@ -202,6 +205,9 @@ class Fatih extends KDModalView
     return if len is staticsLen
     for i in [len - 1..staticsLen]
       subViews[i].destroy()
+
+  isUserLoggedIn: ->
+    return KD.whoami() instanceof KD.remote?.api?.JAccount
 
   destroy: ->
     @hide()

@@ -22,6 +22,7 @@
   <![endif]-->
 
   <div class="kdview" id="kdmaincontainer">
+    <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
     <header class="kdview" id='main-header'>
       <a class="" id="koding-logo" href="#"><span></span></a>
     </header>
@@ -82,46 +83,62 @@
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">
-              <div class="kdview screenshots">
-                <div>
-                  <h1 class="kdview kdheaderview notification-header">
-                    <div><span>Welcome to the Koding Public Beta!<br></span><cite>Warning! when we say beta - <a href="#">we mean it</a> :)</cite></div>
-                    <i></i>
-                  </h1>
-                </div>
-                <a class="arrow left" href="#" style="left: -40px;"><span></span></a>
-                <a class="arrow right" href="#" style="right: 0px;"><span></span></a>
-                <section class="kdview kdscrollview">
-                  <ul class="clearfix">
-                    <li>
-                      <div>
+              <div class="kdview screenshots extra-wide" id="home-header">
+                <section class="kdview" id="home-slideshow">
+                  <ul class="kdview clearfix">
+                    <li class="" style="background-image: url(/images/bg/blurred/1.jpg);">
+                      <p><span>A new way for</span><br><span>developers to work.</span></p>
+                    </li>
+                    <li class="to-right" style="background-image: url(/images/bg/blurred/2.jpg);">
+                      <p><span>Real software development</span><br><span>in the browser...</span></p>
+                    </li>
+                    <li class="to-right" style="background-image: url(/images/bg/blurred/3.jpg);">
+                      <p><span>with a great community </span><br><span>of developers...</span></p>
+                    </li>
+                    <li class="to-right" style="background-image: url(/images/bg/blurred/4.jpg);">
+                      <p><span>with a real VM and </span><br><span>a real Terminal...</span></p>
+                    </li>
+                    <li class="to-right" style="background-image: url(/images/bg/blurred/5.jpg);">
+                      <p><span>and free for all...</span></p>
+                    </li>
+                    <li class="to-right" style="background-image: url(/images/bg/blurred/6.jpg);">
+                      <figure class="video">
                         <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="100%" height="100%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen="" allowfullscreen=""></iframe>
-                      </div>
-                    </li>
-                    <li>
-                      <img src="/images/demo-screenshots/sc-code.jpg">
-                      <p class="flex-caption">A new way for developers to work.<span>We said.</span></p>
-                    </li>
-                    <li>
-                      <img src="/images/demo-screenshots/sc-activity.jpg">
-                      <p class="flex-caption">Wow! Cool - good luck!<span>Someone we talked to the other day...</span></p>
-                    </li>
-                    <li>
-                      <img src="/images/demo-screenshots/sc-terminal.jpg">
-                      <p class="flex-caption">I don't get it... What is it, again?<span>Same dude.</span></p>
-                    </li>
-                    <li>
-                      <img src="/images/demo-screenshots/sc-apps.jpg">
-                      <p class="flex-caption">Real software development in the browser...<span>Us again.</span></p>
-                    </li>
-                    <li>
-                      <img src="/images/demo-screenshots/sc-apps.jpg">
-                      <p class="flex-caption">with a real VM and a real Terminal?<span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span></p>
+                      </figure>
                     </li>
                   </ul>
                 </section>
-                <div class="home-links">
-                  <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
+                <div class="home-links kdview" id="home-login-bar">
+                  <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a>
+                  <a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a>
+                  <a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register an account</span></a>
+                  <a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
+                </div>
+                <div id="home-counter-bar" class="counters">
+                  <figure class="counter">
+                    <h6 class="title">Members:</h6>
+                    <div><i><span></span>0</i></div>
+                  </figure>
+                  <figure class="counter">
+                    <h6 class="title">Virtual Machines:</h6>
+                    <div><i><span></span>0</i></div>
+                  </figure>
+                  <figure class="counter">
+                    <h6 class="title">Lines of Code:</h6>
+                    <div><i><span></span>0</i></div>
+                  </figure>
+                  <figure class="counter">
+                    <h6 class="title">Groups:</h6>
+                    <div><i><span></span>0</i></div>
+                  </figure>
+                  <figure class="counter">
+                    <h6 class="title">Topics:</h6>
+                    <div><i><span></span>0</i></div>
+                  </figure>
+                  <figure class="counter">
+                    <h6 class="title">Thoughts shared:</h6>
+                    <div><i><span></span>0</i></div>
+                  </figure>
                 </div>
               </div>
               <div class="kdview fl common-inner-nav">
@@ -150,7 +167,7 @@
                   <div class="kdview feeder-header clearfix"><span>Latest Activity</span></div>
                   <div class="kdview kdscrollview">
                     <div class="kdview kdlistview kdlistview-default activity-related"></div>
-                    <div class="lazy-loader">Loading...<span class="kdview kdloader" style="width: 16px; height: 16px;"><span id="cl_kd-477" class="canvas-loader" style="display: block;"><canvas width="16" height="16"></canvas><canvas style="display: none;" width="16" height="16"></canvas></span></span></div>
+                    <div class="lazy-loader">Loading...</div>
                   </div>
                 </div>
               </div>
@@ -167,9 +184,12 @@
   <script src="/js/require.js"></script>
   <script>
     require.config({baseUrl: "/js", waitSeconds:15});
-    require(["order!/js/libs/highlight.pack.js","order!/js/kd.js"]);
+    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.js"]);
   </script>
-  <script>
+
+  <script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!== typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]); b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]); mixpanel.init("113c2731b47a5151f4be44ddd5af0e7a");</script>
+
+  <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-6520910-8']);
     _gaq.push(['_setDomainName', 'koding.com']);

@@ -40,10 +40,14 @@ KD.log   = log   = noop
 KD.warn  = warn  = noop
 KD.error = error = noop
 
+
 unless window.event?
-  # warn when the global "event" property is accessed.
-  Object.defineProperty window, "event", get:->
-    KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
+  try
+    # warn when the global "event" property is accessed.
+    Object.defineProperty window, "event", get:->
+      KD.warn "Global \"event\" property is accessed. Did you forget a parameter in a DOM event handler?"
+  catch e
+    log "we fail silently!", e
 
 @KD = $.extend (KD), do ->
   # private member for tracking z-indexes
@@ -68,6 +72,7 @@ unless window.event?
 
   debugStates     : {}
   instances       : {}
+  introInstances  : {}
   singletons      : {}
   subscriptions   : []
   classes         : {}
@@ -76,6 +81,9 @@ unless window.event?
   utils           : __utils
   appClasses      : {}
   appScripts      : {}
+  lastFuncCall    : null
+
+  nick:-> KD.whoami().profile.nickname
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
@@ -97,28 +105,46 @@ unless window.event?
             return yes
     no
 
-  requireLogin:(errMsg, callback)->
+  requireLogin:(options={})->
 
-    [callback, errMsg] = [errMsg, callback] unless callback
+    {callback, onFailMsg, onFail, silence, tryAgain} = options
 
-    if KD.whoami() instanceof KD.remote.api.JGuest
-      new KDNotificationView
-        type     : 'growl'
-        title    : 'Access denied!'
-        content  : errMsg or 'You must log in to perform this action!'
-        duration : 3000
+    unless KD.isLoggedIn()
+
+      if onFailMsg
+        new KDNotificationView
+          type     : 'mini'
+          cssClass : 'error'
+          title    : onFailMsg
+          duration : 3500
+
+      onFail?()
+
+      unless silence
+        @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+
+      if callback? and tryAgain
+        unless KD.lastFuncCall
+          {mainController} = KD.singletons
+          mainController.once "accountChanged.to.loggedIn", ->
+            KD.lastFuncCall?()
+            KD.lastFuncCall = null
+        KD.lastFuncCall = callback
+
     else
       callback?()
 
-  socketConnected:()->
+  socketConnected:->
     @backendIsConnected = yes
-    KDObject.emit "KDBackendConnectedEvent"
 
   setApplicationPartials:(@appPartials)->
 
   registerInstance : (anInstance)->
     warn "Instance being overwritten!!", anInstance  if @instances[anInstance.id]
     @instances[anInstance.id] = anInstance
+
+    {introId} = anInstance.getOptions()
+    @introInstances[introId] = anInstance if introId
     # @classes[anInstance.constructor.name] ?= anInstance.constructor
 
   unregisterInstance: (anInstanceId)->
@@ -167,6 +193,7 @@ unless window.event?
     options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
+    options.menu         or= null         # {Array.<Object{{title: string, eventName: string, shortcut: string}}>}
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes
@@ -232,7 +259,7 @@ unless window.event?
       KD.error   = error   = if console?.error   then console.error.bind(console)   else noop
       KD.time    = time    = if console?.time    then console.time .bind(console)   else noop
       KD.timeEnd = timeEnd = if console?.timeEnd then console.timeEnd.bind(console) else noop
-
+      KD.logsEnabled = yes
       return "Logs are enabled now."
 
   exportKDFramework:->

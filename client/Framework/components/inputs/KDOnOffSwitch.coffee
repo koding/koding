@@ -5,8 +5,8 @@
 class KDOnOffSwitch extends KDInputView
   constructor:(options = {}, data)->
 
+    options.type           = "switch"
     options.title        or= ""
-    options.type         or= "switch"       # mandatory
     options.size         or= "small"        # a String tiny/small/big
     options.labels       or= ["ON", "OFF"]
     options.defaultValue  ?= off

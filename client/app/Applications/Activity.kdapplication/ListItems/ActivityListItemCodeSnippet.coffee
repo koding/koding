@@ -12,23 +12,12 @@ class CodesnipActivityItemView extends ActivityItemChild
     ,options
     super options,data
 
-    codeSnippetData = @getData().attachments[0]
+    codeSnippetData = @getData().attachments?[0] or ""
     codeSnippetData.title = @getData().title
 
+    if @getData().fake then codeSnippetData.content = Encoder.htmlEncode codeSnippetData.content
+
     @codeSnippetView = new CodeSnippetView {}, codeSnippetData
-
-    # @codeShareBoxView = new CodeShareBox
-    #   allowEditing:no
-    #   allowClosing:no
-    #   hideTabs:yes
-    # ,data
-
-    # log data.meta.tags
-    # @tagGroup = new LinkGroup {
-    #   group         : data.meta.tags
-    #   itemsToShow   : 3
-    #   itemClass  : TagFollowBucketItemView
-    # }
 
   render:->
     super()
@@ -45,7 +34,8 @@ class CodesnipActivityItemView extends ActivityItemChild
     super
 
     if $(event.target).is(".activity-item-right-col h3")
-      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+      {entryPoint} = KD.config
+      KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", { state:@getData(), entryPoint }
 
   viewAppended: ->
     return if @getData().constructor is KD.remote.api.CCodeSnipActivity
@@ -127,7 +117,7 @@ class CodeSnippetView extends KDCustomHTMLView
         title   : 'Save'
       callback  : ->
         {nickname} = KD.whoami().profile
-        rootPath   = "/Users/#{nickname}/Documents/CodeSnippets"
+        rootPath   = "/home/#{nickname}/Documents/CodeSnippets"
         fileName   = "#{@utils.slugify title}.#{__aceSettings.syntaxAssociations[syntax][1].split('|')[0]}"
         fullPath   = "#{rootPath}/#{fileName}"
 

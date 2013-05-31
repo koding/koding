@@ -4,6 +4,83 @@
 @import "nib/gradients"
 @import "nib/vendor"
 
+.group-bundle-plan-sliders
+  padding             10px
+  div
+    clear             both
+  label
+    line-height       30px
+    font-size         24px
+    display           block
+    float             left
+    clear             left
+    width             250px
+  input
+    height            30px
+    line-height       30px
+
+
+.group-bundle-limits
+  clear             both
+  float             none
+
+.group-bundle-limit
+  height            200px
+  width             200px
+  background-color  #efefef
+  padding           10px
+  text-align        center
+  float             left
+  margin            0 10px 10px 0
+  h2
+    padding         0
+    font-size       18px
+    letter-spacing  2px
+  h3
+    padding         0
+    font-size       40px
+  h4
+    padding         0
+    font-size       14px
+    letter-spacing  2px
+
+#home-group-header
+  > section
+    height              auto
+    padding-bottom      35px
+
+  .group-desc
+    margin                30px
+    line-height           30px
+    font-size             16px
+    color                 white
+    text-shadow           0 1px 0 rgba(0, 0, 0, .75)
+    bg                    color, transparent
+    max-width             800px
+    text-align            left
+
+  .readme
+    bg                    color, #fff
+    padding               30px
+    max-width             800px
+    text-align            left
+    borderBox()
+
+    textarea.readme-input
+      width               100%
+      min-height          200px
+
+    button.readme-save
+      margin              0 0 10px
+      fr()
+
+    a.readme-cancel
+      margin              -6px 0 3px 10px
+      fr()
+
+    button.readme-edit
+      margin              0 10px 10px 0
+
 #group-content
   height            100%
   width             64%
@@ -146,15 +223,6 @@
         list-style        none
         li
           blockMid()
-//group-content-layout
-
-.test-btn
-  // bg(color,lightBlue)
-  width                 auto
-  height                auto
-  abs()
-  left                  0
-  top                   0
 
 .list-filter
   margin                20px 0
@@ -243,15 +311,16 @@
     &:hover
       div.groups-settings-menu
         opacity 1
-
-    &:nth-child(2n)
-      margin-right          2%
-
-    &.own-group
+    &.pending-request
+    &.pending-invitation
+    &.group-member
       .badge.member
         visible()
-      .group-settings-context
+        border-right          1px solid rgba(255, 255, 255, .2)
+      .kdbuttonwithmenu-wrapper.group-settings-context
         visible()
+      .badge.private
+        border-right          1px solid rgba(255, 255, 255, .2)
 
     .side-wrapper
       top                     0
@@ -265,6 +334,14 @@
       size                    auto, auto
       margin-top              18px
 
+    &.group-admin
+      .badge
+        bg                    color, #0896BD
+        text-shadow           0 -1px 0 #184175
+    &.group-owner
+      .badge
+        bg                    color, #6DC021
+        text-shadow           0 -1px 0 #258A25
     .badge
       font-style              normal
       font-weight             600
@@ -280,22 +357,40 @@
       rel()
       &.member
         hidden()
-      &.private
-        background-color      #0896bd
-        .icon
-          display             block
-          margin-top          4px
-          size                18px, 18px
-          bg                  position, -80px -640px
-          sprite()
+      &.private .icon
+        display               block
+        margin-top            4px
+        size                  18px, 18px
+        bg                    position, -80px -640px
+        sprite()
 
-    .group-settings-context
+    .kdbuttonwithmenu-wrapper.group-settings-context
       fr()
       rel()
       hidden()
       height                28px
+      width                 19px
+      // bg                    color, #FFEDD2
+      padding               0
+      cursor                pointer
+      &:hover
+        bg                  image, none
+        bg                  color, none
+        shadow              none
+
+      span.chevron-separator
+        hidden()
+
+      span.chevron
+        margin              1px -1px 0 0
+        bg                  position, -180px -380px
+
       span
-        height              28px
+        height              20px
+
+    button.group-settings-context
+      border-width          0
+      padding-right         0!important
 
     .members-list-wrapper
       abs()
@@ -365,14 +460,6 @@
       abs()
       // shadow                  0 1px 5px rgba(0,0,0,.3)
       // fl()
-      .avatar-image
-        margin-top            18px
-        display               block
-        text-decoration       none
-        background-size       cover
-        background-position   center
-        // bg                    image, url("../images/defaultavatar/default.group.128.png")
-        size                  100%, 128px
 
     .wrapper
       overflow          hidden
@@ -494,3 +581,32 @@
           size 15px 15px
           margin               0 6px 0 0
           vertical-align       middle
+
+.kdbuttonmenu.group-settings-context
+  .cancel-request
+  .accept-invitation
+  .ignore-invitation
+  .leave-group
+  .remove-group
+    hidden()
+
+  &.pending-request .cancel-request
+    visible()
+  &.pending-invitation .accept-invitation
+  &.pending-invitation .ignore-invitation
+    visible()
+  &.group-member .leave-group
+    visible()
+  &.group-owner
+    .kdlistitemview-contextitem.leave-group
+      hidden()
+    .remove-group
+      visible()
+
+.create-group-button
+  right       226px
+  top         25px
+  abs()
+  .button-title
+    font-size 13px
+

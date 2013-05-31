@@ -14,7 +14,6 @@ class ProfileView extends JView
           top  : @avatar.getBounds().y - 8
           left : @avatar.getBounds().x - 8
         modal = new KDModalView
-          # title   : "#{memberData.profile.firstName} #{memberData.profile.lastName}"
           width    : 400
           fx       : yes
           overlay  : yes
@@ -27,59 +26,24 @@ class ProfileView extends JView
         , memberData
     , memberData
 
-    #defaultState  = if memberData.followee? and not memberData.followee then "Follow" else "Unfollow"
-    defaultState = if memberData.followee then "Unfollow" else "Follow"
+    defaultState = if memberData.followee is yes then "Unfollow" else "Follow"
 
     @followButton = new MemberFollowToggleButton
       style           : "kdwhitebtn profilefollowbtn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : defaultState
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        # left          : 3
-      states          : [
-        title         : "Follow"
-        callback      : (callback)->
-          memberData.follow (err, response)=>
-            @hideLoader()
-            unless err
-              memberData.followee = yes
-              @setClass 'following-btn'
-              callback? null
-      ,
-        title         : "Unfollow"
-        callback      : (callback)->
-          memberData.unfollow (err, response)=>
-            @hideLoader()
-            unless err
-              memberData.followee = no
-              @unsetClass 'following-btn'
-              callback? null
-      ]
     , memberData
-
-    unless memberData.followee?
-      KD.whoami().isFollowing? memberData.getId(), "JAccount", (following) =>
-        memberData.followee = following
-        if memberData.followee
-          @followButton.setClass 'following-btn'
-          @followButton.setState "Unfollow"
-        else
-          @followButton.setState "Follow"
-          @followButton.unsetClass 'following-btn'
 
     @skillTags = @putSkillTags()
 
+    {nickname} = memberData.profile
     @followers = new KDView
       tagName     : 'a'
       attributes  :
         href      : '#'
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.followers is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        KD.getSingleton('router').handleRoute "/#{nickname}/Followers", {state:memberData}
     , memberData
 
     @following = new KDView
@@ -88,8 +52,9 @@ class ProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        KD.getSingleton('router').handleRoute "/#{nickname}/Following", {state:memberData}
     , memberData
 
     @likes = new KDView
@@ -98,8 +63,9 @@ class ProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
+        KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
     , memberData
 
     @sendMessageLink = new MemberMailLink {}, memberData
@@ -127,19 +93,13 @@ class ProfileView extends JView
     else
       @trollSwitch = new KDCustomHTMLView
 
-  click:(event)->
-
-    $trg = $(event.target)
-    more = "span.collapsedtext a.more-link"
-    less = "span.collapsedtext a.less-link"
-    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
-    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+  click: KD.utils.showMoreClickHandler
 
   putNick:(nick)-> "@#{nick}"
 
   pistachio:->
     account      = @getData()
-    userDomain   = "#{account.profile.nickname}.koding.com"
+    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     {nickname}   = account.profile
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     """
@@ -159,7 +119,6 @@ class ProfileView extends JView
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
           <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
-          <a class="user-profile-link" href="/#{nickname}" target="#{nickname}">Public Page</a>
 
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>

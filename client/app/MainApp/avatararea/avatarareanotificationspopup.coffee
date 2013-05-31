@@ -1,9 +1,10 @@
 class AvatarPopupNotifications extends AvatarPopup
 
-  activitesArrived:-> #log arguments
+  constructor:->
+    @notLoggedInMessage = 'Login required to see notifications'
+    super
 
   viewAppended:->
-
     super
 
     @_popupList = new PopupList
@@ -32,9 +33,11 @@ class AvatarPopupNotifications extends AvatarPopup
         @hide()
 
   hide:->
-    KD.whoami()?.glanceActivities =>
-      for item in @listController.itemsOrdered
-        item.unsetClass 'unread'
-      @noNotification.show()
-      @listController.emit 'NotificationCountDidChange', 0
+    if KD.isLoggedIn()
+      KD.whoami().glanceActivities =>
+        for item in @listController.itemsOrdered
+          item.unsetClass 'unread'
+        @noNotification.show()
+        @listController.emit 'NotificationCountDidChange', 0
+
     super

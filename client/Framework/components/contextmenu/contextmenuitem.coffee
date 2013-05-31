@@ -13,6 +13,9 @@ class JContextMenuItem extends JTreeItemView
       if data.type is "divider" or data.type is "separator"
         @setClass "separator"
 
+      if data.cssClass
+        @setClass data.cssClass
+
       if data.type is "customView"
         @setTemplate ""
         @addCustomView data

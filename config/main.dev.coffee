@@ -12,6 +12,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "http://localhost:3000"
+  userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -23,8 +24,15 @@ module.exports =
   sourceServer  :
     enabled     : yes
     port        : 1337
-  mongo         : 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+  neo4j         :
+    read        : "http://neo4j-dev.in.koding.com"
+    write       : "http://neo4j-dev.in.koding.com"
+    port        : 7474
+  mongo         : mongo
+  runNeo4jFeeder: no
   runGoBroker   : no
+  runKontrol    : no
+  runRerouting  : no
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -92,6 +100,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3000'
     runtimeOptions:
+      userSitesDomain: 'kd.io'
+      useNeo4j: no
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
@@ -140,3 +151,20 @@ module.exports =
   pidFile       : '/tmp/koding.server.pid'
   haproxy:
     webPort     : 3020
+  kontrold        :
+    api           :
+      port        : 8000
+    proxy         :
+      port        : 8080
+      portssl     : 8081
+      sslips      : '127.0.0.1'
+    mongo         :
+      host        : '127.0.0.1'
+    rabbitmq      :
+      host        : 'localhost'
+      port        : '5672'
+      login       : 'guest'
+      password    : 'guest'
+      vhost       : '/'
+  recurly       :
+    apiKey      : '0cb2777651034e6889fb0d091126481a'

@@ -9,16 +9,18 @@ class KDTabView extends KDScrollView
     options.sortable             ?= no
     options.hideHandleContainer  ?= no
     options.hideHandleCloseIcons ?= no
+    options.tabHandleContainer   ?= null
     @handles                      = []
     @panes                        = []
     @selectedIndex                = []
     @tabConstructor               = options.tabClass ? KDTabPaneView
+    @lastOpenPaneIndex            = 0
 
     super options, data
 
     @activePane = null
 
-    @setTabHandleContainer options.tabHandleContainer ? null
+    @setTabHandleContainer options.tabHandleContainer
 
     @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
@@ -64,7 +66,8 @@ class KDTabView extends KDScrollView
 
       paneInstance.tabHandle = newTabHandle
       @appendPane paneInstance
-      @showPane paneInstance  if shouldShow
+      if shouldShow and not paneInstance.getOption 'lazy'
+        @showPane paneInstance
       @emit "PaneAdded", paneInstance
 
       newTabHandle.$().css maxWidth: @getOptions().maxHandleWidth
@@ -107,10 +110,18 @@ class KDTabView extends KDScrollView
     @handles.splice index, 1
     handle.destroy()
     if isActivePane
-      newIndex = if @getPaneByIndex(index-1)? then index-1 else 0
-      @showPane @getPaneByIndex(newIndex) if @getPaneByIndex(newIndex)?
+      if prevPane = @getPaneByIndex @lastOpenPaneIndex
+        @showPane prevPane
+      else if firstPane = @getPaneByIndex 0
+        @showPane firstPane
+
     @emit "PaneRemoved"
 
+  removePaneByName:(name)->
+    for pane in @panes
+      if pane.name is name
+        @removePane pane
+        break
 
   appendHandleContainer:()->
     @addSubView @tabHandleContainer
@@ -143,6 +154,7 @@ class KDTabView extends KDScrollView
   #SHOW/HIDE ELEMENTS
   showPane:(pane)->
     return unless pane
+    @lastOpenPaneIndex = @getPaneIndex @getActivePane()
     @hideAllPanes()
     pane.show()
     index  = @getPaneIndex pane

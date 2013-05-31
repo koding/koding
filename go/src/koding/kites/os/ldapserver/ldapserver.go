@@ -1,7 +1,6 @@
 package ldapserver
 
 import (
-	"fmt"
 	"github.com/hsoj/asn1-ber"
 	"io"
 	"koding/tools/db"
@@ -28,18 +27,22 @@ func Listen() {
 		}
 	}()
 
-	ln, err := net.Listen("tcp", ":389")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	for {
-		conn, err := ln.Accept()
+		ln, err := net.Listen("tcp", ":389")
 		if err != nil {
-			fmt.Println(err)
+			log.LogError(err, 0)
+			time.Sleep(time.Second)
 			continue
 		}
-		go handleConnection(conn)
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				log.LogError(err, 0)
+				break
+			}
+			go handleConnection(conn)
+		}
+		ln.Close()
 	}
 }
 
@@ -127,9 +130,9 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			if err != nil {
 				return true
 			}
-			userEntry := vm.GetUserEntry(user)
+			permissions := vm.GetPermissions(user)
 
-			if userEntry != nil && userEntry.Sudo {
+			if permissions != nil && permissions.Sudo {
 				conn.Write(createSearchResultEntry(messageID, map[string]string{
 					"objectClass": "posixGroup",
 					"cn":          "sudo",
@@ -142,7 +145,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 		if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
 			gid, _ := strconv.Atoi(gidStr)
 			user, err := findUserByUid(gid)
-			if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
+			if err != nil || (vm != nil && vm.GetPermissions(user) == nil) {
 				return true
 			}
 
@@ -159,7 +162,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 		if err == nil && user == nil {
 			return false
 		}
-		if err != nil || (vm != nil && vm.GetUserEntry(user) == nil) {
+		if err != nil || (vm != nil && vm.GetPermissions(user) == nil) {
 			return true
 		}
 

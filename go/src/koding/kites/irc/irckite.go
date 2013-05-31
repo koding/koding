@@ -12,7 +12,7 @@ func main() {
 	lifecycle.Startup("kite.irc", false)
 
 	k := kite.New("irc")
-	k.Handle("connect", false, func(args *dnode.Partial, session *kite.Session) (interface{}, error) {
+	k.Handle("connect", false, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var params struct {
 			Host      string         `json:"host"`
 			OnMessage dnode.Callback `json:"onMessage"`
@@ -25,7 +25,7 @@ func main() {
 		if err != nil {
 			return nil, err
 		}
-		session.OnDisconnect(func() { conn.Close() })
+		channel.OnDisconnect(func() { conn.Close() })
 
 		go func() {
 			for message := range conn.ReceiveChannel {

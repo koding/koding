@@ -7,6 +7,8 @@ likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JBlogPost'
                      ]
 
+{sharedStaticMethods, sharedInstanceMethods} = require '../account/methods'
+
 module.exports = class JAccount extends jraphical.Module
   log4js          = require "log4js"
   log             = log4js.getLogger("[JAccount]")
@@ -19,11 +21,14 @@ module.exports = class JAccount extends jraphical.Module
 
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
+  CActivity = require '../activity'
 
   @getFlagRole = 'content'
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
+  {permit} = require '../group/permissionset'
+
   @share()
   Experience =
     company           : String
@@ -39,41 +44,22 @@ module.exports = class JAccount extends jraphical.Module
     #       text        : String
     #     ]
   @set
+    softDelete          : yes
     emitFollowingActivities : yes # create buckets for follower / followees
     tagRole             : 'skill'
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
-    sharedEvents: [
-      instance    : [
-        'updateInstance'
+    sharedEvents    :
+      static        : [
+        { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
       ]
-      static      : [
-        "AccountAuthenticated" # TODO: we need to do this differently.
+      instance      : [
+        { name: 'updateInstance' }
       ]
-    ]
     sharedMethods :
-      static      : [
-        'one', 'some', 'cursor', 'each', 'someWithRelationship'
-        'someData', 'getAutoCompleteData', 'count'
-        'byRelevance', 'fetchVersion','reserveNames'
-        'impersonate'
-      ]
-      instance    : [
-        'modify','follow','unfollow','fetchFollowersWithRelationship'
-        'fetchFollowingWithRelationship', 'fetchTopics'
-        'fetchMounts','fetchActivityTeasers','fetchRepos','fetchDatabases'
-        'fetchMail','fetchNotificationsTimeline','fetchActivities'
-        'fetchStorage','count','addTags','fetchLimit', 'fetchLikedContents'
-        'fetchFollowedTopics', 'fetchKiteChannelId', 'setEmailPreferences'
-        'fetchNonces', 'glanceMessages', 'glanceActivities', 'fetchRole'
-        'fetchAllKites','flagAccount','unflagAccount','isFollowing'
-        'fetchFeedByTitle', 'updateFlags','fetchGroups','fetchGroupRoles',
-        'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
-        'setHandle','setAbout','fetchAbout','setStaticPageTitle',
-        'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-        'fetchPendingGroupInvitations'
-      ]
+      static      : sharedStaticMethods()
+      instance    : sharedInstanceMethods()
     schema                  :
       skillTags             : [String]
       locationTags          : [String]
@@ -130,7 +116,7 @@ module.exports = class JAccount extends jraphical.Module
               customType      :
                 type          : String
                 default       : 'defaultImage'
-                enum          : ['Invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
+                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
               customValue     :
                 type          : String
                 default       : '1'
@@ -193,10 +179,10 @@ module.exports = class JAccount extends jraphical.Module
 
   checkPermission: (target, permission, callback)->
     JPermissionSet = require '../group/permissionset'
-    client = 
+    client =
       context     : { group: target.slug }
       connection  : { delegate: this }
-    advanced = 
+    advanced =
       if Array.isArray permission then permission
       else JPermissionSet.wrapPermission permission
     JPermissionSet.checkPermission client, advanced, target, callback
@@ -254,32 +240,13 @@ module.exports = class JAccount extends jraphical.Module
 
   @renderHomepage: require './render-homepage'
 
-  fetchHomepageView:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
+  fetchHomepageView:(callback)->
 
-    CActivity = require '../activity'
-
-    CActivity.some
-      originId: @getId()
-      type : 'CBlogPostActivity'
-    ,
-      to : Date.now()
-      limit : 5
-      sort :
-        createdAt : -1
-    , (err, activities)=>
-      posts = []
-
-      for i in activities
-        posts.push JSON.parse(i.snapshot)
-
-      callback null, JAccount.renderHomepage {
-        profile       : @profile
-        account       : @
-        counts        : @counts
-        skillTags     : @skillTags
-        lastBlogPosts : posts or {}
-      }
+    callback null, JAccount.renderHomepage
+      profile       : @profile
+      account       : this
+      counts        : @counts
+      skillTags     : @skillTags
 
   setHandle: secure (client, data, callback)->
     {delegate}    = client.connection
@@ -359,6 +326,7 @@ module.exports = class JAccount extends jraphical.Module
     edgeSelector  =
       sourceName  : 'JGroup'
       targetId    : @getId()
+      as          : 'member'
     edgeFields    =
       sourceId    : 1
       as          : 1
@@ -381,40 +349,6 @@ module.exports = class JAccount extends jraphical.Module
               else callback null, groups.map (group)->
                 roles = (doc.as for doc in groupedDocs[group.getId()])
                 return { group, roles }
-
-  fetchPendingGroupInvitations: secure (client, callback)->
-    JUser              = require '../user'
-    JGroup             = require '../group'
-    JInvitationRequest = require '../invitationrequest'
-
-    JUser.one username:@profile.nickname, (err, user)->
-      if err then callback err
-      else
-        selector =
-          email  : user.email
-          status : {$in:['pending', 'sent']}
-          group  : {$exists:1}
-
-        JInvitationRequest.some selector, {}, (err, invites)->
-          if err then callback err
-          else if invites?.length <= 0
-            callback null, []
-          else
-            invitations     = []
-            checkMembership = race (i, invitation, done)->
-              JGroup.one slug:invitation.group, (err, group)->
-                if err
-                  callback err
-                  done()
-                else
-                  group.fetchMembershipStatuses client, (err, roles)->
-                    if err then callback err
-                    else if 'member' not in roles and 'admin' not in roles
-                      invitations.push {invitation, group, roles: []}
-                    done()
-            , -> callback null, invitations
-            
-            checkMembership invitation for invitation in invites
 
   fetchGroupRoles: secure (client, slug, callback)->
     {delegate} = client.connection
@@ -468,11 +402,23 @@ module.exports = class JAccount extends jraphical.Module
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
+    ### TODO:
+    It is highly dependent to culture and there are even onces w/o the concept
+    of first and last names. For now we assume last part of the seed is the lastname
+    and the whole except last part is the first name. Not ideal but covers more
+    than previous implementation. This implementation would fail if I type my
+    two firstnames only, it will assume second part is my lastname.
+    Ideal solution is to check the seed against firstName + ' ' + lastName instead of
+    deciding ourselves which parts of the search are for first or last name.
+    MongoDB 2.4 and bongo implementation of aggregate required to use $concat
+    ###
+    names = seed.toString().split('/')[1].replace('^','').split ' '
+    names.push names.first if names.length is 1
     @some {
       $or : [
           ( 'profile.nickname'  : seed )
-          ( 'profile.firstName' : seed )
-          ( 'profile.lastName'  : seed )
+          ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
+          ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
         ],
       _id     :
         $nin  : blacklist
@@ -610,7 +556,8 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim", "aleksey-m", "gokmen", "chris",
-                  "arvidkahl", "testdude", "blum", "neelance"]
+                  "arvidkahl", "testdude", "blum", "neelance", "halk",
+                  "fatihacet", "chrisblum" ]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -620,6 +567,7 @@ module.exports = class JAccount extends jraphical.Module
       if flag is 'exempt'
         console.log 'is exempt'
         @markAllContentAsLowQuality()
+        @cleanCacheFromActivities()
       else
         console.log 'aint exempt'
     else
@@ -631,7 +579,7 @@ module.exports = class JAccount extends jraphical.Module
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
       if flag is 'exempt'
-        console.log 'is exempt'
+        console.log 'was exempt'
         @unmarkAllContentAsLowQuality()
       else
         console.log 'aint exempt'
@@ -657,7 +605,7 @@ module.exports = class JAccount extends jraphical.Module
             return yes
     no
 
-  isDummyAdmin = (nickname)-> if nickname in dummyAdmins then yes else no
+  isDummyAdmin = (nickname)-> !!(nickname in dummyAdmins)
 
   @getFlagRole =-> 'owner'
 
@@ -759,7 +707,7 @@ module.exports = class JAccount extends jraphical.Module
               else
                 callback null, messages
 
-  fetchTopics: (query, page, callback)->
+  fetchTopics: secure (client, query, page, callback)->
     query       =
       targetId  : @getId()
       as        : 'follower'
@@ -767,8 +715,11 @@ module.exports = class JAccount extends jraphical.Module
     Relationship.some query, page, (err, docs)->
       if err then callback err
       else
+        {group} = client.context
         ids = (rel.sourceId for rel in docs)
-        JTag.all _id: $in: ids, (err, tags)->
+        selector = _id: $in: ids
+        selector.group = group if group isnt 'koding'
+        JTag.all selector, (err, tags)->
           callback err, tags
 
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
@@ -847,14 +798,25 @@ module.exports = class JAccount extends jraphical.Module
   markAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, console.log
-        item.emit 'ContentMarkedAsLowQuality', null
+        item.update {$set: isLowQuality: yes}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.flagIsLowQuality ->
+              item.emit 'ContentMarkedAsLowQuality', null
+          else
+            item.emit 'ContentMarkedAsLowQuality', null
 
   unmarkAllContentAsLowQuality:->
     @fetchContents (err, contents)->
       contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, console.log
-        item.emit 'ContentUnmarkedAsLowQuality', null
+        item.update {$set: isLowQuality: no}, ->
+          if item.bongo_.constructorName == 'JComment'
+            item.unflagIsLowQuality ->
+              item.emit 'ContentUnmarkedAsLowQuality', null
+          else
+            item.emit 'ContentUnmarkedAsLowQuality', null
+
+  cleanCacheFromActivities:->
+    CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->
@@ -872,7 +834,86 @@ module.exports = class JAccount extends jraphical.Module
       routingKey: @profile.nickname
       event, contents
     }
+  getInvitiationRequestRelationships:(options, status, callback)->
+    JInvitationRequest = require '../invitationrequest'
 
+    @fetchUser (err, user)=>
+      return callback err if err
+
+      selector =
+        $or: [
+          {'koding.username': @profile.nickname,}
+          {email: user.email}
+        ]
+        status: status
+
+      JInvitationRequest.some selector, {}, (err, requests)->
+        return callback err if err
+        return callback null, [] unless requests
+
+        selector =
+          targetName : 'JInvitationRequest'
+          targetId   : $in:(request.getId() for request in requests)
+          sourceName : 'JGroup'
+
+        if options?.groupIds
+          selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
+          delete options.groupIds
+
+        Relationship.some selector, {}, callback
+
+  fetchPendingGroupRequests:(options, callback)->
+    JGroup = require '../group'
+
+    @getInvitiationRequestRelationships options, 'pending', (err, rels)->
+      return callback err if err
+      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
+
+  fetchPendingGroupInvitations:(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    JGroup = require '../group'
+
+    @getInvitiationRequestRelationships options, 'sent', (err, rels)->
+      return callback err if err
+      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
+
+  getInvitationRequestByGroup: secure (client, groupData, status, callback)->
+    return unless @equals client.connection.delegate
+
+    JInvitationRequest = require '../invitationrequest'
+    JGroup             = require '../group'
+
+    JGroup.one _id:groupData._id, (err, group)=>
+      return callback err if err
+      @fetchUser (err, user)=>
+        return callback err if err
+        options =
+          targetOptions:
+            selector:
+              $or: [
+                {'koding.username': @profile.nickname}
+                {email: user.email}
+              ]
+              status: status
+          options:
+            sort: { timestamp: -1 }
+
+        group.fetchInvitationRequests {}, options, callback
+
+  cancelRequest: secure (client, group, callback)->
+    @getInvitationRequestByGroup client, group, 'pending', (err, [request])->
+      return callback err if err or not request
+      request.remove callback
+
+  acceptInvitation: secure (client, group, callback)->
+    @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
+      return callback err if err or not request
+      request.acceptInvitationByInvitee client, callback
+
+  ignoreInvitation: secure (client, group, callback)->
+    @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
+      return callback err if err or not request
+      request.ignoreInvitationByInvitee client, callback
   # koding.pre 'methodIsInvoked', (client, callback)=>
   #   delegate = client?.connection?.delegate
   #   id = delegate?.getId()
@@ -889,3 +930,32 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
+
+  @byRelevance$ = permit 'list members',
+    success: (client, seed, options, callback)->
+      @byRelevance client, seed, options, callback
+
+  fetchMyPermissions: secure (client, callback)->
+    @fetchMyPermissionsAndRoles client, (err, permissions, roles)->
+      callback err, permissions
+
+  fetchMyPermissionsAndRoles: secure (client, callback)->
+    JGroup = require '../group'
+
+    slug = client.context.group ? 'koding'
+    JGroup.one {slug}, (err, group)=>
+      return callback err  if err
+      group.fetchPermissionSet (err, permissionSet)=>
+        return callback err  if err
+        cb = (err, roles)=>
+          return callback err  if err
+          perms = (perm.permissions.slice()\
+                  for perm in permissionSet.permissions\
+                  when perm.role in roles)
+          {flatten} = require 'underscore'
+          callback null, flatten(perms), roles
+
+        if this instanceof JAccount
+          group.fetchMyRoles client, cb
+        else
+          cb null, ['guest']

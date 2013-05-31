@@ -9,23 +9,15 @@ class MainViewController extends KDViewController
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
-    mainView.on "SidebarCreated", (sidebar)=>
-      mainController.sidebarController = new SidebarController view : sidebar
-
-      mainController.on '(pageLoaded|accountChanged).(as|to).loggedOut', (account)=>
-        mainController.sidebarController.accountChanged account
-
-      mainController.on '(pageLoaded|accountChanged).(as|to).loggedIn', (account)=>
-        mainController.loginScreen.hide =>
-          mainController.sidebarController.accountChanged account
-    # mainView.on "BottomPanelCreated", (bottomPanel)=>
-    #   @bottomPanelController = new BottomPanelController view : bottomPanel
-
+    mainController.on 'accountChanged.to.loggedIn', (account)=>
+      mainController.loginScreen.hide()
 
     mainController.on "ShowInstructionsBook", (index)=>
       book = mainView.addBook()
       book.fillPage index
 
+    mainController.on "ToggleChatPanel", =>
+      mainView.chatPanel.toggle()
 
   loadView:(mainView)->
 
@@ -43,11 +35,8 @@ class MainViewController extends KDViewController
 
     cdController.emit "ContentDisplaysShouldBeHidden"
 
-    if route is 'Develop'
-      router.handleRoute '/Develop', suppressListeners: yes
-
     @setViewState pane.getOptions()
-    navController.selectItemByName route
+    navController.selectItemByName route.slice(1)
 
   isEntryPointSet = null
 

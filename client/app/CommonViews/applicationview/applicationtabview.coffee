@@ -1,118 +1,45 @@
 class ApplicationTabView extends KDTabView
+
   constructor: (options = {}, data) ->
 
-    options.resizeTabHandles             = yes
-    options.lastTabHandleMargin          = 40
-    options.sortable                     = yes
-    options.saveSession                or= no
+    options.resizeTabHandles            ?= yes
+    options.lastTabHandleMargin         ?= 40
+    options.sortable                    ?= yes
+    options.closeAppWhenAllTabsClosed   ?= yes
+    options.saveSession                 ?= no
     options.sessionName                or= ""
-    options.sessionKey                 or= "sessions"
-    options.closeAppWhenAllTabsClosed  or= yes
 
     super options, data
 
+    appManager        = KD.getSingleton 'appManager'
     @isSessionEnabled = options.saveSession and options.sessionName
 
-    appView = @getDelegate()
+    @initSession() if @isSessionEnabled
 
-    @on 'PaneRemoved', =>
-      if @panes.length is 0
-        appView.emit 'AllViewsClosed'
-        if options.closeAppWhenAllTabsClosed
-          appManager = KD.getSingleton 'appManager'
-          appManager.quit appManager.frontApp
-
+    @on "PaneAdded", (pane) =>
       @tabHandleContainer.repositionPlusHandle @handles
-      @removeFromSession yes
+      @updateSession() if @isSessionEnabled and @sessionData
 
-    @on 'PaneAdded', =>
-      @tabHandleContainer.repositionPlusHandle @handles
-      @initSession @panes.last, => @updateSession() if @isSessionEnabled
+      tabView = this
+      pane.on "KDTabPaneDestroy", ->
+        # -1 because the pane is still there but will be destroyed after this event
+        if tabView.panes.length - 1 is 0 and options.closeAppWhenAllTabsClosed
+          appManager.quit appManager.getFrontApp()
+        tabView.tabHandleContainer.repositionPlusHandle tabView.handles
 
-    @on 'SaveSession', (data) =>
-      @appStorage.setValue @getOptions().sessionKey, data
+    @on "SaveSessionData", (data) =>
+      @appStorage.setValue "sessions", data if @isSessionEnabled
 
-    @on "SessionItemClicked", (items) =>
-      @getDelegate().openFile FSHelper.createFileFromPath file for file in items
+  initSession: ->
+    @appStorage = new AppStorage @getOptions().sessionName, "1.0"
 
-    appView.on "AceAppDidQuit", => @removeFromSession no
-
-  # session related methods
-
-  fetchStorage: (callback) ->
-    @appStorage.fetchValue @getOptions().sessionKey, (data) => callback? data
-
-  initSession: (pane, callback) ->
-    options     = @getOptions()
-    @appStorage = new AppStorage options.sessionName, '0.1'
-
-    @fetchStorage (data) =>
-      if data then @restoreSession data, pane
-      callback?()
-
-  removeFromSession: (isTabClosed) ->
-    viewId = @getDelegate().id
-    if @isSessionEnabled
-      @fetchStorage (data) =>
-        if isTabClosed
-          openFilePaths = []
-          openFilePaths.push pane.getOptions().aceView.getData().path for pane in @panes
-          data[viewId] = openFilePaths
-          if data[viewId].length is 0
-            delete data[viewId]
-            data.latestSessions.splice data.latestSessions.indexOf(viewId), 1
-        else
-          delete data[viewId]
-          data.latestSessions.splice data.latestSessions.indexOf(viewId), 1
-
-        @emit "SaveSession", data
+    @appStorage.fetchStorage (storage) =>
+      data = @appStorage.getValue "sessions"
+      @sessionData = data or {}
+      @restoreSession data
 
   updateSession: ->
-    if @isSessionEnabled
-      @fetchStorage (data) =>
-        @getDelegate().emit 'UpdateSessionData', @panes, data
+    @getDelegate().emit "UpdateSessionData", @panes, @sessionData
 
-  restoreSession: (data, pane) ->
-    return if data.latestSessions.length is 0
-    @getDelegate().emit "SessionListCreated", pane, @createSessionList data
-
-  createSessionList: (data) ->
-    items = @createSessionItems data
-    button = new KDButtonViewWithMenu
-      title    : "Sessions"
-      cssClass : "editor-button ace-session-button"
-      menu     : => items
-
-    return button
-
-  createSessionItems: (data) ->
-    items      = {}
-    delegate   = @getDelegate()
-    date       = new Date()
-
-    data.latestSessions.forEach (sessionId, i) =>
-      isSessionActive = yes for aceApp in appManager.appControllers.Ace when aceApp.getView().id is sessionId
-      unless isSessionActive
-        sessionItems    = data[sessionId]
-        itemLen         = sessionItems.length
-        itemTxt         = if itemLen is 1 then "file" else "files"
-        formattedDate   = dateFormat date.setTime(sessionId.split("_")[1]), "dd mmm yyyy - HH:MM"
-        items["#{formattedDate} (#{itemLen} #{itemTxt})"] =
-          callback: => @emit "SessionItemClicked", sessionItems
-
-    items.separator = type: "separator"
-
-    fileCount = 0
-    for sessionId in data.latestSessions
-      isSessionActive = yes for aceApp in appManager.appControllers.Ace when aceApp.getView().id is sessionId
-      unless isSessionActive
-        sessionItems = data[sessionId]
-        for path, i in sessionItems
-          if fileCount < 10
-            filePath = path.replace("/Users/#{KD.whoami().profile.nickname}", "~")
-            items[filePath] = callback: @emit.bind(@, "SessionItemClicked", [path])
-            fileCount++
-
-    return items
-
-  # end of session related methods
+  restoreSession: ->
+    @getDelegate().emit "SessionDataCreated", @sessionData

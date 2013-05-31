@@ -45,6 +45,8 @@ class JTreeView extends KDListView
 
     @getSingleton("windowController").revertKeyView @
 
+    super
+
   appendItemAtIndex:(itemInstance,index,animation)->
 
     itemInstance.setParent @

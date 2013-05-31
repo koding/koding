@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/streadway/amqp"
+	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"koding/tools/lifecycle"
@@ -100,7 +101,7 @@ func main() {
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 					log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-					session.Send(map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
+					sendToClient(session, map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 				}
 			}()
 		}
@@ -129,6 +130,9 @@ func main() {
 		}()
 
 		for data := range session.ReceiveChan {
+			if data == nil || session.Closed {
+				break
+			}
 			func() {
 				defer log.RecoverAndLog()
 
@@ -139,9 +143,17 @@ func main() {
 				switch action {
 				case "subscribe":
 					routingKeyPrefix := message["routingKeyPrefix"].(string)
+					if subscriptions[routingKeyPrefix] {
+						log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+					}
+					if len(subscriptions) >= 1000 {
+						session.Close()
+						log.Warn("Dropped session because of too many subscriptions.", session.Tag)
+						return
+					}
 					addToRouteMap(routingKeyPrefix)
 					subscriptions[routingKeyPrefix] = true
-					session.Send(map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
+					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 
 				case "unsubscribe":
 					routingKeyPrefix := message["routingKeyPrefix"].(string)
@@ -165,11 +177,12 @@ func main() {
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
 							panic(err)
 						}
+						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
 					}
 
 				case "ping":
-					session.Send(map[string]string{"routingKey": "broker.pong"})
+					sendToClient(session, map[string]string{"routingKey": "broker.pong"})
 
 				default:
 					log.Warn("Invalid action.", message, socketId)
@@ -179,6 +192,7 @@ func main() {
 		}
 	})
 	defer service.Close()
+	service.MaxReceivedPerSecond = 50
 	service.ErrorHandler = log.LogError
 
 	go func() {
@@ -198,14 +212,14 @@ func main() {
 		listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.ParseIP(config.Current.Broker.IP), Port: config.Current.Broker.Port})
 		if err != nil {
 			log.LogError(err, 0)
-			os.Exit(1)
+			log.SendLogsAndExit(1)
 		}
 
 		if config.Current.Broker.CertFile != "" {
 			cert, err := tls.LoadX509KeyPair(config.Current.Broker.CertFile, config.Current.Broker.KeyFile)
 			if err != nil {
 				log.LogError(err, 0)
-				os.Exit(1)
+				log.SendLogsAndExit(1)
 			}
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -214,23 +228,19 @@ func main() {
 		}
 
 		go func() {
-			sigtermChannel := make(chan os.Signal)
-			signal.Notify(sigtermChannel, syscall.SIGTERM)
-			<-sigtermChannel
-			lifecycle.BeginShutdown()
+			sigusr1Channel := make(chan os.Signal)
+			signal.Notify(sigusr1Channel, syscall.SIGUSR1)
+			<-sigusr1Channel
 			listener.Close()
 		}()
 
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
-			if lifecycle.ShuttingDown {
-				break
-			}
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {
-					os.Exit(1)
+					log.SendLogsAndExit(1)
 				}
 				lastErrorTime = time.Now()
 			}
@@ -251,6 +261,10 @@ func main() {
 		panic(err)
 	}
 
+	if err := kontrolhelper.RegisterToKontrol("broker", config.Uuid, config.Current.Broker.Port); err != nil {
+		panic(err)
+	}
+
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
 		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
@@ -265,14 +279,19 @@ func main() {
 			}
 			prefix := routingKey[:pos]
 			routeMapMutex.Lock()
-			routeSessions := routeMap[prefix]
-			for _, routeSession := range routeSessions {
-				if !routeSession.Send(jsonMessage) {
-					routeSession.Close()
-					log.Warn("Dropped session because of broker to client buffer overflow.", routeSession.Tag)
-				}
+			for _, routeSession := range routeMap[prefix] {
+				sendToClient(routeSession, jsonMessage)
 			}
 			routeMapMutex.Unlock()
 		}
+	}
+
+	time.Sleep(5 * time.Second) // give amqputil time to log connection error
+}
+
+func sendToClient(session *sockjs.Session, data interface{}) {
+	if !session.Send(data) {
+		session.Close()
+		log.Warn("Dropped session because of broker to client buffer overflow.", session.Tag)
 	}
 }

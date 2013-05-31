@@ -72,8 +72,8 @@ app.login-signup.styl
       visible()
       >.kdview
         overflow          visible
-      .kdnotification.mini.register
-        top               76px!important
+      // .kdnotification.mini.register
+      //   top               76px!important
 
   &.login
     // margin-top            -230px !important
@@ -168,11 +168,8 @@ app.login-signup.styl
 
   .kdnotification.mini.register
     abs()
-    top                   181px!important
-    padding               0
-    rounded               3px
-    shadow                none
-    background            transparent
+    top                   -1px !important
+    padding               5px 10px
 
     .kdnotification-title
       font-size           10px
@@ -210,12 +207,13 @@ app.login-signup.styl
   borderBox()
   .betatag
     text-indent           -9999px
-    abs()
     top                   -3px
     right                 -3px
     size                  64px,38px
-    sprite()
     bg                    position,-400px -120px
+    sprite()
+    abs()
+    z-index               20002
   .logo
     text-indent           -9999px
     size                  140px,40px
@@ -301,22 +299,22 @@ app.login-signup.styl
 
 .login-form
 
-  section
-    rel()
-    margin                40px 0
-    top                   0
-    text-align            center
-    overflow              hidden
-    p
-      height              220px
-      padding             76px 10px
-      b
-        font-size         13px
-        display           block
-        line-height       28px
-        text-shadow       0 1px 0 rgba(0,0,0,.5)
-
-  >div
+  // section
+  //   rel()
+  //   margin                40px 0
+  //   top                   0
+  //   text-align            center
+  //   overflow              hidden
+  //   p
+  //     height              220px
+  //     padding             76px 10px
+  //     b
+  //       font-size         13px
+  //       display           block
+  //       line-height       28px
+  //       text-shadow       0 1px 0 rgba(0,0,0,.5)
+  > section
+  > div
     rel()
     text-align            center
     .kdview
@@ -398,7 +396,7 @@ app.login-signup.styl
     opacity             0
     sprite()
 
-  .kdloader.input-laoder
+  .kdloader.input-loader
     abs()
     right               28px
     top                 8px
@@ -417,24 +415,25 @@ app.login-signup.styl
     rel()
     text-align          left
     color               #B4B3B3
-    margin              5px auto 0 auto
-    rounded             4px
+    margin              0 auto
     width               78%
     line-height         36px
     font-size           12px
-    bg                  color, rgba(0, 0, 0, 0.2)
     overflow            hidden
+    border-bottom       1px solid rgba(255,255,255,.15)
+    padding-bottom      4px
+    margin-bottom       10px
     borderBox()
 
     .kdview.half-size
       abs()
-      right             2px
-      top               2px
-      width             48.5%
+      right             0
+      top               0
+      width             49.5%
 
     span.icon
-      bg                position,-480px -80px
-      size              40px,20px
+      bg                position, -480px -80px
+      size              40px, 20px
       margin            8px 0 0 2px
       fl()
       sprite()
@@ -483,6 +482,6 @@ p.login-tip
     vertical-align      middle
     sprite()
 
-.recovery
-  .kdnotification.mini
-    top                   33px!important
+// .recovery
+//   .kdnotification.mini
+//     top                   33px!important

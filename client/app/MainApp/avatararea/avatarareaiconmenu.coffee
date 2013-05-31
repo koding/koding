@@ -5,7 +5,6 @@ class AvatarAreaIconMenu extends JView
     super
 
     @setClass "actions"
-    @setClass "invisible" unless KD.isLoggedIn()
 
     sidebar  = @getDelegate()
 
@@ -58,9 +57,7 @@ class AvatarAreaIconMenu extends JView
 
     @attachListeners()
 
-
   attachListeners:->
-
     @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       # No need the following
       # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
@@ -73,21 +70,17 @@ class AvatarAreaIconMenu extends JView
     @notificationsPopup.listController.on 'NotificationCountDidChange', (count)=>
       @utils.killWait @notificationsPopup.loaderTimeout
       if count > 0
-        @notificationsPopup.noNotification.hide()
-      else
-        @notificationsPopup.noNotification.show()
+      then @notificationsPopup.noNotification.hide()
+      else @notificationsPopup.noNotification.show()
       @notificationsIcon.updateCount count
 
     @messagesPopup.listController.on 'MessageCountDidChange', (count)=>
-      @utils.killWait @messagesPopup.loaderTimeout
       if count > 0
-        @messagesPopup.noMessage.hide()
-      else
-        @messagesPopup.noMessage.show()
+      then @messagesPopup.noMessage.hide()
+      else @messagesPopup.noMessage.show()
       @messagesIcon.updateCount count
 
     @groupSwitcherPopup.listControllerPending.on 'PendingGroupsCountDidChange', (count)=>
-      @utils.killWait @groupSwitcherPopup.loaderTimeout
       if count > 0
         @groupSwitcherPopup.invitesHeader.show()
         @groupSwitcherPopup.switchToTitle.unsetClass 'top'
@@ -105,23 +98,15 @@ class AvatarAreaIconMenu extends JView
     groupSwitcherPopup.listController.removeAllItems()
 
     if KD.isLoggedIn()
-      @unsetClass "invisible"
 
-      # log "accountChanged AvatarAreaIconMenu"
+      # Fetch Notifications
+      notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
+        notificationsPopup.listController.instantiateListItems teasers
 
-      # do not remove the timeout it should give dom sometime before putting an extra load
-      notificationsPopup.loaderTimeout = @utils.wait 5000, =>
-        if KD.isLoggedIn()
-          notificationsPopup.listController.fetchNotificationTeasers (teasers)=>
-            notificationsPopup.listController.instantiateListItems teasers
+      # Fetch Private Messages
+      messagesPopup.listController.fetchMessages()
 
-      messagesPopup.loaderTimeout = @utils.wait 5000, =>
-        messagesPopup.listController.fetchMessages() if KD.isLoggedIn()
+      # Fetch Groups
+      groupSwitcherPopup.populateGroups()
+      groupSwitcherPopup.populatePendingGroups()
 
-      groupSwitcherPopup.loaderTimeout = @utils.wait 5000, =>
-        if KD.isLoggedIn()
-          groupSwitcherPopup.populateGroups() 
-          groupSwitcherPopup.populatePendingGroups()
-
-    else
-      @setClass "invisible"

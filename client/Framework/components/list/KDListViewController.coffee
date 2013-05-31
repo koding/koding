@@ -60,7 +60,7 @@ class KDListViewController extends KDViewController
     @getListView().addSubView @defaultItem = new itemClass options, data
 
   removeDefaultItem:->
-    @getListView().removeSubView @defaultItem if @defaultItem
+    @defaultItem.destroy() if @defaultItem
 
   putDefaultItem:(list=[])->
     if @getOptions().showDefaultItem
@@ -132,8 +132,8 @@ class KDListViewController extends KDViewController
 
   hideNoItemWidget:->
     {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-    @scrollView.removeSubView noItemFoundWidget if noItemFoundWidget
-    @scrollView.removeSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+    noItemFoundWidget.destroy()     if noItemFoundWidget
+    noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
 
   ###
   ITEM OPERATIONS
@@ -148,7 +148,6 @@ class KDListViewController extends KDViewController
 
     @getListView().removeItem itemInstance, itemData, index
     @putDefaultItem @getListView().items
-    dataId = itemData.getId?()
 
   registerItem:(view, index)->
 
@@ -258,10 +257,14 @@ class KDListViewController extends KDViewController
 
     @lastEvent = event
 
-    if not(@getOption("multipleSelection"))\
-       and item.getOption("selectable")\
-       and not(event.metaKey or event.ctrlKey or event.shiftKey)
-      @deselectAllItems()
+    {selectable}                 = item.getOptions()
+    {multipleSelection}          = @getOptions()
+    {metaKey, ctrlKey, shiftKey} = event
+
+    # we lost two developers on these two lines below do not CHANGE
+    # or ask one of those two, namely Gokmen or Sinan
+    @deselectAllItems()  if not multipleSelection
+    @deselectAllItems()  if selectable and not(metaKey or ctrlKey or shiftKey)
 
     if event.shiftKey and @selectedItems.length > 0
       @selectItemsByRange @selectedItems[0], item

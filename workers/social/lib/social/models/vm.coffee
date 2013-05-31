@@ -2,29 +2,179 @@
 
 module.exports = class JVM extends Model
 
+  {permit} = require './group/permissionset'
+
+  KodingError = require '../error'
+
   @share()
 
   @trait __dirname, '../traits/protected'
 
+  @bound = require 'koding-bound'
+
   @set
-    permissions       :
-      'sudoer'        : []
-    schema            :
-      ip              :
-        type          : String
-        default       : -> null
-      ldapPassword    :
-        type          : String
-        default       : -> null
-      name            : String
-      users           : Array
-      groups          : Array
-      isEnabled       :
-        type          : Boolean
-        default       : yes
-      shouldDelete    :
-        type          : Boolean
-        default       : no
+    softDelete          : yes
+    permissions         :
+      'sudoer'          : []
+      'create vms'      : ['member','moderator']
+      'list all vms'    : ['member','moderator']
+      'list default vm' : ['member','moderator']
+    sharedMethods       :
+      static            : ['fetchVms','fetchVmsByContext','calculateUsage']
+      instance          : []
+    schema              :
+      ip                :
+        type            : String
+        default         : -> null
+      ldapPassword      :
+        type            : String
+        default         : -> null
+      name              : String
+      users             : Array
+      groups            : Array
+      usage             : # TODO: usage seems like the wrong term for this.
+        cpu             :
+          type          : Number
+          default       : 1
+        ram             :
+          type          : Number
+          default       : 0.25
+        disk            :
+          type          : Number
+          default       : 0.5
+      isEnabled         :
+        type            : Boolean
+        default         : yes
+      shouldDelete      :
+        type            : Boolean
+        default         : no
+
+  # TODO: this needs to be rethought in terms of bundles, as per the
+  # discussion between Devrim, Chris T. and Badahir  C.T.
+  @createVm = ({account, type, groupSlug, usage}, callback)->
+    JGroup = require './group'
+    JGroup.one {slug: groupSlug}, (err, group) =>
+      return callback err  if err
+      account.fetchUser (err, user) =>
+        return callback err  if err
+        name = "#{groupSlug}~"
+        if type is 'user'
+          name = "#{name}#{user.username}-"
+
+        nameFactory = (require 'koding-counter') {
+          db          : JVM.getClient()
+          counterName : name
+          offset      : 0
+        }
+
+        nameFactory.next (err, uid)=>
+          return callback err  if err
+          vm = new JVM {
+            name    : "#{name}#{uid}"
+            users   : [{ id: user.getId(), sudo: yes }]
+            groups  : [{ id: group.getId() }]
+            usage
+          }
+          vm.save (err) =>
+            return callback err  if err
+            group.addVm vm, (err)=>
+              return callback err  if err
+              if type is 'group'
+                @addVmUsers vm, group, ->
+                  callback null, vm
+              else
+                callback null, vm
+
+  @addVmUsers = (vm, group, callback)->
+    group.fetchMembers (err, members)->
+      return callback err  if err
+      members.forEach (member)->
+        member.fetchUser (err, user)->
+          if err then callback err
+          else
+            member.checkPermission group, 'sudoer', (err, hasPermission)->
+              if err then handleError err
+              else
+                vm.update {
+                  $addToSet: users: { id: user.getId(), sudo: hasPermission }
+                }, callback
+
+  # @create = permit 'create vms',
+  #   success: (client, callback) ->
+
+  # @initializeVmLimits =(target, callback)->
+  #   JLimit = require './limit'
+  #   limit = new JLimit { quota: 5 }
+  #   limit.save (err)->
+  #     return callback err  if err
+  #     target.addLimit limit, 'vm', (err)->
+  #       callback err ? null, unless err then limit
+
+  @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
+
+  @calculateUsage = (account, groupSlug, callback)->
+    nickname =
+      if 'string' is typeof account then account
+      else account.profile.nickname
+
+    @all { name: ///$#{groupSlug}~#{nickname}~/// }, (err, vms) =>
+      return callback err  if err?
+      callback null, vms
+        .map((vm) -> vm.usage)
+        .reduce (acc, usage) ->
+          for own field, val of usage
+            acc[field] += val
+            return acc
+        , @getUsageTemplate()
+
+  @calculateUsage$ = permit 'list all vms',
+    success: (client, groupSlug, callback)->
+      {delegate} = client.connection
+      @calculateUsage delegate, groupSlug, callback
+
+  @fetchAccountVmsBySelector = (account, selector, options, callback) ->
+    [callback, options] = [options, callback]  unless callback
+
+    options ?= {}
+    # options.limit = Math.min options.limit ? 10, 10
+
+    account.fetchUser (err, user) ->
+      return callback err  if err
+
+      selector.users = { $elemMatch: id: user.getId() }
+
+      JVM.someData selector, { name: 1 }, options, (err, cursor)->
+        return callback err  if err
+
+        cursor.toArray (err, arr)->
+          return callback err  if err
+          callback null, arr.map (vm)-> vm.name
+
+  @fetchVmsByContext = permit 'list all vms',
+    success: (client, options, callback) ->
+      {connection:{delegate}, context:{group}} = client
+      JGroup = require './group'
+
+      slug = group ? 'koding'
+
+      JGroup.one {slug}, (err, group) =>
+        return callback err  if err
+
+        selector = groups: { $elemMatch: id: group.getId() }
+        @fetchAccountVmsBySelector delegate, selector, options, callback
+
+  @fetchVms = permit 'list all vms',
+    success: (client, options, callback) ->
+      {delegate} = client.connection
+      @fetchAccountVmsBySelector delegate, {}, options, callback
+
+
+    # TODO: let's implement something like this:
+    # failure: (client, callback) ->
+    #   @fetchDefaultVmByContext client, (err, vm)->
+    #     return callback err  if err
+    #     callback null, [vm]
+
 
   do ->
 
@@ -60,18 +210,21 @@ module.exports = class JVM extends Model
         else user.update { $set: { uid } }, handleError
 
     JGroup.on 'GroupCreated', ({group, creator})->
-      creator.fetchUser (err, user)->
+      group.fetchBundle (err, bundle)->
         if err then handleError err
-        else
-          addVm {
-            user
-            target  : group
-            sudo    : yes
-            name    : group.slug
-            groups  : wrapGroup group
-          }
+        else if bundle
+          creator.fetchUser (err, user)->
+            if err then handleError err
+            else
+              addVm {
+                user
+                target  : group
+                sudo    : yes
+                name    : group.slug
+                groups  : wrapGroup group
+              }
 
-    JGroup.on 'GroupDestroyed', ({group, member})->
+    JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
         if err then handleError err
         else vms.forEach (vm)-> vm.remove handleError
@@ -85,7 +238,8 @@ module.exports = class JVM extends Model
             user
             target  : member
             sudo    : yes
-            name    : member.profile.nickname
+            name    : "koding~#{member.profile.nickname}"
+            groups  : wrapGroup group
           }
         else
           member.checkPermission group, 'sudoer', (err, hasPermission)->

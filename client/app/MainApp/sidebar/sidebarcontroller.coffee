@@ -4,20 +4,24 @@ class SidebarController extends KDViewController
     super
 
     mainController = @getSingleton 'mainController'
-
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
+    mainController.on 'AccountChanged', @bound 'accountChanged'
+
+    groupsController = @getSingleton 'groupsController'
+    groupsController.on 'GroupChanged', @bound 'resetGroupSettingsItem'
+
+    mainController.ready @bound 'accountChanged'
 
   accountChanged:(account)->
-
+    account or= KD.whoami()
     {profile} = account
     sidebar   = @getView()
-    account or= KD.whoami()
 
     {
      avatar, finderHeader, navController
      avatarAreaIconMenu, finderController
-     footerMenuController
+     footerMenuController, resourcesController
     } = sidebar
 
     avatar.setData account
@@ -35,9 +39,11 @@ class SidebarController extends KDViewController
     avatarAreaIconMenu.accountChanged account
 
     finderController.reset()
+    resourcesController.reset()
 
   resetAdminNavItems:->
     return unless KD.isLoggedIn()
+
     KD.whoami().fetchRole? (err, role)=>
       if role is "super-admin"
         @getView().navController.addItem
@@ -46,23 +52,20 @@ class SidebarController extends KDViewController
           loggedIn : yes
           callback : -> new AdminModal
 
-    do =>
+      @resetGroupSettingsItem()
+
+  resetGroupSettingsItem:->
+    return unless KD.isLoggedIn()
+
+    if 'admin' in KD.config.roles
       {navController} = @getView()
-      groupsController = @getSingleton 'groupsController'
-      groupsController.on 'GroupChanged', ->
-        group = groupsController.getCurrentGroup()
+      {slug} = KD.config.entryPoint or {slug:'koding'}
 
-        # We need to fix that, it happens when you logged-in from groupEntryPoint
-        return unless group
-
-        group.fetchMyRoles (err, roles)=>
-          if err
-            console.warn err
-          else if 'admin' in roles
-            navController.removeItem dashboardLink  if @dashboardLink?
-            @dashboardLink = navController.addItem
-              title     : 'Admin dashboard'
-              type      : 'admin'
-              loggedIn  : yes
-              callback  : ->
-                KD.getSingleton('router').handleRoute "/#{group.slug}/Dashboard"
+      navController.removeItemByTitle 'Group Settings'
+      navController.addItem
+        title     : 'Group Settings'
+        type      : 'admin'
+        loggedIn  : yes
+        callback  : ->
+          slug = if slug in ['koding', ''] then '/' else "/#{slug}/"
+          KD.getSingleton('router').handleRoute "#{slug}Dashboard"

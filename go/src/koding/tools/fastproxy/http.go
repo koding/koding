@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"net/http"
 	"strings"
 )
 
@@ -74,6 +75,17 @@ func (req *HTTPRequest) Relay(addr *net.TCPAddr) error {
 	return nil
 }
 
-func (req *HTTPRequest) Redirect(url string) {
-	req.source.Write([]byte("HTTP/1.1 307 Temporary Redirect\r\nLocation: " + url + "\r\n\r\n"))
+func (req *HTTPRequest) Respond(response *http.Response) error {
+	return response.Write(req.source)
+}
+
+func (req *HTTPRequest) Redirect(url string) error {
+	return req.Respond(&http.Response{
+		StatusCode: http.StatusTemporaryRedirect,
+		ProtoMajor: 1,
+		ProtoMinor: 1,
+		Header: http.Header{
+			"Location": []string{url},
+		},
+	})
 }

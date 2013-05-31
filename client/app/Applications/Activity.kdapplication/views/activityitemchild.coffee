@@ -13,11 +13,8 @@ class ActivityItemChild extends KDView
       size    : {width: 40, height: 40}
       origin
     }
-    
-    @author = new ProfileLinkView { origin }
 
-#    @avatar.on 'LinkClicked', -> showAuthor @getData() 
-#    @author.on 'LinkClicked', -> showAuthor @getData()
+    @author = new ProfileLinkView { origin }
 
     @tags = new ActivityChildViewTagGroup
       itemsToShow   : 3
@@ -31,10 +28,15 @@ class ActivityItemChild extends KDView
     #    -> JComment
     if data.bongo_.constructorName in ["JDiscussion","JTutorial"]
       @commentBox = new OpinionView null, data
+      list        = @commentBox.opinionList
     else
       @commentBox = new CommentView null, data
+      list        = @commentBox.commentList
 
-    @actionLinks = new ActivityActionsView delegate : @commentBox.commentList, cssClass : "comment-header", data
+    @actionLinks = new ActivityActionsView
+      cssClass : "comment-header"
+      delegate : list
+    , data
 
     account = KD.whoami()
     if (data.originId is KD.whoami().getId()) or KD.checkFlag 'super-admin'
@@ -88,7 +90,7 @@ class ActivityItemChild extends KDView
     if data.originId is KD.whoami().getId()
       menu =
         'Edit'     :
-          callback : =>
+          callback : ->
             mainController.emit 'ActivityItemEditLinkClicked', data
         'Delete'   :
           callback : =>
@@ -97,16 +99,20 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      menu =
-        'MARK USER AS TROLL' :
-          callback : =>
-            mainController.markUserAsTroll data
-        'UNMARK USER AS TROLL' :
-          callback : =>
-            mainController.unmarkUserAsTroll data
-        'Delete Post' :
-          callback : =>
-            @confirmDeletePost data
+      if data.isLowQuality
+        menu =
+          'Unmark User as Troll' :
+            callback             : ->
+              mainController.unmarkUserAsTroll data
+      else
+        menu =
+          'Mark User as Troll' :
+            callback           : ->
+              mainController.markUserAsTroll data
+
+      menu['Delete Post'] =
+        callback : =>
+          @confirmDeletePost data
 
       return menu
 
@@ -134,12 +140,7 @@ class ActivityItemChild extends KDView
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
 
-  click:(event)->
-    $trg = $(event.target)
-    more = "span.collapsedtext a.more-link"
-    less = "span.collapsedtext a.less-link"
-    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
-    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
+  click: KD.utils.showMoreClickHandler
 
   viewAppended:->
     super

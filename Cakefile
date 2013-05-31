@@ -24,6 +24,7 @@ processes          = new (require "processes") main : true
 {daisy}            = require 'sinkrow'
 fs                 = require "fs"
 http               = require 'http'
+hat                = require 'hat'
 url                = require 'url'
 nodePath           = require 'path'
 portchecker        = require 'portchecker'
@@ -44,15 +45,29 @@ compileGoBinaries = (configFile,callback)->
   compileGo = require('koding-config-manager').load("main.#{configFile}").compileGo
   if compileGo
     processes.spawn
-      name: 'build'
+      name: 'build go'
       cmd : './go/build.sh'
       stdout : process.stdout
       stderr : process.stderr
       verbose : yes
       onExit :->
-        callback null
+        if configFile == "vagrant"
+          processes.spawn
+            name: 'build go in vagrant'
+            cmd : 'vagrant ssh default --command "/opt/koding/go/build.sh bin-vagrant"'
+            stdout : process.stdout
+            stderr : process.stderr
+            verbose : yes
+            onExit :->
+              callback null
+        else
+          callback null
   else
     callback null
+
+task 'populateNeo4j', ({configFile})->
+  migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
+  processes.exec migrator
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
@@ -73,12 +88,17 @@ task 'webserver', ({configFile}) ->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {webserver,sourceServer} = KONFIG
 
-  runServer = (config, port) ->
+  runServer = (config, port, index) ->
     processes.fork
-      name            : 'server'
-      cmd             : __dirname + "/server/index -c #{config} -p #{port}"
-      restart         : yes
-      restartInterval : 100
+      name              : "server"
+      cmd               : __dirname + "/server/index -c #{config} -p #{port}"
+      restart           : yes
+      restartTimeout    : 100
+      kontrol           :
+        enabled         : if KONFIG.runKontrol is yes then yes else no
+        startMode       : "many"
+        registerToProxy : yes
+        port            : port
 
   if webserver.clusterSize > 1
     webPortStart = webserver.port
@@ -87,15 +107,15 @@ task 'webserver', ({configFile}) ->
   else
     webPort = [webserver.port]
 
-  webPort.forEach (port) ->
-    runServer configFile, port
+  webPort.forEach (port, index) ->
+    runServer configFile, port, index
 
   if sourceServer?.enabled
     processes.fork
-      name            : 'sourceserver'
-      cmd             : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
-      restart         : yes
-      restartInterval : 100
+      name           : 'sourceserver'
+      cmd            : __dirname + "/server/lib/source-server -c #{configFile} -p #{sourceServer.port}"
+      restart        : yes
+      restartTimeout : 100
 
   if webserver.watch is yes
     watcher = new Watcher
@@ -111,10 +131,13 @@ task 'socialWorker', ({configFile}) ->
 
   for i in [1..social.numberOfWorkers]
     processes.fork
-      name  : "socialWorker-#{i}"
-      cmd   : __dirname + "/workers/social/index -c #{configFile}"
-      restart : yes
-      restartInterval : 100
+      name           : if social.numberOfWorkers is 1 then "social" else "social-#{i}"
+      cmd            : __dirname + "/workers/social/index -c #{configFile}"
+      restart        : yes
+      restartTimeout : 100
+      kontrol        :
+        enabled      : if KONFIG.runKontrol is yes then yes else no
+        startMode    : "many"
       # onMessage: (msg) ->
       #   if msg.exiting
       #     exitingProcesses[msg.pid] = yes
@@ -125,26 +148,33 @@ task 'socialWorker', ({configFile}) ->
       #   else
       #     delete exitingProcesses[pid]
 
-
   if social.watch?
     watcher = new Watcher
       groups   :
         social   :
           folders   : ['./workers/social']
           onChange  : (path) ->
-            processes.kill "socialWorker-#{i}" for i in [1..social.numberOfWorkers]
+            if social.numberOfWorkers is 1
+              processes.kill "social"
+            else
+              processes.kill "social-#{i}" for i in [1..social.numberOfWorkers]
 
 
 task 'authWorker',({configFile}) ->
+  KONFIG = require('koding-config-manager').load("main.#{configFile}")
   config = require('koding-config-manager').load("main.#{configFile}").authWorker
   numberOfWorkers = if config.numberOfWorkers then config.numberOfWorkers else 1
 
-  for _, i in Array +numberOfWorkers
+  for i in [1..numberOfWorkers]
     processes.fork
-      name  : "authWorker-#{i}"
-      cmd   : __dirname+"/workers/auth/index -c #{configFile}"
-      restart : yes
-      restartInterval : 1000
+      name  		 : if numberOfWorkers is 1 then "auth" else "auth-#{i}"
+      cmd   		 : __dirname+"/workers/auth/index -c #{configFile}"
+      restart 		 : yes
+      restartTimeout : 1000
+      kontrol        :
+        enabled      : if KONFIG.runKontrol is yes then yes else no
+        startMode    : "many"
+      verbose        : yes
 
   if config.watch is yes
     watcher = new Watcher
@@ -152,23 +182,36 @@ task 'authWorker',({configFile}) ->
         auth        :
           folders   : ['./workers/auth']
           onChange  : (path) ->
-            processes.kill "authWorker-#{i}" for _, i in Array +numberOfWorkers
+            if numberOfWorkers is 1
+              processes.kill "auth"
+            else
+              processes.kill "auth-#{i}" for i in [1..numberOfWorkers]
 
 task 'guestCleanup',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
-    name  : 'guestCleanup'
-    cmd   : "./workers/guestcleanup/index -c #{configFile}"
-    restart: yes
-    restartInterval: 100
+    name           : 'guestCleanup'
+    cmd            : "./workers/guestcleanup/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
 task 'emailWorker',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
-    name            : 'emailWorker'
-    cmd             : "./workers/emailnotifications/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
+    name           : 'email'
+    cmd            : "./workers/emailnotifications/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -178,12 +221,17 @@ task 'emailWorker',({configFile})->
           processes.kill "emailWorker"
 
 task 'emailSender',({configFile})->
+  config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
-    name            : 'emailSender'
-    cmd             : "./workers/emailsender/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
+    name           : 'emailSender'
+    cmd            : "./workers/emailsender/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
   watcher = new Watcher
     groups        :
@@ -193,26 +241,45 @@ task 'emailSender',({configFile})->
           processes.kill "emailSender"
 
 task 'goBroker',(options)->
-
   {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+  {broker} = config
+  uuid = hat()
 
   processes.spawn
-    name  : 'goBroker'
-    cmd   : "./go/bin/broker -c #{configFile}" + addFlags(options)
-    restart: yes
-    restartInterval: 100
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
+    name              : 'broker'
+    cmd               : "./go/bin/broker -c #{configFile} -u #{uuid} #{addFlags options}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+      binary          : uuid
+    verbose           : yes
 
+task 'rerouting',(options)->
+
+  {configFile} = options
   config = require('koding-config-manager').load("main.#{configFile}")
-  sockjs_url = "http://localhost:8008/subscribe" # config.client.runtimeOptions.broker.sockJS
+
+  processes.spawn
+    name           : 'rerouting'
+    cmd            : "./go/bin/rerouting -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    stdout         : process.stdout
+    stderr         : process.stderr
+    verbose        : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
 
 task 'osKite',({configFile})->
 
   processes.spawn
     name  : 'osKite'
-    cmd   : "./go/bin/os -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
@@ -222,30 +289,51 @@ task 'proxy',({configFile})->
 
   processes.spawn
     name  : 'proxy'
-    cmd   : "./go/bin/proxy -c #{configFile}"
+    cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL vmproxy; sudo ./go/bin-vagrant/vmproxy -c #{configFile}'" else "./go/bin/vmproxy -c #{configFile}"
     restart: no
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
 
+task 'neo4jfeeder',({configFile})->
+
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    name    : 'neo4jfeeder'
+    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+    restart : yes
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+
 task 'libratoWorker',({configFile})->
 
   processes.fork
-    name  : 'libratoWorker'
-    cmd   : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
-    restart: yes
-    restartInterval: 100
-    verbose: yes
+    name           : 'librato'
+    cmd            : "./node_modules/koding-cake/bin/cake ./workers/librato -c #{configFile} run"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+    verbose        : yes
 
 task 'cacheWorker',({configFile})->
   KONFIG = require('koding-config-manager').load("main.#{configFile}")
   {cacheWorker} = KONFIG
 
   processes.fork
-    name            : 'cacheWorker'
-    cmd             : "./workers/cacher/index -c #{configFile}"
-    restart         : yes
-    restartInterval : 100
+    name           : 'cache'
+    cmd            : "./workers/cacher/index -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    kontrol        :
+      enabled      : if KONFIG.runKontrol is yes then yes else no
+      startMode    : "one"
 
   if cacheWorker.watch is yes
     watcher = new Watcher
@@ -255,6 +343,61 @@ task 'cacheWorker',({configFile})->
           onChange  : ->
             processes.kill "cacheWorker"
 
+
+task 'kontrolCli',({configFile}) ->
+  processes.fork
+    name : "kontrol"
+    cmd  : "./node_modules/kontrol -c #{configFile}"
+
+task 'kontrolClient',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolClient'
+    cmd     : "./go/bin/kontrolclient -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolProxy',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolProxy'
+    cmd     : "./go/bin/kontrolproxy -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolRabbit',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolRabbit'
+    cmd     : "./go/bin/kontrolrabbit -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolDaemon',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolDaemon'
+    cmd     : "./go/bin/kontroldaemon -c #{configFile} #{addFlags options}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrolApi',(options) ->
+  {configFile} = options
+  processes.spawn
+    name    : 'kontrolApi'
+    cmd     : "./go/bin/kontrolapi -c #{configFile}"
+    stdout  : process.stdout
+    stderr  : process.stderr
+    verbose : yes
+
+task 'kontrol',(options) ->
+  {configFile} = options
+  invoke 'kontrolDaemon'
+  invoke 'kontrolApi'
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
@@ -266,20 +409,31 @@ task 'checkConfig',({configFile})->
 run =({configFile})->
   config = require('koding-config-manager').load("main.#{configFile}")
 
-  compileGoBinaries configFile,->
+  compileGoBinaries configFile, ->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
+    invoke 'rerouting'      if config.runRerouting
     invoke 'proxy'          if config.runProxy
+    invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
     invoke 'guestCleanup'   if config.guests
     invoke 'libratoWorker'  if config.librato?.push
     invoke 'cacheWorker'    if config.cacheWorker?.run is yes
-    invoke 'compileGo'      if config.compileGo
     invoke 'socialWorker'
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
+    invoke 'alertUserToRunNeo4jMigrator'
 
+task 'alertUserToRunNeo4jMigrator', (options)->
+  {configFile} = options
+  text =  "\n"
+  text += "RED ALERT: \n"
+  text += "Please run \"cake -c #{configFile} populateNeo4j\" if you haven't already.\n"
+  text += "Usually you need to run it only once when you initialize a new vagrant box\n"
+  text += "or you nuked your neo4j db.\n"
+
+  console.log text
 
 task 'run', (options)->
   {configFile} = options
@@ -299,7 +453,6 @@ task 'run', (options)->
       queue.next()
   queue.push -> run options
   daisy queue
-
 
 task 'accounting', (options)->
 

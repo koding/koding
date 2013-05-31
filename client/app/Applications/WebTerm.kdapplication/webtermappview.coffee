@@ -4,6 +4,8 @@ class WebTermAppView extends JView
 
     super options, data
 
+    @listenWindowResize()
+
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: @
 
@@ -13,9 +15,18 @@ class WebTermAppView extends JView
       resizeTabHandles   : yes
 
     @tabView.on 'PaneDidShow', (pane) =>
+      @_windowDidResize()
       {webTermView} = pane.getOptions()
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes
       webTermView.terminal?.setFocused yes
+
+      webTermView.on "WebTerm.terminated", (server) =>
+        if not pane.isDestroyed and @tabView.getActivePane() is pane
+          @tabView.removePane pane
+
+  _windowDidResize:->
+    # 10px being the application page's padding
+    @tabView.setHeight @getHeight() - @tabHandleContainer.getHeight() - 10
 
   viewAppended: ->
     super

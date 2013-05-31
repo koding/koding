@@ -44,6 +44,7 @@ config =
       secret      : 1
     uri           :
       address     : 1
+    userSitesDomain: 1
     projectRoot   : 1
     version       : 1
     webserver     :
@@ -56,7 +57,14 @@ config =
       enabled     : 1
       port        : 1
     mongo         : 1
+    neo4j         :
+      read        : 1
+      write       : 1
+      port        : 1
+    runNeo4jFeeder: 1
     runGoBroker   : 1
+    runKontrol    : 1
+    runRerouting  : 1
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
@@ -119,15 +127,18 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
-        resourceName: 1
-        suppressLogs: 1
-        version   : 1
-        mainUri   : 1
-        broker    :
-          sockJS  : 1
-        apiUri    : 1
-        appsUri   : 1
-        sourceUri : 1
+        userSitesDomain: 1
+        useNeo4j      : 1
+        logToExternal : 1
+        resourceName  : 1
+        suppressLogs  : 1
+        version       : 1
+        mainUri       : 1
+        broker        :
+          sockJS      : 1
+        apiUri        : 1
+        appsUri       : 1
+        sourceUri     : 1
         # authResourceName : DO NOT COMMIT THIS BACK IN NOR DELETE. IT KEEPS COMING BACK. devrim.
     mq            :
       host        : 1
@@ -163,6 +174,22 @@ config =
       batchSize       : 1
       cleanupCron     : 1
     pidFile       : 1
-
+    kontrold        :
+      api           :
+        port        : 1
+      proxy         :
+        port        : 1
+        portssl     : 1
+        sslips      : 1
+      mongo         :
+        host        : 1
+      rabbitmq      :
+        host        : 1
+        port        : 1
+        login       : 1
+        password    : 1
+        vhost       : 1
+    recurly         :
+      apiKey        : 1
 
 module.exports = config

@@ -131,9 +131,14 @@ class GroupsMembershipPolicyDetailView extends JView
     <section class="formline">
       <h2>Policy language</h2>
       <div class="formline">
+        <div class='policy-language-image-wrapper'>
+          <img src='/images/policy-language-modal.jpg' alt='the policy language modal' class='policy-language-image'/>
+          <span class='legend'>This modal will be presented to people who request access.</span>
+        </div>
         <p>It's possible to compose custom policy language (copy) to help your
         users better understand how they may become members of your group.</p>
-        <p>If you wish, you may enter custom language below (markdown is OK):</p>
+        <p>The screenshot on the right shows where this text will be presented to the user.</p>
+        <p>If you wish, you may click 'Edit' to the left and then enter custom language below (markdown is OK):</p>
       </div>
       {{> @policyLanguageEditor}}
     </section>

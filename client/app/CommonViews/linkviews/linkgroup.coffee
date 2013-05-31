@@ -14,7 +14,7 @@ class LinkGroup extends KDCustomHTMLView
 
     super options, data
 
-    if data?
+    if @getData()
       @createParticipantSubviews()
     else if options.group
       @loadFromOrigins options.group
@@ -29,19 +29,29 @@ class LinkGroup extends KDCustomHTMLView
     if group[0]?.constructorName
       lastFour = group.slice -4
       KD.remote.cacheable lastFour, (err, bucketContents)=>
-        callback bucketContents
+        if err
+        then warn err
+        else callback bucketContents
     else
       callback group
 
   createParticipantSubviews:->
     {itemClass, itemOptions} = @getOptions()
     participants = @getData()
-    for participant, index in participants
-      if participant.bongo_.constructorName is "ObjectRef"
+
+    # unless participants
+    #   debugger
+    #   return
+
+    for participant, index in participants when participant
+      if participant?.bongo_?.constructorName is "ObjectRef"
         itemOptions.origin = participant
         @["participant#{index}"] = new itemClass itemOptions
       else
         @["participant#{index}"] = new itemClass itemOptions, participant
+    # tmp fix
+    return unless @participant0
+
     @setTemplate @pistachio()
     @template.update()
 

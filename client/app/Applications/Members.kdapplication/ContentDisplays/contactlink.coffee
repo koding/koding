@@ -15,7 +15,10 @@ class MemberMailLink extends KDCustomHTMLView
   pistachio:->
     "<cite/><span>Contact</span>{{#(profile.firstName)}}"
 
-  click:->
+  click:(event)->
+
+    event.preventDefault()
+
     {profile} = member = @getData()
     modal = new KDModalViewWithForms
       title                   : "Compose a message"

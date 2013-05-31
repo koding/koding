@@ -68,7 +68,7 @@ class AceSettingsView extends JView
 
     """
     <p>Use soft tabs            {{> @useSoftTabs}}</p>
-    <p>Show gutter              {{> @showGutter}}</p>
+    <p>Line numbers             {{> @showGutter}}</p>
     <p>Use word wrapping        {{> @useWordWrap}}</p>
     <p>Show print margin        {{> @showPrintMargin}}</p>
     <p>Highlight active line    {{> @highlightActiveLine}}</p>

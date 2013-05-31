@@ -11,6 +11,7 @@ module.exports = class JName extends Model
   @share()
 
   @set
+    softDelete        : yes
     sharedMethods     :
       static          : ['one','claimNames','migrateAllOldNames']
       instance        : ['migrateOldName']
@@ -143,7 +144,7 @@ module.exports = class JName extends Model
     }
     nameDoc.save (err)->
       if err?.code is 11000
-        err = new KodingError "The fullName #{fullName} is not available."
+        err = new KodingError "The slug #{fullName} is not available."
         err.code = 11000
         callback err
       else if err

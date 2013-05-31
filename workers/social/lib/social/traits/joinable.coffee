@@ -4,9 +4,11 @@ module.exports = class Joinable
 
   KodingError = require '../error'
 
-  @fetchMyMemberships = secure (client, ids, callback)->
+  @fetchMyMemberships = secure (client, ids, as, callback)->
+    [callback, as] = [as, callback] unless callback
+    as ?= 'member'
     {delegate} = client.connection
-    delegate.filterRelatedIds ids, 'member', callback
+    delegate.filterRelatedIds ids, as, callback
 
   addToGroup_ =(client, {as}, callback)->
     as ?= 'member'

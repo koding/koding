@@ -8,11 +8,11 @@ class GroupsMembershipPolicyLanguageEditor extends JView
     @editorLabel = new KDLabelView
       title : 'Custom Policy Language'
 
-    @editor = new KDInputView
-      label         : @editorLabel
-      type          : 'textarea'
-      defaultValue  : policy.explanation
-      keydown       : => @saveButton.enable()
+    @editor = new KDInputViewWithPreview
+      label           : @editorLabel
+      type            : 'textarea'
+      defaultValue    : policy.explanation
+      keydown         : => @saveButton.enable()
 
     @cancelButton = new KDButtonView
       title     : "Cancel"

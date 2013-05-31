@@ -18,12 +18,18 @@ module.exports = class JOpinion extends JPost
 
   KodingError = require '../../../error'
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @set
     emitFollowingActivities: yes
     taggedContentRole : 'content'
     tagRole           : 'tag'
+    sharedEvents    :
+      instance      : [
+        { name: 'OpinionIsDeleted' }
+      ]
     sharedMethods     :
       static          : ['create','one','updateAllSlugs',"fetchRelated"]
       instance        : [

@@ -76,7 +76,7 @@ __utils =
     newPath.join ""
 
   slugify:(title = "")->
-    url = title
+    url = String(title)
       .toLowerCase()                # change everything to lowercase
       .replace(/^\s+|\s+$/g, "")    # trim leading and trailing spaces
       .replace(/[_|\s]+/g, "-")     # change all spaces and underscores to a hyphen
@@ -109,9 +109,8 @@ __utils =
 
   proxifyUrl:(url="")->
     if url is ""
-      "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
-    else
-      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
+    then "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=="
+    else "#{location.protocol}//#{location.host}/-/imageProxy?url=#{encodeURIComponent(url)}"
 
   applyMarkdown: (text)->
     # problems with markdown so far:
@@ -119,14 +118,13 @@ __utils =
     return null unless text
 
     marked.setOptions
-      gfm: true
-      pedantic: false
-      sanitize: true
-      highlight:(text,lang)->
+      gfm       : true
+      pedantic  : false
+      sanitize  : true
+      highlight :(text, lang)->
         if hljs.LANGUAGES[lang]?
-          hljs.highlight(lang,text).value
-        else
-          text
+        then hljs.highlight(lang,text).value
+        else text
 
     text = marked Encoder.htmlDecode text
 
@@ -134,11 +132,9 @@ __utils =
 
     # Proxify images
 
-    proxify = (str, p1, offset, s)=>
-      @proxifyUrl str
-
     sanitizeText.find("img").each (i,element) =>
-      $(element).attr("src", $(element).attr("src")?.replace(/.*/, proxify))
+      src = element.getAttribute 'src'
+      element.setAttribute "src", src?.replace /.*/, @proxifyUrl
 
     # Give all outbound links a target blank
     sanitizeText.find("a").each (i,element) =>
@@ -151,6 +147,13 @@ __utils =
   applyLineBreaks: (text)->
     return null unless text
     text.replace /\n/g, "<br />"
+
+  showMoreClickHandler:(event)->
+    $trg = $(event.target)
+    more = "span.collapsedtext a.more-link"
+    less = "span.collapsedtext a.less-link"
+    $trg.parent().addClass("show").removeClass("hide") if $trg.is(more)
+    $trg.parent().removeClass("show").addClass("hide") if $trg.is(less)
 
   applyTextExpansions: (text, shorten)->
     return null unless text
@@ -325,26 +328,6 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-
-  _permissionMap: ->
-    map =
-      '---': 0
-      '--x': 1
-      '-w-': 2
-      '-wx': 3
-      'r--': 4
-      'r-x': 5
-      'rw-': 6
-      'rwx': 7
-
-  symbolsPermissionToOctal: (permissions) ->
-    permissions = permissions.substr(1)
-
-    user    = permissions.substr 0, 3
-    group   = permissions.substr 3, 3
-    other   = permissions.substr 6, 3
-    octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
-
   getFullnameFromAccount:(account)->
     {firstName, lastName} = account.profile
     return "#{firstName} #{lastName}"
@@ -352,20 +335,13 @@ __utils =
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
 
-  removeBrokenSymlinksUnder:(path)->
-    kiteController = KD.getSingleton('kiteController')
-    escapeFilePath = FSHelper.escapeFilePath
-    kiteController.run "stat #{escapeFilePath path}", (err)->
-      if not err
-        kiteController.run "find -L #{escapeFilePath path} -type l -delete", noop
-
   wait: (duration, fn)->
     if "function" is typeof duration
       fn = duration
       duration = 0
     setTimeout fn, duration
 
-  killWait:(id)-> clearTimeout id
+  killWait:(id)-> clearTimeout id if id
 
   repeat: (duration, fn)->
     if "function" is typeof duration
@@ -426,6 +402,79 @@ __utils =
 
     fallbackTimer = setTimeout fallback, timeout
     kallback
+
+  # Returns a new callback which calls the failcallback if
+  # first callback doesn't finish its job within timeout.
+  #
+  # Also, keeps track of start and end times.
+  #
+  # Let's assume that you have this:
+  #
+  #   asyncFunc (data)-> doSomethingWith data
+  #
+  # To set a timeout for 500ms:
+  #
+  #   asyncFunc ,\
+  #     KD.utils.getTimedOutCallbackOne
+  #       name     :"asyncFunc" // optional, logs to KD.utils.timers
+  #       timeout  : 500        // defaults to 5000
+  #       onSucess : (data)->
+  #       onTimeout: ->
+  #       onResult : ->         // called when result comes after timeout
+  getTimedOutCallbackOne: (options={})->
+    timerName = options.name      or "undefined"
+    timeout   = options.timeout   or 10000
+    onSuccess = options.onSuccess or ->
+    onTimeout = options.onTimeout or ->
+    onResult  = options.onResult  or ->
+
+    timedOut = no
+    kallback = (rest...)=>
+      clearTimeout fallbackTimer
+      @updateLogTimer timerName, fallbackTimer, Date.now()
+
+      if timedOut then onResult rest... else onSuccess rest...
+
+    fallback = (rest...)=>
+      timedOut = yes
+      @updateLogTimer timerName, fallbackTimer
+      @logTimeoutToExternal timerName
+
+      onTimeout rest...
+
+    fallbackTimer = setTimeout fallback, timeout
+    @logTimer timerName, fallbackTimer, Date.now()
+
+    kallback.cancel =-> clearTimeout fallbackTimer
+    kallback
+
+  logTimeoutToExternal: (timerName)->
+    KD.logToMixpanel timerName+".timeout"
+
+  logTimer:(timerName, timerNumber, startTime)->
+    log "logTimer name:#{timerName}"
+
+    @timers[timerName] ||= {}
+    @timers[timerName][timerNumber] =
+      start  : startTime
+      status : "started"
+
+  updateLogTimer:(timerName, timerNumber, endTime)->
+    timer     = @timers[timerName][timerNumber]
+    status    = if endTime then "ended" else "failed"
+    startTime = timer.start
+    elapsed   = endTime-startTime
+    timer     =
+      start   : startTime
+      end     : endTime
+      status  : status
+      elapsed : elapsed
+
+    @timers[timerName][timerNumber] = timer
+
+    log "updateLogTimer name:#{timerName}, status:#{status} elapsed:#{elapsed}"
+
+  timers: {}
 
   ###
   password-generator
@@ -548,24 +597,116 @@ __utils =
 
     return if location.hostname isnt "localhost"
 
-    status = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    body  = KD.utils.generatePassword(KD.utils.getRandomNumber(50), yes) + ' ' + dateFormat(Date.now(), "dddd, mmmm dS, yyyy, h:MM:ss TT")
+    if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
+      group = KD.config.entryPoint.slug
+    else
+      group = 'koding'
 
-    KD.remote.api.JStatusUpdate.create body : status, (err,reply)=>
+    KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err
         KD.getSingleton("appManager").tell 'Activity', 'ownActivityArrived', reply
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"
 
-  stopLoggingToRollbar: ->
-    KD.getSingleton("mainController").old_rollbar = _rollbar
-    window._rollbar = push:()->
+  startRollbar: ->
+    @replaceFromTempStorage "_rollbar"
 
-  startLoggingToRollbar: ->
-    window._rollbar = KD.getSingleton("mainController").old_rollbar
+  stopRollbar: ->
+    @storeToTempStorage "_rollbar", window._rollbar
+    window._rollbar = {push:->}
+
+  startMixpanel: ->
+    @replaceFromTempStorage "mixpanel"
+
+  stopMixpanel: ->
+    @storeToTempStorage "mixpanel", window.mixpanel
+    window.mixpanel = {track:->}
+
+  replaceFromTempStorage: (name)->
+    if item = @tempStorage[name]
+      window[item] = item
+    else
+      log "no #{name} in mainController temp storage"
+
+  storeToTempStorage: (name, item)-> @tempStorage[name] = item
+
+  tempStorage:-> KD.getSingleton("mainController").tempStorage
 
   stopDOMEvent :(event)->
+    return no  unless event
     event.preventDefault()
     event.stopPropagation()
+    return no
+
+  utf8Encode:(string)->
+    string = string.replace(/\r\n/g, "\n")
+    utftext = ""
+    n = 0
+
+    while n < string.length
+      c = string.charCodeAt(n)
+      if c < 128
+        utftext += String.fromCharCode(c)
+      else if (c > 127) and (c < 2048)
+        utftext += String.fromCharCode((c >> 6) | 192)
+        utftext += String.fromCharCode((c & 63) | 128)
+      else
+        utftext += String.fromCharCode((c >> 12) | 224)
+        utftext += String.fromCharCode(((c >> 6) & 63) | 128)
+        utftext += String.fromCharCode((c & 63) | 128)
+      n++
+    utftext
+
+  utf8Decode:(utftext)->
+    string = ""
+    i = 0
+    c = c1 = c2 = 0
+    while i < utftext.length
+      c = utftext.charCodeAt(i)
+      if c < 128
+        string += String.fromCharCode(c)
+        i++
+      else if (c > 191) and (c < 224)
+        c2 = utftext.charCodeAt(i + 1)
+        string += String.fromCharCode(((c & 31) << 6) | (c2 & 63))
+        i += 2
+      else
+        c2 = utftext.charCodeAt(i + 1)
+        c3 = utftext.charCodeAt(i + 2)
+        string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63))
+        i += 3
+    string
+
+  # Return true x% of time based on argument.
+  #
+  # Example:
+  #   runXpercent(10) => returns true 10% of the time
+  runXpercent: (percent)->
+    chance = Math.floor(Math.random() * 100)
+    chance <= percent
+
+  # deprecated functions starts
+  _permissionMap: ->
+    map =
+      '---': 0
+      '--x': 1
+      '-w-': 2
+      '-wx': 3
+      'r--': 4
+      'r-x': 5
+      'rw-': 6
+      'rwx': 7
+
+  symbolsPermissionToOctal: (permissions) ->
+    permissions = permissions.substr(1)
+
+    user    = permissions.substr 0, 3
+    group   = permissions.substr 3, 3
+    other   = permissions.substr 6, 3
+    octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
+
+  # deprecated ends
 
 ###
 //     Underscore.js 1.3.1

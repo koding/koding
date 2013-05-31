@@ -19,7 +19,7 @@ class NotificationController extends KDObject
 
     @getSingleton('mainController').on "AccountChanged", =>
       @off 'NotificationHasArrived'
-      @notificationChannel?.off().unsubscribe()
+      @notificationChannel?.close().off()
       @setListeners()
 
   setListeners:->
@@ -44,62 +44,85 @@ class NotificationController extends KDObject
     # 4 - < actor fullname > sent you a private message.
     # 5 - < actor fullname > replied to your private message.
     # 6 - < actor fullname > also replied to your private message.
+    # 7 - Your membership request to < group title > has been approved.
+    # 8 - < actor fullname > has requested access to < group title >.
+    # 9 - < actor fullname > has invited you to < group title >.
+    # 9 - < actor fullname > has joined < group title >.
 
     options = {}
-    {origin, subject, actionType, replier, liker, sender} = notification.contents
+    {origin, subject, actionType, actorType} = notification.contents
 
     isMine = if origin?._id and origin._id is KD.whoami()._id then yes else no
-    actor  = replier or liker or sender
+    actor = notification.contents[actorType]
 
     return  unless actor
 
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
+      KD.remote.api[subject.constructorName].one _id: subject.id, (err, subjectObj)=>
 
-      actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
+        actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
 
-      options.title = switch actionType
-        when "reply", "opinion"
-          if isMine
-            switch subject.constructorName
-              when "JPrivateMessage"
-                "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
-              else
-                "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
-          else
-            switch subject.constructorName
-              when "JPrivateMessage"
-                "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
-              else
-                originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
-                if actorName is originatorName
-                  originatorName = "their own"
-                  separator      = ""
+        options.title = switch actionType
+          when "reply", "opinion"
+            if isMine
+              switch subject.constructorName
+                when "JPrivateMessage"
+                  "#{actorName} replied to your #{subjectMap()[subject.constructorName]}."
                 else
-                  separator      = "'s"
-                "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
+                  "#{actorName} commented on your #{subjectMap()[subject.constructorName]}."
+            else
+              switch subject.constructorName
+                when "JPrivateMessage"
+                  "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
+                else
+                  originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
+                  if actorName is originatorName
+                    originatorName = "their own"
+                    separator      = ""
+                  else
+                    separator      = "'s"
+                  "#{actorName} also commented on #{originatorName}#{separator} #{subjectMap()[subject.constructorName]}."
 
-        when "like"
-          "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
-        when "newMessage"
-          @emit "NewMessageArrived"
-          "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
+          when "like"
+            "#{actorName} liked your #{subjectMap()[subject.constructorName]}."
+          when "newMessage"
+            @emit "NewMessageArrived"
+            "#{actorName} sent you a #{subjectMap()[subject.constructorName]}."
+          when "groupRequestApproved"
+            "Your membership request to <a href='#'>#{subjectObj.title}</a> has been approved."
+          when "groupAccessRequested"
+            "#{actorName} has requested access to <a href='#'>#{subjectObj.title}</a>."
+          when "groupInvited"
+            "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
+          when "groupJoined"
+            "#{actorName} has joined <a href='#'>#{subjectObj.title}</a>."
+          else
+            if actorType is "follower"
+              "#{actorName} started following you."
 
-      options.click = ->
-        view = @
-        if subject.constructorName is "JPrivateMessage"
-          KD.getSingleton("appManager").open "Inbox"
-        else if subject.constructorName in ["JComment", "JOpinion"]
-          KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
-            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-            view.destroy()
-        else
-          # ask chris if KD.remote.cacheable is good for this
-          KD.remote.api[subject.constructorName].one _id : subject.id, (err, post) ->
-            KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
-            view.destroy()
-      options.type  = actionType or ''
+        if subject
+          options.click = ->
+            view = @
+            if subject.constructorName is "JPrivateMessage"
+              appManager.openApplication "Inbox"
+            else if subject.constructorName in ["JComment", "JOpinion"]
+              KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
+                KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post
+                # appManager.tell "Activity", "createContentDisplay", post
+                view.destroy()
+            else if subject.constructorName is 'JGroup'
+              suffix = ''
+              suffix = '/Dashboard' if actionType is 'groupAccessRequested'
+              KD.getSingleton('router').handleRoute "/#{subjectObj.slug}#{suffix}"
+              view.destroy()
+            else
+              # appManager.tell "Activity", "createContentDisplay", post
+              KD.getSingleton('router').handleRoute "/Activity/#{subjectObj.slug}", state:post
+              view.destroy()
 
-      @notify options
+        options.type  = actionType or actorType or ''
+
+        @notify options
 
   notify:(options  = {})->
 

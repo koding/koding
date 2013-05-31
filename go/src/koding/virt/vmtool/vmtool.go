@@ -129,7 +129,9 @@ var actions = map[string]func(){
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	virt.LoadTemplates("templates")
+	if err := virt.LoadTemplates("templates"); err != nil {
+		panic(err)
+	}
 
 	action := actions[os.Args[1]]
 	action()

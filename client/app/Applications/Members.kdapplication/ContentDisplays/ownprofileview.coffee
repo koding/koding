@@ -20,14 +20,16 @@ class OwnProfileView extends JView
     @profileName = new PersonalFormNameView {memberData}
     @location    = new PersonalFormLocationView {memberData}
 
+    {nickname} = memberData.profile
     @followers = new KDView
       tagName     : 'a'
       attributes  :
         href      : '#'
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.followers is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'followers'
+        KD.getSingleton('router').handleRoute "/#{nickname}/Followers", {state:memberData}
     , memberData
 
     @following = new KDView
@@ -36,8 +38,9 @@ class OwnProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createFolloweeContentDisplay", memberData, 'following'
+        KD.getSingleton('router').handleRoute "/#{nickname}/Following", {state:memberData}
     , memberData
 
     @likes = new KDView
@@ -46,8 +49,9 @@ class OwnProfileView extends JView
         href      : '#'
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
+        event.preventDefault()
         return if memberData.counts.following is 0
-        KD.getSingleton("appManager").tell "Members", "createLikedContentDisplay", memberData
+        KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
     , memberData
 
     @aboutYou     = new PersonalFormAboutView {memberData}
@@ -57,27 +61,12 @@ class OwnProfileView extends JView
       {callback,inputValue,blacklist} = event
       @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
-    @staticPageView = new KDView
-      tooltip :
-        placement : 'bottom'
-        direction : 'right'
-        delayIn : 50
-        delayOut : 1000
-        view :
-          constructorName : StaticProfileTooltip
-          options : {}
-          data : @getData()
-      partial : 'Your Public Page'
-      cssClass : 'static-page-view'
-      # callback :=>
-      #   modal = new StaticProfileSettingsModalView
-
   putNick:(nick)-> "@#{nick}"
 
   pistachio:->
     account      = @getData()
     {nickname}   = account.profile
-    userDomain   = "#{account.profile.nickname}.koding.com"
+    userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     """
     <div class="profileleft">
@@ -93,7 +82,6 @@ class OwnProfileView extends JView
         {{> @location}}
         <h5>
           <a class="user-home-link no-right-overflow" href="http://#{userDomain}" target="_blank">#{userDomain}</a>
-          {{> @staticPageView}}
           <cite>member for #{if amountOfDays < 2 then 'a' else amountOfDays} day#{if amountOfDays > 1 then 's' else ''}.</cite>
         </h5>
         <div class="profilestats">

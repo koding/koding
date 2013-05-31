@@ -4,6 +4,7 @@ class ContentDisplayController extends KDController
     super
     @displays = {}
     @attachListeners()
+    @revivedContentDisplay = no
 
   attachListeners:->
     @on "ContentDisplayWantsToBeShown",  (view)=> @showContentDisplay view
@@ -11,16 +12,19 @@ class ContentDisplayController extends KDController
     @on "ContentDisplaysShouldBeHidden",       => @hideAllContentDisplays()
     KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
-  showContentDisplay:(view, callback=->)->
+  showContentDisplay:(view)->
     contentPanel = @getSingleton "contentPanel"
     wrapper = new ContentDisplay
+      domId : "content-display-wrapper" if not @revivedContentDisplay
+    wrapper.bindTransitionEnd()
     @displays[view.id] = view
     wrapper.addSubView view
     contentPanel.addSubView wrapper
     @slideWrapperIn wrapper
-    callback wrapper
+    @revivedContentDisplay = yes
+    return wrapper
 
-  hideContentDisplay:(view)-> history.back()
+  hideContentDisplay:(view)-> KD.getSingleton('router').back()
 
   hideAllContentDisplays:(exceptFor)->
     displayIds =\
@@ -38,16 +42,16 @@ class ContentDisplayController extends KDController
     @slideWrapperOut @displays[lastId]
 
   slideWrapperIn:(wrapper)->
-    wrapper.$().animate left : "0%",200
+    wrapper.setClass 'in'
 
   slideWrapperOut:(view)->
     wrapper = view.parent
-    wrapper.$().animate left : "100%",100,=>
-      @destroyView view
+    wrapper.once 'transitionend', => @destroyView view
+    wrapper.unsetClass 'in'
 
   destroyView:(view)->
     wrapper = view.parent
     @emit 'ContentDisplayIsDestroyed', view
     delete @displays[view.id]
     view.destroy()
-    wrapper.destroy()
+    wrapper?.destroy()

@@ -5,7 +5,6 @@ import (
 	"github.com/streadway/amqp"
 	"koding/tools/config"
 	"koding/tools/log"
-	"os"
 	"strings"
 )
 
@@ -13,20 +12,20 @@ func CreateConnection(component string) *amqp.Connection {
 	conn, err := amqp.Dial(amqp.URI{
 		Scheme:   "amqp",
 		Host:     config.Current.Mq.Host,
-		Port:     5672,
+		Port:     config.Current.Mq.Port,
 		Username: strings.Replace(config.Current.Mq.ComponentUser, "<component>", component, 1),
 		Password: config.Current.Mq.Password,
 		Vhost:    config.Current.Mq.Vhost,
 	}.String())
 	if err != nil {
 		log.LogError(err, 0)
-		os.Exit(1)
+		log.SendLogsAndExit(1)
 	}
 
 	go func() {
 		for err := range conn.NotifyClose(make(chan *amqp.Error)) {
 			log.Err("AMQP connection: " + err.Error())
-			os.Exit(1)
+			log.SendLogsAndExit(1)
 		}
 	}()
 
@@ -67,7 +66,7 @@ func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string, 
 	return stream
 }
 
-func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string) {
+func JoinPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string, loadBalancing bool) {
 	if err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil); err != nil {
 		panic(err)
 	}
@@ -77,6 +76,11 @@ func DeclarePresenceExchange(channel *amqp.Channel, exchange, serviceType, servi
 	}
 
 	routingKey := fmt.Sprintf("serviceType.%s.serviceGenericName.%s.serviceUniqueName.%s", serviceType, serviceGenericName, serviceUniqueName)
+
+	if loadBalancing {
+		routingKey += ".loadBalancing"
+	}
+
 	if err := channel.QueueBind("", routingKey, exchange, false, nil); err != nil {
 		panic(err)
 	}

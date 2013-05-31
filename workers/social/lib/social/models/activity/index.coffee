@@ -1,4 +1,5 @@
 jraphical      = require 'jraphical'
+neo4j = require "neo4j"
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -17,8 +18,10 @@ module.exports = class CActivity extends jraphical.Capsule
   @trait __dirname, '../../traits/followable', override: no
   @trait __dirname, '../../traits/protected'
   @trait __dirname, '../../traits/restrictedquery'
+  @trait __dirname, '../../traits/grouprelated'
 
   @set
+    softDelete        : yes
     feedable          : yes
     broadcastable     : no
     indexes           :
@@ -30,13 +33,12 @@ module.exports = class CActivity extends jraphical.Capsule
       group                 : 'sparse'
 
     permissions             :
-      'read activity'       : ['member','moderator']
-
+      'read activity'       : ['guest','member','moderator']
     sharedMethods     :
       static          : [
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets',
-        'checkIfLikedBefore'
+        'checkIfLikedBefore', 'count'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -97,14 +99,14 @@ module.exports = class CActivity extends jraphical.Capsule
     {to, from, lowQuality, types, limit, sort} = options
 
     selector =
-      # group        : 'koding'
+      group        : 'koding'
       createdAt    :
         $lt        : new Date to
         $gt        : new Date from
       type         :
         $in        : types
       isLowQuality :
-        $ne        : lowQuality
+        $ne        : not lowQuality
 
     fields  =
       type      : 1
@@ -191,13 +193,14 @@ module.exports = class CActivity extends jraphical.Capsule
                                  'sorts.likesCount'   : meta?.likes or 0
                               CActivity.update {_id}, op, -> queue.fin()
 
-  fetchTeaser:(callback)->
+  fetchTeaser:(callback, showIsLowQuality=no)->
     @fetchSubject (err, subject)->
       if err
         callback err
       else
         subject.fetchTeaser (err, teaser)->
           callback err, teaser
+        , showIsLowQuality
 
   @teasers =(selector, options, callback)->
     [callback, options] = [options, callback] unless callback
@@ -218,8 +221,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
-      {to, limit, facets, lowQuality, originId} = options
-
+      {to, limit, facets, lowQuality, originId, sort, skip} = options
       lowQuality  ?= yes
       facets      ?= defaultFacets
       to          ?= Date.now()
@@ -227,14 +229,15 @@ module.exports = class CActivity extends jraphical.Capsule
       selector =
         type         : { $in : facets }
         createdAt    : { $lt : new Date to }
-        isLowQuality : { $ne : lowQuality }
         group        : client.groupName ? 'koding'
 
       selector.originId = originId if originId
+      selector.isLowQuality = $ne : yes unless lowQuality
 
       options =
-        limit : limit or 20
-        sort  : createdAt : -1
+        limit : limit ? 20
+        sort  : sort  or createdAt : -1
+        skip  : skip  ? 0
 
       @some selector, options, (err, activities)->
         if err then callback err
@@ -271,3 +274,13 @@ module.exports = class CActivity extends jraphical.Capsule
           likedIds.push likedRel.sourceId
 
         callback err, likedIds
+
+  notifyCache = (event, contents)->
+    routingKey = contents.group or 'koding'
+    @emit 'cacheWorker', {routingKey, event, contents}
+
+  @on 'ActivityIsCreated', notifyCache.bind this, 'ActivityIsCreated'
+  @on 'PostIsUpdated',     notifyCache.bind this, 'PostIsUpdated'
+  @on 'PostIsDeleted',     notifyCache.bind this, 'PostIsDeleted'
+  @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
+  @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'

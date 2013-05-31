@@ -1,7 +1,11 @@
 class AvatarPopupMessages extends AvatarPopup
 
+  constructor:->
+    @notLoggedInMessage = 'Login required to see messages'
+    super
+
   viewAppended:->
-    super()
+    super
 
     @_popupList = new PopupList
       itemClass  : PopupMessageListItem

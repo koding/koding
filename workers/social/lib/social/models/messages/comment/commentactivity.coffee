@@ -6,6 +6,8 @@ module.exports = class CCommentActivity extends CActivity
   
   {Relationship} = jraphical
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @set

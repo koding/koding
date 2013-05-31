@@ -41,7 +41,7 @@ module.exports = class JUser extends jraphical.Module
                      'fucker','admin','postfix','puppet','main','invite',
                      'administrator','members','register','activate',
                      'groups','blogs','forums','topics','develop','terminal',
-                     'term','twitter','facebook','google','framework']
+                     'term','twitter','facebook','google','framework', 'kite']
 
   @hashUnhashedPasswords =->
     @all {salt: $exists: no}, (err, users)->
@@ -59,11 +59,16 @@ module.exports = class JUser extends jraphical.Module
   @getFlagRole =-> 'owner'
 
   @set
+    softDelete      : yes
     broadcastable   : no
     indexes         :
       username      : 'unique'
       email         : 'unique'
 
+    sharedEvents    :
+      static        : [
+        { name: 'UserCreated' }
+      ]
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
@@ -293,30 +298,83 @@ module.exports = class JUser extends jraphical.Module
           data = JSON.parse data.substr(1, data.length - 2)
           if data.error then callback yes else callback null
 
-  @addToGroup = (account, slug, callback)->
+  @addToGroup = (account, slug, isInvited, callback)->
+    [callback, isInvited] = [isInvited, callback]  unless callback
+    isInvited ?= no
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
+      else if not isInvited and group.privacy is 'private' and group.slug isnt 'koding'
+        group.requestAccessFor account, callback
       else group.approveMember account, callback
 
-  @addToGroups = (account, invite, callback)->
+  @addToGroups = (account, invite, entryPoint, callback)->
     @addToGroup account, 'koding', (err)=>
       if err then callback err
-      else if invite.group
-        @addToGroup account, invite.group, (err)->
-          if err then callback err
-          else callback null
+      else if invite.group or entryPoint
+        if invite.group is 'koding'
+          invite.markAccepted connection:delegate:account, callback
+        else
+          @addToGroup account, invite.group or entryPoint, invite.group?, callback
       else callback null
+
+  @createUser = ({ username, email, password, firstName, lastName }, callback)->
+    slug =
+      slug            : username
+      constructorName : 'JUser'
+      usedAsPath      : 'username'
+      collectionName  : 'jUsers'
+
+    JName.claim username, [slug], 'JUser', (err)=>
+      if err then callback err
+      else
+        salt = createSalt()
+        user = new JUser {
+          username
+          email
+          salt
+          password: hashPassword(password, salt)
+          emailFrequency: {
+            global         : on
+            daily          : on
+            privateMessage : on
+            followActions  : off
+            comment        : on
+            likeActivities : off
+            groupInvite    : on
+            groupRequest   : on
+            groupApproved  : on
+          }
+        }
+        user.save (err)=>
+          if err
+            if err.code is 11000
+              callback createKodingError "Sorry, \"#{email}\" is already in use!"
+            else callback err
+          else
+            hash = getHash email
+            account = new JAccount
+              profile: {
+                nickname: username
+                firstName
+                lastName
+                hash
+              }
+            account.save (err)=>
+              if err then callback err
+              else user.addOwnAccount account, (err) ->
+                return callback err  if err
+                callback null, user, account
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
-     agree, inviteCode, kodingenUser, clientId} = userFormData
+     agree, inviteCode, kodingenUser, clientId, entryPoint} = userFormData
 
     # The silence option provides silence registers,
     # means no welcome e-mail for new users.
     # We're using it for migrating Kodingen users to Koding
     silence  = no
-    if client.connection.delegate?.can? 'migrate-kodingen-users'
+    if client.connection?.delegate?.can? 'migrate-kodingen-users'
       {silence} = userFormData
 
     @usernameAvailable username, (err, r)=>
@@ -334,7 +392,7 @@ module.exports = class JUser extends jraphical.Module
       else if r.kodingUser
         callback createKodingError 'That username is taken!'
       else
-        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite)=>
+        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
           if err
             callback createKodingError err.message
           else
@@ -345,83 +403,46 @@ module.exports = class JUser extends jraphical.Module
             else if not username? or not email?
               return callback createKodingError 'Username and email are required fields'
 
-            @verifyKodingenPassword {username, password, kodingenUser}, (err)=>
+            @verifyKodingenPassword {username, password, kodingenUser}, (err) =>
               if err
                 return callback createKodingError 'Wrong password'
               else
-                nickname = username
-                JSession.one {clientId: client.sessionToken}, (err, session)=>
+                JSession.one {clientId: client.sessionToken}, (err, session) =>
                   if err
                     callback err
                   else unless session
                     callback createKodingError 'Could not restore your session!'
                   else
-                    slug = {
-                      slug: username,
-                      constructorName: 'JUser',
-                      usedAsPath: 'username',
-                      collectionName: 'jUsers'
+                    userData = {
+                      username, password, email, firstName, lastName
                     }
-                    JName.claim username, [slug], 'JUser', (err)=>
-                      if err then callback err
-                      else
-                        salt = createSalt()
-                        user = new JUser {
-                          username
-                          email
-                          salt
-                          password: hashPassword(password, salt)
-                          emailFrequency: {
-                            global         : on
-                            daily          : on
-                            privateMessage : on
-                            followActions  : off
-                            comment        : on
-                            likeActivities : off
-                          }
-                        }
-                        user.save (err)=>
-                          if err
-                            if err.code is 11000
-                              callback createKodingError "Sorry, \"#{email}\" is already in use!"
-                            else callback err
-                          else
-                            hash = getHash email
-                            account = new JAccount
-                              profile: {
-                                nickname
-                                firstName
-                                lastName
-                                hash
-                              }
-                            account.save (err)=>
-                              if err then callback err
-                              else user.addOwnAccount account, (err)=>
-                                if err then callback err
-                                else @addToGroups account, invite, (err)->
-                                  if err then callback err
-                                  else if silence
-                                    JUser.grantInitialInvitations user.username
-                                    createNewMemberActivity account
-                                    callback null, account
-                                  else
-                                    replacementToken = createId()
-                                    session.update {
-                                      $set:
-                                        username      : user.username
-                                        lastLoginDate : new Date
-                                        clientId      : replacementToken
-                                      $unset          :
-                                        guestId       : 1
-                                    }, (err, docs)->
-                                      if err then callback err
-                                      else
-                                        user.sendEmailConfirmation()
-                                        JUser.grantInitialInvitations user.username
-                                        JUser.emit 'UserCreated', user
-                                        createNewMemberActivity account
-                                        JAccount.emit "AccountAuthenticated", account
-                                        callback null, account, replacementToken
+                    @createUser userData, (err, user, account) =>
+                      return callback err  if err
+                      @addToGroups account, invite, entryPoint, (err) ->
+                        if err then callback err
+                        else if silence
+                          JUser.grantInitialInvitations user.username
+                          createNewMemberActivity account
+                          callback null, account
+                        else
+                          replacementToken = createId()
+                          session.update {
+                            $set:
+                              username      : user.username
+                              lastLoginDate : new Date
+                              clientId      : replacementToken
+                            $unset          :
+                              guestId       : 1
+                          }, (err, docs) ->
+                            if err then callback err
+                            else
+                              user.sendEmailConfirmation()
+                              JUser.grantInitialInvitations user.username
+                              JUser.emit 'UserCreated', user
+                              createNewMemberActivity account
+                              JAccount.emit "AccountAuthenticated", account
+                              callback null, account, replacementToken
+
 
   @grantInitialInvitations = (username)->
     JInvitation.grant {'profile.nickname': username}, 3, (err)->
@@ -546,9 +567,7 @@ module.exports = class JUser extends jraphical.Module
         else
           callback new KodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(clientId, callback)->
-    [callback, clientId] = [clientId, callback]  unless callback
-
+  fetchHomepageView:(callback)->
     @fetchAccount 'koding', (err, account)->
       if err then callback err
       else account.fetchHomepageView callback

@@ -48,8 +48,7 @@ class AvatarView extends LinkView
     return unless account
     {profile} = account
     options = @getOptions()
-    fallbackUri = "https://koding.com/images/defaultavatar/default.avatar.#{options.size.width}.png"
-    # @$().attr "title", options.title or "#{Encoder.htmlDecode profile.firstName}'s avatar"
+    fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
     # this is a temp fix to avoid avatar flashing on every account change - Sinan 08/2012
     bgImg = "url(//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent fallbackUri})"
@@ -100,38 +99,13 @@ class AvatarTooltipView extends KDView
       origin    : origin
     , data
 
-    defaultState  = "Follow"
 
     @followButton = new MemberFollowToggleButton
-      style           : "follow-btn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : defaultState
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        top           : 11
-      states          : [
-        title         : "Follow"
-        callback      : (callback)=>
-          @followButton.getData().follow (err, response)=>
-            @followButton.hideLoader()
-            unless err
-              @followButton.setClass 'following-btn'
-              callback? null
-            else
-              log err
-      ,
-        title         : "Unfollow"
-        callback      : (callback)=>
-          @getData()?.unfollow (err, response)=>
-            @followButton.hideLoader()
-            unless err
-              @followButton.unsetClass 'following-btn'
-              callback? null
-            else
-              log err
-      ]
+      style       : "follow-btn"
+      loader      :
+        color     : "#333333"
+        diameter  : 18
+        top       : 11
     , @getData()
 
     @followers = new KDView
@@ -180,8 +154,9 @@ class AvatarTooltipView extends KDView
     return unless data.getId?
 
     unless data.followee?
-      KD.whoami().isFollowing? data.getId(), "JAccount", (following) =>
+      KD.whoami().isFollowing? data.getId(), "JAccount", (err, following)=>
         data.followee = following
+        warn err  if KD.isLoggedIn()
         if data.followee
           @followButton.setClass 'following-btn'
           @followButton.setState "Unfollow"

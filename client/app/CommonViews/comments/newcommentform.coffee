@@ -8,7 +8,7 @@ class NewCommentForm extends KDView
 
     super options, data
 
-  viewAppended:()->
+  viewAppended:->
     {profile} = KD.whoami()
     host = "//#{location.host}/"
     fallbackUrl = "url(//www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')})"
@@ -38,18 +38,17 @@ class NewCommentForm extends KDView
     @attachListeners()
 
   attachListeners:->
-    @commentInput.on "focus", @bound "commentInputReceivedFocus"
     @commentInput.on "blur", @bound "commentInputReceivedBlur"
 
-  commentPosted:()->
+  commentPosted:->
     @commentInput.setValue ""
     @resetCommentField()
 
-  makeCommentFieldActive:()->
+  makeCommentFieldActive:->
     @getDelegate().emit "DecorateActiveCommentView"
     (@getSingleton "windowController").setKeyView @commentInput
 
-  resetCommentField:()->
+  resetCommentField:->
     @getDelegate().emit "CommentViewShouldReset"
 
   otherCommentInputReceivedFocus:(instance)->
@@ -57,31 +56,16 @@ class NewCommentForm extends KDView
       commentForm = @commentInput.getDelegate()
       commentForm.resetCommentField() if $.trim(@commentInput.getValue()) is ""
 
-  commentInputReceivedFocus:()->
-    # @makeCommentFieldActive()
-    # list = @getDelegate()
-    # listLength = list.items.length
-
-    # if list.items.length > 0
-    #   firstCommentTimestamp = list.items[0].getData().meta.createdAt
-    #   fromUnixTime          = Date.parse firstCommentTimestamp
-    # else
-    #   fromUnixTime = Date.parse 1e7
-
-    # list.emit "CommentInputReceivedFocus", fromUnixTime, @bound("makeCommentFieldActive")
-
-  commentInputReceivedBlur:()->
+  commentInputReceivedBlur:->
     @resetCommentField()  if @commentInput.getValue() is ""
 
   commentInputReceivedEnter:(instance,event)->
-    if KD.isLoggedIn()
-      reply = @commentInput.getValue()
-      @commentInput.setValue ''
-      @commentInput.blur()
-      @commentInput.$().blur()
-      @getDelegate().emit 'CommentSubmitted', reply
-    else
-      new KDNotificationView
-        type      : "growl"
-        title     : "please login to post a comment!"
-        duration  : 1500
+    KD.requireLogin
+      callback  : =>
+        reply = @commentInput.getValue()
+        @commentInput.setValue ''
+        @commentInput.blur()
+        @commentInput.$().blur()
+        @getDelegate().emit 'CommentSubmitted', reply
+      onFailMsg : "Login required to post a comment!"
+      tryAgain  : yes

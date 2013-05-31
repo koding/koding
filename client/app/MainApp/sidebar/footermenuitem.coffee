@@ -54,9 +54,4 @@ class FooterMenuItem extends KDListItemView
     """
 
   showAboutDisplay:->
-
-    if not @aboutIsOpen
-      @aboutIsOpen             = yes
-      contentDisplayController = @getSingleton "contentDisplayController"
-      contentDisplayController.emit "ContentDisplayWantsToBeShown", view = new AboutView
-      view.on "KDObjectWillBeDestroyed", => @aboutIsOpen = no
+    KD.getSingleton('router').handleRoute '/About'

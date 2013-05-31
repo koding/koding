@@ -14,18 +14,15 @@ app.finder.styl
 }
 
 selectedNeighbor()
-  border-top-color  #E6981E
   background        finderSelectedColor1
 
 dimmed()
-  border-color      #ccc transparent #c2c2c2 transparent
   color             #282828
   text-shadow       none
   // background        linear-gradient(top, #ccc 0%, #c2c2c2 100%)
   bg                color, #ccc
 
 dimmedNeighbor()
-  border-top-color  finderDimmedColor1
   background        finderDimmedColor2
 
 #finder-holder
@@ -34,7 +31,7 @@ dimmedNeighbor()
   .nfinder
     overflow            visible
     > div
-      padding           10px 0
+      // padding           10px 0
       borderBox()
     ul
       min-width         180px
@@ -68,8 +65,6 @@ dimmedNeighbor()
 .kdlistitemview-finderitem
   height              auto
   min-height          22px
-  border              1px solid transparent
-  border-width        1px 0
   font-size           11px
   color               #282828
   noTextSelection()
@@ -79,23 +74,27 @@ dimmedNeighbor()
 
   .chevron
     abs()
-    top               1px
-    right             10px
-    z-index           1
+    top               0
+    right             4px
+    z-index           2
     float             none
     display           none
-    size              16px,16px
+    size              22px,22px
     margin            0
     sprite()
     bg                position,-180px -360px
 
   &.selected
-    border            1px solid #F6A220
-    border-width      1px 0
     color             white
     text-shadow       0 -1px 0 rgba(0,0,0,0.22)
     // background        linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
     bg                color, finderSelectedColor1
+
+    // I'll find a better place for it ~ GG
+    .vm
+      span.path-select
+        display     block
+        bg          position, -220px -520px
     .title
       color white
       text-shadow none
@@ -125,19 +124,22 @@ dimmedNeighbor()
 
   &:hover
     span.chevron
+    .vm span.path-select
       display       block
 
   &.expanded
     > div
       span.icon
         bg          position,-40px -120px
+      span.arrow
+        bg          position, -40px 0px
+
 
   &.being-inline-edited
     .chevron
       hidden()
 
   &.being-deleted
-    border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
     background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
     height            22px
     .kdview.delete-container
@@ -178,10 +180,11 @@ dimmedNeighbor()
     .title
       cursor          default
       font-weight     normal
-      width           auto
+      width           66%
       margin-right    26px
       display         block
       overflow        hidden
+      text-overflow   ellipsis
 
     form
       height          22px
@@ -268,7 +271,7 @@ dimmedNeighbor()
   .kdnotification.filetree.mini
     shadow              0 1px 3px rgba(0, 0, 0, 0.3)
     rounded             2px
-    margin-top          -8px
+    margin-top          -14px
     padding             0
     .kdnotification-title
       text-shadow       none
@@ -278,13 +281,6 @@ dimmedNeighbor()
     &.clickable
       cursor pointer
 
-  .server-pin-button
-    border          none
-    background      none
-    right           -5px
-    margin-top      2px
-    z-index         10
-    abs()
 
   // .finder-settings-border
   //   rel()
@@ -310,7 +306,7 @@ dimmedNeighbor()
     margin          0 20px
 
 #finder-header-holder
-  size              auto, 66px
+  size              auto, 50px
   h2
     font-size       13px
     font-weight     bold
@@ -329,8 +325,9 @@ dimmedNeighbor()
   abs()
   bottom                    0
   margin                    0
-  size                      100%, 180px
-  vendor                    transition, height .2s linear .4s
+  size                      100%, 27px
+  min-height                27px
+  vendor                    transition, max-height .8s
   shadow                    0 0 8px rgba(0,0,0,0.15)
   background-color          #e2e2e2
   border-top                1px solid rgba(255,255,255,0.5)
@@ -345,167 +342,142 @@ dimmedNeighbor()
     bg                      position,-60px -160px
 
   .finder-bottom-pin
-    right           0
-    top             2px
+    left            0
+    top             0
     border          none
     background      none
     opacity         .4
+    z-index         4
     abs()
 
-  &.go-down
-    size                    100%, 27px
+  &.show-environments
+    height                  auto
+    max-height              100%
+    padding-bottom          16px
+    z-index                 2
 
   ul
     min-width               208px
-    margin                  1px 10px 0 10px
-    padding                 15px 0 5px 0
+    margin                  0 5px 0 5px
+    padding                 3px 0 5px 0
+    transition              opacity .2s ease-in
     li
-      margin                0 10px 2px 10px
+      margin                0 10px 2px 5px
       padding               0
       cursor                pointer
       width                 auto
       span.icon
-        margin-right        10px
         size                17px, 20px
         blockMid()
      a
-      font-size             11px
+      font-size             14px
       color                 #444
       text-decoration       none
-      &:hover
-        color               linkColor1
-      span:not(.title)
-        sprite()
-      span.terminal
-        bg(position,-100px -300px)
-      span.resources
-        bg(position,-120px -300px)
-      span.cog
-        bg(position,-138px -300px)
-      span.shortcuts
-        bg(position,-158px -300px)
-      span.remotes
-        bg(position,-220px -300px)
-      span.databases
-        bg(position,-198px -300px)
-
-/*
-**  Overriding Treeview STYLES
-*/
-
-// #finder > .kdview.kdtreeitemview:first-child .finder-item
-//   margin-left   17px
-
-// .kdtreeview-filetree
-//   .kdtreeitemview
-//     min-width     208px
-//     height        auto
-//     border        1px solid transparent
-//     border-width  1px 0
-//     font-size     11px
-//     color         #282828
-//     // min-width:    150px
-//     noTextSelection()
-
-//     &:first-child
-//       margin-top 0px
-
-//     .title
-//       /*text-transform  uppercase*/
-//       font-weight     bold
-//       text-shadow     0 1px 0 white
-//       color           #444
-//       &:hover
-//         color         #222
-
-//     .chevron
-//       abs()
-//       top           1px
-//       right         10px
-//       z-index       1
-//       float         none
-//       display       none
-//       size          16px,16px
-//       margin        0
-//       sprite()
-//       bg            position,-180px -360px
-
-//     &.selected
-//       border        1px solid #F6A220
-//       border-width  1px 0
-//       color         white
-//       text-shadow   0 -1px 0 rgba(0,0,0,0.22)
-//       bg            color, finderSelectedColor1
-//       // background    linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
-//       .title
-//         color white
-//         text-shadow none
-
-//     &.unsaved
-//       span.icon
-//         color           black!important
-//         font-size       14px
-//         text-indent     -2px
-//         line-height     10px
-//         vertical-align  top
-//         &:before
-//           content       "*"
-//         // bg              color,black
-//         // opacity         .5
-//       // border-left       5px solid #333
-//       // borderBox()
-//       // font-weight   bold
-//       // color         #282828
-//       // text-shadow   none
+      font-variant          small-caps
+      font-weight           bold
+      // &:hover
+      //   color               linkColor1
+      // span:not(.title)
+      //   sprite()
+      // span.terminal
+      //   bg(position,-100px -300px)
+      // span.resources
+      //   bg(position,-120px -299px)
+      // span.plus
+      //   bg(position,-120px -480px)
+      // span.cog
+      //   bg(position,-138px -300px)
+      // span.shortcuts
+      //   bg(position,-158px -300px)
+      // span.remotes
+      //   bg(position,-220px -300px)
+      // span.databases
+      //   bg(position,-198px -300px)
 
 
-//     &.selected
-//       span.chevron
-//         display       block
-//         bg            position,-180px -380px
+div.virt-controls
+  width             auto
+  height            25px
+  background-color  white
+  padding           2px
+  min-width         200px
 
-//     &:hover
-//       span.chevron
-//         display       block
+  .vm-toggle
+    right           20px
+    top             6px
+    abs()
 
-//     &.folder.expanded
-//       .finder-item
-//         span.icon
-//           bg          position,-40px -120px
+  .vmreinitialize-button
+    border          none
+    background      none
+    right           -5px
+    z-index         10
+    abs()
 
-//     &.being-inline-edited
-//       .chevron
-//         hidden()
+div.led-wrapper
+  borderBox()
+  width                                 auto
+  display                               inline-block
+  opacity 1
+  vendor transition, opacity .1s ease-in-out
 
-//     &.being-deleted
-//       border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
-//       background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
-//       height            22px
-//       .kdview.delete-container
-//         margin          0!important
-//       span.icon
-//         display         none
-//       label
-//         abs()
-//         color           white
-//         font-size       12px
-//         top             2px
-//         left            10px
-//       button.kdbutton
-//         margin          2px 10px 0 0
-//         padding         2px 4px 2px 4px
-//         width           auto
-//         font-weight     normal
-//         fr()
-//       a.cancel
-//         color           white
-//         line-height     24px
-//         margin-right    10px
+  div.label
+    padding-left                        22px
+    padding-top                         5px
+    font-size                           11px
+    font-weight                         bold
+    cursor                              pointer
 
-//   .drop-helper
-//     abs()
-//     border            2px solid finderSelectedColor1
-//     rounded           4px
+  div.led
+    left                                10px
+    top                                 10px
+    width                               6px
+    height                              6px
+    border-radius                       50%
+    display inline-block
+    abs()
+    borderBox()
+    vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out \, opacity 0.25s ease-in-out
+  &.red
+    .led
+      background-color                  #ff9200
+      // box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
+      animation-name                    pulseAlert
+      animation-duration                1s
+      animation-iteration-count         infinite
+  &.green
+    .led
+      animation-name                    pulseOnce
+      animation-duration                1s
+      animation-iteration-count         1
+      background-color                  #5f5f5f
+      // box-shadow                        rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
+      // box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 5px, #555 0 2px 14px
+  &.yellow
+    .led
+      background-color                  #ff0
+  &.blue
+    .led
+      background-color                  #00f
+      // box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
+  &.off
+    .led
+      background-color                  rgba(0,0,0,0)
+      // box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
+
+  &:hover
+    &.green
+      .led
+        bg color,                       #0f0
+    &.red
+      .led
+        bg color,                       #f60
+
+  &.pulse
+    .led
+      animation-name                    pulseOnce
+      animation-duration                1s
+      animation-iteration-count         1
 
 .fatih
   bg                color rgba(0, 0, 0, 0.6)
@@ -653,11 +625,11 @@ dimmedNeighbor()
     fl()
 
   .kdloader
-    margin        2px 3px
+    margin        3px 3px
     fl()
 
   .icon
-    margin        2px 3px
+    margin        3px 3px
     size          16px,16px
 
   .section-title
@@ -667,30 +639,88 @@ dimmedNeighbor()
       bg          position,-40px -60px
 
 .file-container
+
+  .vm
   .file
   .mount
   .folder
   .broken
   .section
     font-size       11px
+
     span.icon
-      margin        2px 3px
-      size          16px,16px
+    span.arrow
       sprite()
       fl()
+
+    span.icon
+    span.path-select
+      margin        2px 3px
+      size          16px,16px
+    span.arrow
+      margin        3px 3px
+      margin-left   0
+      size          10px,16px
+      bg            position, -1000px -1000px
+
+  .vm
+    margin-left     0 !important
+    height          32px
+    padding-top     1px
+    padding-bottom  3px
+
+    &.online
+      span.icon
+        bg          position, -20px -140px !important
+
+    span.arrow
+      width         0
+
+    span.icon
+      bg            position, 0px -140px !important
+    span.chevron
+      top           3px
+
+    span.path-select
+      top           0
+      size          18px,18px
+      right         22px
+      display       none
+      bg            position, -220px -540px
+      sprite()
+      abs()
+
+    span.vm-info
+      top           15px
+      left          22px
+      font-size     10px
+      font-style    italic
+      opacity       .7
+      abs()
+
+    div.vm-toggle
+      top           3px
+      right         20px
+      abs()
+
   .folder
   .mount
     span.icon
       bg            position, -40px -100px
     span.icon.application
       bg            position, -40px -320px
+    span.arrow
+      bg            position, -40px -20px
+
   .folder
     span.icon
       &.app
         bg          position, -40px -60px
+
   .broken
     span.icon
       bg            position, -60px -140px
+
   .file
     span.icon
       bg            position, -40px -140px
@@ -708,7 +738,6 @@ dimmedNeighbor()
         bg          position, -40px -280px
       &.text
         bg          position, -40px -300px
-
 
 
 .finder-drag-container
@@ -732,9 +761,206 @@ dimmedNeighbor()
       display         inline-block
       margin-right    0
 
+.resources-list
+
+  background-color    #e2e2e2
+  shadow              0 0 8px rgba(0,0,0,0.15)
+  border-top          1px solid rgba(255,255,255,0.5)
+  // height              196px !important
+  padding-top         6px
+  padding-bottom      6px
+  overflow            auto
+
+  .vm
+    height            50px
+    margin-left       0px !important
+    cursor            pointer
+    color             #555
+
+    &.selected
+      // background      active-color
+      background      linear-gradient(top, finderSelectedColor2 0%, active-color 50%)
+      color           white
+      text-shadow     -1px -1px 0 rgba(0,0,0,0.3)
+      .chevron
+        bg            position,-180px -300px
+        opacity       1
+
+    &:hover
+      .chevron
+        opacity       1
+
+    &.online
+      .icon
+        opacity       1
+
+    .icon
+      width           20px !important
+      left            10px
+      top             10px
+      height          20px
+      display         block
+      margin          0
+      opacity         .4
+      abs()
+      sprite()
+      bg              position,-260px -160px
+
+    .vm-info
+      font-size       13px
+      font-weight     bold
+      left            36px
+      top             9px
+      abs()
+
+    .vm-desc
+      left            36px
+      top             27px
+      font-size       11px
+      opacity         .9
+      abs()
+
+    .chevron
+      width           20px
+      height          20px
+      right           7px
+      top             15px
+      opacity         0
+      abs()
+      sprite()
+      bg              position,-180px -320px
+
+.vm-toggle-menu
+  font-size       12px
+  padding         2px 0px 7px 10px
+  .vm-toggle-item
+    right           16px
+    top             2px
+    abs()
+
+button.create-vm
+  position          relative
+  bottom            -8px
+  left              40px
+  span.icon
+    height          14px !important
+    width           14px !important
+    top             -1px
+
+/*
+**  Overriding Treeview STYLES
+*/
+
+// #finder > .kdview.kdtreeitemview:first-child .finder-item
+//   margin-left   17px
+
+// .kdtreeview-filetree
+//   .kdtreeitemview
+//     min-width     208px
+//     height        auto
+//     border        1px solid transparent
+//     border-width  1px 0
+//     font-size     11px
+//     color         #282828
+//     // min-width:    150px
+//     noTextSelection()
+
+//     &:first-child
+//       margin-top 0px
+
+//     .title
+//       /*text-transform  uppercase*/
+//       font-weight     bold
+//       text-shadow     0 1px 0 white
+//       color           #444
+//       &:hover
+//         color         #222
+
+//     .chevron
+//       abs()
+//       top           1px
+//       right         10px
+//       z-index       1
+//       float         none
+//       display       none
+//       size          16px,16px
+//       margin        0
+//       sprite()
+//       bg            position,-180px -360px
+
+//     &.selected
+//       border        1px solid #F6A220
+//       border-width  1px 0
+//       color         white
+//       text-shadow   0 -1px 0 rgba(0,0,0,0.22)
+//       bg            color, finderSelectedColor1
+//       // background    linear-gradient(top, finderSelectedColor2 0%, finderSelectedColor1 50%)
+//       .title
+//         color white
+//         text-shadow none
+
+//     &.unsaved
+//       span.icon
+//         color           black!important
+//         font-size       14px
+//         text-indent     -2px
+//         line-height     10px
+//         vertical-align  top
+//         &:before
+//           content       "*"
+//         // bg              color,black
+//         // opacity         .5
+//       // border-left       5px solid #333
+//       // borderBox()
+//       // font-weight   bold
+//       // color         #282828
+//       // text-shadow   none
 
 
+//     &.selected
+//       span.chevron
+//         display       block
+//         bg            position,-180px -380px
 
+//     &:hover
+//       span.chevron
+//         display       block
 
+//     &.folder.expanded
+//       .finder-item
+//         span.icon
+//           bg          position,-40px -120px
 
+//     &.being-inline-edited
+//       .chevron
+//         hidden()
 
+//     &.being-deleted
+//       border-color      rgb(168,70,25) transparent rgb(199,81,29) transparent
+//       background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
+//       height            22px
+//       .kdview.delete-container
+//         margin          0!important
+//       span.icon
+//         display         none
+//       label
+//         abs()
+//         color           white
+//         font-size       12px
+//         top             2px
+//         left            10px
+//       button.kdbutton
+//         margin          2px 10px 0 0
+//         padding         2px 4px 2px 4px
+//         width           auto
+//         font-weight     normal
+//         fr()
+//       a.cancel
+//         color           white
+//         line-height     24px
+//         margin-right    10px
+
+//   .drop-helper
+//     abs()
+//     border            2px solid finderSelectedColor1
+//     rounded           4px

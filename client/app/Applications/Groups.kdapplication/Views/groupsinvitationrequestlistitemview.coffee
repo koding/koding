@@ -1,78 +1,72 @@
-class GroupsInvitationRequestListItemView extends KDListItemView
-  constructor:(options, data)->
-    options.cssClass = 'invitation-request formline clearfix'
+class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
+
+  constructor:(options = {}, data)->
 
     super
 
-    invitationRequest = @getData()
-
-    @avatar = new AvatarStaticView
-      size :
-        width : 40
-        height : 40
-
-    KD.remote.cacheable @getData().koding.username, (err, [account])=>
-      @avatar.setData account
-      @avatar.render()
-
     @approveButton = new KDButtonView
-      cssClass  : 'cupid-green'
-      title     : 'Approve'
-      callback  : =>
-        @getDelegate().emit 'RequestIsApproved', invitationRequest
+      style       : 'clean-gray'
+      title       : 'Approve'
+      icon        : yes
+      iconClass   : 'approve'
+      callback    : =>
+        @getDelegate().emit 'RequestIsApproved', @getData(), (err)=>
+          @updateButtons err, 'approved'
 
     @declineButton = new KDButtonView
-      cssClass  : 'clean-red'
-      title     : 'Decline'
-      callback  : =>
-        @getDelegate().emit 'RequestIsDeclined', invitationRequest
+      style       : 'clean-gray'
+      title       : 'Decline'
+      icon        : yes
+      iconClass   : 'decline'
+      callback    : => 
+        @getDelegate().emit 'RequestIsDeclined', @getData(), (err)=>
+          @updateButtons err, 'declined'
 
-    @getData().on 'update', => @updateStatus()
-
-    @updateStatus()
-
-  updateStatus:->
-    isSent = @getData().sent
-    @[if isSent then 'setClass' else 'unsetClass'] 'invitation-sent'
-    @inviteButton.disable()  if isSent
+    @statusText    = new KDCustomHTMLView
+      partial     : '<span class="icon"></span><span class="title"></span>'
+      cssClass    : 'status hidden'
 
   hideButtons:->
     @approveButton.hide()
     @declineButton.hide()
+    @statusText.setClass @getData().status
+    @statusText.$('span.title').html @getData().status.capitalize()
+    @statusText.unsetClass 'hidden'
 
   showButtons:->
     @approveButton.show()
     @declineButton.show()
 
   initializeButtons:->
-    invitationRequest = @getData()
-
-    if invitationRequest.status is 'pending'
+    if @getData().status is 'pending'
       @showButtons()
     else
       @hideButtons()
 
+  updateButtons:(err, expectedStatus)->
+    if err
+      return new KDNotificationView title:'An error occurred. Please try again later'
+    @getData().status = expectedStatus
+    @initializeButtons()
+    @getDelegate().emit 'UpdateCurrentState'
+
   viewAppended:->
     JView::viewAppended.call this
     @initializeButtons()
-    @getData().on 'update', @bound 'initializeButtons'
-
-  getStatusText:(status)->
-    switch status
-      when 'approved' then '✓ Approved'
-      when 'pending'  then '… Pending'
-      when 'sent'     then '… Sent'
-      when 'declined' then '✗ Declined'
 
   pistachio:->
+    {status} = @getData()
     """
-    <div class="fl">
-      <span class="avatar">{{> @avatar}}</span>
-      <div class="request">
-        <div class="username">{{#(koding.username)}}</div>
-        <div class="requested-at">Requested on {{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
-        <div class="is-sent">Status is <span class='status'>{{@getStatusText #(status)}}</span></div>
+    <section>
+      {{> @statusText}}
+      <div class="buttons">
+        {{> @approveButton}}
+        {{> @declineButton}}
       </div>
-    </div>
-    <div class="fr">{{> @approveButton}} {{> @declineButton}}</div>
+      <span class="avatar">{{> @avatar}}</span>
+      <div class="details">
+        {{> @profileLink}}
+        <div class="requested-at">{{(new Date #(requestedAt)).format('mm/dd/yy')}}</div>
+      </div>
+    </section>
     """

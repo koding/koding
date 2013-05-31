@@ -18,7 +18,8 @@ class BlogPostActivityItemView extends ActivityItemChild
       click : (event)=>
         event.stopPropagation()
         event.preventDefault()
-        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", state:@getData()
+        {entryPoint} = KD.config
+        KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
 
   viewAppended:()->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity

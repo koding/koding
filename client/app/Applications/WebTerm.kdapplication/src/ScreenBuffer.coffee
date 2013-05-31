@@ -2,6 +2,8 @@ class WebTerm.ScreenBuffer
   constructor: (@terminal) ->
     @lineContents = []
     @lineDivs = []
+    @lineDivOffset = 0
+    @scrollbackLimit = 1000
     @linesToUpdate = []
     @lastScreenClearLineCount = 0
     @scrollingRegion = [0, @terminal.sizeY - 1]
@@ -50,27 +52,35 @@ class WebTerm.ScreenBuffer
   flush: ->
     @linesToUpdate.sort (a, b) -> a - b
     maxLineIndex = @linesToUpdate[@linesToUpdate.length - 1]
-    if @lineDivs.length <= maxLineIndex
+    if @lineDivOffset + @lineDivs.length <= maxLineIndex
       scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
       newDivs = []
-      while @lineDivs.length <= maxLineIndex
-        div = $(document.createElement("div"))
-        div.text "\xA0"
+      while @lineDivOffset + @lineDivs.length <= maxLineIndex
+        div = document.createElement("div")
+        $(div).text "\xA0"
         newDivs.push div
         @lineDivs.push div
       @terminal.outputbox.append newDivs
       @terminal.scrollToBottom() if scrolledToBottom
 
+    toDelete = @lineDivs.length - @scrollbackLimit
+    if toDelete > 0
+      $(@lineDivs.slice(0, toDelete)).remove()
+      @lineDivs = @lineDivs.slice toDelete
+      @lineDivOffset += toDelete
+
     for index in @linesToUpdate
       content = @getLineContent index
       content = @terminal.cursor.addCursorElement content if index is @toLineIndex(@terminal.cursor.y)
       
-      div = @lineDivs[index]
+      div = $(@lineDivs[index - @lineDivOffset])
       div.empty()
       div.append content.getNodes()
       div.text "\xA0" if content.getNodes().length is 0
       
     @linesToUpdate = []
+
+    @terminal.flushedCallback()
 
   class ContentArray
     constructor: ->

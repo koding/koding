@@ -12,6 +12,7 @@ class NFinderItem extends JTreeItemView
     @beingEdited      = no
 
     childConstructor = switch data.type
+      when "vm"         then NVMItemView
       when "folder"     then NFolderItemView
       when "section"    then NSectionItemView
       when "mount"      then NMountItemView
@@ -19,8 +20,7 @@ class NFinderItem extends JTreeItemView
       else NFileItemView
 
     @childView = new childConstructor {}, data
-    @childView.$().css "margin-left", (data.depth+1)*10
-
+    @childView.$().css "margin-left", (data.depth)*10
 
   mouseDown:-> yes
 

@@ -26,12 +26,13 @@ module.exports = class JPost extends jraphical.Message
 
   {log} = console
 
-  {permit} = require '../group/permissionset'
+  Validators = require '../group/validators'
+  {permit}   = require '../group/permissionset'
 
   schema = extend {}, jraphical.Message.schema, {
     isLowQuality  : Boolean
-    slug          : Object
-    slug_         : Object # this is necessary, because $exists operator won't work with a sparse index.
+    slug          : String
+    slug_         : String # this is necessary, because $exists operator won't work with a sparse index.
     group         : String 
     counts        :
       followers   :
@@ -44,8 +45,12 @@ module.exports = class JPost extends jraphical.Message
 
   # TODO: these relationships may not be abstract enough to belong to JPost.
   @set
+    softDelete  : yes
     slugifyFrom : 'title'
-    slugTemplate: 'Activity/#{slug}'
+    slugTemplate: ->
+      """
+      #{if @group is 'koding' then '' else "#{@group}/"}Activity/\#{slug}
+      """
     indexes     :
       slug      : 'unique'
       group     : 'sparse'
@@ -57,6 +62,7 @@ module.exports = class JPost extends jraphical.Message
       'edit own posts'    : ['member', 'moderator']
       'delete own posts'  : ['member', 'moderator']
       'reply to posts'    : ['member', 'moderator']
+      'like posts'        : ['member', 'moderator']
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
@@ -131,8 +137,8 @@ module.exports = class JPost extends jraphical.Message
               if err
                 callback err
               else
-                status.slug   = slug
-                status.slug_  = slug
+                status.slug   = slug.slug
+                status.slug_  = slug.slug
                 queue.next()
           ->
             status
@@ -189,9 +195,12 @@ module.exports = class JPost extends jraphical.Message
     @notifyOriginWhen 'ReplyIsAdded', 'LikeIsAdded'
     @notifyFollowersWhen 'ReplyIsAdded'
 
-  modify: secure (client, formData, callback)->
-    {delegate} = client.connection
-    if delegate.getId().equals @originId
+  modify: permit
+    advanced: [
+      { permission: 'edit own posts', validateWith: Validators.own }
+      { permission: 'edit posts' }
+    ]
+    success: (client, formData, callback)->
       {tags} = formData.meta if formData.meta?
       delete formData.meta
       daisy queue = [
@@ -205,11 +214,13 @@ module.exports = class JPost extends jraphical.Message
         =>
           @update $set: formData, callback
       ]
-    else
-      callback createKodingError "Access denied"
 
-  delete: secure ({connection:{delegate}}, callback)->
-    if delegate.can 'delete', this
+  delete: permit
+    advanced: [
+      { permission: 'delete own posts', validateWith: Validators.own }
+      { permission: 'delete posts' }
+    ]
+    success: ({connection:{delegate}}, callback)->
       id                = @getId()
       createdAt         = @meta.createdAt
       {getDeleteHelper} = Relationship
@@ -232,9 +243,11 @@ module.exports = class JPost extends jraphical.Message
       dash queue, =>
         callback null
         @emit 'PostIsDeleted', 1
-        CActivity.emit "PostIsDeleted", {teaserId : id, createdAt}
-    else
-      callback new KodingError 'Access denied!'
+        CActivity.emit "PostIsDeleted", {
+          teaserId : id
+          createdAt
+          group    : @group
+        }
 
   fetchActivityId:(callback)->
     Relationship.one {
@@ -283,6 +296,31 @@ module.exports = class JPost extends jraphical.Message
     ]
     daisy queue
 
+  updateSnapshot:(callback)->
+    teaser = null
+    activityId = null
+    queue = [
+      =>
+        @fetchActivityId (err, activityId_)->
+          activityId = activityId_
+          queue.next()
+      =>
+        @fetchTeaser (err, teaser_)->
+          return callback createKodingError err if err
+          teaser = teaser_
+          queue.next()
+      =>
+        CActivity.update _id: activityId, {
+          $set:
+            snapshot              : JSON.stringify teaser
+            'sorts.repliesCount'  : teaser.repliesCount
+          $addToSet:
+            snapshotIds: @getId()
+        }, -> queue.next()
+      callback
+    ]
+    daisy queue
+
   removeReply:(rel, callback)->
     id = @getId()
     teaser = null
@@ -296,81 +334,84 @@ module.exports = class JPost extends jraphical.Message
     ]
     daisy queue
 
-  reply: secure (client, replyType, comment, callback)->
-    {delegate} = client.connection
-    unless delegate instanceof JAccount
-      callback new Error 'Log in required!'
-    else
-      comment = new replyType body: comment
-      exempt = delegate.checkFlag('exempt')
-      if exempt
-        comment.isLowQuality = yes
-      comment
-        .sign(delegate)
-        .save (err)=>
-          if err
-            callback err
-          else
-            delegate.addContent comment, (err)->
-              if err
-                log 'error adding content to delegate with err', err
-            @addComment comment,
-              flags:
-                isLowQuality    : exempt
-            , (err, docs)=>
-              if err
-                callback err
-              else
-                if exempt
-                  callback null, comment
+  reply: permit 'reply to posts',
+    success:(client, replyType, comment, callback)->
+      {delegate} = client.connection
+      unless delegate instanceof JAccount
+        callback new Error 'Log in required!'
+      else
+        comment = new replyType body: comment
+        exempt = delegate.checkFlag('exempt')
+        if exempt
+          comment.isLowQuality = yes
+        comment
+          .sign(delegate)
+          .save (err)=>
+            if err
+              callback err
+            else
+              delegate.addContent comment, (err)->
+                if err
+                  log 'error adding content to delegate with err', err
+              @addComment comment,
+                flags:
+                  isLowQuality    : exempt
+              , (err, docs)=>
+                if err
+                  callback err
                 else
-                  Relationship.count {
-                    sourceId                    : @getId()
-                    as                          : 'reply'
-                    'data.flags.isLowQuality'   : $ne: yes
-                  }, (err, count)=>
-                    if err
-                      callback err
-                    else
-                      @update $set: repliesCount: count, (err)=>
-                        if err
-                          callback err
-                        else
-                          callback null, comment
-                          @fetchActivityId (err, id)->
-                            CActivity.update {_id: id}, {
-                              $set: 'sorts.repliesCount': count
-                            }, (err)-> log err if err
-                          @fetchOrigin (err, origin)=>
-                            if err
-                              console.log "Couldn't fetch the origin"
-                            else
-                              unless exempt
-                                @emit 'ReplyIsAdded', {
-                                  origin
-                                  subject       : ObjectRef(@).data
-                                  actorType     : 'replier'
-                                  actionType    : 'reply'
-                                  replier       : ObjectRef(delegate).data
-                                  reply         : ObjectRef(comment).data
-                                  repliesCount  : count
-                                  relationship  : docs[0]
-                                }
-                              @follow client, emitActivity: no, (err)->
-                              @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
+                  if exempt
+                    callback null, comment
+                  else
+                    Relationship.count {
+                      sourceId                    : @getId()
+                      as                          : 'reply'
+                      'data.flags.isLowQuality'   : $ne: yes
+                    }, (err, count)=>
+                      if err
+                        callback err
+                      else
+                        @update $set: repliesCount: count, (err)=>
+                          if err
+                            callback err
+                          else
+                            callback null, comment
+                            @fetchActivityId (err, id)->
+                              CActivity.update {_id: id}, {
+                                $set: 'sorts.repliesCount': count
+                              }, (err)-> log err if err
+                            @fetchOrigin (err, origin)=>
+                              if err
+                                console.log "Couldn't fetch the origin"
+                              else
+                                unless exempt
+                                  @emit 'ReplyIsAdded', {
+                                    origin
+                                    subject       : ObjectRef(@).data
+                                    actorType     : 'replier'
+                                    actionType    : 'reply'
+                                    replier       : ObjectRef(delegate).data
+                                    reply         : ObjectRef(comment).data
+                                    repliesCount  : count
+                                    relationship  : docs[0]
+                                  }
+                                @follow client, emitActivity: no, (err)->
+                                @addParticipant delegate, 'commenter', (err)-> #TODO: what should we do with this error?
 
   # TODO: the following is not well-factored.  It is not abstract enough to belong to "Post".
   # for the sake of expedience, I'll leave it as-is for the time being.
-  fetchTeaser:(callback)->
+  fetchTeaser:(callback, showIsLowQuality=no)->
+    query =
+      targetName  : 'JComment'
+      as          : 'reply'
+      'data.deletedAt':
+        $exists   : no
+
+    query['data.flags.isLowQuality'] = $ne: yes unless showIsLowQuality
+
     @beginGraphlet()
       .edges
-        query         :
-          targetName  : 'JComment'
-          as          : 'reply'
-          'data.deletedAt':
-            $exists   : no
-          'data.flags.isLowQuality':
-            $ne       : yes
+        query         : query
         limit         : 3
         sort          :
           timestamp   : -1
@@ -436,8 +477,9 @@ module.exports = class JPost extends jraphical.Message
     super
 
   triggerCache:->
-    CActivity.emit "post-updated",
+    CActivity.emit "PostIsUpdated",
       teaserId  : @getId()
+      group     : @group
       createdAt : @meta.createdAt
 
   update:(rest..., callback)->
@@ -446,3 +488,71 @@ module.exports = class JPost extends jraphical.Message
       @triggerCache()
 
     jraphical.Message::update.apply @, rest.concat kallback
+
+  makeGroupSelector =(group)->
+    if Array.isArray group then $in: group else group
+
+  @update$ = permit 'edit posts',
+    success:(client, selector, operation, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @update selector, operation, options, callback
+
+  @one$ = permit 'read posts',
+    success:(client, uniqueSelector, options, callback)->
+      # TODO: this needs more security?
+      uniqueSelector.group = makeGroupSelector client.context.group
+      @one uniqueSelector, options, callback
+
+  @all$ = permit 'read posts',
+    success:(client, selector, callback)->
+      selector.group = client.context.group
+      @all selector, callback
+
+  @remove$ = permit 'delete posts',
+    success:(client, selector, callback)->
+      selector.group = client.context.group
+      @remove selector, callback
+
+  @removeById$ = permit 'delete posts',
+    success:(client, _id, callback)->
+      selector = {
+        _id, group : makeGroupSelector client.context.group
+      }
+      @remove selector, callback
+
+  @count$ = permit 'read posts',
+    success:(client, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = makeGroupSelector client.context.group
+      @count selector, callback
+
+  @some$ = permit 'read posts',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @some selector, options, callback
+
+  @someData$ = permit 'read posts',
+    success:(client, selector, options, fields, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @someData selector, options, fields, callback
+
+  @cursor$ = permit 'read posts',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @cursor selector, options, callback
+
+  @each$ = permit 'read posts',
+    success:(client, selector, fields, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @each selector, fields, options, callback
+
+  @hose$ = permit 'read posts',
+    success:(client, selector, rest...)->
+      selector.group = makeGroupSelector client.context.group
+      @someData selector, rest...
+
+  @teasers$ = permit 'read posts',
+    success:(client, selector, options, callback)->
+      selector.group = makeGroupSelector client.context.group
+      @teasers selector, options, callback

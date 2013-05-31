@@ -169,7 +169,7 @@ app.aceeditor.styl
 .ace-find-replace-view
   position         absolute
   display          block
-  bottom           28px
+  bottom           20px
   gradient         #f9f9f9,#e7e7e7
   color            #282828
   border           1px solid #e2e2e2
@@ -184,7 +184,7 @@ app.aceeditor.styl
     left           0
 
   .ace-find-replace-inputs
-    padding        0 197px 0 110px
+    padding        0 194px 0 102px
     width          auto
 
   .ace-replace-input
@@ -211,30 +211,30 @@ app.aceeditor.styl
 
   .multiple-choice
     float          left
-    top            2px
     position       relative
     margin-left    12px
     a
       text-indent  -10000px
-      width        10px
+      size         26px, 24px
+      borderBox()
       sprite()
       &.multiple-choice-case-sensitive
-        bg         position, 5px 0
-      &.multiple-choice-whole-word
-        bg         position, 5px -18px
+        bg         position, -197px -459px
+        &.active
+          bg       position, -217px -459px
       &.multiple-choice-regex
-        bg         position, 6px -39px
-      &.multiple-choice-case-sensitive.active
-        bg         position, -17px 0px
-      &.multiple-choice-whole-word.active
-        bg         position, -17px -18px
-      &.multiple-choice-regex.active
-        bg         position, -18px -39px
+        bg         position, -198px -479px
+        &.active
+          bg       position, -218px -479px
+      &.multiple-choice-whole-word
+        bg         position, -198px -498px
+        &.active
+          bg       position, -218px -498px
       &.active
         border-color #cfcfcf !important
 
 .editor-bottom-bar
-  bottom                8px
+  bottom                0
   color                 #282828
   border                1px solid #e2e2e2
   border-top-color      #dadada
@@ -378,5 +378,5 @@ app.aceeditor.styl
   bg(color,black)
   size(auto,auto)
 
-.ace-session-button
-  margin          6px 8px 4px 4px
+.recent-files-menu .arrow
+  top             8px

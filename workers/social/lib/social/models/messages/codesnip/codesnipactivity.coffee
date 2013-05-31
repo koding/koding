@@ -4,6 +4,8 @@ JCodeSnip = require './index'
 
 module.exports = class CCodeSnipActivity extends CActivity
 
+  @trait __dirname, '../../../traits/grouprelated'
+
   @share()
 
   @set

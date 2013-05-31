@@ -11,14 +11,8 @@ class FatihFileFinderPlugin extends FatihPluginAbstract
     @on "ListItemClicked", -> @fatihView.destroy()
 
   action: (keyword) ->
-    # path    = "/Users/#{KD.whoami().profile.nickname}/"
-    # command = "find '#{path}' -type f -iname '*#{keyword}*'"
-    path = "."
-
-    command =
-      kiteName : "os"
-      method   : "exec"
-      withArgs : "find '#{path}' -type f -iname '*#{keyword}*'"
+    path    = "/home/#{KD.whoami().profile.nickname}/"
+    command = "find \"#{path}\" -type f -iname \"*#{keyword}*\""
 
     @getSingleton('kiteController').run command, (err, res) =>
       @searchHelper keyword, @parseResponse res

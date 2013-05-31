@@ -6,13 +6,14 @@ class GroupsListItemView extends KDListItemView
     super options,data
 
     group = @getData()
-
     {title, slug, body} = group
+
+    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
       attributes  :
-        href      : "/#{slug}"
+        href      : slugLink
         target    : slug
       pistachio   : '{{ #(title)}}'
       # click       : (event) => @titleReceivedClick event
@@ -57,35 +58,30 @@ class GroupsListItemView extends KDListItemView
       @enterButton.hide()
 
     @enterLink = new CustomLinkView
-      href    : "/#{slug}/Activity"
+      href    : "#{slugLink}Activity"
       target  : slug
       title   : 'Open group'
       click   : @bound 'privateGroupOpenHandler'
 
-    membersController = new KDListViewController
+    @membersController = new KDListViewController
       view         : @members = new KDListView
         wrapper    : no
         scrollView : no
         type       : "members"
         itemClass  : GroupItemMemberView
-
-    # FIXME: SY
-    # instantiateListItems doesnt fire by default
-    group.fetchMembers (err, members)=>
-      if err then warn err
-      else if members
-        @$('.members-list-wrapper').removeClass "hidden"
-        membersController.instantiateListItems members
+    @fetchMembers() if group.privacy is 'public'
 
     @memberBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge member"
-      partial   : "<span class='fold'/>You are a member"
+      partial   : "You are a member"
 
     @privateBadge = new KDCustomHTMLView
       tagName   : "div"
       cssClass  : "badge private #{if group.privacy is 'private' then '' else 'hidden'}"
-      partial   : "<span class='fold'/><span class='icon'/>"
+      partial   : "<span class='icon'/>"
+      tooltip   :
+        title   : "Restricted access"
 
     @memberCount = new CustomLinkView
       title       : "#{group.counts?.members or 'No'} Members"
@@ -96,7 +92,7 @@ class GroupsListItemView extends KDListItemView
     menu = @settingsMenu data
     if Object.keys(menu).length > 0
       @settingsButton = new KDButtonViewWithMenu
-        cssClass    : 'transparent group-settings-context'
+        style       : 'group-settings-context badge'
         title       : ''
         delegate    : @
         type        : 'contextmenu'
@@ -109,7 +105,8 @@ class GroupsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     group = @getData()
-    KD.getSingleton('router').handleRoute "/#{group.slug}", state:group
+    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
+    KD.getSingleton('router').handleRoute slugLink, state:group
     event.stopPropagation()
     event.preventDefault()
     #KD.getSingleton("appManager").tell "Groups", "createContentDisplay", group
@@ -118,7 +115,40 @@ class GroupsListItemView extends KDListItemView
 
   setFollowerCount:(count)-> @$('.followers a').html count
 
-  markOwnGroup:-> @setClass "own-group"
+  markPendingRequest:->
+    @setClass "pending-request"
+    @settingsButton.options.style += " pending-request"
+    @memberBadge.updatePartial "<span class='fold'/>Request Pending"
+
+  markPendingInvitation:->
+    @setClass "pending-invitation"
+    @settingsButton.options.style += " pending-invitation"
+    @memberBadge.updatePartial "<span class='fold'/>Pending Invitation"
+
+  markMemberGroup:(updatePartial=no)->
+    @setClass "group-member"
+    @settingsButton.options.style += " group-member"
+    @fetchMembers() if @getData().privacy isnt 'public'
+    @memberBadge.updatePartial "<span class='fold'/>You are a member" if updatePartial
+
+  markOwnGroup:->
+    @setClass "group-owner"
+    @settingsButton.options.style += " group-owner"
+    @memberBadge.stopUpdatingPartial = yes
+    @memberBadge.updatePartial "<span class='fold'/>You are owner"
+
+  markGroupAdmin:->
+    @setClass "group-admin"
+    @settingsButton.options.style += " group-admin"
+    unless @memberBadge.stopUpdatingPartial?
+      @memberBadge.updatePartial "<span class='fold'/>You are an admin"
+
+  applyTextExpansions:(body)->
+    if body?.length > 800
+      @utils.applyTextExpansions body, yes
+    else body
+
+  click: KD.utils.showMoreClickHandler
 
   pistachio:->
     """
@@ -127,16 +157,16 @@ class GroupsListItemView extends KDListItemView
       <p>
         {{> @memberCount}}
       </p>
-      {article{ #(body)}}
+      {article{ @applyTextExpansions #(body)}}
     </div>
     <div class='members-list-wrapper hidden'>
       {{> @members}}
     </div>
     <div class='side-wrapper'>
       <div class='badge-wrapper clearfix'>
+        {{> @settingsButton}}
         {{> @memberBadge}}
         {{> @privateBadge}}
-        {{> @settingsButton}}
       </div>
     </div>
     """
@@ -147,6 +177,7 @@ class GroupsListItemView extends KDListItemView
 
     if data.slug isnt 'koding'
       menu['Leave Group'] =
+        cssClass : 'leave-group'
         callback : =>
           modal = new KDModalView
             title          : 'Leave Group'
@@ -161,30 +192,112 @@ class GroupsListItemView extends KDListItemView
                   diameter : 16
                 callback   : =>
                   @leaveGroup data, =>
-                    @unsetClass 'own-group'
+                    @memberBadge.hide()
+                    @settingsButton.hide()
+                    @unsetClass 'group-owner'
                     modal.buttons.Leave.hideLoader()
                     modal.destroy()
               Cancel       :
                 style      : "modal-cancel"
                 callback   : (event)-> modal.destroy()
 
+      menu['Remove Group'] =
+        cssClass : 'remove-group'
+        callback : =>
+          modal = new GroupsDangerModalView
+            action     : 'Remove Group'
+            longAction : 'remove this group'
+            callback   : (callback)=>
+              data.remove (err)=>
+                callback()
+                if err
+                  return new KDNotificationView title: if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                new KDNotificationView title:'Successfully removed!'
+                modal.destroy()
+                @destroy()
+          , data
+
+      menu['Cancel Request'] =
+        cssClass : 'cancel-request'
+        callback : =>
+          modal = new KDModalView
+            title          : 'Cancel Request'
+            content        : "<div class='modalformline'>Are you sure that you want to cancel your membership request to this group?</div>"
+            height         : 'auto'
+            overlay        : yes
+            buttons        :
+              Cancel       :
+                style      : "modal-clean-red"
+                loader     :
+                  color    : "#ffffff"
+                  diameter : 16
+                callback   : =>
+                  @cancelRequest data, =>
+                    @memberBadge.hide()
+                    @settingsButton.hide()
+                    @unsetClass 'group-owner'
+                    modal.buttons.Cancel.hideLoader()
+                    modal.destroy()
+              Dismiss      :
+                style      : "modal-cancel"
+                callback   : (event)-> modal.destroy()
+
+      menu['Accept Invitation'] =
+        cssClass : 'accept-invitation'
+        callback : @bound 'acceptInvitation'
+
+      menu['Ignore Invitation'] =
+        cssClass : 'ignore-invitation'
+        callback : @bound 'ignoreInvitation'
 
     return menu
 
   leaveGroup:(group, callback)->
+    group.leave @handleBackendResponse 'Successfully left group!', (err)->
+      unless err
+        currentGroup = KD.getSingleton('groupsController').getCurrentGroup()
+        currentGroupSlug = currentGroup.getAt 'slug'
+        if group.slug is currentGroupSlug
+          document.location.reload()
+      callback err
 
-    group.leave (err)->
+  cancelRequest:(group, callback)->
+    KD.whoami().cancelRequest group, @handleBackendResponse 'Successfully canceled the request!', callback
+
+  acceptInvitation:->
+    KD.whoami().acceptInvitation @getData(), @handleBackendResponse 'Successfully accepted the invitation!', (err)=>
+      unless err
+        @markMemberGroup yes
+        @unsetClass 'pending-invitation'
+        @settingsButton.options.style = @settingsButton.options.style.replace ' pending-invitation', ''
+
+  ignoreInvitation:->
+    KD.whoami().ignoreInvitation @getData(), @handleBackendResponse 'Successfully ignored the invitation!', (err)=>
+      @unsetClass 'pending-invitation' unless err
+
+  handleBackendResponse:(successMsg, callback)->
+    (err)->
       if err
         warn err
         new KDNotificationView
           title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
           duration : 2000
-        return callback()
+        return callback err
 
       new KDNotificationView
-        title    : 'Fair Enough! They are gonna miss you.'
+        title    : successMsg
         duration : 2000
-      callback()
+
+      callback null
+
+  fetchMembers:->
+    @getData().fetchMembers (err, members)=>
+      if err
+        # HK: better we have error codes for such things
+        warn err unless err.name is 'KodingError' and err.message is 'Access denied'
+      else if members
+        @$('.members-list-wrapper').removeClass "hidden"
+        @membersController.instantiateListItems members
 
 class GroupItemMemberView extends KDListItemView
 

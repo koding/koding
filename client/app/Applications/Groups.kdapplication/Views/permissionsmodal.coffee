@@ -19,10 +19,11 @@ class PermissionsModal extends KDFormViewWithFields
           color     : "#444444"
           diameter  : 12
         callback          : =>
-          @addSubView addRoleDialog = new KDDialogView
+
+          @getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
             cssClass      : "add-role-dialog"
             duration      : 200
-            topOffset     : 21
+            topOffset     : 0
             overlay       : yes
             height        : 'auto'
             buttons       :
@@ -49,11 +50,12 @@ class PermissionsModal extends KDFormViewWithFields
                     unless copy is null
                       log 'copying permissions from ',copy,' to ',role
 
-                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
                     @on 'RoleViewRefreshed', =>
                       @utils.wait 500, =>
                         addRoleDialog.buttons["Add Role"].hideLoader()
                         addRoleDialog.hide()
+
+                    @emit 'RoleWasAdded',@reducedList(),nameSlug,copy
 
               Cancel :
                 style     : "add-role-cancel modal-cancel"
@@ -71,25 +73,30 @@ class PermissionsModal extends KDFormViewWithFields
             partial       : 'Add new Role'
 
           wrapper.addSubView form = new KDFormView
+          form.addSubView inputFormline = new KDView
+            cssClass : 'formline'
 
-          form.addSubView labelRoleName = new KDLabelView
+          inputFormline.addSubView labelRoleName = new KDLabelView
             cssClass      : 'label-role-name'
             title         : "Role Name:"
 
-          form.addSubView @inputRoleName = inputRoleName = new KDInputView
+          inputFormline.addSubView @inputRoleName = inputRoleName = new KDInputView
             cssClass      : 'role-name'
             label         : labelRoleName
             defaultValue  : ''
             placeholder   : 'new-role'
 
-          form.addSubView labelCopyPermissions = new KDLabelView
+          form.addSubView copyFormline = new KDView
+            cssClass : 'formline'
+
+          copyFormline.addSubView labelCopyPermissions = new KDLabelView
             cssClass      : 'label-copy-permissions'
             title         : "Copy Permissions from"
 
           selectOptions   = [{title:'None',value:null}]
           selectOptions.push {title:readableText(role),value:role} for role in roles
 
-          form.addSubView @inputCopyPermissions = new KDSelectBox
+          copyFormline.addSubView @inputCopyPermissions = new KDSelectBox
             cssClass      : 'copy-permissions'
             selectOptions : selectOptions
             defaultValue  : null
@@ -114,12 +121,11 @@ class PermissionsModal extends KDFormViewWithFields
 
   readableText = (text)->
     dictionary =
-      "JTag" : "Tags"
-      "JGroup": 'Groups'
-      "JReview": 'Reviews'
-      "JPost":'Posts'
-      "JVocabulary": 'Vocabularies'
-      "JVM": "Compute"
+      "JTag"        : "Tags"
+      "JGroup"      : 'Groups'
+      "JPost"       :'Posts'
+      "JVocabulary" : 'Vocabularies'
+      "JVM"         : "Compute"
     return dictionary[text] or text.charAt(0).toUpperCase()+text.slice(1)
 
   _getCheckboxName =(module, permission, role)->
@@ -146,8 +152,8 @@ class PermissionsModal extends KDFormViewWithFields
     cascadeData[current]= {
       name
       cssClass
-      itemClass: KDCheckBox
-      defaultValue: isChecked ? no
+      itemClass    : KDCheckBox
+      defaultValue : isChecked ? no
     }
 
     if current in ['admin','owner']
@@ -218,9 +224,7 @@ class PermissionsModal extends KDFormViewWithFields
   createReducedList =(values)->
     cache = {}
     values.reduce (acc, {module, role, permission})->
-      storageKey = module+':'+role
-
-      console.log {storageKey}
+      storageKey = "#{module}:#{role}"
       cached = cache[storageKey]
       if cached?
         cached.permissions.push permission

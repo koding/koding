@@ -16,7 +16,7 @@ Templates =
 
      #{content}
 
-     Koding, Inc. 153 Townsend, Suite 9072 San Francisco, CA 94107
+     Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
     """
 
   htmlTemplate : (content)->
@@ -81,7 +81,7 @@ Templates =
               <td style="border-right: 1px solid #CCC; text-align:right;
                          padding-right:10px;"></td>
               <td style="padding-left: 10px;" colspan="2">
-                #{link "https://koding.com", "Koding"}, Inc. 153 Townsend, Suite 9072 San Francisco, CA 94107
+                #{link "https://koding.com", "Koding"}, Inc. 358 Brannan Street, San Francisco, CA 94107
               </td>
             </tr>
           </table>

@@ -2,8 +2,15 @@
 @import "./client/stylus/appfn"
 
 @media only screen and (max-width: 768px)
-  body
-    min-width           400px
+  html, body
+    min-width         600px
+
+  #content-panel.social
+    left              50px !important
+    .content-area-pane.activity
+      #content-page-activity.fixed
+        .activity-content
+          margin-left 0
 
   .member-item
     footer
@@ -32,108 +39,13 @@
       font-size       12px
       color           #666
 
-  .content-page.home
-    min-width             400px
-
-    header.slide-holder
-      height              379px
-      min-height          379px
-      .slide
-        min-height        379px
-        bg                position, center -200px
-
-    .slide
-      .introtext
-        width             auto
-        margin            15px
-        min-width         0
-        max-width         768px
-      .mainleft
-        width             100%
-        margin-right      0
-        h1
-          margin-bottom   15px
-          font-size       32px
-          letter-spacing  0
-          line-height     38px
-        p
-          line-height     22px
-          font-size       16px
-
-      .mainright
-        rel()
-        width             100%
-        .mainlink
-          font-size       20px
-          height          32px
-          line-height     32px
-          padding         0
-          text-indent     15px
-          margin          0 15px 10px 0
-          fl()
-          &.magic
-            hidden()
-
-    .widget-holder
-      max-width             768px
-      height                908px
-      width                 100%
-      margin                0 auto
-      shadow                0 0 20px rgba(0, 0, 0, 0.19)
-      section
-        size                100%,auto
-        min-width           100%
-        max-width           100%
-        border-bottom       4px solid #999
-        shadow              none
-        header
-          rounded           0
-          padding           15px
-          h3
-            max-width       90px
-            line-height     20px
-            margin-top      -4px
-            font-size       14px
-            abs()
-      aside
-        abs()
-        size                100%,auto
-        min-width           100%
-        max-width           100%
-        top                 300px
-        border-left         1px solid #CCCCCC
-        border-bottom       4px solid #999
-        borderBox()
-        &:last-child
-          top               604px
-          right             0
-          border-right      1px solid #CCCCCC
-
-    .acounter
-      display           inline-block
-      font-size         10px
-      margin-right      5px
-      text-align        center
-      text-transform    uppercase
-      line-height       14px
-      color             #999
-      font-weight       600
-      &:first-child
-        margin-right    0px
-
-      .numholder
-        display         block
-
-  // .kdview.login-screen
-  //   &.home
-  //     .flex-wrapper
-  //       size                90%, 200px
+  .content-area-pane.activity
+    .common-inner-nav
+      hidden()
 
   .kdview.login-screen.home
     .flex-wrapper
       margin-bottom       20px
-    .home-links
-      font-size           14px
 
     .reviews
       hr

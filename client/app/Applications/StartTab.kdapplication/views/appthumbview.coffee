@@ -125,17 +125,15 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @devModeView = new KDView
 
   appDeleteCall:(manifest)->
-    finder = @getSingleton("finderController").treeController
-    apps   = @getSingleton("kodingAppsController")
-    path   = FSHelper.escapeFilePath apps.getAppPath manifest.path
-
-    # Re-write this with Finder when we make Finder a bit powerful
-    @getSingleton("kiteController").run "rm -r #{path}"
-    , (err, res)=>
+    apps      = @getSingleton("kodingAppsController")
+    appPath   = apps.getAppPath manifest.path, yes
+    appFolder = FSHelper.createFileFromPath appPath, 'folder'
+    appFolder.remove (err, res) =>
       unless err
-        finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
         apps.refreshApps =>
           @deleteModal.destroy()
+          @destroy()
+        , no
       else
         new KDNotificationView
           title    : "An error occured while deleting the App!"

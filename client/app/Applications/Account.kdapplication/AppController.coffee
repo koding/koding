@@ -1,8 +1,8 @@
 class AccountAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Account"
-    route        : "Account"
+    route        : "/Account"
     behavior     : "hideTabs"
     hiddenHandle : yes
 
@@ -41,7 +41,7 @@ class AccountAppController extends AppController
         , section
 
         navView.addSubView lc.getView()
-        navView.addSubView new KDCustomHTMLView "hr"
+        navView.addSubView new KDCustomHTMLView tagName : "hr"
 
         lc.getView().on 'ItemWasAdded', (view, index)=>
           view.on "click", =>
@@ -79,6 +79,8 @@ class AccountAppController extends AppController
 
     @_windowDidResize()
     @getSingleton("windowController").registerWindowResizeListener @
+
+    @utils.wait => @split._windowDidResize()
 
   contentScrolled:(pubInst,event)->
     @__lastScrollTop or= 0
@@ -124,15 +126,20 @@ class AccountAppController extends AppController
       title : "Billing"
       items : [
         { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods",        id : 10,      parentId : null }
-        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
+        # { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
         { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
       ]
-    kites :
-      title : "Kites"
+    develop :
+      title : "Develop"
       items : [
-        { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
-#        { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
+        { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
       ]
+#    kites :
+#      title : "Kites"
+#      items : [
+#        { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
+#        { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
+#      ]
 
 
 class AccountSideBarController extends KDViewController

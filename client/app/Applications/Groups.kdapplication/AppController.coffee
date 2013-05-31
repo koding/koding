@@ -1,8 +1,8 @@
 class GroupsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Groups"
-    route        : "Groups"
+    route        : "/Groups"
     hiddenHandle : yes
 
   @privateGroupOpenHandler =(event)->
@@ -29,8 +29,8 @@ class GroupsAppController extends AppController
     super options, data
 
     @listItemClass = GroupsListItemView
-    @controllers = {}
-
+    @controllers   = {}
+    @isReady       = no
     @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
@@ -38,69 +38,88 @@ class GroupsAppController extends AppController
 
   init:->
     mainController = @getSingleton 'mainController'
-    mainController.on 'AccountChanged', @bound 'resetUserArea'
+    router         = @getSingleton 'router'
+    {entryPoint}   = KD.config
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
-      KD.getSingleton('router').handleRoute if pageInfo.path
-        if pageInfo.topLevel then pageInfo.path
-        else
-          {group} = @userArea
-          "#{unless group is 'koding' then '/'+group else ''}#{pageInfo.path}"
+      return unless pageInfo.path
+      if pageInfo.topLevel
+      then router.handleRoute "#{pageInfo.path}"
+      else router.handleRoute "#{pageInfo.path}", {entryPoint}
+
     @groups = {}
     @currentGroupData = new GroupData
 
-  getCurrentGroupData:-> @currentGroupData
-
   getCurrentGroup:->
-    if Array.isArray @currentGroupData.data
-      return @currentGroupData.data.first
+    throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
   openGroupChannel:(group, callback=->)->
-    @groupChannel = KD.remote.subscribe "group.#{group.slug}", {
+    @groupChannel = KD.remote.subscribe "group.#{group.slug}",
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
-    }
-    # TEMP SY: to be able to work in a vagrantless env
-    # to avoid shared authworker's message getting lost
-    if location.hostname is "localhost"
-      callback()
-    else
-      @groupChannel.once 'setSecretName', callback
+    @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='koding', callback=->)->
-    return callback()  if @currentGroup is groupName
-    throw new Error 'Cannot change the group!'  if @currentGroup?
-    @once 'GroupChanged', (groupName, group)-> callback null, groupName, group
-    unless @currentGroup is groupName
-      @setGroup groupName
+    return callback()  if @currentGroupName is groupName
+    throw new Error 'Cannot change the group!'  if @currentGroupName?
+    unless @currentGroupName is groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
           [group] = models
-          @currentGroupData.setGroup group
-          @openGroupChannel group, => @emit 'GroupChanged', groupName, group
+          if group.bongo_.constructorName isnt 'JGroup'
+            @isReady = yes
+          else
+            @setGroup groupName
+            @currentGroupData.setGroup group
+            @isReady = yes
+            callback null, groupName, group
+            @emit 'GroupChanged', groupName, group
+            @openGroupChannel group, => @emit 'GroupChannelReady'
 
-  getUserArea:-> @userArea
+  getUserArea:->
+    @userArea ?
+      if KD.config.entryPoint?.type is 'group'
+      then {group: KD.config.entryPoint.slug}
 
   setUserArea:(userArea)->
-    @emit 'UserAreaChanged', userArea  if not _.isEqual userArea, @userArea
     @userArea = userArea
 
-  getGroupSlug:-> @currentGroup
+  getGroupSlug:-> @currentGroupName
 
   setGroup:(groupName)->
-    @currentGroup = groupName
+    @currentGroupName = groupName
     @setUserArea {
       group: groupName, user: KD.whoami().profile.nickname
     }
 
-  resetUserArea:(account)->
-    @setUserArea {
-      group: @currentGroup ? 'koding', user: account.profile.nickname
-    }
+  onboardingText =
+    everything : """
+      <h3 class='title'>Koding groups are a simple way to connect and interact with people who share
+      your interests.</h3>
 
-  createFeed:(view)->
+      <p>When you join a group such as your univeristy or your company, you can share virtual
+      machines, collaborate on projects and stay up to date on the activites of others in your
+      group.</p>
+
+      <h3 class='title'>Easy to get started</h3>
+
+      <p>Groups are free to create. You decide who can join, what actions they can do inside the
+      group and what they see.</p>
+      """
+    pending   : """
+      <h3 class='title'>Groups that you are waiting for an invitation will be listed here.</h3>
+      <p>When you ask for an invitation to a group, an admin of that group should accept your request and send you an invitation link in order you to gain access to that group.</p>
+      """
+    requested : """
+      <h3 class='title'>These are the groups that you requested access...</h3>
+      <p>...but still waiting for a group admin to approve.</p>
+      <p>When you request access to a group, an admin of that group should accept your request. If the admin approves you'll gain access to the group right away and you'll see it under 'My Groups'.</p>
+      """
+
+  createFeed:(view, loadFeed = no)->
+
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : @listItemClass
       limitPerPage          : 20
@@ -112,17 +131,9 @@ class GroupsAppController extends AppController
           title             : "<p class=\"bigtwipsy\">Groups are the basic unit of Koding society.</p>"
           placement         : "above"
       onboarding            :
-        everything          :
-          """
-            <h3 class='title'>yooo onboard me for da groop!!!</h3>
-            <p>
-              Cosby sweater ethnic neutra meggings, actually single-origin coffee next level before they sold out scenester food truck banh mi gluten-free pitchfork. Before they sold out whatever chillwave, flexitarian stumptown mlkshk pour-over iphone brooklyn semiotics. Seitan brooklyn cliche before they sold out blue bottle polaroid godard marfa fingerstache blog authentic salvia.
-            </p>
-            <p>
-              Portland freegan raw denim readymade, mumblecore neutra brunch keffiyeh. Fashion axe beard gluten-free, pork belly plaid bushwick lo-fi pitchfork etsy. Cosby sweater portland umami deep v VHS, shoreditch biodiesel raw denim butcher messenger bag ethnic scenester banh mi. Polaroid gluten-free you probably haven't heard of them +1, tumblr four loko fap shoreditch put a bird on it plaid disrupt freegan. Blog occupy typewriter put a bird on it authentic. Semiotics bespoke hashtag fap cliche. Viral semiotics tonx 8-bit selfies cliche, Austin bushwick photo booth keytar art party occupy.
-            </p>
-          """
-        mine                : "<h3 class='title'>yooo onboard me for my groops!!!</h3>"
+        everything          : onboardingText.everything
+        pending             : onboardingText.pending
+        requested           : onboardingText.requested
       filter                :
         everything          :
           title             : "All groups"
@@ -131,27 +142,57 @@ class GroupsAppController extends AppController
             {JGroup} = KD.remote.api
             if @_searchValue
               @setCurrentViewHeader "Searching for <strong>#{@_searchValue}</strong>..."
-              JGroup.byRelevance @_searchValue, options, callback
+              JGroup.byRelevance @_searchValue, options, (err, items, rest...)=>
+                callback err, items, rest...
+                # to trigger dataEnd
+                unless err
+                  ids = item.getId?() for item in items
+                  callback null, null, ids
             else
               JGroup.streamModels selector, options, callback
-          dataEnd           :({resultsController}, ids)->
-            {JGroup} = KD.remote.api
-            JGroup.fetchMyMemberships ids, (err, groups)->
-              if err then error err
-              else
-                {everything} = resultsController.listControllers
-                everything.forEachItemByIndex groups, (view)->
-                  view.markOwnGroup()
+          dataEnd           :({resultsController}, ids)=>
+            {everything} = resultsController.listControllers
+            @markGroupRelationship everything, ids
           dataError         :(controller, err)->
             log "Seems something broken:", controller, err
 
         mine                :
           title             : "My groups"
+          loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchGroups (err, items)=>
+              ids = []
               for item in items
                 item.followee = true
+                ids.push item.group.getId()
               callback err, (item.group for item in items)
+              callback err, null, ids
+          dataEnd           :({resultsController}, ids)=>
+            {mine} = resultsController.listControllers
+            @markGroupRelationship mine, ids
+
+        pending             :
+          title             : "Invitation pending"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {pending} = resultsController.listControllers
+            @markPendingGroupInvitations pending, ids
+
+        requested             :
+          title             : "Request pending"
+          loggedInOnly      : yes
+          dataSource        : (selector, options, callback)=>
+            KD.whoami().fetchPendingGroupRequests options, (err, groups)->
+              callback err, groups
+              callback err, null, (group.getId() for group in groups)
+          dataEnd           :({resultsController}, ids)=>
+            {requested} = resultsController.listControllers
+            @markPendingRequestGroups requested, ids
+
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -170,9 +211,33 @@ class GroupsAppController extends AppController
       view.addSubView @_lastSubview = controller.getView()
       @feedController = controller
       @feedController.resultsController.on 'ItemWasAdded', @bound 'monitorGroupItemOpenLink'
-
-      @putAddAGroupButton()
+      @feedController.loadFeed() if loadFeed
       @emit 'ready'
+
+  markGroupRelationship:(controller, ids)->
+    return unless KD.isLoggedIn()
+
+    fetchRoles =
+      member: (view)-> view.markMemberGroup()
+      admin : (view)-> view.markGroupAdmin()
+      owner : (view)-> view.markOwnGroup()
+    for as, callback of fetchRoles
+      do (as, callback)->
+        KD.remote.api.JGroup.fetchMyMemberships ids, as, (err, groups)->
+          return error err if err
+          controller.forEachItemByIndex groups, callback
+
+    KD.whoami().fetchPendingGroupRequests groupIds:ids, (err, groups)=>
+      @markPendingRequestGroups controller, (group.getId() for group in groups)
+
+    KD.whoami().fetchPendingGroupInvitations groupIds:ids, (err, groups)=>
+      @markPendingGroupInvitations controller, (group.getId() for group in groups)
+
+  markPendingRequestGroups:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingRequest()
+
+  markPendingGroupInvitations:(controller, ids)->
+    controller.forEachItemByIndex ids, (view)-> view.markPendingInvitation()
 
   monitorGroupItemOpenLink:(item)->
     item.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
@@ -234,12 +299,69 @@ class GroupsAppController extends AppController
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
-  requestAccess:(group, callback)->
-    group.requestAccess (err)->
-      callback err
-      new KDNotificationView title:
-        if err then err.message
-        else "Invitation has been requested!"
+  showRequestAccessModal:(group, policy, callback=->)->
+
+    if policy.explanation
+      title   = "Request Access"
+      content = __utils.applyMarkdown policy.explanation
+      success = "Your request has been sent to the group's admin."
+    else if policy.approvalEnabled
+      title   = 'Request Access'
+      content = 'Membership to this group requires administrative approval.'
+      success = "Thanks! You'll be notified when group's admin accepts you."
+    else
+      title   = 'Request an Invite'
+      content = 'Membership to this group requires an invitation.'
+      success = "Your request has been sent to the group's admin."
+
+    modal = new KDModalView
+      title          : title
+      overlay        : yes
+      width          : 300
+      height         : 'auto'
+      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      buttons        :
+        request      :
+          title      : title
+          loader     :
+            color    : "#ffffff"
+            diameter : 12
+          style      : 'modal-clean-green'
+          callback   : (event)->
+            group.requestAccess (err)->
+              modal.buttons.request.hideLoader()
+              if err
+                warn err
+                new KDNotificationView title:
+                  if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                return callback err
+
+              new KDNotificationView title: success
+              modal.destroy()
+              callback null
+
+  joinGroup:(group)->
+    group.join (err, response)=>
+      if err
+        error err
+        new KDNotificationView
+          title : "An error occured, please try again"
+      else
+        new KDNotificationView
+          title : "You've successfully joined the group!"
+        @getSingleton('mainController').emit 'JoinedGroup'
+
+  acceptInvitation:(group, callback)->
+    KD.whoami().acceptInvitation group, (err, res)=>
+      mainController = KD.getSingleton "mainController"
+      mainController.once "AccountChanged", callback.bind this, err, res
+      mainController.accountChanged KD.whoami()
+
+  ignoreInvitation:(group, callback)->
+    KD.whoami().ignoreInvitation group, callback
+
+  cancelGroupRequest:(group, callback)->
+    KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->
     group.canOpenGroup (err, hasPermission)=>
@@ -248,27 +370,20 @@ class GroupsAppController extends AppController
       else if hasPermission
         @openGroup group
 
-  putAddAGroupButton:->
-    {facetsController} = @feedController
-    innerNav = facetsController.getView()
-    innerNav.addSubView addButton = new KDButtonView
-      tooltip   :
-        title   : "Create a Group"
-      style     : "small-gray"
-      iconOnly  : yes
-      callback  : => @showGroupSubmissionView()
+  _createGroupHandler =(formData, callback)->
 
-  _createGroupHandler =(formData)->
+    if formData.privacy in ['by-invite', 'by-request', 'same-domain']
+      formData.privacy = 'private'
+
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
+        callback? err
         new KDNotificationView
           title: err.message
           duration: 1000
       else
-        new KDNotificationView
-          title   : 'Group was created!'
-          duration: 1000
-        @createContentDisplay group
+        callback no
+        @showGroupCreatedModal group
 
   _updateGroupHandler =(group, formData)->
     group.modify formData, (err)->
@@ -283,6 +398,61 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
+    verifySlug = ->
+      # titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
+      # slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
+      # KD.remote.api.JName.one
+      #   name: slugInput.getValue()
+      # , (err, name)=>
+      #   if name
+      #     slugInput.setValidationResult 'slug', "Slug is already being used.", yes
+      #     slug = KD.utils.slugify titleInput.getValue()
+      #     KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
+      #       if newSlug
+      #         slugInput.setTooltip
+      #           title     : "Available slug: #{newSlug}"
+      #           placement : "right"
+      #   else
+      #     slugInput.setValidationResult 'slug', null
+      #     delete slugInput.tooltip
+
+    makeSlug = =>
+      form = modal.modalTabs.forms["General Settings"]
+      titleInput = form.inputs.Title
+      slugView   = form.inputs.Slug
+      slugInput  = form.inputs.HiddenSlug
+      slug = KD.utils.slugify titleInput.getValue()
+      KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
+        if err
+          slugView.updatePartial "#{location.protocol}//#{location.host}/"
+          slugInput.setValue ''
+        else
+          slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
+          slugInput.setValue newSlug
+          verifySlug()
+
+    getGroupType = ->
+      modal.modalTabs.forms["Select group type"].inputs.type.getValue()
+
+    getPrivacyDefault = ->
+      switch getGroupType()
+        when 'educational'  then 'by-request'
+        when 'company'      then 'by-invite'
+        when 'project'      then'public'
+        when 'custom'       then 'public'
+
+    getVisibilityDefault = ->
+      switch getGroupType()
+        when 'educational'  then 'visible'
+        when 'company'      then 'hidden'
+        when 'project'      then 'visible'
+        when 'custom'       then 'visible'
+
+    applyDefaults =->
+      {Privacy,Visibility} = modal.modalTabs.forms["General Settings"].inputs
+      Privacy.setValue getPrivacyDefault()
+      Visibility.setValue getVisibilityDefault()
+
     modalOptions =
       title                          : 'Create a new group'
       height                         : 'auto'
@@ -293,59 +463,82 @@ class GroupsAppController extends AppController
         navigable                    : no
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
-        callback                     :(formData)=>
-          _createGroupHandler.call @, formData
-          modal.destroy()
+        callback                     : (formData)=>
+          _createGroupHandler.call @, formData, (err) =>
+            modal.modalTabs.forms["VM Settings"].buttons["Create Group"].hideLoader()
+            unless err
+              modal.destroy()
         forms                        :
           "Select group type"        :
             title                    : 'Group type'
-            callback                 :(formData)=>
-              log "here"
             buttons                  :
               "Next"                 :
                 style                : "modal-clean-gray"
                 type                 : "submit"
+                callback             : -> applyDefaults()
             fields                   :
               "type"                 :
                 name                 : "type"
                 itemClass            : KDInputRadioGroup
-                defaultValue         : "custom"
+                defaultValue         : "project"
                 cssClass             : "group-type"
                 radios               : [
                   { title : "University/School", value : "educational"}
                   { title : "Company",           value : "company"}
                   { title : "Project",           value : "project"}
-                  { title : "Custom",            value : "custom"}
+                  { title : "Other",             value : "custom"}
                 ]
           "General Settings"         :
             title                    : 'Create a group'
+            callback                 : ->
+              form = modal.modalTabs.forms["General Settings"]
+              unless form.inputs["Group VM"].getValue()
+                modal.modalTabs.removePaneByName "VM Settings"
+                modal.modalTabs.fireFinalCallback()
             buttons                  :
-              "Save"                 :
+              "Next"                 :
                 style                : "modal-clean-gray"
                 type                 : "submit"
                 loader               :
                   color              : "#444444"
                   diameter           : 12
-              "Cancel"               :
-                style                : "modal-clean-gray"
-                callback             : -> modal.destroy()
-              "back"                 :
+              "Back"                 :
                 style                : "modal-cancel"
-                callback             : -> modal.modalTabs.showPreviousPane()
+                callback             : ->
+                  form = modal.modalTabs.forms["Select group type"]
+                  form.buttons.Next.hideLoader()
+                  modal.modalTabs.showPreviousPane()
             fields                   :
               "Title"                :
                 label                : "Title"
                 name                 : "title"
+                validate             :
+                  event              : "blur"
+                  rules              :
+                    required         : yes
+                    minLength        : 4
                 keydown              : (pubInst, event)->
                   @utils.defer =>
-                    slug = @utils.slugify @getValue()
-                    modal.modalTabs.forms["General Settings"].inputs.Slug.setValue slug
+                    makeSlug()
                 placeholder          : 'Please enter your group title...'
-              "Slug"                 :
-                label                : "Slug"
+              "HiddenSlug"           :
                 name                 : "slug"
-                defaultValue         : ""
-                placeholder          : 'This value will be automatically generated'
+                type                 : "hidden"
+                cssClass             : "hidden"
+              "Slug"                 :
+                label                : "Address"
+                partial              : "#{location.protocol}//#{location.host}/"
+                itemClass            : KDCustomHTMLView
+                # name                 : "slug"
+                # validate             :
+                #   event              : "blur"
+                #   rules              :
+                #     required         : yes
+                #     minLength        : 4
+                # blur                 : -> @utils.defer -> verifySlug()
+                # defaultValue         : ''
+                # placeholder          : 'your-group-url'
+                # disabled             : yes
               "Description"          :
                 label                : "Description"
                 type                 : "textarea"
@@ -353,7 +546,7 @@ class GroupsAppController extends AppController
                 defaultValue         : ""
                 placeholder          : "Please enter a description for your group here..."
               "Privacy"              :
-                label                : "Privacy settings"
+                label                : "Privacy/Visibility"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "privacy"
@@ -363,32 +556,87 @@ class GroupsAppController extends AppController
                     { title : "Anyone can join",    value : "public" }
                   ]
                   Private            : [
-                    { title : "By invititation",     value : "private" }
-                    { title : "By access request",   value : "private" }
-                    { title : "In same domain",      value : "private" }
+                    { title : "By invitation",       value : "by-invite" }
+                    { title : "By access request",   value : "by-request" }
+                    { title : "In same domain",      value : "same-domain" }
                   ]
-              "Visibility"           :
-                label                : "Visibility settings"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "visibility"
-                defaultValue         : "visible"
-                selectOptions        : [
-                  { title : "Visible in group listings",    value : "visible" }
-                  { title : "Hidden in group listings",     value : "hidden" }
-                ]
+                nextElement          :
+                  "Visibility"       :
+                    itemClass        : KDSelectBox
+                    type             : "select"
+                    name             : "visibility"
+                    defaultValue     : "visible"
+                    cssClass         : "visibility"
+                    selectOptions    : [
+                      { title : "Visible in group listings",    value : "visible" }
+                      { title : "Hidden in group listings",     value : "hidden" }
+                    ]
               "Group VM"             :
-                label                : "Create a shared server for the group"
+                label                : "Create virtual machines for the group"
                 itemClass            : KDOnOffSwitch
                 name                 : "group-vm"
-                defaultValue         : no
-              "Member VM"            :
-                label                : "Create a server for each group member"
-                itemClass            : KDOnOffSwitch
-                name                 : "member-vm"
-                defaultValue         : no
+                defaultValue         : yes
+                callback             : (state)->
+                  form = modal.modalTabs.forms["General Settings"]
+                  form.buttons.Next.setTitle unless state then "Create Group" \
+                                                          else "Next"
+          "VM Settings"              :
+            title                    : 'VM Settings'
+            buttons                  :
+              "Create Group"         :
+                style                : "modal-clean-gray"
+                type                 : "submit"
+                loader               :
+                  color              : "#444444"
+                  diameter           : 12
+              "Back"                 :
+                style                : "modal-cancel"
+                callback             : ->
+                  modal.modalTabs.showPreviousPane()
+                  form = modal.modalTabs.forms["General Settings"]
+                  form.buttons.Next.hideLoader()
+            fields                   :
+              "VM Host"               :
+                label                : "VM Host"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-host"
+                defaultValue         : "1"
+                selectOptions        : [
+                  { title : "2GHz, 4GB RAM, 20GB Disk",      value : "1" }
+                  { title : "4GHz, 4GB RAM, 40GB Disk",      value : "2" }
+                  { title : "8GHz, 8GB RAM, 60GB Disk",      value : "3" }
+                  { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
+                  { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
+                ]
+              "Usage Policy"         :
+                label                : "Usage Policy"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-policy"
+                defaultValue         : "single"
+                selectOptions        : [
+                  { title : "All users share same VM host.",                  value : "single" }
+                  { title : "Limit users per VM, create new when necessary.", value : "multiple" }
+                ]
+              "Users per VM"         :
+                label                : "Users per VM"
+                itemClass            : KDSelectBox
+                type                 : "select"
+                name                 : "vm-users"
+                defaultValue         : "25"
+                selectOptions        : [
+                  { title : "5",     value : "5" }
+                  { title : "10",     value : "10" }
+                  { title : "25",     value : "25" }
+                  { title : "50",     value : "50" }
+                  { title : "100",     value : "100" }
+                ]
 
     modal = new KDModalViewWithForms modalOptions
+    form = modal.modalTabs.forms["General Settings"]
+    form.on "FormValidationFailed", ->
+      form.buttons.Next.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons
@@ -433,17 +681,17 @@ class GroupsAppController extends AppController
           permissionSet
         }, group
 
-  loadView:(mainView, firstRun = yes)->
+  loadView:(mainView, firstRun = yes, loadFeed = no)->
 
     if firstRun
       mainView.on "searchFilterChanged", (value) =>
         return if value is @_searchValue
         @_searchValue = Encoder.XSSEncode value
         @_lastSubview.destroy?()
-        @loadView mainView, no
-
+        @loadView mainView, no, yes
       mainView.createCommons()
-      @createFeed mainView
+
+    @createFeed mainView, loadFeed
 
   openGroup:(group)->
     {slug, title} = group
@@ -463,7 +711,6 @@ class GroupsAppController extends AppController
       # click   : (event)->
       #   event.preventDefault()
       #   @getSingleton('windowManager').open @href, slug
-
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -535,20 +782,43 @@ class GroupsAppController extends AppController
     pane = groupView.createLazyTab 'Invitations', GroupsInvitationRequestsView,
       (pane, invitationRequestView)->
 
-        invitationRequestView.on 'BatchInvitationsAreSent', (count)->
-          count = invitationRequestView.batchInvites.inputs.Count.getValue()
-          group.sendSomeInvitations count, (err, message)->
-            if message is null
-              message = 'Done'
-              invitationRequestView.prepareBulkInvitations()
-            {statusInfo} = invitationRequestView.batchInvites.inputs
-            statusInfo.updatePartial Encoder.htmlDecode message
+        kallback = (modal, err)=>
+          form = modal.modalTabs.forms.invite
+          form.buttons.Send.hideLoader()
+          invitationRequestView.refresh()
+          if err
+            unless Array.isArray err or form.fields.report
+              return invitationRequestView.showErrorMessage err
+            else
+              form.fields.report.show()
+              scrollView = form.fields.report.subViews.first.subViews.first
+              err.forEach (errLine)->
+                errLine = if errLine?.message then errLine.message else errLine
+                scrollView.setPartial "#{errLine}<br/>"
+              return scrollView.scrollTo top:scrollView.getScrollHeight()
 
-        invitationRequestView.on 'RequestIsApproved', (request)->
-          request.approveInvitation()
+          new KDNotificationView title:'Invitation sent!'
+          modal.destroy()
 
-        invitationRequestView.on 'RequestIsDeclined', (request)->
-          request.declineInvitation()
+        invitationRequestView.on 'BatchApproveRequests', (formData)->
+          group.sendSomeInvitations formData.count, (err)=>
+            return invitationRequestView.showErrorMessage err if err
+            invitationRequestView.updateCurrentState()
+            kallback @batchApprove, err
+
+        invitationRequestView.on 'InviteByEmail', (formData)->
+          group.inviteByEmails formData.emails, (err)=>
+            kallback @inviteByEmail, err
+
+        invitationRequestView.on 'InviteByUsername', (formData)->
+          group.inviteByUsername formData.recipients, (err)=>
+            kallback @inviteByUsername, err
+
+        invitationRequestView.on 'RequestIsApproved', (request, callback)->
+          request.approve callback
+
+        invitationRequestView.on 'RequestIsDeclined', (request, callback)->
+          request.declineInvitation callback
 
         pane.on 'PaneDidShow', ->
           invitationRequestView.refresh()  if pane.tabHandle.isDirty
@@ -573,9 +843,19 @@ class GroupsAppController extends AppController
           JVocabulary.create {}, (err, vocab)->
             vocabView.setVocabulary vocab
 
-  createContentDisplay:(group)->
-    # controller = new ContentDisplayControllerGroups null, content
-    # contentDisplay = controller.getView()
+  prepareBundleTab: ->
+    {groupView} = this
+    group = groupView.getData()
+    pane = groupView.createLazyTab 'Bundle', GroupsBundleView,
+      (pane, bundleView) ->
+        console.log 'bundle view', bundleView
+
+  createContentDisplay:(group, callback)->
+
+    unless KD.config.roles? and 'admin' in KD.config.roles
+      routeSlug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+      return KD.getSingleton('router').handleRoute "#{routeSlug}Activity"
+
     @groupView = groupView = new GroupView
       cssClass : "group-content-display"
       delegate : @getView()
@@ -585,22 +865,63 @@ class GroupsAppController extends AppController
     @prepareSettingsTab()
     @preparePermissionsTab()
     @prepareMembersTab()
-    @prepareVocabularyTab()
+    # @prepareBundleTab()
+    # @prepareVocabularyTab()
 
     if 'private' is group.privacy
       @prepareMembershipPolicyTab()
       @prepareInvitationsTab()
 
-    @showContentDisplay @groupView
+    contentDisplay = @showContentDisplay @groupView
+    callback? contentDisplay
 
 
-  showContentDisplay:(groupView, callback=->)->
+  showContentDisplay:(groupView)->
     contentDisplayController = @getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
 
+  showGroupCreatedModal:(group)->
+    group.fetchMembershipPolicy (err, policy)=>
+      return new KDNotificationView title: 'An error occured, however your group has been created!' if err
 
+      @feedController.reload() if @feedController
+
+      groupUrl    = "//#{location.host}/#{group.slug}"
+      privacyExpl = if group.privacy is 'public'
+      then 'Koding users can join anytime without approval'
+      else if policy.invitationsEnabled
+      then 'and only invited users can join'
+      else 'Koding users can only join with your approval'
+
+      body  = """
+        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
+        <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
+        <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
+        <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>
+        <a id="go-to-dashboard-link" class="hidden" href="#{groupUrl}/Dashboard" target="#{group.slug}">#{groupUrl}/Dashboard</a>
+        """
+      modal = new KDModalView
+        title        : "#{group.title} has been created!"
+        content      : body
+        buttons      :
+          dashboard  :
+            title    : 'Go to Dashboard'
+            style    : 'modal-clean-green'
+            callback : ->
+              document.getElementById('go-to-dashboard-link').click()
+              modal.destroy()
+          group      :
+            title    : 'Go to Group'
+            style    : 'modal-clean-gray'
+            callback : ->
+              document.getElementById('go-to-group-link').click()
+              modal.destroy()
+          dismiss    :
+            title    : 'Dismiss'
+            style    : 'modal-cancel'
+            callback : -> modal.destroy()
 
   # old load view
   # loadView:(mainView, firstRun = yes)->

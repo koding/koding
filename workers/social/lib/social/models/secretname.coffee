@@ -2,6 +2,9 @@
 
 module.exports = class JSecretName extends Model
 
+  @set
+    softDelete    : yes
+
   # TODO: the below should be made a bit more secure:
   @setSchema
     name          : String
