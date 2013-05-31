@@ -2,7 +2,7 @@ class MainChatPanel extends JView
 
   constructor:->
     super
-      cssClass : 'main-chat-panel'
+      cssClass : 'main-chat-panel visible'
 
     @registerSingleton "chatPanel", @, yes
 
@@ -11,8 +11,9 @@ class MainChatPanel extends JView
     @conversationListController = new ChatConversationListController
       view : @conversationList
 
-  createConversation:(channel)->
-    @conversationListController.addItem channel
+  createConversation:(data)->
+    # Data includes chatChannel and the conversation
+    @conversationListController.addItem data
 
   viewAppended:->
     @addSubView @header
