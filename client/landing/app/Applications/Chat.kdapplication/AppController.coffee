@@ -12,13 +12,12 @@ class ChatAppController extends AppController
     notificationController.on 'chatRequest', @bound 'handleChatRequest'
     notificationController.on 'chatOpen', @bound 'handleChatOpen'
 
-    @channels       = {}
-    @conversations  = {}
+    @channels = {}
 
   handleChatOpen:({routingKey, bindingKey, publicName})->
-    channel = KD.remote.mq.setP2PKeys publicName, { routingKey, bindingKey }, 'secret'
-    channel.on '*', ->
-      console.log @event, arguments
+    channel = KD.remote.mq.setP2PKeys \
+      publicName, { routingKey, bindingKey }, 'secret'
+    @channels[publicName] = channel
 
   create:(invitees, callback)->
     chatPanel = KD.getSingleton 'chatPanel'
@@ -29,9 +28,10 @@ class ChatAppController extends AppController
       callback null, new ChannelWrapper chatChannel
 
   subscribe:(publicName)->
-    options = { serviceType: 'chat', isP2P: yes, exchange: 'chat' }
-    channel = KD.remote.subscribe publicName, options
-    channel.on 'message', @bound 'handleChatMessage'
+    KD.remote.subscribe publicName,
+      serviceType : 'chat'
+      exchange    : 'chat'
+      isP2P       : yes
 
   handleChatRequest:(request, callback)->
     {invitee, publicName} = request
@@ -41,7 +41,6 @@ class ChatAppController extends AppController
 
     chatPanel = KD.getSingleton 'chatPanel'
     chatChannel = @subscribe publicName
-
     @channels[publicName] = chatChannel
 
     {JChatConversation} = KD.remote.api
@@ -50,15 +49,6 @@ class ChatAppController extends AppController
 
     callback? null, chatChannel
 
-  handleChatMessage: -> console.log arguments
-
 class ChannelWrapper extends KDObject
-
-  constructor:(@channel)->
-    super
-    @me = KD.whoami().profile.nickname
-
-  sendMessage:(message)->
-    @channel.publish JSON.stringify
-      sender  : @me
-      message : message
+  constructor:(@channel)-> super {}
+  sendMessage:(message) -> @channel.publish JSON.stringify message
