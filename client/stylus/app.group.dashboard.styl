@@ -334,6 +334,8 @@ Dashboard Membership Policy styles
       padding                   10px
       font-size                 11px
 
+
+
 @css {
 /*
 Dashboard invitations tab styles
@@ -354,6 +356,12 @@ Dashboard invitations tab styles
       padding               10px
       border-bottom         1px solid #f2f2f2
       min-height            200px
+
+      &.status-quo
+        min-height          60px
+        h2
+          margin-bottom     10px
+
       &.status-quo .state
       .lazy-loader
         text-align            left
@@ -384,7 +392,7 @@ Dashboard invitations tab styles
       div.formline
         borderBox()
         margin              0
-        padding             10px 0
+        padding             10px 10px 10px 0
         bg color,           transparent
         border              none
 
@@ -393,74 +401,77 @@ Dashboard invitations tab styles
           display           inline-block
           hidden()
 
+      .more-link
+        fr()
 
-  .request-list
-    .formline.kdlistitemview-invitation-request
-      .buttons
-        fr()
-        button
-          line-height         normal
-          .icon
-            width             20px
-            &.approve
-              bg              position, -77px -502px
-            &.decline
-              bg              position, -77px -482px
-      .status
-        font-size             11px
-        fr()
-        &.sent
-          color               #ff9101
-          .icon
-            bg                position, -100px -580px
-        &.accepted
-        &.approved
-          color               #40af00
-          .icon
-            bg                position, -80px -500px
-        &.ignored
-        &.declined
-          color               #be2a26
-          .icon
-            bg                position, -80px -480px
-        &.pending
-          color               #acacac
-          .icon
-            bg                position, -320px -140px
-        span
-          display             inline-block
-          &.icon
-            size              20px, 20px
-            sprite()
-          &.title
-            vertical-align top
-            line-height       20px
-      .details
-        margin-left           50px
-        .requested-at
-          color               #999
-          font-size           10px
-          line-height         10px
+.invitation-request-list
+  .formline.kdlistitemview-invitation-request
+    .buttons
+      fr()
+      margin-top            10px
+      button
+        line-height         normal !important
+        .icon
+          width             20px
+          &.approve
+            bg              position, -77px -502px
+          &.decline
+            bg              position, -77px -482px
+    .status
+      font-size             11px
+      margin-top            10px
+      fr()
+      &.sent
+        color               #ff9101
+        .icon
+          bg                position, -100px -580px
+      &.accepted
+      &.approved
+        color               #40af00
+        .icon
+          bg                position, -80px -500px
+      &.ignored
+      &.declined
+        color               #be2a26
+        .icon
+          bg                position, -80px -480px
+      &.pending
+        color               #acacac
+        .icon
+          bg                position, -320px -140px
+      span
+        display             inline-block
+        &.icon
+          size              20px, 20px
+          sprite()
+        &.title
+          vertical-align top
+          line-height       20px
+    .details
+      margin-left           50px
+      .requested-at
+        color               #999
+        font-size           10px
+        line-height         10px
+
+    a
+      noTextDeco()
+
+    span.avatar
+      border                1px solid #E3E3E3
+      padding               1px
+      margin-right          10px
+      size(40px,40px)
+      bg(color,#fff)
+      fl()
 
       a
-        noTextDeco()
-
-      span.avatar
-        border                1px solid #E3E3E3
-        padding               1px
-        margin-right          10px
-        size(40px,40px)
-        bg(color,#fff)
-        fl()
-
-        a
-          display               block
-          background-position   center
-          background-image      url('../images/defaultavatar/default.avatar.40.png')
-          bg(size,cover)
-          bg(repeat,no-repeat)
-          size(30px,30px)
-
+        display               block
+        background-position   center
+        background-image      url('../images/defaultavatar/default.avatar.40.png')
+        bg(size,cover)
+        bg(repeat,no-repeat)
+        size(30px,30px)
 
 @css {
 /*
@@ -469,7 +480,7 @@ Dashboard Invitations Modal Styles
 }
 
 
-.invitations-request-modal .request-list
+.invitations-request-modal .invitation-request-list
   .formline.kdlistitemview-invitation-request
     padding                   10px
     border-bottom             1px solid #eee
