@@ -21,13 +21,13 @@ module.exports = class JRecurlyCharge extends jraphical.Module
         'getToken', 'charge'
       ]
       instance     : [
+        'cancel'
       ]
     schema         :
       uuid         : String
-      accounting   : String
       userCode     : String
       amount       : Number
-      desc         : String
+      status       : String
       lastUpdate   : Number
 
   @getToken = secure (client, data, callback)->
@@ -46,20 +46,27 @@ module.exports = class JRecurlyCharge extends jraphical.Module
       unless status
         callback yes, {}
       else
-        payment.addUserCharge userCode,
+        payment.addUserTransaction userCode,
           amount         : data.amount
-          accountingCode : data.code
-          desc           : data.desc
         , (err, charge)=>
           return callback err  if err
-          if data.amount > 10 * 100
-            payment.chargeUserPending userCode, (err, invoice)=>
-              return callback err  if err
-              pay = new JRecurlyCharge
-                uuid       : charge.uuid
-                amount     : charge.amount
-                desc       : data.desc
-                userCode   : userCode
-                accounting : data.code
-              pay.save =>
-                callback no, pay
+          pay = new JRecurlyCharge
+            uuid       : charge.uuid
+            amount     : charge.amount
+            userCode   : userCode
+            status     : charge.status
+          pay.save ->
+            console.log arguments
+            callback no, pay
+
+  cancel: secure (client, callback)->
+    {delegate} = client.connection
+    userCode = "user_#{delegate._id}"
+    payment.deleteUserTransaction userCode,
+      uuid   : @uuid
+      amount : @amount
+    , (err, sub)=>
+      return callback yes  if err
+      @status   = 'refunded'
+      @save =>
+        callback no, @
