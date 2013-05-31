@@ -139,11 +139,9 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     listeners = []
 
-    edge      = edges[i]
-
     straight  = node[listenerKey]  if i is edges.length
     wild      = node[wildcardKey]
-    nextNode  = node[edge]
+    nextNode  = node[edges[i]]
 
     if straight?
       listeners = listeners.concat straight
