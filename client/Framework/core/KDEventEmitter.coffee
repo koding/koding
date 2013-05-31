@@ -163,10 +163,10 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
       return removeAllListeners nextNode, edges, it, i + 1
 
     if it? and (listeners = node[listenerKey])?
-      
+
       node[listenerKey] = (listener for listener in listeners \
                                     when listener isnt it)
-    
+
     else node[listenerKey] = []
 
     return
