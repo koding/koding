@@ -1,8 +1,15 @@
 class EnvironmentsMainView extends JView
 
   tabData = [
-    { name : 'VMs',              lazy : no,   itemClass : VMMainView }
-    { name : 'Domains',          lazy : yes,  itemClass : DomainMainView }
+    name        : 'VMS'
+    viewOptions :
+      lazy      : no
+      viewClass : VMMainView
+  ,
+    name        : 'Domains'
+    viewOptions :
+      lazy      : yes
+      viewClass : DomainMainView
   ]
 
   navData =
@@ -11,7 +18,6 @@ class EnvironmentsMainView extends JView
 
   constructor:(options={}, data)->
 
-    options.cssClass or= "content-page"
     data or= {}
     super options, data
 
@@ -43,12 +49,8 @@ class EnvironmentsMainView extends JView
 
     data = @getData()
 
-    for {name, lazy, itemClass} in tabData
-      @tabs.addPane new KDTabPaneView {
-        view : {itemClass, data}
-        name
-        lazy
-      }
+    for {name, viewOptions} in tabData
+      @tabs.addPane new KDTabPaneView {name, viewOptions}
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()
