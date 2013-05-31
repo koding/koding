@@ -1,5 +1,7 @@
 class KDTimeAgoView extends KDView
 
+  @registerStaticEmitter()
+
   KD.utils.repeat 5000, => @emit "OneMinutePassed"
 
   constructor: (options = {}, data) ->
