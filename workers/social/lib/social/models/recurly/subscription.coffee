@@ -106,10 +106,11 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     payment.cancelUserSubscription userCode,
       uuid: @uuid
     , (err, sub)=>
+      return callback yes  if err
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires
-      @plan     = sub.plan
+      @planCode = sub.plan
       @quantity = sub.quantity
       @renew    = sub.renew
       @save =>
@@ -121,10 +122,11 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     payment.reactivateUserSubscription userCode,
       uuid: @uuid
     , (err, sub)=>
+      return callback yes  if err
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires
-      @plan     = sub.plan
+      @planCode = sub.plan
       @quantity = sub.quantity
       @renew    = sub.renew
       @save =>
