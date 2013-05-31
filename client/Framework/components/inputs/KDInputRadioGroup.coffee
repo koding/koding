@@ -33,11 +33,12 @@ class KDInputRadioGroup extends KDInputView
       div.append label
       @domElement.append div
 
-      if not radioOptions.visible
-        div.hide()
+      div.hide()  unless radioOptions.visible
+
     @domElement
 
-  click:-> @setValue @getValue()
+  click:(event)->
+    @setValue $(event.target).closest(".kd-#{@getType()}-holder").find('input').val()
 
   setDefaultValue:(value) ->
     @inputDefaultValue = value
@@ -47,11 +48,9 @@ class KDInputRadioGroup extends KDInputView
     @getDomElement().find("input:checked").val()
 
   setValue:(value)->
-    # @getDomElement().find("input[value='#{value}']").parent().siblings().removeClass('checked')
-    # @getDomElement().find("input[value='#{value}']").parent().addClass('checked')
-    @getDomElement().find("input[value='#{value}']").attr "checked","checked"
-    @getDomElement().find(".kd-radio-holder").removeClass 'active'
-    @getDomElement().find(".kd-radio-holder.#{value}").addClass 'active'  if value
+    @$("input[value='#{value}']").attr "checked", "checked"
+    @$(".kd-radio-holder").removeClass 'active'
+    @$(".kd-radio-holder.#{value}").addClass 'active'  if value
 
   getInputElements:->
     @getDomElement().find('input')
