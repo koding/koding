@@ -175,7 +175,7 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
   emit: (eventName, rest...) ->
     "use strict"
-    
+
     oldEvent = @event  if @hasOwnProperty 'event'
 
     @event = eventName
@@ -184,7 +184,9 @@ class KDEventEmitter.Wildcard extends KDEventEmitter
 
     listener.apply this, rest  for listener in listeners
 
-    if oldEvent? then @event = oldEvent else delete @event
+    if oldEvent?
+    then @event = oldEvent
+    else delete @event
 
     return this
 
