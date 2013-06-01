@@ -102,6 +102,8 @@ class KDEventEmitter
     listenerStack = listenerStack.concat @_e[eventName].slice(0)
     listenerStack.forEach (listener)=> listener.apply @, args
 
+    return this
+
   on  :(eventName, listener) ->
     unless 'function' is typeof listener
       throw new Error 'listener is not a function'
