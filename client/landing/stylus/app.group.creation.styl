@@ -12,8 +12,35 @@ Group Creation Modal Styles
 
 .group-admin-modal
 
-  .kdview.formline.type.group-type
+  // .kdview.formline.type.group-type
+  //   border-bottom               none
+  .kdformview.with-fields
+    border-bottom               1px solid #f2f2f2
+  .formline.heading
     border-bottom               none
+    padding-bottom              0
+    .input-wrapper
+      overflow                  visible
+  h2.heading
+    font-weight                 normal
+    font-size                   14px
+    line-height                 20px
+    padding                     4px
+    color                       #222
+    > span
+      display                   inline-block
+      size                      40px, 20px
+      margin-left               -25px
+      // rounded                   10px
+      // bg                        color, #0896bd
+      // shadow                    0 1px 2px rgba(0, 0, 0, .75)
+      gradient                  #0896bd, #0386bd
+      text-shadow               0 -1px 0 #184175
+      margin-right              3px
+      padding-right             5px
+      color                     white
+      text-align                right
+
   .radiogroup.group-type
     padding                     20px
     margin                      0
@@ -38,10 +65,11 @@ Group Creation Modal Styles
         rel()
       &:first-child
         margin-left             0
-      label
+      span
         display                 block
         font-size               12px
         line-height             28px
+        text-shadow             0 -1px 0 #fff
       .icon
         size                    60px, 60px
         opacity                 .4
@@ -74,6 +102,60 @@ Group Creation Modal Styles
           bg                    position, -460px -740px
         &.custom .icon
           bg                    position, -460px -800px
+  .radiogroup.host-type
+    padding                     10px 20px
+    margin                      0
+    text-align                  justify
+    borderBox()
+    .kd-radio-holder
+      padding                   8px
+      display                   inline-block
+      text-align                center
+      rounded                   12px
+      margin-left               20px
+      gradient                  #f8f8f8, #f2f2f2
+      shadow                    0 1px 3px rgba(0, 0, 0, .3)
+      > div
+        size                    88px, 46px
+        overflow                hidden
+        cursor                  pointer
+        shadow                  0 0 0 4px rgba(255, 255, 255, .5)
+        gradient                #f8f8f8, #f2f2f2
+        rounded                 6px
+        borderBox()
+        rel()
+      &:first-child
+        margin-left             0
+      span
+        display                 inline-block
+        font-size               20px
+        line-height             20px
+        text-shadow             0 1px 0 #fff
+        border                  2px solid rgba(0, 0, 0, .4)
+        padding                 2px 8px
+        margin-top              10px
+        min-width               34px
+        text-transform          uppercase
+        bg                      color, rgba(0, 0, 0, .05)
+        rounded                 4px
+        shadow                  0 1px 0 #fff
+      .icon
+        size                    60px, 60px
+        opacity                 .4
+        margin                  10px 14px 0
+        display                 block
+        bg                      color, pink
+        bg                      position, -400px -620px
+        sprite()
+        hidden()
+
+      &:hover > div
+        gradient                #fafafa, #f8f8f8
+
+      &.active
+        gradient                rgba(255,146,0,0.6), rgb(255,146,0)
+        > div
+          shadow                inset 0 1px 3px rgba(0, 0, 0, .3)
 
 
 

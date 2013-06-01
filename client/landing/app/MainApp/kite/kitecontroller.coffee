@@ -97,7 +97,7 @@ class KiteController extends KDController
     else
       options.withArgs or= {}
 
-    if KD.logsEnabled
+    if KD.logsEnabled and KD.whoami()?.profile?.nickname isnt "sinan"
       notify """
               Calling <b>#{options.method}</b> method,
               from <b>#{options.kiteName}</b> kite
