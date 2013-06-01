@@ -6,7 +6,9 @@ class ChatConversationWidget extends JView
     @me = KD.whoami().profile.nickname
     @channel = item.getData().chatChannel
 
-    @messageInput = new ChatInputWidget {}, item.getData()
+    @messageInput = new ChatInputWidget
+    @messageInput.on 'messageSent', (message)=>
+      @channel.publish JSON.stringify message
 
     @messageInput.on 'goUpRequested', =>
       item.getDelegate().goUp item
@@ -24,11 +26,9 @@ class ChatConversationWidget extends JView
       view    : @chatMessageList
     , item.getData()
 
-    c = @channel
+    self = this
     @channel.on '*', (message)->
-      log @event, message
-      # FIXME ~ GG
-      # @chatMessageController.addItem @channel.event, message
+      self.chatMessageController.addItem @event, message
 
   toggle:->
     @toggleClass 'ready'
