@@ -64,7 +64,7 @@ chatTextColor = #000
   right                   -260px
   background              white // rgba(0,0,0,.09)
   width                   250px
-  overflow                auto  !important
+  // overflow                auto  !important
   vendor                  transition, right .4s ease\, opacity .3s ease
   box-shadow              0 0 16px rgba(0,0,0,.2)
   opacity                 0
@@ -94,8 +94,8 @@ chatTextColor = #000
 ul.chat-list
   margin                  0
   padding                 0
-  overflow                visible
   min-height              100%
+  overflow-y              scroll
 
   div.chat-item
     margin-bottom         8px
@@ -212,7 +212,6 @@ ul.chat-list
 
 
 ul.chat-conversation
-  background-color
   max-height              210px
   min-height              210px
   overflow-y              auto
@@ -221,7 +220,7 @@ ul.chat-conversation
   li.message
     padding               4px
     border                1px solid rgba(0,0,0,0.03)
-    width                 233px
+    width                 217px
     background-color      rgba(253, 243, 0, .29)
     border-radius         4px
     margin-bottom         4px
