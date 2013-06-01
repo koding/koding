@@ -57,6 +57,8 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     {nickname} = delegate.profile
 
+    initialInvitees.push nickname
+
     conversation = new this {
       publicName  : createId()
       createdBy   : nickname

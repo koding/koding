@@ -5,6 +5,7 @@ class ChatConversationListItem extends KDListItemView
     options.tagName   = "li"
     options.cssClass  = "person"
     data.invitees    ?= data.conversation.invitees
+
     super options, data
 
     {conversation, invitees} = data

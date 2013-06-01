@@ -1,7 +1,7 @@
 class ChatConversationListItemTitle extends JView
 
   constructor:(options = {},data)->
-    options.cssClass = 'chat-contact-list-item-title'
+    options.cssClass = 'chat-item'
     super
 
     @avatar = new AvatarView {
