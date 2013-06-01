@@ -96,7 +96,7 @@ func NewConsumer(amqpURI, exchange, exchangeType, queue, key, ctag string) (*Con
 	deliveries, err := c.channel.Consume(
 		queue, // name
 		c.tag, // consumerTag,
-		false, // noAck
+		true,  // noAck
 		false, // exclusive
 		false, // noLocal
 		false, // noWait
@@ -128,14 +128,24 @@ func (c *Consumer) Shutdown() error {
 	return <-c.done
 }
 
+func handleUserJoin(user string) {
+	log.Printf("%s has joined Koding", user)
+}
+
+func handleUserLeave(user string) {
+	log.Printf("%s has left Koding", user)
+}
+
 func handle(deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
-		log.Printf(
-			"got %dB delivery: [%v] %v",
-			len(d.Body),
-			d.DeliveryTag,
-			d.Headers,
-		)
+		action := d.Headers["action"].(string)
+		username := d.Headers["key"].(string)
+		switch action {
+		case "bind":
+			handleUserJoin(username)
+		case "unbind":
+			handleUserLeave(username)
+		}
 	}
 	log.Printf("handle: deliveries channel closed")
 	done <- nil
