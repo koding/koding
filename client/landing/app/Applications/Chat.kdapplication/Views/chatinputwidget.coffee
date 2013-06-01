@@ -13,4 +13,3 @@ class ChatInputWidget extends KDHitEnterInputView
         @emit 'messageSent', @getValue()
         @setValue ''
         @setFocus()
-
