@@ -98,7 +98,7 @@ class DashboardAppController extends AppController
       new KDNotificationView title:'Invitation sent!'
       modal.destroy()
 
-    view.on 'BatchApproveRequests', (formData)->
+    view.on 'BulkApproveRequests', (formData)->
       group.sendSomeInvitations formData.count, (err)=>
         return view.showErrorMessage err if err
         view.updateCurrentState()
@@ -107,6 +107,10 @@ class DashboardAppController extends AppController
     view.on 'InviteByEmail', (formData)->
       group.inviteByEmails formData.emails, (err)=>
         kallback @inviteByEmail, err
+
+    view.on 'CreateInvitationCode', (formData)->
+      KD.remote.api.JInvitation.createMultiuse formData, (err)=>
+        kallback @CreateInvitationCode, err
 
     view.on 'InviteByUsername', (formData)->
       group.inviteByUsername formData.recipients, (err)=>

@@ -344,134 +344,117 @@ Dashboard invitations tab styles
 
 .kdtabview.dashboard-tabs .invitations
 
-  .button-bar
-    height                auto
-    padding               20px
-    border-bottom         1px solid #f2f2f2
-    bg                    color, rgba(0,0,0,.02)
-    text-align            right
+  .kdtabhandlecontainer
+    position                  relative
+    padding                   20px 0 0 10px
+
+    .kdtabhandle
+      margin-top              2px
+      padding-bottom          3px
+      &.active
+        padding-bottom        1px
+
+    .button-bar
+      height                  auto
+      width                   auto
+      position                absolute
+      top                     14px
+      right                   20px
+
+      button
+        margin-left           5px
+
+      .show-resolved
+        margin-right          10px
+        height                auto
+        width                 auto
+
+        label
+          font-size           11px
+
+        .on-off a
+          padding-bottom         7px
+
+      .show-resolved
+      .on-off
+        display               inline-block
 
   .member-related
-    > section
-      padding               10px
-      border-bottom         1px solid #f2f2f2
-      min-height            200px
+    section
+      padding                 10px
+      border-bottom           1px solid #f2f2f2
+      border-right            1px solid #f2f2f2
+      min-height              40px
 
-      &.status-quo
-        min-height          60px
-        h2
-          margin-bottom     10px
+      &:hover
+        background-color      #f2f2f2
 
-      &.status-quo .state
-      .lazy-loader
-        text-align            left
-        color                 #888
-
-
-      h2
-        color               linkColor1
-        line-height         27px
-        font-size           18px
-        font-weight         400
-
-      h3
-        line-height         21px
-        font-size           14px
-      p
-        margin-top          0px
-        margin-bottom       15px
-        padding-left        0px
-
-      > a
-        margin-left         10px
-
-      button
-        height              24px
-        line-height         8px
-
-      div.formline
-        borderBox()
-        margin              0
-        padding             10px 10px 10px 0
-        bg color,           transparent
-        border              none
-
-        > span
-          margin-left       20px
-          display           inline-block
-          hidden()
-
-      .more-link
+      .buttons
         fr()
+        margin                8px 2px 0 0
+        button
+          height              24px
+          .icon
+            width             20px
+            &.approve
+              bg              position, -77px -502px
+            &.decline
+              bg              position, -77px -482px
+      .status
+        font-size             11px
+        margin-top            10px
+        fr()
+        &.sent
+          color               #ff9101
+          .icon
+            bg                position, -100px -580px
+        &.accepted
+        &.approved
+          color               #40af00
+          .icon
+            bg                position, -80px -500px
+        &.ignored
+        &.declined
+          color               #be2a26
+          .icon
+            bg                position, -80px -480px
+        &.pending
+          color               #acacac
+          .icon
+            bg                position, -320px -140px
+        span
+          display             inline-block
+          &.icon
+            size              20px, 20px
+            sprite()
+          &.title
+            vertical-align top
+            line-height       20px
+      .details
+        margin-left           50px
+        .requested-at
+          color               #999
+          font-size           10px
+          line-height         10px
 
-.invitation-request-list
-  .formline.kdlistitemview-invitation-request
-    .buttons
-      fr()
-      margin-top            10px
-      button
-        line-height         normal !important
-        .icon
-          width             20px
-          &.approve
-            bg              position, -77px -502px
-          &.decline
-            bg              position, -77px -482px
-    .status
-      font-size             11px
-      margin-top            10px
-      fr()
-      &.sent
-        color               #ff9101
-        .icon
-          bg                position, -100px -580px
-      &.accepted
-      &.approved
-        color               #40af00
-        .icon
-          bg                position, -80px -500px
-      &.ignored
-      &.declined
-        color               #be2a26
-        .icon
-          bg                position, -80px -480px
-      &.pending
-        color               #acacac
-        .icon
-          bg                position, -320px -140px
-      span
-        display             inline-block
-        &.icon
-          size              20px, 20px
-          sprite()
-        &.title
-          vertical-align top
-          line-height       20px
-    .details
-      margin-left           50px
-      .requested-at
-        color               #999
-        font-size           10px
-        line-height         10px
+        a
+          noTextDeco()
 
-    a
-      noTextDeco()
+        span.avatar
+          border                1px solid #E3E3E3
+          padding               1px
+          margin-right          10px
+          size(40px,40px)
+          bg(color,#fff)
+          fl()
 
-    span.avatar
-      border                1px solid #E3E3E3
-      padding               1px
-      margin-right          10px
-      size(40px,40px)
-      bg(color,#fff)
-      fl()
-
-      a
-        display               block
-        background-position   center
-        background-image      url('../images/defaultavatar/default.avatar.40.png')
-        bg(size,cover)
-        bg(repeat,no-repeat)
-        size(30px,30px)
+          a
+            display               block
+            background-position   center
+            background-image      url('../images/defaultavatar/default.avatar.40.png')
+            bg(size,cover)
+            bg(repeat,no-repeat)
+            size(30px,30px)
 
 @css {
 /*
