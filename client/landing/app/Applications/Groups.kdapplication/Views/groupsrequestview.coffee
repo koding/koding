@@ -1,6 +1,6 @@
 class GroupsRequestView extends JView
 
-  requestLimit: 5
+  requestLimit: 6
 
   updateCurrentState:->
     group = @getData()

@@ -533,7 +533,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsdangermodalview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsbundleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
@@ -643,8 +642,8 @@ module.exports = [
 
   # GROUP DASHBOARD
 
-  # "app/Applications/Dashboard.kdapplication/AppController.coffee",
-  # "app/Applications/Dashboard.kdapplication/AppView.coffee",
+  "app/Applications/Dashboard.kdapplication/AppController.coffee",
+  "app/Applications/Dashboard.kdapplication/AppView.coffee",
 
 
   # CONTENT DISPLAY VIEWS
@@ -734,6 +733,7 @@ module.exports = [
   "stylus/app.group.general.styl",
   "stylus/app.group.dashboard.styl",
   "stylus/app.group.summary.styl",
+  "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   "stylus/temp.styl",
