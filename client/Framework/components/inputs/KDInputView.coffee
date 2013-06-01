@@ -76,7 +76,7 @@ class KDInputView extends KDView
 
     return no unless @options.label?
     @inputLabel = label
-    @inputLabel.getDomElement().attr "for",@getName()
+    @inputLabel.getDomElement().attr "for", @getName()
     @inputLabel.getDomElement().bind "click",()=>
       @getDomElement().trigger "focus"
       @getDomElement().trigger "click"

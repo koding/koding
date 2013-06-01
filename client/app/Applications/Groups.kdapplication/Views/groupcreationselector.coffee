@@ -10,7 +10,8 @@ class GroupCreationSelector extends KDInputRadioGroup
 
       bg      = $ "<figure/>",
         class : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
-      div     = $ "<div/>",
+
+      div     = $ "<div/>"
 
       radio   = $ "<input/>",
         type   : @getType()
@@ -18,12 +19,10 @@ class GroupCreationSelector extends KDInputRadioGroup
         value  : radioOptions.value
         class  : "no-kdinput hidden"
         id     : "#{@getId()}_#{@getType()}_#{i}"
-        change : radioOptions.callback
 
-      label   = $ "<label/>",
-        for   : "#{@getId()}_#{@getType()}_#{i}"
-        html  : radioOptions.title
-        class : options.cssClassPrefix + @utils.slugify radioOptions.value
+      label    = $ "<span/>",
+        html   : radioOptions.title
+        class  : options.cssClassPrefix + @utils.slugify radioOptions.value
 
       icon    = $ "<span/>",
         class : "icon"
@@ -37,3 +36,12 @@ class GroupCreationSelector extends KDInputRadioGroup
       if not radioOptions.visible
         div.hide()
     @domElement
+
+  click:(event)->
+    input = $(event.target).closest(".kd-#{@getType()}-holder").find('input')
+    return  unless input.length
+    @setValue input[0].getAttribute "value"
+
+  setValue:(value)->
+    super
+    @$("input[value='#{value}']").trigger("change")

@@ -13,10 +13,10 @@ class KDInputRadioGroup extends KDInputView
       radioOptions.visible   ?= yes
       radioOptions.callback or= ->
 
-      div     = $ "<div/>",
-        class : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
+      div      = $ "<div/>",
+        class  : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
 
-      radio   = $ "<input/>",
+      radio    = $ "<input/>",
         type   : @getType()
         name   : options.name
         value  : radioOptions.value
@@ -24,10 +24,10 @@ class KDInputRadioGroup extends KDInputView
         id     : "#{@getId()}_#{@getType()}_#{i}"
         change : radioOptions.callback
 
-      label   = $ "<label/>",
-        for   : "#{@getId()}_#{@getType()}_#{i}"
-        html  : radioOptions.title
-        class : options.cssClassPrefix + @utils.slugify radioOptions.value
+      label    = $ "<label/>",
+        for    : "#{@getId()}_#{@getType()}_#{i}"
+        html   : radioOptions.title
+        class  : options.cssClassPrefix + @utils.slugify radioOptions.value
 
       div.append radio
       div.append label
@@ -35,19 +35,21 @@ class KDInputRadioGroup extends KDInputView
 
       div.hide()  unless radioOptions.visible
 
-    @domElement
+    return @domElement
 
   click:(event)->
-    @setValue $(event.target).closest(".kd-#{@getType()}-holder").find('input').val()
+    input = $(event.target).closest(".kd-#{@getType()}-holder").find('input')
+    @setValue input[0].getAttribute "value"
 
   setDefaultValue:(value) ->
     @inputDefaultValue = value
     @setValue value
 
   getValue:()->
-    @getDomElement().find("input:checked").val()
+    @$('input[checked=checked]').val()
 
   setValue:(value)->
+    @$("input").attr "checked", no
     @$("input[value='#{value}']").attr "checked", "checked"
     @$(".kd-radio-holder").removeClass 'active'
     @$(".kd-radio-holder.#{value}").addClass 'active'  if value

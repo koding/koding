@@ -540,6 +540,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreation.coffee",
   "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
   # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
