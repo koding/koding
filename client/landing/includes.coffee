@@ -6,15 +6,17 @@ module.exports = [
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
 
+  # --- Base class ---
+  "Framework/core/utils.coffee",
+  "Framework/core/KD.coffee",
+  "Framework/core/KDEventEmitter.coffee",
+
   # --- Framework ---
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
 
   # core
-  "Framework/core/utils.coffee",
-  "Framework/core/KD.coffee",
-  "Framework/core/KDEventEmitter.coffee",
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
   "Framework/core/JView.coffee",
@@ -389,13 +391,16 @@ module.exports = [
   "app/Applications/Chat.kdapplication/Controllers/commonchatcontroller.coffee",
   "app/Applications/Chat.kdapplication/Controllers/conversationlistcontroller.coffee",
   "app/Applications/Chat.kdapplication/Controllers/chatmessagelistcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationlistitemtitle.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationlistview.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationlistitem.coffee",
-  "app/Applications/Chat.kdapplication/Views/conversationlistitemtitle.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationstarter.coffee",
   "app/Applications/Chat.kdapplication/Views/chatconversationwidget.coffee",
   "app/Applications/Chat.kdapplication/Views/chatmessagelistview.coffee",
   "app/Applications/Chat.kdapplication/Views/chatmessagelistitem.coffee",
   "app/Applications/Chat.kdapplication/Views/chatinputwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchathandler.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchatheader.coffee",
   "app/Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
   # new ace
