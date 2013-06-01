@@ -265,6 +265,7 @@ module.exports = [
   "app/MainApp/filetree/controllers/findercontroller.coffee",
   "app/MainApp/filetree/controllers/findertreecontroller.coffee",
   "app/MainApp/filetree/controllers/findercontextmenucontroller.coffee",
+  "app/MainApp/filetree/controllers/resourcescontroller.coffee",
 
   "app/MainApp/filetree/itemviews/finderitem.coffee",
   "app/MainApp/filetree/itemviews/fileitem.coffee",
@@ -279,6 +280,7 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/finderitemrenameview.coffee",
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
+  "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
@@ -531,7 +533,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsdangermodalview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicydetailview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyeditor.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsmembershippolicyview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsbundleview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
@@ -641,8 +642,8 @@ module.exports = [
 
   # GROUP DASHBOARD
 
-  # "app/Applications/Dashboard.kdapplication/AppController.coffee",
-  # "app/Applications/Dashboard.kdapplication/AppView.coffee",
+  "app/Applications/Dashboard.kdapplication/AppController.coffee",
+  "app/Applications/Dashboard.kdapplication/AppView.coffee",
 
 
   # CONTENT DISPLAY VIEWS
@@ -732,6 +733,7 @@ module.exports = [
   "stylus/app.group.general.styl",
   "stylus/app.group.dashboard.styl",
   "stylus/app.group.summary.styl",
+  "stylus/app.group.creation.styl",
   "stylus/app.user.styl",
   "stylus/app.markdown.styl",
   "stylus/temp.styl",

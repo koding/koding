@@ -20,7 +20,10 @@ class AceView extends JView
       cssClass      : "caret-position section"
       partial       : "<span>1</span>:<span>1</span>"
 
-    @ace = new Ace delegate: @, file
+    @ace = new Ace
+      delegate        : @
+      enableShortcuts : yes
+    , file
 
     @advancedSettings = new KDButtonViewWithMenu
       style         : 'editor-advanced-settings-menu'

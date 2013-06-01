@@ -7,7 +7,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   createId    = require 'hat'
 
   KodingError = require '../error'
-  Emailer     = require '../emailer'
   JUser       = require './user'
   JGuest      = require './guest'
 
@@ -41,7 +40,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
-  @getPasswordRecoverySubject = -> '[Koding] Instructions to reset your password'
+  @getPasswordRecoverySubject = -> 'Instructions to reset your password'
 
   @getEmailDateFormat = -> 'fullDate'
 
@@ -122,12 +121,16 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             callback err
           else
             messageOptions.requestedAt = certificate.getAt('requestedAt')
-            Emailer.send
-              From      : @getPasswordRecoveryEmail()
-              To        : email
-              Subject   : defaultSubject()
-              TextBody  : defaultTextBody messageOptions
-            , (err)-> callback err
+
+            JMail = require './email'
+            email = new JMail
+              from      : @getPasswordRecoveryEmail()
+              email     : email
+              subject   : defaultSubject()
+              content   : defaultTextBody messageOptions
+              force     : yes
+            
+            email.save callback
 
   @validate = secure ({connection:{delegate}}, token, callback)->
     @one {token, status: 'active'}, (err, certificate)->

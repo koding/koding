@@ -5,8 +5,6 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   crypto      = require 'crypto'
   createSalt  = require 'hat'
 
-  Emailer = require '../emailer'
-
   @share()
 
   @set
@@ -63,7 +61,7 @@ module.exports = class JEmailConfirmation extends jraphical.Module
           else
             callback null, confirmation
 
-  getSubject:-> '[Koding] Please confirm your email address.'
+  getSubject:-> 'Please confirm your email address.'
 
   getTextBody:->
     {host, protocol} = require('../config.email')
@@ -87,8 +85,12 @@ module.exports = class JEmailConfirmation extends jraphical.Module
   confirm:(callback)-> @update {$set: status: 'confirmed'}, callback
 
   send:(callback)->
-    Emailer.send
-      To        : @getAt('email')
-      Subject   : @getSubject()
-      TextBody  : @getTextBody()
-    , callback
+    JMail = require './email'
+    email = new JMail
+      from    : 'hello@koding.com'
+      email   : @getAt('email')
+      subject : @getSubject()
+      content : @getTextBody()
+      force   : yes
+
+    email.save callback

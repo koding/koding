@@ -409,8 +409,7 @@ class ActivityAppController extends AppController
         data = clearQuotes data
         KD.remote.reviveFromSnapshots data, (err, instances)->
           if err then callback err
-          else
-            callback instances
+          else callback null, instances
 
   unhideNewItems: ->
     @listController?.activityHeader.updateShowNewItemsLink yes

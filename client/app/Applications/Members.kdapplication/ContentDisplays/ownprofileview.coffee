@@ -109,7 +109,7 @@ class OwnProfileView extends JView
     """
 
   fetchAutoCompleteDataForTags:(inputValue,blacklist,callback)->
-    KD.remote.api.JTag.byRelevance inputValue, {blacklist}, (err,tags)->
+    KD.remote.api.JTag.byRelevanceForSkills inputValue, {blacklist}, (err,tags)->
       unless err
         callback? tags
       else
