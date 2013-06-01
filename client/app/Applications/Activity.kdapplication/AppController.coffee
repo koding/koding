@@ -1,11 +1,11 @@
-{dash} = require 'bongo'
-
 class ActivityAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Activity"
     route        : "/Activity"
     hiddenHandle : yes
+
+  {dash} = Bongo
 
   activityTypes = [
     'CStatusActivity'
@@ -196,7 +196,7 @@ class ActivityAppController extends AppController
             if exempt or @getFilter() isnt activityTypes
             then @fetchActivitiesDirectly options, callback
             else @fetchActivitiesFromCache options, callback
-    
+
     unless isReady
     then groupsController.once 'groupChanged', fetch
     else fetch currentGroup.slug
@@ -236,7 +236,7 @@ class ActivityAppController extends AppController
         CActivity.fetchPublicContents options, callback
       else
         CActivity.fetchFolloweeContents options, callback
-    
+
     else
       @isExempt (exempt)->
         options.lowQuality = exempt
