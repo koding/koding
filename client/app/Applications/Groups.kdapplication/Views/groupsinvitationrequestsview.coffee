@@ -1,180 +1,76 @@
-class GroupsInvitationRequestsView extends GroupsRequestView
+class GroupsInvitationRequestsView extends KDView
 
   constructor:(options={}, data)->
     options.cssClass = 'member-related'
     super options, data
 
-    group = @getData()
-    @currentState = new KDView cssClass: 'state'
-    @invitationTypeFilter = options.invitationTypeFilter ? ['basic approval','invitation']
+    @addSubView @tabView = new KDTabView
+      cssClass             : 'invitations-tabs'
+      maxHandleWidth       : 160
+      hideHandleCloseIcons : yes
+    , data
+    for tab, i in @getTabs()
+      tab.viewOptions.data    = @getData()
+      tab.viewOptions.options = delegate: this
+      @tabView.addPane new KDTabPaneView(tab), i is 0
 
-    [@penRequestsListController, @pendingRequestsList]        = @preparePendingRequestsList()
-    [@penInvitationsListController, @pendingInvitationsList]  = @preparePendingInvitationsList()
-    [@resRequestsListController, @resolvedRequestsList]       = @prepareResolvedRequestsList()
-    [@resInvitationsListController, @resolvedInvitationsList] = @prepareResolvedInvitationsList()
+    @showResolvedView = new KDView cssClass : 'show-resolved'
+    @showResolvedView.addSubView showResolvedLabelView = new KDLabelView
+      title    : 'Include Resolved: '
+    @showResolvedView.addSubView new KDOnOffSwitch
+      label    : showResolvedLabelView
+      callback : (@resolvedState)=>
+        view = @tabView.getActivePane().subViews.first
+        view.setStatusesByResolvedSwitch @resolvedState
+        view.refresh()
 
-    @createMultiuseButton = new KDButtonView
-      title    : 'Create invitation code'
+    @buttonContainer = new KDView cssClass: 'button-bar'
+    @tabView.getTabHandleContainer().addSubView @buttonContainer
+    @addHeaderButtons()
+    @tabView.on 'PaneDidShow', @bound 'decorateHeaderButtons'
+
+  addHeaderButtons:->
+    @buttonContainer.addSubView @showResolvedView
+    @buttonContainer.addSubView @bulkApproveButton = new KDButtonView
+      title    : 'Bulk Approve'
       cssClass : 'clean-gray'
-      callback : @bound 'showMultiuseModal'
-    @inviteByEmailButton = new KDButtonView
+      callback : @bound 'showBulkApproveModal'
+    @buttonContainer.addSubView @inviteByEmailButton = new KDButtonView
       title    : 'Invite by Email'
       cssClass : 'clean-gray'
       callback : @bound 'showInviteByEmailModal'
-    # @inviteByUsernameButton = new KDButtonView
-    #   title    : 'Invite by Username'
-    #   cssClass : 'clean-gray'
-    #   callback : @bound 'showInviteByUsernameModal'
-    @batchApproveButton = new KDButtonView
-      title    : 'Batch Approve Requests'
+    @buttonContainer.addSubView @createInvitationCodeButton = new KDButtonView
+      title    : 'Create Invitation Code'
       cssClass : 'clean-gray'
-      callback : @bound 'showBatchApproveModal'
+      callback : @bound 'showCreateInvitationCodeModal'
 
-    @refresh()
-    @utils.defer =>
-      @parent.on 'NewInvitationActionArrived', @bound 'refresh'
+    @decorateHeaderButtons()
 
-  fetchAndPopulate:(controller, removeAllItems=no)->
-    controller.showLazyLoader no
-    controller.setLastTimestamp null  if removeAllItems
+  decorateHeaderButtons:->
+    button.hide()  for button in @buttonContainer.subViews.slice 1
 
-    @fetchSomeRequests @invitationTypeFilter, controller.getStatuses(), controller.getLastTimestamp(), (err, requests)=>
-      controller.hideLazyLoader()
-      return warn err  if err
+    switch @tabView.getActivePane().name
+      when 'Membership Requests'
+        @bulkApproveButton.show()
+      when 'Invitations'
+        @inviteByEmailButton.show()
+      when 'Invitation Codes'
+        @createInvitationCodeButton.show()
 
-      controller.removeAllItems()  if removeAllItems
-      controller.instantiateListItems requests
-
-      if requests?.length > 0
-        controller.setLastTimestamp requests.last.timestamp_
-        controller.emit 'teasersLoaded', requests.length  if requests.length is @requestLimit
-      else
-        controller.emit 'noItemsFound'
-
-  refresh:->
-    @updateCurrentState()
-    @fetchAndPopulate @penRequestsListController, yes
-    @fetchAndPopulate @penInvitationsListController, yes
-    @fetchAndPopulate @resRequestsListController, yes
-    @fetchAndPopulate @resInvitationsListController, yes
-
-  prepareList:(options)->
-    controller = new InvitationRequestListController options
-
-    if options.isModal
-      controller.on 'LazyLoadThresholdReached', =>
-        return controller.hideLazyLoader()  if controller.noItemLeft
-        @fetchAndPopulate controller
-
-      controller.on 'teasersLoaded', =>
-        @fetchAndPopulate controller  unless controller.scrollView.hasScrollBars()
-    else
-      controller.on 'teasersLoaded', (count)=>
-        controller.moreLink?.show()    if count >= @requestLimit
-        controller.hideNoItemWidget()  if count > 0
-      controller.on 'ShowMoreRequested', @showListModal.bind this, options
-
-    return [controller, controller.getView()]
-
-  showListModal:({prepareMethod, title, width})->
-    [controller, view] = @[prepareMethod] yes
-    @fetchAndPopulate controller, yes
-
-    modal = new GroupsInvitationRequestsModalView {title, width}
-    modal.addSubView controller.getView()
-    modal._windowDidResize()
-
-  preparePendingRequestsList:(isModal=no)->
-    [controller, view] = @prepareList
-      itemClass       : GroupsInvitationRequestListItemView
-      statuses        : 'pending'
-      isModal         : isModal
-      prepareMethod   : 'preparePendingRequestsList'
-      title           : 'Pending Requests'
-      noItemFound     : 'No pending requests.'
-      noMoreItemFound : 'No more pending requests found.'
-      width           : 400
-
-    listView = controller.getListView()
-    @forwardEvent listView, 'RequestIsApproved'
-    @forwardEvent listView, 'RequestIsDeclined'
-    listView.on 'UpdateCurrentState', @bound 'updateCurrentState'
-
-    return [controller, view]
-
-  preparePendingInvitationsList:(isModal=no)->
-    @prepareList
-      itemClass       : GroupsInvitationRequestListItemView
-      statuses        : 'sent'
-      isModal         : isModal
-      prepareMethod   : 'preparePendingInvitationsList'
-      title           : 'Pending Invitations'
-      noItemFound     : 'No pending invitations.'
-      noMoreItemFound : 'No more pending invitations found.'
-
-  prepareResolvedRequestsList:(isModal=no)->
-    @prepareList
-      itemClass       : GroupsInvitationListItemView
-      statuses        : ['approved', 'declined']
-      isModal         : isModal
-      prepareMethod   : 'prepareResolvedRequestsList'
-      title           : 'Resolved Requests'
-      noItemFound     : 'No resolved requests.'
-      noMoreItemFound : 'No more resolved requests found.'
-
-  prepareResolvedInvitationsList:(isModal=no)->
-    @prepareList
-      itemClass       : GroupsInvitationListItemView
-      statuses        : ['accepted', 'ignored']
-      isModal         : isModal
-      prepareMethod   : 'prepareResolvedInvitationsList'
-      title           : 'Resolved Invitations'
-      noItemFound     : 'No resolved invitations.'
-      noMoreItemFound : 'No more resolved invitations found.'
-
-
-  createMultiuseInvitation: (formData) ->
-    KD.remote.api.JInvitation.createMultiuse formData, (err)=>
-      @multiuseModal.modalTabs.forms.createInvitation.buttons.Save.hideLoader()
-      return @showErrorMessage err  if err
-
-      new KDNotificationView title: "Successfully created invitation #{formData.code}"
-      @multiuseModal.destroy()
-
-  showMultiuseModal:->
-    @multiuseModal = modal = new KDModalViewWithForms
-      title                   : "Create a multiuse invitation code"
-      tabs                    :
-        forms                 :
-          createInvitation    :
-            callback          : @bound 'createMultiuseInvitation'
-            buttons           :
-              Save            :
-                itemClass     : KDButtonView
-                type          : 'submit'
-                loader        :
-                  color       : '#444444'
-                  diameter    : 12
-              Cancel          :
-                style         : 'modal-cancel'
-                callback      : -> modal.destroy()
-            fields            :
-              invitationCode  :
-                label         : "Invitation code"
-                itemClass     : KDInputView
-                name          : "code"
-                placeholder   : "Enter a creative invitation code!"
-              maxUses         :
-                label         : "Maximum uses"
-                itemClass     : KDInputView
-                name          : "maxUses"
-                placeholder   : "How many people can redeem this code?"
-
-
-    form = modal.modalTabs.forms.createInvitation
-    form.on 'FormValidationFailed', => form.buttons.Save.hideLoader()
-
-    return modal
+  getTabs:->
+    [
+      name        : 'Membership Requests'
+      viewOptions :
+        viewClass : GroupsMembershipRequestsTabPaneView
+    ,
+      name        : 'Invitations'
+      viewOptions :
+        viewClass : GroupsSentInvitationsTabPaneView
+    ,
+      name        : 'Invitation Codes'
+      viewOptions :
+        viewClass : GroupsInvitationCodesTabPaneView
+    ]
 
   showModalForm:(options)->
     modal = new KDModalViewWithForms
@@ -191,6 +87,7 @@ class GroupsInvitationRequestsView extends GroupsRequestView
             buttons          :
               Send           :
                 itemClass    : KDButtonView
+                label        : options.submitButtonLabel or 'Send'
                 type         : 'submit'
                 loader       :
                   color      : '#444444'
@@ -205,49 +102,29 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     return modal
 
-  # showInviteByUsernameModal:->
-  #   @inviteByUsername = @showModalForm
-  #     cssClass         : 'invite-by-username'
-  #     title            : 'Invite by Username'
-  #     callback         : @emit.bind @, 'InviteByUsername'
-  #     fields           :
-  #       recipient      :
-  #         label        : 'Username'
-  #         type         : 'hidden'
-
-  #   recipientField = @inviteByUsername.modalTabs.forms.invite.fields.recipient
-  #   recipientsWrapper = new KDView
-  #     cssClass: 'completed-items'
-
-  #   @inviteByUsername.on 'AutoCompleteNeedsMemberData', (event)=>
-  #     {callback,blacklist,inputValue} = event
-  #     @fetchBlacklistForInviteByUsernameModal (ids)->
-  #       blacklist.push id for id in ids
-  #       KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err,accounts)->
-  #         callback accounts
-
-  #   recipient = new KDAutoCompleteController
-  #     name                : 'recipient'
-  #     itemClass           : InviteByUsernameAutoCompleteItemView
-  #     selectedItemClass   : InviteByUsernameAutoCompletedItemView
-  #     outputWrapper       : recipientsWrapper
-  #     form                : @inviteByUsername.modalTabs.forms.invite
-  #     itemDataPath        : 'profile.nickname'
-  #     listWrapperCssClass : 'users'
-  #     submitValuesAsText  : yes
-  #     dataSource          : (args, callback)=>
-  #       {inputValue} = args
-  #       blacklist = (data.getId() for data in recipient.getSelectedItemData())
-  #       @inviteByUsername.emit 'AutoCompleteNeedsMemberData', {inputValue,blacklist,callback}
-
-  #   recipientField.addSubView recipient.getView()
-  #   recipientField.addSubView recipientsWrapper
+  showCreateInvitationCodeModal:->
+    @createInvitationCode = @showModalForm
+      title             : 'Create an Invitation Code'
+      cssClass          : ''
+      callback          : @emit.bind this, 'CreateInvitationCode'
+      submitButtonLabel : 'Create'
+      fields            :
+        invitationCode  :
+          label         : "Invitation code"
+          itemClass     : KDInputView
+          name          : "code"
+          placeholder   : "Enter a creative invitation code!"
+        maxUses         :
+          label         : "Maximum uses"
+          itemClass     : KDInputView
+          name          : "maxUses"
+          placeholder   : "How many people can redeem this code?"
 
   showInviteByEmailModal:->
     @inviteByEmail = @showModalForm
       title            : 'Invite by Email'
       cssClass         : 'invite-by-email'
-      callback         : @emit.bind @, 'InviteByEmail'
+      callback         : @emit.bind this, 'InviteByEmail'
       fields           :
         emails         :
           label        : 'Emails'
@@ -265,11 +142,11 @@ class GroupsInvitationRequestsView extends GroupsRequestView
 
     @inviteByEmail.modalTabs.forms.invite.fields.report.hide()
 
-  showBatchApproveModal:->
+  showBulkApproveModal:->
     @batchApprove = @showModalForm
-      title            : 'Batch Approve Requests'
-      callback         : @emit.bind @, 'BatchApproveRequests'
-      content          : "<div class='modalformline'>Enter how many of the pending requests you want to approve:</div>"
+      title            : 'Bulk Approve Membership Requests'
+      callback         : @emit.bind this, 'BulkApproveRequests'
+      content          : "<div class='modalformline'>Enter how many of the pending membership requests you want to approve:</div>"
       fields           :
         count          :
           label        : 'No. of requests'
@@ -282,108 +159,93 @@ class GroupsInvitationRequestsView extends GroupsRequestView
             messages   :
               regExp   : 'numbers only please'
 
-  showErrorMessage:(err)->
-    warn err
-    new KDNotificationView
-      title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-      duration : 2000
 
-  pistachio:->
-    """
-    <div class="button-bar">
-      {{> @createMultiuseButton}} {{> @batchApproveButton}}
-      {{> @inviteByEmailButton}}
-    </div>
-    <section class="status-quo">
-      <h2>Status quo</h2>
-      {{> @currentState}}
-    </section>
-    <section class="pending">
-      <h2>Pending requests</h2>
-      {{> @pendingRequestsList}}
-    </section>
-    <section class="sent">
-      <h2>Sent invitations</h2>
-      {{> @pendingInvitationsList}}
-    </section>
-    <section class="resolved">
-      <h2>Resolved requests</h2>
-      {{> @resolvedRequestsList}}
-    </section>
-    <section class="resolved">
-      <h2>Resolved invitations</h2>
-      {{> @resolvedInvitationsList}}
-    </section>
-    """
+class GroupsInvitationsTabPaneView extends KDView
 
-  fetchBlacklistForInviteByUsernameModal:(callback)->
-    unless @usernameBlacklist
-      @usernameBlacklist = []
-      @getData().fetchInvitationRequests
-        targetOptions:selector:
-          'koding.username': {$exists:1},
-          status: $not:$in :['declined','ignored']
-      , (err, requests)=>
-        unless err
-          @usernameBlacklist.push request.getId() for request in requests
-          @getData().fetchMembers (err, members)=>
-            unless err
-              @usernameBlacklist.push member.getId() for member in members
-            callback @usernameBlacklist
-    else
-      callback @usernameBlacklist
+  requestLimit: 6
 
-class GroupsInvitationRequestsModalView extends KDModalView
-  constructor:(options = {}, data)->
-    options.cssClass or= 'invitations-request-modal'
-    options.overlay   ?= yes
-    options.width    or= 400
-    options.height   or= 'auto'
+  constructor:(options={}, data)->
+    options.itemClass          or= GroupsInvitationListItemView
+    options.resolvedStatuses   or= ['pending', 'approved', 'declined']
+    options.unresolvedStatuses or= 'pending'
 
-    super
+    super options, data
 
-  _windowDidResize:->
-    super
-    {winHeight} = @getSingleton('windowController')
-    @$('.kdmodal-content .kdscrollview').css 'max-height', winHeight - 400
+    @setStatusesByResolvedSwitch @getDelegate().resolvedState ? no
 
-class InviteByUsernameAutoCompleteItemView extends KDAutoCompleteListItemView
-  constructor:(options, data)->
-    options.cssClass = "clearfix member-suggestion-item"
-    super
-    userInput = options.userInput or @getDelegate().userInput
-    @avatar = new AutoCompleteAvatarView {},data
-    @profileLink = new AutoCompleteProfileTextView {userInput, shouldShowNick: yes},data
+    @controller = new InvitationRequestListController options
+    @listView   = @controller.getView()
+    @addSubView @listView
 
-  pistachio:->
-    """
-      <span class='avatar'>{{> @avatar}}</span>
-      {{> @profileLink}}
-    """
+  addListeners:->
+    @controller.on 'teasersLoaded', (count)=>
+      @controller.hideNoItemWidget()  if count > 0
+
+  fetchRequests:(callback)->
+    status   = @options.statuses
+    status   = $in: status                 if Array.isArray status
+    selector = timestamp: $lt: @timestamp  if @timestamp
+
+    options  =
+      targetOptions :
+        selector    : {status}
+        limit       : @requestLimit
+        sort        : { requestedAt: -1 }
+      options       :
+        sort        : { timestamp: -1 }
+
+    @getData().fetchInvitationRequests selector, options, callback
+
+  fetchAndPopulate:->
+    @controller.showLazyLoader no
+
+    @fetchRequests (err, requests)=>
+      @controller.hideLazyLoader()
+      if err or requests.length is 0
+        warn err  if err
+        return @controller.emit 'noItemsFound'
+
+      @timestamp = requests.last.timestamp_
+      @controller.instantiateListItems requests
+      @controller.emit 'teasersLoaded', requests.length  if requests.length is @requestLimit
 
   viewAppended:->
     super()
-    @setTemplate @pistachio()
-    @template.update()
+    @addListeners()
+    @fetchAndPopulate()
 
-  partial:()-> ''
+  refresh:->
+    @controller.removeAllItems()
+    @timestamp = null
+    @fetchAndPopulate()
 
-class InviteByUsernameAutoCompletedItemView extends KDAutoCompletedItem
-  constructor:(options, data)->
-    options.cssClass = "clearfix"
-    super
-    @avatar = new AutoCompleteAvatarView {size : width : 16, height : 16},data
-    @profileText = new AutoCompleteProfileTextView {},data
+  setStatusesByResolvedSwitch:(state)->
+    @options.statuses = if state\
+                        then @options.resolvedStatuses\
+                        else @options.unresolvedStatuses
 
-  pistachio:->
-    """
-      <span class='avatar'>{{> @avatar}}</span>
-      {{> @profileText}}
-    """
 
-  viewAppended:->
-    super()
-    @setTemplate @pistachio()
-    @template.update()
+class GroupsMembershipRequestsTabPaneView extends GroupsInvitationsTabPaneView
 
-  partial:()-> ''
+  constructor:(options={}, data)->
+    options.itemClass       or= GroupsInvitationRequestListItemView
+    options.noItemFound     or= 'No requests found.'
+    options.noMoreItemFound or= 'No more requests found.'
+
+    super options, data
+
+
+class GroupsSentInvitationsTabPaneView extends GroupsInvitationsTabPaneView
+
+  constructor:(options={}, data)->
+    options.resolvedStatuses   or= ['sent', 'accepted', 'ignored']
+    options.unresolvedStatuses or= 'sent'
+    options.noItemFound        or= 'No sent invitations found.'
+    options.noMoreItemFound    or= 'No more sent invitations found.'
+
+    super options, data
+
+
+class GroupsInvitationCodesTabPaneView extends KDView
+
+  setStatusesByResolvedSwitch:(state)->

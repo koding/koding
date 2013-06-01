@@ -518,7 +518,6 @@ module.exports = [
 
   # groups views
   "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
