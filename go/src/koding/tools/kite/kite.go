@@ -8,10 +8,8 @@ import (
 	"koding/tools/lifecycle"
 	"koding/tools/log"
 	"os"
-	"os/signal"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -59,9 +57,6 @@ func (k *Kite) Run() {
 	}()
 
 	timeoutChannel := make(chan string)
-
-	sigtermChannel := make(chan os.Signal)
-	signal.Notify(sigtermChannel, syscall.SIGTERM)
 
 	consumeConn := amqputil.CreateConnection("kite-" + k.Name)
 	defer consumeConn.Close()
@@ -276,11 +271,6 @@ func (k *Kite) Run() {
 				delete(routeMap, routingKey)
 				log.Warn("Dropped client because of fallback channel timeout.")
 			}
-
-		case <-sigtermChannel:
-			log.Info("Received TERM signal. Beginning shutdown...")
-			lifecycle.BeginShutdown()
-			consumeChannel.Close()
 		}
 	}
 }

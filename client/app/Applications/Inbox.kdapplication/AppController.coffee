@@ -1,6 +1,6 @@
 class InboxAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Inbox"
     route        : "/Inbox"
     hiddenHandle : yes

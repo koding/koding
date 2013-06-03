@@ -238,7 +238,8 @@ module.exports = class JVM extends Model
             user
             target  : member
             sudo    : yes
-            name    : member.profile.nickname
+            name    : "koding~#{member.profile.nickname}"
+            groups  : wrapGroup group
           }
         else
           member.checkPermission group, 'sudoer', (err, hasPermission)->

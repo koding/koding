@@ -11,8 +11,6 @@ module.exports = class JInvitation extends jraphical.Module
 
   {permit} = require './group/permissionset'
 
-  # Emailer = require '../emailer'
-
   @isEnabledGlobally = yes
 
   {ObjectRef, dash, daisy, secure} = require 'bongo'
@@ -347,23 +345,6 @@ module.exports = class JInvitation extends jraphical.Module
         else
           invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
           callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
-
-      # Emailer.send
-      #   From      : @getInviteEmail()
-      #   To        : invite.inviteeEmail
-      #   Subject   : @getInviteSubject(messageOptions)
-      #   TextBody  : @getInviteMessage(messageOptions)
-      #   ReplyTo   : inviter.email
-      # ,(err) ->
-      #   unless err
-      #     callback null
-      #     console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
-      #     limit.update {$inc: usage: 1}, (err)-> console.log err if err
-      #     invite.update {$set: status: "sent"}, (err)-> console.log err if err
-      #   else
-      #     limit.update  {$inc: usage: 1}, (err)-> console.log err if err
-      #     invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
-      #     callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
   @sendEmailForInviteViaGroup =(client, invite, group, callback)->
     JUser = require './user'

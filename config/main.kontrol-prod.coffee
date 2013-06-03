@@ -113,11 +113,11 @@ module.exports =
       apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : "http://webserver-build-koding-#{version}.in.koding.com:1337"
+      sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
     host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
     port        : 5672
-    apiAddress  : "internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com"
+    apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"

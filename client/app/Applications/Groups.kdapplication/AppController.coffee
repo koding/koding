@@ -1,6 +1,6 @@
 class GroupsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes
@@ -373,7 +373,8 @@ class GroupsAppController extends AppController
   _createGroupHandler =(formData, callback)->
 
     if formData.privacy in ['by-invite', 'by-request', 'same-domain']
-      formData.privacy = 'private'
+      formData.requestType = formData.privacy
+      formData.privacy     = 'private'
 
     KD.remote.api.JGroup.create formData, (err, group)=>
       if err
@@ -669,7 +670,7 @@ class GroupsAppController extends AppController
 
   updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
     group.modifyMembershipPolicy formData, ->
-      membershipPolicyView.emit 'MembershipPolicyChangeSaved'
+      policy.emit 'MembershipPolicyChangeSaved'
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
@@ -724,121 +725,6 @@ class GroupsAppController extends AppController
     title   = "#{result} found for <strong>#{@_searchValue}</strong>"
     @getView().$(".feeder-header").html title
 
-  prepareReadmeTab:->
-    {groupView} = this
-    group = groupView.getData()
-    groupView.tabView.addPane pane = new KDTabPaneView
-      name: 'Readme'
-    pane.addSubView new GroupReadmeView {}, group
-    return pane
-
-  prepareSettingsTab:->
-    pane = @groupView.createLazyTab 'Settings', GroupGeneralSettingsView
-    return pane
-
-  preparePermissionsTab:->
-    {groupView} = this
-    pane = groupView.createLazyTab 'Permissions', GroupPermissionsView,
-      delegate: groupView
-    return pane
-
-  prepareMembersTab:->
-    {groupView} = this
-    group = groupView.getData()
-    pane = groupView.createLazyTab 'Members', GroupsMemberPermissionsView,
-      (pane, view)=>
-        pane.on 'PaneDidShow', ->
-          view.refresh()  if pane.tabHandle.isDirty
-          pane.tabHandle.markDirty no
-
-    group.on 'MemberAdded', ->
-      {tabHandle} = pane
-      tabHandle.markDirty()
-    return pane
-
-  prepareMembershipPolicyTab:(group, view, groupView)->
-    {groupView} = this
-    group = groupView.getData()
-    pane = groupView.createLazyTab 'Membership policy', GroupsMembershipPolicyView,
-      (pane, view)=>
-
-        group.fetchMembershipPolicy (err, policy)=>
-          view.loader.hide()
-          view.loaderText.hide()
-
-          membershipPolicyView = new GroupsMembershipPolicyDetailView {}, policy
-
-          membershipPolicyView.on 'MembershipPolicyChanged', (formData)=>
-            @updateMembershipPolicy group, policy, formData, membershipPolicyView
-
-          membershipPolicyView.on 'MembershipPolicyChangeSaved', => console.log 'sssaved'
-
-          view.addSubView membershipPolicyView
-    return pane
-
-  prepareInvitationsTab:->
-    {groupView} = this
-    group = groupView.getData()
-    pane = groupView.createLazyTab 'Invitations', GroupsInvitationRequestsView,
-      (pane, invitationRequestView)->
-
-        kallback = (modal, err)=>
-          modal.modalTabs.forms.invite.buttons.Send.hideLoader()
-          return invitationRequestView.showErrorMessage err if err
-          new KDNotificationView title:'Invitation sent!'
-          invitationRequestView.refresh()
-          modal.destroy()
-
-        invitationRequestView.on 'BatchApproveRequests', (formData)->
-          group.sendSomeInvitations formData.count, (err)=>
-            return invitationRequestView.showErrorMessage err if err
-            invitationRequestView.updateCurrentState()
-            kallback @batchApprove, err
-
-        invitationRequestView.on 'InviteByEmail', (formData)->
-          group.inviteByEmails formData.emails, (err)=>
-            kallback @inviteByEmail, err
-
-        invitationRequestView.on 'InviteByUsername', (formData)->
-          group.inviteByUsername formData.recipients, (err)=>
-            kallback @inviteByUsername, err
-
-        invitationRequestView.on 'RequestIsApproved', (request, callback)->
-          request.approve callback
-
-        invitationRequestView.on 'RequestIsDeclined', (request, callback)->
-          request.declineInvitation callback
-
-        pane.on 'PaneDidShow', ->
-          invitationRequestView.refresh()  if pane.tabHandle.isDirty
-          pane.tabHandle.markDirty no
-
-    group.on 'NewInvitationRequest', ->
-      pane.emit 'NewInvitationActionArrived'
-      pane.tabHandle.markDirty()
-
-    return pane
-
-  prepareVocabularyTab:->
-    {groupView} = this
-    group = groupView.getData()
-    pane = groupView.createLazyTab 'Vocabulary', GroupsVocabulariesView,
-      (pane, vocabView)->
-
-        group.fetchVocabulary (err, vocab)-> vocabView.setVocabulary vocab
-
-        vocabView.on 'VocabularyCreateRequested', ->
-          {JVocabulary} = KD.remote.api
-          JVocabulary.create {}, (err, vocab)->
-            vocabView.setVocabulary vocab
-
-  prepareBundleTab: ->
-    {groupView} = this
-    group = groupView.getData()
-    pane = groupView.createLazyTab 'Bundle', GroupsBundleView,
-      (pane, bundleView) ->
-        console.log 'bundle view', bundleView
-
   createContentDisplay:(group, callback)->
 
     unless KD.config.roles? and 'admin' in KD.config.roles
@@ -885,7 +771,7 @@ class GroupsAppController extends AppController
       else 'Koding users can only join with your approval'
 
       body  = """
-        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{groupUrl}</a></div>
+        <div class="modalformline">Your group can be accessed via <a id="go-to-group-link" class="group-link" href="#{groupUrl}" target="#{group.slug}">#{location.protocol}#{groupUrl}</a></div>
         <div class="modalformline">It is <strong>#{group.visibility}</strong> in group listings.</div>
         <div class="modalformline">It is <strong>#{group.privacy}</strong>, #{privacyExpl}.</div>
         <div class="modalformline">You can manage your group settings from the group dashboard anytime.</div>

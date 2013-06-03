@@ -229,13 +229,14 @@ class KodingRouter extends KDRouter
       '/:name?/Apps'                    : createSectionHandler 'Apps'
       '/:name?/Account'                 : createSectionHandler 'Account'
       '/:name?/Demos'                   : createSectionHandler 'Demos'
+      '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
 
       # group dashboard
-      '/:name?/Dashboard'               : (routeInfo, state, route)->
-        {name} = routeInfo.params
-        n = name ? 'koding'
-        KD.remote.cacheable n, (err, groups, nameObj)=>
-          @openContent name, 'Groups', groups, route
+      # '/:name?/Dashboard'               : (routeInfo, state, route)->
+      #   {name} = routeInfo.params
+      #   n = name ? 'koding'
+      #   KD.remote.cacheable n, (err, groups, nameObj)=>
+      #     @openContent name, 'Groups', groups, route
 
       # content
       '/:name?/Topics/:slug'            : createContentHandler 'Topics'
@@ -292,12 +293,16 @@ class KodingRouter extends KDRouter
       '/member/:username': ({params:{username}})->
         @handleRoute "/#{username}", replaceState: yes
 
-      '/:name?/Unsubscribe/:unsubscribeToken/:opt?':
-        ({params:{unsubscribeToken, opt}})->
-          opt              = decodeURIComponent opt
-          unsubscribeToken = decodeURIComponent unsubscribeToken
-          KD.remote.api.JMailNotification.unsubscribeWithId \
-          unsubscribeToken, opt, (err, content)=>
+      '/:name?/Unsubscribe/:token/:email/:opt?':
+        ({params:{token, email, opt}})->
+          opt   = decodeURIComponent opt
+          email = decodeURIComponent email
+          token = decodeURIComponent token
+          (
+            if opt is 'email' 
+            then KD.remote.api.JMail 
+            else KD.remote.api.JMailNotification
+          ).unsubscribeWithId token, email, opt, (err, content)=>
             if err or not content
               title   = 'An error occured'
               content = 'Invalid unsubscribe token provided.'
@@ -308,13 +313,12 @@ class KodingRouter extends KDRouter
             modal = new KDModalView
               title        : title
               overlay      : yes
-              cssClass     : "new-kdmodal"
+              cssClass     : 'new-kdmodal'
               content      : "<div class='modalformline'>#{content}</div>"
               buttons      :
                 "Close"    :
-                  style    : "modal-clean-gray"
-                  callback : (event)->
-                    modal.destroy()
+                  style    : 'modal-clean-gray'
+                  callback : -> modal.destroy()
             @clear()
 
       # REFACTOR HERE! PUBLIC KEY SHOULDN'T BE SENT, TRY WITH A TOKEN

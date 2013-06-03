@@ -4,7 +4,8 @@ class InvitationRequestListController extends KDListViewController
     options.itemClass           ?= GroupsInvitationListItemView
     options.viewOptions         ?= {}
     options.viewOptions.cssClass =
-      @utils.curryCssClass 'request-list', options.viewOptions.cssClass
+      @utils.curryCssClass 'invitation-request-list', options.viewOptions.cssClass
+
     options.noItemFoundWidget   ?= new KDCustomHTMLView
         cssClass : 'lazy-loader'
         partial  : options.noItemFound
@@ -17,14 +18,17 @@ class InvitationRequestListController extends KDListViewController
 
     super
 
+    @listView.setDelegate this
+
     @on 'noItemsFound', =>
       @showNoItemWidget()
+      @noItemLeft = true
       @moreLink?.hide()
 
     unless options.isModal
       @getView().once 'viewAppended', =>
         @getView().addSubView @moreLink = new CustomLinkView
-          cssClass : 'hidden'
+          cssClass : 'hidden more-link'
           title    : 'More...'
           href     : '#'
           click    : (event)=>
