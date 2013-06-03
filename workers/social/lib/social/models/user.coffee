@@ -104,9 +104,13 @@ module.exports = class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
       emailFrequency: Object
-      status        :
-        type        : String
-        enum        : ['invalid status',['online','offline']]
+      onlineStatus  :
+        actual      :
+          type      : String
+          enum      : ['invalid status',['online','offline']]
+        userPreference:
+          type      : String
+          enum      : ['invalid status',['online','offline','away','busy']]
 
     relationships       :
       ownAccount        :
@@ -122,6 +126,8 @@ module.exports = class JUser extends jraphical.Module
   sessions  = {}
   users     = {}
   guests    = {}
+
+
 
   # @fetchUser = Bongo.secure (client,options,callback)->
   #   {username} = options

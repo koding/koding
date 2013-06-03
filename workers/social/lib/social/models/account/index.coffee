@@ -130,9 +130,9 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
-      status                :
+      onlineStatus          :
         type                : String
-        enum                : ['invalid status',['online','offline','do not disturb']]
+        enum                : ['invalid status',['online','offline','away','busy']]
     relationships           : ->
       JPrivateMessage = require '../messages/privatemessage'
 
