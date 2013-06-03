@@ -33,9 +33,6 @@ module.exports = class JRecurlyToken extends Module
   @checkToken = secure (client, data, callback)->
     {delegate} = client.connection
 
-    # For VIP beta only
-    return callback yes
-
     JRecurlyToken.one
       username: delegate.profile.nickname
       planCode: data.planCode
