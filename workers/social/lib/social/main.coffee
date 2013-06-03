@@ -130,3 +130,6 @@ koding.connect ->
     #   ,10*1000
 
 console.log "Koding Social Worker #{process.pid} has started."
+
+require './followfeed' # side effects
+

@@ -5,6 +5,8 @@ class ActivityAppController extends AppController
     route        : "/Activity"
     hiddenHandle : yes
 
+  {dash} = Bongo
+
   activityTypes = [
     'CStatusActivity'
     'CCodeSnipActivity'
@@ -30,12 +32,13 @@ class ActivityAppController extends AppController
 
     super options
 
-    @currentFilter     = activityTypes
-    @appStorage        = new AppStorage 'Activity', '1.0'
-    @isLoading         = no
-    @mainController    = @getSingleton 'mainController'
-    @lastTo            = null
-    @lastFrom          = Date.now()
+    @currentFilter  = activityTypes
+    @feedType       = "Public"
+    @appStorage     = new AppStorage 'Activity', '1.0'
+    @isLoading      = no
+    @mainController = @getSingleton 'mainController'
+    @lastTo         = null
+    @lastFrom       = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
@@ -85,16 +88,14 @@ class ActivityAppController extends AppController
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
-    KD.whoami().on "FollowedActivityArrived", (activityId) =>
-      KD.remote.api.CActivity.one {_id: activityId}, (err, activity) =>
-        if activity.constructor.name in @getFilter()
-          activities = clearQuotes [activity]
-          controller.followedActivityArrived activities.first
-
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
       @isLoading = no
       @resetAll()
-      @setFilter data.type
+      # the filterList on top of the innerNav is clicked
+      if data.type in ["Public", "Followed"]
+        @feedType = data.type
+      else
+        @setFilter data.type
       @populateActivity()
 
   activitiesArrived:(activities)->
@@ -110,7 +111,6 @@ class ActivityAppController extends AppController
       callback exempt
 
   fetchActivitiesDirectly:(options = {}, callback)->
-
     KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
@@ -161,7 +161,6 @@ class ActivityAppController extends AppController
     @populateActivityWithTimeout()
 
   populateActivityWithTimeout:->
-
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
@@ -176,7 +175,6 @@ class ActivityAppController extends AppController
     @status.reconnect()
 
   populateActivity:(options = {}, callback)->
-
     return if @isLoading
 
     @listController.showLazyLoader()
@@ -188,13 +186,16 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      unless slug is 'koding'
+      if KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
       else
-        @isExempt (exempt)=>
-          if exempt or @getFilter() isnt activityTypes
-          then @fetchActivitiesDirectly options, callback
-          else @fetchActivitiesFromCache options, callback
+        unless slug is 'koding'
+          @fetchActivitiesDirectly options, callback
+        else
+          @isExempt (exempt)=>
+            if exempt or @getFilter() isnt activityTypes
+            then @fetchActivitiesDirectly options, callback
+            else @fetchActivitiesFromCache options, callback
 
     unless isReady
     then groupsController.once 'groupChanged', fetch
@@ -223,31 +224,43 @@ class ActivityAppController extends AppController
       sort        :
         createdAt : -1
 
-    @isExempt (exempt)->
-      options.lowQuality = exempt
-      KD.remote.api.CActivity.fetchFacets options, (err, activities)->
-        if err then callback err
-        else if not exempt
-          KD.remote.reviveFromSnapshots clearQuotes(activities), callback
-        else
-          # trolls and admins in show troll mode will load data on request
-          # as the snapshots do not include troll comments
-          stack = []
-          activities.forEach (activity)->
-            stack.push (cb)->
+    {CActivity}   = KD.remote.api
+    if KD.config.useNeo4j
+      options.feedType = @feedType
+
+      if options.facets is activityTypes
+        options.facets = ['Everything']
+
+      if @feedType is "Public"
+        options.groupId = KD.getSingleton("groupsController").getCurrentGroup().getId()
+        CActivity.fetchPublicContents options, callback
+      else
+        CActivity.fetchFolloweeContents options, callback
+
+    else
+      @isExempt (exempt)->
+        options.lowQuality = exempt
+        CActivity.fetchFacets options, (err, activities)->
+          if err
+            callback err
+          else if not exempt
+            KD.remote.reviveFromSnapshots clearQuotes(activities), callback
+          else
+            # trolls and admins in show troll mode will load data on request
+            # as the snapshots do not include troll comments
+            stack = activities.map (activity)-> (cb)->
               activity.fetchTeaser (err, teaser)->
                 if err then console.warn 'could not fetch teaser'
-                else
-                  cb err, teaser
+                else cb err, teaser
+                stack.fin()
               , yes
 
-          async.parallel stack, (err, res)->
-            callback null, res
+            dash stack, (err, res)->
+              callback null, res
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
   fetchSomeActivities:(options = {}) ->
-
     return if @isLoading
     @isLoading = yes
 
@@ -255,11 +268,9 @@ class ActivityAppController extends AppController
     unless lastItemCreatedAt? or lastItemCreatedAt is ""
       @isLoading = no
       log "lastItemCreatedAt is empty"
-
       # if lastItemCreatedAt is null, we assume there are no entries
       # and refresh the entire feed
       @refresh()
-
       return
 
     selector       =
@@ -292,23 +303,22 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
-  # Enables switching between cache/neo4j.
-  getCacheUrl:->
-
-    defaultUrlPrefix = "cache"
-    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
-
-    return defaultUrlPrefix
-
   fetchCachedActivity:(options = {}, callback)->
+    if KD.config.useNeo4j
+      if options.to
+        options.timestamp = options.to
 
-    $.ajax
-      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
-      cache   : no
-      error   : (err)->   callback? err
-      success : (cache)->
-        cache.overview.reverse()  if cache?.overview
-        callback null, cache
+      options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+      KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
+        return callback err, result
+    else
+      $.ajax
+        url     : "/-/cache/#{options.slug or 'latest'}"
+        cache   : no
+        error   : (err)->   callback? err
+        success : (cache)->
+          cache.overview.reverse()  if cache?.overview
+          callback null, cache
 
   continueLoadingTeasers:->
     # fix me

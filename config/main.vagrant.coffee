@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'localhost:27017/koding'
+mongo           = 'localhost:27017/koding2'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -186,3 +186,10 @@ module.exports =
   #     return b
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a'
+  followfeed    :
+    host        : 'localhost'
+    port        : '5672'
+    login       : 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'
+
