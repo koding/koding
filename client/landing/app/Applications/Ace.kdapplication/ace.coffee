@@ -54,6 +54,18 @@ class Ace extends KDView
     @editor.getSession().selection.on 'changeCursor', (cursor)=>
       @emit "ace.change.cursor", @editor.getSession().getSelection().getCursor()
 
+    file = @getData()
+
+    file.on "fs.save.finished", (err,res)=>
+      unless err
+        @notify "Successfully saved!", "success"
+        @lastSavedContents = @lastContentsSentForSave
+
+    file.on "fs.save.started", =>
+      @lastContentsSentForSave = @getContents()
+
+    return  unless @getOption("enableShortcuts")
+
     @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
 
     @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
@@ -70,15 +82,6 @@ class Ace extends KDView
       {findAndReplaceView} = @getDelegate()
       findAndReplaceView.close() if e.keyCode is 27 and findAndReplaceView
 
-    file = @getData()
-
-    file.on "fs.save.finished", (err,res)=>
-      unless err
-        @notify "Successfully saved!", "success"
-        @lastSavedContents = @lastContentsSentForSave
-
-    file.on "fs.save.started", =>
-      @lastContentsSentForSave = @getContents()
 
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()

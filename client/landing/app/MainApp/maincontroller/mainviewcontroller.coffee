@@ -44,7 +44,15 @@ class MainViewController extends KDViewController
     cdController.emit "ContentDisplaysShouldBeHidden"
 
     @setViewState pane.getOptions()
-    navController.selectItemByName route.slice(1)
+
+    # fixme: make a name/route map somewhere
+    # probably in KD so that we can use sitewide
+    navController.selectItemByName switch route.slice(1)
+      when 'Dashboard' then 'Group'
+      else route.slice(1)
+
+
+
 
   isEntryPointSet = null
 
