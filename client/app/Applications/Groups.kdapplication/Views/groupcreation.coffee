@@ -62,7 +62,22 @@ class GroupCreationModal extends KDModalView
             title                : "Pay & Create the Group"
             style                : "modal-clean-gray hidden"
             type                 : "button"
-            callback             : -> log "hello"
+            callback             : ->
+              # Copy account creator's billing information
+              KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+                if err or not data
+                  data = {}
+                delete data.cardNumber
+                delete data.cardMonth
+                delete data.cardYear
+                delete data.cardCV
+                modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess) ->
+                  KD.remote.api.JRecurlyAccount.create newData, (err, account)->
+                    if err
+                      onError()
+                    else
+                      onSuccess()
+                      # FIXME: Call plan.charge({pin: 'xxxx}) here
         fields                   :
           label                  :
             itemClass            : KDCustomHTMLView
