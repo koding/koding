@@ -146,9 +146,8 @@ func CreateClient(writer http.ResponseWriter, req *http.Request) {
 
 	clientDB.AddClient(client)
 
-	var url string
-	url = fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
-	io.WriteString(writer, url)
+	url := fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
 	return
 
 }
