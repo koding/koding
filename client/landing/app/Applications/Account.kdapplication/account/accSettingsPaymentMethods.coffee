@@ -148,8 +148,8 @@ createAccountPaymentMethodModal = (data, callback) ->
       forms                     :
         "Billing Info"          :
           buttons               :
-            Add                 :
-              title             : "Add"
+            Save                :
+              title             : "Save"
               style             : "modal-clean-green"
               type              : "submit"
               loader            :
@@ -158,7 +158,7 @@ createAccountPaymentMethodModal = (data, callback) ->
               callback          : =>
                 tabs = modal.modalTabs
                 form = tabs.forms["Billing Info"]
-                button = form.buttons["Add"]
+                button = form.buttons["Save"]
                 onError = ->
                     button.hideLoader()
                 onSuccess = ->
