@@ -58,7 +58,8 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := fmt.Sprintf("'%s' is deleted", uuid)
-	io.WriteString(writer, resp)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func CreateProxy(writer http.ResponseWriter, req *http.Request) {
@@ -93,7 +94,8 @@ func CreateProxy(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := fmt.Sprintf("'%s' is registered", uuid)
-	io.WriteString(writer, resp)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
@@ -107,7 +109,8 @@ func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	resp := fmt.Sprintf("user '%s' is added to proxy uuid: '%s'", username, uuid)
-	io.WriteString(writer, resp)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
@@ -122,7 +125,8 @@ func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := fmt.Sprintf("service: '%s' is deleted on proxy uuid: '%s'", servicename, uuid)
-	io.WriteString(writer, resp)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
@@ -138,7 +142,8 @@ func DeleteProxyServiceKey(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	resp := fmt.Sprintf("key: '%s' is deleted for service: '%s'", key, servicename)
-	io.WriteString(writer, resp)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
@@ -153,7 +158,8 @@ func DeleteProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := fmt.Sprintf("domain: '%s' is deleted on proxy uuid: '%s'", domain, uuid)
-	io.WriteString(writer, resp)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func GetProxyDomain(writer http.ResponseWriter, req *http.Request) {

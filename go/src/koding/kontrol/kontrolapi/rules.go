@@ -134,7 +134,7 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%s'", ruleName, rule, ruleEnabled, ruleMode)
-	io.WriteString(writer, url)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
 	return
 
 }

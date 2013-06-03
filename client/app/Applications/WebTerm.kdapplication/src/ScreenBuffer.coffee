@@ -52,22 +52,27 @@ class WebTerm.ScreenBuffer
   flush: ->
     @linesToUpdate.sort (a, b) -> a - b
     maxLineIndex = @linesToUpdate[@linesToUpdate.length - 1]
-    if @lineDivOffset + @lineDivs.length <= maxLineIndex
+
+    linesToAdd = maxLineIndex - @lineDivOffset - @lineDivs.length + 1
+    if linesToAdd > 0
       scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
       newDivs = []
-      while @lineDivOffset + @lineDivs.length <= maxLineIndex
+      for i in [0...linesToAdd]
         div = document.createElement("div")
         $(div).text "\xA0"
         newDivs.push div
         @lineDivs.push div
       @terminal.outputbox.append newDivs
-      @terminal.scrollToBottom() if scrolledToBottom
 
-    toDelete = @lineDivs.length - @scrollbackLimit
-    if toDelete > 0
-      $(@lineDivs.slice(0, toDelete)).remove()
-      @lineDivs = @lineDivs.slice toDelete
-      @lineDivOffset += toDelete
+      linesToDelete = @lineDivs.length - @scrollbackLimit
+      if linesToDelete > 0
+        scrollOffset = @terminal.container.prop("scrollHeight") - @terminal.container.scrollTop()
+        $(@lineDivs.slice(0, linesToDelete)).remove()
+        @lineDivs = @lineDivs.slice linesToDelete
+        @lineDivOffset += linesToDelete
+        @terminal.container.scrollTop(@terminal.container.prop("scrollHeight") - scrollOffset)
+
+      @terminal.scrollToBottom() if scrolledToBottom
 
     for index in @linesToUpdate
       content = @getLineContent index
