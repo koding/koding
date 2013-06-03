@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
@@ -19,9 +20,20 @@ type Gauge struct {
 	Value  float64 `json:"value"`
 	Time   int64   `json:"measure_time"`
 	Source string  `json:"source"`
+	unit   Unit
 	input  func() float64
 }
 
+type Unit string
+
+const (
+	NoUnit     = Unit("")
+	Seconds    = Unit("s")
+	Percentage = Unit("%")
+	Bytes      = Unit("B")
+)
+
+var shortHostname string
 var loggrSource string
 var libratoSource string
 var tags string
@@ -35,14 +47,15 @@ var GaugeChanges = make(chan func())
 
 func Init(service string) {
 	hostname, _ := os.Hostname()
+	shortHostname = strings.Split(hostname, ".")[0]
 	loggrSource = fmt.Sprintf("%s %d on %s", service, os.Getpid(), strings.Split(hostname, ".")[0])
 	libratoSource = fmt.Sprintf("%s.%d:%s", service, os.Getpid(), hostname)
 	tags = service + " " + config.Profile
 
-	CreateGauge("goroutines", func() float64 {
+	CreateGauge("goroutines", NoUnit, func() float64 {
 		return float64(runtime.NumGoroutine())
 	})
-	CreateGauge("memory", func() float64 {
+	CreateGauge("memory", Bytes, func() float64 {
 		var m runtime.MemStats
 		runtime.ReadMemStats(&m)
 		return float64(m.Alloc)
@@ -171,13 +184,13 @@ func RecoverAndLog() {
 	}
 }
 
-func CreateGauge(name string, input func() float64) {
-	gauges = append(gauges, &Gauge{name, 0, 0, libratoSource, input})
+func CreateGauge(name string, unit Unit, input func() float64) {
+	gauges = append(gauges, &Gauge{name, 0, 0, libratoSource, unit, input})
 }
 
-func CreateCounterGauge(name string, resetOnReport bool) func(int) {
+func CreateCounterGauge(name string, unit Unit, resetOnReport bool) func(int) {
 	value := new(int)
-	CreateGauge(name, func() float64 {
+	CreateGauge(name, unit, func() float64 {
 		v := *value
 		if resetOnReport {
 			*value = 0
@@ -216,7 +229,7 @@ func RunGaugesLoop() {
 }
 
 func LogGauges(reportTime int64) {
-	if !config.Current.Librato.Push {
+	if !config.Current.Librato.Push && !config.Current.Opsview.Push {
 		fmt.Printf("%s [gauges %s]\n", time.Now().Format(time.StampMilli), tags)
 		for _, gauge := range gauges {
 			fmt.Printf("%s %s: %v\n", strings.Repeat(" ", len(time.StampMilli)), gauge.Name, gauge.input())
@@ -228,29 +241,44 @@ func LogGauges(reportTime int64) {
 		gauge.Value = gauge.input()
 		gauge.Time = reportTime
 	}
-	var event struct {
-		Gauges []*Gauge `json:"gauges"`
-	}
-	event.Gauges = gauges
-	b, err := json.Marshal(event)
-	if err != nil {
-		fmt.Println("logger error: json.Marshal failed.", err)
-		return
+
+	if config.Current.Librato.Push {
+		var event struct {
+			Gauges []*Gauge `json:"gauges"`
+		}
+		event.Gauges = gauges
+		b, err := json.Marshal(event)
+		if err != nil {
+			fmt.Println("logger error: json.Marshal failed.", err)
+			return
+		}
+
+		request, err := http.NewRequest("POST", "https://metrics-api.librato.com/v1/metrics", bytes.NewReader(b))
+		if err != nil {
+			fmt.Println("logger error: http.NewRequest failed.", err)
+			return
+		}
+		request.SetBasicAuth(config.Current.Librato.Email, config.Current.Librato.Token)
+		request.Header.Set("Content-Type", "application/json")
+
+		resp, err := http.DefaultClient.Do(request)
+		if err != nil || resp.StatusCode != http.StatusOK {
+			fmt.Printf("logger error: http.Post failed.\n%v\n%v\n%v\n", string(b), resp, err)
+		}
+		if resp != nil && resp.Body != nil {
+			resp.Body.Close()
+		}
 	}
 
-	request, err := http.NewRequest("POST", "https://metrics-api.librato.com/v1/metrics", bytes.NewReader(b))
-	if err != nil {
-		fmt.Println("logger error: http.NewRequest failed.", err)
-		return
-	}
-	request.SetBasicAuth(config.Current.Librato.Email, config.Current.Librato.Token)
-	request.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(request)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		fmt.Printf("logger error: http.Post failed.\n%v\n%v\n%v\n", string(b), resp, err)
-	}
-	if resp != nil && resp.Body != nil {
-		resp.Body.Close()
+	if config.Current.Opsview.Push {
+		entries := make([]string, len(gauges))
+		for i, gauge := range gauges {
+			entries[i] = fmt.Sprintf("%s=%f%s", gauge.Name, gauge.Value, gauge.unit)
+		}
+		cmd := exec.Command("/usr/local/nagios/bin/send_nsca", "-H", config.Current.Opsview.Host, "-c", "/usr/local/nagios/etc/send_nsca.cfg")
+		cmd.Stdin = strings.NewReader(shortHostname + "\tGauges\t0\tGauge Data Sent|" + strings.Join(entries, " ") + "\n")
+		if out, err := cmd.CombinedOutput(); err != nil {
+			fmt.Println("logger error: send_nsca failed.", err, out)
+		}
 	}
 }
