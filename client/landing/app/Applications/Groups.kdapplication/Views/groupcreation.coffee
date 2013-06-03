@@ -21,11 +21,8 @@ class GroupCreationModal extends KDModalView
     # p.getToken ->
     #   console.log "Emailed PIN"
 
-  charge:(callback)->
-    p.subscribe
-      pin: '0000'
-    , (err, subs)->
-      console.log subs
+  charge:(p, callback)->
+    p.subscribe {pin: '0000'}, callback
 
   viewAppended:->
 
@@ -49,6 +46,7 @@ class GroupCreationModal extends KDModalView
           change               : =>
             # log @typeSelector.inputs.selector.getValue()
             @hostSelector?.show()
+            @setPositions()
 
     @fetchRecurlyPlans (err, plans)=>
 
@@ -62,7 +60,9 @@ class GroupCreationModal extends KDModalView
             title                : "Pay & Create the Group"
             style                : "modal-clean-gray hidden"
             type                 : "button"
-            callback             : -> log "hello"
+            callback             : =>
+
+
         fields                   :
           label                  :
             itemClass            : KDCustomHTMLView
@@ -86,6 +86,7 @@ class GroupCreationModal extends KDModalView
               submit.show()
               desc.$('p').addClass 'hidden'
               desc.$('p').eq(index).removeClass 'hidden'
+              @setPositions()
           desc                   :
             itemClass            : KDCustomHTMLView
             cssClass             : "hidden"
