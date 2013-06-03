@@ -21,7 +21,8 @@ module.exports = class JRecurlyToken extends Module
     schema        :
       username    : String
       planCode    : String
-      pin         : Number
+      pin         : String
+      tries       : Number
       createdAt   :
         type      : Date
         default   : -> new Date
@@ -36,12 +37,18 @@ module.exports = class JRecurlyToken extends Module
     JRecurlyToken.one
       username: delegate.profile.nickname
       planCode: data.planCode
-      pin     : data.pin
     , (err, token)->
       if err or not token
-        callback no
+        callback no, 0
       else
-        callback yes
+        console.log token
+        token.tries ?= 0
+        if token.pin == data.pin and token.tries < 3
+          callback yes
+        else
+          token.tries++
+          token.save ->
+            callback no
 
   @createToken = secure (client, data, callback)->
     {delegate} = client.connection
@@ -59,7 +66,8 @@ module.exports = class JRecurlyToken extends Module
           planCode: data.planCode
 
       # Assign a (new) PIN.
-      token.pin = pin
+      token.pin   = pin.toString()
+      token.tries = 0
 
       # Send email
       token.save =>
