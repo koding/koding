@@ -71,7 +71,7 @@ module.exports = class JVM extends Model
           return callback err  if err
           vm = new JVM {
             name    : "#{name}#{uid}"
-            users   : [{ id: user.getId(), sudo: yes }]
+            users   : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups  : [{ id: group.getId() }]
             usage
           }
@@ -187,7 +187,7 @@ module.exports = class JVM extends Model
       vm = new JVM {
         name: name
         users: [
-          { id: user.getId(), sudo: yes }
+          { id: user.getId(), sudo: yes, owner: yes }
         ]
         groups: groups ? []
       }
