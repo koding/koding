@@ -526,7 +526,6 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequeststabview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationrequeststabpaneview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",

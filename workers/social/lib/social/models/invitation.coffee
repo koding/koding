@@ -431,7 +431,7 @@ module.exports = class JInvitation extends jraphical.Module
           return callback err  if err
           if delegate instanceof JAccount
             invite.addInvitedBy delegate, (err)-> callback err, invite
-          else 
+          else
             callback null, invite
 
   redeem:secure ({connection:{delegate}}, callback=->)->
@@ -446,6 +446,10 @@ module.exports = class JInvitation extends jraphical.Module
     @redeem client, (err)=>
       return callback err  if err
       JInvitationRequest = require './invitationrequest'
-      JInvitationRequest.one {email:@inviteeEmail}, (err, request)->
-        return callback err  if err
+      selector =
+        email  : @inviteeEmail
+        group  : @group
+        status :'sent'
+      JInvitationRequest.one selector, (err, request)->
+        return callback err  if err or not request
         request.update $set:status:'accepted', callback

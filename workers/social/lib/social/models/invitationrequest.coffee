@@ -113,6 +113,17 @@ module.exports = class JInvitationRequest extends Model
     success: (client, callback=->)->
       @update $set:{ status: 'declined' }, callback
 
+  deleteInvitation: permit 'send invitations',
+    success: (client, callback=->)->
+      JInvitation = require './invitation'
+
+      @remove (err)=>
+        return callback err  if err
+        selector = inviteeEmail: @email, status: 'sent', group: @group
+        JInvitation.one selector, (err, invitation)->
+          return callback err  if err or not invitation
+          invitation.remove callback
+
   fetchAccount:(callback)->
     JAccount = require './account'
     if @koding?.username
@@ -199,9 +210,6 @@ module.exports = class JInvitationRequest extends Model
         @update $set:{status:'ignored'}, (err)->
           if err then callback err
           else callback null
-
-  deleteInvitation: permit 'send invitations',
-    success:(client, rest...)-> @remove rest...
 
   sendInvitation:(client, callback=->)->
     JUser       = require './user'
