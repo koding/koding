@@ -13,15 +13,81 @@ import (
 var followFeedChannel *amqp.Channel
 
 func main() {
+
 	var err error
+
 	if followFeedChannel, err = createFollowFeedChannel("followfeed"); err != nil {
 		panic(err)
 	}
-	startMonitoring()
+
+	mainAmqpConn := amqputil.CreateConnection("userpresence")
+
+	startMonitoring(mainAmqpConn)
+	startControlling(mainAmqpConn)
+
+	select {}
 }
 
-func startMonitoring() {
-	mainAmqpConn := amqputil.CreateConnection("userpresence")
+func startControlling(mainAmqpConn *amqp.Connection) {
+
+	channel, err := mainAmqpConn.Channel()
+	if err != nil {
+		panic(err)
+	}
+
+	exchangeName := "users-presence-control"
+
+	if err := channel.ExchangeDeclare(
+		exchangeName, // exchange name
+		"fanout",     // kind
+		false,        // durable
+		true,         // auto delete
+		false,        // internal
+		false,        // no wait
+		nil,          // arguments
+	); err != nil {
+		panic(err)
+	}
+
+	if _, err := channel.QueueDeclare(
+		"",    // queue name
+		false, // durable
+		true,  // auto delete
+		true,  // exclusive
+		false, // no wait
+		nil,   // arguments
+	); err != nil {
+		panic(err)
+	}
+
+	if err := channel.QueueBind(
+		"",           // queue name
+		"",           // key
+		exchangeName, // exchange name
+		false,        // no wait
+		nil,          // arguments
+	); err != nil {
+		panic(err)
+	}
+
+	deliveries, err := channel.Consume(
+		"",    // use the anonymous queue from above
+		"",    // ctag
+		false, // no-ack
+		false, // exclusive
+		false, // no local
+		false, // no wait
+		nil,   // arguments
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	go handleControl(deliveries, make(chan error))
+
+}
+
+func startMonitoring(mainAmqpConn *amqp.Connection) {
 
 	channel, err := mainAmqpConn.Channel()
 	if err != nil {
@@ -30,7 +96,7 @@ func startMonitoring() {
 
 	resourceName := "users-presence"
 
-	channel.ExchangeDeclare(
+	if err := channel.ExchangeDeclare(
 		resourceName, // the exchange name
 		"x-presence", // use the presence exchange plugin
 		false,        // durable
@@ -38,37 +104,46 @@ func startMonitoring() {
 		false,        // internal
 		false,        // no wait
 		nil,          // arguments
-	)
+	); err != nil {
+		panic(err)
+	}
 
-	channel.QueueDeclare(
+	if _, err := channel.QueueDeclare(
 		resourceName, // the queue name
 		false,        // durable
 		true,         // autodelete
 		true,         // exclusive
 		false,        // no wait
 		nil,          // arguments
-	)
+	); err != nil {
+		panic(err)
+	}
 
-	channel.QueueBind(
+	if err := channel.QueueBind(
 		resourceName, // queue name
 		"",           // binding key (use an empty key to monitor messages)
 		resourceName, // exchange name
 		false,        // no wait
 		nil,          // arguments
-	)
+	); err != nil {
+		panic(err)
+	}
 
 	deliveries, err := channel.Consume(
 		resourceName, // queue name
 		"",           // ctag
-		false,        // auto-ack
+		false,        // no-ack
 		false,        // exlusive
 		false,        // no local
 		false,        // no wait
 		nil,          // arguments
 	)
+	if err != nil {
+		panic(err)
+	}
 
-	go handle(deliveries, make(chan error))
-	select {}
+	go handlePresence(deliveries, make(chan error))
+
 }
 
 func createFollowFeedChannel(component string) (*amqp.Channel, error) {
@@ -183,33 +258,38 @@ func changeFollowFeedExchangeBindings(username, action string) error {
 	return nil
 }
 
-func handleJoin(username string) error {
-	return updateOnlineStatus(username, "online")
-}
-
-func handleLeave(username string) error {
-	return updateOnlineStatus(username, "offline")
-}
-
-func handle(deliveries <-chan amqp.Delivery, done chan error) {
+func handlePresence(deliveries <-chan amqp.Delivery, done chan error) {
 	for d := range deliveries {
-		action, user := d.Headers["action"].(string), d.Headers["key"].(string)
-		log.Printf("%v %v", action, user)
+		action, username := d.Headers["action"].(string), d.Headers["key"].(string)
+		log.Printf("%v %v", action, username)
 		var err error
 		switch action {
 		case "bind":
-			err = handleJoin(user)
+			err = updateOnlineStatus(username, "online")
 		case "unbind":
-			err = handleLeave(user)
+			err = updateOnlineStatus(username, "offline")
 		}
 		if err != nil {
 			done <- err
 			continue
 		}
-		err = changeFollowFeedExchangeBindings(user, action)
+		err = changeFollowFeedExchangeBindings(username, action)
 		if err != nil {
 			done <- err
 		}
+	}
+	log.Printf("handle: deliveries channel closed")
+	done <- nil
+}
+
+func handleControl(deliveries <-chan amqp.Delivery, done chan error) {
+	for d := range deliveries {
+		log.Printf(
+			"got %dB delivery: [%v] %q",
+			len(d.Body),
+			d.DeliveryTag,
+			d.Body,
+		)
 	}
 	log.Printf("handle: deliveries channel closed")
 	done <- nil
