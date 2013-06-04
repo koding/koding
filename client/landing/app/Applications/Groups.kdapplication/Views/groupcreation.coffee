@@ -62,22 +62,43 @@ class GroupCreationModal extends KDModalView
             title                : "Pay & Create the Group"
             style                : "modal-clean-gray hidden"
             type                 : "button"
-            callback             : ->
+            callback             : =>
+
               # Copy account creator's billing information
-              KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+              KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
                 if err or not data
                   data = {}
+
+                # These will go into Recurly module
                 delete data.cardNumber
                 delete data.cardMonth
                 delete data.cardYear
                 delete data.cardCV
-                modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess) ->
-                  KD.remote.api.JRecurlyAccount.create newData, (err, account)->
+
+                modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
+
+                  # These will go into Recurly module
+                  newData.username    = 'group_unnamed'
+                  newData.ipAddress   = '0.0.0.0'
+                  newData.firstName   = 'Group'
+                  newData.lastName    = 'Unnamed'
+                  newData.email       = 'group@example.com'
+                  newData.pin         = 'xxx'
+                  newData.accountCode = yes
+
+                  {selector}   = @hostSelector.inputs
+                  index        = parseInt selector.getValue(), 10
+
+                  selectedPlan = plans[index]
+                  selectedPlan.subscribe newData, (err, subscription)->
                     if err
+                      # Show error messages here.
                       onError()
                     else
+                      # DONE
+                      console.log "Subscribed user account:", subscription.userCode
                       onSuccess()
-                      # FIXME: Call plan.charge({pin: 'xxxx}) here
+
         fields                   :
           label                  :
             itemClass            : KDCustomHTMLView
