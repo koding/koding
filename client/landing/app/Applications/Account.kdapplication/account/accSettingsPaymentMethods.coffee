@@ -81,8 +81,13 @@ showAccountPaymentErrors = (fields, inputs, err) ->
       for key, val of ERRORS
         if e.field.indexOf(key) > -1
           val.input.giveValidationFeedback yes
-          field = val.field.subViews[0].labelTitle
-          val.input.showValidationError "#{field} #{e.message}"
+          inputName = if val.input.inputLabel
+            val.input.inputLabel.getTitle()
+          else
+            inputEl = val.input.$()[0]
+            inputEl.getAttribute("placeholder") or inputEl.getAttribute("name") or ""
+
+          val.input.showValidationError "#{inputName} #{e.message}"
 
 class AccountPaymentMethodsListController extends KDListViewController
   constructor:(options,data)->
@@ -134,64 +139,77 @@ class AccountPaymentMethodsListController extends KDListViewController
 createAccountPaymentMethodModal = (data, callback) ->
   modal = new KDModalViewWithForms
     title                       : "Billing Information"
-    content                     : ''
-    helpContent                 :
-      """
-      """
-    overlay                     : yes
     width                       : 500
-    height                      : "auto"
     cssClass                    : "payments-modal"
+    overlay                     : yes
     tabs                        :
       navigable                 : yes
       goToNextFormOnSubmit      : no
       forms                     :
         "Billing Info"          :
+          callback              : (formData)=>
+            form      = modal.modalTabs.forms["Billing Info"]
+            button    = form.buttons.Save
+            onError   = (err)->
+              warn err
+              showAccountPaymentErrors form.fields, form.inputs, err
+              button.hideLoader()
+            onSuccess = modal.destroy.bind modal
+            callback formData, onError, onSuccess
           buttons               :
             Save                :
               title             : "Save"
               style             : "modal-clean-green"
               type              : "submit"
               loader            :
-                color           : "#444444"
+                color           : "#ffffff"
                 diameter        : 12
-              callback          : =>
-                tabs = modal.modalTabs
-                form = tabs.forms["Billing Info"]
-                button = form.buttons["Save"]
-                onError = ->
-                    button.hideLoader()
-                onSuccess = ->
-                    modal.destroy()
-                callback form.getFormData(), onError, onSuccess
           fields                :
             cardFirstName       :
               label             : "Name"
-              itemClass         : KDInputView
               name              : "cardFirstName"
               placeholder       : "First Name"
+              validate          :
+                # event           : "blur"
+                rules           :
+                  required      : yes
+                messages        :
+                  required      : "First name is required!"
               nextElementFlat   :
                 cardLastName    :
-                  itemClass     : KDInputView
                   name          : "cardLastName"
                   placeholder   : "Last Name"
+                  validate      :
+                    # event       : "blur"
+                    rules       :
+                      required  : yes
+                    messages    :
+                      required  : "Last name is required!"
             cardNumber          :
               label             : "Card Number"
-              itemClass         : KDInputView
               name              : "cardNumber"
               placeholder       : 'Card Number'
-              # validate          :
-              #   event           : "blur"
-              #   rules           : "creditCard"
+              validate          :
+                event           : "blur"
+                rules           :
+                  creditCard    : yes
               nextElementFlat   :
                 cardCV          :
-                  tooltip       :
-                    placement   : 'right'
-                    direction   : 'center'
-                    title       : 'The location of this verification number depends on the issuer of your credit card'
-                  itemClass     : KDInputView
+                  # tooltip       :
+                  #   placement   : 'right'
+                  #   direction   : 'center'
+                  #   title       : 'The location of this verification number depends on the issuer of your credit card'
                   name          : "cardCV"
                   placeholder   : "CV Number"
+                  validate      :
+                    rules       :
+                      required  : yes
+                      minLength : 3
+                      regExp    : /[0-9]/
+                    messages    :
+                      required  : "Card security code is required! (CVV)"
+                      minLength : "Card security code needs to be at least 3 digits!"
+                      regExp    : "Card security code should be a number!"
             cardMonth           :
               label             : "Expire Date"
               itemClass         : KDSelectBox
@@ -207,36 +225,60 @@ createAccountPaymentMethodModal = (data, callback) ->
                   defaultValue  : (new Date().getFullYear())
             address1            :
               label             : "Address"
-              itemClass         : KDInputView
               name              : "address1"
               placeholder       : "Street Name & Number"
+              validate          :
+                rules           :
+                  required      : yes
+                messages        :
+                  required      : "First address field is required!"
             address2            :
               label             : " "
-              itemClass         : KDInputView
               name              : "address2"
               placeholder       : "Apartment/Suite Number"
             city                :
               label             : "City & State"
-              itemClass         : KDInputView
               name              : "city"
               placeholder       : "City Name"
+              validate          :
+                rules           :
+                  required      : yes
+                messages        :
+                  required      : "City is required!"
               nextElementFlat   :
                 state           :
-                  itemClass     : KDInputView
                   name          : "state"
                   placeholder   : "State"
+                  validate      :
+                    rules       :
+                      required  : yes
+                    messages    :
+                      required  : "State is required!"
             zip                 :
               label             : "ZIP & Country"
-              itemClass         : KDInputView
               name              : "zipCode"
               placeholder       : "ZIP Code"
+              validate          :
+                rules           :
+                  required      : yes
+                messages        :
+                  required      : "Zip code is required!"
               nextElementFlat   :
                 country         :
-                  itemClass     : KDInputView
                   name          : "country"
                   placeholder   : "Country"
+                  defaultValue  : "United States of America"
+                  validate      :
+                    rules       :
+                      required  : yes
+                    messages    :
+                      required  : "First address field is required!"
 
   form = modal.modalTabs.forms["Billing Info"]
+
+  form.on "FormValidationFailed", =>
+    form.buttons.Save.hideLoader()
+
   for k, v of data
     if form.inputs[k]
       form.inputs[k].setValue v
@@ -258,11 +300,10 @@ class AccountPaymentMethodsList extends KDListView
       modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess) ->
         KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
           if err
-            onError()
+            onError err
           else
-
             controller.emit 'reload'
-            onSuccess()
+            onSuccess result
 
       form = modal.modalTabs.forms["Billing Info"]
 
