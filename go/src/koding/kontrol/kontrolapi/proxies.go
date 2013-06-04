@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
@@ -36,6 +37,56 @@ type ProxyPostMessage struct {
 	Uuid      *string
 }
 
+func (p *ProxyPostMessage) validate() error {
+	// mode can be one of the followings:
+	// internal	: to point name-key.in.koding.com
+	// direct	: to point host
+	// vm		: to point username.kd.io
+	if p.Mode == nil || *p.Mode == "" {
+		return errors.New("Missing field 'mode'. Can be one of: internal, direct, vm")
+	}
+
+	if (p.Username == nil || *p.Username == "") && *p.Mode != "direct" {
+		return errors.New("Missing field 'username' is required with {'mode': 'vm' or 'internal'}")
+	}
+
+	if (p.Name == nil || *p.Name == "") && *p.Mode == "internal" {
+		return errors.New("Missing field 'name' is required with {'mode': 'internal'}")
+	}
+
+	if (p.Key == nil || *p.Key == "") && *p.Mode == "internal" {
+		return errors.New("Missing field 'key' is required with {'mode': 'internal'}")
+	}
+
+	if (p.Host == nil || *p.Host == "") && *p.Mode == "direct" {
+		return errors.New("Missing field 'host' is required with {'mode': 'direct}'")
+	}
+
+	return nil
+}
+
+// takes an http request, unmarshals it to a ProxyPostMessage struct,
+// returns an error if the validation fails.
+func unmarshalAndValidate(req *http.Request) (ProxyPostMessage, error) {
+	msg := ProxyPostMessage{}
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return msg, err
+	}
+
+	err = json.Unmarshal(body, &msg)
+	if err != nil {
+		return msg, err
+	}
+
+	err = msg.validate()
+	if err != nil {
+		return msg, err
+	}
+
+	return msg, nil
+}
+
 func GetProxies(writer http.ResponseWriter, req *http.Request) {
 	res := proxyDB.GetProxies()
 	data, err := json.MarshalIndent(res, "", "  ")
@@ -63,31 +114,16 @@ func DeleteProxy(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateProxy(writer http.ResponseWriter, req *http.Request) {
-	var uuid string
-	var msg ProxyPostMessage
+	vars := mux.Vars(req)
+	uuid := vars["uuid"]
 
-	body, _ := ioutil.ReadAll(req.Body)
-	log.Println(string(body))
-
-	err := json.Unmarshal(body, &msg)
-	if err != nil {
-		log.Print("bad json incoming msg: ", err)
-	}
-
-	if msg.Uuid != nil {
-		if *msg.Uuid == "default" {
-			err := "reserved keyword, please choose another uuid name"
-			io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
-			return
-		}
-		uuid = *msg.Uuid
-	} else {
-		err := "aborting. no 'uuid' available"
+	if uuid == "" {
+		err := errors.New("aborting. no 'uuid' available")
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
 	}
 
-	err = proxyDB.AddProxy(uuid)
+	err := proxyDB.AddProxy(uuid)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -168,7 +204,7 @@ func GetProxyDomain(writer http.ResponseWriter, req *http.Request) {
 	domainname := vars["domain"]
 
 	domain, err := proxyDB.GetDomain(uuid, domainname)
-	if err != nil {
+	if err != nil || domain.Domainname == "" {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 
@@ -199,92 +235,26 @@ func GetProxyDomains(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateProxyDomain(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid := vars["uuid"]
-	domain := vars["domain"]
-
-	var msg ProxyPostMessage
-	var mode string
-	var name string
-	var username string
-	var key string
-	var host string
-
-	body, _ := ioutil.ReadAll(req.Body)
-	log.Println(string(body))
-
-	err := json.Unmarshal(body, &msg)
+	p, err := unmarshalAndValidate(req)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	// can be one of the followings:
-	// internal	: to point name-key.in.koding.com
-	// direct	: to point host
-	// vm		: to point username.kd.io
-	if msg.Mode != nil {
-		mode = *msg.Mode
-	} else {
-		err := "no 'mode' available. must be one of: internal, direct, vm"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	if msg.Username != nil {
-		username = *msg.Username
-	} else if mode == "vm" || mode == "internal" {
-		err := "no 'username' available"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	if msg.Name != nil {
-		name = *msg.Name
-	} else if mode == "internal" {
-		err := "no 'name' available"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-
-	}
-
-	if msg.Key != nil {
-		key = *msg.Key
-	} else if mode == "internal" {
-		err := "no 'key' available"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	// this is optional feature
-	if msg.Host != nil {
-		host = *msg.Host
-	} else if mode == "direct" {
-		err := "no 'host' available"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	// for default proxy assume that the main proxy will handle this. until
-	// we come up with design decision for multiple proxies, use this
-	if uuid == "default" {
-		uuid = "proxy.in.koding.com"
-	}
-
-	err = proxyDB.AddDomain(domain, mode, username, name, key, host, uuid)
+	err = proxyDB.AddDomain(*p.Domain, *p.Mode, *p.Username, *p.Name, *p.Key, *p.Host, *p.Uuid)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
 	var resp string
-	switch mode {
+	switch *p.Mode {
 	case "internal":
-		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", name, key)
+		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", *p.Name, *p.Key)
 	case "direct":
-		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", host)
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", *p.Host)
 	case "vm":
-		resp = fmt.Sprintf("{\"host\":\"%s.kd.io\"}\n", username)
+		resp = fmt.Sprintf("{\"host\":\"%s.kd.io\"}\n", *p.Username)
 	}
 
 	io.WriteString(writer, resp)

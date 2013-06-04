@@ -132,7 +132,7 @@ func lookupDomain(domainname string) (*UserInfo, error) {
 	}
 
 	domain, err := proxyDB.GetDomain(uuid, domainname)
-	if err != nil {
+	if err != nil || domain.Domainname == "" {
 		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 
 	}
