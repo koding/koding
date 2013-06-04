@@ -357,10 +357,11 @@ dimmedNeighbor()
     z-index                 2
 
   ul
-    min-width               208px
+    min-width               203px
     margin                  0 5px 0 5px
     padding                 3px 0 5px 0
     transition              opacity .2s ease-in
+    borderBox()
     li
       margin                0 10px 2px 5px
       padding               0
@@ -762,33 +763,26 @@ div.led-wrapper
       margin-right    0
 
 .resources-list
-
-  background-color    #e2e2e2
-  shadow              0 0 8px rgba(0,0,0,0.15)
-  border-top          1px solid rgba(255,255,255,0.5)
-  // height              196px !important
-  padding-top         6px
-  padding-bottom      6px
-  overflow            auto
+  border-bottom       1px solid rgba(255,255,255,0.4)
+  border-top          1px solid rgba(0,0,0,0.03)
 
   .vm
     height            50px
     margin-left       0px !important
     cursor            pointer
     color             #555
+    border-top        1px solid rgba(255,255,255,0.4)
+    border-bottom     1px solid rgba(0,0,0,0.03)
+    bg                color, rgba(255,255,255,0.2)
+    &:last-child
+      border-bottom   1px solid rgba(0,0,0,0.03)
 
     &.selected
-      // background      active-color
       background      linear-gradient(top, finderSelectedColor2 0%, active-color 50%)
       color           white
       text-shadow     -1px -1px 0 rgba(0,0,0,0.3)
       .chevron
         bg            position,-180px -300px
-        opacity       1
-
-    &:hover
-      .chevron
-        opacity       1
 
     &.online
       .icon
@@ -801,7 +795,7 @@ div.led-wrapper
       height          20px
       display         block
       margin          0
-      opacity         .4
+      opacity         1
       abs()
       sprite()
       bg              position,-260px -160px
@@ -820,23 +814,38 @@ div.led-wrapper
       opacity         .9
       abs()
 
+    .vm-terminal
+      width           20px
+      height          20px
+      right           25px
+      top             17px
+      border          0px
+      bg              position, -100px -300px
+      sprite()
+      abs()
+
     .chevron
       width           20px
       height          20px
       right           7px
       top             15px
-      opacity         0
+      opacity         1
       abs()
       sprite()
-      bg              position,-180px -320px
+      bg              position, -180px -320px
 
 .vm-toggle-menu
-  font-size       12px
-  padding         2px 0px 7px 10px
+  font-size          12px
+  padding            2px 0px 7px 10px
+
   .vm-toggle-item
-    right           16px
-    top             2px
+    right            16px
+    top              2px
     abs()
+
+.vm-details-menu
+  font-size       12px
+  padding         8px 4px 7px 10px
 
 button.create-vm
   position          relative
@@ -846,6 +855,11 @@ button.create-vm
     height          14px !important
     width           14px !important
     top             -1px
+
+button.open-environment
+  position          relative
+  bottom            -8px
+  left              40px
 
 /*
 **  Overriding Treeview STYLES
