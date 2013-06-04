@@ -11,7 +11,7 @@ class GroupCreationModal extends KDModalView
 
     options.title    or= 'Create a new group'
     options.height   or= 'auto'
-    options.cssClass or= "group-admin-modal compose-message-modal admin-kdmodal"
+    options.cssClass or= "group-creation-modal"
     options.width     ?= 684
     options.overlay   ?= yes
 
