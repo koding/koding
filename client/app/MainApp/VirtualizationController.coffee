@@ -43,6 +43,17 @@ class VirtualizationController extends KDController
   reinitialize:(vm, callback)->
     @_runWraper 'vm.reinitialize', vm, callback
 
+  remove:(vm, callback=noop)->
+    @stop vm, (err)=>
+      return callback err  if err
+      @askForApprove 'vm.remove', (state)->
+        return callback null  unless state
+        KD.remote.api.JVM.removeByName vm, (err)->
+          return callback err  if err
+          KD.singletons.finderController.unmountVm vm
+          KD.singletons.vmController.emit 'VMListChanged'
+          callback null
+
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     vm or= @getDefaultVmName vm
@@ -166,6 +177,15 @@ class VirtualizationController extends KDController
                      home directory. Do you want to continue?"""
         button  =
           title : "Re-initialize"
+          style : "modal-clean-red"
+
+      when 'vm.remove'
+        content = """Removing this VM will <b>destroy</b> all the data in
+                     this VM including all other users in filesystem.
+                     <b>Please be careful this process cannot be undone</b>.
+                     Do you want to continue?"""
+        button  =
+          title : "Remove VM"
           style : "modal-clean-red"
 
       else

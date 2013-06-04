@@ -16,17 +16,17 @@ class ResourcesController extends KDListViewController
     cmp = (a, b)->
       [groupA, vmA] = a.split('~')
       [groupB, vmB] = b.split('~')
-      if groupA == groupB
-        vmA > vmB
-      else
-        groupA > groupB
+      if groupA is groupB
+      then vmA    > vmB
+      else groupA > groupB
 
     @removeAllItems()
     KD.singletons.vmController.resetVMData()
 
     KD.singletons.vmController.fetchVMs (err, vms)=>
+      return  unless vms
       vms.sort cmp
-      stack = []
+      stack   = []
       vms.forEach (vmName)=>
         stack.push (cb)->
           KD.remote.cacheable (vmName.split '~').first, (err, res)->
@@ -39,7 +39,6 @@ class ResourcesController extends KDListViewController
             cb null, data
 
       async.parallel stack, (err, result)=>
-        log "result", result
         @instantiateListItems result  unless err
         @deselectAllItems()
 
@@ -117,6 +116,10 @@ class ResourcesListItem extends KDListItemView
       'Re-initialize VM' :
         callback         : ->
           KD.singletons.vmController.reinitialize vmName
+          @destroy()
+      'Delete VM'        :
+        callback         : ->
+          KD.singletons.vmController.remove vmName
           @destroy()
         separator        : yes
       'Open VM Terminal' :
