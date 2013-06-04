@@ -1,9 +1,9 @@
 module.exports = class GraphDecorator
   ResponseDecorator        = require './decorators/response'
-  SingleActivityDecorator  = require './decorators/single_activity'
-  FollowsBucketDecorator   = require './decorators/follow_bucket'
-  InstallsBucketDecorator  = require './decorators/installs_bucket'
-  NewMemberBucketDecorator = require './decorators/newmember_bucket'
+  SingleActivityDecorator  = require './decorators/singleactivity'
+  FollowsBucketDecorator   = require './decorators/followbucket'
+  InstallsBucketDecorator  = require './decorators/installsbucket'
+  NewMemberBucketDecorator = require './decorators/newmemberbucket'
 
   singleActivityDecorators =
     'JTutorial'     : SingleActivityDecorator

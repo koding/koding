@@ -1,8 +1,8 @@
 module.exports = class BucketActivityDecorator
   _ = require 'underscore'
 
-  SingleActivityDecorator = require './single_bucket_activity'
-  TargetActivityDecorator = require './target_activity'
+  SingleActivityDecorator = require './singlebucketactivity'
+  target_activityDecorator = require './targetactivity'
 
   constructor:(@data)->
     @groups =
@@ -45,7 +45,7 @@ module.exports = class BucketActivityDecorator
 
   createNewGroup:(datum)->
     id = @extractId datum
-    @groups[id] = @decorateTargetActivity datum
+    @groups[id] = @decoratetarget_activity datum
     @groups[id].snapshot.group = [@decorateGroupActivity datum[@groupByName]]
     @groups.overview ||= []
     @groups.overview.push @decorateOverview datum[@groupByName].first, id,\
@@ -60,8 +60,8 @@ module.exports = class BucketActivityDecorator
 
     return overview
 
-  decorateTargetActivity:(datum)->
-    return (new TargetActivityDecorator datum, @targetName, @groupByName, @activityName).decorate()
+  decoratetarget_activity:(datum)->
+    return (new target_activityDecorator datum, @targetName, @groupByName, @activityName).decorate()
 
   decorateGroupActivity:(groupActivity)->
     return (new SingleActivityDecorator groupActivity.first).decorate()
