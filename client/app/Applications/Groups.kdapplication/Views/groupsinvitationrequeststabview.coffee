@@ -17,7 +17,9 @@ class GroupsInvitationRequestsTabView extends KDTabView
       label    : showResolvedLabelView
       callback : (@resolvedState)=> @setResolvedStateInView()
 
+    @approvalEnabled = @getDelegate().policy.approvalEnabled
     @resolvedState = no
+
     @createTabs()
     @addHeaderButtons()
 
@@ -42,9 +44,11 @@ class GroupsInvitationRequestsTabView extends KDTabView
       @addPane new KDTabPaneView(tab), i is 0
 
   addHeaderButtons:->
+    bulkSubject = if @approvalEnabled then 'Approve' else 'Invite'
+
     @buttonContainer.addSubView @showResolvedView
     @buttonContainer.addSubView @bulkApproveButton = new KDButtonView
-      title    : 'Bulk Approve'
+      title    : "Bulk #{bulkSubject}"
       cssClass : 'clean-gray'
       callback : @getDelegate().showBulkApproveModal.bind @getDelegate()
     @buttonContainer.addSubView @inviteByEmailButton = new KDButtonView
@@ -64,13 +68,15 @@ class GroupsInvitationRequestsTabView extends KDTabView
     switch @getActivePane().name
       when 'Membership Requests'
         @bulkApproveButton.show()
+      when 'Invitation Requests'
+        @bulkApproveButton.show()
       when 'Invitations'
         @inviteByEmailButton.show()
       when 'Invitation Codes'
         @createInvitationCodeButton.show()
 
   getTabs:-> [
-    name        : 'Membership Requests'
+    name        : "#{if @approvalEnabled then 'Membership' else 'Invitation'} Requests"
     viewOptions :
       viewClass : GroupsMembershipRequestsTabPaneView
   ,

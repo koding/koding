@@ -12,7 +12,9 @@ class GroupsInvitationRequestsTabPaneView extends KDView
     @setStatusesByResolvedSwitch @getDelegate().resolvedState ? no
 
     @controller = new InvitationRequestListController
+      delegate            : this
       itemClass           : options.itemClass
+      noItemFound         : options.noItemFound
       lazyLoadThreshold   : 0.90
       startWithLazyLoader : yes
 
