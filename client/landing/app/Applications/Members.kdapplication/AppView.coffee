@@ -176,7 +176,7 @@ class MemberFollowToggleButton extends KDToggleButton
       states          : [
         title         : "Follow"
         callback      : (callback)->
-          KD.requireLogin
+          KD.requireMembership
             callback  : =>
               @getData().follow (err, response)=>
                 @hideLoader()

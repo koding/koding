@@ -13,7 +13,7 @@ class AppView extends KDView
       states          : [
         title         : "Follow"
         callback      : (cb)->
-          KD.requireLogin
+          KD.requireMembership
             callback  : => app.follow (err)-> cb? err
             onFailMsg : "Login required to follow Apps"
             tryAgain  : yes
@@ -31,7 +31,7 @@ class AppView extends KDView
       states          : [
         title         : "Like"
         callback      : (cb)->
-          KD.requireLogin
+          KD.requireMembership
             callback  : => app.like (err)-> cb? err
             onFailMsg : "Login required to like Apps"
             tryAgain  : yes

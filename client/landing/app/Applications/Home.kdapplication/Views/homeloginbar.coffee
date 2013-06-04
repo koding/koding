@@ -1,7 +1,7 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    KD.requireLogin {callback, tryAgain: yes}
+    KD.requireMembership {callback, tryAgain: yes}
 
   constructor:(options = {}, data)->
 
