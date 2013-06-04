@@ -80,7 +80,7 @@ class LikeView extends KDView
     event.preventDefault()
 
     if $(event.target).is("a.action-link")
-      KD.requireLogin
+      KD.requireMembership
         callback  : =>
           @getData().like (err)=>
             if err

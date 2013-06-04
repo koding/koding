@@ -351,7 +351,8 @@ class KodingAppsController extends KDController
 
   installApp:(app, version='latest', callback)->
 
-    KD.requireLogin
+    # add group membership control when group based apps feature is implemented!
+    KD.requireMembership
       onFailMsg : "Login required to install Apps"
       onFail    : => callback yes
       callback  : => @fetchApps (err, manifests = {})=>

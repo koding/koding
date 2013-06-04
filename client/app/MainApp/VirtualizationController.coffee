@@ -8,7 +8,7 @@ class VirtualizationController extends KDController
     @resetVMData()
 
   run:(vm, command, callback)->
-    KD.requireLogin
+    KD.requireMembership
       callback : =>
         @askForApprove command, (approved)=>
           if approved

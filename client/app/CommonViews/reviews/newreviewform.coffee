@@ -8,7 +8,7 @@ class NewReviewForm extends NewCommentForm
     super options,data
 
   commentInputReceivedEnter:(instance,event)->
-    KD.requireLogin
+    KD.requireMembership
       callback : =>
         review = @commentInput.getValue()
         @commentInput.setValue ''
