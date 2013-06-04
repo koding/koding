@@ -294,10 +294,9 @@ class ActivityAppController extends AppController
 
   fetchCachedActivity:(options = {}, callback)->
     if KD.config.useNeo4j
-      if options.to
-        options.timestamp = options.to
-
+      options.timestamp or= options.to
       options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+
       KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
         result.overview.reverse() if result?.overview
         return callback err, result
