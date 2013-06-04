@@ -171,12 +171,12 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 func (p *ProxyConfiguration) AddDomain(domainname, mode, username, servicename, key, fullurl, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
-		return fmt.Errorf("Error: '%s' while adding the domain: " + domainname + ", for proxy: " + uuid, err)
+		return fmt.Errorf("Error: '%s' while adding the domain: "+domainname+", for proxy: "+uuid, err)
 	}
-	
+
 	domain, err := p.GetDomain(uuid, domainname)
 	if err != nil {
-		return fmt.Errorf("Error: '%s' while adding the domain: " + domainname + ", for proxy: " + uuid, err)
+		return fmt.Errorf("Error: '%s' while adding the domain: "+domainname+", for proxy: "+uuid, err)
 	} else if domain.Domainname != "" {
 		return errors.New("Domain already exists: " + domainname + ", for proxy: " + uuid)
 	}
@@ -302,7 +302,7 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 func (p *ProxyConfiguration) DeleteDomain(uuid, domainname string) error {
 	err := p.Collection.Update(
 		bson.M{
-			"uuid":         uuid,
+			"uuid":               uuid,
 			"domains.domainname": domainname},
 		bson.M{"$pull": bson.M{"domains": bson.M{"domainname": domainname}}})
 	if err != nil {
@@ -460,6 +460,7 @@ func (p *ProxyConfiguration) GetDomain(uuid, domainname string) (Domain, error) 
 				return domain, nil
 			}
 		}
+		return Domain{}, nil // no domain found
 	}
 
 	fmt.Println("get domain from memcached")
