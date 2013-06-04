@@ -44,7 +44,7 @@ func init() {
 
 	go func() {
 		for ev := range watcher.Event {
-			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MODIFY | inotify.IN_MOVED_TO)) != 0 {
+			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
 				info, err := os.Lstat(ev.Name)
 				if err != nil {
 					log.Warn("Watcher error", err)
@@ -93,7 +93,7 @@ func registerFileSystemMethods(k *kite.Kite) {
 		response := make(map[string]interface{})
 
 		if params.OnChange != nil {
-			watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MODIFY|inotify.IN_MOVE)
+			watchedPath, err := vos.AddWatch(watcher, params.Path, inotify.IN_CREATE|inotify.IN_DELETE|inotify.IN_MOVE|inotify.IN_ATTRIB)
 			if err != nil {
 				return nil, err
 			}
