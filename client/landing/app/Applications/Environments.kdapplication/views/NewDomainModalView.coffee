@@ -1,7 +1,13 @@
 class NewDomainModalView extends KDModalViewWithForms
 
   constructor: (options={}, data)->
-    unless options.successCallback then warn "You must send a successCallback option."
+    sucessCallbackError = 
+    """
+      You must send a successCallback method for a successfull creation handling.
+    """
+    
+    unless options.successCallback then warn sucessCallbackError
+
     options = $.extend(options,
       title                     : "Add New Domain"
       content                   : "<div class='modalformline'>Add a new domain.</div>"
@@ -35,26 +41,49 @@ class NewDomainModalView extends KDModalViewWithForms
 
     super options, data
 
+  notify:(msg)->
+    new KDNotificationView
+      type : "top"
+      title: msg
+
   addNewDomain:(formData)->
     
     {form}          = @modalTabs.forms
-    domain          = form.inputs.domain.getValue()
-    successCallback = @getOptions().successCallback
+    domainInfo      = form.inputs.domain.getValue().split "."
+    successCallback = @getOptions().successCallback  
+  
+    domain = domainInfo.slice(0, domainInfo.length-1).join ""
+    tld = domainInfo[domainInfo.length-1]
 
-    KD.remote.api.JDomain.count {domain: domain}, (err, count) ->
+    KD.remote.api.JDomain.count {domain: domain}, (err, count) =>
       if err then warn err
+      
       if count > 0
-        new KDNotificationView
-          type  : "top"
-          title : "Someone has already added this domain."
-        return
+        @notify "Someone has already added this domain."
 
-      KD.remote.api.JDomain.createDomain
-        domain : domain
-        owner  : KD.whoami()
-        , (err, model) ->
-          if not err 
-            new KDNotificationView
-              type  : "top"
-              title : "Your domain has been successfully saved."
-            successCallback {name: model.domain, _id:model._id}
+      KD.remote.api.JDomain.isDomainAvailable domain, tld, (err, domainStatus)=>
+        if err then @notify err
+
+        if domainStatus is "unknown"
+          @notify "An unknown error occured. Please try again later."
+          form.buttons.Create.hideLoader()
+
+        if domainStatus in ["regthroughus", "regthroughothers"]
+          @notify "This domain is already registered. Please try another domain."
+          form.buttons.Create.hideLoader()
+
+          
+
+
+          """
+          KD.remote.api.JDomain.createDomain
+            domain : domain
+            owner  : KD.whoami()
+            , (err, model) =>
+              if not err 
+                new KDNotificationView
+                  type  : "top"
+                  title : "Your domain has been successfully saved."
+                successCallback {id:model.getId(), name:model.domain}
+                @destroy()
+          """

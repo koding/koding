@@ -1,20 +1,20 @@
 class DomainsListViewController extends KDListViewController
 
   constructor:(options={}, data)->
-    if options.mapperView?
-      @mapperView = options.mapperView
     options.itemClass = DomainsListItemView
     super options, data
 
     @loadItems()
 
+    @on "newDomainCreated", @bound "appendNewDomain"
+
     @getListView().on "domainsListItemViewClicked", (item)=>
       @deselectAllItems()
       @selectSingleItem item
-      @mapperView.update item
+      @emit "domainItemClicked", item
 
   loadItems:->
-    KD.remote.api.JDomain.findByAccount {'owner._id':KD.whoami()._id}, (err, domains) =>
+    KD.remote.api.JDomain.findByAccount {'owner._id':KD.whoami().getId()}, (err, domains) =>
       if err
         @instantiateListItems []
       unless err
@@ -27,5 +27,5 @@ class DomainsListViewController extends KDListViewController
     @removeAllItems()
     @loadItems()
 
-  appendItem:(data)=>
-    @addItem data
+  appendNewDomain:(domainData)=>
+    @addItem domainData
