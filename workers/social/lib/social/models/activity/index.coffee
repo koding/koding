@@ -286,13 +286,6 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-  # @fetchFacets = permit 'read activity',
-  #   success:(client, options, callback)->
-  #     {to, limit, facets, lowQuality, originId, sort, skip} = options
-  #     lowQuality  ?= yes
-  #     facets      ?= defaultFacets
-  #     to          ?= Date.now()
-
   @fetchPublicActivityFeed = permit 'read activity',
     success:(client, options, callback)->
       {delegate} = client.connection
