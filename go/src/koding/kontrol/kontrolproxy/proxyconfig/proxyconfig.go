@@ -171,9 +171,15 @@ func (p *ProxyConfiguration) AddUser(uuid, username string) error {
 func (p *ProxyConfiguration) AddDomain(domainname, mode, username, servicename, key, fullurl, uuid string) error {
 	proxy, err := p.GetProxy(uuid)
 	if err != nil {
-		return fmt.Errorf("adding domain is not possible '%s'", err)
+		return fmt.Errorf("Error: '%s' while adding the domain: "+domainname+", for proxy: "+uuid, err)
 	}
 
+	domain, err := p.GetDomain(uuid, domainname)
+	if err != nil {
+		return fmt.Errorf("Error: '%s' while adding the domain: "+domainname+", for proxy: "+uuid, err)
+	} else if domain.Domainname != "" {
+		return errors.New("Domain already exists: " + domainname + ", for proxy: " + uuid)
+	}
 	proxy.Domains = append(proxy.Domains, *NewDomain(domainname, mode, username, servicename, key, fullurl))
 
 	err = p.UpdateProxy(proxy)
@@ -296,7 +302,7 @@ func (p *ProxyConfiguration) AddKey(username, name, key, host, hostdata, uuid, r
 func (p *ProxyConfiguration) DeleteDomain(uuid, domainname string) error {
 	err := p.Collection.Update(
 		bson.M{
-			"uuid":         uuid,
+			"uuid":               uuid,
 			"domains.domainname": domainname},
 		bson.M{"$pull": bson.M{"domains": bson.M{"domainname": domainname}}})
 	if err != nil {
@@ -436,7 +442,7 @@ func (p *ProxyConfiguration) GetDomain(uuid, domainname string) (Domain, error) 
 		}
 
 		if len(result.Domains) == 0 {
-			return Domain{}, errors.New("domain is not created yet")
+			return Domain{}, nil
 		}
 
 		for _, domain := range result.Domains {
@@ -454,6 +460,7 @@ func (p *ProxyConfiguration) GetDomain(uuid, domainname string) (Domain, error) 
 				return domain, nil
 			}
 		}
+		return Domain{}, nil // no domain found
 	}
 
 	fmt.Println("get domain from memcached")

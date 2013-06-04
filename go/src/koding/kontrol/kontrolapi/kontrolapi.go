@@ -58,7 +58,7 @@ func main() {
 
 	// Proxy handlers
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
-	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
+	rout.HandleFunc("/proxies/{uuid}", CreateProxy).Methods("POST")
 	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
 
 	// Proxy service handlers

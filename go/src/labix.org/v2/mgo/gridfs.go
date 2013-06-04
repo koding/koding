@@ -157,8 +157,8 @@ func (gfs *GridFS) Create(name string) (file *GridFile, err error) {
 	return
 }
 
-// OpenId returns a file with the provided id in case it exists or an error
-// instead.  If the file isn't found, err will be set to mgo.ErrNotFound.
+// OpenId returns the file with the provided id, for reading.
+// If the file isn't found, err will be set to mgo.ErrNotFound.
 //
 // It's important to Close files whether they are being written to
 // or read from, and to check the err result to ensure the operation
@@ -205,8 +205,9 @@ func (gfs *GridFS) OpenId(id interface{}) (file *GridFile, err error) {
 	return
 }
 
-// Open returns the most recent uploaded file with the provided name, or an
-// error instead.  If the file isn't found, err will be set to mgo.ErrNotFound.
+// Open returns the most recently uploaded file with the provided
+// name, for reading. If the file isn't found, err will be set
+// to mgo.ErrNotFound.
 //
 // It's important to Close files whether they are being written to
 // or read from, and to check the err result to ensure the operation
@@ -248,17 +249,17 @@ func (gfs *GridFS) Open(name string) (file *GridFile, err error) {
 	return
 }
 
-// OpenNext opens the next file from iter, sets *file to it, and returns
-// true on the success case. If no more documents are available on iter or
-// an error occurred, *file is set to nil and the result is false. Errors
-// will be available on iter.Err().
+// OpenNext opens the next file from iter for reading, sets *file to it,
+// and returns true on the success case. If no more documents are available
+// on iter or an error occurred, *file is set to nil and the result is false.
+// Errors will be available via iter.Err().
 //
 // The iter parameter must be an iterator on the GridFS files collection.
 // Using the GridFS.Find method is an easy way to obtain such an iterator,
 // but any iterator on the collection will work.
 //
-// If the provided *file is non-nil, OpenNext will close it before
-// iterating to the next element. This means that in a loop one only
+// If the provided *file is non-nil, OpenNext will close it before attempting
+// to iterate to the next element. This means that in a loop one only
 // has to worry about closing files when breaking out of the loop early
 // (break, return, or panic).
 //
@@ -271,8 +272,8 @@ func (gfs *GridFS) Open(name string) (file *GridFile, err error) {
 //     for gfs.OpenNext(iter, &f) {
 //         fmt.Printf("Filename: %s\n", f.Name())
 //     }
-//     if iter.Err() != nil {
-//         panic(iter.Err())
+//     if iter.Close() != nil {
+//         panic(iter.Close())
 //     }
 //
 func (gfs *GridFS) OpenNext(iter *Iter, file **GridFile) bool {
@@ -335,7 +336,7 @@ func (gfs *GridFS) Remove(name string) (err error) {
 		}
 	}
 	if err == nil {
-		err = iter.Err()
+		err = iter.Close()
 	}
 	return err
 }

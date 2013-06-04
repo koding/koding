@@ -182,6 +182,16 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 
 		vm, _ := channel.KiteData.(*virt.VM)
+		if vm != nil && !vm.IsTemporary() {
+			if err := db.VMs.FindId(vm.Id).One(&vm); err != nil {
+				return nil, &VMNotFoundError{Name: channel.CorrelationName}
+			}
+
+			permissions := vm.GetPermissions(&user)
+			if vm.SnapshotOf == "" && permissions == nil {
+				return nil, &kite.PermissionError{}
+			}
+		}
 		if vm == nil {
 			if bson.IsObjectIdHex(channel.CorrelationName) {
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)

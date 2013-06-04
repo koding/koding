@@ -1,4 +1,4 @@
-BucketActivityDecorator = require './bucket_activity'
+BucketActivityDecorator = require './bucketactivity'
 
 module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
   _ = require 'underscore'

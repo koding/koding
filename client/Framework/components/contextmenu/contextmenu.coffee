@@ -11,6 +11,9 @@ class JContextMenu extends KDView
 
     super options, data
 
+    @topMargin  = 0
+    @leftMargin = 0
+
     o = @getOptions()
 
     @getSingleton("windowController").addLayer @
@@ -49,6 +52,11 @@ class JContextMenu extends KDView
     o.placement or= "top"
     o.margin     ?= 0
 
+    if o.placement in ['top', 'bottom']
+      o.margin += @leftMargin
+    else
+      o.margin += @topMargin
+
     @arrow = new KDCustomHTMLView
       tagName  : "span"
       cssClass : "arrow #{o.placement}"
@@ -74,7 +82,7 @@ class JContextMenu extends KDView
 
     @addSubView @arrow
 
-  positionContextMenu:()->
+  positionContextMenu:->
     options     = @getOptions()
     event       = options.event or {}
     mainView    = @getSingleton 'mainView'
@@ -88,11 +96,17 @@ class JContextMenu extends KDView
     top         = (options.y or event.pageY or 0) + options.offset.top
     left        = (options.x or event.pageX or 0) + options.offset.left
 
+    expectedTop  = top
+    expectedLeft = left
+
     if top + menuHeight > mainHeight
       top  = mainHeight - menuHeight + options.offset.top
 
     if left + menuWidth > mainWidth
       left  = mainWidth - menuWidth + options.offset.left
+
+    @topMargin  = expectedTop  - top
+    @leftMargin = expectedLeft - left
 
     @getDomElement().css
       width     : "#{options.menuWidth}px"

@@ -33,9 +33,11 @@ import (
 	. "launchpad.net/gocheck"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"net"
 	"os/exec"
+	"strconv"
+	"syscall"
 
-	"strings"
 	"testing"
 	"time"
 )
@@ -61,6 +63,7 @@ type S struct {
 	session *mgo.Session
 	stopped bool
 	build mgo.BuildInfo
+	frozen []string
 }
 
 func (s *S) versionAtLeast(v ...int) bool {
@@ -102,25 +105,63 @@ func (s *S) TearDownTest(c *C) {
 	if s.stopped {
 		s.StartAll()
 	}
-	for i := 0; ; i++ {
+	for _, host := range s.frozen {
+		if host != "" {
+			s.Thaw(host)
+		}
+	}
+	for i := 0; i < 20; i++ {
 		stats := mgo.GetStats()
 		if stats.SocketsInUse == 0 && stats.SocketsAlive == 0 {
-			break
-		}
-		if i == 20 {
-			c.Fatal("Test left sockets in a dirty state")
+			return
 		}
 		c.Logf("Waiting for sockets to die: %d in use, %d alive", stats.SocketsInUse, stats.SocketsAlive)
-		time.Sleep(5e8)
+		time.Sleep(500 * time.Millisecond)
 	}
+	c.Fatal("Test left sockets in a dirty state")
 }
 
 func (s *S) Stop(host string) {
+	// Give a moment for slaves to sync and avoid getting rollback issues.
+	time.Sleep(2 * time.Second)
 	err := run("cd _testdb && supervisorctl stop " + supvName(host))
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	s.stopped = true
+}
+
+func (s *S) pid(host string) int {
+	output, err := exec.Command("lsof", "-iTCP:"+hostPort(host), "-sTCP:LISTEN", "-Fp").CombinedOutput()
+	if err != nil {
+		panic(err)
+	}
+	pidstr := string(output[1:len(output)-1])
+	pid, err := strconv.Atoi(pidstr)
+	if err != nil {
+		panic("cannot convert pid to int: " + pidstr)
+	}
+	return pid
+}
+
+func (s *S) Freeze(host string) {
+	err := syscall.Kill(s.pid(host), syscall.SIGSTOP)
+	if err != nil {
+		panic(err)
+	}
+	s.frozen = append(s.frozen, host)
+}
+
+func (s *S) Thaw(host string) {
+	err := syscall.Kill(s.pid(host), syscall.SIGCONT)
+	if err != nil {
+		panic(err)
+	}
+	for i, frozen := range s.frozen {
+		if frozen == host {
+			s.frozen[i] = ""
+		}
+	}
 }
 
 func (s *S) StartAll() {
@@ -128,7 +169,7 @@ func (s *S) StartAll() {
 	run("cd _testdb && supervisorctl start all")
 	err := run("cd testdb && mongo --nodb wait.js")
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
 	s.stopped = false
 }
@@ -142,29 +183,44 @@ func run(command string) error {
 	return nil
 }
 
+var supvNames = map[string]string{
+	"40001": "db1",
+	"40002": "db2",
+	"40011": "rs1a",
+	"40012": "rs1b",
+	"40013": "rs1c",
+	"40021": "rs2a",
+	"40022": "rs2b",
+	"40023": "rs2c",
+	"40031": "rs3a",
+	"40032": "rs3b",
+	"40033": "rs3c",
+	"40041": "rs4a",
+	"40101": "cfg1",
+	"40102": "cfg2",
+	"40103": "cfg3",
+	"40201": "s1",
+	"40202": "s2",
+	"40203": "s3",
+}
+
 // supvName returns the supervisord name for the given host address.
 func supvName(host string) string {
-	switch {
-	case strings.HasSuffix(host, ":40001"):
-		return "db1"
-	case strings.HasSuffix(host, ":40011"):
-		return "rs1a"
-	case strings.HasSuffix(host, ":40012"):
-		return "rs1b"
-	case strings.HasSuffix(host, ":40013"):
-		return "rs1c"
-	case strings.HasSuffix(host, ":40021"):
-		return "rs2a"
-	case strings.HasSuffix(host, ":40022"):
-		return "rs2b"
-	case strings.HasSuffix(host, ":40023"):
-		return "rs2c"
-	case strings.HasSuffix(host, ":40101"):
-		return "cfg1"
-	case strings.HasSuffix(host, ":40201"):
-		return "s1"
-	case strings.HasSuffix(host, ":40202"):
-		return "s2"
+	host, port, err := net.SplitHostPort(host)
+	if err != nil {
+		panic(err)
 	}
-	panic("Unknown host: " + host)
+	name, ok := supvNames[port]
+	if !ok {
+		panic("Unknown host: " + host)
+	}
+	return name
+}
+
+func hostPort(host string) string {
+	_, port, err := net.SplitHostPort(host)
+	if err != nil {
+		panic(err)
+	}
+	return port
 }
