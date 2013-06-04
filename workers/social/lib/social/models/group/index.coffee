@@ -167,6 +167,9 @@ module.exports = class JGroup extends Module
       vm            :
         targetType  : 'JVM'
         as          : 'owner'
+      paymentPlan   : 
+        targetType  : 'JRecurlyPlan'
+        as          : 'owner'
 
   constructor:->
     super
@@ -332,6 +335,13 @@ module.exports = class JGroup extends Module
 
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy groupData.requestType, -> queue.next()
+
+      if groupData.paymentPlan
+        queue.push -> group.addPaymentPlan groupData.paymentPlan, (err)->
+            if err then callback err
+            else
+              console.log 'payment plan is added'
+              queue.next()
 
       if groupData['group-vm'] is 'on'
         limits =
@@ -1247,7 +1257,7 @@ module.exports = class JGroup extends Module
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
+      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
       bundle.fetchLimits (err, limits) ->
         return callback err  if err?
         queue = limits.map (limit) -> ->
