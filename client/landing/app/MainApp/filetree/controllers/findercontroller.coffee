@@ -81,9 +81,9 @@ class NFinderController extends KDViewController
       groupSlug  = KD.singletons.groupsController.getGroupSlug()
       groupSlug ?= 'koding'
       @appStorage.fetchValue "mountedVM", (vms)->
-        vms or= {}
+        vms            or= {}
         vms[groupSlug] or= []
-        if vms[groupSlug]
+        if vms[groupSlug].length > 0
           mountVms vms[groupSlug]
         else
           KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
