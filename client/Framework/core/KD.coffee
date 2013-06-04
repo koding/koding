@@ -105,34 +105,61 @@ unless window.event?
             return yes
     no
 
-  requireLogin:(options={})->
+  notifyError_:(message)->
+    console.log message
+    new KDNotificationView
+      type     : 'mini'
+      cssClass : 'error'
+      title    : message
+      duration : 3500
 
-    {callback, onFailMsg, onFail, silence, tryAgain} = options
+  requireMembership:(options={})->
 
+    {callback, onFailMsg, onFail, silence, tryAgain, groupName} = options
     unless KD.isLoggedIn()
-
+      # if there is fail message, display it
       if onFailMsg
-        new KDNotificationView
-          type     : 'mini'
-          cssClass : 'error'
-          title    : onFailMsg
-          duration : 3500
+        @notifyError_ onFailMsg
 
+      # if there is fail method, call it
       onFail?()
 
+      # if login is a silent redirection
       unless silence
         @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
 
+      # if there is callback and we want to try again
       if callback? and tryAgain
         unless KD.lastFuncCall
           {mainController} = KD.singletons
-          mainController.once "accountChanged.to.loggedIn", ->
-            KD.lastFuncCall?()
-            KD.lastFuncCall = null
+          mainController.once "accountChanged.to.loggedIn", =>
+            if groupName and KD.isLoggedIn()
+              @joinGroup_ groupName, (res)=>
+                unless res then return @notifyError_ "Joining to #{groupName} group failed"
+                KD.lastFuncCall?()
+                KD.lastFuncCall = null
         KD.lastFuncCall = callback
-
     else
-      callback?()
+      if groupName
+        @joinGroup_ groupName, (res)=>
+          if res then callback?()
+          else @notifyError_ "Joining to #{groupName} group failed 2"
+      else callback?()
+
+  joinGroup_:(groupName, callback)->
+    unless groupName then return callback true
+    user = @whoami()
+    user.fetchGroups (err, groups)=>
+      if err or !groups then return callback false
+      @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
+        if err then return @notifyError_ err.message
+        for group in groups
+          if groupName is group.group.slug
+            return callback true
+        currentGroup.join (err)=>
+          if err then return callback false
+          @notifyError_ "Joined to #{groupName} group!"
+          return callback true
 
   socketConnected:->
     @backendIsConnected = yes
