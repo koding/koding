@@ -107,22 +107,38 @@ Group Creation Modal Styles
     border-bottom               none
     padding-bottom              0
   .formline.desc
-    p
+    section
       line-height               32px
       font-size                 20px
       padding                   0 20px
       font-weight               300
       overflow                  hidden
-      > span
-        font-size               60px
-        line-height             90px
-        font-weight             400
-        font-family             UbuntuMono
-        padding-right           20px
-        text-shadow             0 -1px 0 rgba(0,0,0,0.5)
-        text-rendering          geometricPrecision
-        color                   #888
+      > p
+        text-align              center
+        margin-right            30px
+        rel()
         fl()
+        > span
+          font-size               60px
+          line-height             90px
+          font-weight             400
+          font-family             UbuntuMono
+          text-shadow             0 -1px 0 rgba(0,0,0,0.5)
+          text-rendering          geometricPrecision
+          color                   #888
+        > i
+        > cite
+          abs()
+          width                   100%
+          top                     0
+          left                    0
+          text-transform          uppercase
+          font-size               10px
+          font-style              normal
+          font-weight             600
+          color                   #aaa
+        > cite
+          top                     68px
   .radiogroup.host-type
     padding                     10px 20px
     margin                      0
