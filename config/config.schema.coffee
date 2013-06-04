@@ -108,10 +108,6 @@ config =
       watch           : 1
       queueName       : 1
       run             : 1
-    feeder        :
-      queueName   : 1
-      exchangePrefix: 1
-      numberOfWorkers: 1
     presence        :
       exchange      : 1
     client          :
@@ -191,10 +187,10 @@ config =
         vhost       : 1
     recurly         :
       apiKey        : 1
-    followfeed      :
+    followFeed      :
       host          : 1
       port          : 1
-      login         : 1
+      componentUser : 1
       password      : 1
       vhost         : 1
 

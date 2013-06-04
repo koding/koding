@@ -82,10 +82,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -169,3 +165,9 @@ module.exports =
       vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a'
+  followFeed    :
+    host        : 'rabbitmq-test1.in.koding.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'

@@ -72,10 +72,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 1
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -170,4 +166,10 @@ module.exports =
   #     return b
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a'
+  followFeed    :
+    host        : 'localhost'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'
 
