@@ -39,6 +39,7 @@ class ResourcesController extends KDListViewController
             cb null, data
 
       async.parallel stack, (err, result)=>
+        log "result", result
         @instantiateListItems result  unless err
         @deselectAllItems()
 
