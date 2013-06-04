@@ -188,7 +188,7 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      unless slug is 'koding'
+      unless slug is 'koding' or KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
       else
         @isExempt (exempt)=>
@@ -292,23 +292,22 @@ class ActivityAppController extends AppController
         @isLoading = no
         log "fetchSomeActivities timeout reached"
 
-  # Enables switching between cache/neo4j.
-  getCacheUrl:->
-
-    defaultUrlPrefix = "cache"
-    if KD.config.useNeo4j then defaultUrlPrefix = "neo4j"
-
-    return defaultUrlPrefix
-
   fetchCachedActivity:(options = {}, callback)->
+    if KD.config.useNeo4j
+      options.timestamp or= options.to
+      options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
 
-    $.ajax
-      url     : "/-/#{@getCacheUrl()}/#{options.slug or 'latest'}"
-      cache   : no
-      error   : (err)->   callback? err
-      success : (cache)->
-        cache.overview.reverse()  if cache?.overview
-        callback null, cache
+      KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
+        result.overview.reverse() if result?.overview
+        return callback err, result
+    else
+      $.ajax
+        url     : "/-/cache/#{options.slug or 'latest'}"
+        cache   : no
+        error   : (err)->   callback? err
+        success : (cache)->
+          cache.overview.reverse()  if cache?.overview
+          callback null, cache
 
   continueLoadingTeasers:->
     # fix me
