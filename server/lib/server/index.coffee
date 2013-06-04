@@ -217,7 +217,7 @@ app.post "/-/kd/:command", express.bodyParser(), (req, res)->
         key     : key
       , (err, kodingKey)=>
         if err or not kodingKey
-          res.send 418 # I'm a teapot :P
+          res.send 401
         else
           res.status 200
           res.send "OK"
