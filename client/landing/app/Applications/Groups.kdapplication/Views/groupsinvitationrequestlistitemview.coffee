@@ -10,7 +10,7 @@ class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
       icon        : yes
       iconClass   : 'approve'
       callback    : =>
-        @getDelegate().emit 'RequestIsApproved', @getData(), (err)=>
+        @getData().approve (err)=>
           @updateButtons err, 'approved'
 
     @declineButton = new KDButtonView
@@ -18,8 +18,8 @@ class GroupsInvitationRequestListItemView extends GroupsInvitationListItemView
       title       : 'Decline'
       icon        : yes
       iconClass   : 'decline'
-      callback    : => 
-        @getDelegate().emit 'RequestIsDeclined', @getData(), (err)=>
+      callback    : =>
+        @getData().declineInvitation (err)=>
           @updateButtons err, 'declined'
 
     @statusText    = new KDCustomHTMLView

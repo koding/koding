@@ -7,8 +7,8 @@ class InvitationRequestListController extends KDListViewController
       @utils.curryCssClass 'invitation-request-list', options.viewOptions.cssClass
 
     options.noItemFoundWidget   ?= new KDCustomHTMLView
-        cssClass : 'lazy-loader'
-        partial  : options.noItemFound
+      cssClass : 'lazy-loader'
+      partial  : options.noItemFound
 
     super options, data
 

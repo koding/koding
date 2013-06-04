@@ -4,11 +4,12 @@ class GroupsInvitationRequestsView extends KDView
     options.cssClass = 'member-related'
     super options, data
 
-    @addSubView tabHandleContainer = new KDCustomHTMLView
-    @addSubView @tabView = new GroupsInvitationRequestsTabView {
-      delegate           : this
-      tabHandleContainer
-    }, data
+    @getData().fetchMembershipPolicy (err, @policy)=>
+      @addSubView tabHandleContainer = new KDCustomHTMLView
+      @addSubView @tabView = new GroupsInvitationRequestsTabView {
+        delegate           : this
+        tabHandleContainer
+      }, data
 
   showModalForm:(options)->
     modal = new KDModalViewWithForms
@@ -44,7 +45,9 @@ class GroupsInvitationRequestsView extends KDView
     @createInvitationCode = @showModalForm
       title             : 'Create an Invitation Code'
       cssClass          : ''
-      callback          : @emit.bind this, 'CreateInvitationCode'
+      callback          : (formData)=>
+        KD.remote.api.JInvitation.createMultiuse formData,
+          @modalCallback.bind this, @inviteByEmail
       submitButtonLabel : 'Create'
       fields            :
         invitationCode  :
@@ -62,7 +65,8 @@ class GroupsInvitationRequestsView extends KDView
     @inviteByEmail = @showModalForm
       title            : 'Invite by Email'
       cssClass         : 'invite-by-email'
-      callback         : @emit.bind this, 'InviteByEmail'
+      callback         : ({emails})=>
+        @getData().inviteByEmails emails, @modalCallback.bind this, @inviteByEmail
       fields           :
         emails         :
           label        : 'Emails'
@@ -81,10 +85,13 @@ class GroupsInvitationRequestsView extends KDView
     @inviteByEmail.modalTabs.forms.invite.fields.report.hide()
 
   showBulkApproveModal:->
-    @batchApprove = @showModalForm
-      title            : 'Bulk Approve Membership Requests'
-      callback         : @emit.bind this, 'BulkApproveRequests'
-      content          : "<div class='modalformline'>Enter how many of the pending membership requests you want to approve:</div>"
+    subject = if @policy.approvalEnabled then 'Membership' else 'Invitation'
+    @bulkApprove = @showModalForm
+      title            : "Bulk Approve #{subject} Requests"
+      callback         : ({count})=>
+        @getData().sendSomeInvitations count,
+          @modalCallback.bind this, @bulkApprove
+      content          : "<div class='modalformline'>Enter how many of the pending #{subject.toLowerCase()} requests you want to approve:</div>"
       fields           :
         count          :
           label        : 'No. of requests'
@@ -97,7 +104,32 @@ class GroupsInvitationRequestsView extends KDView
             messages   :
               regExp   : 'numbers only please'
 
+  modalCallback:(modal, err)->
+    form = modal.modalTabs.forms.invite
+    form.buttons.Send.hideLoader()
+    @tabView.getActivePane().subViews.first.refresh()
+    if err
+      unless Array.isArray err or form.fields.report
+        return @showErrorMessage err
+      else
+        form.fields.report.show()
+        scrollView = form.fields.report.subViews.first.subViews.first
+        err.forEach (errLine)->
+          errLine = if errLine?.message then errLine.message else errLine
+          scrollView.setPartial "#{errLine}<br/>"
+        return scrollView.scrollTo top:scrollView.getScrollHeight()
+
+    new KDNotificationView title:'Invitation sent!'
+    modal.destroy()
+
+  showErrorMessage:(err)->
+    warn err
+    new KDNotificationView
+      title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+      duration : 2000
+
 
 class GroupsInvitationCodesTabPaneView extends KDView
 
   setStatusesByResolvedSwitch:(state)->
+  refresh:->
