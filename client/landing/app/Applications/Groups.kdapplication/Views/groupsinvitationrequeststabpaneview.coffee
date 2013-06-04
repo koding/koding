@@ -77,7 +77,6 @@ class GroupsInvitationRequestsTabPaneView extends KDView
 class GroupsMembershipRequestsTabPaneView extends GroupsInvitationRequestsTabPaneView
 
   constructor:(options={}, data)->
-    options.itemClass       or= GroupsInvitationRequestListItemView
     options.noItemFound     or= 'No requests found.'
     options.noMoreItemFound or= 'No more requests found.'
 
