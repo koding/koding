@@ -146,19 +146,32 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         callback yes, {}
       else
 
-        JRecurlyAccount.create client, (err, account)=>
-          return callback err  if err
-
-          if data.accountCode
+        if data.accountCode
+          JRecurlyAccount.create client, (err, account)=>
+            return callback err  if err
             userCode         = "" 
             data.accountCode = account.recurlyId
             data.plan        = @code
-          else
-            userCode      = account.recurlyId
-            data          =
-              plan        : @code
-              quantity    : data.quantity
-              accountCode : userCode
+
+            payment.addUserSubscription userCode, data, (err, result)->
+              return callback err  if err
+              sub = new JRecurlySubscription
+                planCode : result.code
+                userCode : data.accountCode
+                uuid     : result.uuid
+                quantity : result.quantity
+                status   : result.status
+                datetime : result.datetime
+                expires  : result.expires
+                renew    : result.renew
+              sub.save ->
+                callback no, account
+        else
+          userCode      = "user_#{delegate._id}"
+          data          =
+            plan        : @code
+            quantity    : data.quantity
+            accountCode : userCode
 
           payment.addUserSubscription userCode, data, (err, result)->
             return callback err  if err
