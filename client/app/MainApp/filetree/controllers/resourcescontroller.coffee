@@ -11,7 +11,6 @@ class ResourcesController extends KDListViewController
 
     @getView().on 'DeselectAllItems', @bound 'deselectAllItems'
     KD.singletons.vmController.on 'VMListChanged', @bound 'reset'
-    @reset()
 
   reset:->
     cmp = (a, b)->
@@ -22,23 +21,25 @@ class ResourcesController extends KDListViewController
       else
         groupA > groupB
 
+    @removeAllItems()
     KD.singletons.vmController.resetVMData()
+
     KD.singletons.vmController.fetchVMs (err, vms)=>
-      @removeAllItems()
       vms.sort cmp
       stack = []
       vms.forEach (vmName)=>
         stack.push (cb)->
-          KD.remote.api.JGroup.one
-            slug: vmName.split('~')[0]
-          , (err, group)->
-            return cb err  if err
-            data =
+          KD.remote.cacheable (vmName.split '~').first, (err, res)->
+            return cb err  if err or res.length is 0
+            group = res.first
+            data  =
               vmName     : vmName
-              groupSlug  : group.slug
-              groupTitle : group.title
+              groupSlug  : group?.slug  or 'koding'
+              groupTitle : group?.title or 'Koding'
             cb null, data
+
       async.parallel stack, (err, result)=>
+        log "result", result
         @instantiateListItems result  unless err
         @deselectAllItems()
 
@@ -124,7 +125,7 @@ class ResourcesListItem extends KDListItemView
           @destroy()
         separator        : yes
       customView3        : new NVMDetailsView {}, {vmName}
-      
+
   checkVMState:(err, vm, info)->
     return unless vm is @getData()
 
