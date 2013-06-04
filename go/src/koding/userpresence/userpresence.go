@@ -92,8 +92,7 @@ func updateOnlineStatus(username, status string) error {
 	userCollection := mongo.GetCollection("jUsers")
 	accountCollection := mongo.GetCollection("jAccounts")
 
-	user := make(map[string]interface{})
-	account := make(map[string]interface{})
+	user, account := make(map[string]interface{}), make(map[string]interface{})
 
 	if err := userCollection.Find(bson.M{"username": username}).One(&user); err != nil {
 		return err
