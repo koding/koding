@@ -72,3 +72,4 @@ class NewCommentForm extends KDView
         @getDelegate().emit 'CommentSubmitted', reply
       onFailMsg : "Login required to post a comment!"
       tryAgain  : yes
+      groupName : @getDelegate().getData().group
