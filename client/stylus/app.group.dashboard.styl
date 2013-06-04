@@ -128,49 +128,39 @@ Dashboard Member List styles
 */
 }
 
-.kdtabpaneview.members
+.kdtabpaneview.members .listview-wrapper
 
-  .listview-wrapper
+  .kdlistview
+    overflow            visible
+  .kdlistitemview-member-item
+    border-bottom       1px solid #f5f5f5
+    &:nth-child(1n)
+      border-right      1px solid #f5f5f5
 
-    .lazy-loader
-      font-weight         600
-      background          rgba(0, 0, 0, 0.01)
-      border-bottom       1px solid rgba(0, 0, 0, 0.05)
-      font-size           12px
-      color               #5F5F5F
-      .kdview.kdloader
-        display           inline-block
-    .kdlistview
-      overflow            visible
-    .kdlistitemview-member-item
-      border-bottom       1px solid #f5f5f5
-      &:nth-child(1n)
-        border-right      1px solid #f5f5f5
+    .kdlistitemview-member-item-inner
+      margin            3px 3px 0 0
 
-      .kdlistitemview-member-item-inner
-        margin            3px 3px 0 0
+    section
+      .profile
+        borderBox()
+        margin-left     60px
+        padding         2px
+        display         block
+      .role
+        borderBox()
+        margin-left     60px
+        padding         2px
+        display         block
+      .edit-link
+      .save-link
+      .cancel-link
+        fr()
+      .edit-link
+        hidden()
 
-      section
-        .profile
-          borderBox()
-          margin-left     60px
-          padding         2px
-          display         block
-        .role
-          borderBox()
-          margin-left     60px
-          padding         2px
-          display         block
-        .edit-link
-        .save-link
-        .cancel-link
-          fr()
-        .edit-link
-          hidden()
-
-      &:hover
-        section .edit-link
-          visible()
+    &:hover
+      section .edit-link
+        visible()
 
 @css {
 /*
@@ -180,9 +170,15 @@ Dashboard member listing related common styles
 
 .member-related
   overflow                    visible
-  .kdview.kdloader
-    display                   block
-    margin                    10px auto
+
+  .listview-wrapper .lazy-loader
+    font-weight               600
+    background                rgba(0, 0, 0, 0.01)
+    border-bottom             1px solid rgba(0, 0, 0, 0.05)
+    font-size                 12px
+    color                     #5F5F5F
+    .kdview.kdloader
+      display                 inline-block
 
   .kdview.kdlistitemview
     line-height               24px

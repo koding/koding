@@ -11,6 +11,10 @@ class GroupsInvitationRequestsView extends KDView
         tabHandleContainer
       }, data
 
+    @on 'SearchInputChanged', (value)=>
+      console.log @tabView.getActivePane().mainView
+      @tabView.getActivePane().mainView.emit 'SearchInputChanged', value
+
   showModalForm:(options)->
     modal = new KDModalViewWithForms
       cssClass               : options.cssClass

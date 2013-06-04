@@ -22,41 +22,29 @@ class GroupsInvitationRequestsTabPaneView extends KDView
     @addSubView @listView
 
   addListeners:->
-    @on 'teasersLoaded', (count)=>
-      @controller.hideNoItemWidget()  if count > 0
+    @on 'teasersLoaded', =>
       @fetchAndPopulate()  unless @controller.scrollView.hasScrollBars()
 
     @controller.on 'LazyLoadThresholdReached', =>
       return @controller.hideLazyLoader()  if @controller.noItemLeft
       @fetchAndPopulate()
 
-  fetchRequests:(callback)->
-    status   = @options.statuses
-    status   = $in: status                 if Array.isArray status
-    selector = timestamp: $lt: @timestamp  if @timestamp
-
-    options  =
-      targetOptions :
-        selector    : { status }
-        limit       : @requestLimit
-        sort        : { requestedAt: -1 }
-      options       :
-        sort        : { timestamp: -1 }
-
-    @getData().fetchInvitationRequests selector, options, callback
+    @on 'SearchInputChanged', (@searchValue)=> @refresh()
 
   fetchAndPopulate:->
     @controller.showLazyLoader no
 
-    @fetchRequests (err, requests)=>
-      @controller.hideLazyLoader()
-      if err or requests.length is 0
-        warn err  if err
-        return @controller.emit 'noItemsFound'
+    @getData().fetchOrSearchInvitationRequests @options.statuses, @timestamp,\
+      @requestLimit, @searchValue, (err, requests)=>
+        @controller.hideLazyLoader()
+        if err or requests.length is 0
+          warn err  if err
+          return @controller.emit 'noItemsFound'
 
-      @timestamp = requests.last.timestamp_
-      @controller.instantiateListItems requests
-      @emit 'teasersLoaded', requests.length  if requests.length is @requestLimit
+        @controller.hideNoItemWidget()  if requests.length > 0
+        @timestamp = requests.last.timestamp_
+        @controller.instantiateListItems requests
+        @emit 'teasersLoaded'  if requests.length is @requestLimit
 
   viewAppended:->
     super()

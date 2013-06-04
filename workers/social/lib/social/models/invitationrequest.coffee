@@ -36,6 +36,7 @@ module.exports = class JInvitationRequest extends Model
         required      : no
       koding          :
         username      : String
+        fullName      : String
       kodingen        :
         isMember      : Boolean
         username      : String
