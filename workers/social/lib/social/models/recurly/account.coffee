@@ -13,10 +13,14 @@ module.exports = class JRecurlyAccount extends Module
   @set
     schema            :
       recurlyId       : String
+      creator         : String
     sharedMethods     :
       static          : [
         'create',
         'all', 'one', 'some'
+      ]
+      instance        : [
+        'update'
       ]
 
   @create = secure (client, data, callback)->
@@ -24,6 +28,7 @@ module.exports = class JRecurlyAccount extends Module
 
     account = new JRecurlyAccount
       recurlyId : "account_#{createId()}"
+      creatorId : delegate._id
 
     payment.setAccount account.recurlyId, data, (err, res)=>
       return callback err  if err
@@ -31,3 +36,11 @@ module.exports = class JRecurlyAccount extends Module
         account.save =>
           return callback err  if err
           callback no, account
+
+  update: secure (client, data, callback)->
+    payment.setAccount @recurlyId, data, (err, res)=>
+      return callback err  if err
+      unless err
+        account.save =>
+          return callback err  if err
+          callback no, @
