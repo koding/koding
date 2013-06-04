@@ -11,31 +11,31 @@ module.exports = class JRecurlyAccount extends Module
   @share()
 
   @set
+    indexes           :
+      recurlyId       : 'unique'
     schema            :
       recurlyId       : String
       creator         : String
+      groupSlug       : String
     sharedMethods     :
       static          : [
-        'create',
-        'all', 'one', 'some'
+        'create'
       ]
       instance        : [
-        'update'
+        'update', 'attachToGroup'
       ]
 
-  @create = secure (client, data, callback)->
+  @create = secure (client, callback)->
     {delegate} = client.connection
 
     account = new JRecurlyAccount
       recurlyId : "account_#{createId()}"
       creatorId : delegate._id
+      groupSlug : ""
 
-    payment.setAccount account.recurlyId, data, (err, res)=>
+    account.save (err)=>
       return callback err  if err
-      unless err
-        account.save =>
-          return callback err  if err
-          callback no, account
+      callback no, account
 
   update: secure (client, data, callback)->
     payment.setAccount @recurlyId, data, (err, res)=>
@@ -44,3 +44,33 @@ module.exports = class JRecurlyAccount extends Module
         account.save =>
           return callback err  if err
           callback no, @
+
+  attachToGroup: secure (client, data, callback)->
+    {delegate} = client.connection
+    if delegate._id is @creator
+
+      @groupSlug = data.groupSlug
+      @creator   = 0
+
+      @save (err)=>
+        return callback err  if err
+        callback no, @
+    else
+      callback yes, null
+
+
+  @getAccounts = secure (client, callback)->
+    {delegate} = client.connection
+
+    JRecurlyAccount.all
+      creator   : delegate._id
+      groupSlug : ""
+    , callback
+
+  @getGroupAccounts = secure (client, data, callback)->
+    {delegate} = client.connection
+
+    JRecurlyAccount.all
+      creator   : delegate._id
+      groupSlug : data.groupSlug
+    , callback

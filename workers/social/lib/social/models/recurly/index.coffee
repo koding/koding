@@ -25,7 +25,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         'setUserAccount', 'getUserAccount', 'getUserTransactions'
       ]
       instance     : [
-        'getToken', 'subscribe', 'getSubscription'
+        'getToken', 'subscribe'
       ]
     schema         :
       code         : String
@@ -146,30 +146,33 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         callback yes, {}
       else
 
-        if data.accountCode
-          userCode         = "" 
-          data.accountCode = "account_#{createId()}"
-          data.plan        = @code
-        else
-          userCode      = "user_#{delegate._id}"
-          data          =
-            plan        : @code
-            quantity    : data.quantity
-            accountCode : userCode
-
-        payment.addUserSubscription userCode, data, (err, result)->
+        JRecurlyAccount.create client, (err, account)=>
           return callback err  if err
-          sub = new JRecurlySubscription
-            planCode : result.code
-            userCode : data.accountCode
-            uuid     : result.uuid
-            quantity : result.quantity
-            status   : result.status
-            datetime : result.datetime
-            expires  : result.expires
-            renew    : result.renew
-          sub.save ->
-            callback no, sub
+
+          if data.accountCode
+            userCode         = "" 
+            data.accountCode = account.recurlyId
+            data.plan        = @code
+          else
+            userCode      = account.recurlyId
+            data          =
+              plan        : @code
+              quantity    : data.quantity
+              accountCode : userCode
+
+          payment.addUserSubscription userCode, data, (err, result)->
+            return callback err  if err
+            sub = new JRecurlySubscription
+              planCode : result.code
+              userCode : data.accountCode
+              uuid     : result.uuid
+              quantity : result.quantity
+              status   : result.status
+              datetime : result.datetime
+              expires  : result.expires
+              renew    : result.renew
+            sub.save ->
+              callback no, account
 
   getSubscription: secure (client, callback)->
     {delegate} = client.connection
