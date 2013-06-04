@@ -17,3 +17,4 @@ class NewReviewForm extends NewCommentForm
         @getDelegate().emit 'ReviewSubmitted', review
       onFailMsg : "Login required to post a review!"
       tryAgain  : yes
+      groupName : @getDelegate().getData().group
