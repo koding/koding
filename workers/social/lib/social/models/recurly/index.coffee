@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
-JUser = require '../user'
-payment = require 'koding-payment'
+JUser     = require '../user'
+payment   = require 'koding-payment'
+createId  = require 'hat'
 
 forceRefresh  = yes
 forceInterval = 60 * 5
@@ -9,8 +10,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   {secure} = require 'bongo'
 
-  JRecurlyToken = require './token'
+  JRecurlyToken        = require './token'
   JRecurlySubscription = require './subscription'
+  JRecurlyAccount      = require './account'
 
   @share()
 
@@ -130,7 +132,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         async.parallel stack, (err, results)->
           callback()
 
-  getToken: secure (client, callback)->
+  getToken: secure (client, data, callback)->
     {delegate} = client.connection
     JRecurlyToken.createToken client,
       planCode: @code
@@ -143,14 +145,23 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       unless status
         callback yes, {}
       else
-        payment.addUserSubscription "user_#{delegate._id}",
-          plan     : @code
-          quantity : data.quantity
-        , (err, result)->
+
+        if data.accountCode
+          userCode         = "" 
+          data.accountCode = "account_#{createId()}"
+          data.plan        = @code
+        else
+          userCode      = "user_#{delegate._id}"
+          data          =
+            plan        : @code
+            quantity    : data.quantity
+            accountCode : userCode
+
+        payment.addUserSubscription userCode, data, (err, result)->
           return callback err  if err
           sub = new JRecurlySubscription
             planCode : result.code
-            userCode : "user_#{delegate._id}"
+            userCode : data.accountCode
             uuid     : result.uuid
             quantity : result.quantity
             status   : result.status
@@ -162,7 +173,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   getSubscription: secure (client, callback)->
     {delegate} = client.connection
+    userCode = "user_#{delegate._id}"
+
     JRecurlySubscription.one
-      userCode : "user_#{delegate._id}"
+      userCode : userCode
       planCode : @code
     , callback
