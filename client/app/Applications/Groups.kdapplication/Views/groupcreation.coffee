@@ -54,13 +54,23 @@ class GroupCreationModal extends KDModalView
           res = JSON.parse plan.desc.replace /&quot;/g, '"'
         catch e
           res =
-            title     : ""
-            desc      : plan.desc
-            meta      :
-              goodFor : 0
+            title       : ""
+            description : plan.desc
+            meta        :
+              goodFor   : 0
         return res
 
-      log ">>>>", descriptions
+      descPartial = ""
+      for d in descriptions
+        descPartial += """
+          <section>
+            <p>
+              <i>Good for:</i>
+              <span>#{d.meta.goodFor}</span>
+              <cite>VM's</cite>
+            </p>
+            #{d.description}
+          </section>"""
 
       @addSubView @hostSelector = new KDFormViewWithFields
         cssClass                 : 'hidden'
@@ -84,17 +94,8 @@ class GroupCreationModal extends KDModalView
             change               : @bound "hostChanged"
           desc                   :
             itemClass            : KDCustomHTMLView
-            cssClass             : "hidden"
-            partial              : """
-              <p></p>
-              <p></p>
-              <p></p>
-              <p></p>
-              <p></p>
-              """
-
-
-
+            cssClass             : "description-field hidden"
+            partial              : descPartial
 
   hostChanged:->
     {submit}         = @hostSelector.buttons
@@ -109,46 +110,43 @@ class GroupCreationModal extends KDModalView
 
     submit.setTitle "Pay & Create the Group for $#{monthlyFee}/mo"
     submit.show()
-    desc.$('p').addClass 'hidden'
-    desc.$('p').eq(index).removeClass 'hidden'
+    desc.$('section').addClass 'hidden'
+    desc.$('section').eq(index).removeClass 'hidden'
 
     @setPositions()
 
   submit:=>
+    # Copy account creator's billing information
+    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
+      warn err
+      if err or not data
+        data = {}
 
+      # These will go into Recurly module
+      delete data.cardNumber
+      delete data.cardMonth
+      delete data.cardYear
+      delete data.cardCV
 
-              # Copy account creator's billing information
-              KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
-                if err or not data
-                  data = {}
+      modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
+        # These will go into Recurly module
+        newData.username    = 'group_unnamed'
+        newData.ipAddress   = '0.0.0.0'
+        newData.firstName   = 'Group'
+        newData.lastName    = 'Unnamed'
+        newData.email       = 'group@example.com'
+        newData.pin         = 'xxx'
+        newData.accountCode = yes
 
-                # These will go into Recurly module
-                delete data.cardNumber
-                delete data.cardMonth
-                delete data.cardYear
-                delete data.cardCV
+        {selector}   = @hostSelector.inputs
+        index        = parseInt selector.getValue(), 10
 
-                modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
-
-                  # These will go into Recurly module
-                  newData.username    = 'group_unnamed'
-                  newData.ipAddress   = '0.0.0.0'
-                  newData.firstName   = 'Group'
-                  newData.lastName    = 'Unnamed'
-                  newData.email       = 'group@example.com'
-                  newData.pin         = 'xxx'
-                  newData.accountCode = yes
-
-                  {selector}   = @hostSelector.inputs
-                  index        = parseInt selector.getValue(), 10
-
-                  selectedPlan = plans[index]
-                  selectedPlan.subscribe newData, (err, subscription)->
-                    if err
-                      # Show error messages here.
-                      onError()
-                    else
-                      # DONE
-                      console.log "Subscribed user account:", subscription.userCode
-                      onSuccess()
-
+        selectedPlan = @plans[index]
+        selectedPlan.subscribe newData, (err, subscription)->
+          if err
+            # Show error messages here.
+            onError()
+          else
+            # DONE
+            console.log "Subscribed user account:", subscription.userCode
+            onSuccess()
