@@ -50,9 +50,6 @@ unless window.event?
     log "we fail silently!", e
 
 @KD = $.extend (KD), do ->
-  # private member for tracking z-indexes
-  zIndexContexts  = {}
-
   create = (constructorName, options, data)->
     konstructor = @classes[constructorName] \
                 ? @classes["KD#{constructorName}"]
@@ -60,15 +57,6 @@ unless window.event?
 
   create    : create
   new       : create
-
-  impersonate: (username)->
-    @remote.api.JAccount.impersonate username, (err)->
-      if err then new KDNotificationView title: err.message
-      else location.reload()
-
-  # testKDML:->
-  #   {KDMLParser} = Bongo.KDML
-  #   kdml = new KDMLParser @classes
 
   debugStates     : {}
   instances       : {}
@@ -82,84 +70,6 @@ unless window.event?
   appClasses      : {}
   appScripts      : {}
   lastFuncCall    : null
-
-  nick:-> KD.whoami().profile.nickname
-
-  whoami:-> KD.getSingleton('mainController').userAccount
-
-  logout:->
-    mainController = KD.getSingleton('mainController')
-    delete mainController?.userAccount
-
-  isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
-
-  isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
-
-  checkFlag:(flagToCheck, account = KD.whoami())->
-    if account.globalFlags
-      if 'string' is typeof flagToCheck
-        return flagToCheck in account.globalFlags
-      else
-        for flag in flagToCheck
-          if flag in account.globalFlags
-            return yes
-    no
-
-  notifyError_:(message)->
-    console.log message
-    new KDNotificationView
-      type     : 'mini'
-      cssClass : 'error'
-      title    : message
-      duration : 3500
-
-  requireMembership:(options={})->
-
-    {callback, onFailMsg, onFail, silence, tryAgain, groupName} = options
-    unless KD.isLoggedIn()
-      # if there is fail message, display it
-      if onFailMsg
-        @notifyError_ onFailMsg
-
-      # if there is fail method, call it
-      onFail?()
-
-      # if login is a silent redirection
-      unless silence
-        @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
-
-      # if there is callback and we want to try again
-      if callback? and tryAgain
-        unless KD.lastFuncCall
-          {mainController} = KD.singletons
-          mainController.once "accountChanged.to.loggedIn", =>
-            if groupName and KD.isLoggedIn()
-              @joinGroup_ groupName, (res)=>
-                unless res then return @notifyError_ "Joining to #{groupName} group failed"
-                KD.lastFuncCall?()
-                KD.lastFuncCall = null
-        KD.lastFuncCall = callback
-    else
-      if groupName
-        @joinGroup_ groupName, (res)=>
-          if res then callback?()
-          else @notifyError_ "Joining to #{groupName} group failed 2"
-      else callback?()
-
-  joinGroup_:(groupName, callback)->
-    unless groupName then return callback true
-    user = @whoami()
-    user.fetchGroups (err, groups)=>
-      if err or !groups then return callback false
-      @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        if err then return @notifyError_ err.message
-        for group in groups
-          if groupName is group.group.slug
-            return callback true
-        currentGroup.join (err)=>
-          if err then return callback false
-          @notifyError_ "Joined to #{groupName} group!"
-          return callback true
 
   socketConnected:->
     @backendIsConnected = yes
@@ -182,6 +92,10 @@ unless window.event?
   deleteInstance:(anInstanceId)->
     @unregisterInstance anInstanceId
     # anInstance = null #FIXME: Redundant? See unregisterInstance
+
+  extend:(functions)->
+    for methodName, method of functions
+      @[methodName] = method
 
   registerSingleton:(singletonName,object,override = no)->
     if (existingSingleton = KD.singletons[singletonName])?
@@ -250,30 +164,6 @@ unless window.event?
 
   getKDViewInstanceFromDomElement:(domElement)->
     @instances[$(domElement).data("data-id")]
-
-  # Get next highest Z-index
-  getNextHighestZIndex:(context)->
-   uniqid = context.data 'data-id'
-   if isNaN zIndexContexts[uniqid]
-     zIndexContexts[uniqid] = 0
-   else
-     zIndexContexts[uniqid]++
-
-  jsonhTest:->
-    method    = 'fetchQuestionTeasers'
-    testData  = {
-      foo: 10
-      bar: 11
-    }
-
-    start = Date.now()
-    $.ajax "/#{method}.jsonh",
-      data     : testData
-      dataType : 'jsonp'
-      success : (data)->
-        inflated = JSONH.unpack data
-        KD.log 'success', inflated
-        KD.log Date.now()-start
 
   enableLogs:do->
     oldConsole = window.console
