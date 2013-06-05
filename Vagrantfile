@@ -47,6 +47,12 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   exit! 0
 end
 
+goVersion = `go version | cut -d " " -f 3` rescue "0"
+if goVersion < "go1.1"
+  puts "", "Your go version is outdated! Please install at least version 1.1", ""
+  exit! 1
+end
+
 provision = ENV.has_key? "PROVISION"
 if provision
   if ARGV[0] != "plugin" and not `vagrant plugin list`.split("\n").include? "vagrant-salt (0.4.0)"
