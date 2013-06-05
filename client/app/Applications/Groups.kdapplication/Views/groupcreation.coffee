@@ -147,7 +147,7 @@ class GroupCreationModal extends KDModalView
             <p>
               <i>Good for:</i>
               <span>#{d.meta.goodFor}</span>
-              <cite>VM's</cite>
+              <cite>users</cite>
             </p>
             #{d.description}
           </section>"""
@@ -236,14 +236,51 @@ class GroupCreationModal extends KDModalView
       formData.requestType = formData.privacy
       formData.privacy     = 'private'
 
-    KD.remote.api.JGroup.create formData, (err, group)=>
-      if err
-        callback? err
-        new KDNotificationView title: err.message, duration: 1000
-      else
-        callback? err, group
-        @getSingleton("groupsController").showGroupCreatedModal group
-        @destroy()
+    # Copy account creator's billing information
+    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
+      warn err
+      if err or not data
+        data = {}
+
+      # These will go into Recurly module
+      delete data.cardNumber
+      delete data.cardMonth
+      delete data.cardYear
+      delete data.cardCV
+
+      modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
+        # These will go into Recurly module
+        newData.username    = 'group_unnamed'
+        newData.ipAddress   = '0.0.0.0'
+        newData.firstName   = 'Group'
+        newData.lastName    = 'Unnamed'
+        newData.email       = 'group@example.com'
+        newData.pin         = 'xxx'
+        newData.accountCode = yes
+
+        formData.plan.subscribe newData, (err, account)=>
+          if err
+            # Show error messages here.
+            onError err
+          else
+            # DONE
+            onSuccess()
+
+            console.log account
+
+            KD.remote.api.JGroup.create formData, (err, group)=>
+              if err
+                callback? err
+                new KDNotificationView title: err.message, duration: 1000
+              else
+                account.attachToGroup group, (err, account)=>
+                  console.log "Attach"
+                  console.log err
+                  console.log account
+                  console.log "-------"
+                  callback? err, group
+                  @getSingleton("groupsController").showGroupCreatedModal group
+                  @destroy()
 
 
   makeSlug: ->

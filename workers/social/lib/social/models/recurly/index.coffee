@@ -4,7 +4,7 @@ payment   = require 'koding-payment'
 createId  = require 'hat'
 
 forceRefresh  = yes
-forceInterval = 60 * 5
+forceInterval = 60 * 60 * 24
 
 module.exports = class JRecurlyPlan extends jraphical.Module
 
@@ -149,11 +149,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         if data.accountCode
           JRecurlyAccount.create client, (err, account)=>
             return callback err  if err
-            userCode         = "" 
             data.accountCode = account.recurlyId
             data.plan        = @code
 
-            payment.addUserSubscription userCode, data, (err, result)->
+            payment.addSubscriptionAndAccount data, (err, result)->
               return callback err  if err
               sub = new JRecurlySubscription
                 planCode : result.code
@@ -185,7 +184,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
               expires  : result.expires
               renew    : result.renew
             sub.save ->
-              callback no, account
+              callback no, sub
 
   getSubscription: secure (client, callback)->
     {delegate} = client.connection

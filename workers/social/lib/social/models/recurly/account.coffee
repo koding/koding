@@ -30,7 +30,7 @@ module.exports = class JRecurlyAccount extends Module
 
     account = new JRecurlyAccount
       recurlyId : "account_#{createId()}"
-      creatorId : delegate._id
+      creator   : delegate._id.toString()
       groupSlug : ""
 
     account.save (err)=>
@@ -45,16 +45,24 @@ module.exports = class JRecurlyAccount extends Module
           return callback err  if err
           callback no, @
 
-  attachToGroup: secure (client, data, callback)->
+  attachToGroup: secure (client, group, callback)->
     {delegate} = client.connection
-    if delegate._id is @creator
+    if delegate._id.toString() is @creator
 
-      @groupSlug = data.groupSlug
-      @creator   = 0
+      @groupSlug = group.slug
 
-      @save (err)=>
+      data =
+        username  : "group_#{group.slug}" 
+        email     : 'group@example.com'
+        firstName : 'Group'
+        lastName  : group.title
+
+      payment.setAccount2 @recurlyId, data, (err, res)=>
         return callback err  if err
-        callback no, @
+        unless err
+          @save (err)=>
+            return callback err  if err
+            callback no, @
     else
       callback yes, null
 
