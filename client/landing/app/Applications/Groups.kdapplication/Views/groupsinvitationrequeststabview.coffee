@@ -20,6 +20,8 @@ class GroupsInvitationRequestsTabView extends KDTabView
     @approvalEnabled = @getDelegate().policy.approvalEnabled
     @resolvedState = no
 
+    @on 'PaneAdded', (pane)=> pane.options.view.updatePendingCount pane
+
     @createTabs()
     @addHeaderButtons()
 
@@ -29,8 +31,10 @@ class GroupsInvitationRequestsTabView extends KDTabView
 
   paneDidShow:->
     @decorateHeaderButtons()
-    view = @getActivePane().subViews.first
-    @setResolvedStateInView()  if view.resolvedState isnt @resolvedState
+    {tabHandle, mainView} = @getActivePane()
+    @setResolvedStateInView()  if mainView.resolvedState isnt @resolvedState
+    mainView.refresh()  if tabHandle.isDirty
+    tabHandle.markDirty no
 
   setResolvedStateInView:->
     view = @getActivePane().subViews.first
@@ -39,8 +43,7 @@ class GroupsInvitationRequestsTabView extends KDTabView
 
   createTabs:->
     for tab, i in @getTabs()
-      tab.viewOptions.data    = @getData()
-      tab.viewOptions.options = delegate: this
+      tab.view = new tab.viewOptions.viewClass {delegate: this}, @getData()
       @addPane new KDTabPaneView(tab), i is 0
 
   addHeaderButtons:->

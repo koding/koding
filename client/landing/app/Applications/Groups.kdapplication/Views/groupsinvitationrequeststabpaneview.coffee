@@ -21,6 +21,8 @@ class GroupsInvitationRequestsTabPaneView extends KDView
     @listView   = @controller.getView()
     @addSubView @listView
 
+    @controller.on 'UpdatePendingCount', @updatePendingCount.bind this
+
   addListeners:->
     @on 'teasersLoaded', =>
       @fetchAndPopulate()  unless @controller.scrollView.hasScrollBars()
@@ -46,6 +48,13 @@ class GroupsInvitationRequestsTabPaneView extends KDView
         @controller.instantiateListItems requests
         @emit 'teasersLoaded'  if requests.length is @requestLimit
 
+  updatePendingCount:(pane)->
+    pane  ?= @parent
+    status = @options.unresolvedStatuses
+    status = $in: status  if Array.isArray status
+    @getData().countInvitationRequests {}, {status}, (err, count)->
+      pane.getHandle().updatePendingCount count  unless err
+
   viewAppended:->
     super()
     @addListeners()
@@ -55,6 +64,7 @@ class GroupsInvitationRequestsTabPaneView extends KDView
     @controller.removeAllItems()
     @timestamp = null
     @fetchAndPopulate()
+    @updatePendingCount @parent
 
   setStatusesByResolvedSwitch:(@resolvedState)->
     @options.statuses = if @resolvedState\
@@ -69,6 +79,10 @@ class GroupsMembershipRequestsTabPaneView extends GroupsInvitationRequestsTabPan
     options.noMoreItemFound or= 'No more requests found.'
 
     super options, data
+
+    @getData().on 'NewInvitationRequest', =>
+      @emit 'NewInvitationActionArrived'
+      @parent.tabHandle.markDirty()
 
 
 class GroupsSentInvitationsTabPaneView extends GroupsInvitationRequestsTabPaneView

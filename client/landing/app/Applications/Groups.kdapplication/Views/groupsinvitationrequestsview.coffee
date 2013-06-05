@@ -8,6 +8,7 @@ class GroupsInvitationRequestsView extends KDView
       @addSubView tabHandleContainer = new KDCustomHTMLView
       @addSubView @tabView = new GroupsInvitationRequestsTabView {
         delegate           : this
+        tabHandleView      : GroupTabHandleView
         tabHandleContainer
       }, data
 
@@ -137,3 +138,4 @@ class GroupsInvitationCodesTabPaneView extends KDView
 
   setStatusesByResolvedSwitch:(state)->
   refresh:->
+  updatePendingCount:(pane)->
