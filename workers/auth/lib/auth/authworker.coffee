@@ -9,7 +9,7 @@ module.exports = class AuthWorker extends EventEmitter
     autoDelete  : yes
 
   REROUTING_EXCHANGE_OPTIONS =
-  USER_PRESENCE_CONTROL_EXCHANGE_OPTIONS =
+  USERS_PRESENCE_CONTROL_EXCHANGE_OPTIONS =
     type        : 'fanout'
     autoDelete  : yes
 
@@ -199,7 +199,7 @@ module.exports = class AuthWorker extends EventEmitter
   )
 
   fetchUserPresenceControlExchange: makeExchangeFetcher(
-    'userPresenceControlExchange', USER_PRESENCE_CONTROL_EXCHANGE_OPTIONS
+    'usersPresenceControlExchange', USERS_PRESENCE_CONTROL_EXCHANGE_OPTIONS
   )
 
   addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
