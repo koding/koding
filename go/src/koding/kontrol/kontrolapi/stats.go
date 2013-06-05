@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
+	"io"
 	"net/http"
 )
 
@@ -90,4 +91,16 @@ func GetSingleProxyStats(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 	writer.Write([]byte(data))
+}
+
+func DeleteStats(writer http.ResponseWriter, req *http.Request) {
+	fmt.Printf("DELETE\t/stats/\n")
+	err := proxyDB.DeleteStats()
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	io.WriteString(writer, "{\"res\":\"all stats are deleted\"}\n")
+	return
 }

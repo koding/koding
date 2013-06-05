@@ -639,6 +639,21 @@ func (p *ProxyConfiguration) GetRule(username, servicename string) (Restriction,
 	return rules.Services[servicename], nil
 }
 
+func (p *ProxyConfiguration) DeleteStats() error {
+	config, err := p.GetConfig()
+	if err != nil {
+		return fmt.Errorf("error: '%s' while getting domains statistics", err)
+	}
+
+	config.Stats = *NewStats()
+	err = p.UpdateConfig(config)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (p *ProxyConfiguration) GetStats() (Stats, error) {
 	config, err := p.GetConfig()
 	if err != nil {
@@ -690,7 +705,7 @@ func (p *ProxyConfiguration) AddStatistics(ip, country, proxy, domainname string
 		return fmt.Errorf("error: '%s' while adding statistics", err)
 	}
 
-	nowHour := strconv.Itoa(time.Now().Hour())
+	nowHour := strconv.Itoa(time.Now().Hour()) + ":00"
 
 	if config.Stats.Domains == nil {
 		config.Stats.Domains = make(map[string]DomainStat)
@@ -699,22 +714,24 @@ func (p *ProxyConfiguration) AddStatistics(ip, country, proxy, domainname string
 		config.Stats.Proxies = make(map[string]ProxyStat)
 	}
 	// DomainStats
-	_, ok := config.Stats.Domains[domainname]
-	if !ok {
-		config.Stats.Domains[domainname] = DomainStat{Request: make(map[string]int)}
-	}
-	domainStat := config.Stats.Domains[domainname]
+	if domainname != "" {
+		_, ok := config.Stats.Domains[domainname]
+		if !ok {
+			config.Stats.Domains[domainname] = DomainStat{Request: make(map[string]int)}
+		}
+		domainStat := config.Stats.Domains[domainname]
 
-	_, ok = domainStat.Request[nowHour]
-	if !ok {
-		domainStat.Request[nowHour] = 1
-	} else {
-		domainStat.Request[nowHour]++
+		_, ok = domainStat.Request[nowHour]
+		if !ok {
+			domainStat.Request[nowHour] = 1
+		} else {
+			domainStat.Request[nowHour]++
+		}
+		config.Stats.Domains[domainname] = domainStat
 	}
-	config.Stats.Domains[domainname] = domainStat
 
 	// ProxyStats
-	_, ok = config.Stats.Proxies[proxy]
+	_, ok := config.Stats.Proxies[proxy]
 	if !ok {
 		config.Stats.Proxies[proxy] = ProxyStat{
 			Country: make(map[string]int),

@@ -97,6 +97,7 @@ func main() {
 
 	// Statistics handlers
 	rout.HandleFunc("/stats", GetStats).Methods("GET")
+	rout.HandleFunc("/stats", DeleteStats).Methods("DELETE")
 	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
 	rout.HandleFunc("/stats/domains/{domain}", GetSingleDomainStats).Methods("GET")
 	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
