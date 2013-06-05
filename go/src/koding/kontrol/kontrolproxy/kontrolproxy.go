@@ -30,7 +30,6 @@ var amqpStream *AmqpStream
 var connections map[string]RabbitChannel
 var geoIP *libgeo.GeoIP
 var memCache *memcache.Client
-
 var uuid = kontrolhelper.CustomHostname()
 
 func main() {

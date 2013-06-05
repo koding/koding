@@ -349,7 +349,7 @@ func parseMongoLogin(login string) string {
 }
 
 func domainInfo(domainname string) (Domain, error) {
-	domainApi := "http://kontrol.in.koding.com/proxies/proxy-2.in.koding.com/domains"
+	domainApi := "http://kontrol.in.koding.com/domains"
 	resp, err := http.Get(domainApi)
 	if err != nil {
 		return Domain{}, err

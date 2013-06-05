@@ -131,7 +131,7 @@ func lookupDomain(domainname string) (*UserInfo, error) {
 		return NewUserInfo(vmName, "", "", "", "vm"), nil
 	}
 
-	domain, err := proxyDB.GetDomain(uuid, domainname)
+	domain, err := proxyDB.GetDomain(domainname)
 	if err != nil || domain.Domainname == "" {
 		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 
@@ -143,7 +143,7 @@ func lookupDomain(domainname string) (*UserInfo, error) {
 func lookupRabbitKey(username, servicename, key string) string {
 	var rabbitkey string
 
-	res, err := proxyDB.GetKey(uuid, username, servicename, key)
+	res, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
 		fmt.Printf("no rabbitkey available for user '%s' in the db. disabling rabbit proxy\n", username)
 		return rabbitkey
@@ -174,7 +174,7 @@ func (u *UserInfo) populateTarget() error {
 		return nil
 	case "vm":
 		var vm virt.VM
-		mcKey := uuid + username + "kontrolproxyvm"
+		mcKey := username + "kontrolproxyvm"
 		it, err := memCache.Get(mcKey)
 		if err != nil {
 			fmt.Println("got vm ip from mongodb")
@@ -216,7 +216,7 @@ func (u *UserInfo) populateTarget() error {
 		break // internal is done below
 	}
 
-	keys, err := proxyDB.GetKeyList(uuid, username, servicename)
+	keys, err := proxyDB.GetKeyList(username, servicename)
 	if err != nil {
 		return errors.New("no users availalable in the db. targethost not found")
 	}
@@ -289,7 +289,7 @@ func checkWebsocket(req *http.Request) bool {
 }
 
 func (u *UserInfo) validate() (string, bool) {
-	res, err := proxyDB.GetRule(uuid, u.Username, u.Servicename)
+	res, err := proxyDB.GetRule(u.Username, u.Servicename)
 	if err != nil {
 		return fmt.Sprintf("no rule available for servicename %s\n", u.Username), true
 	}
