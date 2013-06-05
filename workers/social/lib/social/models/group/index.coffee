@@ -349,9 +349,11 @@ module.exports = class JGroup extends Module
           cpu             : { quota: 100 }
           ram             : { quota: 100 }
           disk            : { quota: 100 }
-          'cpu per user'  : { quota: 100 }
-          'ram per user'  : { quota: 100 }
-          'disk per user' : { quota: 100 }
+          money           : { quota: 100 }
+          'cpu per user'  : { quota: 50 }
+          'ram per user'  : { quota: 50 }
+          'disk per user' : { quota: 50 }
+          'money per user': { quota: 50 }
         queue.push -> group.createBundle limits, (err)->
           if err then callback err
           else
@@ -1304,4 +1306,5 @@ module.exports = class JGroup extends Module
       ram             : { quota: 64 }
       disk            : { quota: 500 }
       users           : { quota: 20 }
+      money           : { quota: 0 }
     }
