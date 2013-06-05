@@ -345,6 +345,24 @@ Dashboard invitations tab styles
     height                    50px
     borderBox()
 
+    .kdtabhandle
+      .new
+      .pending
+        display               none
+        font-size             11px
+        line-height           1
+        padding               1px 4px
+        rounded               3px
+
+      &.has-pending .pending
+        display               inline
+        background-color      #eee
+        color                 #666
+      &.dirty .new
+        display               inline
+        background-color      #ff9200
+        color                 white
+
     .kdtabhandle.active
       height                  30px
 
@@ -367,7 +385,7 @@ Dashboard invitations tab styles
           font-size           11px
 
         .on-off a
-          padding-bottom         7px
+          padding-bottom      7px
 
       .show-resolved
       .on-off
@@ -957,18 +975,6 @@ Dashboard Invitations Modal Styles
       .kdtabhandle
         padding-right         20px
 
-.group-new-count
-  border-radius               3px
-  background-color            #ff9200
-  padding                     2px 3px
-  line-height                 12px
-  font-size                   11px
-  vertical-align              top
-  box-sizing                  border-box
-  display                     inline-block
-  margin-top                  3px
-  color                       white
-
 .add-role-dialog
   // z-index               100000
   // max-width              300px
@@ -997,26 +1003,3 @@ Dashboard Invitations Modal Styles
     fl()
   // div.kdselectbox.copy-permissions
   //   margin-top          9px
-
-
-
-
-// PUT THESE UNDER CORRECT PARENTS
-
-.grouptabhandle.dirty .new
-  background-color            #0a92ba
-  color                       white
-  font-weight                 bold
-  font-size                   11px
-  line-height                 1
-  padding                     1px 4px
-  rounded                     3px
-
-
-
-.invitation-request
-  .username
-    font-weight               bold
-    color                     #ff9200
-  &.invitation-sent
-    background-color          #eee

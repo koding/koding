@@ -77,7 +77,7 @@ class GroupsInvitationListItemView extends KDListItemView
 
     @decorateStatus()
     @decorateButtons()
-    @getDelegate().emit 'UpdateCurrentState'
+    @getDelegate().getDelegate().emit 'UpdatePendingCount'
 
   viewAppended:->
     JView::viewAppended.call this

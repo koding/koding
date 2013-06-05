@@ -34,7 +34,6 @@ class DashboardAppController extends AppController
         viewOptions  :
           viewClass  : GroupsInvitationRequestsView
           lazy       : yes
-          callback   : @invitationsViewAdded
       ,
         name         : 'Permissions'
         viewOptions  :
@@ -77,17 +76,6 @@ class DashboardAppController extends AppController
       # tabHandle.markDirty()
 
   policyViewAdded:(pane, view)->
-
-  invitationsViewAdded:(pane, view)->
-    group = view.getData()
-
-    pane.on 'PaneDidShow', ->
-      view.refresh()  if pane.tabHandle.isDirty
-      # pane.tabHandle.markDirty no
-
-    group.on 'NewInvitationRequest', ->
-      pane.emit 'NewInvitationActionArrived'
-      # pane.tabHandle.markDirty()
 
   vocabularyViewAdded:(pane, view)->
     group = view.getData()
