@@ -89,11 +89,18 @@ func main() {
 	rout.HandleFunc("/domains/{domain}", CreateDomain).Methods("POST")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
-	// Proxy rule handlers
+	// Rule handlers
 	rout.HandleFunc("/rules", GetRules).Methods("GET")
 	rout.HandleFunc("/rules/{username}", GetRulesServices).Methods("GET")
 	rout.HandleFunc("/rules/{username}/{servicename}", GetRule).Methods("GET")
 	rout.HandleFunc("/rules/{username}/{servicename}", CreateRule).Methods("POST")
+
+	// Statistics handlers
+	rout.HandleFunc("/stats", GetStats).Methods("GET")
+	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", GetSingleDomainStats).Methods("GET")
+	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", GetSingleProxyStats).Methods("GET")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")

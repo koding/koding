@@ -639,10 +639,55 @@ func (p *ProxyConfiguration) GetRule(username, servicename string) (Restriction,
 	return rules.Services[servicename], nil
 }
 
+func (p *ProxyConfiguration) GetStats() (Stats, error) {
+	config, err := p.GetConfig()
+	if err != nil {
+		return Stats{}, fmt.Errorf("error: '%s' while getting domains statistics", err)
+	}
+
+	return config.Stats, nil
+}
+
+func (p *ProxyConfiguration) GetDomainStats() (map[string]DomainStat, error) {
+	config, err := p.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error: '%s' while getting domains statistics", err)
+	}
+
+	return config.Stats.Domains, nil
+}
+
+func (p *ProxyConfiguration) GetSingleDomainStats(domainname string) (DomainStat, error) {
+	config, err := p.GetConfig()
+	if err != nil {
+		return DomainStat{}, fmt.Errorf("error: '%s' while getting domain statistics for '%s'", err, domainname)
+	}
+
+	return config.Stats.Domains[domainname], nil
+}
+
+func (p *ProxyConfiguration) GetProxyStats() (map[string]ProxyStat, error) {
+	config, err := p.GetConfig()
+	if err != nil {
+		return nil, fmt.Errorf("error: '%s' while getting proxies statistics", err)
+	}
+
+	return config.Stats.Proxies, nil
+}
+
+func (p *ProxyConfiguration) GetSingleProxyStats(proxyname string) (ProxyStat, error) {
+	config, err := p.GetConfig()
+	if err != nil {
+		return ProxyStat{}, fmt.Errorf("error: '%s' while getting domain statistics for '%s'", err, proxyname)
+	}
+
+	return config.Stats.Proxies[proxyname], nil
+}
+
 func (p *ProxyConfiguration) AddStatistics(ip, country, proxy, domainname string) error {
 	config, err := p.GetConfig()
 	if err != nil {
-		return fmt.Errorf("Error: '%s' while adding statistics", err)
+		return fmt.Errorf("error: '%s' while adding statistics", err)
 	}
 
 	nowHour := strconv.Itoa(time.Now().Hour())
