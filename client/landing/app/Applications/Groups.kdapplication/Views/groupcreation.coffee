@@ -60,18 +60,19 @@ class GroupCreationModal extends KDModalView
           cssClass  : "group-type"
           radios    : GROUP_TYPES
           change    : =>
-            typeSelector = @typeSelector.inputs.selector
-            hostSelector = @hostSelector.inputs.selector
+            @ready =>
+              typeSelector = @typeSelector.inputs.selector
+              hostSelector = @hostSelector.inputs.selector
 
-            @hostSelector?.show()
+              @hostSelector?.show()
 
-            hostSelector.setValue switch typeSelector.getValue()
-              when "educational" then "4"
-              when "company"     then "2"
-              when "project"     then "1"
-              when "custom"      then "0"
+              hostSelector.setValue switch typeSelector.getValue()
+                when "educational" then "4"
+                when "company"     then "2"
+                when "project"     then "1"
+                when "custom"      then "0"
 
-            @setPositions()
+              @setPositions()
 
     @addSubView @mainSettings = new KDFormViewWithFields
       cssClass                 : "general-settings hidden"
@@ -122,7 +123,6 @@ class GroupCreationModal extends KDModalView
               ]
 
     @fetchRecurlyPlans (err, plans)=>
-
       if plans
         plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
         @plans = plans
@@ -171,6 +171,7 @@ class GroupCreationModal extends KDModalView
             cssClass  : "description-field hidden"
             partial   : descPartial
 
+      @emit 'ready'
 
   hostChanged:->
     {next}           = @buttons
