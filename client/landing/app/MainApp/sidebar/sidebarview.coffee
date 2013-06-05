@@ -99,6 +99,14 @@ class Sidebar extends JView
       cssClass  : "clean-gray create-vm"
       callback  : KD.singletons.vmController.createNewVM
 
+    @environmentButton   = new KDButtonView
+      title     : "Environments"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "cog"
+      cssClass  : "clean-gray open-environment"
+      callback  :-> appManager.open "Environments"
+
     @listenWindowResize()
 
   resetAdminNavController:->

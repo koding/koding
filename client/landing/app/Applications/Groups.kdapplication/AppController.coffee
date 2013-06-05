@@ -399,24 +399,6 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
-    verifySlug = ->
-      # titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      # slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
-      # KD.remote.api.JName.one
-      #   name: slugInput.getValue()
-      # , (err, name)=>
-      #   if name
-      #     slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-      #     slug = KD.utils.slugify titleInput.getValue()
-      #     KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-      #       if newSlug
-      #         slugInput.setTooltip
-      #           title     : "Available slug: #{newSlug}"
-      #           placement : "right"
-      #   else
-      #     slugInput.setValidationResult 'slug', null
-      #     delete slugInput.tooltip
-
     makeSlug = =>
       form = modal.modalTabs.forms["General Settings"]
       titleInput = form.inputs.Title
@@ -430,7 +412,6 @@ class GroupsAppController extends AppController
         else
           slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
           slugInput.setValue newSlug
-          verifySlug()
 
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
@@ -439,7 +420,7 @@ class GroupsAppController extends AppController
       switch getGroupType()
         when 'educational'  then 'by-request'
         when 'company'      then 'by-invite'
-        when 'project'      then'public'
+        when 'project'      then 'public'
         when 'custom'       then 'public'
 
     getVisibilityDefault = ->
@@ -530,16 +511,6 @@ class GroupsAppController extends AppController
                 label                : "Address"
                 partial              : "#{location.protocol}//#{location.host}/"
                 itemClass            : KDCustomHTMLView
-                # name                 : "slug"
-                # validate             :
-                #   event              : "blur"
-                #   rules              :
-                #     required         : yes
-                #     minLength        : 4
-                # blur                 : -> @utils.defer -> verifySlug()
-                # defaultValue         : ''
-                # placeholder          : 'your-group-url'
-                # disabled             : yes
               "Description"          :
                 label                : "Description"
                 type                 : "textarea"
@@ -598,7 +569,7 @@ class GroupsAppController extends AppController
                   form.buttons.Next.hideLoader()
             fields                   :
               "VM Host"               :
-                label                : "VM Host"
+                label                : "Host Machine"
                 itemClass            : KDSelectBox
                 type                 : "select"
                 name                 : "vm-host"
@@ -610,20 +581,9 @@ class GroupsAppController extends AppController
                   { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
                   { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
                 ]
-              "Usage Policy"         :
-                label                : "Usage Policy"
-                itemClass            : KDSelectBox
-                type                 : "select"
-                name                 : "vm-policy"
-                defaultValue         : "single"
-                selectOptions        : [
-                  { title : "All users share same VM host.",                  value : "single" }
-                  { title : "Limit users per VM, create new when necessary.", value : "multiple" }
-                ]
               "Users per VM"         :
-                label                : "Users per VM"
+                label                : "VM's per host"
                 itemClass            : KDSelectBox
-                type                 : "select"
                 name                 : "vm-users"
                 defaultValue         : "25"
                 selectOptions        : [
@@ -633,6 +593,72 @@ class GroupsAppController extends AppController
                   { title : "50",     value : "50" }
                   { title : "100",     value : "100" }
                 ]
+              "userQuota"            :
+                label                : "Users can create FREE additional VM's up to"
+                itemClass            : KDSelectBox
+                name                 : "vm-additional-free-amount"
+                defaultValue         : "1"
+                selectOptions        : [
+                  { title : "0",            value : "0" }
+                  { title : "1",            value : "1" }
+                  { title : "2",            value : "2" }
+                  { title : "3",            value : "3" }
+                  { title : "5",            value : "5" }
+                  { title : "10",           value : "10" }
+                  { title : "25",           value : "25" }
+                  { title : "Unlimited",    value : "unlimited" }
+                ]
+              "additionalVMs"        :
+                label                : "Users can buy additional VM's for"
+                itemClass            : KDSelectBox
+                name                 : "vm-additional-price"
+                defaultValue         : "5"
+                selectOptions        : [
+                  { title : "Free",     value : "0" }
+                  { title : "$ 1",      value : "1" }
+                  { title : "$ 5",      value : "5" }
+                  { title : "$ 10",     value : "10" }
+                  { title : "$ 25",     value : "25" }
+                  { title : "$ 50",     value : "50" }
+                  { title : "$ 100",    value : "100" }
+                  { title : "Custom...",value : "custom" }
+                ]
+                change                : =>
+                  {additionalVMs, additionalVmCustom} = modal.modalTabs.forms["VM Settings"].inputs
+                  if additionalVMs.getValue() is 'custom'
+                  then additionalVmCustom.show()
+                  else additionalVmCustom.hide()
+                nextElement           :
+                  "additionalVmCustom":
+                    name              : "vm-additional-price-custom"
+                    cssClass          : 'hidden'
+                    placeholder       : '42'
+              "membershipFee"        :
+                label                : "Users should pay a monthly fee of"
+                itemClass            : KDSelectBox
+                name                 : "vm-membership-fee"
+                defaultValue         : "5"
+                selectOptions        : [
+                  { title : "Free",     value : "0" }
+                  { title : "$ 1",      value : "1" }
+                  { title : "$ 5",      value : "5" }
+                  { title : "$ 10",     value : "10" }
+                  { title : "$ 25",     value : "25" }
+                  { title : "$ 50",     value : "50" }
+                  { title : "$ 100",    value : "100" }
+                  { title : "Custom...",value : "custom" }
+                ]
+                change                : =>
+                  {membershipFee, membershipFeeCustom} = modal.modalTabs.forms["VM Settings"].inputs
+                  if membershipFee.getValue() is 'custom'
+                  then membershipFeeCustom.show()
+                  else membershipFeeCustom.hide()
+                nextElement             :
+                  "membershipFeeCustom" :
+                    name                : "vm-membership-fee-custom"
+                    cssClass            : 'hidden'
+                    placeholder         : '42'
+
 
     modal = new KDModalViewWithForms modalOptions
     form = modal.modalTabs.forms["General Settings"]
