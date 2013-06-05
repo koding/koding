@@ -399,39 +399,6 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
-    verifySlug = ->
-      # titleInput = modal.modalTabs.forms["General Settings"].inputs.Title
-      # slugView = modal.modalTabs.forms["General Settings"].inputs.Slug
-      # KD.remote.api.JName.one
-      #   name: slugInput.getValue()
-      # , (err, name)=>
-      #   if name
-      #     slugInput.setValidationResult 'slug', "Slug is already being used.", yes
-      #     slug = KD.utils.slugify titleInput.getValue()
-      #     KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-      #       if newSlug
-      #         slugInput.setTooltip
-      #           title     : "Available slug: #{newSlug}"
-      #           placement : "right"
-      #   else
-      #     slugInput.setValidationResult 'slug', null
-      #     delete slugInput.tooltip
-
-    makeSlug = =>
-      form = modal.modalTabs.forms["General Settings"]
-      titleInput = form.inputs.Title
-      slugView   = form.inputs.Slug
-      slugInput  = form.inputs.HiddenSlug
-      slug = KD.utils.slugify titleInput.getValue()
-      KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-        if err
-          slugView.updatePartial "#{location.protocol}//#{location.host}/"
-          slugInput.setValue ''
-        else
-          slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
-          slugInput.setValue newSlug
-          verifySlug()
-
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
 

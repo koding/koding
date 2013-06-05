@@ -45,8 +45,7 @@ class KDInputRadioGroup extends KDInputView
     @inputDefaultValue = value
     @setValue value
 
-  getValue:()->
-    @$('input[checked=checked]').val()
+  getValue:-> @$('input[checked=checked]').val()
 
   setValue:(value)->
     @$("input").attr "checked", no

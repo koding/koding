@@ -8,24 +8,21 @@ class GroupCreationSelector extends KDInputRadioGroup
       radioOptions.visible   ?= yes
       radioOptions.callback or= ->
 
-      bg      = $ "<figure/>",
-        class : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
-
-      div     = $ "<div/>"
-
-      radio   = $ "<input/>",
+      bg       = $ "<figure/>",
+        class  : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
+      div      = $ "<div/>"
+      radio    = $ "<input/>",
         type   : @getType()
         name   : options.name
         value  : radioOptions.value
         class  : "no-kdinput hidden"
         id     : "#{@getId()}_#{@getType()}_#{i}"
-
       label    = $ "<span/>",
         html   : radioOptions.title
         class  : options.cssClassPrefix + @utils.slugify radioOptions.value
-
-      icon    = $ "<span/>",
-        class : "icon"
+      icon     = $ "<cite/>",
+        class  : "icon"
+        text   : radioOptions.value
 
       bg.append  div
       div.append radio
@@ -33,9 +30,9 @@ class GroupCreationSelector extends KDInputRadioGroup
       div.append label
       @domElement.append bg
 
-      if not radioOptions.visible
-        div.hide()
-    @domElement
+      bg.hide()  unless radioOptions.visible
+
+    return @domElement
 
   click:(event)->
     input = $(event.target).closest(".kd-#{@getType()}-holder").find('input')
@@ -45,3 +42,39 @@ class GroupCreationSelector extends KDInputRadioGroup
   setValue:(value)->
     super
     @$("input[value='#{value}']").trigger("change")
+
+class HostCreationSelector extends GroupCreationSelector
+
+  setDomElement:()->
+    options = @getOptions()
+    @domElement = $ "<fieldset class='#{@utils.curryCssClass 'radiogroup kdinput', options.cssClass}'></fieldset>"
+
+    for radioOptions, i in options.radios
+      radioOptions.visible   ?= yes
+      radioOptions.callback or= ->
+
+      bg       = $ "<figure/>",
+        class  : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
+      div      = $ "<div/>"
+      radio    = $ "<input/>",
+        type   : @getType()
+        name   : options.name
+        value  : radioOptions.value
+        class  : "no-kdinput hidden"
+        id     : "#{@getId()}_#{@getType()}_#{i}"
+      label    = $ "<span/>",
+        html   : radioOptions.title
+        class  : options.cssClassPrefix + @utils.slugify radioOptions.value
+      icon     = $ "<cite/>",
+        class  : "icon"
+        html   : "$<b>#{radioOptions.feeMonthly}</b>/mo"
+
+      bg.append  div
+      div.append radio
+      div.append icon
+      div.append label
+      @domElement.append bg
+
+      bg.hide()  unless radioOptions.visible
+
+    return @domElement
