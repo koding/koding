@@ -143,7 +143,7 @@ func main() {
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var command []string
 		if args.Unmarshal(&command) != nil {
-			return nil, &kite.ArgumentError{Expected: "array of strings"}
+			return nil, &kite.ArgumentError{Expected: "[array of strings]"}
 		}
 		return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 	})
@@ -151,7 +151,7 @@ func main() {
 	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var line string
 		if args.Unmarshal(&line) != nil {
-			return nil, &kite.ArgumentError{Expected: "string"}
+			return nil, &kite.ArgumentError{Expected: "[string]"}
 		}
 		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})

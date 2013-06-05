@@ -26,17 +26,7 @@ ebin
 /go/bin-vagrant
 /go/build
 /go/pkg
-/kites/webterm
-/kites/os
-/kites/alice
-/kites/broker
-/kites/idshift
-/kites/irc
-/kites/ldapserver
-/kites/proxy
-/kites/vmtool
 .project
-/kites/terminal/.tmp
 
 /node_modules/*
 
@@ -54,11 +44,6 @@ sftp-config.json
 *.orig
 
 .vagrant
-kites/alice
-kites/broker
-kites/idshift
-kites/irc
-kites/proxy
 .pyc
 
 .cake_task_cache
