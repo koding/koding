@@ -706,6 +706,17 @@ __utils =
     other   = permissions.substr 6, 3
     octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
 
+  # private member for tracking z-indexes
+  zIndexContexts  = {}
+
+  # Get next highest Z-index
+  getNextHighestZIndex:(context)->
+   uniqid = context.data 'data-id'
+   if isNaN zIndexContexts[uniqid]
+     zIndexContexts[uniqid] = 0
+   else
+     zIndexContexts[uniqid]++
+
   # deprecated ends
 
 ###

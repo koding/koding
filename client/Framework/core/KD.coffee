@@ -93,9 +93,10 @@ unless window.event?
     @unregisterInstance anInstanceId
     # anInstance = null #FIXME: Redundant? See unregisterInstance
 
-  extend:(functions)->
-    for methodName, method of functions
-      @[methodName] = method
+  extend:(obj)->
+    for key, val of obj
+      if @[key] then throw new Error "#{key} is allready registered"
+      else @[key] = val
 
   registerSingleton:(singletonName,object,override = no)->
     if (existingSingleton = KD.singletons[singletonName])?

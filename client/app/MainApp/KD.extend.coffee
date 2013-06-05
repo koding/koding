@@ -24,7 +24,7 @@ KD.extend
       # if there is fail method, call it
       onFail?()
 
-      # if login is a silent redirection
+      # if it's not a silent operation redirect
       unless silence
         @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
 
@@ -98,14 +98,3 @@ KD.extend
           if flag in account.globalFlags
             return yes
     no
-
-  # private member for tracking z-indexes
-  zIndexContexts  = {}
-
-  # Get next highest Z-index
-  getNextHighestZIndex:(context)->
-   uniqid = context.data 'data-id'
-   if isNaN zIndexContexts[uniqid]
-     zIndexContexts[uniqid] = 0
-   else
-     zIndexContexts[uniqid]++
