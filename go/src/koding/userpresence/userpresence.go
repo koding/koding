@@ -15,17 +15,17 @@ import (
 type socketIds map[string]bool
 
 var (
-	resourceName      string
-	followFeedChannel *amqp.Channel
-	socketIdsByUser   map[string]socketIds
-	timersByUser      map[string]*time.Timer
+	resourceName          string
+	followFeedAmqpChannel *amqp.Channel
+	socketIdsByUser       map[string]socketIds
+	timersByUser          map[string]*time.Timer
 )
 
 func main() {
 
 	var err error
 
-	if followFeedChannel, err = createFollowFeedChannel("followfeed"); err != nil {
+	if followFeedAmqpChannel, err = createFollowFeedChannel("followfeed"); err != nil {
 		panic(err)
 	}
 
@@ -92,20 +92,30 @@ func startMonitoring(mainAmqpConn *amqp.Connection) {
 		panic(err)
 	}
 
-	go handlePresence(deliveries, make(chan error))
+	go handlePresence(deliveries, mainAmqpConn, make(chan error))
 
 }
 
-func handlePresence(deliveries <-chan amqp.Delivery, done chan error) {
+func handlePresence(
+	deliveries <-chan amqp.Delivery,
+	mainAmqpConn *amqp.Connection,
+	done chan error,
+) {
+	channel, err := mainAmqpConn.Channel()
+	if err != nil {
+		done <- err
+	}
+	defer channel.Close()
+
 	for d := range deliveries {
 		action, username := d.Headers["action"].(string), d.Headers["key"].(string)
 		log.Printf("%v %v", action, username)
 		var err error
 		switch action {
 		case "bind":
-			err = updateOnlineStatus(username, "online")
+			err = updateOnlineStatus(channel, username, "online")
 		case "unbind":
-			err = updateOnlineStatus(username, "offline")
+			err = updateOnlineStatus(channel, username, "offline")
 		}
 		if err != nil {
 			done <- err
@@ -138,8 +148,8 @@ func createFollowFeedChannel(component string) (*amqp.Channel, error) {
 	return conn.Channel()
 }
 
-func updateOnlineStatus(username, status string) error {
-
+func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
+	log.Println(username)
 	users := mongo.GetCollection("jUsers")
 	accounts := mongo.GetCollection("jAccounts")
 
@@ -154,17 +164,13 @@ func updateOnlineStatus(username, status string) error {
 	// update the user's actual status
 	users.Update(
 		bson.M{"_id": user["_id"]},
-		bson.M{
-			"$set": bson.M{
-				"onlineStatus.actual": status,
-			},
-		},
+		bson.M{"$set": bson.M{"onlineStatus.actual": status}},
 	)
 
 	onlineStatus := make(map[string]interface{})
 
 	if user["onlineStatus"] != nil {
-		onlineStatus = (user["onlineStatus"]).(map[string]interface{})
+		onlineStatus = user["onlineStatus"].(map[string]interface{})
 	}
 
 	var publicStatus string
@@ -174,21 +180,46 @@ func updateOnlineStatus(username, status string) error {
 	} else {
 		publicStatus = onlineStatus["userPreference"].(string)
 	}
+
+	update := bson.M{"$set": bson.M{"onlineStatus": publicStatus}}
 	// update the user's public status
 	accounts.Update(
 		bson.M{"_id": account["_id"]},
-		bson.M{
-			"$set": bson.M{
-				"onlineStatus": publicStatus,
-			},
-		},
+		update,
 	)
+
+	if err := broadcastStatusChange(channel, account, &update); err != nil {
+		return err
+	}
 
 	return nil
 }
 
+func broadcastStatusChange(
+	channel *amqp.Channel,
+	account map[string]interface{},
+	update *bson.M,
+) error {
+	oid := account["_id"].(bson.ObjectId)
+	routingKey := "oid." + oid.Hex() + ".event.updateInstance"
+
+	message, err := json.Marshal(update)
+	if err != nil {
+		return err
+	}
+
+	channel.Publish(
+		"updateInstances", // exchange name
+		routingKey,        // routing key
+		false,             // mandatory
+		false,             // immediate
+		amqp.Publishing{Body: message}, // message
+	)
+	return nil
+}
+
 func changeFollowFeedExchangeBindings(username, action string) error {
-	if err := followFeedChannel.ExchangeDeclare(
+	if err := followFeedAmqpChannel.ExchangeDeclare(
 		username, // exchange name
 		"topic",  // kind
 		false,    // durable
@@ -200,7 +231,7 @@ func changeFollowFeedExchangeBindings(username, action string) error {
 		return err
 	}
 
-	if _, err := followFeedChannel.QueueDeclare(
+	if _, err := followFeedAmqpChannel.QueueDeclare(
 		username, // queue name
 		false,    // durable
 		true,     // auto delete
@@ -213,7 +244,7 @@ func changeFollowFeedExchangeBindings(username, action string) error {
 
 	switch action {
 	case "bind":
-		if err := followFeedChannel.QueueBind(
+		if err := followFeedAmqpChannel.QueueBind(
 			username, // queue name
 			username, // key
 			username, // exchange name
@@ -223,7 +254,7 @@ func changeFollowFeedExchangeBindings(username, action string) error {
 			return err
 		}
 	case "unbind":
-		if err := followFeedChannel.QueueUnbind(
+		if err := followFeedAmqpChannel.QueueUnbind(
 			username, // queue name
 			username, // key
 			username, // exchange name
@@ -241,11 +272,6 @@ func startControlling(mainAmqpConn *amqp.Connection) {
 	timersByUser = make(map[string]*time.Timer)
 
 	controlChannel, err := mainAmqpConn.Channel()
-	if err != nil {
-		panic(err)
-	}
-
-	bindingChannel, err := mainAmqpConn.Channel()
 	if err != nil {
 		panic(err)
 	}
@@ -298,15 +324,22 @@ func startControlling(mainAmqpConn *amqp.Connection) {
 		panic(err)
 	}
 
-	go handleControl(deliveries, bindingChannel, make(chan error))
+	go handleControl(deliveries, mainAmqpConn, make(chan error))
 
 }
 
 func handleControl(
 	deliveries <-chan amqp.Delivery,
-	bindingChannel *amqp.Channel,
+	mainAmqpConn *amqp.Connection,
 	done chan error,
 ) {
+
+	bindingChannel, err := mainAmqpConn.Channel()
+	if err != nil {
+		done <- err
+	}
+	defer bindingChannel.Close()
+
 	for d := range deliveries {
 
 		if d.RoutingKey != "auth.join" && d.RoutingKey != "auth.leave" {
@@ -383,10 +416,12 @@ type presenceControlMessage struct {
 }
 
 func addPresenceBinding(username string, bindingChannel *amqp.Channel) error {
+
 	if _, ok := timersByUser[username]; ok {
 		timersByUser[username].Stop()
 		delete(timersByUser, username)
 	}
+
 	return bindingChannel.QueueBind(
 		username,     // queue name
 		username,     // key
@@ -397,9 +432,11 @@ func addPresenceBinding(username string, bindingChannel *amqp.Channel) error {
 }
 
 func removePresenceBinding(username string, bindingChannel *amqp.Channel) error {
+
 	if _, ok := timersByUser[username]; !ok {
 		timersByUser[username] = time.NewTimer(time.Second * 10)
 	}
+
 	select {
 	case <-timersByUser[username].C:
 		return bindingChannel.QueueUnbind(
