@@ -248,39 +248,43 @@ class GroupCreationModal extends KDModalView
       delete data.cardYear
       delete data.cardCV
 
-      modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
-        # These will go into Recurly module
-        newData.username    = 'group_unnamed'
-        newData.ipAddress   = '0.0.0.0'
-        newData.firstName   = 'Group'
-        newData.lastName    = 'Unnamed'
-        newData.email       = 'group@example.com'
-        newData.pin         = 'xxx'
-        newData.accountCode = yes
-
-        formData.plan.subscribe newData, (err, account)=>
+      if formData.plan.feeMonthly is 0
+        KD.remote.api.JGroup.create formData, (err, group)=>
           if err
-            # Show error messages here.
-            onError err
+            callback? err
+            new KDNotificationView title: err.message, duration: 1000
           else
-            # DONE
-            onSuccess()
+            callback? err, group
+            @getSingleton("groupsController").showGroupCreatedModal group
+            @destroy()
+      else
+        modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
+          # These will go into Recurly module
+          newData.username    = 'group_unnamed'
+          newData.ipAddress   = '0.0.0.0'
+          newData.firstName   = 'Group'
+          newData.lastName    = 'Unnamed'
+          newData.email       = 'group@example.com'
+          newData.pin         = 'xxx'
+          newData.accountCode = yes
 
-            console.log account
+          formData.plan.subscribe newData, (err, account)=>
+            if err
+              # Show error messages here.
+              onError err
+            else
+              # DONE
+              onSuccess()
 
-            KD.remote.api.JGroup.create formData, (err, group)=>
-              if err
-                callback? err
-                new KDNotificationView title: err.message, duration: 1000
-              else
-                account.attachToGroup group, (err, account)=>
-                  console.log "Attach"
-                  console.log err
-                  console.log account
-                  console.log "-------"
-                  callback? err, group
-                  @getSingleton("groupsController").showGroupCreatedModal group
-                  @destroy()
+              KD.remote.api.JGroup.create formData, (err, group)=>
+                if err
+                  callback? err
+                  new KDNotificationView title: err.message, duration: 1000
+                else
+                  account.attachToGroup group, (err, account)=>
+                    callback? err, group
+                    @getSingleton("groupsController").showGroupCreatedModal group
+                    @destroy()
 
 
   makeSlug: ->
