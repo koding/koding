@@ -153,7 +153,7 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 	users := mongo.GetCollection("jUsers")
 	accounts := mongo.GetCollection("jAccounts")
 
-	user, account := make(map[string]interface{}), make(map[string]interface{})
+	user, account := make(bson.M), make(bson.M)
 
 	if err := users.Find(bson.M{"username": username}).One(&user); err != nil {
 		return err
@@ -167,10 +167,10 @@ func updateOnlineStatus(channel *amqp.Channel, username, status string) error {
 		bson.M{"$set": bson.M{"onlineStatus.actual": status}},
 	)
 
-	onlineStatus := make(map[string]interface{})
+	onlineStatus := make(bson.M)
 
 	if user["onlineStatus"] != nil {
-		onlineStatus = user["onlineStatus"].(map[string]interface{})
+		onlineStatus = user["onlineStatus"].(bson.M)
 	}
 
 	var publicStatus string
