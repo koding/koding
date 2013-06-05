@@ -8,7 +8,9 @@ import (
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"strconv"
 	"strings"
+	"time"
 )
 
 const CACHE_TIMEOUT = 60 //seconds
@@ -65,11 +67,27 @@ type UserRules struct {
 	Services map[string]Restriction
 }
 
+type DomainStat struct {
+	Request map[string]int
+}
+
+type ProxyStat struct {
+	Country map[string]int
+	Ip      map[string]int
+	Request map[string]int
+}
+
+type Stats struct {
+	Domains map[string]DomainStat
+	Proxies map[string]ProxyStat
+}
+
 type Config struct {
 	Proxies      []Proxy
 	RoutingTable map[string]UserProxy
 	Domains      []Domain `json:"domains"`
 	Rules        map[string]UserRules
+	Stats        Stats
 }
 
 func NewKeyData(key, host, hostdata, rabbitkey string, currentindex int) *KeyData {
@@ -99,12 +117,20 @@ func NewProxy(name string) *Proxy {
 	}
 }
 
+func NewStats() *Stats {
+	return &Stats{
+		Domains: make(map[string]DomainStat),
+		Proxies: make(map[string]ProxyStat),
+	}
+}
+
 func NewConfig() *Config {
 	return &Config{
 		Proxies:      make([]Proxy, 0),
 		RoutingTable: make(map[string]UserProxy),
 		Domains:      make([]Domain, 0),
 		Rules:        make(map[string]UserRules),
+		Stats:        *NewStats(),
 	}
 }
 
@@ -418,7 +444,7 @@ func (p *ProxyConfiguration) GetConfig() (Config, error) {
 	config := Config{}
 	err := p.Collection.Find(nil).One(&config)
 	if err != nil {
-		return config, fmt.Errorf("no config exists: '%s'", config)
+		return config, fmt.Errorf("no config exists: '%s'", err)
 	}
 
 	return config, nil
@@ -611,4 +637,78 @@ func (p *ProxyConfiguration) GetRule(username, servicename string) (Restriction,
 
 	rules := res[username]
 	return rules.Services[servicename], nil
+}
+
+func (p *ProxyConfiguration) AddStatistics(ip, country, proxy, domainname string) error {
+	config, err := p.GetConfig()
+	if err != nil {
+		return fmt.Errorf("Error: '%s' while adding statistics", err)
+	}
+
+	nowHour := strconv.Itoa(time.Now().Hour())
+
+	if config.Stats.Domains == nil {
+		config.Stats.Domains = make(map[string]DomainStat)
+	}
+	if config.Stats.Proxies == nil {
+		config.Stats.Proxies = make(map[string]ProxyStat)
+	}
+	// DomainStats
+	_, ok := config.Stats.Domains[domainname]
+	if !ok {
+		config.Stats.Domains[domainname] = DomainStat{Request: make(map[string]int)}
+	}
+	domainStat := config.Stats.Domains[domainname]
+
+	_, ok = domainStat.Request[nowHour]
+	if !ok {
+		domainStat.Request[nowHour] = 1
+	} else {
+		domainStat.Request[nowHour]++
+	}
+	config.Stats.Domains[domainname] = domainStat
+
+	// ProxyStats
+	_, ok = config.Stats.Proxies[proxy]
+	if !ok {
+		config.Stats.Proxies[proxy] = ProxyStat{
+			Country: make(map[string]int),
+			Ip:      make(map[string]int),
+			Request: make(map[string]int),
+		}
+	}
+	proxyStat := config.Stats.Proxies[proxy]
+
+	_, ok = proxyStat.Request[nowHour]
+	if !ok {
+		proxyStat.Request[nowHour] = 1
+	} else {
+		proxyStat.Request[nowHour]++
+	}
+
+	if ip != "" {
+		_, ok = proxyStat.Ip[ip]
+		if !ok {
+			proxyStat.Ip[ip] = 1
+		} else {
+			proxyStat.Ip[ip]++
+		}
+	}
+
+	if country != "" {
+		_, ok = proxyStat.Country[country]
+		if !ok {
+			proxyStat.Country[country] = 1
+		} else {
+			proxyStat.Country[country]++
+		}
+	}
+	config.Stats.Proxies[proxy] = proxyStat
+
+	// Update/Insert statistics
+	err = p.UpdateConfig(config)
+	if err != nil {
+		return err
+	}
+	return nil
 }

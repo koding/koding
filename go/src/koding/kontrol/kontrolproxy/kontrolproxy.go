@@ -188,6 +188,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
 	}
+
+	go logStatistic(user)
+
 	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
 
