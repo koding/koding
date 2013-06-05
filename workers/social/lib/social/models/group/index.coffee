@@ -343,17 +343,17 @@ module.exports = class JGroup extends Module
               console.log 'payment plan is added'
               queue.next()
 
-      if groupData['group-vm'] is 'on'
+      if groupData.plan
         limits =
-          users           : { quota: 100 }
-          cpu             : { quota: 100 }
-          ram             : { quota: 100 }
-          disk            : { quota: 100 }
-          money           : { quota: 100 }
-          'cpu per user'  : { quota: 100 }
-          'ram per user'  : { quota: 100 }
-          'disk per user' : { quota: 100 }
-          'money per user': { quota: 100 }
+          users           : { quota: 1000 }
+          cpu             : { quota: 1000 }
+          ram             : { quota: 1000 }
+          disk            : { quota: 1000 }
+          money           : { quota: 1000 }
+          'cpu per user'  : { quota: 1000 }
+          'ram per user'  : { quota: 1000 }
+          'disk per user' : { quota: 1000 }
+          'money per user': { quota: 1000 }
         queue.push -> group.createBundle limits, (err)->
           if err then callback err
           else
