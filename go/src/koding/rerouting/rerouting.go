@@ -106,7 +106,7 @@ func startRouting() {
 
 			declareExchange(c, join.Exchange)
 
-			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey, join.Suffix, join.ConsumerTag)
+			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey, join.Suffix, join.ConsumerTag, make(chan error))
 		case "auth.leave":
 			var leave LeaveMsg
 			err := json.Unmarshal(msg.Body, &leave)
@@ -157,7 +157,7 @@ func decrementExchangeCounter(leave LeaveMsg) {
 	delete(authPairs, leave.RoutingKey)
 }
 
-func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string, consumerTag string) {
+func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string, consumerTag string, done chan error) {
 	log.Printf("Consume from:\n exchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
 		exchange, bindingKey, routingKey, consumerTag)
 
@@ -165,17 +165,24 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix s
 		routingKey += suffix
 	}
 
+	channel, err := c.conn.Channel()
+	if err != nil {
+		done <- err
+		return
+	}
+	defer channel.Close()
+
 	uniqueQueueName := generateUniqueQueueName()
 
-	if _, err := c.channel.QueueDeclare(uniqueQueueName, false, true, true, false, nil); err != nil {
+	if _, err := channel.QueueDeclare(uniqueQueueName, false, true, true, false, nil); err != nil {
 		log.Fatalf("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind(uniqueQueueName, bindingKey, exchange, false, nil); err != nil {
+	if err := channel.QueueBind(uniqueQueueName, bindingKey, exchange, false, nil); err != nil {
 		log.Fatalf("queue.bind: %s", err)
 	}
 
-	messages, err := c.channel.Consume(uniqueQueueName, consumerTag, true, false, false, false, nil)
+	messages, err := channel.Consume(uniqueQueueName, consumerTag, true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("basic.consume: %s", err)
 	}
