@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -17,11 +16,9 @@ type RulesPostMessage struct {
 	RuleMode    *string `json:"mode"`
 }
 
-func GetRulesUsers(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	uuid := vars["uuid"]
-
-	res, err := proxyDB.GetRulesUsers(uuid)
+func GetRules(writer http.ResponseWriter, req *http.Request) {
+	fmt.Println("GET\t/rules")
+	res, err := proxyDB.GetRulesUsers()
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -38,10 +35,9 @@ func GetRulesUsers(writer http.ResponseWriter, req *http.Request) {
 
 func GetRulesServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	uuid := vars["uuid"]
 	username := vars["username"]
-
-	res, err := proxyDB.GetRulesServices(uuid, username)
+	fmt.Printf("GET\t/rules/%s\n", username)
+	res, err := proxyDB.GetRulesServices(username)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -57,11 +53,11 @@ func GetRulesServices(writer http.ResponseWriter, req *http.Request) {
 
 func GetRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	uuid := vars["uuid"]
 	username := vars["username"]
 	servicename := vars["servicename"]
+	fmt.Printf("GET\t/rules/%s/%s\n", username, servicename)
 
-	res, err := proxyDB.GetRule(uuid, username, servicename)
+	res, err := proxyDB.GetRule(username, servicename)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -77,9 +73,9 @@ func GetRule(writer http.ResponseWriter, req *http.Request) {
 
 func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	uuid := vars["uuid"]
 	servicename := vars["servicename"]
 	username := vars["username"]
+	fmt.Printf("POST\t/rules/%s/%s\n", username, servicename)
 
 	var msg RulesPostMessage
 	var rule string
@@ -88,8 +84,6 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	var ruleMode string
 
 	body, _ := ioutil.ReadAll(req.Body)
-	log.Println(string(body))
-
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -128,7 +122,7 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	proxyDB.AddRule(uuid, username, servicename, ruleName, rule, ruleMode, ruleEnabled)
+	proxyDB.AddRule(username, servicename, ruleName, rule, ruleMode, ruleEnabled)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 	}

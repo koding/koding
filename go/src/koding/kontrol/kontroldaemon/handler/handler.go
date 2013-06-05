@@ -206,7 +206,6 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 			key,
 			worker.Hostname+":"+port, // host
 			"FromKontrolDaemon",
-			"proxy-2.in.koding.com", // proxy uuid
 			"",
 		)
 		if err != nil {
