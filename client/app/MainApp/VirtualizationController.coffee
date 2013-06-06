@@ -98,8 +98,10 @@ class VirtualizationController extends KDController
 
   createNewVM:->
     return  if @dialogIsOpen
-
-    vmCreateCallback = (err, vm)->
+    canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
+    canCreatePersonalVM = "member" in KD.config.roles
+    
+    vmCreateCallback  = (err, vm)->
       if err
         warn err
         return new KDNotificationView
@@ -111,39 +113,97 @@ class VirtualizationController extends KDController
 
     group = KD.singletons.groupsController.getGroupSlug()
 
-    buttons =
-      'Create a Personal VM' :
-        style    : "modal-clean-gray"
-        callback : =>
-          KD.singletons.vmController.createGroupVM 'personal', vmCreateCallback
-
-    if "owner" in KD.config.roles or "admin" in KD.config.roles
+    if canCreateSharedVM
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
                    <b>#{group}</b>. If you prefer to create a shared VM, all
                    members in <b>#{group}</b> will be able to use that VM.
                 """
-      buttons['Create a Shared VM'] =
-        style      : "modal-clean-gray"
-        callback   : =>
-          KD.singletons.vmController.createGroupVM 'shared', vmCreateCallback
-
-    else if "member" in KD.config.roles
+    else if canCreatePersonalVM
       content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
-
     else
       return new KDNotificationView
         title : "You are not authorized to create VMs in #{group} group"
 
-    buttons.Cancel =
-      style      : "modal-cancel"
-      callback   : -> modal.destroy()
+    modal = new KDModalViewWithForms
+      title                       : "Create a new VM"
+      height                      : "auto"
+      width                       : 500
+      overlay                     : yes
+      tabs                        :
+        navigable                 : no
+        forms                     :
+          "Create VM"             :
+            callback              : (formData)=>
+              form                = modal.modalTabs.forms["Create VM"]
+              {personal, shared}   = form.buttons
+              log formData
+            buttons               :
+              personal            :
+                title             : "Create a personal VM"
+                style             : "modal-clean-gray"
+                type              : "submit"
+                loader            :
+                  color           : "#ffffff"
+                  diameter        : 12
+                callback          : ->
+                  KD.singletons.vmController.createGroupVM 'personal', vmCreateCallback
+              shared              :
+                title             : "Create a shared VM"
+                style             : "modal-clean-gray hidden"
+                type              : "submit"
+                loader            :
+                  color           : "#ffffff"
+                  diameter        : 12
+                callback          : ->
+                  KD.singletons.vmController.createGroupVM 'shared', vmCreateCallback
+              cancel              :
+                style             : "modal-cancel"
+                callback          : -> modal.destroy()
+            fields                :
+              "intro"             :
+                itemClass         : KDCustomHTMLView
+                partial           : "<p>#{content}</p>"
+              "VM Type"           :
+                label             : "VM Host"
+                itemClass         : KDSelectBox
+                type              : "select"
+                name              : "vm-host"
+                defaultValue      : "1"
+                selectOptions     : [
+                  { title : "2GHz, 4GB RAM, 20GB Disk",      value : "1" }
+                  { title : "4GHz, 4GB RAM, 40GB Disk",      value : "2" }
+                  { title : "8GHz, 8GB RAM, 60GB Disk",      value : "3" }
+                  { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
+                  { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
+                ]
+              "Usage Policy"      :
+                label             : "Usage Policy"
+                itemClass         : KDSelectBox
+                type              : "select"
+                name              : "vm-policy"
+                defaultValue      : "single"
+                selectOptions     : [
+                  { title : "All users share same VM host.",                  value : "single" }
+                  { title : "Limit users per VM, create new when necessary.", value : "multiple" }
+                ]
+              "Users per VM"      :
+                label             : "Users per VM"
+                itemClass         : KDSelectBox
+                type              : "select"
+                name              : "vm-users"
+                defaultValue      : "25"
+                selectOptions     : [
+                  { title : "5",   value : "5" }
+                  { title : "10",  value : "10" }
+                  { title : "25",  value : "25" }
+                  { title : "50",  value : "50" }
+                  { title : "100", value : "100" }
+                ]
 
-    modal     = new KDModalView
-      title   : "Create a new VM"
-      content : "<div class='modalformline'><p>#{content}</p></div>"
-      height  : "auto"
-      overlay : yes
-      buttons : buttons
+
+
+    if canCreateSharedVM
+      modal.modalTabs.forms["Create VM"].buttons.shared.show()
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
