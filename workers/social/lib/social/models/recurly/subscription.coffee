@@ -16,8 +16,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       uuid         : 'unique'
     sharedMethods  :
       static       : [
-        'all', 'one', 'some',
-        'getSubscriptions'
+        'getUserSubscriptions'
       ]
       instance     : [
         'cancel', 'resume'
@@ -33,10 +32,16 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       renew        : String
       lastUpdate   : Number
 
-  @getSubscriptions = secure (client, callback)->
+  @getUserSubscriptions = secure (client, callback)->
     {delegate} = client.connection
-    selector =
-      userCode : "user_#{delegate._id}"
+    @getSubscriptions "user_#{delegate._id}", callback
+
+  @getGroupSubscriptions = (group, callback)->
+    @getSubscriptions "group_#{group.slug}", callback
+
+  @getSubscriptions = (userCode, callback)->
+    selector   =
+      userCode : userCode
 
     unless forceRefresh
       JRecurlySubscription.all selector, callback
@@ -44,20 +49,18 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       JRecurlySubscription.one {}, (err, sub)=>
         callback err  if err
         unless sub
-          @updateCache client, -> JRecurlySubscription.all selector, callback
+          @updateCache userCode, -> JRecurlySubscription.all selector, callback
         else
           sub.lastUpdate ?= 0
           now = (new Date()).getTime()
           if now - sub.lastUpdate > 1000 * forceInterval
-            @updateCache client, -> JRecurlySubscription.all selector, callback
+            @updateCache userCode, -> JRecurlySubscription.all selector, callback
           else
             JRecurlySubscription.all selector, callback
 
   # Recurly web hook will use this method to invalidate the cache.
-  @updateCache = secure (client, callback)->
+  @updateCache = (userCode, callback)->
     console.log "Updating Recurly user subscription..."
-    {delegate} = client.connection
-    userCode = "user_#{delegate._id}"
 
     payment.getUserSubscriptions userCode, (err, allSubs)->
       mapAll = {}
