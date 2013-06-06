@@ -36,6 +36,7 @@ http.start { |http|
     task = do_request.call "tasks/#{id}"
     tasks << [Time.parse(task["modified_at"]).to_i, i, task] unless task["completed"]
     print "\e[G#{i * 100 / task_ids.size}%"
+    $stdout.flush
   end
 }
 
