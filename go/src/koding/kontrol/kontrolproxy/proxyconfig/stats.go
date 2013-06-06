@@ -120,7 +120,6 @@ func (p *ProxyConfiguration) AddProxyStat(proxyname, country string) error {
 			proxyStat.Country[country]++
 		}
 	}
-	fmt.Println(proxyStat)
 
 	_, err = p.Collection["proxystats"].Upsert(bson.M{"proxyname": proxyname}, proxyStat)
 	if err != nil {
