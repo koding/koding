@@ -25,6 +25,23 @@ module.exports = class JRecurlyAccount extends Module
         'update', 'attachToGroup'
       ]
 
+  # @createGroupAccount = secure (client, group, callback)->
+  #   account = new JRecurlyAccount
+  #     recurlyId : "group_#{group.slug}"
+  #     groupSlug : group.slug
+
+  #     # data.username  = "group_#{group.slug}" 
+  #     # data.email     = 'group@example.com'
+  #     # data.firstName = 'Group'
+  #     # data.lastName  = group.title
+
+  #     payment.setAccount account.recurlyId, data, (err, res)=>
+  #       return callback err  if err
+  #       unless err
+  #         @save (err)=>
+  #           return callback err  if err
+  #           callback no, @
+
   @create = secure (client, callback)->
     {delegate} = client.connection
 

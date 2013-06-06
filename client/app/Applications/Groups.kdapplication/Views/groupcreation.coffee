@@ -228,7 +228,8 @@ class GroupCreationModal extends KDModalView
 
     formData = _.extend formData, @hostSelector.getFormData(), @typeSelector.getFormData(), @mainSettings.getFormData()
 
-    formData.plan = @plans[formData.host]
+    formData.payment =
+      plan: @plans[formData.host].code
 
     log "form for group creation submitted", formData
 
@@ -236,56 +237,14 @@ class GroupCreationModal extends KDModalView
       formData.requestType = formData.privacy
       formData.privacy     = 'private'
 
-    # Copy account creator's billing information
-    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
-      warn err
-      if err or not data
-        data = {}
-
-      # These will go into Recurly module
-      delete data.cardNumber
-      delete data.cardMonth
-      delete data.cardYear
-      delete data.cardCV
-
-      if formData.plan.feeMonthly is 0
-        KD.remote.api.JGroup.create formData, (err, group)=>
-          if err
-            callback? err
-            new KDNotificationView title: err.message, duration: 1000
-          else
-            callback? err, group
-            @getSingleton("groupsController").showGroupCreatedModal group
-            @destroy()
+    KD.remote.api.JGroup.create formData, (err, group)=>
+      if err
+        callback? err
+        new KDNotificationView title: err.message, duration: 1000
       else
-        modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)=>
-          # These will go into Recurly module
-          newData.username    = 'group_unnamed'
-          newData.ipAddress   = '0.0.0.0'
-          newData.firstName   = 'Group'
-          newData.lastName    = 'Unnamed'
-          newData.email       = 'group@example.com'
-          newData.pin         = 'xxx'
-          newData.accountCode = yes
-
-          formData.plan.subscribe newData, (err, account)=>
-            if err
-              # Show error messages here.
-              onError err
-            else
-              # DONE
-              onSuccess()
-
-              KD.remote.api.JGroup.create formData, (err, group)=>
-                if err
-                  callback? err
-                  new KDNotificationView title: err.message, duration: 1000
-                else
-                  account.attachToGroup group, (err, account)=>
-                    callback? err, group
-                    @getSingleton("groupsController").showGroupCreatedModal group
-                    @destroy()
-
+        callback? err, group
+        @getSingleton("groupsController").showGroupCreatedModal group
+        @destroy()
 
   makeSlug: ->
     form       = @mainSettings

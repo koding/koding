@@ -85,7 +85,8 @@ module.exports = class JGroup extends Module
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
+        'checkPayment', 'makePayment'
       ]
     schema          :
       title         :
@@ -118,6 +119,9 @@ module.exports = class JGroup extends Module
             type          : String
             default       : '1'
           customOptions   : Object
+      payment       :
+        plan        : String
+        subscription: String
     relationships   :
       bundle        :
         targetType  : 'JGroupBundle'
@@ -166,9 +170,6 @@ module.exports = class JGroup extends Module
         as          : 'owner'
       vm            :
         targetType  : 'JVM'
-        as          : 'owner'
-      paymentPlan   : 
-        targetType  : 'JRecurlyPlan'
         as          : 'owner'
 
   constructor:->
@@ -335,30 +336,6 @@ module.exports = class JGroup extends Module
 
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy groupData.requestType, -> queue.next()
-
-      if groupData.paymentPlan
-        queue.push -> group.addPaymentPlan groupData.paymentPlan, (err)->
-            if err then callback err
-            else
-              console.log 'payment plan is added'
-              queue.next()
-
-      if groupData.plan
-        limits =
-          users           : { quota: 1000 }
-          cpu             : { quota: 1000 }
-          ram             : { quota: 1000 }
-          disk            : { quota: 1000 }
-          money           : { quota: 1000 }
-          'cpu per user'  : { quota: 1000 }
-          'ram per user'  : { quota: 1000 }
-          'disk per user' : { quota: 1000 }
-          'money per user': { quota: 1000 }
-        queue.push -> group.createBundle limits, (err)->
-          if err then callback err
-          else
-            console.log 'group bundle created'
-            queue.next()
 
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }
@@ -1306,5 +1283,37 @@ module.exports = class JGroup extends Module
       ram             : { quota: 64 }
       disk            : { quota: 500 }
       users           : { quota: 20 }
-      money           : { quota: 0 }
     }
+
+  makePayment: secure (client, data, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: @payment.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, (err, subs)=>
+        return callback err  if err
+        @payment.subscription = subs.uuid
+        @save =>
+
+          @createBundle
+            users           : { quota: 1000 }
+            cpu             : { quota: 1000 }
+            ram             : { quota: 1000 }
+            disk            : { quota: 1000 }
+            'cpu per user'  : { quota: 1000 }
+            'ram per user'  : { quota: 1000 }
+            'disk per user' : { quota: 1000 }
+          , (err)->
+            callback no, subs
+
+  checkPayment: (callback)->
+    JRecurlySubscription = require '../recurly/subscription'
+    JRecurlySubscription.one
+      planCode: @payment.plan
+      userCode: "group_#{@slug}"
+    , (err, subs)=>
+      if err or not subs
+        callback no
+      else
+        callback yes
