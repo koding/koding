@@ -743,24 +743,20 @@ div.led-wrapper
   .no-vm-found-widget
     opacity           0
     display           hidden
-    vendor            transition, opacity .3s
-
     top               10px
     left              10%
-
-    width             80%
-    height            auto
-
-    padding           4px
-    font-size         12px
-    text-align        center
-
-    border            1px solid #BBB
-    border-radius     4px
-    background-color  rgba(255,255,255,0.6)
-
+    size              80%, auto
+    padding           5px 10px
+    font-size         11px
+    line-height       22px
+    border-radius     2px
+    bg                color, rgba(0, 0, 0, .08)
+    text-shadow       0 1px 0 rgba(255,255,255,.75)
+    vendor            transition, opacity .3s
     abs()
-
+    .kdloader
+      display         block
+      margin          30px auto
     &.visible
       opacity         1
       display         block
