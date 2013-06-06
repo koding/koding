@@ -195,7 +195,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
 
-	// Reverseproxy.Director closure
+	// =.Director closure
 	targetQuery := target.RawQuery
 	outreq.URL.Scheme = target.Scheme
 	outreq.URL.Host = target.Host
@@ -285,17 +285,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		res := new(http.Response)
-		rabbitKey := lookupRabbitKey(user.Username, user.Servicename, user.Key)
 
-		if rabbitKey != "" {
-			fmt.Println("connection via rabbitmq")
-			res, err = rabbitTransport(outreq, user, rabbitKey)
-			if err != nil {
-				log.Printf("rabbit proxy %s", err.Error())
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-				return
-			}
-		} else {
+		rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
+		if err != nil {
 			fmt.Println("connection via normal http")
 			// add :80 if not available
 			ok := hasPort(outreq.URL.Host)
@@ -308,8 +300,16 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				io.WriteString(rw, fmt.Sprint(err))
 				return
 			}
-		}
+		} else {
+			fmt.Println("connection via rabbitmq")
+			res, err = rabbitTransport(outreq, user, rabbitKey)
+			if err != nil {
+				log.Printf("rabbit proxy %s", err.Error())
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+				return
+			}
 
+		}
 		defer res.Body.Close()
 
 		copyHeader(rw.Header(), res.Header)

@@ -8,11 +8,10 @@ import (
 	"koding/tools/db"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
-	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -142,21 +141,21 @@ func lookupDomain(domainname string) (*UserInfo, error) {
 	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, domainname), nil
 }
 
-func lookupRabbitKey(username, servicename, key string) string {
-	var rabbitkey string
-
+func lookupRabbitKey(username, servicename, key string) (string, error) {
 	res, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
-		fmt.Printf("no rabbitkey available for user '%s' in the db. disabling rabbit proxy\n", username)
-		return rabbitkey
+		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
 	}
 
-	if len(res) >= 1 {
-		fmt.Printf("round-robin is disabled for rabbit proxy %s\n", username)
-		return rabbitkey
+	if res.Mode == "roundrobin" {
+		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
 	}
 
-	return res[0].RabbitKey
+	if res.RabbitKey == "" {
+		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
+	}
+
+	return res.RabbitKey, nil
 }
 
 func (u *UserInfo) populateTarget() error {
@@ -208,6 +207,7 @@ func (u *UserInfo) populateTarget() error {
 
 			return nil
 		}
+
 		fmt.Println("got vm ip from memcached")
 		err = json.Unmarshal(it.Value, &u.Target)
 		if err != nil {
@@ -219,49 +219,21 @@ func (u *UserInfo) populateTarget() error {
 		break // internal is done below
 	}
 
-	keys, err := proxyDB.GetKeyList(username, servicename)
+	keyData, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
 		return errors.New("no users availalable in the db. targethost not found")
 	}
 
-	lenKeys := len(keys)
-	if lenKeys == 0 {
-		return fmt.Errorf("no keys are available for user %s", username)
-	} else {
-		if key == "latest" {
-			// get all keys and sort them
-			listOfKeys := make([]int, lenKeys)
-			i := 0
-			for k, _ := range keys {
-				listOfKeys[i], _ = strconv.Atoi(k)
-				i++
-			}
-			sort.Ints(listOfKeys)
+	switch keyData.Mode {
+	case "roundrobin":
+		N := float64(len(keyData.Host))
+		n := int(math.Mod(float64(keyData.CurrentIndex+1), N))
+		hostname = keyData.Host[n]
 
-			// give precedence to the largest key number
-			key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
-		}
-
-		_, ok := keys[key]
-		if !ok {
-			return fmt.Errorf("no key %s is available for user %s", key, username)
-		}
-
-		// use round-robin algorithm for each hostname
-		for i, value := range keys[key] {
-			currentIndex := value.CurrentIndex
-			if currentIndex == i {
-				hostname = value.Host
-				for k, _ := range keys[key] {
-					if len(keys[key])-1 == currentIndex {
-						keys[key][k].CurrentIndex = 0 // reached end
-					} else {
-						keys[key][k].CurrentIndex = currentIndex + 1
-					}
-				}
-				break
-			}
-		}
+		keyData.CurrentIndex = n
+		go proxyDB.UpdateKeyData(username, servicename, keyData)
+	case "sticky":
+		hostname = keyData.Host[keyData.CurrentIndex]
 	}
 
 	u.Target, err = url.Parse("http://" + hostname)
