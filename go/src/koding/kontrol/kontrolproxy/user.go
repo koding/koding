@@ -301,6 +301,10 @@ func (u *UserInfo) validate() (string, bool) {
 }
 
 func logDomainStat(name string) {
+	if name == "" {
+		return
+	}
+
 	err := proxyDB.AddDomainStat(name)
 	if err != nil {
 		fmt.Printf("could not add statistisitcs for %s\n", err.Error())
