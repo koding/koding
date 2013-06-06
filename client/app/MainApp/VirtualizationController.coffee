@@ -161,7 +161,7 @@ class VirtualizationController extends KDController
                   onSuccess result
                   _createUserVM callback
           else
-            _createUserVM()
+            _createUserVM callback
 
     vmCreateCallback  = (err, vm)->
       if err
