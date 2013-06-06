@@ -165,7 +165,6 @@ func persistMessages(
 		}
 
 		if sliceInfo.UpsertedId != nil {
-			log.Println(bson.M{"_id": sliceInfo.UpsertedId})
 			if err := conversationSlices.Update(
 				bson.M{"_id": sliceInfo.UpsertedId},
 				bson.M{"$set": bson.M{"from": t}},
@@ -181,7 +180,6 @@ func persistMessages(
 
 		neoMessage, err := json.Marshal(m)
 		if err != nil {
-			println("sfsfsf")
 			done <- err
 			continue
 		}
