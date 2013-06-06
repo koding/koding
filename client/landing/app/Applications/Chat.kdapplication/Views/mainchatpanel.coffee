@@ -7,6 +7,7 @@ class MainChatPanel extends JView
     @registerSingleton "chatPanel", @, yes
 
     @header = new MainChatHeader
+
     @conversationList = new ChatConversationListView
     @conversationListController = new ChatConversationListController
       view : @conversationList
@@ -15,6 +16,8 @@ class MainChatPanel extends JView
       if visible
         @getSingleton('windowController').addLayer @
         @once 'ReceivedClickElsewhere', @bound 'hide'
+
+    @listenWindowResize()
 
   createConversation:(data)->
     # Data includes chatChannel and the conversation
@@ -40,3 +43,19 @@ class MainChatPanel extends JView
 
   isVisible:->
     @hasClass 'visible'
+
+  toggleInboxMode:->
+    if @getWidth() is 250
+      {winWidth} = @getSingleton('windowController')
+      @setWidth winWidth - 160
+      @toggleClass 'inbox-mode'
+      @inboxMode = yes
+    else
+      @toggleClass 'inbox-mode'
+      @setWidth 250
+      @inboxMode = no
+
+  _windowDidResize:->
+    if @inboxMode
+      {winWidth} = @getSingleton('windowController')
+      @setWidth winWidth - 160
