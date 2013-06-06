@@ -89,7 +89,9 @@ class Sidebar extends JView
           callback?()
       ]
 
-    @finderController.on 'EnvironmentsTabRequested', => @showBottomControls()
+    @finderController.on 'EnvironmentsTabRequested', =>
+      @finderBottomControlPin.setState 'hide'
+      @showBottomControls()
 
     @resourcesController = new ResourcesController
     @resourcesWidget = @resourcesController.getView()
