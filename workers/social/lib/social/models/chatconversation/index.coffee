@@ -57,18 +57,23 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     {nickname} = delegate.profile
 
-    initialInvitees.push nickname
+    initialInvitees.push nickname  unless nickname in initialInvitees
 
-    conversation = new this {
-      publicName  : createId()
-      createdBy   : nickname
-    }
-
-    conversation.save (err)->
-      if err then callback err
-      else
-        callback null, conversation
+    @one { invitees: initialInvitees }, (err, conversation)->
+      return callback err  if err
+      if conversation
         conversation.invite client, invitee  for invitee in initialInvitees
+        return callback err, conversation
+
+      conversation = new JChatConversation
+        publicName : createId()
+        createdBy  : nickname
+
+      conversation.save (err)->
+        if err then callback err
+        else
+          callback null, conversation
+          conversation.invite client, invitee  for invitee in initialInvitees
 
   invite: secure (client, invitee, callback)->
     {delegate} = client.connection
