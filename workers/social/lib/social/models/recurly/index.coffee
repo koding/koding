@@ -198,12 +198,16 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   subscribeGroup: (group, data, callback)->
     data.quantity   ?= 1
     data.accountCode = "group_#{group.slug}"
+    data.email       = "group@example.com"
     data.plan        = @code
+    data.firstName   = "Group"
+    data.lastName    = group.title
 
     payment.addSubscriptionAndAccount data, (err, result)->
+      console.log result
       return callback err  if err
       sub = new JRecurlySubscription
-        planCode : result.code
+        planCode : result.plan
         userCode : data.accountCode
         uuid     : result.uuid
         quantity : result.quantity
