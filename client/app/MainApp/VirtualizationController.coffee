@@ -135,89 +135,110 @@ class VirtualizationController extends KDController
       return new KDNotificationView
         title : "You are not authorized to create VMs in #{group} group"
 
-    modal = new KDModalViewWithForms
-      title                       : "Create a new VM"
-      height                      : "auto"
-      width                       : 500
-      overlay                     : yes
-      tabs                        :
-        navigable                 : no
-        forms                     :
-          "Create VM"             :
-            callback              : (formData)=>
-              form                = modal.modalTabs.forms["Create VM"]
-              {personal, shared}   = form.buttons
-              log formData
-            buttons               :
-              personal            :
-                title             : "Create a personal VM"
-                style             : "modal-clean-gray"
-                type              : "submit"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 12
-                callback          : ->
-                  KD.singletons.vmController.createGroupVM 'personal', vmCreateCallback
-              shared              :
-                title             : "Create a shared VM"
-                style             : "modal-clean-gray hidden"
-                type              : "submit"
-                loader            :
-                  color           : "#ffffff"
-                  diameter        : 12
-                callback          : ->
-                  KD.singletons.vmController.createGroupVM 'shared', vmCreateCallback
-              cancel              :
-                style             : "modal-cancel"
-                callback          : -> modal.destroy()
-            fields                :
-              "intro"             :
-                itemClass         : KDCustomHTMLView
-                partial           : "<p>#{content}</p>"
-              "VM Type"           :
-                label             : "VM Host"
-                itemClass         : KDSelectBox
-                type              : "select"
-                name              : "vm-host"
-                defaultValue      : "1"
-                selectOptions     : [
-                  { title : "2GHz, 4GB RAM, 20GB Disk",      value : "1" }
-                  { title : "4GHz, 4GB RAM, 40GB Disk",      value : "2" }
-                  { title : "8GHz, 8GB RAM, 60GB Disk",      value : "3" }
-                  { title : "8GHz, 16GB RAM, 60GB Disk",     value : "4" }
-                  { title : "16GHz, 32GB RAM, 100GB Disk",   value : "5" }
-                ]
-              "Usage Policy"      :
-                label             : "Usage Policy"
-                itemClass         : KDSelectBox
-                type              : "select"
-                name              : "vm-policy"
-                defaultValue      : "single"
-                selectOptions     : [
-                  { title : "All users share same VM host.",                  value : "single" }
-                  { title : "Limit users per VM, create new when necessary.", value : "multiple" }
-                ]
-              "Users per VM"      :
-                label             : "Users per VM"
-                itemClass         : KDSelectBox
-                type              : "select"
-                name              : "vm-users"
-                defaultValue      : "25"
-                selectOptions     : [
-                  { title : "5",   value : "5" }
-                  { title : "10",  value : "10" }
-                  { title : "25",  value : "25" }
-                  { title : "50",  value : "50" }
-                  { title : "100", value : "100" }
-                ]
+    vmController = @getSingleton('vmController')
+    vmController.fetchVMPlans (err, plans)=>
+      @paymentPlans = plans
+      {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
+      descPartial = ""
+      for d in descriptions
+        descPartial += """
+          <section>
+            <p>
+              <i>Good for:</i>
+              <span>#{d.meta.goodFor}</span>
+              <cite>users</cite>
+            </p>
+            #{d.description}
+          </section>"""
+
+      modal = new KDModalViewWithForms
+        title                       : "Create a new VM"
+        cssClass                    : "group-creation-modal"
+        height                      : "auto"
+        width                       : 684
+        overlay                     : yes
+        tabs                        :
+          navigable                 : no
+          forms                     :
+            "Create VM"             :
+              callback              : (formData)=>
+                
+                form                = modal.modalTabs.forms["Create VM"]
+                {personal, shared}  = form.buttons
+                
+                return log formData, "take from here and make the payment"
+                
+                @createGroupVM formData.type, vmCreateCallback
+              buttons               :
+                personal            :
+                  title             : "Create a <b>Personal</b> VM"
+                  style             : "modal-clean-gray"
+                  type              : "submit"
+                  loader            :
+                    color           : "#ffffff"
+                    diameter        : 12
+                  callback          : ->
+                    form = modal.modalTabs.forms["Create VM"]
+                    form.inputs.type.setValue "personal"
+                shared              :
+                  title             : "Create a <b>Shared</b> VM"
+                  style             : "modal-clean-gray hidden"
+                  type              : "submit"
+                  loader            :
+                    color           : "#ffffff"
+                    diameter        : 12
+                  callback          : ->
+                    form = modal.modalTabs.forms["Create VM"]
+                    form.inputs.type.setValue "shared"
+                cancel              :
+                  style             : "modal-cancel"
+                  callback          : -> modal.destroy()
+              fields                :
+                "intro"             :
+                  itemClass         : KDCustomHTMLView
+                  partial           : "<p>#{content}</p>"
+                selector            :
+                  name              : "host"
+                  itemClass         : HostCreationSelector
+                  cssClass          : "host-type"
+                  radios            : hostTypes
+                  validate          :
+                    rules           :
+                      required      : yes
+                    messages        :
+                      required      : "Please select a VM type!"
+                  change            : =>
+                    form = modal.modalTabs.forms["Create VM"]
+                    {desc, selector} = form.inputs
+                    descField        = form.fields.desc
+                    descField.show()
+                    desc.show()
+                    index      = parseInt selector.getValue(), 10
+                    monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
+                    desc.$('section').addClass 'hidden'
+                    desc.$('section').eq(index).removeClass 'hidden'
+                    modal.setPositions()
+                desc                :
+                  itemClass         : KDCustomHTMLView
+                  cssClass          : "description-field hidden"
+                  partial           : descPartial
+                type                :
+                  name              : "type"
+                  type              : "hidden"
 
 
 
-    if canCreateSharedVM
-      modal.modalTabs.forms["Create VM"].buttons.shared.show()
+      if canCreateSharedVM
+        modal.modalTabs.forms["Create VM"].buttons.shared.show()
 
-    @dialogIsOpen = yes
-    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+      @dialogIsOpen = yes
+      modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+
+      form = modal.modalTabs.forms["Create VM"]
+      form.on "FormValidationFailed", =>
+        {personal, shared} = form.buttons
+        personal.hideLoader()
+        shared.hideLoader()
 
   askForApprove:(command, callback)->
 
@@ -308,3 +329,29 @@ class VirtualizationController extends KDController
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+
+  # there may be a better place for these who methods below - SY
+  
+  fetchVMPlans:(callback)-> 
+    KD.remote.api.JRecurlyPlan.getPlans "group", "vm", (err, plans)=>
+      if err then warn err
+      else if plans
+        plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
+
+      callback err, plans
+
+  sanitizeVMPlansForInputs:(plans)->
+    # fix this one on radios value cannot have some chars and that's why i keep index as the value
+    descriptions = []
+    hostTypes    = plans.map (plan, i)->
+      descriptions.push item = try
+        JSON.parse plan.desc.replace /&quot;/g, '"'
+      catch e
+        title       : ""
+        description : plan.desc
+        meta        : goodFor : 0
+      plans[i].item = item
+      feeMonthly = (plan.feeMonthly/100).toFixed 0
+      { title : item.title, value : i, feeMonthly }
+
+    return {descriptions, hostTypes}
