@@ -113,7 +113,7 @@ class VirtualizationController extends KDController
     canCreatePersonalVM = "member" in KD.config.roles
     
     # Take this to a better place, possibly to payment controller.
-    makePayment = (type, host, callback)->
+    makePayment = (type, planCode, callback)->
       if type is 'shared'
         group = KD.singletons.groupsController.getCurrentGroup()
         group.checkPayment (err, payments)->
@@ -132,6 +132,7 @@ class VirtualizationController extends KDController
               delete data.cardCV
 
               modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
+                newData.plan = planCode
                 group.makePayment newData, (err, subscription)->
                   if err
                     onError err
@@ -143,8 +144,24 @@ class VirtualizationController extends KDController
             KD.singletons.vmController.createGroupVM type, vmCreateCallback
             callback()
       else
-        KD.singletons.vmController.createGroupVM type, vmCreateCallback
-        callback()
+        _createUserVM = (cb)->
+          KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
+            plan.subscribe {}, (err, subscription)->
+              return cb err  if cb and err
+              KD.singletons.vmController.createGroupVM type, vmCreateCallback
+              cb?()
+        KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
+          if err
+            modal = createAccountPaymentMethodModal {}, (newData, onError, onSuccess)->
+              newData.plan = planCode
+              KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
+                if err
+                  onError err
+                else
+                  onSuccess result
+                  _createUserVM callback
+          else
+            _createUserVM()
 
     vmCreateCallback  = (err, vm)->
       if err

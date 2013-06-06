@@ -20,7 +20,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       code         : 'unique'
     sharedMethods  :
       static       : [
-        'getPlans',
+        'getPlans', 'getPlanWithCode'
         'setUserAccount', 'getUserAccount', 'getUserTransactions'
       ]
       instance     : [
@@ -80,6 +80,11 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             @updateCache -> JRecurlyPlan.all selector, callback
           else
             JRecurlyPlan.all selector, callback
+
+  @getPlanWithCode = secure (client, code, callback)->
+    JRecurlyPlan.one
+      code: code
+    , callback
 
   # Recurly web hook will use this method to invalidate the cache.
   @updateCache = (callback)->
