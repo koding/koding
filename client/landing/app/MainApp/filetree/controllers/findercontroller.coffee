@@ -82,16 +82,38 @@ class NFinderController extends KDViewController
       callback?()
 
     if vmNames then mountVms vmNames
-    else KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
-      return callback? err  if err
-      if not vms or vms.length is 0
-        vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
-      mountVms vms
+    else
+      groupSlug  = KD.singletons.groupsController.getGroupSlug()
+      groupSlug ?= 'koding'
+      @appStorage.fetchValue "mountedVM", (vms)->
+        vms            or= {}
+        vms[groupSlug] or= []
+        if vms[groupSlug].length > 0
+          mountVms vms[groupSlug]
+        else
+          KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
+            return callback? err  if err
+            if not vms or vms.length is 0
+              vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
+            mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName
     for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
       return vmItem  if vmItem.data.vmName is vmName
+
+  updateMountState:(vmName, state)->
+    groupSlug  = KD.singletons.groupsController.getGroupSlug()
+    groupSlug ?= 'koding'
+    @appStorage.fetchValue "mountedVM", (vms)=>
+      vms or= {}
+      vms[groupSlug] or= []
+      items = vms[groupSlug]
+      if state and vmName not in items
+        items.push vmName
+      else if not state and vmName in items
+        items.splice items.indexOf(vmName), 1
+      @appStorage.setValue "mountedVM", vms
 
   mountVm:(vm, fetchContent = yes)->
     return unless KD.isLoggedIn()
@@ -102,6 +124,8 @@ class NFinderController extends KDViewController
 
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
+
+    @updateMountState vmName, yes
 
     @vms.push FSHelper.createFile
       name   : "#{path}"
@@ -122,6 +146,8 @@ class NFinderController extends KDViewController
   unmountVm:(vmName)->
     return unless KD.isLoggedIn()
     return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+
+    @updateMountState vmName, no
 
     if vmItem
       @stopWatching vmItem.data.path
