@@ -46,7 +46,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     unless forceRefresh
       JRecurlySubscription.all selector, callback
     else
-      JRecurlySubscription.one {}, (err, sub)=>
+      JRecurlySubscription.one selector, (err, sub)=>
         callback err  if err
         unless sub
           @updateCache userCode, -> JRecurlySubscription.all selector, callback
