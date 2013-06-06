@@ -8,31 +8,9 @@ import (
 	"net/http"
 )
 
-func GetStats(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/stats")
-	res, err := proxyDB.GetStats()
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	data, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	writer.Write([]byte(data))
-}
-
 func GetDomainStats(writer http.ResponseWriter, req *http.Request) {
 	fmt.Printf("GET\t/stats/domains\n")
-	res, err := proxyDB.GetDomainStats()
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
+	res := proxyDB.GetDomainStats()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -41,13 +19,18 @@ func GetDomainStats(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetSingleDomainStats(writer http.ResponseWriter, req *http.Request) {
+func GetDomainStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
 	fmt.Printf("GET\t/stats/domains/%s\n", domain)
-	res, err := proxyDB.GetSingleDomainStats(domain)
+	res, err := proxyDB.GetDomainStat(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if res.Domainname == "" {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"stat for domain %s does not exist\"}\n", domain), http.StatusBadRequest)
 		return
 	}
 
@@ -61,12 +44,7 @@ func GetSingleDomainStats(writer http.ResponseWriter, req *http.Request) {
 
 func GetProxyStats(writer http.ResponseWriter, req *http.Request) {
 	fmt.Printf("GET\t/stats/proxies\n")
-	res, err := proxyDB.GetProxyStats()
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
+	res := proxyDB.GetProxyStats()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -75,13 +53,18 @@ func GetProxyStats(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetSingleProxyStats(writer http.ResponseWriter, req *http.Request) {
+func GetProxyStat(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	proxy := vars["proxy"]
 	fmt.Printf("GET\t/stats/proxies/%s\n", proxy)
-	res, err := proxyDB.GetSingleProxyStats(proxy)
+	res, err := proxyDB.GetProxyStat(proxy)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if res.Proxyname == "" {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"stat for proxy %s does not exist\"}\n", proxy), http.StatusBadRequest)
 		return
 	}
 
@@ -93,14 +76,32 @@ func GetSingleProxyStats(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func DeleteStats(writer http.ResponseWriter, req *http.Request) {
-	fmt.Printf("DELETE\t/stats/\n")
-	err := proxyDB.DeleteStats()
+func DeleteDomainStat(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	fmt.Printf("DELETE\t/stats/domains/%s\n", domain)
+	err := proxyDB.DeleteDomainStat(domain)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	io.WriteString(writer, "{\"res\":\"all stats are deleted\"}\n")
+	resp := fmt.Sprintf("stats for domain '%s' is deleted", domain)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}
+
+func DeleteProxyStat(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	proxy := vars["proxy"]
+	fmt.Printf("DELETE\t/stats/proxies/%s\n", proxy)
+	err := proxyDB.DeleteProxyStat(proxy)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("stats for proxy '%s' is deleted", proxy)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }

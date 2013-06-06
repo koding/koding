@@ -91,17 +91,17 @@ func main() {
 
 	// Rule handlers
 	rout.HandleFunc("/rules", GetRules).Methods("GET")
-	rout.HandleFunc("/rules/{username}", GetRulesServices).Methods("GET")
-	rout.HandleFunc("/rules/{username}/{servicename}", GetRule).Methods("GET")
-	rout.HandleFunc("/rules/{username}/{servicename}", CreateRule).Methods("POST")
+	rout.HandleFunc("/rules/{domain}", GetRule).Methods("GET")
+	rout.HandleFunc("/rules/{domain}", CreateRule).Methods("POST")
+	rout.HandleFunc("/rules/{domain}", DeleteRule).Methods("DELETE")
 
 	// Statistics handlers
-	rout.HandleFunc("/stats", GetStats).Methods("GET")
-	rout.HandleFunc("/stats", DeleteStats).Methods("DELETE")
 	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
-	rout.HandleFunc("/stats/domains/{domain}", GetSingleDomainStats).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", GetDomainStat).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", DeleteDomainStat).Methods("DELETE")
 	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
-	rout.HandleFunc("/stats/proxies/{proxy}", GetSingleProxyStats).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", GetProxyStat).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", DeleteProxyStat).Methods("DELETE")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")

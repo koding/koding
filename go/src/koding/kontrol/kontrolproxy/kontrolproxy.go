@@ -189,7 +189,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	go logStatistic(user)
+	go logDomainStat(user.DomainName)
+	go logProxyStat(uuid, user.Country)
 
 	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
