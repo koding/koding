@@ -174,8 +174,8 @@ func persistMessages(
 		}
 
 		m := bson.M{"event": "NewMessage", "payload": bson.M{
-			"source": sliceInfo.UpsertedId,
-			"target": info.UpsertedId,
+			"sourceId": sliceInfo.UpsertedId,
+			"targetId": info.UpsertedId,
 		}}
 
 		neoMessage, err := json.Marshal(m)
