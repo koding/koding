@@ -25,16 +25,14 @@ type Message struct {
 }
 
 type ConversationSlice struct {
-	From time.Time
-	To   time.Time
-	Id   bson.ObjectId `bson:"_id"`
+	RoutingKey string `bson:"routingKey"`
+	To         time.Time
 }
 
 func main() {
 	conn := amqputil.CreateConnection("persistence")
 
 	startPersisting(conn)
-	// select {}
 }
 
 func startPersisting(conn *amqp.Connection) {
@@ -141,11 +139,12 @@ func persistMessages(
 
 		from := d.RoutingKey[strings.LastIndex(d.RoutingKey, ".")+1:]
 
-		t := d.Timestamp
+		// TODO: this date is nil, probably because of a bug in streadway/amqp
+		//t := d.Timestamp
+
+		t := time.Now() // temporary workaround
 
 		message := Message{from, d.RoutingKey, string(d.Body), Meta{t, t}}
-
-		log.Println(message)
 
 		info, err := messages.Upsert(bson.M{"_id": nil}, message)
 		if err != nil {
@@ -153,16 +152,30 @@ func persistMessages(
 			continue
 		}
 
-		slice := new(ConversationSlice)
-		if err := conversationSlices.
-			Find(bson.M{"routingKey": d.RoutingKey}).
-			One(&slice); err != nil {
+		sliceKey := d.RoutingKey[:strings.LastIndex(d.RoutingKey, ".")]
+
+		slice := ConversationSlice{sliceKey, t}
+
+		sliceInfo, err := conversationSlices.
+			Upsert(bson.M{"routingKey": sliceKey}, bson.M{"$set": slice})
+
+		if err != nil {
 			done <- err
 			continue
 		}
 
+		if sliceInfo.UpsertedId != nil {
+			log.Println(bson.M{"_id": sliceInfo.UpsertedId})
+			if err := conversationSlices.Update(
+				bson.M{"_id": sliceInfo.UpsertedId},
+				bson.M{"$set": bson.M{"from": t}},
+			); err != nil {
+				done <- err
+			}
+		}
+
 		m := bson.M{"event": "NewMessage", "payload": bson.M{
-			"source": slice.Id,
+			"source": sliceInfo.UpsertedId,
 			"target": info.UpsertedId,
 		}}
 
@@ -182,8 +195,5 @@ func persistMessages(
 				Body: neoMessage,
 			},
 		)
-
-		done <- nil
-
 	}
 }
