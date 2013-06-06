@@ -1,4 +1,4 @@
-class GroupsInvitationRequestsTabView extends KDTabView
+class GroupsInvitationTabView extends KDTabView
 
   constructor:(options={}, data)->
     options.cssClass             or= 'invitations-tabs'
@@ -44,7 +44,7 @@ class GroupsInvitationRequestsTabView extends KDTabView
   createTabs:->
     for tab, i in @getTabs()
       tab.view = new tab.viewOptions.viewClass {delegate: this}, @getData()
-      @addPane new KDTabPaneView(tab), i is 0
+      @addPane new KDTabPaneView(tab), i is 2
 
   addHeaderButtons:->
     bulkSubject = if @approvalEnabled then 'Approve' else 'Invite'
