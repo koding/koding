@@ -35,8 +35,6 @@ class GroupCreationModal extends KDModalView
 
     @plans = []
 
-  fetchRecurlyPlans:(callback)-> KD.remote.api.JRecurlyPlan.getPlans "group", "vm", callback
-
   charge:(plan, callback)-> plan.subscribe { pin: '0000' }, callback
 
   setPositions:->
@@ -122,23 +120,10 @@ class GroupCreationModal extends KDModalView
                 { title : "Hidden in group listings",  value : "hidden" }
               ]
 
-    @fetchRecurlyPlans (err, plans)=>
-      if plans
-        plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
-        @plans = plans
-
-      # fix this one on radios value cannot have some chars and that's why i keep index as the value
-      descriptions = []
-      hostTypes    = plans.map (plan, i)->
-        descriptions.push item = try
-          JSON.parse plan.desc.replace /&quot;/g, '"'
-        catch e
-          title       : ""
-          description : plan.desc
-          meta        : goodFor : 0
-        plans[i].item = item
-        feeMonthly = (plan.feeMonthly/100).toFixed 0
-        { title : item.title, value : i, feeMonthly }
+    vmController = @getSingleton('vmController')
+    vmController.fetchVMPlans (err, plans)=>
+      @plans = plans
+      {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
 
       descPartial = ""
       for d in descriptions
