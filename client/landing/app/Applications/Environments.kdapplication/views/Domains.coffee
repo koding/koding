@@ -4,31 +4,11 @@ class DomainMainView extends KDView
     options.cssClass or= "domains"
     data             or= {}
 
-    @domainMapperView = new DomainMapperView
-
     @domainsListViewController = new DomainsListViewController
       viewOptions:
         cssClass : 'domain-list'
-      
-    @domainsListView = @domainsListViewController.getView()
 
-    @addNewDomainButton = new KDButtonView
-      title    : 'Add New Domain'
-      cssClass : 'editor-button new-domain-button'
-      callback : (elm, event) =>
-        @domainModalView = new DomainRegisterModalFormView #successCallback: @domainsListViewController.appendNewDomain
-
-    @refreshDomainsButton = new KDButtonView
-      title    : 'Refresh Domains'
-      cssClass : 'editor-button refresh-domains-button'
-      callback : (elm, event)=>
-        @domainsListViewController.update()
-
-    @splitView = new KDSplitView
-      type      : "vertical"
-      resizable : no
-      sizes     : ["10%", "90%"]
-      views     : [@domainsListView, @domainMapperView]
+    @buildView()
 
     super options, data
 
@@ -43,6 +23,57 @@ class DomainMainView extends KDView
     , (err, response) ->
       if err then warn err
     """
+
+  buildView:->
+    @domainsListView    = @domainsListViewController.getView()
+    @domainMapperView   = new DomainMapperView
+    @addNewDomainButton = new KDButtonView
+      title    : 'Add New Domain'
+      cssClass : 'editor-button new-domain-button'
+      callback : (elm, event) =>
+        @domainModalView = new DomainRegisterModalFormView #successCallback: @domainsListViewController.appendNewDomain
+
+    @refreshDomainsButton = new KDButtonView
+      title    : 'Refresh Domains'
+      cssClass : 'editor-button refresh-domains-button'
+      callback : (elm, event)=>
+        @domainsListViewController.update()
+
+    @tabView       = new KDTabView
+    @routingPane   = new KDTabPaneView
+      name     : "Routing"
+      closable : no
+    @analyticsPane = new KDTabPaneView
+      name     : "Analytics"
+      closable : no
+
+    @accordionView = new AccordionView
+      activePane : "Virtual Machines"
+
+    @vmsAccPane = new AccordionPaneView
+      title: "Virtual Machines"
+    @kitesAccPane = new AccordionPaneView
+      title: "Kites"
+    @firewallPane = new AccordionPaneView
+      title: "Firewall Rules"
+
+    @accordionView.addPanes [@vmsAccPane, @kitesAccPane, @firewallPane]
+
+    @vmsAccPane.setContent @domainMapperView
+    @kitesAccPane.setContent new KDCustomHTMLView
+      partial: 'hell yeah baby'
+
+    @routingPane.addSubView @accordionView
+    @tabView.addPane @routingPane
+    @tabView.addPane @analyticsPane
+    @tabView.showPaneByIndex 0
+
+
+    @splitView = new KDSplitView
+      type      : "vertical"
+      resizable : no
+      sizes     : ["10%", "90%"]
+      views     : [@domainsListView, @tabView]
 
 
   viewAppended:->
@@ -61,7 +92,6 @@ class DomainMainView extends KDView
   decorateMapperView:(item)->
     @domainMapperView.updateContent item
 
-
 class DomainMapperView extends KDView
 
   constructor:(options={}, data)->
@@ -76,19 +106,58 @@ class DomainMapperView extends KDView
     @addSubView new KDCustomHTMLView
       partial : """<div class="domain-name">Your domain: <strong>#{data.name}</strong></div>"""
 
-    @vmListView = new KDListItemView
-    @vmListController = new KDListViewController
-      itemClass: @vmListItemView
-
     KD.remote.api.JVM.fetchVms (err, vms)=>
       if vms
-        vms.forEach (vm)=>
-          @addSubView new KDCustomHTMLView
-            partial: "<div>#{vm}</div>"
+        vmList = ({name:vm} for vm in vms)
+
+        @vmListViewController = new VMListViewController
+          viewOptions :
+            cssClass  : 'vm-list'
+        
+        @vmListViewController.getListView().setData
+          domainName: data.name
+          vms       : (vm for vm in data.vms)
+
+        @vmListViewController.instantiateListItems vmList
+        @addSubView @vmListViewController.getView()
       else
         @addSubView new KDCustomHTMLView
           partial: "<div>You don't have any VMs right now.</div>"
 
+
+
+class VMListItemView extends KDListItemView
+  constructor:(options={}, data)->
+    
+    super options, data
+
+    listViewData = @getDelegate().getData()
+    switchStatus = if @getData().name in listViewData.vms then on else off
+
+    @onOff = new KDOnOffSwitch
+      size        : 'tiny'
+      labels      : ['CON', "DCON"]
+      defaultValue: switchStatus
+      callback : (state) =>
+        KD.remote.api.JDomain.bindVM 
+          vmName    : @getData().name
+          domainName: listViewData.domainName
+          state     : state
+        , (response) ->
+          new KDNotificationView
+            type : "top"
+            title: response
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <div style="width: 120px !important;">{{ #(name) }}</div>
+    {{> @onOff }}
+    """
+  
 
 class DomainsListItemView extends KDListItemView
 

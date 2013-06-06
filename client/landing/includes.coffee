@@ -515,8 +515,10 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/Domains.coffee",
   "app/Applications/Environments.kdapplication/views/NewDomainModalView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
+  "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
 
   # GROUPS
