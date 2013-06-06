@@ -42,9 +42,6 @@ module.exports = class JVM extends Model
         disk            :
           type          : Number
           default       : 0.5
-        money           :
-          type          : Number
-          default       : 0
       isEnabled         :
         type            : Boolean
         default         : yes
@@ -113,7 +110,7 @@ module.exports = class JVM extends Model
   #     target.addLimit limit, 'vm', (err)->
   #       callback err ? null, unless err then limit
 
-  @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0, money: 0 }
+  @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
 
   @calculateUsage = (account, groupSlug, callback)->
     nickname =
