@@ -204,7 +204,35 @@ app.get "/-/kite/login", (req, res) ->
                 res.send 200, JSON.stringify creds
 
 # gate for kd
+findUsernameFromKey = (req, res, callback) ->
+  {username, key} = req.body
+
+  {JKodingKey} = koding.models
+  
+  JKodingKey.fetchByUserKey
+    username: username
+    key     : key
+  , (err, kodingKey)=>
+    if err
+      callback err, null
+    else if not kodingKey
+      res.send 401
+      callback false, null
+    else
+      res.status 200
+      res.send "OK"
+      callback false, username
+
+
+s3 = require('./s3') uploads.s3, findUsernameFromKey
+app.post "/-/kd/upload", s3..., (req, res)->
+  res.send(for own key, file of req.files
+    filename  : file.filename
+    resource  : nodePath.join uploads.distribution, file.path
+  )
+
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
+  console.log "aq way"
   switch req.params.command
     when "register-check"
       {username, key} = req.body
@@ -224,9 +252,22 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
+findUsernameFromSession = (req, res, callback) ->
+  {clientId} = req.cookies
+  koding.models.JSession.fetchSession clientId, (err, session)->
+    if err
+      console.error err
+      callback "", err
+    else unless session?
+      res.send 403, 'Access denied!'
+      callback false, ""
+    callback false, session.username
+
+
+
 if uploads?.enableStreamingUploads
 
-  s3 = require('./s3') uploads.s3
+  s3 = require('./s3') uploads.s3, findUsernameFromSession
 
   app.post '/Upload', s3..., (req, res)->
     res.send(for own key, file of req.files
