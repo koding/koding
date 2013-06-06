@@ -422,6 +422,17 @@ func addPresenceBinding(username string, bindingChannel *amqp.Channel) error {
 		delete(timersByUser, username)
 	}
 
+	if _, err := bindingChannel.QueueDeclare(
+		username, // queue name
+		false,    // durable
+		true,     // auto delete
+		false,    // exclusive
+		false,    // no wait
+		nil,      // arguments
+	); err != nil {
+		return err
+	}
+
 	return bindingChannel.QueueBind(
 		username,     // queue name
 		username,     // key
@@ -439,11 +450,20 @@ func removePresenceBinding(username string, bindingChannel *amqp.Channel) error 
 
 	select {
 	case <-timersByUser[username].C:
-		return bindingChannel.QueueUnbind(
+		if err := bindingChannel.QueueUnbind(
 			username,     // queue name
 			username,     // key
 			resourceName, // exchange name
 			nil,          // arguments
+		); err != nil {
+			return err
+		}
+
+		bindingChannel.QueueDelete(
+			username, // queue name
+			false,    // if unused
+			false,    // if empty
+			false,    // no wait
 		)
 	}
 	return nil
