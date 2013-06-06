@@ -171,4 +171,4 @@ module.exports =
     apiKey      : '0cb2777651034e6889fb0d091126481a'
   opsview	:
     push	: yes
-    host	: opsview.in.koding.com
+    host	: 'opsview.in.koding.com'
