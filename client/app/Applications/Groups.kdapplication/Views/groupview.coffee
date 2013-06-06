@@ -45,7 +45,7 @@ class GroupView extends ActivityContentDisplay
       cssClass             : 'group-content'
       hideHandleCloseIcons : yes
       maxHandleWidth       : 200
-      tabHandleView        : GroupTabHandleView
+      tabHandleClass       : GroupTabHandleView
       tabHandleContainer   : @tabHandles
     , data
     @utils.defer => @emit 'ReadmeSelected'

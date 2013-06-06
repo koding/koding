@@ -21,7 +21,7 @@ class GroupsBundleCreateView extends JView
     {{> @createButton}}
     """
 
-class GroupsBundleEditView extends JView
+class GroupsBundleEditView extends KDCustomHTMLView
 
   computeUnitMap =
     vms   : 1
@@ -186,6 +186,8 @@ class GroupsBundleEditView extends JView
           disk  : number * disk
         bundle.debit debits, (err)->
           console.error err  if err
+
+  viewAppended: JView::viewAppended
 
   toggleAdvancedMode: (state) ->
     method = if state then 'show' else 'hide'
