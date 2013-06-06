@@ -65,6 +65,8 @@ config =
     runGoBroker   : 1
     runKontrol    : 1
     runRerouting  : 1
+    runUserPresence: 1
+    runPersistence: 1
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0

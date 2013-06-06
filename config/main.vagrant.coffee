@@ -34,6 +34,8 @@ module.exports =
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
