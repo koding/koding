@@ -202,12 +202,13 @@ module.exports = class AuthWorker extends EventEmitter
     'usersPresenceControlExchange', USERS_PRESENCE_CONTROL_EXCHANGE_OPTIONS
   )
 
-  addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
+  addBinding:(bindingExchange, bindingKey, publishingExchange, routingKey, suffix = '')->
     suffix = ".#{suffix}"  if suffix.length
     @fetchReroutingExchange (exchange)=>
       exchange.publish 'auth.join', {
-        exchange: exchangeName
+        bindingExchange
         bindingKey
+        publishingExchange
         routingKey
         suffix
       }
@@ -289,7 +290,7 @@ module.exports = class AuthWorker extends EventEmitter
                     if err or not secretChannelName
                       @rejectClient routingKey
                     else
-                      @addBinding 'broadcast', secretChannelName, routingKey
+                      @addBinding 'broadcast', secretChannelName, 'broker', routingKey
                       @setSecretNames routingKey, secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
@@ -302,7 +303,7 @@ module.exports = class AuthWorker extends EventEmitter
         else if session?.username
           @addClient socketId, @reroutingExchange, routingKey, no
           bindingKey = session.username
-          @addBinding 'notification', bindingKey, routingKey
+          @addBinding 'notification', bindingKey, 'broker', routingKey
         else
           @rejectClient routingKey
 
@@ -322,7 +323,7 @@ module.exports = class AuthWorker extends EventEmitter
 
           {username} = session
 
-          @addBinding 'chat', bindingKey, consumerRoutingKey, username
+          @addBinding 'chat', bindingKey, 'chat-hose', consumerRoutingKey, username
 
           @_fakePersistenceWorker secretChannelName
           @notify username, 'chatOpen', {

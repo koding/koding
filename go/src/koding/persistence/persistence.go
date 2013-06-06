@@ -31,24 +31,48 @@ type ConversationSlice struct {
 }
 
 func main() {
-	startPersisting()
+	conn := amqputil.CreateConnection("persistence")
+
+	startPersisting(conn)
 }
 
-func startPersisting() {
-	conn := amqputil.CreateConnection("persistence")
+func startPersisting(conn *amqp.Connection) {
+
 	amqpChannel, err := conn.Channel()
 	if err != nil {
 		panic(err)
 	}
 
 	if err := amqpChannel.ExchangeDeclare(
-		"chat",  // exchange name
-		"topic", // kind
-		false,   //durable
-		true,    // auto delete
-		false,   // internal
-		false,   // no wait
-		nil,     // arguments
+		"chat-hose", // exchange name
+		"fanout",    // kind
+		false,       // durable
+		false,       // auto delete
+		false,       // internal
+		false,       // no wait
+		nil,         // arguments
+	); err != nil {
+		panic(err)
+	}
+
+	if err := amqpChannel.ExchangeDeclare(
+		"broker", // exchange name
+		"topic",  // kind
+		false,    // durable
+		false,    // auto delete
+		false,    // internal
+		false,    // no wait
+		nil,      // arguments
+	); err != nil {
+		panic(err)
+	}
+
+	if err := amqpChannel.ExchangeBind(
+		"broker",    // destination
+		"",          // key
+		"chat-hose", // source
+		false,       // no wait
+		nil,         // arguments
 	); err != nil {
 		panic(err)
 	}
@@ -66,8 +90,8 @@ func startPersisting() {
 
 	if err := amqpChannel.QueueBind(
 		"persistence", // queue name
-		"#",           // deep wildcard (key)
-		"chat",        // exchange name
+		"",            // key
+		"chat-hose",   // exchange name
 		false,         // no wait
 		nil,           // arguments
 	); err != nil {
@@ -89,7 +113,7 @@ func startPersisting() {
 
 	errors := make(chan error)
 
-	go consumeAndPersist(
+	go persistMessages(
 		amqpChannel,
 		deliveries,
 		mongo.GetCollection("jMessages"),
@@ -103,7 +127,7 @@ func startPersisting() {
 	}
 }
 
-func consumeAndPersist(
+func persistMessages(
 	amqpChannel *amqp.Channel,
 	deliveries <-chan amqp.Delivery,
 	messages *mgo.Collection,
