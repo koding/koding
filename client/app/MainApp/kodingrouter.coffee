@@ -355,6 +355,7 @@ class KodingRouter extends KDRouter
           KD.remote.api.JKodingKey.fetchByKey
             key: key
           , (err, kodingKey) =>
+            console.log "err", err, kodingKey
             unless kodingKey?.length
               KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
                 if err or not data

@@ -205,10 +205,15 @@ app.get "/-/kite/login", (req, res) ->
 
 # gate for kd
 findUsernameFromKey = (req, res, callback) ->
-  {username, key} = req.body
+  if req.fields
+    {username, key} = req.fields
+  else
+    {username, key} = req.body
 
   {JKodingKey} = koding.models
   
+  console.log ">>>", username, key
+
   JKodingKey.fetchByUserKey
     username: username
     key     : key
@@ -219,8 +224,6 @@ findUsernameFromKey = (req, res, callback) ->
       res.send 401
       callback false, null
     else
-      res.status 200
-      res.send "OK"
       callback false, username
 
 
@@ -232,7 +235,6 @@ app.post "/-/kd/upload", s3..., (req, res)->
   )
 
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
-  console.log "aq way"
   switch req.params.command
     when "register-check"
       {username, key} = req.body

@@ -34,9 +34,11 @@ module.exports = (config, usernameFinder)->
 
     (req, res, next) ->
       form = new IncomingForm
+
       form.on 'field', (name, value)->
         if /-size$/.test(name)
           req.sizes[name.split('-').slice(0,-1).join('-')] = value
+
       form.onPart = (part)->
         return IncomingForm::onPart.call this, part  unless part.mime?
         parts = []
@@ -46,7 +48,9 @@ module.exports = (config, usernameFinder)->
           filename  : part.filename
           extension : mime.extension part.mime
         part.pipe file.stream
-      form.parse req, () -> next()
+      form.parse req, (err, fields, files) ->
+        req.fields = fields
+        next()
 
     (req, res, next) ->
       usernameFinder req, res, (err, username) ->
