@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/streadway/amqp"
 	"koding/databases/mongo"
 	"koding/tools/amqputil"
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"strings"
 	"time"
@@ -22,18 +24,24 @@ type Message struct {
 	Meta       Meta
 }
 
+type ConversationSlice struct {
+	From time.Time
+	To   time.Time
+	Id   bson.ObjectId `bson:"_id"`
+}
+
 func main() {
 	startPersisting()
 }
 
 func startPersisting() {
 	conn := amqputil.CreateConnection("persistence")
-	channel, err := conn.Channel()
+	amqpChannel, err := conn.Channel()
 	if err != nil {
 		panic(err)
 	}
 
-	if err := channel.ExchangeDeclare(
+	if err := amqpChannel.ExchangeDeclare(
 		"chat",  // exchange name
 		"topic", // kind
 		false,   //durable
@@ -45,7 +53,7 @@ func startPersisting() {
 		panic(err)
 	}
 
-	if _, err := channel.QueueDeclare(
+	if _, err := amqpChannel.QueueDeclare(
 		"persistence", // queue name
 		false,         // durable
 		true,          // autodelete
@@ -56,7 +64,7 @@ func startPersisting() {
 		panic(err)
 	}
 
-	if err := channel.QueueBind(
+	if err := amqpChannel.QueueBind(
 		"persistence", // queue name
 		"#",           // deep wildcard (key)
 		"chat",        // exchange name
@@ -66,7 +74,7 @@ func startPersisting() {
 		panic(err)
 	}
 
-	deliveries, err := channel.Consume(
+	deliveries, err := amqpChannel.Consume(
 		"persistence", // queue name
 		"",            // ctag
 		false,         // no-ack
@@ -81,7 +89,13 @@ func startPersisting() {
 
 	errors := make(chan error)
 
-	go consumeAndPersist(deliveries, mongo.GetCollection("jMessages"), errors)
+	go consumeAndPersist(
+		amqpChannel,
+		deliveries,
+		mongo.GetCollection("jMessages"),
+		mongo.GetCollection("jConversationSlices"),
+		errors,
+	)
 
 	select {
 	case errors <- err:
@@ -90,14 +104,54 @@ func startPersisting() {
 }
 
 func consumeAndPersist(
+	amqpChannel *amqp.Channel,
 	deliveries <-chan amqp.Delivery,
 	messages *mgo.Collection,
+	conversationSlices *mgo.Collection,
 	done chan error,
 ) {
+
 	for d := range deliveries {
+
 		from := d.RoutingKey[strings.LastIndex(d.RoutingKey, ".")+1:]
+
 		t := d.Timestamp
+
 		message := Message{from, d.RoutingKey, string(d.Body), Meta{t, t}}
-		messages.Insert(message)
+
+		info, err := messages.Upsert(bson.M{"_id": nil}, message)
+		if err != nil {
+			done <- err
+			continue
+		}
+
+		slice := new(ConversationSlice)
+		if err := conversationSlices.
+			Find(bson.M{"routingKey": d.RoutingKey}).
+			One(&slice); err != nil {
+			done <- err
+			continue
+		}
+
+		m := bson.M{"event": "NewMessage", "payload": bson.M{
+			"source": slice.Id,
+			"target": info.UpsertedId,
+		}}
+
+		neoMessage, err := json.Marshal(m)
+		if err != nil {
+			done <- err
+			continue
+		}
+
+		amqpChannel.Publish(
+			"neo4jFeederExchange", // exchange name
+			"",                    // key
+			false,                 // mandatory
+			false,                 // immediate
+			amqp.Publishing{
+				Body: neoMessage,
+			},
+		)
 	}
 }
