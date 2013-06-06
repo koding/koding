@@ -34,6 +34,7 @@ func main() {
 	conn := amqputil.CreateConnection("persistence")
 
 	startPersisting(conn)
+	// select {}
 }
 
 func startPersisting(conn *amqp.Connection) {
@@ -120,10 +121,11 @@ func startPersisting(conn *amqp.Connection) {
 		mongo.GetCollection("jConversationSlices"),
 		errors,
 	)
-
-	select {
-	case errors <- err:
-		log.Printf("Handled an error: %v", err)
+	for {
+		select {
+		case err = <-errors:
+			log.Printf("Handled an error: %v", err)
+		}
 	}
 }
 
@@ -142,6 +144,8 @@ func persistMessages(
 		t := d.Timestamp
 
 		message := Message{from, d.RoutingKey, string(d.Body), Meta{t, t}}
+
+		log.Println(message)
 
 		info, err := messages.Upsert(bson.M{"_id": nil}, message)
 		if err != nil {
@@ -164,6 +168,7 @@ func persistMessages(
 
 		neoMessage, err := json.Marshal(m)
 		if err != nil {
+			println("sfsfsf")
 			done <- err
 			continue
 		}
@@ -177,5 +182,8 @@ func persistMessages(
 				Body: neoMessage,
 			},
 		)
+
+		done <- nil
+
 	}
 }
