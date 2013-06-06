@@ -292,7 +292,7 @@ func checkWebsocket(req *http.Request) bool {
 }
 
 func (u *UserInfo) validate() (string, bool) {
-	res, err := proxyDB.GetRule(u.Username, u.Servicename)
+	res, err := proxyDB.GetRule(u.DomainName)
 	if err != nil {
 		return fmt.Sprintf("no rule available for servicename %s\n", u.Username), true
 	}
@@ -300,10 +300,16 @@ func (u *UserInfo) validate() (string, bool) {
 	return validator(res, u).IP().Country().Check()
 }
 
-func logStatistic(user *UserInfo) error {
-	err := proxyDB.AddStatistics(user.IP, user.Country, uuid, user.DomainName)
+func logDomainStat(name string) {
+	err := proxyDB.AddDomainStat(name)
 	if err != nil {
-		return fmt.Errorf("could not add statistisitcs for", user)
+		fmt.Printf("could not add statistisitcs for %s\n", err.Error())
 	}
-	return nil
+}
+
+func logProxyStat(name, country string) {
+	err := proxyDB.AddProxyStat(name, country)
+	if err != nil {
+		fmt.Printf("could not add statistisitcs for %s\n", err.Error())
+	}
 }

@@ -12,8 +12,8 @@ import (
 
 func GetDomains(writer http.ResponseWriter, req *http.Request) {
 	fmt.Println("GET\t/domains")
-	proxyMachine, _ := proxyDB.GetConfig()
-	data, err := json.MarshalIndent(proxyMachine.Domains, "", "  ")
+	domains := proxyDB.GetDomains()
+	data, err := json.MarshalIndent(domains, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
