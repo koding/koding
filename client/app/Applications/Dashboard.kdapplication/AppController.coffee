@@ -32,7 +32,7 @@ class DashboardAppController extends AppController
         name         : 'Invitations'
         hiddenHandle : data.privacy is 'public'
         viewOptions  :
-          viewClass  : GroupsInvitationRequestsView
+          viewClass  : GroupsInvitationView
           lazy       : yes
       ,
         name         : 'Permissions'

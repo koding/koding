@@ -412,6 +412,12 @@ Dashboard invitations tab styles
               bg              position, -77px -502px
             &.decline
               bg              position, -77px -482px
+            &.edit
+              height          15px
+              bg              position, -116px -402px
+            &.share
+              height          15px
+              bg              position, -97px -582px
       .status
         font-size             11px
         margin-top            10px
@@ -447,6 +453,7 @@ Dashboard invitations tab styles
       .details
         margin-left           50px
         .requested-at
+        .usage
           color               #999
           font-size           10px
           line-height         10px
@@ -469,6 +476,9 @@ Dashboard invitations tab styles
             bg(size,cover)
             bg(repeat,no-repeat)
             size(30px,30px)
+
+  .invitation-code section .details
+    margin-left               10px
 
 @css {
 /*
@@ -532,10 +542,13 @@ Dashboard Invitations Modal Styles
       display         block
       overflow        hidden
 
+.kdmodal.create-invitation-code
 
-
-
-
+  .suggest-button
+    position          absolute
+    right             20px
+    top               11px
+    rounded           0px 3px 3px 0px
 
 
 //

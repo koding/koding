@@ -1,4 +1,4 @@
-class GroupsInvitationRequestsView extends KDView
+class GroupsInvitationView extends KDView
 
   constructor:(options={}, data)->
     options.cssClass = 'member-related'
@@ -6,9 +6,9 @@ class GroupsInvitationRequestsView extends KDView
 
     @getData().fetchMembershipPolicy (err, @policy)=>
       @addSubView tabHandleContainer = new KDCustomHTMLView
-      @addSubView @tabView = new GroupsInvitationRequestsTabView {
+      @addSubView @tabView = new GroupsInvitationTabView {
         delegate           : this
-        tabHandleView      : GroupTabHandleView
+        tabHandleClass     : GroupTabHandleView
         tabHandleContainer
       }, data
 
@@ -47,24 +47,39 @@ class GroupsInvitationRequestsView extends KDView
     return modal
 
   showCreateInvitationCodeModal:->
-    @createInvitationCode = @showModalForm
-      title             : 'Create an Invitation Code'
-      cssClass          : ''
-      callback          : (formData)=>
-        KD.remote.api.JInvitation.createMultiuse formData,
-          @modalCallback.bind this, @inviteByEmail
-      submitButtonLabel : 'Create'
-      fields            :
-        invitationCode  :
-          label         : "Invitation code"
-          itemClass     : KDInputView
-          name          : "code"
-          placeholder   : "Enter a creative invitation code!"
-        maxUses         :
-          label         : "Maximum uses"
-          itemClass     : KDInputView
-          name          : "maxUses"
-          placeholder   : "How many people can redeem this code?"
+    KD.remote.api.JInvitation.suggestCode (err, suggestedCode)=>
+      return @showErrorMessage err  if err
+      @createInvitationCode = @showModalForm
+        title             : 'Create an Invitation Code'
+        cssClass          : 'create-invitation-code'
+        callback          : (formData)=>
+          KD.remote.api.JInvitation.createMultiuse formData,
+            @modalCallback.bind this, @createInvitationCode, (err)->
+              unless err.code is 11000
+                return err.message ? 'An error occured! Please try again later.'
+              return 'Invitation code already exists. Please try a different one or leave empty to generate'
+        submitButtonLabel : 'Create'
+        fields            :
+          invitationCode  :
+            label         : "Invitation code"
+            itemClass     : KDInputView
+            name          : "code"
+            placeholder   : "Enter a creative invitation code!"
+            defaultValue  : suggestedCode
+            nextElement   :
+              Suggest     :
+                itemClass : KDButtonView
+                cssClass  : 'clean-gray suggest-button'
+                callback  : =>
+                  KD.remote.api.JInvitation.suggestCode (err, suggestedCode)=>
+                    return @showErrorMessage err  if err
+                    form = @createInvitationCode.modalTabs.forms.invite
+                    form.inputs.invitationCode.setValue suggestedCode
+          maxUses         :
+            label         : "Maximum uses"
+            itemClass     : KDInputView
+            name          : "maxUses"
+            placeholder   : "How many people can redeem this code?"
 
   showInviteByEmailModal:->
     @inviteByEmail = @showModalForm
@@ -109,13 +124,15 @@ class GroupsInvitationRequestsView extends KDView
             messages   :
               regExp   : 'numbers only please'
 
-  modalCallback:(modal, err)->
+  modalCallback:(modal, errCallback, err)->
+    [err, errCallback] = [errCallback, err]  unless errCallback
+
     form = modal.modalTabs.forms.invite
     form.buttons.Send.hideLoader()
     @tabView.getActivePane().subViews.first.refresh()
     if err
       unless Array.isArray err or form.fields.report
-        return @showErrorMessage err
+        return @showErrorMessage err, errCallback
       else
         form.fields.report.show()
         scrollView = form.fields.report.subViews.first.subViews.first
@@ -127,15 +144,8 @@ class GroupsInvitationRequestsView extends KDView
     new KDNotificationView title:'Invitation sent!'
     modal.destroy()
 
-  showErrorMessage:(err)->
+  showErrorMessage:(err, errCallback)->
     warn err
     new KDNotificationView
-      title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+      title    : msgCallback?(err) ? err.message ? 'An error occured! Please try again later.'
       duration : 2000
-
-
-class GroupsInvitationCodesTabPaneView extends KDView
-
-  setStatusesByResolvedSwitch:(state)->
-  refresh:->
-  updatePendingCount:(pane)->

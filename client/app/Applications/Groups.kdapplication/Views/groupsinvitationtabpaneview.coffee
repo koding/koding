@@ -1,12 +1,8 @@
-class GroupsInvitationRequestsTabPaneView extends KDView
+class GroupsInvitationTabPaneView extends KDView
 
   requestLimit: 10
 
   constructor:(options={}, data)->
-    options.itemClass          or= GroupsInvitationListItemView
-    options.resolvedStatuses   or= ['pending', 'approved', 'declined']
-    options.unresolvedStatuses or= 'pending'
-
     super options, data
 
     @setStatusesByResolvedSwitch @getDelegate().resolvedState ? no
@@ -33,6 +29,31 @@ class GroupsInvitationRequestsTabPaneView extends KDView
 
     @on 'SearchInputChanged', (@searchValue)=> @refresh()
 
+  viewAppended:->
+    super()
+    @addListeners()
+    @fetchAndPopulate()
+
+  refresh:->
+    @controller.removeAllItems()
+    @timestamp = null
+    @fetchAndPopulate()
+    @updatePendingCount @parent
+
+  setStatusesByResolvedSwitch:(@resolvedState)->
+  updatePendingCount:(pane)->
+  fetchAndPopulate:->
+
+
+class GroupsInvitationRequestsTabPaneView extends GroupsInvitationTabPaneView
+
+  constructor:(options={}, data)->
+    options.itemClass          or= GroupsInvitationListItemView
+    options.resolvedStatuses   or= ['pending', 'approved', 'declined']
+    options.unresolvedStatuses or= 'pending'
+
+    super options, data
+
   fetchAndPopulate:->
     @controller.showLazyLoader no
 
@@ -54,17 +75,6 @@ class GroupsInvitationRequestsTabPaneView extends KDView
     status = $in: status  if Array.isArray status
     @getData().countInvitationRequests {}, {status}, (err, count)->
       pane.getHandle().updatePendingCount count  unless err
-
-  viewAppended:->
-    super()
-    @addListeners()
-    @fetchAndPopulate()
-
-  refresh:->
-    @controller.removeAllItems()
-    @timestamp = null
-    @fetchAndPopulate()
-    @updatePendingCount @parent
 
   setStatusesByResolvedSwitch:(@resolvedState)->
     @options.statuses = if @resolvedState\
@@ -94,3 +104,35 @@ class GroupsSentInvitationsTabPaneView extends GroupsInvitationRequestsTabPaneVi
     options.noMoreItemFound    or= 'No more sent invitations found.'
 
     super options, data
+
+
+class GroupsInvitationCodesTabPaneView extends GroupsInvitationTabPaneView
+
+  constructor:(options={}, data)->
+    options.itemClass       or= GroupsInvitationCodeListItemView
+    options.noItemFound     or= 'No invitation codes found.'
+    options.noMoreItemFound or= 'No more invitation codes found.'
+
+    super options, data
+
+  fetchAndPopulate:->
+    @controller.showLazyLoader no
+
+    status = 'active'  unless @resolvedState
+
+    KD.remote.api.JInvitation.fetchOrSearchMultiuse status, @timestamp,\
+      @requestLimit, @searchValue, (err, codes)=>
+        @controller.hideLazyLoader()
+        if err or codes.length is 0
+          warn err  if err
+          return @controller.emit 'noItemsFound'
+
+        @controller.hideNoItemWidget()  if codes.length > 0
+        @timestamp = codes.last._id
+        @controller.instantiateListItems codes
+        @emit 'teasersLoaded'  if codes.length is @requestLimit
+
+  updatePendingCount:(pane)->
+    pane  ?= @parent
+    KD.remote.api.JInvitation.countMultiuse status:'active', (err, count)->
+      pane.getHandle().updatePendingCount count  unless err
