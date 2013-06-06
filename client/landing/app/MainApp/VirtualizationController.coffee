@@ -112,6 +112,40 @@ class VirtualizationController extends KDController
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
     
+    # Take this to a better place, possibly to payment controller.
+    makePayment = (type, host, callback)->
+      if type is 'shared'
+        group = KD.singletons.groupsController.getCurrentGroup()
+        group.checkPayment (err, payments)->
+          if err or payments.length is 0
+
+            # Copy account creator's billing information
+            KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+              warn err
+              if err or not data
+                data = {}
+
+              # These will go into Recurly module
+              delete data.cardNumber
+              delete data.cardMonth
+              delete data.cardYear
+              delete data.cardCV
+
+              modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
+                group.makePayment newData, (err, subscription)->
+                  if err
+                    onError err
+                  else
+                    KD.singletons.vmController.createGroupVM type, vmCreateCallback
+                    onSuccess()
+                    callback()
+          else
+            KD.singletons.vmController.createGroupVM type, vmCreateCallback
+            callback()
+      else
+        KD.singletons.vmController.createGroupVM type, vmCreateCallback
+        callback()
+
     vmCreateCallback  = (err, vm)->
       if err
         warn err
@@ -165,10 +199,9 @@ class VirtualizationController extends KDController
                 
                 form                = modal.modalTabs.forms["Create VM"]
                 {personal, shared}  = form.buttons
-                
-                return log formData, "take from here and make the payment"
-                
-                @createGroupVM formData.type, vmCreateCallback
+
+                makePayment formData.type, @paymentPlans[formData.host].code, ->
+                  modal.destroy()
               buttons               :
                 personal            :
                   title             : "Create a <b>Personal</b> VM"
