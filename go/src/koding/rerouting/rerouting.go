@@ -47,7 +47,7 @@ func main() {
 	var err error
 	producer, err = createProducer()
 	if err != nil {
-		log.Println(err)
+		log.Printf("create producer: %v", err)
 	}
 
 	startRouting()
@@ -126,10 +126,10 @@ func startRouting() {
 				join.ConsumerTag,
 				errors,
 			)
-			select {
-			case errors <- err:
-				log.Printf("Handled an error: %v", err)
-			}
+			// select {
+			// case errors <- err:
+			// 	log.Printf("Handled an error: %v", err)
+			// }
 		case "auth.leave":
 			var leave LeaveMsg
 			err := json.Unmarshal(msg.Body, &leave)
