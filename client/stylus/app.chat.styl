@@ -62,17 +62,20 @@ chatTextColor = #000
   top                     51px
   z-index                 102
   right                   -260px
-  background              white // rgba(0,0,0,.09)
+  background              white
   width                   250px
-  // overflow                auto  !important
-  vendor                  transition, right .4s ease\, opacity .3s ease
+  vendor                  transition, right .4s ease\, opacity .3s ease\, width .3s ease
   box-shadow              0 0 16px rgba(0,0,0,.2)
+  overflow-y              scroll
   opacity                 0
   abs()
 
   &.visible
-    right                 0px
+    right                 0
     opacity               1
+
+    &.inbox-mode
+      vendor              transition, none
 
   .main-chat-header
     height               77px
@@ -83,19 +86,28 @@ chatTextColor = #000
     border-bottom         1px solid #eee
     font-weight           bold
 
+  .view-changer
   .conversation-starter
-    right                 20px
+    right                 14px
     size                  22px, 22px
     top                   28px
     border-radius         30px
     padding               0 0 0 4px
     abs()
 
+  .view-changer
+    padding               0 !important
+
+  .conversation-starter
+    right                 40px
+
 ul.chat-list
   margin                  0
   padding                 0
   min-height              100%
   overflow-y              scroll
+  width                   250px !important
+  border-right            1px solid #eee
 
   div.chat-item
     margin-bottom         8px
@@ -112,8 +124,6 @@ ul.chat-list
     &.unread
       background          rgba(250, 239, 223, .5)
       border-left         3px solid #ff9200
-
-    // &:last-child
 
     div.avatar-wrapper
       padding             1px

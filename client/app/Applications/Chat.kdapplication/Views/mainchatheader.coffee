@@ -10,6 +10,27 @@ class MainChatHeader extends JView
 
     @newConversationButton = new ConversationStarterButton
 
-  viewAppended:->
-    @addSubView @header
-    @addSubView @newConversationButton
+    @viewChangeButton = new KDToggleButton
+      style           : "clean-gray view-changer"
+      iconOnly        : yes
+      defaultState    : "show"
+      states          : [
+        title         : "show"
+        iconClass     : "left"
+        callback      : (callback)->
+          KD.singletons.chatPanel.toggleInboxMode()
+          callback?()
+      ,
+        title         : "hide"
+        iconClass     : "right"
+        callback      : (callback)->
+          KD.singletons.chatPanel.toggleInboxMode()
+          callback?()
+      ]
+
+  pistachio:->
+    """
+      {{> @header}}
+      {{> @newConversationButton}}
+      {{> @viewChangeButton}}
+    """

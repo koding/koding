@@ -11,4 +11,6 @@ class MainChatHandler extends JView
       if isVisible then @setClass 'visible'
       else @unsetClass 'visible'
 
-  click:-> (KD.getSingleton 'chatPanel').toggle()
+  click:->
+    (KD.getSingleton 'chatPanel').toggle()
+    no
