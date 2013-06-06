@@ -1285,9 +1285,10 @@ module.exports = class JGroup extends Module
     }
 
   makePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
     JRecurlyPlan = require '../recurly'
     JRecurlyPlan.one
-      code: @payment.plan
+      code: data.plan
     , (err, plan)=>
       return callback err  if err
       plan.subscribeGroup @, data, (err, subs)=>
