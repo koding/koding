@@ -110,7 +110,7 @@ module.exports =
       mainUri   : "http://new.koding.com"
       broker    :
         sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
-      apiUri    : 'https://api.koding.com'
+      apiUri    : 'https://www.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
