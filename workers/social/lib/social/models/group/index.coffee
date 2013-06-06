@@ -121,7 +121,6 @@ module.exports = class JGroup extends Module
           customOptions   : Object
       payment       :
         plan        : String
-        subscription: String
     relationships   :
       bundle        :
         targetType  : 'JGroupBundle'
@@ -1286,34 +1285,25 @@ module.exports = class JGroup extends Module
     }
 
   makePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
     JRecurlyPlan = require '../recurly'
     JRecurlyPlan.one
-      code: @payment.plan
+      code: data.plan
     , (err, plan)=>
       return callback err  if err
       plan.subscribeGroup @, data, (err, subs)=>
         return callback err  if err
-        @payment.subscription = subs.uuid
-        @save =>
-
-          @createBundle
-            users           : { quota: 1000 }
-            cpu             : { quota: 1000 }
-            ram             : { quota: 1000 }
-            disk            : { quota: 1000 }
-            'cpu per user'  : { quota: 1000 }
-            'ram per user'  : { quota: 1000 }
-            'disk per user' : { quota: 1000 }
-          , (err)->
-            callback no, subs
+        @createBundle
+          users           : { quota: 1000 }
+          cpu             : { quota: 1000 }
+          ram             : { quota: 1000 }
+          disk            : { quota: 1000 }
+          'cpu per user'  : { quota: 1000 }
+          'ram per user'  : { quota: 1000 }
+          'disk per user' : { quota: 1000 }
+        , (err)->
+          callback no, subs
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
-    JRecurlySubscription.one
-      planCode: @payment.plan
-      userCode: "group_#{@slug}"
-    , (err, subs)=>
-      if err or not subs
-        callback no
-      else
-        callback yes
+    JRecurlySubscription.getGroupSubscriptions @, callback

@@ -35,6 +35,10 @@ class NFinderController extends KDViewController
         # @unsetRecentFolder path
         @stopWatching path
 
+    @noVMFoundWidget = new KDView
+      cssClass       : 'no-vm-found-widget'
+      partial        : 'It seems there is no VM attached to FileTree'
+
   watchers: {}
 
   registerWatcher:(path, stopWatching)->
@@ -52,6 +56,7 @@ class NFinderController extends KDViewController
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
+    mainView.addSubView @noVMFoundWidget
     @viewLoaded = yes
 
     @reset()  if @getOptions().loadFilesOnInit
@@ -104,10 +109,15 @@ class NFinderController extends KDViewController
       type   : "vm"
       vmName : vmName
 
+    @noVMFoundWidget.unsetClass 'visible'
     @treeController.addNode @vms.last
 
     vmItem = @getVmNode vmName
-    @treeController.expandFolder vmItem  if fetchContent and vmItem
+    if fetchContent and vmItem
+      @treeController.expandFolder vmItem, (err)=>
+        if err?.name is 'VMNotFoundError'
+          @unmountVm vmName
+      , yes
 
   unmountVm:(vmName)->
     return unless KD.isLoggedIn()
@@ -118,6 +128,8 @@ class NFinderController extends KDViewController
       FSHelper.deregisterVmFiles vmName
       @treeController.removeNodeView vmItem
       @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
+
+      if @vms.length is 0 then @noVMFoundWidget.setClass 'visible'
 
   updateVMRoot:(vmName, path, callback)->
     return warn 'VM name and new path required!'  unless vmName or path
