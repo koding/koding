@@ -23,7 +23,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName'
+                           'removeByName', 'someData'
                           ]
       instance          : []
     schema              :
