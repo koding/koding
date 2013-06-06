@@ -264,10 +264,12 @@ class StaticProfileAboutHeaderView extends KDView
       cssClass : 'about'
       partial : profile.about or ''
 
+    {userSitesDomain} = KD.config
+
     @profileUserUrlView = new CustomLinkView
       cssClass : 'url'
-      href : "http://#{profile.nickname}.koding.com"
-      title : "#{profile.nickname}.koding.com"
+      href : "http://#{profile.nickname}.#{userSitesDomain}"
+      title : "#{profile.nickname}.#{userSitesDomain}"
       target : '_blank'
 
   viewAppended:->

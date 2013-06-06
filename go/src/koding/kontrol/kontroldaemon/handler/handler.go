@@ -200,14 +200,16 @@ func DoAction(command, option string, worker workerconfig.MsgWorker) error {
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
-		err = proxyDB.AddKey(
+
+		err = proxyDB.UpsertKey(
 			"koding",
+			"sticky",
 			worker.Name, //service name
 			key,
 			worker.Hostname+":"+port, // host
 			"FromKontrolDaemon",
-			"proxy-2.in.koding.com", // proxy uuid
 			"",
+			0,
 		)
 		if err != nil {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())
