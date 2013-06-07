@@ -55,7 +55,7 @@ func (p *ProxyConfiguration) GetDomain(domainname string) (Domain, error) {
 		domain := Domain{}
 		err := p.Collection["domains"].Find(bson.M{"domainname": domainname}).One(&domain)
 		if err != nil {
-			return domain, fmt.Errorf("no domain with name %s exist.", domainname)
+			return domain, err
 		}
 
 		data, err := json.Marshal(domain)

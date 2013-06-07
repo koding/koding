@@ -13,14 +13,15 @@ import (
 )
 
 type ProxyPostMessage struct {
-	Name      string
-	Username  string
-	Domain    string
-	Mode      string
-	Key       string
-	RabbitKey string
-	Host      string
-	Hostdata  string
+	Name         string
+	Username     string
+	Domain       string
+	Mode         string
+	CurrentIndex string
+	Key          string
+	RabbitKey    string
+	Host         string
+	Hostdata     string
 }
 
 var clientDB *clientconfig.ClientConfig
@@ -74,13 +75,12 @@ func main() {
 	rout.HandleFunc("/proxies/{proxyname}", DeleteProxy).Methods("DELETE")
 
 	// Service handlers
-	rout.HandleFunc("/services", GetProxyUsers).Methods("GET")
-	rout.HandleFunc("/services/{username}", GetProxyServices).Methods("GET")
-	rout.HandleFunc("/services/{username}", CreateProxyUser).Methods("POST")
-	rout.HandleFunc("/services/{username}/{servicename}", GetKeyList).Methods("GET")
-	rout.HandleFunc("/services/{username}/{servicename}", CreateProxyService).Methods("POST")
-	rout.HandleFunc("/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/services", GetUsers).Methods("GET")
+	rout.HandleFunc("/services/{username}", GetServices).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}", GetService).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}", DeleteService).Methods("DELETE")
 	rout.HandleFunc("/services/{username}/{servicename}/{key}", GetKey).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}/{key}", CreateKey).Methods("POST")
 	rout.HandleFunc("/services/{username}/{servicename}/{key}", DeleteKey).Methods("DELETE")
 
 	// Domain handlers

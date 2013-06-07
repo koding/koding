@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
 )
@@ -49,7 +50,14 @@ func NewRestriction(domainname string) *Restriction {
 }
 
 func (p *ProxyConfiguration) AddRule(domainname, rulename, rule, mode string, enabled bool) error {
-	restriction := *NewRestriction(domainname)
+	restriction, err := p.GetRule(domainname)
+	if err != nil {
+		if err != mgo.ErrNotFound {
+			return err
+		}
+		restriction = *NewRestriction(domainname)
+	}
+
 	switch rulename {
 	case "ip", "file":
 		restriction.IP.Enabled = enabled
@@ -65,7 +73,8 @@ func (p *ProxyConfiguration) AddRule(domainname, rulename, rule, mode string, en
 		}
 		restriction.Country.Rule = cList
 	}
-	_, err := p.Collection["rules"].Upsert(bson.M{"domainname": domainname}, restriction)
+
+	_, err = p.Collection["rules"].Upsert(bson.M{"domainname": domainname}, restriction)
 	if err != nil {
 		return err
 	}
@@ -88,7 +97,7 @@ func (p *ProxyConfiguration) GetRule(domainname string) (Restriction, error) {
 		restriction := Restriction{}
 		err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).One(&restriction)
 		if err != nil {
-			return restriction, fmt.Errorf("no rule for domain %s exist.", domainname)
+			return restriction, err
 		}
 		data, err := json.Marshal(restriction)
 		if err != nil {
