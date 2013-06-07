@@ -195,7 +195,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.firstName   = userAccount.firstName
           data.lastName    = userAccount.lastName
 
-          JRecurlyPlan.getGroupAccount group, (err, account)->
+          JRecurlyPlan.getUserAccount client, (err, account)->
             if account and not err
               payment.addUserSubscription userCode, data, (err, result)->
                 return callback err  if err
