@@ -83,10 +83,10 @@ module.exports = class JGroup extends Module
         'countInvitationRequests', 'fetchInvitationRequestCounts',
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
-        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
+        'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment'
+        'checkPayment', 'makePayment', 'updatePayment', 'fetchOrSearchInvitationRequests'
       ]
     schema          :
       title         :
@@ -656,7 +656,7 @@ module.exports = class JGroup extends Module
   createMembershipPolicy:(requestType, queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
     queue ?= []
-    
+
     JMembershipPolicy = require './membershippolicy'
     membershipPolicy  = new JMembershipPolicy
     membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
@@ -793,7 +793,19 @@ module.exports = class JGroup extends Module
 
   inviteByEmail: permit 'send invitations',
     success: (client, email, callback)->
-      @inviteMember client, email, callback
+      JUser    = require '../user'
+      JUser.one {email}, (err, user)=>
+        cb = (user, account)=>
+          @inviteMember client, email, user, account, callback
+
+        if err or not user
+          cb null, null
+        else
+          user.fetchOwnAccount (err, account)=>
+            return cb user, null  if err or not account
+            @isMember account, (err, isMember)->
+              return callback new KodingError "#{email} is already member of this group!"  if isMember
+              cb user, account
 
   inviteByEmails: permit 'send invitations',
     success: (client, emails, callback)->
@@ -819,7 +831,7 @@ module.exports = class JGroup extends Module
             @isMember account, (err, isMember)=>
               return callback err if err
               return callback new KodingError "#{username} is already member of this group!" if isMember
-              @inviteMember client, user.email, (err)->
+              @inviteMember client, user.email, user, account, (err)->
                 return queue.next() unless err
                 replaceEmail = (errMsg)-> errMsg.replace user.email, username
                 if err.name is 'KodingError' then err.message = replaceEmail err.message
@@ -828,8 +840,11 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, callback)->
+  inviteMember: (client, email, user, account, callback)->
     JInvitationRequest = require '../invitationrequest'
+
+    [callback, account] = [account, callback]  unless callback
+    [callback, user]    = [user, callback]     unless callback
 
     params =
       email  : email
@@ -842,8 +857,10 @@ module.exports = class JGroup extends Module
           You've already invited #{email}.
           """
       else
-        params.invitationType = 'invitation'
-        params.status         = 'sent'
+        params.invitationType  = 'invitation'
+        params.status          = 'sent'
+        params.koding          = username : user.username  if user
+        params.koding.fullName = "#{account.profile.firstName} #{account.profile.lastName}"  if account
 
         invitationRequest = new JInvitationRequest params
         invitationRequest.save (err)=>
@@ -929,8 +946,10 @@ module.exports = class JGroup extends Module
               }
 
               if delegate instanceof JAccount
-                invitationRequest.koding = {}
-                invitationRequest.koding.username = delegate.profile.nickname
+                invitationRequest.koding = {
+                  username : delegate.profile.nickname
+                  fullName : "#{delegate.profile.firstName} #{delegate.profile.lastName}"
+                }
 
               invitationRequest.save (err)=>
                 return kallback err if err
@@ -1231,51 +1250,51 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
- 
+
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
+      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
       bundle.fetchLimits (err, limits) ->
         return callback err  if err?
         queue = limits.map (limit) -> ->
           limit.update { $set: quota: formData.quotas[limit.title] }, fin
         dash queue, callback
         fin = queue.fin.bind queue
- 
+
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->
       @updateBundle formData, callback
- 
+
   destroyBundle: (callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle not found!'  unless bundle?
- 
+
       bundle.remove callback
- 
+
   destroyBundle$: permit 'change bundle',
     success: (client, callback) -> @destroyBundle callback
- 
+
   createBundle: (limits, callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle exists!'  if bundle?
- 
+
       JGroupBundle = require '../bundle/groupbundle'
- 
+
       bundle = new JGroupBundle {}, limits
       bundle.save (err) =>
         return callback err  if err?
- 
+
         @addBundle bundle, callback
- 
+
   createBundle$: permit 'change bundle',
     success: (client, limits, callback) -> @createBundle limits, callback
- 
+
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
- 
+
   getDefaultLimits:->
     {
       cpu             : { quota: 1 }
@@ -1318,3 +1337,27 @@ module.exports = class JGroup extends Module
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
     JRecurlySubscription.getGroupSubscriptions @, callback
+
+  fetchOrSearchInvitationRequests: permit 'send invitations',
+    success: (client, status, timestamp, requestLimit, search, callback)->
+      status   = $in: status                if Array.isArray status
+      selector = timestamp: $lt: timestamp  if timestamp
+
+      options  =
+        targetOptions :
+          selector    : { status }
+          limit       : requestLimit
+          sort        : { requestedAt: -1 }
+        options       :
+          sort        : { timestamp: -1 }
+
+      if search
+        search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
+        seed = new RegExp search, 'i'
+        options.targetOptions.selector.$or = [
+          { email             : seed }
+          { 'koding.username' : seed }
+          { 'koding.fullName' : seed }
+        ]
+
+      @fetchInvitationRequests selector, options, callback

@@ -86,7 +86,7 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', => @render()
+    data?.on? 'update', @bound 'render'
 
     @setInstanceVariables options
     @defaultInit options,data
