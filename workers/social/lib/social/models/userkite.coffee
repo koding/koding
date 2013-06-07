@@ -106,6 +106,8 @@ class JUserKiteVersion extends jraphical.Module
 
 
 class JUserKiteInstance extends jraphical.Module
+  
+  # dont know if we really need this ??
 
   {Relationship} = jraphical
 
@@ -118,8 +120,6 @@ class JUserKiteInstance extends jraphical.Module
     sharedMethods     :
       instance        : ['revoke']
       static          : ['create', 'fetchAll', 'fetchByKey']
-    indexes           :
-      key             : ['unique']
     schema            :
       ipaddr          : String
       lxcid           : String

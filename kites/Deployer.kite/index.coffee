@@ -23,6 +23,7 @@ class LXC
     console.log "......LXC constructor",  @name
 
   createLxc: (callback) ->
+    return callback()
     cmd = spawn "create-lxc", [@name]
     console.log 'create lxc'
     cmd.stdout.on 'data', (data) ->
@@ -38,20 +39,30 @@ class Deployment
     console.log "......Deployment constructor",  @lxc
     @kitePath = path.join @lxc.pathToContainers, @lxc.name, "overlay", "opt", "kites"
 
-  downloadAndExtractKite: (callback) ->
+  downloadAndExtractKite: (callback) =>
       fs.mkdirsSync(@kitePath) ## TODO mkdir creates 0777, exists check
-      file = fs.createWriteStream path.join @kitePath, "#{name}.zip"
-      request = https.get @zipUrl, (response) ->
+      
+      filepath = path.join @kitePath, "#{@name}.zip"
+      file = fs.createWriteStream filepath
+
+      console.log "downloading url", @zipUrl, " to ", filepath
+      
+      request = https.get @zipUrl, (response) =>
         response.pipe file
-        response.on "close", () ->
+        response.on "end", () =>
+          console.log "file download complete", response.statusCode
           if response.statusCode is 200
+            console.log "chdirpath", @kitePath
             process.chdir @kitePath
-            cmd = spawn "unzip", ["-v", "#{name}.zip"]
+            
+            cmd = spawn "unzip", ["#{@name}.zip"]
             console.log 'unziping kite'
+            
             cmd.stdout.on 'data', (data) ->
-              console.log 'stdout: ', data
+              #console.log 'stdout: ', data.toString()
             cmd.stderr.on 'data', (data) -> 
-              console.log 'stderr: ', data
+              #console.log 'stderr: ', data.toString()
+            
             cmd.on 'close', (code) ->
               console.log 'unzip process exited with code ', code
               callback()
@@ -72,6 +83,7 @@ kite.worker manifest,
     {zipUrl, name} = options
     lxc = new LXC(name)
     lxc.createLxc () ->
+      console.log ">>>", name
       deployment = new Deployment(zipUrl, name, lxc)
       deployment.downloadAndExtractKite deployment.runKite
 
