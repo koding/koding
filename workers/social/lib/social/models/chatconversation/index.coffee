@@ -11,6 +11,8 @@ module.exports = class JChatConversation extends Module
   @share()
 
   @set
+    indexes         :
+      publicName    : 'unique'
     sharedEvents    :
       static        : []
       instance      : ['updateInstance','notification']
