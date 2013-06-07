@@ -105,7 +105,9 @@ func (v *Validator) Check() (bool, error) {
 				return false, ErrNotValidated
 			}
 		case "securepage":
-			return false, ErrSecurePage
+			if filter.validate() {
+				return false, ErrSecurePage
+			}
 		}
 	}
 
