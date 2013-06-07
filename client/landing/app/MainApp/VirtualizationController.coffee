@@ -109,9 +109,11 @@ class VirtualizationController extends KDController
 
   createNewVM:->
     return  if @dialogIsOpen
+    vmController        = @getSingleton('vmController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
     
+
     # Take this to a better place, possibly to payment controller.
     makePayment = (type, planCode, callback)->
       if type is 'shared'
@@ -131,28 +133,29 @@ class VirtualizationController extends KDController
               delete data.cardYear
               delete data.cardCV
 
-              modal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
+              paymentModal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
                 newData.plan = planCode
                 group.makePayment newData, (err, subscription)->
                   if err
                     onError err
                   else
-                    KD.singletons.vmController.createGroupVM type, vmCreateCallback
+                    vmController.createGroupVM type, vmCreateCallback
                     onSuccess()
                     callback()
+              paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
           else
-            KD.singletons.vmController.createGroupVM type, vmCreateCallback
+            vmController.createGroupVM type, vmCreateCallback
             callback()
       else
         _createUserVM = (cb)->
           KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
             plan.subscribe {}, (err, subscription)->
               return cb err  if cb and err
-              KD.singletons.vmController.createGroupVM type, vmCreateCallback
+              vmController.createGroupVM type, vmCreateCallback
               cb?()
         KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
           if err
-            modal = createAccountPaymentMethodModal {}, (newData, onError, onSuccess)->
+            paymentModal = createAccountPaymentMethodModal {}, (newData, onError, onSuccess)->
               newData.plan = planCode
               KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
                 if err
@@ -160,8 +163,9 @@ class VirtualizationController extends KDController
                 else
                   onSuccess result
                   _createUserVM callback
+            paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
           else
-            _createUserVM()
+            _createUserVM callback
 
     vmCreateCallback  = (err, vm)->
       if err
@@ -170,8 +174,8 @@ class VirtualizationController extends KDController
           title : err.message or "Something bad happened while creating VM"
       else
         KD.singletons.finderController.mountVm vm.name
-        KD.singletons.vmController.emit 'VMListChanged'
-      modal.destroy()
+        vmController.emit 'VMListChanged'
+      paymentModal.destroy()
 
     group = KD.singletons.groupsController.getGroupSlug()
 
@@ -186,7 +190,6 @@ class VirtualizationController extends KDController
       return new KDNotificationView
         title : "You are not authorized to create VMs in #{group} group"
 
-    vmController = @getSingleton('vmController')
     vmController.fetchVMPlans (err, plans)=>
       @paymentPlans = plans
       {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
@@ -285,10 +288,14 @@ class VirtualizationController extends KDController
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
       form = modal.modalTabs.forms["Create VM"]
-      form.on "FormValidationFailed", =>
+
+      hideLoaders = ->
         {personal, shared} = form.buttons
         personal.hideLoader()
         shared.hideLoader()
+      
+      vmController.on "PaymentModalDestroyed", hideLoaders
+      form.on "FormValidationFailed", hideLoaders
 
   askForApprove:(command, callback)->
 
