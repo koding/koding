@@ -36,7 +36,7 @@ class ChatAppController extends AppController
   handleChatRequest:(request, callback)->
     {invitee, publicName} = request
 
-    if invitee isnt KD.whoami().profile.nickname
+    if invitee isnt KD.nick()
       throw new Error 'Red alert!  Security breach detected!'
 
     chatPanel = KD.getSingleton 'chatPanel'
