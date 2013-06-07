@@ -32,23 +32,24 @@ class JUserKite extends jraphical.Module
   @fetchOrCreate = (data, callback)->
     JUserKite.one
       kitename: data.kitename
-      owner: data.account?._id or data.account_id
+      owner: data.account_id #or data.account?._id
     , (err, userkite)->
-      if err then callback err
+      console.log "the error: ", err
+      if err 
+        callback err
       else if not userkite
-        callback null, null
-      else
-
+        console.log "xxxxx ????"
         userkite = new JUserKite
           kitename      : data.kitename
           latest_s3url  : data.s3url
-          owner         : data.account._id or data.account_id
-
+          owner         : data.account_id #or data.account?._id
         userkite.save (err)->
           if err
             callback err
           else
             callback null, userkite
+      else 
+        callback null, userkite
 
 
 class JUserKiteVersion extends jraphical.Module
