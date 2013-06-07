@@ -27,6 +27,7 @@ type VMInfo struct {
 	vmName        string
 	channels      map[*kite.Channel]bool
 	timeout       *time.Timer
+	mutex         sync.Mutex
 	totalCpuUsage int
 
 	State       string `json:"state"`
@@ -250,6 +251,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		infosMutex.Unlock()
 
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
+
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip")
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
@@ -366,6 +370,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}
 
+		if concurrent {
+			info.mutex.Unlock()
+			defer info.mutex.Lock()
+		}
 		return callback(args, channel, userVos)
 	})
 }
