@@ -59,11 +59,6 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 		return nil, err
 	}
 
-	_, ok := user.validate()
-	if !ok {
-		return nil, errors.New("not validated user")
-	}
-
 	fmt.Printf("--\nconnected user information %v\n", user)
 	return user, nil
 }
@@ -231,10 +226,10 @@ func lookupDomain(host string) (*UserInfo, error) {
 	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
 }
 
-func (u *UserInfo) validate() (string, bool) {
+func validate(u *UserInfo) (bool, error) {
 	res, err := proxyDB.GetRule(u.Host)
 	if err != nil {
-		return fmt.Sprintf("no rule available for servicename %s\n", u.Username), true
+		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
 	return validator(res, u).IP().Country().Check()

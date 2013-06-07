@@ -1,9 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"regexp"
+)
+
+var (
+	ErrNotValidated = errors.New("not validated")
+	ErrSecurePage   = errors.New("you are in secure page :)")
 )
 
 type filter struct {
@@ -87,16 +93,23 @@ func (v *Validator) Country() *Validator {
 	return v
 }
 
-func (v *Validator) Check() (string, bool) {
-	for name, filter := range v.filters {
-		if filter.mode == "blacklist" && filter.validate() {
-			return fmt.Sprintf("user is blocked via %s\n", name), false
-		} else if filter.mode == "whitelist" && !filter.validate() {
-			return fmt.Sprintf("user is blocked via %s\n", name), false
+func (v *Validator) Check() (bool, error) {
+	for _, filter := range v.filters {
+		switch filter.mode {
+		case "blacklist":
+			if filter.validate() {
+				return false, ErrNotValidated
+			}
+		case "whitelist":
+			if !filter.validate() {
+				return false, ErrNotValidated
+			}
+		case "securepage":
+			return false, ErrSecurePage
 		}
 	}
 
 	// user is validated because none of the rules applied to him
 	fmt.Println("user is validated")
-	return fmt.Sprintf("user is validated\n"), true
+	return true, nil
 }
