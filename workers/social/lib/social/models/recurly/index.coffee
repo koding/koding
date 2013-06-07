@@ -149,26 +149,41 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       unless status
         callback yes, {}
       else
-
         userCode      = "user_#{delegate._id}"
-        data          =
-          plan        : @code
-          quantity    : data.quantity
-          accountCode : userCode
-
-        payment.addUserSubscription userCode, data, (err, result)->
+        JRecurlySubscription.one
+          userCode: userCode
+          planCode: @code
+        , (err, subs)=>
           return callback err  if err
-          sub = new JRecurlySubscription
-            planCode : result.code
-            userCode : data.accountCode
-            uuid     : result.uuid
-            quantity : result.quantity
-            status   : result.status
-            datetime : result.datetime
-            expires  : result.expires
-            renew    : result.renew
-          sub.save ->
-            callback no, sub
+          if subs
+            subs.quantity ?= 1
+            subs.quantity += 1
+            payment.updateUserSubscription userCode,
+              quantity: subs.quantity
+              plan    : @code
+              uuid    : subs.uuid
+            , (err, result)=>
+              @save ->
+                callback no, subs
+          else
+            data          =
+              plan        : @code
+              quantity    : data.quantity
+              accountCode : userCode
+
+            payment.addUserSubscription userCode, data, (err, result)->
+              return callback err  if err
+              sub = new JRecurlySubscription
+                planCode : result.plan
+                userCode : userCode
+                uuid     : result.uuid
+                quantity : result.quantity
+                status   : result.status
+                datetime : result.datetime
+                expires  : result.expires
+                renew    : result.renew
+              sub.save ->
+                callback no, sub
 
   getSubscription: secure (client, callback)->
     {delegate} = client.connection
