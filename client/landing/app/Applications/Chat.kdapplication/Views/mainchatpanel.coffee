@@ -17,8 +17,6 @@ class MainChatPanel extends JView
         @getSingleton('windowController').addLayer @
         @once 'ReceivedClickElsewhere', @bound 'hide'
 
-    @listenWindowResize()
-
   createConversation:(data)->
     # Data includes chatChannel and the conversation
     @conversationListController.addItem data
@@ -55,7 +53,8 @@ class MainChatPanel extends JView
       @setWidth 250
       @inboxMode = no
 
+    @listenWindowResize @inboxMode
+
   _windowDidResize:->
-    if @inboxMode
-      {winWidth} = @getSingleton('windowController')
-      @setWidth winWidth - 160
+    {winWidth} = @getSingleton('windowController')
+    @setWidth winWidth - 160
