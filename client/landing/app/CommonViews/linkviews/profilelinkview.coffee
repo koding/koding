@@ -33,11 +33,6 @@ class ProfileLinkView extends LinkView
     @$().attr "href", "/#{nickname}"  if nickname
     super
 
-  viewAppended: ->
-
-    super
-    @render()
-
   pistachio:->
 
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
