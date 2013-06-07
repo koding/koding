@@ -1,6 +1,6 @@
 config =
   _selfConfig :
-    defaultConfig : "dev"
+    defaultConfig : "vagrant"
   kite :
     applications :
       name              : 1

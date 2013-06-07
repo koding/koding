@@ -474,7 +474,7 @@ task 'alertUserToRunNeo4jMigrator', (options)->
 
 task 'run', (options)->
   {configFile} = options
-  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
+  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   oldIndex = nodePath.join __dirname, "website/index.html"
@@ -494,7 +494,7 @@ task 'run', (options)->
 task 'accounting', (options)->
 
   {configFile} = options
-  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
+  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork
