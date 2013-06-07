@@ -24,28 +24,41 @@ class LXC
 
   createLxc: (callback) ->
     cmd = spawn "create-lxc", [@name]
+    console.log 'create lxc'
     cmd.stdout.on 'data', (data) ->
       console.log 'stdout: ', data
     cmd.stderr.on 'data', (data) -> 
       console.log 'stderr: ', data
     cmd.on 'close', (code) ->
-      console.log 'child process exited with code ', code
+      console.log 'create lxc process exited with code ', code
       callback()
 
 class Deployment
   constructor: (@zipUrl, @name, @lxc) ->
     console.log "......Deployment constructor",  @lxc
-    @kitePath = path.join @lxc.pathToContainers, @lxc.name, "overlay", "opt", "kites", @lxc.name
+    @kitePath = path.join @lxc.pathToContainers, @lxc.name, "overlay", "opt", "kites"
 
   downloadAndExtractKite: (callback) ->
       fs.mkdirsSync(@kitePath) ## TODO mkdir creates 0777, exists check
-      file = fs.createWriteStream @kitePath
+      file = fs.createWriteStream path.join @kitePath, "#{name}.zip"
       request = https.get @zipUrl, (response) ->
         response.pipe file
-      callback()
+        response.on "close", () ->
+          if response.statusCode is 200
+            process.chdir @kitePath
+            cmd = spawn "unzip", ["-v", "#{name}.zip"]
+            console.log 'unziping kite'
+            cmd.stdout.on 'data', (data) ->
+              console.log 'stdout: ', data
+            cmd.stderr.on 'data', (data) -> 
+              console.log 'stderr: ', data
+            cmd.on 'close', (code) ->
+              console.log 'unzip process exited with code ', code
+              callback()
 
   runKite: () ->
-    cmd = spawn "/usr/bin/lxc-execute /bin/bash -c \" cd #{@kitePath} && /usr/bin/kd kite run #{@name}\""
+    process.chdir path.join @kitePath, @name
+    cmd = spawn "/usr/bin/lxc-execute && /usr/bin/kd kite run #{@name}\""
     cmd.stdout.on 'data', (data) ->
       console.log 'stdout: ', data
     cmd.stderr.on 'data', (data) -> 
@@ -56,9 +69,7 @@ class Deployment
 kite.worker manifest, 
   # This is a dummy method of the kite.
   deploy: (options, callback) ->
-    console.log options
     {zipUrl, name} = options
-    console.log name, zipUrl
     lxc = new LXC(name)
     lxc.createLxc () ->
       deployment = new Deployment(zipUrl, name, lxc)
