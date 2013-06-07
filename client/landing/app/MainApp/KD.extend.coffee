@@ -5,11 +5,10 @@ KD.extend
       if err then new KDNotificationView title: err.message
       else location.reload()
 
-  notifyError_:(message)->
+  notify_:(message, type)->
     console.log message
     new KDNotificationView
-      type     : 'mini'
-      cssClass : 'error'
+      cssClass : "#{type}"
       title    : message
       duration : 3500
 
@@ -19,7 +18,7 @@ KD.extend
     unless KD.isLoggedIn()
       # if there is fail message, display it
       if onFailMsg
-        @notifyError_ onFailMsg
+        @notify_ onFailMsg, "error"
 
       # if there is fail method, call it
       onFail?()
@@ -35,15 +34,17 @@ KD.extend
           mainController.once "accountChanged.to.loggedIn", =>
             if groupName and KD.isLoggedIn()
               @joinGroup_ groupName, (res)=>
-                unless res then return @notifyError_ "Joining to #{groupName} group failed"
+                unless res then return @notify_ "Joining to #{groupName} group failed", "error"
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
     else
       if groupName
         @joinGroup_ groupName, (res)=>
-          if res then callback?()
-          else @notifyError_ "Joining to #{groupName} group failed 2"
+          if res
+
+            callback?()
+          else @notify_ "Joining to #{groupName} group failed", "error"
       else callback?()
 
   joinGroup_:(groupName, callback)->
@@ -52,13 +53,13 @@ KD.extend
     user.fetchGroups (err, groups)=>
       if err or !groups then return callback false
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        if err then return @notifyError_ err.message
+        if err then return @notify_ err.message, "error"
         for group in groups
           if groupName is group.group.slug
             return callback true
         currentGroup.join (err)=>
           if err then return callback false
-          @notifyError_ "Joined to #{groupName} group!"
+          @notify_ "Joined to #{groupName} group!", "success"
           return callback true
 
   jsonhTest:->
