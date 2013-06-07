@@ -16,8 +16,6 @@ class JUserKite extends jraphical.Module
     sharedMethods     :
       instance        : ['revoke']
       static          : ['create', 'fetchAll', 'fetchByKey']
-    indexes           :
-      key             : ['unique']
     schema            :
       latest_s3url    : String
       kitename        : String
@@ -29,19 +27,29 @@ class JUserKite extends jraphical.Module
         type      : Date
         default   : -> new Date
 
-  @fetchOrCreate = (data, callback)->
+  newVersion: (cb)=>
+    console.log "==========> adding new version ========" 
+    kiteversion = new JUserKiteVersion
+      s3url: @latest_s3url
+      kitename: @kitename
+      owner: @owner
+      version: @latest_version
+    kiteversion.save (err)->
+      console.log "errrorrrrrrrrrr", err
+      cb(err)
+
+  @fetchOrCreate: (data, callback)=>
     JUserKite.one
       kitename: data.kitename
       owner: data.account_id #or data.account?._id
     , (err, userkite)->
       console.log "the error: ", err
-      if err 
+      if err
         callback err
       else if not userkite
-        console.log "xxxxx ????"
         userkite = new JUserKite
           kitename      : data.kitename
-          latest_s3url  : data.s3url
+          latest_s3url  : data.latest_s3url
           owner         : data.account_id #or data.account?._id
         userkite.save (err)->
           if err
@@ -50,7 +58,15 @@ class JUserKite extends jraphical.Module
             callback null, userkite
       else
         console.log "===================================", userkite.data._id, userkite.data.latest_version
-        JUserKite.update {_id: userkite.data._id}, {$set: latest_version: parseInt(userkite.data.latest_version) + 1}, callback
+        JUserKite.update {_id: userkite.data._id}, 
+                            {$set: 
+                                latest_version: parseInt(userkite.data.latest_version) + 1,
+                                latest_s3url: data.latest_s3url
+                            }
+                          , (err)->
+          if err 
+            return callback(err)
+          callback(null, userkite)
 
 
 class JUserKiteVersion extends jraphical.Module
@@ -66,8 +82,6 @@ class JUserKiteVersion extends jraphical.Module
     sharedMethods     :
       instance        : ['revoke']
       static          : ['create', 'fetchAll', 'fetchByKey']
-    indexes           :
-      key             : ['unique']
     schema            :
       s3url           : String
       kitename        : String

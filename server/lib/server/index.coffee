@@ -229,22 +229,20 @@ findUsernameFromKey = (req, res, callback) ->
 
 s3 = require('./s3') uploads.s3, findUsernameFromKey
 app.post "/-/kd/upload", s3..., (req, res)->
-
-  
   {JUserKite} = koding.models
-
   for own key, file of req.files
-    #res.send nodePath.join uploads.distribution, file.path
     JUserKite.fetchOrCreate
       kitename      : file.filename
-      latest_s3url  : nodePath.join uploads.distribution, file.path
+      latest_s3url  :  "#{uploads.distribution}/#{file.path}"
       account_id    :  "5196fcb0bc9bdb0000000011"
     , (err, userkite)->
       if err
         console.log "error", err
         return res.send err
       console.log "user kite ", userkite
-      res.send "OK"
+      console.log "url", "#{uploads.distribution}/#{file.path}"
+      userkite.newVersion (err)->
+        res.send "OK"
 
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command
