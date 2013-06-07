@@ -37,7 +37,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     @getSubscriptions "user_#{delegate._id}", callback
 
   @getGroupSubscriptions = (group, callback)->
-    @getSubscriptions "group_#{group.slug}", callback
+    @getSubscriptions "group_#{group._id}", callback
 
   @getSubscriptions = (userCode, callback)->
     selector   =

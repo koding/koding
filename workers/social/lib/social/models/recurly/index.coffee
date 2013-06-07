@@ -56,7 +56,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     payment.getAccount "user_#{delegate._id}", callback
 
   @getGroupAccount = (group, callback)->
-    payment.getAccount "group_#{group.slug}", callback
+    payment.getAccount "group_#{group._id}", callback
 
   @getUserTransactions = secure (client, callback)->
     {delegate}    = client.connection
@@ -151,6 +151,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       return callback err  if err
       account =
         email     : user.email
+        username  : delegate.profile.nickname
         firstName : delegate.profile.firstName
         lastName  : delegate.profile.lastName
       callback no, account
@@ -162,6 +163,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         return callback err  if err
         account =
           email     : user.email
+          username  : group.slug
           firstName : "Group"
           lastName  : group.title
         callback no, account
@@ -192,6 +194,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.accountCode = userCode
           data.plan        = @code
           data.email       = userAccount.email
+          data.username    = userAccount.username
           data.firstName   = userAccount.firstName
           data.lastName    = userAccount.lastName
 
@@ -236,7 +239,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     , callback
 
   subscribeGroup: (group, data, callback)->
-    userCode = "group_#{group.slug}"
+    userCode = "group_#{group._id}"
 
     JRecurlySubscription.one
       userCode: userCode
@@ -262,6 +265,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.accountCode = userCode
           data.plan        = @code
           data.email       = groupAccount.email
+          data.username    = groupAccount.username
           data.firstName   = groupAccount.firstName
           data.lastName    = groupAccount.lastName
 
