@@ -35,6 +35,7 @@ KD.extend
             if groupName and KD.isLoggedIn()
               @joinGroup_ groupName, (res)=>
                 unless res then return @notify_ "Joining to #{groupName} group failed", "error"
+                @notify_ "You have joined to #{groupName} group!", "success"
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
@@ -59,7 +60,7 @@ KD.extend
             return callback true
         currentGroup.join (err)=>
           if err then return callback false
-          @notify_ "Joined to #{groupName} group!", "success"
+          @notify_ "You have joined to #{groupName} group!", "success"
           return callback true
 
   jsonhTest:->
