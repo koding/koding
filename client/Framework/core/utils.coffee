@@ -707,7 +707,7 @@ __utils =
     octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
 
   # private member for tracking z-indexes
-  zIndexContexts  = {}
+  zIndexContexts:{}
 
   # Get next highest Z-index
   getNextHighestZIndex:(context)->
