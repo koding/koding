@@ -853,9 +853,12 @@ class KDView extends KDObject
 
   _windowDidResize:->
 
-  listenWindowResize:->
+  listenWindowResize:(state=yes)->
 
-    @getSingleton('windowController').registerWindowResizeListener @
+    if state
+      @getSingleton('windowController').registerWindowResizeListener @
+    else
+      @getSingleton('windowController').unregisterWindowResizeListener @
 
   notifyResizeListeners:->
 

@@ -220,7 +220,6 @@ ul.chat-list
       vendor              transition, opacity .15s linear
       sprite()
 
-
 ul.chat-conversation
   max-height              210px
   min-height              210px
@@ -241,3 +240,30 @@ ul.chat-conversation
 
   &:last-child
     border                1px solid rgba(0,0,0,0.03) !important
+
+.conversation-starter-popup
+  padding                 2px 2px 2px 6px
+
+  div.completed-items
+    padding               5px 4px 6px 4px
+    margin-left           -6px
+    margin-top            6px
+    margin-bottom         6px
+    background-color      rgba(236, 244, 249, 0.6)
+    border-top            1px solid rgba(67, 155, 219, 0.2)
+    border-bottom         1px solid rgba(67, 155, 219, 0.2)
+
+    .kdautocompletedlistitem
+      margin              2px 0 0 2px
+      padding             3px 14px 0 3px
+      line-height         16px
+      height              19px
+
+      .profile
+        padding-left      4px
+
+  button.create-conversation
+    height                21px
+    padding-top           3px
+    margin-right          13px
+    left                  17px
