@@ -7,6 +7,7 @@ class LoginView extends KDScrollView
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
+    options.cssClass = 'hidden'
 
     super options, data
 
@@ -282,6 +283,7 @@ class LoginView extends KDScrollView
 
       @emit "LoginViewHidden"
       @hidden = yes
+      @hideTimer = @utils.wait 2000, => @setClass 'hidden'
       callback?()
 
     unless @hidden then do cb
@@ -289,15 +291,17 @@ class LoginView extends KDScrollView
 
   show:(callback)->
 
-    @setY 0
-
+    @utils.killWait @hideTimer
     cb = =>
       @emit "LoginViewShown"
       @hidden = no
       callback?()
 
-    unless @hidden then do cb
-    else @once "transitionend", cb
+    @unsetClass 'hidden'
+    @utils.defer =>
+      @setY 0
+      unless @hidden then do cb
+      else @once "transitionend", cb
 
   click:(event)->
     if $(event.target).is('.login-screen')

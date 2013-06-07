@@ -86,6 +86,12 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if key == "latest" {
+		err := "key 'latest' cannot be used."
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
 	if msg.Host == "" {
 		err := "no 'host' field available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
