@@ -331,6 +331,17 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        -> group.createBundle
+            users           : { quota: 1000 }
+            cpu             : { quota: 1000 }
+            ram             : { quota: 1000 }
+            disk            : { quota: 1000 }
+            'cpu per user'  : { quota: 1000 }
+            'ram per user'  : { quota: 1000 }
+            'disk per user' : { quota: 1000 }
+          , ->
+            console.log "bundle is created"
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -1293,14 +1304,16 @@ module.exports = class JGroup extends Module
       return callback err  if err
       plan.subscribeGroup @, data, (err, subs)=>
         return callback err  if err
-        @createBundle
-          users           : { quota: 1000 }
-          cpu             : { quota: 1000 }
-          ram             : { quota: 1000 }
-          disk            : { quota: 1000 }
-          'cpu per user'  : { quota: 1000 }
-          'ram per user'  : { quota: 1000 }
-          'disk per user' : { quota: 1000 }
+        @updateBundle
+          overagePolicy     : "not allowed"
+          quota             :
+            users           : { quota: 1000 }
+            cpu             : { quota: 1000 }
+            ram             : { quota: 1000 }
+            disk            : { quota: 1000 }
+            'cpu per user'  : { quota: 1000 }
+            'ram per user'  : { quota: 1000 }
+            'disk per user' : { quota: 1000 }
         , (err)->
           callback no, subs
 
