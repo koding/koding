@@ -28,10 +28,11 @@ class ChatAppController extends AppController
       callback null, new ChannelWrapper chatChannel
 
   subscribe:(publicName)->
-    KD.remote.subscribe publicName,
+    chatChannel = KD.remote.subscribe publicName,
       serviceType : 'chat'
       exchange    : 'chat'
       isP2P       : yes
+    @channels[publicName] = chatChannel
 
   handleChatRequest:(request, callback)->
     {invitee, publicName} = request
@@ -39,15 +40,20 @@ class ChatAppController extends AppController
     if invitee isnt KD.nick()
       throw new Error 'Red alert!  Security breach detected!'
 
+    @addConversationToChatPanel publicName
+
+  addConversationToChatPanel:(publicName, conversation)->
+    @subscribe publicName
     chatPanel = KD.getSingleton 'chatPanel'
-    chatChannel = @subscribe publicName
-    @channels[publicName] = chatChannel
 
-    {JChatConversation} = KD.remote.api
-    JChatConversation.fetch publicName, (err, conversation)=>
+    if conversation
+      chatChannel = @channels[publicName]
       chatPanel.createConversation {chatChannel, conversation}
-
-    callback? null, chatChannel
+    else
+      {JChatConversation} = KD.remote.api
+      JChatConversation.fetch publicName, (err, conversation)=>
+        chatChannel = @channels[publicName]
+        chatPanel.createConversation {chatChannel, conversation}
 
 class ChannelWrapper extends KDObject
   constructor:(@channel)-> super {}
