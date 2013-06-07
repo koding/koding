@@ -15,8 +15,18 @@ class DashboardAppView extends JView
 
     @setListeners()
     @once 'viewAppended', =>
-      @createTabs()
-      @_windowDidResize()
+      @header.hide()
+      @nav.hide()
+      group = KD.getSingleton("groupsController").getCurrentGroup()
+      group.canEditGroup (err, success)=>
+        if err or not success
+          {entryPoint} = KD.config
+          KD.getSingleton('router').handleRoute "/Activity", { entryPoint }
+        else
+          @header.show()
+          @nav.show()
+          @createTabs()
+          @_windowDidResize()
 
     @searchWrapper = new KDCustomHTMLView
       tagName  : 'section'
