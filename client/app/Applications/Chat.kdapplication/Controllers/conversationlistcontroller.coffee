@@ -4,8 +4,9 @@ class ChatConversationListController extends CommonChatController
     super
     @getListView().on 'moveToIndexRequested', @bound 'moveItemToIndex'
 
-  # loadItems:(callback)->
-  #   super
-
-  #   @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
-  #     @instantiateListItems accounts unless err
+  addItem:(data)->
+    # Make sure there is one conversation with same channel name
+    {chatChannel} = data
+    for chat in @itemsOrdered
+      return  if chat.conversation?.channel?.name is chatChannel?.name
+    super data
