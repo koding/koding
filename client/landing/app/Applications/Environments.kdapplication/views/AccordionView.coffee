@@ -1,19 +1,23 @@
 class AccordionView extends KDView
 
   constructor:(options={}, data)->
-    options.panes      or= []
-    options.type       or= ""
-    options.activePane or= null
-    options.cssClass   or= "kdaccview"
+    options.panes        or= []
+    options.type         or= ""
+    options.activePane   or= null
+    options.cssClass     or= "kdaccview"
+    options.multipleOpen or= no
 
     @panes = options.panes
 
     super options, data
 
+    @on "accordionItemClicked", (accItem)->
+      @getOptions().activePane = accItem.getOptions().title
+      @hideInactivePanes()
+
+
   viewAppended:->
-    activePaneName = @getOptions().activePane
-    panes = @getPanes()
-    pane.hideContent() for pane in panes when activePaneName and pane.getOptions().title isnt activePaneName
+    @hideInactivePanes()
 
   addPanes:(panes)->
     @addPane pane for pane in panes
@@ -30,6 +34,12 @@ class AccordionView extends KDView
 
   getPaneByIndex:(index)->
     return pane for pane, i in @getPanes() when i is index
+
+  hideInactivePanes:->
+    activePaneName = @getOptions().activePane
+    console.log activePaneName
+    panes = @getPanes()
+    pane.hideContent() for pane in panes when activePaneName and pane.getOptions().title isnt activePaneName
 
 
 class AccordionPaneView extends KDView
@@ -60,11 +70,14 @@ class AccordionPaneView extends KDView
     if contentView.getState() is 'closed'
       contentView.setState 'open'
       contentView.$().slideDown()
+      @parent.emit "accordionItemClicked", this
     else
       contentView.setState 'closed'
       contentView.$().slideUp()
 
   hideContent:->
+    # set it to open so slide closes it.
+    @getContentView().setState 'open'
     @slide()
 
 
