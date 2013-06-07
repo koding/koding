@@ -39,6 +39,22 @@ class DomainMainView extends KDView
       callback : (elm, event)=>
         @domainsListViewController.update()
 
+    # VM, Kite & Firewall Accordion Groups
+    @accordionView = new AccordionView
+      activePane : "Virtual Machines"
+    @vmsAccPane    = new AccordionPaneView
+      title: "Virtual Machines"
+    @kitesAccPane  = new AccordionPaneView
+      title: "Kites"
+    @firewallPane  = new AccordionPaneView
+      title: "Firewall Rules"
+
+    @accordionView.addPanes [@vmsAccPane, @kitesAccPane, @firewallPane]
+
+    @vmsAccPane.setContent @domainMapperView
+    @kitesAccPane.setContent new KDCustomHTMLView
+
+    # Routing & Analytics Tabs
     @tabView       = new KDTabView
     @routingPane   = new KDTabPaneView
       name     : "Routing"
@@ -46,22 +62,6 @@ class DomainMainView extends KDView
     @analyticsPane = new KDTabPaneView
       name     : "Analytics"
       closable : no
-
-    @accordionView = new AccordionView
-      activePane : "Virtual Machines"
-
-    @vmsAccPane = new AccordionPaneView
-      title: "Virtual Machines"
-    @kitesAccPane = new AccordionPaneView
-      title: "Kites"
-    @firewallPane = new AccordionPaneView
-      title: "Firewall Rules"
-
-    @accordionView.addPanes [@vmsAccPane, @kitesAccPane, @firewallPane]
-
-    @vmsAccPane.setContent @domainMapperView
-    @kitesAccPane.setContent new KDCustomHTMLView
-      partial: 'hell yeah baby'
 
     @routingPane.addSubView @accordionView
     @tabView.addPane @routingPane
