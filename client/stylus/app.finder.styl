@@ -740,6 +740,26 @@ div.led-wrapper
       &.text
         bg          position, -40px -300px
 
+  .no-vm-found-widget
+    opacity           0
+    display           hidden
+    top               10px
+    left              10%
+    size              80%, auto
+    padding           5px 10px
+    font-size         11px
+    line-height       22px
+    border-radius     2px
+    bg                color, rgba(0, 0, 0, .08)
+    text-shadow       0 1px 0 rgba(255,255,255,.75)
+    vendor            transition, opacity .3s
+    abs()
+    .kdloader
+      display         block
+      margin          30px auto
+    &.visible
+      opacity         1
+      display         block
 
 .finder-drag-container
   abs()
