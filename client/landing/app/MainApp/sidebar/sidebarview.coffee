@@ -248,8 +248,8 @@ class Sidebar extends JView
     $resList.css maxHeight : if fbch > h then h/2 else "none"
 
     return if $fbc.hasClass 'in'
-      $fbc.css top : "#{100 - ($fbc.height()-27) / @getHeight() * 100}%"
-      $fbc.height()
+      $fbc.css top : "#{100 - ((fbch = $fbc.height())-27) / h * 100}%"
+      return fbch
     else 27
 
   _windowDidResize:->
