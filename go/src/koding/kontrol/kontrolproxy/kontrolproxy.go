@@ -190,21 +190,27 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	go logDomainStat(user.DomainName)
+	go logDomainStat(outreq.Host)
 	go logProxyStat(hostname, user.Country)
 
 	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
 
-	// =.Director closure
-	targetQuery := target.RawQuery
+	// Smart handling incoming request path/query, example:
+	// incoming : foo.com/dir
+	// target	: bar.com/base
+	// proxy to : bar.com/base/dir
 	outreq.URL.Scheme = target.Scheme
 	outreq.URL.Host = target.Host
 	outreq.URL.Path = singleJoiningSlash(target.Path, outreq.URL.Path)
-	if targetQuery == "" || outreq.URL.RawQuery == "" {
-		outreq.URL.RawQuery = targetQuery + outreq.URL.RawQuery
+
+	// incoming : foo.com/name=arslan
+	// target	: bar.com/q=example
+	// proxy to : bar.com/q=example&name=arslan
+	if target.RawQuery == "" || outreq.URL.RawQuery == "" {
+		outreq.URL.RawQuery = target.RawQuery + outreq.URL.RawQuery
 	} else {
-		outreq.URL.RawQuery = targetQuery + "&" + outreq.URL.RawQuery
+		outreq.URL.RawQuery = target.RawQuery + "&" + outreq.URL.RawQuery
 	}
 
 	outreq.Proto = "HTTP/1.1"
@@ -288,7 +294,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
 		if err != nil {
-			fmt.Println("connection via normal http")
 			// add :80 if not available
 			ok := hasPort(outreq.URL.Host)
 			if !ok {

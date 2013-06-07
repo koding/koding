@@ -23,21 +23,21 @@ type UserInfo struct {
 	Key         string
 	FullUrl     string
 	DomainMode  string
-	DomainName  string
+	Host        string
 	IP          string
 	Country     string
 	Target      *url.URL
 	Redirect    bool
 }
 
-func NewUserInfo(username, servicename, key, fullurl, mode, domainname string) *UserInfo {
+func NewUserInfo(username, servicename, key, fullurl, mode, host string) *UserInfo {
 	return &UserInfo{
 		Username:    username,
 		Servicename: servicename,
 		Key:         key,
 		FullUrl:     fullurl,
 		DomainMode:  mode,
-		DomainName:  domainname,
+		Host:        host,
 	}
 }
 
@@ -88,9 +88,7 @@ func (u *UserInfo) populateCountry(host string) {
 }
 
 func (u *UserInfo) populateTarget() error {
-	var hostname string
 	var err error
-
 	username := u.Username
 	servicename := u.Servicename
 	key := u.Key
@@ -153,6 +151,7 @@ func (u *UserInfo) populateTarget() error {
 		return errors.New("no users availalable in the db. targethost not found")
 	}
 
+	var hostname string
 	switch keyData.Mode {
 	case "roundrobin":
 		N := float64(len(keyData.Host))
@@ -169,6 +168,7 @@ func (u *UserInfo) populateTarget() error {
 	if err != nil {
 		return err
 	}
+
 	u.Redirect = false
 
 	return nil
@@ -196,7 +196,7 @@ func parseDomain(host string) (*UserInfo, error) {
 		servicename := partsSecond[0]
 		key := partsSecond[1]
 
-		return NewUserInfo("koding", servicename, key, "", "internal", ""), nil
+		return NewUserInfo("koding", servicename, key, "", "internal", host), nil
 	case counts > 1:
 		// host is in form {name}-{key}-{username}.kd.io, used by users
 		partsFirst := strings.Split(host, ".")
@@ -207,31 +207,31 @@ func parseDomain(host string) (*UserInfo, error) {
 		key := partsSecond[1]
 		username := partsSecond[2]
 
-		return NewUserInfo(username, servicename, key, "", "internal", ""), nil
+		return NewUserInfo(username, servicename, key, "", "internal", host), nil
 	default:
 		return &UserInfo{}, errors.New("no data available for proxy")
 	}
 
 }
 
-func lookupDomain(domainname string) (*UserInfo, error) {
-	d := strings.SplitN(domainname, ".", 2)[1]
+func lookupDomain(host string) (*UserInfo, error) {
+	d := strings.SplitN(host, ".", 2)[1]
 	if d == "kd.io" {
-		vmName := strings.SplitN(domainname, ".", 2)[0]
-		return NewUserInfo(vmName, "", "", "", "vm", domainname), nil
+		vmName := strings.SplitN(host, ".", 2)[0]
+		return NewUserInfo(vmName, "", "", "", "vm", host), nil
 	}
 
-	domain, err := proxyDB.GetDomain(domainname)
+	domain, err := proxyDB.GetDomain(host)
 	if err != nil || domain.Domainname == "" {
-		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
+		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
 
 	}
 
-	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, domainname), nil
+	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
 }
 
 func (u *UserInfo) validate() (string, bool) {
-	res, err := proxyDB.GetRule(u.DomainName)
+	res, err := proxyDB.GetRule(u.Host)
 	if err != nil {
 		return fmt.Sprintf("no rule available for servicename %s\n", u.Username), true
 	}
