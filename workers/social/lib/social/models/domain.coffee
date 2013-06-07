@@ -15,7 +15,7 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       static        : ['one', 'all', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId', 
-                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList']
+                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList', 'updateRules']
 
     indexes         :
       domain        : 'unique'
@@ -48,7 +48,7 @@ module.exports = class JDomain extends jraphical.Module
     @all selector, (err, domains) ->
       if err then console.log err
       domainList = ({name:domain.domain, id:domain.getId(), vms:domain.vms} for domain in domains)
-      callback? err, domainList
+      callback? err, domains
  
   @isDomainAvailable = (domainName, tld, callback)->
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
@@ -124,6 +124,10 @@ module.exports = class JDomain extends jraphical.Module
       domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
         @update {"domain":params.domainName}, {'$pull': {"vms":params.vmName}}
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
+
+  updateRules:(params, callback)->
+    #@update {_id: getId()}, {"#{params.field}":{ "$#{params.op}": params.value}}, (err) -> callback err
+
 
   @fetchBlockList = secure ({connection:{delegate}}, params, callback)->
     return []

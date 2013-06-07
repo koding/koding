@@ -120,74 +120,8 @@ class DomainMainView extends KDView
     """  
 
   decorateMapperView:(item)->
-    @firewallMapperView.getData().domain = item
-    @domainMapperView.updateContent item
-
-class DomainMapperView extends KDView
-
-  constructor:(options={}, data)->
-    options.partial = '<div>Select a domain to continue.</div>'
-    super options, data
-
-  updateContent:(item)->
-    data = item.data
-    @updatePartial ""
-    @destroySubViews()
-
-    @addSubView new KDCustomHTMLView
-      partial : """<div class="domain-name">Your domain: <strong>#{data.name}</strong></div>"""
-
-    KD.remote.api.JVM.fetchVms (err, vms)=>
-      if vms
-        vmList = ({name:vm} for vm in vms)
-
-        @vmListViewController = new VMListViewController
-          viewOptions :
-            cssClass  : 'vm-list'
-        
-        @vmListViewController.getListView().setData
-          domainName: data.name
-          vms       : if data.vms then (vm for vm in data.vms) else []
-
-        @vmListViewController.instantiateListItems vmList
-        @addSubView @vmListViewController.getView()
-      else
-        @addSubView new KDCustomHTMLView
-          partial: "<div>You don't have any VMs right now.</div>"
-
-
-
-class VMListItemView extends KDListItemView
-  constructor:(options={}, data)->
-    
-    super options, data
-
-    listViewData = @getDelegate().getData()
-    switchStatus = if @getData().name in listViewData.vms then on else off
-
-    @onOff = new KDOnOffSwitch
-      size        : 'tiny'
-      labels      : ['CON', "DCON"]
-      defaultValue: switchStatus
-      callback : (state) =>
-        KD.remote.api.JDomain.bindVM 
-          vmName    : @getData().name
-          domainName: listViewData.domainName
-          state     : state
-        , (response) ->
-          new KDNotificationView
-            type : "top"
-            title: response
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-    <div style="width: 120px !important;">{{ #(name) }}</div>
-    {{> @onOff }}
-    """
+    @firewallMapperView.emit "domainChanged", item
+    @domainMapperView.emit "domainChanged", item
   
 
 class DomainsListItemView extends KDListItemView
@@ -209,7 +143,7 @@ class DomainsListItemView extends KDListItemView
     """
     <div>
       <span class="domain-icon link"></span>
-      <span class="domain-title">{{ #(name)}}</span>
+      <span class="domain-title">{{ #(domain)}}</span>
     </div>
     """
 

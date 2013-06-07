@@ -1,9 +1,17 @@
 class FirewallMapperView extends KDView
 
   constructor:(options={}, data) ->
+    data or= {}
     super options, data
 
-    domain = @getData()?.domain
+    domain = data?.domain
+
+    @on "domainChanged", (item)->
+      @getData().domain = item.data
+      @updateViewContent()
+
+  updateViewContent:->
+    domain = @getData().domain
 
     @blockListItemClass = new KDListItemView
     @blockListItemClass.on "click", (event)->
@@ -27,7 +35,7 @@ class FirewallMapperView extends KDView
 
     @whiteListController.instantiateListItems @domain.whiteList if domain?.whiteList
 
-    @addSubView new FirewallRuleFormView
+    @addSubView (new FirewallRuleFormView {}, {domain:domain})
 
 
 class FirewallRuleFormView extends KDView
@@ -44,13 +52,28 @@ class FirewallRuleFormView extends KDView
 
     @blockListButton = new KDButtonView
       title   : "+ Block List"
-      callback: ->
+      callback: =>
         console.log 'block listing'
+        @updateRules "blocklist", "addToSet", @ruleInput.getValue()
 
     @whiteListButton = new KDButtonView
       title    : "+ White List"
-      callback : ->
+      callback : =>
         console.log 'white listing' 
+        @updateRules "whitelist", "addToSet", @ruleInput.getValue()
+
+
+  updateRules:(field, op, value)->
+    KD.remote.api.JDomain.updateRules {field, op, value}, (err)->
+      if err
+        new KDNotificationView
+          type  : "top"
+          title : "An error occured while updating the #{field}. Please try again."
+      else
+        @ruleInput.setValue ""
+        new KDNotificationView
+          type  : "top"
+          title : "The #{field} is updated."
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -68,6 +91,5 @@ class FirewallRuleFormView extends KDView
         {{> @blockListButton }}
         {{> @whiteListButton }}
       </div>
-
     </div>
     """
