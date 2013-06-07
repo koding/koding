@@ -37,12 +37,24 @@ module.exports = class JChatConversation extends Module
       tags          : [ObjectRef]
 
   @fetch = secure (client, publicName, callback)->
+
+    # Check if user logged in
     {delegate} = client.connection
+    JAccount   = require '../account'
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+
     @one { publicName, invitees: delegate.profile.nickname }, callback
 
   @fetchSome = secure (client, options, callback)->
-    [callback, options] = [options, callback] unless callback
+
+    # Check if user logged in
     {delegate} = client.connection
+    JAccount   = require '../account'
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+
+    [callback, options] = [options, callback] unless callback
     {nickname} = delegate.profile
 
     options  or= limit: 20
@@ -55,7 +67,13 @@ module.exports = class JChatConversation extends Module
     @some selector, options, callback
 
   @create = secure (client, initialInvitees, callback)->
+
+    # Check if user logged in
     {delegate} = client.connection
+    JAccount   = require '../account'
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+
     {nickname} = delegate.profile
 
     initialInvitees.push nickname
