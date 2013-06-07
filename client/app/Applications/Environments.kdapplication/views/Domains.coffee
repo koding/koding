@@ -116,7 +116,7 @@ class DomainMapperView extends KDView
         
         @vmListViewController.getListView().setData
           domainName: data.name
-          vms       : (vm for vm in data.vms)
+          vms       : if data.vms then (vm for vm in data.vms) else []
 
         @vmListViewController.instantiateListItems vmList
         @addSubView @vmListViewController.getView()

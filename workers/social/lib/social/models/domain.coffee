@@ -115,7 +115,6 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.dnsManager.removeDNSRecordFromProxy record, callback
 
   @bindVM = secure ({connection:{delegate}}, params, callback)->
-    console.log "get collection", @getCollection()
     record = 
       mode          : "vm"
       username      : delegate.profile.nickname
@@ -124,16 +123,13 @@ module.exports = class JDomain extends jraphical.Module
 
     if params.state
       domainManager.dnsManager.registerNewRecordToProxy record, (response)=>
-        @one {"domain":params.domainName}, (err, domainObj)->
-          if domainObj
-            domainObj.vms.push params.vmName
-            domainObj.save()
-        callback response
+        @update {"domain":params.domainName}, {'$push': {"vms":params.vmName}}
+        callback "Your domain is now connected to #{params.vmName} VM." if response?.host?
 
     else
       domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
         @update {"domain":params.domainName}, {'$pull': {"vms":params.vmName}}
-        callback response
+        callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
 
 
   @addVMAccessRule = secure (client, data, callback) ->
