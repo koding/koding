@@ -243,7 +243,8 @@ app.post "/-/kd/upload", s3..., (req, res)->
       if err
         console.log "error", err
         return res.send err
-      res.send "OK"  
+      console.log "user kite ", userkite
+      res.send "OK"
 
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command

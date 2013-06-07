@@ -48,8 +48,9 @@ class JUserKite extends jraphical.Module
             callback err
           else
             callback null, userkite
-      else 
-        callback null, userkite
+      else
+        console.log "===================================", userkite.data._id, userkite.data.latest_version
+        JUserKite.update {_id: userkite.data._id}, {$set: latest_version: parseInt(userkite.data.latest_version) + 1}, callback
 
 
 class JUserKiteVersion extends jraphical.Module
