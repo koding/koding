@@ -380,6 +380,7 @@ class KodingRouter extends KDRouter
               run <code>$ kd register renew</code> on command line interface.</p>
               """
               showModal title, content
+              
       # top level names
       '/:name':do->
         open =(routeInfo, model)->
