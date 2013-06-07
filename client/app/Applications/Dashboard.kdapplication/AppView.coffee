@@ -27,19 +27,26 @@ class DashboardAppView extends JView
       name         : "searchInput"
       cssClass     : "header-search-input"
       type         : "text"
-      focus        : => @tabs.showPaneByName "Members"
+      focus        : =>
+        @tabs.showPaneByName "Members"  unless @tabs.getActivePane().name is 'Invitations'
       callback     : =>
-        pane = @tabs.getPaneByName "Members"
+        if @tabs.getActivePane().name is 'Invitations'
+          pane = @tabs.getActivePane()
+        else
+          pane = @tabs.getPaneByName "Members"
         {mainView} = pane
         return unless mainView
-        mainView.emit "MemberSearchInputChanged", @search.getValue()
+        mainView.emit 'SearchInputChanged', @search.getValue()
         @search.focus()
       keyup        : =>
         return unless @search.getValue() is ""
-        pane = @tabs.getPaneByName "Members"
+        if @tabs.getActivePane().name is 'Invitations'
+          pane = @tabs.getActivePane()
+        else
+          pane = @tabs.getPaneByName "Members"
         {mainView} = pane
         return unless mainView
-        mainView.emit "MemberSearchInputChanged", ""
+        mainView.emit 'SearchInputChanged', ''
 
     @searchIcon = new KDCustomHTMLView
       tagName  : 'span'

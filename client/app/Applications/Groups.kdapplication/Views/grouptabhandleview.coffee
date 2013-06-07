@@ -1,29 +1,48 @@
 class GroupTabHandleView extends KDTabHandleView
 
-  constructor:(options, data)->
+  constructor:(options = {}, data)->
     options.cssClass = @utils.curryCssClass 'grouptabhandle', options.cssClass
-    super
-    @isDirty = no
+
+    super options, data
+
+    @isDirty      = no
+    @currentCount = 0
 
   viewAppended:->
-    @currentCount = 0
     @newCount = new KDCustomHTMLView
       tagName : 'span'
-      cssClass: 'group-new-count'
-
+      cssClass: 'new'
     @newCount.hide()
+
+    @pendingCount = new KDCustomHTMLView
+      tagName : 'span'
+      cssClass: 'pending'
+    @pendingCount.hide()
 
     JView::viewAppended.call this
 
-  pistachio:->
-    "#{@getOptions().title} {.new{> @newCount}}"
+  updatePendingCount:(pendingCount)->
+    if pendingCount
+      @setClass 'has-pending'
+      @pendingCount.updatePartial pendingCount
+      @pendingCount.show()
+    else
+      @unsetClass 'has-pending'
+      @pendingCount.updatePartial ''
+      @pendingCount.hide()
 
   markDirty:(@isDirty=yes)->
     if @isDirty
-      @setClass 'dirty'  unless ++@currentCount
+      @setClass 'dirty'  unless @currentCount++
       @newCount.updatePartial @currentCount
       @newCount.show()
+      @pendingCount.hide()
     else
+      @currentCount = 0
       @unsetClass 'dirty'
       @newCount.updatePartial ''
       @newCount.hide()
+      @pendingCount.show()  if @pendingCount.hasClass 'has-pending'
+
+  pistachio:->
+    "#{@getOptions().title} {{> @newCount}}{{> @pendingCount}}"
