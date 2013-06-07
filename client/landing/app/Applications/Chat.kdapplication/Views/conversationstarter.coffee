@@ -30,7 +30,7 @@ class ConversationStarter extends JView
 
   constructor:->
     super
-      cssClass : "conversation-starter"
+      cssClass : "conversation-starter-popup"
 
     @recipientsWrapper = new KDView
       cssClass : "completed-items"
@@ -51,7 +51,7 @@ class ConversationStarter extends JView
 
     @startConversationButton = new KDButtonView
       title    : 'Create'
-      cssClass : 'cupid-green'
+      cssClass : 'cupid-green create-conversation'
       callback : @bound 'createConversation'
     @startConversationButton.hide()
 
