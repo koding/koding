@@ -215,16 +215,17 @@ func parseDomain(host string) (*UserInfo, error) {
 }
 
 func lookupDomain(host string) (*UserInfo, error) {
-	d := strings.SplitN(host, ".", 2)[1]
-	if d == "kd.io" {
-		vmName := strings.SplitN(host, ".", 2)[0]
-		return NewUserInfo(vmName, "", "", "", "vm", host), nil
-	}
-
+	// first lookup from db
 	domain, err := proxyDB.GetDomain(host)
-	if err != nil || domain.Domainname == "" {
-		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
-
+	if err != nil {
+		if err.Error() != "not found" {
+			return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
+		}
+		// if not found via db,  assume as {username}.kd.io
+		if strings.HasSuffix(host, "kd.io") {
+			vmName := strings.TrimSuffix(host, ".kd.io")
+			return NewUserInfo(vmName, "", "", "", "vm", host), nil
+		}
 	}
 
 	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
