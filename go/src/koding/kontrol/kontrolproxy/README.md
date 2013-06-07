@@ -41,26 +41,26 @@ update or add any resource it uses. For more info look at the kontrolapi readme
 please. Below is a simple list of current API calls you can use:
 
 	GET     /proxies"
-	POST    /proxies"
-	DELETE  /proxies/{uuid}"
+	POST    /proxies/{proxyname}"
+	DELETE  /proxies/{proxyname}"
 
-	GET     /proxies/{uuid}/services"
-	GET     /proxies/{uuid}/services/{username}"
-	POST    /proxies/{uuid}/services/{username}"
-	POST    /proxies/{uuid}/services/{username}/{servicename}"
-	GET     /proxies/{uuid}/services/{username}/{servicename}"
-	DELETE  /proxies/{uuid}/services/{username}/{servicename}"
-	DELETE  /proxies/{uuid}/services/{username}/{servicename}/{key}"
+	GET     /services"
+	GET     /services/{username}"
+	POST    /services/{username}"
+	POST    /services/{username}/{servicename}"
+	GET     /services/{username}/{servicename}"
+	DELETE  /services/{username}/{servicename}"
+	DELETE  /services/{username}/{servicename}/{key}"
 
-	GET     /proxies/{uuid}/domains"
-	GET     /proxies/{uuid}/domains/{domain}"
-	POST    /proxies/{uuid}/domains/{domain}"
-	DELETE  /proxies/{uuid}/domains/{domain}"
+	GET     /domains"
+	GET     /domains/{domain}"
+	POST    /domains/{domain}"
+	DELETE  /domains/{domain}"
 
-	GET     /proxies/{uuid}/rules"
-	GET     /proxies/{uuid}/rules/{username}"kj
-	GET     /proxies/{uuid}/rules/{username}/{servicename}"
-	POST    /proxies/{uuid}/rules/{username}/{servicename}"
+	GET     /rules"
+	GET     /rules/{username}"
+	GET     /rules/{username}/{servicename}"
+	POST    /rules/{username}/{servicename}"
 
 * Load balancing via round-robin
 

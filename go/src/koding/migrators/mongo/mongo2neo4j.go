@@ -170,9 +170,5 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	}
 
-	if strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
-		log.Debug("not eligible " + sourceName + " " + targetName)
-		return false
-	}
 	return true
 }

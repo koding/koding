@@ -7,7 +7,7 @@ class KDFormView extends KDView
 
     if subViews.length > 0
       subViews.forEach (subView)->
-        inputs.push subView if subView instanceof KDInputView
+        inputs.push subView  if subView instanceof KDInputView
         inputs = inputs.concat KDFormView.findChildInputs subView
 
     return inputs
@@ -73,7 +73,7 @@ class KDFormView extends KDView
     inputs   = KDFormView.findChildInputs @
     formData = @getCustomData() or {}
     inputs.forEach (input)->
-      formData[input.getName()] = input.getValue() if input.getName()
+      formData[input.getName()] = input.getValue()  if input.getName()
     formData
 
   focusFirstElement:-> KDFormView.findChildInputs(@)[0].$().trigger "focus"
@@ -90,8 +90,8 @@ class KDFormView extends KDView
       event.stopPropagation()
       event.preventDefault()
 
-    form                = @
-    inputs              = KDFormView.findChildInputs @
+    form                = this
+    inputs              = KDFormView.findChildInputs form
     validationCount     = 0
     toBeValidatedInputs = []
     validInputs         = []

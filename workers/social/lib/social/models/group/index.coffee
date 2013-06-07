@@ -85,7 +85,8 @@ module.exports = class JGroup extends Module
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
+        'checkPayment', 'makePayment', 'updatePayment'
       ]
     schema          :
       title         :
@@ -118,6 +119,8 @@ module.exports = class JGroup extends Module
             type          : String
             default       : '1'
           customOptions   : Object
+      payment       :
+        plan        : String
     relationships   :
       bundle        :
         targetType  : 'JGroupBundle'
@@ -332,21 +335,6 @@ module.exports = class JGroup extends Module
 
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy groupData.requestType, -> queue.next()
-
-      if groupData['group-vm'] is 'on'
-        limits =
-          users           : { quota: 100 }
-          cpu             : { quota: 100 }
-          ram             : { quota: 100 }
-          disk            : { quota: 100 }
-          'cpu per user'  : { quota: 100 }
-          'ram per user'  : { quota: 100 }
-          'disk per user' : { quota: 100 }
-        queue.push -> group.createBundle limits, (err)->
-          if err then callback err
-          else
-            console.log 'group bundle created'
-            queue.next()
 
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }
@@ -1247,7 +1235,7 @@ module.exports = class JGroup extends Module
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
+      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
       bundle.fetchLimits (err, limits) ->
         return callback err  if err?
         queue = limits.map (limit) -> ->
@@ -1295,3 +1283,38 @@ module.exports = class JGroup extends Module
       disk            : { quota: 500 }
       users           : { quota: 20 }
     }
+
+  makePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, (err, subs)=>
+        return callback err  if err
+        @createBundle
+          users           : { quota: 1000 }
+          cpu             : { quota: 1000 }
+          ram             : { quota: 1000 }
+          disk            : { quota: 1000 }
+          'cpu per user'  : { quota: 1000 }
+          'ram per user'  : { quota: 1000 }
+          'disk per user' : { quota: 1000 }
+        , (err)->
+          callback no, subs
+
+  updatePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, (err, subs)=>
+        return callback err  if err
+        callback no, subs
+
+  checkPayment: (callback)->
+    JRecurlySubscription = require '../recurly/subscription'
+    JRecurlySubscription.getGroupSubscriptions @, callback

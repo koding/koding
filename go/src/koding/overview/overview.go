@@ -24,14 +24,12 @@ type ConfigFile struct {
 }
 
 type Domain struct {
-	Username string
-	Name     string
-	Key      string
-	FullUrl  string
-}
-
-type DomainInfo struct {
-	Domains map[string]Domain `json:"domains"`
+	Domainname  string
+	Mode        string
+	Username    string
+	Servicename string
+	Key         string
+	FullUrl     string
 }
 
 type ServerInfo struct {
@@ -102,7 +100,6 @@ type HomePage struct {
 	Jenkins *JenkinsInfo
 	Server  *ServerInfo
 	Builds  []int
-	Domains map[string]Domain
 }
 
 func NewServerInfo() *ServerInfo {
@@ -146,19 +143,18 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	jenkins := jenkinsInfo()
 	builds := buildsInfo()
 
-	domains, err := domainInfo()
-	if err != nil {
-		fmt.Println(err)
-		domains = &DomainInfo{}
-	}
-
 	server, err := serverInfo(build)
 	if err != nil {
 		fmt.Println(err)
 		server = NewServerInfo()
 	}
 
-	s, b := keyLookup(domains.Domains["new.koding.com"])
+	domain, err := domainInfo("new.koding.com")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	s, b := keyLookup(domain.Key)
 	status.NewKoding.ServerHost = s
 	status.NewKoding.BrokerHost = b
 
@@ -168,15 +164,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		Jenkins: jenkins,
 		Server:  server,
 		Builds:  builds,
-		Domains: domains.Domains,
 	}
 
 	renderTemplate(w, "index", home)
 	return
 }
 
-func keyLookup(domain Domain) (string, string) {
-	workersApi := "http://kontrol.in.koding.com/workers?version=" + domain.Key
+func keyLookup(key string) (string, string) {
+	workersApi := "http://kontrol.in.koding.com/workers?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
 		fmt.Println(err)
@@ -353,23 +348,29 @@ func parseMongoLogin(login string) string {
 	)
 }
 
-func domainInfo() (*DomainInfo, error) {
-	domainApi := "http://kontrol.in.koding.com/proxies/proxy.in.koding.com/domains"
+func domainInfo(domainname string) (Domain, error) {
+	domainApi := "http://kontrol.in.koding.com/domains"
 	resp, err := http.Get(domainApi)
 	if err != nil {
-		return nil, err
+		return Domain{}, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return Domain{}, err
 	}
 
-	d := &DomainInfo{}
+	d := make([]Domain, 0)
 	err = json.Unmarshal(body, &d)
 	if err != nil {
-		return nil, err
+		return Domain{}, err
 	}
 
-	return d, nil
+	for _, domain := range d {
+		if domain.Domainname == domainname {
+			return domain, nil
+		}
+	}
+
+	return Domain{}, fmt.Errorf("no domain info available for %s", domainname)
 }

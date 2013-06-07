@@ -73,7 +73,7 @@ func registerWebtermMethods(k *kite.Kite) {
 			SizeX, SizeY int
 		}
 		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], channelId: [integer], sizeX: [integer], sizeY: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
 		}
 
 		server := newWebtermServer(vos.VM, vos.User, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)

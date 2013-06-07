@@ -555,7 +555,7 @@ class KodingAppsController extends KDController
     $("head .app-#{__utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
+        urlToStyle = "https://#{KD.whoami().profile.nickname}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
         $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
@@ -627,7 +627,7 @@ class KodingAppsController extends KDController
       name          : "#{name or type.capitalize()}"
       identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{__utils.slugify name or type}"
       author        : "#{fullName}"
       repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"
       description   : "#{name or type} : a Koding application created with the #{type} template."

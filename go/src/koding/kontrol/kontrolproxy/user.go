@@ -8,11 +8,10 @@ import (
 	"koding/tools/db"
 	"koding/virt"
 	"labix.org/v2/mgo/bson"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
-	"sort"
-	"strconv"
 	"strings"
 )
 
@@ -24,19 +23,21 @@ type UserInfo struct {
 	Key         string
 	FullUrl     string
 	DomainMode  string
+	DomainName  string
 	IP          string
 	Country     string
 	Target      *url.URL
 	Redirect    bool
 }
 
-func NewUserInfo(username, servicename, key, fullurl, mode string) *UserInfo {
+func NewUserInfo(username, servicename, key, fullurl, mode, domainname string) *UserInfo {
 	return &UserInfo{
 		Username:    username,
 		Servicename: servicename,
 		Key:         key,
 		FullUrl:     fullurl,
 		DomainMode:  mode,
+		DomainName:  domainname,
 	}
 }
 
@@ -106,7 +107,7 @@ func parseDomain(host string) (*UserInfo, error) {
 		servicename := partsSecond[0]
 		key := partsSecond[1]
 
-		return NewUserInfo("koding", servicename, key, "", "internal"), nil
+		return NewUserInfo("koding", servicename, key, "", "internal", ""), nil
 	case counts > 1:
 		// host is in form {name}-{key}-{username}.kd.io, used by users
 		partsFirst := strings.Split(host, ".")
@@ -117,7 +118,7 @@ func parseDomain(host string) (*UserInfo, error) {
 		key := partsSecond[1]
 		username := partsSecond[2]
 
-		return NewUserInfo(username, servicename, key, "", "internal"), nil
+		return NewUserInfo(username, servicename, key, "", "internal", ""), nil
 	default:
 		return &UserInfo{}, errors.New("no data available for proxy")
 	}
@@ -128,33 +129,33 @@ func lookupDomain(domainname string) (*UserInfo, error) {
 	d := strings.SplitN(domainname, ".", 2)[1]
 	if d == "kd.io" {
 		vmName := strings.SplitN(domainname, ".", 2)[0]
-		return NewUserInfo(vmName, "", "", "", "vm"), nil
+		return NewUserInfo(vmName, "", "", "", "vm", domainname), nil
 	}
 
-	domain, err := proxyDB.GetDomain(uuid, domainname)
-	if err != nil {
+	domain, err := proxyDB.GetDomain(domainname)
+	if err != nil || domain.Domainname == "" {
 		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", domainname)
 
 	}
 
-	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode), nil
+	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, domainname), nil
 }
 
-func lookupRabbitKey(username, servicename, key string) string {
-	var rabbitkey string
-
-	res, err := proxyDB.GetKey(uuid, username, servicename, key)
+func lookupRabbitKey(username, servicename, key string) (string, error) {
+	res, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
-		fmt.Printf("no rabbitkey available for user '%s' in the db. disabling rabbit proxy\n", username)
-		return rabbitkey
+		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
 	}
 
-	if len(res) >= 1 {
-		fmt.Printf("round-robin is disabled for rabbit proxy %s\n", username)
-		return rabbitkey
+	if res.Mode == "roundrobin" {
+		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
 	}
 
-	return res[0].RabbitKey
+	if res.RabbitKey == "" {
+		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
+	}
+
+	return res.RabbitKey, nil
 }
 
 func (u *UserInfo) populateTarget() error {
@@ -174,7 +175,7 @@ func (u *UserInfo) populateTarget() error {
 		return nil
 	case "vm":
 		var vm virt.VM
-		mcKey := uuid + username + "kontrolproxyvm"
+		mcKey := username + "kontrolproxyvm"
 		it, err := memCache.Get(mcKey)
 		if err != nil {
 			fmt.Println("got vm ip from mongodb")
@@ -206,59 +207,33 @@ func (u *UserInfo) populateTarget() error {
 
 			return nil
 		}
+
 		fmt.Println("got vm ip from memcached")
 		err = json.Unmarshal(it.Value, &u.Target)
 		if err != nil {
 			fmt.Printf("unmarshall memcached value: %s", err)
 		}
+
 		return nil
 	case "internal":
 		break // internal is done below
 	}
 
-	keys, err := proxyDB.GetKeyList(uuid, username, servicename)
+	keyData, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
 		return errors.New("no users availalable in the db. targethost not found")
 	}
 
-	lenKeys := len(keys)
-	if lenKeys == 0 {
-		return fmt.Errorf("no keys are available for user %s", username)
-	} else {
-		if key == "latest" {
-			// get all keys and sort them
-			listOfKeys := make([]int, lenKeys)
-			i := 0
-			for k, _ := range keys {
-				listOfKeys[i], _ = strconv.Atoi(k)
-				i++
-			}
-			sort.Ints(listOfKeys)
+	switch keyData.Mode {
+	case "roundrobin":
+		N := float64(len(keyData.Host))
+		n := int(math.Mod(float64(keyData.CurrentIndex+1), N))
+		hostname = keyData.Host[n]
 
-			// give precedence to the largest key number
-			key = strconv.Itoa(listOfKeys[len(listOfKeys)-1])
-		}
-
-		_, ok := keys[key]
-		if !ok {
-			return fmt.Errorf("no key %s is available for user %s", key, username)
-		}
-
-		// use round-robin algorithm for each hostname
-		for i, value := range keys[key] {
-			currentIndex := value.CurrentIndex
-			if currentIndex == i {
-				hostname = value.Host
-				for k, _ := range keys[key] {
-					if len(keys[key])-1 == currentIndex {
-						keys[key][k].CurrentIndex = 0 // reached end
-					} else {
-						keys[key][k].CurrentIndex = currentIndex + 1
-					}
-				}
-				break
-			}
-		}
+		keyData.CurrentIndex = n
+		go proxyDB.UpdateKeyData(username, servicename, keyData)
+	case "sticky":
+		hostname = keyData.Host[keyData.CurrentIndex]
 	}
 
 	u.Target, err = url.Parse("http://" + hostname)
@@ -289,10 +264,28 @@ func checkWebsocket(req *http.Request) bool {
 }
 
 func (u *UserInfo) validate() (string, bool) {
-	res, err := proxyDB.GetRule(uuid, u.Username, u.Servicename)
+	res, err := proxyDB.GetRule(u.DomainName)
 	if err != nil {
 		return fmt.Sprintf("no rule available for servicename %s\n", u.Username), true
 	}
 
 	return validator(res, u).IP().Country().Check()
+}
+
+func logDomainStat(name string) {
+	if name == "" {
+		return
+	}
+
+	err := proxyDB.AddDomainStat(name)
+	if err != nil {
+		fmt.Printf("could not add statistisitcs for %s\n", err.Error())
+	}
+}
+
+func logProxyStat(name, country string) {
+	err := proxyDB.AddProxyStat(name, country)
+	if err != nil {
+		fmt.Printf("could not add statistisitcs for %s\n", err.Error())
+	}
 }

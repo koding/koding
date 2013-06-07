@@ -1,18 +1,18 @@
 // mgo - MongoDB driver for Go
-// 
+//
 // Copyright (c) 2010-2012 - Gustavo Niemeyer <gustavo@niemeyer.net>
-// 
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met: 
-// 
+// modification, are permitted provided that the following conditions are met:
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer. 
+//    list of conditions and the following disclaimer.
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution. 
-// 
+//    and/or other materials provided with the distribution.
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -35,7 +35,6 @@ import (
 	"math"
 	"net"
 	"reflect"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -342,7 +341,6 @@ func newSession(consistency mode, cluster *mongoCluster, syncTimeout time.Durati
 	session.SetMode(consistency, true)
 	session.SetSafe(&Safe{})
 	session.queryConfig.prefetch = defaultPrefetch
-	runtime.SetFinalizer(session, finalizeSession)
 	return session
 }
 
@@ -367,12 +365,7 @@ func copySession(session *Session, keepAuth bool) (s *Session) {
 	scopy.auth = auth
 	s = &scopy
 	debugf("New session %p on cluster %p (copy from %p)", s, cluster, session)
-	runtime.SetFinalizer(s, finalizeSession)
 	return s
-}
-
-func finalizeSession(session *Session) {
-	session.Close()
 }
 
 // LiveServers returns a list of server addresses which are
@@ -551,8 +544,109 @@ func (s *Session) LogoutAll() {
 	s.m.Unlock()
 }
 
+// User represents a MongoDB user.
+//
+// Relevant documentation:
+//
+//     http://docs.mongodb.org/manual/reference/privilege-documents/
+//     http://docs.mongodb.org/manual/reference/user-privileges/
+//
+type User struct {
+	// Username is how the user identifies itself to the system.
+	Username string `bson:"user"`
+
+	// Password is the plaintext password for the user. If set,
+	// the UpsertUser method will hash it into PasswordHash and
+	// unset it before the user is added to the database.
+	Password string `bson:",omitempty"`
+
+	// PasswordHash is the MD5 hash of Username+":mongo:"+Password.
+	PasswordHash string `bson:"pwd,omitempty"`
+
+	// UserSource indicates where to look for this user's credentials.
+	// It may be set to a database name, or to "$external" for
+	// consulting an external resource such as Kerberos. UserSource
+	// must not be set if Password or PasswordHash are present.
+	UserSource string `bson:"userSource,omitempty"`
+
+	// Roles indicates the set of roles the user will be provided.
+	// See the Role constants.
+	Roles []Role `bson:"roles"`
+
+	// OtherDBRoles allows assigning roles in other databases from
+	// user documents inserted in the admin database. This field
+	// only works in the admin database.
+	OtherDBRoles map[string][]Role `bson:"otherDBRoles,omitempty"`
+}
+
+type Role string
+
+const (
+	// Relevant documentation:
+	//
+	//     http://docs.mongodb.org/manual/reference/user-privileges/
+	//
+	RoleRead         Role = "read"
+	RoleReadAny      Role = "readAnyDatabase"
+	RoleReadWrite    Role = "readWrite"
+	RoleReadWriteAny Role = "readWriteAnyDatabase"
+	RoleDBAdmin      Role = "dbAdmin"
+	RoleDBAdminAny   Role = "dbAdminAnyDatabase"
+	RoleUserAdmin    Role = "userAdmin"
+	RoleUserAdminAny Role = "UserAdminAnyDatabase"
+	RoleClusterAdmin Role = "clusterAdmin"
+)
+
+// UpsertUser updates the authentication credentials and the roles for
+// a MongoDB user within the db database. If the named user doesn't exist
+// it will be created.
+//
+// This method should only be used from MongoDB 2.4 and on. For older
+// MongoDB releases, use the obsolete AddUser method instead.
+//
+// Relevant documentation:
+//
+//     http://docs.mongodb.org/manual/reference/user-privileges/
+//     http://docs.mongodb.org/manual/reference/privilege-documents/
+//
+func (db *Database) UpsertUser(user *User) error {
+	if user.Username == "" {
+		return fmt.Errorf("user has no Username")
+	}
+	if user.Password != "" {
+		psum := md5.New()
+		psum.Write([]byte(user.Username + ":mongo:" + user.Password))
+		user.PasswordHash = hex.EncodeToString(psum.Sum(nil))
+		user.Password = ""
+	}
+	if user.PasswordHash != "" && user.UserSource != "" {
+		return fmt.Errorf("user has both Password/PasswordHash and UserSource set")
+	}
+	if len(user.OtherDBRoles) > 0 && db.Name != "admin" {
+		return fmt.Errorf("user with OtherDBRoles is only supported in admin database")
+	}
+	var unset bson.D
+	if user.PasswordHash == "" {
+		unset = append(unset, bson.DocElem{"pwd", 1})
+	}
+	if user.UserSource == "" {
+		unset = append(unset, bson.DocElem{"userSource", 1})
+	}
+	// user.Roles is always sent, as it's the way MongoDB distinguishes
+	// old-style documents from new-style documents.
+	if len(user.OtherDBRoles) == 0 {
+		unset = append(unset, bson.DocElem{"otherDBRoles", 1})
+	}
+	c := db.C("system.users")
+	_, err := c.Upsert(bson.D{{"user", user.Username}}, bson.D{{"$unset", unset}, {"$set", user}})
+	return err
+}
+
 // AddUser creates or updates the authentication credentials of user within
-// the database.
+// the db database.
+//
+// This method is obsolete and should only be used with MongoDB 2.2 or
+// earlier. For MongoDB 2.4 and on, use UpsertUser instead.
 func (db *Database) AddUser(user, pass string, readOnly bool) error {
 	psum := md5.New()
 	psum.Write([]byte(user + ":mongo:" + pass))
@@ -813,12 +907,12 @@ func (c *Collection) DropIndex(key ...string) error {
 //
 //   indexes, err := collection.Indexes()
 //   if err != nil {
-//       panic(err)
+//       return err
 //   }
 //   for _, index := range indexes {
 //       err = collection.DropIndex(index.Key...)
 //       if err != nil {
-//           panic(err)
+//           return err
 //       }
 //   }
 //
@@ -842,7 +936,7 @@ func (c *Collection) Indexes() (indexes []Index, err error) {
 		}
 		indexes = append(indexes, index)
 	}
-	err = iter.Err()
+	err = iter.Close()
 	return
 }
 
@@ -1441,8 +1535,14 @@ func (err *QueryError) Error() string {
 // with the given value.
 func IsDup(err error) bool {
 	// Besides being handy, helps with https://jira.mongodb.org/browse/SERVER-7164
-	e, ok := err.(*LastError)
-	return ok && (e.Code == 11000 || e.Code == 12582)
+	// What follows makes me sad. Hopefully conventions will be more clear over time.
+	switch e := err.(type) {
+	case *LastError:
+		return e.Code == 11000 || e.Code == 11001 || e.Code == 12582
+	case *QueryError:
+		return e.Code == 11000 || e.Code == 11001 || e.Code == 12582
+	}
+	return false
 }
 
 // Insert inserts one or more documents in the respective collection.  In
@@ -1825,7 +1925,7 @@ func (q *Query) Sort(fields ...string) *Query {
 //
 //     http://www.mongodb.org/display/DOCS/Optimization
 //     http://www.mongodb.org/display/DOCS/Query+Optimizer
-//     
+//
 func (q *Query) Explain(result interface{}) error {
 	q.m.Lock()
 	clone := &Query{session: q.session, query: q.query}
@@ -1839,7 +1939,7 @@ func (q *Query) Explain(result interface{}) error {
 	if iter.Next(result) {
 		return nil
 	}
-	return iter.Err()
+	return iter.Close()
 }
 
 // Hint will include an explicit "hint" in the query to force the server
@@ -1897,6 +1997,17 @@ func (q *Query) Snapshot() *Query {
 	q.m.Lock()
 	w := q.wrap()
 	w.Snapshot = true
+	q.m.Unlock()
+	return q
+}
+
+// LogReplay enables an option that optimizes queries that are typically
+// made against the MongoDB oplog for replaying it. This is an internal
+// implementation aspect and most likely uninteresting for other uses.
+// It has seen at least one use case, though, so it's exposed via the API.
+func (q *Query) LogReplay() *Query {
+	q.m.Lock()
+	q.op.flags |= flagLogReplay
 	q.m.Unlock()
 	return q
 }
@@ -1993,7 +2104,7 @@ func (q *Query) One(result interface{}) (err error) {
 // optionally a database name.
 //
 // See the FindRef methods on Session and on Database.
-// 
+//
 // Relevant documentation:
 //
 //     http://www.mongodb.org/display/DOCS/Database+References
@@ -2013,7 +2124,7 @@ type DBRef struct {
 // See also the DBRef type and the FindRef method on Session.
 //
 // Relevant documentation:
-// 
+//
 //     http://www.mongodb.org/display/DOCS/Database+References
 //
 func (db *Database) FindRef(ref *DBRef) *Query {
@@ -2033,7 +2144,7 @@ func (db *Database) FindRef(ref *DBRef) *Query {
 // See also the DBRef type and the FindRef method on Database.
 //
 // Relevant documentation:
-// 
+//
 //     http://www.mongodb.org/display/DOCS/Database+References
 //
 func (s *Session) FindRef(ref *DBRef) *Query {
@@ -2047,17 +2158,17 @@ func (s *Session) FindRef(ref *DBRef) *Query {
 // CollectionNames returns the collection names present in database.
 func (db *Database) CollectionNames() (names []string, err error) {
 	c := len(db.Name) + 1
+	iter := db.C("system.namespaces").Find(nil).Iter()
 	var result *struct{ Name string }
-	err = db.C("system.namespaces").Find(nil).For(&result, func() error {
+	for iter.Next(&result) {
 		if strings.Index(result.Name, "$") < 0 || strings.Index(result.Name, ".oplog.$") >= 0 {
 			names = append(names, result.Name[c:])
 		}
-		return nil
-	})
-	if err != nil {
+	}
+	if err := iter.Close(); err != nil {
 		return nil, err
 	}
-	sort.StringSlice(names).Sort()
+	sort.Strings(names)
 	return names, nil
 }
 
@@ -2080,6 +2191,7 @@ func (s *Session) DatabaseNames() (names []string, err error) {
 			names = append(names, db.Name)
 		}
 	}
+	sort.Strings(names)
 	return names, nil
 }
 
@@ -2150,8 +2262,8 @@ func (q *Query) Iter() *Iter {
 //             fmt.Println(result.Id)
 //             lastId = result.Id
 //         }
-//         if iter.Err() != nil {
-//             panic(err)
+//         if err := iter.Close(); err != nil {
+//             return err
 //         }
 //         if iter.Timeout() {
 //             continue
@@ -2197,6 +2309,7 @@ func (q *Query) Tail(timeout time.Duration) *Iter {
 const (
 	flagTailable  = 1 << 1
 	flagSlaveOk   = 1 << 2
+	flagLogReplay = 1 << 3
 	flagAwaitData = 1 << 5
 )
 
@@ -2223,6 +2336,49 @@ func (iter *Iter) Err() error {
 		return nil
 	}
 	return err
+}
+
+// Close kills the server cursor used by the iterator, if any, and returns
+// nil if no errors happened during iteration, or the actual error otherwise.
+//
+// Server cursors are automatically closed at the end of an iteration, which
+// means close will do nothing unless the iteration was interrupted before
+// the server finished sending results to the driver. If Close is not called
+// in such a situation, the cursor will remain available at the server until
+// the default cursor timeout period is reached. No further problems arise.
+//
+// Close is idempotent. That means it can be called repeatedly and will
+// return the same result every time.
+//
+// In case a resulting document included a field named $err or errmsg, which are
+// standard ways for MongoDB to report an improper query, the returned value has
+// a *QueryError type.
+func (iter *Iter) Close() error {
+	iter.m.Lock()
+	iter.killCursor()
+	err := iter.err
+	iter.m.Unlock()
+	if err == ErrNotFound {
+		return nil
+	}
+	return err
+}
+
+func (iter *Iter) killCursor() error {
+	if iter.op.cursorId != 0 {
+		socket, err := iter.acquireSocket()
+		if err == nil {
+			// TODO Batch kills.
+			err = socket.Query(&killCursorsOp{[]int64{iter.op.cursorId}})
+			socket.Release()
+		}
+		if err != nil && (iter.err == nil || iter.err == ErrNotFound) {
+			iter.err = err
+		}
+		iter.op.cursorId = 0
+		return err
+	}
+	return nil
 }
 
 // Timeout returns true if Next returned false due to a timeout of
@@ -2252,8 +2408,8 @@ func (iter *Iter) Timeout() bool {
 //    for iter.Next(&result) {
 //        fmt.Printf("Result: %v\n", result.Id)
 //    }
-//    if iter.Err() != nil {
-//        panic(iter.Err())
+//    if err := iter.Close(); err != nil {
+//        return err
 //    }
 //
 func (iter *Iter) Next(result interface{}) bool {
@@ -2282,21 +2438,12 @@ func (iter *Iter) Next(result interface{}) bool {
 		if iter.limit > 0 {
 			iter.limit--
 			if iter.limit == 0 {
-				// XXX Must kill the cursor here.
 				if iter.docData.Len() > 0 {
 					panic(fmt.Errorf("data remains after limit exhausted: %d", iter.docData.Len()))
 				}
 				iter.err = ErrNotFound
-				if iter.op.cursorId != 0 {
-					socket, err := iter.acquireSocket()
-					if err == nil {
-						err = socket.Query(&killCursorsOp{[]int64{iter.op.cursorId}})
-						socket.Release()
-					}
-					if err != nil {
-						iter.err = err
-						return false
-					}
+				if iter.killCursor() != nil {
+					return false
 				}
 			}
 		}
@@ -2339,7 +2486,8 @@ func (iter *Iter) Next(result interface{}) bool {
 	panic("unreachable")
 }
 
-// All retrieves all documents from the result set into the provided slice.
+// All retrieves all documents from the result set into the provided slice
+// and closes the iterator.
 //
 // The result argument must necessarily be the address for a slice. The slice
 // may be nil or previously allocated.
@@ -2348,14 +2496,14 @@ func (iter *Iter) Next(result interface{}) bool {
 // potentially large, since it may consume all memory until the system
 // crashes. Consider building the query with a Limit clause to ensure the
 // result size is bounded.
-// 
+//
 // For instance:
 //
 //    var result []struct{ Value int }
 //    iter := collection.Find(nil).Limit(100).Iter()
 //    err := iter.All(&result)
 //    if err != nil {
-//        panic(iter.Err())
+//        return err
 //    }
 //
 func (iter *Iter) All(result interface{}) error {
@@ -2383,7 +2531,7 @@ func (iter *Iter) All(result interface{}) error {
 		i++
 	}
 	resultv.Elem().Set(slicev.Slice(0, i))
-	return iter.Err()
+	return iter.Close()
 }
 
 // All works like Iter.All.
@@ -2433,11 +2581,11 @@ func (iter *Iter) acquireSocket() (*mongoSocket, error) {
 	}
 	if socket.Server() != iter.server {
 		// Socket server changed during iteration. This may happen
-		// with Eventual session, if a Refresh is done, or if a
+		// with Eventual sessions, if a Refresh is done, or if a
 		// monotonic session gets a write and shifts from secondary
 		// to primary. Our cursor is in a specific server, though.
 		socket.Release()
-		socket, err = iter.server.AcquireSocket(0)
+		socket, _, err = iter.server.AcquireSocket(0)
 		if err != nil {
 			return nil, err
 		}
@@ -2650,12 +2798,12 @@ type MapReduceTime struct {
 //     var result []struct { Id int "_id"; Value int }
 //     _, err := collection.Find(nil).MapReduce(job, &result)
 //     if err != nil {
-//         panic(err)
+//         return err
 //     }
 //     for _, item := range result {
 //         fmt.Println(item.Value)
 //     }
-//     
+//
 // This function is compatible with MongoDB 1.7.4+.
 //
 // Relevant documentation:
@@ -2893,14 +3041,16 @@ func (s *Session) acquireSocket(slaveOk bool) (*mongoSocket, error) {
 	// Read-only lock to check for previously reserved socket.
 	s.m.RLock()
 	if s.masterSocket != nil {
+		socket := s.masterSocket
+		socket.Acquire()
 		s.m.RUnlock()
-		s.masterSocket.Acquire()
-		return s.masterSocket, nil
+		return socket, nil
 	}
 	if s.slaveSocket != nil && s.slaveOk && slaveOk {
+		socket := s.slaveSocket
+		socket.Acquire()
 		s.m.RUnlock()
-		s.slaveSocket.Acquire()
-		return s.slaveSocket, nil
+		return socket, nil
 	}
 	s.m.RUnlock()
 
@@ -3067,8 +3217,11 @@ func (c *Collection) writeQuery(op interface{}) (lerr *LastError, err error) {
 }
 
 func hasErrMsg(d []byte) bool {
-	return len(d) > 16 &&
-		d[5] == 'e' && d[6] == 'r' && d[7] == 'r' &&
-		d[8] == 'm' && d[9] == 's' && d[10] == 'g' &&
-		d[11] == '\x00' && d[4] == '\x02'
+	l := len(d)
+	for i := 0; i+8 < l; i++ {
+		if d[i] == '\x02' && d[i+1] == 'e' && d[i+2] == 'r' && d[i+3] == 'r' && d[i+4] == 'm' && d[i+5] == 's' && d[i+6] == 'g' && d[i+7] == '\x00' {
+			return true
+		}
+	}
+	return false
 }

@@ -102,35 +102,37 @@ class NFinderTreeController extends JTreeViewController
     else
       @expandFolder nodeView, callback
 
-  expandFolder:(nodeView, callback)->
+  expandFolder:(nodeView, callback, silence=no)->
 
     return unless nodeView
     return if nodeView.isLoading
 
     if nodeView.expanded
-      callback? nodeView
+      callback? null, nodeView
       return
 
     folder = nodeView.getData()
 
-    failCallback = =>
-      @notify "Couldn't fetch files! Click to retry", 'clickable', \
-              """Sorry, a problem occured while communicating with servers,
-                 please try again later.""", yes
-      @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
+    failCallback = (err)=>
+      unless silence
+        @notify "Couldn't fetch files! Click to retry", 'clickable', \
+                """Sorry, a problem occured while communicating with servers,
+                   please try again later.""", yes
+        @once 'fs.retry.scheduled', => @expandFolder nodeView, callback
       folder.emit "fs.job.finished", []
+      callback? err
 
     folder.fetchContents (KD.utils.getTimedOutCallback (err, files)=>
       unless err
         nodeView.expand()
         if files
           @addNodes files
-        callback? nodeView
+        callback? null, nodeView
         @emit "folder.expanded", nodeView.getData()
         @emit 'fs.retry.success'
         @hideNotification()
       else
-        failCallback()
+        failCallback err
     , failCallback), no
 
   collapseFolder:(nodeView, callback)->

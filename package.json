@@ -49,6 +49,7 @@
     "request"         : "2.9.202",
     "source-map"      : "0.1.9",
     "sqwish"          : "0.2.0",
+    "string"          : "1.4.0",
     "stylus"          : "0.29.0",
     "portchecker"     : "0.1.1",
     "uglify-js"       : "2.2.5",

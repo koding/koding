@@ -281,6 +281,7 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
+  "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
@@ -509,6 +510,15 @@ module.exports = [
   "app/Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee",
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
+  # VMs
+  "app/Applications/Environments.kdapplication/views/VMs.coffee",
+  "app/Applications/Environments.kdapplication/views/Domains.coffee",
+  "app/Applications/Environments.kdapplication/views/NewDomainModalView.coffee",
+  "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
+  "app/Applications/Environments.kdapplication/AppView.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
+
   # GROUPS
 
   # groups controllers
@@ -517,10 +527,8 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
-  "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
@@ -542,7 +550,11 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
   # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
@@ -713,6 +725,7 @@ module.exports = [
   "stylus/app.aceeditor.styl",
   "stylus/app.activity.styl",
   "stylus/app.contextmenu.styl",
+  "stylus/app.environments.styl",
   "stylus/app.chat.styl",
   "stylus/app.settings.styl",
   "stylus/app.inbox.styl",
