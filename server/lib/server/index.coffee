@@ -205,44 +205,63 @@ app.get "/-/kite/login", (req, res) ->
 
 # gate for kd
 findUsernameFromKey = (req, res, callback) ->
+  fetchJAccountByKiteUserNameAndKey req, (err, account)->
+    if err
+      console.log "we have a problem houston", err
+      callback err, null
+    else if not account
+      console.log "couldnt find the account"
+      res.send 401
+      callback false, null
+    else
+      console.log "!-------- ------ ----- ---- >>>>>", account.profile.nickname
+      callback false, account.profile.nickname
+
+fetchJAccountByKiteUserNameAndKey = (req, callback)->
   if req.fields
     {username, key} = req.fields
   else
     {username, key} = req.body
 
-  {JKodingKey} = koding.models
-  
+  {JKodingKey, JAccount} = koding.models
+  {ObjectId} = require "bongo"
   console.log ">>>", username, key
 
   JKodingKey.fetchByUserKey
     username: username
     key     : key
   , (err, kodingKey)=>
-    if err
-      callback err, null
-    else if not kodingKey
-      res.send 401
-      callback false, null
-    else
-      callback false, username
+    console.log err, kodingKey.owner
+    if err or not kodingKey
+      console.log ">>>>> 1 - ", err
+      return callback(err, kodingKey)
+
+    console.log "owners id::::", kodingKey.owner
+
+    JAccount.one
+      _id: ObjectId(kodingKey.owner)
+    , (err, account)->
+      callback(err, account)
 
 
 s3 = require('./s3') uploads.s3, findUsernameFromKey
 app.post "/-/kd/upload", s3..., (req, res)->
   {JUserKite} = koding.models
   for own key, file of req.files
+    zipurl = "#{uploads.distribution}#{file.path}"
     JUserKite.fetchOrCreate
       kitename      : file.filename
-      latest_s3url  :  "#{uploads.distribution}/#{file.path}"
+      latest_s3url  :  zipurl
       account_id    :  "5196fcb0bc9bdb0000000011"
     , (err, userkite)->
       if err
         console.log "error", err
         return res.send err
-      console.log "user kite ", userkite
-      console.log "url", "#{uploads.distribution}/#{file.path}"
       userkite.newVersion (err)->
-        res.send "OK"
+        if not err
+          res.send {url:zipurl, version: userkite.latest_version}
+        else
+          res.send err
 
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command
