@@ -11,7 +11,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -30,7 +29,7 @@ var amqpStream *AmqpStream
 var connections map[string]RabbitChannel
 var geoIP *libgeo.GeoIP
 var memCache *memcache.Client
-var uuid = kontrolhelper.CustomHostname()
+var hostname = kontrolhelper.CustomHostname()
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -43,7 +42,7 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	err = proxyDB.AddProxy(uuid)
+	err = proxyDB.AddProxy(hostname)
 	if err != nil {
 		log.Println(err)
 	}
@@ -168,6 +167,7 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	// redirect http to https
 	if req.TLS == nil && req.Host == "new.koding.com" {
 		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
 	}
@@ -175,6 +175,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
+	// if connection is of type websocket, hijacking is used instead of http proxy
 	websocket := checkWebsocket(outreq)
 
 	user, err := populateUser(outreq)
@@ -190,7 +191,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	go logDomainStat(user.DomainName)
-	go logProxyStat(uuid, user.Country)
+	go logProxyStat(hostname, user.Country)
 
 	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
@@ -251,7 +252,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		// Display error when someone hits the main page
-		hostname, _ := os.Hostname()
 		if hostname == outreq.URL.Host {
 			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
 			return
