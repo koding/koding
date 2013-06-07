@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/bradfitz/gomemcache/memcache"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"sort"
 	"strconv"
@@ -148,11 +149,10 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData,
 func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, hostdata, rabbitkey string, currentindex int) error {
 	service, err := p.GetService(username)
 	if err != nil {
-		if err.Error() == "not found" {
-			service = *NewService(username)
-		} else {
+		if err != mgo.ErrNotFound {
 			return err
 		}
+		service = *NewService(username)
 	}
 
 	_, ok := service.Services[servicename]

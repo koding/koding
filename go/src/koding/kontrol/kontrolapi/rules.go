@@ -106,9 +106,10 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	proxyDB.AddRule(domain, ruleName, rule, ruleMode, ruleEnabled)
+	err = proxyDB.AddRule(domain, ruleName, rule, ruleMode, ruleEnabled)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
 	}
 
 	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%s'", ruleName, rule, ruleEnabled, ruleMode)

@@ -97,7 +97,7 @@ func (p *ProxyConfiguration) GetRule(domainname string) (Restriction, error) {
 		restriction := Restriction{}
 		err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).One(&restriction)
 		if err != nil {
-			return restriction, fmt.Errorf("no rule for domain %s exist.", domainname)
+			return restriction, err
 		}
 		data, err := json.Marshal(restriction)
 		if err != nil {
