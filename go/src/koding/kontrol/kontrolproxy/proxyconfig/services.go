@@ -144,6 +144,7 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData,
 	return keyData, nil
 }
 
+// Update or add a key. service and username will be created if not available
 func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, hostdata, rabbitkey string, currentindex int) error {
 	service, err := p.GetService(username)
 	if err != nil {
@@ -176,21 +177,20 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 	hasHost := false
 	for _, hostname := range keyData.Host {
 		if hostname == host {
-			hasHost = true
-			break // don't append an already added host
+			hasHost = true // don't append an already added host
+			break
 		}
 	}
 
 	if !hasHost {
 		keyData.Host = append(keyData.Host, host)
-
 	}
-	keyData.Mode = mode
 
-	if currentindex >= len(keyData.Host) {
+	if currentindex >= len(keyData.Host) && mode == "sticky" {
 		return fmt.Errorf("currentindex: %d can't be larger or equal to the lenght of host-list: %d", currentindex, len(keyData.Host))
 	}
 
+	keyData.Mode = mode
 	keyData.CurrentIndex = currentindex
 	keyData.HostData = hostdata
 	keyData.RabbitKey = rabbitkey
