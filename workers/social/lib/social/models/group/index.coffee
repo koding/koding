@@ -428,8 +428,8 @@ module.exports = class JGroup extends Module
   @broadcast = (groupSlug, event, message)->
     if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
-        if err then console.error "unknown group #{groupSlug}"
-        else if group.privacy isnt "private" or group.visibility isnt "hidden"
+        if err or not group then console.error "unknown group #{groupSlug}"
+        else if group.privacy isnt "private" and group.visibility isnt "hidden"
           @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
 
@@ -679,7 +679,7 @@ module.exports = class JGroup extends Module
   createMembershipPolicy:(requestType, queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
     queue ?= []
-    
+
     JMembershipPolicy = require './membershippolicy'
     membershipPolicy  = new JMembershipPolicy
     membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
@@ -1254,7 +1254,7 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
- 
+
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
@@ -1265,40 +1265,40 @@ module.exports = class JGroup extends Module
           limit.update { $set: quota: formData.quotas[limit.title] }, fin
         dash queue, callback
         fin = queue.fin.bind queue
- 
+
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->
       @updateBundle formData, callback
- 
+
   destroyBundle: (callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle not found!'  unless bundle?
- 
+
       bundle.remove callback
- 
+
   destroyBundle$: permit 'change bundle',
     success: (client, callback) -> @destroyBundle callback
- 
+
   createBundle: (limits, callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle exists!'  if bundle?
- 
+
       JGroupBundle = require '../bundle/groupbundle'
- 
+
       bundle = new JGroupBundle {}, limits
       bundle.save (err) =>
         return callback err  if err?
- 
+
         @addBundle bundle, callback
- 
+
   createBundle$: permit 'change bundle',
     success: (client, limits, callback) -> @createBundle limits, callback
- 
+
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
- 
+
   getDefaultLimits:->
     {
       cpu             : { quota: 1 }
