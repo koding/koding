@@ -169,7 +169,7 @@ createAccountPaymentMethodModal = (data, callback) ->
           fields                :
             "intro"             :
               itemClass         : KDCustomHTMLView
-              partial           : "<p>You can use pre-filled credit card informationbelow to buy VM's <b>during beta</b>.</p>"
+              partial           : "<p>You can use pre-filled credit card information below to buy VM's <b>during beta</b>.</p>"
             cardFirstName       :
               label             : "Name"
               name              : "cardFirstName"
