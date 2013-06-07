@@ -121,9 +121,9 @@ module.exports = class JChatConversation extends Module
       return callback new KodingError 'Access denied.'
 
     {nickname} = delegate.profile
-    delegateCanInvite = nickname in @invitees
 
-    return callback new KodingError "Access denied!"  unless delegateCanInvite
+    unless nickname in [@createdBy].concat @invitees
+      return callback? new KodingError "Access denied!"
 
     @update {$addToSet: invitees: invitee}, (err)=>
       return console.error err  if err?
