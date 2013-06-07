@@ -1,0 +1,8 @@
+{
+  "name": "Deployer.kite",
+  "main": "index.js",
+  "dependencies": {
+    "kd-kite": "latest",
+    "fs-extra": "latest"
+  }
+}

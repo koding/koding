@@ -1,0 +1,30 @@
+{
+  "devMode": true,
+  "version": "1",
+  "name": "Deployer",
+  "type": "worker",
+  "identifier": "com.koding.kites.Deployer",
+  "path": "~/Kites/Deployer.kite",
+  "homepage": "armagankim.koding.com/kites/Deployer",
+  "author": "devrim",
+  "repository": "git://github.com/armagankim/Deployer.kite.git",
+  "description": "Deployer : a Koding kite",
+  "category": "web-api",
+  "source": {
+    "blocks": {
+      "kite": {
+        "files": [
+          "./index.coffee"
+        ]
+      }
+    }
+  },
+  "options": {
+    "privacy": "private"
+  },
+  "icns": {
+    "128": "./resources/icon.128.png"
+  },
+  "dependencies": [],
+  "apiAddress": "http://192.168.1.249:3020"
+}
