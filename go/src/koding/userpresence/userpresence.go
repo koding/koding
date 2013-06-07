@@ -387,7 +387,6 @@ func handleAuthJoin(username, socketId string, bindingChannel *amqp.Channel) err
 		}
 	}
 
-	log.Print(socketIdsByUser)
 	return nil
 }
 
@@ -406,7 +405,6 @@ func handleAuthLeave(username, socketId string, bindingChannel *amqp.Channel) er
 		delete(socketIdsByUser, username)
 	}
 
-	log.Print(socketIdsByUser)
 	return nil
 }
 

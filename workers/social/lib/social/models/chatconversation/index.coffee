@@ -8,9 +8,13 @@ module.exports = class JChatConversation extends Module
 
   KodingError = require '../../error'
 
+  {uniq} = require 'underscore'
+
   @share()
 
   @set
+    indexes         :
+      publicName    : 'unique'
     sharedEvents    :
       static        : []
       instance      : ['updateInstance','notification']
@@ -28,9 +32,6 @@ module.exports = class JChatConversation extends Module
       avatar        : String
       group         : ObjectId
       invitees      :
-        type        : [String]
-        default     : -> []
-      participants  :
         type        : [String]
         default     : -> []
       tags          : [ObjectRef]
@@ -57,7 +58,14 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     {nickname} = delegate.profile
 
-    initialInvitees.push nickname  unless nickname in initialInvitees
+    initialInvitees.push nickname
+
+    initialInvitees = uniq initialInvitees
+
+    conversation = new this {
+      publicName  : createId()
+      createdBy   : nickname
+    }
 
     @one { invitees: initialInvitees }, (err, conversation)->
       return callback err  if err
@@ -79,8 +87,7 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     {nickname} = delegate.profile
 
-    delegateCanInvite = nickname? and
-                        nickname in [@createdBy].concat @participants
+    delegateCanInvite = nickname? and nickname in @invitees
 
     return callback new KodingError "Access denied!" unless delegateCanInvite
 
