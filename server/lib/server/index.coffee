@@ -229,10 +229,18 @@ findUsernameFromKey = (req, res, callback) ->
 
 s3 = require('./s3') uploads.s3, findUsernameFromKey
 app.post "/-/kd/upload", s3..., (req, res)->
-  res.send(for own key, file of req.files
-    filename  : file.filename
-    resource  : nodePath.join uploads.distribution, file.path
-  )
+
+  {JUserKite} = require 'bongo'
+
+  for own key, file of req.files
+    JUserKite.findOrCreate
+      kitename      : file.filename
+      latest_s3url  : nodePath.join uploads.distribution, file.path
+      owner         :  "5196fcb0bc9bdb0000000011"
+    , (err, userkite)->
+      if err
+        return res.send err
+      res.send "OK"  
 
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command
