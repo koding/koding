@@ -139,9 +139,19 @@ class AccountPaymentMethodsListController extends KDListViewController
 createAccountPaymentMethodModal = (data, callback) ->
   modal = new KDModalViewWithForms
     title                       : "Billing Information"
-    width                       : 500
+    width                       : 520
+    height                      : "auto"
     cssClass                    : "payments-modal"
     overlay                     : yes
+    buttons                     :
+      Save                      :
+        title                   : "Save"
+        style                   : "modal-clean-green"
+        type                    : "button"
+        loader                  :
+          color                 : "#ffffff"
+          diameter              : 12
+        callback                : -> modal.modalTabs.forms["Billing Info"].submit()
     tabs                        :
       navigable                 : yes
       goToNextFormOnSubmit      : no
@@ -156,19 +166,15 @@ createAccountPaymentMethodModal = (data, callback) ->
               button.hideLoader()
             onSuccess = modal.destroy.bind modal
             callback formData, onError, onSuccess
-          buttons               :
-            Save                :
-              title             : "Save"
-              style             : "modal-clean-green"
-              type              : "submit"
-              loader            :
-                color           : "#ffffff"
-                diameter        : 12
           fields                :
+            "intro"             :
+              itemClass         : KDCustomHTMLView
+              partial           : "<p>You can use pre-filled credit card information below to buy VM's <b>during beta</b>.</p>"
             cardFirstName       :
               label             : "Name"
               name              : "cardFirstName"
               placeholder       : "First Name"
+              defaultValue      : KD.whoami().profile.firstName
               validate          :
                 # event           : "blur"
                 rules           :
@@ -179,6 +185,7 @@ createAccountPaymentMethodModal = (data, callback) ->
                 cardLastName    :
                   name          : "cardLastName"
                   placeholder   : "Last Name"
+                  defaultValue  : KD.whoami().profile.lastName
                   validate      :
                     # event       : "blur"
                     rules       :
@@ -189,6 +196,7 @@ createAccountPaymentMethodModal = (data, callback) ->
               label             : "Card Number"
               name              : "cardNumber"
               placeholder       : 'Card Number'
+              defaultValue      : '4111-1111-1111-1111'
               validate          :
                 event           : "blur"
                 rules           :
@@ -201,6 +209,7 @@ createAccountPaymentMethodModal = (data, callback) ->
                   #   title       : 'The location of this verification number depends on the issuer of your credit card'
                   name          : "cardCV"
                   placeholder   : "CV Number"
+                  defaultValue  : "123"
                   validate      :
                     rules       :
                       required  : yes
@@ -216,6 +225,7 @@ createAccountPaymentMethodModal = (data, callback) ->
               type              : "select"
               name              : "cardMonth"
               selectOptions     : __utils.getMonthOptions()
+              defaultValue      : (new Date().getMonth())+2
               nextElementFlat   :
                 cardYear        :
                   itemClass     : KDSelectBox
@@ -227,6 +237,7 @@ createAccountPaymentMethodModal = (data, callback) ->
               label             : "Address"
               name              : "address1"
               placeholder       : "Street Name & Number"
+              defaultValue      : "358 Brannan Street"
               validate          :
                 rules           :
                   required      : yes
@@ -240,6 +251,7 @@ createAccountPaymentMethodModal = (data, callback) ->
               label             : "City & State"
               name              : "city"
               placeholder       : "City Name"
+              defaultValue      : "San Francisco"
               validate          :
                 rules           :
                   required      : yes
@@ -249,6 +261,7 @@ createAccountPaymentMethodModal = (data, callback) ->
                 state           :
                   name          : "state"
                   placeholder   : "State"
+                  defaultValue  : "CA"
                   validate      :
                     rules       :
                       required  : yes
@@ -258,6 +271,7 @@ createAccountPaymentMethodModal = (data, callback) ->
               label             : "ZIP & Country"
               name              : "zipCode"
               placeholder       : "ZIP Code"
+              defaultValue      : "94107"
               validate          :
                 rules           :
                   required      : yes
@@ -282,6 +296,7 @@ createAccountPaymentMethodModal = (data, callback) ->
   for k, v of data
     if form.inputs[k]
       form.inputs[k].setValue v
+
   return modal
 
 class AccountPaymentMethodsList extends KDListView
