@@ -190,9 +190,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	go logDomainStat(outreq.Host)
-	go logProxyStat(hostname, user.Country)
-
 	target := user.Target
 	fmt.Printf("proxy to %s\n", target.Host)
 
@@ -252,6 +249,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
+		go logDomainStat(outreq.Host)
+		go logProxyStat(hostname, user.Country)
+
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
