@@ -35,7 +35,6 @@ KD.extend
             if groupName and KD.isLoggedIn()
               @joinGroup_ groupName, (res)=>
                 unless res then return @notify_ "Joining to #{groupName} group failed", "error"
-                @notify_ "You have joined to #{groupName} group!", "success"
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
