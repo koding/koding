@@ -27,6 +27,8 @@ class DomainMainView extends KDView
   buildView:->
     @domainsListView    = @domainsListViewController.getView()
     @domainMapperView   = new DomainMapperView
+    @firewallMapperView = new FirewallMapperView
+
     @addNewDomainButton = new KDButtonView
       title    : 'Add New Domain'
       cssClass : 'editor-button new-domain-button'
@@ -39,6 +41,15 @@ class DomainMainView extends KDView
       callback : (elm, event)=>
         @domainsListViewController.update()
 
+    @buildTabs()
+
+    @splitView = new KDSplitView
+      type      : "vertical"
+      resizable : no
+      sizes     : ["10%", "90%"]
+      views     : [@domainsListView, @tabView]
+
+  buildAccordions:->
     # VM, Kite & Firewall Accordion Groups
     @accordionView = new AccordionView
       activePane : "Virtual Machines"
@@ -46,14 +57,13 @@ class DomainMainView extends KDView
       title: "Virtual Machines"
     @kitesAccPane  = new AccordionPaneView
       title: "Kites"
-    @firewallPane  = new AccordionPaneView
-      title: "Firewall Rules"
 
-    @accordionView.addPanes [@vmsAccPane, @kitesAccPane, @firewallPane]
+    @accordionView.addPanes [@vmsAccPane, @kitesAccPane]
 
     @vmsAccPane.setContent @domainMapperView
     @kitesAccPane.setContent new KDCustomHTMLView
 
+  buildTabs:->
     # Routing & Analytics Tabs
     @tabView       = new KDTabView
     @routingPane   = new KDTabPaneView
@@ -62,19 +72,39 @@ class DomainMainView extends KDView
     @analyticsPane = new KDTabPaneView
       name     : "Analytics"
       closable : no
+    @firewallPane  = new KDTabPaneView
+      name     : "Firewall"
+      closable : no
 
-    @routingPane.addSubView @accordionView
-    @tabView.addPane @routingPane
-    @tabView.addPane @analyticsPane
+    
+    vmMapperSubView   = @domainMapperView
+    kiteMapperSubView = new KDView
+      partial: 'Kites are listed here.'
+    kiteMapperSubView.hide()
+
+    routingContentView = new KDCustomHTMLView
+      partial: "Connect my domain to:"
+
+    routingContentView.addSubView new KDSelectBox
+      selectOptions: [{title:"VM", value:"VM"}, {title:"Kite", value:"Kite"}]
+      callback: (value)->
+        if value is "VM"
+          vmMapperSubView.show()
+          kiteMapperSubView.hide()
+        else
+          vmMapperSubView.hide()
+          kiteMapperSubView.show()
+
+    @routingPane.addSubView routingContentView
+    @routingPane.addSubView vmMapperSubView
+    @routingPane.addSubView kiteMapperSubView
+
+    @firewallPane.addSubView @firewallMapperView
+
+    [@routingPane, @analyticsPane, @firewallPane].forEach (pane)=>
+      @tabView.addPane pane
+
     @tabView.showPaneByIndex 0
-
-
-    @splitView = new KDSplitView
-      type      : "vertical"
-      resizable : no
-      sizes     : ["10%", "90%"]
-      views     : [@domainsListView, @tabView]
-
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -90,6 +120,7 @@ class DomainMainView extends KDView
     """  
 
   decorateMapperView:(item)->
+    @firewallMapperView.getData().domain = item
     @domainMapperView.updateContent item
 
 class DomainMapperView extends KDView
@@ -181,3 +212,9 @@ class DomainsListItemView extends KDListItemView
       <span class="domain-title">{{ #(name)}}</span>
     </div>
     """
+
+
+
+  
+  
+

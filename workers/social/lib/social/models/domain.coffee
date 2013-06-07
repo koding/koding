@@ -15,7 +15,7 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       static        : ['one', 'all', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId', 
-                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain']
+                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList']
 
     indexes         :
       domain        : 'unique'
@@ -27,6 +27,8 @@ module.exports = class JDomain extends jraphical.Module
         set         : (value)-> value.toLowerCase()
       owner         : ObjectId
       vms           : [String]
+      blockList     : [String]
+      whiteList     : [String]
       regYears      : Number
       rcOrderId     : Number
       recOrderId    : Number
@@ -130,6 +132,9 @@ module.exports = class JDomain extends jraphical.Module
       domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
         @update {"domain":params.domainName}, {'$pull': {"vms":params.vmName}}
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
+
+  @fetchBlockList = secure ({connection:{delegate}}, params, callback)->
+    return []
 
 
   @addVMAccessRule = secure (client, data, callback) ->
