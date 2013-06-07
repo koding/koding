@@ -144,8 +144,9 @@ class VirtualizationController extends KDController
                     callback()
               paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
           else
-            vmController.createGroupVM type, vmCreateCallback
-            callback()
+            group.updatePayment {plan: planCode}, (err, subscription)->
+              vmController.createGroupVM type, vmCreateCallback
+              callback()
       else
         _createUserVM = (cb)->
           KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
