@@ -7,6 +7,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"koding/tools/db"
 	"koding/virt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"math"
 	"net"
@@ -101,7 +102,7 @@ func (u *UserInfo) populateTarget() error {
 		it, err := memCache.Get(mcKey)
 		if err != nil {
 			fmt.Println("got vm ip from mongodb")
-			if err := db.VMs.Find(bson.M{"name": username}).One(&vm); err != nil {
+			if err := db.VMs.Find(bson.M{"hostname": u.Host}).One(&vm); err != nil {
 				u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
 				u.Redirect = true
 				return nil
@@ -169,18 +170,22 @@ func (u *UserInfo) populateTarget() error {
 	return nil
 }
 
-// parses domains in format {foo}-{n}.domain.com
-// the dashes
 func parseDomain(host string) (*UserInfo, error) {
+	// first try to get from domain collection
+	domain, err := proxyDB.GetDomain(host)
+	if err == nil { // because we dont have nested if clauses
+		return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
+	}
+
+	if err != mgo.ErrNotFound {
+		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
+	}
+
 	switch counts := strings.Count(host, "-"); {
 	case counts == 0:
-		// otherwise lookup to our list of domains
-		userInfo, err := lookupDomain(host)
-		if err != nil {
-			return nil, err
+		if strings.HasSuffix(host, "kd.io") {
+			return NewUserInfo("", "", "", "", "vm", host), nil
 		}
-
-		return userInfo, nil
 
 	case counts == 1:
 		// host is in form {name}-{key}.kd.io, used by koding
@@ -203,28 +208,26 @@ func parseDomain(host string) (*UserInfo, error) {
 		username := partsSecond[2]
 
 		return NewUserInfo(username, servicename, key, "", "internal", host), nil
-	default:
-		return &UserInfo{}, errors.New("no data available for proxy")
 	}
-
+	return &UserInfo{}, fmt.Errorf("no data available for proxy. can't parse domain %s", host)
 }
 
-func lookupDomain(host string) (*UserInfo, error) {
-	// first lookup from db
-	domain, err := proxyDB.GetDomain(host)
-	if err != nil {
-		if err.Error() != "not found" {
-			return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
-		}
-		// if not found via db,  assume as {username}.kd.io
-		if strings.HasSuffix(host, "kd.io") {
-			vmName := strings.TrimSuffix(host, ".kd.io")
-			return NewUserInfo(vmName, "", "", "", "vm", host), nil
-		}
-	}
-
-	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
-}
+// func lookupDomain(host string) (*UserInfo, error) {
+// 	// first lookup from db
+// 	domain, err := proxyDB.GetDomain(host)
+// 	if err != nil {
+// 		if err.Error() != "not found" {
+// 			return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
+// 		}
+// 		// if not found via db,  assume as {username}.kd.io
+// 		if strings.HasSuffix(host, "kd.io") {
+// 			vmName := strings.TrimSuffix(host, ".kd.io")
+// 			return NewUserInfo(vmName, "", "", "", "vm", host), nil
+// 		}
+// 	}
+//
+// 	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
+// }
 
 func validate(u *UserInfo) (bool, error) {
 	res, err := proxyDB.GetRule(u.Host)
