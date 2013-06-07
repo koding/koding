@@ -168,7 +168,7 @@ module.exports =
       password    : 's486auEkPzvUjYfeFTMQ'
       vhost       : '/'
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a'
+    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
