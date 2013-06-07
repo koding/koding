@@ -33,7 +33,9 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
-  runRerouting  : no
+  runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
