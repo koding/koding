@@ -54,36 +54,28 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
       callback err, isAvailable
   
-  @registerDomain = secure (client, data, callback)->
+  @registerDomain = secure ({connection:{delegate}}, data, callback)->
     #default user info / all domains are under koding account.
     params =
-      "domainName"         : data.domainName
-      "years"              : data.years
-      "customerId"         : "9663202"
-      "regContactId"       : "28083911"
-      "adminContactId"     : "28083911"
-      "techContactId"      : "28083911"
-      "billingContactId"   : "28083911"
-      "invoiceOption"      : "NoInvoice"
-      "protectPrivacy"     : no
-      # "linkedVM"           : data.selectedVM
+      domainName         : data.domainName
+      years              : data.years
+      customerId         : "9663202"
+      regContactId       : "28083911"
+      adminContactId     : "28083911"
+      techContactId      : "28083911"
+      billingContactId   : "28083911"
+      invoiceOption      : "NoInvoice"
+      protectPrivacy     : no
 
     domainManager.domainService.registerDomain params, (err, data)=>
       if err then return callback err, data
 
-      domainOrder = 
-        domain       : data.description
-        orderId      : data.entityid
-        linkURL      : data.description
-        #linkedVM     : params.linkedVM
-
       if data.actionstatus is "Success"
         @createDomain client,
           domain   : data.description
-          owner    : client.connection.delegate.getId()
+          owner    : delegate.getId()
           regYears : params.years
           , (err, model) =>
-            console.log err, model
             callback err, model
       else
           callback "Domain registration failed"
