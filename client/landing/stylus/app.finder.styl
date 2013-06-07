@@ -28,6 +28,7 @@ dimmedNeighbor()
 #finder-holder
   height                auto
   overflow              visible
+  vendor                transition, height .4s
   .nfinder
     overflow            visible
     > div
@@ -323,14 +324,15 @@ dimmedNeighbor()
 
 #finder-bottom-controls
   abs()
-  bottom                    0
-  margin                    0
-  size                      100%, 27px
+  top                       100%
+  margin                    -27px 0 0 0
+  size                      100%, auto
   min-height                27px
-  vendor                    transition, max-height .8s
-  shadow                    0 0 8px rgba(0,0,0,0.15)
   background-color          #e2e2e2
-  border-top                1px solid rgba(255,255,255,0.5)
+  border-top                1px solid rgba(255,255,255,.5)
+  vendor                    transition, top .4s
+  shadow                    0 0 8px rgba(0,0,0,.15)
+
 
   .horizontal-handler
     height                  5px
@@ -349,12 +351,6 @@ dimmedNeighbor()
     opacity         .4
     z-index         4
     abs()
-
-  &.show-environments
-    height                  auto
-    max-height              100%
-    padding-bottom          16px
-    z-index                 2
 
   ul
     min-width               203px
@@ -785,6 +781,7 @@ div.led-wrapper
 .resources-list
   border-bottom       1px solid rgba(255,255,255,0.4)
   border-top          1px solid rgba(0,0,0,0.03)
+  overflow            auto
 
   .vm
     height            50px
@@ -868,9 +865,9 @@ div.led-wrapper
   padding         8px 4px 7px 10px
 
 button.create-vm
-  position          relative
-  bottom            -8px
-  left              40px
+  margin            10px auto
+  display           block
+  rel()
   span.icon
     height          14px !important
     width           14px !important
