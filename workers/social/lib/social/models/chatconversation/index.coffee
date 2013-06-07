@@ -20,7 +20,7 @@ module.exports = class JChatConversation extends Module
       instance      : ['updateInstance','notification']
     sharedMethods   :
       static        : ['create','fetch','fetchSome']
-      instance      : ['invite']
+      instance      : ['invite','leave']
     schema          :
       publicName    : String
       createdAt     :
@@ -35,6 +35,8 @@ module.exports = class JChatConversation extends Module
         type        : [String]
         default     : -> []
       tags          : [ObjectRef]
+
+
 
   @fetch = secure (client, publicName, callback)->
 
@@ -111,6 +113,19 @@ module.exports = class JChatConversation extends Module
         else
           callback null, conversation
           conversation.invite client, invitee  for invitee in initialInvitees
+
+  leave: secure (client, callback) ->
+    # Check if user logged in
+    {delegate} = client.connection
+    JAccount   = require '../account'
+    unless delegate instanceof JAccount
+      return callback new KodingError 'Access denied.'
+
+    {nickname} = delegate.profile
+
+    @constructor.update {_id: @getId()}, {$pull: invitees: nickname}, (err)->
+      callback err
+
 
   invite: secure (client, invitee, callback)->
 
