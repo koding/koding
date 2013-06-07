@@ -86,7 +86,7 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
         'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment'
+        'checkPayment', 'makePayment', 'updatePayment'
       ]
     schema          :
       title         :
@@ -1303,6 +1303,17 @@ module.exports = class JGroup extends Module
           'disk per user' : { quota: 1000 }
         , (err)->
           callback no, subs
+
+  updatePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, (err, subs)=>
+        return callback err  if err
+        callback no, subs
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'

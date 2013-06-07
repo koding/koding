@@ -141,8 +141,9 @@ class VirtualizationController extends KDController
                     onSuccess()
                     callback()
           else
-            KD.singletons.vmController.createGroupVM type, vmCreateCallback
-            callback()
+            group.updatePayment {plan: planCode}, (err, subscription)->
+              KD.singletons.vmController.createGroupVM type, vmCreateCallback
+              callback()
       else
         _createUserVM = (cb)->
           KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
