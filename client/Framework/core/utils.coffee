@@ -322,7 +322,7 @@ __utils =
         if candidate?.length > minLength then candidate
         else longText
 
-  getMonthOptions : ()->
+  getMonthOptions : ->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
 
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
