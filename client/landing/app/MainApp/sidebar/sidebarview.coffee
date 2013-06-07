@@ -89,17 +89,21 @@ class Sidebar extends JView
           callback?()
       ]
 
-    @resourcesController = new ResourcesController
-    @resourcesWidget     = @resourcesController.getView()
+    @finderController.on 'EnvironmentsTabRequested', =>
+      @finderBottomControlPin.setState 'hide'
+      @showBottomControls()
 
-    @createNewVMButton   = new KDButtonView
+    @resourcesController = new ResourcesController
+    @resourcesWidget = @resourcesController.getView()
+
+    @createNewVMButton = new KDButtonView
       title     : "Create New VM"
       icon      : yes
       iconClass : "plus-orange"
       cssClass  : "clean-gray create-vm"
       callback  : KD.singletons.vmController.createNewVM
 
-    @environmentButton   = new KDButtonView
+    @environmentButton = new KDButtonView
       title     : "Environments"
       icon      : yes
       iconOnly  : yes
