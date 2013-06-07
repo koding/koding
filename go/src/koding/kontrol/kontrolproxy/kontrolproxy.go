@@ -302,8 +302,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
 		if err != nil {
 			// add :80 if not available
-			ok := hasPort(outreq.URL.Host)
-			if !ok {
+			if !hasPort(outreq.URL.Host) {
 				outreq.URL.Host = addPort(outreq.URL.Host, "80")
 			}
 
