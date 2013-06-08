@@ -30,7 +30,7 @@ class ChatConversationListItemTitle extends JView
     @participants = switch @accounts.length
       when 1 then @getName 0
       when 2 then "#{@getName(0)} <span>and</span> #{@getName(1)}"
-      else "#{@getName(0)}, #{@getName(1)} <span>and <strong>#{data.length - 2} more.</strong></span>"
+      else "#{@getName(0)}, #{@getName(1)} <span>and <strong>#{@accounts.length - 2} more.</strong></span>"
 
     """
       <div class='avatar-wrapper fl'>
