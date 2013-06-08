@@ -71,11 +71,10 @@ class FirewallRuleFormView extends KDView
 
 
   updateDomainRules:(field, op, value)->
-    console.log "updating domain #{@getData().domain.domain} for #{field} with #{op} as #{value}"
     fieldMethod = switch field
       when "whiteList" then "updateWhiteList"
       when "blockList" then "updateBlockList"
-    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, field, op, value}, (err)->
+    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, op, value}, (err)->
       if err
         new KDNotificationView
           type  : "top"

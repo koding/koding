@@ -127,9 +127,14 @@ module.exports = class JDomain extends jraphical.Module
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
 
   @updateWhiteList = (params, callback)->
-    @update {domain:params.domainName}, {'$addToList':{'whiteList':params.value}}, (err, obj)->
-      console.log '--------'
-      console.log err, obj
-      console.log '--------'
+    if params.op == 'addToList'
+      @update {domain:params.domainName}, {'$addToList':{'whiteList':params.value}}, (err, obj)->
+    else
+      @update {domain:params.domainName}, {'$pull':{'whiteList':params.value}}, (err, obj)->
+
 
   @updateBlockList = (params, callback)->
+    if params.op == 'addToList'
+      @update {domain:params.domainName}, {'$addToList':{'blockList':params.value}}, (err, obj)->
+    else
+      @update {domain:params.domainName}, {'$pull':{'blockList':params.value}}, (err, obj)->
