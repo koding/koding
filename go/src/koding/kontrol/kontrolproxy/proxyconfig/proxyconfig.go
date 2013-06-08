@@ -11,20 +11,21 @@ type ProxyConfiguration struct {
 }
 
 func Connect() (*ProxyConfiguration, error) {
-	session, err := mgo.Dial(config.Current.Kontrold.Mongo.Host)
+	session, err := mgo.Dial(config.Current.Mongo)
 	if err != nil {
 		return nil, err
 	}
 	session.SetMode(mgo.Strong, true)
 	session.SetSafe(&mgo.Safe{})
+	database := session.DB("")
 
 	collections := make(map[string]*mgo.Collection)
-	collections["services"] = session.DB("kontrol").C("pServices")
-	collections["proxies"] = session.DB("kontrol").C("pProxies")
-	collections["domains"] = session.DB("kontrol").C("pDomains")
-	collections["rules"] = session.DB("kontrol").C("pRules")
-	collections["domainstats"] = session.DB("kontrol").C("pDomainStats")
-	collections["proxystats"] = session.DB("kontrol").C("pProxyStats")
+	collections["services"] = database.C("jProxyServices")
+	collections["proxies"] = database.C("jProxies")
+	collections["domains"] = database.C("jProxyDomains")
+	collections["rules"] = database.C("jProxyRules")
+	collections["domainstats"] = database.C("jDomainStats")
+	collections["proxystats"] = database.C("jProxyStats")
 
 	pr := &ProxyConfiguration{
 		Session:    session,
