@@ -60,9 +60,13 @@ class ConversationStarter extends JView
       then @startConversationButton.show()
       else @startConversationButton.hide()
 
+    @input = @recipient.getView()
+    @input.setPlaceHolder "Start by typing user names..."
+
   viewAppended:->
     super
-    @addSubView @input = @recipient.getView()
+
+    @addSubView @input
     @addSubView @recipientsWrapper
     @addSubView @startConversationButton
 
