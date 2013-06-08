@@ -60,11 +60,7 @@ module.exports = class JChatConversation extends Module
     {nickname} = delegate.profile
 
     options  or= limit: 20
-    selector   =
-      $or: [
-        {createdBy : nickname}
-        {invitees  : nickname}
-      ]
+    selector   = {invitees  : nickname}
 
     @some selector, options, callback
 
