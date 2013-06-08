@@ -2,7 +2,7 @@ class ChatConversationListItemTitle extends JView
 
   constructor:(options = {}, data)->
     options.cssClass = 'chat-item'
-    # data = [nick for nick in data when nick isnt KD.nick()].first
+    data = [nick for nick in data when nick isnt KD.nick()].first
     super
 
   viewAppended:->
