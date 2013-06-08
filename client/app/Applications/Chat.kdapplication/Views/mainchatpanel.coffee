@@ -17,6 +17,10 @@ class MainChatPanel extends JView
         @getSingleton('windowController').addLayer @
         @once 'ReceivedClickElsewhere', @bound 'hidePanel'
 
+    # FIXME Later ~ GG
+    {mainController} = KD.singletons
+    mainController.on "accountChanged.to.loggedIn", @bound 'showPanel'
+
   createConversation:(data)->
     # Data includes chatChannel and the conversation
     @conversationListController.addItem data
@@ -25,9 +29,11 @@ class MainChatPanel extends JView
     @addSubView @header
     @addSubView @conversationList
     @conversationListController.loadItems()
-    # @showPanel()
+    @showPanel()  if KD.isLoggedIn()
 
   showPanel:->
+    return  unless KD.isLoggedIn()
+
     @show()
     @utils.defer =>
       @setClass 'visible'
