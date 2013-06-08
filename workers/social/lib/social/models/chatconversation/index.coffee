@@ -114,6 +114,9 @@ module.exports = class JChatConversation extends Module
           callback null, conversation
           conversation.invite client, invitee  for invitee in initialInvitees
 
+  kick: secure (client, kickedMember, callback)->
+    # TODO: we need to implement this.
+
   leave: secure (client, callback) ->
     # Check if user logged in
     {delegate} = client.connection
@@ -125,7 +128,6 @@ module.exports = class JChatConversation extends Module
 
     @constructor.update {_id: @getId()}, {$pull: invitees: nickname}, (err)->
       callback err
-
 
   invite: secure (client, invitee, callback)->
 
