@@ -19,7 +19,9 @@ class MainChatPanel extends JView
 
     # FIXME Later ~ GG
     {mainController} = KD.singletons
-    mainController.on "accountChanged.to.loggedIn", @bound 'showPanel'
+    mainController.on "accountChanged.to.loggedIn", =>
+      @conversationListController.loadItems()
+      @showPanel()
 
   createConversation:(data)->
     # Data includes chatChannel and the conversation
