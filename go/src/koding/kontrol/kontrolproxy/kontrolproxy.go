@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/nranchev/go-libGeoIP"
 	"io"
 	"koding/kontrol/kontrolhelper"
@@ -28,7 +27,6 @@ var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
 var connections map[string]RabbitChannel
 var geoIP *libgeo.GeoIP
-var memCache *memcache.Client
 var hostname = kontrolhelper.CustomHostname()
 
 func main() {
@@ -46,8 +44,6 @@ func main() {
 	if err != nil {
 		log.Println(err)
 	}
-
-	memCache = memcache.New("127.0.0.1:11211") // used for vm lookup
 
 	// load GeoIP db into memory
 	dbFile := "GeoIP.dat"

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
 	"koding/tools/db"
 	"koding/virt"
 	"labix.org/v2/mgo"
@@ -98,43 +96,20 @@ func (u *UserInfo) populateTarget() error {
 		return nil
 	case "vm":
 		var vm virt.VM
-		mcKey := username + "kontrolproxyvm"
-		it, err := memCache.Get(mcKey)
-		if err != nil {
-			fmt.Println("got vm ip from mongodb")
-			if err := db.VMs.Find(bson.M{"hostname": u.Host}).One(&vm); err != nil {
-				u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
-				u.Redirect = true
-				return nil
-			}
-			if vm.IP == nil {
-				u.Target, _ = url.Parse("http://www.koding.com/notactive.html")
-				u.Redirect = true
-				return nil
-			}
-			u.Target, err = url.Parse("http://" + vm.IP.String())
-			if err != nil {
-				return err
-			}
-
-			data, err := json.Marshal(u.Target)
-			if err != nil {
-				fmt.Printf("could not marshall worker: %s", err)
-			}
-
-			memCache.Set(&memcache.Item{
-				Key:        mcKey,
-				Value:      data,
-				Expiration: int32(CACHE_TIMEOUT_VM),
-			})
-
+		fmt.Println("got vm ip from mongodb")
+		if err := db.VMs.Find(bson.M{"hostname": u.Host}).One(&vm); err != nil {
+			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
+			u.Redirect = true
 			return nil
 		}
-
-		fmt.Println("got vm ip from memcached")
-		err = json.Unmarshal(it.Value, &u.Target)
+		if vm.IP == nil {
+			u.Target, _ = url.Parse("http://www.koding.com/notactive.html")
+			u.Redirect = true
+			return nil
+		}
+		u.Target, err = url.Parse("http://" + vm.IP.String())
 		if err != nil {
-			fmt.Printf("unmarshall memcached value: %s", err)
+			return err
 		}
 
 		return nil

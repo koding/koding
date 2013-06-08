@@ -1,7 +1,6 @@
 package proxyconfig
 
 import (
-	"github.com/bradfitz/gomemcache/memcache"
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 )
@@ -9,7 +8,6 @@ import (
 type ProxyConfiguration struct {
 	Session    *mgo.Session
 	Collection map[string]*mgo.Collection
-	MemCache   *memcache.Client
 }
 
 func Connect() (*ProxyConfiguration, error) {
@@ -28,12 +26,9 @@ func Connect() (*ProxyConfiguration, error) {
 	collections["domainstats"] = session.DB("kontrol").C("pDomainStats")
 	collections["proxystats"] = session.DB("kontrol").C("pProxyStats")
 
-	mc := memcache.New("127.0.0.1:11211", "127.0.0.1:11211")
-
 	pr := &ProxyConfiguration{
 		Session:    session,
 		Collection: collections,
-		MemCache:   mc,
 	}
 
 	return pr, nil
