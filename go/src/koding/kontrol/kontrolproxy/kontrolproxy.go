@@ -295,29 +295,30 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 		res := new(http.Response)
 
-		rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
+		if !hasPort(outreq.URL.Host) {
+			outreq.URL.Host = addPort(outreq.URL.Host, "80")
+		}
+
+		res, err = transport.RoundTrip(outreq)
 		if err != nil {
-			// add :80 if not available
-			if !hasPort(outreq.URL.Host) {
-				outreq.URL.Host = addPort(outreq.URL.Host, "80")
-			}
-
-			res, err = transport.RoundTrip(outreq)
-			if err != nil {
-				io.WriteString(rw, fmt.Sprint(err))
-				return
-			}
-		} else {
-			fmt.Println("connection via rabbitmq")
-			res, err = rabbitTransport(outreq, user, rabbitKey)
-			if err != nil {
-				log.Printf("rabbit proxy %s", err.Error())
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-				return
-			}
-
+			io.WriteString(rw, fmt.Sprint(err))
+			return
 		}
 		defer res.Body.Close()
+
+		// rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
+		// if err != nil {
+		// 	// add :80 if not available
+		// } else {
+		// 	fmt.Println("connection via rabbitmq")
+		// 	res, err = rabbitTransport(outreq, user, rabbitKey)
+		// 	if err != nil {
+		// 		log.Printf("rabbit proxy %s", err.Error())
+		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+		// 		return
+		// 	}
+
+		// }
 
 		copyHeader(rw.Header(), res.Header)
 		rw.WriteHeader(res.StatusCode)

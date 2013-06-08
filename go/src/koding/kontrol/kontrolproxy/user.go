@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"koding/tools/db"
 	"koding/virt"
@@ -13,8 +12,6 @@ import (
 	"net/url"
 	"strings"
 )
-
-const CACHE_TIMEOUT_VM = 60 //seconds
 
 type UserInfo struct {
 	Username    string
@@ -119,7 +116,7 @@ func (u *UserInfo) populateTarget() error {
 
 	keyData, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
-		return errors.New("no users availalable in the db. targethost not found")
+		return fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
 	}
 
 	var hostname string
@@ -196,22 +193,22 @@ func validate(u *UserInfo) (bool, error) {
 	return validator(res, u).IP().Country().Check()
 }
 
-func lookupRabbitKey(username, servicename, key string) (string, error) {
-	res, err := proxyDB.GetKey(username, servicename, key)
-	if err != nil {
-		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
-	}
-
-	if res.Mode == "roundrobin" {
-		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
-	}
-
-	if res.RabbitKey == "" {
-		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
-	}
-
-	return res.RabbitKey, nil
-}
+// func lookupRabbitKey(username, servicename, key string) (string, error) {
+// 	res, err := proxyDB.GetKey(username, servicename, key)
+// 	if err != nil {
+// 		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
+// 	}
+//
+// 	if res.Mode == "roundrobin" {
+// 		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
+// 	}
+//
+// 	if res.RabbitKey == "" {
+// 		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
+// 	}
+//
+// 	return res.RabbitKey, nil
+// }
 
 func checkWebsocket(req *http.Request) bool {
 	conn_hdr := ""
