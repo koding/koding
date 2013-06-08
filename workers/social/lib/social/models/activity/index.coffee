@@ -357,26 +357,36 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-  @fetchPublicActivityFeed: permit 'read activity',
-    success: (client, seed, options, callback)->
-      group.canReadActivity client, (err, res)->
-        if err then return callback {error: "Not allowed to open this group"}
 
-        timestamp  = options.timestamp
-        rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
-        # this is for unix and javascript timestamp differance
-        startDate  = Math.floor(rawStartDate/1000)
+  @fetchPublicActivityFeed = secure (client, options, callback)->
+    {delegate} = client.connection
+    if not delegate
+      callback null, []
+    else
+      groupName = options.groupName
+      unless groupName then return callback new Error "Group name is undefined"
+      JGroup = require '../group'
+      JGroup.one slug : groupName, (err, group)=>
+        if err then return callback err
+        unless group then return callback {error: "Group not found"}
+        group.canReadActivity client, (err, res)->
+          if err then return callback {error: "Not allowed to open this group"}
 
-        neo4jConfig = KONFIG.neo4j
-        requestOptions =
-          startDate : startDate
-          neo4j : neo4jConfig
-          group :
-            groupName : group.slug
-            groupId : group._id
+          timestamp  = options.timestamp
+          rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+          # this is for unix and javascript timestamp differance
+          startDate  = Math.floor(rawStartDate/1000)
+
+          neo4jConfig = KONFIG.neo4j
+          requestOptions =
+            startDate : startDate
+            neo4j : neo4jConfig
+            group :
+              groupName : group.slug
+              groupId : group._id
 
 
-        FetchAllActivityParallel = require './../graph/fetch'
-        fetch = new FetchAllActivityParallel requestOptions
-        fetch.get (results)->
-          callback null, results
+          FetchAllActivityParallel = require './../graph/fetch'
+          fetch = new FetchAllActivityParallel requestOptions
+          fetch.get (results)->
+            callback null, results
