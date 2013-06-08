@@ -15,7 +15,8 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       static        : ['one', 'all', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId', 
-                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList', 'updateRules']
+                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList', 
+                       'updateWhiteList', 'updateBlockList']
 
     indexes         :
       domain        : 'unique'
@@ -23,7 +24,7 @@ module.exports = class JDomain extends jraphical.Module
     schema          :
       domain        :
         type        : String
-        validate    : (value)-> !!value
+        required    : yes
         set         : (value)-> value.toLowerCase()
       owner         : ObjectId
       vms           : [String]
@@ -125,31 +126,10 @@ module.exports = class JDomain extends jraphical.Module
         @update {"domain":params.domainName}, {'$pull': {"vms":params.vmName}}
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
 
-  updateRules:(params, callback)->
-    #@update {_id: getId()}, {"#{params.field}":{ "$#{params.op}": params.value}}, (err) -> callback err
+  @updateWhiteList = (params, callback)->
+    @update {domain:params.domainName}, {'$addToList':{'whiteList':params.value}}, (err, obj)->
+      console.log '--------'
+      console.log err, obj
+      console.log '--------'
 
-
-  @fetchBlockList = secure ({connection:{delegate}}, params, callback)->
-    return []
-
-
-  @addVMAccessRule = secure (client, data, callback) ->
-    #not implemented yet
-
-  @removeVMAccessRule = secure (client, data, callback) ->
-    #not implemented yet
-
-  @listVMAccessRules = secure (client, data, callback) ->
-    #not implemented yet
-
-  @getDomainDetails = secure (client, data, callback) ->
-    #not implemented yet
-
-  @updateDomainContacts = secure (client, data, callback) ->
-    #not implemented yet
-
-  @createCustomerContact = secure (client, data, callback) ->
-    #not implemented yet
-
-  @updateCustımerContact = secure (client, data, callback) ->
-    #not implemented yet
+  @updateBlockList = (params, callback)->
