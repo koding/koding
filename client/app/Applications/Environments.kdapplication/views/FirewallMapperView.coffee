@@ -74,7 +74,7 @@ class FirewallRuleFormView extends KDView
     fieldMethod = switch field
       when "whiteList" then "updateWhiteList"
       when "blockList" then "updateBlockList"
-    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, op, value}, (err)->
+    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, op, value}, (err)=>
       if err
         new KDNotificationView
           type  : "top"

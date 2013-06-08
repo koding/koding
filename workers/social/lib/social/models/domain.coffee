@@ -55,7 +55,7 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
       callback err, isAvailable
   
-  @registerDomain = secure ({connection:{delegate}}, data, callback)->
+  @registerDomain = secure (client, data, callback)->
     #default user info / all domains are under koding account.
     params =
       domainName         : data.domainName
@@ -74,7 +74,7 @@ module.exports = class JDomain extends jraphical.Module
       if data.actionstatus is "Success"
         @createDomain client,
           domain   : data.description
-          owner    : delegate.getId()
+          owner    : client.connection.delegate.getId()
           regYears : params.years
           , (err, model) =>
             callback err, model
@@ -127,14 +127,14 @@ module.exports = class JDomain extends jraphical.Module
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
 
   @updateWhiteList = (params, callback)->
-    if params.op == 'addToList'
-      @update {domain:params.domainName}, {'$addToList':{'whiteList':params.value}}, (err, obj)->
+    if params.op == 'addToSet'
+      @update {domain:params.domainName}, {'$addToSet':{'whiteList':params.value}}, (err, obj)-> callback err
     else
-      @update {domain:params.domainName}, {'$pull':{'whiteList':params.value}}, (err, obj)->
+      @update {domain:params.domainName}, {'$pull':{'whiteList':params.value}}, (err, obj)-> callback err
 
 
   @updateBlockList = (params, callback)->
-    if params.op == 'addToList'
-      @update {domain:params.domainName}, {'$addToList':{'blockList':params.value}}, (err, obj)->
+    if params.op == 'addToSet'
+      @update {domain:params.domainName}, {'$addToSet':{'blockList':params.value}}, (err, obj)-> callback err
     else
-      @update {domain:params.domainName}, {'$pull':{'blockList':params.value}}, (err, obj)->
+      @update {domain:params.domainName}, {'$pull':{'blockList':params.value}}, (err, obj)-> callback err
