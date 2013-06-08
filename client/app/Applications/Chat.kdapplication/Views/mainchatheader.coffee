@@ -28,9 +28,35 @@ class MainChatHeader extends JView
           callback?()
       ]
 
+    @pinPanelButton = new KDToggleButton
+      style           : "panel-pinner"
+      iconOnly        : yes
+      defaultState    : "pin"
+      states          : [
+        title         : "pin"
+        iconClass     : "left"
+        callback      : (callback)->
+          contentPanel = @getSingleton('contentPanel')
+          contentPanel.chatMargin = 250
+          contentPanel._windowDidResize()
+          callback?()
+      ,
+        title         : "unpin"
+        iconClass     : "right"
+        callback      : (callback)->
+          contentPanel = @getSingleton('contentPanel')
+          contentPanel.chatMargin = 0
+          contentPanel._windowDidResize()
+
+          chatPanel    = @getSingleton('chatPanel')
+          chatPanel.emit 'PanelVisibilityChanged', yes
+
+          callback?()
+      ]
+
   pistachio:->
     """
+      {{> @pinPanelButton}}
       {{> @header}}
       {{> @newConversationButton}}
-      {{> @viewChangeButton}}
     """
