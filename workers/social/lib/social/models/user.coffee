@@ -581,7 +581,7 @@ module.exports = class JUser extends jraphical.Module
               account.save (err)-> throw err if err
               callback null
         else
-          callback new KodingError 'PIN is not confirmed.'
+          callback createKodingError 'PIN is not confirmed.'
 
   fetchHomepageView:(callback)->
     @fetchAccount 'koding', (err, account)->
