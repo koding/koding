@@ -11,7 +11,10 @@ class NewCommentForm extends KDView
   viewAppended:->
     {profile} = KD.whoami()
     host = "//#{location.host}/"
-    fallbackUrl = "url(//www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')})"
+    defaultAvatarUrl = encodeURIComponent(host + '/images/defaultavatar/default.avatar.30.png')
+    fallbackUrl = if profile.hash
+    then "url(//www.gravatar.com/avatar/#{profile.hash}?size=30&d=#{defaultAvatarUrl})"
+    else "url(#{defaultAvatarUrl})"
 
     @addSubView commenterAvatar = new KDCustomHTMLView
       tagName : "span"

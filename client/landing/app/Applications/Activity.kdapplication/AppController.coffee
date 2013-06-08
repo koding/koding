@@ -186,16 +186,13 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      if KD.config.useNeo4j
+      if slug isnt 'koding' or not KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
       else
-        unless slug is 'koding'
-          @fetchActivitiesDirectly options, callback
-        else
-          @isExempt (exempt)=>
-            if exempt or @getFilter() isnt activityTypes
-            then @fetchActivitiesDirectly options, callback
-            else @fetchActivitiesFromCache options, callback
+        @isExempt (exempt)=>
+          if exempt or @getFilter() isnt activityTypes
+          then @fetchActivitiesDirectly options, callback
+          else @fetchActivitiesFromCache options, callback
 
     unless isReady
     then groupsController.once 'groupChanged', fetch
@@ -305,11 +302,11 @@ class ActivityAppController extends AppController
 
   fetchCachedActivity:(options = {}, callback)->
     if KD.config.useNeo4j
-      if options.to
-        options.timestamp = options.to
-
+      options.timestamp or= options.to
       options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+
       KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
+        result.overview.reverse() if result?.overview
         return callback err, result
     else
       $.ajax

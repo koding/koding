@@ -1596,7 +1596,7 @@ span.main-nav-icon
 .kdmodal.payments-modal
 
   form
-    max-height          400px
+    max-height          600px
     overflow            auto
 
     .formline
@@ -1604,6 +1604,12 @@ span.main-nav-icon
       > label.kdlabel
         float           none
         display         inline-block
+      &.intro
+        bg              color, rgb(255, 244, 221)
+        text-shadow     0 1px 0 white
+        shadow          inset 0 0 15px -5px rgba(0,0,0,0.3)
+        .input-wrapper
+          width         auto
 
       &.cardMonth
         .input-wrapper
@@ -1617,11 +1623,10 @@ span.main-nav-icon
         > div.input-wrapper:last-of-type
           width 70px
 
-
         span.icon
           abs()
           right         116px
-          top           13px
+          top           14px
           size          30px, 20px
           sprite()
           bg position,  30px 20px
