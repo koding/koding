@@ -395,6 +395,7 @@ module.exports = [
   "app/Applications/Chat.kdapplication/Views/conversationlistview.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationlistitem.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationstarter.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationmenu.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationsettings.coffee",
   "app/Applications/Chat.kdapplication/Views/chatconversationwidget.coffee",
   "app/Applications/Chat.kdapplication/Views/chatmessagelistview.coffee",
