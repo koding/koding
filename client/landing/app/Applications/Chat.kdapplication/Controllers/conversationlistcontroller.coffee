@@ -12,6 +12,8 @@ class ChatConversationListController extends CommonChatController
     super data
 
   loadItems:->
+    @removeAllItems()
+
     chatController = KD.getSingleton 'chatController'
     {JChatConversation} = KD.remote.api
     JChatConversation.fetchSome {}, (err, conversations)=>
