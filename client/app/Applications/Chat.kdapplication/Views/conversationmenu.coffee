@@ -37,7 +37,8 @@ class ConversationMenuButton extends KDButtonView
               'Leave'      :
                 style      : "modal-clean-red"
                 callback   : =>
-                  {conversation} = @getData()
+                  {conversation, chatChannel} = @getData()
+                  chatChannel?.close()?.off()
                   conversation.leave (err)=>
                     warn err  if err
                     @emit 'DestroyConversation'
