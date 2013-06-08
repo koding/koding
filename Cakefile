@@ -210,7 +210,7 @@ task 'emailWorker',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
+      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
     verbose        : yes
 
   watcher = new Watcher
@@ -230,7 +230,7 @@ task 'emailSender',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
+      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
     verbose        : yes
 
   watcher = new Watcher

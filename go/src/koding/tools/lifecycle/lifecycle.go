@@ -27,7 +27,7 @@ func Startup(serviceName string, needRoot bool) {
 
 func CreateClientsGauge() func(int) {
 	value := new(int)
-	log.CreateGauge("clients", func() float64 { return float64(*value) })
+	log.CreateGauge("clients", log.NoUnit, func() float64 { return float64(*value) })
 	changeClientsGauge = func(diff int) {
 		log.GaugeChanges <- func() {
 			*value += diff

@@ -27,13 +27,13 @@ module.exports = class JGroupBundle extends JBundle
       'request bundle change'   : ['member','moderator']
       'commission resources'    : ['member','moderator']
     limits            :
-      'cpu'           : { unit: 'core', quota: 1 }
-      'ram'           : { unit: 'GB',   quota: 0.25 }
-      'disk'          : { unit: 'GB',   quota: 0.5 }
-      'users'         : { unit: 'user', quota: 20 }
-      'cpu per user'  : { unit: 'core', quota: 0 }
-      'ram per user'  : { unit: 'GB',   quota: 0 }
-      'disk per user' : { unit: 'GB',   quota: 0 }
+      'cpu'           : { unit: 'core',  quota: 1 }
+      'ram'           : { unit: 'GB',    quota: 0.25 }
+      'disk'          : { unit: 'GB',    quota: 0.5 }
+      'users'         : { unit: 'user',  quota: 20 }
+      'cpu per user'  : { unit: 'core',  quota: 0 }
+      'ram per user'  : { unit: 'GB',    quota: 0 }
+      'disk per user' : { unit: 'GB',    quota: 0 }
     schema            :
       overagePolicy   :
         type          : String

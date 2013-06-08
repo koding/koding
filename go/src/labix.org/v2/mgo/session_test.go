@@ -1,18 +1,18 @@
 // mgo - MongoDB driver for Go
-// 
+//
 // Copyright (c) 2010-2012 - Gustavo Niemeyer <gustavo@niemeyer.net>
-// 
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met: 
-// 
+// modification, are permitted provided that the following conditions are met:
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer. 
+//    list of conditions and the following disclaimer.
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution. 
-// 
+//    and/or other materials provided with the distribution.
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -27,12 +27,13 @@
 package mgo_test
 
 import (
-	"errors"
 	"flag"
+	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	. "launchpad.net/gocheck"
 	"math"
+	"reflect"
 	"runtime"
 	"sort"
 	"strconv"
@@ -141,7 +142,7 @@ func (s *S) TestInsertFindOneNil(c *C) {
 
 	coll := session.DB("mydb").C("mycoll")
 	err = coll.Find(nil).One(nil)
-	c.Assert(err, ErrorMatches, "unauthorized.*")
+	c.Assert(err, ErrorMatches, "unauthorized.*|not authorized.*")
 }
 
 func (s *S) TestInsertFindOneMap(c *C) {
@@ -263,7 +264,10 @@ func (s *S) TestDatabaseAndCollectionNames(c *C) {
 
 	names, err := session.DatabaseNames()
 	c.Assert(err, IsNil)
-	c.Assert(names, DeepEquals, []string{"db1", "db2"})
+	if !reflect.DeepEqual(names, []string{"db1", "db2"}) {
+		// 2.4+ has "local" as well.
+		c.Assert(names, DeepEquals, []string{"db1", "db2", "local"})
+	}
 
 	names, err = db1.CollectionNames()
 	c.Assert(err, IsNil)
@@ -288,6 +292,34 @@ func (s *S) TestSelect(c *C) {
 	c.Assert(err, IsNil)
 	c.Assert(result.A, Equals, 0)
 	c.Assert(result.B, Equals, 2)
+}
+
+func (s *S) TestInlineMap(c *C) {
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	coll := session.DB("mydb").C("mycoll")
+
+	var v, result1 struct { A int; M map[string]int ",inline" }
+
+	v.A = 1
+	v.M = map[string]int{"b": 2}
+	err = coll.Insert(v)
+	c.Assert(err, IsNil)
+
+	noId := M{"_id": 0}
+
+	err = coll.Find(nil).Select(noId).One(&result1)
+	c.Assert(err, IsNil)
+	c.Assert(result1.A, Equals, 1)
+	c.Assert(result1.M, DeepEquals, map[string]int{"b": 2})
+
+	var result2 M
+	err = coll.Find(nil).Select(noId).One(&result2)
+	c.Assert(err, IsNil)
+	c.Assert(result2, DeepEquals, M{"a": 1, "b": 2})
+
 }
 
 func (s *S) TestUpdate(c *C) {
@@ -588,14 +620,20 @@ func (s *S) TestDropDatabase(c *C) {
 
 	names, err := session.DatabaseNames()
 	c.Assert(err, IsNil)
-	c.Assert(names, DeepEquals, []string{"db2"})
+	if !reflect.DeepEqual(names, []string{"db2"}) {
+		// 2.4+ has "local" as well.
+		c.Assert(names, DeepEquals, []string{"db2", "local"})
+	}
 
 	err = db2.DropDatabase()
 	c.Assert(err, IsNil)
 
 	names, err = session.DatabaseNames()
 	c.Assert(err, IsNil)
-	c.Assert(names, DeepEquals, []string(nil))
+	if !reflect.DeepEqual(names, []string(nil)) {
+		// 2.4+ has "local" as well.
+		c.Assert(names, DeepEquals, []string{"local"})
+	}
 }
 
 func (s *S) TestDropCollection(c *C) {
@@ -690,10 +728,16 @@ func (s *S) TestCreateCollectionForceIndex(c *C) {
 	c.Assert(indexes, HasLen, 1)
 }
 
-func (s *S) TestIsDupFalse(c *C) {
+func (s *S) TestIsDupValues(c *C) {
 	c.Assert(mgo.IsDup(nil), Equals, false)
 	c.Assert(mgo.IsDup(&mgo.LastError{Code: 1}), Equals, false)
-	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 11000}), Equals, false)
+	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 1}), Equals, false)
+	c.Assert(mgo.IsDup(&mgo.LastError{Code: 11000}), Equals, true)
+	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 11000}), Equals, true)
+	c.Assert(mgo.IsDup(&mgo.LastError{Code: 11001}), Equals, true)
+	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 11001}), Equals, true)
+	c.Assert(mgo.IsDup(&mgo.LastError{Code: 12582}), Equals, true)
+	c.Assert(mgo.IsDup(&mgo.QueryError{Code: 12582}), Equals, true)
 }
 
 func (s *S) TestIsDupPrimary(c *C) {
@@ -716,8 +760,8 @@ func (s *S) TestIsDupUnique(c *C) {
 	defer session.Close()
 
 	index := mgo.Index{
-		Key:      []string{"a", "b"},
-		Unique:   true,
+		Key:    []string{"a", "b"},
+		Unique: true,
 	}
 
 	coll := session.DB("mydb").C("mycoll")
@@ -753,6 +797,25 @@ func (s *S) TestIsDupCapped(c *C) {
 	// Quite unfortunate that the error is different for capped collections.
 	c.Assert(err, ErrorMatches, "duplicate key.*capped collection")
 	// The issue is reduced by using IsDup.
+	c.Assert(mgo.IsDup(err), Equals, true)
+}
+
+func (s *S) TestIsDupFindAndModify(c *C) {
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	coll := session.DB("mydb").C("mycoll")
+
+	err = coll.EnsureIndex(mgo.Index{Key: []string{"n"}, Unique: true})
+	c.Assert(err, IsNil)
+
+	err = coll.Insert(M{"n": 1})
+	c.Assert(err, IsNil)
+	err = coll.Insert(M{"n": 2})
+	c.Assert(err, IsNil)
+	_, err = coll.Find(M{"n": 1}).Apply(mgo.Change{Update: M{"$inc": M{"n": 1}}}, bson.M{})
+	c.Assert(err, ErrorMatches, ".*duplicate key error.*")
 	c.Assert(mgo.IsDup(err), Equals, true)
 }
 
@@ -937,11 +1000,11 @@ func (s *S) TestQueryExplain(c *C) {
 
 	n := 0
 	var result M
-	err = query.For(&result, func() error {
+	iter := query.Iter()
+	for iter.Next(&result) {
 		n++
-		return nil
-	})
-	c.Assert(err, IsNil)
+	}
+	c.Assert(iter.Close(), IsNil)
 	c.Assert(n, Equals, 2)
 }
 
@@ -1024,8 +1087,7 @@ func (s *S) TestFindIterAll(c *C) {
 
 	mgo.ResetStats()
 
-	query := coll.Find(M{"n": M{"$gte": 42}}).Sort("$natural").Prefetch(0).Batch(2)
-	iter := query.Iter()
+	iter := coll.Find(M{"n": M{"$gte": 42}}).Sort("$natural").Prefetch(0).Batch(2).Iter()
 	result := struct{ N int }{}
 	for i := 2; i < 7; i++ {
 		ok := iter.Next(&result)
@@ -1039,7 +1101,7 @@ func (s *S) TestFindIterAll(c *C) {
 
 	ok := iter.Next(&result)
 	c.Assert(ok, Equals, false)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 
 	session.Refresh() // Release socket.
 
@@ -1088,7 +1150,7 @@ func (s *S) TestFindIterWithoutResults(c *C) {
 	result := struct{ N int }{}
 	ok := iter.Next(&result)
 	c.Assert(ok, Equals, false)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 	c.Assert(result.N, Equals, 0)
 }
 
@@ -1120,7 +1182,7 @@ func (s *S) TestFindIterLimit(c *C) {
 
 	ok := iter.Next(&result)
 	c.Assert(ok, Equals, false)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 
 	session.Refresh() // Release socket.
 
@@ -1159,7 +1221,7 @@ func (s *S) TestTooManyItemsLimitBug(c *C) {
 		}
 		iters++
 	}
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 	c.Assert(iters, Equals, limit)
 }
 
@@ -1167,7 +1229,7 @@ func serverCursorsOpen(session *mgo.Session) int {
 	var result struct {
 		Cursors struct {
 			TotalOpen int `bson:"totalOpen"`
-			TimedOut int  `bson:"timedOut"`
+			TimedOut  int `bson:"timedOut"`
 		}
 	}
 	err := session.Run("serverStatus", &result)
@@ -1274,7 +1336,7 @@ func (s *S) TestFindIterLimitWithBatch(c *C) {
 
 	ok := iter.Next(&result)
 	c.Assert(ok, Equals, false)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 
 	session.Refresh() // Release socket.
 
@@ -1325,7 +1387,7 @@ func (s *S) TestFindIterSortWithBatch(c *C) {
 
 	ok := iter.Next(&result)
 	c.Assert(ok, Equals, false)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 
 	session.Refresh() // Release socket.
 
@@ -1429,7 +1491,7 @@ func (s *S) TestFindTailTimeoutWithSleep(c *C) {
 	coll.Insert(M{"n": 48})
 	ok = iter.Next(&result)
 	c.Assert(ok, Equals, true)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 	c.Assert(iter.Timeout(), Equals, false)
 	c.Assert(result.N, Equals, 48)
 }
@@ -1522,7 +1584,7 @@ func (s *S) TestFindTailTimeoutNoSleep(c *C) {
 	coll.Insert(M{"n": 48})
 	ok = iter.Next(&result)
 	c.Assert(ok, Equals, true)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 	c.Assert(iter.Timeout(), Equals, false)
 	c.Assert(result.N, Equals, 48)
 }
@@ -1628,6 +1690,76 @@ func (s *S) TestFindTailNoTimeout(c *C) {
 	}
 }
 
+func (s *S) TestIterNextResetsResult(c *C) {
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	coll := session.DB("mydb").C("mycoll")
+
+	ns := []int{1, 2, 3}
+	for _, n := range ns {
+		coll.Insert(M{"n" + strconv.Itoa(n): n})
+	}
+
+	query := coll.Find(nil).Sort("$natural")
+
+	i := 0
+	var sresult *struct{ N1, N2, N3 int }
+	iter := query.Iter()
+	for iter.Next(&sresult) {
+		switch i {
+		case 0:
+			c.Assert(sresult.N1, Equals, 1)
+			c.Assert(sresult.N2+sresult.N3, Equals, 0)
+		case 1:
+			c.Assert(sresult.N2, Equals, 2)
+			c.Assert(sresult.N1+sresult.N3, Equals, 0)
+		case 2:
+			c.Assert(sresult.N3, Equals, 3)
+			c.Assert(sresult.N1+sresult.N2, Equals, 0)
+		}
+		i++
+	}
+	c.Assert(iter.Close(), IsNil)
+
+	i = 0
+	var mresult M
+	iter = query.Iter()
+	for iter.Next(&mresult) {
+		delete(mresult, "_id")
+		switch i {
+		case 0:
+			c.Assert(mresult, DeepEquals, M{"n1": 1})
+		case 1:
+			c.Assert(mresult, DeepEquals, M{"n2": 2})
+		case 2:
+			c.Assert(mresult, DeepEquals, M{"n3": 3})
+		}
+		i++
+	}
+	c.Assert(iter.Close(), IsNil)
+
+	i = 0
+	var iresult interface{}
+	iter = query.Iter()
+	for iter.Next(&iresult) {
+		mresult, ok := iresult.(bson.M)
+		c.Assert(ok, Equals, true, Commentf("%#v", iresult))
+		delete(mresult, "_id")
+		switch i {
+		case 0:
+			c.Assert(mresult, DeepEquals, bson.M{"n1": 1})
+		case 1:
+			c.Assert(mresult, DeepEquals, bson.M{"n2": 2})
+		case 2:
+			c.Assert(mresult, DeepEquals, bson.M{"n3": 3})
+		}
+		i++
+	}
+	c.Assert(iter.Close(), IsNil)
+}
+
 func (s *S) TestFindForOnIter(c *C) {
 	session, err := mgo.Dial("localhost:40001")
 	c.Assert(err, IsNil)
@@ -1730,7 +1862,7 @@ func (s *S) TestFindForStopOnError(c *C) {
 		c.Assert(i < 4, Equals, true)
 		c.Assert(result.N, Equals, ns[i])
 		if i == 3 {
-			return errors.New("stop!")
+			return fmt.Errorf("stop!")
 		}
 		i++
 		return nil
@@ -1849,7 +1981,7 @@ func (s *S) TestFindIterSnapshot(c *C) {
 		}
 		seen[result.Id] = true
 	}
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 }
 
 func (s *S) TestSort(c *C) {
@@ -2156,10 +2288,11 @@ func (s *S) TestQueryErrorNext(c *C) {
 	ok := iter.Next(&result)
 	c.Assert(ok, Equals, false)
 
-	err = iter.Err()
+	err = iter.Close()
 	c.Assert(err, ErrorMatches, "Unsupported projection option: b")
 	c.Assert(err.(*mgo.QueryError).Message, Matches, "Unsupported projection option: b")
 	c.Assert(err.(*mgo.QueryError).Code, Equals, 13097)
+	c.Assert(iter.Err(), Equals, err)
 
 	// The result should be properly unmarshalled with QueryError
 	c.Assert(result.Err, Matches, "Unsupported projection option: b")
@@ -2487,7 +2620,7 @@ func (s *S) TestEnsureIndexExpireAfter(c *C) {
 	indexes, err := coll.Indexes()
 	c.Assert(err, IsNil)
 	c.Assert(indexes[1].Name, Equals, "t_1")
-	c.Assert(indexes[1].ExpireAfter, Equals, 1 * time.Minute)
+	c.Assert(indexes[1].ExpireAfter, Equals, 1*time.Minute)
 
 	if *testTTL {
 		worked := false
@@ -2633,13 +2766,13 @@ func (s *S) TestMapReduceToCollection(c *C) {
 		Value int
 	}
 	mr := session.DB("mydb").C("mr")
-	err = mr.Find(nil).For(&item, func() error {
+	iter := mr.Find(nil).Iter()
+	for iter.Next(&item) {
 		c.Logf("Item: %#v", &item)
 		c.Assert(item.Value, Equals, expected[item.Id])
 		expected[item.Id] = -1
-		return nil
-	})
-	c.Assert(err, IsNil)
+	}
+	c.Assert(iter.Close(), IsNil)
 }
 
 func (s *S) TestMapReduceToOtherDb(c *C) {
@@ -2675,13 +2808,13 @@ func (s *S) TestMapReduceToOtherDb(c *C) {
 		Value int
 	}
 	mr := session.DB("otherdb").C("mr")
-	err = mr.Find(nil).For(&item, func() error {
+	iter := mr.Find(nil).Iter()
+	for iter.Next(&item) {
 		c.Logf("Item: %#v", &item)
 		c.Assert(item.Value, Equals, expected[item.Id])
 		expected[item.Id] = -1
-		return nil
-	})
-	c.Assert(err, IsNil)
+	}
+	c.Assert(iter.Close(), IsNil)
 }
 
 func (s *S) TestMapReduceScope(c *C) {
@@ -2759,9 +2892,11 @@ func (s *S) TestBuildInfo(c *C) {
 
 	var v []int
 	for i, a := range strings.Split(info.Version, ".") {
-		if i == 2 && strings.Contains(a, "-rc") {
-			a = a[:strings.Index(a, "-rc")]
-			info.VersionArray[len(info.VersionArray)-1] = 0
+		for _, token := range []string{"-rc", "-pre"} {
+			if i == 2 && strings.Contains(a, token) {
+				a = a[:strings.Index(a, token)]
+				info.VersionArray[len(info.VersionArray)-1] = 0
+			}
 		}
 		n, err := strconv.Atoi(a)
 		c.Assert(err, IsNil)
@@ -2866,7 +3001,7 @@ func (s *S) TestPipeIter(c *C) {
 	}
 
 	c.Assert(iter.Next(&result), Equals, false)
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
 }
 
 func (s *S) TestPipeAll(c *C) {
@@ -2962,5 +3097,40 @@ func (s *S) TestInterfaceIterBug(c *C) {
 		c.Assert(result.(bson.M)["n"], Equals, i)
 		i++
 	}
-	c.Assert(iter.Err(), IsNil)
+	c.Assert(iter.Close(), IsNil)
+}
+
+func (s *S) TestFindIterCloseKillsCursor(c *C) {
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	cursors := serverCursorsOpen(session)
+
+	coll := session.DB("mydb").C("mycoll")
+	ns := []int{40, 41, 42, 43, 44, 45, 46}
+	for _, n := range ns {
+		coll.Insert(M{"n": n})
+	}
+
+	iter := coll.Find(nil).Batch(2).Iter()
+	c.Assert(iter.Next(bson.M{}), Equals, true)
+
+	c.Assert(iter.Close(), IsNil)
+	c.Assert(serverCursorsOpen(session), Equals, cursors)
+}
+
+func (s *S) TestLogReplay(c *C) {
+	session, err := mgo.Dial("localhost:40001")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	coll := session.DB("mydb").C("mycoll")
+	for i := 0; i < 5; i++ {
+		coll.Insert(M{"ts": time.Now()})
+	}
+
+	iter := coll.Find(nil).LogReplay().Iter()
+	c.Assert(iter.Next(bson.M{}), Equals, false)
+	c.Assert(iter.Err(), ErrorMatches, "no ts field in query")
 }

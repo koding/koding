@@ -195,5 +195,8 @@ config =
       componentUser : 1
       password      : 1
       vhost         : 1
+    opsview	    :
+      push	    : 1
+      host          : 1
 
 module.exports = config

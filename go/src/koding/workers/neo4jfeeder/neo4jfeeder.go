@@ -39,7 +39,6 @@ func jsonDecode(data string) (*Message, error) {
 	source := &Message{}
 	err := json.Unmarshal([]byte(data), &source)
 	if err != nil {
-		log.Println("Marshalling error:", err)
 		return source, err
 	}
 
@@ -82,7 +81,15 @@ func startConsuming() {
 
 			message, err := jsonDecode(body)
 			if err != nil {
-				log.Fatal(err)
+				log.Println("Wrong message format", err, body)
+
+				continue
+			}
+
+			if len(message.Payload) < 1 {
+				log.Println("Wrong message format; payload should be an Array", message)
+
+				continue
 			}
 			data := message.Payload[0]
 

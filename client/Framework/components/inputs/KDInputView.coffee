@@ -31,6 +31,7 @@ class KDInputView extends KDView
     @inputValidationNotifications = {}
     @valid = yes
     @inputCallback = null
+    @setName options.name
     @setLabel()
     @setCallback()
     @setDefaultValue options.defaultValue
@@ -60,7 +61,6 @@ class KDInputView extends KDView
           @setValue o.selectOptions[0].value unless o.defaultValue
 
   setDomElement:(cssClass = "")->
-    @inputName = @options.name
     name = "name='#{@options.name}'"
     @domElement = switch @getType()
       when "text"     then $ "<input #{name} type='text' class='kdinput text #{cssClass}'/>"
@@ -76,22 +76,21 @@ class KDInputView extends KDView
 
     return no unless @options.label?
     @inputLabel = label
-    @inputLabel.getDomElement().attr "for",@getName()
+    @inputLabel.getDomElement().attr "for", @getName()
     @inputLabel.getDomElement().bind "click",()=>
       @getDomElement().trigger "focus"
       @getDomElement().trigger "click"
 
-  getLabel:()-> @inputLabel
+  getLabel:-> @inputLabel
 
-  setCallback:()-> @inputCallback = @options.callback
+  setCallback:-> @inputCallback = @getOptions().callback
+  getCallback:-> @inputCallback
 
-  getCallback:()-> @inputCallback
+  setType:(@inputType = "text")->
+  getType:-> @inputType
 
-  setType:(type = "text")-> @inputType = type
-
-  getType:()-> @inputType
-
-  getName:()-> @inputName
+  setName:(@inputName)->
+  getName:-> @inputName
 
   setFocus:()->
     (@getSingleton "windowController").setKeyView @

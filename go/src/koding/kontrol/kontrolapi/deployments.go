@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"koding/kontrol/kontroldaemon/clientconfig"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
@@ -23,7 +22,7 @@ type DeployPostMessage struct {
 func GetClients(writer http.ResponseWriter, req *http.Request) {
 	clients := make([]clientconfig.ServerInfo, 0)
 	client := clientconfig.ServerInfo{}
-	log.Println("GET /deployments")
+	fmt.Println("GET /deployments")
 
 	iter := clientDB.Collection.Find(nil).Iter()
 	for iter.Next(&client) {
@@ -42,7 +41,7 @@ func GetClients(writer http.ResponseWriter, req *http.Request) {
 func GetClient(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	build := vars["build"]
-	log.Printf("GET /deployments/%s\n", build)
+	fmt.Printf("GET /deployments/%s\n", build)
 
 	client := clientconfig.ServerInfo{}
 	clients := make([]clientconfig.ServerInfo, 0)
@@ -97,7 +96,7 @@ func GetClient(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateClient(writer http.ResponseWriter, req *http.Request) {
-	log.Println("POST /deployments")
+	fmt.Println("POST /deployments")
 	var msg DeployPostMessage
 	var build string
 	var git string
@@ -146,9 +145,8 @@ func CreateClient(writer http.ResponseWriter, req *http.Request) {
 
 	clientDB.AddClient(client)
 
-	var url string
-	url = fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
-	io.WriteString(writer, url)
+	url := fmt.Sprintf("deploy info posted build: %s, git branch: %s and config used: %s", build, git, config)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
 	return
 
 }
