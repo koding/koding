@@ -359,12 +359,8 @@ module.exports = class CActivity extends jraphical.Capsule
 
   @fetchPublicActivityFeed: permit 'read activity',
     success: (client, seed, options, callback)->
-      groupName = options.groupName
-      unless groupName then return callback new Error "Group name is undefined"
-      JGroup = require '../group'
-      JGroup.one slug : groupName, (err, group)=>
-        if err then return callback err
-        unless group then return callback {error: "Group not found"}
+      group.canReadActivity client, (err, res)->
+        if err then return callback {error: "Not allowed to open this group"}
 
         timestamp  = options.timestamp
         rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
@@ -379,8 +375,8 @@ module.exports = class CActivity extends jraphical.Capsule
             groupName : group.slug
             groupId : group._id
 
+
         FetchAllActivityParallel = require './../graph/fetch'
         fetch = new FetchAllActivityParallel requestOptions
         fetch.get (results)->
           callback null, results
-

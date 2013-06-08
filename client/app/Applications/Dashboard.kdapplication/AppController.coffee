@@ -23,16 +23,22 @@ class DashboardAppController extends AppController
           viewClass  : GroupGeneralSettingsView
           lazy       : yes
       ,
-        name         : 'Permissions'
-        viewOptions  :
-          viewClass  : GroupPermissionsView
-          lazy       : yes
-      ,
         name         : 'Members'
         viewOptions  :
           viewClass  : GroupsMemberPermissionsView
           lazy       : yes
           callback   : @membersViewAdded
+      ,
+        name         : 'Invitations'
+        hiddenHandle : data.privacy is 'public'
+        viewOptions  :
+          viewClass  : GroupsInvitationView
+          lazy       : yes
+      ,
+        name         : 'Permissions'
+        viewOptions  :
+          viewClass  : GroupPermissionsView
+          lazy       : yes
       ,
         name         : 'Membership policy'
         hiddenHandle : data.privacy is 'public'
@@ -40,13 +46,6 @@ class DashboardAppController extends AppController
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @policyViewAdded
-      ,
-        name         : 'Invitations'
-        hiddenHandle : data.privacy is 'public'
-        viewOptions  :
-          viewClass  : GroupsInvitationRequestsView
-          lazy       : yes
-          callback   : @invitationsViewAdded
 
       # CURRENTLY DISABLED
 
@@ -77,54 +76,6 @@ class DashboardAppController extends AppController
       # tabHandle.markDirty()
 
   policyViewAdded:(pane, view)->
-
-  invitationsViewAdded:(pane, view)->
-    group = view.getData()
-    kallback = (modal, err)=>
-      form = modal.modalTabs.forms.invite
-      form.buttons.Send.hideLoader()
-      view.refresh()
-      if err
-        unless Array.isArray err or form.fields.report
-          return view.showErrorMessage err
-        else
-          form.fields.report.show()
-          scrollView = form.fields.report.subViews.first.subViews.first
-          err.forEach (errLine)->
-            errLine = if errLine?.message then errLine.message else errLine
-            scrollView.setPartial "#{errLine}<br/>"
-          return scrollView.scrollTo top:scrollView.getScrollHeight()
-
-      new KDNotificationView title:'Invitation sent!'
-      modal.destroy()
-
-    view.on 'BatchApproveRequests', (formData)->
-      group.sendSomeInvitations formData.count, (err)=>
-        return view.showErrorMessage err if err
-        view.updateCurrentState()
-        kallback @batchApprove, err
-
-    view.on 'InviteByEmail', (formData)->
-      group.inviteByEmails formData.emails, (err)=>
-        kallback @inviteByEmail, err
-
-    view.on 'InviteByUsername', (formData)->
-      group.inviteByUsername formData.recipients, (err)=>
-        kallback @inviteByUsername, err
-
-    view.on 'RequestIsApproved', (request, callback)->
-      request.approve callback
-
-    view.on 'RequestIsDeclined', (request, callback)->
-      request.declineInvitation callback
-
-    pane.on 'PaneDidShow', ->
-      view.refresh()  if pane.tabHandle.isDirty
-      # pane.tabHandle.markDirty no
-
-    group.on 'NewInvitationRequest', ->
-      pane.emit 'NewInvitationActionArrived'
-      # pane.tabHandle.markDirty()
 
   vocabularyViewAdded:(pane, view)->
     group = view.getData()

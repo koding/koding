@@ -46,6 +46,10 @@ type Config struct {
 		Token    string
 		Interval int
 	}
+	Opsview struct {
+		Push bool
+		Host string
+	}
 	Kontrold struct {
 		Api struct {
 			Port int

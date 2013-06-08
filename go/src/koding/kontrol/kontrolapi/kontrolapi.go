@@ -12,6 +12,18 @@ import (
 	"strconv"
 )
 
+type ProxyPostMessage struct {
+	Name         string
+	Username     string
+	Domain       string
+	Mode         string
+	CurrentIndex string
+	Key          string
+	RabbitKey    string
+	Host         string
+	Hostdata     string
+}
+
 var clientDB *clientconfig.ClientConfig
 var kontrolConfig *workerconfig.WorkerConfig
 var proxyDB *proxyconfig.ProxyConfiguration
@@ -58,30 +70,38 @@ func main() {
 
 	// Proxy handlers
 	rout.HandleFunc("/proxies", GetProxies).Methods("GET")
-	rout.HandleFunc("/proxies", CreateProxy).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}", DeleteProxy).Methods("DELETE")
+	rout.HandleFunc("/proxies/{proxyname}", GetProxy).Methods("GET")
+	rout.HandleFunc("/proxies/{proxyname}", CreateProxy).Methods("POST")
+	rout.HandleFunc("/proxies/{proxyname}", DeleteProxy).Methods("DELETE")
 
-	// Proxy service handlers
-	rout.HandleFunc("/proxies/{uuid}/services", GetProxyUsers).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}", GetProxyServices).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}", CreateProxyUser).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", GetKeyList).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", CreateProxyService).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", GetKey).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/services/{username}/{servicename}/{key}", DeleteProxyServiceKey).Methods("DELETE")
+	// Service handlers
+	rout.HandleFunc("/services", GetUsers).Methods("GET")
+	rout.HandleFunc("/services/{username}", GetServices).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}", GetService).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}", DeleteService).Methods("DELETE")
+	rout.HandleFunc("/services/{username}/{servicename}/{key}", GetKey).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}/{key}", CreateKey).Methods("POST")
+	rout.HandleFunc("/services/{username}/{servicename}/{key}", DeleteKey).Methods("DELETE")
 
-	// Proxy domain handlers
-	rout.HandleFunc("/proxies/{uuid}/domains", GetProxyDomains).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", GetProxyDomain).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", CreateProxyDomain).Methods("POST")
-	rout.HandleFunc("/proxies/{uuid}/domains/{domain}", DeleteProxyDomain).Methods("DELETE")
+	// Domain handlers
+	rout.HandleFunc("/domains", GetDomains).Methods("GET")
+	rout.HandleFunc("/domains/{domain}", GetDomain).Methods("GET")
+	rout.HandleFunc("/domains/{domain}", CreateDomain).Methods("POST")
+	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
-	// Proxy rule handlers
-	rout.HandleFunc("/proxies/{uuid}/rules", GetRulesUsers).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/rules/{username}", GetRulesServices).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", GetRule).Methods("GET")
-	rout.HandleFunc("/proxies/{uuid}/rules/{username}/{servicename}", CreateRule).Methods("POST")
+	// Rule handlers
+	rout.HandleFunc("/rules", GetRules).Methods("GET")
+	rout.HandleFunc("/rules/{domain}", GetRule).Methods("GET")
+	rout.HandleFunc("/rules/{domain}", CreateRule).Methods("POST")
+	rout.HandleFunc("/rules/{domain}", DeleteRule).Methods("DELETE")
+
+	// Statistics handlers
+	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", GetDomainStat).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", DeleteDomainStat).Methods("DELETE")
+	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", GetProxyStat).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", DeleteProxyStat).Methods("DELETE")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
@@ -96,6 +116,5 @@ func main() {
 }
 
 func home(writer http.ResponseWriter, request *http.Request) {
-
 	io.WriteString(writer, "Hello world - kontrol api!\n")
 }
