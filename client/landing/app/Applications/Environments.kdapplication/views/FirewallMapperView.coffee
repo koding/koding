@@ -6,12 +6,17 @@ class FirewallMapperView extends KDView
 
     domain = data?.domain
 
-    @on "domainChanged", (item)->
-      @getData().domain = item.data
+    @on "domainChanged", (domainListItem)->
+      @getData().domain = domainListItem.data
       @updateViewContent()
+
+    @addSubView new KDCustomHTMLView
+      partial: 'Select a domain to continue.'
 
   updateViewContent:->
     domain = @getData().domain
+
+    @destroySubViews()
 
     @blockListItemClass = new KDListItemView
     @blockListItemClass.on "click", (event)->
@@ -22,7 +27,8 @@ class FirewallMapperView extends KDView
       viewOptions :
         cssClass  : 'block-list'
 
-    @blockListController.instantiateListItems @domain.blockList if domain?.blockList
+    if domain and domain.blockList
+      @blockListController.instantiateListItems []
 
     @whiteListItemClass = new KDListItemView
     @whiteListItemClass.on "click", (event)->
@@ -33,7 +39,8 @@ class FirewallMapperView extends KDView
       viewOptions :
         cssClass  : 'white-list'
 
-    @whiteListController.instantiateListItems @domain.whiteList if domain?.whiteList
+    if domain and domain.whiteList
+      @whiteListController.instantiateListItems []
 
     @addSubView (new FirewallRuleFormView {}, {domain:domain})
 
@@ -54,17 +61,21 @@ class FirewallRuleFormView extends KDView
       title   : "+ Block List"
       callback: =>
         console.log 'block listing'
-        @updateRules "blocklist", "addToSet", @ruleInput.getValue()
+        @updateDomainRules "blockList", "addToSet", @ruleInput.getValue()
 
     @whiteListButton = new KDButtonView
       title    : "+ White List"
       callback : =>
         console.log 'white listing' 
-        @updateRules "whitelist", "addToSet", @ruleInput.getValue()
+        @updateDomainRules "whiteList", "addToSet", @ruleInput.getValue()
 
 
-  updateRules:(field, op, value)->
-    KD.remote.api.JDomain.updateRules {field, op, value}, (err)->
+  updateDomainRules:(field, op, value)->
+    console.log "updating domain #{@getData().domain.domain} for #{field} with #{op} as #{value}"
+    fieldMethod = switch field
+      when "whiteList" then "updateWhiteList"
+      when "blockList" then "updateBlockList"
+    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, field, op, value}, (err)->
       if err
         new KDNotificationView
           type  : "top"

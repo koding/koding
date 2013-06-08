@@ -120,8 +120,7 @@ class DomainMainView extends KDView
     """  
 
   decorateMapperView:(item)->
-    @firewallMapperView.emit "domainChanged", item
-    @domainMapperView.emit "domainChanged", item
+    [@firewallMapperView, @domainMapperView].forEach (view) ->view.emit "domainChanged", item
   
 
 class DomainsListItemView extends KDListItemView
