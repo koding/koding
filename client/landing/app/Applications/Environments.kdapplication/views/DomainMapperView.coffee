@@ -15,7 +15,7 @@ class DomainMapperView extends KDView
     @destroySubViews()
 
     @addSubView new KDCustomHTMLView
-      partial : """<div class="domain-name">Your domain: <strong>#{domain.name}</strong></div>"""
+      partial : """<div class="domain-name">Your domain: <strong>#{domain.domain}</strong></div>"""
 
     KD.remote.api.JVM.fetchVms (err, vms)=>
       if vms
