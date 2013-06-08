@@ -2,7 +2,7 @@ class MainChatPanel extends JView
 
   constructor:->
     super
-      cssClass : 'main-chat-panel'
+      cssClass : 'main-chat-panel hidden'
 
     @registerSingleton "chatPanel", @, yes
 
@@ -15,7 +15,7 @@ class MainChatPanel extends JView
     @on 'PanelVisibilityChanged', (visible)=>
       if visible
         @getSingleton('windowController').addLayer @
-        @once 'ReceivedClickElsewhere', @bound 'hide'
+        @once 'ReceivedClickElsewhere', @bound 'hidePanel'
 
   createConversation:(data)->
     # Data includes chatChannel and the conversation
@@ -25,19 +25,24 @@ class MainChatPanel extends JView
     @addSubView @header
     @addSubView @conversationList
     @conversationListController.loadItems()
+    # @showPanel()
+
+  showPanel:->
     @show()
+    @utils.defer =>
+      @setClass 'visible'
+      @emit 'PanelVisibilityChanged', true
 
-  show:->
-    @setClass 'visible'
-    @emit 'PanelVisibilityChanged', true
+  hidePanel:->
+    contentPanel = @getSingleton('contentPanel')
+    return  if contentPanel.chatMargin is 250
 
-  hide:->
     @unsetClass 'visible'
-    @emit 'PanelVisibilityChanged', false
+    @utils.defer =>
+      @emit 'PanelVisibilityChanged', false
+      @utils.wait 400, => @hide()
 
-  toggle:->
-    @toggleClass 'visible'
-    @emit 'PanelVisibilityChanged', @isVisible()
+  toggle:-> if @isVisible() then @hidePanel() else @showPanel()
 
   isVisible:->
     @hasClass 'visible'

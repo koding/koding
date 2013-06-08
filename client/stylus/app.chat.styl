@@ -64,7 +64,7 @@ chatTextColor = #000
   right                   -260px
   background              white
   width                   250px
-  vendor                  transition, right .4s ease\, opacity .3s ease\, width .3s ease
+  vendor                  transition, right .4s\, opacity .3s
   box-shadow              0 0 16px rgba(0,0,0,.2)
   overflow-y              scroll
   opacity                 0
@@ -87,6 +87,7 @@ chatTextColor = #000
     font-weight           bold
 
   .view-changer
+  .panel-pinner
   .conversation-starter
     right                 14px
     size                  22px, 22px
@@ -95,11 +96,15 @@ chatTextColor = #000
     padding               0 0 0 4px
     abs()
 
+  .panel-pinner
   .view-changer
     padding               0 !important
 
-  .conversation-starter
-    right                 40px
+  .panel-pinner
+    left                  4px
+    z-index               4
+    background            none
+    border                none
 
 ul.chat-list
   margin                  0
@@ -230,13 +235,13 @@ ul.chat-conversation
     padding               4px
     border                1px solid rgba(0,0,0,0.03)
     width                 217px
-    background-color      rgba(253, 243, 0, .29)
-    border-radius         4px
+    background-color      rgba(246, 162, 32, 0.2)
+    border-radius         2px
     margin-bottom         4px
 
     &.mine
       text-align          right
-      background-color    rgba(0, 255, 0, .1)
+      background-color    rgba(78, 171, 238, 0.1)
 
   &:last-child
     border                1px solid rgba(0,0,0,0.03) !important
