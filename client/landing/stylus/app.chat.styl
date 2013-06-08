@@ -115,7 +115,14 @@ ul.chat-list
   border-right            1px solid #eee
 
   div.chat-item
+    width                 215px
     margin-bottom         8px
+    span
+      color               #333
+
+    &.multiple
+      div.right-overflow
+        margin-top        2px
 
   li.person
     padding               7px
@@ -130,6 +137,16 @@ ul.chat-list
       background          rgba(250, 239, 223, .5)
       border-left         3px solid #ff9200
 
+    button.conversation-menu
+      // display             none
+      right               14px
+      top                 13px
+      width               22px !important
+      height              22px
+      border-radius       40px !important
+      padding             0px 3px 0px 4px !important
+      abs()
+
     div.avatar-wrapper
       padding             1px
       margin-right        11px
@@ -139,10 +156,9 @@ ul.chat-list
       size                30px,30px
       border-radius       40px
 
-
     div.right-overflow
       cursor              pointer
-      margin-top          8px
+      margin-top          9px
       p
         color             #393939
         font-size         11px
@@ -205,6 +221,8 @@ ul.chat-list
     &:hover
       // bg                  color,rgba(255,255,255,.65)
       // shadow              0 0 4px 0 rgba(0,0,0,.17)
+      // button.conversation-menu
+      //   display           block
       .delete-link
         opacity           .5
         &:hover
@@ -250,7 +268,7 @@ ul.chat-conversation
   padding                 2px 2px 2px 6px
 
   div.completed-items
-    padding               5px 4px 6px 4px
+    padding               5px 4px 5px 4px
     margin-left           -6px
     margin-top            6px
     margin-bottom         6px
