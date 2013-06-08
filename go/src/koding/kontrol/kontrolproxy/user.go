@@ -173,7 +173,7 @@ func (u *UserInfo) populateTarget() error {
 func parseDomain(host string) (*UserInfo, error) {
 	// first try to get from domain collection
 	domain, err := proxyDB.GetDomain(host)
-	if err == nil { // because we dont have nested if clauses
+	if err == nil { // because we don't want have nested if clauses
 		return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
 	}
 
@@ -211,23 +211,6 @@ func parseDomain(host string) (*UserInfo, error) {
 	}
 	return &UserInfo{}, fmt.Errorf("no data available for proxy. can't parse domain %s", host)
 }
-
-// func lookupDomain(host string) (*UserInfo, error) {
-// 	// first lookup from db
-// 	domain, err := proxyDB.GetDomain(host)
-// 	if err != nil {
-// 		if err.Error() != "not found" {
-// 			return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
-// 		}
-// 		// if not found via db,  assume as {username}.kd.io
-// 		if strings.HasSuffix(host, "kd.io") {
-// 			vmName := strings.TrimSuffix(host, ".kd.io")
-// 			return NewUserInfo(vmName, "", "", "", "vm", host), nil
-// 		}
-// 	}
-//
-// 	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
-// }
 
 func validate(u *UserInfo) (bool, error) {
 	res, err := proxyDB.GetRule(u.Host)
