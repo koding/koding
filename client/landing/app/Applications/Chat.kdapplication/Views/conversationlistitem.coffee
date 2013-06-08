@@ -71,7 +71,7 @@ class ChatConversationListItem extends KDListItemView
         @getDelegate().emit 'moveToIndexRequested', @, newIndex
 
       @setEmptyDragState yes
-      @conversation.expand() if @conversationWasOpen
+      @conversation.expand()  if @conversationWasOpen
 
     @setDraggable
       handle : @title
@@ -79,5 +79,5 @@ class ChatConversationListItem extends KDListItemView
 
   toggleConversation:->
     @conversation.toggle()
-    @conversation.takeFocus() if @conversation.isVisible()
+    @conversation.takeFocus()  if @conversation.isVisible()
 
