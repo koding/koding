@@ -3,7 +3,7 @@ do ->
 
   # to-do log to mixpanel after subscription is upgraded
   KD.track = (rest...)->
-    logToGoogle rest
+    logToGoogle rest...
 
   logToGoogle = (rest...)->
     category = rest[0]
