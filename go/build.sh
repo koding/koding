@@ -23,8 +23,5 @@ services=(
 go install -v -ldflags "$ldflags" "${services[@]}"
 
 cd $GOPATH
-cp bin/os bin/irc ../kites
-rm -f ../kites/alice ../kites/broker ../kites/idshift ../kites/proxy ../kites/vmtool ../kites/ldapserver bin/ldapserver
-
 mkdir -p build/broker
 cp bin/broker build/broker/broker

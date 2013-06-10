@@ -173,6 +173,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JVM'
 
+      domain        :
+        as          : 'owner'
+        targetType  : 'JDomain'
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'

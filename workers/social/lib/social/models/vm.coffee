@@ -17,10 +17,14 @@ module.exports = class JVM extends Model
     permissions         :
       'sudoer'          : []
       'create vms'      : ['member','moderator']
+      'delete vms'      : ['member','moderator']
       'list all vms'    : ['member','moderator']
       'list default vm' : ['member','moderator']
     sharedMethods       :
-      static            : ['fetchVms','fetchVmsByContext','calculateUsage']
+      static            : [
+                           'fetchVms','fetchVmsByContext','calculateUsage'
+                           'removeByName', 'someData'
+                          ]
       instance          : []
     schema              :
       ip                :
@@ -30,6 +34,7 @@ module.exports = class JVM extends Model
         type            : String
         default         : -> null
       name              : String
+      hostnameAlias     : String
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -71,7 +76,7 @@ module.exports = class JVM extends Model
           return callback err  if err
           vm = new JVM {
             name    : "#{name}#{uid}"
-            users   : [{ id: user.getId(), sudo: yes }]
+            users   : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups  : [{ id: group.getId() }]
             usage
           }
@@ -168,13 +173,27 @@ module.exports = class JVM extends Model
       {delegate} = client.connection
       @fetchAccountVmsBySelector delegate, {}, options, callback
 
-
     # TODO: let's implement something like this:
     # failure: (client, callback) ->
     #   @fetchDefaultVmByContext client, (err, vm)->
     #     return callback err  if err
     #     callback null, [vm]
 
+  @removeByName = permit 'delete vms',
+    success:(client, vmName, callback)->
+      {delegate} = client.connection
+
+      delegate.fetchUser (err, user) ->
+        return callback err  if err
+
+        selector =
+          name   : vmName
+          users  : { $elemMatch: id: user.getId(), owner: yes }
+
+        JVM.one selector, (err, vm)->
+          return callback err  if err
+          return callback new KodingError 'No such VM'  unless vm
+          vm.remove callback
 
   do ->
 
@@ -187,7 +206,7 @@ module.exports = class JVM extends Model
       vm = new JVM {
         name: name
         users: [
-          { id: user.getId(), sudo: yes }
+          { id: user.getId(), sudo: yes, owner: yes }
         ]
         groups: groups ? []
       }

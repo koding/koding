@@ -27,7 +27,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
     if manifest.devMode
-      resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
+      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/"
 
     thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
 

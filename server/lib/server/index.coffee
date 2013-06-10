@@ -96,22 +96,6 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
-FetchAllActivityParallel = require './graph/fetch'
-fetchFromNeo = (req, res)->
-  timestamp  = req.params?.timestamp
-  rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
-  startDate  = Math.floor(rawStartDate/1000)
-
-  fetch = new FetchAllActivityParallel startDate, neo4j
-  fetch.get (results)->
-    res.send results
-
-app.get "/-/neo4j/latest", (req, res)->
-  fetchFromNeo req, res
-
-app.get "/-/neo4j/before/:timestamp", (req, res)->
-  fetchFromNeo req, res
-
 app.get "/-/cache/latest", (req, res)->
   {JActivityCache} = koding.models
   startTime = Date.now()
@@ -179,14 +163,12 @@ app.get "/-/kite/login", (req, res) ->
                   rabbitkey : key
 
                 apiServer   = 'kontrol.in.koding.com'
-                proxyServer = 'proxy-2.in.koding.com'
                 # local development
                 # apiServer   = 'localhost:8000'
-                # proxyServer = 'mahlika.local'
 
                 options =
                   method  : 'POST'
-                  uri     : "http://#{apiServer}/proxies/#{proxyServer}/services/#{username}/#{name}"
+                  uri     : "http://#{apiServer}/services/#{username}/#{name}"
                   body    : JSON.stringify postData
                   headers : {'content-type': 'application/json'}
 
@@ -233,7 +215,7 @@ app.post "/-/kd/:command", express.bodyParser(), (req, res)->
         key     : key
       , (err, kodingKey)=>
         if err or not kodingKey
-          res.send 418 # I'm a teapot :P
+          res.send 401
         else
           res.status 200
           res.send "OK"

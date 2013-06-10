@@ -19,43 +19,43 @@ class GroupsListItemView extends KDListItemView
       # click       : (event) => @titleReceivedClick event
     , group
 
-    @joinButton = new JoinButton
-      style           : if group.member then "join-group follow-btn following-topic" else "join-group follow-btn"
-      title           : "Join"
-      dataPath        : "member"
-      defaultState    : if group.member then "Leave" else "Join"
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        top           : 11
-      states          : [
-        title         : "Join"
-        callback      : (callback)->
-          group.join (err, response)=>
-            @hideLoader()
-            unless err
-              # @setClass 'following-btn following-topic'
-              @setClass 'following-topic'
-              @emit 'Joined'
-              callback? null
-      ,
-        title         : "Leave"
-        callback      : (callback)->
-          group.leave (err, response)=>
-            @hideLoader()
-            unless err
-              # @unsetClass 'following-btn following-topic'
-              @unsetClass 'following-topic'
-              @emit 'Left'
-              callback? null
-      ]
-    , group
+    # @joinButton = new JoinButton
+    #   style           : if group.member then "join-group follow-btn following-topic" else "join-group follow-btn"
+    #   title           : "Join"
+    #   dataPath        : "member"
+    #   defaultState    : if group.member then "Leave" else "Join"
+    #   loader          :
+    #     color         : "#333333"
+    #     diameter      : 18
+    #     top           : 11
+    #   states          : [
+    #     title         : "Join"
+    #     callback      : (callback)->
+    #       group.join (err, response)=>
+    #         @hideLoader()
+    #         unless err
+    #           # @setClass 'following-btn following-topic'
+    #           @setClass 'following-topic'
+    #           @emit 'Joined'
+    #           callback? null
+    #   ,
+    #     title         : "Leave"
+    #     callback      : (callback)->
+    #       group.leave (err, response)=>
+    #         @hideLoader()
+    #         unless err
+    #           # @unsetClass 'following-btn following-topic'
+    #           @unsetClass 'following-topic'
+    #           @emit 'Left'
+    #           callback? null
+    #   ]
+    # , group
 
-    @joinButton.on 'Joined', =>
-      @enterButton.show()
+    # @joinButton.on 'Joined', =>
+    #   @enterButton.show()
 
-    @joinButton.on 'Left', =>
-      @enterButton.hide()
+    # @joinButton.on 'Left', =>
+    #   @enterButton.hide()
 
     @enterLink = new CustomLinkView
       href    : "#{slugLink}Activity"
@@ -322,29 +322,3 @@ class GroupItemMemberView extends KDListItemView
   viewAppended:JView::viewAppended
 
   pistachio:-> "{{> @avatar}}"
-
-class ModalGroupsListItem extends TopicsListItemView
-
-  constructor:(options,data)->
-
-    super options,data
-
-    @titleLink = new TagLinkView
-      expandable: no
-      click     : => @getDelegate().emit "CloseTopicsModal"
-    , data
-
-  pistachio:->
-    """
-    <div class="topictext">
-      <div class="topicmeta">
-        <div class="button-container">{{> @joinButton}}</div>
-        {{> @titleLink}}
-        <div class="stats">
-          <p class="members">
-            <span class="icon"></span>{{#(counts.members) or 0}} Members
-          </p>
-        </div>
-      </div>
-    </div>
-    """

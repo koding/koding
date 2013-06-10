@@ -41,7 +41,7 @@ var StatusCode = map[workerconfig.WorkerStatus]string{
 }
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {
-	log.Println("GET /workers")
+	fmt.Println("GET /workers")
 	queries, _ := url.ParseQuery(req.URL.RawQuery)
 
 	var latestVersion bool
@@ -90,7 +90,7 @@ func GetWorkers(writer http.ResponseWriter, req *http.Request) {
 func GetWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	log.Printf("GET /workers/%s\n", uuid)
+	fmt.Printf("GET /workers/%s\n", uuid)
 
 	query := bson.M{"uuid": uuid}
 	matchedWorkers := queryResult(query, false)
@@ -105,7 +105,7 @@ func GetWorker(writer http.ResponseWriter, req *http.Request) {
 func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid, action := vars["uuid"], vars["action"]
-	log.Printf("%s /workers/%s\n", strings.ToUpper(action), uuid)
+	fmt.Printf("%s /workers/%s\n", strings.ToUpper(action), uuid)
 
 	buildSendCmd(action, "", uuid)
 	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
@@ -115,7 +115,7 @@ func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	uuid := vars["uuid"]
-	log.Printf("DELETE /workers/%s\n", uuid)
+	fmt.Printf("DELETE /workers/%s\n", uuid)
 
 	buildSendCmd("delete", "", uuid)
 	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)

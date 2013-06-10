@@ -191,5 +191,8 @@ config =
         vhost       : 1
     recurly         :
       apiKey        : 1
+    opsview	    :
+      push	    : 1
+      host          : 1
 
 module.exports = config

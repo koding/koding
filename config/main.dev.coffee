@@ -167,4 +167,7 @@ module.exports =
       password    : 'guest'
       vhost       : '/'
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a'
+    apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+  opsview       :
+    push        : yes
+    host        : 'opsview.in.koding.com'
