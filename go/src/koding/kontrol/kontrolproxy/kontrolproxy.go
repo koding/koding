@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
+	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -12,6 +14,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -28,6 +31,8 @@ var amqpStream *AmqpStream
 var connections map[string]RabbitChannel
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
+var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
+var templates = template.Must(template.ParseFiles("go/templates//proxy/securepage.html"))
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -188,9 +193,32 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	_, err = validate(user)
 	if err != nil {
-		log.Printf("error validating user %s: %s", user.IP, err.Error())
-		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-		return
+		if err == ErrSecurePage {
+			sessionName := fmt.Sprintf("kodingproxy-%s-%s", user.Host, user.IP)
+			// We're ignoring the error resulted from decoding an existing
+			// session: Get() always returns a session, even if empty.
+			session, _ := store.Get(req, sessionName)
+
+			// Timeout for secure page. After timeout secure page is showed
+			// again to the user
+			session.Options = &sessions.Options{MaxAge: 20} //seconds
+
+			_, ok := session.Values["securePage"]
+			if !ok {
+				session.Values["securePage"] = time.Now().String()
+				session.Save(req, rw)
+				err := templates.ExecuteTemplate(rw, "securepage.html", user)
+				if err != nil {
+					http.Error(rw, err.Error(), http.StatusInternalServerError)
+				}
+				return
+			}
+		} else {
+			log.Printf("error validating user %s: %s", user.IP, err.Error())
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+			return
+
+		}
 	}
 
 	target := user.Target
@@ -323,6 +351,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		copyHeader(rw.Header(), res.Header)
 		rw.WriteHeader(res.StatusCode)
 		p.copyResponse(rw, res.Body)
+		return
 	}
 
 }
