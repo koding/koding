@@ -230,7 +230,7 @@ class KodingRouter extends KDRouter
       '/:name?/Account'                 : createSectionHandler 'Account'
       '/:name?/Demos'                   : createSectionHandler 'Demos'
       '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
-      '/:name?/Environments'            : createSectionHandler 'Environments'
+      #'/:name?/Environments'            : createSectionHandler 'Environments'
 
       # group dashboard
       # '/:name?/Dashboard'               : (routeInfo, state, route)->
