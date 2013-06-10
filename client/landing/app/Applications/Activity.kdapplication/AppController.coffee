@@ -92,6 +92,7 @@ class ActivityAppController extends AppController
           controller.followedActivityArrived activities.first
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
+      KD.track "Activity", data.type + "FilterClicked"
       @isLoading = no
       @resetAll()
       @setFilter data.type
