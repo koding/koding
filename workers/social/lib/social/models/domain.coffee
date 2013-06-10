@@ -37,7 +37,7 @@ module.exports = class JDomain extends jraphical.Module
         key         : String
         fullUrl     : String
 
-      loadbalancer  :
+      loadBalancer  :
         mode        :
           type      : String
           enum      : ['invalid load balancer mode',[
