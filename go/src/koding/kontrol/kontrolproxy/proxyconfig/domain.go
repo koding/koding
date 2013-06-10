@@ -2,7 +2,27 @@ package proxyconfig
 
 import (
 	"labix.org/v2/mgo/bson"
+	"time"
 )
+
+type JDomain struct {
+	Domain struct {
+		DomainType string
+		Validate   string
+		Set        string
+	}
+	Owner      bson.ObjectId
+	VMs        []string
+	RegYears   int
+	RcOrderId  int
+	RecOrderId int
+	CreatedAt  struct {
+		Default time.Time
+	}
+	ModifiedAt struct {
+		Default time.Time
+	}
+}
 
 type Domain struct {
 	// Id defines the ObjectId of a single mongo document.
