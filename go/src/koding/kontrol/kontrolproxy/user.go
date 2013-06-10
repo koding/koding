@@ -70,13 +70,13 @@ func (u *UserInfo) populateCountry(host string) {
 
 func (u *UserInfo) populateTarget() error {
 	var err error
-	username := u.Domain.ProxyTable.Username
-	servicename := u.Domain.ProxyTable.Servicename
-	key := u.Domain.ProxyTable.Key
-	hostnameAlias := u.Domain.HostnameAlias
-	fullurl := u.Domain.ProxyTable.FullUrl
+	username := u.Domain.Proxy.Username
+	servicename := u.Domain.Proxy.Servicename
+	key := u.Domain.Proxy.Key
+	hostnameAlias := u.Domain.HostnameAlias[0]
+	fullurl := u.Domain.Proxy.FullUrl
 
-	switch u.Domain.ProxyTable.Mode {
+	switch u.Domain.Proxy.Mode {
 	case "direct":
 		u.Target, err = url.Parse("http://" + fullurl)
 		if err != nil {
@@ -86,18 +86,7 @@ func (u *UserInfo) populateTarget() error {
 	case "vm":
 		var vm virt.VM
 
-		// domain, err := proxyDB.GetDomain(u.Host)
-		// if err != nil {
-		// }
-		// fmt.Println(domain)
-
-		// if err := db.VMs.Find(bson.M{"hostnameAlias": domain.HostnameAlias}).One(&vm); err != nil {
-		// 	u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
-		// 	u.Redirect = true
-		// 	return nil
-		// }
-
-		if err := db.VMs.Find(bson.M{"hostname": hostnameAlias}).One(&vm); err != nil {
+		if err := db.VMs.Find(bson.M{"hostnameAlias": hostnameAlias}).One(&vm); err != nil {
 			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
 			u.Redirect = true
 			return nil

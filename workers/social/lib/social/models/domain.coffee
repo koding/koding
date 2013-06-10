@@ -28,7 +28,7 @@ module.exports = class JDomain extends jraphical.Module
         required    : yes
         set         : (value)-> value.toLowerCase()
 
-      hostnameAlias : String
+      hostnameAlias : [String]
 
       proxy         :
         mode        : String
@@ -36,6 +36,19 @@ module.exports = class JDomain extends jraphical.Module
         serviceName : String
         key         : String
         fullUrl     : String
+
+      loadBalancer  :
+        mode        :
+          type      : String
+          enum      : ['invalid load balancer mode',[
+            'roundrobin'
+            # 'sticky'
+            # 'weighted'
+            # 'weighted-roundrobin'
+          ]]
+        index       :
+          type      : Number
+          default   : 0
 
       orderId       :
         recurly     : String
