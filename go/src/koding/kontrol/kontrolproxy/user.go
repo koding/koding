@@ -70,13 +70,13 @@ func (u *UserInfo) populateCountry(host string) {
 
 func (u *UserInfo) populateTarget() error {
 	var err error
-	username := u.Domain.ProxyTable.Username
-	servicename := u.Domain.ProxyTable.Servicename
-	key := u.Domain.ProxyTable.Key
+	username := u.Domain.Proxy.Username
+	servicename := u.Domain.Proxy.Servicename
+	key := u.Domain.Proxy.Key
 	hostnameAlias := u.Domain.HostnameAlias
-	fullurl := u.Domain.ProxyTable.FullUrl
+	fullurl := u.Domain.Proxy.FullUrl
 
-	switch u.Domain.ProxyTable.Mode {
+	switch u.Domain.Proxy.Mode {
 	case "direct":
 		u.Target, err = url.Parse("http://" + fullurl)
 		if err != nil {

@@ -97,9 +97,9 @@ func NewProxyTable(mode, username, servicename, key, fullurl string) *ProxyTable
 // ObjectId is created automatically whenever a new Domain is created.
 func NewDomain(domainname, mode, username, servicename, key, fullurl string) *Domain {
 	return &Domain{
-		Id:         bson.NewObjectId(),
-		Domain:     domainname,
-		ProxyTable: NewProxyTable(mode, username, servicename, key, fullurl),
+		Id:     bson.NewObjectId(),
+		Domain: domainname,
+		Proxy:  NewProxyTable(mode, username, servicename, key, fullurl),
 	}
 }
 
