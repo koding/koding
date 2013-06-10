@@ -103,3 +103,12 @@ func (p *ProxyConfiguration) GetRules() []Restriction {
 	}
 	return rules
 }
+
+func (p *ProxyConfiguration) GetRuleByID(id bson.ObjectId) (Restriction, error) {
+	restriction := Restriction{}
+	err := p.Collection["rules"].FindId(id).One(&restriction)
+	if err != nil {
+		return restriction, err
+	}
+	return restriction, nil
+}

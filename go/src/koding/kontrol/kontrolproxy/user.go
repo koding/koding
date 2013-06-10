@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/db"
 	"koding/virt"
-	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"math"
 	"net"
@@ -14,26 +14,16 @@ import (
 )
 
 type UserInfo struct {
-	Username    string
-	Servicename string
-	Key         string
-	FullUrl     string
-	DomainMode  string
-	Host        string
-	IP          string
-	Country     string
-	Target      *url.URL
-	Redirect    bool
+	Domain   *proxyconfig.Domain
+	IP       string
+	Country  string
+	Target   *url.URL
+	Redirect bool
 }
 
-func NewUserInfo(username, servicename, key, fullurl, mode, host string) *UserInfo {
+func NewUserInfo(domain *proxyconfig.Domain) *UserInfo {
 	return &UserInfo{
-		Username:    username,
-		Servicename: servicename,
-		Key:         key,
-		FullUrl:     fullurl,
-		DomainMode:  mode,
-		Host:        host,
+		Domain: domain,
 	}
 }
 
@@ -80,21 +70,34 @@ func (u *UserInfo) populateCountry(host string) {
 
 func (u *UserInfo) populateTarget() error {
 	var err error
-	username := u.Username
-	servicename := u.Servicename
-	key := u.Key
+	username := u.Domain.ProxyTable.Username
+	servicename := u.Domain.ProxyTable.Servicename
+	key := u.Domain.ProxyTable.Key
+	hostnameAlias := u.Domain.HostnameAlias
+	fullurl := u.Domain.ProxyTable.FullUrl
 
-	switch u.DomainMode {
+	switch u.Domain.ProxyTable.Mode {
 	case "direct":
-		u.Target, err = url.Parse("http://" + u.FullUrl)
+		u.Target, err = url.Parse("http://" + fullurl)
 		if err != nil {
 			return err
 		}
 		return nil
 	case "vm":
 		var vm virt.VM
-		fmt.Println("got vm ip from mongodb")
-		if err := db.VMs.Find(bson.M{"hostname": u.Host}).One(&vm); err != nil {
+
+		// domain, err := proxyDB.GetDomain(u.Host)
+		// if err != nil {
+		// }
+		// fmt.Println(domain)
+
+		// if err := db.VMs.Find(bson.M{"hostnameAlias": domain.HostnameAlias}).One(&vm); err != nil {
+		// 	u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
+		// 	u.Redirect = true
+		// 	return nil
+		// }
+
+		if err := db.VMs.Find(bson.M{"hostname": hostnameAlias}).One(&vm); err != nil {
 			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
 			u.Redirect = true
 			return nil
@@ -143,54 +146,60 @@ func (u *UserInfo) populateTarget() error {
 }
 
 func parseDomain(host string) (*UserInfo, error) {
-	// first try to get from domain collection
+	// Then make a lookup for domains
 	domain, err := proxyDB.GetDomain(host)
-	if err == nil { // because we don't want have nested if clauses
-		return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
+	if err != nil {
+		return &UserInfo{}, fmt.Errorf("domain lookup error '%s'", err)
 	}
 
-	if err != mgo.ErrNotFound {
-		return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
-	}
+	return NewUserInfo(&domain), nil
 
-	switch counts := strings.Count(host, "-"); {
-	case counts == 0:
-		if strings.HasSuffix(host, "kd.io") {
-			return NewUserInfo("", "", "", "", "vm", host), nil
-		}
+	// // Handle kd.io domains first
+	// if strings.HasSuffix(host, "kd.io") {
+	// 	return NewUserInfo("", "", "", "", "vm", host), nil
+	// }
 
-	case counts == 1:
-		// host is in form {name}-{key}.kd.io, used by koding
-		partsFirst := strings.Split(host, ".")
-		firstSub := partsFirst[0]
-
-		partsSecond := strings.Split(firstSub, "-")
-		servicename := partsSecond[0]
-		key := partsSecond[1]
-
-		return NewUserInfo("koding", servicename, key, "", "internal", host), nil
-	case counts > 1:
-		// host is in form {name}-{key}-{username}.kd.io, used by users
-		partsFirst := strings.Split(host, ".")
-		firstSub := partsFirst[0]
-
-		partsSecond := strings.SplitN(firstSub, "-", 3)
-		servicename := partsSecond[0]
-		key := partsSecond[1]
-		username := partsSecond[2]
-
-		return NewUserInfo(username, servicename, key, "", "internal", host), nil
-	}
-	return &UserInfo{}, fmt.Errorf("no data available for proxy. can't parse domain %s", host)
+	//
+	// 	switch counts := strings.Count(host, "-"); {
+	// 	case counts == 1:
+	// 		// host is in form {name}-{key}.kd.io, used by koding
+	// 		subdomain := strings.TrimSuffix(host, ".kd.io")
+	// 		servicename := strings.Split(subdomain, "-")[0]
+	// 		key := strings.Split(subdomain, "-")[1]
+	//
+	// 		return NewUserInfo("koding", servicename, key, "", "internal", host), nil
+	// 	case counts > 1:
+	// 		// host is in form {name}-{key}-{username}.kd.io, used by users
+	// 		firstSub := strings.Split(host, ".")[0]
+	//
+	// 		partsSecond := strings.SplitN(firstSub, "-", 3)
+	// 		servicename := partsSecond[0]
+	// 		key := partsSecond[1]
+	// 		username := partsSecond[2]
+	//
+	// 		return NewUserInfo(username, servicename, key, "", "internal", host), nil
+	// 	}
+	// return &UserInfo{}, fmt.Errorf("no data available for proxy. can't parse domain %s", host)
 }
 
 func validate(u *UserInfo) (bool, error) {
-	res, err := proxyDB.GetRule(u.Host)
+
+	ruleId, err := proxyDB.GetDomainRuleId(u.Domain.Id)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
-	return validator(res, u).IP().Country().Check()
+	rule, err := proxyDB.GetRuleByID(ruleId)
+	if err != nil {
+		return true, nil //don't block if we don't get a rule (pre-caution))
+	}
+
+	// res, err := proxyDB.GetRule(u.Domain.Domainname)
+	// if err != nil {
+	// 	return true, nil //don't block if we don't get a rule (pre-caution))
+	// }
+
+	return validator(rule, u).IP().Country().Check()
 }
 
 // func lookupRabbitKey(username, servicename, key string) (string, error) {
