@@ -32,19 +32,17 @@ type Domain struct {
 	HostnameAlias string
 
 	// ProxyTable is used for proxy to route domains to their specific targets
-	ProxyTable *ProxyTable
-	VMs        []string
-	RegYears   int
-	OrderId    struct {
+	Proxy *ProxyTable
+
+	OrderId struct {
 		Recurly       string
 		ResellersClub string
 	}
-	CreatedAt struct {
-		Default time.Time
-	}
-	ModifiedAt struct {
-		Default time.Time
-	}
+
+	RegYears int
+
+	CreatedAt  time.Time
+	ModifiedAt time.Time
 }
 
 type ProxyTable struct {

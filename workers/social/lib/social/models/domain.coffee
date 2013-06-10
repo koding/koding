@@ -27,10 +27,22 @@ module.exports = class JDomain extends jraphical.Module
         type        : String
         required    : yes
         set         : (value)-> value.toLowerCase()
-      regYears      : Number
+
+      hostnameAlias : String
+
+      proxy         :
+        mode        : String
+        username    : String
+        serviceName : String
+        key         : String
+        fullUrl     : String
+
       orderId       :
         recurly     : String
         resellerClub: String
+
+      regYears      : Number
+
       createdAt     :
         type        : Date
         default     : -> new Date
