@@ -113,7 +113,7 @@ class InboxNewMessageBar extends KDView
       dataSource          : (args, callback)=>
         {inputValue} = args
         blacklist = (data.getId() for data in recipient.getSelectedItemData())
-        @emit "AutoCompleteNeedsMemberData", {inputValue,blacklist,callback}
+        @emit "AutoCompleteNeedsMemberData", {inputValue, blacklist, callback}
 
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper

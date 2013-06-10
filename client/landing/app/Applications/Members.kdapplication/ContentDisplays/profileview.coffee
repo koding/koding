@@ -109,6 +109,7 @@ class ProfileView extends JView
       </span>
       {{> @followButton}}
       {cite{ @putNick #(profile.nickname)}}
+      {div{#(onlineStatus)}}
     </div>
 
       {{> @trollSwitch}}
