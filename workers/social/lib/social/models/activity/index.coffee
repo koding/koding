@@ -1,5 +1,8 @@
 jraphical      = require 'jraphical'
-neo4j = require "neo4j"
+
+Graph          = require "../graph/graph"
+
+KodingError = require '../../error'
 
 module.exports = class CActivity extends jraphical.Capsule
   {Base, ObjectId, race, dash, secure} = require 'bongo'
@@ -36,8 +39,9 @@ module.exports = class CActivity extends jraphical.Capsule
       'read activity'       : ['guest','member','moderator']
     sharedMethods     :
       static          : [
+        'fetchPublicContents', 'fetchFolloweeContents'
         'one','some','someData','each','cursor','teasers'
-        'captureSortCounts','addGlobalListener','fetchFacets',
+        'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count'
         'fetchPublicActivityFeed'
       ]
@@ -220,6 +224,18 @@ module.exports = class CActivity extends jraphical.Capsule
       'CBlogPostActivity'
     ]
 
+  neo4jFacets = [
+    "JLink"
+    "JBlogPost"
+    "JTutorial"
+    "JStatusUpdate"
+    "JComment"
+    "JOpinion"
+    "JDiscussion"
+    "JCodeSnip"
+    "JCodeShare"
+  ]
+
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
       {to, limit, facets, lowQuality, originId, sort, skip} = options
@@ -255,6 +271,61 @@ module.exports = class CActivity extends jraphical.Capsule
 
           callback null, activities
 
+
+
+  @fetchPublicContents:(options={}, callback)->
+    {groupId, facets, to, limit} = options
+    if not groupId
+      return callback new KodingError  "GroupId is not set"
+
+    query = [
+      "START koding=node:koding(id='#{groupId}')"
+      'MATCH koding-[:member]->members<-[:author]-items'
+      'WHERE has(items.`meta.createdAtEpoch`)'
+    ]
+
+    if facets and 'Everything' not in facets
+      s = []
+      for facet in facets
+        if facet not in neo4jFacets
+          return callback new KodingError "Unknown facet: " + facets.join()
+        s.push("items.name='#{facet}'")
+      query.push("AND (" + s.join(' OR ') + ")")
+
+    if to
+      ts = Math.floor(to / 1000)
+      query.push "AND items.`meta.createdAtEpoch` < #{ts}"
+
+    query.push 'return items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
+    query = query.join('\n')
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchFromNeo4j(query, options, callback)
+
+  @fetchFolloweeContents: secure ({connection:{delegate}}, options, callback)->
+    userId = delegate.getId()
+    {facets, to, limit} = options
+    query = ["start koding=node:koding(id='#{userId}')"
+             'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
+             'where myfollowees.name="JAccount"'
+            ]
+
+    if facets and 'Everything' not in facets
+      s = []
+      for facet in facets
+        if facet not in neo4jFacets
+          return callback new KodingError "Unknown facet: " + facets.join()
+        s.push("items.name='#{facet}'")
+      query.push("AND (" + s.join(' OR ') + ")")
+
+    if to
+      ts = Math.floor(to / 1000)
+      query.push("AND items.`meta.createdAtEpoch` < #{ts}")
+
+    query.push 'return myfollowees, items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
+    query = query.join('\n')
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchFromNeo4j(query, options, callback)
+
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
       $addToSet: readBy: delegate.getId()
@@ -285,6 +356,7 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'PostIsDeleted',     notifyCache.bind this, 'PostIsDeleted'
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
+
 
   @fetchPublicActivityFeed = secure (client, options, callback)->
     {delegate} = client.connection

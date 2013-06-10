@@ -70,6 +70,13 @@ type Config struct {
 			Vhost    string
 		}
 	}
+	FollowFeed struct {
+		Host          string
+		Port          int
+		ComponentUser string
+		Password      string
+		Vhost         string
+	}
 }
 
 var FileProfile string

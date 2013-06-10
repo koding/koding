@@ -136,7 +136,6 @@ unless window.event?
 
   socketConnected:->
     @backendIsConnected = yes
-    KDObject.emit "KDBackendConnectedEvent"
 
   setApplicationPartials:(@appPartials)->
 

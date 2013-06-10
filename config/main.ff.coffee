@@ -1,22 +1,23 @@
-version         = "0.0.1" #fs.readFileSync nodePath.join(__dirname, '../.revision'), 'utf-8'
-mongo           = 'dev:k9lc4G1k32nyD72@web-dev.in.koding.com:27017/koding_dev2_copy'
+fs = require 'fs'
+nodePath = require 'path'
+deepFreeze = require 'koding-deep-freeze'
 
-nodePath        = require 'path'
-projectRoot     = nodePath.join __dirname, '..'
-rabbitPrefix    = require("#{projectRoot}/utils/rabbitPrefix").get()
-socialQueueName = "koding-social-#{rabbitPrefix}"
+version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
+projectRoot = nodePath.join __dirname, '..'
+
+socialQueueName = "koding-social-#{version}"
 
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://localhost:3000"
+    address     : "new.koding.com"
   userSitesDomain: 'kd.io'
   projectRoot   : projectRoot
   version       : version
   webserver     :
-    login       : 'webserver'
+    login       : 'prod-webserver'
     port        : 3000
     clusterSize : 1
     queueName   : socialQueueName+'web'
@@ -25,13 +26,13 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    read        : "http://neo4j-dev.in.koding.com"
-    write       : "http://neo4j-dev.in.koding.com"
+    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
+    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
-  mongo         : mongo
-  runNeo4jFeeder: no
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
+  runNeo4jFeeder: yes
   runGoBroker   : no
-  runKontrol    : no
+  runKontrol    : yes
   runRerouting  : no
   compileGo     : no
   buildClient   : yes
@@ -50,9 +51,9 @@ module.exports =
       awsSecretAccessKey  : 'kpKvRUGGa8drtLIzLPtZnoVi82WnRia85kCMT2W7'
       bucket              : 'koding-uploads'
   loggr:
-    push   : no
-    url    : ""
-    apiKey : ""
+    push: yes
+    url: "http://post.loggr.net/1/logs/koding/events"
+    apiKey: "eb65f620b72044118015d33b4177f805"
   librato :
     push      : no
     email     : ""
@@ -67,13 +68,13 @@ module.exports =
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
-    login       : 'authWorker'
+    login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
-    numberOfWorkers: 1
+    numberOfWorkers: 2
     watch       : yes
   social        :
-    login       : 'social'
-    numberOfWorkers: 1
+    login       : 'prod-social'
+    numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
   cacheWorker   :
@@ -81,15 +82,11 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence        :
     exchange      : 'services-presence'
   client          :
     version       : version
-    watch         : yes
+    watch         : no
     watchDuration : 300
     includesPath  : 'client'
     websitePath   : 'website'
@@ -98,31 +95,31 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://localhost:3000'
+    staticFilesBaseUrl: "https://new.koding.com"
     runtimeOptions:
       userSitesDomain: 'kd.io'
-      useNeo4j: no
-      logToExternal: no  # rollbar, mixpanel etc.
+      useNeo4j: yes
+      logToExternal : no
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : 'http://localhost:3000'
+      mainUri   : "http://new.koding.com"
       broker    :
-        sockJS  : 'https://dmq.koding.com:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+        sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://localhost:1337'
+      sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'web-dev.in.koding.com'
+    host        : 'rabbitmq-test1.in.koding.com'
     port        : 5672
-    apiAddress  : "web-dev.in.koding.com"
+    apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
     password    : 's486auEkPzvUjYfeFTMQ'
-    heartbeat   : 10
-    vhost       : '/'
+    heartbeat   : 20
+    vhost       : 'new'
   broker        :
     ip          : ""
     port        : 8008
@@ -132,7 +129,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : 'localhost'
+    host        : "new.koding.com"
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -153,21 +150,24 @@ module.exports =
     webPort     : 3020
   kontrold        :
     api           :
-      port        : 8000
+      port        : 80
     proxy         :
-      port        : 8080
-      portssl     : 8081
-      sslips      : '127.0.0.1'
+      port        : 80
+      portssl     : 443
+      sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     mongo         :
-      host        : '127.0.0.1'
+      host        : 'kontrol.in.koding.com'
     rabbitmq      :
-      host        : 'localhost'
+      host        : 'kontrol.in.koding.com'
       port        : '5672'
       login       : 'guest'
-      password    : 'guest'
+      password    : 's486auEkPzvUjYfeFTMQ'
       vhost       : '/'
   recurly       :
-    apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
-  opsview       :
-    push        : yes
-    host        : 'opsview.in.koding.com'
+    apiKey      : '0cb2777651034e6889fb0d091126481a'
+  followFeed    :
+    host        : 'rabbitmq-test1.in.koding.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'

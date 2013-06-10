@@ -104,6 +104,13 @@ module.exports = class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
       emailFrequency: Object
+      onlineStatus  :
+        actual      :
+          type      : String
+          enum      : ['invalid status',['online','offline']]
+        userPreference:
+          type      : String
+          enum      : ['invalid status',['online','offline','away','busy']]
 
     relationships       :
       ownAccount        :
@@ -119,6 +126,8 @@ module.exports = class JUser extends jraphical.Module
   sessions  = {}
   users     = {}
   guests    = {}
+
+
 
   # @fetchUser = Bongo.secure (client,options,callback)->
   #   {username} = options
@@ -572,7 +581,7 @@ module.exports = class JUser extends jraphical.Module
               account.save (err)-> throw err if err
               callback null
         else
-          callback new KodingError 'PIN is not confirmed.'
+          callback createKodingError 'PIN is not confirmed.'
 
   fetchHomepageView:(callback)->
     @fetchAccount 'koding', (err, account)->

@@ -52,7 +52,7 @@ module.exports = class JGuest extends jraphical.Module
       profile       :
         nickname    :
           type      : String
-          default   : -> 'Guest'
+          default   : 'Guest'
         firstname   : String
         lastname    : String
         description : String

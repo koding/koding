@@ -34,6 +34,8 @@ module.exports =
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -73,10 +75,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 1
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -189,3 +187,9 @@ module.exports =
   opsview       :
     push        : no
     host        : ''
+  followFeed    :
+    host        : 'localhost'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'
