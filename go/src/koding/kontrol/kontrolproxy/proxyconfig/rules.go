@@ -1,15 +1,10 @@
 package proxyconfig
 
 import (
-	"encoding/json"
-	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"strings"
 )
-
-const RULE_MEMCACHE_TIMEOUT = 60 //seconds
 
 type IP struct {
 	// To disable or enable current rule
@@ -91,31 +86,10 @@ func (p *ProxyConfiguration) DeleteRule(domainname string) error {
 }
 
 func (p *ProxyConfiguration) GetRule(domainname string) (Restriction, error) {
-	mcKey := domainname + "kontrolrule"
-	it, err := p.MemCache.Get(mcKey)
-	if err != nil {
-		restriction := Restriction{}
-		err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).One(&restriction)
-		if err != nil {
-			return restriction, err
-		}
-		data, err := json.Marshal(restriction)
-		if err != nil {
-			fmt.Printf("could not marshall restriction: %s", err)
-		}
-
-		p.MemCache.Set(&memcache.Item{
-			Key:        mcKey,
-			Value:      data,
-			Expiration: int32(RULE_MEMCACHE_TIMEOUT),
-		})
-		return restriction, nil
-	}
-
 	restriction := Restriction{}
-	err = json.Unmarshal(it.Value, &restriction)
+	err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).One(&restriction)
 	if err != nil {
-		fmt.Printf("unmarshall memcached value: %s", err)
+		return restriction, err
 	}
 	return restriction, nil
 }

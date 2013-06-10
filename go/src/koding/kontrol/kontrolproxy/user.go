@@ -1,10 +1,7 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
 	"koding/tools/db"
 	"koding/virt"
 	"labix.org/v2/mgo"
@@ -15,8 +12,6 @@ import (
 	"net/url"
 	"strings"
 )
-
-const CACHE_TIMEOUT_VM = 60 //seconds
 
 type UserInfo struct {
 	Username    string
@@ -98,43 +93,20 @@ func (u *UserInfo) populateTarget() error {
 		return nil
 	case "vm":
 		var vm virt.VM
-		mcKey := username + "kontrolproxyvm"
-		it, err := memCache.Get(mcKey)
-		if err != nil {
-			fmt.Println("got vm ip from mongodb")
-			if err := db.VMs.Find(bson.M{"hostname": u.Host}).One(&vm); err != nil {
-				u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
-				u.Redirect = true
-				return nil
-			}
-			if vm.IP == nil {
-				u.Target, _ = url.Parse("http://www.koding.com/notactive.html")
-				u.Redirect = true
-				return nil
-			}
-			u.Target, err = url.Parse("http://" + vm.IP.String())
-			if err != nil {
-				return err
-			}
-
-			data, err := json.Marshal(u.Target)
-			if err != nil {
-				fmt.Printf("could not marshall worker: %s", err)
-			}
-
-			memCache.Set(&memcache.Item{
-				Key:        mcKey,
-				Value:      data,
-				Expiration: int32(CACHE_TIMEOUT_VM),
-			})
-
+		fmt.Println("got vm ip from mongodb")
+		if err := db.VMs.Find(bson.M{"hostname": u.Host}).One(&vm); err != nil {
+			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
+			u.Redirect = true
 			return nil
 		}
-
-		fmt.Println("got vm ip from memcached")
-		err = json.Unmarshal(it.Value, &u.Target)
+		if vm.IP == nil {
+			u.Target, _ = url.Parse("http://www.koding.com/notactive.html")
+			u.Redirect = true
+			return nil
+		}
+		u.Target, err = url.Parse("http://" + vm.IP.String())
 		if err != nil {
-			fmt.Printf("unmarshall memcached value: %s", err)
+			return err
 		}
 
 		return nil
@@ -144,7 +116,7 @@ func (u *UserInfo) populateTarget() error {
 
 	keyData, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
-		return errors.New("no users availalable in the db. targethost not found")
+		return fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
 	}
 
 	var hostname string
@@ -173,7 +145,7 @@ func (u *UserInfo) populateTarget() error {
 func parseDomain(host string) (*UserInfo, error) {
 	// first try to get from domain collection
 	domain, err := proxyDB.GetDomain(host)
-	if err == nil { // because we dont have nested if clauses
+	if err == nil { // because we don't want have nested if clauses
 		return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
 	}
 
@@ -212,23 +184,6 @@ func parseDomain(host string) (*UserInfo, error) {
 	return &UserInfo{}, fmt.Errorf("no data available for proxy. can't parse domain %s", host)
 }
 
-// func lookupDomain(host string) (*UserInfo, error) {
-// 	// first lookup from db
-// 	domain, err := proxyDB.GetDomain(host)
-// 	if err != nil {
-// 		if err.Error() != "not found" {
-// 			return &UserInfo{}, fmt.Errorf("no domain lookup keys found for host '%s'", host)
-// 		}
-// 		// if not found via db,  assume as {username}.kd.io
-// 		if strings.HasSuffix(host, "kd.io") {
-// 			vmName := strings.TrimSuffix(host, ".kd.io")
-// 			return NewUserInfo(vmName, "", "", "", "vm", host), nil
-// 		}
-// 	}
-//
-// 	return NewUserInfo(domain.Username, domain.Servicename, domain.Key, domain.FullUrl, domain.Mode, host), nil
-// }
-
 func validate(u *UserInfo) (bool, error) {
 	res, err := proxyDB.GetRule(u.Host)
 	if err != nil {
@@ -238,22 +193,22 @@ func validate(u *UserInfo) (bool, error) {
 	return validator(res, u).IP().Country().Check()
 }
 
-func lookupRabbitKey(username, servicename, key string) (string, error) {
-	res, err := proxyDB.GetKey(username, servicename, key)
-	if err != nil {
-		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
-	}
-
-	if res.Mode == "roundrobin" {
-		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
-	}
-
-	if res.RabbitKey == "" {
-		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
-	}
-
-	return res.RabbitKey, nil
-}
+// func lookupRabbitKey(username, servicename, key string) (string, error) {
+// 	res, err := proxyDB.GetKey(username, servicename, key)
+// 	if err != nil {
+// 		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
+// 	}
+//
+// 	if res.Mode == "roundrobin" {
+// 		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
+// 	}
+//
+// 	if res.RabbitKey == "" {
+// 		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
+// 	}
+//
+// 	return res.RabbitKey, nil
+// }
 
 func checkWebsocket(req *http.Request) bool {
 	conn_hdr := ""

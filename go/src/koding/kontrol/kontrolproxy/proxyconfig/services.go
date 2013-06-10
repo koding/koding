@@ -1,16 +1,12 @@
 package proxyconfig
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"sort"
 	"strconv"
 )
-
-const SERVICE_CACHE_TIMEOUT = 60 //seconds
 
 type KeyData struct {
 	// Versioning of hosts
@@ -80,34 +76,12 @@ func (p *ProxyConfiguration) GetServices() []Service {
 }
 
 func (p *ProxyConfiguration) GetService(username string) (Service, error) {
-	mcKey := username + "servicename"
-	it, err := p.MemCache.Get(mcKey)
-	if err != nil {
-		service := Service{}
-		err := p.Collection["services"].Find(bson.M{"username": username}).One(&service)
-		if err != nil {
-			return service, err
-		}
-
-		data, err := json.Marshal(service)
-		if err != nil {
-			fmt.Printf("could not marshall worker: %s", err)
-		}
-
-		p.MemCache.Set(&memcache.Item{
-			Key:        mcKey,
-			Value:      data,
-			Expiration: int32(SERVICE_CACHE_TIMEOUT),
-		})
-
-		return service, nil
-	}
-
 	service := Service{}
-	err = json.Unmarshal(it.Value, &service)
+	err := p.Collection["services"].Find(bson.M{"username": username}).One(&service)
 	if err != nil {
-		fmt.Printf("unmarshall memcached value: %s", err)
+		return service, err
 	}
+
 	return service, nil
 }
 
