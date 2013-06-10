@@ -97,8 +97,9 @@ module.exports = class JDomain extends jraphical.Module
       if data.actionstatus is "Success"
         @createDomain client,
           domain   : data.description
-          owner    : client.connection.delegate.getId()
           regYears : params.years
+          orderId  :
+            resellerClub : data.entityid
           , (err, model) =>
             callback err, model
       else
@@ -133,6 +134,10 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.dnsManager.removeDNSRecordFromProxy record, callback
 
   @bindVM = secure ({connection:{delegate}}, params, callback)->
+    KD.remote.api.JVM.someData {name:params.vmName}, {hostname:1}, (err, vm)->
+      console.log vm
+
+    """
     record =
       mode          : "vm"
       username      : delegate.profile.nickname
@@ -141,13 +146,14 @@ module.exports = class JDomain extends jraphical.Module
 
     if params.state
       domainManager.dnsManager.registerNewRecordToProxy record, (response)=>
-        @update {"domain":params.domainName}, {'$push': {"vms":params.vmName}}
+        @update {"domain":params.domainName}, {'$push': {"hostnameAlias":params.vmName}}
         callback "Your domain is now connected to #{params.vmName} VM." if response?.host?
 
     else
       domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
-        @update {"domain":params.domainName}, {'$pull': {"vms":params.vmName}}
+        @update {"domain":params.domainName}, {'$pull': {"hostnameAlias":params.vmName}}
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
+    """
 
   @updateWhiteList = (params, callback)->
     if params.op == 'addToSet'
