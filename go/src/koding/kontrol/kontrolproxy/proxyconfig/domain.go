@@ -26,23 +26,28 @@ type Domain struct {
 	Id bson.ObjectId `bson:"_id" json:"-"`
 
 	// Domain is the domain in host form without any scheme (i.e: new.koding.com)
-	Domain string
+	Domain string `bson:"domain"`
 
-	// HostnameAlias is the current VM alias used
-	HostnameAlias string
+	// HostnameAlias is the current VM's used
+	HostnameAlias []string `bson:"hostnameAlias"`
+
+	LoadBalancer struct {
+		Mode  string
+		Index int
+	} `bson:"loadBalancer"`
 
 	// ProxyTable is used for proxy to route domains to their specific targets
-	Proxy *ProxyTable
+	Proxy *ProxyTable `bson:"proxy"`
 
 	OrderId struct {
 		Recurly       string
 		ResellersClub string
-	}
+	} `bson:"orderId"`
 
-	RegYears int
+	RegYears int `bson:"regYears"`
 
-	CreatedAt  time.Time
-	ModifiedAt time.Time
+	CreatedAt  time.Time `bson:"createdAt"`
+	ModifiedAt time.Time `bson:"modifiedAt"`
 }
 
 type ProxyTable struct {
@@ -78,7 +83,7 @@ type ProxyTable struct {
 	// FullUrl is used with mode "direct". Proxy will directly proxy to this
 	// given fullurl. It should be in HOST form, means no scheme should be
 	// used. Example: www.google.com, arslan.io, koding.com
-	FullUrl string `bson:"fullurl" json:"fullurl,omitempty"`
+	FullUrl string `bson:"fullurl" json:"fullUrl,omitempty"`
 }
 
 // NewDomain returns a new Domain using the provided arguments. A new unique
