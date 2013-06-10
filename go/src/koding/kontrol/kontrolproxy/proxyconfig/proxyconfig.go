@@ -26,6 +26,7 @@ func Connect() (*ProxyConfiguration, error) {
 	collections["rules"] = database.C("jProxyRules")
 	collections["domainstats"] = database.C("jDomainStats")
 	collections["proxystats"] = database.C("jProxyStats")
+	collections["relationships"] = database.C("relationships")
 
 	pr := &ProxyConfiguration{
 		Session:    session,

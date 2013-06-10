@@ -194,7 +194,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	_, err = validate(user)
 	if err != nil {
 		if err == ErrSecurePage {
-			sessionName := fmt.Sprintf("kodingproxy-%s-%s", user.Host, user.IP)
+			sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 			// We're ignoring the error resulted from decoding an existing
 			// session: Get() always returns a session, even if empty.
 			session, _ := store.Get(req, sessionName)

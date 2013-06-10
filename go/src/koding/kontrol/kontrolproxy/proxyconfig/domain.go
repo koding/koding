@@ -5,22 +5,19 @@ import (
 	"time"
 )
 
-type JDomain struct {
-	Domain struct {
-		DomainType string
-		Validate   string
-		Set        string
-	}
-	Owner      bson.ObjectId
-	VMs        []string
-	RegYears   int
-	RcOrderId  int
-	RecOrderId int
-	CreatedAt  struct {
-		Default time.Time
-	}
-	ModifiedAt struct {
-		Default time.Time
+type Relationship struct {
+	Id         bson.ObjectId `bson:"_id" json:"-"`
+	TargetId   bson.ObjectId `bson:"targetId"`
+	TargetName string        `bson:"targetName"`
+	SourceId   bson.ObjectId `bson:"sourceId"`
+	SourceName string        `bson:"sourceName"`
+	As         string        `bson:"as"`
+	TimeStamp  time.Time     `bson:"timestamp"`
+}
+
+func NewRelationship() *Relationship {
+	return &Relationship{
+		Id: bson.NewObjectId(),
 	}
 }
 
@@ -28,9 +25,29 @@ type Domain struct {
 	// Id defines the ObjectId of a single mongo document.
 	Id bson.ObjectId `bson:"_id" json:"-"`
 
-	// Domainname is the host name without any protocol scheme (i.e "new.koding.com")
-	Domainname string `bson:"domainname" json:"domainname"`
+	// Domain is the domain in host form without any scheme (i.e: new.koding.com)
+	Domain string
 
+	// HostnameAlias is the current VM alias used
+	HostnameAlias string
+
+	// ProxyTable is used for proxy to route domains to their specific targets
+	ProxyTable *ProxyTable
+	VMs        []string
+	RegYears   int
+	OrderId    struct {
+		Recurly       string
+		ResellersClub string
+	}
+	CreatedAt struct {
+		Default time.Time
+	}
+	ModifiedAt struct {
+		Default time.Time
+	}
+}
+
+type ProxyTable struct {
 	// Mode defines how proxy should act on domains. There are currently three
 	// modes used which defines the way the domain is proxied. These are:
 	// internal : to point name-key.in.koding.com
@@ -68,15 +85,23 @@ type Domain struct {
 
 // NewDomain returns a new Domain using the provided arguments. A new unique
 // ObjectId is created automatically whenever a new Domain is created.
-func NewDomain(domainname, mode, username, servicename, key, fullurl string) *Domain {
-	return &Domain{
-		Id:          bson.NewObjectId(),
-		Domainname:  domainname,
+func NewProxyTable(mode, username, servicename, key, fullurl string) *ProxyTable {
+	return &ProxyTable{
 		Mode:        mode,
 		Username:    username,
 		Servicename: servicename,
 		Key:         key,
 		FullUrl:     fullurl,
+	}
+}
+
+// NewDomain returns a new Domain using the provided arguments. A new unique
+// ObjectId is created automatically whenever a new Domain is created.
+func NewDomain(domainname, mode, username, servicename, key, fullurl string) *Domain {
+	return &Domain{
+		Id:         bson.NewObjectId(),
+		Domain:     domainname,
+		ProxyTable: NewProxyTable(mode, username, servicename, key, fullurl),
 	}
 }
 
@@ -123,4 +148,16 @@ func (p *ProxyConfiguration) GetDomains() []Domain {
 	}
 
 	return domains
+}
+
+func (p *ProxyConfiguration) GetDomainRuleId(sourceId bson.ObjectId) (bson.ObjectId, error) {
+	relationship := Relationship{}
+	err := p.Collection["relationships"].Find(
+		bson.M{"sourceID": sourceId, "targetName": "JProxyRules"},
+	).One(&relationship)
+	if err != nil {
+		return "", err
+	}
+
+	return relationship.Id, nil
 }

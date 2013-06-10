@@ -20,7 +20,7 @@ func rabbitTransport(outreq *http.Request, userInfo *UserInfo, rabbitKey string)
 		return nil, err
 	}
 
-	rabbitClient := userInfo.Username + "-" + userInfo.Servicename + "-" + rabbitKey
+	rabbitClient := userInfo.Domain.ProxyTable.Username + "-" + userInfo.Domain.ProxyTable.Servicename + "-" + rabbitKey
 
 	if _, ok := connections[rabbitClient]; !ok {
 		queue, err := amqpStream.channel.QueueDeclare("", false, true, true, false, nil)

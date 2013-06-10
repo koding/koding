@@ -33,7 +33,7 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if domain.Domainname == "" {
+	if domain.Domain == "" {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"domain '%s' does not exist\"}\n", domainname), http.StatusBadRequest)
 		return
 	}
