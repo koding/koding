@@ -27,7 +27,6 @@ module.exports = class JDomain extends jraphical.Module
         type        : String
         required    : yes
         set         : (value)-> value.toLowerCase()
-      owner         : ObjectId
       regYears      : Number
       orderId       :
         recurly     : String
