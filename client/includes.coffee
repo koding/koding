@@ -699,6 +699,7 @@ module.exports = [
   "app/MainApp/monitor_status.coffee",
   "app/MainApp/rollbar.coffee",
   "app/MainApp/mixpanel.coffee",
+  "app/MainApp/analytic.coffee",
 
   # --- Styles ---
   "css/style.css",
