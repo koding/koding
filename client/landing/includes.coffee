@@ -531,15 +531,14 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
-  "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationtabview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationtabpaneview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationcodelistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
@@ -556,7 +555,12 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
   # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app

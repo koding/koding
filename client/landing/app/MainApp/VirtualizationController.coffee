@@ -109,55 +109,194 @@ class VirtualizationController extends KDController
 
   createNewVM:->
     return  if @dialogIsOpen
+    vmController        = @getSingleton('vmController')
+    canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
+    canCreatePersonalVM = "member" in KD.config.roles
+    
 
-    vmCreateCallback = (err, vm)->
+    # Take this to a better place, possibly to payment controller.
+    makePayment = (type, planCode, callback)->
+      if type is 'shared'
+        group = KD.singletons.groupsController.getCurrentGroup()
+        group.checkPayment (err, payments)->
+          if err or payments.length is 0
+
+            # Copy account creator's billing information
+            KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+              warn err
+              if err or not data
+                data = {}
+
+              # These will go into Recurly module
+              delete data.cardNumber
+              delete data.cardMonth
+              delete data.cardYear
+              delete data.cardCV
+
+              paymentModal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
+                newData.plan = planCode
+                group.makePayment newData, (err, subscription)->
+                  if err
+                    onError err
+                  else
+                    vmController.createGroupVM type, vmCreateCallback
+                    onSuccess()
+                    callback()
+              paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
+          else
+            group.updatePayment {plan: planCode}, (err, subscription)->
+              vmController.createGroupVM type, vmCreateCallback
+              callback()
+      else
+        _createUserVM = (cb)->
+          KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
+            plan.subscribe {}, (err, subscription)->
+              return cb err  if cb and err
+              vmController.createGroupVM type, vmCreateCallback
+              cb?()
+        KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
+          if err
+            paymentModal = createAccountPaymentMethodModal {}, (newData, onError, onSuccess)->
+              newData.plan = planCode
+              KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
+                if err
+                  onError err
+                else
+                  onSuccess result
+                  _createUserVM callback
+            paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
+          else
+            _createUserVM callback
+
+    vmCreateCallback  = (err, vm)->
       if err
         warn err
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
         KD.singletons.finderController.mountVm vm.name
-        KD.singletons.vmController.emit 'VMListChanged'
-      modal.destroy()
+        vmController.emit 'VMListChanged'
+      paymentModal.destroy()
 
     group = KD.singletons.groupsController.getGroupSlug()
 
-    buttons =
-      'Create a Personal VM' :
-        style    : "modal-clean-gray"
-        callback : =>
-          KD.singletons.vmController.createGroupVM 'personal', vmCreateCallback
-
-    if "owner" in KD.config.roles or "admin" in KD.config.roles
+    if canCreateSharedVM
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
                    <b>#{group}</b>. If you prefer to create a shared VM, all
                    members in <b>#{group}</b> will be able to use that VM.
                 """
-      buttons['Create a Shared VM'] =
-        style      : "modal-clean-gray"
-        callback   : =>
-          KD.singletons.vmController.createGroupVM 'shared', vmCreateCallback
-
-    else if "member" in KD.config.roles
+    else if canCreatePersonalVM
       content = """You can create a <b>Personal</b> VM in <b>#{group}</b>."""
-
     else
       return new KDNotificationView
         title : "You are not authorized to create VMs in #{group} group"
 
-    buttons.Cancel =
-      style      : "modal-cancel"
-      callback   : -> modal.destroy()
+    vmController.fetchVMPlans (err, plans)=>
+      @paymentPlans = plans
+      {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
+      descPartial = ""
+      for d in descriptions
+        descPartial += """
+          <section>
+            <p>
+              <i>Good for:</i>
+              <span>#{d.meta.goodFor}</span>
+              <cite>users</cite>
+            </p>
+            #{d.description}
+          </section>"""
 
-    modal     = new KDModalView
-      title   : "Create a new VM"
-      content : "<div class='modalformline'><p>#{content}</p></div>"
-      height  : "auto"
-      overlay : yes
-      buttons : buttons
+      modal = new KDModalViewWithForms
+        title                       : "Create a new VM"
+        cssClass                    : "group-creation-modal"
+        height                      : "auto"
+        width                       : 684
+        overlay                     : yes
+        tabs                        :
+          navigable                 : no
+          forms                     :
+            "Create VM"             :
+              callback              : (formData)=>
+                
+                form                = modal.modalTabs.forms["Create VM"]
+                {personal, shared}  = form.buttons
 
-    @dialogIsOpen = yes
-    modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+                makePayment formData.type, @paymentPlans[formData.host].code, ->
+                  modal.destroy()
+              buttons               :
+                personal            :
+                  title             : "Create a <b>Personal</b> VM"
+                  style             : "modal-clean-gray"
+                  type              : "submit"
+                  loader            :
+                    color           : "#ffffff"
+                    diameter        : 12
+                  callback          : ->
+                    form = modal.modalTabs.forms["Create VM"]
+                    form.inputs.type.setValue "personal"
+                shared              :
+                  title             : "Create a <b>Shared</b> VM"
+                  style             : "modal-clean-gray hidden"
+                  type              : "submit"
+                  loader            :
+                    color           : "#ffffff"
+                    diameter        : 12
+                  callback          : ->
+                    form = modal.modalTabs.forms["Create VM"]
+                    form.inputs.type.setValue "shared"
+                cancel              :
+                  style             : "modal-cancel"
+                  callback          : -> modal.destroy()
+              fields                :
+                "intro"             :
+                  itemClass         : KDCustomHTMLView
+                  partial           : "<p>#{content}</p>"
+                selector            :
+                  name              : "host"
+                  itemClass         : HostCreationSelector
+                  cssClass          : "host-type"
+                  radios            : hostTypes
+                  validate          :
+                    rules           :
+                      required      : yes
+                    messages        :
+                      required      : "Please select a VM type!"
+                  change            : =>
+                    form = modal.modalTabs.forms["Create VM"]
+                    {desc, selector} = form.inputs
+                    descField        = form.fields.desc
+                    descField.show()
+                    desc.show()
+                    index      = parseInt selector.getValue(), 10
+                    monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
+                    desc.$('section').addClass 'hidden'
+                    desc.$('section').eq(index).removeClass 'hidden'
+                    modal.setPositions()
+                desc                :
+                  itemClass         : KDCustomHTMLView
+                  cssClass          : "description-field hidden"
+                  partial           : descPartial
+                type                :
+                  name              : "type"
+                  type              : "hidden"
+
+
+
+      if canCreateSharedVM
+        modal.modalTabs.forms["Create VM"].buttons.shared.show()
+
+      @dialogIsOpen = yes
+      modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+
+      form = modal.modalTabs.forms["Create VM"]
+
+      hideLoaders = ->
+        {personal, shared} = form.buttons
+        personal.hideLoader()
+        shared.hideLoader()
+      
+      vmController.on "PaymentModalDestroyed", hideLoaders
+      form.on "FormValidationFailed", hideLoaders
 
   askForApprove:(command, callback)->
 
@@ -248,3 +387,29 @@ class VirtualizationController extends KDController
 
     @dialogIsOpen = yes
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
+
+  # there may be a better place for these who methods below - SY
+  
+  fetchVMPlans:(callback)-> 
+    KD.remote.api.JRecurlyPlan.getPlans "group", "vm", (err, plans)=>
+      if err then warn err
+      else if plans
+        plans.sort (a, b)-> a.feeMonthly - b.feeMonthly
+
+      callback err, plans
+
+  sanitizeVMPlansForInputs:(plans)->
+    # fix this one on radios value cannot have some chars and that's why i keep index as the value
+    descriptions = []
+    hostTypes    = plans.map (plan, i)->
+      descriptions.push item = try
+        JSON.parse plan.desc.replace /&quot;/g, '"'
+      catch e
+        title       : ""
+        description : plan.desc
+        meta        : goodFor : 0
+      plans[i].item = item
+      feeMonthly = (plan.feeMonthly/100).toFixed 0
+      { title : item.title, value : i, feeMonthly }
+
+    return {descriptions, hostTypes}
