@@ -1,8 +1,9 @@
 jraphical = require 'jraphical'
-DomainManager = require 'domainer'
-{secure, ObjectId}  = require 'bongo'
-
 module.exports = class JDomain extends jraphical.Module
+
+  DomainManager = require 'domainer'
+  {secure, ObjectId}  = require 'bongo'
+
 
   domainManager = new DomainManager
   JAccount  = require './account'
@@ -14,8 +15,8 @@ module.exports = class JDomain extends jraphical.Module
     softDelete      : yes
 
     sharedMethods   :
-      static        : ['one', 'all', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId', 
-                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList', 
+      static        : ['one', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId',
+                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList',
                        'updateWhiteList', 'updateBlockList']
 
     indexes         :
@@ -27,12 +28,10 @@ module.exports = class JDomain extends jraphical.Module
         required    : yes
         set         : (value)-> value.toLowerCase()
       owner         : ObjectId
-      vms           : [String]
-      blockList     : [String]
-      whiteList     : [String]
       regYears      : Number
-      rcOrderId     : Number
-      recOrderId    : Number
+      orderId       :
+        recurly     : String
+        resellerClub: String
       createdAt     :
         type        : Date
         default     : -> new Date
@@ -50,11 +49,11 @@ module.exports = class JDomain extends jraphical.Module
       if err then console.log err
       domainList = ({name:domain.domain, id:domain.getId(), vms:domain.vms} for domain in domains)
       callback? err, domains
- 
+
   @isDomainAvailable = (domainName, tld, callback)->
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
       callback err, isAvailable
-  
+
   @registerDomain = secure (client, data, callback)->
     #default user info / all domains are under koding account.
     params =
@@ -83,14 +82,14 @@ module.exports = class JDomain extends jraphical.Module
 
 
   @addNewDNSRecord = secure ({connection:{delegate}}, data, callback)->
-    newRecord = 
+    newRecord =
       mode          : "vm"
       username      : delegate.profile.nickname
       domainName    : data.domainName
       linkedVM      : data.selectedVM
 
     domainManager.dnsManager.registerNewRecordToProxy newRecord, (response)=>
-      domain = 
+      domain =
         domain       : newRecord.domainName
         orderId      : "0" # when forwarding we got no orderid
         linkURL      : newRecord.domainName
@@ -105,12 +104,12 @@ module.exports = class JDomain extends jraphical.Module
       username      : client.context.user
       domainName : data.domainName
       mode          : "vm"
-     
+
     # not working should talk with farslan
     domainManager.dnsManager.removeDNSRecordFromProxy record, callback
 
   @bindVM = secure ({connection:{delegate}}, params, callback)->
-    record = 
+    record =
       mode          : "vm"
       username      : delegate.profile.nickname
       domainName    : params.domainName
