@@ -73,7 +73,7 @@ func (u *UserInfo) populateTarget() error {
 	username := u.Domain.Proxy.Username
 	servicename := u.Domain.Proxy.Servicename
 	key := u.Domain.Proxy.Key
-	hostnameAlias := u.Domain.HostnameAlias
+	hostnameAlias := u.Domain.HostnameAlias[0]
 	fullurl := u.Domain.Proxy.FullUrl
 
 	switch u.Domain.Proxy.Mode {
@@ -86,18 +86,7 @@ func (u *UserInfo) populateTarget() error {
 	case "vm":
 		var vm virt.VM
 
-		// domain, err := proxyDB.GetDomain(u.Host)
-		// if err != nil {
-		// }
-		// fmt.Println(domain)
-
-		// if err := db.VMs.Find(bson.M{"hostnameAlias": domain.HostnameAlias}).One(&vm); err != nil {
-		// 	u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
-		// 	u.Redirect = true
-		// 	return nil
-		// }
-
-		if err := db.VMs.Find(bson.M{"hostname": hostnameAlias}).One(&vm); err != nil {
+		if err := db.VMs.Find(bson.M{"hostnameAlias": hostnameAlias}).One(&vm); err != nil {
 			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
 			u.Redirect = true
 			return nil
