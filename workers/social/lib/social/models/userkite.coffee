@@ -1,6 +1,6 @@
-jraphical = require 'jraphical'
-CActivity = require './activity'
-JAccount  = require './account'
+jraphical   = require 'jraphical'
+CActivity   = require './activity'
+JAccount    = require './account'
 KodingError = require '../error'
 
 class JUserKite extends jraphical.Module
@@ -28,14 +28,13 @@ class JUserKite extends jraphical.Module
         default   : -> new Date
 
   newVersion: (cb)=>
-    console.log "==========> adding new version ========" 
     kiteversion = new JUserKiteVersion
       s3url: @latest_s3url
       kitename: @kitename
       owner: @owner
       version: @latest_version
     kiteversion.save (err)->
-      console.log "errrorrrrrrrrrr", err
+      console.log "error", err
       cb(err)
 
   @fetchOrCreate: (data, callback)=>
@@ -57,7 +56,6 @@ class JUserKite extends jraphical.Module
           else
             callback null, userkite
       else
-        console.log "===================================", userkite.data._id, userkite.data.latest_version
         JUserKite.update {_id: userkite.data._id}, 
                             {$set: 
                                 latest_version: parseInt(userkite.data.latest_version) + 1,

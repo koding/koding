@@ -138,7 +138,6 @@ app.get "/-/kite/login", (req, res) ->
       message: "Not enough parameters."
   else
     {JKodingKey} = koding.models
-    console.log ">>>> koding key username:", username, "key:", key
     JKodingKey.fetchByUserKey
       username: username
       key     : key
@@ -203,6 +202,8 @@ app.get "/-/kite/login", (req, res) ->
                 res.header "Content-Type", "application/json"
                 res.send 200, JSON.stringify creds
 
+# TODO: we have to move kd related functions to somewhere else...
+
 # gate for kd
 findUsernameFromKey = (req, res, callback) ->
   fetchJAccountByKiteUserNameAndKey req, (err, account)->
@@ -225,7 +226,6 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
 
   {JKodingKey, JAccount} = koding.models
   {ObjectId} = require "bongo"
-  console.log ">>>", username, key
 
   JKodingKey.fetchByUserKey
     username: username
@@ -233,10 +233,7 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
   , (err, kodingKey)=>
     console.log err, kodingKey.owner
     if err or not kodingKey
-      console.log ">>>>> 1 - ", err
       return callback(err, kodingKey)
-
-    console.log "owners id::::", kodingKey.owner
 
     JAccount.one
       _id: ObjectId(kodingKey.owner)
@@ -293,8 +290,6 @@ findUsernameFromSession = (req, res, callback) ->
       res.send 403, 'Access denied!'
       callback false, ""
     callback false, session.username
-
-
 
 if uploads?.enableStreamingUploads
 
