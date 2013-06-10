@@ -1,15 +1,12 @@
 package proxyconfig
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"sort"
 	"strconv"
 )
-
-const SERVICE_CACHE_TIMEOUT = 60 //seconds
 
 type KeyData struct {
 	// Versioning of hosts
@@ -79,34 +76,12 @@ func (p *ProxyConfiguration) GetServices() []Service {
 }
 
 func (p *ProxyConfiguration) GetService(username string) (Service, error) {
-	mcKey := username + "servicename"
-	it, err := p.MemCache.Get(mcKey)
-	if err != nil {
-		service := Service{}
-		err := p.Collection["services"].Find(bson.M{"username": username}).One(&service)
-		if err != nil {
-			return service, err
-		}
-
-		data, err := json.Marshal(service)
-		if err != nil {
-			fmt.Printf("could not marshall worker: %s", err)
-		}
-
-		p.MemCache.Set(&memcache.Item{
-			Key:        mcKey,
-			Value:      data,
-			Expiration: int32(SERVICE_CACHE_TIMEOUT),
-		})
-
-		return service, nil
-	}
-
 	service := Service{}
-	err = json.Unmarshal(it.Value, &service)
+	err := p.Collection["services"].Find(bson.M{"username": username}).One(&service)
 	if err != nil {
-		fmt.Printf("unmarshall memcached value: %s", err)
+		return service, err
 	}
+
 	return service, nil
 }
 
@@ -144,14 +119,14 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData,
 	return keyData, nil
 }
 
+// Update or add a key. service and username will be created if not available
 func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, hostdata, rabbitkey string, currentindex int) error {
 	service, err := p.GetService(username)
 	if err != nil {
-		if err.Error() == "not found" {
-			service = *NewService(username)
-		} else {
+		if err != mgo.ErrNotFound {
 			return err
 		}
+		service = *NewService(username)
 	}
 
 	_, ok := service.Services[servicename]
@@ -176,21 +151,20 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 	hasHost := false
 	for _, hostname := range keyData.Host {
 		if hostname == host {
-			hasHost = true
-			break // don't append an already added host
+			hasHost = true // don't append an already added host
+			break
 		}
 	}
 
 	if !hasHost {
 		keyData.Host = append(keyData.Host, host)
-
 	}
-	keyData.Mode = mode
 
-	if currentindex >= len(keyData.Host) {
+	if currentindex >= len(keyData.Host) && mode == "sticky" {
 		return fmt.Errorf("currentindex: %d can't be larger or equal to the lenght of host-list: %d", currentindex, len(keyData.Host))
 	}
 
+	keyData.Mode = mode
 	keyData.CurrentIndex = currentindex
 	keyData.HostData = hostdata
 	keyData.RabbitKey = rabbitkey

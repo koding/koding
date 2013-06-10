@@ -27,7 +27,7 @@ class KDModalView extends KDView
     @setClass "fx"                                if options.fx
     @setTitle options.title                       if options.title
     @setContent options.content                   if options.content
-    @addSubView options.view,".kdmodal-content"   if options.view
+    @addSubView options.view, ".kdmodal-content"  if options.view
 
     @on 'ModalCancelled', options.cancel          if options.cancel
 
@@ -136,19 +136,20 @@ class KDModalView extends KDView
 
   setPositions:->
     @utils.defer =>
-      {position} = @getOptions()
-      newPosition = {}
-
-      newPosition.top = if (position.top?) then position.top else ($(window).height()/2) - (@getHeight()/2)
-      newPosition.left = if (position.left?) then position.left else ($(window).width()/2) - (@modalWidth/2)
-      newPosition.left = $(window).width() - @modalWidth - position.right - 20 if position.right #20 is the padding FIX
-      @$().css newPosition
-      @$().css opacity : 1
+      {top, right, bottom, left} = @getOptions().position
+      newRules = {}
+      height = $(window).height()
+      width  = $(window).width()
+      newRules.top  = if top?  then top  else height/2 - @getHeight()/2
+      newRules.left = if left? then left else width/2  - @modalWidth/2
+      newRules.left = width - @modalWidth - right - 20 if right #20 is the padding FIX
+      newRules.opacity = 1
+      @$().css newRules
 
   _windowDidResize:->
     @setPositions()
     {winHeight} = @getSingleton('windowController')
-    @$('.kdmodal-content').css 'max-height', winHeight - 200
+    @$('.kdmodal-content').css 'max-height', winHeight - 120
     @setY (winHeight - @getHeight()) / 2 unless @getOptions().position.top
 
   putOverlay:->

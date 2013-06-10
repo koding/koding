@@ -34,6 +34,7 @@ module.exports = class JVM extends Model
         type            : String
         default         : -> null
       name              : String
+      hostname          : String
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.

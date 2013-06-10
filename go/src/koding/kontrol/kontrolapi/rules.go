@@ -12,7 +12,7 @@ import (
 type RulesPostMessage struct {
 	RuleName    *string `json:"name"`
 	Rule        *string `json:"rule"`
-	RuleEnabled *bool   `json:"enabled"`
+	RuleEnabled *string `json:"enabled"`
 	RuleMode    *string `json:"mode"`
 }
 
@@ -82,7 +82,16 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	if msg.RuleEnabled != nil {
-		ruleEnabled = *msg.RuleEnabled
+		switch *msg.RuleEnabled {
+		case "true", "on", "yes":
+			ruleEnabled = true
+		case "false", "off", "no":
+			ruleEnabled = false
+		case "default":
+			err := "enabled field is invalid. should one of 'true,on,yes' or 'false,off,no'"
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
 	} else {
 		err := "no 'ruleEnabled' available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
@@ -97,9 +106,10 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	proxyDB.AddRule(domain, ruleName, rule, ruleMode, ruleEnabled)
+	err = proxyDB.AddRule(domain, ruleName, rule, ruleMode, ruleEnabled)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
 	}
 
 	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%s'", ruleName, rule, ruleEnabled, ruleMode)
