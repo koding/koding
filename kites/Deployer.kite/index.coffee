@@ -23,13 +23,12 @@ class LXC
     console.log "......LXC constructor",  @name
 
   createLxc: (callback) ->
-    return callback()
     cmd = spawn "create-lxc", [@name]
     console.log 'create lxc'
     cmd.stdout.on 'data', (data) ->
-      console.log 'stdout: ', data
+      console.log 'stdout: ', data.toString()
     cmd.stderr.on 'data', (data) -> 
-      console.log 'stderr: ', data
+      console.log 'stderr: ', data.toString()
     cmd.on 'close', (code) ->
       console.log 'create lxc process exited with code ', code
       callback()
@@ -41,6 +40,7 @@ class Deployment
 
   downloadAndExtractKite: (callback) =>
       fs.mkdirsSync(@kitePath) ## TODO mkdir creates 0777, exists check
+      fs.chownSync(@kitePath, 500000, 500000)
       
       filepath = path.join @kitePath, "#{@name}.zip"
       file = fs.createWriteStream filepath
@@ -67,13 +67,13 @@ class Deployment
               console.log 'unzip process exited with code ', code
               callback()
 
-  runKite: () ->
-    process.chdir path.join @kitePath, @name
-    cmd = spawn "/usr/bin/lxc-execute && /usr/bin/kd kite run #{@name}\""
+  runKite: () =>
+    kiteInLxc = path.join "/opt", "kites", "foobar.kite"
+    cmd = spawn "/usr/bin/lxc-execute", ["-o", "/tmp/lxc-output", "-n", @name, "--", "/usr/bin/kd", "kite", "run", kiteInLxc]
     cmd.stdout.on 'data', (data) ->
-      console.log 'stdout: ', data
+      console.log 'stdout kite : ', data.toString()
     cmd.stderr.on 'data', (data) -> 
-      console.log 'stderr: ', data
+      console.log 'stderr kite : ', data.toString()
     cmd.on 'close', (code) ->
       console.log 'child process exited with code ', code
 
