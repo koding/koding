@@ -164,10 +164,11 @@ class LoginView extends KDScrollView
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
-    KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
+    KD.remote.api.JUser.register formData, (err, account, replacementToken)=>
       @registerForm.button.hideLoader()
-      if error
-        {message} = error
+      if err
+        {message} = err
+        warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
       else
@@ -190,14 +191,14 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
+    KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
       @loginForm.button.hideLoader()
 
       {entryPoint} = KD.config
 
-      if error
+      if err
         new KDNotificationView
-          title   : error.message
+          title   : err.message
           duration: 1000
         @loginForm.resetDecoration()
       else
