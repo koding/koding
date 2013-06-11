@@ -1,8 +1,9 @@
 class DomainMapperView extends KDView
 
   constructor:(options={}, data)->
-    data or= {}
+    options.cssClass = 'domain-mapper-view'
     options.partial = '<div>Select a domain to continue.</div>'
+    data or= {}
     super options, data
 
     @on "domainChanged", (domainListItem)->
@@ -36,9 +37,9 @@ class DomainMapperView extends KDView
           partial: "<div>You don't have any VMs right now.</div>"
 
 
-class VMListItemView extends KDListItemView
+class DomainVMListItemView extends KDListItemView
   constructor:(options={}, data)->
-    
+    options.cssClass = 'domain-vm-item'
     super options, data
 
     listViewData = @getDelegate().getData()

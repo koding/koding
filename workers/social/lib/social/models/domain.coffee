@@ -16,8 +16,7 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       static        : ['one', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId',
-                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList',
-                       'updateWhiteList', 'updateBlockList']
+                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList']
 
     indexes         :
       domain        : 'unique'
@@ -66,6 +65,11 @@ module.exports = class JDomain extends jraphical.Module
   @createDomain: secure (client, options={}, callback)->
     model = new JDomain options
     model.save (err) ->
+      if err then callback? err
+
+      account = client.connection.delegate
+      account.addDomain model
+
       callback? err, model
 
   @findByAccount: secure (client, selector, callback)->
@@ -100,70 +104,28 @@ module.exports = class JDomain extends jraphical.Module
           regYears : params.years
           orderId  :
             resellerClub : data.entityid
+          loadBalancer:
+              mode : "roundrobin"
           , (err, model) =>
             callback err, model
       else
           callback "Domain registration failed"
 
-
-  @addNewDNSRecord = secure ({connection:{delegate}}, data, callback)->
-    newRecord =
-      mode          : "vm"
-      username      : delegate.profile.nickname
-      domainName    : data.domainName
-      linkedVM      : data.selectedVM
-
-    domainManager.dnsManager.registerNewRecordToProxy newRecord, (response)=>
-      domain =
-        domain       : newRecord.domainName
-        orderId      : "0" # when forwarding we got no orderid
-        linkURL      : newRecord.domainName
-        linkedVM     : newRecord.linkedVM
-
-      @create delegate, domain, (err, record) =>
-        callback null, record
-
-
-  @removeDNSRecord = secure ({connection:{delegate}}, data, callback)->
-    record =
-      username      : client.context.user
-      domainName : data.domainName
-      mode          : "vm"
-
-    # not working should talk with farslan
-    domainManager.dnsManager.removeDNSRecordFromProxy record, callback
-
   @bindVM = secure ({connection:{delegate}}, params, callback)->
-    KD.remote.api.JVM.someData {name:params.vmName}, {hostname:1}, (err, vm)->
-      console.log vm
+    JVM.findHostnameAlias params.vmName, (err, hostnameAlias)=>
 
-    """
-    record =
-      mode          : "vm"
-      username      : delegate.profile.nickname
-      domainName    : params.domainName
-      linkedVM      : params.vmName
+      record =
+        mode          : "vm"
+        username      : delegate.profile.nickname
+        domainName    : params.domainName
+        hostnameAlias : hostnameAlias
 
-    if params.state
-      domainManager.dnsManager.registerNewRecordToProxy record, (response)=>
-        @update {"domain":params.domainName}, {'$push': {"hostnameAlias":params.vmName}}
-        callback "Your domain is now connected to #{params.vmName} VM." if response?.host?
+      if params.state
+        domainManager.dnsManager.registerNewRecordToProxy record, (response)=>
+          @update {"domain":params.domainName}, {'$push': {"hostnameAlias":hostnameAlias}}
+          callback "Your domain is now connected to #{params.vmName} VM." if response?.host?
 
-    else
-      domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
-        @update {"domain":params.domainName}, {'$pull': {"hostnameAlias":params.vmName}}
-        callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
-    """
-
-  @updateWhiteList = (params, callback)->
-    if params.op == 'addToSet'
-      @update {domain:params.domainName}, {'$addToSet':{'whiteList':params.value}}, (err, obj)-> callback err
-    else
-      @update {domain:params.domainName}, {'$pull':{'whiteList':params.value}}, (err, obj)-> callback err
-
-
-  @updateBlockList = (params, callback)->
-    if params.op == 'addToSet'
-      @update {domain:params.domainName}, {'$addToSet':{'blockList':params.value}}, (err, obj)-> callback err
-    else
-      @update {domain:params.domainName}, {'$pull':{'blockList':params.value}}, (err, obj)-> callback err
+      else
+        domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
+          @update {"domain":params.domainName}, {'$pull': {"hostnameAlias":hostnameAlias}}
+          callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?

@@ -51,23 +51,6 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
             buttons                     : null
             fields                      : {}
           
-          "Connect"                     :
-            fields                      :
-              SelectVM                  :
-                label                   : "Select VM to Connect"
-                type                    : 'select'
-                selectOptions           : selectOptions
-                defaultValue            : "koding"
-                
-            buttons                     :
-              Next                      :
-                title                   : "Next"
-                style                   : "modal-clean-gray"
-                loader                  :
-                  color                 : "#444444"
-                  diameter              : 12
-                callback                : => @saveDomainInformation()
-               
           "Done"                        :
             buttons                     : null
             fields                      : {}
@@ -85,11 +68,7 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
            
       @emit "UserVMMenuReady", selects
       
-  
-    @on "UserVMMenuReady",(vms) =>
-      @modalTabs.forms["Connect"].inputs.SelectVM.setSelectOptions vms
-    
-    
+
     @on "DomainRegistered", (orderInfo) =>
       @modalTabs.forms["Connect"].buttons.Next.hideLoader()
       
