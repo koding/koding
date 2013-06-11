@@ -71,10 +71,11 @@ func (u *UserInfo) populateCountry(host string) {
 
 func (u *UserInfo) populateTarget() error {
 	var err error
+	var hostname string
+
 	username := u.Domain.Proxy.Username
 	servicename := u.Domain.Proxy.Servicename
 	key := u.Domain.Proxy.Key
-	hostnameAlias := u.Domain.HostnameAlias[0]
 	fullurl := u.Domain.Proxy.FullUrl
 
 	switch u.Domain.Proxy.Mode {
@@ -85,9 +86,27 @@ func (u *UserInfo) populateTarget() error {
 		}
 		return nil
 	case "vm":
-		var vm virt.VM
+		switch u.Domain.LoadBalancer.Mode {
+		case "roundrobin":
+			N := float64(len(u.Domain.HostnameAlias))
+			n := int(math.Mod(float64(u.Domain.LoadBalancer.Index+1), N))
+			hostname = u.Domain.HostnameAlias[n]
 
-		if err := db.VMs.Find(bson.M{"hostnameAlias": hostnameAlias}).One(&vm); err != nil {
+			u.Domain.LoadBalancer.Index = n
+			go proxyDB.UpdateDomain(u.Domain)
+		case "sticky":
+			hostname = u.Domain.HostnameAlias[u.Domain.LoadBalancer.Index]
+			// sessionName := fmt.Sprintf("kodingproxy-%s-%s", u.Domain.Domain, u.IP)
+			// // We're ignoring the error resulted from decoding an existing
+			// // session: Get() always returns a session, even if empty.
+			// session, _ := store.Get(req, sessionName)
+			// _, ok := session.Values["JSESSIONID"]
+		case "default":
+			hostname = u.Domain.HostnameAlias[0]
+		}
+
+		var vm virt.VM
+		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
 			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
 			u.Redirect = true
 			return nil
@@ -112,7 +131,6 @@ func (u *UserInfo) populateTarget() error {
 		return fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
 	}
 
-	var hostname string
 	switch keyData.Mode {
 	case "roundrobin":
 		N := float64(len(keyData.Host))
