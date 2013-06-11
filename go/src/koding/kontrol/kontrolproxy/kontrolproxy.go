@@ -181,7 +181,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	user, err := populateUser(outreq)
 	if err != nil {
-		log.Printf("error populating user %s: %s", outreq.Host, err.Error())
+		log.Printf("\nWARNING: populating user %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
 	}
@@ -247,7 +247,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
 	if websocket {
-		fmt.Println("connection via websocket")
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)

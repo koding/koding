@@ -46,8 +46,8 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 		return nil, err
 	}
 
-	fmt.Printf("--\nuser info: { %s %s }\n", user.IP, user.Country)
-	fmt.Printf("proxy from: %s to: %s\n", user.Domain.Domain, user.Target.Host)
+	fmt.Printf("--\nmode '%s'\t: %s %s\n", user.Domain.Proxy.Mode, user.IP, user.Country)
+	fmt.Printf("proxy from\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	return user, nil
 }
 
