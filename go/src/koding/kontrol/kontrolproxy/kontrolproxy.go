@@ -174,6 +174,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// Display error when someone hits the main page
+	if hostname == req.Host {
+		io.WriteString(rw, "Hello kontrol proxy :)")
+		return
+	}
+
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
@@ -182,7 +188,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	user, err := populateUser(outreq)
 	if err != nil {
-		log.Printf("\nWARNING: populating user %s: %s", outreq.Host, err.Error())
+		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
 	}
@@ -285,12 +291,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
-		}
-
-		// Display error when someone hits the main page
-		if hostname == outreq.URL.Host {
-			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
-			return
 		}
 
 		// Remove hop-by-hop headers to the backend.  Especially
