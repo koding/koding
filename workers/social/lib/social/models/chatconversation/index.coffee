@@ -34,9 +34,10 @@ module.exports = class JChatConversation extends Module
       invitees      :
         type        : [String]
         default     : -> []
+      participants  :
+        type        : [String]
+        default     : -> []
       tags          : [ObjectRef]
-
-
 
   @fetch = secure (client, publicName, callback)->
 
@@ -46,7 +47,7 @@ module.exports = class JChatConversation extends Module
     unless delegate instanceof JAccount
       return callback new KodingError 'Access denied.'
 
-    @one { publicName, invitees: delegate.profile.nickname }, callback
+    @one { publicName, participants: delegate.profile.nickname }, callback
 
   @fetchSome = secure (client, options, callback)->
 
@@ -60,7 +61,7 @@ module.exports = class JChatConversation extends Module
     {nickname} = delegate.profile
 
     options  or= limit: 20
-    selector   = {invitees  : nickname}
+    selector   = {participants : nickname}
 
     @some selector, options, callback
 
@@ -96,13 +97,14 @@ module.exports = class JChatConversation extends Module
       # and invite all invitees again
       if conversation
         conversation.invite client, invitee  for invitee in initialInvitees
-        return callback err, conversation
+        return callback null, conversation
 
       # If conversation not found, just create a new one
       # and invite all invitees
       conversation = new JChatConversation
         publicName : createId()
         createdBy  : nickname
+        invitees   : initialInvitees
 
       conversation.save (err)->
         if err then callback err
@@ -122,7 +124,7 @@ module.exports = class JChatConversation extends Module
 
     {nickname} = delegate.profile
 
-    @constructor.update {_id: @getId()}, {$pull: invitees: nickname}, (err)->
+    @constructor.update {_id: @getId()}, {$pull: participants: nickname}, (err)->
       callback err
 
   invite: secure (client, invitee, callback)->
@@ -135,10 +137,10 @@ module.exports = class JChatConversation extends Module
 
     {nickname} = delegate.profile
 
-    unless nickname in [@createdBy].concat @invitees
+    unless nickname in @invitees
       return callback? new KodingError "Access denied!"
 
-    @update {$addToSet: invitees: invitee}, (err)=>
+    @update $addToSet: {participants: invitee, invitees: invitee}, (err)=>
       return console.error err  if err?
 
       @emit 'notification', {

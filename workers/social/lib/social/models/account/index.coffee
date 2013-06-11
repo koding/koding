@@ -133,6 +133,8 @@ module.exports = class JAccount extends jraphical.Module
       onlineStatus          :
         type                : String
         enum                : ['invalid status',['online','offline','away','busy']]
+        default             : 'online'
+
     relationships           : ->
       JPrivateMessage = require '../messages/privatemessage'
 
