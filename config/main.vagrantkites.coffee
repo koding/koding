@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = '192.168.1.244:27017/koding'
+mongo           = 'local.koding.com:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -12,8 +12,8 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://192.168.1.244:3020"
-  userSitesDomain: '192.168.1.244'
+    address     : "http://local.koding.com:3020"
+  userSitesDomain: 'local.koding.com'
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -27,8 +27,8 @@ module.exports =
     port        : 3526
   mongo         : mongo
   neo4j         :
-    read        : "http://192.168.1.244"
-    write       : "http://192.168.1.244"
+    read        : "http://local.koding.com"
+    write       : "http://local.koding.com"
     port        : 7474
   runNeo4jFeeder: yes
   runGoBroker   : yes
@@ -90,25 +90,25 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://192.168.1.244:3020'
+    staticFilesBaseUrl: 'http://local.koding.com:3020'
     runtimeOptions:
-      userSitesDomain: '192.168.1.244'
+      userSitesDomain: 'local.koding.com'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
-        sockJS  : 'http://192.168.1.244:8008/subscribe'
+        sockJS  : 'http://local.koding.com:8008/subscribe'
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://192.168.1.244:3020'
+      mainUri   : 'http://local.koding.com:3020'
       appsUri   : 'https://dev-app.koding.com'
-      sourceUri : 'http://192.168.1.244:3526'
+      sourceUri : 'http://local.koding.com:3526'
   mq            :
-    host        : '192.168.1.244'
+    host        : 'local.koding.com'
     port        : 5672
-    apiAddress  : "192.168.1.244"
+    apiAddress  : "local.koding.com"
     apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
@@ -124,7 +124,7 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : '192.168.1.244'
+    host        : 'local.koding.com'
     protocol    : 'http:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
@@ -162,7 +162,7 @@ module.exports =
     mongo         :
       host        : '127.0.0.1'
     rabbitmq      :
-      host        : '192.168.1.244'
+      host        : 'local.koding.com'
       port        : '5672'
       login       : 'guest'
       password    : 'guest'
