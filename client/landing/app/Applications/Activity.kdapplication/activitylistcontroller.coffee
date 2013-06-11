@@ -71,7 +71,6 @@ class ActivityListController extends KDListViewController
   loadView:(mainView)->
 
     @hideNoItemWidget()
-
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'feeder-header clearfix'
@@ -98,7 +97,6 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   listActivities:(activities)->
-
     activityIds = []
     for activity in activities when activity
       @addItem activity
@@ -106,18 +104,18 @@ class ActivityListController extends KDListViewController
 
     @checkIfLikedBefore activityIds
 
-    modifiedAt = activities.first.meta.createdAt
-    unless @lastItemTimeStamp > modifiedAt
-      # HACK: activity timestamp is off -200 ms on first get
-      time = new Date(modifiedAt).getTime()+1000
-      @lastItemTimeStamp = new Date(time).toISOString()
+    @lastItemTimeStamp or= Date.now()
+    
+    for obj in activities
+      objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
+      if objectTimestamp < @lastItemTimeStamp
+        @lastItemTimeStamp = objectTimestamp
 
     KD.logToMixpanel "populateActivity.success", 5
 
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-
     return @showNoItemWidget() unless cache.overview?
 
     activityIds = []
@@ -158,6 +156,7 @@ class ActivityListController extends KDListViewController
         if likeView
           likeView.likeLink.updatePartial 'Unlike'
           likeView._currentState = yes
+
   getLastItemTimeStamp: ->
 
     if item = hiddenItems.first
