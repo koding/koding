@@ -17,6 +17,7 @@ class VMMainView extends JView
         cssClass          : "vm-list"
         itemClass         : VMListItemView
 
+
     @vmListView = @vmListController.getView()
 
     @on "Clicked", (item)=>
@@ -25,24 +26,26 @@ class VMMainView extends JView
       @vmListController.selectSingleItem item
 
     @graphView = new VMDetailView
+      cssClass  : 'vm-details'
+
     @splitView = new KDSplitView
       type      : 'vertical'
       resizable : no
       sizes     : ['40%', '70%']
       views     : [@vmListView, @graphView]
 
+    @vmListController.on "ItemSelectionPerformed", (listController, {event, items})=>
+      @graphView.update items[0].data
+
     @loadItems()
 
   checkVMState:(err, vm, info)->
-    return  if not @vmList[vm]
-    if info.state is "RUNNING"
+    if not @vmList[vm]
+      @loadItems()
+    else if info.state is "RUNNING"
       @vmList[vm].updateStatus yes
     else
       @vmList[vm].updateStatus no
-
-    # if err or not info or not info.state is "RUNNING"
-    # then @vmList[vm].updateStatus no
-    # else @vmList[vm].updateStatus yes
 
   getVMInfo: (vmName, callback)->
     kc = KD.singletons.kiteController
@@ -82,7 +85,8 @@ class VMMainView extends JView
         async.parallel stack, (err, results)=>
           @vmListController.hideLazyLoader()
           unless err
-            @vmListController.instantiateListItems results
+            items = @vmListController.instantiateListItems results
+            @vmListController.selectSingleItem items[0]
 
   pistachio:->
     """
@@ -92,7 +96,25 @@ class VMMainView extends JView
 
 class VMDetailView extends KDView
   constructor: (options, data) ->
+    options.cssClass or= "vm-details"
     super options, data
+
+    @vmTitle = new KDLabelView
+      title: 'VM Name'
+
+  update: (data)->
+    @vmTitle.updateTitle data.vmName
+
+  viewAppended:()->
+    super()
+
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+      <h2>VM: {{> @vmTitle}}</h2>
+    """
 
 class VMListItemView extends KDListItemView
   constructor: (options, data) ->
