@@ -243,7 +243,7 @@ func validate(u *UserInfo) (bool, error) {
 // 	return res.RabbitKey, nil
 // }
 
-func checkWebsocket(req *http.Request) bool {
+func isWebsocket(req *http.Request) bool {
 	conn_hdr := ""
 	conn_hdrs := req.Header["Connection"]
 	if len(conn_hdrs) > 0 {
