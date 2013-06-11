@@ -47,7 +47,6 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 	}
 
 	fmt.Printf("--\nmode '%s'\t: %s %s\n", user.Domain.Proxy.Mode, user.IP, user.Country)
-	fmt.Printf("proxy from\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	return user, nil
 }
 
@@ -97,11 +96,6 @@ func (u *UserInfo) populateTarget() error {
 			go proxyDB.UpdateDomain(u.Domain)
 		case "sticky":
 			hostname = u.Domain.HostnameAlias[u.Domain.LoadBalancer.Index]
-			// sessionName := fmt.Sprintf("kodingproxy-%s-%s", u.Domain.Domain, u.IP)
-			// // We're ignoring the error resulted from decoding an existing
-			// // session: Get() always returns a session, even if empty.
-			// session, _ := store.Get(req, sessionName)
-			// _, ok := session.Values["JSESSIONID"]
 		case "default":
 			hostname = u.Domain.HostnameAlias[0]
 		}

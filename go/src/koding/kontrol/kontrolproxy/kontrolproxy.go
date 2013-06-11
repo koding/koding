@@ -191,7 +191,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var target *url.URL
+	target := user.Target
 	if user.Domain.LoadBalancer.Mode == "sticky" {
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
@@ -205,7 +205,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 		} else {
 			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
-			target = user.Target
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
