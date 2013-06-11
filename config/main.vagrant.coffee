@@ -75,6 +75,12 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  followFeed    :
+    host        : 'rabbitmq-test1.in.koding.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -187,9 +193,3 @@ module.exports =
   opsview       :
     push        : no
     host        : ''
-  followFeed    :
-    host        : 'localhost'
-    port        : 5672
-    componentUser: 'guest'
-    password    : 'guest'
-    vhost       : 'followfeed'

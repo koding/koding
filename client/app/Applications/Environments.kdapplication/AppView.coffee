@@ -1,13 +1,13 @@
 class EnvironmentsMainView extends JView
 
   tabData = [
-    name        : 'VMS'
-    viewOptions :
-      viewClass : VMMainView
-  ,
     name        : 'Domains'
     viewOptions :
       viewClass : DomainMainView
+  ,
+    name        : 'VMS'
+    viewOptions :
+      viewClass : VMMainView
   ]
 
   navData =
@@ -42,7 +42,7 @@ class EnvironmentsMainView extends JView
 
   createTabs:->
     for {name, viewOptions}, i in tabData
-      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 1
+      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 0
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()
