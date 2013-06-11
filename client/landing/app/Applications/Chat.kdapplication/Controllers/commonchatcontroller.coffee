@@ -1,9 +1,5 @@
 class CommonChatController extends KDListViewController
 
-  constructor:->
-    super
-    @me = KD.whoami()
-
   loadView:->
     super
     list = @getListView()
