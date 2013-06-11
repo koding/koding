@@ -5,6 +5,7 @@ import (
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/db"
 	"koding/virt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"math"
 	"net"
@@ -138,7 +139,20 @@ func parseDomain(host string) (*UserInfo, error) {
 	// Then make a lookup for domains
 	domain, err := proxyDB.GetDomain(host)
 	if err != nil {
-		return &UserInfo{}, fmt.Errorf("domain lookup error '%s'", err)
+		if err != mgo.ErrNotFound {
+			return &UserInfo{}, fmt.Errorf("domain lookup error '%s'", err)
+		}
+
+		// lookup didn't found anything, move on to .x.koding.com domains
+		if strings.HasSuffix(host, "x.koding.com") {
+			// hostsin form {name}-{key}.kd.io or {name}-{key}.x.koding.com is used by koding
+			subdomain := strings.TrimSuffix(host, ".x.koding.com")
+			servicename := strings.Split(subdomain, "-")[0]
+			key := strings.Split(subdomain, "-")[1]
+
+			domain := proxyconfig.NewDomain(host, "internal", "koding", servicename, key, "", []string{})
+			return NewUserInfo(domain), nil
+		}
 	}
 
 	return NewUserInfo(&domain), nil
