@@ -171,6 +171,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// redirect http to https
 	if req.TLS == nil && req.Host == "new.koding.com" {
 		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+		return
 	}
 
 	outreq := new(http.Request)
