@@ -46,7 +46,7 @@ class DomainVMListItemView extends KDListItemView
     switchStatus = if @getData().name in listViewData.vms then on else off
 
     @onOff = new KDOnOffSwitch
-      size        : 'tiny'
+      size        : 'small'
       labels      : ['CON', "DCON"]
       defaultValue: switchStatus
       callback : (state) =>
@@ -65,6 +65,7 @@ class DomainVMListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div style="width: 120px !important;">{{ #(name) }}</div>
+    <span class="vm-icon personal"></span>
+    <span class="vm-name">{{ #(name) }}</span>
     {{> @onOff }}
     """

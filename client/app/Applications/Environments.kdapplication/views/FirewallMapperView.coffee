@@ -39,13 +39,13 @@ class FirewallMapperView extends KDView
     @addSubView (new FirewallRuleFormView {}, {domain:domain})
 
     @addSubView @blockListView = new KDCustomHTMLView
-      partial: "<h3>Block List for #{domain.domain}</h3>"
+      partial: "<h3>Deny List for #{domain.domain}</h3>"
       cssClass: 'block-list-view'
 
     @blockListView.addSubView @blockListController.getView()
     
     @addSubView @whiteListView = new KDCustomHTMLView
-      partial: "<h3>White List for #{domain.domain}</h3>"
+      partial: "<h3>Allow List for #{domain.domain}</h3>"
       cssClass: 'white-list-view'
 
     @whiteListView.addSubView @whiteListController.getView()
@@ -81,31 +81,33 @@ class FirewallRuleFormView extends KDCustomHTMLView
 
     @ruleInput.unsetClass 'kdinput'
 
-    @blockListButton = new KDButtonView
-      title   : "+ Block List"
+    @denyButton = new KDButtonView
+      title   : "Deny"
       callback: =>
-        @updateDomainRules "blockList", "addToSet", @ruleInput.getValue()
+        @updateDomainRules "deny", @ruleInput.getValue()
 
-    @whiteListButton = new KDButtonView
-      title    : "+ White List"
+    @allowButton = new KDButtonView
+      title    : "Allow"
       callback : =>
-        @updateDomainRules "whiteList", "addToSet", @ruleInput.getValue()
+        @updateDomainRules "allow", @ruleInput.getValue() 
 
 
-  updateDomainRules:(field, op, value)->
-    fieldMethod = switch field
-      when "whiteList" then "updateWhiteList"
-      when "blockList" then "updateBlockList"
-    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, op, value}, (err)=>
-      if err
-        new KDNotificationView
-          type  : "top"
-          title : "An error occured while updating the #{field}. Please try again."
-      else
-        @ruleInput.setValue ""
-        new KDNotificationView
-          type  : "top"
-          title : "The #{field} is updated."
+  updateDomainRules:(mode, value)->
+    ruleName   = if value.match /[0-9+]/ then "ip" else "country"
+    domainName = @getData().domain.domain
+    
+    ruleInfo =
+      rule    : value
+      mode    : mode
+      enabled : "yes"
+      name    : ruleName
+
+    KD.remote.api.JDomain.createProxyRule
+      domainName : domainName
+      ruleInfo   : ruleInfo
+    , (response) ->
+      alert response
+
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -120,8 +122,8 @@ class FirewallRuleFormView extends KDCustomHTMLView
         {{> @ruleInput }}
       </div>
       <div style="float: left'">
-        {{> @blockListButton }}
-        {{> @whiteListButton }}
+        {{> @denyButton }}
+        {{> @allowButton }}
       </div>
     </div>
     """

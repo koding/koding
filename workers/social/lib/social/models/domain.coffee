@@ -16,7 +16,8 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       static        : ['one', 'count', 'createDomain', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId',
-                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'fetchBlockList']
+                       'isDomainAvailable','addNewDNSRecord', 'removeDNSRecord', 'registerDomain', 'createProxyRule'
+                     ]
 
     indexes         :
       domain        : 'unique'
@@ -116,7 +117,6 @@ module.exports = class JDomain extends jraphical.Module
 
       record =
         mode          : "vm"
-        username      : delegate.profile.nickname
         domainName    : params.domainName
         hostnameAlias : hostnameAlias
 
@@ -129,3 +129,7 @@ module.exports = class JDomain extends jraphical.Module
         domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
           @update {"domain":params.domainName}, {'$pull': {"hostnameAlias":hostnameAlias}}
           callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
+
+
+  @createProxyRule = secure (client, params, callback)->
+    domainManager.domainService.createProxyRule params, (response)-> callback response
