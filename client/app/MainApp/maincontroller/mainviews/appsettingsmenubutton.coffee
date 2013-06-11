@@ -26,9 +26,9 @@ class AppSettingsMenuButton extends KDButtonView
     @offset = @$().offset()
     @contextMenu = new JContextMenu
       delegate    : @
-      x           : @offset.left - 150
-      y           : @offset.top + 20
+      x           : @offset.left - 175
+      y           : @offset.top - 6
       arrow       :
-        placement : "top"
-        margin    : -5
+        placement : "right"
+        margin    : 5
     , menu
