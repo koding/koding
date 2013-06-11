@@ -22,7 +22,7 @@ func Connect() (*ProxyConfiguration, error) {
 	collections := make(map[string]*mgo.Collection)
 	collections["services"] = database.C("jProxyServices")
 	collections["proxies"] = database.C("jProxies")
-	collections["domains"] = database.C("jProxyDomains")
+	collections["domains"] = database.C("jDomains")
 	collections["rules"] = database.C("jProxyRules")
 	collections["domainstats"] = database.C("jDomainStats")
 	collections["proxystats"] = database.C("jProxyStats")
