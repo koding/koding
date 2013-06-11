@@ -222,7 +222,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	target := user.Target
-	fmt.Printf("proxy to %s\n", target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
