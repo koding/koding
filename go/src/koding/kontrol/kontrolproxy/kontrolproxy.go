@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -183,14 +184,31 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	// if connection is of type websocket, hijacking is used instead of http proxy
-	websocket := checkWebsocket(outreq)
-
 	user, err := populateUser(outreq)
 	if err != nil {
 		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
+	}
+
+	var target *url.URL
+	if user.Domain.LoadBalancer.Mode == "sticky" {
+		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
+		session, _ := store.Get(req, sessionName)
+		targetURL, ok := session.Values["GOSESSIONID"]
+		if ok {
+			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+			target, err = url.Parse(targetURL.(string))
+			if err != nil {
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+				return
+			}
+		} else {
+			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+			target = user.Target
+			session.Values["GOSESSIONID"] = target.String()
+			session.Save(outreq, rw)
+		}
 	}
 
 	if user.Redirect {
@@ -228,8 +246,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	target := user.Target
-
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
 	// target	: bar.com/base
@@ -252,8 +268,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
+	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
-	if websocket {
+	if isWebsocket(outreq) {
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)

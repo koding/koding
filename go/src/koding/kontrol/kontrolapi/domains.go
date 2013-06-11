@@ -65,7 +65,7 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 		p.Username,
 		p.Name,
 		p.Key,
-		p.Host,
+		p.FullUrl,
 		[]string{p.HostnameAlias},
 	)
 
@@ -89,7 +89,7 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 	case "internal":
 		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", p.Name, p.Key)
 	case "direct":
-		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.Host)
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.FullUrl)
 	case "vm":
 		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
 	}
@@ -135,7 +135,7 @@ func (p *ProxyPostMessage) validate() error {
 	}
 
 	if p.FullUrl == "" && p.Mode == "direct" {
-		return errors.New("Missing field 'host' is required with {'mode': 'direct}'")
+		return errors.New("Missing field 'fullUrl' is required with {'mode': 'direct}'")
 	}
 
 	if p.HostnameAlias == "" && p.Mode == "vm" {
