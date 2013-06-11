@@ -171,6 +171,8 @@ func parseDomain(host string) (*UserInfo, error) {
 			domain := proxyconfig.NewDomain(host, "internal", "koding", servicename, key, "", []string{})
 			return NewUserInfo(domain), nil
 		}
+
+		return &UserInfo{}, fmt.Errorf("domain %s is unknown.", host)
 	}
 
 	return NewUserInfo(&domain), nil
