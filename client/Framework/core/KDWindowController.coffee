@@ -262,6 +262,9 @@ class KDWindowController extends KDController
     instance.on "KDObjectWillBeDestroyed", =>
       delete @windowResizeListeners[instance.id]
 
+  unregisterWindowResizeListener:(instance)->
+    delete @windowResizeListeners[instance.id]
+
   setWindowProperties:(event)->
     @winWidth  = $(window).width()
     @winHeight = $(window).height()

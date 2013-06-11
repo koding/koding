@@ -171,6 +171,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// redirect http to https
 	if req.TLS == nil && req.Host == "new.koding.com" {
 		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+		return
+	}
+
+	// Display error when someone hits the main page
+	if hostname == req.Host {
+		io.WriteString(rw, "Hello kontrol proxy :)")
+		return
 	}
 
 	outreq := new(http.Request)
@@ -181,7 +188,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	user, err := populateUser(outreq)
 	if err != nil {
-		log.Printf("error populating user %s: %s", outreq.Host, err.Error())
+		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
 	}
@@ -222,7 +229,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	target := user.Target
-	fmt.Printf("proxy to %s\n", target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
@@ -248,7 +254,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
 	if websocket {
-		fmt.Println("connection via websocket")
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
@@ -286,12 +291,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
-		}
-
-		// Display error when someone hits the main page
-		if hostname == outreq.URL.Host {
-			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
-			return
 		}
 
 		// Remove hop-by-hop headers to the backend.  Especially

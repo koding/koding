@@ -74,6 +74,7 @@ class OwnProfileView extends JView
         {{> @avatar}}
       </span>
       {cite{ @putNick #(profile.nickname)}}
+      {div{#(onlineStatus)}}
     </div>
 
     <section>

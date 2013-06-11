@@ -89,10 +89,6 @@ module.exports =
     numberOfWorkers: 10
     watch       : no
     queueName   : socialQueueName
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -168,3 +164,9 @@ module.exports =
     interval: 60000
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a'
+  followFeed    :
+    host        : 'web-prod.in.koding.com'
+    port        : 5672
+    componentUser: 'prod-<component>'
+    password    : 'Dtxym6fRJXx4GJz'
+    vhost       : 'followfeed'
