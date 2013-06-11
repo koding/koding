@@ -17,9 +17,8 @@ class ChatConversationListItem extends KDListItemView
     @title.on 'click', @bound 'toggleConversation'
     @addSubView @title
 
-    @menu = new ConversationMenuButton {}, @getData()
-    @addSubView @menu
-    @menu.on 'DestroyConversation', @bound 'destroy'
+    @addSubView @menu = new ConversationMenuButton {}, @getData()
+    @menu.on 'DestroyConversation', => @getDelegate().removeItem @
 
     @setDragHandlers()
 
@@ -74,4 +73,3 @@ class ChatConversationListItem extends KDListItemView
   toggleConversation:->
     @conversation.toggle()
     @conversation.takeFocus()  if @conversation.isVisible()
-

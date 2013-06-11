@@ -108,9 +108,10 @@ module.exports = class JUser extends jraphical.Module
         actual      :
           type      : String
           enum      : ['invalid status',['online','offline']]
+          default   : 'online'
         userPreference:
           type      : String
-          enum      : ['invalid status',['online','offline','away','busy']]
+          # enum      : ['invalid status',['online','offline','away','busy']]
 
     relationships       :
       ownAccount        :

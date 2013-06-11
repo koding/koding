@@ -12,6 +12,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -171,19 +172,42 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// redirect http to https
 	if req.TLS == nil && req.Host == "new.koding.com" {
 		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+		return
+	}
+
+	// Display error when someone hits the main page
+	if hostname == req.Host {
+		io.WriteString(rw, "Hello kontrol proxy :)")
+		return
 	}
 
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	// if connection is of type websocket, hijacking is used instead of http proxy
-	websocket := checkWebsocket(outreq)
-
 	user, err := populateUser(outreq)
 	if err != nil {
-		log.Printf("error populating user %s: %s", outreq.Host, err.Error())
+		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
+	}
+
+	target := user.Target
+	if user.Domain.LoadBalancer.Mode == "sticky" {
+		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
+		session, _ := store.Get(req, sessionName)
+		targetURL, ok := session.Values["GOSESSIONID"]
+		if ok {
+			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+			target, err = url.Parse(targetURL.(string))
+			if err != nil {
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+				return
+			}
+		} else {
+			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+			session.Values["GOSESSIONID"] = target.String()
+			session.Save(outreq, rw)
+		}
 	}
 
 	if user.Redirect {
@@ -221,9 +245,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	target := user.Target
-	fmt.Printf("proxy to %s\n", target.Host)
-
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
 	// target	: bar.com/base
@@ -246,9 +267,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
+	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
-	if websocket {
-		fmt.Println("connection via websocket")
+	if isWebsocket(outreq) {
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
@@ -286,12 +307,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
-		}
-
-		// Display error when someone hits the main page
-		if hostname == outreq.URL.Host {
-			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
-			return
 		}
 
 		// Remove hop-by-hop headers to the backend.  Especially
