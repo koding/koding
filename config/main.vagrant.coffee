@@ -34,6 +34,8 @@ module.exports =
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -73,10 +75,12 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 1
+  followFeed    :
+    host        : 'rabbitmq-test1.in.koding.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'
   presence      :
     exchange    : 'services-presence'
   client        :
