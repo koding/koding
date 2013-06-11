@@ -77,7 +77,7 @@ class GroupsAppController extends AppController
             callback null, groupName, group
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
-
+            KD.track "Groups", "ChangeGroup", groupName
   getUserArea:->
     @userArea ?
       if KD.config.entryPoint?.type is 'group'
@@ -294,6 +294,7 @@ class GroupsAppController extends AppController
     tabs.removePane invitePane if invitePane
 
   showErrorModal:(group, err)->
+    KD.track "Groups", "GroupOpeningError", err.accessCode if err
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
@@ -347,20 +348,24 @@ class GroupsAppController extends AppController
         new KDNotificationView
           title : "An error occured, please try again"
       else
+        KD.track "Groups", "JoinedGroup", group.slug
         new KDNotificationView
           title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>
+      KD.track "Groups", "AcceptInvitation", group.slug
       mainController = KD.getSingleton "mainController"
       mainController.once "AccountChanged", callback.bind this, err, res
       mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
+    KD.track "Groups", "IgnoreInvitation", group.slug
     KD.whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
+    KD.track "Groups", "CancelInvitation", group.slug
     KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->
@@ -432,6 +437,7 @@ class GroupsAppController extends AppController
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     : (formData)=>
+          KD.track "Groups", "CreateNewGroup"
           _createGroupHandler.call @, formData, (err) =>
             modal.modalTabs.forms["VM Settings"].buttons["Create Group"].hideLoader()
             unless err
