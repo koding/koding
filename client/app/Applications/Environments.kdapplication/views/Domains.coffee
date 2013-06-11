@@ -12,17 +12,7 @@ class DomainMainView extends KDView
 
     super options, data
 
-    @domainsListViewController.on "domainItemClicked", @bound "decorateMapperView"
-
-    """
-    @getSingleton("kiteController").run
-      vmName: "koding~mengu"
-      kiteName: "os"
-      method: "exec"
-      withArgs: "sed 's/ServerName \(.*\)/ServerName www.mengu.net/g' /etc/apache2/sites-available/"
-    , (err, response) ->
-      if err then warn err
-    """
+    @domainsListViewController.on "domainItemClicked", @bound "updateMapperViews"
 
   buildView:->
     @domainsListView    = @domainsListViewController.getView()
@@ -76,13 +66,13 @@ class DomainMainView extends KDView
       name     : "Firewall"
       closable : no
 
-    
     vmMapperSubView   = @domainMapperView
     kiteMapperSubView = new KDView
       partial: 'Kites are listed here.'
     kiteMapperSubView.hide()
 
     routingContentView = new KDCustomHTMLView
+      cssClass: 'routing-view'
       partial: "Connect my domain to:"
 
     routingContentView.addSubView new KDSelectBox
@@ -119,8 +109,9 @@ class DomainMainView extends KDView
     {{> @splitView}}
     """  
 
-  decorateMapperView:(item)->
-    [@firewallMapperView, @domainMapperView].forEach (view) ->view.emit "domainChanged", item
+  updateMapperViews:(item)->
+    [@firewallMapperView, @domainMapperView].forEach (view) ->
+      view.emit "domainChanged", item
   
 
 class DomainsListItemView extends KDListItemView

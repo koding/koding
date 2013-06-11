@@ -18,36 +18,60 @@ class FirewallMapperView extends KDView
 
     @destroySubViews()
 
-    @blockListItemClass = new KDListItemView
-    @blockListItemClass.on "click", (event)->
-      console.log "block list item clicked."
-
     @blockListController = new KDListViewController
-      itemClass   : @blockListItemClass
+      itemClass   : FirewallListItemView
       viewOptions :
         cssClass  : 'block-list'
 
-    if domain and domain.blockList
-      @blockListController.instantiateListItems []
-
-    @whiteListItemClass = new KDListItemView
-    @whiteListItemClass.on "click", (event)->
-      console.lig "white list item clicked"
+    if domain.blockList
+      blockList = ({rule:item} for item in domain.blockList)
+      @blockListController.instantiateListItems blockList
 
     @whiteListController = new KDListViewController
-      itemClass   : @whiteListItemClass
+      itemClass   : FirewallListItemView
       viewOptions :
         cssClass  : 'white-list'
 
-    if domain and domain.whiteList
-      @whiteListController.instantiateListItems []
+    if domain.whiteList
+      whiteList = ({rule:item} for item in domain.whiteList)
+      @whiteListController.instantiateListItems whiteList
 
     @addSubView (new FirewallRuleFormView {}, {domain:domain})
 
+    @addSubView @blockListView = new KDCustomHTMLView
+      partial: "<h3>Block List for #{domain.domain}</h3>"
+      cssClass: 'block-list-view'
 
-class FirewallRuleFormView extends KDView
+    @blockListView.addSubView @blockListController.getView()
+    
+    @addSubView @whiteListView = new KDCustomHTMLView
+      partial: "<h3>White List for #{domain.domain}</h3>"
+      cssClass: 'white-list-view'
+
+    @whiteListView.addSubView @whiteListController.getView()
+
+
+class FirewallListItemView extends KDListItemView
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+      <table>
+        <tr>
+          <td>{{ #(rule) }}</td>
+          <td>Edit</td>
+        </tr>
+      </table>
+    """
+
+
+class FirewallRuleFormView extends KDCustomHTMLView
 
   constructor:(options={}, data)->
+    options.cssClass = "rule-form-view"
     super options, data
 
     @ruleInput = new KDInputView
@@ -60,13 +84,11 @@ class FirewallRuleFormView extends KDView
     @blockListButton = new KDButtonView
       title   : "+ Block List"
       callback: =>
-        console.log 'block listing'
         @updateDomainRules "blockList", "addToSet", @ruleInput.getValue()
 
     @whiteListButton = new KDButtonView
       title    : "+ White List"
       callback : =>
-        console.log 'white listing' 
         @updateDomainRules "whiteList", "addToSet", @ruleInput.getValue()
 
 

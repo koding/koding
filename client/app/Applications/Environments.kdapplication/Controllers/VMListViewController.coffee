@@ -1,5 +1,5 @@
 class VMListViewController extends KDListViewController
   
   constructor:(options={}, data)->
-    options.itemClass = VMListItemView
+    options.itemClass = DomainVMListItemView
     super options, data

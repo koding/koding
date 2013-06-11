@@ -968,3 +968,31 @@ module.exports = class JAccount extends jraphical.Module
   addTags: secure (client, tags, options, callback)->
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
+
+  addDomain: secure (client, domain, callback)->
+    if err then callback err
+
+    rel = new Relationship
+      targetId: domain.getId()
+      targetName: 'JDomain'
+      sourceId: @getId()
+      sourceName: 'JAccount'
+      as: 'owner'
+    
+    rel.save (err)->
+      callback err, domain
+
+  listDomains: secure (client, callback) ->
+    JDomain = require '../domain'
+    Relationship.all 
+      targetName: "JDomain"
+      sourceId  : @getId()
+      sourceName: "JAccount"
+    , (err, rels)->
+      callback err if err
+      
+      JDomain.all
+        _id:
+          $in: (rel.targetId for rel in rels)
+        , (err, domains)->
+          callback err, domains

@@ -23,7 +23,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData'
+                           'removeByName', 'someData', 'findHostnameAlias'
                           ]
       instance          : []
     schema              :
@@ -194,6 +194,11 @@ module.exports = class JVM extends Model
           return callback err  if err
           return callback new KodingError 'No such VM'  unless vm
           vm.remove callback
+
+  @findHostnameAlias = (vmName, callback)->
+    @one {name:vmName}, {hostnameAlias:1}, (err, vm)->
+      callback err if err
+      callback null, vm.hostnameAlias
 
   do ->
 
