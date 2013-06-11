@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
+	"koding/kontrol/kontrolproxy/proxyconfig"
 	"net/http"
 )
 
@@ -47,10 +48,10 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func CreateDomain(writer http.ResponseWriter, req *http.Request) {
+func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	domain := vars["domain"]
-	fmt.Printf("POST\t/domains/%s\n", domain)
+	domainname := vars["domain"]
+	fmt.Printf("POST\t/domains/%s\n", domainname)
 
 	p, err := unmarshalAndValidate(req)
 	if err != nil {
@@ -58,10 +59,29 @@ func CreateDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = proxyDB.AddDomain(domain, p.Mode, p.Username, p.Name, p.Key, p.Host)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
+	domain := proxyconfig.NewDomain(
+		domainname,
+		p.Mode,
+		p.Username,
+		p.Name,
+		p.Key,
+		p.Host,
+		[]string{p.HostnameAlias},
+	)
+
+	switch req.Method {
+	case "POST":
+		err = proxyDB.AddDomain(domain)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	case "PUT":
+		err = proxyDB.UpdateDomain(domain)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
 	}
 
 	var resp string
@@ -71,7 +91,7 @@ func CreateDomain(writer http.ResponseWriter, req *http.Request) {
 	case "direct":
 		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.Host)
 	case "vm":
-		resp = fmt.Sprintf("{\"host\":\"%s.kd.io\"}\n", p.Username)
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
 	}
 
 	io.WriteString(writer, resp)
@@ -102,8 +122,8 @@ func (p *ProxyPostMessage) validate() error {
 		return errors.New("Missing field 'mode'. Can be one of: internal, direct, vm")
 	}
 
-	if p.Username == "" && p.Mode != "direct" {
-		return errors.New("Missing field 'username' is required with {'mode': 'vm' or 'internal'}")
+	if p.Username == "" && p.Mode == "internal" {
+		return errors.New("Missing field 'username' is required with {'mode': 'internal'}")
 	}
 
 	if p.Name == "" && p.Mode == "internal" {
@@ -114,8 +134,12 @@ func (p *ProxyPostMessage) validate() error {
 		return errors.New("Missing field 'key' is required with {'mode': 'internal'}")
 	}
 
-	if p.Host == "" && p.Mode == "direct" {
+	if p.FullUrl == "" && p.Mode == "direct" {
 		return errors.New("Missing field 'host' is required with {'mode': 'direct}'")
+	}
+
+	if p.HostnameAlias == "" && p.Mode == "vm" {
+		return errors.New("Missing field 'hostnameAlias' is required with {'mode': 'vm}'")
 	}
 
 	return nil

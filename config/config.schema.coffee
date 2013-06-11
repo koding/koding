@@ -1,6 +1,6 @@
 config =
   _selfConfig :
-    defaultConfig : "dev"
+    defaultConfig : "vagrant"
   kite :
     applications :
       name              : 1
@@ -65,6 +65,8 @@ config =
     runGoBroker   : 1
     runKontrol    : 1
     runRerouting  : 1
+    runUserPresence: 1
+    runPersistence: 1
     compileGo     : 1
     buildClient   : 1
     runOsKite     : 0
@@ -108,10 +110,6 @@ config =
       watch           : 1
       queueName       : 1
       run             : 1
-    feeder        :
-      queueName   : 1
-      exchangePrefix: 1
-      numberOfWorkers: 1
     presence        :
       exchange      : 1
     client          :
@@ -191,6 +189,12 @@ config =
         vhost       : 1
     recurly         :
       apiKey        : 1
+    followFeed      :
+      host          : 1
+      port          : 1
+      componentUser : 1
+      password      : 1
+      vhost         : 1
     opsview	    :
       push	    : 1
       host          : 1

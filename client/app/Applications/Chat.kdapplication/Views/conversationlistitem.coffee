@@ -5,44 +5,39 @@ class ChatConversationListItem extends KDListItemView
     options.tagName   = "li"
     options.cssClass  = "person"
     data.invitees    ?= data.conversation.invitees
+
     super options, data
 
-    {conversation, invitees} = data
+    {conversation, @invitees} = data
     {nickname} = KD.whoami().profile
-
-    unless conversation.createdBy is nickname
-      @participant = conversation.createdBy
-    else
-      @participant = invitees.first
 
   viewAppended:->
 
-    KD.remote.cacheable @participant, (err, res)=>
-      account = res.first if res.first instanceof KD.remote.api.JAccount
-      unless account
-        throw new Error "No such user", res
+    @title = new ChatConversationListItemTitle null, @invitees
+    @title.on 'click', @bound 'toggleConversation'
+    @addSubView @title
 
-      @title = new ChatConversationListItemTitle null, account
-      @title.on 'click', @bound 'toggleConversation'
-      @addSubView @title
+    @menu = new ConversationMenuButton {}, @getData()
+    @addSubView @menu
+    @menu.on 'DestroyConversation', @bound 'destroy'
 
-      @setDragHandlers()
+    @setDragHandlers()
 
-      @conversation = new ChatConversationWidget @
-      @conversation.on 'click', @conversation.bound 'takeFocus'
+    @conversation = new ChatConversationWidget @
+    @conversation.on 'click', @conversation.bound 'takeFocus'
 
-      @conversation.messageInput.on 'moveUpRequested', =>
-        itemIndex = @getDelegate().getItemIndex @
-        @getDelegate().emit 'moveToIndexRequested', @, itemIndex - 1
-        @conversation.messageInput.setFocus()
+    @conversation.messageInput.on 'moveUpRequested', =>
+      itemIndex = @getDelegate().getItemIndex @
+      @getDelegate().emit 'moveToIndexRequested', @, itemIndex - 1
+      @conversation.messageInput.setFocus()
 
-      @conversation.messageInput.on 'moveDownRequested', =>
-        itemIndex = @getDelegate().getItemIndex @
-        @getDelegate().emit 'moveToIndexRequested', @, itemIndex + 1
-        @conversation.messageInput.setFocus()
+    @conversation.messageInput.on 'moveDownRequested', =>
+      itemIndex = @getDelegate().getItemIndex @
+      @getDelegate().emit 'moveToIndexRequested', @, itemIndex + 1
+      @conversation.messageInput.setFocus()
 
-      @conversationWasOpen = no
-      @addSubView @conversation
+    @conversationWasOpen = no
+    @addSubView @conversation
 
   setDragHandlers:->
 
@@ -70,7 +65,7 @@ class ChatConversationListItem extends KDListItemView
         @getDelegate().emit 'moveToIndexRequested', @, newIndex
 
       @setEmptyDragState yes
-      @conversation.expand() if @conversationWasOpen
+      @conversation.expand()  if @conversationWasOpen
 
     @setDraggable
       handle : @title
@@ -78,5 +73,5 @@ class ChatConversationListItem extends KDListItemView
 
   toggleConversation:->
     @conversation.toggle()
-    @conversation.takeFocus() if @conversation.isVisible()
+    @conversation.takeFocus()  if @conversation.isVisible()
 

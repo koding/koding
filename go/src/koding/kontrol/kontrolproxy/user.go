@@ -5,6 +5,7 @@ import (
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/db"
 	"koding/virt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"math"
 	"net"
@@ -45,7 +46,8 @@ func populateUser(outreq *http.Request) (*UserInfo, error) {
 		return nil, err
 	}
 
-	fmt.Printf("--\nconnected user information %v\n", user)
+	fmt.Printf("--\nmode '%s'\t: %s %s\n", user.Domain.Proxy.Mode, user.IP, user.Country)
+	fmt.Printf("proxy from\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	return user, nil
 }
 
@@ -70,10 +72,11 @@ func (u *UserInfo) populateCountry(host string) {
 
 func (u *UserInfo) populateTarget() error {
 	var err error
+	var hostname string
+
 	username := u.Domain.Proxy.Username
 	servicename := u.Domain.Proxy.Servicename
 	key := u.Domain.Proxy.Key
-	hostnameAlias := u.Domain.HostnameAlias[0]
 	fullurl := u.Domain.Proxy.FullUrl
 
 	switch u.Domain.Proxy.Mode {
@@ -84,9 +87,27 @@ func (u *UserInfo) populateTarget() error {
 		}
 		return nil
 	case "vm":
-		var vm virt.VM
+		switch u.Domain.LoadBalancer.Mode {
+		case "roundrobin":
+			N := float64(len(u.Domain.HostnameAlias))
+			n := int(math.Mod(float64(u.Domain.LoadBalancer.Index+1), N))
+			hostname = u.Domain.HostnameAlias[n]
 
-		if err := db.VMs.Find(bson.M{"hostnameAlias": hostnameAlias}).One(&vm); err != nil {
+			u.Domain.LoadBalancer.Index = n
+			go proxyDB.UpdateDomain(u.Domain)
+		case "sticky":
+			hostname = u.Domain.HostnameAlias[u.Domain.LoadBalancer.Index]
+			// sessionName := fmt.Sprintf("kodingproxy-%s-%s", u.Domain.Domain, u.IP)
+			// // We're ignoring the error resulted from decoding an existing
+			// // session: Get() always returns a session, even if empty.
+			// session, _ := store.Get(req, sessionName)
+			// _, ok := session.Values["JSESSIONID"]
+		case "default":
+			hostname = u.Domain.HostnameAlias[0]
+		}
+
+		var vm virt.VM
+		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
 			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
 			u.Redirect = true
 			return nil
@@ -111,7 +132,6 @@ func (u *UserInfo) populateTarget() error {
 		return fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
 	}
 
-	var hostname string
 	switch keyData.Mode {
 	case "roundrobin":
 		N := float64(len(keyData.Host))
@@ -138,7 +158,22 @@ func parseDomain(host string) (*UserInfo, error) {
 	// Then make a lookup for domains
 	domain, err := proxyDB.GetDomain(host)
 	if err != nil {
-		return &UserInfo{}, fmt.Errorf("domain lookup error '%s'", err)
+		if err != mgo.ErrNotFound {
+			return &UserInfo{}, fmt.Errorf("domain lookup error '%s'", err)
+		}
+
+		// lookup didn't found anything, move on to .x.koding.com domains
+		if strings.HasSuffix(host, "x.koding.com") {
+			// hostsin form {name}-{key}.kd.io or {name}-{key}.x.koding.com is used by koding
+			subdomain := strings.TrimSuffix(host, ".x.koding.com")
+			servicename := strings.Split(subdomain, "-")[0]
+			key := strings.Split(subdomain, "-")[1]
+
+			domain := proxyconfig.NewDomain(host, "internal", "koding", servicename, key, "", []string{})
+			return NewUserInfo(domain), nil
+		}
+
+		return &UserInfo{}, fmt.Errorf("domain %s is unknown.", host)
 	}
 
 	return NewUserInfo(&domain), nil

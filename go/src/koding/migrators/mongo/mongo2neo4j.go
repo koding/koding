@@ -167,7 +167,6 @@ func checkIfEligible(sourceName, targetName string) bool {
 			log.Debug("not eligible " + name)
 			return false
 		}
-
 	}
 
 	return true

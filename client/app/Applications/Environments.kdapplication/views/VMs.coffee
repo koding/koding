@@ -24,28 +24,25 @@ class VMMainView extends JView
       @vmListController.deselectAllItems()
       @vmListController.selectSingleItem item
 
-    @on "State", (item, state)=>
-      cmd = if state then 'vm.start' else 'vm.stop'
-      kc = KD.singletons.kiteController
-      kc.run
-        kiteName  : 'os',
-        vmName    : item.data.name,
-        method    : cmd
-
     @graphView = new VMDetailView
     @splitView = new KDSplitView
       type      : 'vertical'
       resizable : no
-      sizes     : ['30%', '70%']
+      sizes     : ['40%', '70%']
       views     : [@vmListView, @graphView]
 
     @loadItems()
 
   checkVMState:(err, vm, info)->
     return  if not @vmList[vm]
-    if err or not info or not info.state is "RUNNING"
-    then @vmList[vm].updateStatus no
-    else @vmList[vm].updateStatus yes
+    if info.state is "RUNNING"
+      @vmList[vm].updateStatus yes
+    else
+      @vmList[vm].updateStatus no
+
+    # if err or not info or not info.state is "RUNNING"
+    # then @vmList[vm].updateStatus no
+    # else @vmList[vm].updateStatus yes
 
   getVMInfo: (vmName, callback)->
     kc = KD.singletons.kiteController

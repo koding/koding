@@ -33,7 +33,9 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
-  runRerouting  : no
+  runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -82,10 +84,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -172,3 +170,9 @@ module.exports =
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+  followFeed    :
+    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'

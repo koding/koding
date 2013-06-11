@@ -22,6 +22,7 @@ func GetConnection() *mgo.Session {
 		if err != nil {
 			fmt.Println(err)
 		}
+		MONGO_CONNECTION.SetSafe(&mgo.Safe{})
 		fmt.Println("connection established")
 	}
 	return MONGO_CONNECTION

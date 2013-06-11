@@ -24,54 +24,141 @@ chatTextColor = #000
         border            1px solid rgba(255,0,0,.35)
         border-radius     2px
 
+.main-chat-handler
+
+  top                     27px
+  right                   -88px
+  z-index                 4
+  size                    88px, 18px
+  cursor                  pointer
+  font-size               12px
+
+  opacity                 .4
+  padding-top             5px
+  padding-left            24px
+
+  color                   white
+  vendor                  transition, right .3s ease\, opacity .3s ease
+
+  abs()
+
+  &:hover
+    right                 0
+    opacity               .7
+
+  cite
+    top                   2px
+    left                  2px
+    size                  20px, 20px
+    cursor                pointer
+    bg                    position, -180px -620px
+    sprite()
+    abs()
+
+  &.visible
+    opacity               1
+
 .main-chat-panel
-  top                     0
+  top                     51px
   z-index                 102
   right                   -260px
   background              white
-  border-left             1px solid #999
-  padding-top             2px
   width                   250px
-  overflow                auto  !important
-  vendor                  transition, right .2s ease-in
+  vendor                  transition, right .4s\, opacity .3s
+  box-shadow              0 0 16px rgba(0,0,0,.2)
+  overflow-y              scroll
+  opacity                 0
   abs()
 
   &.visible
     right                 0
+    opacity               1
+
+    &.inbox-mode
+      vendor              transition, none
+
+  .main-chat-header
+    height               77px
+
+  .chat-header
+    height                auto
+    padding               17px
+    border-bottom         1px solid #eee
+    font-weight           bold
+
+  .view-changer
+  .panel-pinner
+  .conversation-starter
+    right                 14px
+    size                  22px, 22px
+    top                   28px
+    border-radius         30px
+    padding               0 0 0 4px
+    abs()
+
+  .panel-pinner
+  .view-changer
+    padding               0 !important
+
+  .panel-pinner
+    left                  4px
+    z-index               4
+    background            none
+    border                none
 
 ul.chat-list
   margin                  0
   padding                 0
-  overflow                visible
   min-height              100%
+  overflow-y              scroll
+  width                   250px !important
+  border-right            1px solid #eee
+
+  div.chat-item
+    width                 215px
+    margin-bottom         8px
+    span
+      color               #333
+
+    &.multiple
+      div.right-overflow
+        margin-top        2px
 
   li.person
+    padding               7px
+    padding-bottom        0px
     height                auto
-    border-bottom         1px solid #e0e0df
+    background-color      white
     font-size             82%
     borderBox()
+    border-bottom         1px solid #eee !important
 
     &.unread
       background          rgba(250, 239, 223, .5)
       border-left         3px solid #ff9200
 
-    &:last-child
-      border-bottom       1px solid #e0e0df !important
+    button.conversation-menu
+      // display             none
+      right               14px
+      top                 13px
+      width               22px !important
+      height              22px
+      border-radius       40px !important
+      padding             0px 3px 0px 4px !important
+      abs()
 
     div.avatar-wrapper
       padding             1px
-      border              1px solid #e3e3e3
-      border-top          none
-      border-bottom       none
       margin-right        11px
       size                30px,30px
 
-    a.avatar
+    a.avatarview
       size                30px,30px
+      border-radius       40px
 
     div.right-overflow
       cursor              pointer
-      margin-top          8px
+      margin-top          9px
       p
         color             #393939
         font-size         11px
@@ -115,6 +202,7 @@ ul.chat-list
       &.ready
         height            240px
         border-top        1px solid #e0e0df
+        margin-bottom     7px
 
       input
         left              0
@@ -131,8 +219,10 @@ ul.chat-list
       margin-bottom       2px
 
     &:hover
-      bg                  color,rgba(255,255,255,.65)
-      shadow              0 0 4px 0 rgba(0,0,0,.17)
+      // bg                  color,rgba(255,255,255,.65)
+      // shadow              0 0 4px 0 rgba(0,0,0,.17)
+      // button.conversation-menu
+      //   display           block
       .delete-link
         opacity           .5
         &:hover
@@ -153,26 +243,50 @@ ul.chat-list
       vendor              transition, opacity .15s linear
       sprite()
 
-
 ul.chat-conversation
-  background-color
   max-height              210px
   min-height              210px
-  box-shadow              0 0 10px rgba(0,0,0,0.3) inset
   overflow-y              auto
   padding                 4px
 
   li.message
     padding               4px
     border                1px solid rgba(0,0,0,0.03)
-    width                 233px
-    background-color      rgba(253, 243, 0, .29)
-    border-radius         4px
+    width                 217px
+    background-color      rgba(246, 162, 32, 0.2)
+    border-radius         2px
     margin-bottom         4px
 
     &.mine
       text-align          right
-      background-color    rgba(0, 255, 0, .1)
+      background-color    rgba(78, 171, 238, 0.1)
 
   &:last-child
     border                1px solid rgba(0,0,0,0.03) !important
+
+.conversation-starter-popup
+  padding                 2px 2px 2px 6px
+
+  div.completed-items
+    padding               5px 4px 5px 4px
+    margin-left           -6px
+    margin-top            6px
+    margin-bottom         6px
+    background-color      rgba(236, 244, 249, 0.6)
+    border-top            1px solid rgba(67, 155, 219, 0.2)
+    border-bottom         1px solid rgba(67, 155, 219, 0.2)
+
+    .kdautocompletedlistitem
+      margin              2px 0 0 2px
+      padding             3px 14px 0 3px
+      line-height         16px
+      height              19px
+
+      .profile
+        padding-left      4px
+
+  button.create-conversation
+    height                21px
+    padding-top           3px
+    margin-right          13px
+    left                  17px
