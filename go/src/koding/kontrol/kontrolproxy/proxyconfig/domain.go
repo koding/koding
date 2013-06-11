@@ -1,6 +1,8 @@
 package proxyconfig
 
 import (
+	"fmt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
@@ -86,7 +88,7 @@ type ProxyTable struct {
 	FullUrl string `bson:"fullurl" json:"fullUrl,omitempty"`
 }
 
-// NewDomain returns a new Domain using the provided arguments. A new unique
+// NewProxyTable returns a new Domain using the provided arguments. A new unique
 // ObjectId is created automatically whenever a new Domain is created.
 func NewProxyTable(mode, username, servicename, key, fullurl string) *ProxyTable {
 	return &ProxyTable{
@@ -100,11 +102,12 @@ func NewProxyTable(mode, username, servicename, key, fullurl string) *ProxyTable
 
 // NewDomain returns a new Domain using the provided arguments. A new unique
 // ObjectId is created automatically whenever a new Domain is created.
-func NewDomain(domainname, mode, username, servicename, key, fullurl string) *Domain {
+func NewDomain(domainname, mode, username, servicename, key, fullurl string, hostnames []string) *Domain {
 	return &Domain{
-		Id:     bson.NewObjectId(),
-		Domain: domainname,
-		Proxy:  NewProxyTable(mode, username, servicename, key, fullurl),
+		Id:            bson.NewObjectId(),
+		Domain:        domainname,
+		HostnameAlias: hostnames,
+		Proxy:         NewProxyTable(mode, username, servicename, key, fullurl),
 	}
 }
 
@@ -112,10 +115,47 @@ func NewDomain(domainname, mode, username, servicename, key, fullurl string) *Do
 // available it updates the old document with the new arguments (except
 // domainname). If not available it adds a new document with the given
 // arguments.
-func (p *ProxyConfiguration) AddDomain(domainname, mode, username, servicename, key, fullurl string) error {
-	domain := *NewDomain(domainname, mode, username, servicename, key, fullurl)
-	_, err := p.Collection["domains"].Upsert(bson.M{"domainname": domainname}, domain)
+func (p *ProxyConfiguration) AddDomain(d *Domain) error {
+	_, err := p.Collection["domains"].Upsert(bson.M{"domain": d.Domain}, d)
 	if err != nil {
+		fmt.Println("AddDomain error", err)
+		return fmt.Errorf("domain %s exists already", d.Domain)
+	}
+	return nil
+}
+
+// UpdateDomain updates an already avalaible domain document. If not available
+// it returns an error
+func (p *ProxyConfiguration) UpdateDomain(d *Domain) error {
+	domain, err := p.GetDomain(d.Domain)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return fmt.Errorf("domain %s does not exist", d.Domain)
+		}
+		return err
+	}
+
+	hostnames := domain.HostnameAlias
+
+	hasHostname := false
+	for _, hostname := range hostnames {
+		if hostname == d.HostnameAlias[0] {
+			hasHostname = true // don't append an already added host
+			break
+		}
+	}
+
+	if !hasHostname {
+		domain.HostnameAlias = append(domain.HostnameAlias, d.HostnameAlias[0])
+	}
+
+	domain.Proxy = d.Proxy
+
+	err = p.Collection["domains"].Update(bson.M{"domain": d.Domain}, domain)
+	if err != nil {
+		if err == mgo.ErrNotFound {
+			return fmt.Errorf("domain %s does not exist.", d.Domain)
+		}
 		return err
 	}
 	return nil
@@ -123,7 +163,7 @@ func (p *ProxyConfiguration) AddDomain(domainname, mode, username, servicename, 
 
 // DeleteDomain deletes the document with the given "domainname" argument.
 func (p *ProxyConfiguration) DeleteDomain(domainname string) error {
-	err := p.Collection["domains"].Remove(bson.M{"domainname": domainname})
+	err := p.Collection["domains"].Remove(bson.M{"domain": domainname})
 	if err != nil {
 		return err
 	}
@@ -134,7 +174,7 @@ func (p *ProxyConfiguration) DeleteDomain(domainname string) error {
 // argument.
 func (p *ProxyConfiguration) GetDomain(domainname string) (Domain, error) {
 	domain := Domain{}
-	err := p.Collection["domains"].Find(bson.M{"domainname": domainname}).One(&domain)
+	err := p.Collection["domains"].Find(bson.M{"domain": domainname}).One(&domain)
 	if err != nil {
 		return domain, err
 	}

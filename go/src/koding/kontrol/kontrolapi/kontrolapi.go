@@ -13,15 +13,17 @@ import (
 )
 
 type ProxyPostMessage struct {
-	Name         string
-	Username     string
-	Domain       string
-	Mode         string
-	CurrentIndex string
-	Key          string
-	RabbitKey    string
-	Host         string
-	Hostdata     string
+	Name          string
+	Username      string
+	Domain        string
+	Mode          string
+	CurrentIndex  string
+	Key           string
+	RabbitKey     string
+	Host          string
+	HostnameAlias string
+	FullUrl       string
+	Hostdata      string
 }
 
 var clientDB *clientconfig.ClientConfig
@@ -86,7 +88,7 @@ func main() {
 	// Domain handlers
 	rout.HandleFunc("/domains", GetDomains).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", GetDomain).Methods("GET")
-	rout.HandleFunc("/domains/{domain}", CreateDomain).Methods("POST")
+	rout.HandleFunc("/domains/{domain}", CreateOrUpdateDomain).Methods("POST", "PUT")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
 	// Rule handlers
