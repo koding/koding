@@ -63,7 +63,7 @@ class NewCommentForm extends KDView
     @resetCommentField()  if @commentInput.getValue() is ""
 
   commentInputReceivedEnter:(instance,event)->
-    KD.requireLogin
+    KD.requireMembership
       callback  : =>
         reply = @commentInput.getValue()
         @commentInput.setValue ''
@@ -72,3 +72,4 @@ class NewCommentForm extends KDView
         @getDelegate().emit 'CommentSubmitted', reply
       onFailMsg : "Login required to post a comment!"
       tryAgain  : yes
+      groupName : @getDelegate().getData().group
