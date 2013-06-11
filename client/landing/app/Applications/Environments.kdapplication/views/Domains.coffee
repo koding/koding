@@ -34,6 +34,7 @@ class DomainMainView extends KDView
     @buildTabs()
 
     @splitView = new KDSplitView
+      cssClass  : 'split-border'
       type      : "vertical"
       resizable : no
       sizes     : ["10%", "90%"]

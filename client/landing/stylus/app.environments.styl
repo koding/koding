@@ -23,6 +23,9 @@ app.environments.styl
 .kdaccpaneviewcontent
   padding    10px
 
+.split-border
+  border-right    4px solid #ddd
+
 .routing-view
   padding    10px
 
@@ -65,6 +68,35 @@ app.environments.styl
         top            10px
         left           50px
         abs()
+
+  .domain-vm-item
+
+    padding    5px
+
+    .vm-name
+      font-weight    bold
+      color          #fe9600
+      left           35px
+      abs()
+
+    .on-off
+      left      35px
+      bottom    3px
+      abs()
+
+
+    .vm-icon
+      top            1px
+      left           0px
+      width          30px
+      height         30px
+      abs()
+
+    .personal
+      sprite()
+      bg position,   -360px -390px
+
+
 
   .vm-list
     .selected
