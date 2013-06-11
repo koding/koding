@@ -12,7 +12,7 @@ class DomainsListViewController extends KDListViewController
       @emit "domainItemClicked", item
 
   loadItems:->
-    KD.remote.api.JDomain.findByAccount {owner:KD.whoami().getId()}, (err, domains) =>
+    KD.whoami().listDomains (err, domains) =>
       if err
         @instantiateListItems []
       unless err

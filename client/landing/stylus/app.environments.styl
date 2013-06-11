@@ -23,6 +23,12 @@ app.environments.styl
 .kdaccpaneviewcontent
   padding    10px
 
+.routing-view
+  padding    10px
+
+.domain-mapper-view
+  padding    10px
+
 .environments.content-area-pane
   .application-page
     padding            0
@@ -34,7 +40,31 @@ app.environments.styl
 
   .domain-list
     .selected
-      bg               color, #ddd
+      bg               color, #eee
+
+    .domain-item
+      cursor           pointer
+      height           35px
+      width            100%
+      margin           1px
+
+      .domain-icon
+        top            6px
+        left           7px
+        width          30px
+        height         30px
+        abs()
+
+      .link
+        sprite()
+        bg position,   -626px -565px
+
+      .domain-title
+        font-weight    bold
+        color          #ff9600
+        top            10px
+        left           50px
+        abs()
 
   .vm-list
     .selected
@@ -60,10 +90,6 @@ app.environments.styl
       .personal
         sprite()
         bg position,   -360px -390px
-
-      .link
-        sprite()
-        bg position,   -626px -565px
 
       .vm-title
         font-weight    bold
@@ -95,3 +121,7 @@ app.environments.styl
         top            15px
         right          3px
         abs()
+
+  .domain-vm-item
+    padding   5px
+    height    40px
