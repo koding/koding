@@ -69,8 +69,8 @@ class VirtualizationController extends KDController
     if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}"
     else currentGroup
 
-  createGroupVM:(type='personal', callback)->
-    defaultVMOptions = {cpu : 1, disk : 1, ram : 1}
+  createGroupVM:(type='personal', cpuSize, callback)->
+    defaultVMOptions = {cpu : cpuSize, disk : 1, ram : 1}
     group = KD.singletons.groupsController.getCurrentGroup()
 
     group.fetchBundle (err, bundle)->
@@ -115,7 +115,9 @@ class VirtualizationController extends KDController
     
 
     # Take this to a better place, possibly to payment controller.
-    makePayment = (type, planCode, callback)->
+    makePayment = (type, plan, callback)->
+      planCode = plan.code
+      cpuSize  = plan.item.meta.cpu
       if type is 'shared'
         group = KD.singletons.groupsController.getCurrentGroup()
         group.checkPayment (err, payments)->
@@ -139,7 +141,7 @@ class VirtualizationController extends KDController
                   if err
                     onError err
                   else
-                    vmController.createGroupVM type, vmCreateCallback
+                    vmController.createGroupVM type, cpuSize, vmCreateCallback
                     onSuccess()
                     callback()
               paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
@@ -152,7 +154,7 @@ class VirtualizationController extends KDController
           KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
             plan.subscribe {}, (err, subscription)->
               return cb err  if cb and err
-              vmController.createGroupVM type, vmCreateCallback
+              vmController.createGroupVM type, cpuSize, vmCreateCallback
               cb?()
         KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
           if err
@@ -176,7 +178,7 @@ class VirtualizationController extends KDController
       else
         KD.singletons.finderController.mountVm vm.name
         vmController.emit 'VMListChanged'
-      paymentModal.destroy()
+      paymentModal?.destroy()
 
     group = KD.singletons.groupsController.getGroupSlug()
 
@@ -221,7 +223,7 @@ class VirtualizationController extends KDController
                 form                = modal.modalTabs.forms["Create VM"]
                 {personal, shared}  = form.buttons
 
-                makePayment formData.type, @paymentPlans[formData.host].code, ->
+                makePayment formData.type, @paymentPlans[formData.host], ->
                   modal.destroy()
               buttons               :
                 personal            :
