@@ -132,6 +132,7 @@ class ActivityLinkWidget extends KDFormView
 
     @once "FormValidationPassed", => @reset()
     super
+    KD.track "Activity", "LinkSubmitted"
 
   reset:->
 

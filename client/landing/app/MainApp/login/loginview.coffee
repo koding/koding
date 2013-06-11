@@ -63,24 +63,33 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
+        KD.track "Login", "SignInButtonClicked"
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doRegister formData
+      callback : (formData)=>
+        @doRegister formData
+        KD.track "Login", "RegisterButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doRecover formData
+      callback : (formData)=>
+        @doRecover formData
+        KD.track "Login", "RecoverButtonClicked"
+
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
+        KD.track "Login", "ResetButtonClicked"
 
     @requestForm = new RequestInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doRequest formData
+      callback : (formData)=>
+        @doRequest formData
+        KD.track "Login", "RequestButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
