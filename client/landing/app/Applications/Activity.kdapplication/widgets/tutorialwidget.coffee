@@ -165,7 +165,7 @@ class ActivityTutorialWidget extends KDFormView
       }
 
     super
-
+    KD.track "Activity", "TutorialSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 

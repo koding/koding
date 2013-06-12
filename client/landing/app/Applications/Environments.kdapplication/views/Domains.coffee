@@ -108,7 +108,7 @@ class DomainMainView extends KDView
     {{> @refreshDomainsButton}}
     </div>
     {{> @splitView}}
-    """  
+    """
 
   updateMapperViews:(item)->
     [@firewallMapperView, @domainMapperView].forEach (view) ->
@@ -124,7 +124,6 @@ class DomainsListItemView extends KDListItemView
   click: (event)->
     listView = @getDelegate()
     listView.emit "domainsListItemViewClicked", this
-    
 
   viewAppended:->
     @setTemplate @pistachio()

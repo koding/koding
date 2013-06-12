@@ -811,6 +811,7 @@ class ActivityCodeShareWidget extends KDFormView
       ,8000
 
     super
+    KD.track "Activity", "CodeShareSubmitted"
 
   reset:->
     @submitBtn.setTitle "Post your Code Share"
