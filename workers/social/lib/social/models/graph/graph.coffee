@@ -116,7 +116,6 @@ module.exports = class Graph
         order by content.`meta.createdAtEpoch` DESC
         limit 20
       """
-    console.log query
 
     @db.query query, {}, (err, results)=>
       tempRes = []
@@ -138,7 +137,6 @@ module.exports = class Graph
           if groupName == "koding"
             @removePrivateContent  groupId, tempRes, callback
           else
-            console.log tempRes.length()
             callback null, tempRes
         resultData = ( result.content.data for result in results)
         objectify resultData, (objecteds)->
@@ -154,10 +152,7 @@ module.exports = class Graph
       order by koding.`meta.createdAtEpoch` DESC
     """
 
-    params =
-      itemId : itemId
-
-    @db.query query, params, (err, results) ->
+    @db.query query, {}, (err, results) ->
       if err then throw err
       resultData = []
       for result in results
@@ -183,7 +178,7 @@ module.exports = class Graph
       MATCH kd-[:member]->users<-[r:user]-koding
       WHERE koding.name="JApp"
       and r.createdAtEpoch < #{startDate}
-      return *
+      return users, koding, r
       order by r.createdAtEpoch DESC
       limit 20
       """
@@ -229,7 +224,7 @@ module.exports = class Graph
           callback err, objected
 
   fetchMemberFollows:(group, startDate, callback)->
-    {groupId, groupName} = group
+    {groupId} = group
     #followers
     query = """
       start koding=node:koding("id:#{groupId}")
