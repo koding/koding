@@ -276,6 +276,7 @@ class KodingAppsController extends KDController
     notification = new KDNotificationView
       overlay       :
         transparent : no
+        destroyOnClick: no
       loader        :
         color       : "#ffffff"
       title         : "Please wait while we are publishing your app..."
