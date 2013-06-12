@@ -214,7 +214,7 @@ class AdminModal extends KDModalViewWithForms
                     content   : inputs.Description.getValue()
                     type      : inputs.Type.getValue()
                   , ->
-                    buttons["Broadcast"].hideLoader()
+                    buttons["Broadcast Message"].hideLoader()
 
               "Cancel Restart":
                 title         : "Cancel Restart"

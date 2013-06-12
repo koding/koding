@@ -17,11 +17,11 @@ func GetConnection() *mgo.Session {
 	if MONGO_CONNECTION == nil {
 		// connnect to mongo
 		var err error
-		fmt.Println(MONGO_CONN_STRING)
 		MONGO_CONNECTION, err = mgo.Dial(MONGO_CONN_STRING)
 		if err != nil {
 			fmt.Println(err)
 		}
+		MONGO_CONNECTION.SetSafe(&mgo.Safe{})
 		fmt.Println("connection established")
 	}
 	return MONGO_CONNECTION

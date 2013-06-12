@@ -99,28 +99,6 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           default           : ''
         description         : String
-        handles             :
-          twitter           : String
-          github            : String
-        staticPage          :
-          show              :
-            type            : Boolean
-            default         : yes
-          showTypes         : [String]
-          title             : String
-          about             : String
-          # backgrounds       : [String]
-          customize         :
-            background       :
-              customImages    : [String]
-              customType      :
-                type          : String
-                default       : 'defaultImage'
-                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
-              customValue     :
-                type          : String
-                default       : '1'
-              customOptions   : Object
         avatar              : String
         status              : String
         experience          : String
@@ -130,6 +108,11 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
+      onlineStatus          :
+        type                : String
+        enum                : ['invalid status',['online','offline','away','busy']]
+        default             : 'online'
+
     relationships           : ->
       JPrivateMessage = require '../messages/privatemessage'
 
@@ -172,6 +155,10 @@ module.exports = class JAccount extends jraphical.Module
       vm            :
         as          : 'owner'
         targetType  : 'JVM'
+
+      domain        :
+        as          : 'owner'
+        targetType  : 'JDomain'
 
   constructor:->
     super
@@ -930,6 +917,21 @@ module.exports = class JAccount extends jraphical.Module
   #         callback client
   #   else
   #     callback client
+
+  fetchFollowersFromNeo4j:(options={}, callback)->
+      # returns accounts that follow this account
+      query =
+        """
+        start  koding=node:koding(id='#{@getId()}')
+        MATCH koding-[:follower]->followers
+        where followers.name="JAccount
+        return followers
+        """
+
+      options['resultsKey'] = 'followers'
+      Graph          = require "../graph/graph"
+      graph = new Graph(config:KONFIG['neo4j'])
+      graph.fetchFromNeo4j(query, options, callback)
 
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->

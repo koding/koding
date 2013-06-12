@@ -46,6 +46,10 @@ type Config struct {
 		Token    string
 		Interval int
 	}
+	Opsview struct {
+		Push bool
+		Host string
+	}
 	Kontrold struct {
 		Api struct {
 			Port int
@@ -53,7 +57,7 @@ type Config struct {
 		Proxy struct {
 			Port    int
 			PortSSL int
-			SSLIPS	string
+			SSLIPS  string
 		}
 		Mongo struct {
 			Host string
@@ -65,6 +69,13 @@ type Config struct {
 			Password string
 			Vhost    string
 		}
+	}
+	FollowFeed struct {
+		Host          string
+		Port          int
+		ComponentUser string
+		Password      string
+		Vhost         string
 	}
 }
 

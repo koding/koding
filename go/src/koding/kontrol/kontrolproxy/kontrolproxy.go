@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/bradfitz/gomemcache/memcache"
+	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
+	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
@@ -11,9 +12,10 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
+	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -29,9 +31,9 @@ var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
 var connections map[string]RabbitChannel
 var geoIP *libgeo.GeoIP
-var memCache *memcache.Client
-
-var uuid = kontrolhelper.CustomHostname()
+var hostname = kontrolhelper.CustomHostname()
+var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
+var templates = template.Must(template.ParseFiles("go/templates//proxy/securepage.html"))
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -44,12 +46,10 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	err = proxyDB.AddProxy(uuid)
+	err = proxyDB.AddProxy(hostname)
 	if err != nil {
 		log.Println(err)
 	}
-
-	memCache = memcache.New("127.0.0.1:11211") // used for vm lookup
 
 	// load GeoIP db into memory
 	dbFile := "GeoIP.dat"
@@ -169,38 +169,97 @@ var hopHeaders = []string{
 }
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	// redirect http to https
 	if req.TLS == nil && req.Host == "new.koding.com" {
 		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+		return
+	}
+
+	// Display error when someone hits the main page
+	if hostname == req.Host {
+		io.WriteString(rw, "Hello kontrol proxy :)")
+		return
 	}
 
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	websocket := checkWebsocket(outreq)
-
 	user, err := populateUser(outreq)
 	if err != nil {
-		log.Printf("error populating user %s: %s", outreq.Host, err.Error())
+		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		return
+	}
+
+	target := user.Target
+	if user.Domain.LoadBalancer.Mode == "sticky" {
+		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
+		session, _ := store.Get(req, sessionName)
+		targetURL, ok := session.Values["GOSESSIONID"]
+		if ok {
+			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+			target, err = url.Parse(targetURL.(string))
+			if err != nil {
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+				return
+			}
+		} else {
+			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+			session.Values["GOSESSIONID"] = target.String()
+			session.Save(outreq, rw)
+		}
 	}
 
 	if user.Redirect {
 		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
 	}
-	target := user.Target
-	fmt.Printf("proxy to %s\n", target.Host)
 
-	// Reverseproxy.Director closure
-	targetQuery := target.RawQuery
+	_, err = validate(user)
+	if err != nil {
+		if err == ErrSecurePage {
+			sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
+			// We're ignoring the error resulted from decoding an existing
+			// session: Get() always returns a session, even if empty.
+			session, _ := store.Get(req, sessionName)
+
+			// Timeout for secure page. After timeout secure page is showed
+			// again to the user
+			session.Options = &sessions.Options{MaxAge: 20} //seconds
+
+			_, ok := session.Values["securePage"]
+			if !ok {
+				session.Values["securePage"] = time.Now().String()
+				session.Save(req, rw)
+				err := templates.ExecuteTemplate(rw, "securepage.html", user)
+				if err != nil {
+					http.Error(rw, err.Error(), http.StatusInternalServerError)
+				}
+				return
+			}
+		} else {
+			log.Printf("error validating user %s: %s", user.IP, err.Error())
+			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+			return
+
+		}
+	}
+
+	// Smart handling incoming request path/query, example:
+	// incoming : foo.com/dir
+	// target	: bar.com/base
+	// proxy to : bar.com/base/dir
 	outreq.URL.Scheme = target.Scheme
 	outreq.URL.Host = target.Host
 	outreq.URL.Path = singleJoiningSlash(target.Path, outreq.URL.Path)
-	if targetQuery == "" || outreq.URL.RawQuery == "" {
-		outreq.URL.RawQuery = targetQuery + outreq.URL.RawQuery
+
+	// incoming : foo.com/name=arslan
+	// target	: bar.com/q=example
+	// proxy to : bar.com/q=example&name=arslan
+	if target.RawQuery == "" || outreq.URL.RawQuery == "" {
+		outreq.URL.RawQuery = target.RawQuery + outreq.URL.RawQuery
 	} else {
-		outreq.URL.RawQuery = targetQuery + "&" + outreq.URL.RawQuery
+		outreq.URL.RawQuery = target.RawQuery + "&" + outreq.URL.RawQuery
 	}
 
 	outreq.Proto = "HTTP/1.1"
@@ -208,9 +267,9 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
+	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
-	if websocket {
-		fmt.Println("connection via websocket")
+	if isWebsocket(outreq) {
 		rConn, err := net.Dial("tcp", outreq.URL.Host)
 		if err != nil {
 			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
@@ -242,16 +301,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
+		go logDomainRequests(outreq.Host)
+		go logProxyStat(hostname, user.Country)
+
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
-		}
-
-		// Display error when someone hits the main page
-		hostname, _ := os.Hostname()
-		if hostname == outreq.URL.Host {
-			io.WriteString(rw, "{\"err\":\"no such host\"}\n")
-			return
 		}
 
 		// Remove hop-by-hop headers to the backend.  Especially
@@ -282,36 +337,36 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		res := new(http.Response)
-		rabbitKey := lookupRabbitKey(user.Username, user.Servicename, user.Key)
 
-		if rabbitKey != "" {
-			fmt.Println("connection via rabbitmq")
-			res, err = rabbitTransport(outreq, user, rabbitKey)
-			if err != nil {
-				log.Printf("rabbit proxy %s", err.Error())
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-				return
-			}
-		} else {
-			fmt.Println("connection via normal http")
-			// add :80 if not available
-			ok := hasPort(outreq.URL.Host)
-			if !ok {
-				outreq.URL.Host = addPort(outreq.URL.Host, "80")
-			}
-
-			res, err = transport.RoundTrip(outreq)
-			if err != nil {
-				io.WriteString(rw, fmt.Sprint(err))
-				return
-			}
+		if !hasPort(outreq.URL.Host) {
+			outreq.URL.Host = addPort(outreq.URL.Host, "80")
 		}
 
+		res, err = transport.RoundTrip(outreq)
+		if err != nil {
+			io.WriteString(rw, fmt.Sprint(err))
+			return
+		}
 		defer res.Body.Close()
+
+		// rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
+		// if err != nil {
+		// 	// add :80 if not available
+		// } else {
+		// 	fmt.Println("connection via rabbitmq")
+		// 	res, err = rabbitTransport(outreq, user, rabbitKey)
+		// 	if err != nil {
+		// 		log.Printf("rabbit proxy %s", err.Error())
+		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+		// 		return
+		// 	}
+
+		// }
 
 		copyHeader(rw.Header(), res.Header)
 		rw.WriteHeader(res.StatusCode)
 		p.copyResponse(rw, res.Body)
+		return
 	}
 
 }

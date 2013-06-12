@@ -11,4 +11,4 @@ class ChatMessageListItem extends KDListItemView
     @template.update()
 
   pistachio:->
-    """{{#(message)}}"""
+    """<strong>{{#(sender)}}</strong>: {{#(message)}}"""

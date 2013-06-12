@@ -104,6 +104,14 @@ module.exports = class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
       emailFrequency: Object
+      onlineStatus  :
+        actual      :
+          type      : String
+          enum      : ['invalid status',['online','offline']]
+          default   : 'online'
+        userPreference:
+          type      : String
+          # enum      : ['invalid status',['online','offline','away','busy']]
 
     relationships       :
       ownAccount        :
@@ -119,6 +127,8 @@ module.exports = class JUser extends jraphical.Module
   sessions  = {}
   users     = {}
   guests    = {}
+
+
 
   # @fetchUser = Bongo.secure (client,options,callback)->
   #   {username} = options
@@ -418,31 +428,38 @@ module.exports = class JUser extends jraphical.Module
                     }
                     @createUser userData, (err, user, account) =>
                       return callback err  if err
-                      @addToGroups account, invite, entryPoint, (err) ->
-                        if err then callback err
-                        else if silence
-                          JUser.grantInitialInvitations user.username
-                          createNewMemberActivity account
-                          callback null, account
-                        else
-                          replacementToken = createId()
-                          session.update {
-                            $set:
-                              username      : user.username
-                              lastLoginDate : new Date
-                              clientId      : replacementToken
-                            $unset          :
-                              guestId       : 1
-                          }, (err, docs) ->
-                            if err then callback err
-                            else
-                              user.sendEmailConfirmation()
-                              JUser.grantInitialInvitations user.username
-                              JUser.emit 'UserCreated', user
-                              createNewMemberActivity account
-                              JAccount.emit "AccountAuthenticated", account
-                              callback null, account, replacementToken
+                      @removeUnsubscription userData, (err)=>
+                        return callback err  if err
+                        @addToGroups account, invite, entryPoint, (err) ->
+                          if err then callback err
+                          else if silence
+                            JUser.grantInitialInvitations user.username
+                            createNewMemberActivity account
+                            callback null, account
+                          else
+                            replacementToken = createId()
+                            session.update {
+                              $set:
+                                username      : user.username
+                                lastLoginDate : new Date
+                                clientId      : replacementToken
+                              $unset          :
+                                guestId       : 1
+                            }, (err, docs) ->
+                              if err then callback err
+                              else
+                                user.sendEmailConfirmation()
+                                JUser.grantInitialInvitations user.username
+                                JUser.emit 'UserCreated', user
+                                createNewMemberActivity account
+                                JAccount.emit "AccountAuthenticated", account
+                                callback null, account, replacementToken
 
+  @removeUnsubscription:({email}, callback)->
+    JUnsubscribedMail = require './unsubscribedmail'
+    JUnsubscribedMail.one {email}, (err, unsubscribed)->
+      return callback err  if err or not unsubscribed
+      unsubscribed.remove callback
 
   @grantInitialInvitations = (username)->
     JInvitation.grant {'profile.nickname': username}, 3, (err)->
@@ -565,7 +582,7 @@ module.exports = class JUser extends jraphical.Module
               account.save (err)-> throw err if err
               callback null
         else
-          callback new KodingError 'PIN is not confirmed.'
+          callback createKodingError 'PIN is not confirmed.'
 
   fetchHomepageView:(callback)->
     @fetchAccount 'koding', (err, account)->

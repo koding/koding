@@ -27,6 +27,7 @@ type VMInfo struct {
 	vmName        string
 	channels      map[*kite.Channel]bool
 	timeout       *time.Timer
+	mutex         sync.Mutex
 	totalCpuUsage int
 
 	State       string `json:"state"`
@@ -143,7 +144,7 @@ func main() {
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var command []string
 		if args.Unmarshal(&command) != nil {
-			return nil, &kite.ArgumentError{Expected: "array of strings"}
+			return nil, &kite.ArgumentError{Expected: "[array of strings]"}
 		}
 		return vos.VM.AttachCommand(vos.User.Uid, "", command...).CombinedOutput()
 	})
@@ -151,7 +152,7 @@ func main() {
 	registerVmMethod(k, "exec", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var line string
 		if args.Unmarshal(&line) != nil {
-			return nil, &kite.ArgumentError{Expected: "string"}
+			return nil, &kite.ArgumentError{Expected: "[string]"}
 		}
 		return vos.VM.AttachCommand(vos.User.Uid, "", "/bin/bash", "-c", line).CombinedOutput()
 	})
@@ -182,6 +183,16 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 
 		vm, _ := channel.KiteData.(*virt.VM)
+		if vm != nil && !vm.IsTemporary() {
+			if err := db.VMs.FindId(vm.Id).One(&vm); err != nil {
+				return nil, &VMNotFoundError{Name: channel.CorrelationName}
+			}
+
+			permissions := vm.GetPermissions(&user)
+			if vm.SnapshotOf == "" && permissions == nil {
+				return nil, &kite.PermissionError{}
+			}
+		}
 		if vm == nil {
 			if bson.IsObjectIdHex(channel.CorrelationName) {
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
@@ -240,6 +251,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		infosMutex.Unlock()
 
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
+
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip")
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
@@ -265,8 +279,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
-
-			vm.SetHostname(vm.Name + "." + config.Current.UserSitesDomain)
+			vm.SetHostname(vm.HostnameAlias[0])
 			vm.Prepare(getUsers(vm), false)
 			if out, err := vm.Start(); err != nil {
 				log.Err("Could not start VM.", err, out)
@@ -291,7 +304,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					panic(err)
 				}
 
-				if err := rootVos.Mkdir("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
+				if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
 				if err := rootVos.Chown("/home/"+user.Name, user.Uid, user.Uid); err != nil {
@@ -302,14 +315,20 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			websiteDir := "/home/" + vm.Name + "/Sites/" + vm.Hostname()
+			start := strings.Index(vm.Name, "~") + 1
+			end := strings.LastIndex(vm.Name, "-")
+			if end == -1 {
+				end = len(vm.Name)
+			}
+			vmHomeName := vm.Name[start:end]
+			websiteDir := "/home/" + vmHomeName + "/Sites/" + vm.Hostname()
 			if _, err := rootVos.Stat(websiteDir); err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
 
 				websiteVos := rootVos
-				if vm.Name == user.Name {
+				if vmHomeName == user.Name {
 					websiteVos = userVos
 				}
 				if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
@@ -340,7 +359,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			if vm.Name != user.Name {
+			if vmHomeName != user.Name {
 				if err := userVos.Mkdir("/home/"+user.Name+"/Web", 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
@@ -350,6 +369,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}
 
+		if concurrent {
+			info.mutex.Unlock()
+			defer info.mutex.Lock()
+		}
 		return callback(args, channel, userVos)
 	})
 }

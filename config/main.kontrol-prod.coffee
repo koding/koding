@@ -33,7 +33,9 @@ module.exports =
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
-  runRerouting  : no
+  runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -82,10 +84,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -110,7 +108,7 @@ module.exports =
       mainUri   : "http://new.koding.com"
       broker    :
         sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
-      apiUri    : 'https://api.koding.com'
+      apiUri    : 'https://www.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
@@ -168,4 +166,13 @@ module.exports =
       password    : 's486auEkPzvUjYfeFTMQ'
       vhost       : '/'
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a'
+    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  opsview	:
+    push	: yes
+    host	: 'opsview.in.koding.com'
+  followFeed    :
+    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'

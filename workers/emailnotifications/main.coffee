@@ -56,6 +56,7 @@ sendDailyEmail = (details, content)->
     log "Content not found, notification postponed"
   else
     Emailer.send
+      From      : 'Koding <hello@koding.com>'
       To        : emailWorker.defaultRecepient or details.email
       Subject   : template.dailyHeader details
       HtmlBody  : template.dailyMail details, content
@@ -71,6 +72,7 @@ sendInstantEmail = (details)->
       console.error if err
   else
     Emailer.send
+      From      : 'Koding <hello@koding.com>'
       To        : emailWorker.defaultRecepient or details.email
       Subject   : template.commonHeader details
       HtmlBody  : flags[details.key].template details

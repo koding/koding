@@ -1,18 +1,14 @@
 class ChatConversationWidget extends JView
 
   constructor:(item)->
-    options =
-      cssClass : 'inline-conversation-widget'
-    super options
+    super cssClass : 'inline-conversation-widget'
 
     @me = KD.whoami().profile.nickname
     @channel = item.getData().chatChannel
 
     @messageInput = new ChatInputWidget
     @messageInput.on 'messageSent', (message)=>
-      @channel.publish JSON.stringify
-        sender  : @me
-        message : message
+      @channel.publish JSON.stringify message
 
     @messageInput.on 'goUpRequested', =>
       item.getDelegate().goUp item
@@ -27,9 +23,14 @@ class ChatConversationWidget extends JView
       @expand()
 
     @chatMessageController = new ChatMessageListController
-      view : @chatMessageList
+      view    : @chatMessageList
+    , item.getData()
 
-    @channel.on 'message', @chatMessageController.bound 'addItem'
+    @chatListWrapper = @chatMessageController.getView()
+
+    self = this
+    @channel.on '*', (message)->
+      self.chatMessageController.addItem @event, message
 
   toggle:->
     @toggleClass 'ready'
@@ -49,6 +50,6 @@ class ChatConversationWidget extends JView
 
   pistachio:->
     """
-      {{> @chatMessageList}}
+      {{> @chatListWrapper}}
       {{> @messageInput}}
     """

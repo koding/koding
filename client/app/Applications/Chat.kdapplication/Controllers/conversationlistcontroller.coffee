@@ -4,8 +4,24 @@ class ChatConversationListController extends CommonChatController
     super
     @getListView().on 'moveToIndexRequested', @bound 'moveItemToIndex'
 
-  # loadItems:(callback)->
-  #   super
+  addItem:(data)->
+    # Make sure there is one conversation with same channel name
+    {conversation, chatChannel} = data
+    for chat in @itemsOrdered
+      return  if chat.conversation?.channel?.name is chatChannel?.name
 
-  #   @me.fetchFollowersWithRelationship {}, {}, (err, accounts)=>
-  #     @instantiateListItems accounts unless err
+    return  if (conversation.invitees?.length or 1) < 2
+
+    super data
+
+  loadItems:->
+    @removeAllItems()
+
+    chatController = KD.getSingleton 'chatController'
+    {JChatConversation} = KD.remote.api
+    JChatConversation.fetchSome {}, (err, conversations)=>
+      warn err  unless err?.message is 'Access denied.'
+      conversations ?= []
+      for conversation in conversations
+        chatController.addConversationToChatPanel \
+          conversation.publicName, conversation

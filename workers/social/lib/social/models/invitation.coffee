@@ -4,24 +4,23 @@ module.exports = class JInvitation extends jraphical.Module
 
   @trait __dirname, '../traits/grouprelated'
 
-  fs = require 'fs'
-  crypto = require 'crypto'
+  fs       = require 'fs'
+  crypto   = require 'crypto'
   nodePath = require 'path'
-  {uniq} = require 'underscore'
+  createId = require 'hat'
+  {uniq}   = require 'underscore'
 
   {permit} = require './group/permissionset'
-
-  # Emailer = require '../emailer'
 
   @isEnabledGlobally = yes
 
   {ObjectRef, dash, daisy, secure} = require 'bongo'
 
-  JAccount = require './account'
-  JLimit = require './limit'
-  JLimit = require './limit'
+  JAccount    = require './account'
+  JLimit      = require './limit'
+  JLimit      = require './limit'
   KodingError = require '../error'
-  JMail = require './email'
+  JMail       = require './email'
 
   @share()
 
@@ -29,10 +28,11 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
+      instance      : ['modifyMultiuse']
       static        : ['create','byCode','sendBetaInviteFromClient',
                        'grantInvitesFromClient','markAsSent',
-                       'betaInviteCount', 'createViaGroup',
-                       'createMultiuse' ]
+                       'betaInviteCount', 'createViaGroup', 'suggestCode'
+                       'createMultiuse', 'countMultiuse', 'fetchOrSearchMultiuse' ]
     schema          :
       code          :
         type        : String
@@ -301,7 +301,7 @@ module.exports = class JInvitation extends jraphical.Module
       invite = new JInvitation {
         code
         group
-        maxUses   : maxUses
+        maxUses   : if maxUses or maxUses is 0 then maxUses else 1
         type      : 'multiuse'
         origin    : ObjectRef(delegate)
       }
@@ -309,11 +309,52 @@ module.exports = class JInvitation extends jraphical.Module
         if err then callback err
         else invite.addInvitedBy delegate, (err) -> callback err
 
+  @countMultiuse = permit 'send invitations',
+    success: (client, selector, callback)->
+      {context:{group}} = client
+      selector     or= {}
+      selector.group = group
+      selector.type  = 'multiuse'
+      @count selector, callback
+
+  @fetchOrSearchMultiuse: permit 'send invitations',
+    success: (client, status, timestamp, requestLimit, search, callback)->
+      {context:{group}} = client
+
+      selector           = {group, type : 'multiuse'}
+      selector.status    = status          if status
+      selector._id       = $lt: timestamp  if timestamp
+
+      options  =
+        limit       : requestLimit
+        sort        : { _id: -1 }
+
+      if search
+        search = search.replace(/[^\w\s]/).trim()
+        options.targetOptions.selector.code = new RegExp search, 'i'
+
+      @some selector, options, callback
+
+  modifyMultiuse: permit 'send invitations',
+    success: ({context:{group}}, {maxUses}, callback)->
+      setModifier = {}
+      setModifier.maxUses = if maxUses < @uses then @uses else maxUses
+      setModifier.group   = 'koding'  if group is 'koding' and not @group?
+
+      @update $set: setModifier, callback
+
   @generateInvitationCode = (email, group)->
     code = crypto.createHmac 'sha1', 'kodingsecret'
     code.update email
     code.update group  if group
     code.digest 'hex'
+
+  @suggestCode: permit 'send invitations',
+    success: (client, callback)->
+      code = createId 40
+      @one {code}, (err, invitation)=>
+        return @suggestCode client, callback  if err or invitation
+        callback null, code
 
   @getHostAndProtocol = do->
     {host, protocol} = require('../config').email
@@ -347,23 +388,6 @@ module.exports = class JInvitation extends jraphical.Module
         else
           invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
           callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
-
-      # Emailer.send
-      #   From      : @getInviteEmail()
-      #   To        : invite.inviteeEmail
-      #   Subject   : @getInviteSubject(messageOptions)
-      #   TextBody  : @getInviteMessage(messageOptions)
-      #   ReplyTo   : inviter.email
-      # ,(err) ->
-      #   unless err
-      #     callback null
-      #     console.log "[SOCIAL WORKER] invite is sent to:#{invite.inviteeEmail}"
-      #     limit.update {$inc: usage: 1}, (err)-> console.log err if err
-      #     invite.update {$set: status: "sent"}, (err)-> console.log err if err
-      #   else
-      #     limit.update  {$inc: usage: 1}, (err)-> console.log err if err
-      #     invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
-      #     callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
   @sendEmailForInviteViaGroup =(client, invite, group, callback)->
     JUser = require './user'
@@ -450,7 +474,7 @@ module.exports = class JInvitation extends jraphical.Module
           return callback err  if err
           if delegate instanceof JAccount
             invite.addInvitedBy delegate, (err)-> callback err, invite
-          else 
+          else
             callback null, invite
 
   redeem:secure ({connection:{delegate}}, callback=->)->
@@ -465,6 +489,10 @@ module.exports = class JInvitation extends jraphical.Module
     @redeem client, (err)=>
       return callback err  if err
       JInvitationRequest = require './invitationrequest'
-      JInvitationRequest.one {email:@inviteeEmail}, (err, request)->
-        return callback err  if err
+      selector =
+        email  : @inviteeEmail
+        group  : @group
+        status :'sent'
+      JInvitationRequest.one selector, (err, request)->
+        return callback err  if err or not request
         request.update $set:status:'accepted', callback

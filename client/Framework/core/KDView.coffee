@@ -86,7 +86,7 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', => @render()
+    data?.on? 'update', @bound 'render'
 
     @setInstanceVariables options
     @defaultInit options,data
@@ -853,9 +853,12 @@ class KDView extends KDObject
 
   _windowDidResize:->
 
-  listenWindowResize:->
+  listenWindowResize:(state=yes)->
 
-    @getSingleton('windowController').registerWindowResizeListener @
+    if state
+      @getSingleton('windowController').registerWindowResizeListener @
+    else
+      @getSingleton('windowController').unregisterWindowResizeListener @
 
   notifyResizeListeners:->
 
