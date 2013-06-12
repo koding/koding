@@ -421,6 +421,17 @@ module.exports = class JGroup extends Module
 
   broadcast:(message)-> @constructor.broadcast @slug, message
 
+  # this is a temporary feature to display all activities
+  # from public and visible groups in koding group
+  @oldBroadcast = @broadcast
+  @broadcast = (groupSlug, event, message)->
+    if groupSlug isnt "koding"
+      @one {slug : groupSlug }, (err, group)=>
+        if err or not group then console.error "unknown group #{groupSlug}"
+        else if group.privacy isnt "private" and group.visibility isnt "hidden"
+          @oldBroadcast.call this, "koding", event, message
+    @oldBroadcast.call this, groupSlug, event, message
+
   changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->
       group = this

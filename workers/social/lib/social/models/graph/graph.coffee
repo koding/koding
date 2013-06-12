@@ -77,27 +77,53 @@ module.exports = class Graph
       generatedObjects.push generatedObject
     callback generatedObjects
 
+  removePrivateContent:(groupId, contents, callback)->
+    query = """
+      start  kd=node:koding(id={groupId})
+      MATCH  kd-[:member]->users-[r:owner]-groups
+      WHERE groups.name = "JGroup"
+       AND ( groups.privacy = "private"
+        OR  groups.visibility=  "hidden" )
+      RETURN groups
+      ORDER BY r.createdAtEpoch DESC
+    """
+    params =
+      groupId   : groupId
+    @db.query query, params, (err, results)=>
+      if err then return callback err
+      secretGroups = (result.groups.data.slug for result in results)
+      filteredContent = []
+      for content in contents
+        filteredContent.push content if content.group not in secretGroups
+      callback null, filteredContent
+
   fetchAll:(group, startDate, callback)->
     {groupName, groupId} = group
-
     start = new Date().getTime()
-    query = [
-      'START koding=node:koding(id={groupId})'
-      'MATCH koding-[:member]->members<-[:author]-content'
-      'WHERE (content.name = "JTutorial"'
-      ' or content.name = "JCodeSnip"'
-      ' or content.name = "JDiscussion"'
-      ' or content.name = "JBlogPost"'
-      ' or content.name = "JStatusUpdate")'
-      ' and has(content.group)'
-      ' and content.group = "' + groupName + '"'
-      ' and has(content.`meta.createdAtEpoch`)'
-      ' and content.`meta.createdAtEpoch` < {startDate}'
-      ' and content.isLowQuality! is null'
-      'return *'
-      'order by content.`meta.createdAtEpoch` DESC'
-      'limit 20'
-    ].join('\n');
+    # do not remove white-spaces
+    query = """
+        START koding=node:koding(id={groupId})
+        MATCH koding-[:member]->members<-[:author]-content
+        WHERE (content.name = "JTutorial"
+         or content.name = "JCodeSnip"
+         or content.name = "JDiscussion"
+         or content.name = "JBlogPost"
+         or content.name = "JStatusUpdate")
+         and has(content.`meta.createdAtEpoch`)
+         and content.`meta.createdAtEpoch` < {startDate}
+         and content.isLowQuality! is null
+
+      """
+    if groupName isnt "koding"
+      query += """
+          and has(content.group)
+          and content.group = "#{groupName}"
+        """
+    query += """
+        return *
+        order by content.`meta.createdAtEpoch` DESC
+        limit 20
+      """
 
     params =
       groupId   : groupId
@@ -118,9 +144,12 @@ module.exports = class Graph
             else
               tempRes[i].relationData =  relatedResult
               fin()
-        , ->
+        , =>
           console.log new Date().getTime() - start
-          callback null, tempRes
+          if groupName == "koding"
+            @removePrivateContent  groupId, tempRes, callback
+          else
+            callback null, tempRes
         resultData = ( result.content.data for result in results)
         objectify resultData, (objecteds)->
           for objected in objecteds
