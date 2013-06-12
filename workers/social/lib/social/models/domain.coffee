@@ -112,10 +112,8 @@ module.exports = class JDomain extends jraphical.Module
       else
           callback "Domain registration failed"
 
-  @bindVM = secure ({connection:{delegate}}, params, callback)->
-    JVM.findHostnameAlias params.vmName, (err, hostnameAlias)=>
-
-      console.log "binding #{params.domainName} to #{hostnameAlias}"
+  @bindVM = secure (client, params, callback)->
+    JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
 
       record =
         mode          : "vm"
