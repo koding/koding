@@ -69,21 +69,12 @@ class VirtualizationController extends KDController
     if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}"
     else currentGroup
 
-  createGroupVM:(type='personal', hostname, cpuSize, callback)->
+  createGroupVM:(type='personal', planCode, callback)->
     defaultVMOptions =
-      usage          :
-        cpu          : cpuSize
-        disk         : 1
-        ram          : 1
-      hostname       : hostname
+      planCode       : planCode
     group = KD.singletons.groupsController.getCurrentGroup()
 
-    group.fetchBundle (err, bundle)->
-      switch type
-        when 'personal'
-          bundle.debit defaultVMOptions, callback
-        else
-          bundle.debitGroup defaultVMOptions, callback
+    group.createVM {type}, callback
 
   fetchVMs:(callback)->
     return callback null, @vms  if @vms.length > 0
@@ -122,7 +113,6 @@ class VirtualizationController extends KDController
     # Take this to a better place, possibly to payment controller.
     makePayment = (type, hostname, plan, callback)->
       planCode = plan.code
-      cpuSize  = plan.item.meta.cpu
       if type is 'shared'
         group = KD.singletons.groupsController.getCurrentGroup()
         group.checkPayment (err, payments)->
@@ -146,20 +136,20 @@ class VirtualizationController extends KDController
                   if err
                     onError err
                   else
-                    vmController.createGroupVM type, hostname, cpuSize, vmCreateCallback
+                    vmController.createGroupVM type, planCode, vmCreateCallback
                     onSuccess()
                     callback()
               paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
           else
             group.updatePayment {plan: planCode}, (err, subscription)->
-              vmController.createGroupVM type, hostname, cpuSize, vmCreateCallback
+              vmController.createGroupVM type, planCode, vmCreateCallback
               callback()
       else
         _createUserVM = (cb)->
           KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
             plan.subscribe {}, (err, subscription)->
               return cb err  if cb and err
-              vmController.createGroupVM type, hostname, cpuSize, vmCreateCallback
+              vmController.createGroupVM type, planCode, vmCreateCallback
               cb?()
         KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
           if err

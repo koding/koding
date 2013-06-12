@@ -84,9 +84,9 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
-        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
+        'fetchRolesByClientId',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'fetchOrSearchInvitationRequests'
+        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'fetchOrSearchInvitationRequests'
       ]
     schema          :
       title         :
@@ -122,9 +122,6 @@ module.exports = class JGroup extends Module
       payment       :
         plan        : String
     relationships   :
-      bundle        :
-        targetType  : 'JGroupBundle'
-        as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
@@ -331,17 +328,6 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
-        -> group.createBundle
-            users           : { quota: 1000 }
-            cpu             : { quota: 1000 }
-            ram             : { quota: 1000 }
-            disk            : { quota: 1000 }
-            'cpu per user'  : { quota: 1000 }
-            'ram per user'  : { quota: 1000 }
-            'disk per user' : { quota: 1000 }
-          , ->
-            console.log "bundle is created"
-            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -1273,58 +1259,6 @@ module.exports = class JGroup extends Module
         for admin in admins
           admin.sendNotification event, contents
 
-  updateBundle: (formData, callback = (->)) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
-      bundle.fetchLimits (err, limits) ->
-        return callback err  if err?
-        queue = limits.map (limit) -> ->
-          limit.update { $set: quota: formData.quotas[limit.title] }, fin
-        dash queue, callback
-        fin = queue.fin.bind queue
-
-  updateBundle$: permit 'change bundle',
-    success: (client, formData, callback)->
-      @updateBundle formData, callback
-
-  destroyBundle: (callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      return callback new KodingError 'Bundle not found!'  unless bundle?
-
-      bundle.remove callback
-
-  destroyBundle$: permit 'change bundle',
-    success: (client, callback) -> @destroyBundle callback
-
-  createBundle: (limits, callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      return callback new KodingError 'Bundle exists!'  if bundle?
-
-      JGroupBundle = require '../bundle/groupbundle'
-
-      bundle = new JGroupBundle {}, limits
-      bundle.save (err) =>
-        return callback err  if err?
-
-        @addBundle bundle, callback
-
-  createBundle$: permit 'change bundle',
-    success: (client, limits, callback) -> @createBundle limits, callback
-
-  fetchBundle$: permit 'commission resources',
-    success: (client, rest...) -> @fetchBundle rest...
-
-  getDefaultLimits:->
-    {
-      cpu             : { quota: 1 }
-      ram             : { quota: 64 }
-      disk            : { quota: 500 }
-      users           : { quota: 20 }
-    }
-
   makePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
     JRecurlyPlan = require '../recurly'
@@ -1332,20 +1266,7 @@ module.exports = class JGroup extends Module
       code: data.plan
     , (err, plan)=>
       return callback err  if err
-      plan.subscribeGroup @, data, (err, subs)=>
-        return callback err  if err
-        @updateBundle
-          overagePolicy     : "not allowed"
-          quota             :
-            users           : { quota: 1000 }
-            cpu             : { quota: 1000 }
-            ram             : { quota: 1000 }
-            disk            : { quota: 1000 }
-            'cpu per user'  : { quota: 1000 }
-            'ram per user'  : { quota: 1000 }
-            'disk per user' : { quota: 1000 }
-        , (err)->
-          callback no, subs
+      plan.subscribeGroup @, data, callback
 
   updatePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
@@ -1361,6 +1282,115 @@ module.exports = class JGroup extends Module
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
     JRecurlySubscription.getGroupSubscriptions @, callback
+
+  createVM: secure (client, data, callback)->
+    {delegate} = client.connection
+
+    if data.type is "personal"
+      data.type = "user"
+    else if data.type is "shared"
+      data.type = "group"
+
+    JRecurlySubscription = require '../recurly/subscription'
+    JVM                  = require '../vm'
+
+    # _checkGroupVMs = (cb)=>
+    #   JRecurlySubscription.getGroupSubscriptions @, (err, subs)->
+    #     return cb new KodingError "Payment backend error: #{err}"  if err
+
+    #     vms = {}
+    #     subs.forEach (sub)->
+    #       if sub.status is 'active'
+    #         vms[sub.planCode] = sub.quantity
+    #     cb null, vms
+
+    _createVMs = (type, cb)=>
+      if type is 'user'
+        planOwner = "user_#{delegate._id}"
+        getSubs   = JRecurlySubscription.getUserSubscriptions
+        target    = client
+      else
+        planOwner = "group_#{@._id}"
+        getSubs   = JRecurlySubscription.getGroupSubscriptions
+        target    = @
+
+      getSubs target, (err, subs)=>
+        return cb new KodingError "Payment backend error: #{err}"  if err
+
+        paidVMs = {}
+
+        if type is "user"
+          paidVMs.free = 1
+
+        subs.forEach (sub)->
+          if sub.status is 'active' and sub.planCode.indexOf('group_vm_') > -1
+            paidVMs[sub.planCode] = sub.quantity
+
+        console.log paidVMs
+        console.log planOwner
+
+        createdVMs = {}
+        JVM.someData
+          planOwner: planOwner
+        ,
+          planCode  : 1
+          planOwner : 1
+          name      : 1
+        , {}, (err, cursor)=>
+          cursor.toArray (err, arr)=>
+            return cb err  if err
+            arr.forEach (vm)->
+              unless vm.planCode in Object.keys createdVMs
+                createdVMs[vm.planCode] = 0
+              createdVMs[vm.planCode] += 1
+
+            console.log createdVMs
+
+            for planCode, vmQuantity of paidVMs
+              unless planCode in Object.keys createdVMs
+                quantity = vmQuantity
+              else
+                quantity = vmQuantity - createdVMs[planCode]
+              for i in [1..quantity] when quantity >= 1
+                # console.log "Creating #{planCode}"
+                options     =
+                  planCode  : planCode
+                  usage     : {cpu: 1, ram: 1, disk: 1}
+                  type      : type
+                  account   : delegate
+                  groupSlug : @slug
+                JVM.createVm options, ->
+                  cb null, "Created VM: #{planCode}"
+
+    if data.type in ['user', 'group']
+      _createVMs data.type, callback
+    else
+      callback new KodingError "No such VM type: #{data.type}"
+
+
+    #   {connection:{delegate}, context:{group}} = client
+    # debit$: permit 'commission resources',
+    #   success: (client, data, callback)-> @debitResource client, 'user', data, callback
+
+    # debitGroup$: permit 'change bundle',
+    #   success: (client, data, callback)-> @debitResource client, 'group', data, callback
+
+    # debitResource: (client, type, data, callback)->
+    #   {connection:{delegate}, context:{group}} = client
+
+    #   # TODO: Check payment here
+    #   console.log "Client", delegate._id
+    #   console.log "Group", group
+
+    #   options     =
+    #     usage     : data.usage
+    #     hostname  : data.hostname
+    #     type      : type
+    #     account   : delegate
+    #     groupSlug : group
+
+    #   JVM = require '../vm'
+    #   JVM.createVm options, callback
 
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->

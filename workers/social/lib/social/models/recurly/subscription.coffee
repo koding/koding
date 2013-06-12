@@ -34,10 +34,10 @@ module.exports = class JRecurlySubscription extends jraphical.Module
 
   @getUserSubscriptions = secure (client, callback)->
     {delegate} = client.connection
-    @getSubscriptions "user_#{delegate._id}", callback
+    JRecurlySubscription.getSubscriptions "user_#{delegate._id}", callback
 
   @getGroupSubscriptions = (group, callback)->
-    @getSubscriptions "group_#{group._id}", callback
+    JRecurlySubscription.getSubscriptions "group_#{group._id}", callback
 
   @getSubscriptions = (userCode, callback)->
     selector   =
