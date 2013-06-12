@@ -66,6 +66,7 @@ chatTextColor = #000
   width                   250px
   vendor                  transition, right .4s\, opacity .3s
   box-shadow              0 0 16px rgba(0,0,0,.2)
+  height                  calc(100% \- 50px)
   overflow-y              scroll
   opacity                 0
   abs()
@@ -111,6 +112,7 @@ ul.chat-list
   padding                 0
   border-right            1px solid #eee
   width                   250px !important
+  height                  100%
 
   div.chat-item
     width                 215px
@@ -153,6 +155,9 @@ ul.chat-list
     a.avatarview
       size                30px,30px
       border-radius       40px
+      vendor              transition, border-radius .2s
+      &:hover
+        border-radius     4px
 
     div.right-overflow
       cursor              pointer
