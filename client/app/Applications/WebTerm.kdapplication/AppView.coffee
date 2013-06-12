@@ -127,7 +127,8 @@ class WebTermView extends KDView
         sizeY  : @terminal.sizeY
     , (err, remote) =>
       if err
-        log err
+        # We don't create any error popup not to be annoying. User can handle the error.
+        error err
       else
         @terminal.server = remote
         remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
