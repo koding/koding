@@ -26,5 +26,5 @@
     "128": "./resources/icon.128.png"
   },
   "dependencies": [],
-  "apiAddress": "http://192.168.1.249:3020"
+  "apiAddress": "http://local.koding.com"
 }
