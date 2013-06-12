@@ -89,6 +89,7 @@ class ActivityAppController extends AppController
     activityController.on 'Refresh', @bound "refresh"
 
     @getView().innerNav.on "NavItemReceivedClick", (data)=>
+      KD.track "Activity", data.type + "FilterClicked"
       @isLoading = no
       @resetAll()
       # the filterList on top of the innerNav is clicked

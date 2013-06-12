@@ -50,9 +50,6 @@ unless window.event?
     log "we fail silently!", e
 
 @KD = $.extend (KD), do ->
-  # private member for tracking z-indexes
-  zIndexContexts  = {}
-
   create = (constructorName, options, data)->
     konstructor = @classes[constructorName] \
                 ? @classes["KD#{constructorName}"]
@@ -60,15 +57,6 @@ unless window.event?
 
   create    : create
   new       : create
-
-  impersonate: (username)->
-    @remote.api.JAccount.impersonate username, (err)->
-      if err then new KDNotificationView title: err.message
-      else location.reload()
-
-  # testKDML:->
-  #   {KDMLParser} = Bongo.KDML
-  #   kdml = new KDMLParser @classes
 
   debugStates     : {}
   instances       : {}
@@ -82,57 +70,6 @@ unless window.event?
   appClasses      : {}
   appScripts      : {}
   lastFuncCall    : null
-
-  nick:-> KD.whoami().profile.nickname
-
-  whoami:-> KD.getSingleton('mainController').userAccount
-
-  logout:->
-    mainController = KD.getSingleton('mainController')
-    delete mainController?.userAccount
-
-  isLoggedIn:-> @whoami() instanceof KD.remote.api.JAccount
-
-  isMine:(account)-> @whoami().profile.nickname is account.profile.nickname
-
-  checkFlag:(flagToCheck, account = KD.whoami())->
-    if account.globalFlags
-      if 'string' is typeof flagToCheck
-        return flagToCheck in account.globalFlags
-      else
-        for flag in flagToCheck
-          if flag in account.globalFlags
-            return yes
-    no
-
-  requireLogin:(options={})->
-
-    {callback, onFailMsg, onFail, silence, tryAgain} = options
-
-    unless KD.isLoggedIn()
-
-      if onFailMsg
-        new KDNotificationView
-          type     : 'mini'
-          cssClass : 'error'
-          title    : onFailMsg
-          duration : 3500
-
-      onFail?()
-
-      unless silence
-        @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
-
-      if callback? and tryAgain
-        unless KD.lastFuncCall
-          {mainController} = KD.singletons
-          mainController.once "accountChanged.to.loggedIn", ->
-            KD.lastFuncCall?()
-            KD.lastFuncCall = null
-        KD.lastFuncCall = callback
-
-    else
-      callback?()
 
   socketConnected:->
     @backendIsConnected = yes
@@ -154,6 +91,11 @@ unless window.event?
   deleteInstance:(anInstanceId)->
     @unregisterInstance anInstanceId
     # anInstance = null #FIXME: Redundant? See unregisterInstance
+
+  extend:(obj)->
+    for key, val of obj
+      if @[key] then throw new Error "#{key} is allready registered"
+      else @[key] = val
 
   registerSingleton:(singletonName,object,override = no)->
     if (existingSingleton = KD.singletons[singletonName])?
@@ -222,30 +164,6 @@ unless window.event?
 
   getKDViewInstanceFromDomElement:(domElement)->
     @instances[$(domElement).data("data-id")]
-
-  # Get next highest Z-index
-  getNextHighestZIndex:(context)->
-   uniqid = context.data 'data-id'
-   if isNaN zIndexContexts[uniqid]
-     zIndexContexts[uniqid] = 0
-   else
-     zIndexContexts[uniqid]++
-
-  jsonhTest:->
-    method    = 'fetchQuestionTeasers'
-    testData  = {
-      foo: 10
-      bar: 11
-    }
-
-    start = Date.now()
-    $.ajax "/#{method}.jsonh",
-      data     : testData
-      dataType : 'jsonp'
-      success : (data)->
-        inflated = JSONH.unpack data
-        KD.log 'success', inflated
-        KD.log Date.now()-start
 
   enableLogs:do->
     oldConsole = window.console

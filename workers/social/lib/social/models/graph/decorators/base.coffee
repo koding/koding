@@ -44,6 +44,7 @@ module.exports = class BaseDecorator
       slug_             : @datum.slug_
       originId          : @datum.originId
       originType        : @datum.originType
+      group             : @datum.group
       meta              : @decorateSnapshotMeta(@datum)
       body              : @datum.body
       attachments       : @attachments()

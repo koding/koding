@@ -95,9 +95,9 @@ groupId : "5150c743f2589b107d000007"
 query = [
 
   'start  kd=node:koding(id={groupId})'
-  'MATCH  kd-[:member]->users<-[r:user]-koding'
-  'where koding.name="JApp"'
-  'and koding.`meta.createdAtEpoch` < {startDate}'
+  'MATCH  kd-[:member]->users-[r:owner]-groups'
+  'WHERE groups.name = "JGroup"'
+  ' AND groups.privacy = "private"',
   'return *'
   'order by r.createdAtEpoch DESC'
   'limit 10'
@@ -105,14 +105,12 @@ query = [
 
 console.log query
 params =
-  groupId   : "5150c743f2589b107d000007"
-  startDate : 1352435032
+  groupId   : "5196fcb2bc9bdb0000000027"
 
 
 db.query query, params, (err, results) ->
   if err then throw err;
-  for result in results
-    console.log result
+  console.log (result.groups.data.slug for result in results)
     # console.log result
 
   # koding = results.map (res) ->
