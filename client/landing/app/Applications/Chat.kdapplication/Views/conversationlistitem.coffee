@@ -73,3 +73,10 @@ class ChatConversationListItem extends KDListItemView
   toggleConversation:->
     @conversation.toggle()
     @conversation.takeFocus()  if @conversation.isVisible()
+
+  expandConversation:->
+    @conversation.expand()
+    @conversation.takeFocus()
+
+  collapseConversation:->
+    @conversation.collapse()
