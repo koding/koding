@@ -568,6 +568,16 @@ db.ttt.drop();
 db.uniqueids.drop();
 db.jPermissions.drop();
 
+print('drop app storages');
+db.jAppStorages.drop();
+db.relationships.remove({
+  $or: [
+    {targetName: 'JAppStorage'},
+    {sourceName: 'JAppStorage'}
+  ]
+});
+print('...done');
+
 print('reclaim our name from Tim Ahong...');
 db.jNames.update({name:'koding'},{$set:{name:'timahong'}});
 db.jAccounts.update(
@@ -928,6 +938,7 @@ print('-- done with MAIL NOTIFICATIONS --');
 
 print('-- NAMES --');
 
+print('names can store multiple slugs')
 db.jNames.find().toArray().forEach(function (n) {
   var slug = {
     constructorName: n.constructorName,
@@ -935,14 +946,10 @@ db.jNames.find().toArray().forEach(function (n) {
     usedAsPath: n.usedAsPath,
     slug: n.slug
   };
-  print('use notion of plural "slugs" (an array of objects)');
-  print('unset "constructorName" and "usedAsPath" properties');
   db.jNames.update(n, {
     $set: { slugs: [slug] },
     $unset: {constructorName:1, usedAsPath:1, slug:1}
   });
-  print('...done');
-  print('...done');
 });
 print('...done');
 
