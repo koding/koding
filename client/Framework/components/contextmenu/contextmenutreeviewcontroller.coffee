@@ -82,6 +82,7 @@ class JContextMenuTreeViewController extends JTreeViewController
   expand:(nodeView)->
 
     super
+    @emit "NodeExpanded", nodeView
     @expandedNodes.push nodeView if nodeView.expanded
 
   ###
