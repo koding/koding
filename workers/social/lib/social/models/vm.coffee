@@ -3,6 +3,7 @@
 module.exports = class JVM extends Model
 
   {permit} = require './group/permissionset'
+  {secure} = require 'bongo'
 
   KodingError = require '../error'
 
@@ -23,7 +24,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData'
+                           'removeByName', 'someData', 'findHostnameAlias'
                           ]
       instance          : []
     schema              :
@@ -56,7 +57,8 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage}, callback)->
+  @createVm = ({account, type, groupSlug, usage, hostname}, callback)->
+    console.log usage, hostname
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group) =>
       return callback err  if err
