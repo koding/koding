@@ -55,6 +55,16 @@ module.exports = class JVM extends Model
         type            : Boolean
         default         : no
 
+  @createDomains = (domains) ->
+    JDomain = require './domain'
+    domains.forEach (domain) ->
+      (new JDomain
+        domain        : domain
+        hostnameAlias : [domain]
+        proxy         : { mode: 'vm' }
+        regYears      : 0
+      ).save (err)-> console.log err  if err?
+
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     if type is 'user'
@@ -96,6 +106,8 @@ module.exports = class JVM extends Model
             nickname : user.username
             type, uid, groupSlug
           }
+
+          JVM.createDomains hostnameAlias
 
           vm = new JVM {
             name    : "#{name}#{uid}"

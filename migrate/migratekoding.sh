@@ -7,9 +7,11 @@
 # TODO: uncomment when the time comes:
 # mongo web-prod.in.koding.com/beta_koding -uPROD-koding -p34W4BXx595ib3J72k5Mh  --eval="db.jRegistrationPreferencess.update({},{isRegistrationEnabled:true});"
 
+MONGO_CONN=dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com/beta_koding
 
-mongo beta_koding --eval "db.dropDatabase()"
-# TODO: uncomment when the time comes:
-mongorestore ./dump # TODO: put the hostname where we'll be doing this (we use local for now.)
+mongo $MONGO_CONN --eval "db.dropDatabase()"
 
-mongo localhost/beta_koding migrate-script.js
+mongorestore ./dump -hkmongodb1.in.koding.com -udev -pk9lc4G1k32nyD72 -dkoding
+# TODO: put the hostname where we'll be doing this (we use local for now.)
+
+mongo $MONGO_CONN migrate-script.js

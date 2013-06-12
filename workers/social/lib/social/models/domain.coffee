@@ -4,6 +4,7 @@ module.exports = class JDomain extends jraphical.Module
   DomainManager = require 'domainer'
   {secure, ObjectId}  = require 'bongo'
   {permit} = require './group/permissionset'
+  Validators = require './group/validators'
 
   @trait __dirname, '../traits/protected'
 
@@ -19,12 +20,14 @@ module.exports = class JDomain extends jraphical.Module
     permissions          :
       'create domains'   : ['member']
       'edit domains'     : ['member']
+      'edit own domains' : ['member']
       'delete domains'   : ['member']
       'list domains'     : ['member']
       'list own domains' : ['member']
 
     sharedMethods   :
-      static        : ['one', 'count', 'bindVM', 'isDomainAvailable', 'registerDomain', 'createProxyRule']
+      instance      : ['bindVM']
+      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain', 'createProxyRule']
 
     indexes         :
       domain        : 'unique'
@@ -38,7 +41,7 @@ module.exports = class JDomain extends jraphical.Module
       hostnameAlias : [String]
 
       proxy         :
-        mode        : String
+        mode        : String # TODO: enumerate all possible modes
         username    : String
         serviceName : String
         key         : String
@@ -53,6 +56,7 @@ module.exports = class JDomain extends jraphical.Module
             # 'weighted'
             # 'weighted-roundrobin'
           ]]
+          default   : 'roundrobin'
         index       :
           type      : Number
           default   : 0
@@ -103,36 +107,33 @@ module.exports = class JDomain extends jraphical.Module
 
         if data.actionstatus is "Success"
           @createDomain client,
-            domain   : data.description
-            regYears : params.years
-            orderId  :
+            domain         : data.description
+            hostnameAlias  : []
+            regYears       : params.years
+            orderId        :
               resellerClub : data.entityid
-            loadBalancer:
-                mode : "roundrobin"
+            loadBalancer   :
+                mode       : "roundrobin"
             , (err, model) =>
               callback err, model
         else
             callback "Domain registration failed"
 
-  @bindVM = permit 'edit domains', 
-    success: (client, params, callback)->
-      JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
+  bindVM: (client, params, callback)->
+    domainName = @domain
+    JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
 
-        record =
-          mode          : "vm"
-          domainName    : params.domainName
-          hostnameAlias : hostnameAlias
-          shouldUpdate  : params.shouldUpdate
+      if params.state
+        JVM.update {'$addToSet': {"hostnameAlias": hostnameAlias}}, (err)->
+          callback err
+      else
+        @update {'$pull': {"hostnameAlias": hostnameAlias}}, (err)->
+          callback err
 
-        if params.state
-          domainManager.dnsManager.registerNewRecordToProxy record, (err, response)=>
-            callback err, {successful:response?.host?, hostnameAlias:hostnameAlias}
-
-        else
-          domainManager.dnsManager.removeDNSRecordFromProxy record, (err, response)=>
-            callback err, {successful:response?.res?}
-
-
-  @createProxyRule = permit 'edit domains',  
-    success: (client, params, callback)->
-      domainManager.domainService.createProxyRule params, (response)-> callback response
+  bindVM$: permit
+    advanced: [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (client, params, callback)-> @bindVM client, params, callback
+    failure: () ->
+      callback "You don't have the required permission to perform this action."
