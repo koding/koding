@@ -115,6 +115,8 @@ module.exports = class JDomain extends jraphical.Module
   @bindVM = secure ({connection:{delegate}}, params, callback)->
     JVM.findHostnameAlias params.vmName, (err, hostnameAlias)=>
 
+      console.log "binding #{params.domainName} to #{hostnameAlias}"
+
       record =
         mode          : "vm"
         domainName    : params.domainName
@@ -122,12 +124,10 @@ module.exports = class JDomain extends jraphical.Module
 
       if params.state
         domainManager.dnsManager.registerNewRecordToProxy record, (response)=>
-          @update {"domain":params.domainName}, {'$push': {"hostnameAlias":hostnameAlias}}
           callback "Your domain is now connected to #{params.vmName} VM." if response?.host?
 
       else
         domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
-          @update {"domain":params.domainName}, {'$pull': {"hostnameAlias":hostnameAlias}}
           callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
 
 

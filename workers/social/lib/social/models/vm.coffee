@@ -22,8 +22,9 @@ module.exports = class JVM extends Model
       'list default vm' : ['member','moderator']
     sharedMethods       :
       static            : [
-                           'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData', 'findHostnameAlias'
+                           'fetchVms','fetchVmsByContext','calculateUsage',
+                           'removeByName', 'someData', 'findHostnameAlias',
+                           'fetchVmsWithHostnames'
                           ]
       instance          : []
     schema              :
@@ -195,10 +196,27 @@ module.exports = class JVM extends Model
           return callback new KodingError 'No such VM'  unless vm
           vm.remove callback
 
-  @findHostnameAlias = (vmName, callback)->
-    @one {name:vmName}, {hostnameAlias:1}, (err, vm)->
-      callback err if err
-      callback null, vm.hostnameAlias
+  @findHostnameAlias = permit 'list all vms',
+    success: (client, vmName, callback)->
+      @one {name:vmName}, {hostnameAlias:1}, (err, vm)->
+        callback err if err
+        callback null, vm.hostnameAlias
+
+  @fetchVmsWithHostnames = permit 'list all vms',
+    success: (client, callback)->
+      {delegate} = client.connection
+
+      delegate.fetchUser (err, user)->
+
+        selector = { users: $elemMatch: id: user.getId() }
+
+        JVM.someData selector, {name:1, hostnameAlias:1}, {}, (err, cursor)->
+          return callback if err
+
+          cursor.toArray (err, arr)->
+            return callback err if err
+            callback null, arr
+
 
   do ->
 
