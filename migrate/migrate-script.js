@@ -668,7 +668,7 @@ print('add group slugs to every collection that needs them');
   'jCodeSnips',
   'jDiscussions',
   'jInvitationRequests',
-  'jCodeShares',
+  'jBlogPost',
   'jOpinions',
   'jPosts',
   'jStatusUpdates',
