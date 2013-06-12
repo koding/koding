@@ -14,6 +14,7 @@ var (
 
 type filter struct {
 	mode     string
+	match    string
 	validate func() bool
 }
 
@@ -32,9 +33,10 @@ func validator(rules proxyconfig.Restriction, user *UserInfo) *Validator {
 	return validator
 }
 
-func (v *Validator) addFilter(name, mode string, validateFn func() bool) {
+func (v *Validator) addFilter(name, mode, match string, validateFn func() bool) {
 	v.filters[name] = filter{
 		mode:     mode,
+		match:    match,
 		validate: validateFn,
 	}
 }
@@ -57,7 +59,7 @@ func (v *Validator) IP() *Validator {
 
 			return re.MatchString(v.user.IP)
 		}
-		v.addFilter("ip", rule.Mode, f)
+		v.addFilter("ip", rule.Mode, rule.Match, f)
 
 	}
 
@@ -82,17 +84,25 @@ func (v *Validator) Country() *Validator {
 			return false
 		}
 
-		v.addFilter("country", rule.Mode, f)
+		v.addFilter("country", rule.Mode, rule.Match, f)
 	}
 
 	return v
 }
 
 func (v *Validator) Check() (bool, error) {
-	for _, filter := range v.filters {
+	for name, filter := range v.filters {
 		switch filter.mode {
 		case "blacklist":
 			if filter.validate() {
+
+				reason := fmt.Sprintf("%s for %s - %s", filter.mode, name, filter.match)
+				go logDomainDenied(
+					v.user.Domain.Domain,
+					v.user.IP,
+					v.user.Country,
+					reason,
+				)
 				return false, ErrNotValidated
 			} else {
 				return true, nil
