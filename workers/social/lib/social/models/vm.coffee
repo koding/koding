@@ -235,7 +235,7 @@ module.exports = class JVM extends Model
     success: (client, vmName, callback)->
       @one {name:vmName}, {hostnameAlias:1}, (err, vm)->
         callback err if err
-        callback null, vm.hostnameAlias
+        callback null, vm.hostnameAlias.map (vm)-> vm
 
   @fetchVmsWithHostnames = permit 'list all vms',
     success: (client, callback)->

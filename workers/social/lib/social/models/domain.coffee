@@ -3,6 +3,7 @@ module.exports = class JDomain extends jraphical.Module
 
   DomainManager = require 'domainer'
   {secure, ObjectId}  = require 'bongo'
+  {Relationship} = jraphical
   {permit} = require './group/permissionset'
   Validators = require './group/validators'
 
@@ -77,12 +78,20 @@ module.exports = class JDomain extends jraphical.Module
   @createDomain: secure (client, options={}, callback)->
     model = new JDomain options
     model.save (err) ->
-      if err then callback? err
+      if err then callback err
 
       account = client.connection.delegate
-      account.addDomain model
+      rel = new Relationship
+        targetId: model.getId()
+        targetName: 'JDomain'
+        sourceId: account.getId()
+        sourceName: 'JAccount'
+        as: 'owner'
+      
+      rel.save (err)->
+        callback err
 
-      callback? err, model
+      callback err, model
 
   @isDomainAvailable = (domainName, tld, callback)->
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
@@ -122,12 +131,11 @@ module.exports = class JDomain extends jraphical.Module
   bindVM: (client, params, callback)->
     domainName = @domain
     JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
-
       if params.state
-        JVM.update {'$addToSet': {"hostnameAlias": hostnameAlias}}, (err)->
+        JDomain.update {domain:domainName}, {'$addToSet': hostnameAlias: '$each': hostnameAlias}, (err)->
           callback err
       else
-        @update {'$pull': {"hostnameAlias": hostnameAlias}}, (err)->
+        JDomain.update {domain:domainName}, {'$pullAll': hostnameAlias:hostnameAlias}, (err)->
           callback err
 
   bindVM$: permit
