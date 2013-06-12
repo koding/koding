@@ -1,9 +1,10 @@
 class ChatMessageListController extends CommonChatController
 
-  constructor:->
-    super
-    @me = KD.whoami().profile.nickname
+  addItem:(event, message)->
+    sender   = (event.split '.').last
+    cssClass = if sender is KD.nick() then 'mine' else ''
+    super {message, sender, cssClass}
 
-  addItem:(data)->
-    if data.sender is @me then data.cssClass = 'mine'
-    super data
+    @scrollView.scrollTo
+      top      : @scrollView.getScrollHeight()
+      duration : 100

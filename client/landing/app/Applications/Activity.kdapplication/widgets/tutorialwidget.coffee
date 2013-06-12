@@ -134,7 +134,7 @@ class ActivityTutorialWidget extends KDFormView
         link_embed : @embedBox.getDataForSubmit()
 
     super
-
+    KD.track "Activity", "TutorialSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 

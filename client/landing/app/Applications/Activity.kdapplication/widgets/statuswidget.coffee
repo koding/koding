@@ -244,7 +244,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @once 'FormValidationPassed', => @reset yes
 
     super
-
+    KD.track "Activity", "StatusUpdateSubmitted"
     @submitBtn.disable()
     @utils.wait 5000, => @submitBtn.enable()
 
