@@ -174,8 +174,7 @@ class KodingAppsController extends KDController
     else
       @fetchCompiledAppSource manifest, (err, script)=>
         if err
-          @compileApp name, (err)->
-            callback err, script
+          @compileApp name, callback
         else
           @defineApp name, script
           callback err, script
@@ -322,7 +321,7 @@ class KodingAppsController extends KDController
               @defineApp name, res
               loader.notificationSetTitle "App compiled successfully"
               loader.notificationSetTimer 2000
-            callback? err
+            callback? err, res
         else
           loader.destroy()
 
