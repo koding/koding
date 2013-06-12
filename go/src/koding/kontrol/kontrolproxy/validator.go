@@ -14,6 +14,7 @@ var (
 
 type filter struct {
 	mode     string
+	match    string
 	validate func() bool
 }
 
@@ -32,81 +33,91 @@ func validator(rules proxyconfig.Restriction, user *UserInfo) *Validator {
 	return validator
 }
 
-func (v *Validator) addFilter(name, mode string, validateFn func() bool) {
+func (v *Validator) addFilter(name, mode, match string, validateFn func() bool) {
 	v.filters[name] = filter{
 		mode:     mode,
+		match:    match,
 		validate: validateFn,
 	}
 }
 
 func (v *Validator) IP() *Validator {
-	if !v.rules.IP.Enabled {
-		return v
-	}
-
-	f := func() bool {
-		if v.rules.IP.Rule == "" {
-			return true // assume allowed for all
+	for _, rule := range v.rules.IPs {
+		if !rule.Enabled {
+			continue
 		}
 
-		rule, err := regexp.Compile(v.rules.IP.Rule)
-		if err != nil {
-			return true // dont block anyone if regex compile get wrong
-		}
+		f := func() bool {
+			if rule.Match == "all" {
+				return true // assume allowed for all
+			}
 
-		return rule.MatchString(v.user.IP)
+			re, err := regexp.Compile(rule.Match)
+			if err != nil {
+				return true // dont block anyone if regex compile get wrong
+			}
+
+			return re.MatchString(v.user.IP)
+		}
+		v.addFilter("ip", rule.Mode, rule.Match, f)
+
 	}
-	v.addFilter("ip", v.rules.IP.Mode, f)
+
 	return v
 }
 
 func (v *Validator) Country() *Validator {
-	if !v.rules.Country.Enabled {
-		return v
-	}
-
-	f := func() bool {
-		// assume matched for an empty array
-		if len(v.rules.Country.Rule) == 0 {
-			return true // assume all
+	for _, rule := range v.rules.Countries {
+		if !rule.Enabled {
+			continue
 		}
 
-		emptystrings := 0
-		for _, country := range v.rules.Country.Rule {
-			if country == "" {
-				emptystrings++
+		f := func() bool {
+			if rule.Match == "all" {
+				return true // assume allowed for all
 			}
-			if country == v.user.Country {
+
+			if rule.Match == v.user.Country {
 				return true
 			}
+
+			return false
 		}
 
-		// if the array has all empty slices assume matched
-		if emptystrings == len(v.rules.Country.Rule) {
-			return true //
-		}
-
-		return false
+		v.addFilter("country", rule.Mode, rule.Match, f)
 	}
 
-	v.addFilter("domain", v.rules.Country.Mode, f)
 	return v
 }
 
 func (v *Validator) Check() (bool, error) {
-	for _, filter := range v.filters {
+	for name, filter := range v.filters {
 		switch filter.mode {
 		case "blacklist":
 			if filter.validate() {
+
+				reason := fmt.Sprintf("%s for %s - %s", filter.mode, name, filter.match)
+				go logDomainDenied(
+					v.user.Domain.Domain,
+					v.user.IP,
+					v.user.Country,
+					reason,
+				)
 				return false, ErrNotValidated
+			} else {
+				return true, nil
 			}
 		case "whitelist":
-			if !filter.validate() {
+			if filter.validate() {
+				return true, nil
+			} else {
 				return false, ErrNotValidated
 			}
 		case "securepage":
 			if filter.validate() {
 				return false, ErrSecurePage
+			} else {
+				return true, nil
 			}
 		}
 	}

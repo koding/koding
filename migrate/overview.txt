@@ -6,7 +6,7 @@ Only on master:
 
 Only on newkoding:
   model: CBlogPostActivity
-  migration: n/a
+  migration: drop collection (there shouldn't be one)
 
   model: JBlogPost
   migration: n/a
@@ -21,10 +21,10 @@ Only on newkoding:
   migration: create a group bundle for koding group
 
   model: JGroupRole
-  migration: ??? sinan
+  migration: n/a
 
   model: JIntroSnippet
-  migration: initialize all intro snippets ??? acet
+  migration: n/a
 
   model: JKite
   migration: n/a
@@ -39,7 +39,7 @@ Only on newkoding:
   migration: n/a
 
   model: JMarkdownDoc
-  migration: create the markdown doc for the koding group, if we need it ??? sinan
+  migration: n/a
 
   model: JMemberKite
   migration: n/a
@@ -70,7 +70,7 @@ Only on newkoding:
 
 On both master and newkoding
   model: CActivity
-  migration: set "group" field to "koding"
+  migration: drop collection
 
   model: CBucket
   migration: n/a
@@ -109,64 +109,66 @@ On both master and newkoding
   migration: n/a
 
   model: CInstalleeBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CInstallerBucket
   migration: n/a
 
   model: CInstallerBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CLikeeBucket
   migration: n/a
 
   model: CLikeeBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CLikerBucket
   migration: n/a
 
   model: CLikerBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CLinkActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CNewMemberBucket
   migration: n/a
 
   model: CNewMemberBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: COpinionActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CReplieeBucket
   migration: n/a
 
   model: CReplieeBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CReplierBucket
   migration: n/a
 
   model: CReplierBucketActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CRepliesActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CStatusActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CTutorialActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: CTutorialListActivity
-  migration: set "group" field to "koding"
+  migration: drop collection (there shouldn't be one)
 
   model: JAccount
-  migration: set "onlineStatus" field to "offline"
+  migration:
+    set "onlineStatus" field to "offline"
+    change "koding" "profile.nickname" to "timahong"
 
   model: JApp
   migration: n/a
@@ -190,7 +192,7 @@ On both master and newkoding
   migration: create the "koding" group
 
   model: JGuest
-  migration: n/a
+  migration: set all "status" to "pristine"
 
   model: JInvitation
   migration: n/a
@@ -202,10 +204,10 @@ On both master and newkoding
     set "invitationType" field to "invitation", unless it holds another value
 
   model: JLimit
-  migration: bahadir ???
+  migration: n/a
 
   model: JLink
-  migration: set "group" field to "koding"
+  migration: drop collection
 
   model: JMailNotification
   migration: set "senderEmail" field to "hi@koding.com"
@@ -217,6 +219,9 @@ On both master and newkoding
   migration:
     use notion of plural "slugs" (an array of objects)
     unset "constructorName" and "usedAsPath" properties
+    recreate name for "koding" that points to the "koding" group
+    create a name for "timahong" that points to the "timahong" account
+    reserve the name "group"
 
   model: JOpinion
   migration: set "group" field to "koding"
@@ -252,6 +257,7 @@ On both master and newkoding
   migration:
     grant every user a sequential "uid"
     set "onlineStatus.actual" field to "offline"
+    change "koding" "username" to "timahong"
 
   model: JVocabulary
   migration: set "group" field to "koding"

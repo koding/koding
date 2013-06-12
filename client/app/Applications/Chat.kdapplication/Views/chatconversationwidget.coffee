@@ -26,6 +26,8 @@ class ChatConversationWidget extends JView
       view    : @chatMessageList
     , item.getData()
 
+    @chatListWrapper = @chatMessageController.getView()
+
     self = this
     @channel.on '*', (message)->
       self.chatMessageController.addItem @event, message
@@ -48,6 +50,6 @@ class ChatConversationWidget extends JView
 
   pistachio:->
     """
-      {{> @chatMessageList}}
+      {{> @chatListWrapper}}
       {{> @messageInput}}
     """

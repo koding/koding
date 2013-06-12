@@ -35,7 +35,7 @@ module.exports = class JVM extends Model
         type            : String
         default         : -> null
       name              : String
-      hostnameAlias     : String
+      hostnameAlias     : [String]
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -55,14 +55,40 @@ module.exports = class JVM extends Model
         type            : Boolean
         default         : no
 
+  @createDomains = (domains) ->
+    JDomain = require './domain'
+    domains.forEach (domain) ->
+      (new JDomain
+        domain        : domain
+        hostnameAlias : [domain]
+        proxy         : { mode: 'vm' }
+        regYears      : 0
+      ).save (err)-> console.log err  if err?
+
+  @createAliases = ({nickname, type, uid, groupSlug})->
+    domain       = 'kd.io'
+    if type is 'user'
+      prefix = if uid > 0 then "vm#{uid}." else ""
+      aliases = ["#{prefix}#{nickname}.#{groupSlug}.#{domain}"]
+      if groupSlug is 'koding'
+        aliases.push "#{prefix}#{nickname}.#{domain}"
+    else if type is 'group'
+      if uid is 0
+        aliases = ["#{groupSlug}.#{domain}"
+                 "shared.#{groupSlug}.#{domain}"]
+      else
+        aliases = ["shared-#{uid}.#{groupSlug}.#{domain}"]
+
+    return aliases
+
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
   @createVm = ({account, type, groupSlug, usage, hostname}, callback)->
     console.log usage, hostname
     JGroup = require './group'
-    JGroup.one {slug: groupSlug}, (err, group) =>
+    JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
-      account.fetchUser (err, user) =>
+      account.fetchUser (err, user)=>
         return callback err  if err
         name = "#{groupSlug}~"
         if type is 'user'
@@ -76,10 +102,19 @@ module.exports = class JVM extends Model
 
         nameFactory.next (err, uid)=>
           return callback err  if err
+
+          hostnameAlias = JVM.createAliases {
+            nickname : user.username
+            type, uid, groupSlug
+          }
+
+          JVM.createDomains hostnameAlias
+
           vm = new JVM {
             name    : "#{name}#{uid}"
             users   : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups  : [{ id: group.getId() }]
+            hostnameAlias
             usage
           }
           vm.save (err) =>
@@ -204,13 +239,22 @@ module.exports = class JVM extends Model
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = ({ target, user, name, sudo, groups })->
+    addVm = ({ target, user, name, sudo, groups, type })->
+
+      uid = 0
+      groupSlug = if type is 'group' then name else 'koding'
+      hostnameAlias = JVM.createAliases {
+        nickname : user.username
+        type, uid, groupSlug
+      }
+
       vm = new JVM {
         name: name
         users: [
           { id: user.getId(), sudo: yes, owner: yes }
         ]
         groups: groups ? []
+        hostnameAlias
       }
       vm.save (err)-> target.addVm vm, handleError
 
@@ -239,6 +283,7 @@ module.exports = class JVM extends Model
             else
               addVm {
                 user
+                type    : 'group'
                 target  : group
                 sudo    : yes
                 name    : group.slug
@@ -257,6 +302,7 @@ module.exports = class JVM extends Model
           # TODO: this special case for koding should be generalized for any group.
           addVm {
             user
+            type    : 'user'
             target  : member
             sudo    : yes
             name    : "koding~#{member.profile.nickname}"
