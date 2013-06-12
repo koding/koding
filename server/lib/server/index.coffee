@@ -215,7 +215,6 @@ findUsernameFromKey = (req, res, callback) ->
       res.send 401
       callback false, null
     else
-      console.log "!-------- ------ ----- ---- >>>>>", account.profile.nickname
       callback false, account.profile.nickname
 
 fetchJAccountByKiteUserNameAndKey = (req, callback)->
