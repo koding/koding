@@ -96,6 +96,12 @@ func main() {
 	rout.HandleFunc("/rules/{domain}", GetRule).Methods("GET")
 	rout.HandleFunc("/rules/{domain}", CreateRule).Methods("POST")
 	rout.HandleFunc("/rules/{domain}", DeleteRule).Methods("DELETE")
+	rout.HandleFunc("/rules/{domain}/ips", GetRuleIps).Methods("GET")
+	rout.HandleFunc("/rules/{domain}/ips/{ip}", GetRuleIp).Methods("GET")
+	rout.HandleFunc("/rules/{domain}/ips/{ip}", DeleteRuleIp).Methods("Delete")
+	rout.HandleFunc("/rules/{domain}/countries", GetRuleCountries).Methods("GET")
+	rout.HandleFunc("/rules/{domain}/countries/{country}", GetRuleCountry).Methods("GET")
+	rout.HandleFunc("/rules/{domain}/countries/{country}", DeleteRuleCountry).Methods("DELETE")
 
 	// Statistics handlers
 	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
