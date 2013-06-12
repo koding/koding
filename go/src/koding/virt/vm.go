@@ -22,7 +22,7 @@ type VM struct {
 	IP            net.IP         `bson:"ip"`
 	HostKite      string         `bson:"hostKite"`
 	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
-	HostnameAlias string         `bson:"hostnameAlias"`
+	HostnameAlias []string       `bson:"hostnameAlias"`
 	hostname      string
 }
 
