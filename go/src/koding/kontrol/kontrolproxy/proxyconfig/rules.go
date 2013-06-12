@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"strings"
 )
 
 type Rule struct {
@@ -57,13 +58,14 @@ func (p *ProxyConfiguration) AddRule(domainname, ruletype, match, mode string, e
 
 	switch ruletype {
 	case "ip", "file":
-		_, ok := restriction.IPs[match]
+		m := strings.Replace(match, ".", "_", -1) // mongo doesn't love dots for sub fields
+		_, ok := restriction.IPs[m]
 		if ok {
 			return fmt.Errorf("ip rule for '%s' already exist", match)
 		}
 
 		rule := *NewRule(enabled, mode, match)
-		restriction.IPs[match] = rule
+		restriction.IPs[m] = rule
 	case "country":
 		_, ok := restriction.Countries[match]
 		if ok {
@@ -71,7 +73,7 @@ func (p *ProxyConfiguration) AddRule(domainname, ruletype, match, mode string, e
 		}
 
 		rule := *NewRule(enabled, mode, match)
-		restriction.IPs[match] = rule
+		restriction.Countries[match] = rule
 	}
 
 	_, err = p.Collection["rules"].Upsert(bson.M{"domainname": domainname}, restriction)
@@ -97,6 +99,69 @@ func (p *ProxyConfiguration) GetRule(domainname string) (Restriction, error) {
 		return restriction, err
 	}
 	return restriction, nil
+}
+
+func (p *ProxyConfiguration) GetRuleCountry(domainname, country string) (Rule, error) {
+	restriction := Restriction{}
+	err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).Select(bson.M{"countries." + country: 1}).
+		One(&restriction)
+	if err != nil {
+		return Rule{}, err
+	}
+
+	rule, ok := restriction.Countries[country]
+	if !ok {
+		return Rule{}, fmt.Errorf("country '%s' does not exist.", country)
+	}
+	return rule, nil
+}
+
+func (p *ProxyConfiguration) GetRuleIp(domainname, ip string) (Rule, error) {
+	restriction := Restriction{}
+	m := strings.Replace(ip, ".", "_", -1) // mongo doesn't love dots for sub fields
+	err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).Select(bson.M{"ips." + m: 1}).
+		One(&restriction)
+	if err != nil {
+		return Rule{}, err
+	}
+
+	rule, ok := restriction.IPs[m]
+	if !ok {
+		return Rule{}, fmt.Errorf("ip '%s' does not exist.", ip)
+	}
+	return rule, nil
+}
+
+func (p *ProxyConfiguration) GetRuleIps(domainname string) ([]Rule, error) {
+	restriction := Restriction{}
+	err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).Select(bson.M{"ips": 1}).
+		One(&restriction)
+	if err != nil {
+		return []Rule{}, err
+	}
+
+	rules := make([]Rule, 0)
+	for _, rule := range restriction.IPs {
+		rules = append(rules, rule)
+	}
+
+	return rules, nil
+}
+
+func (p *ProxyConfiguration) GetRuleCountries(domainname string) ([]Rule, error) {
+	restriction := Restriction{}
+	err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).Select(bson.M{"countries": 1}).
+		One(&restriction)
+	if err != nil {
+		return []Rule{}, err
+	}
+
+	rules := make([]Rule, 0)
+	for _, rule := range restriction.Countries {
+		rules = append(rules, rule)
+	}
+
+	return rules, nil
 }
 
 func (p *ProxyConfiguration) GetRules() []Restriction {

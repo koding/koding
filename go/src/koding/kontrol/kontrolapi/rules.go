@@ -47,6 +47,84 @@ func GetRule(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
+func GetRuleCountry(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	country := vars["country"]
+	fmt.Printf("GET\t/rules/%s/countries/%s\n", domain, country)
+
+	res, err := proxyDB.GetRuleCountry(domain, country)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func GetRuleIp(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	ip := vars["ip"]
+	fmt.Printf("GET\t/rules/%s/ips/%s\n", domain, ip)
+
+	res, err := proxyDB.GetRuleIp(domain, ip)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func GetRuleIps(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	fmt.Printf("GET\t/rules/%s/ips\n", domain)
+
+	res, err := proxyDB.GetRuleIps(domain)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func GetRuleCountries(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	fmt.Printf("GET\t/rules/%s/countries\n", domain)
+
+	res, err := proxyDB.GetRuleCountries(domain)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+	writer.Write([]byte(data))
+}
+
 func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
