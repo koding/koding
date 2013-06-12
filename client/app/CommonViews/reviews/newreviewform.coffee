@@ -8,7 +8,7 @@ class NewReviewForm extends NewCommentForm
     super options,data
 
   commentInputReceivedEnter:(instance,event)->
-    KD.requireLogin
+    KD.requireMembership
       callback : =>
         review = @commentInput.getValue()
         @commentInput.setValue ''
@@ -17,3 +17,4 @@ class NewReviewForm extends NewCommentForm
         @getDelegate().emit 'ReviewSubmitted', review
       onFailMsg : "Login required to post a review!"
       tryAgain  : yes
+      groupName : @getDelegate().getData().group

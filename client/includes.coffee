@@ -129,6 +129,7 @@ module.exports = [
   "Framework/components/time/timeagoview.coffee",
 
   # --- Application ---
+  "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
   "libs/pistachio.js",
@@ -710,6 +711,7 @@ module.exports = [
   "app/MainApp/monitor_status.coffee",
   "app/MainApp/rollbar.coffee",
   "app/MainApp/mixpanel.coffee",
+  "app/MainApp/analytic.coffee",
 
   # --- Styles ---
   "css/style.css",

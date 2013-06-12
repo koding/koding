@@ -101,6 +101,7 @@ class VMListItemView extends KDListItemView
   constructor: (options, data) ->
     options.cssClass or= "vm-item"
     options.click = @bound "clicked"
+
     super options, data
 
     {controller,vmName} = @getData()
