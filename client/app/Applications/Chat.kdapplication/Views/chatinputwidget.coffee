@@ -10,6 +10,6 @@ class ChatInputWidget extends KDHitEnterInputView
         "super+up"      : => @emit 'moveUpRequested'
         "super+down"    : => @emit 'moveDownRequested'
       callback          : ->
-        @emit 'messageSent', @getValue()
+        @emit 'messageSent', @getValue()  if @getValue() isnt ''
         @setValue ''
         @setFocus()
