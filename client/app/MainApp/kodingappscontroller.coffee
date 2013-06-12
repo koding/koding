@@ -279,7 +279,7 @@ class KodingAppsController extends KDController
       loader        :
         color       : "#ffffff"
       title         : "Please wait while we are publishing your app..."
-      delay         :
+      followUps     :
         duration    : 10000
         title       : "We are still working on it. Your app will be published soon..."
       duration      : 120000

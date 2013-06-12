@@ -3,12 +3,12 @@ class KDNotificationView extends KDView
     super options
     options = @notificationSetDefaults options
 
-    @notificationSetType    options.type
-    @notificationSetTitle   options.title     if options.title?
-    @notificationSetContent options.content   if options.content?
-    @notificationSetTimer   options.duration  if options.duration?
-    @notificationSetOverlay options.overlay   if options.overlay?
-    @notificationSetDelay   options.delay     if options.delay?
+    @notificationSetType        options.type
+    @notificationSetTitle       options.title         if options.title?
+    @notificationSetContent     options.content       if options.content?
+    @notificationSetTimer       options.duration      if options.duration?
+    @notificationSetOverlay     options.overlay       if options.overlay?
+    @notificationSetFollowUps   options.followUps     if options.followUps?
 
     @notificationShowTimer() if options.showTimer? and options.showTimer
     @notificationSetCloseHandle options.closeManually
@@ -133,13 +133,13 @@ class KDNotificationView extends KDView
       @notificationTimerDiv.text next
     ,1000
 
-  notificationSetDelay: (delayList)->
-    unless Array.isArray delayList then delayList = [delayList]
-    delayList.forEach (delay)=>
-      delay.duration  ?= 10000
-      @utils.wait delay.duration, =>
-        @notificationSetTitle   delay.title    if delay.title
-        @notificationSetContent delay.content  if delay.content
+  notificationSetFollowUps: (followUps)->
+    unless Array.isArray followUps then followUps = [followUps]
+    followUps.forEach (followUp)=>
+      followUp.duration  ?= 10000
+      @utils.wait followUp.duration, =>
+        @notificationSetTitle   followUp.title    if followUp.title
+        @notificationSetContent followUp.content  if followUp.content
         @notificationSetPositions()
 
   notificationShowTimer:()->
