@@ -49,7 +49,7 @@ class MainChatHeader extends JView
           contentPanel._windowDidResize()
 
           chatPanel    = @getSingleton('chatPanel')
-          chatPanel.emit 'PanelVisibilityChanged', yes
+          chatPanel.hidePanel()
 
           callback?()
       ]
