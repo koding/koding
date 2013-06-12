@@ -11,4 +11,6 @@ class ChatMessageListItem extends KDListItemView
     @template.update()
 
   pistachio:->
-    """<strong>{{#(sender)}}</strong>: {{#(message)}}"""
+    {message, sender} = @getData()
+    message = Encoder.XSSEncode message
+    """<strong>#{sender}</strong>: #{message}"""
