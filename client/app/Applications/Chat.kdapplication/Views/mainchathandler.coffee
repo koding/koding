@@ -2,15 +2,13 @@ class MainChatHandler extends JView
 
   constructor:->
     super cssClass : 'main-chat-handler'
-
+    @panel = (KD.getSingleton 'chatPanel')
   pistachio:-> "<cite></cite>Conversations"
 
   viewAppended:->
     super
-    (KD.getSingleton 'chatPanel').on 'PanelVisibilityChanged', (isVisible)=>
+    @panel.on 'PanelVisibilityChanged', (isVisible)=>
       if isVisible then @setClass 'visible'
       else @unsetClass 'visible'
 
-  click:->
-    (KD.getSingleton 'chatPanel').toggle()
-    no
+  click:-> @panel.toggle()

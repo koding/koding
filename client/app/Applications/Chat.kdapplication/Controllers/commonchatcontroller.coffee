@@ -2,13 +2,11 @@ class CommonChatController extends KDListViewController
 
   loadView:->
     super
-    list = @getListView()
     @loadItems()
 
   loadItems:(callback)->
     @removeAllItems()
     @customItem?.destroy()
-    @showLazyLoader no
 
   addCustomItem:(message)->
     @removeAllItems()

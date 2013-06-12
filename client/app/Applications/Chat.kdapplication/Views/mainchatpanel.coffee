@@ -15,7 +15,9 @@ class MainChatPanel extends JView
     @on 'PanelVisibilityChanged', (visible)=>
       if visible
         @getSingleton('windowController').addLayer @
-        @once 'ReceivedClickElsewhere', @bound 'hidePanel'
+        @once 'ReceivedClickElsewhere', (event)=>
+          unless $(event.target).closest('.main-chat-handler').length > 0
+            @hidePanel()
 
     # FIXME Later ~ GG
     {mainController} = KD.singletons
