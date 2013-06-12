@@ -1,50 +1,47 @@
 package proxyconfig
 
 import (
+	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"strings"
 )
 
-type IP struct {
+type Rule struct {
 	// To disable or enable current rule
 	Enabled bool `bson:"enabled", json:"enabled"`
 
 	// Rule is either allowing matches or denying
 	Mode string `bson:"mode", json:"mode"`
 
-	// Regex string
-	Rule string `bson:"rule", json:"rule"`
-}
-
-type Country struct {
-	// To disable or enable current rule
-	Enabled bool `bson:"enabled", json:"enabled"`
-
-	// Rule is either allowing matches or denying
-	Mode string `bson:"mode", json:"mode"`
-
-	// A slice of country names, i.e.:["Turkey", "Germany"]
-	Rule []string `bson:"rule", json:"rule"`
+	// Matching string, like 1.1.1.1 or Turkey
+	Match string `bson:"rule", json:"rule"`
 }
 
 type Restriction struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	DomainName string        `bson:"domainname" json:"domainname"`
-	IP         IP            `bson:"ip", json:"ip"`
-	Country    Country       `bson:"country", json:"country"`
+	Id         bson.ObjectId   `bson:"_id" json:"-"`
+	DomainName string          `bson:"domainname" json:"domainname"`
+	IPs        map[string]Rule `bson:"ips", json:"ips"`
+	Countries  map[string]Rule `bson:"countries", json:"countries"`
+}
+
+func NewRule(enabled bool, mode, match string) *Rule {
+	return &Rule{
+		Enabled: enabled,
+		Mode:    mode,
+		Match:   match,
+	}
 }
 
 func NewRestriction(domainname string) *Restriction {
 	return &Restriction{
 		Id:         bson.NewObjectId(),
 		DomainName: domainname,
-		IP:         IP{},
-		Country:    Country{},
+		IPs:        make(map[string]Rule),
+		Countries:  make(map[string]Rule),
 	}
 }
 
-func (p *ProxyConfiguration) AddRule(domainname, rulename, rule, mode string, enabled bool) error {
+func (p *ProxyConfiguration) AddRule(domainname, ruletype, match, mode string, enabled bool) error {
 	restriction, err := p.GetRule(domainname)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -53,20 +50,23 @@ func (p *ProxyConfiguration) AddRule(domainname, rulename, rule, mode string, en
 		restriction = *NewRestriction(domainname)
 	}
 
-	switch rulename {
+	switch ruletype {
 	case "ip", "file":
-		restriction.IP.Enabled = enabled
-		restriction.IP.Mode = mode
-		restriction.IP.Rule = strings.TrimSpace(rule)
-	case "country":
-		restriction.Country.Enabled = enabled
-		restriction.Country.Mode = mode
-		cList := make([]string, 0)
-		list := strings.Split(rule, ",")
-		for _, country := range list {
-			cList = append(cList, strings.TrimSpace(country))
+		_, ok := restriction.IPs[match]
+		if ok {
+			return fmt.Errorf("IP rule for '%' already exist", match)
 		}
-		restriction.Country.Rule = cList
+
+		rule := *NewRule(enabled, mode, match)
+		restriction.IPs[match] = rule
+	case "country":
+		_, ok := restriction.Countries[match]
+		if ok {
+			return fmt.Errorf("Country rule for '%' already exist", match)
+		}
+
+		rule := *NewRule(enabled, mode, match)
+		restriction.IPs[match] = rule
 	}
 
 	_, err = p.Collection["rules"].Upsert(bson.M{"domainname": domainname}, restriction)
