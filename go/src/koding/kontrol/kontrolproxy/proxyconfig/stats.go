@@ -7,10 +7,18 @@ import (
 	"time"
 )
 
+type DomainDenied struct {
+	IP       string
+	Country  string
+	Reason   string
+	DeniedAt time.Time
+}
+
 type DomainStat struct {
 	Id           bson.ObjectId  `bson:"_id" json:"-"`
 	Domainname   string         `bson:"domainname" json:"domainname"`
 	RequestsHour map[string]int `bson:"requesthour", json:"requesthour"`
+	Denied       []DomainDenied
 }
 
 type ProxyStat struct {
@@ -20,11 +28,21 @@ type ProxyStat struct {
 	RequestsHour map[string]int `bson:"requesthour", json:"requesthour"`
 }
 
+func NewDomainDenied(ip, country, reason string) *DomainDenied {
+	return &DomainDenied{
+		IP:       ip,
+		Country:  country,
+		Reason:   reason,
+		DeniedAt: time.Now(),
+	}
+}
+
 func NewDomainStat(name string) *DomainStat {
 	return &DomainStat{
 		Id:           bson.NewObjectId(),
 		Domainname:   name,
 		RequestsHour: make(map[string]int),
+		Denied:       make([]DomainDenied, 0),
 	}
 }
 
@@ -37,7 +55,27 @@ func NewProxyStat(name string) *ProxyStat {
 	}
 }
 
-func (p *ProxyConfiguration) AddDomainStat(domainname string) error {
+func (p *ProxyConfiguration) AddDomainDenied(domainname, ip, country, reason string) error {
+	domainStat, err := p.GetDomainStat(domainname)
+	if err != nil {
+		return err
+	}
+
+	if domainStat.Domainname == "" {
+		domainStat = *NewDomainStat(domainname)
+	}
+
+	domainStat.Denied = append(domainStat.Denied, *NewDomainDenied(ip, country, reason))
+
+	_, err = p.Collection["domainstats"].Upsert(bson.M{"domainname": domainname}, domainStat)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *ProxyConfiguration) AddDomainRequests(domainname string) error {
 	domainStat, err := p.GetDomainStat(domainname)
 	if err != nil {
 		return err
