@@ -26,7 +26,7 @@ class DomainMapperView extends KDView
             cssClass  : 'vm-list'
         
         @vmListViewController.getListView().setData
-          domainName      : domain.domain
+          domain          : domain
           hostnameAliases : if domain.hostnameAlias then (hostnameAlias for hostnameAlias in domain.hostnameAlias) else []
 
         @vmListViewController.instantiateListItems vms
@@ -43,32 +43,27 @@ class DomainVMListItemView extends KDListItemView
 
     listViewData = @getDelegate().getData()
     switchStatus = if @getData().hostnameAlias in listViewData.hostnameAliases then on else off
+    domainIns    = listViewData.domain
+
+    console.log domainIns
 
     @onOff = new KDOnOffSwitch
       size        : 'small'
       labels      : ['CON', "DCON"]
       defaultValue: switchStatus
       callback : (state) =>
-        KD.remote.api.JDomain.bindVM 
-          vmName       : @getData().name
-          domainName   : listViewData.domainName
-          shouldUpdate : if listViewData.hostnameAliases.length > 0 then yes else no
-          state     : state
-        , (err, response) =>
+        domainIns.bindVM 
+          vmName     : @getData().name
+          state      : state
+        , (err) =>
           if not err
-            if state is on and response.successful is yes
+            if state is on
               notificationMsg = "Your domain is connected to the #{@getData().name} VM."
-              listViewData.hostnameAliases.push response.hostnameAlias
-            if state is off and response.successful is yes
+            if state is off
               notificationMsg = "Your domain is disconnected from the #{@getData().name} VM."
-            new KDNotificationView
-                type  : "top"
-                title : notificationMsg
+            new KDNotificationView {type: "top", title: notificationMsg}
           else
-            console.log err
-            new KDNotificationView
-              type  : "top"
-              title : "An error occured while performing your action. Please try again."
+            new KDNotificationView {type: "top", title:err}
 
   viewAppended:->
     @setTemplate @pistachio()

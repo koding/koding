@@ -12,7 +12,7 @@ class DomainsListViewController extends KDListViewController
       @emit "domainItemClicked", item
 
   loadItems:->
-    KD.whoami().listDomains (err, domains) =>
+    KD.whoami().fetchDomains (err, domains) =>
       if err
         @instantiateListItems []
       unless err
