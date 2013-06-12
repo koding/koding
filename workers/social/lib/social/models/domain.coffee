@@ -21,11 +21,10 @@ module.exports = class JDomain extends jraphical.Module
       'edit domains'     : ['member']
       'delete domains'   : ['member']
       'list domains'     : ['member']
+      'list own domains' : ['member']
 
     sharedMethods   :
-      static        : ['one', 'count', 'bindVM', 'findByAccount', 'fetchByDomain', 'fetchByUserId',
-                       'isDomainAvailable', 'registerDomain', 'createProxyRule'
-                     ]
+      static        : ['one', 'count', 'bindVM', 'isDomainAvailable', 'registerDomain', 'createProxyRule']
 
     indexes         :
       domain        : 'unique'
@@ -80,13 +79,6 @@ module.exports = class JDomain extends jraphical.Module
       account.addDomain model
 
       callback? err, model
-
-  @findByAccount: permit 'list domains', 
-    success: (client, selector, callback)->
-      @all selector, (err, domains) ->
-        if err then console.log err
-        domainList = ({name:domain.domain, id:domain.getId(), vms:domain.vms} for domain in domains)
-        callback? err, domains
 
   @isDomainAvailable = (domainName, tld, callback)->
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
