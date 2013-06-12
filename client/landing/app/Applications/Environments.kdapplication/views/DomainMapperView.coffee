@@ -18,19 +18,18 @@ class DomainMapperView extends KDView
     @addSubView new KDCustomHTMLView
       partial : """<div class="domain-name">Your domain: <strong>#{domain.domain}</strong></div>"""
 
-    KD.remote.api.JVM.fetchVms (err, vms)=>
+    KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
       if vms
-        vmList = ({name:vm} for vm in vms)
 
         @vmListViewController = new VMListViewController
           viewOptions :
             cssClass  : 'vm-list'
         
         @vmListViewController.getListView().setData
-          domainName: domain.domain
-          vms       : if domain.vms then (vm for vm in domain.vms) else []
+          domainName      : domain.domain
+          hostnameAliases : if domain.hostnameAlias then (hostnameAlias for hostnameAlias in domain.hostnameAlias) else []
 
-        @vmListViewController.instantiateListItems vmList
+        @vmListViewController.instantiateListItems vms
         @addSubView @vmListViewController.getView()
       else
         @addSubView new KDCustomHTMLView
@@ -43,7 +42,7 @@ class DomainVMListItemView extends KDListItemView
     super options, data
 
     listViewData = @getDelegate().getData()
-    switchStatus = if @getData().name in listViewData.vms then on else off
+    switchStatus = if @getData().hostnameAlias in listViewData.hostnameAliases then on else off
 
     @onOff = new KDOnOffSwitch
       size        : 'small'
