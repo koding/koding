@@ -50,13 +50,25 @@ class DomainVMListItemView extends KDListItemView
       defaultValue: switchStatus
       callback : (state) =>
         KD.remote.api.JDomain.bindVM 
-          vmName    : @getData().name
-          domainName: listViewData.domainName
+          vmName       : @getData().name
+          domainName   : listViewData.domainName
+          shouldUpdate : if listViewData.hostnameAliases.length > 0 then yes else no
           state     : state
-        , (response) ->
-          new KDNotificationView
-            type : "top"
-            title: response
+        , (err, response) =>
+          if not err
+            if state is on and response.successful is yes
+              notificationMsg = "Your domain is connected to the #{@getData().name} VM."
+              listViewData.hostnameAliases.push response.hostnameAlias
+            if state is off and response.successful is yes
+              notificationMsg = "Your domain is disconnected from the #{@getData().name} VM."
+            new KDNotificationView
+                type  : "top"
+                title : notificationMsg
+          else
+            console.log err
+            new KDNotificationView
+              type  : "top"
+              title : "An error occured while performing your action. Please try again."
 
   viewAppended:->
     @setTemplate @pistachio()
