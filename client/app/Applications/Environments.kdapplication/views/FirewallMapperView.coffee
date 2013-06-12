@@ -23,6 +23,13 @@ class FirewallMapperView extends KDView
       viewOptions :
         cssClass  : 'block-list'
 
+    blockListItems = []
+    [1..10].forEach (i) ->
+      generatedIp = Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1);
+      blockListItems.push {rule:generatedIp, mode:'deny'}
+
+    @blockListController.instantiateListItems blockListItems
+
     if domain.blockList
       blockList = ({rule:item} for item in domain.blockList)
       @blockListController.instantiateListItems blockList
@@ -35,6 +42,12 @@ class FirewallMapperView extends KDView
     if domain.whiteList
       whiteList = ({rule:item} for item in domain.whiteList)
       @whiteListController.instantiateListItems whiteList
+
+    whiteListItems = []
+    [1..10].forEach (i) ->
+      generatedIp = Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1);
+      whiteListItems.push {rule:generatedIp, mode:'allow'}
+    @whiteListController.instantiateListItems whiteListItems
 
     @addSubView (new FirewallRuleFormView {}, {domain:domain})
 
@@ -54,17 +67,19 @@ class FirewallMapperView extends KDView
 class FirewallListItemView extends KDListItemView
 
   viewAppended:->
+    @unsetClass 'kdview'
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
     """
-      <table>
-        <tr>
-          <td>{{ #(rule) }}</td>
-          <td>Edit</td>
-        </tr>
-      </table>
+    <div class="fw-li-view">
+      <div class="fw-li-rule">{{ #(rule) }}</div>
+      <div class="fw-li-actions">
+        <span class="icon edit">Edit</span> |
+        <span class="icon delete">Delete</span>
+      </div>
+    </div>
     """
 
 
@@ -117,7 +132,7 @@ class FirewallRuleFormView extends KDCustomHTMLView
   pistachio:->
     """
     <div class="rule-form">
-      <div style="float: left;">
+      <div style="float: left; margin-right: 5px;">
         <label for="rule-input">Add a rule:</label>
         {{> @ruleInput }}
       </div>
