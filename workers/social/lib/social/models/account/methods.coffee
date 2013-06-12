@@ -25,5 +25,5 @@ module.exports =
       'fetchPendingGroupInvitations', 'fetchPendingGroupRequests', 
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'getInvitationRequestByGroup', 'fetchMyPermissions',
-      'fetchMyPermissionsAndRoles', 'addDomain', 'listDomains'
+      'fetchMyPermissionsAndRoles', 'addDomain', 'fetchDomains'
     ]

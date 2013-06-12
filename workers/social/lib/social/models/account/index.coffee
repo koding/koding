@@ -28,6 +28,7 @@ module.exports = class JAccount extends jraphical.Module
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
   {permit} = require '../group/permissionset'
+  Validators = require '../group/validators'
 
   @share()
   Experience =
@@ -967,30 +968,23 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  addDomain: secure (client, domain, callback)->
-    if err then callback err
-
-    rel = new Relationship
-      targetId: domain.getId()
-      targetName: 'JDomain'
-      sourceId: @getId()
-      sourceName: 'JAccount'
-      as: 'owner'
-    
-    rel.save (err)->
-      callback err, domain
-
-  listDomains: secure (client, callback) ->
+  fetchDomains: (callback) ->
     JDomain = require '../domain'
-    Relationship.all 
+      
+    Relationship.all
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
     , (err, rels)->
+      console.log err, rels
       callback err if err
       
-      JDomain.all
-        _id:
-          $in: (rel.targetId for rel in rels)
-        , (err, domains)->
-          callback err, domains
+      JDomain.all {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
+        callback err, domains
+
+  fetchDomains$: permit
+    advanced: [
+      { permission: 'list own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback) ->
+      @fetchDomains callback
