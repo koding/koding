@@ -10,10 +10,10 @@ import (
 )
 
 type RulesPostMessage struct {
-	RuleName    *string `json:"name"`
-	Rule        *string `json:"rule"`
-	RuleEnabled *string `json:"enabled"`
-	RuleMode    *string `json:"mode"`
+	RuleName *string `json:"name"`
+	Match    *string `json:"match"`
+	Enabled  *string `json:"enabled"`
+	Mode     *string `json:"mode"`
 }
 
 func GetRules(writer http.ResponseWriter, req *http.Request) {
@@ -68,21 +68,21 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	if msg.RuleName != nil {
 		ruleName = *msg.RuleName
 	} else {
-		err := "no 'rule name' available"
+		err := "no 'name' field available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	if msg.Rule != nil {
-		rule = *msg.Rule
+	if msg.Match != nil {
+		rule = *msg.Match
 	} else {
-		err := "no 'rule' available"
+		err := "no 'match' field available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	if msg.RuleEnabled != nil {
-		switch *msg.RuleEnabled {
+	if msg.Enabled != nil {
+		switch *msg.Enabled {
 		case "true", "on", "yes":
 			ruleEnabled = true
 		case "false", "off", "no":
@@ -93,15 +93,15 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 			return
 		}
 	} else {
-		err := "no 'ruleEnabled' available"
+		err := "no 'enabled' field available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	if msg.RuleMode != nil {
-		ruleMode = *msg.RuleMode
+	if msg.Mode != nil {
+		ruleMode = *msg.Mode
 	} else {
-		err := "no 'ruleMode' available"
+		err := "no 'mode' field available. should one of 'whitelist, blacklist, securepage'"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}

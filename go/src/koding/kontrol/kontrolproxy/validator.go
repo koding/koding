@@ -46,7 +46,7 @@ func (v *Validator) IP() *Validator {
 		}
 
 		f := func() bool {
-			if rule.Match == "" {
+			if rule.Match == "all" {
 				return true // assume allowed for all
 			}
 
@@ -71,7 +71,7 @@ func (v *Validator) Country() *Validator {
 		}
 
 		f := func() bool {
-			if rule.Match == "" {
+			if rule.Match == "all" {
 				return true // assume allowed for all
 			}
 

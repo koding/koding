@@ -1,6 +1,7 @@
 package proxyconfig
 
 import (
+	"errors"
 	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -50,11 +51,15 @@ func (p *ProxyConfiguration) AddRule(domainname, ruletype, match, mode string, e
 		restriction = *NewRestriction(domainname)
 	}
 
+	if match == "" {
+		return errors.New("match can't be empty")
+	}
+
 	switch ruletype {
 	case "ip", "file":
 		_, ok := restriction.IPs[match]
 		if ok {
-			return fmt.Errorf("IP rule for '%' already exist", match)
+			return fmt.Errorf("ip rule for '%s' already exist", match)
 		}
 
 		rule := *NewRule(enabled, mode, match)
@@ -62,7 +67,7 @@ func (p *ProxyConfiguration) AddRule(domainname, ruletype, match, mode string, e
 	case "country":
 		_, ok := restriction.Countries[match]
 		if ok {
-			return fmt.Errorf("Country rule for '%' already exist", match)
+			return fmt.Errorf("country rule for '%s' already exist", match)
 		}
 
 		rule := *NewRule(enabled, mode, match)
