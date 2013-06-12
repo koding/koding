@@ -210,3 +210,37 @@ func DeleteRule(writer http.ResponseWriter, req *http.Request) {
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }
+
+func DeleteRuleCountry(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	country := vars["country"]
+	fmt.Printf("DELETE\t/rules/%s/%s\n", domain, country)
+
+	err := proxyDB.DeleteRuleCountry(domain, country)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("rule for '%s' of domain '%s' is deleted", country, domain)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}
+
+func DeleteRuleIp(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	ip := vars["ip"]
+	fmt.Printf("DELETE\t/rules/%s/ips/%s\n", domain, ip)
+
+	err := proxyDB.DeleteRuleIp(domain, ip)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("rule for '%s' of domain '%s' is deleted", ip, domain)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}

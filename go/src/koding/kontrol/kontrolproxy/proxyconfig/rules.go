@@ -92,6 +92,29 @@ func (p *ProxyConfiguration) DeleteRule(domainname string) error {
 	return nil
 }
 
+func (p *ProxyConfiguration) DeleteRuleCountry(domainname, country string) error {
+	err := p.Collection["rules"].Update(
+		bson.M{"domainname": domainname},
+		bson.M{"$unset": bson.M{"countries." + country: "1"}},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *ProxyConfiguration) DeleteRuleIp(domainname, ip string) error {
+	m := strings.Replace(ip, ".", "_", -1) // mongo doesn't love dots for sub fields
+	err := p.Collection["rules"].Update(
+		bson.M{"domainname": domainname},
+		bson.M{"$unset": bson.M{"ips." + m: "1"}},
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (p *ProxyConfiguration) GetRule(domainname string) (Restriction, error) {
 	restriction := Restriction{}
 	err := p.Collection["rules"].Find(bson.M{"domainname": domainname}).One(&restriction)
