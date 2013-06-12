@@ -26,12 +26,6 @@ app.environments.styl
 .split-border
   border-right    4px solid #ddd
 
-.routing-view
-  padding    10px
-
-.domain-mapper-view
-  padding    10px
-
 .environments.content-area-pane
   .application-page
     padding            0
@@ -70,8 +64,8 @@ app.environments.styl
         abs()
 
   .domain-vm-item
-
-    padding    5px
+    margin-bottom     10px
+    padding           5px
 
     .vm-name
       font-weight    bold
@@ -163,5 +157,62 @@ app.environments.styl
     padding            10px
 
   .domain-vm-item
-    padding   5px
-    height    40px
+    padding          5px
+    height           40px
+    margin-bottom    5px
+
+  .routing-view
+    padding    10px
+
+  .domain-mapper-view
+    margin-top    10px
+  
+  .domain-mapper-view
+
+    .listview-wrapper
+      margin-top     10px
+
+  .fw-li-view
+    padding    5px
+    height     40px
+    color      #fff
+    width      95px
+    border     1px solid #eee
+    text-align center
+    float      left
+    margin     5px
+
+    .personal
+      sprite()
+      bg position,   -360px -390px
+
+
+  .block-list-view
+    margin-top    10px
+
+    h3
+      line-height    25px
+
+    .fw-li-view
+      background-color    #a90329; // Old browsers
+      @include filter-gradient(#a90329, #6d0019, vertical); // IE6-8
+      $experimental-support-for-svg: true
+      @include background-image(linear-gradient(top, #a90329 0%,#8f0222 44%,#6d0019 100%))
+
+  .white-list-view 
+    margin-top    10px
+
+    h3
+      line-height    25px
+
+    .fw-li-view
+      background-color    #cdeb8e; // Old browsers
+      @include filter-gradient(#cdeb8e, #a5c956, vertical) // IE6-8
+      $experimental-support-for-svg    true
+      @include background-image(linear-gradient(top, #cdeb8e 0%,#a5c956 100%))
+      color    #000
+      border   1px solid #ccc
+
+
+.rule-form
+  margin-top    
