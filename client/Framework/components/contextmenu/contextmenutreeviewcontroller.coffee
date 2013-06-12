@@ -82,16 +82,8 @@ class JContextMenuTreeViewController extends JTreeViewController
   expand:(nodeView)->
 
     super
-    @setOverflowExpandedContextMenuPosition nodeView
+    @emit "NodeExpanded", nodeView
     @expandedNodes.push nodeView if nodeView.expanded
-
-  setOverflowExpandedContextMenuPosition: (nodeView)->
-
-    if nodeView.data?.children?
-      expandView = @listControllers[nodeView.getData().id].getView()
-      fullViewHeight = expandView.getY() + expandView.getHeight()
-      if fullViewHeight > window.innerHeight
-        expandView.$().css "bottom", 0
 
   ###
   NODE SELECTION

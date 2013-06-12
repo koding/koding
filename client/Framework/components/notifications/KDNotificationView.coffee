@@ -9,12 +9,12 @@ class KDNotificationView extends KDView
     @notificationSetTimer       options.duration      if options.duration?
     @notificationSetOverlay     options.overlay       if options.overlay?
     @notificationSetFollowUps   options.followUps     if options.followUps?
-
-    @notificationShowTimer() if options.showTimer? and options.showTimer
+    @notificationShowTimer()                          if options.showTimer?
     @notificationSetCloseHandle options.closeManually
-    @notificationDisplay()
+    
+    @once "viewAppended",       @bound "setLoader"    if options.loader
 
-    @setLoader() if options.loader
+    @notificationDisplay()
 
   # OVERRIDE KDView
   setDomElement:(cssClass = '')->
@@ -39,7 +39,6 @@ class KDNotificationView extends KDView
     options.duration      ?= 1500
     if options.duration > 2999 or options.duration is 0
       options.closeManually ?= yes
-    options.destroyOnClick?= yes
     return options
 
   notificationSetTitle:(title)->
@@ -134,10 +133,15 @@ class KDNotificationView extends KDView
     ,1000
 
   notificationSetFollowUps: (followUps)->
-    unless Array.isArray followUps then followUps = [followUps]
+
+    followUps = [followUps]  unless Array.isArray followUps
+    chainDuration = 0
+    
     followUps.forEach (followUp)=>
-      followUp.duration  ?= 10000
-      @utils.wait followUp.duration, =>
+
+      chainDuration += followUp.duration ? 10000
+
+      @utils.wait chainDuration, =>
         @notificationSetTitle   followUp.title    if followUp.title
         @notificationSetContent followUp.content  if followUp.content
         @notificationSetPositions()
@@ -156,39 +160,33 @@ class KDNotificationView extends KDView
 
   notificationSetOverlay:(options)->
 
-    options.transparent ?= yes
+    options.transparent     ?= yes
+    options.destroyOnClick  ?= yes
 
     @notificationOverlay = $ "<div/>",
       class : "kdoverlay transparent"
     @notificationOverlay.hide()
-    @notificationOverlay.removeClass "transparent"  if options.transparent is no
+    @notificationOverlay.removeClass "transparent"  unless options.transparent
     @notificationOverlay.appendTo "body"
     @notificationOverlay.fadeIn 200
     @notificationOverlay.bind "click",()=>
-      @destroy()  if @getOptions().destroyOnClick
+      @destroy()  if options.destroyOnClick
   notificationGetOverlay:()-> @notificationOverlay
 
   setLoader:->
     @setClass "w-loader"
     {loader} = @getOptions()
-    
-    switch @notificationType
-      when "tray"
-        loaderSize = 25
-      when "growl"
-        loaderSize = 30
-      when "mini"
-        loaderSize = 18
-      when "sticky"
-        loaderSize = 25
-      else
-        loaderSize = 30
 
-    loader.diameter or= loaderSize
+    loader.diameter or= switch @notificationType
+      when "tray"   then 25
+      when "growl"  then 30
+      when "mini"   then 18
+      when "sticky" then 25
+      else               30
 
     @loader = new KDLoaderView
       size          :
-        width       : loader.diameter  ? loaderSize
+        width       : loader.diameter
       loaderOptions :
         color       : loader.color    or "#ffffff"
         shape       : loader.shape    or "spiral"
@@ -214,7 +212,7 @@ class KDNotificationView extends KDView
 
   hideLoader:->
     @unsetClass "loading"
-    @loader?.hide()
+    @loader.hide()
 
   notificationSetContent:(content)->
     @notificationContent = content
