@@ -301,7 +301,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
-		go logDomainStat(outreq.Host)
+		go logDomainRequests(outreq.Host)
 		go logProxyStat(hostname, user.Country)
 
 		transport := p.Transport
