@@ -99,28 +99,6 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           default           : ''
         description         : String
-        handles             :
-          twitter           : String
-          github            : String
-        staticPage          :
-          show              :
-            type            : Boolean
-            default         : yes
-          showTypes         : [String]
-          title             : String
-          about             : String
-          # backgrounds       : [String]
-          customize         :
-            background       :
-              customImages    : [String]
-              customType      :
-                type          : String
-                default       : 'defaultImage'
-                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
-              customValue     :
-                type          : String
-                default       : '1'
-              customOptions   : Object
         avatar              : String
         status              : String
         experience          : String
