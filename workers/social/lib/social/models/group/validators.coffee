@@ -24,6 +24,9 @@ module.exports =
 
   own:(client, group, permission, permissionSet, callback)->
     {delegate} = client.connection
+
+    return callback null, yes  if delegate.equals this
+
     roleSelector = getRoleSelector delegate, group, permission, permissionSet
     # if we get -1 as the role selector, it means guest (i.e. anyone) is allowed
     return callback null, yes  if roleSelector is -1

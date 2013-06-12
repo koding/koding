@@ -100,7 +100,7 @@ func startPersisting(conn *amqp.Connection) {
 	deliveries, err := amqpChannel.Consume(
 		"persistence", // queue name
 		"",            // ctag
-		false,         // no-ack
+		true,          // auto-ack
 		false,         // exlusive
 		false,         // no local
 		false,         // no wait
@@ -186,9 +186,9 @@ func persistMessages(
 
 		amqpChannel.Publish(
 			"neo4jFeederExchange", // exchange name
-			"",                    // key
-			false,                 // mandatory
-			false,                 // immediate
+			"",    // key
+			false, // mandatory
+			false, // immediate
 			amqp.Publishing{
 				Body: neoMessage,
 			},

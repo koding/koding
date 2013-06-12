@@ -279,8 +279,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
-
-			vm.SetHostname(vm.Name + "." + config.Current.UserSitesDomain)
+			vm.SetHostname(vm.HostnameAlias[0])
 			vm.Prepare(getUsers(vm), false)
 			if out, err := vm.Start(); err != nil {
 				log.Err("Could not start VM.", err, out)

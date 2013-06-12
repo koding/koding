@@ -31,7 +31,7 @@ module.exports = class JDomain extends jraphical.Module
       hostnameAlias : [String]
 
       proxy         :
-        mode        : String
+        mode        : String # TODO: enumerate all possible modes
         username    : String
         serviceName : String
         key         : String
@@ -46,6 +46,7 @@ module.exports = class JDomain extends jraphical.Module
             # 'weighted'
             # 'weighted-roundrobin'
           ]]
+          default   : 'roundrobin'
         index       :
           type      : Number
           default   : 0
@@ -137,7 +138,7 @@ module.exports = class JDomain extends jraphical.Module
     KD.remote.api.JVM.someData {name:params.vmName}, {hostname:1}, (err, vm)->
       console.log vm
 
-    """
+    ###
     record =
       mode          : "vm"
       username      : delegate.profile.nickname
@@ -153,7 +154,7 @@ module.exports = class JDomain extends jraphical.Module
       domainManager.dnsManager.removeDNSRecordFromProxy record, (response)=>
         @update {"domain":params.domainName}, {'$pull': {"hostnameAlias":params.vmName}}
         callback "Your domain is now disconnected from the #{params.vmName} VM." if response?.res?
-    """
+    ###
 
   @updateWhiteList = (params, callback)->
     if params.op == 'addToSet'
