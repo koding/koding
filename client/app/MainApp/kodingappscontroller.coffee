@@ -273,6 +273,17 @@ class KodingAppsController extends KDController
     manifest = getManifestFromPath(path)
     appName  = manifest.name
 
+    notification = new KDNotificationView
+      overlay       :
+        transparent : no
+      loader        :
+        color       : "#ffffff"
+      title         : "Please wait while we are publishing your app..."
+      delay         :
+        duration    : 10000
+        title       : "We are still working on it. Your app will be published soon..."
+      duration      : 120000
+
     @getAppScript manifest, (appScript)=>
 
       manifest   = @constructor.manifests[appName]
@@ -284,6 +295,7 @@ class KodingAppsController extends KDController
       @kiteController.run options, (err, res)=>
         if err
           warn err
+          notification.destroy()
           callback? err
         else
           manifest.authorNick = KD.whoami().profile.nickname
@@ -292,6 +304,8 @@ class KodingAppsController extends KDController
             body       : manifest.description or "Application description"
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
             manifest   : manifest
+
+          notification.destroy()
 
           @appManager.tell "Apps", "createApp", jAppData, (err, app)=>
             if err
