@@ -27,8 +27,8 @@ import (
 func main() {
 	lifecycle.Startup("broker", false)
 	changeClientsGauge := lifecycle.CreateClientsGauge()
-	changeNewClientsGauge := log.CreateCounterGauge("newClients", true)
-	changeWebsocketClientsGauge := log.CreateCounterGauge("websocketClients", false)
+	changeNewClientsGauge := log.CreateCounterGauge("newClients", log.NoUnit, true)
+	changeWebsocketClientsGauge := log.CreateCounterGauge("websocketClients", log.NoUnit, false)
 	log.RunGaugesLoop()
 
 	publishConn := amqputil.CreateConnection("broker")
@@ -228,19 +228,15 @@ func main() {
 		}
 
 		go func() {
-			sigtermChannel := make(chan os.Signal)
-			signal.Notify(sigtermChannel, syscall.SIGTERM)
-			<-sigtermChannel
-			lifecycle.BeginShutdown()
+			sigusr1Channel := make(chan os.Signal)
+			signal.Notify(sigusr1Channel, syscall.SIGUSR1)
+			<-sigusr1Channel
 			listener.Close()
 		}()
 
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
-			if lifecycle.ShuttingDown {
-				break
-			}
 			if err != nil {
 				log.Warn("Server error: " + err.Error())
 				if time.Now().Sub(lastErrorTime) < time.Second {

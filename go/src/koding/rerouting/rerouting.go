@@ -21,12 +21,13 @@ type Producer struct {
 }
 
 type JoinMsg struct {
-	Name        string `json:"name"`
-	BindingKey  string `json:"bindingKey"`
-	Exchange    string `json:"exchange"`
-	RoutingKey  string `json:"routingKey"`
-	ConsumerTag string
-	Suffix      string `json:"suffix"`
+	Name               string  `json:"name"`
+	BindingExchange    string  `json:"bindingExchange"`
+	BindingKey         string  `json:"bindingKey"`
+	PublishingExchange *string `json:"publishingExchange"`
+	RoutingKey         string  `json:"routingKey"`
+	ConsumerTag        string
+	Suffix             string `json:"suffix"`
 }
 
 type LeaveMsg struct {
@@ -46,7 +47,7 @@ func main() {
 	var err error
 	producer, err = createProducer()
 	if err != nil {
-		log.Println(err)
+		log.Printf("create producer: %v", err)
 	}
 
 	startRouting()
@@ -89,7 +90,8 @@ func startRouting() {
 			len(msg.Body),
 			msg.DeliveryTag,
 			msg.RoutingKey,
-			msg.Body)
+			msg.Body,
+		)
 
 		switch msg.RoutingKey {
 		case "auth.join":
@@ -99,14 +101,35 @@ func startRouting() {
 				log.Print("bad json incoming msg: ", err)
 			}
 
+			var publishingExchange string
+			if join.PublishingExchange != nil {
+				publishingExchange = *join.PublishingExchange
+			} else {
+				publishingExchange = "broker"
+			}
+
 			join.ConsumerTag = generateUniqueConsumerTag(join.BindingKey)
 			authPairs[join.RoutingKey] = join
 
 			log.Println("Auth pairs:", authPairs) // this is just for debug
 
-			declareExchange(c, join.Exchange)
+			declareExchange(c, join.BindingExchange)
 
-			go consumeAndRepublish(c, join.Exchange, join.BindingKey, join.RoutingKey, join.Suffix, join.ConsumerTag)
+			errors := make(chan error)
+
+			go consumeAndRepublish(c,
+				join.BindingExchange,
+				join.BindingKey,
+				publishingExchange,
+				join.RoutingKey,
+				join.Suffix,
+				join.ConsumerTag,
+				errors,
+			)
+			// select {
+			// case errors <- err:
+			// 	log.Printf("Handled an error: %v", err)
+			// }
 		case "auth.leave":
 			var leave LeaveMsg
 			err := json.Unmarshal(msg.Body, &leave)
@@ -133,6 +156,12 @@ func generateUniqueConsumerTag(bindingKey string) string {
 	return bindingKey + "." + base64.StdEncoding.EncodeToString(r)
 }
 
+func generateUniqueQueueName() string {
+	r := make([]byte, 32/8)
+	rand.Read(r)
+	return base64.StdEncoding.EncodeToString(r)
+}
+
 func declareExchange(c *Consumer, exchange string) {
 	if exchanges[exchange] <= 0 {
 		if err := c.channel.ExchangeDeclare(exchange, "topic", false, true, false, false, nil); err != nil {
@@ -144,30 +173,48 @@ func declareExchange(c *Consumer, exchange string) {
 }
 
 func decrementExchangeCounter(leave LeaveMsg) {
-	exchange := authPairs[leave.RoutingKey].Exchange
+	exchange := authPairs[leave.RoutingKey].BindingExchange
 	// decrement exchange counter
 	exchanges[exchange]--
 	// delete authPairs map
 	delete(authPairs, leave.RoutingKey)
 }
 
-func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix string, consumerTag string) {
-	log.Printf("Consume from:\n exchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
-		exchange, bindingKey, routingKey, consumerTag)
+func consumeAndRepublish(
+	c *Consumer,
+	bindingExchange,
+	bindingKey,
+	publishingExchange,
+	routingKey,
+	suffix,
+	consumerTag string,
+	done chan error,
+) {
+	log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
+		bindingExchange, bindingKey, routingKey, consumerTag)
 
 	if len(suffix) > 0 {
 		routingKey += suffix
 	}
 
-	if _, err := c.channel.QueueDeclare("", false, true, true, false, nil); err != nil {
+	channel, err := c.conn.Channel()
+	if err != nil {
+		done <- err
+		return
+	}
+	defer channel.Close()
+
+	uniqueQueueName := generateUniqueQueueName()
+
+	if _, err := channel.QueueDeclare(uniqueQueueName, false, true, true, false, nil); err != nil {
 		log.Fatalf("queue.declare: %s", err)
 	}
 
-	if err := c.channel.QueueBind("", bindingKey, exchange, false, nil); err != nil {
+	if err := channel.QueueBind(uniqueQueueName, bindingKey, bindingExchange, false, nil); err != nil {
 		log.Fatalf("queue.bind: %s", err)
 	}
 
-	messages, err := c.channel.Consume("", consumerTag, true, false, false, false, nil)
+	messages, err := channel.Consume(uniqueQueueName, consumerTag, true, false, false, false, nil)
 	if err != nil {
 		log.Fatalf("basic.consume: %s", err)
 	}
@@ -176,14 +223,15 @@ func consumeAndRepublish(c *Consumer, exchange, bindingKey, routingKey, suffix s
 		log.Printf("messages stream got %dB message data: [%v] %s",
 			len(msg.Body),
 			msg.DeliveryTag,
-			msg.Body)
+			msg.Body,
+		)
 
-		publishToBroker(msg.Body, routingKey)
+		publishTo(publishingExchange, routingKey, msg.Body)
 	}
 
 }
 
-func publishToBroker(data []byte, routingKey string) {
+func publishTo(exchange, routingKey string, data []byte) {
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",
@@ -194,7 +242,7 @@ func publishToBroker(data []byte, routingKey string) {
 	}
 
 	log.Println("publishing data ", string(data), routingKey)
-	err := producer.channel.Publish("broker", routingKey, false, false, msg)
+	err := producer.channel.Publish(exchange, routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
 	}

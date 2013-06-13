@@ -1,18 +1,27 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"regexp"
 )
 
+var (
+	ErrNotValidated = errors.New("not validated")
+	ErrSecurePage   = errors.New("you are in secure page :)")
+)
+
 type filter struct {
-	mode     string
+	ruletype string
+	name     string
+	action   string
+	match    string
 	validate func() bool
 }
 
 type Validator struct {
-	filters map[string]filter
+	filters []filter
 	rules   proxyconfig.Restriction
 	user    *UserInfo
 }
@@ -21,82 +30,91 @@ func validator(rules proxyconfig.Restriction, user *UserInfo) *Validator {
 	validator := &Validator{
 		rules:   rules,
 		user:    user,
-		filters: make(map[string]filter),
+		filters: make([]filter, 0),
 	}
 	return validator
 }
 
-func (v *Validator) addFilter(name, mode string, validateFn func() bool) {
-	v.filters[name] = filter{
-		mode:     mode,
-		validate: validateFn,
-	}
+func (v *Validator) addFilter(ruletype, name, action, match string, validateFn func() bool) {
+	v.filters = append(v.filters,
+		filter{
+			ruletype: ruletype,
+			name:     name,
+			action:   action,
+			match:    match,
+			validate: validateFn,
+		})
 }
 
-func (v *Validator) IP() *Validator {
-	if !v.rules.IP.Enabled {
-		return v
-	}
-
-	f := func() bool {
-		if v.rules.IP.Rule == "" {
-			return true // assume allowed for all
+func (v *Validator) AddRules() *Validator {
+	for _, behaviour := range v.rules.RuleList {
+		if !behaviour.Enabled {
+			continue
 		}
 
-		rule, err := regexp.Compile(v.rules.IP.Rule)
-		if err != nil {
-			return true // dont block anyone if regex compile get wrong
+		rule := v.rules.Rules[behaviour.RuleName]
+
+		f := func() bool {
+			if rule.Match == "all" {
+				return true // assume allowed for all
+			}
+
+			switch rule.Type {
+			case "ip":
+				re, err := regexp.Compile(rule.Match)
+				if err != nil {
+					return false // dont block anyone if regex compile get wrong
+				}
+
+				return re.MatchString(v.user.IP)
+			case "country":
+				if rule.Match == v.user.Country {
+					return true
+				}
+				return false
+			}
+
+			return false
 		}
 
-		return rule.MatchString(v.user.IP)
+		v.addFilter(rule.Type, rule.Name, rule.Match, behaviour.Action, f)
 	}
-	v.addFilter("ip", v.rules.IP.Mode, f)
+
 	return v
 }
 
-func (v *Validator) Country() *Validator {
-	if !v.rules.Country.Enabled {
-		return v
-	}
-
-	f := func() bool {
-		// assume matched for an empty array
-		if len(v.rules.Country.Rule) == 0 {
-			return true // assume all
-		}
-
-		emptystrings := 0
-		for _, country := range v.rules.Country.Rule {
-			if country == "" {
-				emptystrings++
+func (v *Validator) Check() (bool, error) {
+	for _, filter := range v.filters {
+		switch filter.action {
+		case "deny":
+			if filter.validate() {
+				reason := fmt.Sprintf("%s (%s) for %s - %s", filter.action, filter.ruletype, filter.name, filter.match)
+				go logDomainDenied(
+					v.user.Domain.Domain,
+					v.user.IP,
+					v.user.Country,
+					reason,
+				)
+				return false, ErrNotValidated
+			} else {
+				return true, nil
 			}
-			if country == v.user.Country {
-				return true
+		case "allow":
+			if filter.validate() {
+				return true, nil
+			} else {
+				return false, ErrNotValidated
 			}
-		}
-
-		// if the array has all empty slices assume matched
-		if emptystrings == len(v.rules.Country.Rule) {
-			return true //
-		}
-
-		return false
-	}
-
-	v.addFilter("domain", v.rules.Country.Mode, f)
-	return v
-}
-
-func (v *Validator) Check() (string, bool) {
-	for name, filter := range v.filters {
-		if filter.mode == "blacklist" && filter.validate() {
-			return fmt.Sprintf("user is blocked via %s\n", name), false
-		} else if filter.mode == "whitelist" && !filter.validate() {
-			return fmt.Sprintf("user is blocked via %s\n", name), false
+		case "securepage":
+			if filter.validate() {
+				return false, ErrSecurePage
+			} else {
+				return true, nil
+			}
 		}
 	}
 
 	// user is validated because none of the rules applied to him
 	fmt.Println("user is validated")
-	return fmt.Sprintf("user is validated\n"), true
+	return true, nil
 }

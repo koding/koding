@@ -179,7 +179,7 @@ class ApplicationManager extends KDObject
     app = @get name
     cb  = (appInstance)-> appInstance?[command]? rest...
 
-    if app then cb app
+    if app then @utils.defer -> cb app
     else @create name, cb
 
   create:(name, params, callback)->

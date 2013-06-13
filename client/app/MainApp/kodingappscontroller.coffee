@@ -180,8 +180,7 @@ class KodingAppsController extends KDController
     else
       @fetchCompiledAppSource manifest, (err, script)=>
         if err
-          @compileApp name, (err)->
-            callback err, script
+          @compileApp name, callback
         else
           @defineApp name, script
           callback err, script
@@ -280,6 +279,18 @@ class KodingAppsController extends KDController
     manifest = getManifestFromPath(path)
     appName  = manifest.name
 
+    notification = new KDNotificationView
+      overlay       :
+        transparent : no
+        destroyOnClick: no
+      loader        :
+        color       : "#ffffff"
+      title         : "Please wait while we are publishing your app..."
+      followUps     :
+        duration    : 10000
+        title       : "We are still working on it. Your app will be published soon..."
+      duration      : 120000
+
     @getAppScript manifest, (appScript)=>
 
       manifest   = @constructor.manifests[appName]
@@ -291,6 +302,7 @@ class KodingAppsController extends KDController
       @kiteController.run options, (err, res)=>
         if err
           warn err
+          notification.destroy()
           callback? err
         else
           manifest.authorNick = KD.whoami().profile.nickname
@@ -299,6 +311,8 @@ class KodingAppsController extends KDController
             body       : manifest.description or "Application description"
             identifier : manifest.identifier  or "com.koding.apps.#{__utils.slugify manifest.name}"
             manifest   : manifest
+
+          notification.destroy()
 
           @appManager.tell "Apps", "createApp", jAppData, (err, app)=>
             if err
@@ -328,7 +342,7 @@ class KodingAppsController extends KDController
               @defineApp name, res
               loader.notificationSetTitle "App compiled successfully"
               loader.notificationSetTimer 2000
-            callback? err
+            callback? err, res
         else
           loader.destroy()
 
@@ -357,7 +371,8 @@ class KodingAppsController extends KDController
 
   installApp:(app, version='latest', callback)->
 
-    KD.requireLogin
+    # add group membership control when group based apps feature is implemented!
+    KD.requireMembership
       onFailMsg : "Login required to install Apps"
       onFail    : => callback yes
       callback  : => @fetchApps (err, manifests = {})=>
@@ -561,7 +576,7 @@ class KodingAppsController extends KDController
     $("head .app-#{__utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.whoami().profile.nickname}.koding.com/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
+        urlToStyle = "https://#{KD.whoami().profile.nickname}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
         $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
@@ -651,6 +666,7 @@ class KodingAppsController extends KDController
     fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
+      authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
       hiddenHandle  : no
@@ -661,7 +677,7 @@ class KodingAppsController extends KDController
       name          : "#{name or type.capitalize()}"
       identifier    : "com.koding.apps.#{__utils.slugify name or type}"
       path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.koding.com/#{__utils.slugify name or type}"
+      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{__utils.slugify name or type}"
       author        : "#{fullName}"
       authorNick    : "#{profile.nickname}"
       repository    : "git://github.com/#{profile.nickname}/#{__utils.slugify name or type}.kdapp.git"

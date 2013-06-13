@@ -33,48 +33,54 @@ import (
 )
 
 func (s *S) TestAuthLogin(c *C) {
-	session, err := mgo.Dial("localhost:40002")
-	c.Assert(err, IsNil)
-	defer session.Close()
+	// Test both with a normal database and with an authenticated shard.
+	for _, addr := range []string{"localhost:40002", "localhost:40203"} {
+		session, err := mgo.Dial(addr)
+		c.Assert(err, IsNil)
+		defer session.Close()
 
-	coll := session.DB("mydb").C("mycoll")
-	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login")
+		coll := session.DB("mydb").C("mycoll")
+		err = coll.Insert(M{"n": 1})
+		c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
 
-	admindb := session.DB("admin")
+		admindb := session.DB("admin")
 
-	err = admindb.Login("root", "wrong")
-	c.Assert(err, ErrorMatches, "auth fails")
+		err = admindb.Login("root", "wrong")
+		c.Assert(err, ErrorMatches, "auth fails")
 
-	err = admindb.Login("root", "rapadura")
-	c.Assert(err, IsNil)
+		err = admindb.Login("root", "rapadura")
+		c.Assert(err, IsNil)
 
-	err = coll.Insert(M{"n": 1})
-	c.Assert(err, IsNil)
+		err = coll.Insert(M{"n": 1})
+		c.Assert(err, IsNil)
+	}
 }
 
 func (s *S) TestAuthLoginLogout(c *C) {
-	session, err := mgo.Dial("localhost:40002")
-	c.Assert(err, IsNil)
-	defer session.Close()
+	// Test both with a normal database and with an authenticated shard.
+	for _, addr := range []string{"localhost:40002", "localhost:40203"} {
+		session, err := mgo.Dial(addr)
+		c.Assert(err, IsNil)
+		defer session.Close()
 
-	admindb := session.DB("admin")
-	err = admindb.Login("root", "rapadura")
-	c.Assert(err, IsNil)
+		admindb := session.DB("admin")
+		err = admindb.Login("root", "rapadura")
+		c.Assert(err, IsNil)
 
-	admindb.Logout()
+		admindb.Logout()
 
-	coll := session.DB("mydb").C("mycoll")
-	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login")
+		coll := session.DB("mydb").C("mycoll")
+		err = coll.Insert(M{"n": 1})
+		c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
 
-	// Must have dropped auth from the session too.
-	session = session.Copy()
-	defer session.Close()
+		// Must have dropped auth from the session too.
+		session = session.Copy()
+		defer session.Close()
 
-	coll = session.DB("mydb").C("mycoll")
-	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login")
+		coll = session.DB("mydb").C("mycoll")
+		err = coll.Insert(M{"n": 1})
+		c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
+	}
 }
 
 func (s *S) TestAuthLoginLogoutAll(c *C) {
@@ -90,7 +96,7 @@ func (s *S) TestAuthLoginLogoutAll(c *C) {
 
 	coll := session.DB("mydb").C("mycoll")
 	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login")
+	c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
 
 	// Must have dropped auth from the session too.
 	session = session.Copy()
@@ -98,7 +104,181 @@ func (s *S) TestAuthLoginLogoutAll(c *C) {
 
 	coll = session.DB("mydb").C("mycoll")
 	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login")
+	c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized .*")
+}
+
+func (s *S) TestAuthUpsertUserErrors(c *C) {
+	session, err := mgo.Dial("localhost:40002")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	admindb := session.DB("admin")
+	err = admindb.Login("root", "rapadura")
+	c.Assert(err, IsNil)
+
+	mydb := session.DB("mydb")
+
+	err = mydb.UpsertUser(&mgo.User{})
+	c.Assert(err, ErrorMatches, "user has no Username")
+
+	err = mydb.UpsertUser(&mgo.User{Username: "user", Password: "pass", UserSource: "source"})
+	c.Assert(err, ErrorMatches, "user has both Password/PasswordHash and UserSource set")
+
+	err = mydb.UpsertUser(&mgo.User{Username: "user", Password: "pass", OtherDBRoles: map[string][]mgo.Role{"db": nil}})
+	c.Assert(err, ErrorMatches, "user with OtherDBRoles is only supported in admin database")
+}
+
+func (s *S) TestAuthUpsertUser(c *C) {
+	if !s.versionAtLeast(2, 4) {
+		c.Skip("UpsertUser only works on 2.4+")
+	}
+	session, err := mgo.Dial("localhost:40002")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	admindb := session.DB("admin")
+	err = admindb.Login("root", "rapadura")
+	c.Assert(err, IsNil)
+
+	mydb := session.DB("mydb")
+	myotherdb := session.DB("myotherdb")
+
+	ruser := &mgo.User{
+		Username: "myruser",
+		Password: "mypass",
+		Roles: []mgo.Role{mgo.RoleRead},
+	}
+	rwuser := &mgo.User{
+		Username: "myrwuser",
+		Password: "mypass",
+		Roles: []mgo.Role{mgo.RoleReadWrite},
+	}
+	rwuserother := &mgo.User{
+		Username: "myrwuser",
+		UserSource: "mydb",
+		Roles: []mgo.Role{mgo.RoleRead},
+	}
+
+	err = mydb.UpsertUser(ruser)
+	c.Assert(err, IsNil)
+	err = mydb.UpsertUser(rwuser)
+	c.Assert(err, IsNil)
+	err = myotherdb.UpsertUser(rwuserother)
+	c.Assert(err, IsNil)
+
+	err = mydb.Login("myruser", "mypass")
+	c.Assert(err, IsNil)
+
+	admindb.Logout()
+
+	coll := session.DB("mydb").C("mycoll")
+	err = coll.Insert(M{"n": 1})
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
+
+	err = mydb.Login("myrwuser", "mypass")
+	c.Assert(err, IsNil)
+
+	err = coll.Insert(M{"n": 1})
+	c.Assert(err, IsNil)
+
+	// Test indirection via UserSource: we can't write to it, because
+	// the roles for myrwuser are different there.
+	othercoll := myotherdb.C("myothercoll")
+	err = othercoll.Insert(M{"n": 1})
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
+
+	// Reading works, though.
+	err = othercoll.Find(nil).One(nil)
+	c.Assert(err, Equals, mgo.ErrNotFound)
+
+	// Can't login directly into the database using UserSource, though.
+	err = myotherdb.Login("myrwuser", "mypass")
+	c.Assert(err, ErrorMatches, "auth fails")
+}
+
+func (s *S) TestAuthUpserUserOtherDBRoles(c *C) {
+	if !s.versionAtLeast(2, 4) {
+		c.Skip("UpsertUser only works on 2.4+")
+	}
+	session, err := mgo.Dial("localhost:40002")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	admindb := session.DB("admin")
+	err = admindb.Login("root", "rapadura")
+	c.Assert(err, IsNil)
+
+	ruser := &mgo.User{
+		Username: "myruser",
+		Password: "mypass",
+		OtherDBRoles: map[string][]mgo.Role{"mydb": []mgo.Role{mgo.RoleRead}},
+	}
+
+	err = admindb.UpsertUser(ruser)
+	c.Assert(err, IsNil)
+	defer admindb.RemoveUser("myruser")
+
+	admindb.Logout()
+	err = admindb.Login("myruser", "mypass")
+
+	coll := session.DB("mydb").C("mycoll")
+	err = coll.Insert(M{"n": 1})
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
+
+	err = coll.Find(nil).One(nil)
+	c.Assert(err, Equals, mgo.ErrNotFound)
+}
+
+func (s *S) TestAuthUpserUserUnsetFields(c *C) {
+	if !s.versionAtLeast(2, 4) {
+		c.Skip("UpsertUser only works on 2.4+")
+	}
+	session, err := mgo.Dial("localhost:40002")
+	c.Assert(err, IsNil)
+	defer session.Close()
+
+	admindb := session.DB("admin")
+	err = admindb.Login("root", "rapadura")
+	c.Assert(err, IsNil)
+
+	// Insert a user with most fields set.
+	user := &mgo.User{
+		Username: "myruser",
+		Password: "mypass",
+		Roles: []mgo.Role{mgo.RoleRead},
+		OtherDBRoles: map[string][]mgo.Role{"mydb": []mgo.Role{mgo.RoleRead}},
+	}
+	err = admindb.UpsertUser(user)
+	c.Assert(err, IsNil)
+	defer admindb.RemoveUser("myruser")
+
+	// Now update the user with few things set.
+	user = &mgo.User{
+		Username: "myruser",
+		UserSource: "mydb",
+	}
+	err = admindb.UpsertUser(user)
+	c.Assert(err, IsNil)
+
+	// Everything that was unset must have been dropped.
+	var userm M
+	err = admindb.C("system.users").Find(M{"user": "myruser"}).One(&userm)
+	c.Assert(err, IsNil)
+	delete(userm, "_id")
+	c.Assert(userm, DeepEquals, M{"user": "myruser", "userSource": "mydb", "roles": []interface{}{}})
+
+	// Now set password again...
+	user = &mgo.User{
+		Username: "myruser",
+		Password: "mypass",
+	}
+	err = admindb.UpsertUser(user)
+	c.Assert(err, IsNil)
+
+	// ... and assert that userSource has been dropped.
+	err = admindb.C("system.users").Find(M{"user": "myruser"}).One(&userm)
+	_, found := userm["userSource"]
+	c.Assert(found, Equals, false)
 }
 
 func (s *S) TestAuthAddUser(c *C) {
@@ -123,7 +303,7 @@ func (s *S) TestAuthAddUser(c *C) {
 
 	coll := session.DB("mydb").C("mycoll")
 	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized")
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
 
 	err = mydb.Login("mywuser", "mypass")
 	c.Assert(err, IsNil)
@@ -156,7 +336,7 @@ func (s *S) TestAuthAddUserReplaces(c *C) {
 
 	// ReadOnly flag was changed too.
 	err = mydb.C("mycoll").Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized")
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
 }
 
 func (s *S) TestAuthRemoveUser(c *C) {
@@ -233,7 +413,7 @@ func (s *S) TestAuthLoginSwitchUser(c *C) {
 
 	// Can't write.
 	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized")
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
 
 	// But can read.
 	result := struct{ N int }{}
@@ -268,7 +448,7 @@ func (s *S) TestAuthLoginChangePassword(c *C) {
 
 	// The second login must be in effect, which means read-only.
 	err = mydb.C("mycoll").Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized")
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
 }
 
 func (s *S) TestAuthLoginCachingWithSessionRefresh(c *C) {
@@ -335,7 +515,7 @@ func (s *S) TestAuthLoginCachingWithNewSession(c *C) {
 
 	coll := session.DB("mydb").C("mycoll")
 	err = coll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized|need to login")
+	c.Assert(err, ErrorMatches, "unauthorized|need to login|not authorized for .*")
 }
 
 func (s *S) TestAuthLoginCachingAcrossPool(c *C) {
@@ -432,7 +612,7 @@ func (s *S) TestAuthLoginCachingAcrossPoolWithLogout(c *C) {
 	// Can't write, since root has been implicitly logged out
 	// when the collection went into the pool, and not revalidated.
 	err = other.DB("mydb").C("mycoll").Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized")
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
 
 	// But can read due to the revalidated myuser login.
 	result := struct{ N int }{}
@@ -533,7 +713,7 @@ func (s *S) TestAuthURLWithDatabase(c *C) {
 	err = ucoll.FindId(0).One(nil)
 	c.Assert(err, Equals, mgo.ErrNotFound)
 	err = ucoll.Insert(M{"n": 1})
-	c.Assert(err, ErrorMatches, "unauthorized")
+	c.Assert(err, ErrorMatches, "unauthorized|not authorized .*")
 }
 
 func (s *S) TestDefaultDatabase(c *C) {

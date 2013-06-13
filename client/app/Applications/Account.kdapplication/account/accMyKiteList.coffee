@@ -277,7 +277,7 @@ class AccountMyKiteListItem extends KDListItemView
     options.cssClass = "my-kite-list-item"
     super options,data
 
-  # viewAppended:()->
+  # viewAppended:->
   #   super
   #   @addSubView editLink = new KDCustomHTMLView
   #     tagName      : "a"

@@ -66,7 +66,7 @@ class WebTerm.Terminal
           atEnd = @controlCodeReader.process() until atEnd
           @screenBuffer.flush()
 
-      sessionEnded: () =>
+      sessionEnded: =>
         @sessionEndedCallback()
 
   keyDown: (event) ->
@@ -219,6 +219,10 @@ class WebTerm.Terminal
       @container.animate { scrollTop: @container.prop("scrollHeight") - @container.prop("clientHeight") }, duration: 200
     else
       @container.scrollTop(@container.prop("scrollHeight") - @container.prop("clientHeight"))
+
+  setScrollbackLimit: (limit) ->
+    @screenBuffer.scrollbackLimit = limit
+    @screenBuffer.flush()
 
   inspectString: (string) ->
     escaped = string.replace /[\x00-\x1f\\]/g, (character) ->

@@ -141,13 +141,17 @@ module.exports = class Followable
               if err then log err
             action = "follow"
             @emit 'FollowCountChanged',
-              followerCount   : @getAt('counts.followers')
-              followingCount  : @getAt('counts.following')
+              followerCount   : @getAt 'counts.followers'
+              followingCount  : @getAt 'counts.following'
               follower        : follower
               action          : action
 
+            @constructor.emit 'FollowHappened',
+              followee  : this
+              follower  : follower
+
             @emit 'FollowHappened',
-              origin    : @
+              origin    : this
               actorType : 'follower'
               follower  : ObjectRef(follower).data
 
@@ -175,6 +179,11 @@ module.exports = class Followable
           throw err if err
         callback err, count
         action = "unfollow"
+
+        @constructor.emit 'UnfollowHappened',
+          followee        : this
+          follower        : follower
+
         @emit 'FollowCountChanged',
           followerCount   : @getAt('counts.followers')
           followingCount  : @getAt('counts.following')

@@ -27,8 +27,8 @@ class FinderBottomControlsListItem extends KDListItemView
       @getSingleton('mainController').emit 'ManageRemotes'
     else if @getData().action is "manageDatabases"
       @getSingleton('mainController').emit 'ManageDatabases'
-    else if @getData().action is "manageResources"
-      @getSingleton('finderController').emit 'ManageResources'
+    else if @getData().action is "showEnvironments"
+      @getSingleton('finderController').emit 'ShowEnvironments'
     else if @getData().action is "createNewVM"
       @getSingleton('vmController').createNewVM()
     else

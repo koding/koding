@@ -35,7 +35,7 @@ class KDObject extends KDEventEmitter
   getInstance:(instanceId)->
     KD.getAllKDInstances()[instanceId] ? null
 
-  requireLogin:KD.requireLogin
+  requireMembership:KD.requireMembership
 
   registerKDObjectInstance: -> KD.registerInstance @
 

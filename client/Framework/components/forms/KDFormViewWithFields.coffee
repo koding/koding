@@ -30,28 +30,28 @@ class KDFormViewWithFields extends KDFormView
       @buttonField.addSubView button = @createButton buttonOptions
       @buttons[buttonOptions.key] = button
 
-  createField:(data, field)->
-    {itemClass, title} = data
-    itemClass     or= KDInputView
-    data.cssClass or= ""
-    data.name     or= title
-    field or= new KDView cssClass : "formline #{data.name} #{data.cssClass}"
-    field.addSubView label = data.label = @createLabel(data) if data.label
+  createField:(fieldData, field)->
+    {itemClass, title} = fieldData
+    itemClass          or= KDInputView
+    fieldData.cssClass or= ""
+    fieldData.name     or= title
+    field or= new KDView cssClass : "formline #{fieldData.name} #{fieldData.cssClass}"
+    field.addSubView label = fieldData.label = @createLabel(fieldData) if fieldData.label
     field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
-    inputWrapper.addSubView input = @createInput itemClass, data
-    if data.hint
+    inputWrapper.addSubView input = @createInput itemClass, fieldData
+    if fieldData.hint
       inputWrapper.addSubView hint  = new KDCustomHTMLView
-        partial  : data.hint
+        partial  : fieldData.hint
         tagName  : "cite"
         cssClass : "hint"
     @fields[title] = field
-    if data.nextElement
-      for key, next of data.nextElement
+    if fieldData.nextElement
+      for key, next of fieldData.nextElement
         next.title or= key
         @createField next, inputWrapper
 
-    if data.nextElementFlat
-      for key, next of data.nextElementFlat
+    if fieldData.nextElementFlat
+      for key, next of fieldData.nextElementFlat
         next.title or= key
         @createField next, field
 
@@ -64,7 +64,9 @@ class KDFormViewWithFields extends KDFormView
       cssClass : @utils.slugify data.label
 
   createInput:(itemClass, options)->
-    @inputs[options.title] = input = new itemClass options
+    {data} = options
+    delete options.data  if data
+    @inputs[options.title] = input = new itemClass options, data
     return input
 
   createButton:(options)->
@@ -84,7 +86,7 @@ class KDFormViewWithFields extends KDFormView
 #     Delete            :
 #       title           : "Delete"
 #       style           : "modal-clean-red"
-#       callback        : ()-> log "delete"
+#       callback        : -> log "delete"
 #     Reset             :
 #       title           : "Reset"
 #       style           : "modal-clean-red"

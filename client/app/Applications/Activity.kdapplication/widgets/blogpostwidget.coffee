@@ -84,6 +84,7 @@ class ActivityBlogPostWidget extends KDFormView
   submit:->
     @once "FormValidationPassed", => @reset()
     super
+    KD.track "Activity", "BlogPostSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
@@ -98,7 +99,7 @@ class ActivityBlogPostWidget extends KDFormView
 
     super
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()

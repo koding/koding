@@ -36,6 +36,7 @@ module.exports = class JInvitationRequest extends Model
         required      : no
       koding          :
         username      : String
+        fullName      : String
       kodingen        :
         isMember      : Boolean
         username      : String
@@ -113,6 +114,17 @@ module.exports = class JInvitationRequest extends Model
     success: (client, callback=->)->
       @update $set:{ status: 'declined' }, callback
 
+  deleteInvitation: permit 'send invitations',
+    success: (client, callback=->)->
+      JInvitation = require './invitation'
+
+      @remove (err)=>
+        return callback err  if err
+        selector = inviteeEmail: @email, status: 'sent', group: @group
+        JInvitation.one selector, (err, invitation)->
+          return callback err  if err or not invitation
+          invitation.remove callback
+
   fetchAccount:(callback)->
     JAccount = require './account'
     if @koding?.username
@@ -135,37 +147,37 @@ module.exports = class JInvitationRequest extends Model
         @approveInvitation client, callback
 
   approveRequest: (client, callback=->)->
-      JGroup = require './group'
-      JGroup.one { slug: @group }, (err, group)=>
-        if err then callback err
-        else unless group?
-          callback new KodingError "No group! #{@group}"
-        else
-          @fetchAccount (err, account)=>
+    JGroup = require './group'
+    JGroup.one { slug: @group }, (err, group)=>
+      if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
+      else
+        @fetchAccount (err, account)=>
+          return callback err if err
+          group.approveMember account, (err)=>
             return callback err if err
-            group.approveMember account, (err)=>
+            @update $set:{ status: 'approved' }, (err)=>
               return callback err if err
-              @update $set:{ status: 'approved' }, (err)=>
-                return callback err if err
-                @sendRequestApprovedNotification client, group, account, callback
+              @sendRequestApprovedNotification client, group, account, callback
 
   approveInvitation: (client, callback=->)->
-      JGroup      = require './group'
-      JInvitation = require './invitation'
+    JGroup      = require './group'
+    JInvitation = require './invitation'
 
-      JGroup.one { slug: @group }, (err, group)=>
-        if err then callback err
-        else unless group?
-          callback new KodingError "No group! #{@group}"
-        else
-          @update $set:{ status: 'sent' }, (err)=>
-            return callback err if err
-            if @koding?.username
-              @sendInviteMailToKodingUser client, @koding, group, callback
-            else
-              JInvitation.one {inviteeEmail: @email}, (err, invite)->
-                return callback err if err
-                JInvitation.sendEmailForInviteViaGroup client, invite, group, callback
+    JGroup.one { slug: @group }, (err, group)=>
+      if err then callback err
+      else unless group?
+        callback new KodingError "No group! #{@group}"
+      else
+        @update $set:{ status: 'sent' }, (err)=>
+          return callback err if err
+          if @koding?.username
+            @sendInviteMailToKodingUser client, @koding, group, callback
+          else
+            JInvitation.one {inviteeEmail: @email}, (err, invite)->
+              return callback err if err
+              JInvitation.sendEmailForInviteViaGroup client, invite, group, callback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection
@@ -199,9 +211,6 @@ module.exports = class JInvitationRequest extends Model
         @update $set:{status:'ignored'}, (err)->
           if err then callback err
           else callback null
-
-  deleteInvitation: permit 'send invitations',
-    success:(client, rest...)-> @remove rest...
 
   sendInvitation:(client, callback=->)->
     JUser       = require './user'
@@ -273,34 +282,34 @@ module.exports = class JInvitationRequest extends Model
       else
         cb = (actor, actorData)=>
           group.fetchAdmins (err, accounts)=>
-              if err then callback err
+            if err then callback err
 
-              if invitationType is 'invitation'
-                event = 'InvitationRequested'
-              else
-                event = 'ApprovalRequested'
+            if invitationType is 'invitation'
+              event = 'InvitationRequested'
+            else
+              event = 'ApprovalRequested'
 
-              for account in accounts when account
-                data =
-                  actor             : actor
-                  receiver          : account
-                  event             : event
-                  contents          :
-                    subject         : ObjectRef(group).data
-                    actionType      : 'approvalRequest'
-                    actorType       : 'requester'
-                    approvalRequest : ObjectRef(@).data
-                    requester       : actorData
+            for account in accounts when account
+              data =
+                actor             : actor
+                receiver          : account
+                event             : event
+                contents          :
+                  subject         : ObjectRef(group).data
+                  actionType      : 'approvalRequest'
+                  actorType       : 'requester'
+                  approvalRequest : ObjectRef(@).data
+                  requester       : actorData
 
-                account.sendNotification 'GroupAccessRequested',
-                  actionType : 'groupAccessRequested'
-                  actorType  : 'requester'
-                  requester  : ObjectRef(actor).data
-                  subject    : ObjectRef(group).data
+              account.sendNotification 'GroupAccessRequested',
+                actionType : 'groupAccessRequested'
+                actorType  : 'requester'
+                requester  : ObjectRef(actor).data
+                subject    : ObjectRef(group).data
 
-                JMailNotification.create data, (err)->
-                  if err then callback new KodingError "Could not send"
-                  else callback null
+              JMailNotification.create data, (err)->
+                if err then callback new KodingError "Could not send"
+                else callback null
 
         {delegate} = client.connection
         if delegate instanceof JAccount

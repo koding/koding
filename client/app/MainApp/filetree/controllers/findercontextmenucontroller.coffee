@@ -200,17 +200,13 @@ class NFinderContextMenuController extends KDController
     fileData = fileView.getData()
 
     items =
-      customView                  : new NVMToggleButtonView {}, vmName: fileData.vmName
-      'Re-initialize VM'          :
-        action                    : 'resetVm'
-      'Unmount VM'                :
-        action                    : 'unmountVm'
-        separator                 : yes
-      'Open VM Terminal'          :
-        action                    : 'openVmTerminal'
-        separator                 : yes
       Refresh                     :
         action                    : 'refresh'
+        separator                 : yes
+      'Unmount VM'                :
+        action                    : 'unmountVm'
+      'Open VM Terminal'          :
+        action                    : 'openVmTerminal'
         separator                 : yes
       Expand                      :
         action                    : 'expand'

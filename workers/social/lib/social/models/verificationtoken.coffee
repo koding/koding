@@ -12,8 +12,6 @@ module.exports = class JVerificationToken extends Module
   {secure}    = require 'bongo'
   crypto      = require 'crypto'
 
-  Emailer     = require '../emailer'
-
   @share()
 
   @set
@@ -37,7 +35,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName} = options
-    subject   or= "[Koding] Here is your PIN"
+    subject   or= "Here is your PIN"
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
@@ -69,12 +67,15 @@ module.exports = class JVerificationToken extends Module
               if err
                 callback err
               else
-                Emailer.send
-                  From      : 'hello@koding.com'
-                  To        : email
-                  Subject   : subject
-                  TextBody  : confirmation.getTextBody firstName, plainPin
-                , callback
+                JMail = require './email'
+                email = new JMail
+                  from    : 'hello@koding.com'
+                  email   : email
+                  subject : subject
+                  content : confirmation.getTextBody firstName, plainPin
+                  force   : yes
+
+                email.save callback
 
   @confirmByPin = (options, callback)->
 

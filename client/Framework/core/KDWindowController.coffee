@@ -20,6 +20,7 @@ class KDWindowController extends KDController
     @keyView               = null
     @dragView              = null
     @scrollingEnabled      = yes
+    @layers                = []
 
     @bindEvents()
     @setWindowProperties()
@@ -43,7 +44,7 @@ class KDWindowController extends KDController
       index = @layers.indexOf(layer)
       @layers.splice index, 1
 
-  bindEvents:()->
+  bindEvents:->
 
     $(window).bind @keyEventsToBeListened.join(' '), @bound "key"
 
@@ -70,7 +71,7 @@ class KDWindowController extends KDController
       @setDragInAction no
     , yes
 
-    @layers = layers = []
+    layers = @layers
 
     document.body.addEventListener 'mousedown', (e)=>
       # $('.twipsy').remove() # temporary for beta
@@ -239,7 +240,7 @@ class KDWindowController extends KDController
 
     view.drag event, delta
 
-  getKeyView:()->
+  getKeyView:->
     @keyView
 
   key:(event)->
@@ -260,6 +261,9 @@ class KDWindowController extends KDController
     @windowResizeListeners[instance.id] = instance
     instance.on "KDObjectWillBeDestroyed", =>
       delete @windowResizeListeners[instance.id]
+
+  unregisterWindowResizeListener:(instance)->
+    delete @windowResizeListeners[instance.id]
 
   setWindowProperties:(event)->
     @winWidth  = $(window).width()

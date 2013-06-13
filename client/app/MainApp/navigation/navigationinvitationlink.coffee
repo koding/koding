@@ -38,6 +38,7 @@ class NavigationInviteLink extends KDCustomHTMLView
       else
         new KDNotificationView title: 'Success!'
         modal.destroy()
+        KD.track "Members", "InvitationSentToFriend"
 
   viewAppended:->
 
@@ -108,7 +109,7 @@ class NavigationInviteLink extends KDCustomHTMLView
                     diameter    : 12
                 cancel          :
                   style         : "modal-cancel"
-                  callback      : ()->
+                  callback      : ->
                     modal.destroy()
 
     modal.on "KDModalViewDestroyed", => @modal = null

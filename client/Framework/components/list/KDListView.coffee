@@ -27,7 +27,7 @@ class KDListView extends KDView
     {index, animation, viewOptions} = options
     {itemChildClass, itemChildOptions} = @getOptions()
     viewOptions or= @customizeItemOptions?(options, itemData) or {}
-    viewOptions.delegate = @
+    viewOptions.delegate = this
     viewOptions.childClass or= itemChildClass
     viewOptions.childOptions = itemChildOptions
 

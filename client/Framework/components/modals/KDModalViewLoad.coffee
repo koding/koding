@@ -4,6 +4,6 @@ class KDModalViewLoad extends KDModalView
     options.onLoad?()
     @onBeforeDestroy = options.onBeforeDestroy if options.onBeforeDestroy?
 
-  destroy:()->
+  destroy:->
     @onBeforeDestroy?()
     super
