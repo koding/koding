@@ -1302,18 +1302,16 @@ module.exports = class JGroup extends Module
     _createVMs = (type, planCode, cb)=>
       if type is 'user'
         planOwner = "user_#{delegate._id}"
-        getSubs   = JRecurlySubscription.getUserSubscriptions
-        target    = client
       else if type is 'group'
         planOwner = "group_#{@._id}"
-        getSubs   = JRecurlySubscription.getGroupSubscriptions
-        target    = @
       else if type is 'expensed'
         planOwner = "group_#{@._id}"
-        getSubs   = JRecurlySubscription.getGroupSubscriptions
-        target    = @
 
-      getSubs target, (err, subs)=>
+      JRecurlySubscription.all
+        userCode: planOwner
+        planCode: planCode
+        status  : 'active'
+      , (err, subs)=>
         return cb new KodingError "Payment backend error: #{err}"  if err
 
         expensed = type is "expensed"
@@ -1322,7 +1320,6 @@ module.exports = class JGroup extends Module
         expensedVMs = 0
         subs.forEach (sub)->
           if sub.status is 'active' and sub.planCode is planCode
-            console.log sub.planCode, sub.expensed
             paidVMs = sub.quantity
             if type is 'expensed'
               expensedVMs = sub.expensed
@@ -1331,7 +1328,6 @@ module.exports = class JGroup extends Module
 
         if expensed
           paidVMs = expensedVMs
-          console.log "Expensed", paidVMs
 
         createdVMs = 0
         JVM.someData
@@ -1347,7 +1343,6 @@ module.exports = class JGroup extends Module
               createdVMs += 1
 
             # TODO: Also check user quota here
-            console.log paidVMs, createdVMs
 
             if paidVMs > createdVMs
               options     =
