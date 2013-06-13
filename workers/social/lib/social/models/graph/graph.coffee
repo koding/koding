@@ -79,7 +79,7 @@ module.exports = class Graph
 
   removePrivateContent:(groupId, contents, callback)->
     query = """
-      start  kd=node:koding(id={groupId})
+      start  kd=node:koding("id:#{groupId}")
       MATCH  kd-[:member]->users-[r:owner]-groups
       WHERE groups.name = "JGroup"
        AND ( groups.privacy = "private"
@@ -87,9 +87,8 @@ module.exports = class Graph
       RETURN groups
       ORDER BY r.createdAtEpoch DESC
     """
-    params =
-      groupId   : groupId
-    @db.query query, params, (err, results)=>
+
+    @db.query query, {}, (err, results)=>
       if err then return callback err
       secretGroups = (result.groups.data.slug for result in results)
       filteredContent = []
@@ -102,22 +101,15 @@ module.exports = class Graph
     start = new Date().getTime()
     # do not remove white-spaces
     query = """
-        START koding=node:koding(id={groupId})
+        START koding=node:koding("id:#{groupId}")
         MATCH koding-[:member]->members<-[:author]-content
-        WHERE (content.name = "JTutorial"
-         or content.name = "JCodeSnip"
-         or content.name = "JDiscussion"
-         or content.name = "JBlogPost"
-         or content.name = "JStatusUpdate")
-         and has(content.`meta.createdAtEpoch`)
-         and content.`meta.createdAtEpoch` < {startDate}
-         and content.isLowQuality! is null
+        WHERE content.`meta.createdAtEpoch` < #{startDate}
+         and content.isLowQuality? = "false"
 
       """
     if groupName isnt "koding"
       query += """
-          and has(content.group)
-          and content.group = "#{groupName}"
+          and content.group! = "#{groupName}"
         """
     query += """
         return *
@@ -125,11 +117,7 @@ module.exports = class Graph
         limit 20
       """
 
-    params =
-      groupId   : groupId
-      startDate : startDate
-
-    @db.query query, params, (err, results)=>
+    @db.query query, {}, (err, results)=>
       tempRes = []
       if err then callback err
       else if results.length is 0 then callback null, []
@@ -157,18 +145,14 @@ module.exports = class Graph
             collectRelations objected
 
   fecthRelatedItems:(itemId, callback)->
-    query = [
-      'start koding=node:koding(id={itemId})'
-      'match koding-[r]-all'
-      'where has(koding.`meta.createdAtEpoch`)'
-      'return *'
-      'order by koding.`meta.createdAtEpoch` DESC'
-    ].join('\n');
+    query = """
+      start koding=node:koding("id:#{itemId}")
+      match koding-[r]-all
+      return *
+      order by koding.`meta.createdAtEpoch` DESC
+    """
 
-    params =
-      itemId : itemId
-
-    @db.query query, params, (err, results) ->
+    @db.query query, {}, (err, results) ->
       if err then throw err
       resultData = []
       for result in results
@@ -189,21 +173,17 @@ module.exports = class Graph
   fetchNewInstalledApps:(group, startDate, callback)->
     {groupId} = group
 
-    query = [
-      'START kd=node:koding(id={groupId})'
-      'MATCH kd-[:member]->users<-[r:user]-koding'
-      'WHERE koding.name="JApp"'
-      'and r.createdAtEpoch < {startDate}'
-      'return *'
-      'order by r.createdAtEpoch DESC'
-      'limit 20'
-    ].join('\n');
+    query = """
+      START kd=node:koding("id:#{groupId}")
+      MATCH kd-[:member]->users<-[r:user]-koding
+      WHERE koding.name="JApp"
+      and r.createdAtEpoch < #{startDate}
+      return users, koding, r
+      order by r.createdAtEpoch DESC
+      limit 20
+      """
 
-    params =
-      groupId   : groupId
-      startDate : startDate
-
-    @db.query query, params, (err, results) =>
+    @db.query query, {}, (err, results) =>
       if err then throw err
       @generateInstalledApps [], results, callback
 
@@ -224,21 +204,16 @@ module.exports = class Graph
   fetchNewMembers:(group, startDate, callback)->
     {groupId} = group
 
-    query = [
-      'start  koding=node:koding(id={groupId})'
-      'MATCH  koding-[r:member]->members'
-      'where  members.name="JAccount"'
-      'and r.createdAtEpoch < {startDate}'
-      'return members'
-      'order by r.createdAtEpoch DESC'
-      'limit 20'
-    ].join('\n');
-
-    params =
-      groupId   : groupId
-      startDate : startDate
-
-    @db.query query, params, (err, results) ->
+    query = """
+      start  koding=node:koding("id:#{groupId}")
+      MATCH  koding-[r:member]->members
+      where  members.name="JAccount"
+      and r.createdAtEpoch < #{startDate}
+      return members
+      order by r.createdAtEpoch DESC
+      limit 20
+      """
+    @db.query query, {}, (err, results) ->
         if err then throw err
         resultData = []
         for result in results
@@ -249,48 +224,39 @@ module.exports = class Graph
           callback err, objected
 
   fetchMemberFollows:(group, startDate, callback)->
+    {groupId} = group
     #followers
-    query = [
-      'start koding=node:koding(id={groupId})'
-      'MATCH koding-[:member]->followees<-[r:follower]-follower'
-      'where followees.name="JAccount"'
-      'and follower.name="JAccount"'
-      'and r.createdAtEpoch < {startDate}'
-      'return r,followees, follower'
-      'order by r.createdAtEpoch DESC'
-      'limit 20'
-    ].join('\n');
-
-    @fetchFollows query, group, startDate, callback
+    query = """
+      start koding=node:koding("id:#{groupId}")
+      MATCH koding-[:member]->followees<-[r:follower]-follower
+      where followees.name="JAccount"
+      and follower.name="JAccount"
+      and r.createdAtEpoch < #{startDate}
+      return r,followees, follower
+      order by r.createdAtEpoch DESC
+      limit 20
+    """
+    @fetchFollows query, callback
 
   fetchTagFollows:(group, startDate, callback)->
     #followers
-    {groupName} = group
-    query = [
-      'start koding=node:koding(id={groupId})'
-      'MATCH koding-[:member]->followees<-[r:follower]-follower'
-      'where followees.name="JAccount"'
-      'and follower.name="JTag"'
-      'and follower.name="' + groupName + '"'
-      'and r.createdAtEpoch < {startDate}'
-      'return r,followees, follower'
-      'order by r.createdAtEpoch DESC'
-      'limit 20'
-    ].join('\n');
+    {groupId, groupName} = group
+    query = """
+      start koding=node:koding("id:#{groupId}")
+      MATCH koding-[:member]->followees<-[r:follower]-follower
+      where followees.name="JAccount"
+      and follower.name="JTag"
+      and follower.name="#{groupName}"
+      and r.createdAtEpoch < #{startDate}
+      return r,followees, follower
+      order by r.createdAtEpoch DESC
+      limit 20
+      """
+    @fetchFollows query, callback
 
-    @fetchFollows query, group, startDate, callback
+  fetchFollows:(query, callback)->
 
-  fetchFollows:(query, group, startDate, callback)->
-
-
-    {groupId} = group
-
-
-    params =
-      groupId   : groupId
-      startDate : startDate
-
-    @db.query query, params, (err, results)=>
+    @db.query query, {}, (err, results)=>
       if err then throw err
       @generateFollows [], results, callback
 
