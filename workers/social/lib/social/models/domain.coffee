@@ -143,5 +143,3 @@ module.exports = class JDomain extends jraphical.Module
       { permission: "edit own domains", validateWith: Validators.own }
     ]
     success: (client, params, callback)-> @bindVM client, params, callback
-    failure: () ->
-      callback "You don't have the required permission to perform this action."
