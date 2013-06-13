@@ -330,13 +330,24 @@ class KodingAppsController extends KDController
 
       @kiteController.run "kdc #{appPath}", (err, response)=>
         if not err
-          loader.notificationSetTitle "Fetching compiled app..."
-          @fetchCompiledAppSource app, (err, res)=>
-            if not err
-              @defineApp name, res
-              loader.notificationSetTitle "App compiled successfully"
-              loader.notificationSetTimer 2000
-            callback? err, res
+          nickname    = KD.nick()
+          publishPath = "/home/#{nickname}/Sites/#{nickname}.koding.kd.io/.applications"
+          @kiteController.run
+            kiteName    : "os"
+            method      : "fs.createDirectory"
+            withArgs    :
+              path      : publishPath
+              recursive : yes
+          , (err, response)=>
+            loader.notificationSetTitle "Publishing app static files..."
+            @kiteController.run "ln -s #{appPath} #{publishPath}/#{KD.utils.slugify name}", (err, response)=>
+              loader.notificationSetTitle "Fetching compiled app..."
+              @fetchCompiledAppSource app, (err, res)=>
+                if not err
+                  @defineApp name, res
+                  loader.notificationSetTitle "App compiled successfully"
+                  loader.notificationSetTimer 2000
+                callback? err, res
         else
           loader.destroy()
 
