@@ -1,4 +1,3 @@
-
 class KDInputCheckboxGroup extends KDInputRadioGroup
 
   constructor:(options = {}, data)->
@@ -7,7 +6,10 @@ class KDInputCheckboxGroup extends KDInputRadioGroup
     options.radios     or= options.checkboxes
     options.type       or= 'checkbox'
 
-    super
+    super options, data
+
+  click:(event)->
+    @setValue @getValue()  unless event.target.tagName is 'LABEL'
 
   getValue:->
     values = []
@@ -16,8 +18,14 @@ class KDInputCheckboxGroup extends KDInputRadioGroup
     return values
 
   setValue:(value)->
+    @$('input').prop 'checked', no
+    @$('.kd-radio-holder').removeClass 'active'
+
     if value instanceof Array
-      for v in value
-        super v
+      @_setValue v  for v in value
     else
-      super value
+      @_setValue value
+
+  _setValue:(value)->
+    @$("input[value='#{value}']").prop 'checked', yes
+    @$(".kd-radio-holder.role-#{value}").addClass 'active'  if value
