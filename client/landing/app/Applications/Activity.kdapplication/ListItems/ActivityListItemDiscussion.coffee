@@ -75,7 +75,7 @@ class DiscussionActivityItemView extends ActivityItemChild
 
     # @scrollAreaOverlay.addSubView @scrollAreaList
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CDiscussionActivity
     super()
     @setTemplate @pistachio()

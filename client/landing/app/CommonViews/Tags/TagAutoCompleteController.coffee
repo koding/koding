@@ -16,7 +16,7 @@ class TagAutoCompleteItemView extends KDAutoCompleteListItemView
     @setTemplate @pistachio()
     @template.update()
 
-  partial:()-> ''
+  partial:-> ''
 
 class TagAutoCompletedItemView extends KDAutoCompletedItem
   constructor:(options, data)->
@@ -32,7 +32,7 @@ class TagAutoCompletedItemView extends KDAutoCompletedItem
     @setTemplate @pistachio()
     @template.update()
 
-  partial:()-> ''
+  partial:-> ''
 
 class SuggestNewTagItem extends KDAutoCompleteListItemView
 

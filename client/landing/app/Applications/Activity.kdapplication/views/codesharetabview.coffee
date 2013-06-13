@@ -164,7 +164,7 @@ class CodeShareTabHandleContainerView extends KDView
     mainView = @getDelegate()
     @setWidth mainView.codeShareView.getWidth() - 100
 
-  addPlusHandle:()->
+  addPlusHandle:->
     mainView = @getDelegate()
 
     @addSubView @plusHandle = new KDCustomHTMLView
@@ -251,7 +251,7 @@ class CodeShareTabHandleContainerView extends KDView
               callback             : (source, event)=> KD.getSingleton("appManager").notify()
 
 
-  removePlusHandle:()->
+  removePlusHandle:->
     @plusHandle.destroy()
 
   _repositionPlusHandle:(event)->
