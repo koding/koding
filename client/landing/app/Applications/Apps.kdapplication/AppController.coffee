@@ -16,6 +16,8 @@ class AppsAppController extends AppController
 
     @appsController = @getSingleton "kodingAppsController"
 
+    @getSingleton("mainViewController").on "AnAppHasBeenUpdated", @bound "updateApps"
+
   loadView:(mainView)->
 
     mainView.createCommons()
