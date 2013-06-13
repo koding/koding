@@ -70,12 +70,13 @@ module.exports = class JVM extends Model
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
+    aliases      = []
     if type is 'user'
       prefix = if uid > 0 then "vm#{uid}." else ""
       aliases = ["#{prefix}#{nickname}.#{groupSlug}.#{domain}"]
       if groupSlug is 'koding'
         aliases.push "#{prefix}#{nickname}.#{domain}"
-    else if type is 'group'
+    else if type is 'group' or type is 'expensed'
       if uid is 0
         aliases = ["#{groupSlug}.#{domain}"
                  "shared.#{groupSlug}.#{domain}"]
