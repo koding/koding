@@ -868,39 +868,39 @@ class KDView extends KDObject
 
     @getSingleton("windowController").setKeyView @
 
-  setPreserveValue:(preserveValue={})->
-    storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
+  # setPreserveValue:(preserveValue={})->
+  #   storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
 
-    if "string" is typeof preserveValue.saveEvents
-      preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
-    if "string" is typeof preserveValue.clearEvents
-      preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
+  #   if "string" is typeof preserveValue.saveEvents
+  #     preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
+  #   if "string" is typeof preserveValue.clearEvents
+  #     preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
 
-    for preserveEvent in preserveValue.saveEvents
-      @on preserveEvent, (event)=>
-        value = @getOptions().preserveValue.getValue?() ? @getValue?()
-        @savePreserveValue preserveValue.name, value
+  #   for preserveEvent in preserveValue.saveEvents
+  #     @on preserveEvent, (event)=>
+  #       value = @getOptions().preserveValue.getValue?() ? @getValue?()
+  #       @savePreserveValue preserveValue.name, value
 
-    for preserveEvent in preserveValue.clearEvents
-      @on preserveEvent, (event)=>
-        @clearPreserveValue()
+  #   for preserveEvent in preserveValue.clearEvents
+  #     @on preserveEvent, (event)=>
+  #       @clearPreserveValue()
 
-    if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
-      @on displayEvent, (event)=>
-        @applyPreserveValue storedvalue if storedValue
+  #   if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
+  #     @on displayEvent, (event)=>
+  #       @applyPreserveValue storedvalue if storedValue
 
-    if storedValue
-      @utils.defer => @applyPreserveValue storedValue
+  #   if storedValue
+  #     @utils.defer => @applyPreserveValue storedValue
 
-  applyPreserveValue:(value)->
-    if @getOptions().preserveValue.setValue
-      @getOptions().preserveValue.setValue value
-    else @setValue? value
+  # applyPreserveValue:(value)->
+  #   if @getOptions().preserveValue.setValue
+  #     @getOptions().preserveValue.setValue value
+  #   else @setValue? value
 
-  savePreserveValue:(id,value)->
-    @getSingleton('localStorageController').setValueById id, value
+  # savePreserveValue:(id,value)->
+  #   @getSingleton('localStorageController').setValueById id, value
 
-  clearPreserveValue:->
-    if @getOptions().preserveValue
-      @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
+  # clearPreserveValue:->
+  #   if @getOptions().preserveValue
+  #     @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
 
