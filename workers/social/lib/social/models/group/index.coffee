@@ -333,9 +333,21 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
-        -> group.createBundle {}
+        ->
+          if groupData['allow-over-usage']
+            if groupData['require-approval']
+              overagePolicy = 'by permission'
+            else
+              overagePolicy = 'allowed'
+          else
+            overagePolicy = 'not allowed'
+          group.createBundle
+            overagePolicy: overagePolicy
+            paymentPlan  : groupData.payment.plan
+            allocation   : groupData.allocation
+            sharedVM     : groupData['shared-vm']
           , ->
-            console.log "bundle is created"
+            console.log 'bundle is created'
             queue.next()
       ]
 
@@ -1290,7 +1302,7 @@ module.exports = class JGroup extends Module
  
       JGroupBundle = require '../bundle/groupbundle'
  
-      bundle = new JGroupBundle {}
+      bundle = new JGroupBundle data
       bundle.save (err) =>
         return callback err  if err?
  
