@@ -6,9 +6,10 @@ module.exports = class JGroupBundle extends JBundle
 
   {permit} = require '../group/permissionset'
 
-  {groupBy} = require 'underscore'
-
-  {daisy} = require 'bongo'
+  JRecurlyPlan         = require '../recurly'
+  JRecurlySubscription = require '../recurly/subscription'
+  JVM                  = require '../vm'
+  async                = require 'async'
 
   @share()
 
@@ -36,11 +37,6 @@ module.exports = class JGroupBundle extends JBundle
         default       : 'not allowed'
 
   createVM: (account, group, data, callback)->
-    JRecurlyPlan         = require '../recurly'
-    JRecurlySubscription = require '../recurly/subscription'
-    JVM                  = require '../vm'
-    async                = require 'async'
-
     {type, planCode} = data
 
     if type is 'user'
@@ -101,7 +97,6 @@ module.exports = class JGroupBundle extends JBundle
             callback new KodingError "Can't create new VM."
 
   checkUsage: (account, group, callback)->
-    JVM = require '../vm'
     JVM.someData
       planOwner   : "group_#{group._id}"
       expensedUser: "user_#{account._id}"
@@ -111,4 +106,21 @@ module.exports = class JGroupBundle extends JBundle
       planCode    : 1
     , {}, (err, cursor)=>
       cursor.toArray (err, arr)=>
-        callback err, arr
+        return callback err  if err
+
+        stack = []
+        arr.forEach (vmData)->
+          stack.push (cb)->
+            JRecurlyPlan.one
+              code: vmData.planCode
+            , (err, plan)->
+              return cb err  if err
+              cb null, plan.feeMonthly
+
+        async.parallel stack, (err, result)->
+          return callback err  if err
+          cost = 0
+          result.forEach (fee)->
+            cost += fee
+
+          callback null, cost
