@@ -201,11 +201,12 @@ class KodingAppsController extends KDController
       return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
 
   updateUserApp: (manifest, callback) ->
-    appName       = manifest.name
-    @notification = new KDNotificationView
-      type     : "mini"
-      title    : "Updating #{appName}: Deleting old app files"
-      duration : 120000
+    appName = manifest.name
+    unless @notification
+      @notification = new KDNotificationView
+        type        : "mini"
+        title       : "Updating #{appName}: Deleting old app files"
+        duration    : 10000
 
     folder = FSHelper.createFileFromPath manifest.path, "folder"
     folder.remove (err, res) =>
