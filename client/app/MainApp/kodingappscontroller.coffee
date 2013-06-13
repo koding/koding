@@ -222,7 +222,7 @@ class KodingAppsController extends KDController
           @installApp app[0], "latest", =>
             @refreshApps()
             callback?()
-            @getSingleton("mainViewController").emit "AnAppHasBeenUpdated"
+            @emit "AnAppHasBeenUpdated"
             @notification.setClass "success"
             @notification.notificationSetTitle "#{appName} has been updated successfully"
             @utils.wait 3000, => @notification.destroy()

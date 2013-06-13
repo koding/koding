@@ -19,10 +19,6 @@ class MainViewController extends KDViewController
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()
 
-    @on "AnAppHasBeenUpdated", =>
-      link = mainView.sidebar.navController.selectItemByName("Apps").getSubViews()[0]
-      link.emit "AnAppHasBeenUpdated"
-
   loadView:(mainView)->
 
     mainView.mainTabView.on "MainTabPaneShown", (pane)=>
