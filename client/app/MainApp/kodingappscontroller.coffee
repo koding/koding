@@ -185,18 +185,16 @@ class KodingAppsController extends KDController
   getPublishedApps: (callback) ->
     return unless KD.isLoggedIn()
     @fetchApps (err, apps) =>
-      query = []
-      for appName, manifest of apps
-        query.push { name: "JApp", identifier: manifest.identifier }
+      appNames = []
+      appNames.push appName for appName, manifest of apps
 
-      KD.remote.cacheable query, (err, apps) =>
+      query = "manifest.name": "$in": appNames
+      KD.remote.api.JApp.someWithRelationship query, {}, (err, apps) =>
         @publishedApps = map = {}
         apps.forEach (app) =>
-          log app, apps, app.manifest.name
           map[app.manifest.name] = app
         @emit "UserAppModelsFetched", map
         callback? map
-        log map
 
   isAppUpdateAvailable: (appName, appVersion) ->
     if @publishedApps[appName]
