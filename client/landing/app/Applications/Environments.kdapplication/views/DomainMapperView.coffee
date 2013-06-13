@@ -41,18 +41,16 @@ class DomainVMListItemView extends KDListItemView
     options.cssClass = 'domain-vm-item'
     super options, data
 
-    listViewData = @getDelegate().getData()
-    switchStatus = if @getData().hostnameAlias in listViewData.hostnameAliases then on else off
-    domainIns    = listViewData.domain
-
-    console.log domainIns
+    listViewData   = @getDelegate().getData()
+    switchStatus   = if @getData().hostnameAlias in listViewData.hostnameAliases then on else off
+    domainInstance = listViewData.domain
 
     @onOff = new KDOnOffSwitch
       size        : 'small'
       labels      : ['CON', "DCON"]
       defaultValue: switchStatus
       callback : (state) =>
-        domainIns.bindVM 
+        domainInstance.bindVM 
           vmName     : @getData().name
           state      : state
         , (err) =>
