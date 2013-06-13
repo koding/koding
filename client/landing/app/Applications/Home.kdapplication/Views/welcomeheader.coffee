@@ -32,6 +32,6 @@ class WelcomeHeader extends KDHeaderView
       @destroy()
       @utils.wait @notifyResizeListeners.bind @
 
-  setTitle:()->
+  setTitle:->
     {title, subtitle} = @getOptions()
     @$().append "<div><span>#{title}</span><cite>#{subtitle}</cite></div><i/>"

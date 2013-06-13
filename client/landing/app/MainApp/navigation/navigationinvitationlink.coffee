@@ -109,7 +109,7 @@ class NavigationInviteLink extends KDCustomHTMLView
                     diameter    : 12
                 cancel          :
                   style         : "modal-cancel"
-                  callback      : ()->
+                  callback      : ->
                     modal.destroy()
 
     modal.on "KDModalViewDestroyed", => @modal = null
