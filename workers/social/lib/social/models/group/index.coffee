@@ -84,9 +84,9 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
-        'fetchRolesByClientId',
+        'fetchRolesByClientId', 'fetchOrSearchInvitationRequests',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'fetchOrSearchInvitationRequests',
+        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'vmUsage',
         'fetchBundle', 'updateBundle'
       ]
     schema          :
@@ -1323,81 +1323,26 @@ module.exports = class JGroup extends Module
     JRecurlySubscription = require '../recurly/subscription'
     JRecurlySubscription.getGroupSubscriptions @, callback
 
+  vmUsage: secure (client, callback)->
+    {delegate} = client.connection
+
+    @fetchBundle (err, bundle)=>
+      if err or not bundle
+        # TODO: Better error message required
+        callback new KodingError "Unable to fetch group bundle"
+      else
+        bundle.checkUsage delegate, @, callback
+
   createVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    # if data.type is "personal"
-    #   data.type = "user"
-    # else if data.type is "shared"
-    #   data.type = "group"
-    # else if data.type is "personalExpensed"
-    #   data.type = "expensed"
-
-    JRecurlyPlan         = require '../recurly'
-    JRecurlySubscription = require '../recurly/subscription'
-    JVM                  = require '../vm'
-    async                = require 'async'
-
-    _createVMs = (type, planCode, cb)=>
-      if type is 'user'
-        planOwner = "user_#{delegate._id}"
-      else if type is 'group'
-        planOwner = "group_#{@._id}"
-      else if type is 'expensed'
-        planOwner = "group_#{@._id}"
-
-      JRecurlySubscription.all
-        userCode: planOwner
-        planCode: planCode
-        status  : 'active'
-      , (err, subs)=>
-        return cb new KodingError "Payment backend error: #{err}"  if err
-
-        expensed = type is "expensed"
-
-        paidVMs     = 0
-        expensedVMs = 0
-        subs.forEach (sub)->
-          if sub.status is 'active' and sub.planCode is planCode
-            paidVMs = sub.quantity
-            if type is 'expensed'
-              expensedVMs = sub.expensed
-            else if type is 'group'
-              paidVMs    -= sub.expensed
-
-        if expensed
-          paidVMs = expensedVMs
-
-        createdVMs = 0
-        JVM.someData
-          planOwner: planOwner
-          planCode : planCode
-          expensed : expensed
-        ,
-          name     : 1
-        , {}, (err, cursor)=>
-          cursor.toArray (err, arr)=>
-            return cb err  if err
-            arr.forEach (vm)->
-              createdVMs += 1
-
-            # TODO: Also check user quota here
-
-            if paidVMs > createdVMs
-              options     =
-                planCode  : planCode
-                usage     : {cpu: 1, ram: 1, disk: 1}
-                type      : type
-                account   : delegate
-                groupSlug : @slug
-                expensed  : expensed
-              JVM.createVm options, ->
-                cb null, planCode
-            else
-              cb new KodingError "Can't create new VM."
-
     if data.type in ['user', 'group', 'expensed']
-      _createVMs data.type, data.planCode, callback
+      @fetchBundle (err, bundle)=>
+        if err or not bundle
+          # TODO: Better error message required
+          callback new KodingError "Unable to fetch group bundle"
+        else
+          bundle.createVM delegate, @, data, callback
     else
       callback new KodingError "No such VM type: #{data.type}"
 

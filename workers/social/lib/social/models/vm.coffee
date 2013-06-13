@@ -38,6 +38,7 @@ module.exports = class JVM extends Model
       hostnameAlias     : [String]
       planOwner         : String
       planCode          : String
+      expensedUser      : String
       expensed          : Boolean
       users             : Array
       groups            : Array
@@ -108,6 +109,10 @@ module.exports = class JVM extends Model
         else
           planOwner = "user_#{account._id}"
 
+        expensedUser = ""
+        if expensed
+          expensedUser = "user_#{account._id}"
+
         nameFactory.next (err, uid)=>
           return callback err  if err
 
@@ -119,12 +124,13 @@ module.exports = class JVM extends Model
           # JVM.createDomains hostnameAlias
 
           vm = new JVM {
-            name    : "#{name}#{uid}"
-            planCode : planCode
-            planOwner: planOwner
-            users   : [{ id: user.getId(), sudo: yes, owner: yes }]
-            groups  : [{ id: group.getId() }]
-            expensed: expensed
+            name        : "#{name}#{uid}"
+            planCode    : planCode
+            planOwner   : planOwner
+            users       : [{ id: user.getId(), sudo: yes, owner: yes }]
+            groups      : [{ id: group.getId() }]
+            expensed    : expensed
+            expensedUser: expensedUser
             hostnameAlias
             usage
           }
