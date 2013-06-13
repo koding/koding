@@ -145,7 +145,7 @@ class MemberAutoCompleteItemView extends KDAutoCompleteListItemView
     @setTemplate @pistachio()
     @template.update()
 
-  partial:()-> ''
+  partial:-> ''
 
 class MemberAutoCompletedItemView extends KDAutoCompletedItem
   constructor:(options, data)->
@@ -165,4 +165,4 @@ class MemberAutoCompletedItemView extends KDAutoCompletedItem
     @setTemplate @pistachio()
     @template.update()
 
-  partial:()-> ''
+  partial:-> ''

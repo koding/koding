@@ -19,8 +19,7 @@ class ChatConversationWidget extends JView
     @chatMessageList = new ChatMessageListView
       itemClass : ChatMessageListItem
 
-    @chatMessageList.on 'ItemWasAdded', =>
-      @expand()
+    @chatMessageList.on 'ItemWasAdded', => @emit 'NewMessageReceived'
 
     @chatMessageController = new ChatMessageListController
       view    : @chatMessageList

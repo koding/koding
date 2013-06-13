@@ -11,7 +11,7 @@ class HelpBox extends JView
 
     super options, data
 
-  pistachio:()->
+  pistachio:->
 
     """
       <span></span>

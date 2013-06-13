@@ -32,7 +32,7 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
       itemClass  : TagLinkView
     , data.tags
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity
     super()
     @setTemplate @pistachio()

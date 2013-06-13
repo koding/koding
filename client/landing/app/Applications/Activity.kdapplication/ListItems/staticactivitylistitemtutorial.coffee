@@ -41,7 +41,7 @@ class StaticTutorialActivityItemView extends StaticActivityItemChild
   prepareExternalLinks:->
     @$('div.body a[href^=http]').attr "target", "_blank"
 
-  viewAppended:()->
+  viewAppended:->
     super()
 
     @setTemplate @pistachio()

@@ -1,6 +1,6 @@
 class InboxMessageListController extends KDListViewController
 
-  constructor:()->
+  constructor:->
     super
     @selectedMessages = {}
 

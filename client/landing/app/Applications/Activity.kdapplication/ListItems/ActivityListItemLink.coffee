@@ -18,7 +18,7 @@ class LinkActivityItemView extends ActivityItemChild
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CLinkActivity
     super()
     @setTemplate @pistachio()
