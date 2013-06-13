@@ -71,12 +71,8 @@ func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
-func (vm *VM) SetHostname(hostname string) {
-	vm.hostname = hostname
-}
-
 func (vm *VM) Hostname() string {
-	return vm.hostname
+	return vm.HostnameAlias[0]
 }
 
 func (vm *VM) RbdDevice() string {
