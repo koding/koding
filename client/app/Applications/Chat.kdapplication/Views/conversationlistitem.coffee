@@ -24,6 +24,7 @@ class ChatConversationListItem extends KDListItemView
 
     @conversation = new ChatConversationWidget @
     @conversation.on 'click', @conversation.bound 'takeFocus'
+    @conversation.on 'NewMessageReceived', @bound 'expandConversation'
 
     @conversation.messageInput.on 'moveUpRequested', =>
       itemIndex = @getDelegate().getItemIndex @
@@ -71,12 +72,15 @@ class ChatConversationListItem extends KDListItemView
       axis   : "y"
 
   toggleConversation:->
+    @toggleClass 'ready'
     @conversation.toggle()
     @conversation.takeFocus()  if @conversation.isVisible()
 
   expandConversation:->
+    @setClass 'ready'
     @conversation.expand()
     @conversation.takeFocus()
 
   collapseConversation:->
+    @unsetClass 'ready'
     @conversation.collapse()
