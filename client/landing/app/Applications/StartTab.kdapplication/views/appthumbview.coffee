@@ -11,7 +11,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description,
+    {icns, name, identifier, version, author, description,
      authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
@@ -24,7 +24,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     proxifyUrl=(url)->
       KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
-    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/"
 
     if manifest.devMode
       resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/"
