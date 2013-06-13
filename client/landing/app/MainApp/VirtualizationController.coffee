@@ -108,7 +108,6 @@ class VirtualizationController extends KDController
     vmController        = @getSingleton('vmController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
-    canCreateExpensedVM = yes
 
     # Take this to a better place, possibly to payment controller.
     makePayment = (type, plan, callback)->
@@ -193,11 +192,6 @@ class VirtualizationController extends KDController
     else
       return new KDNotificationView
         title : "You are not authorized to create VMs in #{group} group"
-
-    if canCreateExpensedVM
-      content += """<br/><br/>
-                    You can also get a <b>Personal</b> VM using your 
-                    <b>goups</b> quota. Your group will be charged."""
 
     vmController.fetchVMPlans (err, plans)=>
       @paymentPlans = plans
@@ -299,8 +293,13 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      if canCreateExpensedVM
-        modal.modalTabs.forms["Create VM"].buttons.expensed.show()
+      group = KD.singletons.groupsController.getCurrentGroup()
+      group.vmUsage (err, limit)->
+        if limit and limit.usage < limit.quota
+          # content += """<br/><br/>
+          #               You can also get a <b>Personal</b> VM using your 
+          #               <b>goups</b> quota. Your group will be charged."""
+          modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
