@@ -201,27 +201,30 @@ class KodingAppsController extends KDController
       return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
 
   updateUserApp: (manifest, callback) ->
-    appName = manifest.name
-    notification = new KDNotificationView
+    appName       = manifest.name
+    @notification = new KDNotificationView
       type     : "mini"
       title    : "Updating #{appName}: Deleting old app files"
       duration : 120000
 
     folder = FSHelper.createFileFromPath manifest.path, "folder"
     folder.remove (err, res) =>
-      return warn err if err
+      if err
+        @notification.setClass "error"
+        @notification.notificationSetTitle "An error occured while updating #{appName}."
+        @utils.wait 3000, => @notification.destroy()
+        return no
       @refreshApps =>
-        notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
+        @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
         KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
-          notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
+          @notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
           @installApp app[0], "latest", =>
             @refreshApps()
             callback?()
             @getSingleton("mainViewController").emit "AnAppHasBeenUpdated"
-            notification.setClass "success"
-            notification.notificationSetTitle "#{appName} has been updated successfully"
-            @utils.wait 3000, => notification.destroy()
-            @appManager.open appName
+            @notification.setClass "success"
+            @notification.notificationSetTitle "#{appName} has been updated successfully"
+            @utils.wait 3000, => @notification.destroy()
       , yes
 
   # #
