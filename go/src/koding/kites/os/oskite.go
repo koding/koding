@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"io"
 	"io/ioutil"
 	"koding/kites/os/ldapserver"
@@ -40,9 +41,19 @@ type VMInfo struct {
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
+var firstContainerIP net.IP
+var containerSubnet *net.IPNet
+var ipCounterInitialValue int
 
 func main() {
 	lifecycle.Startup("kite.os", true)
+
+	var err error
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+		log.LogError(err, 0)
+		return
+	}
+
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return
@@ -255,7 +266,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		defer info.mutex.Unlock()
 
 		if vm.IP == nil {
-			ipInt := db.NextCounterValue("vm_ip")
+			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 			if !vm.IsTemporary() {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
@@ -263,6 +274,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 			vm.IP = ip
+		}
+		if !containerSubnet.Contains(vm.IP) {
+			panic("VM with IP that is not in the container subnet: " + vm.IP.String())
 		}
 
 		if vm.LdapPassword == "" {
