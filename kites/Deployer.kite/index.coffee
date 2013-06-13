@@ -14,7 +14,10 @@ manifest = require "./manifest.json"
 {spawn}  = require "child_process"
 https    = require 'https' 
 fs       = require 'fs-extra'
+os = require 'os'
 path     = require 'path'
+uuid = require 'node-uuid'
+
 
 class Deployment
   @pathToContainers = "/var/lib/lxc"
@@ -74,8 +77,11 @@ class Deployment
     cmd.on 'close', (code) ->
       console.log 'lxc-execute process exited with code ', code
 
+manifest.name = "Deployer_#{os.hostname()}_#{uuid.v4()}"
+console.log "deployer:", manifest.name
+
 kite.worker manifest, 
-  # This is a dummy method of the kite.
+
   deploy: (options, callback) ->
     {id, kiteName, zipUrl} = options
     deployment = new Deployment(id, kiteName, zipUrl)
@@ -83,6 +89,5 @@ kite.worker manifest,
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
 
     return callback null, "Hello, I'm #{name}! This is Deployer"
-
 
 
