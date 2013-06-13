@@ -35,7 +35,6 @@ class AppsAppController extends AppController
         updates             :
           title             : "Updates"
           dataSource        : (selector, options, callback)=>
-            log "inside source"
             return @putUpdateAvailableApps callback if @appsController.publishedApps
             @appsController.on "UserAppModelsFetched", =>
               @putUpdateAvailableApps callback
@@ -119,10 +118,7 @@ class AppsAppController extends AppController
           updateAppsButton.show()
 
   putUpdateAvailableApps: (callback) ->
-    log "inside put button"
     @appsController.fetchUpdateAvailableApps (err, res) =>
-      log "fetched update apps"
-      log res
       callback err, res
       @manageUpdateAllButton res
 
@@ -158,7 +154,6 @@ class AppsAppController extends AppController
         updateAppsButton.setData []
 
   manageUpdateAllButton: (apps) ->
-    log "inside manage app button", apps
     return unless apps
     {updateAppsButton} = @getView()
 
@@ -178,8 +173,6 @@ class AppsAppController extends AppController
       callback  : => @showAppSubmissionView()
 
   createApp:(formData, callback)->
-    log formData,"in createApp"
-    # log JSON.stringify formData
     KD.remote.api.JApp.create formData, (err, app)->
       callback? err, app
 
@@ -343,5 +336,4 @@ class AppsAppController extends AppController
   createAppSummary:(modal, pane)->
     modal.preview.destroy() if modal.preview
     formData = modal.modalTabs.getFinalData()
-    log formData
     pane.form.addSubView (modal.preview = new AppPreSubmitPreview {},formData),null,yes
