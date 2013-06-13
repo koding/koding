@@ -38,7 +38,6 @@ class LXC
 
 class Deployment
   constructor: (@zipUrl, @name, @lxc) ->
-    console.log "......Deployment constructor",  @lxc
     @kitePath = path.join @lxc.pathToContainers, @lxc.name, "overlay", "opt", "kites"
 
   downloadAndExtractKite: (callback) ->

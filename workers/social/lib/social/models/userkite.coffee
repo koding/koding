@@ -33,6 +33,7 @@ class JUserKite extends jraphical.Module
       kitename: @kitename
       owner: @owner
       version: @latest_version
+      hash: @hash
     kiteversion.save (err)->
       console.log "error", err
       cb(err)
@@ -50,6 +51,7 @@ class JUserKite extends jraphical.Module
           kitename      : data.kitename
           latest_s3url  : data.latest_s3url
           owner         : data.account_id #or data.account?._id
+          hash: data.hash
         userkite.save (err)->
           if err
             callback err
@@ -59,7 +61,8 @@ class JUserKite extends jraphical.Module
         JUserKite.update {_id: userkite.data._id}, 
                             {$set: 
                                 latest_version: parseInt(userkite.data.latest_version) + 1,
-                                latest_s3url: data.latest_s3url
+                                latest_s3url: data.latest_s3url,
+                                hash: data.hash
                             }
                           , (err)->
           if err 
@@ -88,20 +91,6 @@ class JUserKiteVersion extends jraphical.Module
       createdAt   :
         type      : Date
         default   : -> new Date
-
-
-  @create = (account, data, callback)->
-    key = new JKodingKey
-      kitename : data.kitename
-      s3url    : data.s3url
-      owner    : account._id
-
-    key.save (err)->
-      if err
-        callback err
-      else
-        callback null, key
-
 
 class JUserKiteInstance extends jraphical.Module
   
