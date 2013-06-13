@@ -112,7 +112,7 @@ class VirtualizationController extends KDController
     vmController        = @getSingleton('vmController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
-    
+
 
     # Take this to a better place, possibly to payment controller.
     makePayment = (type, planCode, callback)->
@@ -176,7 +176,7 @@ class VirtualizationController extends KDController
       else
         KD.singletons.finderController.mountVm vm.name
         vmController.emit 'VMListChanged'
-      paymentModal.destroy()
+      paymentModal?.destroy()
 
     group = KD.singletons.groupsController.getGroupSlug()
 
@@ -210,14 +210,14 @@ class VirtualizationController extends KDController
         title                       : "Create a new VM"
         cssClass                    : "group-creation-modal"
         height                      : "auto"
-        width                       : 684
+        width                       : 500
         overlay                     : yes
         tabs                        :
           navigable                 : no
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-                
+
                 form                = modal.modalTabs.forms["Create VM"]
                 {personal, shared}  = form.buttons
 
@@ -294,7 +294,7 @@ class VirtualizationController extends KDController
         {personal, shared} = form.buttons
         personal.hideLoader()
         shared.hideLoader()
-      
+
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
 
@@ -389,8 +389,8 @@ class VirtualizationController extends KDController
     modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
   # there may be a better place for these who methods below - SY
-  
-  fetchVMPlans:(callback)-> 
+
+  fetchVMPlans:(callback)->
     KD.remote.api.JRecurlyPlan.getPlans "group", "vm", (err, plans)=>
       if err then warn err
       else if plans
