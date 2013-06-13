@@ -1291,8 +1291,10 @@ module.exports = class JGroup extends Module
     else if data.type is "shared"
       data.type = "group"
 
+    JRecurlyPlan         = require '../recurly'
     JRecurlySubscription = require '../recurly/subscription'
     JVM                  = require '../vm'
+    async                = require 'async'
 
     # _checkGroupVMs = (cb)=>
     #   JRecurlySubscription.getGroupSubscriptions @, (err, subs)->
@@ -1346,21 +1348,28 @@ module.exports = class JGroup extends Module
 
             console.log createdVMs
 
-            for planCode, vmQuantity of paidVMs
+            stack = []
+
+            Object.keys(paidVMs).forEach (planCode)=>
+              vmQuantity = paidVMs[planCode]
               unless planCode in Object.keys createdVMs
                 quantity = vmQuantity
               else
                 quantity = vmQuantity - createdVMs[planCode]
               for i in [1..quantity] when quantity >= 1
                 console.log "Creating #{planCode}"
-                options     =
-                  planCode  : planCode
-                  usage     : {cpu: 1, ram: 1, disk: 1}
-                  type      : type
-                  account   : delegate
-                  groupSlug : @slug
-                JVM.createVm options, ->
-                  cb null, "Created VM: #{planCode}"
+                stack.push (_cb)=>
+                  options     =
+                    planCode  : planCode
+                    usage     : {cpu: 1, ram: 1, disk: 1}
+                    type      : type
+                    account   : delegate
+                    groupSlug : @slug
+                  JVM.createVm options, ->
+                    _cb null, "Created VM - #{planCode}"
+
+            async.parallel stack, (err, results)=>
+              cb err, results
 
     if data.type in ['user', 'group']
       _createVMs data.type, callback
