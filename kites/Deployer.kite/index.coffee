@@ -81,9 +81,17 @@ class Deployment
     cmd.on 'close', (code) ->
       console.log 'lxc-execute process exited with code ', code
 
-manifest.name = "Deployer_#{os.hostname()}_#{uuid.v4()}"
+
+uuidFile = "/home/vmroot/.kd/uuid"
+if fs.existsSync uuidFile
+  uuid = (fs.readFileSync uuidFile).toString()
+else
+  uuid = uuid.v4()
+  fs.writeFileSync uuidFile, uuid
+
 console.log "deployer:", manifest.name
 
+manifest.name = "Deployer_#{os.hostname()}_#{uuid.v4()}"
 kite.worker manifest, 
 
   deploy: (options, callback) ->
