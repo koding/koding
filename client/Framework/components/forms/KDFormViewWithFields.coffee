@@ -86,7 +86,7 @@ class KDFormViewWithFields extends KDFormView
 #     Delete            :
 #       title           : "Delete"
 #       style           : "modal-clean-red"
-#       callback        : ()-> log "delete"
+#       callback        : -> log "delete"
 #     Reset             :
 #       title           : "Reset"
 #       style           : "modal-clean-red"

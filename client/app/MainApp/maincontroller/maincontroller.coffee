@@ -201,7 +201,7 @@ class MainController extends KDController
         buttons :
           "Refresh Now" :
             style     : "modal-clean-red"
-            callback  : ()->
+            callback  : ->
               modal.destroy()
               location.reload yes
       # if location.hostname is "localhost"
