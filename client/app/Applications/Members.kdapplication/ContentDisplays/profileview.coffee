@@ -147,7 +147,7 @@ class ProfileView extends JView
 
     """
 
-  putSkillTags:()->
+  putSkillTags:->
     memberData = @getData()
 
     memberData.skillTags or= ['No Tags']

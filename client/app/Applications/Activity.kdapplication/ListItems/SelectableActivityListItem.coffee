@@ -75,4 +75,4 @@ class SelectableActivityListItemView extends KDListItemView
     @getData().fetchTeaser? (err, teaser)=>
       @addChildView teaser, => @slideIn()
 
-  slideIn:()-> @$().removeClass 'hidden-item'
+  slideIn:-> @$().removeClass 'hidden-item'

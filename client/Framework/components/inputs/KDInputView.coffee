@@ -92,11 +92,11 @@ class KDInputView extends KDView
   setName:(@inputName)->
   getName:-> @inputName
 
-  setFocus:()->
+  setFocus:->
     (@getSingleton "windowController").setKeyView @
     @$().trigger "focus"
 
-  setBlur:()->
+  setBlur:->
     (@getSingleton "windowController").setKeyView null
     @$().trigger "blur"
 
@@ -123,7 +123,7 @@ class KDInputView extends KDView
 
     @inputDefaultValue = value
 
-  getDefaultValue:()->
+  getDefaultValue:->
     @inputDefaultValue
 
   setPlaceHolder:(value)->
@@ -131,13 +131,13 @@ class KDInputView extends KDView
       @$().attr "placeholder",value
       @options.placeholder = value
 
-  makeDisabled:()->
+  makeDisabled:->
     @getDomElement().attr "disabled","disabled"
 
-  makeEnabled:()->
+  makeEnabled:->
     @getDomElement().removeAttr "disabled"
 
-  getValue:()->
+  getValue:->
     if @getOption("type") is "checkbox"
       value = @$().is ':checked'
     else

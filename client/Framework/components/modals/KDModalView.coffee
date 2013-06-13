@@ -179,7 +179,7 @@ class KDModalView extends KDView
     @modalContent = content
     @getDomElement().find(".kdmodal-content").html content
 
-  display:()->
+  display:->
 
     if @getOptions().fx
       @utils.defer =>
@@ -189,7 +189,7 @@ class KDModalView extends KDView
     @emit 'ModalCancelled'
     @destroy()
 
-  destroy:()->
+  destroy:->
     $(window).off "keydown.modal"
     uber = KDView::destroy.bind @
 

@@ -11,7 +11,7 @@ class KDScrollView extends KDView
     # if @getOptions().ownScrollBars
     #   @_createScrollBars()
 
-  bindEvents:()->
+  bindEvents:->
 
     #FIXME: mousewheel works in FF, IE??
     @$().bind "scroll mousewheel",(event, delta, deltaX, deltaY)=>
@@ -19,12 +19,12 @@ class KDScrollView extends KDView
       @handleEvent event
     super
 
-  hasScrollBars:()-> @getScrollHeight() > @getHeight()
+  hasScrollBars:-> @getScrollHeight() > @getHeight()
 
-  getScrollHeight:()-> @$()[0].scrollHeight
-  getScrollWidth:()->  @$()[0].scrollWidth
-  getScrollTop:()->    @$().scrollTop()
-  getScrollLeft:()->   @$().scrollLeft()
+  getScrollHeight:-> @$()[0].scrollHeight
+  getScrollWidth:->  @$()[0].scrollWidth
+  getScrollTop:->    @$().scrollTop()
+  getScrollLeft:->   @$().scrollLeft()
 
   scrollTo:({top, left, duration},callback)->
     top      or= 0
@@ -119,7 +119,7 @@ class KDScrollThumb extends KDView
 
     @_view.on "scroll", @bound "_calculatePosition"
 
-  isDraggable:()->yes
+  isDraggable:->yes
 
   dragOptions:->
     o = @getOptions()

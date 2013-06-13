@@ -182,7 +182,7 @@ class ActivityTutorialWidget extends KDFormView
 
     super
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()

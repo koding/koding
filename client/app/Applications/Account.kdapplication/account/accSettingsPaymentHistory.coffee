@@ -12,7 +12,7 @@ class AccountPaymentHistoryListController extends KDListViewController
   loadItems:->
     @removeAllItems()
     @showLazyLoader no
-    
+
     transactions = []
     KD.remote.api.JRecurlyPlan.getUserTransactions (err, trans) =>
       if err
@@ -58,7 +58,7 @@ class AccountPaymentHistoryListItem extends KDListItemView
     options = tagName : "li"
     super options,data
 
-  viewAppended:()->
+  viewAppended:->
     super
     @addSubView editLink = new KDCustomHTMLView
       tagName      : "a"

@@ -10,7 +10,7 @@ class KDWmdInput extends KDInputView
     super options,data
     @setClass "monospace"
 
-  setWMD:()->  
+  setWMD:->
     preview = @getOptions().preview
     @getDomElement().wmd
       preview : preview

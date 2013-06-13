@@ -70,7 +70,7 @@ class DiscussionFormView extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()

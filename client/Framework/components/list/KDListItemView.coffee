@@ -13,7 +13,7 @@ class KDListItemView extends KDView
 
     @content = {}
 
-  viewAppended:()->
+  viewAppended:->
 
     {childClass, childOptions} = @getOptions()
     if childClass
@@ -21,28 +21,28 @@ class KDListItemView extends KDView
     else
       @setPartial @partial @data
 
-  partial:()->
+  partial:->
     "<div class='kdlistitemview-default-content'>
       <p>This is a default partial of <b>KDListItemView</b>,
       you need to override this partial to have your custom content here.</p>
     </div>"
 
-  dim:()->
+  dim:->
 
     @getDomElement().addClass "dimmed"
 
-  undim:()->
+  undim:->
 
     @getDomElement().removeClass "dimmed"
 
-  highlight:()->
+  highlight:->
 
     @setClass "selected"
     @unsetClass "dimmed"
 
-  removeHighlight:()->
+  removeHighlight:->
 
     @unsetClass "selected"
     @unsetClass "dimmed"
 
-  getItemDataId:()-> @getData().getId?()
+  getItemDataId:-> @getData().getId?()

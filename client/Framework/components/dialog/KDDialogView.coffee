@@ -17,12 +17,12 @@ class KDDialogView extends KDView
     @setButtons()
     @setTopOffset()
 
-  show:()->
+  show:->
     {duration,overlay} = @getOptions()
     @putOverlay() if overlay
     @$().slideDown duration
 
-  hide:()->
+  hide:->
     {duration} = @getOptions()
     @$overlay.fadeOut duration,()=>
       @$overlay.remove()
@@ -30,14 +30,14 @@ class KDDialogView extends KDView
     @$().slideUp duration,()=>
       @destroy()
 
-  setButtons:()->
+  setButtons:->
     {buttons} = @getOptions()
     @buttons = {}
     @buttonHolder = new KDView {cssClass : "kddialog-buttons clearfix"}
     @addSubView @buttonHolder
     for own buttonTitle,buttonOptions of buttons
       @createButton buttonTitle,buttonOptions
-      
+
   createButton:(title,buttonOptions)->
     @buttonHolder.addSubView button = new KDButtonView
       title       : title
@@ -46,11 +46,11 @@ class KDDialogView extends KDView
       callback    : buttonOptions.callback  if buttonOptions.callback?
     @buttons[title] = button
 
-  setTopOffset:()->
+  setTopOffset:->
     {topOffset} = @getOptions()
     @$().css "top",topOffset
 
-  putOverlay:()->
+  putOverlay:->
     {topOffset} = @getOptions()
     @$overlay = $ "<div/>",
       class : "kdoverlay"

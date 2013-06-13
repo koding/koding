@@ -40,7 +40,7 @@ __utils =
     id = __utils.idCounter++
     if prefix? then "#{prefix}#{id}" else id
 
-  getRandomRGB :()->
+  getRandomRGB :->
     {getRandomNumber} = @
     "rgb(#{getRandomNumber(255)},#{getRandomNumber(255)},#{getRandomNumber(255)})"
 

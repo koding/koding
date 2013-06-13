@@ -14,7 +14,7 @@ class KDButtonViewWithMenu extends KDButtonView
 
     return @domElement
 
-  setIconOnly:()->
+  setIconOnly:->
     @$().addClass('icon-only').removeClass('with-icon')
     $icons = @$('span.icon,span.chevron')
     @$().html $icons
@@ -74,12 +74,12 @@ class KDButtonViewWithMenu extends KDButtonView
     @$button.addClass newStyle
     @$().addClass newStyle
 
-  setIconOnly:()->
+  setIconOnly:->
     @$button.addClass('icon-only').removeClass('with-icon')
     $icon = @$('span.icon')
     @$button.html $icon
 
-  disable:()->
+  disable:->
     @$button.attr "disabled",yes
-  enable:()->
+  enable:->
     @$button.attr "disabled",no

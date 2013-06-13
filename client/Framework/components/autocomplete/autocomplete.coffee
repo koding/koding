@@ -5,7 +5,7 @@ class KDAutoComplete extends KDInputView
   setDomElement:->
     @domElement = $ "<div class='kdautocompletewrapper clearfix'><input type='text' class='kdinput text'/></div>"
 
-  setDomId:()->
+  setDomId:->
     @$input().attr "id",@getDomId()
     @$input().attr "name",@getName()
     @$input().data "data-id",@getId()
@@ -14,11 +14,11 @@ class KDAutoComplete extends KDInputView
     @inputDefaultValue = value
     @setValue value
 
-  $input:()->@$().find("input").eq(0)
-  getValue:()-> @$input().val()
+  $input:->@$().find("input").eq(0)
+  getValue:-> @$input().val()
   setValue:(value)-> @$input().val(value)
 
-  bindEvents:()->
+  bindEvents:->
     super @$input()
 
   # FIX THIS: on blur dropdown should disappear but the
@@ -41,10 +41,10 @@ class KDAutoComplete extends KDInputView
     (@getSingleton "windowController").setKeyView @
     yes
 
-  getLeftOffset:()->
+  getLeftOffset:->
     @$input().prev().width()
 
-  destroyDropdown:()->
+  destroyDropdown:->
     @dropdown.destroy() if @dropdown?
     @dropdownPrefix = ""
     @dropdown = null

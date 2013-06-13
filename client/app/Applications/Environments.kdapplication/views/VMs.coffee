@@ -134,7 +134,7 @@ class VMListItemView extends KDListItemView
       @statusIcon.setClass "vm-status-on"
       @switch.setOn no
 
-  viewAppended:()->
+  viewAppended:->
     super()
 
     @setTemplate @pistachio()

@@ -23,14 +23,14 @@ class KDNotificationView extends KDView
         <div class='kdnotification-content hidden'></div>
       </div>"
 
-  destroy:()->
+  destroy:->
     @notificationCloseHandle.unbind ".notification"
     @notificationOverlay.remove() if @notificationOverlay?
     super()
     @notificationStopTimer()
     @notificationRepositionOtherNotifications()
 
-  viewAppended:()-> @notificationSetPositions()
+  viewAppended:-> @notificationSetPositions()
 
   # OWN METHODS
   notificationSetDefaults:(options)->
@@ -51,7 +51,7 @@ class KDNotificationView extends KDView
   notificationSetType:(type = "main")->
     @notificationType = type
 
-  notificationSetPositions:()->
+  notificationSetPositions:->
     @setClass @notificationType
     sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
 
@@ -91,7 +91,7 @@ class KDNotificationView extends KDView
 
     @getDomElement().css styles
 
-  notificationRepositionOtherNotifications:()->
+  notificationRepositionOtherNotifications:->
 
     sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
     heights = ($(elm).outerHeight(no) for elm,i in sameTypeNotifications)
@@ -130,7 +130,7 @@ class KDNotificationView extends KDView
       @notificationTimerDiv.text next
     ,1000
 
-  notificationShowTimer:()->
+  notificationShowTimer:->
     @notificationTimerDiv.removeClass "hidden"
     @getDomElement().bind "mouseenter",()=>
       @notificationStopTimer()
@@ -138,11 +138,11 @@ class KDNotificationView extends KDView
       newDuration = parseInt(@notificationTimerDiv.text(),10)*1000
       @notificationSetTimer newDuration
 
-  notificationStopTimer:()->
+  notificationStopTimer:->
     clearTimeout @notificationTimeout
     clearInterval @notificationInterval
 
-  notificationSetOverlay:()->
+  notificationSetOverlay:->
     @notificationOverlay = $ "<div/>",
       class : "kdoverlay transparent"
     @notificationOverlay.hide()
@@ -150,13 +150,13 @@ class KDNotificationView extends KDView
     @notificationOverlay.fadeIn 200
     @notificationOverlay.bind "click",()=>
       @destroy()
-  notificationGetOverlay:()-> @notificationOverlay
+  notificationGetOverlay:-> @notificationOverlay
 
   notificationSetContent:(content)->
     @notificationContent = content
     @getDomElement().find(".kdnotification-content").removeClass("hidden").html content
 
-  notificationDisplay:()->
+  notificationDisplay:->
     if @getOptions().container
       @getOptions().container.addSubView @
     else
