@@ -14,6 +14,7 @@ module.exports =
   uri           :
     address     : "new.koding.com"
   userSitesDomain: 'kd.io'
+  containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -26,10 +27,10 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
-    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
+    read        : "http://kgraphdb3.in.koding.com"
+    write       : "http://kgraphdb3.in.koding.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes

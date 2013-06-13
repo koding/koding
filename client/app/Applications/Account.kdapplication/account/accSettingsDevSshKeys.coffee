@@ -68,7 +68,7 @@ class AccountSshKeyListItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
 
-  # viewAppended:()->
+  # viewAppended:->
   #   super
   #   @form = form = new AccountSshKeyForm
   #     delegate : @

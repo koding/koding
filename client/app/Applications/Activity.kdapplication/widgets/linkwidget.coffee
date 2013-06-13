@@ -157,7 +157,7 @@ class ActivityLinkWidget extends KDFormView
 
   widgetShown:->
 
-  viewAppended:()->
+  viewAppended:->
 
     @setClass "update-options link"
     @setTemplate @pistachio()

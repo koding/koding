@@ -98,7 +98,7 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
           item.hide()
           item.destroy()
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
     @setTemplate @pistachio()

@@ -201,7 +201,6 @@ func parseDomain(host string) (*UserInfo, error) {
 }
 
 func validate(u *UserInfo) (bool, error) {
-
 	ruleId, err := proxyDB.GetDomainRuleId(u.Domain.Id)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
@@ -212,12 +211,7 @@ func validate(u *UserInfo) (bool, error) {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
-	// res, err := proxyDB.GetRule(u.Domain.Domainname)
-	// if err != nil {
-	// 	return true, nil //don't block if we don't get a rule (pre-caution))
-	// }
-
-	return validator(rule, u).IP().Country().Check()
+	return validator(rule, u).AddRules().Check()
 }
 
 // func lookupRabbitKey(username, servicename, key string) (string, error) {

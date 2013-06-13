@@ -71,7 +71,7 @@ class OpinionFormView extends KDFormView
       @opinionBody.setValue Encoder.htmlDecode data.body
       @opinionBody.generatePreview()
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options opinion"
     @setTemplate @pistachio()
     @template.update()

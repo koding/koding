@@ -1084,7 +1084,7 @@ class ActivityCodeShareWidget extends KDFormView
     # @CSSace.editor.resize()
     # @JSace.editor.resize()
 
-  viewAppended:()->
+  viewAppended:->
 
     @codeShareBoxView = new CodeShareBox
       allowEditing:yes

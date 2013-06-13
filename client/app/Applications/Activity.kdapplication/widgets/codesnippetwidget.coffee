@@ -219,7 +219,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @$('.code-snip-holder').height height + 20
     @ace.editor.resize()
 
-  viewAppended:()->
+  viewAppended:->
 
     @setClass "update-options codesnip"
     @setTemplate @pistachio()

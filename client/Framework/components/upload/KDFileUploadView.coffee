@@ -37,7 +37,7 @@ class KDFileUploadView extends KDView
       super options,data
       @setPartial "<p class='warning info'><strong>Oops sorry,</strong> file upload is only working on Chrome, Firefox and Opera at the moment. We're working on a fix.</p>"
 
-  addDropArea:()->
+  addDropArea:->
     @dropArea = new KDFileUploadArea
       title    : @getOptions().title
       bind     : 'drop dragenter dragleave dragover dragstart dragend'
@@ -45,7 +45,7 @@ class KDFileUploadView extends KDView
       delegate : @
     @addSubView @dropArea
 
-  addList:()->
+  addList:->
     @fileList = switch @getOptions().preview
       when "thumbs" then do @addThumbnailList
       else do @addFileList
@@ -55,8 +55,8 @@ class KDFileUploadView extends KDView
 
     @addSubView @listController.getView()
 
-  addFileList:()-> new KDFileUploadListView delegate : @
-  addThumbnailList:()-> new KDFileUploadThumbListView delegate : @
+  addFileList:-> new KDFileUploadListView delegate : @
+  addThumbnailList:-> new KDFileUploadThumbListView delegate : @
 
   fileDropped:(file)->
     uploader = new KDMultipartUploader { url: '/Upload', file }
@@ -104,7 +104,7 @@ class KDFileUploadView extends KDView
   checkLimits:(file)->
     return @checkFileAmount() and @checkFileSize(file) and @checkTotalSize(file)
 
-  checkFileAmount:()->
+  checkFileAmount:->
     maxAmount  = @getOptions().limit
     amount = 1
     for own name,file of @files
@@ -142,7 +142,7 @@ class KDFileUploadView extends KDView
       type    : "tray"
 
 class KDFileUploadArea extends KDView
-  # isDroppable:()->
+  # isDroppable:->
   #   return @droppingEnabled ? yes
   #
   # dropAccept:(item)=>
@@ -186,7 +186,7 @@ class KDFileUploadArea extends KDView
       @getDelegate().fileDropped file
     no
 
-  viewAppended:()->
+  viewAppended:->
     title = @getOptions().title
     o = @getDelegate().getOptions()
     @setPartial "<span>#{title}</span>"
@@ -227,7 +227,7 @@ class KDKDFileUploadListItemView extends KDListItemView
     if $(e.target).is "span.iconic.x"
       @emit "removeFile", orgEvent : e
 
-  viewAppended:()->
+  viewAppended:->
     @$().append @partial @data
 
   partial:(file)->
@@ -251,7 +251,7 @@ class KDFileUploadThumbItemView extends KDListItemView
     if $(e.target).is "span.iconic.x"
       @emit "removeFile", orgEvent : e
 
-  viewAppended:()->
+  viewAppended:->
     @$().append @partial @data
     # @addSubView new KDInputView
     #   type          : "hidden"

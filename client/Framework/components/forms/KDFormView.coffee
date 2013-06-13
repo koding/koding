@@ -80,7 +80,7 @@ class KDFormView extends KDView
 
   setCallback:(callback)-> @formCallback = callback
 
-  getCallback:()-> @formCallback
+  getCallback:-> @formCallback
 
   reset:-> @$()[0].reset()
 

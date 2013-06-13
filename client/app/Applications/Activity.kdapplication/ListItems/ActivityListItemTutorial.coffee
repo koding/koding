@@ -166,7 +166,7 @@ class TutorialActivityItemView extends ActivityItemChild
         @$("div.tutorial div.body").addClass "no-scroll"
         @scrollAreaOverlay.show()
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CTutorialActivity
     super()
 

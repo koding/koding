@@ -62,7 +62,7 @@ class FeedController extends KDViewController
     @getNewFeedItems() if options.dynamicDataType?
 
 # TODO: commented out by C.T.  Is this used anywhere?  I think not, looks botched: resultsCOntroller
-#  getNewFeedItems:()->
+#  getNewFeedItems:->
 #    {dynamicDataType} = @getOptions()
 #    dynamicDataType.on 'feed.new', (items) =>
 #      @resultsCOntroller.emit 'NewFeedItemsFromFeeder', items

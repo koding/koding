@@ -12,6 +12,7 @@ type Config struct {
 	BuildNumber     int
 	ProjectRoot     string
 	UserSitesDomain string
+	ContainerSubnet string
 	Client          struct {
 		StaticFilesBaseUrl string
 	}

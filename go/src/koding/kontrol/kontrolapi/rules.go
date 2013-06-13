@@ -7,17 +7,24 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 type RulesPostMessage struct {
-	RuleName *string `json:"name"`
-	Match    *string `json:"match"`
-	Enabled  *string `json:"enabled"`
-	Mode     *string `json:"mode"`
+	RuleType  *string `json:"type"`
+	RuleName  *string `json:"name"`
+	RuleMatch *string `json:"match"`
 }
 
-func GetRules(writer http.ResponseWriter, req *http.Request) {
-	fmt.Println("GET\t/rules")
+type BehaviourPostMessage struct {
+	Enabled  *string `json:"enabled"`
+	Action   *string `json:"action"`
+	RuleName *string `json:"name"`
+	Index    *string `json:"index"`
+}
+
+func GetRestrictions(writer http.ResponseWriter, req *http.Request) {
+	fmt.Println("GET\t/restrictions")
 	res := proxyDB.GetRules()
 	data, err := json.MarshalIndent(res, "", "  ")
 	if err != nil {
@@ -28,12 +35,47 @@ func GetRules(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
+func GetRestriction(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	fmt.Printf("GET\t/restrictions/%s\n", domain)
+
+	res, err := proxyDB.GetRestriction(domain)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.MarshalIndent(res, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+	writer.Write([]byte(data))
+}
+
+func DeleteRestriction(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	fmt.Printf("DELETE\t/restrictions/%s\n", domain)
+	err := proxyDB.DeleteRestriction(domain)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("rule for domain '%s' is deleted", domain)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}
+
 func GetRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("GET\t/rules/%s\n", domain)
+	rulename := vars["rule"]
+	fmt.Printf("GET\t/restrictions/%s/rule/%s\n", domain, rulename)
 
-	res, err := proxyDB.GetRule(domain)
+	res, err := proxyDB.GetRule(domain, rulename)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -47,114 +89,41 @@ func GetRule(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetRuleCountry(writer http.ResponseWriter, req *http.Request) {
+// func GetBehaviour(writer http.ResponseWriter, req *http.Request) {
+// 	vars := mux.Vars(req)
+// 	domain := vars["domain"]
+// 	behaviour := vars["behaviour"]
+// 	fmt.Printf("GET\t/restrictions/%s/list/%s\n", domain, behaviour)
+//
+// 	res, err := proxyDB.GetBehaviour(domain, behaviour)
+// 	if err != nil {
+// 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+// 		return
+// 	}
+//
+// 	data, err := json.MarshalIndent(res, "", "  ")
+// 	if err != nil {
+// 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+// 		return
+// 	}
+// 	writer.Write([]byte(data))
+// }
+
+func CreateBehaviour(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	country := vars["country"]
-	fmt.Printf("GET\t/rules/%s/countries/%s\n", domain, country)
+	ruleName := vars["behaviour"]
+	fmt.Printf("POST\t/restrictions/%s/list/%s\n", domain, ruleName)
 
-	res, err := proxyDB.GetRuleCountry(domain, country)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	data, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-	writer.Write([]byte(data))
-}
-
-func GetRuleIp(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	domain := vars["domain"]
-	ip := vars["ip"]
-	fmt.Printf("GET\t/rules/%s/ips/%s\n", domain, ip)
-
-	res, err := proxyDB.GetRuleIp(domain, ip)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	data, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-	writer.Write([]byte(data))
-}
-
-func GetRuleIps(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	domain := vars["domain"]
-	fmt.Printf("GET\t/rules/%s/ips\n", domain)
-
-	res, err := proxyDB.GetRuleIps(domain)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	data, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-	writer.Write([]byte(data))
-}
-
-func GetRuleCountries(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	domain := vars["domain"]
-	fmt.Printf("GET\t/rules/%s/countries\n", domain)
-
-	res, err := proxyDB.GetRuleCountries(domain)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	data, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-	writer.Write([]byte(data))
-}
-
-func CreateRule(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	domain := vars["domain"]
-	fmt.Printf("POST\t/rules/%s\n", domain)
-
-	var msg RulesPostMessage
-	var rule string
-	var ruleName string
+	var msg BehaviourPostMessage
 	var ruleEnabled bool
-	var ruleMode string
+	var ruleAction string
+	var ruleIndex int
+	var err error
 
 	body, _ := ioutil.ReadAll(req.Body)
-	err := json.Unmarshal(body, &msg)
+	err = json.Unmarshal(body, &msg)
 	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	if msg.RuleName != nil {
-		ruleName = *msg.RuleName
-	} else {
-		err := "no 'name' field available"
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	if msg.Match != nil {
-		rule = *msg.Match
-	} else {
-		err := "no 'match' field available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
@@ -176,21 +145,85 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if msg.Mode != nil {
-		ruleMode = *msg.Mode
+	if msg.Action != nil {
+		ruleAction = *msg.Action
 	} else {
-		err := "no 'mode' field available. should one of 'whitelist, blacklist, securepage'"
+		err := "no 'action' field available. should one of 'allow, deny, securepage'"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	err = proxyDB.AddRule(domain, ruleName, rule, ruleMode, ruleEnabled)
+	if msg.Index != nil {
+		ruleIndex, err = strconv.Atoi(*msg.Index)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	} else {
+		err := "no 'index' field available. please define a number, this is needed for the order of rules"
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = proxyDB.AddBehaviour(ruleEnabled, domain, ruleAction, ruleName, ruleIndex)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	url := fmt.Sprintf("firewall rule for '%s' is added with rule: '%s', enabled: '%t' and mode '%s'", ruleName, rule, ruleEnabled, ruleMode)
+	url := fmt.Sprintf("behaviour for '%s' and rulename '%s' is added with: enabled: '%t' , action '%s' and index '%d'", domain, ruleName, ruleEnabled, ruleAction, ruleIndex)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
+	return
+}
+
+func CreateRule(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	fmt.Printf("POST\t/restrictions/%s/rules\n", domain)
+
+	var msg RulesPostMessage
+	var ruleType string
+	var ruleMatch string
+
+	body, _ := ioutil.ReadAll(req.Body)
+	err := json.Unmarshal(body, &msg)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if msg.RuleType != nil {
+		ruleType = *msg.RuleType
+	} else {
+		err := "no 'type' field available"
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	// disabled for now, is generated automatically
+	// if msg.RuleName != nil {
+	// 	ruleName = *msg.RuleName
+	// } else {
+	// 	err := "no 'name' field available"
+	// 	http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+	// 	return
+	// }
+
+	if msg.RuleMatch != nil {
+		ruleMatch = *msg.RuleMatch
+	} else {
+		err := "no 'match' field available"
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	err = proxyDB.AddRule(domain, ruleType, ruleMatch)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	url := fmt.Sprintf("rule for '%s' is added with rule: '%s' - '%s'", domain, ruleType, ruleMatch)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
 	return
 
@@ -199,48 +232,33 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 func DeleteRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	fmt.Printf("DELETE\t/rules/%s\n", domain)
-	err := proxyDB.DeleteRule(domain)
+	rulename := vars["rule"]
+	fmt.Printf("DELETE\t/restrictions/%s/rule/%s\n", domain, rulename)
+
+	err := proxyDB.DeleteRule(domain, rulename)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	resp := fmt.Sprintf("rule for domain '%s' is deleted", domain)
+	resp := fmt.Sprintf("rule '%s' of domain '%s' is deleted", rulename, domain)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }
 
-func DeleteRuleCountry(writer http.ResponseWriter, req *http.Request) {
+func DeleteBehaviour(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	country := vars["country"]
-	fmt.Printf("DELETE\t/rules/%s/%s\n", domain, country)
+	rulename := vars["behaviour"]
+	fmt.Printf("DELETE\t/restrictions/%s/list/%s\n", domain, rulename)
 
-	err := proxyDB.DeleteRuleCountry(domain, country)
+	err := proxyDB.DeleteBehaviour(domain, rulename)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	resp := fmt.Sprintf("rule for '%s' of domain '%s' is deleted", country, domain)
-	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
-	return
-}
-
-func DeleteRuleIp(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	domain := vars["domain"]
-	ip := vars["ip"]
-	fmt.Printf("DELETE\t/rules/%s/ips/%s\n", domain, ip)
-
-	err := proxyDB.DeleteRuleIp(domain, ip)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	resp := fmt.Sprintf("rule for '%s' of domain '%s' is deleted", ip, domain)
+	resp := fmt.Sprintf("behaviour '%s' of domain '%s' is deleted", rulename, domain)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }
