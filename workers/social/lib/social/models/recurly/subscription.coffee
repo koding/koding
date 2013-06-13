@@ -3,7 +3,7 @@ JUser = require '../user'
 payment = require 'koding-payment'
 
 forceRefresh  = yes
-forceInterval = 60 * 60
+forceInterval = 60 * 1
 
 module.exports = class JRecurlySubscription extends jraphical.Module
 
@@ -30,6 +30,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       datetime     : String
       expires      : String
       renew        : String
+      expensed     : Number
       lastUpdate   : Number
 
   @getUserSubscriptions = secure (client, callback)->

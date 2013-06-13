@@ -121,6 +121,7 @@ module.exports = class JGroup extends Module
           customOptions   : Object
       payment       :
         plan        : String
+        paymentQuota: Number
     relationships   :
       permissionSet :
         targetType  : JPermissionSet
@@ -1286,22 +1287,28 @@ module.exports = class JGroup extends Module
   createVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type is "personal"
-      data.type = "user"
-    else if data.type is "shared"
-      data.type = "group"
+    # if data.type is "personal"
+    #   data.type = "user"
+    # else if data.type is "shared"
+    #   data.type = "group"
+    # else if data.type is "personalExpensed"
+    #   data.type = "expensed"
 
     JRecurlyPlan         = require '../recurly'
     JRecurlySubscription = require '../recurly/subscription'
     JVM                  = require '../vm'
     async                = require 'async'
 
-    _createVMs = (type, cb)=>
+    _createVMs = (type, planCode, cb)=>
       if type is 'user'
         planOwner = "user_#{delegate._id}"
         getSubs   = JRecurlySubscription.getUserSubscriptions
         target    = client
-      else
+      else if type is 'group'
+        planOwner = "group_#{@._id}"
+        getSubs   = JRecurlySubscription.getGroupSubscriptions
+        target    = @
+      else if type is 'expensed'
         planOwner = "group_#{@._id}"
         getSubs   = JRecurlySubscription.getGroupSubscriptions
         target    = @
@@ -1309,54 +1316,53 @@ module.exports = class JGroup extends Module
       getSubs target, (err, subs)=>
         return cb new KodingError "Payment backend error: #{err}"  if err
 
-        paidVMs = {}
+        expensed = type is "expensed"
 
-        if type is "user"
-          paidVMs.free = 1
-
+        paidVMs     = 0
+        expensedVMs = 0
         subs.forEach (sub)->
-          if sub.status is 'active' and sub.planCode.indexOf('group_vm_') > -1
-            paidVMs[sub.planCode] = sub.quantity
+          if sub.status is 'active' and sub.planCode is planCode
+            console.log sub.planCode, sub.expensed
+            paidVMs = sub.quantity
+            if type is 'expensed'
+              expensedVMs = sub.expensed
+            else if type is 'group'
+              paidVMs    -= sub.expensed
 
-        createdVMs = {}
+        if expensed
+          paidVMs = expensedVMs
+          console.log "Expensed", paidVMs
+
+        createdVMs = 0
         JVM.someData
           planOwner: planOwner
+          planCode : planCode
+          expensed : expensed
         ,
-          planCode  : 1
-          planOwner : 1
-          name      : 1
+          name     : 1
         , {}, (err, cursor)=>
           cursor.toArray (err, arr)=>
             return cb err  if err
             arr.forEach (vm)->
-              unless vm.planCode in Object.keys createdVMs
-                createdVMs[vm.planCode] = 0
-              createdVMs[vm.planCode] += 1
+              createdVMs += 1
 
-            stack = []
+            console.log paidVMs, createdVMs
 
-            Object.keys(paidVMs).forEach (planCode)=>
-              vmQuantity = paidVMs[planCode]
-              unless planCode in Object.keys createdVMs
-                quantity = vmQuantity
-              else
-                quantity = vmQuantity - createdVMs[planCode]
-              for i in [1..quantity] when quantity >= 1
-                stack.push (_cb)=>
-                  options     =
-                    planCode  : planCode
-                    usage     : {cpu: 1, ram: 1, disk: 1}
-                    type      : type
-                    account   : delegate
-                    groupSlug : @slug
-                  JVM.createVm options, ->
-                    _cb null, "Created VM - #{planCode}"
+            if paidVMs > createdVMs
+              options     =
+                planCode  : planCode
+                usage     : {cpu: 1, ram: 1, disk: 1}
+                type      : type
+                account   : delegate
+                groupSlug : @slug
+                expensed  : expensed
+              JVM.createVm options, ->
+                cb null, planCode
+            else
+              cb new KodingError "Can't create new VM."
 
-            async.parallel stack, (err, results)=>
-              cb err, results
-
-    if data.type in ['user', 'group']
-      _createVMs data.type, callback
+    if data.type in ['user', 'group', 'expensed']
+      _createVMs data.type, data.planCode, callback
     else
       callback new KodingError "No such VM type: #{data.type}"
 

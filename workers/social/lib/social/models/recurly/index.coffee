@@ -4,7 +4,7 @@ payment   = require 'koding-payment'
 createId  = require 'hat'
 
 forceRefresh  = yes
-forceInterval = 60 * 60
+forceInterval = 60 * 1
 
 module.exports = class JRecurlyPlan extends jraphical.Module
 
@@ -249,6 +249,14 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       if subs
         subs.quantity ?= 1
         subs.quantity += 1
+
+        if data.type is 'expensed'
+          subs.expensed ?= 0
+          subs.expensed += 1
+
+
+        console.log "Expensed:", subs.expensed
+
         payment.updateUserSubscription userCode,
           quantity: subs.quantity
           plan    : @code
@@ -269,6 +277,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.firstName   = groupAccount.firstName
           data.lastName    = groupAccount.lastName
 
+          expensed = 0
+          if data.type is 'expensed'
+            expensed = 1
+
           JRecurlyPlan.getGroupAccount group, (err, account)->
             if account and not err
               payment.addUserSubscription userCode, data, (err, result)->
@@ -281,6 +293,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
+                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
@@ -295,6 +308,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
+                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub

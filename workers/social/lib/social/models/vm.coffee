@@ -38,6 +38,7 @@ module.exports = class JVM extends Model
       hostnameAlias     : [String]
       planOwner         : String
       planCode          : String
+      expensed          : Boolean
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -85,7 +86,7 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
+  @createVm = ({account, type, groupSlug, usage, planCode, expensed}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
@@ -101,7 +102,7 @@ module.exports = class JVM extends Model
           offset      : 0
         }
 
-        if type is 'group'
+        if type is 'group' or type is 'expensed'
           planOwner = "group_#{group._id}"
         else
           planOwner = "user_#{account._id}"
@@ -114,7 +115,7 @@ module.exports = class JVM extends Model
             type, uid, groupSlug
           }
 
-          JVM.createDomains hostnameAlias
+          # JVM.createDomains hostnameAlias
 
           vm = new JVM {
             name    : "#{name}#{uid}"
@@ -122,6 +123,7 @@ module.exports = class JVM extends Model
             planOwner: planOwner
             users   : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups  : [{ id: group.getId() }]
+            expensed: expensed
             hostnameAlias
             usage
           }
