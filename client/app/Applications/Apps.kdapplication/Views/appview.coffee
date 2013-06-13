@@ -171,6 +171,7 @@ class AppView extends KDView
       title       : "Update"
       style       : "clean-gray"
       callback    : =>
+        delete appsController.notification
         appsController.updateUserApp app.manifest, =>
           @getSingleton("router").handleRoute "Develop"
 

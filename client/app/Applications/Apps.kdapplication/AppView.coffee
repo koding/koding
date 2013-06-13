@@ -20,6 +20,8 @@ class AppsMainView extends KDView
         apps           = @getData()
         stack          = []
 
+        delete appsController.notification
+
         apps.forEach (app) =>
           stack.push (callback) =>
             appsController.updateUserApp app.manifest, callback
