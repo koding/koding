@@ -2,6 +2,8 @@ class WebTermView extends KDView
 
   constructor: (options = {}, data)->
 
+    options.advancedSettings ?= yes
+
     @appStorage = new AppStorage 'WebTerm', '1.0'
     @appStorage.fetchStorage =>
       @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
@@ -55,17 +57,18 @@ class WebTermView extends KDView
 
     @terminal = new WebTerm.Terminal @container.$()
 
-    @advancedSettings = new KDButtonViewWithMenu
-      style         : 'editor-advanced-settings-menu'
-      icon          : yes
-      iconOnly      : yes
-      iconClass     : "cog"
-      type          : "contextmenu"
-      delegate      : @
-      itemClass     : WebtermSettingsView
-      click         : (pubInst, event)-> @contextMenu event
-      menu          : @getAdvancedSettingsMenuItems.bind @
-    @addSubView @advancedSettings
+    if @options.advancedSettings
+      @advancedSettings = new KDButtonViewWithMenu
+        style         : 'editor-advanced-settings-menu'
+        icon          : yes
+        iconOnly      : yes
+        iconClass     : "cog"
+        type          : "contextmenu"
+        delegate      : @
+        itemClass     : WebtermSettingsView
+        click         : (pubInst, event)-> @contextMenu event
+        menu          : @getAdvancedSettingsMenuItems.bind @
+      @addSubView @advancedSettings
     @updateSettings()
 
     @terminal.sessionEndedCallback = (sessions) =>
@@ -130,6 +133,8 @@ class WebTermView extends KDView
         # We don't create any error popup not to be annoying. User can handle the error.
         error err
       else
+        @terminal.eventHandler = (data)=>
+          @emit "WebTermEvent", data
         @terminal.server = remote
         remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
         @setKeyView()
