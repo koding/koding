@@ -24,7 +24,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData', 'findHostnameAlias'
+                           'removeByName', 'someData'
                           ]
       instance          : []
     schema              :
@@ -149,17 +149,6 @@ module.exports = class JVM extends Model
                   $addToSet: users: { id: user.getId(), sudo: hasPermission }
                 }, callback
 
-  # @create = permit 'create vms',
-  #   success: (client, callback) ->
-
-  # @initializeVmLimits =(target, callback)->
-  #   JLimit = require './limit'
-  #   limit = new JLimit { quota: 5 }
-  #   limit.save (err)->
-  #     return callback err  if err
-  #     target.addLimit limit, 'vm', (err)->
-  #       callback err ? null, unless err then limit
-
   @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
 
   @calculateUsage = (account, groupSlug, callback)->
@@ -283,24 +272,6 @@ module.exports = class JVM extends Model
       uidFactory.next (err, uid)->
         if err then handleError err
         else user.update { $set: { uid } }, handleError
-
-    # JGroup.on 'GroupCreated', ({group, creator})->
-    #   group.fetchBundle (err, bundle)->
-    #     if err then handleError err
-    #     else if bundle
-    #       creator.fetchUser (err, user)->
-    #         if err then handleError err
-    #         else
-    #           addVm {
-    #             user
-    #             type      : 'group'
-    #             target    : group
-    #             planCode  : 'free'
-    #             planOwner : "group_#{group._id}"
-    #             sudo      : yes
-    #             name      : group.slug
-    #             groups    : wrapGroup group
-    #           }
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
