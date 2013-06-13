@@ -13,13 +13,15 @@ var (
 )
 
 type filter struct {
-	mode     string
+	ruletype string
+	name     string
+	action   string
 	match    string
 	validate func() bool
 }
 
 type Validator struct {
-	filters map[string]filter
+	filters []filter
 	rules   proxyconfig.Restriction
 	user    *UserInfo
 }
@@ -28,75 +30,65 @@ func validator(rules proxyconfig.Restriction, user *UserInfo) *Validator {
 	validator := &Validator{
 		rules:   rules,
 		user:    user,
-		filters: make(map[string]filter),
+		filters: make([]filter, 0),
 	}
 	return validator
 }
 
-func (v *Validator) addFilter(name, mode, match string, validateFn func() bool) {
-	v.filters[name] = filter{
-		mode:     mode,
-		match:    match,
-		validate: validateFn,
-	}
+func (v *Validator) addFilter(ruletype, name, action, match string, validateFn func() bool) {
+	v.filters = append(v.filters,
+		filter{
+			ruletype: ruletype,
+			name:     name,
+			action:   action,
+			match:    match,
+			validate: validateFn,
+		})
 }
 
-func (v *Validator) IP() *Validator {
-	for _, rule := range v.rules.IPs {
-		if !rule.Enabled {
+func (v *Validator) AddRules() *Validator {
+	for _, behaviour := range v.rules.RuleList {
+		if !behaviour.Enabled {
 			continue
 		}
+
+		rule := v.rules.Rules[behaviour.RuleName]
 
 		f := func() bool {
 			if rule.Match == "all" {
 				return true // assume allowed for all
 			}
 
-			re, err := regexp.Compile(rule.Match)
-			if err != nil {
-				return true // dont block anyone if regex compile get wrong
-			}
+			switch rule.Type {
+			case "ip":
+				re, err := regexp.Compile(rule.Match)
+				if err != nil {
+					return false // dont block anyone if regex compile get wrong
+				}
 
-			return re.MatchString(v.user.IP)
-		}
-		v.addFilter("ip", rule.Mode, rule.Match, f)
-
-	}
-
-	return v
-}
-
-func (v *Validator) Country() *Validator {
-	for _, rule := range v.rules.Countries {
-		if !rule.Enabled {
-			continue
-		}
-
-		f := func() bool {
-			if rule.Match == "all" {
-				return true // assume allowed for all
-			}
-
-			if rule.Match == v.user.Country {
-				return true
+				return re.MatchString(v.user.IP)
+			case "country":
+				if rule.Match == v.user.Country {
+					return true
+				}
+				return false
 			}
 
 			return false
 		}
 
-		v.addFilter("country", rule.Mode, rule.Match, f)
+		v.addFilter(rule.Type, rule.Name, rule.Match, behaviour.Action, f)
 	}
 
 	return v
 }
 
 func (v *Validator) Check() (bool, error) {
-	for name, filter := range v.filters {
-		switch filter.mode {
-		case "blacklist":
+	for _, filter := range v.filters {
+		switch filter.action {
+		case "deny":
 			if filter.validate() {
-
-				reason := fmt.Sprintf("%s for %s - %s", filter.mode, name, filter.match)
+				reason := fmt.Sprintf("%s (%s) for %s - %s", filter.action, filter.ruletype, filter.name, filter.match)
 				go logDomainDenied(
 					v.user.Domain.Domain,
 					v.user.IP,
@@ -107,7 +99,7 @@ func (v *Validator) Check() (bool, error) {
 			} else {
 				return true, nil
 			}
-		case "whitelist":
+		case "allow":
 			if filter.validate() {
 				return true, nil
 			} else {
