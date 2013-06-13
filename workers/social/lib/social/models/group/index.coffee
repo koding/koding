@@ -83,9 +83,10 @@ module.exports = class JGroup extends Module
         'countInvitationRequests', 'fetchInvitationRequestCounts',
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
-        'inviteByEmails', 'inviteByUsername', 'kickMember', 'transferOwnership',
-        'fetchBundle', 'createBundle', 'destroyBundle', 'updateBundle', 'fetchRolesByClientId',
-        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers'
+        'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
+        'fetchRolesByClientId',
+        'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
+        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'fetchOrSearchInvitationRequests'
       ]
     schema          :
       title         :
@@ -118,10 +119,9 @@ module.exports = class JGroup extends Module
             type          : String
             default       : '1'
           customOptions   : Object
+      payment       :
+        plan        : String
     relationships   :
-      bundle        :
-        targetType  : 'JGroupBundle'
-        as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
@@ -333,21 +333,6 @@ module.exports = class JGroup extends Module
       if 'private' is group.privacy
         queue.push -> group.createMembershipPolicy groupData.requestType, -> queue.next()
 
-      if groupData['group-vm'] is 'on'
-        limits =
-          users           : { quota: 100 }
-          cpu             : { quota: 100 }
-          ram             : { quota: 100 }
-          disk            : { quota: 100 }
-          'cpu per user'  : { quota: 100 }
-          'ram per user'  : { quota: 100 }
-          'disk per user' : { quota: 100 }
-        queue.push -> group.createBundle limits, (err)->
-          if err then callback err
-          else
-            console.log 'group bundle created'
-            queue.next()
-
       queue.push =>
         @emit 'GroupCreated', { group, creator: owner }
         callback null, group
@@ -421,6 +406,17 @@ module.exports = class JGroup extends Module
         }
 
   broadcast:(message)-> @constructor.broadcast @slug, message
+
+  # this is a temporary feature to display all activities
+  # from public and visible groups in koding group
+  @oldBroadcast = @broadcast
+  @broadcast = (groupSlug, event, message)->
+    if groupSlug isnt "koding"
+      @one {slug : groupSlug }, (err, group)=>
+        if err or not group then console.error "unknown group #{groupSlug}"
+        else if group.privacy isnt "private" and group.visibility isnt "hidden"
+          @oldBroadcast.call this, "koding", event, message
+    @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',
     success:(client, memberId, roles, callback)->
@@ -668,7 +664,7 @@ module.exports = class JGroup extends Module
   createMembershipPolicy:(requestType, queue, callback)->
     [callback, queue] = [queue, callback]  unless callback
     queue ?= []
-    
+
     JMembershipPolicy = require './membershippolicy'
     membershipPolicy  = new JMembershipPolicy
     membershipPolicy.approvalEnabled = no  if requestType is 'by-invite'
@@ -805,7 +801,19 @@ module.exports = class JGroup extends Module
 
   inviteByEmail: permit 'send invitations',
     success: (client, email, callback)->
-      @inviteMember client, email, callback
+      JUser    = require '../user'
+      JUser.one {email}, (err, user)=>
+        cb = (user, account)=>
+          @inviteMember client, email, user, account, callback
+
+        if err or not user
+          cb null, null
+        else
+          user.fetchOwnAccount (err, account)=>
+            return cb user, null  if err or not account
+            @isMember account, (err, isMember)->
+              return callback new KodingError "#{email} is already member of this group!"  if isMember
+              cb user, account
 
   inviteByEmails: permit 'send invitations',
     success: (client, emails, callback)->
@@ -831,7 +839,7 @@ module.exports = class JGroup extends Module
             @isMember account, (err, isMember)=>
               return callback err if err
               return callback new KodingError "#{username} is already member of this group!" if isMember
-              @inviteMember client, user.email, (err)->
+              @inviteMember client, user.email, user, account, (err)->
                 return queue.next() unless err
                 replaceEmail = (errMsg)-> errMsg.replace user.email, username
                 if err.name is 'KodingError' then err.message = replaceEmail err.message
@@ -840,8 +848,11 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, callback)->
+  inviteMember: (client, email, user, account, callback)->
     JInvitationRequest = require '../invitationrequest'
+
+    [callback, account] = [account, callback]  unless callback
+    [callback, user]    = [user, callback]     unless callback
 
     params =
       email  : email
@@ -854,8 +865,10 @@ module.exports = class JGroup extends Module
           You've already invited #{email}.
           """
       else
-        params.invitationType = 'invitation'
-        params.status         = 'sent'
+        params.invitationType  = 'invitation'
+        params.status          = 'sent'
+        params.koding          = username : user.username  if user
+        params.koding.fullName = "#{account.profile.firstName} #{account.profile.lastName}"  if account
 
         invitationRequest = new JInvitationRequest params
         invitationRequest.save (err)=>
@@ -941,8 +954,10 @@ module.exports = class JGroup extends Module
               }
 
               if delegate instanceof JAccount
-                invitationRequest.koding = {}
-                invitationRequest.koding.username = delegate.profile.nickname
+                invitationRequest.koding = {
+                  username : delegate.profile.nickname
+                  fullName : "#{delegate.profile.firstName} #{delegate.profile.lastName}"
+                }
 
               invitationRequest.save (err)=>
                 return kallback err if err
@@ -1243,55 +1258,128 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
- 
-  updateBundle: (formData, callback = (->)) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy }, callback
-      bundle.fetchLimits (err, limits) ->
-        return callback err  if err?
-        queue = limits.map (limit) -> ->
-          limit.update { $set: quota: formData.quotas[limit.title] }, fin
-        dash queue, callback
-        fin = queue.fin.bind queue
- 
-  updateBundle$: permit 'change bundle',
-    success: (client, formData, callback)->
-      @updateBundle formData, callback
- 
-  destroyBundle: (callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      return callback new KodingError 'Bundle not found!'  unless bundle?
- 
-      bundle.remove callback
- 
-  destroyBundle$: permit 'change bundle',
-    success: (client, callback) -> @destroyBundle callback
- 
-  createBundle: (limits, callback) ->
-    @fetchBundle (err, bundle) =>
-      return callback err  if err?
-      return callback new KodingError 'Bundle exists!'  if bundle?
- 
-      JGroupBundle = require '../bundle/groupbundle'
- 
-      bundle = new JGroupBundle {}, limits
-      bundle.save (err) =>
-        return callback err  if err?
- 
-        @addBundle bundle, callback
- 
-  createBundle$: permit 'change bundle',
-    success: (client, limits, callback) -> @createBundle limits, callback
- 
-  fetchBundle$: permit 'commission resources',
-    success: (client, rest...) -> @fetchBundle rest...
- 
-  getDefaultLimits:->
-    {
-      cpu             : { quota: 1 }
-      ram             : { quota: 64 }
-      disk            : { quota: 500 }
-      users           : { quota: 20 }
-    }
+
+  makePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, callback
+
+  updatePayment: secure (client, data, callback)->
+    data.plan ?= @payment.plan
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, (err, subs)=>
+        return callback err  if err
+        callback no, subs
+
+  checkPayment: (callback)->
+    JRecurlySubscription = require '../recurly/subscription'
+    JRecurlySubscription.getGroupSubscriptions @, callback
+
+  createVM: secure (client, data, callback)->
+    {delegate} = client.connection
+
+    if data.type is "personal"
+      data.type = "user"
+    else if data.type is "shared"
+      data.type = "group"
+
+    JRecurlyPlan         = require '../recurly'
+    JRecurlySubscription = require '../recurly/subscription'
+    JVM                  = require '../vm'
+    async                = require 'async'
+
+    _createVMs = (type, cb)=>
+      if type is 'user'
+        planOwner = "user_#{delegate._id}"
+        getSubs   = JRecurlySubscription.getUserSubscriptions
+        target    = client
+      else
+        planOwner = "group_#{@._id}"
+        getSubs   = JRecurlySubscription.getGroupSubscriptions
+        target    = @
+
+      getSubs target, (err, subs)=>
+        return cb new KodingError "Payment backend error: #{err}"  if err
+
+        paidVMs = {}
+
+        if type is "user"
+          paidVMs.free = 1
+
+        subs.forEach (sub)->
+          if sub.status is 'active' and sub.planCode.indexOf('group_vm_') > -1
+            paidVMs[sub.planCode] = sub.quantity
+
+        createdVMs = {}
+        JVM.someData
+          planOwner: planOwner
+        ,
+          planCode  : 1
+          planOwner : 1
+          name      : 1
+        , {}, (err, cursor)=>
+          cursor.toArray (err, arr)=>
+            return cb err  if err
+            arr.forEach (vm)->
+              unless vm.planCode in Object.keys createdVMs
+                createdVMs[vm.planCode] = 0
+              createdVMs[vm.planCode] += 1
+
+            stack = []
+
+            Object.keys(paidVMs).forEach (planCode)=>
+              vmQuantity = paidVMs[planCode]
+              unless planCode in Object.keys createdVMs
+                quantity = vmQuantity
+              else
+                quantity = vmQuantity - createdVMs[planCode]
+              for i in [1..quantity] when quantity >= 1
+                stack.push (_cb)=>
+                  options     =
+                    planCode  : planCode
+                    usage     : {cpu: 1, ram: 1, disk: 1}
+                    type      : type
+                    account   : delegate
+                    groupSlug : @slug
+                  JVM.createVm options, ->
+                    _cb null, "Created VM - #{planCode}"
+
+            async.parallel stack, (err, results)=>
+              cb err, results
+
+    if data.type in ['user', 'group']
+      _createVMs data.type, callback
+    else
+      callback new KodingError "No such VM type: #{data.type}"
+
+  fetchOrSearchInvitationRequests: permit 'send invitations',
+    success: (client, status, timestamp, requestLimit, search, callback)->
+      status   = $in: status                if Array.isArray status
+      selector = timestamp: $lt: timestamp  if timestamp
+
+      options  =
+        targetOptions :
+          selector    : { status }
+          limit       : requestLimit
+          sort        : { requestedAt: -1 }
+        options       :
+          sort        : { timestamp: -1 }
+
+      if search
+        search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
+        seed = new RegExp search, 'i'
+        options.targetOptions.selector.$or = [
+          { email             : seed }
+          { 'koding.username' : seed }
+          { 'koding.fullName' : seed }
+        ]
+
+      @fetchInvitationRequests selector, options, callback

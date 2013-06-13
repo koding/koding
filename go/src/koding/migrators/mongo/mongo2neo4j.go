@@ -54,7 +54,7 @@ func main() {
 
 	i := 0
 	skip := 0
-	iter := relationshipColl.Find(nil).Batch(1000).Skip(skip).Limit(0).Sort("-timestamp").Iter()
+	iter := relationshipColl.Find(nil).Batch(1000).Skip(skip).Limit(10000000).Iter()
 
 	//iterate over results
 	for iter.Next(&result) {
@@ -167,12 +167,7 @@ func checkIfEligible(sourceName, targetName string) bool {
 			log.Debug("not eligible " + name)
 			return false
 		}
-
 	}
 
-	if strings.HasSuffix(sourceName, "Bucket") || strings.HasSuffix(targetName, "Bucket") || strings.HasSuffix(sourceName, "BucketActivity") || strings.HasSuffix(targetName, "BucketActivity") {
-		log.Debug("not eligible " + sourceName + " " + targetName)
-		return false
-	}
 	return true
 }

@@ -134,13 +134,13 @@ class NotificationListItem extends KDListItemView
       </div>
     """
 
-  getLatestTimeStamp:()->
+  getLatestTimeStamp:->
     data = @getData()
     # lastUpdateAt = @snapshot.group[@snapshot.group.length-1]
     lastUpdateAt = @snapshot.group.modifiedAt
     return lastUpdateAt or data.createdAt
 
-  getActionPhrase:()->
+  getActionPhrase:->
     data = @getData()
     if @snapshot.anchor.constructorName is "JPrivateMessage"
       @unsetClass "comment"
@@ -149,7 +149,7 @@ class NotificationListItem extends KDListItemView
     else
       actionPhraseMap()[bucketNameMap()[data.bongo_.constructorName]]
 
-  getActivityPlot:()->
+  getActivityPlot:->
     data = @getData()
     return activityNameMap()[@snapshot.anchor.constructorName]
 

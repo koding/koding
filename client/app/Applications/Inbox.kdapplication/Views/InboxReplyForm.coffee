@@ -6,7 +6,7 @@ class InboxReplyForm extends NewCommentForm
     ,options
     super options,data
 
-  viewAppended:()->
+  viewAppended:->
     {profile} = KD.whoami()
     @addSubView @commentInput = new KDInputView
       type          : "textarea"

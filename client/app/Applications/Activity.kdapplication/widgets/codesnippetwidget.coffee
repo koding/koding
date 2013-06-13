@@ -124,7 +124,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @once "FormValidationPassed", => @reset()
 
     super
-
+    KD.track "Activity", "CodeSnippetSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
@@ -219,7 +219,7 @@ class ActivityCodeSnippetWidget extends KDFormView
     @$('.code-snip-holder').height height + 20
     @ace.editor.resize()
 
-  viewAppended:()->
+  viewAppended:->
 
     @setClass "update-options codesnip"
     @setTemplate @pistachio()

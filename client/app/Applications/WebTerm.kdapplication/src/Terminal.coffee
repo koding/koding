@@ -66,7 +66,7 @@ class WebTerm.Terminal
           atEnd = @controlCodeReader.process() until atEnd
           @screenBuffer.flush()
 
-      sessionEnded: () =>
+      sessionEnded: =>
         @sessionEndedCallback()
 
   keyDown: (event) ->

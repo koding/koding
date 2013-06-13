@@ -6,15 +6,17 @@ module.exports = [
   "libs/jquery-1.9.1.js",
   "libs/underscore-min.1.3.js"
 
+  # --- Base class ---
+  "Framework/core/utils.coffee",
+  "Framework/core/KD.coffee",
+  "Framework/core/KDEventEmitter.coffee",
+
   # --- Framework ---
   "libs/sockjs-0.3-patched.js",
   "libs/broker.js",
   "libs/bongo.js",
 
   # core
-  "Framework/core/utils.coffee",
-  "Framework/core/KD.coffee",
-  "Framework/core/KDEventEmitter.coffee",
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
   "Framework/core/JView.coffee",
@@ -127,6 +129,7 @@ module.exports = [
   "Framework/components/time/timeagoview.coffee",
 
   # --- Application ---
+  "app/MainApp/KD.extend.coffee" # our extensions to KD global
   "app/MainApp/kodingrouter.coffee",
   "app/MainApp/mq.config.coffee",
   "libs/pistachio.js",
@@ -282,6 +285,7 @@ module.exports = [
   "app/MainApp/filetree/itemsubviews/setpermissionsview.coffee",
   "app/MainApp/filetree/itemsubviews/vmtogglebuttonview.coffee",
   "app/MainApp/filetree/itemsubviews/mounttogglebuttonview.coffee",
+  "app/MainApp/filetree/itemsubviews/vmdetailsview.coffee",
   "app/MainApp/filetree/itemsubviews/copyurlview.coffee",
   # re-used files
   "app/MainApp/filetree/bottomlist/finderbottomlist.coffee",
@@ -390,13 +394,18 @@ module.exports = [
   "app/Applications/Chat.kdapplication/Controllers/commonchatcontroller.coffee",
   "app/Applications/Chat.kdapplication/Controllers/conversationlistcontroller.coffee",
   "app/Applications/Chat.kdapplication/Controllers/chatmessagelistcontroller.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationlistitemtitle.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationlistview.coffee",
   "app/Applications/Chat.kdapplication/Views/conversationlistitem.coffee",
-  "app/Applications/Chat.kdapplication/Views/conversationlistitemtitle.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationstarter.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationmenu.coffee",
+  "app/Applications/Chat.kdapplication/Views/conversationsettings.coffee",
   "app/Applications/Chat.kdapplication/Views/chatconversationwidget.coffee",
   "app/Applications/Chat.kdapplication/Views/chatmessagelistview.coffee",
   "app/Applications/Chat.kdapplication/Views/chatmessagelistitem.coffee",
   "app/Applications/Chat.kdapplication/Views/chatinputwidget.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchathandler.coffee",
+  "app/Applications/Chat.kdapplication/Views/mainchatheader.coffee",
   "app/Applications/Chat.kdapplication/Views/mainchatpanel.coffee",
 
   # new ace
@@ -510,6 +519,19 @@ module.exports = [
   "app/Applications/Topics.kdapplication/ContentDisplays/TopicSplitViewController.coffee",
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
+  # VMs
+  "app/Applications/Environments.kdapplication/views/VMs.coffee",
+  "app/Applications/Environments.kdapplication/views/Domains.coffee",
+  "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
+  "app/Applications/Environments.kdapplication/views/NewDomainModalView.coffee",
+  "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
+  "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
+  "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
+  "app/Applications/Environments.kdapplication/AppView.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
+  "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
+
   # GROUPS
 
   # groups controllers
@@ -518,15 +540,14 @@ module.exports = [
   "app/Applications/Groups.kdapplication/controllers/invitationrequestlistcontroller.coffee",
 
   # groups views
-  "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
   "app/Applications/Groups.kdapplication/Views/generalsettingsview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/groupseditablewebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsformgeneratorview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationtabview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationtabpaneview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsinvitationlistitemview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestlistitemview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsinvitationrequestsview.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupsinvitationcodelistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/GroupsListItemView.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionslistitemview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupsmemberpermissionsview.coffee",
@@ -543,7 +564,12 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionview.coffee",
   "app/Applications/Groups.kdapplication/Views/readmeview.coffee",
-  "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreation.coffee",
+  "app/Applications/Groups.kdapplication/Views/groupcreationselector.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupsrequestview.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupadminmodal.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupscustomizeviews.coffee",
+  # "app/Applications/Groups.kdapplication/Views/groupsummary.coffee",
   # "app/MainApp/lazy/staticprofilecustomizeview.coffee",
 
   # app
@@ -686,6 +712,7 @@ module.exports = [
   "app/MainApp/monitor_status.coffee",
   "app/MainApp/rollbar.coffee",
   "app/MainApp/mixpanel.coffee",
+  "app/MainApp/analytic.coffee",
 
   # --- Styles ---
   "css/style.css",
@@ -714,6 +741,7 @@ module.exports = [
   "stylus/app.aceeditor.styl",
   "stylus/app.activity.styl",
   "stylus/app.contextmenu.styl",
+  "stylus/app.environments.styl",
   "stylus/app.chat.styl",
   "stylus/app.settings.styl",
   "stylus/app.inbox.styl",

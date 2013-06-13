@@ -176,38 +176,36 @@ var objectIdCounter uint32 = 0
 
 // machineId stores machine id generated once and used in subsequent calls
 // to NewObjectId function.
-var machineId []byte
+var machineId = readMachineId()
 
 // initMachineId generates machine id and puts it into the machineId global
 // variable. If this function fails to get the hostname, it will cause
 // a runtime error.
-func initMachineId() {
+func readMachineId() []byte {
 	var sum [3]byte
-	machineId = sum[:]
+	id := sum[:]
 	hostname, err1 := os.Hostname()
 	if err1 != nil {
-		_, err2 := io.ReadFull(rand.Reader, machineId)
+		_, err2 := io.ReadFull(rand.Reader, id)
 		if err2 != nil {
 			panic(fmt.Errorf("cannot get hostname: %v; %v", err1, err2))
 		}
-		return
+		return id
 	}
 	hw := md5.New()
 	hw.Write([]byte(hostname))
-	copy(machineId, hw.Sum(nil))
+	copy(id, hw.Sum(nil))
+	return id
 }
 
 // NewObjectId returns a new unique ObjectId.
 // This function causes a runtime error if it fails to get the hostname
 // of the current machine.
 func NewObjectId() ObjectId {
-	b := make([]byte, 12)
+	var b [12]byte
 	// Timestamp, 4 bytes, big endian
-	binary.BigEndian.PutUint32(b, uint32(time.Now().Unix()))
+	binary.BigEndian.PutUint32(b[:], uint32(time.Now().Unix()))
 	// Machine, first 3 bytes of md5(hostname)
-	if machineId == nil {
-		initMachineId()
-	}
 	b[4] = machineId[0]
 	b[5] = machineId[1]
 	b[6] = machineId[2]
@@ -220,7 +218,7 @@ func NewObjectId() ObjectId {
 	b[9] = byte(i >> 16)
 	b[10] = byte(i >> 8)
 	b[11] = byte(i)
-	return ObjectId(b)
+	return ObjectId(b[:])
 }
 
 // NewObjectIdWithTime returns a dummy ObjectId with the timestamp part filled
@@ -316,7 +314,7 @@ type Symbol string
 // why this function exists. Using the time.Now function also works fine
 // otherwise.
 func Now() time.Time {
-	return time.Unix(0, time.Now().UnixNano() / 1e6 * 1e6)
+	return time.Unix(0, time.Now().UnixNano()/1e6*1e6)
 }
 
 // MongoTimestamp is a special internal type used by MongoDB that for some
@@ -405,16 +403,17 @@ func handleErr(err *error) {
 //
 // The following flags are currently supported:
 //
-//     omitempty    Only include the field if it's not set to the zero
-//                  value for the type or to empty slices or maps.
-//                  Does not apply to zero valued structs.
+//     omitempty  Only include the field if it's not set to the zero
+//                value for the type or to empty slices or maps.
+//                Does not apply to zero valued structs.
 //
-//     minsize      Marshal an int64 value as an int32, if that's feasible
-//                  while preserving the numeric value.
+//     minsize    Marshal an int64 value as an int32, if that's feasible
+//                while preserving the numeric value.
 //
-//     inline       Inline the field, which must be a struct, causing all
-//                  of its fields to be processed as if they were part of
-//                  the outer struct.
+//     inline     Inline the field, which must be a struct or a map,
+//                causing all of its fields or keys to be processed as if
+//                they were part of the outer struct. For maps, keys must
+//                not conflict with the bson keys of other struct fields.
 //
 // Some examples:
 //
@@ -438,7 +437,21 @@ func Marshal(in interface{}) (out []byte, err error) {
 // must be a map, a pointer to a struct, or a pointer to a bson.D value.
 // The lowercased field name is used as the key for each exported field,
 // but this behavior may be changed using the respective field tag.
-// Pointer values are initialized when necessary.
+// The tag may also contain flags to tweak the marshalling behavior for
+// the field. The tag formats accepted are:
+//
+//     "[<key>][,<flag1>[,<flag2>]]"
+//
+//     `(...) bson:"[<key>][,<flag1>[,<flag2>]]" (...)`
+//
+// The following flags are currently supported during unmarshal (see the
+// Marshal method for other flags):
+//
+//     inline     Inline the field, which must be a struct or a map.
+//                Inlined structs are handled as if its fields were part
+//                of the outer struct. An inlined map causes keys that do
+//                not match any other struct field to be inserted in the
+//                map rather than being discarded as usual.
 //
 // The target field or element types of out may not necessarily match
 // the BSON values of the provided data.  The following conversions are
@@ -450,8 +463,10 @@ func Marshal(in interface{}) (out []byte, err error) {
 // - Numeric types are converted to bools as true if not 0 or false otherwise
 // - Binary and string BSON data is converted to a string, array or byte slice
 //
-// If the value would not fit the type and cannot be converted, it's silently
-// skipped.
+// If the value would not fit the type and cannot be converted, it's
+// silently skipped.
+//
+// Pointer values are initialized when necessary.
 func Unmarshal(in []byte, out interface{}) (err error) {
 	defer handleErr(&err)
 	v := reflect.ValueOf(out)
@@ -508,6 +523,7 @@ func (e *TypeError) Error() string {
 type structInfo struct {
 	FieldsMap  map[string]fieldInfo
 	FieldsList []fieldInfo
+	InlineMap  int
 	Zero       reflect.Value
 }
 
@@ -538,6 +554,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 	n := st.NumField()
 	fieldsMap := make(map[string]fieldInfo)
 	fieldsList := make([]fieldInfo, 0, n)
+	inlineMap := -1
 	for i := 0; i != n; i++ {
 		field := st.Field(i)
 		if field.PkgPath != "" {
@@ -592,25 +609,35 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 		}
 
 		if inline {
-			if field.Type.Kind() != reflect.Struct {
-				panic("Option ,inline needs a struct value field")
-			}
-			sinfo, err := getStructInfo(field.Type)
-			if err != nil {
-				return nil, err
-			}
-			for _, finfo := range sinfo.FieldsList {
-				if _, found := fieldsMap[finfo.Key]; found {
-					msg := "Duplicated key '" + finfo.Key + "' in struct " + st.String()
-					return nil, errors.New(msg)
+			switch field.Type.Kind() {
+			case reflect.Map:
+				if inlineMap >= 0 {
+					return nil, errors.New("Multiple ,inline maps in struct " + st.String())
 				}
-				if finfo.Inline == nil {
-					finfo.Inline = []int{i, finfo.Num}
-				} else {
-					finfo.Inline = append([]int{i}, finfo.Inline...)
+				if field.Type.Key() != reflect.TypeOf("") {
+					return nil, errors.New("Option ,inline needs a map with string keys in struct " + st.String())
 				}
-				fieldsMap[finfo.Key] = finfo
-				fieldsList = append(fieldsList, finfo)
+				inlineMap = info.Num
+			case reflect.Struct:
+				sinfo, err := getStructInfo(field.Type)
+				if err != nil {
+					return nil, err
+				}
+				for _, finfo := range sinfo.FieldsList {
+					if _, found := fieldsMap[finfo.Key]; found {
+						msg := "Duplicated key '" + finfo.Key + "' in struct " + st.String()
+						return nil, errors.New(msg)
+					}
+					if finfo.Inline == nil {
+						finfo.Inline = []int{i, finfo.Num}
+					} else {
+						finfo.Inline = append([]int{i}, finfo.Inline...)
+					}
+					fieldsMap[finfo.Key] = finfo
+					fieldsList = append(fieldsList, finfo)
+				}
+			default:
+				panic("Option ,inline needs a struct value or map field")
 			}
 			continue
 		}
@@ -632,6 +659,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 	sinfo = &structInfo{
 		fieldsMap,
 		fieldsList[:len(fieldsMap)],
+		inlineMap,
 		reflect.New(st).Elem(),
 	}
 	structMapMutex.Lock()

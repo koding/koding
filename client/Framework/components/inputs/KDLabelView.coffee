@@ -8,9 +8,9 @@ class KDLabelView extends KDView
 
 	setTitle:(title)->
 		@labelTitle = title
-		
+
 	updateTitle: (title) ->
 	  @setTitle title
 	  @$().html title
 
-	getTitle:()-> @labelTitle
+	getTitle:-> @labelTitle

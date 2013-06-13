@@ -16,7 +16,7 @@ class JButtonMenu extends JContextMenu
     @setPartial "<div class='chevron-ghost-wrapper'><span class='chevron-ghost'></span></div>"
     @positionContextMenu()
 
-  positionContextMenu:()->
+  positionContextMenu:->
 
     # options       = @getOptions()
     button        = @getDelegate()

@@ -85,7 +85,7 @@ class GlobalNotification extends KDView
 
     @$().css top : -@getHeight() + timerHeight
 
-  recalculatePosition:()->
+  recalculatePosition:->
     cachedWidth = @getWidth()
     @$().css marginLeft : -cachedWidth/2
 

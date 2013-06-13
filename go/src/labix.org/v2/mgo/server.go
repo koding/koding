@@ -1,18 +1,18 @@
 // mgo - MongoDB driver for Go
-// 
+//
 // Copyright (c) 2010-2012 - Gustavo Niemeyer <gustavo@niemeyer.net>
-// 
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are met: 
-// 
+// modification, are permitted provided that the following conditions are met:
+//
 // 1. Redistributions of source code must retain the above copyright notice, this
-//    list of conditions and the following disclaimer. 
+//    list of conditions and the following disclaimer.
 // 2. Redistributions in binary form must reproduce the above copyright notice,
 //    this list of conditions and the following disclaimer in the documentation
-//    and/or other materials provided with the distribution. 
-// 
+//    and/or other materials provided with the distribution.
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 // ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 // WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -28,9 +28,11 @@ package mgo
 
 import (
 	"errors"
+	"labix.org/v2/mgo/bson"
 	"net"
 	"sort"
 	"sync"
+	"time"
 )
 
 // ---------------------------------------------------------------------------
@@ -45,31 +47,29 @@ type mongoServer struct {
 	liveSockets   []*mongoSocket
 	closed        bool
 	master        bool
+	abended       bool
 	sync          chan bool
 	dial          dialer
+	pingValue     time.Duration
+	pingIndex     int
+	pingCount     uint32
+	pingWindow    [6]time.Duration
 }
 
 type dialer func(addr net.Addr) (net.Conn, error)
 
-func newServer(addr string, sync chan bool, dial dialer) (server *mongoServer, err error) {
-	tcpaddr, err := net.ResolveTCPAddr("tcp", addr)
-	if err != nil {
-		log("Failed to resolve ", addr, ": ", err.Error())
-		return nil, err
-	}
-
-	resolvedAddr := tcpaddr.String()
-	if resolvedAddr != addr {
-		debug("Address ", addr, " resolved as ", resolvedAddr)
-	}
-	server = &mongoServer{
+func newServer(addr string, tcpaddr *net.TCPAddr, sync chan bool, dial dialer) *mongoServer {
+	server := &mongoServer{
 		Addr:         addr,
-		ResolvedAddr: resolvedAddr,
+		ResolvedAddr: tcpaddr.String(),
 		tcpaddr:      tcpaddr,
 		sync:         sync,
 		dial:         dial,
 	}
-	return
+	// Once so the server gets a ping value, then loop in background.
+	server.pinger(false)
+	go server.pinger(true)
+	return server
 }
 
 var errSocketLimit = errors.New("per-server connection limit reached")
@@ -81,13 +81,14 @@ var errSocketLimit = errors.New("per-server connection limit reached")
 // the same number of times as AcquireSocket + Acquire were called for it.
 // If the limit argument is not zero, a socket will only be returned if the
 // number of sockets in use for this server is under the provided limit.
-func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, err error) {
+func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, abended bool, err error) {
 	for {
 		server.Lock()
+		abended = server.abended
 		n := len(server.unusedSockets)
 		if limit > 0 && len(server.liveSockets)-n >= limit {
 			server.Unlock()
-			return nil, errSocketLimit
+			return nil, false, errSocketLimit
 		}
 		if n > 0 {
 			socket = server.unusedSockets[n-1]
@@ -109,32 +110,30 @@ func (server *mongoServer) AcquireSocket(limit int) (socket *mongoSocket, err er
 		}
 		return
 	}
-	panic("unreached")
+	panic("unreachable")
 }
 
 // Connect establishes a new connection to the server. This should
 // generally be done through server.AcquireSocket().
 func (server *mongoServer) Connect() (*mongoSocket, error) {
 	server.RLock()
-	addr := server.Addr
-	tcpaddr := server.tcpaddr
 	master := server.master
 	dial := server.dial
 	server.RUnlock()
 
-	log("Establishing new connection to ", addr, "...")
+	log("Establishing new connection to ", server.Addr, "...")
 	var conn net.Conn
 	var err error
 	if dial == nil {
-		conn, err = net.DialTCP("tcp", nil, tcpaddr)
+		conn, err = net.DialTCP("tcp", nil, server.tcpaddr)
 	} else {
-		conn, err = dial(tcpaddr)
+		conn, err = dial(server.tcpaddr)
 	}
 	if err != nil {
-		log("Connection to ", addr, " failed: ", err.Error())
+		log("Connection to ", server.Addr, " failed: ", err.Error())
 		return nil, err
 	}
-	log("Connection to ", addr, " established.")
+	log("Connection to ", server.Addr, " established.")
 
 	stats.conn(+1, master)
 	return newSocket(server, conn), nil
@@ -149,9 +148,8 @@ func (server *mongoServer) Close() {
 	unusedSockets := server.unusedSockets
 	server.liveSockets = nil
 	server.unusedSockets = nil
-	addr := server.Addr
 	server.Unlock()
-	logf("Connections to %s closing (%d live sockets).", addr, len(liveSockets))
+	logf("Connections to %s closing (%d live sockets).", server.Addr, len(liveSockets))
 	for i, s := range liveSockets {
 		s.Close()
 		liveSockets[i] = nil
@@ -187,6 +185,7 @@ func removeSocket(sockets []*mongoSocket, socket *mongoSocket) []*mongoSocket {
 // abnormally, and thus should be discarded rather than cached.
 func (server *mongoServer) AbendSocket(socket *mongoSocket) {
 	server.Lock()
+	server.abended = true
 	if server.closed {
 		server.Unlock()
 		return
@@ -201,18 +200,6 @@ func (server *mongoServer) AbendSocket(socket *mongoSocket) {
 	}
 }
 
-// Merge other into server, which must both be communicating with
-// the same server address.
-func (server *mongoServer) Merge(other *mongoServer) {
-	server.Lock()
-	server.master = other.master
-	server.Unlock()
-	// Sockets of other are ignored for the moment. Merging them
-	// would mean a large number of sockets being cached on longer
-	// recovering situations.
-	other.Close()
-}
-
 func (server *mongoServer) SetMaster(isMaster bool) {
 	server.Lock()
 	server.master = isMaster
@@ -224,6 +211,56 @@ func (server *mongoServer) IsMaster() bool {
 	result := server.master
 	server.RUnlock()
 	return result
+}
+
+var pingDelay = 10 * time.Second
+
+func (server *mongoServer) pinger(loop bool) {
+	op := queryOp{
+		collection: "admin.$cmd",
+		query:      bson.D{{"ping", 1}},
+		flags:      flagSlaveOk,
+		limit:      -1,
+	}
+	for {
+		if loop {
+			time.Sleep(pingDelay)
+			server.RLock()
+			closed := server.closed
+			server.RUnlock()
+			if closed {
+				return
+			}
+		}
+		op := op
+		socket, _, err := server.AcquireSocket(0)
+		if err == nil {
+			start := time.Now()
+			_, _ = socket.SimpleQuery(&op)
+			delay := time.Now().Sub(start)
+
+			server.pingWindow[server.pingIndex] = delay
+			server.pingIndex = (server.pingIndex+1)%len(server.pingWindow)
+			server.pingCount++
+			var max time.Duration
+			for i := 0; i < len(server.pingWindow) && uint32(i) < server.pingCount; i++ {
+				if server.pingWindow[i] > max {
+					max = server.pingWindow[i]
+				}
+			}
+			socket.Release()
+			server.Lock()
+			if server.closed {
+				loop = false
+			}
+			server.pingValue = max
+			server.Unlock()
+			logf("Ping for %s is %d ms", server.Addr, max / time.Millisecond)
+		}
+		if !loop {
+			return
+		}
+	}
 }
 
 type mongoServerSlice []*mongoServer
@@ -244,8 +281,7 @@ func (s mongoServerSlice) Sort() {
 	sort.Sort(s)
 }
 
-func (s mongoServerSlice) Search(other *mongoServer) (i int, ok bool) {
-	resolvedAddr := other.ResolvedAddr
+func (s mongoServerSlice) Search(resolvedAddr string) (i int, ok bool) {
 	n := len(s)
 	i = sort.Search(n, func(i int) bool {
 		return s[i].ResolvedAddr >= resolvedAddr
@@ -257,8 +293,8 @@ type mongoServers struct {
 	slice mongoServerSlice
 }
 
-func (servers *mongoServers) Search(other *mongoServer) (server *mongoServer) {
-	if i, ok := servers.slice.Search(other); ok {
+func (servers *mongoServers) Search(resolvedAddr string) (server *mongoServer) {
+	if i, ok := servers.slice.Search(resolvedAddr); ok {
 		return servers.slice[i]
 	}
 	return nil
@@ -270,7 +306,7 @@ func (servers *mongoServers) Add(server *mongoServer) {
 }
 
 func (servers *mongoServers) Remove(other *mongoServer) (server *mongoServer) {
-	if i, found := servers.slice.Search(other); found {
+	if i, found := servers.slice.Search(other.ResolvedAddr); found {
 		server = servers.slice[i]
 		copy(servers.slice[i:], servers.slice[i+1:])
 		n := len(servers.slice) - 1
@@ -316,6 +352,9 @@ func (servers *mongoServers) MostAvailable() *mongoServer {
 		case next.master != best.master:
 			// Prefer slaves.
 			swap = best.master
+		case next.pingValue < best.pingValue - 15 * time.Millisecond:
+			// Prefer nearest server.
+			swap = true
 		case len(next.liveSockets)-len(next.unusedSockets) < len(best.liveSockets)-len(best.unusedSockets):
 			// Prefer servers with less connections.
 			swap = true

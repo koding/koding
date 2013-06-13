@@ -11,7 +11,7 @@ class KDSliderView extends KDInputView
 
   setDefaultValue:(value) ->
 
-  getValue:()-> @
+  getValue:-> @
   setValue:(value)->
 
 class KDSliderViewHandle extends KDView

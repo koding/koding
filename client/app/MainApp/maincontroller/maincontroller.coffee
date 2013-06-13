@@ -43,14 +43,13 @@ class MainController extends KDController
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
 
-    # appManager.create 'Chat', (chatController)->
-    #   KD.registerSingleton "chatController", chatController
+    appManager.create 'Chat', (chatController)->
+      KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
       KD.registerSingleton "activityController", new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
-      #KD.registerSingleton "bottomPanelController", new BottomPanelController
       @emit 'AppIsReady'
       @emit 'FrameworkIsReady'
 
@@ -90,6 +89,7 @@ class MainController extends KDController
 
       @decorateBodyTag()
       @emit 'ready'
+
       # this emits following events
       # -> "pageLoaded.as.loggedIn"
       # -> "pageLoaded.as.loggedOut"
@@ -201,7 +201,7 @@ class MainController extends KDController
         buttons :
           "Refresh Now" :
             style     : "modal-clean-red"
-            callback  : ()->
+            callback  : ->
               modal.destroy()
               location.reload yes
       # if location.hostname is "localhost"

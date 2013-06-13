@@ -10,6 +10,8 @@ class KDTabView extends KDScrollView
     options.hideHandleContainer  ?= no
     options.hideHandleCloseIcons ?= no
     options.tabHandleContainer   ?= null
+    options.tabHandleClass      or= KDTabHandleView
+    options.cssClass              = KD.utils.curryCssClass "kdtabview", options.cssClass
     @handles                      = []
     @panes                        = []
     @selectedIndex                = []
@@ -18,27 +20,22 @@ class KDTabView extends KDScrollView
 
     super options, data
 
-    @activePane = null
+    @activePane           = null
+    @handlesHidden        = no
+    @blockTabHandleResize = no
 
     @setTabHandleContainer options.tabHandleContainer
+    @hideHandleCloseIcons() if options.hideHandleCloseIcons
+    @hideHandleContainer()  if options.hideHandleContainer
 
     @on "PaneRemoved", => @resizeTabHandles type : "PaneRemoved"
     @on "PaneAdded", (pane)=> @resizeTabHandles {type : "PaneAdded", pane}
     @on "PaneDidShow", @bound "setActivePane"
-    if options.tabNames?
-      @on "viewAppended", @createPanes.bind @
 
-    @setClass "kdtabview"
+    @on "viewAppended", @createPanes.bind @  if options.tabNames?
 
-    @handlesHidden = no
-
-    @hideHandleCloseIcons() if options.hideHandleCloseIcons
-    @hideHandleContainer()  if options.hideHandleContainer
-
-    @blockTabHandleResize = no
-
-    @tabHandleContainer.on "mouseenter", => @blockTabHandleResize = yes
-
+    @tabHandleContainer.on "mouseenter", =>
+      @blockTabHandleResize = yes
     @tabHandleContainer.on "mouseleave", =>
       @blockTabHandleResize = no
       @resizeTabHandles()
@@ -52,8 +49,8 @@ class KDTabView extends KDScrollView
   addPane:(paneInstance, shouldShow=yes)->
     if paneInstance instanceof KDTabPaneView
       @panes.push paneInstance
-      tabHandleClass = @getOptions().tabHandleView ? KDTabHandleView
-      paneOptions    = paneInstance.options
+      {tabHandleClass} = @getOptions()
+      paneOptions      = paneInstance.getOptions()
 
       @addHandle newTabHandle = new tabHandleClass
         pane      : paneInstance
@@ -76,7 +73,7 @@ class KDTabView extends KDScrollView
       return paneInstance
     else
       warn "You can't add #{paneInstance.constructor.name if paneInstance?.constructor?.name?} as a pane, use KDTabPaneView instead."
-      false
+      return false
 
   resortTabHandles: (index, dir) ->
     return if (index is 0 and dir is 'left') or (index is @handles.length - 1 and dir is 'right') or (index >= @handles.length) or (index < 0)
@@ -123,7 +120,7 @@ class KDTabView extends KDScrollView
         @removePane pane
         break
 
-  appendHandleContainer:()->
+  appendHandleContainer:->
     @addSubView @tabHandleContainer
 
   appendPane:(pane)->
@@ -148,7 +145,7 @@ class KDTabView extends KDScrollView
     else
       warn "You can't add #{handle.constructor.name if handle?.constructor?.name?} as a pane, use KDTabHandleView instead."
 
-  removeHandle:()->
+  removeHandle:->
 
 
   #SHOW/HIDE ELEMENTS
@@ -165,7 +162,7 @@ class KDTabView extends KDScrollView
     pane
 
 
-  hideAllPanes:()->
+  hideAllPanes:->
     for pane in @panes
       pane.hide()
     for handle in @handles
@@ -182,10 +179,10 @@ class KDTabView extends KDScrollView
   toggleHandleContainer:(duration = 0)->
     @tabHandleContainer.$().toggle duration
 
-  hideHandleCloseIcons:()->
+  hideHandleCloseIcons:->
     @tabHandleContainer.$().addClass "hide-close-icons"
 
-  showHandleCloseIcons:()->
+  showHandleCloseIcons:->
     @tabHandleContainer.$().removeClass "hide-close-icons"
 
   handleMouseDownDefaultAction:(clickedTabHandle, event)->
@@ -209,7 +206,7 @@ class KDTabView extends KDScrollView
       @tabHandleContainer = new KDView()
       @appendHandleContainer()
     @tabHandleContainer.setClass "kdtabhandlecontainer"
-  getTabHandleContainer:()-> @tabHandleContainer
+  getTabHandleContainer:-> @tabHandleContainer
 
   #TRAVERSING PANES/HANDLES
   checkPaneExistenceById:(id)->

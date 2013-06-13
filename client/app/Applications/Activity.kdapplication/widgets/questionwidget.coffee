@@ -2,6 +2,7 @@ class ActivityQuestionWidget extends KDFormView
 
   submit:->
     super
+    KD.track "Activity", "QuestionSubmitted"
     @reset()
     no
 
@@ -10,7 +11,7 @@ class ActivityQuestionWidget extends KDFormView
     @inputContent.setValue ''
     @addTags.input.clear()
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options question clearfix"
 
     formline1 = new KDCustomHTMLView
