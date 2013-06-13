@@ -274,18 +274,44 @@ ul.chat-conversation
 
   li.message
     padding               4px
-    border                1px solid rgba(0,0,0,0.03)
     width                 217px
-    background-color      rgba(246, 162, 32, 0.2)
     border-radius         2px
     margin-bottom         4px
+    text-align            right
+
+    hr
+      margin              1px
+      opacity             .3
+
+    .time-widget
+      top                 3px
+      left                -200px
+      width               auto
+      height              auto
+      padding             2px
+      opacity             .7
+
+      font-size           9px
+      text-align          left
+
+      vendor              transition, left .3s .6s
+      abs()
 
     &.mine
-      text-align          right
-      background-color    rgba(78, 171, 238, 0.1)
+      text-align          left
+      .time-widget
+        left              auto
+        right             -200px
+        vendor            transition, right .3s .6s
 
-    &:last-child
-      border-bottom       1px solid rgba(0,0,0,0.03) !important
+    &:hover
+      background-color    white
+      .time-widget
+        left              0px
+      &.mine
+        .time-widget
+          left            auto
+          right           0px
 
 .conversation-starter-popup
   padding                 2px 2px 2px 6px
