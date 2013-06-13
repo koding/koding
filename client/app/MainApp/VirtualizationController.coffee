@@ -111,7 +111,7 @@ class VirtualizationController extends KDController
     
 
     # Take this to a better place, possibly to payment controller.
-    makePayment = (type, hostname, plan, callback)->
+    makePayment = (type, plan, callback)->
       planCode = plan.code
       if type is 'shared'
         group = KD.singletons.groupsController.getCurrentGroup()
@@ -218,8 +218,7 @@ class VirtualizationController extends KDController
                 form                = modal.modalTabs.forms["Create VM"]
                 {personal, shared}  = form.buttons
 
-                # Gökmen buraya!
-                makePayment formData.type, "HOSTNAME", @paymentPlans[formData.host], ->
+                makePayment formData.type, @paymentPlans[formData.host], ->
                   modal.destroy()
               buttons               :
                 personal            :
