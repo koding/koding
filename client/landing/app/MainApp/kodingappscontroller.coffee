@@ -213,7 +213,6 @@ class KodingAppsController extends KDController
       if err
         @notification.setClass "error"
         @notification.notificationSetTitle "An error occured while updating #{appName}."
-        @utils.wait 3000, => @notification.destroy()
         return no
       @refreshApps =>
         @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
@@ -223,9 +222,7 @@ class KodingAppsController extends KDController
             @refreshApps()
             callback?()
             @emit "AnAppHasBeenUpdated"
-            @notification.setClass "success"
             @notification.notificationSetTitle "#{appName} has been updated successfully"
-            @utils.wait 3000, => @notification.destroy()
       , yes
 
   # #
