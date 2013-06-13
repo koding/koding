@@ -33,7 +33,7 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
       element
 
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()

@@ -131,7 +131,7 @@ class AppPreSubmitPreview extends KDScrollView
     requirementsData = {syntax : data.requirementsSyntax, content : Encoder.htmlEncode(data.requirementsCode), title : ""}
     @requirementsView = new AppCodeSnippetView {}, requirementsData
 
-  viewAppended:()->
+  viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 

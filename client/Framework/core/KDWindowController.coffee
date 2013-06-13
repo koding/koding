@@ -44,7 +44,7 @@ class KDWindowController extends KDController
       index = @layers.indexOf(layer)
       @layers.splice index, 1
 
-  bindEvents:()->
+  bindEvents:->
 
     $(window).bind @keyEventsToBeListened.join(' '), @bound "key"
 
@@ -240,7 +240,7 @@ class KDWindowController extends KDController
 
     view.drag event, delta
 
-  getKeyView:()->
+  getKeyView:->
     @keyView
 
   key:(event)->

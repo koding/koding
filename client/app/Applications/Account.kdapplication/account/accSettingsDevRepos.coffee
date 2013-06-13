@@ -44,7 +44,7 @@ class AccountRepoList extends KDListView
       @instantiateListItems repos
       callback?()
 
-  attachListeners:()->
+  attachListeners:->
     @items.forEach (item)=>
       item.getData().on "update",()->
         log "update event called:",item

@@ -29,7 +29,7 @@ class KDMultipleInputView extends KDSimpleAutocomplete
     @list = new MultipleInputListView delegate: @
     @addSubView @list
 
-  $input:()-> @$().find("input.main").eq(0)
+  $input:-> @$().find("input.main").eq(0)
 
   getValues: ->
     @_values
@@ -91,7 +91,7 @@ class KDMultipleInputView extends KDSimpleAutocomplete
     if $(event.target).hasClass 'addNewItem'
       @inputAddCurrentValue()
 
-  setDomId:()->
+  setDomId:->
     @$input().attr "id", @getDomId()
     @$input().data "data-id", @getId()
     # @$input().attr "name", @getName()

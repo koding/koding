@@ -255,12 +255,12 @@ func isWebsocket(req *http.Request) bool {
 	return upgrade_websocket
 }
 
-func logDomainStat(name string) {
-	if name == "" {
+func logDomainRequests(domain string) {
+	if domain == "" {
 		return
 	}
 
-	err := proxyDB.AddDomainStat(name)
+	err := proxyDB.AddDomainRequests(domain)
 	if err != nil {
 		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
 	}
@@ -270,5 +270,16 @@ func logProxyStat(name, country string) {
 	err := proxyDB.AddProxyStat(name, country)
 	if err != nil {
 		fmt.Printf("could not add proxy statistisitcs for %s\n", err.Error())
+	}
+}
+
+func logDomainDenied(domain, ip, country, reason string) {
+	if domain == "" {
+		return
+	}
+
+	err := proxyDB.AddDomainDenied(domain, ip, country, reason)
+	if err != nil {
+		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
 	}
 }

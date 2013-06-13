@@ -17,7 +17,7 @@ class KDAutoCompleteListView extends KDListView
   #       @goDown()
   #       # @getView().$input().blur()
   #   no
-  goDown:()->
+  goDown:->
     activeItem = @getActiveItem()
     if activeItem.index?
       nextItem = @items[activeItem.index+1]
@@ -26,7 +26,7 @@ class KDAutoCompleteListView extends KDListView
     else
       @items[0]?.makeItemActive()
 
-  goUp:()->
+  goUp:->
     activeItem = @getActiveItem()
     if activeItem.index?
       if @items[activeItem.index-1]?
@@ -36,7 +36,7 @@ class KDAutoCompleteListView extends KDListView
     else
       @items[0].makeItemActive()
 
-  getActiveItem:()->
+  getActiveItem:->
     active =
       index : null
       item  : null

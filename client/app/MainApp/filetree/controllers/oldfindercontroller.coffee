@@ -60,7 +60,7 @@ class NFinderControllerOld extends KDViewController
     initialPath   = "/home/#{nickname}/Sites/#{nickname}.koding.com/website"
     @initialPath  = @expandInitialPath initialPath
 
-  reset:()->
+  reset:->
 
     @appStorage = @getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
     @appStorage.once "storageFetched", =>

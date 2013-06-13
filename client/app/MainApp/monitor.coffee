@@ -138,15 +138,15 @@ class MonitorController extends KDController
 
   # EVENT HANDLING METHODS
 
-  appKiteJoin:()->
-  appKiteLeave:()->
+  appKiteJoin:->
+  appKiteLeave:->
 
-  webtermKiteJoin:()->
-  webtermKiteLeave:()->
+  webtermKiteJoin:->
+  webtermKiteLeave:->
 
-  databaseKiteJoin:()->
-  databaseKiteLeave:()->
+  databaseKiteJoin:->
+  databaseKiteLeave:->
 
-  socialWorkerJoin:()->
-  socialWorkerLeave:()->
+  socialWorkerJoin:->
+  socialWorkerLeave:->
 
