@@ -92,7 +92,7 @@ class AccountAppController extends AppController
 
     @__lastScrollTop = newScrollTop
 
-  _windowDidResize:()->
+  _windowDidResize:->
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
 

@@ -249,7 +249,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @highlightCode()
     @prepareExternalLinks()
 
-  viewAppended:()->
+  viewAppended:->
     super()
 
     @setTemplate @pistachio()
