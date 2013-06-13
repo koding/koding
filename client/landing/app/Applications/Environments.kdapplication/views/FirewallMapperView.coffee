@@ -131,14 +131,13 @@ class FirewallRuleFormView extends KDCustomHTMLView
 
   pistachio:->
     """
-    <div class="rule-form">
-      <div style="float: left; margin-right: 5px;">
-        <label for="rule-input">Add a rule:</label>
-        {{> @ruleInput }}
-      </div>
-      <div style="float: left'">
-        {{> @denyButton }}
-        {{> @allowButton }}
-      </div>
+    <div class="fl input-wrapper">
+      <label for="rule-input">Add a rule:</label>
+      {{> @ruleInput }}
     </div>
+    <div class="fl">
+      {{> @denyButton }}
+      {{> @allowButton }}
+    </div>
+    <div class="clearfix"></div>
     """
