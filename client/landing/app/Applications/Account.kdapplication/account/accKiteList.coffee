@@ -9,7 +9,7 @@ class AccountKiteListController extends KDListViewController
 
     KD.remote.api.JMemberKite.fetchAll {}, (err, kites) =>
       if err then warn err
-      else 
+      else
         @instantiateListItems kites
 
     list = @getListView()
@@ -27,9 +27,9 @@ class AccountKiteListController extends KDListViewController
 
     ##################### Events ############################
     list.on "DeleteKiteSubmitted", @bound "deleteKite"
-    
+
     list.on "UpdateKiteSubmitted", @bound "updateDatabase"
-    
+
     list.on "CreateKiteSubmitted", @bound "createKite"
 
     @on "KiteDeleted", list.bound "removeItem"
@@ -54,7 +54,7 @@ class AccountKiteListController extends KDListViewController
     data = listItem.getData()
     KD.remote.api.JKite.get
       id   : data.id
-      (err, kite) => 
+      (err, kite) =>
         if err
           @notify err.message, "fail"
         else
@@ -85,7 +85,7 @@ class AccountKiteListController extends KDListViewController
         @emit "KiteCreated", kite
         form.modal.destroy()
 
-          
+
   notify:(title, type)->
     {modal} = @getListView()
     new KDNotificationView
@@ -202,7 +202,7 @@ class AccountKiteListItem extends KDListItemView
     options.cssClass = "kite-list-item"
     super options,data
 
-  # viewAppended:()->
+  # viewAppended:->
   #   super
   #   @addSubView editLink = new KDCustomHTMLView
   #     tagName      : "a"

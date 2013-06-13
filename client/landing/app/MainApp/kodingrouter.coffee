@@ -230,6 +230,8 @@ class KodingRouter extends KDRouter
       '/:name?/Account'                 : createSectionHandler 'Account'
       '/:name?/Demos'                   : createSectionHandler 'Demos'
       '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
+      '/:name?/Inbox'                   : createSectionHandler 'Inbox'
+      #'/:name?/Environments'            : createSectionHandler 'Environments'
 
       # group dashboard
       # '/:name?/Dashboard'               : (routeInfo, state, route)->
@@ -299,8 +301,8 @@ class KodingRouter extends KDRouter
           email = decodeURIComponent email
           token = decodeURIComponent token
           (
-            if opt is 'email' 
-            then KD.remote.api.JMail 
+            if opt is 'email'
+            then KD.remote.api.JMail
             else KD.remote.api.JMailNotification
           ).unsubscribeWithId token, email, opt, (err, content)=>
             if err or not content

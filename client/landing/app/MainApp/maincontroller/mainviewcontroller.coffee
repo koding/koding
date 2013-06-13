@@ -12,16 +12,12 @@ class MainViewController extends KDViewController
     mainController.on 'accountChanged.to.loggedIn', (account)=>
       mainController.loginScreen.hide()
 
-    # mainView.on "BottomPanelCreated", (bottomPanel)=>
-    #   @bottomPanelController = new BottomPanelController view : bottomPanel
-
     mainController.on "ShowInstructionsBook", (index)=>
       book = mainView.addBook()
       book.fillPage index
 
     mainController.on "ToggleChatPanel", =>
-      new KDNotificationView title : "Coming soon!"
-      # mainView.chatPanel.toggle()
+      mainView.chatPanel.toggle()
 
     @on "AnAppHasBeenUpdated", =>
       link = mainView.sidebar.navController.selectItemByName("Apps").getSubViews()[0]

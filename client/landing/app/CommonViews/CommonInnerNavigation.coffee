@@ -76,4 +76,4 @@ class CommonInnerNavigationListItem extends KDListItemView
     super options,data
     @setClass data.type
 
-  partial:()-> ""
+  partial:-> ""

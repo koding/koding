@@ -300,7 +300,7 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   hideUserAvatar:-> @avatar.hide()
 
-  viewAppended:()->
+  viewAppended:->
 
     super
 

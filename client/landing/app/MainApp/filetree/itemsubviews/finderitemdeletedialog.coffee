@@ -14,12 +14,12 @@ class NFinderDeleteDialog extends KDModalView
     options.buttons  = {}
     options.buttons["Yes, delete #{numFiles}"] =
       style         : "modal-clean-red"
-      callback      : ()=>
+      callback      : =>
         callback? yes
         @destroy()
     options.buttons.cancel =
       style         : "modal-cancel"
-      callback      : ()=>
+      callback      : =>
         callback? no
         @destroy()
     super options, data

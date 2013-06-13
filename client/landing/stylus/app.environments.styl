@@ -1,0 +1,97 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+
+@css {
+/*
+Environments stylesheet
+app.environments.styl
+*/
+}
+
+.kdaccview
+  margin-top    10px
+
+.kdaccpaneview
+  height    auto
+  border    1px solid #ddd
+
+.kdaccpaneviewheader
+  background    #eee
+  cursor        pointer
+  padding       5px
+
+.kdaccpaneviewcontent
+  padding    10px
+
+.environments.content-area-pane
+  .application-page
+    padding            0
+
+.environment-content
+  border-left          1px solid #ddd
+  padding-left         10px
+  padding-top          10px
+
+  .domain-list
+    .selected
+      bg               color, #ddd
+
+  .vm-list
+    .selected
+      bg               color, #eee
+
+    .vm-item
+      cursor           pointer
+      height           50px
+      width            100%
+      margin           1px
+
+      .vm-icon
+        top            10px
+        left           7px
+        width          30px
+        height         30px
+        abs()
+
+      .shared
+        sprite()
+        bg position,   -360px -300px
+
+      .personal
+        sprite()
+        bg position,   -360px -390px
+
+      .link
+        sprite()
+        bg position,   -626px -565px
+
+      .vm-title
+        font-weight    bold
+        color          #ff9600
+        top            10px
+        left           50px
+        abs()
+
+      .vm-domain
+        font-size      10px
+        color          #888
+        top            26px
+        left           50px
+        abs()
+
+      .vm-status
+        left           35px
+        top            35px
+        width          5px
+        height         5px
+        abs()
+
+      .vm-status
+        bg             color, #B40404
+      .vm-status-on
+        bg             color, #04B404
+
+      .on-off
+        top            15px
+        right          3px
+        abs()
