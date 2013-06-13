@@ -49,7 +49,7 @@ class KDInputRadioGroup extends KDInputView
 
   setValue:(value)->
     @$("input").attr "checked", no
-    @$("input[value='#{value}']").attr "checked", "checked"
+    @$("input[value='#{value}']").prop "checked", yes
     @$(".kd-radio-holder").removeClass 'active'
     @$(".kd-radio-holder.#{value}").addClass 'active'  if value
 

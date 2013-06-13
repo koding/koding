@@ -17,11 +17,11 @@ mongodump -h$SOURCE_MONGO_HOST -u$SOURCE_MONGO_USER -p$SOURCE_MONGO_PASS -d$SOUR
 # TODO: uncomment when the time comes:
 mongo $SOURCE_MONGO_CONN -u$SOURCE_MONGO_USER -p$SOURCE_MONGO_PASS --eval="db.jRegistrationPreferences.update({},{isRegistrationEnabled:true});"
 
+mongo $TARGET_MONGO_CONN --eval="db.dropDatabase()"
 
-echo "mongo $TARGET_MONGO_CONN -u$TARGET_MONGO_USER -p$TARGET_MONGO_PASS --eval \"db.dropDatabase()\""
-mongo $TARGET_MONGO_CONN -u$TARGET_MONGO_USER -p$TARGET_MONGO_PASS --eval "db.dropDatabase()"
-
-mongorestore ./dump/beta_koding -h$TARGET_MONGO_HOST -u$TARGET_MONGO_USER -p$TARGET_MONGO_PASS -d$TARGET_MONGO_DB
+mongorestore ./dump/beta_koding -h$TARGET_MONGO_HOST -d$TARGET_MONGO_DB
 # TODO: put the hostname where we'll be doing this (we use local for now.)
 
-mongo $TARGET_MONGO_CONN -u$TARGET_MONGO_USER -p$TARGET_MONGO_PASS migrate-script.js
+mongo $TARGET_MONGO_CONN --eval="db.addUser(\"$TARGET_MONGO_USER\", \"$TARGET_MONGO_PASS\");"
+
+mongo $TARGET_MONGO_CONN migrate-script.js

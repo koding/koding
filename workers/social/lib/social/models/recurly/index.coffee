@@ -4,7 +4,7 @@ payment   = require 'koding-payment'
 createId  = require 'hat'
 
 forceRefresh  = yes
-forceInterval = 60 * 3
+forceInterval = 60 * 60
 
 module.exports = class JRecurlyPlan extends jraphical.Module
 
@@ -186,7 +186,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           plan    : @code
           uuid    : subs.uuid
         , (err, result)=>
-          @save ->
+          subs.save ->
             callback no, subs
       else
         JRecurlyPlan.fetchAccount client, (err, userAccount)=>
@@ -256,7 +256,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           plan    : @code
           uuid    : subs.uuid
         , (err, result)=>
-          @save ->
+          subs.save ->
             callback no, subs
       else
 

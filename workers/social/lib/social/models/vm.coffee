@@ -3,6 +3,7 @@
 module.exports = class JVM extends Model
 
   {permit} = require './group/permissionset'
+  {secure} = require 'bongo'
 
   KodingError = require '../error'
 
@@ -36,6 +37,8 @@ module.exports = class JVM extends Model
         default         : -> null
       name              : String
       hostnameAlias     : [String]
+      planOwner         : String
+      planCode          : String
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -83,7 +86,7 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage}, callback)->
+  @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
@@ -99,6 +102,11 @@ module.exports = class JVM extends Model
           offset      : 0
         }
 
+        if type is 'group'
+          planOwner = "group_#{group._id}"
+        else
+          planOwner = "user_#{account._id}"
+
         nameFactory.next (err, uid)=>
           return callback err  if err
 
@@ -111,6 +119,8 @@ module.exports = class JVM extends Model
 
           vm = new JVM {
             name    : "#{name}#{uid}"
+            planCode : planCode
+            planOwner: planOwner
             users   : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups  : [{ id: group.getId() }]
             hostnameAlias
@@ -139,17 +149,6 @@ module.exports = class JVM extends Model
                 vm.update {
                   $addToSet: users: { id: user.getId(), sudo: hasPermission }
                 }, callback
-
-  # @create = permit 'create vms',
-  #   success: (client, callback) ->
-
-  # @initializeVmLimits =(target, callback)->
-  #   JLimit = require './limit'
-  #   limit = new JLimit { quota: 5 }
-  #   limit.save (err)->
-  #     return callback err  if err
-  #     target.addLimit limit, 'vm', (err)->
-  #       callback err ? null, unless err then limit
 
   @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
 
@@ -260,7 +259,7 @@ module.exports = class JVM extends Model
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = ({ target, user, name, sudo, groups, type })->
+    addVm = ({ target, user, name, sudo, groups, type, planCode, planOwner })->
 
       uid = 0
       groupSlug = if type is 'group' then name else 'koding'
@@ -270,8 +269,10 @@ module.exports = class JVM extends Model
       }
 
       vm = new JVM {
-        name: name
-        users: [
+        name      : name
+        planCode  : planCode
+        planOwner : planOwner
+        users     : [
           { id: user.getId(), sudo: yes, owner: yes }
         ]
         groups: groups ? []
@@ -295,22 +296,6 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
-    JGroup.on 'GroupCreated', ({group, creator})->
-      group.fetchBundle (err, bundle)->
-        if err then handleError err
-        else if bundle
-          creator.fetchUser (err, user)->
-            if err then handleError err
-            else
-              addVm {
-                user
-                type    : 'group'
-                target  : group
-                sudo    : yes
-                name    : group.slug
-                groups  : wrapGroup group
-              }
-
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
         if err then handleError err
@@ -323,11 +308,13 @@ module.exports = class JVM extends Model
           # TODO: this special case for koding should be generalized for any group.
           addVm {
             user
-            type    : 'user'
-            target  : member
-            sudo    : yes
-            name    : "koding~#{member.profile.nickname}"
-            groups  : wrapGroup group
+            type      : 'user'
+            target    : member
+            planCode  : 'free'
+            planOwner : "user_#{member._id}"
+            sudo      : yes
+            name      : "koding~#{member.profile.nickname}"
+            groups    : wrapGroup group
           }
         else
           member.checkPermission group, 'sudoer', (err, hasPermission)->
