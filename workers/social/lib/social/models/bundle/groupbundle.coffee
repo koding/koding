@@ -85,19 +85,23 @@ module.exports = class JGroupBundle extends JBundle
             createdVMs += 1
 
           # TODO: Also check user quota here
+          @.checkUsage account, group, (err, limit)=>
+            return callback err  if err
+            if limit.usage >= limit.quota
+              return callback new KodingError "You can't create expensed VMs. (quota exceeded)"
 
-          if paidVMs > createdVMs
-            options     =
-              planCode  : planCode
-              usage     : {cpu: 1, ram: 1, disk: 1}
-              type      : type
-              account   : account
-              groupSlug : group.slug
-              expensed  : expensed
-            JVM.createVm options, ->
-              callback null, planCode
-          else
-            callback new KodingError "Can't create new VM."
+              if paidVMs > createdVMs
+                options     =
+                  planCode  : planCode
+                  usage     : {cpu: 1, ram: 1, disk: 1}
+                  type      : type
+                  account   : account
+                  groupSlug : group.slug
+                  expensed  : expensed
+                JVM.createVm options, ->
+                  callback null, planCode
+              else
+                callback new KodingError "Can't create new VM (payment missing)"
 
   checkUsage: (account, group, callback)->
     JVM.someData
@@ -120,10 +124,12 @@ module.exports = class JGroupBundle extends JBundle
               return cb err  if err
               cb null, plan.feeMonthly
 
-        async.parallel stack, (err, result)->
+        async.parallel stack, (err, result)=>
           return callback err  if err
           cost = 0
           result.forEach (fee)->
             cost += fee
 
-          callback null, cost
+          callback null,
+            usage: cost
+            quota: @.allocation
