@@ -25,9 +25,42 @@ Group Creation Modal Styles
     border-bottom               1px solid #f2f2f2
   .formline.heading
     border-bottom               none
-    padding-bottom              0
     .input-wrapper
       overflow                  visible
+
+  .kdformview
+    rel()
+
+  .formline.shared-vm
+  .formline.allocation
+    border-bottom               none
+    padding                     0
+    width                       auto
+    height                      auto
+    top                         14px
+    right                       40px
+    abs()
+
+    .input-wrapper
+      .kdinput.on-off
+        span
+          hidden()
+
+  .formline.right-aligned
+    padding-left                50px
+    border-bottom               none
+    padding-top                 0
+    .kdinput.on-off
+      margin-right              20px
+      fr()
+      > span
+        font-family             "Open Sans"
+        margin-right            5px
+
+  .formline.description-field
+    border-bottom               none
+    padding-bottom              0
+
   h2.heading
     font-weight                 normal
     font-size                   14px
@@ -134,6 +167,7 @@ Group Creation Modal Styles
           text-shadow             0 -1px 0 rgba(0,0,0,0.5)
           text-rendering          geometricPrecision
           color                   #888
+          padding                 0 20px
         > i
         > cite
           abs()
@@ -153,15 +187,19 @@ Group Creation Modal Styles
     text-align                  justify
     borderBox()
     .kd-radio-holder
+      max-width                 150px
       padding                   8px
       display                   inline-block
       text-align                center
       rounded                   12px
-      margin-left               20px
+      margin                    0 auto
       gradient                  #f8f8f8, #f2f2f2
       shadow                    0 1px 3px rgba(0, 0, 0, .3)
+      hidden()
+      &:first-child
+        visible()
       > div
-        size                    88px, 96px
+        size                    auto, 96px
         overflow                hidden
         cursor                  pointer
         shadow                  0 0 0 4px rgba(255, 255, 255, .5)
@@ -169,8 +207,8 @@ Group Creation Modal Styles
         rounded                 6px
         borderBox()
         rel()
-      &:first-child
-        margin-left             0
+      // &:first-child
+      //   margin-left             0
       span
         display                 inline-block
         font-size               20px
@@ -184,14 +222,17 @@ Group Creation Modal Styles
         bg                      color, rgba(0, 0, 0, .05)
         rounded                 4px
         shadow                  0 1px 0 #fff
+        hidden()
       .icon
         margin                  10px auto
         display                 block
         font-style              normal
-        height                  30px
+        height                  80px
         color                   #aaa
         > b
-          font-size             3em
+          font-size             80px
+          line-height           80px
+          font-weight           400
           color                 #888
 
       &:hover > div

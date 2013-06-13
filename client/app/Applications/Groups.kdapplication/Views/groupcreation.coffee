@@ -12,7 +12,7 @@ class GroupCreationModal extends KDModalView
     options.title    or= 'Create a new group'
     options.height   or= 'auto'
     options.cssClass or= "group-creation-modal"
-    options.width     ?= 684
+    options.width     ?= 704
     options.overlay   ?= yes
     options.buttons    =
       submit           :
@@ -22,7 +22,7 @@ class GroupCreationModal extends KDModalView
         callback       : @bound "createGroup"
       next             :
         title          : "Next"
-        style          : "modal-clean-gray hidden"
+        style          : "modal-clean-gray"
         type           : "button"
         callback       : @bound "next"
       back             :
@@ -60,15 +60,16 @@ class GroupCreationModal extends KDModalView
           change    : =>
             @ready =>
               typeSelector = @typeSelector.inputs.selector
-              hostSelector = @hostSelector.inputs.selector
+              # hostSelector = @hostSelector.inputs.selector
+              sharedHost   = @hostSelector.inputs.sharedHost
 
-              @hostSelector?.show()
+              # @hostSelector?.show()
 
-              hostSelector.setValue switch typeSelector.getValue()
-                when "educational" then "4"
-                when "company"     then "2"
-                when "project"     then "1"
-                when "custom"      then "0"
+              # hostSelector.setValue switch typeSelector.getValue()
+              #   when "educational" then "4"
+              #   when "company"     then "2"
+              #   when "project"     then "1"
+              #   when "custom"      then "0"
 
               @setPositions()
 
@@ -129,51 +130,118 @@ class GroupCreationModal extends KDModalView
       for d in descriptions
         descPartial += """
           <section>
-            <p>
+            <p class='hidden'>
               <i>Good for:</i>
               <span>#{d.meta.goodFor}</span>
-              <cite>users</cite>
+              <cite>VMs</cite>
             </p>
             #{d.description}
           </section>"""
-
       @addSubView @hostSelector = new KDFormViewWithFields
-        cssClass      : "hidden host-selector"
-        fields        :
-          label       :
-            itemClass : KDCustomHTMLView
-            tagName   : 'h2'
-            cssClass  : 'heading'
-            partial   : "<span>2</span> How big should the host server be?"
-          selector    :
-            name      : "host"
-            itemClass : HostCreationSelector
-            cssClass  : "host-type"
-            radios    : hostTypes
-            change    : @bound "hostChanged"
+        cssClass         : "host-selector"
+        fields           :
+          label          :
+            itemClass    : KDCustomHTMLView
+            tagName      : 'h2'
+            cssClass     : 'heading'
+            partial      : "<span>2</span> Do you want a shared host for your Group?"
+          sharedHost     :
+            itemClass    : KDOnOffSwitch
+            name         : "shared-vm"
+            defaultValue : no
+            cssClass     : "shared-vm"
+            callback     : @bound "hostChanged"
+          # selector    :
+          #   name      : "host"
+          #   itemClass : HostCreationSelector
+          #   cssClass  : "host-type"
+          #   radios    : hostTypes
+          #   change    : @bound "hostChanged"
           desc        :
             itemClass : KDCustomHTMLView
             cssClass  : "description-field hidden"
-            partial   : descPartial
+            partial   : """<section>
+              This VM is going to be shared among all members of your group, admins will receive sudo rights, each member will have a unix user account.
+              </section>"""
+
+
+      @addSubView @allocation = new KDFormViewWithFields
+        cssClass          : "allocation"
+        fields            :
+          label           :
+            itemClass     : KDCustomHTMLView
+            tagName       : 'h2'
+            cssClass      : 'heading'
+            partial       : "<span>3</span> How much resources do you want to allocate to your each user?"
+          sharedHost      :
+            itemClass     : KDSelectBox
+            type          : "select"
+            name          : "allocation"
+            defaultValue  : "10"
+            cssClass      : "allocation"
+            change        : @bound "allocationChanged"
+            selectOptions : [
+              { title : "$ 10",  value : "10" }
+              { title : "$ 20",  value : "20" }
+              { title : "$ 30",  value : "30" }
+              { title : "$ 50",  value : "50" }
+              { title : "$ 100", value : "100" }
+            ]
+          desc            :
+            itemClass     : KDCustomHTMLView
+            cssClass      : "description-field"
+            partial       : "<section>
+              <p>
+                <i>Good for:</i>
+                <span class='vm'>2</span>
+                <cite>VMs</cite>
+              </p>
+              Each member of your group can have $<span class='price'>10</span> worth of Koding resources e.g. <span class='vm'>2</span> VMs.
+              </section>"
+          approval       :
+            title        : "Admin approval is required on member purchases"
+            itemClass    : KDOnOffSwitch
+            name         : "require-approval"
+            defaultValue : yes
+            cssClass     : "right-aligned"
+          overUsage      :
+            title        : "Allow over-usage"
+            itemClass    : KDOnOffSwitch
+            name         : "allow-over-usage"
+            defaultValue : yes
+            cssClass     : "right-aligned"
 
       @emit 'ready'
 
   hostChanged:->
     {next}           = @buttons
-    {desc, selector} = @hostSelector.inputs
+    {desc, selector, sharedHost} = @hostSelector.inputs
     descField        = @hostSelector.fields.desc
 
-    descField.show()
-    desc.show()
+    if sharedHost.getValue()
+      descField.show()
+      desc.show()
+      # @allocation.show()
+    else
+      # @allocation.hide()
+      descField.hide()
+      desc.hide()
 
-    index      = parseInt selector.getValue(), 10
-    monthlyFee = (@plans[index].feeMonthly/100).toFixed(2)
+    # index      = parseInt selector.getValue(), 10
+    # monthlyFee = (@plans[index].feeMonthly/100).toFixed(2)
+    index      = 0
 
     next.show()
     desc.$('section').addClass 'hidden'
     desc.$('section').eq(index).removeClass 'hidden'
 
     @setPositions()
+
+  allocationChanged:->
+    {desc, sharedHost} = @allocation.inputs
+    price = parseInt sharedHost.getValue(), 10
+    desc.$('section span.vm').text price / 5
+    desc.$('section span.price').text price
 
   back:->
 
@@ -182,6 +250,7 @@ class GroupCreationModal extends KDModalView
     submit.hide()
     next.show()
     @hostSelector.show()
+    @allocation.show()
     @typeSelector.show()
     @mainSettings.hide()
     @setPositions()
@@ -193,29 +262,33 @@ class GroupCreationModal extends KDModalView
     submit.show()
     next.hide()
     @hostSelector.hide()
+    @allocation.hide()
     @typeSelector.hide()
     @mainSettings.show()
     @setPositions()
-    hostSelector = @hostSelector.inputs.selector
-    typeSelector = @typeSelector.inputs.selector
+    # hostSelector = @hostSelector.inputs.selector
+    # typeSelector = @typeSelector.inputs.selector
 
-    for plan, i in @plans when hostSelector.getValue() is i+''
-      hostTitle = plan.item.title
-    @setTitle "Create a Group <b>[#{typeSelector.getValue()}]</b><b>[#{hostTitle}]</b>"
+    # for plan, i in @plans when hostSelector.getValue() is i+''
+    #   hostTitle = plan.item.title
+    # @setTitle "Create a Group <b>[#{typeSelector.getValue()}]</b><b>[#{hostTitle}]</b>"
 
   createGroup:(callback)->
     formData = {}
     @hostSelector.submit()
     @typeSelector.submit()
     @mainSettings.submit()
+    @allocation.submit()
     KD.track "Groups", "CreateGroupLastStepOK"
 
     return unless @hostSelector.valid and @typeSelector.valid and @mainSettings.valid
 
-    formData = _.extend formData, @hostSelector.getFormData(), @typeSelector.getFormData(), @mainSettings.getFormData()
+    formData = _.extend formData, @hostSelector.getFormData(), @typeSelector.getFormData(), @mainSettings.getFormData(), @allocation.getFormData()
 
-    formData.payment =
-      plan: @plans[formData.host].code
+    if formData["shared-vm"]
+      formData.payment =
+        # plan: @plans[formData.host].code
+        plan: @plans[0].code
 
     log "form for group creation submitted", formData
 
