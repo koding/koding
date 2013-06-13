@@ -181,11 +181,11 @@ class GroupCreationModal extends KDModalView
             cssClass      : "allocation"
             change        : @bound "allocationChanged"
             selectOptions : [
-              { title : "$ 10",  value : "1000" }
-              { title : "$ 20",  value : "2000" }
-              { title : "$ 30",  value : "3000" }
-              { title : "$ 50",  value : "5000" }
-              { title : "$ 100", value : "10000" }
+              { title : "$ 10",  value : "10" }
+              { title : "$ 20",  value : "20" }
+              { title : "$ 30",  value : "30" }
+              { title : "$ 50",  value : "50" }
+              { title : "$ 100", value : "100" }
             ]
           desc            :
             itemClass     : KDCustomHTMLView
