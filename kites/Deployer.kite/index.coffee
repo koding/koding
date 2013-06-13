@@ -21,10 +21,8 @@ uuid = require 'node-uuid'
 
 class Deployment
   @pathToContainers = "/var/lib/lxc"
-
-  constructor: (@id, @kiteName, @zipUrl) ->
-    console.log "......Deployment constructor"
-    @kitesPath = path.join Deployment.pathToContainers, @id, "overlay", "opt", "kites"
+  constructor: (@zipUrl, @name, @lxc) ->
+    @kitePath = path.join @pathToContainers, @name, "overlay", "opt", "kites"
 
   createLxc: (callback) ->
     cmd = spawn "create-lxc", [@kiteName]
@@ -36,10 +34,6 @@ class Deployment
     cmd.on 'close', (code) ->
       console.log 'create lxc process exited with code ', code
       callback()
-
-class Deployment
-  constructor: (@zipUrl, @name, @lxc) ->
-    @kitePath = path.join @lxc.pathToContainers, @lxc.name, "overlay", "opt", "kites"
 
   downloadAndExtractKite: (callback) ->
     {kitePath, zipUrl, kiteName} = this
@@ -95,7 +89,7 @@ manifest.name = "Deployer_#{os.hostname()}_#{uuid.v4()}"
 kite.worker manifest, 
 
   deploy: (options, callback) ->
-    {id, kiteName, zipUrl} = options
+    {id, kiteName, version, zipUrl} = options
     deployment = new Deployment(id, kiteName, zipUrl)
     deployment.create-lxc () ->
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
