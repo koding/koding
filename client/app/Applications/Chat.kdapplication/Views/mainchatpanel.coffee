@@ -8,6 +8,12 @@ class MainChatPanel extends JView
 
     @header = new MainChatHeader
 
+    @warningWidget = new KDView
+      cssClass : 'warning-widget'
+      partial  : """Conversations are under construction, you can still
+                    send and receive messages from other Koding users
+                    but these messages will not be saved."""
+
     @conversationList = new ChatConversationListView
     @conversationListController = new ChatConversationListController
       view : @conversationList
@@ -32,6 +38,8 @@ class MainChatPanel extends JView
   viewAppended:->
     @addSubView @header
     @addSubView @conversationList
+    @addSubView @warningWidget
+
     @conversationListController.loadItems()
     @showPanel()  if KD.isLoggedIn()
 

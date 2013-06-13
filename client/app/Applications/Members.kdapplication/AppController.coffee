@@ -291,7 +291,7 @@ class MembersAppController extends AppController
 
 
 class MembersListViewController extends KDListViewController
-  # _windowDidResize:()->
+  # _windowDidResize:->
   #   @scrollView.setHeight @getView().getHeight() - 28
 
   loadView:(mainView)->
@@ -316,7 +316,7 @@ class MembersListViewController extends KDListViewController
 
     return @
 
-  # reloadView:()->
+  # reloadView:->
   #   {query, skip, limit, currentFilter} = @getOptions()
   #   controller = @
 
@@ -329,7 +329,7 @@ class MembersListViewController extends KDListViewController
   #       myItem.on "VisitorProfileWantsToBeShown", controller.getDelegate().bound
   #     controller._windowDidResize()
 
-  # pageDown:()->
+  # pageDown:->
   #   listController = @
   #   {query, skip, limit, currentFilter} = @getOptions()
   #   skip += @getItemCount()

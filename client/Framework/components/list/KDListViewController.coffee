@@ -312,7 +312,7 @@ class KDListViewController extends KDViewController
     @selectItem @itemsOrdered[selectedIndex + -1]
 
 
-  deselectAllItems:()->
+  deselectAllItems:->
     for selectedItem in @selectedItems
       selectedItem.removeHighlight()
       deselectedItems = @selectedItems.concat []
@@ -336,7 +336,7 @@ class KDListViewController extends KDViewController
         @getListView().setClass "last-item-selected"
       @itemSelectionPerformed()
 
-  selectAllItems:()->
+  selectAllItems:->
 
     @selectSingleItem item for item in @itemsOrdered
 

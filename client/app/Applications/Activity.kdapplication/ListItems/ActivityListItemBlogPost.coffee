@@ -21,7 +21,7 @@ class BlogPostActivityItemView extends ActivityItemChild
         {entryPoint} = KD.config
         KD.getSingleton('router').handleRoute "/Activity/#{@getData().slug}", {state:@getData(), entryPoint}
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity
     super()
     @setTemplate @pistachio()

@@ -90,9 +90,9 @@ class HomeFeaturedAppsView extends JView
 class HomeFeaturedAppsListItemView extends KDListItemView
   constructor:(options,data)->
     super options,data
-    {icns, name, version, authorNick} = @getData().manifest
+    {icns, name, identifier, version, authorNick} = @getData().manifest
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['128'] or icns['160'] or icns['512'] or icns['64']}"
+      thumb = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{if icns then icns['256'] or icns['128'] or icns['160'] or icns['512'] or icns['64']}"
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 
@@ -161,10 +161,10 @@ class HomeFeaturedAppsDetailsView extends JView
 
     log @getData()
 
-    {icns, name, version, authorNick, description, author} = manifest
+    {icns, name, identifier, version, authorNick, description, author} = manifest
 
     if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      thumb = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['128'] or icns['160'] or icns['512'] or icns['64']}"
+      thumb = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{if icns then icns['256'] or icns['128'] or icns['160'] or icns['512'] or icns['64']}"
     else
       thumb = "#{KD.apiUri + '/images/default.app.listthumb.png'}"
 

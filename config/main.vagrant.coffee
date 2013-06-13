@@ -107,7 +107,7 @@ module.exports =
       # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
   mq            :
     host        : 'localhost'

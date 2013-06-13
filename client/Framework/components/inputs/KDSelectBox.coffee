@@ -21,7 +21,7 @@ class KDSelectBox extends KDInputView
     @_$title  = @$("span.title").eq(0)
     @domElement
 
-  bindEvents:()->
+  bindEvents:->
     @_$select.bind "blur change focus",(event)=>
       # log "kdselectbox change" if event.type is "change"
       @getCallback()? @getValue() if event.type is "change"
@@ -34,18 +34,18 @@ class KDSelectBox extends KDInputView
     @_$select.val value
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
     @inputDefaultValue = value
-  getDefaultValue:()-> @inputDefaultValue
+  getDefaultValue:-> @inputDefaultValue
 
-  getValue:()-> @_$select.val()
+  getValue:-> @_$select.val()
   setValue:(value)->
     @_$select.val value
     @change()
 
-  makeDisabled:()->
+  makeDisabled:->
     @setClass "disabled"
     @_$select.attr "disabled","disabled"
 
-  makeEnabled:()->
+  makeEnabled:->
     @unsetClass "disabled"
     @_$select.removeAttr "disabled"
 
@@ -67,7 +67,7 @@ class KDSelectBox extends KDInputView
 
     value = @getDefaultValue() or firstOption?.value or ""
     @_$select.val value + "" # casting to number in case, i don't remember why though. SY
-    
+
     # escapedDefault = value.replace /\//g, '\\/'
     @_$title.text @_$select.find("option[value=\"#{value}\"]").text()
 

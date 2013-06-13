@@ -550,7 +550,7 @@ db.jLinkActivities.drop();
 db.jMounts.drop();
 db.jPermissionSets.drop();
 db.jQuestionActivities.drop();
-db.jRegistrationPreferences.drop();
+db.jRegistrationPreferencess.drop();
 db.jRepos.drop();
 db.jSessions.drop();
 db.jStatusActivities.drop();
@@ -668,7 +668,7 @@ print('add group slugs to every collection that needs them');
   'jCodeSnips',
   'jDiscussions',
   'jInvitationRequests',
-  'jCodeShares',
+  'jBlogPosts',
   'jOpinions',
   'jPosts',
   'jStatusUpdates',

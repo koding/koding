@@ -3,15 +3,17 @@ class KDNotificationView extends KDView
     super options
     options = @notificationSetDefaults options
 
-    @notificationSetType    options.type
-    @notificationSetTitle   options.title     if options.title?
-    @notificationSetContent options.content   if options.content?
-    @notificationSetTimer   options.duration  if options.duration?
-    @notificationSetOverlay options.overlay   if options.overlay? and \
-                                                 options.overlay
-
-    @notificationShowTimer() if options.showTimer? and options.showTimer
+    @notificationSetType        options.type
+    @notificationSetTitle       options.title         if options.title?
+    @notificationSetContent     options.content       if options.content?
+    @notificationSetTimer       options.duration      if options.duration?
+    @notificationSetOverlay     options.overlay       if options.overlay?
+    @notificationSetFollowUps   options.followUps     if options.followUps?
+    @notificationShowTimer()                          if options.showTimer?
     @notificationSetCloseHandle options.closeManually
+    
+    @once "viewAppended",       @bound "setLoader"    if options.loader
+
     @notificationDisplay()
 
   # OVERRIDE KDView
@@ -23,14 +25,14 @@ class KDNotificationView extends KDView
         <div class='kdnotification-content hidden'></div>
       </div>"
 
-  destroy:()->
+  destroy:->
     @notificationCloseHandle.unbind ".notification"
     @notificationOverlay.remove() if @notificationOverlay?
     super()
     @notificationStopTimer()
     @notificationRepositionOtherNotifications()
 
-  viewAppended:()-> @notificationSetPositions()
+  viewAppended:-> @notificationSetPositions()
 
   # OWN METHODS
   notificationSetDefaults:(options)->
@@ -51,7 +53,7 @@ class KDNotificationView extends KDView
   notificationSetType:(type = "main")->
     @notificationType = type
 
-  notificationSetPositions:()->
+  notificationSetPositions:->
     @setClass @notificationType
     sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
 
@@ -91,7 +93,7 @@ class KDNotificationView extends KDView
 
     @getDomElement().css styles
 
-  notificationRepositionOtherNotifications:()->
+  notificationRepositionOtherNotifications:->
 
     sameTypeNotifications = $("body").find ".kdnotification.#{@notificationType}"
     heights = ($(elm).outerHeight(no) for elm,i in sameTypeNotifications)
@@ -130,6 +132,20 @@ class KDNotificationView extends KDView
       @notificationTimerDiv.text next
     ,1000
 
+  notificationSetFollowUps: (followUps)->
+
+    followUps = [followUps]  unless Array.isArray followUps
+    chainDuration = 0
+    
+    followUps.forEach (followUp)=>
+
+      chainDuration += followUp.duration ? 10000
+
+      @utils.wait chainDuration, =>
+        @notificationSetTitle   followUp.title    if followUp.title
+        @notificationSetContent followUp.content  if followUp.content
+        @notificationSetPositions()
+
   notificationShowTimer:()->
     @notificationTimerDiv.removeClass "hidden"
     @getDomElement().bind "mouseenter",()=>
@@ -138,25 +154,71 @@ class KDNotificationView extends KDView
       newDuration = parseInt(@notificationTimerDiv.text(),10)*1000
       @notificationSetTimer newDuration
 
-  notificationStopTimer:()->
+  notificationStopTimer:->
     clearTimeout @notificationTimeout
     clearInterval @notificationInterval
 
-  notificationSetOverlay:()->
+  notificationSetOverlay:(options)->
+
+    options.transparent     ?= yes
+    options.destroyOnClick  ?= yes
+
     @notificationOverlay = $ "<div/>",
       class : "kdoverlay transparent"
     @notificationOverlay.hide()
+    @notificationOverlay.removeClass "transparent"  unless options.transparent
     @notificationOverlay.appendTo "body"
     @notificationOverlay.fadeIn 200
     @notificationOverlay.bind "click",()=>
-      @destroy()
+      @destroy()  if options.destroyOnClick
   notificationGetOverlay:()-> @notificationOverlay
+
+  setLoader:->
+    @setClass "w-loader"
+    {loader} = @getOptions()
+
+    loader.diameter or= switch @notificationType
+      when "tray"   then 25
+      when "growl"  then 30
+      when "mini"   then 18
+      when "sticky" then 25
+      else               30
+
+    @loader = new KDLoaderView
+      size          :
+        width       : loader.diameter
+      loaderOptions :
+        color       : loader.color    or "#ffffff"
+        shape       : loader.shape    or "spiral"
+        diameter    : loader.diameter
+        density     : loader.density   ? 30
+        range       : loader.range     ? 0.4
+        speed       : loader.speed     ? 1.5
+        FPS         : loader.FPS       ? 24
+
+    @addSubView @loader, null, yes
+    @$().css
+      paddingLeft : loader.diameter*2
+    @loader.$().css
+      position    : "absolute"
+      left        : loader.left or Math.floor loader.diameter / 2
+      top         : loader.top  or "50%"
+      marginTop   : -(loader.diameter/2)
+    @loader.show()
+
+  showLoader:->
+    @setClass "loading"
+    @loader.show()
+
+  hideLoader:->
+    @unsetClass "loading"
+    @loader.hide()
 
   notificationSetContent:(content)->
     @notificationContent = content
     @getDomElement().find(".kdnotification-content").removeClass("hidden").html content
 
-  notificationDisplay:()->
+  notificationDisplay:->
     if @getOptions().container
       @getOptions().container.addSubView @
     else

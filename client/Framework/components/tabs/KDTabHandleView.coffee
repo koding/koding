@@ -41,10 +41,10 @@ class KDTabHandleView extends KDView
 
   partial:-> "<b>#{@getOptions().title or 'Default Title'}</b>"
 
-  makeActive:()->
+  makeActive:->
     @getDomElement().addClass "active"
 
-  makeInactive:()->
+  makeInactive:->
     @getDomElement().removeClass "active"
 
   setTitle:(title)->

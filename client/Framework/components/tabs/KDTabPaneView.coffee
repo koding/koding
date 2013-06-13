@@ -20,13 +20,13 @@ class KDTabPaneView extends KDView
   becameInactive: noop
   aboutToBeDestroyed: noop
 
-  show:()->
+  show:->
     @unsetClass "kdhiddentab"
     @setClass "active"
     @active = yes
     @emit "KDTabPaneActive"
 
-  hide:()->
+  hide:->
     @unsetClass "active"
     @setClass "kdhiddentab"
     @active = no
@@ -40,7 +40,7 @@ class KDTabPaneView extends KDView
   getHandle: ->
     @getDelegate().getHandleByPane @
 
-  hideTabCloseIcon:()->
+  hideTabCloseIcon:->
     @getDelegate().hideCloseIcon @
 
   setMainView:->

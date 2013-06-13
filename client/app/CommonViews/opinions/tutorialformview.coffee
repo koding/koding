@@ -116,7 +116,7 @@ class TutorialFormView extends KDFormView
 
         url
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options tutorial"
     @setTemplate @pistachio()
     @template.update()
