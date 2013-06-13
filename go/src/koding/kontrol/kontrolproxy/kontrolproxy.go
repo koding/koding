@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -29,16 +30,16 @@ type RabbitChannel struct {
 
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
-var connections map[string]RabbitChannel
+var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var templates = template.Must(template.ParseFiles("go/templates//proxy/securepage.html"))
+var users = make(map[string]time.Time)
+var usersLock sync.RWMutex
 
 func main() {
 	log.Printf("kontrol proxy started ")
-	connections = make(map[string]RabbitChannel)
-
 	// open and read from DB
 	var err error
 	proxyDB, err = proxyconfig.Connect()
@@ -267,6 +268,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
+	if !isUserRegistered(user.IP) {
+		go registerUser(user.IP)
+		go logDomainRequests(outreq.Host)
+		go logProxyStat(hostname, user.Country)
+	}
+
 	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
 	if isWebsocket(outreq) {
@@ -301,8 +308,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
-		go logDomainRequests(outreq.Host)
-		go logProxyStat(hostname, user.Country)
 
 		transport := p.Transport
 		if transport == nil {
@@ -373,4 +378,49 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 	io.Copy(dst, src)
+}
+
+func registerUser(ip string) {
+	usersLock.Lock()
+	defer usersLock.Unlock()
+	users[ip] = time.Now()
+	if len(users) == 1 {
+		go cleaner()
+	}
+}
+
+// The goroutine basically does this: as long as there are users in the map, it
+// finds the one it should be deleted next, sleeps until it's time to delete it
+// (one hour - time since user registration) and deletes it.  If there are no
+// users, the goroutine exits and a new one is created the next time a user is
+// registered. The time.Sleep goes toward zero, thus it will not lock the
+// for iterator forever.
+func cleaner() {
+	usersLock.RLock()
+	for len(users) > 0 {
+		var nextTime time.Time
+		var nextUser string
+		for u, t := range users {
+			if nextTime.IsZero() || t.Before(nextTime) {
+				nextTime = t
+				nextUser = u
+			}
+		}
+		usersLock.RUnlock()
+		// negative duration is no-op, means it will not panic
+		time.Sleep(time.Hour - time.Now().Sub(nextTime))
+		usersLock.Lock()
+		delete(users, nextUser)
+		usersLock.Unlock()
+		usersLock.RLock()
+	}
+	usersLock.RUnlock()
+}
+
+// Needed to avoid race condition between multiple go routines
+func isUserRegistered(ip string) bool {
+	usersLock.RLock()
+	defer usersLock.RUnlock()
+	_, ok := users[ip]
+	return ok
 }
