@@ -55,7 +55,7 @@ class Status extends KDController
     @eachKite (channel)->
       channel.setStartPinging()
 
-  disconnected: () ->
+  disconnected: ->
     return "already disconnected"  if @connectionState is DOWN
 
     @stopPingingKites()

@@ -33,7 +33,7 @@ class AccountDatabaseListController extends KDListViewController
       icon      : yes
       iconOnly  : yes
       iconClass : "plus"
-      callback  : ()=> list.showAddModal()
+      callback  : => list.showAddModal()
 
     @getView().parent.addSubView refreshButton = new KDButtonView
       style     : "clean-gray account-header-second-button"

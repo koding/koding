@@ -8,7 +8,7 @@ class KDInputSwitch extends KDInputView
     super options
     @setPartial "<input class='checkbox hidden no-kdinput' type='checkbox' name='#{@getName()}'/>"
 
-  setDomElement:()->
+  setDomElement:->
     @domElement = $ "<span class='kdinput kdinputswitch off'></span>"
 
   setDefaultValue:(value) ->
@@ -16,9 +16,9 @@ class KDInputSwitch extends KDInputView
       when on,"on","true","yes",1 then @_setDefaultValue on
       else @_setDefaultValue off
 
-  getDefaultValue:()-> @inputDefaultValue
+  getDefaultValue:-> @inputDefaultValue
 
-  getValue:()-> @getDomElement().find("input").eq(0).is ":checked"
+  getValue:-> @getDomElement().find("input").eq(0).is ":checked"
   setValue:(value)->
     switch value
       when on   then @switchAnimateOn()
@@ -37,7 +37,7 @@ class KDInputSwitch extends KDInputView
         @getDomElement().removeClass("on").addClass("off")
     , 0
 
-  switchAnimateOff:()->
+  switchAnimateOff:->
     return unless @getValue()
     counter = 0
     timer = setInterval ()=>
@@ -50,7 +50,7 @@ class KDInputSwitch extends KDInputView
       counter++
     ,20
 
-  switchAnimateOn:()->
+  switchAnimateOn:->
     return if @getValue()
     counter = 6
     timer = setInterval ()=>
@@ -63,11 +63,11 @@ class KDInputSwitch extends KDInputView
       counter--
     ,20
 
-  switchStateChanged:()->
+  switchStateChanged:->
     # log "new state of #{@getName()} is #{@getValue()}",@getCallback()?
     @getCallback().call @,@getValue() if @getCallback()?
 
-  mouseDown:()->
+  mouseDown:->
     switch @getValue()
       when on   then @setValue off
       when off  then @setValue on

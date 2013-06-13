@@ -1,7 +1,7 @@
 
 class ActivityInnerNavigation extends CommonInnerNavigation
 
-  viewAppended:()->
+  viewAppended:->
 
     filterFirstController = @setListController
       type: "filterme"
@@ -23,7 +23,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       type : "showme"
       itemClass : ListGroupShowMeItem
     , menudata
-    
+
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
 

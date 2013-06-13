@@ -83,7 +83,7 @@ class KDAutoCompleteController extends KDViewController
         @readyToShowDropDown = yes
     no
 
-  getPrefix:()->
+  getPrefix:->
     separator = @getOptions().separator
     items = @getView().getValue().split separator
     prefix = items[items.length-1]
@@ -322,11 +322,11 @@ class KDAutoCompleteController extends KDViewController
     item.destroy()
     @emit 'ItemListChanged', @selectedItemCounter
 
-  rearrangeInputWidth:()->
+  rearrangeInputWidth:->
     # mainView = @getView()
     # mainView.$input().width mainView.$input().parent().width() - mainView.$input().prev().width()
 
-  appendAutoCompletedItem:()->
+  appendAutoCompletedItem:->
     @getView().setValue ""
     @getView().$input().trigger "focus"
 

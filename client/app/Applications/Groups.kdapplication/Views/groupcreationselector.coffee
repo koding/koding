@@ -1,6 +1,6 @@
 class GroupCreationSelector extends KDInputRadioGroup
 
-  setDomElement:()->
+  setDomElement:->
     options = @getOptions()
     @domElement = $ "<fieldset class='#{@utils.curryCssClass 'radiogroup kdinput', options.cssClass}'></fieldset>"
 
@@ -45,7 +45,7 @@ class GroupCreationSelector extends KDInputRadioGroup
 
 class HostCreationSelector extends GroupCreationSelector
 
-  setDomElement:()->
+  setDomElement:->
     options = @getOptions()
     @domElement = $ "<fieldset class='#{@utils.curryCssClass 'radiogroup kdinput', options.cssClass}'></fieldset>"
 

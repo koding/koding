@@ -9,24 +9,24 @@ class KDAutoCompleteListItemView extends KDListItemView
 
     @active = no
 
-  viewAppended:()-> @updatePartial @partial @data
+  viewAppended:-> @updatePartial @partial @data
 
-  mouseEnter:()-> @makeItemActive()
+  mouseEnter:-> @makeItemActive()
 
-  mouseLeave:()-> @makeItemInactive()
+  mouseLeave:-> @makeItemInactive()
 
-  makeItemActive:()->
+  makeItemActive:->
     item.makeItemInactive() for item in @getDelegate().items
     @active = yes
     @setClass "active"
 
-  makeItemInactive:()->
+  makeItemInactive:->
     @active = no
     @unsetClass "active"
 
-  click:()->
+  click:->
     list = @getDelegate()
     list.emit 'KDAutoCompleteSubmit', @, @data
     no
 
-  partial:()-> "<div class='autocomplete-item clearfix'>Default item</div>"
+  partial:-> "<div class='autocomplete-item clearfix'>Default item</div>"

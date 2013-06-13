@@ -11,7 +11,7 @@ class CommonView_InputWithButton extends KDFormView
     options.cssClass = "common-view input-with-extras #{options.cssClass}"
     super options,data
 
-  viewAppended:()->
+  viewAppended:->
 
     {icon,input,button} = @getOptions()
 
@@ -35,7 +35,7 @@ class CommonView_InputWithButton extends KDFormView
     @input.on "ValidationError", => @setClass "validation-error"
     @input.on "ValidationPassed", => @unsetClass "validation-error"
 
-  getValue:()->
+  getValue:->
 
     @input.getValue()
 

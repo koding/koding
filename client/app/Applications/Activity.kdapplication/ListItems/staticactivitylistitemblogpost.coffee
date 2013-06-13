@@ -25,7 +25,7 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
       title     : @applyTextExpansions data.title
       target    : '_blank'
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CBlogPostActivity
     super()
     @setTemplate @pistachio()

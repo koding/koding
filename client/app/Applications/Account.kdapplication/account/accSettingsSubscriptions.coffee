@@ -55,7 +55,7 @@ class AccountSubscriptionsListItem extends KDListItemView
     options = tagName : "li"
     super options,data
 
-  # viewAppended:()->
+  # viewAppended:->
   #   super
   #   @addSubView editLink = new KDCustomHTMLView
   #     tagName      : "a"

@@ -3,7 +3,7 @@ class KDBlockingModalView extends KDModalView
     super
     $(window).off "keydown.modal"
 
-  putOverlay:()->
+  putOverlay:->
     @$overlay = $ "<div/>",
       class : "kdoverlay"
     @$overlay.hide()

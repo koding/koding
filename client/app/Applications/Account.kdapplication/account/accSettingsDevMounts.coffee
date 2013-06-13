@@ -33,7 +33,7 @@ class AccountMountListController extends KDListViewController
     #   icon      : yes
     #   iconOnly  : yes
     #   iconClass : "plus"
-    #   callback  : ()=>
+    #   callback  : =>
     #     @getListView().showAddEditModal null
 
   loadItems:(callback)->
