@@ -84,7 +84,7 @@ class ProfileView extends JView
         tagName      : "a"
         partial      : if KD.checkFlag('exempt', memberData) then 'Unmark Troll' else 'Mark as Troll'
         cssClass     : "troll-switch"
-        click        :() =>
+        click        : =>
           if KD.checkFlag('exempt', memberData)
             @getSingleton('mainController').unmarkUserAsTroll memberData
           else

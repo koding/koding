@@ -35,7 +35,7 @@ class PermissionsModal extends KDFormViewWithFields
                   color     : "#444444"
                   diameter  : 12
 
-                callback  : ()=>
+                callback  : =>
                   name    = @inputRoleName.getValue()
                   nameSlug= @utils.slugify name
                   copy    = @inputCopyPermissions.getValue()
@@ -60,7 +60,7 @@ class PermissionsModal extends KDFormViewWithFields
               Cancel :
                 style     : "add-role-cancel modal-cancel"
                 cssClass  : 'add-role-cancel'
-                callback  : ()=>
+                callback  : =>
                   @buttons["Add Role"].hideLoader()
                   addRoleDialog.hide()
 

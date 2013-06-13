@@ -59,7 +59,7 @@ class KDMultipleInputView extends KDSimpleAutocomplete
     @removeAllItems()
     @_inputChanged()
 
-  inputAddCurrentValue: () ->
+  inputAddCurrentValue: ->
     value = @$input().val()
     value = $.trim value
 

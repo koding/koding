@@ -7,7 +7,7 @@ class KDDialogView extends KDView
       buttons       :
         Cancel :
           style     : "clean-red"
-          callback  : ()=>
+          callback  : =>
             @hide()
 
     options = $.extend defaultOptions, options
