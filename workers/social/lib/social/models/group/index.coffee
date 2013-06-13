@@ -1296,16 +1296,6 @@ module.exports = class JGroup extends Module
     JVM                  = require '../vm'
     async                = require 'async'
 
-    # _checkGroupVMs = (cb)=>
-    #   JRecurlySubscription.getGroupSubscriptions @, (err, subs)->
-    #     return cb new KodingError "Payment backend error: #{err}"  if err
-
-    #     vms = {}
-    #     subs.forEach (sub)->
-    #       if sub.status is 'active'
-    #         vms[sub.planCode] = sub.quantity
-    #     cb null, vms
-
     _createVMs = (type, cb)=>
       if type is 'user'
         planOwner = "user_#{delegate._id}"
@@ -1328,9 +1318,6 @@ module.exports = class JGroup extends Module
           if sub.status is 'active' and sub.planCode.indexOf('group_vm_') > -1
             paidVMs[sub.planCode] = sub.quantity
 
-        console.log paidVMs
-        console.log planOwner
-
         createdVMs = {}
         JVM.someData
           planOwner: planOwner
@@ -1346,8 +1333,6 @@ module.exports = class JGroup extends Module
                 createdVMs[vm.planCode] = 0
               createdVMs[vm.planCode] += 1
 
-            console.log createdVMs
-
             stack = []
 
             Object.keys(paidVMs).forEach (planCode)=>
@@ -1357,7 +1342,6 @@ module.exports = class JGroup extends Module
               else
                 quantity = vmQuantity - createdVMs[planCode]
               for i in [1..quantity] when quantity >= 1
-                console.log "Creating #{planCode}"
                 stack.push (_cb)=>
                   options     =
                     planCode  : planCode
