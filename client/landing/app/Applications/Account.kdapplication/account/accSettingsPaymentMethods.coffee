@@ -102,7 +102,7 @@ class AccountPaymentMethodsListController extends KDListViewController
     list.on 'reload', (data)=>
       @loadItems()
 
-  loadItems: ()->
+  loadItems: ->
     @removeAllItems()
     @showLazyLoader no
 
