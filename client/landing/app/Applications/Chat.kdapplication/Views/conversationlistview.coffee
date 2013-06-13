@@ -13,7 +13,7 @@ class ChatConversationListView extends KDListView
     return unless index >= 0
 
     if index - 1 >= 0
-      item.conversation.collapse()
+      item.collapseConversation()
       @items[index - 1].expandConversation() # toggleConversation()
 
   goDown:(item)->
@@ -21,5 +21,5 @@ class ChatConversationListView extends KDListView
     return unless index >= 0
 
     if index + 1 < @items.length
-      item.conversation.collapse()
+      item.collapseConversation()
       @items[index + 1].expandConversation() # toggleConversation()
