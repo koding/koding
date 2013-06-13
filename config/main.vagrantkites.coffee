@@ -12,13 +12,13 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "http://local.koding.com:3020"
+    address     : "http://local.koding.com:80"
   userSitesDomain: 'local.koding.com'
   projectRoot   : projectRoot
   version       : version
   webserver     :
     login       : 'prod-webserver'
-    port        : 3020
+    port        : 80
     clusterSize : 1
     queueName   : socialQueueName+'web'
     watch       : yes
@@ -90,7 +90,7 @@ module.exports =
     indexMaster : "index-master.html"
     index       : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: 'http://local.koding.com:3020'
+    staticFilesBaseUrl: 'http://local.koding.com'
     runtimeOptions:
       userSitesDomain: 'local.koding.com'
       useNeo4j: yes
@@ -102,7 +102,7 @@ module.exports =
       apiUri    : 'https://dev-api.koding.com'
       # Is this correct?
       version   : version
-      mainUri   : 'http://local.koding.com:3020'
+      mainUri   : 'http://local.koding.com'
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : 'http://local.koding.com:3526'
   mq            :
