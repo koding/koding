@@ -10,6 +10,7 @@ class AppView extends KDView
       style           : "kdwhitebtn"
       dataPath        : "followee"
       defaultState    : "Follow"
+      disabled        : !app.approved
       states          : [
         title         : "Follow"
         callback      : (cb)->
@@ -33,6 +34,7 @@ class AppView extends KDView
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
       defaultState    : 'Like'
+      disabled        : !app.approved
       states          : [
         title         : "Like"
         callback      : (cb)->
@@ -170,9 +172,9 @@ class AppView extends KDView
         @installButton.hide()
         @openAppButton.show()
 
-    {icns, name, version, authorNick} = app.manifest
+    {icns, identifier, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+      "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
     else
       "#{KD.apiUri + '/images/default.app.thumb.png'}"
 
