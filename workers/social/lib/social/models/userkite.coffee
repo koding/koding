@@ -20,6 +20,7 @@ class JUserKite extends jraphical.Module
       latest_s3url    : String
       kitename        : String
       owner           : String
+      hash:String
       latest_version  : 
         type: String # ???
         default:1
@@ -88,6 +89,7 @@ class JUserKiteVersion extends jraphical.Module
       kitename        : String
       owner           : String
       version         : String
+      hash : String
       createdAt   :
         type      : Date
         default   : -> new Date

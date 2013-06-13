@@ -278,7 +278,7 @@ app.post "/-/kd/upload", s3..., (req, res)->
           return res.send err
         userkite.newVersion (err)->
           if not err
-            res.send {url:zipurl, version: userkite.latest_version}
+            res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
           else
             res.send err
 
