@@ -26,19 +26,17 @@ class MainController extends KDController
     # will be deprecated soon.
     window.appManager = new ApplicationManager
 
-    KD.registerSingleton "appManager", appManager
-    KD.registerSingleton "mainController", @
-    KD.registerSingleton "kiteController", new KiteController
-    KD.registerSingleton "vmController", new VirtualizationController
-    KD.registerSingleton "contentDisplayController", new ContentDisplayController
-    KD.registerSingleton "notificationController", new NotificationController
-    KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton "mainController",            this
+    KD.registerSingleton "appManager",                appManager
+    KD.registerSingleton "kiteController",            new KiteController
+    KD.registerSingleton "vmController",              new VirtualizationController
+    KD.registerSingleton "contentDisplayController",  new ContentDisplayController
+    KD.registerSingleton "notificationController",    new NotificationController
+    KD.registerSingleton "linkController",            new LinkController
+    KD.registerSingleton 'router',           router = new KodingRouter location.pathname
+
+    # KD.registerSingleton "localStorageController", new LocalStorageController
     # KD.registerSingleton "fatih", new Fatih
-
-    KD.registerSingleton "linkController", new LinkController
-
-    router = new KodingRouter location.pathname
-    KD.registerSingleton 'router', router
 
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
@@ -48,7 +46,7 @@ class MainController extends KDController
 
     @ready =>
       router.listen()
-      KD.registerSingleton "activityController", new ActivityController
+      KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
       @emit 'FrameworkIsReady'
