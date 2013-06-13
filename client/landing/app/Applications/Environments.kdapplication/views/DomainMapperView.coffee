@@ -42,8 +42,14 @@ class DomainVMListItemView extends KDListItemView
     super options, data
 
     listViewData   = @getDelegate().getData()
-    switchStatus   = if @getData().hostnameAlias in listViewData.hostnameAliases then on else off
+    switchStatus   = off
+    for hostnameAlias in @getData().hostnameAlias
+      if hostnameAlias in listViewData.hostnameAliases
+        switchStatus = on
+
     domainInstance = listViewData.domain
+
+    console.log @getData()
 
     @onOff = new KDOnOffSwitch
       size        : 'small'
