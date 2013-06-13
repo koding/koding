@@ -35,7 +35,7 @@ module.exports = class JGroupBundle extends JBundle
           ['allowed', 'by permission', 'not allowed']
         ]
         default       : 'not allowed'
-      sharedVm        : Boolean
+      sharedVM        : Boolean
       paymentPlan     : String
       allocation      : Number
 
