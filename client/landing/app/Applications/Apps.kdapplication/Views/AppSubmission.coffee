@@ -43,7 +43,7 @@ class AppSubmissionModal extends KDModalViewWithForms
               back1             :
                 title           : "← back"
                 style           : "modal-cancel"
-                callback        : ()=>
+                callback        : =>
                   @modalTabs.showPreviousPane()
             fields              :
               ScriptInfo        :
@@ -93,7 +93,7 @@ class AppSubmissionModal extends KDModalViewWithForms
               back              :
                 title           : "← back"
                 style           : "modal-cancel"
-                callback        : ()=>
+                callback        : =>
                   @modalTabs.showPreviousPane()
             fields              :
               thumbnail         :
@@ -113,7 +113,7 @@ class AppSubmissionModal extends KDModalViewWithForms
               back              :
                 title           : "← back"
                 style           : "modal-cancel"
-                callback        : ()=>
+                callback        : =>
                   @modalTabs.showPreviousPane()
 
     super options
@@ -131,7 +131,7 @@ class AppPreSubmitPreview extends KDScrollView
     requirementsData = {syntax : data.requirementsSyntax, content : Encoder.htmlEncode(data.requirementsCode), title : ""}
     @requirementsView = new AppCodeSnippetView {}, requirementsData
 
-  viewAppended:()->
+  viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 

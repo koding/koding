@@ -11,7 +11,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    {icns, name, version, author, description,
+    {icns, name, identifier, version, author, description,
      authorNick, additionalinfo} = manifest = @getData()
 
     additionalinfo or= ''
@@ -24,10 +24,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
     proxifyUrl=(url)->
       KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
-    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/"
 
     if manifest.devMode
-      resourceRoot = "https://#{authorNick}.koding.com/.applications/#{__utils.slugify name}/"
+      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/"
 
     thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
 
@@ -125,6 +125,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @devModeView = new KDView
 
   appDeleteCall:(manifest)->
+    KD.track "Apps", "ApplicationDelete", manifest.name
     apps      = @getSingleton("kodingAppsController")
     appPath   = apps.getAppPath manifest.path, yes
     appFolder = FSHelper.createFileFromPath appPath, 'folder'
@@ -152,6 +153,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
               $(event.target).closest('.dev-mode').length > 0
     manifest = @getData()
     @showLoader()
+    KD.track "Apps", "ApplicationRun", manifest.name
     @getSingleton("kodingAppsController").runApp manifest, => @hideLoader()
 
   showLoader:->
@@ -198,6 +200,7 @@ class GetMoreAppsButton extends StartTabAppThumbView
     return if $(event.target).closest('.icon-container').length > 0
     @showLoader()
     KD.getSingleton("appManager").open 'Apps', => @hideLoader()
+    KD.track "Apps", "GetMoreAppsClicked"
 
 
 class AppShortcutButton extends StartTabAppThumbView
@@ -221,7 +224,9 @@ class AppShortcutButton extends StartTabAppThumbView
       @deleteModal.buttons.Delete.hideLoader()
       @deleteModal.destroy()
       @hideLoader()
-      if not err then @destroy()
+      unless err
+        @destroy()
+        KD.track "Apps", "RemoveShortcutClicked"
 
   click:(event)->
 

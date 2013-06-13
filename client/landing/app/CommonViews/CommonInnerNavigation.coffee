@@ -1,10 +1,9 @@
 class CommonInnerNavigation extends KDView
 
-  constructor:->
+  constructor:(options = {}, data)->
 
-    super
-
-    @setClass "common-inner-nav"
+    options.cssClass = KD.utils.curryCssClass "common-inner-nav", options.cssClass
+    super options, data
 
   setListController:(options,data,isSorter = no)->
 
@@ -48,6 +47,14 @@ class CommonInnerNavigationListController extends KDListViewController
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
 
+  getItemByName:(name)->
+    for navItem in @itemsOrdered when navItem.getData()?.title is name
+      return navItem
+
+  selectItemByName:(name)->
+    @selectItem item  if item = @getItemByName name
+    return item
+
 class CommonInnerNavigationList extends KDListView
   constructor : (options = {},data)->
     options.tagName or= "ul"
@@ -69,4 +76,4 @@ class CommonInnerNavigationListItem extends KDListItemView
     super options,data
     @setClass data.type
 
-  partial:()-> ""
+  partial:-> ""

@@ -126,10 +126,14 @@ class WebTermView extends KDView
         sizeX  : @terminal.sizeX
         sizeY  : @terminal.sizeY
     , (err, remote) =>
-      @terminal.server = remote
-      remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
-      @setKeyView()
-      @emit "WebTermConnected", remote
+      if err
+        # We don't create any error popup not to be annoying. User can handle the error.
+        error err
+      else
+        @terminal.server = remote
+        remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
+        @setKeyView()
+        @emit "WebTermConnected", remote
 
   destroy: ->
     super

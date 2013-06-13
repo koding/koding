@@ -60,7 +60,7 @@ class Sidebar extends JView
 
     @finder = @finderController.getView()
     KD.registerSingleton "finderController", @finderController
-    @finderController.on 'ManageResources', @bound 'toggleResources'
+    @finderController.on 'ShowEnvironments', => @finderBottomControlPin.click()
 
     # Finder Bottom Controls
     @finderBottomControlsController = new KDListViewController
@@ -74,7 +74,7 @@ class Sidebar extends JView
     @finderBottomControlPin = new KDToggleButton
       cssClass     : "finder-bottom-pin"
       iconOnly     : yes
-      defaultState : "hide"
+      defaultState : "show"
       states       : [
         title      : "show"
         iconClass  : "up"
@@ -88,6 +88,28 @@ class Sidebar extends JView
           @hideBottomControls()
           callback?()
       ]
+
+    @finderController.on 'EnvironmentsTabRequested', =>
+      @finderBottomControlPin.setState 'hide'
+      @showBottomControls()
+
+    @resourcesController = new ResourcesController
+    @resourcesWidget = @resourcesController.getView()
+
+    @createNewVMButton = new KDButtonView
+      title     : "Create New VM"
+      icon      : yes
+      iconClass : "plus-orange"
+      cssClass  : "clean-gray create-vm"
+      callback  : KD.getSingleton('vmController').createNewVM
+
+    @environmentButton = new KDButtonView
+      title     : "Environments"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "cog"
+      cssClass  : "clean-gray open-environment"
+      callback  :-> appManager.open "Environments"
 
     @listenWindowResize()
 
@@ -119,6 +141,7 @@ class Sidebar extends JView
     @$('#main-nav').on "mouseleave", @bound "animateLeftNavOut"
 
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+    @bindTransitionEnd()
 
   changeLayout:(options)->
 
@@ -164,8 +187,10 @@ class Sidebar extends JView
         {{> @finder}}
       </div>
       <div id='finder-bottom-controls'>
-        {{> @finderBottomControlPin}}
         {{> @finderBottomControls}}
+        {{> @finderBottomControlPin}}
+        {{> @resourcesWidget}}
+        {{> @createNewVMButton}}
       </div>
     </div>
     """
@@ -203,22 +228,34 @@ class Sidebar extends JView
       callback?()
       @emit "NavigationPanelWillCollapse"
 
-  hideBottomControls:->
-    @$('#finder-bottom-controls').addClass 'go-down'
-    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - 27
-
   showBottomControls:->
-    @$('#finder-bottom-controls').removeClass 'go-down'
+    $fbc = @$('#finder-bottom-controls')
+    $fbc.addClass 'in'
+    @_windowDidResize()
 
-  toggleResources:->
-    @$('#finder-bottom-controls').toggleClass 'show-resources'
+  hideBottomControls:->
+    $fbc = @$('#finder-bottom-controls')
+    $fbc.css top : "100%"
+    $fbc.removeClass 'in'
+    @_windowDidResize()
+
+  _resizeResourcesList:->
+    $fbc     = @$('#finder-bottom-controls')
+    $resList = $fbc.find('.resources-list')
+    fbch     = $fbc.height()
+    h        = @getHeight()
+
+    $resList.css maxHeight : if fbch > h then h/2 else "none"
+
+    return if $fbc.hasClass 'in'
+      $fbc.css top : "#{100 - ((fbch = $fbc.height())-27) / h * 100}%"
+      return fbch
+    else 27
 
   _windowDidResize:->
-
-    {winWidth} = @getSingleton('windowController')
-
-    bottomListHeight = @$("#finder-bottom-controls").height() or 109
-    @$("#finder-holder").height @getHeight() - @$("#finder-header-holder").height() - bottomListHeight
+    $fbc = @$('#finder-bottom-controls')
+    h = @_resizeResourcesList()
+    @$("#finder-holder").height @getHeight() - h - 50
 
   navItems =
     # temp until groups are implemented
@@ -260,23 +297,23 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      {
-        title   : "Launch Terminal", icon : "terminal",
-        appPath : "WebTerm", isWebTerm : yes
-      }
-      { title   : "Settings",           icon : "cog" }
-      {
-        title   : "Keyboard Shortcuts", icon : "shortcuts",
-        action  : "showShortcuts"
-      }
       # {
-      #   title   : "Manage Resources",   icon : "resources",
-      #   action  : "manageResources"
+      #   title   : "Launch Terminal", icon : "terminal",
+      #   appPath : "WebTerm", isWebTerm : yes
+      # }
+      # { title   : "Settings",           icon : "cog" }
+      # {
+      #   title   : "Keyboard Shortcuts", icon : "shortcuts",
+      #   action  : "showShortcuts"
       # }
       {
-        title   : "Create a new VM",      icon : "plus",
-        action  : "createNewVM"
+        title   : "your environments",   icon : "resources",
+        action  : "showEnvironments"
       }
+      # {
+      #   title   : "Create a new VM",      icon : "plus",
+      #   action  : "createNewVM"
+      # }
     ]
 
   adminNavItems =

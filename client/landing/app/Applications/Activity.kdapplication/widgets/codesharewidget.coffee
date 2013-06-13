@@ -811,6 +811,7 @@ class ActivityCodeShareWidget extends KDFormView
       ,8000
 
     super
+    KD.track "Activity", "CodeShareSubmitted"
 
   reset:->
     @submitBtn.setTitle "Post your Code Share"
@@ -1083,7 +1084,7 @@ class ActivityCodeShareWidget extends KDFormView
     # @CSSace.editor.resize()
     # @JSace.editor.resize()
 
-  viewAppended:()->
+  viewAppended:->
 
     @codeShareBoxView = new CodeShareBox
       allowEditing:yes

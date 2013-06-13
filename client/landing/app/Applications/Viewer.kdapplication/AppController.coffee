@@ -13,7 +13,7 @@ class ViewerAppController extends KDViewController
         return cb true  unless path
         path = FSHelper.plainPath path
         publicPath = path.replace \
-          ///.*\/(.*\.#{KD.config.userSitesDomain})\/(.*)///, '//$1/$2'
+          ///.*\/(.*\.#{KD.config.userSitesDomain})\/(.*)///, 'http://$1/$2'
 
         cb publicPath isnt path, {path: publicPath}
 

@@ -64,7 +64,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
     if KD.isMine member
-
+      KD.track "Members", "OwnProfileView", member.profile.nickname
       @getView().addSubView memberProfile = new OwnProfileView
         cssClass : "profilearea clearfix"
         delegate : @getView()
@@ -73,6 +73,7 @@ class ContentDisplayControllerMember extends KDViewController
       return memberProfile
 
     else
+      KD.track "Members", "ProfileView", member.profile.nickname
       return @getView().addSubView memberProfile = new ProfileView
         cssClass : "profilearea clearfix"
         bind     : "mouseenter"
@@ -100,6 +101,15 @@ class ContentDisplayControllerMember extends KDViewController
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
 
+  createFilter:(title, account, facets)->
+    filter =
+      title             : title
+      dataSource        : (selector, options, callback)=>
+        options.originId = account.getId()
+        options.facets   = facets
+        KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, callback
+    return filter
+
   addActivityView:(account)->
 
     @getView().$('div.lazy').remove()
@@ -116,40 +126,14 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
-        everything          :
-          title             : "Everything"
-          dataSource        : (selector, options, callback)=>
-            options.originId = account.getId()
-            options.facets   = [
-              'CStatusActivity', 'CCodeSnipActivity'
-              'CFolloweeBucketActivity', 'CNewMemberBucket'
-              'CDiscussionActivity',"CTutorialActivity"
-            ]
-            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
-              callback null, data
-        statuses            :
-          title             : "Status Updates"
-          dataSource        : (selector, options, callback)=>
-            options.originId = account.getId()
-            options.facets   = ['CStatusActivity']
-            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
-              callback null, data
-        codesnips           :
-          title             : "Code Snippets"
-          dataSource        : (selector, options, callback)=>
-            options.originId = account.getId()
-            options.facet    = ['CCodeSnipActivity']
-            KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, (data)->
-              callback null, data
-        # Discussions Disabled
-        # discussions         :
-        #   title             : "Discussions"
-        #   dataSource        : (selector, options, callback)=>
-        #     selector.originId = account.getId()
-        #     selector.type     = 'CDiscussionActivity'
-        #     KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', selector, options, (data)->
-        #       callback null, data
-
+        everything          : @createFilter("Everything", account,
+          [ 'CStatusActivity', 'CCodeSnipActivity', 'CFolloweeBucketActivity', 'CNewMemberBucket'
+          'CDiscussionActivity',"CTutorialActivity", "CBlogPostActivity" ])
+        statuses            : @createFilter("Status Updates", account, ['CStatusActivity'])
+        codesnips           : @createFilter("Code Snippets", account, ['CCodeSnipActivity'])
+        blogposts           : @createFilter("Blog Posts", account, ['CBlogPostActivity'])
+        discussions         : @createFilter("Discussions", account, ['CDiscussionActivity'])
+        tutorials           : @createFilter("Tutorials", account, ['CTutorialActivity'])
       sort                  :
         'sorts.likesCount'  :
           title             : "Most popular"

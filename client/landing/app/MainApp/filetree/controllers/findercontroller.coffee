@@ -35,6 +35,8 @@ class NFinderController extends KDViewController
         # @unsetRecentFolder path
         @stopWatching path
 
+    @noVMFoundWidget = new VMMountStateWidget
+
   watchers: {}
 
   registerWatcher:(path, stopWatching)->
@@ -52,6 +54,7 @@ class NFinderController extends KDViewController
   loadView:(mainView)->
 
     mainView.addSubView @treeController.getView()
+    mainView.addSubView @noVMFoundWidget
     @viewLoaded = yes
 
     @reset()  if @getOptions().loadFilesOnInit
@@ -77,16 +80,38 @@ class NFinderController extends KDViewController
       callback?()
 
     if vmNames then mountVms vmNames
-    else KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
-      return callback? err  if err
-      if not vms or vms.length is 0
-        vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
-      mountVms vms
+    else
+      groupSlug  = KD.singletons.groupsController.getGroupSlug()
+      groupSlug ?= 'koding'
+      @appStorage.fetchValue "mountedVM", (vms)->
+        vms            or= {}
+        vms[groupSlug] or= []
+        if vms[groupSlug].length > 0
+          mountVms vms[groupSlug]
+        else
+          KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
+            return callback? err  if err
+            if not vms or vms.length is 0
+              vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
+            mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName
     for path, vmItem of @treeController.nodes  when vmItem.data?.type is 'vm'
       return vmItem  if vmItem.data.vmName is vmName
+
+  updateMountState:(vmName, state)->
+    groupSlug  = KD.singletons.groupsController.getGroupSlug()
+    groupSlug ?= 'koding'
+    @appStorage.fetchValue "mountedVM", (vms)=>
+      vms or= {}
+      vms[groupSlug] or= []
+      items = vms[groupSlug]
+      if state and vmName not in items
+        items.push vmName
+      else if not state and vmName in items
+        items.splice items.indexOf(vmName), 1
+      @appStorage.setValue "mountedVM", vms
 
   mountVm:(vm, fetchContent = yes)->
     return unless KD.isLoggedIn()
@@ -98,26 +123,39 @@ class NFinderController extends KDViewController
     if vmItem = @getVmNode vmName
       return warn "VM #{vmName} is already mounted!"
 
+    @updateMountState vmName, yes
+
     @vms.push FSHelper.createFile
       name   : "#{path}"
       path   : "[#{vmName}]#{path}"
       type   : "vm"
       vmName : vmName
 
+    @noVMFoundWidget.hide()
     @treeController.addNode @vms.last
 
     vmItem = @getVmNode vmName
-    @treeController.expandFolder vmItem  if fetchContent and vmItem
+    if fetchContent and vmItem
+      @treeController.expandFolder vmItem, (err)=>
+        if err?.name is 'VMNotFoundError'
+          @unmountVm vmName
+      , yes
 
   unmountVm:(vmName)->
     return unless KD.isLoggedIn()
     return warn 'No such VM!'  unless vmItem = @getVmNode vmName
+
+    @updateMountState vmName, no
 
     if vmItem
       @stopWatching vmItem.data.path
       FSHelper.deregisterVmFiles vmName
       @treeController.removeNodeView vmItem
       @vms = @vms.filter (vmData)-> vmData isnt vmItem.data
+
+      if @vms.length is 0
+        @noVMFoundWidget.show()
+        @emit 'EnvironmentsTabRequested'
 
   updateVMRoot:(vmName, path, callback)->
     return warn 'VM name and new path required!'  unless vmName or path
@@ -167,3 +205,63 @@ class NFinderController extends KDViewController
   #   splicer()
   #   recentFolders.sort (path)-> if path is folderPath then -1 else 0
   #   @appStorage.setValue 'recentFolders', recentFolders, callback
+
+class VMMountStateWidget extends JView
+
+    constructor:->
+      super cssClass : 'no-vm-found-widget'
+
+      @loader = new KDLoaderView
+        size          : width : 20
+        loaderOptions :
+          speed       : 0.7
+          FPS         : 24
+
+      @warning = new KDCustomHTMLView
+        partial : "There is no attached VM"
+
+    pistachio:->
+      """
+      {{> @loader}}
+      {{> @warning}}
+      """
+
+    showMessage:(message)->
+      message or= """There is no VM attached to filetree, you can
+                     attach one from environment menu below."""
+
+      @warning.updatePartial message
+      @warning.show()
+
+      @loader.hide()
+
+    show:->
+      @setClass 'visible'
+      @warning.hide()
+      @loader.show()
+
+      if KD.singletons.groupsController.getGroupSlug() is 'koding'
+        @showMessage()
+
+      # Not sure about it I guess only owners can create GroupVM?
+      else if ("admin" in KD.config.roles) or ("owner" in KD.config.roles)
+        group = KD.singletons.groupsController.getCurrentGroup()
+        group.checkPayment (err, payments)=>
+          warn err  if err
+          if payments.length is 0
+            @showMessage """There is no VM attached for this group, you can
+                            attach one or you can <b>pay</b> and create
+                            a new one from environment menu below."""
+          else
+            @showMessage """There is no VM attached for this group, you can
+                            attach one or you can create a new one from
+                            environment menu below."""
+
+      else
+        @showMessage """There is no VM for this group or not attached to
+                        filetree yet, you can attach one from environment
+                        menu below."""
+
+    hide:->
+      @unsetClass 'visible'
+      @loader.hide()

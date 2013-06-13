@@ -10,11 +10,16 @@ class AppView extends KDView
       style           : "kdwhitebtn"
       dataPath        : "followee"
       defaultState    : "Follow"
+      disabled        : !app.approved
       states          : [
         title         : "Follow"
         callback      : (cb)->
-          KD.requireLogin
-            callback  : => app.follow (err)-> cb? err
+          KD.requireMembership
+            callback  : =>
+              app.follow (err)->
+                cb? err
+                KD.track "Apps", "Follow", app.title unless err
+
             onFailMsg : "Login required to follow Apps"
             tryAgain  : yes
       ,
@@ -22,17 +27,22 @@ class AppView extends KDView
         callback      : (callback)->
           app.unfollow (err)->
             callback? err
+            KD.track "Apps", "Unfollow", app.title unless err
       ]
     , app
 
     @likeButton = new KDToggleButton
       style           : "kdwhitebtn"
       defaultState    : 'Like'
+      disabled        : !app.approved
       states          : [
         title         : "Like"
         callback      : (cb)->
-          KD.requireLogin
-            callback  : => app.like (err)-> cb? err
+          KD.requireMembership
+            callback  : =>
+              app.like (err)->
+                cb? err
+                KD.track "Apps", "Like", app.title unless err
             onFailMsg : "Login required to like Apps"
             tryAgain  : yes
       ,
@@ -40,6 +50,7 @@ class AppView extends KDView
         callback      : (callback)->
           app.like (err)->
             callback? err
+            KD.track "Apps", "Unlike", app.title unless err
       ]
     , app
 
@@ -119,6 +130,7 @@ class AppView extends KDView
             {version} = item.data
             version   = 'latest' if app.versions.last is item.data.version
             appsController.installApp app, version, (err)=>
+              KD.track "Apps", "Install", app.title unless err
               if err then warn err
 
       @installButton = new KDButtonViewWithMenu
@@ -150,6 +162,7 @@ class AppView extends KDView
       title     : "Open App"
       style     : "cupid-green"
       callback  : =>
+        KD.track "Apps", "OpenApplication", app.title
         @getSingleton("appManager").open app.title
 
     @openAppButton.hide()
@@ -159,9 +172,9 @@ class AppView extends KDView
         @installButton.hide()
         @openAppButton.show()
 
-    {icns, name, version, authorNick} = app.manifest
+    {icns, identifier, version, authorNick} = app.manifest
     thumb = if icns and (icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64'])
-      "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
+      "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/#{if icns then icns['256'] or icns['512'] or icns['128'] or icns['160'] or icns['64']}"
     else
       "#{KD.apiUri + '/images/default.app.thumb.png'}"
 
