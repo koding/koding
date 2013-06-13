@@ -282,24 +282,24 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
-    JGroup.on 'GroupCreated', ({group, creator})->
-      group.fetchBundle (err, bundle)->
-        console.log err, bundle
-        if err then handleError err
-        else if bundle and bundle.sharedVM
-          creator.fetchUser (err, user)->
-            if err then handleError err
-            else
-              addVm {
-                user
-                type    : 'group'
-                target  : group
-                planCode  : 'free'
-                planOwner : "group_#{group._id}"
-                sudo    : yes
-                name    : group.slug
-                groups  : wrapGroup group
-              }
+    # JGroup.on 'GroupCreated', ({group, creator})->
+    #   group.fetchBundle (err, bundle)->
+    #     console.log err, bundle
+    #     if err then handleError err
+    #     else if bundle and bundle.sharedVM
+    #       creator.fetchUser (err, user)->
+    #         if err then handleError err
+    #         else
+    #           addVm {
+    #             user
+    #             type    : 'group'
+    #             target  : group
+    #             planCode  : 'free'
+    #             planOwner : "group_#{group._id}"
+    #             sudo    : yes
+    #             name    : group.slug
+    #             groups  : wrapGroup group
+    #           }
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
