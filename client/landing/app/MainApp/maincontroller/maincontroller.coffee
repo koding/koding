@@ -22,12 +22,8 @@ class MainController extends KDController
 
     super options, data
 
-    # window.appManager is there for backwards compatibilty
-    # will be deprecated soon.
-    window.appManager = new ApplicationManager
-
     KD.registerSingleton "mainController",            this
-    KD.registerSingleton "appManager",                appManager
+    KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "contentDisplayController",  new ContentDisplayController
