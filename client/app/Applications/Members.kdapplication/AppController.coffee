@@ -47,8 +47,8 @@ class MembersAppController extends AppController
                 }
                 selector = {}
                 group.fetchMembers selector, relationshipOptions, callback
-                group.countMembers selector, (err, count)=>
-                  @setCurrentViewNumber 'all', count
+                # group.countMembers selector, (err, count)=>
+                #   @setCurrentViewNumber 'all', count
               else
                 JAccount.someWithRelationship selector, options, callback
                 JAccount.count selector, (err, count)=>

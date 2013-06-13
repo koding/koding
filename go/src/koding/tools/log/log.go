@@ -61,6 +61,11 @@ func Init(service string) {
 		return float64(m.Alloc)
 	})
 
+	if config.Current.Loggr.Push {
+		fmt.Printf("%s [%s]\n", time.Now().Format(time.StampMilli), tags)
+		fmt.Printf("%s %s\n", strings.Repeat(" ", len(time.StampMilli)), "Logging to Loggr instead of console.")
+	}
+
 	go func() {
 		for event := range sendChannel {
 			if event.Get("exit") != "" {
