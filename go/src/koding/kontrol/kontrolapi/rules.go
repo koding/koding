@@ -112,15 +112,21 @@ func GetRule(writer http.ResponseWriter, req *http.Request) {
 func CreateBehaviour(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	behaviour := vars["behaviour"]
-	fmt.Printf("POST\t/restrictions/%s/list/%s\n", domain, behaviour)
+	ruleName := vars["behaviour"]
+	fmt.Printf("POST\t/restrictions/%s/list/%s\n", domain, ruleName)
 
 	var msg BehaviourPostMessage
 	var ruleEnabled bool
 	var ruleAction string
-	var ruleName string
 	var ruleIndex int
 	var err error
+
+	body, _ := ioutil.ReadAll(req.Body)
+	err = json.Unmarshal(body, &msg)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
 
 	if msg.Enabled != nil {
 		switch *msg.Enabled {
@@ -165,7 +171,7 @@ func CreateBehaviour(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	url := fmt.Sprintf("behaviour for '%s' and rulename is added with: enabled: '%t' , action '%s' and index '%d'", domain, ruleName, ruleEnabled, ruleAction, ruleIndex)
+	url := fmt.Sprintf("behaviour for '%s' and rulename '%s' is added with: enabled: '%t' , action '%s' and index '%d'", domain, ruleName, ruleEnabled, ruleAction, ruleIndex)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
 	return
 }
@@ -173,8 +179,7 @@ func CreateBehaviour(writer http.ResponseWriter, req *http.Request) {
 func CreateRule(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	rulename := vars["rule"]
-	fmt.Printf("POST\t/restrictions/%s/rules/%s\n", domain, rulename)
+	fmt.Printf("POST\t/restrictions/%s/rules\n", domain)
 
 	var msg RulesPostMessage
 	var ruleType string
@@ -237,6 +242,23 @@ func DeleteRule(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := fmt.Sprintf("rule '%s' of domain '%s' is deleted", rulename, domain)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}
+
+func DeleteBehaviour(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domain := vars["domain"]
+	rulename := vars["behaviour"]
+	fmt.Printf("DELETE\t/restrictions/%s/list/%s\n", domain, rulename)
+
+	err := proxyDB.DeleteBehaviour(domain, rulename)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("behaviour '%s' of domain '%s' is deleted", rulename, domain)
 	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }
