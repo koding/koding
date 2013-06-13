@@ -14,6 +14,7 @@ module.exports =
   uri           :
     address     : "new.koding.com"
   userSitesDomain: 'kd.io'
+  containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
   webserver     :
