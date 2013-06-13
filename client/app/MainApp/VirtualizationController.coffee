@@ -118,29 +118,34 @@ class VirtualizationController extends KDController
         group.checkPayment (err, payments)->
           if err or payments.length is 0
 
-            # Copy account creator's billing information
-            KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
-              warn err
-              if err or not data
-                data = {}
+            if type is 'expensed'
+              paymentModal?.destroy()
+              return new KDNotificationView
+                title : "Group does not have billing information set."
+            else
+              # Copy account creator's billing information
+              KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+                warn err
+                if err or not data
+                  data = {}
 
-              # These will go into Recurly module
-              delete data.cardNumber
-              delete data.cardMonth
-              delete data.cardYear
-              delete data.cardCV
+                # These will go into Recurly module
+                delete data.cardNumber
+                delete data.cardMonth
+                delete data.cardYear
+                delete data.cardCV
 
-              paymentModal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
-                newData.plan = planCode
-                newData.type = type
-                group.makePayment newData, (err, subscription)->
-                  if err
-                    onError err
-                  else
-                    vmController.createGroupVM type, planCode, vmCreateCallback
-                    onSuccess()
-                    callback()
-              paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
+                paymentModal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
+                  newData.plan = planCode
+                  newData.type = type
+                  group.makePayment newData, (err, subscription)->
+                    if err
+                      onError err
+                    else
+                      vmController.createGroupVM type, planCode, vmCreateCallback
+                      onSuccess()
+                      callback()
+                paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
           else
             group.updatePayment {plan: planCode, type: type}, (err, subscription)->
               vmController.createGroupVM type, planCode, vmCreateCallback
