@@ -46,6 +46,17 @@ var (
 	ErrBadClosingStatus      = &ProtocolError{"bad closing status"}
 	ErrUnsupportedExtensions = &ProtocolError{"unsupported extensions"}
 	ErrNotImplemented        = &ProtocolError{"not implemented"}
+
+	handshakeHeader = map[string]bool{
+		"Host":                   true,
+		"Upgrade":                true,
+		"Connection":             true,
+		"Sec-Websocket-Key":      true,
+		"Sec-Websocket-Origin":   true,
+		"Sec-Websocket-Version":  true,
+		"Sec-Websocket-Protocol": true,
+		"Sec-Websocket-Accept":   true,
+	}
 )
 
 // A hybiFrameHeader is a frame header as defined in hybi draft.
@@ -216,10 +227,9 @@ func (frame *hybiFrameWriter) Write(msg []byte) (n int, err error) {
 		}
 		header = append(header, frame.header.MaskingKey...)
 		frame.writer.Write(header)
-		var data []byte
-
-		for i := 0; i < length; i++ {
-			data = append(data, msg[i]^frame.header.MaskingKey[i%4])
+		data := make([]byte, length)
+		for i := range data {
+			data[i] = msg[i] ^ frame.header.MaskingKey[i%4]
 		}
 		frame.writer.Write(data)
 		err = frame.writer.Flush()
@@ -409,8 +419,11 @@ func hybiClientHandshake(config *Config, br *bufio.Reader, bw *bufio.Writer) (er
 	if len(config.Protocol) > 0 {
 		bw.WriteString("Sec-WebSocket-Protocol: " + strings.Join(config.Protocol, ", ") + "\r\n")
 	}
-	// TODO(ukai): send extensions.
-	// TODO(ukai): send cookie if any.
+	// TODO(ukai): send Sec-WebSocket-Extensions.
+	err = config.Header.WriteSubset(bw, handshakeHeader)
+	if err != nil {
+		return err
+	}
 
 	bw.WriteString("\r\n")
 	if err = bw.Flush(); err != nil {
@@ -484,20 +497,13 @@ func (c *hybiServerHandshaker) ReadHandshake(buf *bufio.Reader, req *http.Reques
 		return http.StatusBadRequest, ErrChallengeResponse
 	}
 	version := req.Header.Get("Sec-Websocket-Version")
-	var origin string
 	switch version {
 	case "13":
 		c.Version = ProtocolVersionHybi13
-		origin = req.Header.Get("Origin")
 	case "8":
 		c.Version = ProtocolVersionHybi08
-		origin = req.Header.Get("Sec-Websocket-Origin")
 	default:
 		return http.StatusBadRequest, ErrBadWebSocketVersion
-	}
-	c.Origin, err = url.ParseRequestURI(origin)
-	if err != nil {
-		return http.StatusForbidden, err
 	}
 	var scheme string
 	if req.TLS != nil {
@@ -510,9 +516,11 @@ func (c *hybiServerHandshaker) ReadHandshake(buf *bufio.Reader, req *http.Reques
 		return http.StatusBadRequest, err
 	}
 	protocol := strings.TrimSpace(req.Header.Get("Sec-Websocket-Protocol"))
-	protocols := strings.Split(protocol, ",")
-	for i := 0; i < len(protocols); i++ {
-		c.Protocol = append(c.Protocol, strings.TrimSpace(protocols[i]))
+	if protocol != "" {
+		protocols := strings.Split(protocol, ",")
+		for i := 0; i < len(protocols); i++ {
+			c.Protocol = append(c.Protocol, strings.TrimSpace(protocols[i]))
+		}
 	}
 	c.accept, err = getNonceAccept([]byte(key))
 	if err != nil {
@@ -521,9 +529,26 @@ func (c *hybiServerHandshaker) ReadHandshake(buf *bufio.Reader, req *http.Reques
 	return http.StatusSwitchingProtocols, nil
 }
 
+// Origin parses Origin header in "req".
+// If origin is "null", returns (nil, nil).
+func Origin(config *Config, req *http.Request) (*url.URL, error) {
+	var origin string
+	switch config.Version {
+	case ProtocolVersionHybi13:
+		origin = req.Header.Get("Origin")
+	case ProtocolVersionHybi08:
+		origin = req.Header.Get("Sec-Websocket-Origin")
+	}
+	if origin == "null" {
+		return nil, nil
+	}
+	return url.ParseRequestURI(origin)
+}
+
 func (c *hybiServerHandshaker) AcceptHandshake(buf *bufio.Writer) (err error) {
 	if len(c.Protocol) > 0 {
 		if len(c.Protocol) != 1 {
+			// You need choose a Protocol in Handshake func in Server.
 			return ErrBadWebSocketProtocol
 		}
 	}
@@ -534,7 +559,13 @@ func (c *hybiServerHandshaker) AcceptHandshake(buf *bufio.Writer) (err error) {
 	if len(c.Protocol) > 0 {
 		buf.WriteString("Sec-WebSocket-Protocol: " + c.Protocol[0] + "\r\n")
 	}
-	// TODO(ukai): support extensions
+	// TODO(ukai): send Sec-WebSocket-Extensions.
+	if c.Header != nil {
+		err := c.Header.WriteSubset(buf, handshakeHeader)
+		if err != nil {
+			return err
+		}
+	}
 	buf.WriteString("\r\n")
 	return buf.Flush()
 }

@@ -42,7 +42,7 @@ func Client(c net.Conn, config *ClientConfig) (*ClientConn, error) {
 	}
 	if err := conn.handshake(); err != nil {
 		conn.Close()
-		return nil, err
+		return nil, fmt.Errorf("handshake failed: %v", err)
 	}
 	go conn.mainLoop()
 	return conn, nil
@@ -249,8 +249,15 @@ func (c *ClientConn) mainLoop() {
 				ch.stderr.write(packet)
 			}
 		default:
-			msg := decode(packet)
-			switch msg := msg.(type) {
+			decoded, err := decode(packet)
+			if err != nil {
+				if _, ok := err.(UnexpectedMessageError); ok {
+					fmt.Printf("mainLoop: unexpected message: %v\n", err)
+					continue
+				}
+				return
+			}
+			switch msg := decoded.(type) {
 			case *channelOpenMsg:
 				c.handleChanOpen(msg)
 			case *channelOpenConfirmMsg:
@@ -328,6 +335,10 @@ func (c *ClientConn) mainLoop() {
 
 // Handle channel open messages from the remote side.
 func (c *ClientConn) handleChanOpen(msg *channelOpenMsg) {
+	if msg.MaxPacketSize < minPacketLength || msg.MaxPacketSize > 1<<31 {
+		c.sendConnectionFailed(msg.PeersId)
+	}
+
 	switch msg.ChanType {
 	case "forwarded-tcpip":
 		laddr, rest, ok := parseTCPAddr(msg.TypeSpecificData)
@@ -336,8 +347,10 @@ func (c *ClientConn) handleChanOpen(msg *channelOpenMsg) {
 			c.sendConnectionFailed(msg.PeersId)
 			return
 		}
-		l, ok := c.forwardList.lookup(laddr)
+
+		l, ok := c.forwardList.lookup(*laddr)
 		if !ok {
+			// TODO: print on a more structured log.
 			fmt.Println("could not find forward list entry for", laddr)
 			// Section 7.2, implementations MUST reject suprious incoming
 			// connections.
@@ -353,13 +366,17 @@ func (c *ClientConn) handleChanOpen(msg *channelOpenMsg) {
 		ch := c.newChan(c.transport)
 		ch.remoteId = msg.PeersId
 		ch.remoteWin.add(msg.PeersWindow)
+		ch.maxPacket = msg.MaxPacketSize
 
 		m := channelOpenConfirmMsg{
-			PeersId:       ch.remoteId,
-			MyId:          ch.localId,
-			MyWindow:      1 << 14,
-			MaxPacketSize: 1 << 15, // RFC 4253 6.1
+			PeersId:  ch.remoteId,
+			MyId:     ch.localId,
+			MyWindow: 1 << 14,
+
+			// As per RFC 4253 6.1, 32k is also the minimum.
+			MaxPacketSize: 1 << 15,
 		}
+
 		c.writePacket(marshal(msgChannelOpenConfirm, m))
 		l <- forward{ch, raddr}
 	default:
