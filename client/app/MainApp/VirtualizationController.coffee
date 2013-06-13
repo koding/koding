@@ -264,7 +264,7 @@ class VirtualizationController extends KDController
                     descField        = form.fields.desc
                     descField.show()
                     desc.show()
-                    index      = parseInt selector.getValue(), 10
+                    index      = (parseInt selector.getValue(), 10) or 0
                     monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
                     desc.$('section').addClass 'hidden'
                     desc.$('section').eq(index).removeClass 'hidden'
@@ -278,7 +278,7 @@ class VirtualizationController extends KDController
                   type              : "hidden"
 
 
-
+      window.sik = modal
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.shared.show()
 
