@@ -344,7 +344,7 @@ module.exports = class JGroup extends Module
           group.createBundle
             overagePolicy: overagePolicy
             paymentPlan  : groupData.payment.plan
-            allocation   : groupData.allocation
+            allocation   : parseInt(groupData.allocation, 10) * 100
             sharedVM     : groupData['shared-vm']
           , ->
             console.log 'bundle is created'
