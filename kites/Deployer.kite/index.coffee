@@ -21,8 +21,8 @@ uuid = require 'node-uuid'
 
 class Deployment
   @pathToContainers = "/var/lib/lxc"
-  constructor: (@zipUrl, @name, @lxc) ->
-    @kitePath = path.join @pathToContainers, @name, "overlay", "opt", "kites"
+  constructor: (@kiteName, @version, @zipUrl) ->
+    @kitePath = path.join Deployment.pathToContainers, "#{@kiteName}-#{@version}", "overlay", "opt", "kites"
 
   createLxc: (callback) ->
     cmd = spawn "create-lxc", [@kiteName]
@@ -36,7 +36,7 @@ class Deployment
       callback()
 
   downloadAndExtractKite: (callback) ->
-    {kitePath, zipUrl, kiteName} = this
+    {kitePath, zipUrl, version, kiteName} = this
     fs.mkdirsSync(kitePath) ## TODO mkdir creates 0777, exists check
     
     filepath = path.join kitePath, "#{kiteName}.zip"
@@ -59,6 +59,10 @@ class Deployment
           
           cmd.on 'close', (code) ->
             console.log 'unzip process exited with code ', code
+            manifestFilePath = path.join(kitePath, kiteName, "manifest.json")
+            content = JSON.parse fs.readFileSync(manifestFilePath)
+            content.version = version
+            fs.writeFileSync manifestFilePath, JSON.stringify(content)
             callback()
 
   runKite: () ->
@@ -85,15 +89,15 @@ else
 
 console.log "deployer:", manifest.name
 
-manifest.name = "Deployer_#{os.hostname()}_#{uuid.v4()}"
+manifest.name = "Deployer_#{os.hostname()}_#{uuid}"
 kite.worker manifest, 
 
   deploy: (options, callback) ->
-    {id, kiteName, version, zipUrl} = options
-    deployment = new Deployment(id, kiteName, zipUrl)
+    {kiteName, version, zipUrl} = options
+    deployment = new Deployment(kiteName, version, zipUrl)
     deployment.create-lxc () ->
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
 
-    return callback null, "Hello, I'm #{name}! This is Deployer"
+    return callback null, "Hello, This is #{manifest.name}"
 
 
