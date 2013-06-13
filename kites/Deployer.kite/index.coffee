@@ -16,14 +16,15 @@ https    = require 'https'
 fs       = require 'fs-extra'
 path     = require 'path'
 
-class LXC
-  
-  constructor: (@name) ->
-    @pathToContainers = "/var/lib/lxc"
-    console.log "......LXC constructor",  @name
+class Deployment
+  @pathToContainers = "/var/lib/lxc"
+
+  constructor: (@id, @kiteName, @zipUrl) ->
+    console.log "......Deployment constructor"
+    @kitesPath = path.join Deployment.pathToContainers, @id, "overlay", "opt", "kites"
 
   createLxc: (callback) ->
-    cmd = spawn "create-lxc", [@name]
+    cmd = spawn "create-lxc", [@kiteName]
     console.log 'create lxc'
     cmd.stdout.on 'data', (data) ->
       console.log 'stdout: ', data.toString()
@@ -33,16 +34,11 @@ class LXC
       console.log 'create lxc process exited with code ', code
       callback()
 
-class Deployment
-  constructor: (@zipUrl, @name, @lxc) ->
-    console.log "......Deployment constructor",  @lxc
-    @kitePath = path.join @lxc.pathToContainers, @lxc.name, "overlay", "opt", "kites"
-
   downloadAndExtractKite: (callback) ->
-    {kitePath, zipUrl, name} = this
+    {kitePath, zipUrl, kiteName} = this
     fs.mkdirsSync(kitePath) ## TODO mkdir creates 0777, exists check
     
-    filepath = path.join kitePath, "#{name}.zip"
+    filepath = path.join kitePath, "#{kiteName}.zip"
     file     = fs.createWriteStream filepath
 
     console.log "downloading url", zipUrl, " to ", filepath
@@ -52,11 +48,7 @@ class Deployment
       response.on "end", () ->
         console.log "file download complete", response.statusCode
         if response.statusCode is 200
-          console.log "chdirpath", kitePath
-          process.chdir kitePath
-          
-          cmd = spawn "unzip", ["#{name}.zip"]
-
+          cmd = spawn "unzip", [ path.join(@kitesPath, "#{kiteName}.zip"), "-d", @kitesPath]
           console.log 'unziping kite'
           
           cmd.stdout.on 'data', (data) ->
@@ -66,16 +58,13 @@ class Deployment
           
           cmd.on 'close', (code) ->
             console.log 'unzip process exited with code ', code
-            fs.chmodSync path.join(kitePath, "foobar.kite"), "0777"
-            fs.chown kitePath, 500000, 500000
             callback()
 
   runKite: () ->
-
-    kiteInLxc = path.join "/opt", "kites", "foobar.kite"
-    runner    = path.join(@lxc.pathToContainers, @lxc.name, "overlay", "opt", "runner")
+    kiteInLxc = path.join "/opt", "kites", @kiteName
+    runner    = path.join(@pathToContainers, @name, "overlay", "opt", "runner")
     fs.writeFileSync runner, "#!/bin/bash -l \n export HOME=/root \n /usr/sbin/kd.sh #{kiteInLxc} > /tmp/kd.out & \n"
-    fs.chmodSync runner, "0777"
+    fs.chmodSync runner, "0755"
     cmd = spawn "/usr/bin/lxc-start", ["-d", "-n", @name]
     
     cmd.stdout.on 'data', (data) ->
@@ -85,15 +74,12 @@ class Deployment
     cmd.on 'close', (code) ->
       console.log 'lxc-execute process exited with code ', code
 
-
 kite.worker manifest, 
   # This is a dummy method of the kite.
   deploy: (options, callback) ->
-    {zipUrl, name} = options
-    lxc = new LXC(name)
-    lxc.createLxc () ->
-      console.log ">>>", name
-      deployment = new Deployment(zipUrl, name, lxc)
+    {id, kiteName, zipUrl} = options
+    deployment = new Deployment(id, kiteName, zipUrl)
+    deployment.create-lxc () ->
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
 
     return callback null, "Hello, I'm #{name}! This is Deployer"
