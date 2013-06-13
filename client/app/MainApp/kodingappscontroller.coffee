@@ -25,8 +25,11 @@ class KodingAppsController extends KDController
 
     @appManager     = @getSingleton "appManager"
     @kiteController = @getSingleton "kiteController"
+    mainController  = @getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @getPublishedApps()
+
+    mainController.on "accountChanged.to.loggedIn", @bound "getPublishedApps"
 
   getAppPath:(manifest, escaped=no)->
 
