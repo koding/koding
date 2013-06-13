@@ -187,7 +187,7 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      if slug isnt 'koding' or not KD.config.useNeo4j
+      if slug isnt 'koding' and not KD.config.useNeo4j
         @fetchActivitiesDirectly options, callback
       else
         @isExempt (exempt)=>

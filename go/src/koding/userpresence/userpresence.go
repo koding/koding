@@ -82,7 +82,7 @@ func startMonitoring(mainAmqpConn *amqp.Connection) {
 	deliveries, err := channel.Consume(
 		resourceName, // queue name
 		"",           // ctag
-		false,        // no-ack
+		true,         // auto-ack
 		false,        // exlusive
 		false,        // no local
 		false,        // no wait
