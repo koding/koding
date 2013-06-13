@@ -1352,7 +1352,7 @@ module.exports = class JGroup extends Module
               else
                 quantity = vmQuantity - createdVMs[planCode]
               for i in [1..quantity] when quantity >= 1
-                # console.log "Creating #{planCode}"
+                console.log "Creating #{planCode}"
                 options     =
                   planCode  : planCode
                   usage     : {cpu: 1, ram: 1, disk: 1}
@@ -1366,31 +1366,6 @@ module.exports = class JGroup extends Module
       _createVMs data.type, callback
     else
       callback new KodingError "No such VM type: #{data.type}"
-
-
-    #   {connection:{delegate}, context:{group}} = client
-    # debit$: permit 'commission resources',
-    #   success: (client, data, callback)-> @debitResource client, 'user', data, callback
-
-    # debitGroup$: permit 'change bundle',
-    #   success: (client, data, callback)-> @debitResource client, 'group', data, callback
-
-    # debitResource: (client, type, data, callback)->
-    #   {connection:{delegate}, context:{group}} = client
-
-    #   # TODO: Check payment here
-    #   console.log "Client", delegate._id
-    #   console.log "Group", group
-
-    #   options     =
-    #     usage     : data.usage
-    #     hostname  : data.hostname
-    #     type      : type
-    #     account   : delegate
-    #     groupSlug : group
-
-    #   JVM = require '../vm'
-    #   JVM.createVm options, callback
 
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
