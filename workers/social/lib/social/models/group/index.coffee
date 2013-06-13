@@ -1346,6 +1346,7 @@ module.exports = class JGroup extends Module
             arr.forEach (vm)->
               createdVMs += 1
 
+            # TODO: Also check user quota here
             console.log paidVMs, createdVMs
 
             if paidVMs > createdVMs
