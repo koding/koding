@@ -86,7 +86,8 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'fetchOrSearchInvitationRequests'
+        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'fetchOrSearchInvitationRequests',
+        'fetchBundle', 'updateBundle'
       ]
     schema          :
       title         :
@@ -123,6 +124,9 @@ module.exports = class JGroup extends Module
         plan        : String
         paymentQuota: Number
     relationships   :
+      bundle        :
+        targetType  : 'JGroupBundle'
+        as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
@@ -329,6 +333,10 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        -> group.createBundle {}
+          , ->
+            console.log "bundle is created"
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -1259,6 +1267,37 @@ module.exports = class JGroup extends Module
       unless err
         for admin in admins
           admin.sendNotification event, contents
+
+  updateBundle: (formData, callback = (->)) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
+      bundle.fetchLimits (err, limits) ->
+        return callback err  if err?
+        queue = limits.map (limit) -> ->
+          limit.update { $set: quota: formData.quotas[limit.title] }, fin
+        dash queue, callback
+        fin = queue.fin.bind queue
+ 
+  updateBundle$: permit 'change bundle',
+    success: (client, formData, callback)->
+      @updateBundle formData, callback
+ 
+  createBundle: (data, callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      return callback new KodingError 'Bundle exists!'  if bundle?
+ 
+      JGroupBundle = require '../bundle/groupbundle'
+ 
+      bundle = new JGroupBundle {}
+      bundle.save (err) =>
+        return callback err  if err?
+ 
+        @addBundle bundle, callback
+ 
+  fetchBundle$: permit 'commission resources',
+    success: (client, rest...) -> @fetchBundle rest...
 
   makePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
