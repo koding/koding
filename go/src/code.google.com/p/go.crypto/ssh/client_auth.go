@@ -491,4 +491,5 @@ func (c *keyboardInteractiveAuth) auth(session []byte, user string, t *transport
 			return false, nil, err
 		}
 	}
+	return false, nil, nil
 }
