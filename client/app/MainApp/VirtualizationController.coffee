@@ -99,6 +99,35 @@ class VirtualizationController extends KDController
     return (rest...)=>
       @info vm, callback? rest...
 
+  hasDefaultVM:(callback)->
+    defaulVmName = "koding~#{KD.nick()}~0"
+    if @vms.length is 0
+      @fetchVMs (err, vms)-> callback defaulVmName in vms
+    else
+      callback defaulVmName in @vms
+
+  createDefaultVM:->
+
+    defaulVmName = "koding~#{KD.nick()}~0"
+    createDefaultVM = ->
+      KD.remote.cacheable 'koding', (err, group)->
+        if err or not group?.length
+          return warn err
+
+        koding = group.first
+        koding.createVM
+          planCode : 'free'
+          type     : 'user'
+        , (err)->
+          unless err
+            KD.getSingleton('vmController').emit 'VMListChanged'
+            KD.getSingleton('finderController').mountVm defaulVmName
+          else warn err
+
+    @hasDefaultVM (state)->
+      return warn 'Default VM already exists.'  if state
+      createDefaultVM()
+
   createNewVM:->
     return  if @dialogIsOpen
 
