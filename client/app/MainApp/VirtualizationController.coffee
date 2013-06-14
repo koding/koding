@@ -64,8 +64,8 @@ class VirtualizationController extends KDController
   getDefaultVmName:->
     {entryPoint} = KD.config
     currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
-    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}"
-    else currentGroup
+    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}~0"
+    else "#{currentGroup}~0"
 
   createGroupVM:(type='user', planCode, callback)->
     defaultVMOptions = {planCode}
@@ -101,6 +101,7 @@ class VirtualizationController extends KDController
 
   createNewVM:->
     return  if @dialogIsOpen
+
     vmController        = @getSingleton('vmController')
     paymentController   = @getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
