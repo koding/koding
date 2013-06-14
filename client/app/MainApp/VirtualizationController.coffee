@@ -129,6 +129,14 @@ class VirtualizationController extends KDController
       createDefaultVM()
 
   createNewVM:->
+    vmController = @getSingleton('vmController')
+    vmController.hasDefaultVM (state)->
+      unless state
+        vmController.createDefaultVM()
+      else
+        vmController.createPaidVM()
+
+  createPaidVM:->
     return  if @dialogIsOpen
 
     vmController        = @getSingleton('vmController')
