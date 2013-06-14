@@ -158,18 +158,18 @@ class AppView extends KDView
           appsController.installApp app, 'latest', (err)=>
             @hideLoader()
 
-    @openButton = new KDButtonView
-      title     : "Open"
-      style     : "cupid-green"
+    @runButton = new KDButtonView
+      title     : "Run"
+      style     : "clean-gray"
       callback  : =>
         KD.track "Apps", "OpenApplication", app.title
         @getSingleton("appManager").open app.title
 
-    @openButton.hide()
+    @runButton.hide()
 
     @updateButton = new KDButtonView
       title       : "Update"
-      style       : "clean-gray"
+      style       : "cupid-green"
       callback    : =>
         delete appsController.notification
         appsController.updateUserApp app.manifest, =>
@@ -181,7 +181,7 @@ class AppView extends KDView
       # user have the app, show just show open button
       if app.title in Object.keys manifests
         @installButton.hide()
-        @openButton.show()
+        @runButton.show()
 
       appName = app.manifest.name
       version = manifests?[appName]?.version # strange, but it's not working with { ... }
@@ -218,7 +218,7 @@ class AppView extends KDView
       <h3 class='profilename'>{{#(title)}}<cite>by {{#(manifest.author)}}</cite></h3>
       <div class="installerbar clearfix">
         {{> @installButton}}
-        {{> @openButton}}
+        {{> @runButton}}
         {{> @updateButton}}
         <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
         <div class="versionscorecard">
