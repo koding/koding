@@ -49,8 +49,6 @@ class DomainVMListItemView extends KDListItemView
 
     domainInstance = listViewData.domain
 
-    console.log @getData()
-
     @onOff = new KDOnOffSwitch
       size        : 'small'
       labels      : ['CON', "DCON"]
@@ -67,7 +65,7 @@ class DomainVMListItemView extends KDListItemView
               notificationMsg = "Your domain is disconnected from the #{@getData().name} VM."
             new KDNotificationView {type: "top", title: notificationMsg}
           else
-            new KDNotificationView {type: "top", title:err}
+            new KDNotificationView {type: "top", title: err}
 
   viewAppended:->
     @setTemplate @pistachio()

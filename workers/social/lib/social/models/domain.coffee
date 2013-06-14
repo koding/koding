@@ -28,7 +28,8 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       instance      : ['bindVM']
-      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain', 'createProxyRule']
+      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain', 'createProxyRule', 
+                      'fetchProxyRules', 'createBehavior', 'updateBehavior', 'deleteBehavior']
 
     indexes         :
       domain        : 'unique'
@@ -143,3 +144,26 @@ module.exports = class JDomain extends jraphical.Module
       { permission: "edit own domains", validateWith: Validators.own }
     ]
     success: (client, params, callback)-> @bindVM client, params, callback
+
+
+  @fetchProxyRules: secure (client, params, callback)->
+    domainManager.domainService.fetchProxyRules params, (err, response)-> callback err, response
+
+  @createProxyRule: secure (client, params, callback)->
+    domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
+
+  @createBehavior: secure (client, params, callback)->
+    domainManager.domainService.createBehavior params, (err, response)-> callback err, response
+
+  @updateBehavior: secure (client, params, callback)->
+    domainManager.domainService.deleteBehavior params, (err, response)=>
+      if not err
+        return @createBehavior client, params, callback
+
+      callback err, response
+
+  @deleteBehavior: secure (client, params, callback)->
+    domainManager.domainService.deleteBehavior params, (err, response)-> callback err, response
+
+
+

@@ -12,13 +12,14 @@ class DomainsListViewController extends KDListViewController
       @emit "domainItemClicked", item
 
   loadItems:->
+    @showLazyLoader()
     KD.whoami().fetchDomains (err, domains) =>
       if err
         @instantiateListItems []
+        @hideLazyLoader()
       unless err
         @instantiateListItems domains
-
-      @hideLazyLoader()
+        @hideLazyLoader()
 
   update:->
     @showLazyLoader()

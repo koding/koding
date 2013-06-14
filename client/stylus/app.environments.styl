@@ -172,19 +172,35 @@ app.environments.styl
     .listview-wrapper
       margin-top     10px
 
+  .fw-al-sw
+    height     400px
+
   .fw-li-view
     padding    5px
-    height     40px
+    height     25px
     color      #fff
-    width      95px
     border     1px solid #eee
-    text-align center
-    float      left
-    margin     5px
+    border            1px solid #ccc
+    text-transform    uppercase
+    color             #000
 
     .personal
       sprite()
       bg position,   -360px -390px
+
+  .fw-al-view, .fw-rl-view
+    margin-top        5px
+    border            1px solid #ccc
+    text-transform    uppercase
+    width             60%
+
+    .deny
+      background    red
+      color         #fff
+
+    .allow
+      background    green
+      color         #fff
 
 
   .block-list-view
@@ -193,25 +209,16 @@ app.environments.styl
     h3
       line-height    25px
 
-    .fw-li-view
-      background-color    #a90329; // Old browsers
-      @include filter-gradient(#a90329, #6d0019, vertical); // IE6-8
-      $experimental-support-for-svg: true
-      @include background-image(linear-gradient(top, #a90329 0%,#8f0222 44%,#6d0019 100%))
+  .fw-li-buttons
+    .button-title
+      text-transform    uppercase
+      font-size         10px
 
-  .white-list-view 
-    margin-top    10px
+    .kdbutton
+      background    #fceabb
 
-    h3
-      line-height    25px
-
-    .fw-li-view
-      background-color    #cdeb8e; // Old browsers
-      @include filter-gradient(#cdeb8e, #a5c956, vertical) // IE6-8
-      $experimental-support-for-svg    true
-      @include background-image(linear-gradient(top, #cdeb8e 0%,#a5c956 100%))
-      color    #000
-      border   1px solid #ccc
+    .delete-button
+      background    #99001D
 
   .rule-form-view
     margin-top    5px

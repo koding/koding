@@ -971,7 +971,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchDomains: (callback) ->
     JDomain = require '../domain'
       
-    Relationship.all
+    Relationship.some
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
