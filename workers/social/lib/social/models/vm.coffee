@@ -273,10 +273,10 @@ module.exports = class JVM extends Model
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = ({ target, user, name, sudo, groups, type, planCode, planOwner })->
+    addVm = ({ target, user, name, sudo, groups, groupSlug
+               type, planCode, planOwner })->
 
       uid = 0
-      groupSlug = if type is 'group' then name else 'koding'
       hostnameAlias = JVM.createAliases {
         nickname : user.username
         type, uid, groupSlug
@@ -318,15 +318,23 @@ module.exports = class JVM extends Model
           creator.fetchUser (err, user)->
             if err then handleError err
             else
+              # Following is just here to register this name in the counters collection
+              ((require 'koding-counter') {
+                db          : JVM.getClient()
+                counterName : "#{group.slug}~"
+                offset      : 0
+              }).next ->
+
               addVm {
                 user
-                type    : 'group'
-                target  : group
-                planCode  : 'free'
-                planOwner : "group_#{group._id}"
-                sudo    : yes
-                name    : group.slug
-                groups  : wrapGroup group
+                type     : 'group'
+                target   : group
+                planCode : 'free'
+                planOwner: "group_#{group._id}"
+                sudo     : yes
+                name     : "#{group.slug}~0"
+                groupSlug: group.slug
+                groups   : wrapGroup group
               }
 
     JGroup.on 'GroupDestroyed', (group)->
@@ -338,6 +346,13 @@ module.exports = class JVM extends Model
       member.fetchUser (err, user)->
         if err then handleError err
         else if group.slug is 'koding'
+          # Following is just here to register this name in the counters collection
+          ((require 'koding-counter') {
+            db          : JVM.getClient()
+            counterName : "koding~#{member.profile.nickname}~"
+            offset      : 0
+          }).next ->
+
           # TODO: this special case for koding should be generalized for any group.
           addVm {
             user
@@ -346,7 +361,8 @@ module.exports = class JVM extends Model
             planCode  : 'free'
             planOwner : "user_#{member._id}"
             sudo      : yes
-            name      : "koding~#{member.profile.nickname}"
+            name      : "koding~#{member.profile.nickname}~0"
+            groupSlug : group.slug
             groups    : wrapGroup group
           }
         else
