@@ -184,11 +184,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// FIXME: hardcoded for now, will be removed -- arslan
 	if req.Host == "koding.com" {
-		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-		}
-		return
 	}
 
 	outreq := new(http.Request)
@@ -202,7 +197,18 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	target := user.Target
-	if user.Domain.LoadBalancer.Mode == "sticky" {
+
+	switch user.Domain.LoadBalancer.Mode {
+	case "maintenance":
+		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	case "redirect":
+		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
+		return
+	case "sticky":
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
 		targetURL, ok := session.Values["GOSESSIONID"]
@@ -218,13 +224,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
-	} else {
+	case "default":
 		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
-	}
-
-	if user.Redirect {
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
-		return
 	}
 
 	_, err = validate(user)
