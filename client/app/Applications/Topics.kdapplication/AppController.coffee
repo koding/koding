@@ -73,7 +73,7 @@ class TopicsAppController extends AppController
         'meta.modifiedAt'   :
           title             : "Latest activity"
           direction         : -1
-        'counts.tagged'     :
+        'counts.post'     :
           title             : "Most activity"
           direction         : -1
     }, (controller)=>

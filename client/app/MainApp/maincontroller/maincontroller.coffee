@@ -28,7 +28,7 @@ class MainController extends KDController
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "contentDisplayController",  new ContentDisplayController
     KD.registerSingleton "notificationController",    new NotificationController
-    KD.registerSingleton "paymentController",         new NotificationController
+    KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "linkController",            new LinkController
     KD.registerSingleton 'router',           router = new KodingRouter location.pathname
 
@@ -37,6 +37,17 @@ class MainController extends KDController
 
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
+      groupsController.once 'GroupChanged', =>
+        # temp hot fix for a default vm creation - SY
+        group = groupsController.getCurrentGroup()
+        group.createVM
+          type     : 'user'
+          planCode : 'free'
+        , (err)->
+          unless err
+            KD.getSingleton('vmController').emit 'VMListChanged'
+            log "default vm created"
+
 
     appManager.create 'Chat', (chatController)->
       KD.registerSingleton "chatController", chatController
@@ -54,9 +65,6 @@ class MainController extends KDController
     @appStorages = {}
 
     @introductionTooltipController = new IntroductionTooltipController
-
-    @on "UserLoggedIn", ->
-      @getSingleton("kodingAppsController").getPublishedApps()
 
   # FIXME GG
   getAppStorageSingleton:(appName, version)->

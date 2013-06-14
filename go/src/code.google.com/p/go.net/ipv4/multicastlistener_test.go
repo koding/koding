@@ -23,8 +23,7 @@ var udpMultipleGroupListenerTests = []struct {
 
 func TestUDPSingleConnWithMultipleGroupListeners(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 
 	for _, tt := range udpMultipleGroupListenerTests {
@@ -43,7 +42,7 @@ func TestUDPSingleConnWithMultipleGroupListeners(t *testing.T) {
 			t.Fatalf("net.Interfaces failed: %v", err)
 		}
 		for i, ifi := range ift {
-			if _, ok := isGoodForMulticast(&ifi); !ok {
+			if _, ok := isMulticastAvailable(&ifi); !ok {
 				continue
 			}
 			if err := p.JoinGroup(&ifi, tt.gaddr); err != nil {
@@ -61,8 +60,7 @@ func TestUDPSingleConnWithMultipleGroupListeners(t *testing.T) {
 
 func TestUDPMultipleConnWithMultipleGroupListeners(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 
 	for _, tt := range udpMultipleGroupListenerTests {
@@ -90,7 +88,7 @@ func TestUDPMultipleConnWithMultipleGroupListeners(t *testing.T) {
 			t.Fatalf("net.Interfaces failed: %v", err)
 		}
 		for i, ifi := range ift {
-			if _, ok := isGoodForMulticast(&ifi); !ok {
+			if _, ok := isMulticastAvailable(&ifi); !ok {
 				continue
 			}
 			for _, p := range ps {
@@ -112,12 +110,10 @@ func TestUDPMultipleConnWithMultipleGroupListeners(t *testing.T) {
 
 func TestIPSingleConnWithSingleGroupListener(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 	if os.Getuid() != 0 {
-		t.Logf("skipping test; must be root")
-		return
+		t.Skip("must be root")
 	}
 
 	// listen to a wildcard address
@@ -139,7 +135,7 @@ func TestIPSingleConnWithSingleGroupListener(t *testing.T) {
 		t.Fatalf("net.Interfaces failed: %v", err)
 	}
 	for i, ifi := range ift {
-		if _, ok := isGoodForMulticast(&ifi); !ok {
+		if _, ok := isMulticastAvailable(&ifi); !ok {
 			continue
 		}
 		if err := r.JoinGroup(&ifi, gaddr); err != nil {
@@ -156,8 +152,7 @@ func TestIPSingleConnWithSingleGroupListener(t *testing.T) {
 
 func TestUDPPerInterfaceSingleConnWithSingleGroupListener(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 
 	gaddr := &net.IPAddr{IP: net.IPv4(224, 0, 0, 254)} // see RFC 4727
@@ -172,7 +167,7 @@ func TestUDPPerInterfaceSingleConnWithSingleGroupListener(t *testing.T) {
 		t.Fatalf("net.Interfaces failed: %v", err)
 	}
 	for i, ifi := range ift {
-		ip, ok := isGoodForMulticast(&ifi)
+		ip, ok := isMulticastAvailable(&ifi)
 		if !ok {
 			continue
 		}
@@ -197,12 +192,10 @@ func TestUDPPerInterfaceSingleConnWithSingleGroupListener(t *testing.T) {
 
 func TestIPPerInterfaceSingleConnWithSingleGroupListener(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 	if os.Getuid() != 0 {
-		t.Logf("skipping test; must be root")
-		return
+		t.Skip("must be root")
 	}
 
 	gaddr := &net.IPAddr{IP: net.IPv4(224, 0, 0, 254)} // see RFC 4727
@@ -217,7 +210,7 @@ func TestIPPerInterfaceSingleConnWithSingleGroupListener(t *testing.T) {
 		t.Fatalf("net.Interfaces failed: %v", err)
 	}
 	for i, ifi := range ift {
-		ip, ok := isGoodForMulticast(&ifi)
+		ip, ok := isMulticastAvailable(&ifi)
 		if !ok {
 			continue
 		}
