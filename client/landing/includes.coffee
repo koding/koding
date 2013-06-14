@@ -530,6 +530,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
+  "app/Applications/Environments.kdapplication/Controllers/FirewallActionListController.coffee"
 
   # GROUPS
 

@@ -18,66 +18,214 @@ class FirewallMapperView extends KDView
 
     @destroySubViews()
 
-    @blockListController = new KDListViewController
-      itemClass   : FirewallListItemView
-      viewOptions :
-        cssClass  : 'block-list'
+    @ruleListController = new KDListViewController
+      itemClass : FirewallRuleListItemView
 
-    blockListItems = []
-    [1..10].forEach (i) ->
-      generatedIp = Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1);
-      blockListItems.push {rule:generatedIp, mode:'deny'}
+    @actionListController = new FirewallActionListController
 
-    @blockListController.instantiateListItems blockListItems
+    @ruleListController.showLazyLoader()
+    @actionListController.showLazyLoader()
 
-    if domain.blockList
-      blockList = ({rule:item} for item in domain.blockList)
-      @blockListController.instantiateListItems blockList
+    KD.remote.api.JDomain.fetchProxyRules domain.domain, (err, response)=>
+      if err
+        new KDNotificationView {title:"An error occured while fetching the rule list.", type:"top"}
 
-    @whiteListController = new KDListViewController
-      itemClass   : FirewallListItemView
-      viewOptions :
-        cssClass  : 'white-list'
+      @iniateControllerListItems domain, response
 
-    if domain.whiteList
-      whiteList = ({rule:item} for item in domain.whiteList)
-      @whiteListController.instantiateListItems whiteList
+    @fwRuleFormView = new FirewallRuleFormView {delegate:this}, {domain:domain}
 
-    whiteListItems = []
-    [1..10].forEach (i) ->
-      generatedIp = Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1) + "." + Math.floor((Math.random()*254)+1);
-      whiteListItems.push {rule:generatedIp, mode:'allow'}
-    @whiteListController.instantiateListItems whiteListItems
+    @addSubView @fwRuleFormView
 
-    @addSubView (new FirewallRuleFormView {}, {domain:domain})
+    @addSubView @ruleListView = new KDCustomHTMLView
+      partial  : "<h3>Rule List for #{domain.domain}</h3>"
+      cssClass : 'rule-list-view'
 
-    @addSubView @blockListView = new KDCustomHTMLView
-      partial: "<h3>Deny List for #{domain.domain}</h3>"
-      cssClass: 'block-list-view'
+    @addSubView @actionListView = new KDCustomHTMLView
+      partial  : "<h3>Action List for #{domain.domain}</h3>"
+      cssClass : "action-list-view"
 
-    @blockListView.addSubView @blockListController.getView()
+    @ruleListView.addSubView @ruleListController.getView()
+
+    @actionListScrollView = new KDScrollView
+      cssClass : 'fw-al-sw'
+
+    @actionListView.addSubView @actionListScrollView
+    @actionListView.addSubView new KDButtonView
+      title : "Update Action Order" 
+
+    @actionListScrollView.addSubView @actionListController.getView()
+
+    @on "newRuleCreated", (item)=>
+      @ruleListController.addItem item
+
+    # this event is on rule list controller because 
+    # both allow & deny buttons live on FirewallRuleListItemView.
+    @ruleListController.getListView().on "behaviorCreated", (item)=>
+      @actionListController.addItem item
+
+  iniateControllerListItems:(domain, response)->
+    ruleKeys         = Object.keys(response.rules)
+    actionKeys       = Object.keys(response.RuleList)
+    responseRules    = response.rules
+    responseRuleList = response.RuleList
+    ruleList         = []
+    actionList       = []
+
+    for key in ruleKeys
+      ruleList.push 
+        domainName : domain.domain
+        ruleName   : responseRules[key].Name
+        match      : responseRules[key].Match
+        type       : responseRules[key].Type
     
-    @addSubView @whiteListView = new KDCustomHTMLView
-      partial: "<h3>Allow List for #{domain.domain}</h3>"
-      cssClass: 'white-list-view'
+    for key in actionKeys
+      actionList.push
+        domainName : domain.domain
+        ruleName   : responseRuleList[key].RuleName
+        action     : responseRuleList[key].Action
 
-    @whiteListView.addSubView @whiteListController.getView()
+    @ruleListController.instantiateListItems ruleList
+    @ruleListController.hideLazyLoader()
+    @actionListController.instantiateListItems actionList
+    @actionListController.hideLazyLoader()
 
 
-class FirewallListItemView extends KDListItemView
+class FirewallRuleListItemView extends KDListItemView
+
+  constructor:(options={}, data)->
+    options.cssClass = 'fw-rl-view'
+    super options, data
+
+    @allowButton = new KDButtonView
+      title    : "Allow"
+      callback : => @createBehavior 'allow'
+
+    @denyButton = new KDButtonView
+      title    : "Deny"
+      callback : => @createBehavior 'deny'
+
+    @deleteButton = new KDButtonView
+      title : "Delete"
+      viewOptions:
+        cssClass : 'delete-button'
 
   viewAppended:->
     @unsetClass 'kdview'
     @setTemplate @pistachio()
     @template.update()
 
+  createBehavior:(behavior)->
+    data = @getData()
+    delegate = @getDelegate()
+
+    KD.remote.api.JDomain.createBehavior
+      domainName : data.domainName
+      ruleName   : data.ruleName
+      behaviorInfo :
+        enabled : "yes"
+        action  : behavior
+        index   : "0"
+    , (err, response)=>
+      if not err
+        delegate.emit "behaviorCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
+
   pistachio:->
     """
     <div class="fw-li-view">
-      <div class="fw-li-rule">{{ #(rule) }}</div>
-      <div class="fw-li-actions">
-        <span class="icon edit">Edit</span> |
-        <span class="icon delete">Delete</span>
+      <div class="fl fw-lookup-icon"></div>
+      <div class="fl fw-li-rule">{{ #(match) }}</div>
+      <div class="fr fw-li-buttons">
+        {{> @allowButton }}
+        {{> @denyButton }}
+        {{> @deleteButton }}
+      </div>
+    </div>
+    """
+
+
+class FirewallActionListItemView extends KDListItemView
+
+  constructor:(options={}, data)->
+    options.cssClass = 'fw-al-view'
+    super options, data
+
+    @actionButton = new KDButtonView
+      title    : if data.action is "deny" then "Allow" else "Deny"
+      callback : =>
+        @updateProxyRule()
+
+    @deleteButton = new KDButtonView
+      title    : "Delete"
+      callback : =>
+        @deleteProxyRule()
+
+    @on 'DragInAction', _.throttle (x, y)->
+      if y isnt 0 and @_dragStarted
+        @setClass 'ondrag'
+    , 300
+
+    @on 'DragFinished', (event)->
+
+      @unsetClass 'ondrag'
+      @_dragStarted = no
+
+      height = $(event.target).closest('.kdlistitemview').height() or 33
+      distance = Math.round(@dragState.position.relative.y / height)
+
+      unless distance is 0
+        itemIndex = @getDelegate().getItemIndex this
+        newIndex  = itemIndex + distance
+        @getDelegate().emit 'moveToIndexRequested', this, newIndex
+
+      @setEmptyDragState yes
+
+    @setDraggable
+      handle : @
+      axis   : "y"
+
+  updateProxyRule:->
+    data = @getData()
+    delegate = @getDelegate()
+    newAction = @actionButton.getOptions().title.toLowerCase()
+    futureAction = if newAction is 'deny' then 'allow' else 'deny'
+
+    KD.remote.api.JDomain.updateBehavior
+      domainName : data.domainName
+      ruleName   : data.ruleName
+      behaviorInfo :
+        enabled : "yes"
+        action  : newAction
+        index   : "0"
+    , (err, response)=>
+      return console.log err if err?
+      @$().find("div.fw-li-view").removeClass(futureAction).addClass(newAction)
+      @actionButton.setTitle futureAction
+
+
+  deleteProxyRule:->
+    data = @getData()
+
+    KD.remote.api.JDomain.deleteBehavior
+      domainName : data.domainName
+      ruleName   : data.ruleName
+    , (err, result)=>
+      return console.log err if err?
+      new KDNotificationView {title:"Action has been deleted from your firewall.", type:"top"}
+      @destroy()
+
+
+  viewAppended:->
+    @unsetClass 'kdivew'
+    @setTemplate @pistachio()
+    @template.update()
+
+  pistachio:->
+    """
+    <div class="fw-li-view #{@getData().action}">
+      <div class="fl">{{ #(ruleName) }}</div>
+      <div class="fr fw-li-buttons">
+        {{> @actionButton }}
+        {{> @deleteButton }}
       </div>
     </div>
     """
@@ -89,39 +237,35 @@ class FirewallRuleFormView extends KDCustomHTMLView
     options.cssClass = "rule-form-view"
     super options, data
 
-    @ruleInput = new KDInputView
+    @ruleNameInput  = new KDInputView {tooltip: {title: "Enter a name for the rule.", placement:"bottom"}}
+    @ruleInput      = new KDInputView
       tooltip : 
-        title     : "You can enter IP, IP Range or a Country name."
+        title     : "You can enter IP, IP Range or a country name. (ie: 192.168.1.1/24 or China)"
         placement : "bottom"
-
+    @ruleNameInput.unsetClass 'kdinput'
     @ruleInput.unsetClass 'kdinput'
 
-    @denyButton = new KDButtonView
-      title   : "Deny"
-      callback: =>
-        @updateDomainRules "deny", @ruleInput.getValue()
-
-    @allowButton = new KDButtonView
-      title    : "Allow"
+    @addButton = new KDButtonView
+      title    : "Add"
       callback : =>
-        @updateDomainRules "allow", @ruleInput.getValue() 
+        @updateDomainRules()
 
 
-  updateDomainRules:(mode, value)->
-    ruleName   = if value.match /[0-9+]/ then "ip" else "country"
+  updateDomainRules:->
+    ruleType   = if @ruleInput.getValue().match /[0-9+]/ then "ip" else "country"
+    ruleName   = @ruleNameInput.getValue()
+    ruleMatch  = @ruleInput.getValue()
     domainName = @getData().domain.domain
-    
-    ruleInfo =
-      rule    : value
-      mode    : mode
-      enabled : "yes"
-      name    : ruleName
+    delegate   = @getDelegate()
 
-    KD.remote.api.JDomain.createProxyRule
-      domainName : domainName
-      ruleInfo   : ruleInfo
-    , (response) ->
-      alert response
+    KD.remote.api.JDomain.createProxyRule  {
+      domainName, ruleInfo:{type:ruleType, match:ruleMatch}
+    }, (err, response)->
+      if err
+        return new KDNotificationView 
+          title : "An error occured while performing your action. Please try again."
+          type  : "top"
+      delegate.emit "newRuleCreated", {domainName:domainName, ruleName:ruleMatch, match:ruleMatch}
 
 
   viewAppended:->
@@ -130,14 +274,18 @@ class FirewallRuleFormView extends KDCustomHTMLView
 
 
   pistachio:->
-    """
-    <div class="fl input-wrapper">
-      <label for="rule-input">Add a rule:</label>
-      {{> @ruleInput }}
-    </div>
+    ###
     <div class="fl">
-      {{> @denyButton }}
-      {{> @allowButton }}
+      <label for="rulename" class="">Rule Name:</label>
+      {{> @ruleNameInput }}
     </div>
+    ###
+    """
+    <div class="fl">
+      <label for="rule">Rule:</label>
+      {{> @ruleInput }}
+      {{> @addButton }}
+    </div>
+    
     <div class="clearfix"></div>
     """
