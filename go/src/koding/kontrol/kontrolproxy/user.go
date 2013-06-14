@@ -80,7 +80,7 @@ func (u *UserInfo) populateTarget() error {
 
 	switch u.Domain.Proxy.Mode {
 	case "maintenance":
-		return
+		return nil
 	case "redirect":
 		u.Target, err = url.Parse("http://" + fullurl)
 		if err != nil {
