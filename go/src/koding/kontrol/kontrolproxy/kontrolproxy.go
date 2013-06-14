@@ -177,8 +177,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
 		return
-	case "default":
-		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	}
 
 	switch user.Domain.LoadBalancer.Mode {
@@ -187,14 +185,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		session, _ := store.Get(req, sessionName)
 		targetURL, ok := session.Values["GOSESSIONID"]
 		if ok {
-			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			target, err = url.Parse(targetURL.(string))
 			if err != nil {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 				return
 			}
 		} else {
-			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
@@ -226,9 +222,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Printf("error validating user %s: %s", user.IP, err.Error())
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
-
 		}
 	}
+
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
@@ -252,11 +249,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
-	if !isUserRegistered(user.IP) {
-		go registerUser(user.IP)
-		go logDomainRequests(outreq.Host)
-		go logProxyStat(hostname, user.Country)
-	}
+	go func() {
+		if !isUserRegistered(user.IP) {
+			go registerUser(user.IP)
+			go logDomainRequests(outreq.Host)
+			go logProxyStat(hostname, user.Country)
+		}
+	}()
 
 	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
@@ -372,6 +371,13 @@ func registerUser(ip string) {
 		go cleaner()
 	}
 }
+
+/*************************************************
+*
+*  unique IP handling and cleaner
+*
+*  - arslan
+*************************************************/
 
 // The goroutine basically does this: as long as there are users in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
