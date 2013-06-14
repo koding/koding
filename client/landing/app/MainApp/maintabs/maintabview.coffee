@@ -7,8 +7,8 @@ class MainTabView extends KDTabView
     @visibleHandles             = []
     @totalSize                  = 0
     super options,data
-    @router                     = @getSingleton 'router'
-    @appManager                 = @getSingleton("appManager")
+    @router                     = KD.getSingleton 'router'
+    @appManager                 = KD.getSingleton("appManager")
 
     @appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
       if view.parent

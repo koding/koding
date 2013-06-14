@@ -12,8 +12,11 @@ class NFinderTreeController extends JTreeViewController
     else
       @getView().setClass "no-context-menu"
 
-    @getSingleton('mainController').on "NewFileIsCreated", @bound "navigateToNewFile"
-    @getSingleton('mainController').on "SelectedFileChanged", @bound "highlightFile"
+    @appManager    = KD.getSingleton "appManager"
+    mainController = KD.getSingleton "mainController"
+
+    mainController.on "NewFileIsCreated", @bound "navigateToNewFile"
+    mainController.on "SelectedFileChanged", @bound "highlightFile"
 
   addNode:(nodeData, index)->
 
@@ -62,11 +65,11 @@ class NFinderTreeController extends JTreeViewController
 
     return unless nodeView
     file = nodeView.getData()
-    KD.getSingleton("appManager").openFile file
+    @appManager.openFile file
 
   previewFile:(nodeView)->
     {vmName, path} = nodeView.getData()
-    appManager.open "Viewer", params: {path, vmName}
+    @appManager.open "Viewer", params: {path, vmName}
 
   resetVm:(nodeView)->
     {vmName} = nodeView.data
@@ -78,7 +81,7 @@ class NFinderTreeController extends JTreeViewController
 
   openVmTerminal:(nodeView)->
     {vmName} = nodeView.data
-    appManager.open "WebTerm", params: {vmName}, forceNew: yes
+    @appManager.open "WebTerm", params: {vmName}, forceNew: yes
 
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
@@ -457,10 +460,9 @@ class NFinderTreeController extends JTreeViewController
               @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   openTerminalFromHere: (nodeView) ->
-    appManager.open "WebTerm", (appInstance) =>
+    @appManager.open "WebTerm", (appInstance) =>
       path          = nodeView.getData().path
-      appManager    = @getSingleton "appManager"
-      {webTermView} = appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
+      {webTermView} = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
       webTermView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
@@ -484,9 +486,9 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmDownload:      (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmGitHubClone:   (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
+  cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
   cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
@@ -498,7 +500,7 @@ class NFinderTreeController extends JTreeViewController
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
 
-  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
   ###
   CONTEXT MENU CREATE/MANAGE

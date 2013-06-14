@@ -20,7 +20,7 @@ class ViewerAppController extends KDViewController
       failure    : (options, cb)->
         correctPath = \
           "/home/#{KD.nick()}/Sites/#{KD.nick()}.#{KD.config.userSitesDomain}/"
-        appManager.notify "File must be under: #{correctPath}"
+        KD.getSingleton("appManager").notify "File must be under: #{correctPath}"
 
   constructor:(options = {}, data)->
 

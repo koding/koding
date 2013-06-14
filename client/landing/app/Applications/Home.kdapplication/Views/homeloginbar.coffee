@@ -10,7 +10,7 @@ class HomeLoginBar extends JView
 
     super options, data
 
-    @appManager = @getSingleton('appManager')
+    @appManager = KD.getSingleton('appManager')
 
     handler = (event)->
       route = this.$()[0].getAttribute 'href'

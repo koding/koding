@@ -68,7 +68,7 @@ class AceView extends JView
 
   preview: ->
     {vmName, path} = @getData()
-    appManager.open "Viewer", params: {path, vmName}
+    KD.getSingleton("appManager").open "Viewer", params: {path, vmName}
 
   compileAndRun: ->
     manifest = KodingAppsController.getManifestFromPath @getData().path

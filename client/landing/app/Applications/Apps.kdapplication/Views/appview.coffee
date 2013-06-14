@@ -5,6 +5,7 @@ class AppView extends KDView
     super
 
     app = @getData()
+    @appManager = KD.getSingleton "appManager"
 
     @followButton = new KDToggleButton
       style           : "kdwhitebtn"
@@ -100,7 +101,7 @@ class AppView extends KDView
                     modal.destroy()
                     if not err
                       @emit 'AppDeleted', app
-                      KD.getSingleton("appManager").open "Apps", yes, (instance)=>
+                      @appManager.open "Apps", yes, (instance)=>
                         @utils.wait 100, instance.feedController.changeActiveSort "meta.modifiedAt"
                         callback?()
                     else
@@ -163,7 +164,7 @@ class AppView extends KDView
       style     : "clean-gray"
       callback  : =>
         KD.track "Apps", "OpenApplication", app.title
-        @getSingleton("appManager").open app.title
+        @appManager.open app.title
 
     @runButton.hide()
 
