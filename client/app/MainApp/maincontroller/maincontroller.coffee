@@ -70,9 +70,6 @@ class MainController extends KDController
 
     @introductionTooltipController = new IntroductionTooltipController
 
-    @on "UserLoggedIn", ->
-      @getSingleton("kodingAppsController").getPublishedApps()
-
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
     if @appStorages[appName]?

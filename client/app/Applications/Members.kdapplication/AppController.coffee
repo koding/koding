@@ -14,8 +14,6 @@ class MembersAppController extends AppController
 
     super options, data
 
-#  setGroup:-> console.trace()
-
   createFeed:(view, loadFeed = no)->
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
@@ -23,8 +21,6 @@ class MembersAppController extends AppController
       useHeaderNav          : no
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
-      # onboarding            :
-      #   everything          : "<h3 class='title'>yooo onboard me!!!</h3>"
       help                  :
         subtitle            : "Learn About Members"
         tooltip             :

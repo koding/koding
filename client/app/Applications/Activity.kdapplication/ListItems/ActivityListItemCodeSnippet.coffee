@@ -127,7 +127,7 @@ class CodeSnippetView extends KDCustomHTMLView
           file.save content, (err) ->
 
             notificationTitle = new KDView
-              partial : "Your file saved."
+              partial : "Your file is saved."
 
             notificationTitle.addSubView link = new KDCustomHTMLView
               tagName  : "a"
