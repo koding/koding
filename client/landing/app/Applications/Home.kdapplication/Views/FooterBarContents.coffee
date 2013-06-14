@@ -27,7 +27,7 @@ class MainPageFooterView extends KDView
     @addSubView @buttonHolder = new KDView
       cssClass  : "footer-right"
 
-    mainController = @getSingleton('mainController')
+    mainController = KD.getSingleton('mainController')
 
     if not @getData().about
       @buttonHolder.addSubView new KDView

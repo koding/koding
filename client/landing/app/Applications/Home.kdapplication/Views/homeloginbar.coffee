@@ -10,12 +10,12 @@ class HomeLoginBar extends JView
 
     super options, data
 
-    @appManager = @getSingleton('appManager')
+    @appManager = KD.getSingleton('appManager')
 
     handler = (event)->
       route = this.$()[0].getAttribute 'href'
       @utils.stopDOMEvent event
-      @getSingleton('router').handleRoute route, {entryPoint}
+      KD.getSingleton('router').handleRoute route, {entryPoint}
 
     @register     = new CustomLinkView
       tagName     : "a"
@@ -46,7 +46,7 @@ class HomeLoginBar extends JView
                 @request.hide()
                 @requested.show()
         else
-          @getSingleton('router').handleRoute "/Join", {entryPoint}
+          KD.getSingleton('router').handleRoute "/Join", {entryPoint}
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -58,7 +58,7 @@ class HomeLoginBar extends JView
       click       : (event)=>
         KD.track "Login", "AlreadyUser", @group.slug
         @utils.stopDOMEvent event
-        @getSingleton('router').handleRoute "/Login"
+        KD.getSingleton('router').handleRoute "/Login"
 
     @access       = new CustomLinkView
       tagName     : "a"
@@ -182,8 +182,8 @@ class HomeLoginBar extends JView
                 callback   : -> modal.destroy()
 
     @decorateButtons()
-    @getSingleton('mainController').on 'AccountChanged', @bound 'decorateButtons'
-    @getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
+    KD.getSingleton('mainController').on 'AccountChanged', @bound 'decorateButtons'
+    KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   handleBackendResponse:(err, successMsg)->
     if err

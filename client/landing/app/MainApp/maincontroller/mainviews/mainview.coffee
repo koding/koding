@@ -31,7 +31,7 @@ class MainView extends KDView
 
     @utils.defer -> overlay.setClass 'in'
 
-    {winHeight} = @getSingleton('windowController')
+    {winHeight} = KD.getSingleton('windowController')
 
     offset = if winHeight > 400 then (winHeight - 400) / 2 else 0
 
@@ -52,7 +52,7 @@ class MainView extends KDView
 
   _windowDidResize:->
 
-    {winHeight} = @getSingleton "windowController"
+    {winHeight} = KD.getSingleton "windowController"
     @panelWrapper.setHeight winHeight - 51
 
   createMainPanels:->
@@ -134,7 +134,7 @@ class MainView extends KDView
         @appSettingsMenuButton.hide()
 
     @mainTabView.on "AllPanesClosed", ->
-      @getSingleton('router').handleRoute "/Activity"
+      KD.getSingleton('router').handleRoute "/Activity"
 
     @contentPanel.addSubView @mainTabView
     @contentPanel.addSubView @mainTabHandleHolder
@@ -143,7 +143,7 @@ class MainView extends KDView
   createSideBar:->
 
     @sidebar             = new Sidebar domId : "sidebar", delegate : @
-    mc                   = @getSingleton 'mainController'
+    mc                   = KD.getSingleton 'mainController'
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
 
@@ -152,11 +152,11 @@ class MainView extends KDView
     @addSubView @chatHandler = new MainChatHandler
 
   setStickyNotification:->
-    # sticky = @getSingleton('windowController')?.stickyNotification
+    # sticky = KD.getSingleton('windowController')?.stickyNotification
     @utils.defer => getStatus()
 
     KD.remote.api.JSystemStatus.on 'restartScheduled', (systemStatus)=>
-      sticky = @getSingleton('windowController')?.stickyNotification
+      sticky = KD.getSingleton('windowController')?.stickyNotification
 
       if systemStatus.status isnt 'active'
         getSticky()?.emit 'restartCanceled'
@@ -191,7 +191,7 @@ class MainView extends KDView
 
 # inactive code
 
-    # mainController = @getSingleton('mainController')
+    # mainController = KD.getSingleton('mainController')
     # mainController.popupController = new VideoPopupController
 
     # mainController.monitorController = new MonitorController

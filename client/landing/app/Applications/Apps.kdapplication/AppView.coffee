@@ -16,16 +16,15 @@ class AppsMainView extends KDView
       title     : "Update All"
       style     : "cupid-green update-apps-button"
       callback  : ->
-        appsController = @getSingleton "kodingAppsController"
-        apps           = @getData()
-        stack          = []
-
-        apps.forEach (app) =>
-          stack.push (callback) =>
-            appsController.updateUserApp app.manifest, callback
-
-        async.series stack
+        KD.getSingleton("kodingAppsController").updateAllApps()
+        @hide()
 
     @updateAppsButton.hide()
+    @updateAppsButton.on "UpdateView", (filter)->
+      @hide()  unless filter is 'updates'
+      if filter is 'updates'
+        appsController = KD.getSingleton("kodingAppsController")
+        appsController.fetchUpdateAvailableApps (res, apps)=>
+          unless apps?.length then @hide() else @show()
 
     @addSubView header

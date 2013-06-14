@@ -27,7 +27,7 @@ class HomeAppController extends AppController
   createContentDisplayWithOptions:(options, callback)->
     {model, route, query} = options
 
-    controller = @getSingleton 'contentDisplayController'
+    controller = KD.getSingleton 'contentDisplayController'
     switch route
       when 'About'
         contentDisplay = new AboutView

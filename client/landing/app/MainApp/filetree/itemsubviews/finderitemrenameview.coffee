@@ -11,7 +11,7 @@ class NFinderItemRenameView extends JView
       keyup         : (event)=>
         @emit "FinderRenameConfirmation", (data.name) if event.which is 27
 
-    @getSingleton("windowController").addLayer @input
+    KD.getSingleton("windowController").addLayer @input
 
     @cancel = new KDCustomHTMLView
       tagName       : 'a'

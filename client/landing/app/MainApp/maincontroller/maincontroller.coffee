@@ -22,12 +22,8 @@ class MainController extends KDController
 
     super options, data
 
-    # window.appManager is there for backwards compatibilty
-    # will be deprecated soon.
-    window.appManager = new ApplicationManager
-
     KD.registerSingleton "mainController",            this
-    KD.registerSingleton "appManager",                appManager
+    KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "contentDisplayController",  new ContentDisplayController
@@ -41,17 +37,6 @@ class MainController extends KDController
 
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
-      groupsController.once 'GroupChanged', =>
-        # temp hot fix for a default vm creation - SY
-        group = groupsController.getCurrentGroup()
-        group.createVM
-          type     : 'user'
-          planCode : 'free'
-        , (err)->
-          unless err
-            KD.getSingleton('vmController').emit 'VMListChanged'
-            log "default vm created"
-
 
     appManager.create 'Chat', (chatController)->
       KD.registerSingleton "chatController", chatController
@@ -69,9 +54,6 @@ class MainController extends KDController
     @appStorages = {}
 
     @introductionTooltipController = new IntroductionTooltipController
-
-    @on "UserLoggedIn", ->
-      @getSingleton("kodingAppsController").getPublishedApps()
 
   # FIXME GG
   getAppStorageSingleton:(appName, version)->

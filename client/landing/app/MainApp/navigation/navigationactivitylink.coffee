@@ -6,11 +6,13 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     super options, data
 
+    appManager = KD.getSingleton "appManager"
+
     @newActivityCount = 0
 
     @count = new KDCustomHTMLView
       tagName   : "span"
-      cssClass  : "main-nav-icon invite-friends" # TODO: Update class name - Fatih bunu gormemis oliim
+      cssClass  : "main-nav-icon transparent"
       partial   : "#{@newActivityCount}"
       click     : =>
         @setActivityLinkToDefaultState()
@@ -23,15 +25,15 @@ class NavigationActivityLink extends KDCustomHTMLView
       cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
 
     @utils.wait 1000, =>
-      @getSingleton('activityController').on "ActivitiesArrived", (activities) =>
-        return if @getSingleton('router').currentPath is "Activity"
+      KD.getSingleton('activityController').on "ActivitiesArrived", (activities) =>
+        return if KD.getSingleton('router').currentPath is "Activity"
         myId = KD.whoami().getId()
         @newActivityCount++ for activity in activities when activity.originId and activity.originId isnt myId
 
         appManager.tell "Activity", "getNewItemsCount", (itemCount) =>
           @updateNewItemsCount itemCount
 
-    @getSingleton("mainController").on "NavigationLinkTitleClick", (options) =>
+    KD.getSingleton("mainController").on "NavigationLinkTitleClick", (options) =>
       @setActivityLinkToDefaultState() if options.appPath is "Activity" and @newActivityCount > 0
 
   updateNewItemsCount: (itemCount) ->
