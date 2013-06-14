@@ -1,6 +1,5 @@
 class NFinderContextMenuController extends KDController
 
-
   ###
   CONTEXT MENU CREATION
   ###

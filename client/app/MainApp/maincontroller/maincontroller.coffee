@@ -26,29 +26,39 @@ class MainController extends KDController
     # will be deprecated soon.
     window.appManager = new ApplicationManager
 
-    KD.registerSingleton "appManager", appManager
-    KD.registerSingleton "mainController", @
-    KD.registerSingleton "kiteController", new KiteController
-    KD.registerSingleton "vmController", new VirtualizationController
-    KD.registerSingleton "contentDisplayController", new ContentDisplayController
-    KD.registerSingleton "notificationController", new NotificationController
-    KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton "mainController",            this
+    KD.registerSingleton "appManager",                appManager
+    KD.registerSingleton "kiteController",            new KiteController
+    KD.registerSingleton "vmController",              new VirtualizationController
+    KD.registerSingleton "contentDisplayController",  new ContentDisplayController
+    KD.registerSingleton "notificationController",    new NotificationController
+    KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "linkController",            new LinkController
+    KD.registerSingleton 'router',           router = new KodingRouter location.pathname
+
+    # KD.registerSingleton "localStorageController", new LocalStorageController
     # KD.registerSingleton "fatih", new Fatih
-
-    KD.registerSingleton "linkController", new LinkController
-
-    router = new KodingRouter location.pathname
-    KD.registerSingleton 'router', router
 
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
+      groupsController.once 'GroupChanged', =>
+        # temp hot fix for a default vm creation - SY
+        group = groupsController.getCurrentGroup()
+        group.createVM
+          type     : 'user'
+          planCode : 'free'
+        , (err)->
+          unless err
+            KD.getSingleton('vmController').emit 'VMListChanged'
+            log "default vm created"
+
 
     appManager.create 'Chat', (chatController)->
       KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
-      KD.registerSingleton "activityController", new ActivityController
+      KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
       @emit 'FrameworkIsReady'
