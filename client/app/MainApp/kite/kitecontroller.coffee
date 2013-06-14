@@ -110,10 +110,10 @@ class KiteController extends KDController
 
   setListeners:->
 
-    mainController = @getSingleton "mainController"
+    mainController = KD.getSingleton "mainController"
 
     @on "CreatingUserEnvironment", =>
-      mainView = @getSingleton "mainView"
+      mainView = KD.getSingleton "mainView"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
@@ -123,7 +123,7 @@ class KiteController extends KDController
     @on "UserEnvironmentIsCreated", =>
       return if _attempt is 1
       notify _notifications.envCreated
-      mainView = @getSingleton "mainView"
+      mainView = KD.getSingleton "mainView"
       mainView.removeOverlay()
       mainView.contentPanel.removeOverlay()
       _attempt = 1

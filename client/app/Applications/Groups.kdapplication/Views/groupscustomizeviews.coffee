@@ -68,7 +68,7 @@ class StaticPageCustomizeView extends KDView
       cssClass  : 'settings-link'
       click     : =>
         {entryPoint} = KD.config
-        @getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
+        KD.getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
 
     @backButton = new CustomLinkView
       title       : ""
@@ -88,8 +88,8 @@ class StaticPageCustomizeView extends KDView
       @bgSelectView.decorateList @group
       @bgColorView.decorateList @group
 
-    @staticController = @getSingleton('staticGroupController') ? @getSingleton('staticProfileController')
-    @windowController = @getSingleton('windowController')
+    @staticController = KD.getSingleton('staticGroupController') ? KD.getSingleton('staticProfileController')
+    @windowController = KD.getSingleton('windowController')
 
   addSettingsButton:->
     @settingsLink = new CustomLinkView
@@ -98,7 +98,7 @@ class StaticPageCustomizeView extends KDView
       cssClass  : 'settings-link'
       click     : =>
         {entryPoint} = KD.config
-        @getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
+        KD.getSingleton('lazyDomController')?.openPath "/Activity", {entryPoint}
 
 
 

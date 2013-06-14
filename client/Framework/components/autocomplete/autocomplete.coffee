@@ -34,11 +34,11 @@ class KDAutoComplete extends KDInputView
 
   focus:(pubInst,event)->
     @setClass "focus"
-    (@getSingleton "windowController").setKeyView @
+    (KD.getSingleton "windowController").setKeyView @
     yes
 
   keyDown:(event)->
-    (@getSingleton "windowController").setKeyView @
+    (KD.getSingleton "windowController").setKeyView @
     yes
 
   getLeftOffset:->

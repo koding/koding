@@ -60,7 +60,7 @@ class AppView extends KDView
         app.followee = following
         @followButton.setState "Unfollow"  if following
 
-    appsController = @getSingleton("kodingAppsController")
+    appsController = KD.getSingleton("kodingAppsController")
 
     if KD.checkFlag 'super-admin'
       @approveButton = new KDToggleButton
@@ -174,7 +174,7 @@ class AppView extends KDView
       callback    : =>
         delete appsController.notification
         appsController.updateUserApp app.manifest, =>
-          @getSingleton("router").handleRoute "Develop"
+          KD.getSingleton("router").handleRoute "Develop"
 
     @updateButton.hide()
 

@@ -13,7 +13,7 @@ class ActivityUpdateWidgetController extends KDViewController
     # __utils.wait 20000, -> submissionStopped = no
 
   loadView:(mainView)->
-    activityController = @getSingleton('activityController')
+    activityController = KD.getSingleton('activityController')
 
     paneMap = [
         name            : 'statusUpdatePane'
@@ -99,7 +99,7 @@ class ActivityUpdateWidgetController extends KDViewController
     @on 'editFromFakeData', (fakeData)=>
       switchForEditView fakeData.fakeType, fakeData, yes
 
-    @getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
+    KD.getSingleton('mainController').on "ActivityItemEditLinkClicked", (activity)=>
       # Remove this if can fix the ActivityStatusUpdateWidget's bug
       KD.getSingleton("appManager").open "Activity"
       mainView.setClass "edit-mode"

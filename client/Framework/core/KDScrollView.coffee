@@ -76,7 +76,7 @@ class KDScrollView extends KDView
       direction = if event._delta.delta > 0 then "up" else "down"
       @_scrollUponVelocity event._delta.delta,direction
       return no
-    (@getSingleton "windowController").scrollingEnabled
+    (KD.getSingleton "windowController").scrollingEnabled
 
   # scroll:(event)->
   #   if @getOptions().ownScrollBars

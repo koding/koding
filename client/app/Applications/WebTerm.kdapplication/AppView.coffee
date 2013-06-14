@@ -101,7 +101,7 @@ class WebTermView extends KDView
     @on "ReceivedClickElsewhere", =>
       @focused = false
       @terminal.setFocused false
-      @getSingleton('windowController').removeLayer @
+      KD.getSingleton('windowController').removeLayer @
 
     $(window).bind "blur", =>
       @terminal.setFocused false
@@ -152,7 +152,7 @@ class WebTermView extends KDView
 
   setKeyView: ->
     super
-    @getSingleton('windowController').addLayer @
+    KD.getSingleton('windowController').addLayer @
     @focused = true
     @terminal.setFocused true
 

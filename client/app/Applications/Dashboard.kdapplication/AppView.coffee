@@ -3,7 +3,7 @@ class DashboardAppView extends JView
   constructor:(options={}, data)->
 
     options.cssClass or= "content-page"
-    data or= @getSingleton("groupsController").getCurrentGroup()
+    data or= KD.getSingleton("groupsController").getCurrentGroup()
     super options, data
 
     @header = new HeaderViewSection type : "big", title : "Group Dashboard"

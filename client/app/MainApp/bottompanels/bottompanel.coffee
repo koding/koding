@@ -7,7 +7,7 @@ class BottomPanel extends KDScrollView
 
     super options, data
 
-    @wc = @getSingleton("windowController")
+    @wc = KD.getSingleton("windowController")
     @listenWindowResize()
     @isVisible = no
     @on "ReceivedClickElsewhere", => @hide()
@@ -15,7 +15,7 @@ class BottomPanel extends KDScrollView
   _windowDidResize:->
 
     @utils.wait 300, =>
-      @setWidth @getSingleton('contentPanel').getWidth() + 10
+      @setWidth KD.getSingleton('contentPanel').getWidth() + 10
 
   show:(cb = noop)->
 

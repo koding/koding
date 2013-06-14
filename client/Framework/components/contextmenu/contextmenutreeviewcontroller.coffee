@@ -170,12 +170,12 @@ class JContextMenuTreeViewController extends JTreeViewController
 
   performEscapeKey:(nodeView, event)->
 
-    @getSingleton("windowController").revertKeyView()
+    KD.getSingleton("windowController").revertKeyView()
     @getDelegate().destroy()
 
   performEnterKey:(nodeView, event)->
 
-    @getSingleton("windowController").revertKeyView()
+    KD.getSingleton("windowController").revertKeyView()
     contextMenu = @getDelegate()
     contextMenu.emit "ContextMenuItemReceivedClick", nodeView
     contextMenu.destroy()

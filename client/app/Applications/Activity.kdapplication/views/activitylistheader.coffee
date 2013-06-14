@@ -22,10 +22,10 @@ class ActivityListHeader extends JView
       callback     : (state) =>
         @appStorage.setValue 'liveUpdates', state, =>
         @updateShowNewItemsLink()
-        @getSingleton('activityController').flags = liveUpdates : state
-        @getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
+        KD.getSingleton('activityController').flags = liveUpdates : state
+        KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
-    @getSingleton('mainController').on 'AccountChanged', @bound 'decorateLiveUpdateButton'
+    KD.getSingleton('mainController').on 'AccountChanged', @bound 'decorateLiveUpdateButton'
     @decorateLiveUpdateButton()
 
     if KD.checkFlag "super-admin"
@@ -41,7 +41,7 @@ class ActivityListHeader extends JView
         cssClass : 'fr'
         partial  : 'Refresh'
         click    : (event)=>
-          @getSingleton('activityController').emit 'Refresh'
+          KD.getSingleton('activityController').emit 'Refresh'
 
     else
       @lowQualitySwitch = new KDCustomHTMLView
@@ -51,7 +51,7 @@ class ActivityListHeader extends JView
     @appStorage.fetchStorage (storage)=>
       state = @appStorage.getValue('liveUpdates') or off
       @liveUpdateButton.setValue state
-      @getSingleton('activityController').flags = liveUpdates : state
+      KD.getSingleton('activityController').flags = liveUpdates : state
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   pistachio:(newCount)->

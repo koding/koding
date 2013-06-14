@@ -21,7 +21,7 @@ class ResourcesController extends KDListViewController
     #   then vmA    > vmB
     #   else groupA > groupB
 
-    finder = @getSingleton('finderController')
+    finder = KD.getSingleton('finderController')
     finder.emit 'EnvironmentsTabHide'
     @removeAllItems()
     KD.singletons.vmController.resetVMData()

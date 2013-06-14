@@ -9,11 +9,11 @@ class ContentPanel extends KDView
     @listenWindowResize()
     @state = 'full'
     @chatMargin = 0
-    @windowController or= @getSingleton 'windowController'
+    @windowController or= KD.getSingleton 'windowController'
 
     @navOpenedOnce = if KD.isLoggedIn() then yes else no
 
-    mainViewController = @getSingleton "mainViewController"
+    mainViewController = KD.getSingleton "mainViewController"
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
     mainViewController.on "browseRequested", @bound "browseRequested"
 
@@ -28,7 +28,7 @@ class ContentPanel extends KDView
   browseRequested:->
     @navOpenedOnce = yes
     @adjustForSocial()
-    @getSingleton("mainView").mainTabView.changeLayout hideTabs : no
+    KD.getSingleton("mainView").mainTabView.changeLayout hideTabs : no
 
   changeLayout:(options)->
 

@@ -11,7 +11,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     super options, data
 
-    @appsController = @getSingleton("kodingAppsController")
+    @appsController = KD.getSingleton("kodingAppsController")
 
     {icns, name, identifier, version, author, description,
      authorNick, additionalinfo} = manifest = @getData()
@@ -96,7 +96,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
         e.stopPropagation()
         jApp = @appsController.publishedApps[manifest.name]
         KD.getSingleton("appManager").open "Apps", =>
-          @getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
+          KD.getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
 
     if @getData().devMode
       @compile = new KDCustomHTMLView
@@ -252,7 +252,7 @@ class AppShortcutButton extends StartTabAppThumbView
 
   appDeleteCall:({name})->
     @showLoader()
-    @getSingleton("kodingAppsController").removeShortcut name, (err)=>
+    KD.getSingleton("kodingAppsController").removeShortcut name, (err)=>
       @deleteModal.buttons.Delete.hideLoader()
       @deleteModal.destroy()
       @hideLoader()

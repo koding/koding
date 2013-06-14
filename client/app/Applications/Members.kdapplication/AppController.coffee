@@ -117,7 +117,7 @@ class MembersAppController extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView controller.getView()
-      contentDisplayController = @getSingleton "contentDisplayController"
+      contentDisplayController = KD.getSingleton "contentDisplayController"
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
       callback view, controller
       if controller.facetsController?.filterController?
@@ -176,7 +176,7 @@ class MembersAppController extends AppController
           direction       : 1
     }, (controller)=>
       view.addSubView controller.getView()
-      contentDisplayController = @getSingleton "contentDisplayController"
+      contentDisplayController = KD.getSingleton "contentDisplayController"
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
       callback view, controller
 
@@ -204,7 +204,7 @@ class MembersAppController extends AppController
     @createFeed mainView, loadFeed
 
   # showMemberContentDisplay:({content})->
-  #   contentDisplayController = @getSingleton "contentDisplayController"
+  #   contentDisplayController = KD.getSingleton "contentDisplayController"
   #   controller = new ContentDisplayControllerMember null, content
   #   contentDisplay = controller.getView()
   #   contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
@@ -238,7 +238,7 @@ class MembersAppController extends AppController
         @createLikedContentDisplay model, kallback
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
@@ -300,7 +300,7 @@ class MembersListViewController extends KDListViewController
       data.counts.followers = followerCount
       data.counts.following = followingCount
       item.setFollowerCount followerCount
-      switch @getSingleton('mainController').getVisitor().currentDelegate
+      switch KD.getSingleton('mainController').getVisitor().currentDelegate
         when newFollower, oldFollower
           if newFollower then item.unfollowTheButton() else item.followTheButton()
 

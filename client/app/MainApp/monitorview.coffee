@@ -18,7 +18,7 @@ class StatusLEDView extends KDView
       click    :=>
         @ledList.show()
 
-    monitorController = @getSingleton 'monitorController'
+    monitorController = KD.getSingleton 'monitorController'
 
     monitorController.on 'ServiceWentOnline', (key,serviceData={})=>
       for item in @ledList.items

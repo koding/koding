@@ -53,7 +53,7 @@ class StaticAvatarAreaIconMenu extends JView
 
     super
 
-    mainView = @getSingleton 'mainView'
+    mainView = KD.getSingleton 'mainView'
 
     mainView.addSubView @notificationsPopup
     mainView.addSubView @messageUserPopup
