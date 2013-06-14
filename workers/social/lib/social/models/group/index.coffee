@@ -343,9 +343,12 @@ module.exports = class JGroup extends Module
               overagePolicy = 'allowed'
           else
             overagePolicy = 'not allowed'
+          paymentPlan = ""
+          if groupData.payment?.plan
+            paymentPlan = groupData.payment.plan
           group.createBundle
             overagePolicy: overagePolicy
-            paymentPlan  : groupData.payment.plan
+            paymentPlan  : paymentPlan
             allocation   : parseInt(groupData.allocation, 10) * 100
             sharedVM     : groupData['shared-vm']
           , ->
