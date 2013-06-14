@@ -84,24 +84,25 @@ module.exports = class JRecurlySubscription extends jraphical.Module
           # create or update
           stack.push (cb)->
             {uuid, plan, quantity, status, datetime, expires, renew} = mapAll[k]
-            if k not in Object.keys(mapCached)
-              sub = new JRecurlySubscription
-              sub.uuid = uuid
-            else
-              sub = mapCached[k]
+            JRecurlySubscription.one
+              uuid: k
+            , (err, sub)->
+              if err or not sub
+                sub = new JRecurlySubscription
+                sub.uuid = uuid
 
-            sub.userCode = userCode
-            sub.planCode = plan
-            sub.quantity = quantity
-            sub.status   = status
-            sub.datetime = datetime
-            sub.expires  = expires
-            sub.renew    = renew
+              sub.userCode = userCode
+              sub.planCode = plan
+              sub.quantity = quantity
+              sub.status   = status
+              sub.datetime = datetime
+              sub.expires  = expires
+              sub.renew    = renew
 
-            sub.lastUpdate = (new Date()).getTime()
+              sub.lastUpdate = (new Date()).getTime()
 
-            sub.save ->
-              cb null, sub
+              sub.save ->
+                cb null, sub
 
         async = require 'async'
         async.parallel stack, (err, results)->
