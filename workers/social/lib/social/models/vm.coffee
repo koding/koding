@@ -101,9 +101,9 @@ module.exports = class JVM extends Model
       account.fetchUser (err, user)=>
         return callback err  if err
         if type is 'user' or type is 'expensed'
-          name = "#{groupSlug}~#{user.username}-"
+          name = "#{groupSlug}~#{user.username}~"
         else
-          name = "#{groupSlug}-"
+          name = "#{groupSlug}~"
 
         nameFactory = (require 'koding-counter') {
           db          : JVM.getClient()
