@@ -1,6 +1,7 @@
 class NavigationAppsLink extends KDCustomHTMLView
 
   constructor:(options = {}, data)->
+
     options.tagName  = "a"
     options.cssClass = "title"
 
@@ -10,7 +11,7 @@ class NavigationAppsLink extends KDCustomHTMLView
     @counter        = 0
     @appsController = @getSingleton "kodingAppsController"
 
-    @count = new KDCustomHTMLView
+    @count      = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "icon-top-badge"
       partial   : ""
@@ -21,7 +22,7 @@ class NavigationAppsLink extends KDCustomHTMLView
 
     @count.hide()
 
-    @icon  = new KDCustomHTMLView
+    @icon       = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
 

@@ -77,7 +77,6 @@ class FeedController extends KDViewController
     @changeActiveSort sort, no    if sort?
     @highlightFacets()
     @loadFeed()
-    # console.log 'handle query is called on feed controller', @, arguments
 
   defineFilter:(name, filter)->
     filter.name     = name

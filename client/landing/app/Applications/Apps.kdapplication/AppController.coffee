@@ -95,19 +95,13 @@ class AppsAppController extends AppController
           KD.remote.api.JApp.someWithRelationship selector, options, callback
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', options, (controller)=>
-      # @getSingleton("kodingAppsController").fetchAppsFromDb (err, apps)=>
-      #   log "Installed Apps:", apps
       for own name,listController of controller.resultsController.listControllers
         listController.getListView().on 'AppWantsToExpand', (app)->
           KD.getSingleton('router').handleRoute "/Apps/#{app.slug}", state: app
 
-        listController.getListView().on "AppDeleted", =>
-          log arguments, ">>>>>"
-
       @getView().addSubView controller.getView()
       @feedController = controller
       @emit 'ready'
-      # @putAddAnAppButton()
 
       {updateAppsButton} = @getView()
       {filterController} = @feedController.facetsController
