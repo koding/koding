@@ -293,13 +293,13 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      group = KD.singletons.groupsController.getCurrentGroup()
-      group.vmUsage (err, limit)->
-        if limit and limit.usage < limit.quota
-          # content += """<br/><br/>
-          #               You can also get a <b>Personal</b> VM using your 
-          #               <b>goups</b> quota. Your group will be charged."""
-          modal.modalTabs.forms["Create VM"].buttons.expensed.show()
+      # group = KD.singletons.groupsController.getCurrentGroup()
+      # group.vmUsage (err, limit)->
+      #   if limit and limit.usage < limit.quota
+      #     # content += """<br/><br/>
+      #     #               You can also get a <b>Personal</b> VM using your 
+      #     #               <b>goups</b> quota. Your group will be charged."""
+      #     modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
