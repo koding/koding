@@ -36,7 +36,7 @@ class MainChatHeader extends JView
         title         : "pin"
         iconClass     : "left"
         callback      : (callback)->
-          contentPanel = @getSingleton('contentPanel')
+          contentPanel = KD.getSingleton('contentPanel')
           contentPanel.chatMargin = 250
           contentPanel._windowDidResize()
           callback?()
@@ -44,11 +44,11 @@ class MainChatHeader extends JView
         title         : "unpin"
         iconClass     : "right"
         callback      : (callback)->
-          contentPanel = @getSingleton('contentPanel')
+          contentPanel = KD.getSingleton('contentPanel')
           contentPanel.chatMargin = 0
           contentPanel._windowDidResize()
 
-          chatPanel    = @getSingleton('chatPanel')
+          chatPanel    = KD.getSingleton('chatPanel')
           chatPanel.hidePanel()
 
           callback?()

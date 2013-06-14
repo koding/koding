@@ -163,8 +163,8 @@ class FSItem extends KDObject
 
     super
 
-    @treeController = @getSingleton('finderController').treeController
-    @kiteController = @getSingleton('kiteController')
+    @treeController = KD.getSingleton('finderController').treeController
+    @kiteController = KD.getSingleton('kiteController')
 
   getExtension:-> FSItem.getFileExtension @name
 

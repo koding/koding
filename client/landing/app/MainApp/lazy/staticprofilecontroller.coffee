@@ -31,8 +31,8 @@ class StaticProfileController extends KDController
     @reviveViewsOnPageLoad()
     @attachListeners()
 
-    @mainController = @getSingleton 'mainController'
-    @lazyDomController = @getSingleton('lazyDomController')
+    @mainController = KD.getSingleton 'mainController'
+    @lazyDomController = KD.getSingleton('lazyDomController')
 
     # KD.remote.cacheable KD.config.entryPoint.slug, (err, user, name)=>
     # FIXME - we want to use cacheable, not a JAccount call, but names

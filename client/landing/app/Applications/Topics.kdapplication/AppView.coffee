@@ -12,7 +12,7 @@ class TopicsMainView extends KDView
       type  : "big"
       title : "Topics"
 
-    @getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
+    KD.getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
     @setSearchInput()
 
   setSearchInput:->

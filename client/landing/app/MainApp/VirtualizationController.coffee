@@ -101,8 +101,8 @@ class VirtualizationController extends KDController
 
   createNewVM:->
     return  if @dialogIsOpen
-    vmController        = @getSingleton('vmController')
-    paymentController   = @getSingleton('paymentController')
+    vmController        = KD.getSingleton('vmController')
+    paymentController   = KD.getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
 

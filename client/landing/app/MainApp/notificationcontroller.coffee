@@ -17,7 +17,7 @@ class NotificationController extends KDObject
 
     super
 
-    @getSingleton('mainController').on "AccountChanged", =>
+    KD.getSingleton('mainController').on "AccountChanged", =>
       @off 'NotificationHasArrived'
       @notificationChannel?.close().off()
       @setListeners()

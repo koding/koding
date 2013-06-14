@@ -127,13 +127,13 @@ class Sidebar extends JView
 
   setListeners:->
 
-    mainController                 = @getSingleton "mainController"
-    mainViewController             = @getSingleton "mainViewController"
-    mainView                       = @getSingleton "mainView"
+    mainController                 = KD.getSingleton "mainController"
+    mainViewController             = KD.getSingleton "mainViewController"
+    mainView                       = KD.getSingleton "mainView"
     {@contentPanel, @sidebarPanel} = mainView
     $fp                            = @$('#finder-panel')
     cp                             = @contentPanel
-    @wc                            = @getSingleton "windowController"
+    @wc                            = KD.getSingleton "windowController"
     fpLastWidth                    = null
 
     mainController.on "AvatarPopupIsActive",   => @_popupIsActive = yes
@@ -150,7 +150,7 @@ class Sidebar extends JView
   changeLayout:(options)->
 
     {type, hideTabs} = options
-    windowController = @getSingleton 'windowController'
+    windowController = KD.getSingleton 'windowController'
 
     @$finderPanel       or= @$('#finder-panel')
     @$avatarPlaceholder or= @$('.avatar-placeholder')
@@ -338,7 +338,7 @@ class Sidebar extends JView
       {
         title    : "Help",
         callback : ->
-          @getSingleton('mainController').emit "ShowInstructionsBook"
+          KD.getSingleton('mainController').emit "ShowInstructionsBook"
       }
       {
         title    : "About",
@@ -347,6 +347,6 @@ class Sidebar extends JView
       {
         title    : "Chat",
         callback : ->
-          @getSingleton('mainController').emit "ToggleChatPanel"
+          KD.getSingleton('mainController').emit "ToggleChatPanel"
       }
     ]

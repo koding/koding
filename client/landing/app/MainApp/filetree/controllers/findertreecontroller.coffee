@@ -353,7 +353,7 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.job.started"
-    kodingAppsController = @getSingleton('kodingAppsController')
+    kodingAppsController = KD.getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
@@ -371,7 +371,7 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.job.started"
-    kodingAppsController = @getSingleton('kodingAppsController')
+    kodingAppsController = KD.getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
@@ -387,7 +387,7 @@ class NFinderTreeController extends JTreeViewController
     @notify "not yet there!", "error"
 
     # folder.emit "fs.job.started"
-    # @getSingleton('kodingAppsController').cloneApp folder.path, =>
+    # KD.getSingleton('kodingAppsController').cloneApp folder.path, =>
     #   folder.emit "fs.job.finished"
     #   @refreshFolder @nodes[folder.parentPath], =>
     #     @utils.wait 500, =>
@@ -400,7 +400,7 @@ class NFinderTreeController extends JTreeViewController
     folder = nodeView.getData()
 
     folder.emit "fs.job.started"
-    @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
+    KD.getSingleton('kodingAppsController').publishApp folder.path, (err)=>
       folder.emit "fs.job.finished"
       unless err
         @notify "App published!", "success"
@@ -419,14 +419,14 @@ class NFinderTreeController extends JTreeViewController
                 modal.destroy()
 
   makeNewApp:(nodeView)->
-    @getSingleton('kodingAppsController').makeNewApp()
+    KD.getSingleton('kodingAppsController').makeNewApp()
 
   downloadAppSource:(nodeView)->
 
     folder = nodeView.getData()
 
     folder.emit "fs.job.started"
-    @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
+    KD.getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
       folder.emit "fs.job.finished"
       @refreshFolder @nodes[folder.parentPath]
       unless err
@@ -457,7 +457,7 @@ class NFinderTreeController extends JTreeViewController
                   syntax             : FSItem.getFileExtension file.path
               CodeShares.push CodeShare
             if count == files.length
-              @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
+              KD.getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   openTerminalFromHere: (nodeView) ->
     @appManager.open "WebTerm", (appInstance) =>
@@ -721,7 +721,7 @@ class NFinderTreeController extends JTreeViewController
             duration  : 0
             click     : -> details.destroy()
 
-          @getSingleton('windowController').addLayer details
+          KD.getSingleton('windowController').addLayer details
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
 

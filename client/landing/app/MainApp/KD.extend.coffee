@@ -25,7 +25,7 @@ KD.extend
 
       # if it's not a silent operation redirect
       unless silence
-        @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+        KD.getSingleton('router').handleRoute "/Login", KD.config.entryPoint
 
       # if there is callback and we want to try again
       if callback? and tryAgain

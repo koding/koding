@@ -44,7 +44,7 @@ class StartTabRecentFileItemView extends JView
       @loader.hide()
       if err
         if /No such file or directory/.test err
-          @getSingleton('mainController').emit "NoSuchFile", file
+          KD.getSingleton('mainController').emit "NoSuchFile", file
           new KDNotificationView
             title     : "This file is deleted in server!"
             type      : "mini"

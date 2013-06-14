@@ -61,11 +61,11 @@ class NFinderController extends KDViewController
 
     # temp hack, if page opens in develop section.
     @utils.wait 2500, =>
-      @getSingleton("mainView").sidebar._windowDidResize()
+      KD.getSingleton("mainView").sidebar._windowDidResize()
 
   reset:->
     if @getOptions().useStorage
-      @appStorage = @getSingleton('mainController').\
+      @appStorage = KD.getSingleton('mainController').\
                       getAppStorageSingleton 'Finder', '1.0'
       @appStorage.once "storageFetched", @bound 'loadVms'
     else

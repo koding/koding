@@ -11,19 +11,19 @@ class AvatarPopup extends KDView
     {mainController} = KD.singletons
     mainController.on "accountChanged.to.loggedIn", @bound 'accountChanged'
 
-    @_windowController = @getSingleton('windowController')
+    @_windowController = KD.getSingleton('windowController')
     @listenWindowResize()
 
   show:->
     @utils.killWait @loaderTimeout
     @_windowDidResize()
     @_windowController.addLayer this
-    @getSingleton('mainController').emit "AvatarPopupIsActive"
+    KD.getSingleton('mainController').emit "AvatarPopupIsActive"
     @setClass "active"
     return this
 
   hide:->
-    @getSingleton('mainController').emit "AvatarPopupIsInactive"
+    KD.getSingleton('mainController').emit "AvatarPopupIsInactive"
     @unsetClass "active"
     return this
 

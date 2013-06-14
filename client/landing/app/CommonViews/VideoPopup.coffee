@@ -1,8 +1,8 @@
 class VideoPopupController extends KDController
   constructor:(options,data)->
     super options,data
-    # if not @getSingleton("windowController").videoPopups?
-    #   @getSingleton("windowController").videoPopups = []
+    # if not KD.getSingleton("windowController").videoPopups?
+    #   KD.getSingleton("windowController").videoPopups = []
 
     @videoPopups = []
     # log "VideoPopupController initialized"
@@ -53,7 +53,7 @@ class VideoPopupList extends KDListView
     super options,data
     @setClass "video-popup-list"
 
-    @controller = @getSingleton("mainController").popupController
+    @controller = KD.getSingleton("mainController").popupController
 
     @controller.on "PopupOpened", (popup,data) =>
       # log "VideoPopupList adding item",popup
@@ -88,25 +88,25 @@ class VideoPopupList extends KDListView
     switch @controller.countPopups()
       when 0
         @hasNoItems.show()
-        @getSingleton("mainView")?.videoButton?.unsetClass "has-videos"
+        KD.getSingleton("mainView")?.videoButton?.unsetClass "has-videos"
         @unsetClass "layout1x1"
         @unsetClass "layout2x2"
         @unsetClass "layout3x3"
       when 1
         @hasNoItems.hide()
-        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
+        KD.getSingleton("mainView")?.videoButton?.setClass "has-videos"
         @setClass "layout1x1"
         @unsetClass "layout2x2"
         @unsetClass "layout3x3"
       when 2,3,4
         @hasNoItems.hide()
-        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
+        KD.getSingleton("mainView")?.videoButton?.setClass "has-videos"
         @unsetClass "layout1x1"
         @setClass "layout2x2"
         @unsetClass "layout3x3"
       else
         @hasNoItems.hide()
-        @getSingleton("mainView")?.videoButton?.setClass "has-videos"
+        KD.getSingleton("mainView")?.videoButton?.setClass "has-videos"
         @unsetClass "layout1x1"
         @unsetClass "layout2x2"
         @setClass "layout3x3"
@@ -155,7 +155,7 @@ class VideoPopup extends KDView
 
     @embedData = data
     @options = options
-    @controller = @getSingleton("mainController").popupController
+    @controller = KD.getSingleton("mainController").popupController
 
     # log "New VideoPopup", options, data
 

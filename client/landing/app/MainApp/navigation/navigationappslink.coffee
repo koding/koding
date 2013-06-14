@@ -8,7 +8,7 @@ class NavigationAppsLink extends JView
     super options, data
 
     @counter        = 0
-    @appsController = @getSingleton "kodingAppsController"
+    @appsController = KD.getSingleton "kodingAppsController"
 
     @count      = new KDCustomHTMLView
       tagName   : "span"
@@ -17,7 +17,7 @@ class NavigationAppsLink extends JView
       click     : (e) =>
         e.preventDefault()
         e.stopPropagation()
-        @getSingleton("router").handleRoute "/Apps?filter=updates"
+        KD.getSingleton("router").handleRoute "/Apps?filter=updates"
 
     @count.hide()
 

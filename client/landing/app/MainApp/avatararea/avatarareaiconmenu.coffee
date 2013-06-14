@@ -49,7 +49,7 @@ class AvatarAreaIconMenu extends JView
 
     super
 
-    mainView = @getSingleton 'mainView'
+    mainView = KD.getSingleton 'mainView'
 
     mainView.addSubView @notificationsPopup
     mainView.addSubView @messagesPopup
@@ -58,7 +58,7 @@ class AvatarAreaIconMenu extends JView
     @attachListeners()
 
   attachListeners:->
-    @getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
+    KD.getSingleton('notificationController').on 'NotificationHasArrived', ({event})=>
       # No need the following
       # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
       if event is 'ActivityIsAdded'
