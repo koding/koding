@@ -1307,9 +1307,10 @@ module.exports = class JGroup extends Module
       bundle = new JGroupBundle data
       bundle.save (err) =>
         return callback err  if err?
-
-        @addBundle bundle, callback
-
+ 
+        @addBundle bundle, ->
+          callback bundle
+ 
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
@@ -1353,8 +1354,18 @@ module.exports = class JGroup extends Module
     if data.type in ['user', 'group', 'expensed']
       @fetchBundle (err, bundle)=>
         if err or not bundle
-          # TODO: Better error message required
-          callback new KodingError "Unable to fetch group bundle"
+          if @slug == 'koding'
+            @createBundle
+              overagePolicy: "not allowed"
+              paymentPlan  : ""
+              allocation   : 0
+              sharedVM     : yes
+            , (err, bundle)=>
+              console.log err, bundle
+              return callback new KodingError "Unable to create default group bundle"  if err
+              bundle.createVM delegate, @, data, callback
+          else
+            callback new KodingError "Unable to fetch group bundle"
         else
           bundle.createVM delegate, @, data, callback
     else
