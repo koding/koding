@@ -24,14 +24,13 @@ class GroupsMemberPermissionsView extends JView
 
     @refresh()
 
-    @on "MemberSearchInputChanged", (value)=>
+    @on 'SearchInputChanged', (value)=>
       @_searchValue = value
       if value isnt ""
         @timestamp = new Date 0
         @listController.removeAllItems()
         @fetchSomeMembers()
       else @refresh()
-
 
   fetchRoles:(callback=->)->
     groupData = @getData()

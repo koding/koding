@@ -19,7 +19,7 @@ class StaticDiscussionActivityItemView extends StaticActivityItemChild
 
     super options,data
 
-  viewAppended:()->
+  viewAppended:->
     super
     @setTemplate @pistachio()
     @template.update()

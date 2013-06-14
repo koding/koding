@@ -92,7 +92,7 @@ class AccountAppController extends AppController
 
     @__lastScrollTop = newScrollTop
 
-  _windowDidResize:()->
+  _windowDidResize:->
     lastWrapper = @wrapperController.sectionLists[@wrapperController.sectionLists.length-1]
     lastWrapper.setHeight @navController.getView().getHeight()
 
@@ -134,13 +134,12 @@ class AccountAppController extends AppController
       items : [
         { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
       ]
-#    kites :
-#      title : "Kites"
-#      items : [
-#        { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
-#        { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
-#      ]
-
+      # kites :
+      #   title : "Kites"
+      #   items : [
+      #     { title : "My Kites",             listHeader: "Your own Kites",             listType: "myKiteList",     id : 10,      parentId : null }
+      #     { title : "All Kites",            listHeader: "Your 3rd Party Kites",       listType: "kiteList",       id : 20,      parentId : null }
+      #   ]
 
 class AccountSideBarController extends KDViewController
   constructor:(options, data)->

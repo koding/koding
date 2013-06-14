@@ -46,7 +46,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
   attachTooltipAndEmbedInteractivity: CommentListItemView::applyTooltips
 
-  viewAppended:()->
+  viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
     @setTemplate @pistachio()

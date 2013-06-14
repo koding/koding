@@ -77,7 +77,7 @@ class GroupsAppController extends AppController
             callback null, groupName, group
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
-
+            KD.track "Groups", "ChangeGroup", groupName
   getUserArea:->
     @userArea ?
       if KD.config.entryPoint?.type is 'group'
@@ -294,6 +294,7 @@ class GroupsAppController extends AppController
     tabs.removePane invitePane if invitePane
 
   showErrorModal:(group, err)->
+    KD.track "Groups", "GroupOpeningError", err.accessCode if err
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
@@ -347,20 +348,24 @@ class GroupsAppController extends AppController
         new KDNotificationView
           title : "An error occured, please try again"
       else
+        KD.track "Groups", "JoinedGroup", group.slug
         new KDNotificationView
           title : "You've successfully joined the group!"
         @getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>
+      KD.track "Groups", "AcceptInvitation", group.slug
       mainController = KD.getSingleton "mainController"
       mainController.once "AccountChanged", callback.bind this, err, res
       mainController.accountChanged KD.whoami()
 
   ignoreInvitation:(group, callback)->
+    KD.track "Groups", "IgnoreInvitation", group.slug
     KD.whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
+    KD.track "Groups", "CancelInvitation", group.slug
     KD.whoami().cancelRequest group, callback
 
   openPrivateGroup:(group)->
@@ -399,20 +404,6 @@ class GroupsAppController extends AppController
 
   showGroupSubmissionView:->
 
-    makeSlug = =>
-      form = modal.modalTabs.forms["General Settings"]
-      titleInput = form.inputs.Title
-      slugView   = form.inputs.Slug
-      slugInput  = form.inputs.HiddenSlug
-      slug = KD.utils.slugify titleInput.getValue()
-      KD.remote.api.JGroup.suggestUniqueSlug slug, (err, newSlug)->
-        if err
-          slugView.updatePartial "#{location.protocol}//#{location.host}/"
-          slugInput.setValue ''
-        else
-          slugView.updatePartial "#{location.protocol}//#{location.host}/#{newSlug}"
-          slugInput.setValue newSlug
-
     getGroupType = ->
       modal.modalTabs.forms["Select group type"].inputs.type.getValue()
 
@@ -439,37 +430,40 @@ class GroupsAppController extends AppController
       title                          : 'Create a new group'
       height                         : 'auto'
       cssClass                       : "group-admin-modal compose-message-modal admin-kdmodal"
-      width                          : 500
+      width                          : 684
       overlay                        : yes
       tabs                           :
         navigable                    : no
         goToNextFormOnSubmit         : yes
         hideHandleContainer          : yes
         callback                     : (formData)=>
+          KD.track "Groups", "CreateNewGroup"
           _createGroupHandler.call @, formData, (err) =>
             modal.modalTabs.forms["VM Settings"].buttons["Create Group"].hideLoader()
             unless err
               modal.destroy()
         forms                        :
-          "Select group type"        :
-            title                    : 'Group type'
-            buttons                  :
-              "Next"                 :
-                style                : "modal-clean-gray"
-                type                 : "submit"
-                callback             : -> applyDefaults()
-            fields                   :
-              "type"                 :
-                name                 : "type"
-                itemClass            : KDInputRadioGroup
-                defaultValue         : "project"
-                cssClass             : "group-type"
-                radios               : [
-                  { title : "University/School", value : "educational"}
-                  { title : "Company",           value : "company"}
-                  { title : "Project",           value : "project"}
-                  { title : "Other",             value : "custom"}
-                ]
+          # "Select group type"        :
+          #   title                    : 'Group type'
+          #   buttons                  :
+          #     "Next"                 :
+          #       style                : "modal-clean-gray"
+          #       type                 : "submit"
+          #       callback             : -> applyDefaults()
+          #   fields                   :
+          #     "type"                 :
+          #       name                 : "type"
+          #       itemClass            : GroupCreationSelector
+          #       defaultValue         : "project"
+          #       cssClass             : "group-type"
+          #       radios               : [
+          #         { title : "University/School", value : "educational", callback: -> log "1"}
+          #         { title : "Company",           value : "company", callback: -> log "2"}
+          #         { title : "Project",           value : "project", callback: -> log "3"}
+          #         { title : "Other",             value : "custom", callback: -> log "4"}
+          #       ]
+          #       change               : -> log @getValue()
+
           "General Settings"         :
             title                    : 'Create a group'
             callback                 : ->
@@ -659,11 +653,10 @@ class GroupsAppController extends AppController
                     cssClass            : 'hidden'
                     placeholder         : '42'
 
-
-    modal = new KDModalViewWithForms modalOptions
-    form = modal.modalTabs.forms["General Settings"]
-    form.on "FormValidationFailed", ->
-      form.buttons.Next.hideLoader()
+    modal = new GroupCreationModal #modalOptions
+    # form = modal.modalTabs.forms["General Settings"]
+    # form.on "FormValidationFailed", ->
+    #   form.buttons.Next.hideLoader()
 
   handleError =(err, buttons)->
     unless buttons

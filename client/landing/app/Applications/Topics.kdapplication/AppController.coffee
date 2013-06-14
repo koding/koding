@@ -73,7 +73,7 @@ class TopicsAppController extends AppController
         'meta.modifiedAt'   :
           title             : "Latest activity"
           direction         : -1
-        'counts.tagged'     :
+        'counts.post'     :
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
@@ -107,6 +107,7 @@ class TopicsAppController extends AppController
 
   openTopic:(topic)->
     {entryPoint} = KD.config
+    KD.track "Topic", "Open", topic
     KD.getSingleton('router').handleRoute "/Topics/#{topic.slug}", {state:topic, entryPoint}
 
   updateTopic:(topicItem)->

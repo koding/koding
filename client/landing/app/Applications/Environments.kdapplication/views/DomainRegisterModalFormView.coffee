@@ -137,55 +137,20 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
     
     if newDomain 
       VMToBind = @modalTabs.forms["Connect"].inputs.SelectVM.getValue()
-      KD.remote.api.JDomain.registerNewDomain {domainAddress:selectedDomain,selectedVM : VMToBind}, (err, orderInfo)=>
+      KD.remote.api.JDomain.registerNewDomain {domainAddress:selectedDomain, selectedVM : VMToBind}, (err, orderInfo)=>
         @emit "DomainRegistered", orderInfo
     else
       VMToBind = @modalTabs.forms["Connect"].inputs.SelectVM.getValue()
-      KD.remote.api.JDomain.addNewDNSRecord {domainAddress:selectedDomain,selectedVM : VMToBind}, (err, orderInfo)=>
+      KD.remote.api.JDomain.addNewDNSRecord {domainAddress:selectedDomain, selectedVM : VMToBind}, (err, orderInfo)=>
         @emit "DomainForwarded", orderInfo
 
-class CustomItemView extends JView
-
-  constructor: (options = {}, data) ->
-    
-    options.cssClass = "domain-list-item"
-    
-    super options, data
-  
-    status = @getData().info
-    
-    if status  is "available"
-      @button = new KDButtonView
-        title:  "BUY"
-        callback   : =>          
-          {modalTabs,parentData} = @getOptions()
-          parentData["selectedDomain"] = @getData().domain
-          parentData["newDomain"] = yes
-          
-          modalTabs.showPaneByIndex 2
-    else
-      status = "taken"
-      @button = new KDCustomHTMLView
-        tagName : "span"
-        partial : ""
-  
-    @label = new KDView
-      cssClass : "domain-label"
-      partial  : "<p> Domain :#{@getData().domain} status: #{status} </p>"
-    
-    
-  pistachio: ->
-    """
-      {{> @label}}
-      {{> @button}}
-    """  
     
 class DomainSearchForm extends KDScrollView
 
   constructor:(options = {}, data)->
     super options,data
     
-    {modalTabs,parentData} = @getOptions()
+    {@modalTabs,parentData} = @getOptions()
     
     #TODO : change it to list view
     @domainSearchResultView = new KDView 
@@ -216,7 +181,7 @@ class DomainSearchForm extends KDScrollView
         regYears        :
           label         : "Years"
           type          : "select"
-          selectOptions : ({title:i, value:i} for i in [1..10])
+          selectOptions : ({title:"#{i} Year#{if i > 1 then 's' else ''}", value:i} for i in [1..10])
 
     @domainNameFieldView = @searchForm.fields.domainName
 
@@ -234,21 +199,29 @@ class DomainSearchForm extends KDScrollView
     KD.remote.api.JDomain.isDomainAvailable domain, tld, (err, domainStatus)=>
       if err then @notifyUser err
 
-      if domainStatus is "unknown" then @notifyUser "An unknown error occured. Please try again later."
+      if domainStatus is "unknown"
+        @notifyUser "An unknown error occured. Please try again later."
+        @searchForm.buttons.Register.hideLoader()
 
       if domainStatus in ["regthroughus", "regthroughothers"]
         @notifyUser "This domain is already registered. Please try another domain."
+        @searchForm.buttons.Register.hideLoader()
 
-      KD.remote.api.JDomain.registerDomain {domainName:domainInputVal, years:regYears}, (err, result)->
-
+      KD.remote.api.JDomain.registerDomain {domainName:domainInputVal, years:regYears}, (err, result)=>
+        if not err 
+          new KDNotificationView
+            type  : "top"
+            title : "Your domain has been successfully registered."
+          @searchForm.buttons.Register.hideLoader()
+          @modalTabs.showPaneByIndex 2
+        warn err
 
     subView.destroy() for subView, i in @domainNameFieldView.getSubViews() when i > 1
-    @searchForm.buttons.Register.hideLoader()
 
 
   notifyUser:(msg)=>
     @domainNameFieldView.addSubView new KDCustomHTMLView
-      partial: """<div style="color: red;">#{msg}</div>"""
+      partial: """<div style="color: red; margin-top: 10px; margin-bottom: 10px;">#{msg}</div>"""
 
 
   pistachio:->
@@ -398,24 +371,6 @@ class DomainSettingsModalForm extends KDModalViewWithForms
     }
     
     super options, data
-
-
-
-class DomainInputWrapper extends KDView
-
-  constructor:(options={}, data)->
-    options.cssClass = 'input-wrapper'
-    super options, data
-
-    @infoView = new KDView
-
-  addSubView:(view)->
-    super view
-
-  render:->
-    super
-    console.log "called render"
-
 
 
 

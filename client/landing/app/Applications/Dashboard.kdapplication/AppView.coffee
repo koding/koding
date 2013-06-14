@@ -15,8 +15,18 @@ class DashboardAppView extends JView
 
     @setListeners()
     @once 'viewAppended', =>
-      @createTabs()
-      @_windowDidResize()
+      @header.hide()
+      @nav.hide()
+      group = KD.getSingleton("groupsController").getCurrentGroup()
+      group.canEditGroup (err, success)=>
+        if err or not success
+          {entryPoint} = KD.config
+          KD.getSingleton('router').handleRoute "/Activity", { entryPoint }
+        else
+          @header.show()
+          @nav.show()
+          @createTabs()
+          @_windowDidResize()
 
     @searchWrapper = new KDCustomHTMLView
       tagName  : 'section'
@@ -27,19 +37,26 @@ class DashboardAppView extends JView
       name         : "searchInput"
       cssClass     : "header-search-input"
       type         : "text"
-      focus        : => @tabs.showPaneByName "Members"
+      focus        : =>
+        @tabs.showPaneByName "Members"  unless @tabs.getActivePane().name is 'Invitations'
       callback     : =>
-        pane = @tabs.getPaneByName "Members"
+        if @tabs.getActivePane().name is 'Invitations'
+          pane = @tabs.getActivePane()
+        else
+          pane = @tabs.getPaneByName "Members"
         {mainView} = pane
         return unless mainView
-        mainView.emit "MemberSearchInputChanged", @search.getValue()
+        mainView.emit 'SearchInputChanged', @search.getValue()
         @search.focus()
       keyup        : =>
         return unless @search.getValue() is ""
-        pane = @tabs.getPaneByName "Members"
+        if @tabs.getActivePane().name is 'Invitations'
+          pane = @tabs.getActivePane()
+        else
+          pane = @tabs.getPaneByName "Members"
         {mainView} = pane
         return unless mainView
-        mainView.emit "MemberSearchInputChanged", ""
+        mainView.emit 'SearchInputChanged', ''
 
     @searchIcon = new KDCustomHTMLView
       tagName  : 'span'
