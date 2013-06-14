@@ -321,14 +321,17 @@ class KodingAppsController extends KDController
 
           notification.destroy()
 
-          @appManager.tell "Apps", "createApp", jAppData, (err, app)=>
+          @createApp jAppData, (err, app) =>
             if err
               warn err
-              callback? err
-            else
-              @appManager.open "Apps"
-              @appManager.tell "Apps", "updateApps"
-              callback?()
+              return callback? err
+            @appManager.open "Apps"
+            @appManager.tell "Apps", "updateApps"
+            callback?()
+
+  createApp:(formData, callback)->
+    KD.remote.api.JApp.create formData, (err, app)->
+      callback? err, app
 
   compileApp:(name, callback)->
 
