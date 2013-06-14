@@ -49,8 +49,9 @@ class MainController extends KDController
           planCode : 'free'
         , (err)->
           unless err
+            KD.getSingleton('vmController').emit 'VMListChanged'
             log "default vm created"
-            
+
 
     appManager.create 'Chat', (chatController)->
       KD.registerSingleton "chatController", chatController
