@@ -158,7 +158,3 @@ class AppsAppController extends AppController
     else
       updateAppsButton.hide()
       updateAppsButton.setData []
-
-  createApp:(formData, callback)->
-    KD.remote.api.JApp.create formData, (err, app)->
-      callback? err, app
