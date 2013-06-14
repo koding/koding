@@ -3,7 +3,7 @@ JUser = require '../user'
 payment = require 'koding-payment'
 
 forceRefresh  = yes
-forceInterval = 60 * 1
+forceInterval = 0
 
 module.exports = class JRecurlySubscription extends jraphical.Module
 
@@ -128,7 +128,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     payment.terminateUserSubscription @userCode,
       uuid: @uuid
     , (err, sub)=>
-      return callback yes  if err
+      return callback err  if err
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires
@@ -142,7 +142,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     payment.cancelUserSubscription @userCode,
       uuid: @uuid
     , (err, sub)=>
-      return callback yes  if err
+      return callback err  if err
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires
@@ -156,7 +156,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     payment.reactivateUserSubscription @userCode,
       uuid: @uuid
     , (err, sub)=>
-      return callback yes  if err
+      return callback err  if err
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires
