@@ -254,9 +254,9 @@ module.exports = class JVM extends Model
               subs.forEach (sub)->
                 if sub.quantity > 1
                   sub.update sub.quantity - 1, (err, sub)->
-                  if err
-                    return callback new KodingError 'Unable to update payment (2)'
-                  vm.remove callback
+                    if err
+                      return callback new KodingError 'Unable to update payment (2)'
+                    vm.remove callback
                 else
                   sub.terminate (err, sub)->
                     if err
