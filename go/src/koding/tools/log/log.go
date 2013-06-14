@@ -283,7 +283,7 @@ func LogGauges(reportTime int64) {
 		cmd := exec.Command("/usr/local/nagios/bin/send_nsca", "-H", config.Current.Opsview.Host, "-c", "/usr/local/nagios/etc/send_nsca.cfg")
 		cmd.Stdin = strings.NewReader(shortHostname + "\tGauges\t0\tGauge Data Sent|" + strings.Join(entries, " ") + "\n")
 		if out, err := cmd.CombinedOutput(); err != nil {
-			fmt.Println("logger error: send_nsca failed.", err, out)
+			fmt.Printf("logger error: send_nsca failed.\n%v\n%v\n", err, string(out))
 		}
 	}
 }
