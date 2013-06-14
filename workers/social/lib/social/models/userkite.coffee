@@ -40,6 +40,8 @@ class JUserKite extends jraphical.Module
       cb(err)
 
   @fetchOrCreate: (data, callback)=>
+    if not data.account_id
+      throw new Error("no account id - sorry")
     JUserKite.one
       kitename: data.kitename
       owner: data.account_id #or data.account?._id

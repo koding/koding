@@ -202,11 +202,11 @@ app.get "/-/kite/login", (req, res) ->
                 console.log creds
 
                 # ADD TO JUSERKITE
-
+                {JUserKite} = koding.models
                 JUserKite.fetchOrCreate
                   kitename      : file.filename
                   latest_s3url  :  zipurl
-                  account_id    :  "5196fcb0bc9bdb0000000011"
+                  account_id    :  kodingKey.owner._id
                 , (err, userkite)->
                   if err
                     console.log "error", err
@@ -266,6 +266,9 @@ app.post "/-/kd/upload", s3..., (req, res)->
   for own key, file of req.files
     console.log req
     findUsernameFromKey req, res, (err, account)->
+      if err
+        res.send err
+        return
       zipurl = "#{uploads.distribution}#{file.path}"
       JUserKite.fetchOrCreate
         kitename      : file.filename
