@@ -87,9 +87,8 @@ else
   uuid = uuid.v4()
   fs.writeFileSync uuidFile, uuid
 
-console.log "deployer:", manifest.name
-
 manifest.name = "Deployer_#{os.hostname()}_#{uuid}"
+console.log "deployer:", manifest.name
 kite.worker manifest, 
 
   deploy: (options, callback) ->
