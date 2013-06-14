@@ -13,25 +13,28 @@ class ResourcesController extends KDListViewController
     KD.singletons.vmController.on 'VMListChanged', @bound 'reset'
 
   reset:->
-    cmp = (a, b)->
-      [groupA, vmA] = a.split('~')
-      [groupB, vmB] = b.split('~')
-      if groupA is groupB
-      then vmA    > vmB
-      else groupA > groupB
+    # FIXME ~ BK
+    # cmp = (a, b)->
+    #   [groupA, vmA] = a.split('~')
+    #   [groupB, vmB] = b.split('~')
+    #   if groupA is groupB
+    #   then vmA    > vmB
+    #   else groupA > groupB
 
+    finder = @getSingleton('finderController')
+    finder.emit 'EnvironmentsTabHide'
     @removeAllItems()
     KD.singletons.vmController.resetVMData()
 
     KD.singletons.vmController.fetchVMs (err, vms)=>
       return  unless vms
-      vms.sort cmp
+      # vms.sort cmp
       stack   = []
       vms.forEach (vmName)=>
         stack.push (cb)->
           KD.remote.cacheable (vmName.split '~').first, (err, res)->
-            return cb err  if err or res.length is 0
-            group = res.first
+            return cb err  if err
+            group = res?.first or 'koding'
             data  =
               vmName     : vmName
               groupSlug  : group?.slug  or 'koding'
@@ -41,6 +44,7 @@ class ResourcesController extends KDListViewController
       async.parallel stack, (err, result)=>
         @instantiateListItems result  unless err
         @deselectAllItems()
+        finder.emit 'EnvironmentsTabShow'
 
 class ResourcesView extends KDListView
 
@@ -74,6 +78,8 @@ class ResourcesListItem extends KDListItemView
       tagName  : 'span'
       cssClass : 'vm-info'
       partial  : "#{vmName}"
+      attributes:
+        title  : "#{vmName}"
 
     @addSubView @vmDesc = new KDCustomHTMLView
       tagName  : 'span'
