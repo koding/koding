@@ -34,7 +34,7 @@ var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var templates = template.Must(template.ParseFiles("go/templates//proxy/securepage.html"))
+var templates = template.Must(template.ParseFiles("go/templates/proxy/securepage.html", "client/maintenance.html"))
 var users = make(map[string]time.Time)
 var usersLock sync.RWMutex
 
@@ -92,35 +92,6 @@ func main() {
 
 /*************************************************
 *
-*  util functions
-*
-*  - arslan
-*************************************************/
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-// Given a string of the form "host", "port", returns "host:port"
-func addPort(host, port string) string {
-	if ok := hasPort(host); ok {
-		return host
-	}
-
-	return host + ":" + port
-}
-
-// Check if a server is alive or not
-func checkServer(host string) error {
-	c, err := net.Dial("tcp", host)
-	if err != nil {
-		return err
-	}
-	c.Close()
-	return nil
-}
-
-/*************************************************
-*
 *  modified version of go's reverseProxy source code
 *  has support for dynamic target url, websockets and amqp
 *
@@ -171,8 +142,8 @@ var hopHeaders = []string{
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// redirect http to https
-	if req.TLS == nil && req.Host == "new.koding.com" {
-		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+	if req.TLS == nil && (req.Host == "koding.com" || req.Host == "www.koding.com") {
+		http.Redirect(rw, req, "https://koding.com"+req.RequestURI, http.StatusMovedPermanently)
 		return
 	}
 
@@ -193,29 +164,36 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	target := user.Target
-	if user.Domain.LoadBalancer.Mode == "sticky" {
+
+	if user.Redirect {
+		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
+		return
+	}
+
+	switch user.Domain.Proxy.Mode {
+	case "maintenance":
+		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	switch user.Domain.LoadBalancer.Mode {
+	case "sticky":
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
 		targetURL, ok := session.Values["GOSESSIONID"]
 		if ok {
-			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			target, err = url.Parse(targetURL.(string))
 			if err != nil {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 				return
 			}
 		} else {
-			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
-	} else {
-		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
-	}
-
-	if user.Redirect {
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
-		return
 	}
 
 	_, err = validate(user)
@@ -244,9 +222,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Printf("error validating user %s: %s", user.IP, err.Error())
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
-
 		}
 	}
+
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
@@ -270,11 +249,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
-	if !isUserRegistered(user.IP) {
-		go registerUser(user.IP)
-		go logDomainRequests(outreq.Host)
-		go logProxyStat(hostname, user.Country)
-	}
+	go func() {
+		if !isUserRegistered(user.IP) {
+			go registerUser(user.IP)
+			go logDomainRequests(outreq.Host)
+			go logProxyStat(hostname, user.Country)
+		}
+	}()
 
 	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
@@ -391,6 +372,13 @@ func registerUser(ip string) {
 	}
 }
 
+/*************************************************
+*
+*  unique IP handling and cleaner
+*
+*  - arslan
+*************************************************/
+
 // The goroutine basically does this: as long as there are users in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
 // (one hour - time since user registration) and deletes it.  If there are no
@@ -426,4 +414,33 @@ func isUserRegistered(ip string) bool {
 	defer usersLock.RUnlock()
 	_, ok := users[ip]
 	return ok
+}
+
+/*************************************************
+*
+*  util functions
+*
+*  - arslan
+*************************************************/
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func addPort(host, port string) string {
+	if ok := hasPort(host); ok {
+		return host
+	}
+
+	return host + ":" + port
+}
+
+// Check if a server is alive or not
+func checkServer(host string) error {
+	c, err := net.Dial("tcp", host)
+	if err != nil {
+		return err
+	}
+	c.Close()
+	return nil
 }

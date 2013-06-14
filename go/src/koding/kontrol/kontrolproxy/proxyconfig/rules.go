@@ -62,17 +62,17 @@ func NewRestriction(domainname string) *Restriction {
 	}
 }
 
-func (p *ProxyConfiguration) AddRule(domainname, ruletype, match string) error {
+func (p *ProxyConfiguration) AddRule(domainname, ruletype, match string) (Rule, error) {
 	restriction, err := p.GetRestriction(domainname)
 	if err != nil {
 		if err != mgo.ErrNotFound {
-			return err
+			return Rule{}, err
 		}
 		restriction = *NewRestriction(domainname)
 	}
 
 	if match == "" {
-		return errors.New("match can't be empty")
+		return Rule{}, errors.New("match can't be empty")
 	}
 
 	m := strings.Replace(match, ".", "_", -1) // mongo doesn't love dots for sub fields
@@ -80,7 +80,7 @@ func (p *ProxyConfiguration) AddRule(domainname, ruletype, match string) error {
 
 	_, ok := restriction.Rules[name]
 	if ok {
-		return fmt.Errorf("%s rule for '%s' already exist", ruletype, match)
+		return Rule{}, fmt.Errorf("%s rule for '%s' already exist", ruletype, match)
 	}
 
 	rule := *NewRule(ruletype, name, match)
@@ -88,42 +88,63 @@ func (p *ProxyConfiguration) AddRule(domainname, ruletype, match string) error {
 
 	_, err = p.Collection["rules"].Upsert(bson.M{"domainname": domainname}, restriction)
 	if err != nil {
-		return err
+		return Rule{}, err
 	}
 
-	return nil
+	return rule, nil
 }
 
-func (p *ProxyConfiguration) AddBehaviour(enabled bool, domainname, action, name string, index int) error {
+func (p *ProxyConfiguration) AddOrUpdateBehaviour(enabled bool, domainname, action, name string, index int, mode string) (Behaviour, error) {
+	behaviour := Behaviour{}
 	restriction, err := p.GetRestriction(domainname)
 	if err != nil {
 		if err != mgo.ErrNotFound {
-			return err
+			return behaviour, err
 		}
 		restriction = *NewRestriction(domainname)
 	}
 
 	_, ok := restriction.Rules[name]
 	if !ok {
-		return fmt.Errorf("rule name '%s' does not exist. not allowed.", name)
+		return behaviour, fmt.Errorf("rule name '%s' does not exist. not allowed.", name)
 	}
 
-	for _, b := range restriction.RuleList {
-		if b.RuleName == name {
-			return fmt.Errorf("behaviour for rule name '%s' does exist already. not allowed.", name)
+	switch mode {
+	case "add":
+		for _, b := range restriction.RuleList {
+			if b.RuleName == name {
+				return behaviour, fmt.Errorf("behaviour for rule name '%s' does exist already. not allowed.", name)
+			}
 		}
-	}
 
-	behaviour := *NewBehaviour(enabled, action, name)
-	ruleList := insertBehaviour(restriction.RuleList, behaviour, index)
-	restriction.RuleList = ruleList
+		behaviour = *NewBehaviour(enabled, action, name)
+		ruleList := insertBehaviour(restriction.RuleList, behaviour, index)
+		restriction.RuleList = ruleList
+	case "update":
+		foundBehaviour := false
+		for i, b := range restriction.RuleList {
+			if b.RuleName == name {
+				foundBehaviour = true
+				behaviour = *NewBehaviour(enabled, action, name)
+				ruleList := deleteBehaviour(restriction.RuleList, i)
+				ruleList = insertBehaviour(ruleList, behaviour, index)
+				restriction.RuleList = ruleList
+				break
+			}
+		}
+		if !foundBehaviour {
+			return behaviour, fmt.Errorf("behaviour for rule name '%s' does not exist.", name)
+		}
+	case "default":
+		return behaviour, fmt.Errorf("mode is not valid: '%s'.", mode)
+	}
 
 	_, err = p.Collection["rules"].Upsert(bson.M{"domainname": domainname}, restriction)
 	if err != nil {
-		return err
+		return behaviour, err
 	}
 
-	return nil
+	return behaviour, nil
 }
 
 func (p *ProxyConfiguration) DeleteBehaviour(domainname, rulename string) error {
@@ -196,6 +217,12 @@ func (p *ProxyConfiguration) GetRuleByID(id bson.ObjectId) (Restriction, error) 
 		return restriction, err
 	}
 	return restriction, nil
+}
+
+func deleteBehaviour(list []Behaviour, i int) []Behaviour {
+	copy(list[i:], list[i+1:])
+	list[len(list)-1] = Behaviour{}
+	return list[:len(list)-1]
 }
 
 func insertBehaviour(list []Behaviour, b Behaviour, i int) []Behaviour {

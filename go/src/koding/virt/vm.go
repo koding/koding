@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 	"text/template"
 	"time"
@@ -73,6 +74,22 @@ func (vm *VM) MAC() net.HardwareAddr {
 
 func (vm *VM) Hostname() string {
 	return vm.HostnameAlias[0]
+}
+
+func (vm *VM) HostnameAliasesLine() string {
+	return strings.Join(vm.HostnameAlias[1:], " ")
+}
+
+func (vm *VM) SitesHomeName() string {
+	// vm.Name is group~n or group~user~n
+	parts := strings.Split(vm.Name, "~")
+	switch len(parts) {
+	case 2:
+		return parts[0]
+	case 3:
+		return parts[1]
+	}
+	panic("Invalid vm.Name format.")
 }
 
 func (vm *VM) RbdDevice() string {

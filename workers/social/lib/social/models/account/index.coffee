@@ -22,7 +22,7 @@ module.exports = class JAccount extends jraphical.Module
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
   CActivity = require '../activity'
-
+  Graph     = require "../graph/graph"
   @getFlagRole = 'content'
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
@@ -988,3 +988,50 @@ module.exports = class JAccount extends jraphical.Module
     ]
     success: (client, callback) ->
       @fetchDomains callback
+
+  fetchMyFollowingsFromGraph: secure (client, options, callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    userId = client.connection.delegate._id
+    options.currentUserId = userId
+    graph.fetchFollowingMembers options, (err, results)=>
+      if err then return callback err
+      else
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.id
+          JAccount.one  { _id : objId }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res
+
+
+  fetchMyFollowersFromGraph: secure (client, options, callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    userId = client.connection.delegate._id
+    options.currentUserId = userId
+    graph.fetchFollowerMembers options, (err, results)=>
+      if err then return callback err
+      else
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.id
+          JAccount.one  { _id : objId }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res
+
+

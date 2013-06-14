@@ -138,6 +138,7 @@ module.exports = [
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
   "app/MainApp/linkcontroller.coffee",
+  "app/MainApp/paymentcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
@@ -245,6 +246,7 @@ module.exports = [
   "app/MainApp/navigation/navigationadminlink.coffee",
   "app/MainApp/navigation/navigationinvitationlink.coffee",
   "app/MainApp/navigation/navigationactivitylink.coffee",
+  "app/MainApp/navigation/navigationappslink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",

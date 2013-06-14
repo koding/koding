@@ -29,7 +29,7 @@ class MainChatPanel extends JView
     {mainController} = KD.singletons
     mainController.on "accountChanged.to.loggedIn", =>
       @conversationListController.loadItems()
-      @showPanel()
+      # @showPanel()
 
   createConversation:(data)->
     # Data includes chatChannel and the conversation
@@ -41,7 +41,7 @@ class MainChatPanel extends JView
     @addSubView @warningWidget
 
     @conversationListController.loadItems()
-    @showPanel()  if KD.isLoggedIn()
+    # @showPanel()  if KD.isLoggedIn()
 
   showPanel:->
     return  unless KD.isLoggedIn()

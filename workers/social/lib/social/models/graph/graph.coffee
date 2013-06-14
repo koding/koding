@@ -242,7 +242,7 @@ module.exports = class Graph
       start koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->followees<-[r:follower]-follower
       where follower.name="JTag"
-      and follower.name="#{groupName}"
+      and follower.group="#{groupName}"
       and r.createdAtEpoch < #{startDate}
       return r,followees, follower
       order by r.createdAtEpoch DESC
@@ -269,3 +269,90 @@ module.exports = class Graph
           data.followee = objected
           resultData.push data
           @generateFollows resultData, results, callback
+
+  getOrderByQuery:(orderBy)->
+    orderByQuery = ""
+    switch orderBy
+      when "counts.followers"
+        orderByQuery = "members.`counts.followers`"
+      when "counts.following"
+        orderByQuery = "members.`counts.following`"
+      when "meta.modifiedAt"
+        orderByQuery = "members.`meta.modifiedAt`"
+
+    return orderByQuery
+
+  fetchMembers:(options, callback)->
+    {skip, limit, sort, groupId} = options
+    skip = 0 unless skip
+    limit = 20 unless limit
+
+    orderBy = ""
+    if sort?
+      orderBy = Object.keys(sort)[0]
+
+    orderByQuery = @getOrderByQuery orderBy
+
+    query = """
+      START  group=node:koding("id:#{groupId}")
+      MATCH  group-[r:member]->members
+      return members
+      order by #{orderByQuery} DESC
+      skip #{skip}
+      limit #{limit}
+      """
+    @queryMembers query, {}, callback
+
+  fetchFollowingMembers:(options, callback)->
+    {skip, limit, sort, groupId, currentUserId} = options
+
+    skip = 0 unless skip
+    limit = 20 unless limit
+
+    orderBy = Object.keys(sort)[0]
+    orderByQuery = @getOrderByQuery orderBy
+
+    query = """
+        start  group=node:koding("id:#{groupId}")
+        MATCH  group-[r:member]->members-[:follower]->currentUser
+        where currentUser.id = "#{currentUserId}"
+        return members, r
+        order by #{orderByQuery} DESC
+        skip #{skip}
+        limit #{limit}
+        """
+    @queryMembers query, {}, callback
+
+
+  fetchFollowerMembers:(options, callback)->
+    {skip, limit, sort, groupId, currentUserId} = options
+
+    skip = 0 unless skip
+    limit = 20 unless limit
+    orderBy = Object.keys(sort)[0]
+
+    orderByQuery = @getOrderByQuery orderBy
+
+    query = """
+        start group=node:koding("id:#{groupId}")
+        MATCH group-[r:member]->members<-[:follower]-currentUser
+        where currentUser.id = "#{currentUserId}"
+        return members, r
+        order by #{orderByQuery} DESC
+        skip #{skip}
+        limit #{limit}
+        """
+    @queryMembers query, {}, callback
+
+  queryMembers:(query, options={}, callback)->
+    @db.query query, options, (err, results) ->
+        if err then throw err
+        resultData = []
+        for result in results
+          data = result.members.data
+          id = data.id
+          name = data.name
+          obj =  {id : id, name : name }
+          resultData.push obj
+
+        callback err, resultData

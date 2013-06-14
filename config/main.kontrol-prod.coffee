@@ -12,7 +12,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "new.koding.com"
+    address     : "koding.com"
   userSitesDomain: 'kd.io'
   containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
@@ -27,8 +27,8 @@ module.exports =
     enabled     : yes
     port        : 1337
   neo4j         :
-    read        : "http://kgraphdb3.in.koding.com"
-    write       : "http://kgraphdb3.in.koding.com"
+    read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
+    write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
   runNeo4jFeeder: yes
@@ -98,7 +98,7 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "https://new.koding.com"
+    staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       userSitesDomain: 'kd.io'
       useNeo4j: yes
@@ -106,7 +106,7 @@ module.exports =
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "http://new.koding.com"
+      mainUri   : "http://koding.com"
       broker    :
         sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
@@ -132,8 +132,8 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "new.koding.com"
-    protocol    : 'http:'
+    host        : "koding.com"
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'

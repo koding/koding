@@ -22,8 +22,8 @@ module.exports =
       'setStaticPageVisibility','addStaticPageType','removeStaticPageType',
       'setHandle','setAbout','fetchAbout','setStaticPageTitle',
       'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
-      'fetchPendingGroupInvitations', 'fetchPendingGroupRequests', 
+      'fetchPendingGroupInvitations', 'fetchPendingGroupRequests',
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'getInvitationRequestByGroup', 'fetchMyPermissions',
-      'fetchMyPermissionsAndRoles', 'addDomain', 'fetchDomains'
+      'fetchMyPermissionsAndRoles', 'fetchDomains', 'fetchMyFollowingsFromGraph', 'fetchMyFollowersFromGraph'
     ]

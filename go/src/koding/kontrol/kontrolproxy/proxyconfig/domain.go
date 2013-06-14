@@ -55,9 +55,10 @@ type Domain struct {
 type ProxyTable struct {
 	// Mode defines how proxy should act on domains. There are currently three
 	// modes used which defines the way the domain is proxied. These are:
-	// internal : to point name-key.in.koding.com
-	// direct   : to point fullurl
-	// vm       : to point username.kd.io
+	// internal 	: to point name-key.in.koding.com
+	// redirect 	: to point fullurl
+	// vm       	: to point username.kd.io
+	// maintenance	: to show maintenance static page
 	Mode string `bson:"mode" json:"mode"`
 
 	// Username is used with mode "vm" or mode "internal".
@@ -82,9 +83,9 @@ type ProxyTable struct {
 	// update Key to use the old one)
 	Key string `bson:"key" json:"key,omitempty"`
 
-	// FullUrl is used with mode "direct". Proxy will directly proxy to this
-	// given fullurl. It should be in HOST form, means no scheme should be
-	// used. Example: www.google.com, arslan.io, koding.com
+	// FullUrl is used with mode "redirect". Proxy will redirect to this given
+	// fullurl. It should be in HOST form, means no scheme should be used.
+	// Example: www.google.com, arslan.io, koding.com
 	FullUrl string `bson:"fullurl" json:"fullUrl,omitempty"`
 }
 
