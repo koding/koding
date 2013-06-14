@@ -1310,9 +1310,8 @@ module.exports = class JGroup extends Module
       bundle = new JGroupBundle data
       bundle.save (err) =>
         return callback err  if err?
- 
         @addBundle bundle, ->
-          callback no, bundle
+          callback null, bundle
  
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
