@@ -28,7 +28,12 @@ class FirewallMapperView extends KDView
 
     KD.remote.api.JDomain.fetchProxyRules domain.domain, (err, response)=>
       if err
-        new KDNotificationView {title:"An error occured while fetching the rule list.", type:"top"}
+        @ruleListController.hideLazyLoader()
+        @actionListController.hideLazyLoader()
+        return new KDNotificationView
+          title:"An error occured while fetching the rule list."
+          type:"top"
+
 
       @iniateControllerListItems domain, response
 
