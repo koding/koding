@@ -265,7 +265,7 @@ class PaymentController extends KDController
               delete data.cardYear
               delete data.cardCV
 
-              @paymentModal = @createPaymentMethodModal data, (newData, onError, onSuccess)->
+              @paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
                 newData.plan = planCode
                 newData.type = type
                 group.makePayment newData, (err, subscription)->
