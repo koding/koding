@@ -16,7 +16,7 @@ class AccountRepoListController extends KDListViewController
     #   icon      : yes
     #   iconOnly  : yes
     #   iconClass : "plus"
-    #   callback  : ()=>
+    #   callback  : =>
     #     @getListView().showAddEditModal null
 
   loadItems:(callback)->
@@ -44,7 +44,7 @@ class AccountRepoList extends KDListView
       @instantiateListItems repos
       callback?()
 
-  attachListeners:()->
+  attachListeners:->
     @items.forEach (item)=>
       item.getData().on "update",()->
         log "update event called:",item

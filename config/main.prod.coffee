@@ -21,6 +21,7 @@ module.exports = deepFreeze
   uri           :
     address     : "https://koding.com"
   userSitesDomain: 'kd.io'
+  containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -82,10 +83,6 @@ module.exports = deepFreeze
     numberOfWorkers: 20
     watch       : no
     queueName   : socialQueueName
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -157,3 +154,9 @@ module.exports = deepFreeze
     interval: 60000
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a'
+  followFeed    :
+    host        : 'localhost'
+    port        : 5672
+    componentUser: 'PROD-k5it50s4676pO9O'
+    password    : 'Dtxym6fRJXx4GJz'
+    vhost       : 'followfeed'

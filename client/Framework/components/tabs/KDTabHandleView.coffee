@@ -27,11 +27,11 @@ class KDTabHandleView extends KDView
       @handleDragFinished event
 
   setDomElement:(cssClass="")->
-    {hidden, closable, tagName} = @getOptions()
+    {hidden, closable, tagName, title} = @getOptions()
     cssClass    = if hidden   then "#{cssClass} hidden" else cssClass
     closeHandle = if closable then "<span class='close-tab'></span>" else ""
 
-    @domElement = $ "<#{tagName} class='kdtabhandle #{cssClass}'>#{closeHandle}</#{tagName}>"
+    @domElement = $ "<#{tagName} title='#{title}' class='kdtabhandle #{cssClass}'>#{closeHandle}</#{tagName}>"
 
   viewAppended:->
     {view} = @getOptions()
@@ -41,10 +41,10 @@ class KDTabHandleView extends KDView
 
   partial:-> "<b>#{@getOptions().title or 'Default Title'}</b>"
 
-  makeActive:()->
+  makeActive:->
     @getDomElement().addClass "active"
 
-  makeInactive:()->
+  makeInactive:->
     @getDomElement().removeClass "active"
 
   setTitle:(title)->

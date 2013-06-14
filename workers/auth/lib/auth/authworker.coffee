@@ -9,6 +9,7 @@ module.exports = class AuthWorker extends EventEmitter
     autoDelete  : yes
 
   REROUTING_EXCHANGE_OPTIONS =
+  USERS_PRESENCE_CONTROL_EXCHANGE_OPTIONS =
     type        : 'fanout'
     autoDelete  : yes
 
@@ -16,33 +17,57 @@ module.exports = class AuthWorker extends EventEmitter
     type        : 'topic'
     autoDelete  : yes
 
-  constructor:(@bongo, options = {})->
-    { @presenceExchange, @reroutingExchange, @notificationExchange } = options
-    @presenceExchange     ?= 'services-presence'
-    @reroutingExchange    ?= 'routing-control'
-    @notificationExchange ?= 'notification'
-    @services = {}
-    @clients  =
-      bySocketId    : {}
-      byExchange    : {}
-      byRoutingKey  : {}
-    @counts   = {}
-    @waitingAuthWhos = {}
+  constructor: (@bongo, options = {}) ->
+
+    # instance options
+    { @servicesPresenceExchange, @reroutingExchange
+      @notificationExchange, @usersPresenceControlExchange
+      @presenceTimeoutAmount } = options
+
+    # initialize defaults:
+    @servicesPresenceExchange     ?= 'services-presence'
+    @usersPresenceControlExchange ?= 'users-presence-control'
+    @reroutingExchange            ?= 'routing-control'
+    @notificationExchange         ?= 'notification'
+    @presenceTimeoutAmount        ?= 1000 * 60 * 2 # 2 min
+
+    # instance state
+    @services         = {}
+    @clients          =
+      bySocketId      : {}
+      byExchange      : {}
+      byRoutingKey    : {}
+    @usersBySocketId  = {}
+    @counts           = {}
+    @waitingAuthWhos  = {}
 
   bound: require 'koding-bound'
 
-  authenticate: (messageData, routingKey, callback) ->
+  authenticate: (messageData, routingKey, socketId, callback) ->
     {clientId, channel, event} = messageData
-    @requireSession clientId, routingKey, callback
+    @requireSession clientId, routingKey, socketId, callback
 
-  requireSession: (clientId, routingKey, callback) ->
+  requireSession: (clientId, routingKey, socketId, callback) ->
     {JSession} = @bongo.models
     JSession.fetchSession clientId, (err, session) =>
       if err? or not session? then @rejectClient routingKey
       else
+        @addUserSocket session.username, socketId  if session.username?
         tokenHasChanged = session.clientId isnt clientId
         @updateSessionToken session.clientId, routingKey  if tokenHasChanged
         callback session
+
+  addUserSocket: (username, socketId) ->
+    @usersBySocketId[socketId] = username
+    @fetchUserPresenceControlExchange (exchange) ->
+      exchange.publish 'auth.join', { username, socketId }
+
+  removeUserSocket: (socketId) ->
+    username = @usersBySocketId[socketId]
+    return  unless username
+    delete @usersBySocketId[username]
+    @fetchUserPresenceControlExchange (exchange) ->
+      exchange.publish 'auth.leave', { username, socketId }
 
   updateSessionToken: (clientId, routingKey) ->
     @bongo.respondToClient routingKey,
@@ -95,7 +120,7 @@ module.exports = class AuthWorker extends EventEmitter
     clientsBySocketId   = @clients.bySocketId[socketId]     ?= []
     clientsByExchange   = @clients.byExchange[exchange]     ?= []
     clientsByRoutingKey = @clients.byRoutingKey[routingKey] ?= []
-    client = new AuthedClient {routingKey, socketId, exchange}
+    client = new AuthedClient { routingKey, socketId, exchange }
     clientsBySocketId.push client
     clientsByRoutingKey.push client
     clientsByExchange.push client
@@ -114,7 +139,7 @@ module.exports = class AuthWorker extends EventEmitter
     @bongo.respondToClient setSecretNamesEvent, message
 
   publishToService: (exchangeName, routingKey, payload, callback) ->
-    {connection} = @bongo.mq
+    { connection } = @bongo.mq
     connection.exchange exchangeName, AUTH_EXCHANGE_OPTIONS,
       (exchange) =>
         exchange.publish routingKey, payload
@@ -165,22 +190,31 @@ module.exports = class AuthWorker extends EventEmitter
         (exchange)=> callback @[exKey] = exchange
       )
 
-  fetchReroutingExchange: makeExchangeFetcher 'reroutingExchange', REROUTING_EXCHANGE_OPTIONS
+  fetchReroutingExchange: makeExchangeFetcher(
+    'reroutingExchange', REROUTING_EXCHANGE_OPTIONS
+  )
 
-  fetchNotificationExchange: makeExchangeFetcher 'notificationExchange', NOTIFICATION_EXCHANGE_OPTIONS
+  fetchNotificationExchange: makeExchangeFetcher(
+    'notificationExchange', NOTIFICATION_EXCHANGE_OPTIONS
+  )
 
-  addBinding:(exchangeName, bindingKey, routingKey, suffix = '')->
+  fetchUserPresenceControlExchange: makeExchangeFetcher(
+    'usersPresenceControlExchange', USERS_PRESENCE_CONTROL_EXCHANGE_OPTIONS
+  )
+
+  addBinding:(bindingExchange, bindingKey, publishingExchange, routingKey, suffix = '')->
     suffix = ".#{suffix}"  if suffix.length
     @fetchReroutingExchange (exchange)=>
       exchange.publish 'auth.join', {
-        exchange: exchangeName
+        bindingExchange
         bindingKey
+        publishingExchange
         routingKey
         suffix
       }
 
   _fakePersistenceWorker:(secretChannelName)->
-    {connection} = @bongo.mq
+    { connection } = @bongo.mq
     options = {type: 'fanout', autoDelete: yes, durable: no}
     connection.exchange secretChannelName, options, (exchange)->
       connection.queue '', {autoDelete: yes, durable: no, exclusive: yes}, (queue)->
@@ -202,7 +236,7 @@ module.exports = class AuthWorker extends EventEmitter
   join: do ->
 
     joinHelper = (messageData, routingKey, socketId) ->
-      @authenticate messageData, routingKey, (session) =>
+      @authenticate messageData, routingKey, socketId, (session) =>
 
         serviceInfo = @getNextServiceInfo messageData.name
 
@@ -243,7 +277,7 @@ module.exports = class AuthWorker extends EventEmitter
       fail = (err) =>
         console.error err  if err
         @rejectClient routingKey
-      @authenticate messageData, routingKey, (session) =>
+      @authenticate messageData, routingKey, socketId, (session) =>
         unless session then fail()
         else JAccount.one {'profile.nickname': session.username},
           (err, account) =>
@@ -256,7 +290,7 @@ module.exports = class AuthWorker extends EventEmitter
                     if err or not secretChannelName
                       @rejectClient routingKey
                     else
-                      @addBinding 'broadcast', secretChannelName, routingKey
+                      @addBinding 'broadcast', secretChannelName, 'broker', routingKey
                       @setSecretNames routingKey, secretChannelName
 
     joinNotificationHelper =(messageData, routingKey, socketId)->
@@ -264,12 +298,12 @@ module.exports = class AuthWorker extends EventEmitter
         console.error err  if err
         @rejectClient routingKey
 
-      @authenticate messageData, routingKey, (session)=>
+      @authenticate messageData, routingKey, socketId, (session)=>
         unless session then fail()
         else if session?.username
           @addClient socketId, @reroutingExchange, routingKey, no
           bindingKey = session.username
-          @addBinding 'notification', bindingKey, routingKey
+          @addBinding 'notification', bindingKey, 'broker', routingKey
         else
           @rejectClient routingKey
 
@@ -277,7 +311,7 @@ module.exports = class AuthWorker extends EventEmitter
       {name} = messageData
       {JName} = @bongo.models
       fail = => @rejectClient routingKey
-      @authenticate messageData, routingKey, (session)=>
+      @authenticate messageData, routingKey, socketId, (session)=>
         return fail()  unless session?.username?
         JName.fetchSecretName name, (err, secretChannelName)=>
           return console.error err  if err
@@ -289,7 +323,7 @@ module.exports = class AuthWorker extends EventEmitter
 
           {username} = session
 
-          @addBinding 'chat', bindingKey, consumerRoutingKey, username
+          @addBinding 'chat', bindingKey, 'chat-hose', consumerRoutingKey, username
 
           @_fakePersistenceWorker secretChannelName
           @notify username, 'chatOpen', {
@@ -299,7 +333,9 @@ module.exports = class AuthWorker extends EventEmitter
           }
 
     joinClient =(messageData, socketId)->
-      {channel, routingKey, serviceType, wrapperRoutingKeyPrefix} = messageData
+      { channel, routingKey, serviceType
+        wrapperRoutingKeyPrefix } = messageData
+
       switch serviceType
         when 'bongo', 'kite'
           joinHelper.call this, messageData, routingKey, socketId
@@ -328,13 +364,13 @@ module.exports = class AuthWorker extends EventEmitter
     @removeClient client
     @bongo.mq.connection.exchange client.exchange, AUTH_EXCHANGE_OPTIONS,
       (exchange) ->
-        exchange.publish 'auth.leave', {
-          routingKey: client.routingKey
-        }
+        exchange.publish 'auth.leave', { routingKey: client.routingKey }
         exchange.close() # don't leak a channel!
 
   cleanUpAfterDisconnect: (socketId) ->
-    @clients.bySocketId[socketId]?.forEach @bound 'cleanUpClient'
+    @removeUserSocket socketId
+    clientServices = @clients.bySocketId[socketId]
+    clientServices?.forEach @bound 'cleanUpClient'
 
   parseServiceKey = (serviceKey) ->
     last = null
@@ -358,7 +394,7 @@ module.exports = class AuthWorker extends EventEmitter
     Presence = require 'koding-rabbit-presence'
     @presence = new Presence {
       connection
-      exchange  : @presenceExchange
+      exchange  : @servicesPresenceExchange
       member    : @resourceName
     }
     @presence.on 'join', (serviceKey) =>
@@ -399,6 +435,10 @@ module.exports = class AuthWorker extends EventEmitter
     bongo.mq.ready =>
       {connection} = bongo.mq
       @monitorPresence connection
+
+      # FIXME: this is a hack to hold the chat exchange open for the meantime
+      connection.exchange 'chat', NOTIFICATION_EXCHANGE_OPTIONS, (chatExchange) ->
+        # *chirp chirp chirp chirp*
 
       connection.exchange 'authAll', AUTH_EXCHANGE_OPTIONS, (authAllExchange) =>
         connection.queue '', {exclusive:yes}, (authAllQueue) =>

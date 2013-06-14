@@ -5,7 +5,7 @@ class NCopyUrlView extends JView
 
     @path = FSHelper.plainPath @getData().path
     @publicPath = @path.replace \
-      ///.*\/(.*\.#{KD.config.userSitesDomain})\/(.*)///, '//$1/$2'
+      ///.*\/(.*\.#{KD.config.userSitesDomain})\/(.*)///, 'http://$1/$2'
 
     @inputUrlLabel  = new KDLabelView
       cssClass      : 'public-url-label'

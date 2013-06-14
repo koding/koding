@@ -275,6 +275,41 @@ task 'rerouting',(options)->
       enabled      : if config.runKontrol is yes then yes else no
       startMode    : "one"
 
+task 'userpresence',(options)->
+
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    name           : 'userPresence'
+    cmd            : "./go/bin/userpresence -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    stdout         : process.stdout
+    stderr         : process.stderr
+    verbose        : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+
+task 'persistence',(options)->
+
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
+
+  processes.spawn
+    name           : 'persistence'
+    cmd            : "./go/bin/persistence -c #{configFile}"
+    restart        : yes
+    restartTimeout : 100
+    stdout         : process.stdout
+    stderr         : process.stderr
+    verbose        : yes
+    kontrol        :
+      enabled      : if config.runKontrol is yes then yes else no
+      startMode    : "one"
+
+
 task 'osKite',({configFile})->
 
   processes.spawn
@@ -413,6 +448,8 @@ run =({configFile})->
     invoke 'goBroker'       if config.runGoBroker
     invoke 'osKite'         if config.runOsKite
     invoke 'rerouting'      if config.runRerouting
+    invoke 'userpresence'   if config.runUserPresence
+    invoke 'persistence'    if config.runPersistence
     invoke 'proxy'          if config.runProxy
     invoke 'neo4jfeeder'    if config.runNeo4jFeeder
     invoke 'authWorker'     if config.authWorker
@@ -437,7 +474,7 @@ task 'alertUserToRunNeo4jMigrator', (options)->
 
 task 'run', (options)->
   {configFile} = options
-  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
+  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   oldIndex = nodePath.join __dirname, "website/index.html"
@@ -457,7 +494,7 @@ task 'run', (options)->
 task 'accounting', (options)->
 
   {configFile} = options
-  options.configFile = "dev" if configFile in ["",undefined,"undefined"]
+  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   processes.fork

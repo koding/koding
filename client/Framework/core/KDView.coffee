@@ -86,7 +86,7 @@ class KDView extends KDObject
     o.resizable   or= null      # TBDL
     super o,data
 
-    data?.on? 'update', => @render()
+    data?.on? 'update', @bound 'render'
 
     @setInstanceVariables options
     @defaultInit options,data
@@ -301,7 +301,7 @@ class KDView extends KDObject
   hasClass:(cssClass)->
     @$().hasClass cssClass
 
-  getBounds:()->
+  getBounds:->
     #return false unless @viewDidAppend
     bounds =
       x : @getX()
@@ -310,7 +310,7 @@ class KDView extends KDObject
       h : @getHeight()
       n : @constructor.name
 
-  setRandomBG:()->@getDomElement().css "background-color", __utils.getRandomRGB()
+  setRandomBG:->@getDomElement().css "background-color", __utils.getRandomRGB()
 
   hide:(duration)->
     @setClass 'hidden'
@@ -346,18 +346,18 @@ class KDView extends KDObject
     if sizes.height?
       @setHeight sizes.height
 
-  setPosition:()->
+  setPosition:->
     positionOptions = @getOptions().position
     positionOptions.position = "absolute"
     @$().css positionOptions
 
-  getWidth:()-> @$().width()
+  getWidth:-> @$().width()
 
   setWidth:(w, unit = "px")->
     @getElement().style.width = "#{w}#{unit}"
     @emit "ViewResized", {newWidth : w, unit}
 
-  getHeight:()->
+  getHeight:->
     @getDomElement().outerHeight no
 
   setHeight:(h, unit = "px")->
@@ -468,7 +468,7 @@ class KDView extends KDObject
       else
         @parent = parent
 
-  unsetParent:()-> delete @parent
+  unsetParent:-> delete @parent
 
   embedChild:(placeholderId, child, isCustom)->
 
@@ -749,16 +749,16 @@ class KDView extends KDObject
 # VIEW READY EVENTS
 # #
 
-  viewAppended:()->
+  viewAppended:->
 
   childAppended:(child)->
     # bubbling childAppended event
     @parent?.emit 'childAppended', child
 
-  setViewReady:()->
+  setViewReady:->
     @viewIsReady = yes
 
-  isViewReady:()->
+  isViewReady:->
     @viewIsReady or no
 
 # #
@@ -796,7 +796,7 @@ class KDView extends KDObject
     if isRemovable
       @$overlay.on "click.overlay", @removeOverlay.bind @
 
-  removeOverlay:()->
+  removeOverlay:->
 
     return unless @$overlay
 
@@ -853,9 +853,12 @@ class KDView extends KDObject
 
   _windowDidResize:->
 
-  listenWindowResize:->
+  listenWindowResize:(state=yes)->
 
-    @getSingleton('windowController').registerWindowResizeListener @
+    if state
+      @getSingleton('windowController').registerWindowResizeListener @
+    else
+      @getSingleton('windowController').unregisterWindowResizeListener @
 
   notifyResizeListeners:->
 
@@ -865,39 +868,39 @@ class KDView extends KDObject
 
     @getSingleton("windowController").setKeyView @
 
-  setPreserveValue:(preserveValue={})->
-    storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
+  # setPreserveValue:(preserveValue={})->
+  #   storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
 
-    if "string" is typeof preserveValue.saveEvents
-      preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
-    if "string" is typeof preserveValue.clearEvents
-      preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
+  #   if "string" is typeof preserveValue.saveEvents
+  #     preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
+  #   if "string" is typeof preserveValue.clearEvents
+  #     preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
 
-    for preserveEvent in preserveValue.saveEvents
-      @on preserveEvent, (event)=>
-        value = @getOptions().preserveValue.getValue?() ? @getValue?()
-        @savePreserveValue preserveValue.name, value
+  #   for preserveEvent in preserveValue.saveEvents
+  #     @on preserveEvent, (event)=>
+  #       value = @getOptions().preserveValue.getValue?() ? @getValue?()
+  #       @savePreserveValue preserveValue.name, value
 
-    for preserveEvent in preserveValue.clearEvents
-      @on preserveEvent, (event)=>
-        @clearPreserveValue()
+  #   for preserveEvent in preserveValue.clearEvents
+  #     @on preserveEvent, (event)=>
+  #       @clearPreserveValue()
 
-    if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
-      @on displayEvent, (event)=>
-        @applyPreserveValue storedvalue if storedValue
+  #   if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
+  #     @on displayEvent, (event)=>
+  #       @applyPreserveValue storedvalue if storedValue
 
-    if storedValue
-      @utils.defer => @applyPreserveValue storedValue
+  #   if storedValue
+  #     @utils.defer => @applyPreserveValue storedValue
 
-  applyPreserveValue:(value)->
-    if @getOptions().preserveValue.setValue
-      @getOptions().preserveValue.setValue value
-    else @setValue? value
+  # applyPreserveValue:(value)->
+  #   if @getOptions().preserveValue.setValue
+  #     @getOptions().preserveValue.setValue value
+  #   else @setValue? value
 
-  savePreserveValue:(id,value)->
-    @getSingleton('localStorageController').setValueById id, value
+  # savePreserveValue:(id,value)->
+  #   @getSingleton('localStorageController').setValueById id, value
 
-  clearPreserveValue:->
-    if @getOptions().preserveValue
-      @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
+  # clearPreserveValue:->
+  #   if @getOptions().preserveValue
+  #     @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
 

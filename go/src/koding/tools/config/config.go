@@ -12,6 +12,7 @@ type Config struct {
 	BuildNumber     int
 	ProjectRoot     string
 	UserSitesDomain string
+	ContainerSubnet string
 	Client          struct {
 		StaticFilesBaseUrl string
 	}
@@ -69,6 +70,13 @@ type Config struct {
 			Password string
 			Vhost    string
 		}
+	}
+	FollowFeed struct {
+		Host          string
+		Port          int
+		ComponentUser string
+		Password      string
+		Vhost         string
 	}
 }
 

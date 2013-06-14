@@ -6,9 +6,10 @@ module.exports = class JGroupBundle extends JBundle
 
   {permit} = require '../group/permissionset'
 
-  {groupBy} = require 'underscore'
-
-  {daisy} = require 'bongo'
+  JRecurlyPlan         = require '../recurly'
+  JRecurlySubscription = require '../recurly/subscription'
+  JVM                  = require '../vm'
+  async                = require 'async'
 
   @share()
 
@@ -19,21 +20,13 @@ module.exports = class JGroupBundle extends JBundle
       static          : []
       instance        : []
     sharedMethods     :
-      static          : ['fetchPlans']
-      instance        : ['fetchLimits', 'debit', 'debitGroup']
+      static          : []
+      instance        : []
     permissions       :
       'manage payment methods'  : []
       'change bundle'           : []
       'request bundle change'   : ['member','moderator']
       'commission resources'    : ['member','moderator']
-    limits            :
-      'cpu'           : { unit: 'core', quota: 1 }
-      'ram'           : { unit: 'GB',   quota: 0.25 }
-      'disk'          : { unit: 'GB',   quota: 0.5 }
-      'users'         : { unit: 'user', quota: 20 }
-      'cpu per user'  : { unit: 'core', quota: 0 }
-      'ram per user'  : { unit: 'GB',   quota: 0 }
-      'disk per user' : { unit: 'GB',   quota: 0 }
     schema            :
       overagePolicy   :
         type          : String
@@ -42,93 +35,111 @@ module.exports = class JGroupBundle extends JBundle
           ['allowed', 'by permission', 'not allowed']
         ]
         default       : 'not allowed'
+      sharedVM        :
+        type          : Boolean
+        default       : no
+      paymentPlan     :
+        type          : String
+        default       : ""
+      allocation      :
+        type          : Number
+        default       : 0
 
-  @parsePlanKey = (key)->
-    [ prefix, category, resource, upperBound ] = key.split '_'
-    return { prefix, category, resource, upperBound: +upperBound }
+  createVM: (account, group, data, callback)->
+    {type, planCode} = data
 
-  @fetchPlans = permit 'commission resources',
-    success: (client, callback) ->
-      (require 'koding-payment').getPlans (err, plans) =>
-        return callback err  if err
+    if type is 'user'
+      planOwner = "user_#{account._id}"
+    else if type is 'group'
+      planOwner = "group_#{group._id}"
+    else if type is 'expensed'
+      planOwner = "group_#{group._id}"
 
-        formattedPlans = plans.map (plan) =>
-          feeInitial  : plan.feeInitial
-          feeMonthly  : plan.feeMonthly
-          code        : plan.code
-          usage       : @parsePlanKey plan.code
-          title       : plan.title
+    JRecurlySubscription.getSubscriptionsAll planOwner,
+      userCode: planOwner
+      planCode: planCode
+      status  : 'active'
+    , (err, subs)=>
+      return callback new KodingError "Payment backend error: #{err}"  if err
 
-        byCategory = groupBy formattedPlans, (plan)-> plan.usage.category
+      expensed = type is "expensed"
 
-        for own category, group of byCategory
-          byCategory[category] = groupBy group, (plan)-> plan.usage.resource
+      paidVMs     = 0
+      expensedVMs = 0
+      subs.forEach (sub)->
+        if sub.status is 'active' and sub.planCode is planCode
+          paidVMs = sub.quantity
+          if type is 'expensed'
+            expensedVMs = sub.expensed
+          else if type is 'group'
+            paidVMs    -= sub.expensed
 
-        callback null, byCategory
+      if expensed
+        paidVMs = expensedVMs
 
+      createdVMs = 0
+      JVM.someData
+        planOwner: planOwner
+        planCode : planCode
+        expensed : expensed
+      ,
+        name     : 1
+      , {}, (err, cursor)=>
+        cursor.toArray (err, arr)=>
+          return callback err  if err
+          arr.forEach (vm)->
+            createdVMs += 1
 
-  fetchLimits$: permit 'change bundle',
-    success: (client, callback)-> @fetchLimits callback
+          firstVM = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
 
-  debit$: permit 'commission resources',
-    success: (client, debits, callback)-> @debitResource client, 'user', debits, callback
-
-  debitGroup$: permit 'change bundle',
-    success: (client, debits, callback)-> @debitResource client, 'group', debits, callback
-
-  debitResource: (client, type, debits, callback)->
-
-    debit = (limit, debitAmount, callback = (->)) ->
-      limit.update { $inc: usage: debitAmount }, callback
-
-    JVM = require '../vm'
-    {connection:{delegate}, context:{group}} = client
-    {overagePolicy} = this
-    JVM.calculateUsage delegate, group, (err, usage) =>
-      return callback err  if err?
-
-      @fetchLimits (err, limits) =>
-        return callback err  if err
-
-        limitsMap = limits.reduce( (acc, limit) ->
-          acc[limit.title] = limit
-          return acc
-        , {})
-
-        queue = []
-
-        limits.forEach (limit) ->
-
-          debitAmount   = debits[limit.title]
-          personalLimit = limitsMap["#{limit.title} per user"]
-
-          theyHaveEnough = ( debitAmount is 0 )   or
-            ( not /per user$/.test limit.title )  and
-            ( debitAmount <= limit.getValue() )   and
-            (( overagePolicy is 'allowed' ) or
-              ( personalLimit? )            and
-              ( debitAmount <= personalLimit.getValue() ))
-
-          if type is 'group' and ( (debitAmount is 0) or debitAmount <= limit.getValue() )
-            queue.push ->
-              debit limit, debitAmount, ->
-                queue.next()
-          else if type is 'user' and theyHaveEnough
-            queue.push ->
-              debit limit, debitAmount, ->
-                debit personalLimit, debitAmount, ->
-                  queue.next()
-
-        if queue.length and queue.length is (Object.keys debits).length
-          queue.push ->
+          if paidVMs > createdVMs or firstVM
             options     =
-              usage     : debits
+              planCode  : planCode
+              usage     : {cpu: 1, ram: 1, disk: 1}
               type      : type
-              account   : delegate
-              groupSlug : group
-            JVM.createVm options, callback
-            queue.next()
-          daisy queue
+              account   : account
+              groupSlug : group.slug
+              expensed  : expensed
 
-        else
-          callback new KodingError 'Insufficient quota.'
+            unless expensed
+              JVM.createVm options, callback
+            else
+              @checkUsage account, group, (err, limit)=>
+                return callback err  if err
+                if limit.usage >= limit.quota
+                  return callback new KodingError "You can't create expensed VMs. (quota exceeded)"
+                else
+                  JVM.createVm options, callback
+          else
+            callback new KodingError "Can't create new VM (payment missing)"
+
+  checkUsage: (account, group, callback)->
+    JVM.someData
+      planOwner   : "group_#{group._id}"
+      expensedUser: "user_#{account._id}"
+      expensed    : yes
+    ,
+      name        : 1
+      planCode    : 1
+    , {}, (err, cursor)=>
+      cursor.toArray (err, arr)=>
+        return callback err  if err
+
+        stack = []
+        arr.forEach (vmData)->
+          stack.push (cb)->
+            JRecurlyPlan.one
+              code: vmData.planCode
+            , (err, plan)->
+              return cb err  if err
+              cb null, plan.feeMonthly
+
+        async.parallel stack, (err, result)=>
+          return callback err  if err
+          cost = 0
+          result.forEach (fee)->
+            cost += fee
+
+          callback null,
+            usage: cost
+            quota: @.allocation

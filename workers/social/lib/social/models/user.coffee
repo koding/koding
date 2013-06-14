@@ -23,10 +23,10 @@ module.exports = class JUser extends jraphical.Module
     else
       message: err.message
 
-  @bannedUserList = ['abrt','amykhailov','apache','about','visa',
-                     'cthorn','daemon','dbus','dyasar','ec2-user',
+  @bannedUserList = ['abrt','amykhailov','apache','about','visa','shared-',
+                     'cthorn','daemon','dbus','dyasar','ec2-user','http',
                      'games','ggoksel','gopher','haldaemon','halt','mail',
-                     'nfsnobody','nginx','nobody','node','operator',
+                     'nfsnobody','nginx','nobody','node','operator','https',
                      'root','rpcuser','saslauth','shutdown','sinanlocal',
                      'sshd','sync','tcpdump','uucp','vcsa','zabbix',
                      'search','blog','activity','guest','credits','about',
@@ -39,7 +39,7 @@ module.exports = class JUser extends jraphical.Module
                      'sync','syslog','tomcat','tomcat55','uucp','what',
                      'www-data','fuck','porn','p0rn','porno','fucking',
                      'fucker','admin','postfix','puppet','main','invite',
-                     'administrator','members','register','activate',
+                     'administrator','members','register','activate','shared',
                      'groups','blogs','forums','topics','develop','terminal',
                      'term','twitter','facebook','google','framework', 'kite']
 
@@ -104,6 +104,14 @@ module.exports = class JUser extends jraphical.Module
         type        : Date
         default     : -> new Date
       emailFrequency: Object
+      onlineStatus  :
+        actual      :
+          type      : String
+          enum      : ['invalid status',['online','offline']]
+          default   : 'online'
+        userPreference:
+          type      : String
+          # enum      : ['invalid status',['online','offline','away','busy']]
 
     relationships       :
       ownAccount        :
@@ -119,6 +127,8 @@ module.exports = class JUser extends jraphical.Module
   sessions  = {}
   users     = {}
   guests    = {}
+
+
 
   # @fetchUser = Bongo.secure (client,options,callback)->
   #   {username} = options
@@ -572,7 +582,7 @@ module.exports = class JUser extends jraphical.Module
               account.save (err)-> throw err if err
               callback null
         else
-          callback new KodingError 'PIN is not confirmed.'
+          callback createKodingError 'PIN is not confirmed.'
 
   fetchHomepageView:(callback)->
     @fetchAccount 'koding', (err, account)->

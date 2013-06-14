@@ -20,100 +20,114 @@ db = new neo4j.GraphDatabase('http://localhost:7474');
   # name: 'JTutorial',
   # name: 'JUser',
 
-query = [
-  'start koding=node:koding(\'id:*\')'
-  # 'match koding'
-  'where koding.name = "JTutorial"'
-  ' or koding.name = "JCodeSnip"'
-  ' or koding.name = "JDiscussion"'
-  ' or koding.name = "JStatusUpdate"'
-  'return koding'
-  'order by koding.`meta.createdAt` DESC'
-  'limit 10'
-].join('\n');
-
-
-query = [
-  'start koding=node:koding(\'id:*\')'
-  'match koding-->all'
-  'where koding.name = "JTutorial"'
-  ' or koding.name = "JCodeSnip"'
-  ' or koding.name = "JDiscussion"'
-  ' or koding.name = "JStatusUpdate"'
-  'return *'
-  'order by koding.`meta.createdAt` DESC'
-  'limit 4'
-].join('\n');
-
-query = [
-  'start koding=node:koding(\'id:*\')'
-  'match koding-[r:author]->all'
-  'where koding.name = "JTutorial"'
-  ' or koding.name = "JCodeSnip"'
-  ' or koding.name = "JDiscussion"'
-  ' or koding.name = "JStatusUpdate"'
-  'return type(r)'
-  'limit 400'
-].join('\n');
-
-
-params =
-  tag : "*"
-  className : "JAccount"
-
-
-query = [
-  # 'start  koding=node:koding(id={groupId})'
-  'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
-  'MATCH  koding-[:member]->members<-[:author]-content'
-  # 'where  members.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
-  # ' where content.name = "JTutorial"'
-  # ' or content.name = "JCodeSnip"'
-  # ' or content.name = "JDiscussion"'
-  # ' or content.name = "JStatusUpdate"'
-  'return *'
-  # 'order by koding.`meta.createdAt` DESC'
-  'limit 10'
-].join('\n');
 # query = [
 #   'start koding=node:koding(\'id:*\')'
+#   # 'match koding'
 #   'where koding.name = "JTutorial"'
 #   ' or koding.name = "JCodeSnip"'
 #   ' or koding.name = "JDiscussion"'
-#   ' or koding.name = "JBlogPost"'
 #   ' or koding.name = "JStatusUpdate"'
-#   ' and has(koding.`meta.createdAt`)'
-#   ' and koding.`meta.createdAt` < {startDate}'
-#   'return *'
+#   'return koding'
 #   'order by koding.`meta.createdAt` DESC'
 #   'limit 10'
 # ].join('\n');
 
 
-groupId : "5150c743f2589b107d000007"
+# query = [
+#   'start koding=node:koding(\'id:*\')'
+#   'match koding-->all'
+#   'where koding.name = "JTutorial"'
+#   ' or koding.name = "JCodeSnip"'
+#   ' or koding.name = "JDiscussion"'
+#   ' or koding.name = "JStatusUpdate"'
+#   'return *'
+#   'order by koding.`meta.createdAt` DESC'
+#   'limit 4'
+# ].join('\n');
 
-query = [
+# query = [
+#   'start koding=node:koding(\'id:*\')'
+#   'match koding-[r:author]->all'
+#   'where koding.name = "JTutorial"'
+#   ' or koding.name = "JCodeSnip"'
+#   ' or koding.name = "JDiscussion"'
+#   ' or koding.name = "JStatusUpdate"'
+#   'return type(r)'
+#   'limit 400'
+# ].join('\n');
 
-  'start  kd=node:koding(id={groupId})'
-  'MATCH  kd-[:member]->users<-[r:user]-koding'
-  'where koding.name="JApp"'
-  'and koding.`meta.createdAtEpoch` < {startDate}'
-  'return *'
-  'order by r.createdAtEpoch DESC'
-  'limit 10'
-].join('\n');
 
+# params =
+#   tag : "*"
+#   className : "JAccount"
+
+
+# query = [
+#   # 'start  koding=node:koding(id={groupId})'
+#   'start koding=node:koding(\'id:5150c743f2589b107d000007\')'
+#   'MATCH  koding-[:member]->members<-[:author]-content'
+#   # 'where  members.name="JAccount" and r.createdAt > {startDate} and r.createdAt < {endDate}'
+#   # ' where content.name = "JTutorial"'
+#   # ' or content.name = "JCodeSnip"'
+#   # ' or content.name = "JDiscussion"'
+#   # ' or content.name = "JStatusUpdate"'
+#   'return *'
+#   # 'order by koding.`meta.createdAt` DESC'
+#   'limit 10'
+# ].join('\n');
+# # query = [
+# #   'start koding=node:koding(\'id:*\')'
+# #   'where koding.name = "JTutorial"'
+# #   ' or koding.name = "JCodeSnip"'
+# #   ' or koding.name = "JDiscussion"'
+# #   ' or koding.name = "JBlogPost"'
+# #   ' or koding.name = "JStatusUpdate"'
+# #   ' and has(koding.`meta.createdAt`)'
+# #   ' and koding.`meta.createdAt` < {startDate}'
+# #   'return *'
+# #   'order by koding.`meta.createdAt` DESC'
+# #   'limit 10'
+# # ].join('\n');
+
+# MATCH me-[rels:FRIEND*0..1]-myfriend
+# WHERE me.name = 'Joe' AND ALL (r IN rels
+# WHERE r.status = 'CONFIRMED')
+# WITH myfriend
+# MATCH myfriend-[:STATUS]-latestupdate-[:NEXT*0..1]-statusupdates
+# RETURN myfriend.name AS name, statusupdates.date AS date, statusupdates.text AS text
+# ORDER BY statusupdates.date DESC LIMIT 3
+
+
+
+groupId = "5196fcb2bc9bdb0000000027"
+skip = 0
+limit = 33
+query = """
+    start  group=node:koding("id:#{groupId}")
+    MATCH  group-[r:member]->members
+    return members
+    order by r.createdAtEpoch, members.`counts.followers` DESC
+    skip #{skip}
+    limit #{limit}
+    """
+
+currentUserId = "51a3e4b1db49f04a74000003"
+query = """
+    start  group=node:koding("id:#{groupId}")
+    MATCH  group-[r:member]->members<-[:follower]-follower
+    where follower.id = "#{currentUserId}"
+    return members, r
+    order by r.createdAtEpoch, members.`counts.followers` DESC
+    skip #{skip}
+    limit #{limit}
+    """
+    # return members, count(members) as count, r
 console.log query
-params =
-  groupId   : "5150c743f2589b107d000007"
-  startDate : 1352435032
 
-
-db.query query, params, (err, results) ->
+db.query query, {}, (err, results) ->
   if err then throw err;
   for result in results
-    console.log result
-    # console.log result
+    console.log result.members.data
 
   # koding = results.map (res) ->
   #   res['koding']

@@ -9,12 +9,10 @@ class DomainsListViewController extends KDListViewController
     @on "newDomainCreated", @bound "appendNewDomain"
 
     @getListView().on "domainsListItemViewClicked", (item)=>
-      @deselectAllItems()
-      @selectSingleItem item
       @emit "domainItemClicked", item
 
   loadItems:->
-    KD.remote.api.JDomain.findByAccount {'owner._id':KD.whoami().getId()}, (err, domains) =>
+    KD.remote.api.JDomain.findByAccount {owner:KD.whoami().getId()}, (err, domains) =>
       if err
         @instantiateListItems []
       unless err

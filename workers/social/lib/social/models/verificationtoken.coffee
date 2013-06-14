@@ -74,7 +74,7 @@ module.exports = class JVerificationToken extends Module
                   subject : subject
                   content : confirmation.getTextBody firstName, plainPin
                   force   : yes
-                
+
                 email.save callback
 
   @confirmByPin = (options, callback)->

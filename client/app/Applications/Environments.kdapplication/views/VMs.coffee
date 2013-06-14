@@ -101,6 +101,7 @@ class VMListItemView extends KDListItemView
   constructor: (options, data) ->
     options.cssClass or= "vm-item"
     options.click = @bound "clicked"
+
     super options, data
 
     {controller,vmName} = @getData()
@@ -133,7 +134,7 @@ class VMListItemView extends KDListItemView
       @statusIcon.setClass "vm-status-on"
       @switch.setOn no
 
-  viewAppended:()->
+  viewAppended:->
     super()
 
     @setTemplate @pistachio()

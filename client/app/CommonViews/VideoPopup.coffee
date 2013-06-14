@@ -22,10 +22,10 @@ class VideoPopupController extends KDController
       thumb : imageThumb
     return newWindow
 
-  listPopups:()->
+  listPopups:->
     @videoPopups
 
-  countPopups:()->
+  countPopups:->
     @videoPopups.length
 
   focusWindowByName:(windowName,callback=noop)->
@@ -133,7 +133,7 @@ class VideoPopupListItem extends KDListItemView
     @setTemplate @pistachio()
     @template.update()
 
-  # click:()->
+  # click:->
   #   @getDelegate().emit "FocusWindow", @getData().name
 
   pistachio:->

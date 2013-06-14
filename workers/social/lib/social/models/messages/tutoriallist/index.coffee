@@ -57,6 +57,7 @@ module.exports = class JTutorialList extends jraphical.Module
       repliesCount  :
         type        : Number
         default     : 0
+      group         : String
 
     relationships   :
       tutorial      :

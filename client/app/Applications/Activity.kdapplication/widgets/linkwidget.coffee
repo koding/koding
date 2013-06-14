@@ -132,6 +132,7 @@ class ActivityLinkWidget extends KDFormView
 
     @once "FormValidationPassed", => @reset()
     super
+    KD.track "Activity", "LinkSubmitted"
 
   reset:->
 
@@ -175,7 +176,7 @@ class ActivityLinkWidget extends KDFormView
 
   widgetShown:->
 
-  viewAppended:()->
+  viewAppended:->
 
     @setClass "update-options link"
     @setTemplate @pistachio()

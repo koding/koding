@@ -4,31 +4,11 @@ class DomainMainView extends KDView
     options.cssClass or= "domains"
     data             or= {}
 
-    @domainMapperView = new DomainMapperView
-
     @domainsListViewController = new DomainsListViewController
       viewOptions:
         cssClass : 'domain-list'
-      
-    @domainsListView = @domainsListViewController.getView()
 
-    @addNewDomainButton = new KDButtonView
-      title    : 'Add New Domain'
-      cssClass : 'editor-button new-domain-button'
-      callback : (elm, event) =>
-        @domainModalView = new DomainRegisterModalFormView #successCallback: @domainsListViewController.appendNewDomain
-
-    @refreshDomainsButton = new KDButtonView
-      title    : 'Refresh Domains'
-      cssClass : 'editor-button refresh-domains-button'
-      callback : (elm, event)=>
-        @domainsListViewController.update()
-
-    @splitView = new KDSplitView
-      type      : "vertical"
-      resizable : no
-      sizes     : ["10%", "90%"]
-      views     : [@domainsListView, @domainMapperView]
+    @buildView()
 
     super options, data
 
@@ -44,6 +24,87 @@ class DomainMainView extends KDView
       if err then warn err
     """
 
+  buildView:->
+    @domainsListView    = @domainsListViewController.getView()
+    @domainMapperView   = new DomainMapperView
+    @firewallMapperView = new FirewallMapperView
+
+    @addNewDomainButton = new KDButtonView
+      title    : 'Add New Domain'
+      cssClass : 'editor-button new-domain-button'
+      callback : (elm, event) =>
+        @domainModalView = new DomainRegisterModalFormView #successCallback: @domainsListViewController.appendNewDomain
+
+    @refreshDomainsButton = new KDButtonView
+      title    : 'Refresh Domains'
+      cssClass : 'editor-button refresh-domains-button'
+      callback : (elm, event)=>
+        @domainsListViewController.update()
+
+    @buildTabs()
+
+    @splitView = new KDSplitView
+      type      : "vertical"
+      resizable : no
+      sizes     : ["10%", "90%"]
+      views     : [@domainsListView, @tabView]
+
+  buildAccordions:->
+    # VM, Kite & Firewall Accordion Groups
+    @accordionView = new AccordionView
+      activePane : "Virtual Machines"
+    @vmsAccPane    = new AccordionPaneView
+      title: "Virtual Machines"
+    @kitesAccPane  = new AccordionPaneView
+      title: "Kites"
+
+    @accordionView.addPanes [@vmsAccPane, @kitesAccPane]
+
+    @vmsAccPane.setContent @domainMapperView
+    @kitesAccPane.setContent new KDCustomHTMLView
+
+  buildTabs:->
+    # Routing & Analytics Tabs
+    @tabView       = new KDTabView
+    @routingPane   = new KDTabPaneView
+      name     : "Routing"
+      closable : no
+    @analyticsPane = new KDTabPaneView
+      name     : "Analytics"
+      closable : no
+    @firewallPane  = new KDTabPaneView
+      name     : "Firewall"
+      closable : no
+
+    
+    vmMapperSubView   = @domainMapperView
+    kiteMapperSubView = new KDView
+      partial: 'Kites are listed here.'
+    kiteMapperSubView.hide()
+
+    routingContentView = new KDCustomHTMLView
+      partial: "Connect my domain to:"
+
+    routingContentView.addSubView new KDSelectBox
+      selectOptions: [{title:"VM", value:"VM"}, {title:"Kite", value:"Kite"}]
+      callback: (value)->
+        if value is "VM"
+          vmMapperSubView.show()
+          kiteMapperSubView.hide()
+        else
+          vmMapperSubView.hide()
+          kiteMapperSubView.show()
+
+    @routingPane.addSubView routingContentView
+    @routingPane.addSubView vmMapperSubView
+    @routingPane.addSubView kiteMapperSubView
+
+    @firewallPane.addSubView @firewallMapperView
+
+    [@routingPane, @analyticsPane, @firewallPane].forEach (pane)=>
+      @tabView.addPane pane
+
+    @tabView.showPaneByIndex 0
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -56,39 +117,11 @@ class DomainMainView extends KDView
     {{> @refreshDomainsButton}}
     </div>
     {{> @splitView}}
-    """  
+    """
 
   decorateMapperView:(item)->
-    @domainMapperView.updateContent item
-
-
-class DomainMapperView extends KDView
-
-  constructor:(options={}, data)->
-    options.partial = '<div>Select a domain to continue.</div>'
-    super options, data
-
-  updateContent:(item)->
-    data = item.data
-    @updatePartial ""
-    @destroySubViews()
-
-    @addSubView new KDCustomHTMLView
-      partial : """<div class="domain-name">Your domain: <strong>#{data.name}</strong></div>"""
-
-    @vmListView = new KDListItemView
-    @vmListController = new KDListViewController
-      itemClass: @vmListItemView
-
-    KD.remote.api.JVM.fetchVms (err, vms)=>
-      if vms
-        vms.forEach (vm)=>
-          @addSubView new KDCustomHTMLView
-            partial: "<div>#{vm}</div>"
-      else
-        @addSubView new KDCustomHTMLView
-          partial: "<div>You don't have any VMs right now.</div>"
-
+    [@firewallMapperView, @domainMapperView].forEach (view) ->view.emit "domainChanged", item
+  
 
 class DomainsListItemView extends KDListItemView
 
@@ -99,7 +132,6 @@ class DomainsListItemView extends KDListItemView
   click: (event)->
     listView = @getDelegate()
     listView.emit "domainsListItemViewClicked", this
-    
 
   viewAppended:->
     @setTemplate @pistachio()
@@ -109,6 +141,12 @@ class DomainsListItemView extends KDListItemView
     """
     <div>
       <span class="domain-icon link"></span>
-      <span class="domain-title">{{ #(name)}}</span>
+      <span class="domain-title">{{ #(domain)}}</span>
     </div>
     """
+
+
+
+  
+  
+

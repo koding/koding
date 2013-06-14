@@ -80,7 +80,7 @@ class LikeView extends KDView
     event.preventDefault()
 
     if $(event.target).is("a.action-link")
-      KD.requireLogin
+      KD.requireMembership
         callback  : =>
           @getData().like (err)=>
             if err
@@ -90,6 +90,7 @@ class LikeView extends KDView
               @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
         tryAgain  : yes
         onFailMsg : 'Login required to like activities'
+        groupName : @parent.getDelegate().getData().group
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""

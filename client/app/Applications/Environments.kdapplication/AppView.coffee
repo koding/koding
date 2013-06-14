@@ -42,7 +42,7 @@ class EnvironmentsMainView extends JView
 
   createTabs:->
     for {name, viewOptions}, i in tabData
-      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 0
+      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 1
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()

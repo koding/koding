@@ -60,7 +60,7 @@ class KDSplitView extends KDView
     @emit "SplitPanelCreated", panel
     return panel
 
-  _calculatePanelBounds:()->
+  _calculatePanelBounds:->
     @panelsBounds = for size,i in @sizes
       if i is 0
         0
@@ -70,7 +70,7 @@ class KDSplitView extends KDView
           offset += @sizes[prevSize]
         offset
 
-  _putPanels:()->
+  _putPanels:->
     for panel in @panels
       @addSubView panel
       if @getOptions().colored
@@ -125,7 +125,7 @@ class KDSplitView extends KDView
         @setView view,i
 
   # HELPERS
-  _sanitizeSizes:()->
+  _sanitizeSizes:->
     @_setMinsAndMaxs()
     o             = @getOptions()
     nullCount     = 0
@@ -168,7 +168,7 @@ class KDSplitView extends KDView
       @getOptions().minimums[i] = if @getOptions().minimums[i] then @_sanitizeSize @getOptions().minimums[i] else -1
       @getOptions().maximums[i] = if @getOptions().maximums[i] then @_sanitizeSize @getOptions().maximums[i] else 99999
 
-  _getSize:()->
+  _getSize:->
     if @getOptions().type is "vertical" then @getWidth() else @getHeight()
 
   _setSize:(size)->

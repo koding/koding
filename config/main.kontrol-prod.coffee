@@ -12,8 +12,9 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "new.koding.com"
+    address     : "koding.com"
   userSitesDomain: 'kd.io'
+  containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -29,11 +30,13 @@ module.exports =
     read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding2'
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
   runNeo4jFeeder: yes
   runGoBroker   : no
   runKontrol    : yes
-  runRerouting  : no
+  runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : no
   buildClient   : yes
   runOsKite     : no
@@ -82,10 +85,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 2
   presence        :
     exchange      : 'services-presence'
   client          :
@@ -99,7 +98,7 @@ module.exports =
     indexMaster   : "index-master.html"
     index         : "default.html"
     useStaticFileServer: no
-    staticFilesBaseUrl: "https://new.koding.com"
+    staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       userSitesDomain: 'kd.io'
       useNeo4j: yes
@@ -107,10 +106,10 @@ module.exports =
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
-      mainUri   : "http://new.koding.com"
+      mainUri   : "http://koding.com"
       broker    :
         sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
-      apiUri    : 'https://api.koding.com'
+      apiUri    : 'https://www.koding.com'
       # Is this correct?
       appsUri   : 'https://dev-app.koding.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
@@ -133,8 +132,8 @@ module.exports =
     disconnectTimeout: 3e3
     vhost       : 'kite'
   email         :
-    host        : "new.koding.com"
-    protocol    : 'http:'
+    host        : "koding.com"
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
@@ -168,4 +167,13 @@ module.exports =
       password    : 's486auEkPzvUjYfeFTMQ'
       vhost       : '/'
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a'
+    apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  opsview	:
+    push	: yes
+    host	: 'opsview.in.koding.com'
+  followFeed    :
+    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 's486auEkPzvUjYfeFTMQ'
+    vhost       : 'followfeed'

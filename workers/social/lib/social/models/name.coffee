@@ -41,14 +41,18 @@ module.exports = class JName extends Model
 
   @fetchSecretName =(name, callback)->
     JSecretName = require './secretname'
-    JSecretName.one {name}, (err, secretNameObj)->
+    JSecretName.one {name}, (err, secretNameObj) =>
       if err then callback err
       else unless secretNameObj
         secretNameObj = new JSecretName {name}
-        secretNameObj.save (err)->
+        secretNameObj.save (err) =>
           if err then callback err
           else callback null, secretNameObj.secretName
-      else callback null, secretNameObj.secretName, secretNameObj.oldSecretName
+      else
+        # TODO: we could possibly try to create the conversation slice by
+        #  observing an event that we could emit from here.
+        #@emit 'channel-control'
+        callback null, secretNameObj.secretName, secretNameObj.oldSecretName
 
   slowEach_ =(cursor, callback=->)->
     cursor.nextModel (err, name)->
@@ -132,8 +136,8 @@ module.exports = class JName extends Model
       callback new KodingError 'Access denied!'
     else
       @claimAll [
-        {konstructor: require('./user'),  usedAsPath: 'username'}
-        {konstructor: require('./group'), usedAsPath: 'slug'}
+        { konstructor: require('./user'),  usedAsPath: 'username' }
+        { konstructor: require('./group'), usedAsPath: 'slug' }
       ], callback
 
   @claim =(fullName, slugs, konstructor, usedAsPath, callback)->

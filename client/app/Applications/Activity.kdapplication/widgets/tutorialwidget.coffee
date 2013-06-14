@@ -165,7 +165,7 @@ class ActivityTutorialWidget extends KDFormView
       }
 
     super
-
+    KD.track "Activity", "TutorialSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
@@ -182,7 +182,7 @@ class ActivityTutorialWidget extends KDFormView
 
     super
 
-  viewAppended:()->
+  viewAppended:->
     @setClass "update-options discussion"
     @setTemplate @pistachio()
     @template.update()

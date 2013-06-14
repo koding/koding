@@ -89,17 +89,25 @@ class Sidebar extends JView
           callback?()
       ]
 
-    @resourcesController = new ResourcesController
-    @resourcesWidget     = @resourcesController.getView()
+    @finderController.on 'EnvironmentsTabRequested', =>
+      @finderBottomControlPin.setState 'hide'
+      @showBottomControls()
 
-    @createNewVMButton   = new KDButtonView
+    # FIXME ~ GG find a better place for this.
+    @finderController.on 'EnvironmentsTabHide', @bound 'hideBottomControls'
+    @finderController.on 'EnvironmentsTabShow', @bound 'showBottomControls'
+
+    @resourcesController = new ResourcesController
+    @resourcesWidget = @resourcesController.getView()
+
+    @createNewVMButton = new KDButtonView
       title     : "Create New VM"
       icon      : yes
       iconClass : "plus-orange"
       cssClass  : "clean-gray create-vm"
-      callback  : KD.singletons.vmController.createNewVM
+      callback  : KD.getSingleton('vmController').createNewVM
 
-    @environmentButton   = new KDButtonView
+    @environmentButton = new KDButtonView
       title     : "Environments"
       icon      : yes
       iconOnly  : yes
@@ -137,6 +145,7 @@ class Sidebar extends JView
     @$('#main-nav').on "mouseleave", @bound "animateLeftNavOut"
 
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
+    @bindTransitionEnd()
 
   changeLayout:(options)->
 
@@ -224,15 +233,33 @@ class Sidebar extends JView
       @emit "NavigationPanelWillCollapse"
 
   showBottomControls:->
-    @$('#finder-bottom-controls').addClass 'show-environments'
-    @utils.wait 400, @bound '_windowDidResize'
+    $fbc = @$('#finder-bottom-controls')
+    $fbc.addClass 'in'
+    @_windowDidResize()
 
   hideBottomControls:->
-    @$('#finder-bottom-controls').removeClass 'show-environments'
-    @utils.wait 300, @bound '_windowDidResize'
+    $fbc = @$('#finder-bottom-controls')
+    $fbc.css top : "100%"
+    $fbc.removeClass 'in'
+    @_windowDidResize()
+
+  _resizeResourcesList:->
+    $fbc     = @$('#finder-bottom-controls')
+    $resList = $fbc.find('.resources-list')
+    fbch     = $fbc.height()
+    h        = @getHeight()
+
+    $resList.css maxHeight : if fbch > h then h/2 else "none"
+
+    return if $fbc.hasClass 'in'
+      $fbc.css top : "#{100 - ((fbch = $fbc.height())-27) / h * 100}%"
+      return fbch
+    else 27
 
   _windowDidResize:->
-    @$("#finder-holder").height @getHeight() - @$("#finder-bottom-controls").height() - 50
+    $fbc = @$('#finder-bottom-controls')
+    h = @_resizeResourcesList()
+    @$("#finder-holder").height @getHeight() - h - 50
 
   navItems =
     # temp until groups are implemented
