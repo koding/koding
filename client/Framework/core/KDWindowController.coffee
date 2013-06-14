@@ -112,8 +112,8 @@ class KDWindowController extends KDController
   beforeUnload:(event)->
     # fixme: fix this with appmanager
 
-    # if @getSingleton('mainView')?.mainTabView?.panes
-    #   for pane in @getSingleton('mainView').mainTabView.panes
+    # if KD.getSingleton('mainView')?.mainTabView?.panes
+    #   for pane in KD.getSingleton('mainView').mainTabView.panes
     #     msg = no
 
     #     # For open Tabs (apps, editors)

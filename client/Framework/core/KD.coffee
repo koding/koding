@@ -49,6 +49,14 @@ unless window.event?
   catch e
     log "we fail silently!", e
 
+try
+  # warn when the global "event" property is accessed.
+  Object.defineProperty window, "appManager", get:->
+    console.trace()
+    KD.warn "window.appManager is deprecated, use KD.getSingleton(\"appManager\") instead!"
+catch e
+  log "we fail silently!", e
+
 @KD = $.extend (KD), do ->
   create = (constructorName, options, data)->
     konstructor = @classes[constructorName] \

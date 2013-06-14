@@ -103,7 +103,7 @@ class KDAutoCompleteController extends KDViewController
 
     dropdownListView.on 'KDAutoCompleteSubmit', @bound "submitAutoComplete"
 
-    windowController = @getSingleton('windowController')
+    windowController = KD.getSingleton('windowController')
 
     @dropdown = new KDListViewController
       view : dropdownListView
@@ -124,7 +124,7 @@ class KDAutoCompleteController extends KDViewController
 
     return unless @readyToShowDropDown
 
-    windowController = @getSingleton('windowController')
+    windowController = KD.getSingleton('windowController')
     dropdownWrapper = @dropdown.getView()
     dropdownWrapper.unsetClass "hidden"
     input  = @getView()
@@ -187,7 +187,7 @@ class KDAutoCompleteController extends KDViewController
       @emit 'ItemListChanged', @selectedItemCounter
     else
       inputView.setValue ''
-      @getSingleton("windowController").setKeyView null
+      KD.getSingleton("windowController").setKeyView null
       new KDNotificationView
         type      : "mini"
         title     : "You can add up to #{@getOptions().selectedItemsLimit} items!"

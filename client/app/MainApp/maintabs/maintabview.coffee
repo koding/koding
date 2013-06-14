@@ -7,23 +7,23 @@ class MainTabView extends KDTabView
     @visibleHandles             = []
     @totalSize                  = 0
     super options,data
-    @router                     = @getSingleton 'router'
-    @appManager                 = @getSingleton("appManager")
+    @router                     = KD.getSingleton 'router'
+    @appManager                 = KD.getSingleton("appManager")
 
     @appManager.on 'AppManagerWantsToShowAnApp', (controller, view, options)=>
       if view.parent
       then @showPane view.parent
       else @createTabPane options, view
 
-    @getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
-      if e.target is @getSingleton("contentPanel").domElement[0]
+    KD.getSingleton("mainView").on "mainViewTransitionEnd", (e) =>
+      if e.target is KD.getSingleton("contentPanel").domElement[0]
         @tabHandleContainer.setWidth @getWidth()
         @resizeTabHandles()
 
     @on "PaneAdded", =>
       @tabHandleContainer.setWidth @getWidth()
 
-    mainViewController = @getSingleton "mainViewController"
+    mainViewController = KD.getSingleton "mainViewController"
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
 
   changeLayout:(options)->
@@ -33,7 +33,7 @@ class MainTabView extends KDTabView
     if hideTabs
       @hideHandleContainer()
     else
-      if @getSingleton('contentPanel').navOpenedOnce
+      if KD.getSingleton('contentPanel').navOpenedOnce
         @showHandleContainer()
 
 

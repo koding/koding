@@ -80,7 +80,7 @@ class KDListViewController extends KDViewController
 
     @instantiateListItems(@getData()?.items or [])
 
-    @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
+    KD.getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
 
   instantiateListItems:(items)->
     newItems = for itemData in items
@@ -203,7 +203,7 @@ class KDListViewController extends KDViewController
   ###
 
   mouseDownHappenedOnItem:(item, event)->
-    @getSingleton("windowController").setKeyView @getListView() if @getOptions().keyNav
+    KD.getSingleton("windowController").setKeyView @getListView() if @getOptions().keyNav
 
     @lastEvent = event
     unless item in @selectedItems

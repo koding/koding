@@ -58,7 +58,7 @@ class AccountPaymentMethodsList extends KDListView
       if err or not data
         data = {}
 
-      paymentController = @getSingleton "paymentController"
+      paymentController = KD.getSingleton "paymentController"
       modal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess) ->
         KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
           if err

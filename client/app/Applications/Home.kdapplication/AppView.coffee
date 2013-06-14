@@ -39,7 +39,7 @@ class HomeAppView extends KDView
     groups       = @counterBar.counters.GROUPS
     topics       = @counterBar.counters.TOPICS
     activities   = @counterBar.counters["Thoughts shared"]
-    vmController = @getSingleton("vmController")
+    vmController = KD.getSingleton("vmController")
     {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
     members.ready => JAccount.count "",         (err, count)=> members.update count    or 0
@@ -49,14 +49,14 @@ class HomeAppView extends KDView
     topics.ready => JTag.count "",              (err, count)=> topics.update count     or 0
     activities.ready => CActivity.count "",     (err, count)=> activities.update count or 0
 
-    @getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
+    KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
       activities.increment newActivities.length
 
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
 
     @utils.wait 500, => @_windowDidResize()
-    @getSingleton("contentPanel").on "transitionend", (event)=>
+    KD.getSingleton("contentPanel").on "transitionend", (event)=>
       event.stopPropagation()
       if $(event.target).is "#content-panel"
         @_windowDidResize()
