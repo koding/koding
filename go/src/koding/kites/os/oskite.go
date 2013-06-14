@@ -293,7 +293,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
-			vm.SetHostname(vm.HostnameAlias[0])
 			vm.Prepare(getUsers(vm), false)
 			if out, err := vm.Start(); err != nil {
 				log.Err("Could not start VM.", err, out)
@@ -329,11 +328,24 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			start := strings.Index(vm.Name, "~") + 1
-			end := strings.LastIndex(vm.Name, "-")
+			// vm.Name is user~group~n or group~n
+			tildes := strings.Count(vm.Name, "~")
+
+			start := 0
+			end := 0
+
+			if tildes == 1 {
+				start = 0
+				end = strings.Index(vm.Name, "~")
+			} else {
+				start = strings.Index(vm.Name, "~") + 1
+				end = strings.LastIndex(vm.Name, "~")
+			}
+
 			if end == -1 {
 				end = len(vm.Name)
 			}
+
 			vmHomeName := vm.Name[start:end]
 			websiteDir := "/home/" + vmHomeName + "/Sites/" + vm.Hostname()
 			if _, err := rootVos.Stat(websiteDir); err != nil {

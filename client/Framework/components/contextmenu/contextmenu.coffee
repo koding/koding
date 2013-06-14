@@ -37,7 +37,7 @@ class JContextMenu extends KDView
       @treeController.getView().on 'ReceivedClickElsewhere', => @destroy()
 
       @treeController.on "NodeExpanded", @bound "positionSubMenu"
-    
+
     if options.arrow
       @on "viewAppended", @bound "addArrow"
 
@@ -122,3 +122,7 @@ class JContextMenu extends KDView
       fullViewHeight = expandView.getY() + expandView.getHeight()
       if fullViewHeight > window.innerHeight
         expandView.$().css "bottom", 0
+      fullViewWidth = expandView.getX() + expandView.getWidth()
+      if fullViewWidth > window.innerWidth
+        expandView.$().css "left", - expandView.getWidth()
+        expandView.setClass "left-aligned"
