@@ -200,7 +200,17 @@ class KodingAppsController extends KDController
     if @publishedApps[appName]
       return @utils.versionCompare appVersion, "lt", @publishedApps[appName].manifest.version
 
-  updateUserApp: (manifest, callback) ->
+  updateAllApps:->
+    @fetchUpdateAvailableApps (err, apps) =>
+      return warn err  if err
+      stack = []
+      delete @notification
+      apps.forEach (app) =>
+        stack.push (callback) =>
+          @updateUserApp app.manifest, callback
+      async.series stack
+
+  updateUserApp:(manifest, callback)->
     appName = manifest.name
     unless @notification
       @notification = new KDNotificationView

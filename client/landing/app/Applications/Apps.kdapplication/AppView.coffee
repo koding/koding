@@ -16,17 +16,8 @@ class AppsMainView extends KDView
       title     : "Update All"
       style     : "cupid-green update-apps-button"
       callback  : ->
-        appsController = @getSingleton "kodingAppsController"
-        apps           = @getData()
-        stack          = []
-
-        delete appsController.notification
-
-        apps.forEach (app) =>
-          stack.push (callback) =>
-            appsController.updateUserApp app.manifest, callback
-
-        async.series stack
+        @getSingleton("kodingAppsController").updateAllApps()
+        @hide()
 
     @updateAppsButton.hide()
 
