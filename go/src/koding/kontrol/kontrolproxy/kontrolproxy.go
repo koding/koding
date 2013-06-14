@@ -34,7 +34,7 @@ var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var templates = template.Must(template.ParseFiles("go/templates//proxy/securepage.html"))
+var templates = template.Must(template.ParseFiles("go/templates/proxy/securepage.html", "client/maintenance.html"))
 var users = make(map[string]time.Time)
 var usersLock sync.RWMutex
 
@@ -179,6 +179,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Display error when someone hits the main page
 	if hostname == req.Host {
 		io.WriteString(rw, "Hello kontrol proxy :)")
+		return
+	}
+
+	// FIXME: hardcoded for now, will be removed -- arslan
+	if req.Host == "koding.com" {
+		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
