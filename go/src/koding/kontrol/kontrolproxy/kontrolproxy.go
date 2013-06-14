@@ -171,8 +171,8 @@ var hopHeaders = []string{
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// redirect http to https
-	if req.TLS == nil && req.Host == "new.koding.com" {
-		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+	if req.TLS == nil && (req.Host == "koding.com" || req.Host == "www.koding.com") {
+		http.Redirect(rw, req, "https://koding.com"+req.RequestURI, http.StatusMovedPermanently)
 		return
 	}
 
