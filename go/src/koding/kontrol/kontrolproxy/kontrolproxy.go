@@ -177,8 +177,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
 		return
-	case "default":
-		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	}
 
 	switch user.Domain.LoadBalancer.Mode {
@@ -187,14 +185,12 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		session, _ := store.Get(req, sessionName)
 		targetURL, ok := session.Values["GOSESSIONID"]
 		if ok {
-			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			target, err = url.Parse(targetURL.(string))
 			if err != nil {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 				return
 			}
 		} else {
-			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
@@ -226,9 +222,10 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Printf("error validating user %s: %s", user.IP, err.Error())
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
-
 		}
 	}
+
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
