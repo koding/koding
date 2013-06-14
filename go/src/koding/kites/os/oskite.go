@@ -328,33 +328,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			// vm.Name is user~group~n or group~n
-			tildes := strings.Count(vm.Name, "~")
-
-			start := 0
-			end := 0
-
-			if tildes == 1 {
-				start = 0
-				end = strings.Index(vm.Name, "~")
-			} else {
-				start = strings.Index(vm.Name, "~") + 1
-				end = strings.LastIndex(vm.Name, "~")
-			}
-
-			if end == -1 {
-				end = len(vm.Name)
-			}
-
-			vmHomeName := vm.Name[start:end]
-			websiteDir := "/home/" + vmHomeName + "/Sites/" + vm.Hostname()
+			websiteDir := "/home/" + vm.SitesHomeName() + "/Sites/" + vm.Hostname()
 			if _, err := rootVos.Stat(websiteDir); err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
 
 				websiteVos := rootVos
-				if vmHomeName == user.Name {
+				if vm.SitesHomeName() == user.Name {
 					websiteVos = userVos
 				}
 				if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
@@ -385,7 +366,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			if vmHomeName != user.Name {
+			if vm.SitesHomeName() != user.Name {
 				if err := userVos.Mkdir("/home/"+user.Name+"/Web", 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
