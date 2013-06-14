@@ -41,6 +41,16 @@ class MainController extends KDController
 
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
+      groupsController.once 'GroupChanged', =>
+        # temp hot fix for a default vm creation - SY
+        group = groupsController.getCurrentGroup()
+        group.createVM
+          type     : 'user'
+          planCode : 'free'
+        , (err)->
+          unless err
+            log "default vm created"
+            
 
     appManager.create 'Chat', (chatController)->
       KD.registerSingleton "chatController", chatController
