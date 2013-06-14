@@ -32,6 +32,7 @@ class MainController extends KDController
     KD.registerSingleton "vmController",              new VirtualizationController
     KD.registerSingleton "contentDisplayController",  new ContentDisplayController
     KD.registerSingleton "notificationController",    new NotificationController
+    KD.registerSingleton "paymentController",         new PaymentController
     KD.registerSingleton "linkController",            new LinkController
     KD.registerSingleton 'router',           router = new KodingRouter location.pathname
 
