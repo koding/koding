@@ -77,7 +77,7 @@ class ActivityItemChild extends KDView
     data.watch 'repliesCount', (count)=>
       @commentBox.decorateCommentedState() if count >= 0
 
-    @contentDisplayController = @getSingleton "contentDisplayController"
+    @contentDisplayController = KD.getSingleton "contentDisplayController"
 
     KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
@@ -85,7 +85,7 @@ class ActivityItemChild extends KDView
   settingsMenu:(data)->
 
     account        = KD.whoami()
-    mainController = @getSingleton('mainController')
+    mainController = KD.getSingleton('mainController')
 
     if data.originId is KD.whoami().getId()
       menu =

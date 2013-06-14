@@ -11,7 +11,7 @@ class ApplicationTabView extends KDTabView
 
     super options, data
 
-    appManager        = KD.getSingleton 'appManager'
+    appManager        = KD.getSingleton "appManager"
     @isSessionEnabled = options.saveSession and options.sessionName
 
     @initSession() if @isSessionEnabled

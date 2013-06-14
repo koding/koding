@@ -3,7 +3,7 @@ class VirtualizationController extends KDController
   constructor:->
     super
 
-    @kc = KD.singletons.kiteController
+    @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
 
@@ -44,15 +44,13 @@ class VirtualizationController extends KDController
     @_runWraper 'vm.reinitialize', vm, callback
 
   remove:(vm, callback=noop)->
-    @stop vm, (err)=>
-      return callback err  if err
-      @askForApprove 'vm.remove', (state)->
-        return callback null  unless state
-        KD.remote.api.JVM.removeByName vm, (err)->
-          return callback err  if err
-          KD.singletons.finderController.unmountVm vm
-          KD.singletons.vmController.emit 'VMListChanged'
-          callback null
+    @askForApprove 'vm.remove', (state)->
+      return callback null  unless state
+      KD.remote.api.JVM.removeByName vm, (err)->
+        return callback err  if err
+        KD.getSingleton("finderController").unmountVm vm
+        KD.getSingleton("vmController").emit 'VMListChanged'
+        callback null
 
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
@@ -66,15 +64,13 @@ class VirtualizationController extends KDController
   getDefaultVmName:->
     {entryPoint} = KD.config
     currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
-    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}"
-    else currentGroup
+    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}~0"
+    else "#{currentGroup}~0"
 
-  createGroupVM:(type='personal', planCode, callback)->
-    defaultVMOptions =
-      planCode       : planCode
-    group = KD.singletons.groupsController.getCurrentGroup()
-
-    group.createVM {type}, callback
+  createGroupVM:(type='user', planCode, callback)->
+    defaultVMOptions = {planCode}
+    group = KKD.getSingleton("groupsController").getCurrentGroup()
+    group.createVM {type, planCode}, callback
 
   fetchVMs:(callback)->
     return callback null, @vms  if @vms.length > 0
@@ -103,79 +99,62 @@ class VirtualizationController extends KDController
     return (rest...)=>
       @info vm, callback? rest...
 
+  hasDefaultVM:(callback)->
+    defaulVmName = "koding~#{KD.nick()}~0"
+    if @vms.length is 0
+      @fetchVMs (err, vms)-> callback defaulVmName in vms
+    else
+      callback defaulVmName in @vms
+
+  createDefaultVM:->
+
+    defaulVmName = "koding~#{KD.nick()}~0"
+    createDefaultVM = ->
+      KD.remote.cacheable 'koding', (err, group)->
+        if err or not group?.length
+          return warn err
+
+        koding = group.first
+        koding.createVM
+          planCode : 'free'
+          type     : 'user'
+        , (err)->
+          unless err
+            KD.getSingleton('vmController').emit 'VMListChanged'
+            KD.getSingleton('finderController').mountVm defaulVmName
+          else warn err
+
+    @hasDefaultVM (state)->
+      return warn 'Default VM already exists.'  if state
+      createDefaultVM()
+
   createNewVM:->
+    vmController = @getSingleton('vmController')
+    vmController.hasDefaultVM (state)->
+      unless state
+        vmController.createDefaultVM()
+      else
+        vmController.createPaidVM()
+
+  createPaidVM:->
     return  if @dialogIsOpen
-    vmController        = @getSingleton('vmController')
+
+    vmController        = KD.getSingleton('vmController')
+    paymentController   = KD.getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
 
-
-    # Take this to a better place, possibly to payment controller.
-    makePayment = (type, plan, callback)->
-      planCode = plan.code
-      if type is 'shared'
-        group = KD.singletons.groupsController.getCurrentGroup()
-        group.checkPayment (err, payments)->
-          if err or payments.length is 0
-
-            # Copy account creator's billing information
-            KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
-              warn err
-              if err or not data
-                data = {}
-
-              # These will go into Recurly module
-              delete data.cardNumber
-              delete data.cardMonth
-              delete data.cardYear
-              delete data.cardCV
-
-              paymentModal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
-                newData.plan = planCode
-                group.makePayment newData, (err, subscription)->
-                  if err
-                    onError err
-                  else
-                    vmController.createGroupVM type, planCode, vmCreateCallback
-                    onSuccess()
-                    callback()
-              paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
-          else
-            group.updatePayment {plan: planCode}, (err, subscription)->
-              vmController.createGroupVM type, planCode, vmCreateCallback
-              callback()
-      else
-        _createUserVM = (cb)->
-          KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
-            plan.subscribe {}, (err, subscription)->
-              return cb err  if cb and err
-              vmController.createGroupVM type, planCode, vmCreateCallback
-              cb?()
-        KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
-          if err
-            paymentModal = createAccountPaymentMethodModal {}, (newData, onError, onSuccess)->
-              newData.plan = planCode
-              KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-                if err
-                  onError err
-                else
-                  onSuccess result
-                  _createUserVM callback
-            paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
-          else
-            _createUserVM callback
-
-    vmCreateCallback  = (err, vm)->
+    vmCreateCallback=(err, vm)->
       if err
         warn err
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.singletons.finderController.mountVm vm.name
+        KD.getSingleton("finderController").mountVm vm.name
         vmController.emit 'VMListChanged'
       paymentModal?.destroy()
 
-    group = KD.singletons.groupsController.getGroupSlug()
+    group = KD.getSingleton("groupsController").getGroupSlug()
 
     if canCreateSharedVM
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
@@ -214,14 +193,10 @@ class VirtualizationController extends KDController
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-
-                form                = modal.modalTabs.forms["Create VM"]
-                {personal, shared}  = form.buttons
-
-                makePayment formData.type, @paymentPlans[formData.host], ->
+                paymentController.makePaymentModal formData.type, @paymentPlans[formData.host], ->
                   modal.destroy()
               buttons               :
-                personal            :
+                user                :
                   title             : "Create a <b>Personal</b> VM"
                   style             : "modal-clean-gray"
                   type              : "submit"
@@ -230,8 +205,18 @@ class VirtualizationController extends KDController
                     diameter        : 12
                   callback          : ->
                     form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "personal"
-                shared              :
+                    form.inputs.type.setValue "user"
+                expensed            :
+                  title             : "Create a <b>Personal</b> VM using group quota"
+                  style             : "modal-clean-gray hidden"
+                  type              : "submit"
+                  loader            :
+                    color           : "#ffffff"
+                    diameter        : 12
+                  callback          : ->
+                    form = modal.modalTabs.forms["Create VM"]
+                    form.inputs.type.setValue "expensed"
+                group               :
                   title             : "Create a <b>Shared</b> VM"
                   style             : "modal-clean-gray hidden"
                   type              : "submit"
@@ -240,7 +225,7 @@ class VirtualizationController extends KDController
                     diameter        : 12
                   callback          : ->
                     form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "shared"
+                    form.inputs.type.setValue "group"
                 cancel              :
                   style             : "modal-cancel"
                   callback          : -> modal.destroy()
@@ -253,22 +238,23 @@ class VirtualizationController extends KDController
                   itemClass         : HostCreationSelector
                   cssClass          : "host-type"
                   radios            : hostTypes
+                  defaultValue      : 0
                   validate          :
                     rules           :
                       required      : yes
                     messages        :
                       required      : "Please select a VM type!"
                   change            : =>
-                    form = modal.modalTabs.forms["Create VM"]
-                    {desc, selector} = form.inputs
-                    descField        = form.fields.desc
-                    descField.show()
-                    desc.show()
-                    index      = (parseInt selector.getValue(), 10) or 0
-                    monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
-                    desc.$('section').addClass 'hidden'
-                    desc.$('section').eq(index).removeClass 'hidden'
-                    modal.setPositions()
+                    # form = modal.modalTabs.forms["Create VM"]
+                    # {desc, selector} = form.inputs
+                    # descField        = form.fields.desc
+                    # descField.show()
+                    # desc.show()
+                    # index      = (parseInt selector.getValue(), 10) or 0
+                    # monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
+                    # desc.$('section').addClass 'hidden'
+                    # desc.$('section').eq(index).removeClass 'hidden'
+                    # modal.setPositions()
                 desc                :
                   itemClass         : KDCustomHTMLView
                   cssClass          : "description-field hidden"
@@ -278,9 +264,16 @@ class VirtualizationController extends KDController
                   type              : "hidden"
 
 
-      window.sik = modal
       if canCreateSharedVM
-        modal.modalTabs.forms["Create VM"].buttons.shared.show()
+        modal.modalTabs.forms["Create VM"].buttons.group.show()
+
+      # group = KD.getSingleton("groupsController").getCurrentGroup()
+      # group.vmUsage (err, limit)->
+      #   if limit and limit.usage < limit.quota
+      #     # content += """<br/><br/>
+      #     #               You can also get a <b>Personal</b> VM using your
+      #     #               <b>goups</b> quota. Your group will be charged."""
+      #     modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
@@ -288,9 +281,10 @@ class VirtualizationController extends KDController
       form = modal.modalTabs.forms["Create VM"]
 
       hideLoaders = ->
-        {personal, shared} = form.buttons
-        personal.hideLoader()
-        shared.hideLoader()
+        {group, user, expensed} = form.buttons
+        user.hideLoader()
+        group.hideLoader()
+        expensed.hideLoader()
 
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
@@ -373,7 +367,7 @@ class VirtualizationController extends KDController
               modal.destroy()
               if appName
                 @once 'StateChanged', ->
-                  appManager.open appName
+                  KD.getSingleton("appManager").open appName
         Cancel       :
           style      : "modal-clean-gray"
           callback   : ->

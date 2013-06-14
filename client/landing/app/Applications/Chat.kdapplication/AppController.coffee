@@ -17,7 +17,7 @@ class ChatAppController extends AppController
   handleChatOpen:({routingKey, bindingKey, publicName})->
     channel = KD.remote.mq.setP2PKeys \
       publicName, { routingKey, bindingKey }, 'secret'
-    @channels[publicName] = channel
+    @channels[publicName] = channel  if channel?
 
   create:(invitees, callback)->
     chatPanel = KD.getSingleton 'chatPanel'
@@ -54,6 +54,31 @@ class ChatAppController extends AppController
       JChatConversation.fetch publicName, (err, conversation)=>
         chatChannel = @channels[publicName]
         chatPanel.createConversation {chatChannel, conversation}
+
+  leave:({conversation, chatChannel}, callback)->
+    content = """ When you leave conversation you will not
+                  receive any messages. And you will also loose
+                  current messages in this conversation.
+                  Do you want to continue? """
+
+    modal = new KDModalView
+      title          : "Do you want to leave this conversation?"
+      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      height         : "auto"
+      overlay        : yes
+      buttons        :
+        'Leave'      :
+          style      : "modal-clean-red"
+          callback   : =>
+            chatChannel?.close()?.off()
+            conversation.leave (err)=>
+              warn err  if err
+              modal.destroy()
+              callback?()
+        Cancel       :
+          style      : "modal-clean-gray"
+          callback   : ->
+            modal.destroy()
 
 class ChannelWrapper extends KDObject
   constructor:(@channel)-> super {}

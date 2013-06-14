@@ -16,7 +16,7 @@ class LazyDomController extends KDController
     @groupViewsAdded   = no
     @profileViewsAdded = no
 
-    @mainController = @getSingleton 'mainController'
+    @mainController = KD.getSingleton 'mainController'
 
     @mainController.on 'FrameworkIsReady', =>
       @emit "staticControllerIsReady"
@@ -92,11 +92,11 @@ class LazyDomController extends KDController
     @staticProfileController = new StaticProfileController
     {@landingView}           = @staticProfileController
 
-  openPath:(path, options ={})-> @getSingleton('router').handleRoute path, options
+  openPath:(path, options ={})-> KD.getSingleton('router').handleRoute path, options
 
   handleNavigationItemClick:(item, event)->
 
-    mc = @getSingleton 'mainController'
+    mc = KD.getSingleton 'mainController'
     {action, path} = item
     {loginScreen, mainViewController}    = mc
     {entryPoint} = KD.config
@@ -125,19 +125,19 @@ class LazyDomController extends KDController
         @openPath '/Logout'
 
       # when 'activity'
-      #   @getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
+      #   KD.getSingleton('staticProfileController').emit 'ActivityLinkClicked', -> item.loader.hide()
 
       # when 'about'
-      #   @getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
+      #   KD.getSingleton('staticProfileController').emit 'AboutLinkClicked', -> item.loader.hide()
 
       # when 'home'
-      #   @getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
+      #   KD.getSingleton('staticProfileController').emit 'HomeLinkClicked', -> item.loader.hide()
 
   requestAccess:->
-    {loginScreen} = @getSingleton('mainController')
+    {loginScreen} = KD.getSingleton('mainController')
 
     if KD.isLoggedIn()
       fetchCurrentGroup (group)=>
-        @getSingleton('groupsController').openPrivateGroup group
+        KD.getSingleton('groupsController').openPrivateGroup group
     else
-      @getSingleton('mainController').loginScreen.animateToForm 'lr'
+      KD.getSingleton('mainController').loginScreen.animateToForm 'lr'

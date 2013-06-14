@@ -78,7 +78,7 @@ class AccountAppController extends AppController
       click    : => @toggleSidebar show:yes
 
     @_windowDidResize()
-    @getSingleton("windowController").registerWindowResizeListener @
+    KD.getSingleton("windowController").registerWindowResizeListener @
 
     @utils.wait => @split._windowDidResize()
 

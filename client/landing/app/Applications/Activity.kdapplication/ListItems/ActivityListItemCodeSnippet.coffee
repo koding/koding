@@ -121,13 +121,13 @@ class CodeSnippetView extends KDCustomHTMLView
         fileName   = "#{@utils.slugify title}.#{__aceSettings.syntaxAssociations[syntax][1].split('|')[0]}"
         fullPath   = "#{rootPath}/#{fileName}"
 
-        @getSingleton('kiteController').run "mkdir -p #{rootPath}", (err, res) ->
+        KD.getSingleton('kiteController').run "mkdir -p #{rootPath}", (err, res) ->
           file    = FSHelper.createFileFromPath fullPath
           content = Encoder.htmlDecode content
           file.save content, (err) ->
 
             notificationTitle = new KDView
-              partial : "Your file saved."
+              partial : "Your file is saved."
 
             notificationTitle.addSubView link = new KDCustomHTMLView
               tagName  : "a"

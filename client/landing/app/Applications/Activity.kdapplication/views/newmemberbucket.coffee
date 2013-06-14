@@ -55,7 +55,7 @@ class NewMemberBucketView extends JView
       options     =
         limit     : count
 
-      appManager.tell "Activity", "fetch", selector, options, (teasers, activities) =>
+      KD.getSingleton("appManager").tell "Activity", "fetch", selector, options, (teasers, activities) =>
         @getData().anchors = @getData().anchors.concat teasers.map (item)-> item.anchor
         @group.setData @getData().anchors
 
