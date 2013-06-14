@@ -296,7 +296,7 @@ module.exports = class JVM extends Model
             planCode  : 'free'
             planOwner : "user_#{member._id}"
             sudo      : yes
-            name      : "koding~#{member.profile.nickname}"
+            name      : "koding~#{member.profile.nickname}~0"
             groups    : wrapGroup group
           }
         else
