@@ -81,7 +81,7 @@ class NFinderController extends KDViewController
 
     if vmNames then mountVms vmNames
     else
-      groupSlug  = KD.singletons.groupsController.getGroupSlug()
+      groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
       groupSlug ?= 'koding'
       @appStorage.fetchValue "mountedVM", (vms)->
         vms            or= {}
@@ -101,7 +101,7 @@ class NFinderController extends KDViewController
       return vmItem  if vmItem.data.vmName is vmName
 
   updateMountState:(vmName, state)->
-    groupSlug  = KD.singletons.groupsController.getGroupSlug()
+    groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
     groupSlug ?= 'koding'
     @appStorage.fetchValue "mountedVM", (vms)=>
       vms or= {}
@@ -240,12 +240,12 @@ class VMMountStateWidget extends JView
       @warning.hide()
       @loader.show()
 
-      if KD.singletons.groupsController.getGroupSlug() is 'koding'
+      if KD.getSingleton("groupsController").getGroupSlug() is 'koding'
         @showMessage()
 
       # Not sure about it I guess only owners can create GroupVM?
       else if ("admin" in KD.config.roles) or ("owner" in KD.config.roles)
-        group = KD.singletons.groupsController.getCurrentGroup()
+        group = KD.getSingleton("groupsController").getCurrentGroup()
         group.checkPayment (err, payments)=>
           warn err  if err
           if payments.length is 0

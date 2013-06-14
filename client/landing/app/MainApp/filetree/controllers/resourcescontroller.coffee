@@ -10,7 +10,7 @@ class ResourcesController extends KDListViewController
     super options, data
 
     @getView().on 'DeselectAllItems', @bound 'deselectAllItems'
-    KD.singletons.vmController.on 'VMListChanged', @bound 'reset'
+    KD.getSingleton("vmController").on 'VMListChanged', @bound 'reset'
 
   reset:->
     # FIXME ~ BK
@@ -24,9 +24,10 @@ class ResourcesController extends KDListViewController
     finder = KD.getSingleton('finderController')
     finder.emit 'EnvironmentsTabHide'
     @removeAllItems()
-    KD.singletons.vmController.resetVMData()
+    vmController = KD.getSingleton("vmController")
+    vmController.resetVMData()
 
-    KD.singletons.vmController.fetchVMs (err, vms)=>
+    vmController.fetchVMs (err, vms)=>
       return  unless vms
       # vms.sort cmp
       stack   = []
@@ -101,7 +102,7 @@ class ResourcesListItem extends KDListItemView
     @vm.info @getData(), @bound 'checkVMState'
 
   click:->
-    KD.singletons.windowController.addLayer @delegate
+    KD.getSingleton("windowController").addLayer @delegate
     @delegate.once 'ReceivedClickElsewhere', =>
       @delegate.emit "DeselectAllItems"
 
@@ -121,11 +122,11 @@ class ResourcesListItem extends KDListItemView
       customView2        : new NMountToggleButtonView {}, {vmName}
       'Re-initialize VM' :
         callback         : ->
-          KD.singletons.vmController.reinitialize vmName
+          KD.getSingleton("vmController").reinitialize vmName
           @destroy()
       'Delete VM'        :
         callback         : ->
-          KD.singletons.vmController.remove vmName
+          KD.getSingleton("vmController").remove vmName
           @destroy()
         separator        : yes
       'Open VM Terminal' :

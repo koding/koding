@@ -116,7 +116,7 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    KD.singletons.kiteController.run
+    KD.getSingleton("kiteController").run
       kiteName : 'os',
       method   : 'webterm.createSession',
       vmName   : @getOption('delegate').getOption('vmName')

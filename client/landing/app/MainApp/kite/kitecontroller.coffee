@@ -87,7 +87,7 @@ class KiteController extends KDController
     options.method   or= "exec"
 
     vmName = if options.vmName then options.vmName \
-             else KD.singletons.vmController.getDefaultVmName()
+             else KD.getSingleton("vmController").getDefaultVmName()
     options.vmName = vmName
 
     kite = @getKite options.kiteName, vmName
