@@ -59,9 +59,17 @@ class TopicsAppController extends AppController
           noItemFoundText   : "There are no topics that you follow."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchTopics selector, options, (err, items)=>
+              ids = []
               for item in items
                 item.followee = true
+                ids.push item._id
               callback err, items
+              callback null, null, ids  unless err
+          dataEnd           : ({resultsController}, ids)->
+            {following} = resultsController.listControllers
+            following.forEachItemByIndex ids, ({followButton})->
+              followButton.setState 'Following'
+              followButton.redecorateState()
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
