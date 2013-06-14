@@ -1312,7 +1312,7 @@ module.exports = class JGroup extends Module
         return callback err  if err?
  
         @addBundle bundle, ->
-          callback bundle
+          callback no, bundle
  
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
