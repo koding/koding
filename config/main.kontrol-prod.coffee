@@ -133,7 +133,7 @@ module.exports =
     vhost       : 'kite'
   email         :
     host        : "koding.com"
-    protocol    : 'http:'
+    protocol    : 'https:'
     defaultFromAddress: 'hello@koding.com'
   emailWorker   :
     cronInstant : '*/10 * * * * *'
