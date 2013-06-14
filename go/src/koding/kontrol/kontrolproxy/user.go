@@ -79,11 +79,14 @@ func (u *UserInfo) populateTarget() error {
 	fullurl := u.Domain.Proxy.FullUrl
 
 	switch u.Domain.Proxy.Mode {
-	case "direct":
-		u.Target, err = url.Parse("http://" + fullurl)
+	case "maintenance":
+		return nil
+	case "redirect":
+		u.Target, err = url.Parse(fullurl)
 		if err != nil {
 			return err
 		}
+		u.Redirect = true
 		return nil
 	case "vm":
 		switch u.Domain.LoadBalancer.Mode {
@@ -149,6 +152,11 @@ func (u *UserInfo) populateTarget() error {
 }
 
 func parseDomain(host string) (*UserInfo, error) {
+	// forward www.foo.com to foo.com
+	if strings.HasPrefix(host, "www.") {
+		host = strings.TrimPrefix(host, "www.")
+	}
+
 	// Then make a lookup for domains
 	domain, err := proxyDB.GetDomain(host)
 	if err != nil {

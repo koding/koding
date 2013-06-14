@@ -98,7 +98,7 @@ func main() {
 	rout.HandleFunc("/restrictions/{domain}/rules", CreateRule).Methods("POST")
 	rout.HandleFunc("/restrictions/{domain}/rules/{rule}", GetRule).Methods("GET")
 	rout.HandleFunc("/restrictions/{domain}/rules/{rule}", DeleteRule).Methods("DELETE")
-	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", CreateBehaviour).Methods("POST")
+	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", CreateBehaviour).Methods("POST", "PUT")
 	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", DeleteBehaviour).Methods("DELETE")
 
 	// Statistics handlers

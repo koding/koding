@@ -42,12 +42,12 @@ class HomeAppView extends KDView
     vmController = @getSingleton("vmController")
     {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
-    members.ready => JAccount.count "",       (err, count)=> members.update count or 0
-    vms.ready => vmController.fetchTotalVMCount (err, count)=> vms.update count or 0
-    loc.ready => vmController.fetchTotalLoC     (err, count)=> loc.update count or 0
-    groups.ready => JGroup.count "",          (err, count)=> groups.update count or 0
-    topics.ready => JTag.count "",            (err, count)=> topics.update count or 0
-    activities.ready => CActivity.count "",   (err, count)=> activities.update count or 0
+    members.ready => JAccount.count "",         (err, count)=> members.update count    or 0
+    vms.ready => vmController.fetchTotalVMCount (err, count)=> vms.update count        or 0
+    loc.ready => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
+    groups.ready => JGroup.count "",            (err, count)=> groups.update count     or 0
+    topics.ready => JTag.count "",              (err, count)=> topics.update count     or 0
+    activities.ready => CActivity.count "",     (err, count)=> activities.update count or 0
 
     @getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
       activities.increment newActivities.length

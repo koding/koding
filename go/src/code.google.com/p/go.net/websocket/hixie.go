@@ -351,6 +351,8 @@ func hixie76ClientHandshake(config *Config, br *bufio.Reader, bw *bufio.Writer) 
 		"Connection: Upgrade\r\n",
 		"Host: " + config.Location.Host + "\r\n",
 		"Origin: " + config.Origin.String() + "\r\n",
+		"Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n",
+		"Pragma: no-cache\r\n",
 	}
 	if len(config.Protocol) > 0 {
 		if len(config.Protocol) != 1 {
@@ -467,6 +469,8 @@ func hixie75ClientHandshake(config *Config, br *bufio.Reader, bw *bufio.Writer) 
 		}
 		bw.WriteString("WebSocket-Protocol: " + config.Protocol[0] + "\r\n")
 	}
+	bw.WriteString("Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n")
+	bw.WriteString("Pragma: no-cache\r\n")
 	bw.WriteString("\r\n")
 	bw.Flush()
 	resp, err := http.ReadResponse(br, &http.Request{Method: "GET"})
@@ -614,6 +618,8 @@ func (c *hixie76ServerHandshaker) AcceptHandshake(buf *bufio.Writer) (err error)
 	if len(c.Protocol) > 0 {
 		buf.WriteString("Sec-WebSocket-Protocol: " + c.Protocol[0] + "\r\n")
 	}
+	buf.WriteString("Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n")
+	buf.WriteString("Pragma: no-cache\r\n")
 	// Step 12. send CRLF.
 	buf.WriteString("\r\n")
 	// Step 13. send response data.
@@ -681,6 +687,8 @@ func (c *hixie75ServerHandshaker) AcceptHandshake(buf *bufio.Writer) (err error)
 	if len(c.Protocol) > 0 {
 		buf.WriteString("WebSocket-Protocol: " + c.Protocol[0] + "\r\n")
 	}
+	buf.WriteString("Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n")
+	buf.WriteString("Pragma: no-cache\r\n")
 	buf.WriteString("\r\n")
 	return buf.Flush()
 }
