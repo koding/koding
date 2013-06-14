@@ -25,12 +25,12 @@ KD.extend
 
       # if it's not a silent operation redirect
       unless silence
-        @getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+        KD.getSingleton('router').handleRoute "/Login", KD.config.entryPoint
 
       # if there is callback and we want to try again
       if callback? and tryAgain
         unless KD.lastFuncCall
-          {mainController} = KD.singletons
+          mainController = KD.getSingleton("mainController")
           mainController.once "accountChanged.to.loggedIn", =>
             if groupName and KD.isLoggedIn()
               @joinGroup_ groupName, (res)=>

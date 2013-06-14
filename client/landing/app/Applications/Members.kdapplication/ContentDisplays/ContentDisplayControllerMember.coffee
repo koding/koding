@@ -2,7 +2,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   constructor:(options={}, data)->
 
-    {@revivedContentDisplay} = @getSingleton("contentDisplayController")
+    {@revivedContentDisplay} = KD.getSingleton("contentDisplayController")
 
     options = $.extend
       view : mainView = new KDView
@@ -88,7 +88,7 @@ class ContentDisplayControllerMember extends KDViewController
   #     @getView().$('.profilearea').css "overflow", "hidden"
   #     @getView().setClass "small-header"
   #     @utils.wait 300,=>
-  #       @getSingleton('windowController').notifyWindowResizeListeners()
+  #       KD.getSingleton('windowController').notifyWindowResizeListeners()
   #   , 500
   #
   # mouseEnterOnHeader:->
@@ -97,7 +97,7 @@ class ContentDisplayControllerMember extends KDViewController
   #   @intentTimer = setTimeout =>
   #     @getView().unsetClass "small-header"
   #     @utils.wait 300,=>
-  #       @getSingleton('windowController').notifyWindowResizeListeners()
+  #       KD.getSingleton('windowController').notifyWindowResizeListeners()
   #       @getView().$('.profilearea').css "overflow", "visible"
   #   , 500
 

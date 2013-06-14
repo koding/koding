@@ -108,7 +108,7 @@ class TopicsAppController extends AppController
     if KD.checkFlag ['super-admin', 'editor']
       @listItemClass = TopicsListItemViewEditable
       if firstRun
-        @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+        KD.getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
           @updateTopic topicItem
 
     @createFeed mainView, loadFeed
@@ -220,7 +220,7 @@ class TopicsAppController extends AppController
     @utils.defer -> callback contentDisplay
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->

@@ -24,8 +24,8 @@ class StaticGroupController extends KDController
     super
 
     @group             = null
-    @mainController    = @getSingleton "mainController"
-    @lazyDomController = @getSingleton "lazyDomController"
+    @mainController    = KD.getSingleton "mainController"
+    @lazyDomController = KD.getSingleton "lazyDomController"
     {@entryPoint} = KD.config
 
     @reviveViews()

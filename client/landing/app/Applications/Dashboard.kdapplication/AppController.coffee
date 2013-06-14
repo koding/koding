@@ -8,7 +8,7 @@ class DashboardAppController extends AppController
   constructor:(options={},data)->
 
     options.view = new DashboardAppView
-    data or= @getSingleton("groupsController").getCurrentGroup()
+    data or= KD.getSingleton("groupsController").getCurrentGroup()
 
     super options, data
 

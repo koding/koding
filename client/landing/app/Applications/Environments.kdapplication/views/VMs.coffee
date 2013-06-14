@@ -26,7 +26,7 @@ class VMMainView extends JView
 
     @on "State", (item, state)=>
       cmd = if state then 'vm.start' else 'vm.stop'
-      kc = KD.singletons.kiteController
+      kc = KD.getSingleton("kiteController")
       kc.run
         kiteName  : 'os',
         vmName    : item.data.name,
@@ -48,8 +48,7 @@ class VMMainView extends JView
     else @vmList[vm].updateStatus yes
 
   getVMInfo: (vmName, callback)->
-    kc = KD.singletons.kiteController
-    kc.run
+    KD.getSingleton("kiteController").run
       kiteName  : 'os',
       vmName    : vmName,
       method    : 'vm.info'

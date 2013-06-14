@@ -15,7 +15,7 @@ class DomainMainView extends KDView
     @domainsListViewController.on "domainItemClicked", @bound "decorateMapperView"
 
     """
-    @getSingleton("kiteController").run
+    KD.getSingleton("kiteController").run
       vmName: "koding~mengu"
       kiteName: "os"
       method: "exec"

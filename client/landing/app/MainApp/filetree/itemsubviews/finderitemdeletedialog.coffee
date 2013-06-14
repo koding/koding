@@ -23,7 +23,7 @@ class NFinderDeleteDialog extends KDModalView
         callback? no
         @destroy()
     super options, data
-    @getSingleton("windowController").setKeyView null
+    KD.getSingleton("windowController").setKeyView null
 
   viewAppended:->
 
@@ -32,7 +32,7 @@ class NFinderDeleteDialog extends KDModalView
 
     scrollView = new KDScrollView
       cssClass    : 'modalformline file-container'
-    scrollView.$().css maxHeight : @getSingleton('windowController').winHeight - 250
+    scrollView.$().css maxHeight : KD.getSingleton('windowController').winHeight - 250
 
     for item in items
       scrollView.addSubView fileView = new KDCustomHTMLView
@@ -43,6 +43,6 @@ class NFinderDeleteDialog extends KDModalView
     @addSubView scrollView
 
   destroy:->
-    @getSingleton("windowController").revertKeyView()
+    KD.getSingleton("windowController").revertKeyView()
     super
 

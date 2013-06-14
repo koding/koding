@@ -56,7 +56,7 @@ class GlobalNotification extends KDView
     @endTime   = new Date @getOptions().targetDate
     @done      = no
 
-    globalSticky = @getSingleton('windowController').stickyNotification
+    globalSticky = KD.getSingleton('windowController').stickyNotification
 
     if globalSticky
       globalSticky.done = no
@@ -70,7 +70,7 @@ class GlobalNotification extends KDView
 
     else
       KDView.appendToDOMBody @
-      @getSingleton('windowController').stickyNotification = @
+      KD.getSingleton('windowController').stickyNotification = @
 
   destroy:->
     super
@@ -156,7 +156,7 @@ class GlobalNotification extends KDView
     @setTemplate @pistachio()
     @template.update()
 
-    controller = @getSingleton('windowController')
+    controller = KD.getSingleton('windowController')
     unless controller.stickyNotification
       @utils.defer =>
         @show()

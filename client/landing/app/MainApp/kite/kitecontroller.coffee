@@ -87,7 +87,7 @@ class KiteController extends KDController
     options.method   or= "exec"
 
     vmName = if options.vmName then options.vmName \
-             else KD.singletons.vmController.getDefaultVmName()
+             else KD.getSingleton("vmController").getDefaultVmName()
     options.vmName = vmName
 
     kite = @getKite options.kiteName, vmName
@@ -110,10 +110,10 @@ class KiteController extends KDController
 
   setListeners:->
 
-    mainController = @getSingleton "mainController"
+    mainController = KD.getSingleton "mainController"
 
     @on "CreatingUserEnvironment", =>
-      mainView = @getSingleton "mainView"
+      mainView = KD.getSingleton "mainView"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
@@ -123,7 +123,7 @@ class KiteController extends KDController
     @on "UserEnvironmentIsCreated", =>
       return if _attempt is 1
       notify _notifications.envCreated
-      mainView = @getSingleton "mainView"
+      mainView = KD.getSingleton "mainView"
       mainView.removeOverlay()
       mainView.contentPanel.removeOverlay()
       _attempt = 1
