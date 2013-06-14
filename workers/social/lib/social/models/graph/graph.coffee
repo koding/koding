@@ -286,10 +286,9 @@ module.exports = class Graph
     {skip, limit, sort, groupId} = options
     skip = 0 unless skip
     limit = 20 unless limit
-    console.log options
 
     orderBy = ""
-    if sort? or sort is not "undefined"
+    if sort?
       orderBy = Object.keys(sort)[0]
 
     orderByQuery = @getOrderByQuery orderBy
@@ -302,7 +301,6 @@ module.exports = class Graph
       skip #{skip}
       limit #{limit}
       """
-    console.log query
     @queryMembers query, {}, callback
 
   fetchFollowingMembers:(options, callback)->

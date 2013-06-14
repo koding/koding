@@ -1388,14 +1388,10 @@ module.exports = class JGroup extends Module
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
-      console.log options
       graph = new Graph({config:KONFIG['neo4j']})
       options.groupId = @getId()
       JAccount = require '../account'
       graph.fetchMembers options, (err, results)=>
-        if err then callback err
-        console.log "argumentswwww222"
-        console.log arguments
         if err then return callback err
         else
           tempRes = []

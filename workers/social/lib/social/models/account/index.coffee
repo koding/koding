@@ -972,9 +972,6 @@ module.exports = class JAccount extends jraphical.Module
     userId = client.connection.delegate._id
     options.currentUserId = userId
     graph.fetchFollowingMembers options, (err, results)=>
-      if err then callback err
-      console.log "argumentswww222w"
-      console.log arguments
       if err then return callback err
       else
         tempRes = []
@@ -998,9 +995,6 @@ module.exports = class JAccount extends jraphical.Module
     userId = client.connection.delegate._id
     options.currentUserId = userId
     graph.fetchFollowerMembers options, (err, results)=>
-      if err then callback err
-      console.log "argumentswwww"
-      console.log arguments
       if err then return callback err
       else
         tempRes = []
