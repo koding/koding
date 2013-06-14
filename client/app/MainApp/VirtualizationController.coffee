@@ -44,15 +44,13 @@ class VirtualizationController extends KDController
     @_runWraper 'vm.reinitialize', vm, callback
 
   remove:(vm, callback=noop)->
-    @stop vm, (err)=>
-      return callback err  if err
-      @askForApprove 'vm.remove', (state)->
-        return callback null  unless state
-        KD.remote.api.JVM.removeByName vm, (err)->
-          return callback err  if err
-          KD.singletons.finderController.unmountVm vm
-          KD.singletons.vmController.emit 'VMListChanged'
-          callback null
+    @askForApprove 'vm.remove', (state)->
+      return callback null  unless state
+      KD.remote.api.JVM.removeByName vm, (err)->
+        return callback err  if err
+        KD.singletons.finderController.unmountVm vm
+        KD.singletons.vmController.emit 'VMListChanged'
+        callback null
 
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
@@ -158,7 +156,7 @@ class VirtualizationController extends KDController
               vmController.createGroupVM type, planCode, vmCreateCallback
               cb?()
         KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
-          if err
+          if err or not account
             paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
               newData.plan = planCode
               KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
