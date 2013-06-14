@@ -75,6 +75,8 @@ class ResourcesListItem extends KDListItemView
       tagName  : 'span'
       cssClass : 'vm-info'
       partial  : "#{vmName}"
+      attributes:
+        title  : "#{vmName}"
 
     @addSubView @vmDesc = new KDCustomHTMLView
       tagName  : 'span'
