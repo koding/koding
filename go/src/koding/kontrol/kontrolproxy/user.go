@@ -79,6 +79,8 @@ func (u *UserInfo) populateTarget() error {
 	fullurl := u.Domain.Proxy.FullUrl
 
 	switch u.Domain.Proxy.Mode {
+	case "maintenance":
+		return
 	case "redirect":
 		u.Target, err = url.Parse("http://" + fullurl)
 		if err != nil {
