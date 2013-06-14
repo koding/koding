@@ -295,7 +295,7 @@ module.exports = class CActivity extends jraphical.Capsule
     if to
       ts = Math.floor(to / 1000)
       query.push "AND items.`meta.createdAtEpoch` < #{ts}"
-
+    limit = 5 #bandage for now
     query.push 'return items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
     query = query.join('\n')
     graph = new Graph({config:KONFIG['neo4j']})
@@ -320,7 +320,7 @@ module.exports = class CActivity extends jraphical.Capsule
     if to
       ts = Math.floor(to / 1000)
       query.push("AND items.`meta.createdAtEpoch` < #{ts}")
-
+    limit = 5 #bandage for now
     query.push 'return myfollowees, items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
     query = query.join('\n')
     graph = new Graph({config:KONFIG['neo4j']})
