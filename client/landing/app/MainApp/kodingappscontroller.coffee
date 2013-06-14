@@ -626,12 +626,13 @@ class KodingAppsController extends KDController
     console.warn error.message, error
 
   showUpdateRequiredModal: (manifest) ->
-    modal = new KDModalView
-      title          : "App Update Available"
+    {name} = manifest
+    modal  = new KDModalView
+      title          : "Update Required for #{name}"
       content        : """
         <div class="app-update-modal">
-          <p>An update available for #{manifest.name}. You can update the app now or you can continue to use old version you have.</p>
-          <p><span class="app-update-warning">Warning:</span> Updating the app will delete it's current folder to install new version. This cannot be undone. If you have updated files, back up them now.</p>
+          <p>Author of #{name} made this update required. You must update to keep on using the app.</p>
+          <p><span class="app-update-warning">Warning:</span> Updating an app will delete it's current folder to install new version. This cannot be undone. If you have updated files, back up them now.</p>
         </div>
       """
       overlay        : yes
@@ -645,13 +646,9 @@ class KodingAppsController extends KDController
             @updateUserApp manifest, ->
               modal.buttons.Update.hideLoader()
               modal.destroy()
-        "Use This Version" :
-          style      : "modal-clean-gray"
-          callback   : =>
-            @skipUpdate = yes
-            @appManager.open manifest.name
-            modal.destroy()
-            @skipUpdate = no
+        "Close" :
+          style      : "modal-cancel"
+          callback   : => modal.destroy()
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
