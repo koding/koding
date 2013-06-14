@@ -112,9 +112,6 @@ class PaymentController extends KDController
             callback              : (formData)=>
               @validatePaymentMethodForm formData, callback
             fields                :
-              "intro"             :
-                itemClass         : KDCustomHTMLView
-                partial           : "<p>You can use pre-filled credit card information below to buy VM's <b>during beta</b>.</p>"
               cardFirstName       :
                 label             : "Name"
                 name              : "cardFirstName"
@@ -186,7 +183,7 @@ class PaymentController extends KDController
                   state           :
                     name          : "state"
                     placeholder   : "State"
-                    defaultValue  : "CA"
+                    defaultValue  : ""
                     validate      : required "State is required!"
               zip                 :
                 label             : "ZIP & Country"
