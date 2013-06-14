@@ -251,12 +251,19 @@ fetchJAccountByKiteUserNameAndKey = (req, callback)->
     key     : key
   , (err, kodingKey)=>
     console.log err, kodingKey.owner
-    if err or not kodingKey
-      return callback(err, kodingKey)
+    #if err or not kodingKey
+    #  return callback(err, kodingKey)
 
     JAccount.one
       _id: ObjectId(kodingKey.owner)
     , (err, account)->
+      if not account or err
+         callback("couldnt find account #{kodingKey.owner}", null)
+         return
+      console.log "account ====================="
+      console.log account
+      console.log "======== account"
+      req.account = account
       callback(err, account)
 
 
@@ -264,16 +271,12 @@ s3 = require('./s3') uploads.s3, findUsernameFromKey
 app.post "/-/kd/upload", s3..., (req, res)->
   {JUserKite} = koding.models
   for own key, file of req.files
-    console.log req
-    findUsernameFromKey req, res, (err, account)->
-      if err
-        res.send err
-        return
+      console.log "--------------------------------->>>>>>>>>>", req.account
       zipurl = "#{uploads.distribution}#{file.path}"
       JUserKite.fetchOrCreate
         kitename      : file.filename
         latest_s3url  : zipurl
-        account_id    : account._id
+        account_id    : req.account._id
         hash: req.fields.hash
       , (err, userkite)->
         if err
