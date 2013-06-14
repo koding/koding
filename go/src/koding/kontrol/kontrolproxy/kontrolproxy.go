@@ -194,7 +194,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	target := user.Target
 
-	switch user.Domain.LoadBalancer.Mode {
+	switch user.Domain.Proxy.Mode {
 	case "maintenance":
 		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
 		if err != nil {
@@ -204,6 +204,11 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	case "redirect":
 		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
+	case "default":
+		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
+	}
+
+	switch user.Domain.LoadBalancer.Mode {
 	case "sticky":
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
@@ -220,8 +225,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
-	case "default":
-		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	}
 
 	_, err = validate(user)
