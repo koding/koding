@@ -14,6 +14,7 @@ module.exports =
   uri           :
     address     : "http://localhost:3020"
   userSitesDomain: 'localhost'
+  containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
   webserver     :

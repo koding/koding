@@ -104,7 +104,6 @@ module.exports = class Graph
         START koding=node:koding("id:#{groupId}")
         MATCH koding-[:member]->members<-[:author]-content
         WHERE content.`meta.createdAtEpoch` < #{startDate}
-         and content.isLowQuality? = "false"
 
       """
     if groupName isnt "koding"
@@ -112,7 +111,7 @@ module.exports = class Graph
           and content.group! = "#{groupName}"
         """
     query += """
-        return *
+        return content
         order by content.`meta.createdAtEpoch` DESC
         limit 20
       """
@@ -148,7 +147,7 @@ module.exports = class Graph
     query = """
       start koding=node:koding("id:#{itemId}")
       match koding-[r]-all
-      return *
+      return all, r
       order by koding.`meta.createdAtEpoch` DESC
     """
 
@@ -175,10 +174,10 @@ module.exports = class Graph
 
     query = """
       START kd=node:koding("id:#{groupId}")
-      MATCH kd-[:member]->users<-[r:user]-koding
-      WHERE koding.name="JApp"
+      MATCH kd-[:member]->users<-[r:user]-apps
+      WHERE apps.name="JApp"
       and r.createdAtEpoch < #{startDate}
-      return users, koding, r
+      return users, apps, r
       order by r.createdAtEpoch DESC
       limit 20
       """
@@ -196,7 +195,7 @@ module.exports = class Graph
       data.user = objected
       objectify result.r.data, (objected)=>
         data.relationship = objected
-        objectify result.koding.data, (objected)=>
+        objectify result.apps.data, (objected)=>
           data.app = objected
           resultData.push data
           @generateInstalledApps resultData, results, callback
@@ -207,8 +206,7 @@ module.exports = class Graph
     query = """
       start  koding=node:koding("id:#{groupId}")
       MATCH  koding-[r:member]->members
-      where  members.name="JAccount"
-      and r.createdAtEpoch < #{startDate}
+      where  r.createdAtEpoch < #{startDate}
       return members
       order by r.createdAtEpoch DESC
       limit 20
@@ -229,8 +227,7 @@ module.exports = class Graph
     query = """
       start koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->followees<-[r:follower]-follower
-      where followees.name="JAccount"
-      and follower.name="JAccount"
+      where follower.name="JAccount"
       and r.createdAtEpoch < #{startDate}
       return r,followees, follower
       order by r.createdAtEpoch DESC
@@ -244,8 +241,7 @@ module.exports = class Graph
     query = """
       start koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->followees<-[r:follower]-follower
-      where followees.name="JAccount"
-      and follower.name="JTag"
+      where follower.name="JTag"
       and follower.name="#{groupName}"
       and r.createdAtEpoch < #{startDate}
       return r,followees, follower

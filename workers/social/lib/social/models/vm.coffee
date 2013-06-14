@@ -70,15 +70,20 @@ module.exports = class JVM extends Model
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
+    aliases      = []
     if type is 'user'
-      prefix = if uid > 0 then "vm#{uid}." else ""
-      aliases = ["#{prefix}#{nickname}.#{groupSlug}.#{domain}"]
+      aliases = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
+      if uid is 0
+        aliases.push "#{nickname}.#{groupSlug}.#{domain}"
       if groupSlug is 'koding'
-        aliases.push "#{prefix}#{nickname}.#{domain}"
+        aliases.push "#{nickname}.#{domain}"  if uid is 0
+        aliases.push "vm-#{uid}.#{nickname}.#{domain}"
+
     else if type is 'group'
       if uid is 0
         aliases = ["#{groupSlug}.#{domain}"
-                 "shared.#{groupSlug}.#{domain}"]
+                   "shared.#{groupSlug}.#{domain}"
+                   "shared-0.#{groupSlug}.#{domain}"]
       else
         aliases = ["shared-#{uid}.#{groupSlug}.#{domain}"]
 
@@ -92,9 +97,10 @@ module.exports = class JVM extends Model
       return callback err  if err
       account.fetchUser (err, user)=>
         return callback err  if err
-        name = "#{groupSlug}~"
         if type is 'user'
-          name = "#{name}#{user.username}-"
+          name = "#{groupSlug}~#{user.username}-"
+        else
+          name = "#{groupSlug}-"
 
         nameFactory = (require 'koding-counter') {
           db          : JVM.getClient()
@@ -118,11 +124,11 @@ module.exports = class JVM extends Model
           JVM.createDomains hostnameAlias
 
           vm = new JVM {
-            name    : "#{name}#{uid}"
-            planCode : planCode
-            planOwner: planOwner
-            users   : [{ id: user.getId(), sudo: yes, owner: yes }]
-            groups  : [{ id: group.getId() }]
+            name      : "#{name}#{uid}"
+            planCode  : planCode
+            planOwner : planOwner
+            users     : [{ id: user.getId(), sudo: yes, owner: yes }]
+            groups    : [{ id: group.getId() }]
             hostnameAlias
             usage
           }

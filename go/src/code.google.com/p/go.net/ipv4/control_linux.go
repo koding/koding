@@ -47,7 +47,7 @@ func newControlMessage(opt *rawOpt) (oob []byte) {
 	if opt.isset(FlagTTL) {
 		b := make([]byte, syscall.CmsgSpace(1))
 		cmsg := (*syscall.Cmsghdr)(unsafe.Pointer(&b[0]))
-		cmsg.Level = syscall.IPPROTO_IP
+		cmsg.Level = ianaProtocolIP
 		cmsg.Type = syscall.IP_RECVTTL
 		cmsg.SetLen(syscall.CmsgLen(1))
 		oob = append(oob, b...)
@@ -55,7 +55,7 @@ func newControlMessage(opt *rawOpt) (oob []byte) {
 	if opt.isset(pktinfo) {
 		b := make([]byte, syscall.CmsgSpace(syscall.SizeofInet4Pktinfo))
 		cmsg := (*syscall.Cmsghdr)(unsafe.Pointer(&b[0]))
-		cmsg.Level = syscall.IPPROTO_IP
+		cmsg.Level = ianaProtocolIP
 		cmsg.Type = syscall.IP_PKTINFO
 		cmsg.SetLen(syscall.CmsgLen(syscall.SizeofInet4Pktinfo))
 		oob = append(oob, b...)
@@ -73,7 +73,7 @@ func parseControlMessage(b []byte) (*ControlMessage, error) {
 	}
 	cm := &ControlMessage{}
 	for _, m := range cmsgs {
-		if m.Header.Level != syscall.IPPROTO_IP {
+		if m.Header.Level != ianaProtocolIP {
 			continue
 		}
 		switch m.Header.Type {
@@ -95,7 +95,7 @@ func marshalControlMessage(cm *ControlMessage) (oob []byte) {
 	pi := &syscall.Inet4Pktinfo{}
 	pion := false
 	if ip := cm.Src.To4(); ip != nil {
-		copy(pi.Spec_dst[:], ip[0:net.IPv4len])
+		copy(pi.Spec_dst[:], ip[:net.IPv4len])
 		pion = true
 	}
 	if cm.IfIndex != 0 {
@@ -105,11 +105,11 @@ func marshalControlMessage(cm *ControlMessage) (oob []byte) {
 	if pion {
 		b := make([]byte, syscall.CmsgSpace(syscall.SizeofInet4Pktinfo))
 		cmsg := (*syscall.Cmsghdr)(unsafe.Pointer(&b[0]))
-		cmsg.Level = syscall.IPPROTO_IP
+		cmsg.Level = ianaProtocolIP
 		cmsg.Type = syscall.IP_PKTINFO
 		cmsg.SetLen(syscall.CmsgLen(syscall.SizeofInet4Pktinfo))
 		data := b[syscall.CmsgLen(0):]
-		copy(data[0:syscall.SizeofInet4Pktinfo], (*[syscall.SizeofInet4Pktinfo]byte)(unsafe.Pointer(pi))[:syscall.SizeofInet4Pktinfo])
+		copy(data[:syscall.SizeofInet4Pktinfo], (*[syscall.SizeofInet4Pktinfo]byte)(unsafe.Pointer(pi))[:syscall.SizeofInet4Pktinfo])
 		oob = append(oob, b...)
 	}
 	return
