@@ -107,67 +107,6 @@ class VirtualizationController extends KDController
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
 
-    # Take this to a better place, possibly to payment controller.
-    makePayment = (type, plan, callback)->
-      planCode = plan.code
-      if type is 'group' or type is 'expensed'
-        group = KD.singletons.groupsController.getCurrentGroup()
-        group.checkPayment (err, payments)->
-          if err or payments.length is 0
-
-            if type is 'expensed'
-              paymentModal?.destroy()
-              return new KDNotificationView
-                title : "Group does not have billing information set."
-            else
-              # Copy account creator's billing information
-              KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
-                warn err
-                if err or not data
-                  data = {}
-
-                # These will go into Recurly module
-                delete data.cardNumber
-                delete data.cardMonth
-                delete data.cardYear
-                delete data.cardCV
-
-                paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
-                  newData.plan = planCode
-                  newData.type = type
-                  group.makePayment newData, (err, subscription)->
-                    if err
-                      onError err
-                    else
-                      vmController.createGroupVM type, planCode, vmCreateCallback
-                      onSuccess()
-                      callback()
-                paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
-          else
-            group.updatePayment {plan: planCode, type: type}, (err, subscription)->
-              vmController.createGroupVM type, planCode, vmCreateCallback
-              callback()
-      else
-        _createUserVM = (cb)->
-          KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
-            plan.subscribe {}, (err, subscription)->
-              return cb err  if cb and err
-              vmController.createGroupVM type, planCode, vmCreateCallback
-              cb?()
-        KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
-          if err or not account
-            paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
-              newData.plan = planCode
-              KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-                if err
-                  onError err
-                else
-                  onSuccess result
-                  _createUserVM callback
-            paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
-          else
-            _createUserVM callback
-
     vmCreateCallback=(err, vm)->
       if err
         warn err
@@ -217,7 +156,7 @@ class VirtualizationController extends KDController
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-                makePayment formData.type, @paymentPlans[formData.host], ->
+                paymentController.makePaymentModal formData.type, @paymentPlans[formData.host], ->
                   modal.destroy()
               buttons               :
                 user                :
