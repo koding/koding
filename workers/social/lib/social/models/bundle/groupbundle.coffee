@@ -91,7 +91,7 @@ module.exports = class JGroupBundle extends JBundle
             createdVMs += 1
 
           firstVM = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
-          
+
           if paidVMs > createdVMs or firstVM
             options     =
               planCode  : planCode

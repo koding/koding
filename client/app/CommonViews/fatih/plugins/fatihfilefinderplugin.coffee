@@ -14,7 +14,7 @@ class FatihFileFinderPlugin extends FatihPluginAbstract
     path    = "/home/#{KD.whoami().profile.nickname}/"
     command = "find \"#{path}\" -type f -iname \"*#{keyword}*\""
 
-    @getSingleton('kiteController').run command, (err, res) =>
+    KD.getSingleton('kiteController').run command, (err, res) =>
       @searchHelper keyword, @parseResponse res
 
   searchHelper: (keyword, files) ->

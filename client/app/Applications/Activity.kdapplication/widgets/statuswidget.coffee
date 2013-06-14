@@ -198,7 +198,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     # it shouldn't reset non-submitted inputs
     # check widgetview.coffee:23-27-33
     tabView = @parent.getDelegate()
-    @getSingleton("windowController").addLayer tabView
+    KD.getSingleton("windowController").addLayer tabView
 
   switchToEditView:(activity,fake=no)->
     {tags, body, link} = activity

@@ -24,13 +24,13 @@ class FinderBottomControlsListItem extends KDListItemView
     else if @getData().action is "showShortcuts"
       @showShortcuts()
     else if @getData().action is "manageRemotes"
-      @getSingleton('mainController').emit 'ManageRemotes'
+      KD.getSingleton('mainController').emit 'ManageRemotes'
     else if @getData().action is "manageDatabases"
-      @getSingleton('mainController').emit 'ManageDatabases'
+      KD.getSingleton('mainController').emit 'ManageDatabases'
     else if @getData().action is "showEnvironments"
-      @getSingleton('finderController').emit 'ShowEnvironments'
+      KD.getSingleton('finderController').emit 'ShowEnvironments'
     else if @getData().action is "createNewVM"
-      @getSingleton('vmController').createNewVM()
+      KD.getSingleton('vmController').createNewVM()
     else
       new KDNotificationView
         title : "Coming Soon!"

@@ -12,19 +12,17 @@ class MembersAppController extends AppController
     options.appInfo =
       name          : 'Members'
 
+    @appManager = KD.getSingleton "appManager"
+
     super options, data
 
-#  setGroup:-> console.trace()
-
   createFeed:(view, loadFeed = no)->
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    @appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       useHeaderNav          : no
       noItemFoundText       : "There is no member."
       limitPerPage          : 10
-      # onboarding            :
-      #   everything          : "<h3 class='title'>yooo onboard me!!!</h3>"
       help                  :
         subtitle            : "Learn About Members"
         tooltip             :
@@ -86,7 +84,7 @@ class MembersAppController extends AppController
 
   createFeedForContentDisplay:(view, account, followersOrFollowing, callback)->
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
@@ -119,7 +117,7 @@ class MembersAppController extends AppController
           direction         : -1
     }, (controller)=>
       view.addSubView controller.getView()
-      contentDisplayController = @getSingleton "contentDisplayController"
+      contentDisplayController = KD.getSingleton "contentDisplayController"
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
       callback view, controller
       if controller.facetsController?.filterController?
@@ -137,7 +135,7 @@ class MembersAppController extends AppController
 
   createLikedFeedForContentDisplay:(view, account, callback)->
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"
@@ -178,7 +176,7 @@ class MembersAppController extends AppController
           direction       : 1
     }, (controller)=>
       view.addSubView controller.getView()
-      contentDisplayController = @getSingleton "contentDisplayController"
+      contentDisplayController = KD.getSingleton "contentDisplayController"
       contentDisplayController.emit "ContentDisplayWantsToBeShown", view
       callback view, controller
 
@@ -206,7 +204,7 @@ class MembersAppController extends AppController
     @createFeed mainView, loadFeed
 
   # showMemberContentDisplay:({content})->
-  #   contentDisplayController = @getSingleton "contentDisplayController"
+  #   contentDisplayController = KD.getSingleton "contentDisplayController"
   #   controller = new ContentDisplayControllerMember null, content
   #   contentDisplay = controller.getView()
   #   contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
@@ -240,7 +238,7 @@ class MembersAppController extends AppController
         @createLikedContentDisplay model, kallback
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
 
@@ -302,7 +300,7 @@ class MembersListViewController extends KDListViewController
       data.counts.followers = followerCount
       data.counts.following = followingCount
       item.setFollowerCount followerCount
-      switch @getSingleton('mainController').getVisitor().currentDelegate
+      switch KD.getSingleton('mainController').getVisitor().currentDelegate
         when newFollower, oldFollower
           if newFollower then item.unfollowTheButton() else item.followTheButton()
 

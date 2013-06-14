@@ -19,7 +19,7 @@ class ContentDisplayControllerTopic extends KDViewController
       click   : (event)=>
         event.stopPropagation()
         event.preventDefault()
-        contentDisplayController = @getSingleton "contentDisplayController"
+        contentDisplayController = KD.getSingleton "contentDisplayController"
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
     topicView = @addTopicView topic

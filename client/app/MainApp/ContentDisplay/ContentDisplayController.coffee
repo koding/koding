@@ -13,7 +13,7 @@ class ContentDisplayController extends KDController
     KD.getSingleton("appManager").on "ApplicationShowedAView",    => @hideAllContentDisplays()
 
   showContentDisplay:(view)->
-    contentPanel = @getSingleton "contentPanel"
+    contentPanel = KD.getSingleton "contentPanel"
     wrapper = new ContentDisplay
       domId : "content-display-wrapper" if not @revivedContentDisplay
     wrapper.bindTransitionEnd()

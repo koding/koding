@@ -157,7 +157,7 @@ class KDTooltip extends KDView
 
     return unless @visible
 
-    @getSingleton('windowController').removeLayer @
+    KD.getSingleton('windowController').removeLayer @
     document.body.removeChild @$()[0]
     @visible = no
 
@@ -177,11 +177,11 @@ class KDTooltip extends KDView
       unless @isCurrentlyRemovable()
         if @getOptions().animate
           @unsetClass 'in'
-          @getSingleton('windowController').enableScroll()
+          KD.getSingleton('windowController').enableScroll()
           @utils.killWait @animatedDeleteTimer
           @animatedDeleteTimer = @utils.wait 2000, @bound "remove"
         else
-          @getSingleton('windowController').enableScroll()
+          KD.getSingleton('windowController').enableScroll()
           @remove()
 
   translateCompassDirections:(o)->
@@ -201,7 +201,7 @@ class KDTooltip extends KDView
     @setClass 'in' if o.animate
     @show()
     @visible = yes
-    @getSingleton('windowController').disableScroll()
+    KD.getSingleton('windowController').disableScroll()
     @setPosition o
 
   getCorrectPositionCoordinates:(o={},positionValues,callback=noop)->

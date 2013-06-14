@@ -20,7 +20,7 @@ class PermissionsModal extends KDFormViewWithFields
           diameter  : 12
         callback          : =>
 
-          @getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
+          KD.getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
             cssClass      : "add-role-dialog"
             duration      : 200
             topOffset     : 0

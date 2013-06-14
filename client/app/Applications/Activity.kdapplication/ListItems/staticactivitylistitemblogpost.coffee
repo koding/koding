@@ -13,9 +13,9 @@ class StaticBlogPostActivityItemView extends StaticActivityItemChild
     super options,data
 
     @on 'CommentLinkReceivedClick', (event,view)=>
-      @getSingleton('staticProfileController').emit 'CommentLinkReceivedClick', view
+      KD.getSingleton('staticProfileController').emit 'CommentLinkReceivedClick', view
     @on 'CommentCountClicked'     , (view)=>
-      @getSingleton('staticProfileController').emit 'CommentCountReceivedClick', view
+      KD.getSingleton('staticProfileController').emit 'CommentCountReceivedClick', view
 
     data = @getData()
 

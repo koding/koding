@@ -242,7 +242,7 @@ module.exports = class Graph
       start koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->followees<-[r:follower]-follower
       where follower.name="JTag"
-      and follower.name="#{groupName}"
+      and follower.group="#{groupName}"
       and r.createdAtEpoch < #{startDate}
       return r,followees, follower
       order by r.createdAtEpoch DESC

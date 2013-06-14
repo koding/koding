@@ -68,14 +68,14 @@ class AceView extends JView
 
   preview: ->
     {vmName, path} = @getData()
-    appManager.open "Viewer", params: {path, vmName}
+    KD.getSingleton("appManager").open "Viewer", params: {path, vmName}
 
   compileAndRun: ->
     manifest = KodingAppsController.getManifestFromPath @getData().path
     return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
-    @getSingleton('kodingAppsController').compileApp manifest.name, (err) =>
+    KD.getSingleton('kodingAppsController').compileApp manifest.name, (err) =>
       @ace.notify "Trying to run old version..." if err
-      @getSingleton('kodingAppsController').runApp manifest
+      KD.getSingleton('kodingAppsController').runApp manifest
 
   viewAppended:->
 
