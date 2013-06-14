@@ -8,7 +8,7 @@ class AvatarPopup extends KDView
 
     @on 'ReceivedClickElsewhere', => @hide()
 
-    {mainController} = KD.singletons
+    mainController = KD.getSingleton("mainController")
     mainController.on "accountChanged.to.loggedIn", @bound 'accountChanged'
 
     @_windowController = KD.getSingleton('windowController')

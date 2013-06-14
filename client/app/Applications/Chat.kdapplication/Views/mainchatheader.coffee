@@ -4,6 +4,8 @@ class MainChatHeader extends JView
     super
       cssClass : 'main-chat-header'
 
+    chatPanel = KD.getSingleton "chatPanel"
+
     @header = new HeaderViewSection
       type    : "big"
       title   : "Conversations"
@@ -18,13 +20,13 @@ class MainChatHeader extends JView
         title         : "show"
         iconClass     : "left"
         callback      : (callback)->
-          KD.singletons.chatPanel.toggleInboxMode()
+          chatPanel.toggleInboxMode()
           callback?()
       ,
         title         : "hide"
         iconClass     : "right"
         callback      : (callback)->
-          KD.singletons.chatPanel.toggleInboxMode()
+          chatPanel.toggleInboxMode()
           callback?()
       ]
 
@@ -47,10 +49,7 @@ class MainChatHeader extends JView
           contentPanel = KD.getSingleton('contentPanel')
           contentPanel.chatMargin = 0
           contentPanel._windowDidResize()
-
-          chatPanel    = KD.getSingleton('chatPanel')
           chatPanel.hidePanel()
-
           callback?()
       ]
 

@@ -26,7 +26,7 @@ class MainChatPanel extends JView
             @hidePanel()
 
     # FIXME Later ~ GG
-    {mainController} = KD.singletons
+    mainController = KD.getSingleton("mainController")
     mainController.on "accountChanged.to.loggedIn", =>
       @conversationListController.loadItems()
       @showPanel()

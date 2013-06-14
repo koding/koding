@@ -3,7 +3,7 @@ class VirtualizationController extends KDController
   constructor:->
     super
 
-    @kc = KD.singletons.kiteController
+    @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
 
@@ -48,8 +48,8 @@ class VirtualizationController extends KDController
       return callback null  unless state
       KD.remote.api.JVM.removeByName vm, (err)->
         return callback err  if err
-        KD.singletons.finderController.unmountVm vm
-        KD.singletons.vmController.emit 'VMListChanged'
+        KD.getSingleton("finderController").unmountVm vm
+        KD.getSingleton("vmController").emit 'VMListChanged'
         callback null
 
   info:(vm, callback)->
@@ -69,7 +69,7 @@ class VirtualizationController extends KDController
 
   createGroupVM:(type='user', planCode, callback)->
     defaultVMOptions = {planCode}
-    group = KD.singletons.groupsController.getCurrentGroup()
+    group = KKD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, callback
 
   fetchVMs:(callback)->
@@ -110,7 +110,7 @@ class VirtualizationController extends KDController
     makePayment = (type, plan, callback)->
       planCode = plan.code
       if type is 'group' or type is 'expensed'
-        group = KD.singletons.groupsController.getCurrentGroup()
+        group = KD.getSingleton("groupsController").getCurrentGroup()
         group.checkPayment (err, payments)->
           if err or payments.length is 0
 
@@ -173,11 +173,11 @@ class VirtualizationController extends KDController
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.singletons.finderController.mountVm vm.name
+        KD.getSingleton("finderController").mountVm vm.name
         vmController.emit 'VMListChanged'
       paymentModal?.destroy()
 
-    group = KD.singletons.groupsController.getGroupSlug()
+    group = KD.getSingleton("groupsController").getGroupSlug()
 
     if canCreateSharedVM
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
@@ -290,7 +290,7 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      # group = KD.singletons.groupsController.getCurrentGroup()
+      # group = KD.getSingleton("groupsController").getCurrentGroup()
       # group.vmUsage (err, limit)->
       #   if limit and limit.usage < limit.quota
       #     # content += """<br/><br/>
