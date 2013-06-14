@@ -93,6 +93,10 @@ class Sidebar extends JView
       @finderBottomControlPin.setState 'hide'
       @showBottomControls()
 
+    # FIXME ~ GG find a better place for this.
+    @finderController.on 'EnvironmentsTabHide', @bound 'hideBottomControls'
+    @finderController.on 'EnvironmentsTabShow', @bound 'showBottomControls'
+
     @resourcesController = new ResourcesController
     @resourcesWidget = @resourcesController.getView()
 

@@ -138,6 +138,7 @@ module.exports = [
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
   "app/MainApp/linkcontroller.coffee",
+  "app/MainApp/paymentcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",

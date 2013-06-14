@@ -188,7 +188,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	user, err := populateUser(outreq)
 	if err != nil {
 		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
-		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+		http.Error(rw, "error contacting backend server.", http.StatusInternalServerError)
 		return
 	}
 
@@ -209,6 +209,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
+	} else {
+		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 	}
 
 	if user.Redirect {
@@ -410,6 +412,7 @@ func cleaner() {
 		// negative duration is no-op, means it will not panic
 		time.Sleep(time.Hour - time.Now().Sub(nextTime))
 		usersLock.Lock()
+		log.Println("deleting user from internal map", nextUser)
 		delete(users, nextUser)
 		usersLock.Unlock()
 		usersLock.RLock()
