@@ -22,7 +22,7 @@ class KDMultipleInputView extends KDSimpleAutocomplete
     super options
 
   focus:(pubInst,event)->
-    (@getSingleton "windowController").setKeyView @
+    (KD.getSingleton "windowController").setKeyView @
 
   viewAppended: ->
     # log 'view appended'

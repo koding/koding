@@ -34,7 +34,7 @@ class JTreeView extends KDListView
 
   mouseDown:->
 
-    @getSingleton("windowController").setKeyView @
+    KD.getSingleton("windowController").setKeyView @
     no
 
   keyDown:(event)->
@@ -43,7 +43,7 @@ class JTreeView extends KDListView
 
   destroy:->
 
-    @getSingleton("windowController").revertKeyView @
+    KD.getSingleton("windowController").revertKeyView @
 
     super
 

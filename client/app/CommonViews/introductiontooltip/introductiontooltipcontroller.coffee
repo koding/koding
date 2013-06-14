@@ -10,7 +10,7 @@ class IntroductionTooltipController extends KDController
     @displayedTooltips = []
     @stepByStepGroups  = {}
 
-    @getSingleton("mainController").on "FrameworkIsReady", =>
+    KD.getSingleton("mainController").on "FrameworkIsReady", =>
       @init()
 
     @on "ShowIntroductionTooltip", (view) =>

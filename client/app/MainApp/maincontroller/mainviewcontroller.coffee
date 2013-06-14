@@ -5,7 +5,7 @@ class MainViewController extends KDViewController
     super
 
     mainView       = @getView()
-    mainController = @getSingleton 'mainController'
+    mainController = KD.getSingleton 'mainController'
     @registerSingleton 'mainViewController', @, yes
     @registerSingleton 'mainView', mainView, yes
 
@@ -26,12 +26,12 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    mainController  = @getSingleton 'mainController'
+    mainController  = KD.getSingleton 'mainController'
     {navController} = mainController.sidebarController.getView()
     {name}          = pane.getOptions()
     {route}         = KD.getAppOptions name
-    router          = @getSingleton('router')
-    cdController    = @getSingleton("contentDisplayController")
+    router          = KD.getSingleton('router')
+    cdController    = KD.getSingleton("contentDisplayController")
 
     cdController.emit "ContentDisplaysShouldBeHidden"
 

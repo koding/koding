@@ -20,7 +20,7 @@ class ActivityAppView extends KDScrollView
     @header           = new HomeKonstructor
     @widget           = new ActivityUpdateWidget
     @widgetController = new ActivityUpdateWidgetController view : @widget
-    @mainController   = @getSingleton("mainController")
+    @mainController   = KD.getSingleton("mainController")
 
     @mainController.on "AccountChanged", @bound "decorate"
     @mainController.on "JoinedGroup", => @widget.show()
@@ -75,7 +75,7 @@ class ActivityAppView extends KDScrollView
       @setClass "fixed"
       @header.once "transitionend", @header.bound "hide"
       @header.$().css marginTop : -headerHeight
-      @getSingleton('mainViewController').emit "browseRequested"
+      KD.getSingleton('mainViewController').emit "browseRequested"
 
 
   navigateHome:(itemData)->

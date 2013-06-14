@@ -3,7 +3,7 @@ class DashboardAppView extends JView
   constructor:(options={}, data)->
 
     options.cssClass or= "content-page"
-    data or= @getSingleton("groupsController").getCurrentGroup()
+    data or= KD.getSingleton("groupsController").getCurrentGroup()
     super options, data
 
     @header = new HeaderViewSection type : "big", title : "Group Dashboard"
@@ -84,7 +84,7 @@ class DashboardAppView extends JView
   createTabs:->
 
     data = @getData()
-    @getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
+    KD.getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
       navItems = []
       for {name, hiddenHandle, viewOptions}, i in tabData
         viewOptions.data = data

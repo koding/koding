@@ -93,11 +93,11 @@ class KDInputView extends KDView
   getName:-> @inputName
 
   setFocus:->
-    (@getSingleton "windowController").setKeyView @
+    (KD.getSingleton "windowController").setKeyView @
     @$().trigger "focus"
 
   setBlur:->
-    (@getSingleton "windowController").setKeyView null
+    (KD.getSingleton "windowController").setKeyView null
     @$().trigger "blur"
 
   setSelectOptions:(options)->
@@ -362,7 +362,7 @@ class KDInputView extends KDView
 
     # hopefully fixed
 
-    @getSingleton("windowController").revertKeyView @
+    KD.getSingleton("windowController").revertKeyView @
     yes
 
   mouseDown:->

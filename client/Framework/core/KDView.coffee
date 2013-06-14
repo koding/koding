@@ -594,7 +594,7 @@ class KDView extends KDObject
   paste:(event)->      yes
 
   mouseDown:(event)->
-    (@getSingleton "windowController").setKeyView null
+    (KD.getSingleton "windowController").setKeyView null
     yes
 
   # HTML5 DND
@@ -693,7 +693,7 @@ class KDView extends KDObject
       dragPos.initial.x     = event.pageX
       dragPos.initial.y     = event.pageY
 
-      @getSingleton('windowController').setDragView @
+      KD.getSingleton('windowController').setDragView @
       @emit "DragStarted", event, @dragState
       event.stopPropagation()
       event.preventDefault()
@@ -856,20 +856,20 @@ class KDView extends KDObject
   listenWindowResize:(state=yes)->
 
     if state
-      @getSingleton('windowController').registerWindowResizeListener @
+      KD.getSingleton('windowController').registerWindowResizeListener @
     else
-      @getSingleton('windowController').unregisterWindowResizeListener @
+      KD.getSingleton('windowController').unregisterWindowResizeListener @
 
   notifyResizeListeners:->
 
-    @getSingleton('windowController').notifyWindowResizeListeners()
+    KD.getSingleton('windowController').notifyWindowResizeListeners()
 
   setKeyView:->
 
-    @getSingleton("windowController").setKeyView @
+    KD.getSingleton("windowController").setKeyView @
 
   # setPreserveValue:(preserveValue={})->
-  #   storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
+  #   storedValue = KD.getSingleton('localStorageController').getValueById preserveValue.name
 
   #   if "string" is typeof preserveValue.saveEvents
   #     preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
@@ -898,9 +898,9 @@ class KDView extends KDObject
   #   else @setValue? value
 
   # savePreserveValue:(id,value)->
-  #   @getSingleton('localStorageController').setValueById id, value
+  #   KD.getSingleton('localStorageController').setValueById id, value
 
   # clearPreserveValue:->
   #   if @getOptions().preserveValue
-  #     @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
+  #     KD.getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
 

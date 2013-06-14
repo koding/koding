@@ -6,7 +6,7 @@ class MembersMainView extends KDView
       type  : "big"
       title : "Members"
 
-    @getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
+    KD.getSingleton("mainController").on 'AccountChanged', @bound 'setSearchInput'
     @setSearchInput()
 
   setSearchInput:->
@@ -113,7 +113,7 @@ class MembersLikedContentDisplayView extends KDView
     super options, data
 
   createCommons:(account)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     headerTitle              = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
 
     @addSubView header = new HeaderViewSection
@@ -158,7 +158,7 @@ class MembersContentDisplayView extends KDView
       click   : (event)=>
         event.preventDefault()
         event.stopPropagation()
-        @getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
+        KD.getSingleton('contentDisplayController').emit "ContentDisplayWantsToBeHidden", @
 
     @listenWindowResize()
 
