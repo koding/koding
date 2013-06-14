@@ -23,6 +23,6 @@ class ConversationMenuButton extends KDButtonView
         callback           : =>
           chatController = KD.getSingleton 'chatController'
           chatController.leave @getData(), => @emit 'DestroyConversation'
-      'Add more friends'   :
-        children           :
-          customView       : new ConversationStarter
+      # 'Add more friends'   :
+      #   children           :
+      #     customView       : new ConversationStarter
