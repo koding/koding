@@ -18,7 +18,6 @@ module.exports = class JInvitation extends jraphical.Module
 
   JAccount    = require './account'
   JLimit      = require './limit'
-  JLimit      = require './limit'
   KodingError = require '../error'
   JMail       = require './email'
 
@@ -417,7 +416,7 @@ module.exports = class JInvitation extends jraphical.Module
 
   @create = secure (client, options, callback)->
     {delegate} = client.connection
-    {emails, subject, customMessage, type} = options
+    {emails, subject, customMessage, type, group} = options
     delegate.fetchLimit 'invite', (err, limit)=>
       if err
         callback err
@@ -433,6 +432,7 @@ module.exports = class JInvitation extends jraphical.Module
               invite = new JInvitation {
                 code
                 customMessage
+                group
                 maxUses       : 1
                 inviteeEmail  : email
                 origin        : ObjectRef(delegate)
