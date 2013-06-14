@@ -7,6 +7,7 @@ class LoginView extends KDScrollView
   constructor:(options = {}, data)->
 
     {entryPoint} = KD.config
+    options.cssClass = 'hidden'
 
     super options, data
 
@@ -62,24 +63,33 @@ class LoginView extends KDScrollView
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doLogin formData
+        KD.track "Login", "SignInButtonClicked"
 
     @registerForm = new RegisterInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doRegister formData
+      callback : (formData)=>
+        @doRegister formData
+        KD.track "Login", "RegisterButtonClicked"
 
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doRecover formData
+      callback : (formData)=>
+        @doRecover formData
+        KD.track "Login", "RecoverButtonClicked"
+
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         formData.clientId = $.cookie('clientId')
         @doReset formData
+        KD.track "Login", "ResetButtonClicked"
 
     @requestForm = new RequestInlineForm
       cssClass : "login-form"
-      callback : (formData)=> @doRequest formData
+      callback : (formData)=>
+        @doRequest formData
+        KD.track "Login", "RequestButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -163,10 +173,11 @@ class LoginView extends KDScrollView
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
-    KD.remote.api.JUser.register formData, (error, account, replacementToken)=>
+    KD.remote.api.JUser.register formData, (err, account, replacementToken)=>
       @registerForm.button.hideLoader()
-      if error
-        {message} = error
+      if err
+        {message} = err
+        warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
       else
@@ -189,14 +200,14 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, (error, account, replacementToken) =>
+    KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
       @loginForm.button.hideLoader()
 
       {entryPoint} = KD.config
 
-      if error
+      if err
         new KDNotificationView
-          title   : error.message
+          title   : err.message
           duration: 1000
         @loginForm.resetDecoration()
       else
@@ -215,8 +226,6 @@ class LoginView extends KDScrollView
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
-
-        mainController.emit "UserLoggedIn"
 
         @hide()
 
@@ -282,6 +291,7 @@ class LoginView extends KDScrollView
 
       @emit "LoginViewHidden"
       @hidden = yes
+      @hideTimer = @utils.wait 2000, => @setClass 'hidden'
       callback?()
 
     unless @hidden then do cb
@@ -289,15 +299,17 @@ class LoginView extends KDScrollView
 
   show:(callback)->
 
-    @setY 0
-
+    @utils.killWait @hideTimer
     cb = =>
       @emit "LoginViewShown"
       @hidden = no
       callback?()
 
-    unless @hidden then do cb
-    else @once "transitionend", cb
+    @unsetClass 'hidden'
+    @utils.defer =>
+      @setY 0
+      unless @hidden then do cb
+      else @once "transitionend", cb
 
   click:(event)->
     if $(event.target).is('.login-screen')

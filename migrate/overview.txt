@@ -1,0 +1,263 @@
+MIGRATION:
+
+Only on master:
+  model: JPermission
+  migration: drop collection
+
+Only on newkoding:
+  model: CBlogPostActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: JBlogPost
+  migration: n/a
+
+  model: JChatConversation
+  migration: n/a
+
+  model: JDomain
+  migration: n/a
+
+  model: JGroupBundle
+  migration: create a group bundle for koding group
+
+  model: JGroupRole
+  migration: n/a
+
+  model: JIntroSnippet
+  migration: n/a
+
+  model: JKite
+  migration: n/a
+
+  model: JKiteCall
+  migration: n/a
+
+  model: JKodingKey
+  migration: n/a
+
+  model: JMail
+  migration: n/a
+
+  model: JMarkdownDoc
+  migration: n/a
+
+  model: JMemberKite
+  migration: n/a
+
+  model: JMembershipPolicy
+  migration: create the membership policy for the koding group
+
+  model: JRecurlyCharge
+  migration: n/a
+
+  model: JRecurlyPlan
+  migration: n/a
+
+  model: JRecurlySubscription
+  migration: n/a
+
+  model: JRecurlyToken
+  migration: n/a
+
+  model: JSecretName
+  migration: n/a
+
+  model: JUnsubscribedMail
+  migration: n/a
+
+  model: JVM
+  migration: n/a (user vms should be created lazily)
+
+On both master and newkoding
+  model: CActivity
+  migration: drop collection
+
+  model: CBucket
+  migration: n/a
+
+  model: CCodeShareActivity
+  migration: set "group" field to "koding"
+
+  model: CCodeSnipActivity
+  migration: set "group" field to "koding"
+
+  model: CCommentActivity
+  migration: set "group" field to "koding"
+
+  model: CDiscussionActivity
+  migration: set "group" field to "koding"
+
+  model: CCodeShareActivity
+  migration: set "group" field to "koding"
+
+  model: CFolloweeBucket
+  migration: n/a
+
+  model: CFolloweeBucketActivity
+  migration: set "group" field to "koding"
+
+  model: CFollowerBucket
+  migration: n/a
+
+  model: CFollowerBucketActivity
+  migration: set "group" field to "koding"
+
+  model: Channel
+  migration: n/a
+
+  model: CInstalleeBucket
+  migration: n/a
+
+  model: CInstalleeBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CInstallerBucket
+  migration: n/a
+
+  model: CInstallerBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CLikeeBucket
+  migration: n/a
+
+  model: CLikeeBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CLikerBucket
+  migration: n/a
+
+  model: CLikerBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CLinkActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CNewMemberBucket
+  migration: n/a
+
+  model: CNewMemberBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: COpinionActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CReplieeBucket
+  migration: n/a
+
+  model: CReplieeBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CReplierBucket
+  migration: n/a
+
+  model: CReplierBucketActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CRepliesActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CStatusActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CTutorialActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: CTutorialListActivity
+  migration: drop collection (there shouldn't be one)
+
+  model: JAccount
+  migration:
+    set "onlineStatus" field to "offline"
+    change "koding" "profile.nickname" to "timahong"
+
+  model: JApp
+  migration: n/a
+
+  model: JCodeShare
+  migration: set "group" field to "koding"
+
+  model: JCodeSnip
+  migration: set "group" field to "koding"
+
+  model: JComment
+  migration: n/a
+
+  model: JDiscussion
+  migration: set "group" field to "koding"
+
+  model: JCodeShare
+  migration: set "group" field to "koding"
+
+  model: JGroup
+  migration: create the "koding" group
+
+  model: JGuest
+  migration: set all "status" to "pristine"
+
+  model: JInvitation
+  migration: n/a
+
+  model: JInvitationRequests
+  migration:
+    set "group" field to "koding"
+    set "status" field to "pending", unless it holds another value
+    set "invitationType" field to "invitation", unless it holds another value
+
+  model: JLimit
+  migration: n/a
+
+  model: JLink
+  migration: drop collection
+
+  model: JMailNotification
+  migration: set "senderEmail" field to "hi@koding.com"
+
+  model: JCodeShare
+  migration: set "group" field to "koding"
+
+  model: JName
+  migration:
+    use notion of plural "slugs" (an array of objects)
+    unset "constructorName" and "usedAsPath" properties
+    recreate name for "koding" that points to the "koding" group
+    create a name for "timahong" that points to the "timahong" account
+    reserve the name "group"
+
+  model: JOpinion
+  migration: set "group" field to "koding"
+
+  model: JPermissionSet
+  migration: create default permission set and permission set for the "koding" group
+
+  model: JPost
+  migration: set "group" field to "koding"
+
+  model: JPrivateMessage
+  migration: n/a
+
+  model: JReview
+  migration: n/a
+
+  model: JStatusUpdate
+  migration: set "group" field to "koding"
+
+  model: JSystemStatus
+  migration: n/a
+
+  model: JTag
+  migration: set "group" field to "koding"
+
+  model: JTutorial
+  migration: set "group" field to "koding"
+
+  model: JTutorialList
+  migration: set "group" field to "koding"
+
+  model: JUser
+  migration:
+    grant every user a sequential "uid"
+    set "onlineStatus.actual" field to "offline"
+    change "koding" "username" to "timahong"
+
+  model: JVocabulary
+  migration: set "group" field to "koding"

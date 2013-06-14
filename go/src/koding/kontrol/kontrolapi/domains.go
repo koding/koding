@@ -7,13 +7,14 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
+	"koding/kontrol/kontrolproxy/proxyconfig"
 	"net/http"
 )
 
 func GetDomains(writer http.ResponseWriter, req *http.Request) {
 	fmt.Println("GET\t/domains")
-	proxyMachine, _ := proxyDB.GetConfig()
-	data, err := json.MarshalIndent(proxyMachine.Domains, "", "  ")
+	domains := proxyDB.GetDomains()
+	data, err := json.MarshalIndent(domains, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
@@ -33,7 +34,7 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if domain.Domainname == "" {
+	if domain.Domain == "" {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"domain '%s' does not exist\"}\n", domainname), http.StatusBadRequest)
 		return
 	}
@@ -47,10 +48,10 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func CreateDomain(writer http.ResponseWriter, req *http.Request) {
+func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	domain := vars["domain"]
-	fmt.Printf("POST\t/domains/%s\n", domain)
+	domainname := vars["domain"]
+	fmt.Printf("POST\t/domains/%s\n", domainname)
 
 	p, err := unmarshalAndValidate(req)
 	if err != nil {
@@ -58,20 +59,41 @@ func CreateDomain(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = proxyDB.AddDomain(domain, p.Mode, p.Username, p.Name, p.Key, p.Host)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
+	domain := proxyconfig.NewDomain(
+		domainname,
+		p.Mode,
+		p.Username,
+		p.Name,
+		p.Key,
+		p.FullUrl,
+		[]string{p.HostnameAlias},
+	)
+
+	switch req.Method {
+	case "POST":
+		err = proxyDB.AddDomain(domain)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	case "PUT":
+		err = proxyDB.UpdateDomain(domain)
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
 	}
 
 	var resp string
 	switch p.Mode {
 	case "internal":
 		resp = fmt.Sprintf("{\"host\":\"%s-%s.kd.io\"}\n", p.Name, p.Key)
-	case "direct":
-		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.Host)
+	case "redirect":
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", p.FullUrl)
 	case "vm":
-		resp = fmt.Sprintf("{\"host\":\"%s.kd.io\"}\n", p.Username)
+		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
+	case "maintenance":
+		resp = fmt.Sprintf("{\"res\":\"maintenance mode enabled\"}\n", domainname)
 	}
 
 	io.WriteString(writer, resp)
@@ -95,15 +117,16 @@ func DeleteDomain(writer http.ResponseWriter, req *http.Request) {
 
 func (p *ProxyPostMessage) validate() error {
 	// mode can be one of the followings:
-	// internal     : to point name-key.in.koding.com
-	// direct       : to point host
-	// vm           : to point username.kd.io
+	// internal 	: to point name-key.in.koding.com
+	// redirect 	: to point fullurl
+	// vm       	: to point username.kd.io
+	// maintenance	: to show maintenance static page
 	if p.Mode == "" {
-		return errors.New("Missing field 'mode'. Can be one of: internal, direct, vm")
+		return errors.New("Missing field 'mode'. Can be one of: internal, redirect, vm and maintenance")
 	}
 
-	if p.Username == "" && p.Mode != "direct" {
-		return errors.New("Missing field 'username' is required with {'mode': 'vm' or 'internal'}")
+	if p.Username == "" && p.Mode == "internal" {
+		return errors.New("Missing field 'username' is required with {'mode': 'internal'}")
 	}
 
 	if p.Name == "" && p.Mode == "internal" {
@@ -114,8 +137,12 @@ func (p *ProxyPostMessage) validate() error {
 		return errors.New("Missing field 'key' is required with {'mode': 'internal'}")
 	}
 
-	if p.Host == "" && p.Mode == "direct" {
-		return errors.New("Missing field 'host' is required with {'mode': 'direct}'")
+	if p.FullUrl == "" && p.Mode == "redirect" {
+		return errors.New("Missing field 'fullUrl' is required with {'mode': 'redirect}'")
+	}
+
+	if p.HostnameAlias == "" && p.Mode == "vm" {
+		return errors.New("Missing field 'hostnameAlias' is required with {'mode': 'vm}'")
 	}
 
 	return nil

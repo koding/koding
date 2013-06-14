@@ -11,12 +11,8 @@ import (
 
 func GetProxies(writer http.ResponseWriter, req *http.Request) {
 	fmt.Println("GET\t/proxies")
-	res, err := proxyDB.GetProxies()
-	if err != nil {
-		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
-		return
-	}
-	data, err := json.MarshalIndent(res, "", "  ")
+	proxies := proxyDB.GetProxies()
+	data, err := json.MarshalIndent(proxies, "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return

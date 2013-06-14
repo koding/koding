@@ -56,7 +56,7 @@ class AccountEditorListItem extends KDListItemView
     options = tagName : "li"
     super options,data
 
-  viewAppended:()->
+  viewAppended:->
     super
     @form = form = new AccountEditorExtensionTagger
       delegate : @

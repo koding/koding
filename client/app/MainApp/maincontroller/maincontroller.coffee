@@ -26,31 +26,29 @@ class MainController extends KDController
     # will be deprecated soon.
     window.appManager = new ApplicationManager
 
-    KD.registerSingleton "appManager", appManager
-    KD.registerSingleton "mainController", @
-    KD.registerSingleton "kiteController", new KiteController
-    KD.registerSingleton "vmController", new VirtualizationController
-    KD.registerSingleton "contentDisplayController", new ContentDisplayController
-    KD.registerSingleton "notificationController", new NotificationController
-    KD.registerSingleton "localStorageController", new LocalStorageController
+    KD.registerSingleton "mainController",            this
+    KD.registerSingleton "appManager",                appManager
+    KD.registerSingleton "kiteController",            new KiteController
+    KD.registerSingleton "vmController",              new VirtualizationController
+    KD.registerSingleton "contentDisplayController",  new ContentDisplayController
+    KD.registerSingleton "notificationController",    new NotificationController
+    KD.registerSingleton "paymentController",         new PaymentController
+    KD.registerSingleton "linkController",            new LinkController
+    KD.registerSingleton 'router',           router = new KodingRouter location.pathname
+
+    # KD.registerSingleton "localStorageController", new LocalStorageController
     # KD.registerSingleton "fatih", new Fatih
-
-    KD.registerSingleton "linkController", new LinkController
-
-    router = new KodingRouter location.pathname
-    KD.registerSingleton 'router', router
 
     appManager.create 'Groups', (groupsController)->
       KD.registerSingleton "groupsController", groupsController
 
-    # appManager.create 'Chat', (chatController)->
-    #   KD.registerSingleton "chatController", chatController
+    appManager.create 'Chat', (chatController)->
+      KD.registerSingleton "chatController", chatController
 
     @ready =>
       router.listen()
-      KD.registerSingleton "activityController", new ActivityController
+      KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
-      #KD.registerSingleton "bottomPanelController", new BottomPanelController
       @emit 'AppIsReady'
       @emit 'FrameworkIsReady'
 
@@ -60,9 +58,6 @@ class MainController extends KDController
     @appStorages = {}
 
     @introductionTooltipController = new IntroductionTooltipController
-
-    @on "UserLoggedIn", ->
-      @getSingleton("kodingAppsController").getPublishedApps()
 
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
@@ -90,6 +85,7 @@ class MainController extends KDController
 
       @decorateBodyTag()
       @emit 'ready'
+
       # this emits following events
       # -> "pageLoaded.as.loggedIn"
       # -> "pageLoaded.as.loggedOut"
@@ -201,7 +197,7 @@ class MainController extends KDController
         buttons :
           "Refresh Now" :
             style     : "modal-clean-red"
-            callback  : ()->
+            callback  : ->
               modal.destroy()
               location.reload yes
       # if location.hostname is "localhost"

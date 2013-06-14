@@ -20,7 +20,7 @@ module.exports = class JPost extends jraphical.Message
   @trait __dirname, '../../traits/slugifiable'
   @trait __dirname, '../../traits/restrictedquery'
 
-  {Base,ObjectRef,secure,dash,daisy} = require 'bongo'
+  {Base,ObjectRef,dash,daisy} = require 'bongo'
   {Relationship} = jraphical
   {extend} = require 'underscore'
 

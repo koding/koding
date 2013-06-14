@@ -64,7 +64,7 @@ class ContentDisplayControllerMember extends KDViewController
 
   addProfileView:(member)->
     if KD.isMine member
-
+      KD.track "Members", "OwnProfileView", member.profile.nickname
       @getView().addSubView memberProfile = new OwnProfileView
         cssClass : "profilearea clearfix"
         delegate : @getView()
@@ -73,6 +73,7 @@ class ContentDisplayControllerMember extends KDViewController
       return memberProfile
 
     else
+      KD.track "Members", "ProfileView", member.profile.nickname
       return @getView().addSubView memberProfile = new ProfileView
         cssClass : "profilearea clearfix"
         bind     : "mouseenter"

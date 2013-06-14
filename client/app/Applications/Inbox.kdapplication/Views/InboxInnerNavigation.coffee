@@ -1,5 +1,5 @@
 class InboxInnerNavigation extends CommonInnerNavigation
-  viewAppended:()->
+  viewAppended:->
     @viewController = viewController = @setListController {},@menuData
     @addSubView viewListWrapper = viewController.getView()
 

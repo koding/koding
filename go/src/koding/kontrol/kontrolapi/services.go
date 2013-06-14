@@ -6,17 +6,17 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"strconv"
 )
 
-func GetProxyUsers(writer http.ResponseWriter, req *http.Request) {
+func GetUsers(writer http.ResponseWriter, req *http.Request) {
 	fmt.Println("GET\t/services")
 	users := make([]string, 0)
-	proxyMachine, _ := proxyDB.GetConfig()
+	services := proxyDB.GetServices()
 
-	for username := range proxyMachine.RoutingTable {
-		users = append(users, username)
+	for _, service := range services {
+		users = append(users, service.Username)
 	}
 
 	data, err := json.MarshalIndent(users, "", "  ")
@@ -28,23 +28,14 @@ func GetProxyUsers(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
+func GetServices(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	username := vars["username"]
 	fmt.Printf("GET\t/services/%s\n", username)
-
 	services := make([]string, 0)
-	proxyMachine, _ := proxyDB.GetConfig()
+	service, _ := proxyDB.GetService(username)
 
-	_, ok := proxyMachine.RoutingTable[username]
-	if !ok {
-		resp := fmt.Sprintf("getting proxy services is not possible. no user %s exists", username)
-		io.WriteString(writer, resp)
-		return
-	}
-	user := proxyMachine.RoutingTable[username]
-
-	for name, _ := range user.Services {
+	for name, _ := range service.Services {
 		services = append(services, name)
 	}
 
@@ -57,34 +48,14 @@ func GetProxyServices(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func CreateProxyUser(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	username := vars["username"]
-	fmt.Printf("POST\t/services/%s\n", username)
-
-	err := proxyDB.AddUser(username)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-	resp := fmt.Sprintf("user '%s' is added to config", username)
-	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
-	return
-}
-
-func GetKeyList(writer http.ResponseWriter, req *http.Request) {
+func GetService(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
 	fmt.Printf("GET\t/services/%s/%s\n", username, servicename)
 
-	res, err := proxyDB.GetKeyList(username, servicename)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	data, err := json.MarshalIndent(res, "", "  ")
+	service, _ := proxyDB.GetService(username)
+	data, err := json.MarshalIndent(service.Services[servicename], "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -93,24 +64,30 @@ func GetKeyList(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
+func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	servicename := vars["servicename"]
 	username := vars["username"]
-	fmt.Printf("POST\t/services/%s/%s\n", username, servicename)
+	key := vars["key"]
+	fmt.Printf("POST\t/services/%s/%s/%s\n", username, servicename, key)
 
 	var msg ProxyPostMessage
 
 	body, _ := ioutil.ReadAll(req.Body)
-	log.Println(string(body))
 	err := json.Unmarshal(body, &msg)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	if msg.Key == "" {
+	if key == "" {
 		err := "no 'key' field available"
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	if key == "latest" {
+		err := "key 'latest' cannot be used."
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
@@ -121,12 +98,25 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if msg.Mode == "" {
+		err := "no 'mode' field available. should 'roundrobin' or 'sticky'"
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	} else {
+		if msg.Mode == "sticky" && msg.CurrentIndex == "" {
+			err := "no 'currentindex' field available. this is needed for 'sticky' mode"
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	}
+
 	// this is optional
 	if msg.Hostdata == "" {
 		msg.Hostdata = "FromKontrolAPI"
 	}
 
-	err = proxyDB.AddKey(username, servicename, msg.Key, msg.Host, msg.Hostdata, msg.RabbitKey)
+	currentIndex, _ := strconv.Atoi(msg.CurrentIndex)
+	err = proxyDB.UpsertKey(username, msg.Mode, servicename, key, msg.Host, msg.Hostdata, msg.RabbitKey, currentIndex)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -134,29 +124,12 @@ func CreateProxyService(writer http.ResponseWriter, req *http.Request) {
 
 	var url string
 	if username == "koding" {
-		url = fmt.Sprintf("{\"host\":\"%s-%s.x.koding.com\"}\n", servicename, msg.Key)
+		url = fmt.Sprintf("{\"host\":\"%s-%s.x.koding.com\"}\n", servicename, key)
 
 	} else {
-		url = fmt.Sprintf("{\"host\":\"%s-%s-%s.kd.io\"}\n", servicename, msg.Key, username)
+		url = fmt.Sprintf("{\"host\":\"%s-%s-%s.kd.io\"}\n", servicename, key, username)
 	}
 	io.WriteString(writer, url)
-	return
-}
-
-func DeleteProxyService(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	servicename := vars["servicename"]
-	username := vars["username"]
-	fmt.Printf("DELETE\t/services/%s/%s\n", username, servicename)
-
-	err := proxyDB.DeleteServiceName(username, servicename)
-	if err != nil {
-		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-		return
-	}
-
-	resp := fmt.Sprintf("service: '%s' is deleted from config", servicename)
-	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
 	return
 }
 
@@ -180,6 +153,23 @@ func GetKey(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	writer.Write([]byte(data))
+}
+
+func DeleteService(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	servicename := vars["servicename"]
+	username := vars["username"]
+	fmt.Printf("DELETE\t/services/%s/%s\n", username, servicename)
+
+	err := proxyDB.DeleteService(username, servicename)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	resp := fmt.Sprintf("service: '%s' is deleted from config", servicename)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
 }
 
 func DeleteKey(writer http.ResponseWriter, req *http.Request) {

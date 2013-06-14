@@ -120,7 +120,7 @@ class KDTabView extends KDScrollView
         @removePane pane
         break
 
-  appendHandleContainer:()->
+  appendHandleContainer:->
     @addSubView @tabHandleContainer
 
   appendPane:(pane)->
@@ -145,7 +145,7 @@ class KDTabView extends KDScrollView
     else
       warn "You can't add #{handle.constructor.name if handle?.constructor?.name?} as a pane, use KDTabHandleView instead."
 
-  removeHandle:()->
+  removeHandle:->
 
 
   #SHOW/HIDE ELEMENTS
@@ -162,7 +162,7 @@ class KDTabView extends KDScrollView
     pane
 
 
-  hideAllPanes:()->
+  hideAllPanes:->
     for pane in @panes
       pane.hide()
     for handle in @handles
@@ -179,10 +179,10 @@ class KDTabView extends KDScrollView
   toggleHandleContainer:(duration = 0)->
     @tabHandleContainer.$().toggle duration
 
-  hideHandleCloseIcons:()->
+  hideHandleCloseIcons:->
     @tabHandleContainer.$().addClass "hide-close-icons"
 
-  showHandleCloseIcons:()->
+  showHandleCloseIcons:->
     @tabHandleContainer.$().removeClass "hide-close-icons"
 
   handleMouseDownDefaultAction:(clickedTabHandle, event)->
@@ -206,7 +206,7 @@ class KDTabView extends KDScrollView
       @tabHandleContainer = new KDView()
       @appendHandleContainer()
     @tabHandleContainer.setClass "kdtabhandlecontainer"
-  getTabHandleContainer:()-> @tabHandleContainer
+  getTabHandleContainer:-> @tabHandleContainer
 
   #TRAVERSING PANES/HANDLES
   checkPaneExistenceById:(id)->

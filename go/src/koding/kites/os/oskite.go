@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"io"
 	"io/ioutil"
 	"koding/kites/os/ldapserver"
@@ -27,6 +28,7 @@ type VMInfo struct {
 	vmName        string
 	channels      map[*kite.Channel]bool
 	timeout       *time.Timer
+	mutex         sync.Mutex
 	totalCpuUsage int
 
 	State       string `json:"state"`
@@ -39,9 +41,19 @@ type VMInfo struct {
 var infos = make(map[bson.ObjectId]*VMInfo)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
+var firstContainerIP net.IP
+var containerSubnet *net.IPNet
+var ipCounterInitialValue int
 
 func main() {
 	lifecycle.Startup("kite.os", true)
+
+	var err error
+	if firstContainerIP, containerSubnet, err = net.ParseCIDR(config.Current.ContainerSubnet); err != nil {
+		log.LogError(err, 0)
+		return
+	}
+
 	if err := virt.LoadTemplates(templateDir); err != nil {
 		log.LogError(err, 0)
 		return
@@ -250,8 +262,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 		infosMutex.Unlock()
 
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
+
 		if vm.IP == nil {
-			ipInt := db.NextCounterValue("vm_ip")
+			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
 			if !vm.IsTemporary() {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
@@ -259,6 +274,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 			vm.IP = ip
+		}
+		if !containerSubnet.Contains(vm.IP) {
+			panic("VM with IP that is not in the container subnet: " + vm.IP.String())
 		}
 
 		if vm.LdapPassword == "" {
@@ -275,8 +293,6 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
-
-			vm.SetHostname(vm.Name + "." + config.Current.UserSitesDomain)
 			vm.Prepare(getUsers(vm), false)
 			if out, err := vm.Start(); err != nil {
 				log.Err("Could not start VM.", err, out)
@@ -312,20 +328,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			start := strings.Index(vm.Name, "~") + 1
-			end := strings.LastIndex(vm.Name, "-")
-			if end == -1 {
-				end = len(vm.Name)
-			}
-			vmHomeName := vm.Name[start:end]
-			websiteDir := "/home/" + vmHomeName + "/Sites/" + vm.Hostname()
+			websiteDir := "/home/" + vm.SitesHomeName() + "/Sites/" + vm.Hostname()
 			if _, err := rootVos.Stat(websiteDir); err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
 
 				websiteVos := rootVos
-				if vmHomeName == user.Name {
+				if vm.SitesHomeName() == user.Name {
 					websiteVos = userVos
 				}
 				if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
@@ -356,7 +366,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			if vmHomeName != user.Name {
+			if vm.SitesHomeName() != user.Name {
 				if err := userVos.Mkdir("/home/"+user.Name+"/Web", 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
@@ -366,6 +376,10 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 		}
 
+		if concurrent {
+			info.mutex.Unlock()
+			defer info.mutex.Lock()
+		}
 		return callback(args, channel, userVos)
 	})
 }

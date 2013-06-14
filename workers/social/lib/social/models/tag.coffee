@@ -83,6 +83,7 @@ module.exports = class JTag extends jraphical.Module
         tagged      :
           type      : Number
           default   : 0
+      meta          : require 'bongo/bundles/meta'
       synonyms      : [String]
       group         : String
       # owner         : ObjectId

@@ -26,6 +26,9 @@ class NewMemberBucketView extends JView
     @isLoading            = no
 
     @group.on "moreLinkClicked", =>
+
+      return warn "not yet implemented, @facet fix pls!!!"
+
       return if @isLoading or @getData().count <= @lastFetchedItemCount and @showMore
       @isLoading = yes
       @groupLoader = new KDLoaderView

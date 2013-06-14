@@ -74,11 +74,11 @@ class InboxMessagesListItem extends KDListItemView
   mouseLeave:(event)->
     @unsetClass "shadowed"
 
-  makeAllItemsUnselected:()->
+  makeAllItemsUnselected:->
     inboxList = @getDelegate()
     inboxList.$("li").removeClass("active")
 
-  makeItemSelected:()->
+  makeItemSelected:->
     @setClass "active"
 
   click:(event)->

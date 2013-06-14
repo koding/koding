@@ -19,6 +19,8 @@ type translateTest struct {
 	out          string
 }
 
+// TODO test codepage behaviour at char boundary.
+
 var tests = []translateTest{
 	{true, "iso-8859-15", "\xa41 is cheap", "€1 is cheap"},
 	{true, "ms-kanji", "\x82\xb1\x82\xea\x82\xcd\x8a\xbf\x8e\x9a\x82\xc5\x82\xb7\x81B", "これは漢字です。"},

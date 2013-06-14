@@ -28,10 +28,7 @@ module.exports = class BaseDecorator
     maps =
       'JStatusUpdate' : 'CStatusActivity'
       'JCodeSnip'     : 'CCodeSnipActivity'
-      #"hede1"         : 'CFollowerBucketActivity'
-      #"hede2"         : 'CNewMemberBucketActivity'
       'JDiscussion'   : 'CDiscussionActivity'
-      #"hede2"         : 'CInstallerBucketActivity'
       'JTutorial'     : 'CTutorialActivity'
       'JBlogPost'     : 'CBlogPostActivity'
 
@@ -47,6 +44,7 @@ module.exports = class BaseDecorator
       slug_             : @datum.slug_
       originId          : @datum.originId
       originType        : @datum.originType
+      group             : @datum.group
       meta              : @decorateSnapshotMeta(@datum)
       body              : @datum.body
       attachments       : @attachments()

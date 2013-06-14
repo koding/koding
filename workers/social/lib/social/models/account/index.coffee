@@ -22,7 +22,7 @@ module.exports = class JAccount extends jraphical.Module
   JAppStorage = require '../appstorage'
   JTag = require '../tag'
   CActivity = require '../activity'
-
+  Graph     = require "../graph/graph"
   @getFlagRole = 'content'
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
@@ -99,28 +99,6 @@ module.exports = class JAccount extends jraphical.Module
           type              : String
           default           : ''
         description         : String
-        handles             :
-          twitter           : String
-          github            : String
-        staticPage          :
-          show              :
-            type            : Boolean
-            default         : yes
-          showTypes         : [String]
-          title             : String
-          about             : String
-          # backgrounds       : [String]
-          customize         :
-            background       :
-              customImages    : [String]
-              customType      :
-                type          : String
-                default       : 'defaultImage'
-                enum          : ['invalid type', [ 'defaultImage', 'customImage', 'defaultColor', 'customColor']]
-              customValue     :
-                type          : String
-                default       : '1'
-              customOptions   : Object
         avatar              : String
         status              : String
         experience          : String
@@ -130,6 +108,11 @@ module.exports = class JAccount extends jraphical.Module
         lastStatusUpdate    : String
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
+      onlineStatus          :
+        type                : String
+        enum                : ['invalid status',['online','offline','away','busy']]
+        default             : 'online'
+
     relationships           : ->
       JPrivateMessage = require '../messages/privatemessage'
 
@@ -172,6 +155,10 @@ module.exports = class JAccount extends jraphical.Module
       vm            :
         as          : 'owner'
         targetType  : 'JVM'
+
+      domain        :
+        as          : 'owner'
+        targetType  : 'JDomain'
 
   constructor:->
     super
@@ -931,6 +918,21 @@ module.exports = class JAccount extends jraphical.Module
   #   else
   #     callback client
 
+  fetchFollowersFromNeo4j:(options={}, callback)->
+      # returns accounts that follow this account
+      query =
+        """
+        start  koding=node:koding(id='#{@getId()}')
+        MATCH koding-[:follower]->followers
+        where followers.name="JAccount
+        return followers
+        """
+
+      options['resultsKey'] = 'followers'
+      Graph          = require "../graph/graph"
+      graph = new Graph(config:KONFIG['neo4j'])
+      graph.fetchFromNeo4j(query, options, callback)
+
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
       @byRelevance client, seed, options, callback
@@ -964,3 +966,50 @@ module.exports = class JAccount extends jraphical.Module
   addTags: secure (client, tags, options, callback)->
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
+
+  fetchMyFollowingsFromGraph: secure (client, options, callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    userId = client.connection.delegate._id
+    options.currentUserId = userId
+    graph.fetchFollowingMembers options, (err, results)=>
+      if err then return callback err
+      else
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.id
+          JAccount.one  { _id : objId }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res
+
+
+  fetchMyFollowersFromGraph: secure (client, options, callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    userId = client.connection.delegate._id
+    options.currentUserId = userId
+    graph.fetchFollowerMembers options, (err, results)=>
+      if err then return callback err
+      else
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.id
+          JAccount.one  { _id : objId }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res
+
+

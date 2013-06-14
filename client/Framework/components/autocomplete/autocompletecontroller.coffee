@@ -83,7 +83,7 @@ class KDAutoCompleteController extends KDViewController
         @readyToShowDropDown = yes
     no
 
-  getPrefix:()->
+  getPrefix:->
     separator = @getOptions().separator
     items = @getView().getValue().split separator
     prefix = items[items.length-1]
@@ -184,7 +184,7 @@ class KDAutoCompleteController extends KDViewController
         @appendAutoCompletedItem()
       @addItemToSubmitQueue activeItem.item
       @rearrangeInputWidth()
-      @emit 'ItemListChanged'
+      @emit 'ItemListChanged', @selectedItemCounter
     else
       inputView.setValue ''
       @getSingleton("windowController").setKeyView null
@@ -225,7 +225,7 @@ class KDAutoCompleteController extends KDViewController
       defaultValue  : value
 
   removeHiddenInputItem:(name)->
-    @hiddenInputs[name].remove()
+    delete @hiddenInputs[name]
 
   addSelectedItem:(name,data)->
     {selectedItemClass} = @getOptions()
@@ -296,7 +296,7 @@ class KDAutoCompleteController extends KDViewController
       if item.getOptions().userInput is not ""
         @selectedItemCounter++
     else
-      @addHiddenInputItem path.join('.'),itemValue
+      @addHiddenInputItem path, itemValue
 
     @addSelectedItemData data
     @addSelectedItem itemName, data
@@ -316,17 +316,17 @@ class KDAutoCompleteController extends KDViewController
           sibling.id isnt id
       JsPath.setAt form.getCustomData(), path, collection
     else
-      @removeHiddenInputItem path.join('.')
+      @removeHiddenInputItem path
     @removeSelectedItemData data
     @selectedItemCounter--
     item.destroy()
-    @emit 'ItemListChanged'
+    @emit 'ItemListChanged', @selectedItemCounter
 
-  rearrangeInputWidth:()->
+  rearrangeInputWidth:->
     # mainView = @getView()
     # mainView.$input().width mainView.$input().parent().width() - mainView.$input().prev().width()
 
-  appendAutoCompletedItem:()->
+  appendAutoCompletedItem:->
     @getView().setValue ""
     @getView().$input().trigger "focus"
 

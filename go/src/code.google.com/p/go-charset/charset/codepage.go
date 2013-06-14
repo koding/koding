@@ -53,7 +53,7 @@ func (p *translateToCodePage) Translate(data []byte, eof bool) (int, []byte, err
 		size := 1
 		if r >= utf8.RuneSelf {
 			r, size = utf8.DecodeRune(data[i:])
-			if size == 1 && !eof && !utf8.FullRune(data) {
+			if size == 1 && !eof && !utf8.FullRune(data[i:]) {
 				return i, buf, nil
 			}
 		}

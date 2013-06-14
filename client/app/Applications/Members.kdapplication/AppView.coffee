@@ -176,13 +176,14 @@ class MemberFollowToggleButton extends KDToggleButton
       states          : [
         title         : "Follow"
         callback      : (callback)->
-          KD.requireLogin
+          KD.requireMembership
             callback  : =>
               @getData().follow (err, response)=>
                 @hideLoader()
                 unless err
                   @getData().followee = yes
                   @setClass 'following-btn'
+                  KD.track "Members", "Follow", @getData().profile.nickname
                   callback? null
             tryAgain  : yes
             onFailMsg : 'Login required to follow members'
@@ -195,6 +196,7 @@ class MemberFollowToggleButton extends KDToggleButton
             unless err
               @getData().followee = no
               @unsetClass 'following-btn'
+              KD.track "Members", "Unfollow", @getData().profile.nickname
               callback? null
       ]
     , options

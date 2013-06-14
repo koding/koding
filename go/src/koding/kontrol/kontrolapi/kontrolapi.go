@@ -13,14 +13,17 @@ import (
 )
 
 type ProxyPostMessage struct {
-	Name      string
-	Username  string
-	Domain    string
-	Mode      string
-	Key       string
-	RabbitKey string
-	Host      string
-	Hostdata  string
+	Name          string
+	Username      string
+	Domain        string
+	Mode          string
+	CurrentIndex  string
+	Key           string
+	RabbitKey     string
+	Host          string
+	HostnameAlias string
+	FullUrl       string
+	Hostdata      string
 }
 
 var clientDB *clientconfig.ClientConfig
@@ -74,34 +77,37 @@ func main() {
 	rout.HandleFunc("/proxies/{proxyname}", DeleteProxy).Methods("DELETE")
 
 	// Service handlers
-	rout.HandleFunc("/services", GetProxyUsers).Methods("GET")
-	rout.HandleFunc("/services/{username}", GetProxyServices).Methods("GET")
-	rout.HandleFunc("/services/{username}", CreateProxyUser).Methods("POST")
-	rout.HandleFunc("/services/{username}/{servicename}", GetKeyList).Methods("GET")
-	rout.HandleFunc("/services/{username}/{servicename}", CreateProxyService).Methods("POST")
-	rout.HandleFunc("/services/{username}/{servicename}", DeleteProxyService).Methods("DELETE")
+	rout.HandleFunc("/services", GetUsers).Methods("GET")
+	rout.HandleFunc("/services/{username}", GetServices).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}", GetService).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}", DeleteService).Methods("DELETE")
 	rout.HandleFunc("/services/{username}/{servicename}/{key}", GetKey).Methods("GET")
+	rout.HandleFunc("/services/{username}/{servicename}/{key}", CreateKey).Methods("POST")
 	rout.HandleFunc("/services/{username}/{servicename}/{key}", DeleteKey).Methods("DELETE")
 
 	// Domain handlers
 	rout.HandleFunc("/domains", GetDomains).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", GetDomain).Methods("GET")
-	rout.HandleFunc("/domains/{domain}", CreateDomain).Methods("POST")
+	rout.HandleFunc("/domains/{domain}", CreateOrUpdateDomain).Methods("POST", "PUT")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
 	// Rule handlers
-	rout.HandleFunc("/rules", GetRules).Methods("GET")
-	rout.HandleFunc("/rules/{username}", GetRulesServices).Methods("GET")
-	rout.HandleFunc("/rules/{username}/{servicename}", GetRule).Methods("GET")
-	rout.HandleFunc("/rules/{username}/{servicename}", CreateRule).Methods("POST")
+	rout.HandleFunc("/restrictions", GetRestrictions).Methods("GET")
+	rout.HandleFunc("/restrictions/{domain}", GetRestriction).Methods("GET")
+	rout.HandleFunc("/restrictions/{domain}", DeleteRestriction).Methods("DELETE")
+	rout.HandleFunc("/restrictions/{domain}/rules", CreateRule).Methods("POST")
+	rout.HandleFunc("/restrictions/{domain}/rules/{rule}", GetRule).Methods("GET")
+	rout.HandleFunc("/restrictions/{domain}/rules/{rule}", DeleteRule).Methods("DELETE")
+	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", CreateBehaviour).Methods("POST", "PUT")
+	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", DeleteBehaviour).Methods("DELETE")
 
 	// Statistics handlers
-	rout.HandleFunc("/stats", GetStats).Methods("GET")
-	rout.HandleFunc("/stats", DeleteStats).Methods("DELETE")
 	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
-	rout.HandleFunc("/stats/domains/{domain}", GetSingleDomainStats).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", GetDomainStat).Methods("GET")
+	rout.HandleFunc("/stats/domains/{domain}", DeleteDomainStat).Methods("DELETE")
 	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
-	rout.HandleFunc("/stats/proxies/{proxy}", GetSingleProxyStats).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", GetProxyStat).Methods("GET")
+	rout.HandleFunc("/stats/proxies/{proxy}", DeleteProxyStat).Methods("DELETE")
 
 	// Rollbar api
 	rout.HandleFunc("/rollbar", rollbar).Methods("POST")

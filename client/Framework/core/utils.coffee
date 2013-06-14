@@ -40,7 +40,7 @@ __utils =
     id = __utils.idCounter++
     if prefix? then "#{prefix}#{id}" else id
 
-  getRandomRGB :()->
+  getRandomRGB :->
     {getRandomNumber} = @
     "rgb(#{getRandomNumber(255)},#{getRandomNumber(255)},#{getRandomNumber(255)})"
 
@@ -322,7 +322,7 @@ __utils =
         if candidate?.length > minLength then candidate
         else longText
 
-  getMonthOptions : ()->
+  getMonthOptions : ->
     ((if i > 9 then { title : "#{i}", value : i} else { title : "0#{i}", value : i}) for i in [1..12])
 
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
@@ -705,6 +705,17 @@ __utils =
     group   = permissions.substr 3, 3
     other   = permissions.substr 6, 3
     octal   = '' + @_permissionMap()[user] + @_permissionMap()[group] + @_permissionMap()[other]
+
+  # private member for tracking z-indexes
+  zIndexContexts:{}
+
+  # Get next highest Z-index
+  getNextHighestZIndex:(context)->
+   uniqid = context.data 'data-id'
+   if isNaN zIndexContexts[uniqid]
+     zIndexContexts[uniqid] = 0
+   else
+     zIndexContexts[uniqid]++
 
   # deprecated ends
 

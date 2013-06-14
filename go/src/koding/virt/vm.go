@@ -9,20 +9,22 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"syscall"
 	"text/template"
 	"time"
 )
 
 type VM struct {
-	Id           bson.ObjectId  `bson:"_id"`
-	Name         string         `bson:"name"`
-	Users        []*Permissions `bson:"users"`
-	LdapPassword string         `bson:"ldapPassword"`
-	IP           net.IP         `bson:"ip"`
-	HostKite     string         `bson:"hostKite"`
-	SnapshotOf   bson.ObjectId  `bson:"snapshotOf"`
-	hostname     string
+	Id            bson.ObjectId  `bson:"_id"`
+	Name          string         `bson:"name"`
+	Users         []*Permissions `bson:"users"`
+	LdapPassword  string         `bson:"ldapPassword"`
+	IP            net.IP         `bson:"ip"`
+	HostKite      string         `bson:"hostKite"`
+	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
+	HostnameAlias []string       `bson:"hostnameAlias"`
+	hostname      string
 }
 
 type Permissions struct {
@@ -70,12 +72,24 @@ func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
-func (vm *VM) SetHostname(hostname string) {
-	vm.hostname = hostname
+func (vm *VM) Hostname() string {
+	return vm.HostnameAlias[0]
 }
 
-func (vm *VM) Hostname() string {
-	return vm.hostname
+func (vm *VM) HostnameAliasesLine() string {
+	return strings.Join(vm.HostnameAlias[1:], " ")
+}
+
+func (vm *VM) SitesHomeName() string {
+	// vm.Name is group~n or group~user~n
+	parts := strings.Split(vm.Name, "~")
+	switch len(parts) {
+	case 2:
+		return parts[0]
+	case 3:
+		return parts[1]
+	}
+	panic("Invalid vm.Name format.")
 }
 
 func (vm *VM) RbdDevice() string {
