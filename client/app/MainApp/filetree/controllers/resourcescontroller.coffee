@@ -92,7 +92,7 @@ class ResourcesListItem extends KDListItemView
       iconOnly : yes
       cssClass : 'vm-terminal'
       callback :->
-        appManager.open "WebTerm", params: {vmName}, forceNew: yes
+        KD.getSingleton("appManager").open "WebTerm", params: {vmName}, forceNew: yes
 
     @addSubView @chevron = new KDCustomHTMLView
       tagName   : "span"
@@ -130,7 +130,7 @@ class ResourcesListItem extends KDListItemView
         separator        : yes
       'Open VM Terminal' :
         callback         : ->
-          appManager.open "WebTerm", params: {vmName}, forceNew: yes
+          KD.getSingleton("appManager").open "WebTerm", params: {vmName}, forceNew: yes
           @destroy()
         separator        : yes
       customView3        : new NVMDetailsView {}, {vmName}

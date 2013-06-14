@@ -6,6 +6,8 @@ class NavigationActivityLink extends KDCustomHTMLView
 
     super options, data
 
+    appManager = KD.getSingleton "appManager"
+
     @newActivityCount = 0
 
     @count = new KDCustomHTMLView

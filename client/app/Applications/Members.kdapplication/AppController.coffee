@@ -12,10 +12,12 @@ class MembersAppController extends AppController
     options.appInfo =
       name          : 'Members'
 
+    @appManager = KD.getSingleton "appManager"
+
     super options, data
 
   createFeed:(view, loadFeed = no)->
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    @appManager.tell 'Feeder', 'createContentFeedController', {
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
       useHeaderNav          : no
@@ -82,7 +84,7 @@ class MembersAppController extends AppController
 
   createFeedForContentDisplay:(view, account, followersOrFollowing, callback)->
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : MembersListItemView
       listControllerClass   : MembersListViewController
@@ -133,7 +135,7 @@ class MembersAppController extends AppController
 
   createLikedFeedForContentDisplay:(view, account, callback)->
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
       listCssClass          : "activity-related"

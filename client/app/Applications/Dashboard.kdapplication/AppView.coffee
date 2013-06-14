@@ -84,7 +84,7 @@ class DashboardAppView extends JView
   createTabs:->
 
     data = @getData()
-    @getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
+    KD.getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
       navItems = []
       for {name, hiddenHandle, viewOptions}, i in tabData
         viewOptions.data = data

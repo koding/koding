@@ -19,7 +19,7 @@ class StaticProfileController extends KDController
   constructor:(options,data)->
     super options,data
 
-    appManager = @getSingleton 'appManager'
+    @appManager = KD.getSingleton 'appManager'
 
     @navLinks     = {}
     @controllers  = {}
@@ -187,7 +187,7 @@ class StaticProfileController extends KDController
         @emit 'DecorateStaticNavLinks', allowedTypes, facets.first
         if blockedTypes.length is 0 or type is 'static'
           @currentFacets = facets
-          appManager.tell 'Activity', 'fetchActivity',
+          @appManager.tell 'Activity', 'fetchActivity',
             originId : @profileUser.getId()
             facets : facets
             bypass : yes
@@ -613,7 +613,7 @@ class StaticProfileController extends KDController
     @profileContentView.addSubView activityListWrapper
 
     activityController.on 'LazyLoadThresholdReached', =>
-      appManager.tell 'Activity', 'fetchActivity',
+      @appManager.tell 'Activity', 'fetchActivity',
         originId  : @profileUser.getId()
         facets    : @currentFacets
         to        : activityController.itemsOrdered.last.getData().meta.createdAt

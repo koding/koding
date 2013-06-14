@@ -95,7 +95,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
         e.preventDefault()
         e.stopPropagation()
         jApp = @appsController.publishedApps[manifest.name]
-        @getSingleton("appManager").open "Apps", =>
+        KD.getSingleton("appManager").open "Apps", =>
           @getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
 
     if @getData().devMode
