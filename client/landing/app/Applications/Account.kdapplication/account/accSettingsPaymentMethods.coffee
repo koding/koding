@@ -54,7 +54,7 @@ class AccountPaymentMethodsList extends KDListView
     super options,data
 
   showModal: (controller) ->
-    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)->
+    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
       if err or not data
         data = {}
 
