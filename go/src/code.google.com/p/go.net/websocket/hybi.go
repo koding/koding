@@ -419,6 +419,8 @@ func hybiClientHandshake(config *Config, br *bufio.Reader, bw *bufio.Writer) (er
 	if len(config.Protocol) > 0 {
 		bw.WriteString("Sec-WebSocket-Protocol: " + strings.Join(config.Protocol, ", ") + "\r\n")
 	}
+	bw.WriteString("Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n")
+	bw.WriteString("Pragma: no-cache\r\n")
 	// TODO(ukai): send Sec-WebSocket-Extensions.
 	err = config.Header.WriteSubset(bw, handshakeHeader)
 	if err != nil {
@@ -559,6 +561,8 @@ func (c *hybiServerHandshaker) AcceptHandshake(buf *bufio.Writer) (err error) {
 	if len(c.Protocol) > 0 {
 		buf.WriteString("Sec-WebSocket-Protocol: " + c.Protocol[0] + "\r\n")
 	}
+	buf.WriteString("Cache-Control: no-store, no-cache, must-revalidate, max-age=0\r\n")
+	buf.WriteString("Pragma: no-cache\r\n")
 	// TODO(ukai): send Sec-WebSocket-Extensions.
 	if c.Header != nil {
 		err := c.Header.WriteSubset(buf, handshakeHeader)
