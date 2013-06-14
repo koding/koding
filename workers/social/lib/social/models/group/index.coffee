@@ -84,9 +84,10 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
-        'fetchRolesByClientId',
+        'fetchRolesByClientId', 'fetchOrSearchInvitationRequests',
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'fetchOrSearchInvitationRequests'
+        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'vmUsage',
+        'fetchBundle', 'updateBundle'
       ]
     schema          :
       title         :
@@ -121,7 +122,11 @@ module.exports = class JGroup extends Module
           customOptions   : Object
       payment       :
         plan        : String
+        paymentQuota: Number
     relationships   :
+      bundle        :
+        targetType  : 'JGroupBundle'
+        as          : 'owner'
       permissionSet :
         targetType  : JPermissionSet
         as          : 'owner'
@@ -328,6 +333,22 @@ module.exports = class JGroup extends Module
             else
               console.log 'roles are added'
               queue.next()
+        ->
+          if groupData['allow-over-usage']
+            if groupData['require-approval']
+              overagePolicy = 'by permission'
+            else
+              overagePolicy = 'allowed'
+          else
+            overagePolicy = 'not allowed'
+          group.createBundle
+            overagePolicy: overagePolicy
+            paymentPlan  : groupData.payment.plan
+            allocation   : parseInt(groupData.allocation, 10) * 100
+            sharedVM     : groupData['shared-vm']
+          , ->
+            console.log 'bundle is created'
+            queue.next()
       ]
 
       if 'private' is group.privacy
@@ -1259,6 +1280,37 @@ module.exports = class JGroup extends Module
         for admin in admins
           admin.sendNotification event, contents
 
+  updateBundle: (formData, callback = (->)) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
+      bundle.fetchLimits (err, limits) ->
+        return callback err  if err?
+        queue = limits.map (limit) -> ->
+          limit.update { $set: quota: formData.quotas[limit.title] }, fin
+        dash queue, callback
+        fin = queue.fin.bind queue
+ 
+  updateBundle$: permit 'change bundle',
+    success: (client, formData, callback)->
+      @updateBundle formData, callback
+ 
+  createBundle: (data, callback) ->
+    @fetchBundle (err, bundle) =>
+      return callback err  if err?
+      return callback new KodingError 'Bundle exists!'  if bundle?
+ 
+      JGroupBundle = require '../bundle/groupbundle'
+ 
+      bundle = new JGroupBundle data
+      bundle.save (err) =>
+        return callback err  if err?
+ 
+        @addBundle bundle, callback
+ 
+  fetchBundle$: permit 'commission resources',
+    success: (client, rest...) -> @fetchBundle rest...
+
   makePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
     JRecurlyPlan = require '../recurly'
@@ -1283,80 +1335,26 @@ module.exports = class JGroup extends Module
     JRecurlySubscription = require '../recurly/subscription'
     JRecurlySubscription.getGroupSubscriptions @, callback
 
+  vmUsage: secure (client, callback)->
+    {delegate} = client.connection
+
+    @fetchBundle (err, bundle)=>
+      if err or not bundle
+        # TODO: Better error message required
+        callback new KodingError "Unable to fetch group bundle"
+      else
+        bundle.checkUsage delegate, @, callback
+
   createVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type is "personal"
-      data.type = "user"
-    else if data.type is "shared"
-      data.type = "group"
-
-    JRecurlyPlan         = require '../recurly'
-    JRecurlySubscription = require '../recurly/subscription'
-    JVM                  = require '../vm'
-    async                = require 'async'
-
-    _createVMs = (type, cb)=>
-      if type is 'user'
-        planOwner = "user_#{delegate._id}"
-        getSubs   = JRecurlySubscription.getUserSubscriptions
-        target    = client
-      else
-        planOwner = "group_#{@._id}"
-        getSubs   = JRecurlySubscription.getGroupSubscriptions
-        target    = @
-
-      getSubs target, (err, subs)=>
-        return cb new KodingError "Payment backend error: #{err}"  if err
-
-        paidVMs = {}
-
-        if type is "user"
-          paidVMs.free = 1
-
-        subs.forEach (sub)->
-          if sub.status is 'active' and sub.planCode.indexOf('group_vm_') > -1
-            paidVMs[sub.planCode] = sub.quantity
-
-        createdVMs = {}
-        JVM.someData
-          planOwner: planOwner
-        ,
-          planCode  : 1
-          planOwner : 1
-          name      : 1
-        , {}, (err, cursor)=>
-          cursor.toArray (err, arr)=>
-            return cb err  if err
-            arr.forEach (vm)->
-              unless vm.planCode in Object.keys createdVMs
-                createdVMs[vm.planCode] = 0
-              createdVMs[vm.planCode] += 1
-
-            stack = []
-
-            Object.keys(paidVMs).forEach (planCode)=>
-              vmQuantity = paidVMs[planCode]
-              unless planCode in Object.keys createdVMs
-                quantity = vmQuantity
-              else
-                quantity = vmQuantity - createdVMs[planCode]
-              for i in [1..quantity] when quantity >= 1
-                stack.push (_cb)=>
-                  options     =
-                    planCode  : planCode
-                    usage     : {cpu: 1, ram: 1, disk: 1}
-                    type      : type
-                    account   : delegate
-                    groupSlug : @slug
-                  JVM.createVm options, ->
-                    _cb null, "Created VM - #{planCode}"
-
-            async.parallel stack, (err, results)=>
-              cb err, results
-
-    if data.type in ['user', 'group']
-      _createVMs data.type, callback
+    if data.type in ['user', 'group', 'expensed']
+      @fetchBundle (err, bundle)=>
+        if err or not bundle
+          # TODO: Better error message required
+          callback new KodingError "Unable to fetch group bundle"
+        else
+          bundle.createVM delegate, @, data, callback
     else
       callback new KodingError "No such VM type: #{data.type}"
 

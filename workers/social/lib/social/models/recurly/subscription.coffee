@@ -3,7 +3,7 @@ JUser = require '../user'
 payment = require 'koding-payment'
 
 forceRefresh  = yes
-forceInterval = 60 * 60
+forceInterval = 0
 
 module.exports = class JRecurlySubscription extends jraphical.Module
 
@@ -30,6 +30,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       datetime     : String
       expires      : String
       renew        : String
+      expensed     : Number
       lastUpdate   : Number
 
   @getUserSubscriptions = secure (client, callback)->
@@ -40,33 +41,35 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     JRecurlySubscription.getSubscriptions "group_#{group._id}", callback
 
   @getSubscriptions = (userCode, callback)->
-    selector   =
+    JRecurlySubscription.getSubscriptionsAll userCode,
       userCode : userCode
+    , callback
 
+  @getSubscriptionsAll = (userCode, selector, callback)->
     unless forceRefresh
       JRecurlySubscription.all selector, callback
     else
       JRecurlySubscription.one selector, (err, sub)=>
         callback err  if err
         unless sub
-          @updateCache userCode, -> JRecurlySubscription.all selector, callback
+          @updateCache userCode, selector, -> JRecurlySubscription.all selector, callback
         else
           sub.lastUpdate ?= 0
           now = (new Date()).getTime()
           if now - sub.lastUpdate > 1000 * forceInterval
-            @updateCache userCode, -> JRecurlySubscription.all selector, callback
+            @updateCache userCode, selector, -> JRecurlySubscription.all selector, callback
           else
             JRecurlySubscription.all selector, callback
 
   # Recurly web hook will use this method to invalidate the cache.
-  @updateCache = (userCode, callback)->
+  @updateCache = (userCode, selector, callback)->
     console.log "Updating Recurly user subscription..."
 
     payment.getUserSubscriptions userCode, (err, allSubs)->
       mapAll = {}
       allSubs.forEach (rSub)->
         mapAll[rSub.uuid] = rSub
-      JRecurlySubscription.all {userCode}, (err, cachedPlans)->
+      JRecurlySubscription.all {selector}, (err, cachedPlans)->
         mapCached = {}
         cachedPlans.forEach (cSub)->
           mapCached[cSub.uuid] = cSub
@@ -81,34 +84,35 @@ module.exports = class JRecurlySubscription extends jraphical.Module
           # create or update
           stack.push (cb)->
             {uuid, plan, quantity, status, datetime, expires, renew} = mapAll[k]
-            if k not in Object.keys(mapCached)
-              sub = new JRecurlySubscription
-              sub.uuid = uuid
-            else
-              sub = mapCached[k]
+            JRecurlySubscription.one
+              uuid: k
+            , (err, sub)->
+              if err or not sub
+                sub = new JRecurlySubscription
+                sub.uuid = uuid
 
-            sub.userCode = userCode
-            sub.planCode = plan
-            sub.quantity = quantity
-            sub.status   = status
-            sub.datetime = datetime
-            sub.expires  = expires
-            sub.renew    = renew
+              sub.userCode = userCode
+              sub.planCode = plan
+              sub.quantity = quantity
+              sub.status   = status
+              sub.datetime = datetime
+              sub.expires  = expires
+              sub.renew    = renew
 
-            sub.lastUpdate = (new Date()).getTime()
+              sub.lastUpdate = (new Date()).getTime()
 
-            sub.save ->
-              cb null, sub
+              sub.save ->
+                cb null, sub
 
         async = require 'async'
         async.parallel stack, (err, results)->
           callback()
 
-  cancel: secure (client, callback)->
-    {delegate} = client.connection
-    userCode = "user_#{delegate._id}"
-    payment.cancelUserSubscription userCode,
-      uuid: @uuid
+  update: (quantity, callback)->
+    payment.updateUserSubscription @userCode,
+      uuid     : @uuid
+      plan     : @planCode
+      quantity : quantity
     , (err, sub)=>
       return callback yes  if err
       @status   = sub.status
@@ -120,13 +124,39 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       @save =>
         callback no, @
 
-  resume: secure (client, callback)->
-    {delegate} = client.connection
-    userCode = "user_#{delegate._id}"
-    payment.reactivateUserSubscription userCode,
+  terminate: (callback)->
+    payment.terminateUserSubscription @userCode,
       uuid: @uuid
     , (err, sub)=>
-      return callback yes  if err
+      return callback err  if err
+      @status   = sub.status
+      @datetime = sub.datetime
+      @expires  = sub.expires
+      @planCode = sub.plan
+      @quantity = sub.quantity
+      @renew    = sub.renew
+      @save =>
+        callback no, @
+
+  cancel: (callback)->
+    payment.cancelUserSubscription @userCode,
+      uuid: @uuid
+    , (err, sub)=>
+      return callback err  if err
+      @status   = sub.status
+      @datetime = sub.datetime
+      @expires  = sub.expires
+      @planCode = sub.plan
+      @quantity = sub.quantity
+      @renew    = sub.renew
+      @save =>
+        callback no, @
+
+  resume: (callback)->
+    payment.reactivateUserSubscription @userCode,
+      uuid: @uuid
+    , (err, sub)=>
+      return callback err  if err
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires
