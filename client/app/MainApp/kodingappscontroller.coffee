@@ -120,8 +120,8 @@ class KodingAppsController extends KDController
       else
         justFetchApps()
 
-  fetchUpdateAvailableApps: (callback, useTheForce) ->
-    return callback? null, @updateAvailableApps if @updateAvailableApps and not useTheForce
+  fetchUpdateAvailableApps: (callback, force) ->
+    return callback? null, @updateAvailableApps  if @updateAvailableApps and not force
     {publishedApps}      = @
     @updateAvailableApps = []
 
