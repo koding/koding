@@ -182,10 +182,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// FIXME: hardcoded for now, will be removed -- arslan
-	if req.Host == "koding.com" {
-	}
-
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
