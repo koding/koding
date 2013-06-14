@@ -205,7 +205,8 @@ class KodingRouter extends KDRouter
 
       '/'      : handleRoot
       ''       : handleRoot
-      '/About' : createStaticContentHandler 'Home', yes
+      # '/About' : createStaticContentHandler 'Home', yes
+      '/About' : createSectionHandler 'Activity'
 
       # verbs
       '/:name?/Login'     : ({params:{name}})->
