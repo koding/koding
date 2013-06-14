@@ -416,8 +416,9 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 
 		result := workerconfig.MsgWorker{}
 		iter := kontrolConfig.Collection.Find(bson.M{
-			"name":    worker.Name,
-			"version": bson.M{"$ne": worker.Version},
+			"name":     worker.Name,
+			"hostname": worker.Hostname,
+			"version":  bson.M{"$ne": worker.Version},
 		}).Iter()
 		for iter.Next(&result) {
 			res, err := kontrolConfig.Kill(result.Hostname, result.Uuid, "force")
@@ -435,7 +436,7 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		// kontrolConfig.AddWorker(worker)
 		worker.Message.Result = "added.now"
 		worker.Status = workerconfig.Running
-		log.Printf("start our new worker '%s' with pid: '%d'\n", worker.Name, worker.Pid)
+		log.Printf("start our new worker '%s' with version % and pid: '%d'\n", worker.Name, worker.Version, worker.Pid)
 		kontrolConfig.AddWorker(worker)
 
 		return worker, nil
