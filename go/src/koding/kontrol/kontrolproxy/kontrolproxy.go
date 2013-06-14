@@ -92,35 +92,6 @@ func main() {
 
 /*************************************************
 *
-*  util functions
-*
-*  - arslan
-*************************************************/
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-// Given a string of the form "host", "port", returns "host:port"
-func addPort(host, port string) string {
-	if ok := hasPort(host); ok {
-		return host
-	}
-
-	return host + ":" + port
-}
-
-// Check if a server is alive or not
-func checkServer(host string) error {
-	c, err := net.Dial("tcp", host)
-	if err != nil {
-		return err
-	}
-	c.Close()
-	return nil
-}
-
-/*************************************************
-*
 *  modified version of go's reverseProxy source code
 *  has support for dynamic target url, websockets and amqp
 *
@@ -194,15 +165,17 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	target := user.Target
 
+	if user.Redirect {
+		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
+		return
+	}
+
 	switch user.Domain.Proxy.Mode {
 	case "maintenance":
 		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
-		return
-	case "redirect":
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
 	case "default":
 		fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
@@ -435,4 +408,33 @@ func isUserRegistered(ip string) bool {
 	defer usersLock.RUnlock()
 	_, ok := users[ip]
 	return ok
+}
+
+/*************************************************
+*
+*  util functions
+*
+*  - arslan
+*************************************************/
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func addPort(host, port string) string {
+	if ok := hasPort(host); ok {
+		return host
+	}
+
+	return host + ":" + port
+}
+
+// Check if a server is alive or not
+func checkServer(host string) error {
+	c, err := net.Dial("tcp", host)
+	if err != nil {
+		return err
+	}
+	c.Close()
+	return nil
 }
