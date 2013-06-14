@@ -7,6 +7,8 @@ module.exports = class JVM extends Model
 
   KodingError = require '../error'
 
+  JRecurlySubscription = require './recurly/subscription'
+
   @share()
 
   @trait __dirname, '../traits/protected'
@@ -241,7 +243,27 @@ module.exports = class JVM extends Model
         JVM.one selector, (err, vm)->
           return callback err  if err
           return callback new KodingError 'No such VM'  unless vm
-          vm.remove callback
+          if vm.planCode isnt 'free'
+            JRecurlySubscription.getSubscriptionsAll vm.planOwner,
+              userCode : vm.planOwner
+              planCode : vm.planCode
+              status   : 'active'
+            , (err, subs)->
+              if err
+                return callback new KodingError 'Unable to update payment (1)'
+              subs.forEach (sub)->
+                if sub.quantity > 1
+                  sub.update sub.quantity - 1, (err, sub)->
+                  if err
+                    return callback new KodingError 'Unable to update payment (2)'
+                  vm.remove callback
+                else
+                  sub.cancel (err, sub)->
+                  if err
+                    return callback new KodingError 'Unable to update payment (3)'
+                  vm.remove callback
+          else
+            vm.remove callback
 
   do ->
 

@@ -49,7 +49,7 @@ module.exports = class JGroupBundle extends JBundle
     else if type is 'expensed'
       planOwner = "group_#{group._id}"
 
-    JRecurlySubscription.all
+    JRecurlySubscription.getSubscriptionsAll planOwner,
       userCode: planOwner
       planCode: planCode
       status  : 'active'
