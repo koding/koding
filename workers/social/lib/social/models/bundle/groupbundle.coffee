@@ -102,16 +102,14 @@ module.exports = class JGroupBundle extends JBundle
               expensed  : expensed
 
             unless expensed
-              JVM.createVm options, ->
-                callback null, planCode
+              JVM.createVm options, callback
             else
-              @.checkUsage account, group, (err, limit)=>
+              @checkUsage account, group, (err, limit)=>
                 return callback err  if err
                 if limit.usage >= limit.quota
                   return callback new KodingError "You can't create expensed VMs. (quota exceeded)"
                 else
-                  JVM.createVm options, ->
-                    callback null, planCode
+                  JVM.createVm options, callback
           else
             callback new KodingError "Can't create new VM (payment missing)"
 
