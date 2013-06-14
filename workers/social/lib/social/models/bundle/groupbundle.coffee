@@ -84,6 +84,8 @@ module.exports = class JGroupBundle extends JBundle
           arr.forEach (vm)->
             createdVMs += 1
 
+          console.log paidVMs, createdVMs
+
           if paidVMs > createdVMs
             options     =
               planCode  : planCode

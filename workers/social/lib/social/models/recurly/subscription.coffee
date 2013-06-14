@@ -65,7 +65,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
   @updateCache = (userCode, selector, callback)->
     console.log "Updating Recurly user subscription..."
 
-    payment.getUserSubscriptions selector, (err, allSubs)->
+    payment.getUserSubscriptions userCode, (err, allSubs)->
       mapAll = {}
       allSubs.forEach (rSub)->
         mapAll[rSub.uuid] = rSub
@@ -112,6 +112,20 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       uuid     : @uuid
       plan     : @planCode
       quantity : quantity
+    , (err, sub)=>
+      return callback yes  if err
+      @status   = sub.status
+      @datetime = sub.datetime
+      @expires  = sub.expires
+      @planCode = sub.plan
+      @quantity = sub.quantity
+      @renew    = sub.renew
+      @save =>
+        callback no, @
+
+  terminate: (callback)->
+    payment.terminateUserSubscription @userCode,
+      uuid: @uuid
     , (err, sub)=>
       return callback yes  if err
       @status   = sub.status

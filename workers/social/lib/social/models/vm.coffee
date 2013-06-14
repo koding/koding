@@ -258,7 +258,7 @@ module.exports = class JVM extends Model
                     return callback new KodingError 'Unable to update payment (2)'
                   vm.remove callback
                 else
-                  sub.cancel (err, sub)->
+                  sub.terminate (err, sub)->
                   if err
                     return callback new KodingError 'Unable to update payment (3)'
                   vm.remove callback
