@@ -252,11 +252,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
-	if !isUserRegistered(user.IP) {
-		go registerUser(user.IP)
-		go logDomainRequests(outreq.Host)
-		go logProxyStat(hostname, user.Country)
-	}
+	go func() {
+		if !isUserRegistered(user.IP) {
+			go registerUser(user.IP)
+			go logDomainRequests(outreq.Host)
+			go logProxyStat(hostname, user.Country)
+		}
+	}()
 
 	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
@@ -372,6 +374,13 @@ func registerUser(ip string) {
 		go cleaner()
 	}
 }
+
+/*************************************************
+*
+*  unique IP handling and cleaner
+*
+*  - arslan
+*************************************************/
 
 // The goroutine basically does this: as long as there are users in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
