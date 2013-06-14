@@ -227,3 +227,76 @@ class PaymentController extends KDController
             KD.remote.api.JPayment.deleteAccountPaymentMethod {}, (err, res) ->
               modal.destroy()
               callback?()
+
+  makePaymentModal: (type, plan, callback)->
+    vmController       = @getSingleton('vmController')
+    paymentController = @getSingleton('paymentController')
+
+    vmCreateCallback=(err, vm)->
+      if err
+        warn err
+        return new KDNotificationView
+          title : err.message or "Something bad happened while creating VM"
+      else
+        KD.singletons.finderController.mountVm vm.name
+        vmController.emit 'VMListChanged'
+      paymentModal?.destroy()
+
+    planCode = plan.code
+    if type is 'group' or type is 'expensed'
+      group = KD.singletons.groupsController.getCurrentGroup()
+      group.checkPayment (err, payments)->
+        if err or payments.length is 0
+
+          if type is 'expensed'
+            @paymentModal?.destroy()
+            return new KDNotificationView
+              title : "Group does not have billing information set."
+          else
+            # Copy account creator's billing information
+            KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
+              warn err
+              if err or not data
+                data = {}
+
+              # These will go into Recurly module
+              delete data.cardNumber
+              delete data.cardMonth
+              delete data.cardYear
+              delete data.cardCV
+
+              @paymentModal = @createPaymentMethodModal data, (newData, onError, onSuccess)->
+                newData.plan = planCode
+                newData.type = type
+                group.makePayment newData, (err, subscription)->
+                  if err
+                    onError err
+                  else
+                    vmController.createGroupVM type, planCode, vmCreateCallback
+                    onSuccess()
+                    callback()
+              @paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
+        else
+          group.updatePayment {plan: planCode, type: type}, (err, subscription)->
+            vmController.createGroupVM type, planCode, vmCreateCallback
+            callback()
+    else
+      _createUserVM = (cb)->
+        KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
+          plan.subscribe {}, (err, subscription)->
+            return cb err  if cb and err
+            vmController.createGroupVM type, planCode, vmCreateCallback
+            cb?()
+      KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
+        if err or not account
+          paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
+            newData.plan = planCode
+            KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
+              if err
+                onError err
+              else
+                onSuccess result
+                _createUserVM callback
+          paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
+        else
+          _createUserVM callback
