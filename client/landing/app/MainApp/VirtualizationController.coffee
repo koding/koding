@@ -135,17 +135,17 @@ class VirtualizationController extends KDController
                 delete data.cardYear
                 delete data.cardCV
 
-              paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
-                newData.plan = planCode
-                newData.type = type
-                group.makePayment newData, (err, subscription)->
-                  if err
-                    onError err
-                  else
-                    vmController.createGroupVM type, planCode, vmCreateCallback
-                    onSuccess()
-                    callback()
-              paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
+                paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
+                  newData.plan = planCode
+                  newData.type = type
+                  group.makePayment newData, (err, subscription)->
+                    if err
+                      onError err
+                    else
+                      vmController.createGroupVM type, planCode, vmCreateCallback
+                      onSuccess()
+                      callback()
+                paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
           else
             group.updatePayment {plan: planCode, type: type}, (err, subscription)->
               vmController.createGroupVM type, planCode, vmCreateCallback
