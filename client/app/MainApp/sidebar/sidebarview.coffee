@@ -264,39 +264,22 @@ class Sidebar extends JView
   navItems =
     # temp until groups are implemented
     do ->
-      if location.hostname is "koding.com"
-        id        : "navigation"
-        title     : "navigation"
-        items     : [
-          { title : "Home",           path : "/Activity" }
-          { title : "Activity",       path : "/Activity" }
-          { title : "Topics",         path : "/Topics" }
-          { title : "Members",        path : "/Members" }
-          { title : "Develop",        path : "/Develop", loggedIn: yes }
-          { title : "Apps",           path : "/Apps" }
-          { type  : "separator" }
-          { title : "Invite Friends", type : "account", loggedIn: yes }
-          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
-          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
-        ]
-      else
-        id        : "navigation"
-        title     : "navigation"
-        items     : [
-          { title : "Home",           path : "/Activity" }
-          { title : "Activity",       path : "/Activity" }
-          { title : "Topics",         path : "/Topics" }
-          { title : "Members",        path : "/Members" }
-          { title : "Groups",         path : "/Groups" }
-          { title : "Develop",        path : "/Develop",  loggedIn: yes }
-          { title : "Apps",           path : "/Apps" }
-          { type  : "separator" }
-          { title : "Invite Friends", type : "account", loggedIn: yes }
-          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
-          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
-        ]
+      id        : "navigation"
+      title     : "navigation"
+      items     : [
+        { title : "Home",           path : "/Activity" }
+        { title : "Activity",       path : "/Activity" }
+        { title : "Topics",         path : "/Topics" }
+        { title : "Members",        path : "/Members" }
+        { title : "Groups",         path : "/Groups" }
+        { title : "Develop",        path : "/Develop",  loggedIn: yes }
+        { title : "Apps",           path : "/Apps" }
+        { type  : "separator" }
+        { title : "Invite Friends", type : "account", loggedIn: yes }
+        { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
+        { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
+        { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
+      ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
