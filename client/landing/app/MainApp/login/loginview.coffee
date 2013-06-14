@@ -227,8 +227,6 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
-        mainController.emit "UserLoggedIn"
-
         @hide()
 
   doRequest:(formData)->
