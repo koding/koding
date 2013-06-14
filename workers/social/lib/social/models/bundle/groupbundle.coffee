@@ -90,7 +90,9 @@ module.exports = class JGroupBundle extends JBundle
           arr.forEach (vm)->
             createdVMs += 1
 
-          if (group.slug is 'koding' and createdVMs == 0) or paidVMs > createdVMs
+          firstVM = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
+          
+          if paidVMs > createdVMs or firstVM
             options     =
               planCode  : planCode
               usage     : {cpu: 1, ram: 1, disk: 1}
