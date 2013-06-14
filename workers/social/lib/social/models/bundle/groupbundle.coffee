@@ -35,9 +35,15 @@ module.exports = class JGroupBundle extends JBundle
           ['allowed', 'by permission', 'not allowed']
         ]
         default       : 'not allowed'
-      sharedVM        : Boolean
-      paymentPlan     : String
-      allocation      : Number
+      sharedVM        :
+        type          : Boolean
+        default       : no
+      paymentPlan     :
+        type          : String
+        default       : ""
+      allocation      :
+        type          : Number
+        default       : 0
 
   createVM: (account, group, data, callback)->
     {type, planCode} = data
