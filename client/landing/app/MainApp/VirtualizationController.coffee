@@ -68,10 +68,8 @@ class VirtualizationController extends KDController
     else currentGroup
 
   createGroupVM:(type='user', planCode, callback)->
-    defaultVMOptions =
-      planCode       : planCode
+    defaultVMOptions = {planCode}
     group = KD.singletons.groupsController.getCurrentGroup()
-
     group.createVM {type, planCode}, callback
 
   fetchVMs:(callback)->
@@ -169,7 +167,7 @@ class VirtualizationController extends KDController
           else
             _createUserVM callback
 
-    vmCreateCallback  = (err, vm)->
+    vmCreateCallback=(err, vm)->
       if err
         warn err
         return new KDNotificationView
@@ -296,7 +294,7 @@ class VirtualizationController extends KDController
       # group.vmUsage (err, limit)->
       #   if limit and limit.usage < limit.quota
       #     # content += """<br/><br/>
-      #     #               You can also get a <b>Personal</b> VM using your 
+      #     #               You can also get a <b>Personal</b> VM using your
       #     #               <b>goups</b> quota. Your group will be charged."""
       #     modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
@@ -310,7 +308,7 @@ class VirtualizationController extends KDController
         user.hideLoader()
         group.hideLoader()
         expensed.hideLoader()
-      
+
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
 
