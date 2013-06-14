@@ -1,4 +1,4 @@
-class NavigationAppsLink extends KDCustomHTMLView
+class NavigationAppsLink extends JView
 
   constructor:(options = {}, data)->
 
@@ -7,7 +7,6 @@ class NavigationAppsLink extends KDCustomHTMLView
 
     super options, data
 
-    @isFetchedAgain = no
     @counter        = 0
     @appsController = @getSingleton "kodingAppsController"
 
@@ -48,10 +47,6 @@ class NavigationAppsLink extends KDCustomHTMLView
       @count.updatePartial @counter
       if @counter > 0 then @count.show() else @count.hide()
     , useTheForce
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
 
   pistachio: ->
     """
