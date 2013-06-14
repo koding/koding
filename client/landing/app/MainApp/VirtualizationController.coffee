@@ -106,6 +106,7 @@ class VirtualizationController extends KDController
   createNewVM:->
     return  if @dialogIsOpen
     vmController        = @getSingleton('vmController')
+    paymentController   = @getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
 
@@ -130,7 +131,7 @@ class VirtualizationController extends KDController
               delete data.cardYear
               delete data.cardCV
 
-              paymentModal = createAccountPaymentMethodModal data, (newData, onError, onSuccess)->
+              paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
                 newData.plan = planCode
                 group.makePayment newData, (err, subscription)->
                   if err
@@ -153,7 +154,7 @@ class VirtualizationController extends KDController
               cb?()
         KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
           if err
-            paymentModal = createAccountPaymentMethodModal {}, (newData, onError, onSuccess)->
+            paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
               newData.plan = planCode
               KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
                 if err
@@ -253,22 +254,23 @@ class VirtualizationController extends KDController
                   itemClass         : HostCreationSelector
                   cssClass          : "host-type"
                   radios            : hostTypes
+                  defaultValue      : 0
                   validate          :
                     rules           :
                       required      : yes
                     messages        :
                       required      : "Please select a VM type!"
                   change            : =>
-                    form = modal.modalTabs.forms["Create VM"]
-                    {desc, selector} = form.inputs
-                    descField        = form.fields.desc
-                    descField.show()
-                    desc.show()
-                    index      = (parseInt selector.getValue(), 10) or 0
-                    monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
-                    desc.$('section').addClass 'hidden'
-                    desc.$('section').eq(index).removeClass 'hidden'
-                    modal.setPositions()
+                    # form = modal.modalTabs.forms["Create VM"]
+                    # {desc, selector} = form.inputs
+                    # descField        = form.fields.desc
+                    # descField.show()
+                    # desc.show()
+                    # index      = (parseInt selector.getValue(), 10) or 0
+                    # monthlyFee = (@paymentPlans[index].feeMonthly/100).toFixed(2)
+                    # desc.$('section').addClass 'hidden'
+                    # desc.$('section').eq(index).removeClass 'hidden'
+                    # modal.setPositions()
                 desc                :
                   itemClass         : KDCustomHTMLView
                   cssClass          : "description-field hidden"
