@@ -228,7 +228,7 @@ class VMMountStateWidget extends JView
 
     showMessage:(message)->
       message or= """There is no VM attached to filetree, you can
-                     attach one from environment menu below."""
+                     attach or create one from environment menu below."""
 
       @warning.updatePartial message
       @warning.show()

@@ -8,14 +8,15 @@ class WebTermController extends AppController
     behavior     : "application"
     preCondition :
       condition  : (options, cb)->
-        KD.getSingleton("vmController").info (err, vm, info)=>
+        {params} = options
+        vmName   = params?.vmName or "koding~#{KD.nick()}~0"
+        KD.getSingleton("vmController").info vmName, (err, vm, info)=>
           cb  if info?.state is 'RUNNING' then yes else no
       failure    : (options, cb)->
         KD.getSingleton("vmController").askToTurnOn 'Terminal', cb
 
   constructor:(options = {}, data)->
-    vmName          = options.params?.vmName or \
-                      KD.getSingleton("vmController").getDefaultVmName()
+    vmName          = options.params?.vmName or "koding~#{KD.nick()}~0"
     options.view    = new WebTermAppView {vmName}
     options.appInfo =
       title         : "Terminal on #{vmName}"
