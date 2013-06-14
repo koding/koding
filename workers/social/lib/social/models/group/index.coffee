@@ -8,7 +8,7 @@ module.exports = class JGroup extends Module
 
   {Relationship} = require 'jraphical'
 
-  {Inflector, ObjectId, ObjectRef, secure, daisy, dash} = require 'bongo'
+  {Inflector, ObjectId, ObjectRef, secure, daisy, race, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
   {permit} = JPermissionSet
@@ -18,6 +18,8 @@ module.exports = class JGroup extends Module
   Validators = require './validators'
 
   {throttle} = require 'underscore'
+
+  Graph       = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -84,7 +86,7 @@ module.exports = class JGroup extends Module
         'resolvePendingRequests','fetchVocabulary', 'fetchMembershipStatuses',
         'setBackgroundImage', 'removeBackgroundImage', 'fetchAdmin', 'inviteByEmail',
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
-        'fetchRolesByClientId', 'fetchOrSearchInvitationRequests',
+        'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'vmUsage',
         'fetchBundle', 'updateBundle'
@@ -1290,24 +1292,24 @@ module.exports = class JGroup extends Module
           limit.update { $set: quota: formData.quotas[limit.title] }, fin
         dash queue, callback
         fin = queue.fin.bind queue
- 
+
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->
       @updateBundle formData, callback
- 
+
   createBundle: (data, callback) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
       return callback new KodingError 'Bundle exists!'  if bundle?
- 
+
       JGroupBundle = require '../bundle/groupbundle'
- 
+
       bundle = new JGroupBundle data
       bundle.save (err) =>
         return callback err  if err?
- 
+
         @addBundle bundle, callback
- 
+
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
@@ -1381,3 +1383,27 @@ module.exports = class JGroup extends Module
         ]
 
       @fetchInvitationRequests selector, options, callback
+
+  fetchMembersFromGraph: permit 'list members',
+    success:(client, options, callback)->
+      graph = new Graph({config:KONFIG['neo4j']})
+      options.groupId = @getId()
+      JAccount = require '../account'
+      graph.fetchMembers options, (err, results)=>
+        if err then return callback err
+        else
+          tempRes = []
+          collectContents = race (i, res, fin)=>
+            objId = res.id
+            JAccount.one  { _id : objId }, (err, account)=>
+              if err
+                callback err
+                fin()
+              else
+                tempRes[i] = account
+                fin()
+          , ->
+            callback null, tempRes
+          for res in results
+            collectContents res
+

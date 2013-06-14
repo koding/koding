@@ -41,25 +41,17 @@ class MembersAppController extends AppController
               JAccount.byRelevance @_searchValue, options, callback
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
-              if group?
-                relationshipOptions = {
-                  targetOptions: {options}
-                }
-                selector = {}
-                group.fetchMembers selector, relationshipOptions, callback
-                # group.countMembers selector, (err, count)=>
-                #   @setCurrentViewNumber 'all', count
-              else
-                JAccount.someWithRelationship selector, options, callback
-                JAccount.count selector, (err, count)=>
-                  @setCurrentViewNumber 'all', count
+              group.fetchMembersFromGraph options, callback
+              JAccount.count selector, (err, count)=>
+                @setCurrentViewNumber 'all', count
+
         followed            :
           loggedInOnly      : yes
           title             : "Followers <span class='member-numbers-followers'></span>"
           noItemFoundText   : "There is no member who follows you."
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchFollowersWithRelationship selector, options, (err, items, rest...)=>
-              callback err, items, rest...
+            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
+            KD.whoami().fetchMyFollowersFromGraph options, callback
 
             KD.whoami().countFollowersWithRelationship selector, (err, count)=>
               @setCurrentViewNumber 'followers', count
@@ -68,8 +60,8 @@ class MembersAppController extends AppController
           title             : "Following <span class='member-numbers-following'></span>"
           noItemFoundText   : "You are not following anyone."
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchFollowingWithRelationship selector, options, (err, items, rest...)=>
-              callback err, items, rest...
+            options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
+            KD.whoami().fetchMyFollowingsFromGraph options, callback
 
             KD.whoami().countFollowingWithRelationship selector, (err, count)=>
               @setCurrentViewNumber 'following', count
