@@ -156,10 +156,8 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.domainService.createBehavior params, (err, response)-> callback err, response
 
   @updateBehavior: secure (client, params, callback)->
-    domainManager.domainService.deleteBehavior params, (err, response)=>
-      if not err
-        return @createBehavior client, params, callback
-
+    domainManager.domainService.updateBehavior params, (err, response)-> 
+      console.log err, response
       callback err, response
 
   @deleteBehavior: secure (client, params, callback)->
