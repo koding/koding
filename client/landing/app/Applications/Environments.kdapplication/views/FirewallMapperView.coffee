@@ -30,9 +30,13 @@ class FirewallMapperView extends KDView
       if err
         @ruleListController.hideLazyLoader()
         @actionListController.hideLazyLoader()
+        if err is "not found"
+          notifyMsg = "You don't have any rules set for this domain."
+        else
+          notifyMsg = "An error occured while fetching the rules. Please try again."
         return new KDNotificationView
-          title:"An error occured while fetching the rule list."
-          type:"top"
+          title : notifyMsg
+          type  : "top"
 
 
       @iniateControllerListItems domain, response
@@ -56,7 +60,8 @@ class FirewallMapperView extends KDView
 
     @actionListView.addSubView @actionListScrollView
     @actionListView.addSubView new KDButtonView
-      title : "Update Action Order" 
+      title    : "Update Action Order"
+      callback : => @updateActionOrders()
 
     @actionListScrollView.addSubView @actionListController.getView()
 
@@ -93,6 +98,20 @@ class FirewallMapperView extends KDView
     @ruleListController.hideLazyLoader()
     @actionListController.instantiateListItems actionList
     @actionListController.hideLazyLoader()
+
+  updateActionOrders:->
+    for item, index in @actionListController.itemsOrdered
+      data = item.getData()
+      KD.remote.api.JDomain.updateBehavior
+        domainName : data.domainName
+        ruleName   : data.ruleName
+        behaviorInfo :
+          enabled : "yes"
+          action  : data.action
+          index   : "#{index}"
+      , (err, response)=>
+        return console.log err if err?
+
 
 
 class FirewallRuleListItemView extends KDListItemView
@@ -270,7 +289,7 @@ class FirewallRuleFormView extends KDCustomHTMLView
         return new KDNotificationView 
           title : "An error occured while performing your action. Please try again."
           type  : "top"
-      delegate.emit "newRuleCreated", {domainName:domainName, ruleName:ruleMatch, match:ruleMatch}
+      delegate.emit "newRuleCreated", {domainName:domainName, ruleName:response.Name, match:response.Match}
 
 
   viewAppended:->
