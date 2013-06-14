@@ -20,5 +20,11 @@ class AppsMainView extends KDView
         @hide()
 
     @updateAppsButton.hide()
+    @updateAppsButton.on "UpdateView", (filter)->
+      @hide()  unless filter is 'updates'
+      if filter is 'updates'
+        appsController = KD.getSingleton("kodingAppsController")
+        appsController.fetchUpdateAvailableApps (res, apps)=>
+          unless apps?.length then @hide() else @show()
 
     @addSubView header

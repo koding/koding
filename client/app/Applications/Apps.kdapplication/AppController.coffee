@@ -37,7 +37,8 @@ class AppsAppController extends AppController
         updates             :
           title             : "Updates"
           dataSource        : (selector, options, callback)=>
-            return @putUpdateAvailableApps callback if @appsController.publishedApps
+            if @appsController.publishedApps
+              return @putUpdateAvailableApps callback
             @appsController.on "UserAppModelsFetched", =>
               @putUpdateAvailableApps callback
         webApps             :
@@ -104,22 +105,18 @@ class AppsAppController extends AppController
       @emit 'ready'
 
       {updateAppsButton} = @getView()
-      {filterController} = @feedController.facetsController
-      filterController.on "NavItemReceivedClick", (item) =>
-        if item.title is "Updates"
-          @resetUpdateAllButton()
-        if item.title isnt "Updates"
-          updateAppsButton.hide()
-        else if updateAppsButton.getData()
-          updateAppsButton.show()
+      if controller.selection.name is 'updates'
+        updateAppsButton.emit 'UpdateView', 'updates'
+
+      controller.on 'FilterChanged', (filter)=>
+        @updateApps()  if filter is 'updates'
+        updateAppsButton.emit 'UpdateView', filter
 
   putUpdateAvailableApps: (callback) ->
-    @appsController.fetchUpdateAvailableApps (err, res) =>
-      callback err, res
-      @manageUpdateAllButton res
+    @appsController.fetchUpdateAvailableApps callback
 
   updateApps:->
-    @utils.wait 100, @feedController?.changeActiveSort "meta.modifiedAt"
+    @utils.wait 100, => @feedController?.changeActiveSort "meta.modifiedAt"
 
   createContentDisplay:(app, callback)->
     contentDisplay = @showContentDisplay app
@@ -131,24 +128,3 @@ class AppsAppController extends AppController
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplay
-
-  resetUpdateAllButton: ->
-    @appsController.fetchUpdateAvailableApps (res, apps) =>
-      {updates} = @feedController.resultsController.listControllers
-      unless apps?.length
-        updates.removeAllItems()
-        updates.showNoItemWidget()
-        {updateAppsButton} = @getView()
-        updateAppsButton.hide()
-        updateAppsButton.setData []
-
-  manageUpdateAllButton: (apps) ->
-    return unless apps
-    {updateAppsButton} = @getView()
-
-    if apps?.length
-      updateAppsButton.show()
-      updateAppsButton.setData apps
-    else
-      updateAppsButton.hide()
-      updateAppsButton.setData []
