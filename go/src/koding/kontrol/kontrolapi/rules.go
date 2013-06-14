@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
+	"koding/kontrol/kontrolproxy/proxyconfig"
 	"net/http"
 	"strconv"
 )
@@ -165,14 +166,28 @@ func CreateBehaviour(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = proxyDB.AddBehaviour(ruleEnabled, domain, ruleAction, ruleName, ruleIndex)
+	var behaviour proxyconfig.Behaviour
+	switch req.Method {
+	case "POST":
+		behaviour, err = proxyDB.AddOrUpdateBehaviour(ruleEnabled, domain, ruleAction, ruleName, ruleIndex, "add")
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	case "PUT":
+		behaviour, err = proxyDB.AddOrUpdateBehaviour(ruleEnabled, domain, ruleAction, ruleName, ruleIndex, "update")
+		if err != nil {
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	}
+
+	data, err := json.MarshalIndent(behaviour, "", "  ")
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
-
-	url := fmt.Sprintf("behaviour for '%s' and rulename '%s' is added with: enabled: '%t' , action '%s' and index '%d'", domain, ruleName, ruleEnabled, ruleAction, ruleIndex)
-	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
+	writer.Write([]byte(data))
 	return
 }
 
@@ -217,16 +232,19 @@ func CreateRule(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	err = proxyDB.AddRule(domain, ruleType, ruleMatch)
+	rule, err := proxyDB.AddRule(domain, ruleType, ruleMatch)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
 
-	url := fmt.Sprintf("rule for '%s' is added with rule: '%s' - '%s'", domain, ruleType, ruleMatch)
-	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", url))
+	data, err := json.MarshalIndent(rule, "", "  ")
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+	writer.Write([]byte(data))
 	return
-
 }
 
 func DeleteRule(writer http.ResponseWriter, req *http.Request) {
