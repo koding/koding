@@ -112,9 +112,6 @@ class PaymentController extends KDController
             callback              : (formData)=>
               @validatePaymentMethodForm formData, callback
             fields                :
-              "intro"             :
-                itemClass         : KDCustomHTMLView
-                partial           : "<p>You can use pre-filled credit card information below to buy VM's <b>during beta</b>.</p>"
               cardFirstName       :
                 label             : "Name"
                 name              : "cardFirstName"
@@ -131,7 +128,7 @@ class PaymentController extends KDController
                 label             : "Card Number"
                 name              : "cardNumber"
                 placeholder       : 'Card Number'
-                defaultValue      : '4111-1111-1111-1111'
+                defaultValue      : ''
                 validate          :
                   event           : "blur"
                   rules           :
@@ -144,7 +141,7 @@ class PaymentController extends KDController
                     #   title       : 'The location of this verification number depends on the issuer of your credit card'
                     name          : "cardCV"
                     placeholder   : "CV Number"
-                    defaultValue  : "123"
+                    defaultValue  : ""
                     validate      :
                       rules       :
                         required  : yes
@@ -170,7 +167,7 @@ class PaymentController extends KDController
                 label             : "Address"
                 name              : "address1"
                 placeholder       : "Street Name & Number"
-                defaultValue      : "358 Brannan Street"
+                defaultValue      : ""
                 validate          : required "First address field is required!"
               address2            :
                 label             : " "
@@ -180,25 +177,25 @@ class PaymentController extends KDController
                 label             : "City & State"
                 name              : "city"
                 placeholder       : "City Name"
-                defaultValue      : "San Francisco"
+                defaultValue      : ""
                 validate          : required "City is required!"
                 nextElementFlat   :
                   state           :
                     name          : "state"
                     placeholder   : "State"
-                    defaultValue  : "CA"
+                    defaultValue  : ""
                     validate      : required "State is required!"
               zip                 :
                 label             : "ZIP & Country"
                 name              : "zipCode"
                 placeholder       : "ZIP Code"
-                defaultValue      : "94107"
+                defaultValue      : ""
                 validate          : required "Zip code is required!"
                 nextElementFlat   :
                   country         :
                     name          : "country"
                     placeholder   : "Country"
-                    defaultValue  : "United States of America"
+                    defaultValue  : "USA"
                     validate      : required "First address field is required!"
 
     form = modal.modalTabs.forms["Billing Info"]
