@@ -51,7 +51,7 @@ class KDModalView extends KDView
     @display()
     @_windowDidResize()
 
-    # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
+    # KD.getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).one "keydown.modal",(e)=>
       @cancel() if e.which is 27
 
@@ -111,7 +111,7 @@ class KDModalView extends KDView
           overlay  : yes
           content  : "<div class='modalformline'><p>#{helpContent}</p></div>"
 
-    # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
+    # KD.getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
 
   # keyUp:(e)->
   #   @cancel() if e.which is 27
@@ -148,7 +148,7 @@ class KDModalView extends KDView
 
   _windowDidResize:->
     @setPositions()
-    {winHeight} = @getSingleton('windowController')
+    {winHeight} = KD.getSingleton('windowController')
     @$('.kdmodal-content').css 'max-height', winHeight - 120
     @setY (winHeight - @getHeight()) / 2 unless @getOptions().position.top
 

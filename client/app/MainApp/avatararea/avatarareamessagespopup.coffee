@@ -14,7 +14,7 @@ class AvatarPopupMessages extends AvatarPopup
       view         : @_popupList
       maxItems     : 5
 
-    @getSingleton('notificationController').on "NewMessageArrived", =>
+    KD.getSingleton('notificationController').on "NewMessageArrived", =>
       @listController.fetchMessages()
 
     @listController.on "AvatarPopupShouldBeHidden", @bound 'hide'
@@ -31,8 +31,9 @@ class AvatarPopupMessages extends AvatarPopup
       cssClass : "sublink"
       partial  : "<a href='#'>See all messages...</a>"
       click    : =>
-        KD.getSingleton("appManager").open('Inbox')
-        KD.getSingleton("appManager").tell 'Inbox', "goToMessages"
+        appManager = KD.getSingleton "appManager"
+        appManager.open('Inbox')
+        appManager.tell 'Inbox', "goToMessages"
         @hide()
 
   show:->

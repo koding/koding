@@ -5,7 +5,7 @@ class AbstractPersonalFormView extends KDFormView
     memberData = data
     super options, null
 
-    @windowController = @getSingleton 'windowController'
+    @windowController = KD.getSingleton 'windowController'
     @setListeners()
 
     $(window).on "keydown.input",(e)=>
@@ -174,7 +174,7 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       defaultPlaceHolder : @defaultPlaceHolder
     , @memberData
 
-    @windowController = @getSingleton 'windowController'
+    @windowController = KD.getSingleton 'windowController'
 
   pistachio:->
     """

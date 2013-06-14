@@ -4,7 +4,7 @@ payment   = require 'koding-payment'
 createId  = require 'hat'
 
 forceRefresh  = yes
-forceInterval = 60 * 60
+forceInterval = 0
 
 module.exports = class JRecurlyPlan extends jraphical.Module
 
@@ -171,12 +171,14 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   subscribe: secure (client, data, callback)->
     {delegate} = client.connection
     userCode      = "user_#{delegate._id}"
-    JRecurlySubscription.one
+    JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
+      status  : 'active'
     , (err, subs)=>
       return callback err  if err
-      if subs
+      if subs.length > 0
+        subs = subs[0]
         subs.quantity ?= 1
         subs.quantity += 1
         payment.updateUserSubscription userCode,
@@ -241,14 +243,22 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   subscribeGroup: (group, data, callback)->
     userCode = "group_#{group._id}"
 
-    JRecurlySubscription.one
+    JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
+      status  : 'active'
     , (err, subs)=>
       return callback err  if err
-      if subs
+      if subs.length > 0
+        subs = subs[0]
+
         subs.quantity ?= 1
         subs.quantity += 1
+
+        if data.type is 'expensed'
+          subs.expensed ?= 0
+          subs.expensed += 1
+
         payment.updateUserSubscription userCode,
           quantity: subs.quantity
           plan    : @code
@@ -269,6 +279,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.firstName   = groupAccount.firstName
           data.lastName    = groupAccount.lastName
 
+          expensed = 0
+          if data.type is 'expensed'
+            expensed = 1
+
           JRecurlyPlan.getGroupAccount group, (err, account)->
             if account and not err
               payment.addUserSubscription userCode, data, (err, result)->
@@ -281,6 +295,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
+                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
@@ -295,6 +310,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
+                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub

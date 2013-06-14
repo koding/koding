@@ -59,9 +59,17 @@ class TopicsAppController extends AppController
           noItemFoundText   : "There are no topics that you follow."
           dataSource        : (selector, options, callback)=>
             KD.whoami().fetchTopics selector, options, (err, items)=>
+              ids = []
               for item in items
                 item.followee = true
+                ids.push item._id
               callback err, items
+              callback null, null, ids  unless err
+          dataEnd           : ({resultsController}, ids)->
+            {following} = resultsController.listControllers
+            following.forEachItemByIndex ids, ({followButton})->
+              followButton.setState 'Following'
+              followButton.redecorateState()
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>
@@ -73,7 +81,7 @@ class TopicsAppController extends AppController
         'meta.modifiedAt'   :
           title             : "Latest activity"
           direction         : -1
-        'counts.tagged'     :
+        'counts.post'     :
           title             : "Most activity"
           direction         : -1
     }, (controller)=>
@@ -100,7 +108,7 @@ class TopicsAppController extends AppController
     if KD.checkFlag ['super-admin', 'editor']
       @listItemClass = TopicsListItemViewEditable
       if firstRun
-        @getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
+        KD.getSingleton('mainController').on "TopicItemEditLinkClicked", (topicItem)=>
           @updateTopic topicItem
 
     @createFeed mainView, loadFeed
@@ -212,7 +220,7 @@ class TopicsAppController extends AppController
     @utils.defer -> callback contentDisplay
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
 
   fetchTopics:({inputValue, blacklist}, callback)->

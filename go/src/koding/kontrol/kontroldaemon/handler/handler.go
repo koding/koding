@@ -96,7 +96,7 @@ func Startup() {
 			for iter.Next(&result) {
 				// If it's still death just remove it
 				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
-					log.Printf("removing death worker '%s - %s - %s'", result.Name, result.Hostname, result.Uuid)
+					log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
 					kontrolConfig.DeleteWorker(result.Uuid)
 				}
 			}
@@ -149,7 +149,6 @@ func HandleWorkerMessage(data []byte) {
 	} else {
 		log.Println("incoming message is in wrong format")
 	}
-
 }
 
 func HandleApiMessage(data []byte, appId string) {
@@ -308,10 +307,16 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return nil
 	}
 
+	if command == "kill" {
+		res, err := kontrolConfig.Kill(hostname, uuid, "normal")
+		if err != nil {
+			log.Println(err)
+		}
+		go sendWorker(res)
+		return nil
+	}
+
 	actions := map[string]func(hostname, uuid string) (workerconfig.MsgWorker, error){
-		"kill": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
-			return kontrolConfig.Kill(hostname, uuid)
-		},
 		"stop": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
 			return kontrolConfig.Stop(hostname, uuid)
 		},
@@ -324,6 +329,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 		return fmt.Errorf("command not recognized: %s", command)
 	}
 
+	// this mess will be cleanup up, sigh... - arslan
 	result := workerconfig.MsgWorker{}
 	if hostname == "" && uuid == "" {
 		// Apply action to all workers
@@ -374,7 +380,7 @@ func DoRequest(command, hostname, uuid, data, appId string) error {
 
 func killAndDelete(hostname, uuid string) error {
 	// Kill the worker for preventing him sending messages to us
-	res, err := kontrolConfig.Kill(hostname, uuid)
+	res, err := kontrolConfig.Kill(hostname, uuid, "normal")
 	if err != nil {
 		log.Println(err)
 	}
@@ -406,14 +412,21 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 	switch option {
 	case "force":
 		log.Println("force option is enabled.")
+		log.Printf("trying to kill and delete all workers with the name '%s' and not version '%d'\n", worker.Name, worker.Version)
 
-		// First kill and delete all alive workers for the same name type.
-		log.Printf("trying to kill and delete all workers with the name '%s' on the hostname '%s'", worker.Name, worker.Hostname)
-
-		iter := kontrolConfig.Collection.Find(bson.M{"name": worker.Name}).Iter()
 		result := workerconfig.MsgWorker{}
+		iter := kontrolConfig.Collection.Find(bson.M{
+			"name":    worker.Name,
+			"version": bson.M{"$ne": worker.Version},
+		}).Iter()
 		for iter.Next(&result) {
-			err := killAndDelete(result.Hostname, result.Uuid)
+			res, err := kontrolConfig.Kill(result.Hostname, result.Uuid, "force")
+			if err != nil {
+				log.Println(err)
+			}
+			go sendWorker(res)
+
+			err = kontrolConfig.Delete(result.Hostname, result.Uuid)
 			if err != nil {
 				log.Println(err)
 			}
@@ -422,15 +435,32 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		// kontrolConfig.AddWorker(worker)
 		worker.Message.Result = "added.now"
 		worker.Status = workerconfig.Running
-		log.Println("start our new worker")
-		log.Printf("'add' worker '%s' with pid: '%d'", worker.Name, worker.Pid)
+		log.Printf("start our new worker '%s' with pid: '%d'\n", worker.Name, worker.Pid)
 		kontrolConfig.AddWorker(worker)
 
 		return worker, nil
 	case "one":
-		availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Hostname)
-		if availableWorkers < 1 {
-			log.Printf("adding worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
+		// availableWorkers := kontrolConfig.NumberOfWorker(worker.Name, worker.Version)
+		// if availableWorkers < 1 {
+		// 	log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
+		// 	worker.Message.Result = "added.now"
+		// 	worker.Status = workerconfig.Running
+		// 	kontrolConfig.AddWorker(worker)
+		// 	return worker, nil
+		// }
+
+		otherWorkers := false
+		result := workerconfig.MsgWorker{}
+		iter := kontrolConfig.Collection.Find(bson.M{
+			"name":    worker.Name,
+			"version": bson.M{"$ne": worker.Version},
+		}).Iter()
+		for iter.Next(&result) {
+			otherWorkers = true
+		}
+
+		if !otherWorkers {
+			log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
 			worker.Message.Result = "added.now"
 			worker.Status = workerconfig.Running
 			kontrolConfig.AddWorker(worker)
@@ -443,9 +473,9 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			log.Println("couldn't refresh data", err)
 		}
 
-		iter := kontrolConfig.Collection.Find(bson.M{
-			"name":     worker.Name,
-			"hostname": worker.Hostname,
+		iter = kontrolConfig.Collection.Find(bson.M{
+			"name":    worker.Name,
+			"version": bson.M{"$ne": worker.Version},
 			"status": bson.M{"$in": []int{
 				int(workerconfig.Notstarted),
 				int(workerconfig.Killed),
@@ -453,13 +483,12 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 			}}}).Iter()
 
 		var gotPermission bool = false
-
-		result := workerconfig.MsgWorker{}
+		result = workerconfig.MsgWorker{}
 		for iter.Next(&result) {
 			kontrolConfig.DeleteWorker(result.Uuid)
 
 			log.Printf("worker '%s' is not alive anymore. permission grant to run for the new worker", worker.Name)
-			log.Printf("adding worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
+			log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
 
 			worker.Message.Result = "first.start"
 			worker.Status = workerconfig.Running
@@ -469,13 +498,13 @@ func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
 		}
 
 		if !gotPermission {
-			log.Printf("another worker is already running. no permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
+			log.Printf("another worker other then version '%d' is already running. no permission to worker '%s' on hostname '%s'", worker.Version, worker.Name, worker.Hostname)
 			worker.Message.Result = "added.before"
 		}
 
 		return worker, nil // contains first.start or added.before
 	case "many":
-		log.Printf("adding worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
+		log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
 		worker.Message.Result = "first.start"
 		worker.Status = workerconfig.Running
 		kontrolConfig.AddWorker(worker)

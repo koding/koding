@@ -143,13 +143,13 @@ class JTreeViewController extends KDViewController
   setFocusState:->
 
     view = @getView()
-    @getSingleton("windowController").addLayer view
+    KD.getSingleton("windowController").addLayer view
     view.unsetClass "dim"
 
   setBlurState:->
 
     view = @getView()
-    @getSingleton("windowController").removeLayer view
+    KD.getSingleton("windowController").removeLayer view
     view.setClass "dim"
 
   ###
@@ -375,7 +375,7 @@ class JTreeViewController extends KDViewController
 
   setMainListeners:->
 
-    @getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUp event
+    KD.getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUp event
 
     @getView().on "ReceivedClickElsewhere", => @setBlurState()
 
@@ -657,7 +657,7 @@ class JTreeViewController extends KDViewController
   setKeyView:->
 
     if @listControllers[0]
-      @getSingleton("windowController").setKeyView @listControllers[0].getListView()
+      KD.getSingleton("windowController").setKeyView @listControllers[0].getListView()
 
   keyEventHappened:(event)->
 

@@ -33,14 +33,13 @@ type multicastSockoptTest struct {
 }
 
 var multicastSockoptTests = []multicastSockoptTest{
-	{ipv4.DSCP_CS0 | ipv4.ECN_NOTECT, 127, 128, false, net.IPv4(224, 0, 0, 249)}, // see RFC 4727
-	{ipv4.DSCP_AF11 | ipv4.ECN_NOTECT, 255, 254, true, net.IPv4(224, 0, 0, 250)}, // see RFC 4727
+	{DiffServCS0 | NotECNTransport, 127, 128, false, net.IPv4(224, 0, 0, 249)}, // see RFC 4727
+	{DiffServAF11 | NotECNTransport, 255, 254, true, net.IPv4(224, 0, 0, 250)}, // see RFC 4727
 }
 
 func TestUDPMulticastSockopt(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 
 	for _, tt := range multicastSockoptTests {
@@ -57,12 +56,10 @@ func TestUDPMulticastSockopt(t *testing.T) {
 
 func TestIPMulticastSockopt(t *testing.T) {
 	if testing.Short() || !*testExternal {
-		t.Logf("skipping test to avoid external network")
-		return
+		t.Skip("to avoid external network")
 	}
 	if os.Getuid() != 0 {
-		t.Logf("skipping test; must be root")
-		return
+		t.Skip("must be root")
 	}
 
 	for _, tt := range multicastSockoptTests {

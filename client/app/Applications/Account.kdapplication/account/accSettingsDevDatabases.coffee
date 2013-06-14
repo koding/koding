@@ -166,7 +166,7 @@ class AccountDatabaseListController extends KDListViewController
   talkToKite:(options, callback)->
 
     # log "Run on kite:", options.method
-    @getSingleton("kiteController").run
+    KD.getSingleton("kiteController").run
       kiteName  : "databases"
       method    : options.method
       withArgs  : options.withArgs

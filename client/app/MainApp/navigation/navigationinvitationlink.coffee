@@ -25,6 +25,7 @@ class NavigationInviteLink extends KDCustomHTMLView
 
     KD.remote.api.JInvitation.create
       emails        : [formData.recipient]
+      group         : "koding"
       customMessage :
         # subject     : formData.subject
         body        : formData.body

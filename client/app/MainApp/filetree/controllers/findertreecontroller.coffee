@@ -12,8 +12,11 @@ class NFinderTreeController extends JTreeViewController
     else
       @getView().setClass "no-context-menu"
 
-    @getSingleton('mainController').on "NewFileIsCreated", @bound "navigateToNewFile"
-    @getSingleton('mainController').on "SelectedFileChanged", @bound "highlightFile"
+    @appManager    = KD.getSingleton "appManager"
+    mainController = KD.getSingleton "mainController"
+
+    mainController.on "NewFileIsCreated", @bound "navigateToNewFile"
+    mainController.on "SelectedFileChanged", @bound "highlightFile"
 
   addNode:(nodeData, index)->
 
@@ -63,11 +66,11 @@ class NFinderTreeController extends JTreeViewController
     return unless nodeView
     file = nodeView.getData()
     app  = contextMenuItem?.getData().title or null
-    @getSingleton("appManager").openFile file, app
+    @appManager.openFile file, app
 
   previewFile:(nodeView)->
     {vmName, path} = nodeView.getData()
-    appManager.open "Viewer", params: {path, vmName}
+    @appManager.open "Viewer", params: {path, vmName}
 
   resetVm:(nodeView)->
     {vmName} = nodeView.data
@@ -79,7 +82,7 @@ class NFinderTreeController extends JTreeViewController
 
   openVmTerminal:(nodeView)->
     {vmName} = nodeView.data
-    appManager.open "WebTerm", params: {vmName}, forceNew: yes
+    @appManager.open "WebTerm", params: {vmName}, forceNew: yes
 
   makeTopFolder:(nodeView)->
     {vmName, path} = nodeView.getData()
@@ -351,7 +354,7 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.job.started"
-    kodingAppsController = @getSingleton('kodingAppsController')
+    kodingAppsController = KD.getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
@@ -369,7 +372,7 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.job.started"
-    kodingAppsController = @getSingleton('kodingAppsController')
+    kodingAppsController = KD.getSingleton('kodingAppsController')
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
@@ -385,7 +388,7 @@ class NFinderTreeController extends JTreeViewController
     @notify "not yet there!", "error"
 
     # folder.emit "fs.job.started"
-    # @getSingleton('kodingAppsController').cloneApp folder.path, =>
+    # KD.getSingleton('kodingAppsController').cloneApp folder.path, =>
     #   folder.emit "fs.job.finished"
     #   @refreshFolder @nodes[folder.parentPath], =>
     #     @utils.wait 500, =>
@@ -398,7 +401,7 @@ class NFinderTreeController extends JTreeViewController
     folder = nodeView.getData()
 
     folder.emit "fs.job.started"
-    @getSingleton('kodingAppsController').publishApp folder.path, (err)=>
+    KD.getSingleton('kodingAppsController').publishApp folder.path, (err)=>
       folder.emit "fs.job.finished"
       unless err
         @notify "App published!", "success"
@@ -417,14 +420,14 @@ class NFinderTreeController extends JTreeViewController
                 modal.destroy()
 
   makeNewApp:(nodeView)->
-    @getSingleton('kodingAppsController').makeNewApp()
+    KD.getSingleton('kodingAppsController').makeNewApp()
 
   downloadAppSource:(nodeView)->
 
     folder = nodeView.getData()
 
     folder.emit "fs.job.started"
-    @getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
+    KD.getSingleton('kodingAppsController').downloadAppSource folder.path, (err)=>
       folder.emit "fs.job.finished"
       @refreshFolder @nodes[folder.parentPath]
       unless err
@@ -455,13 +458,12 @@ class NFinderTreeController extends JTreeViewController
                   syntax             : FSItem.getFileExtension file.path
               CodeShares.push CodeShare
             if count == files.length
-              @getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
+              KD.getSingleton('mainController').emit 'CreateNewActivityRequested', 'JCodeShare', CodeShares
 
   openTerminalFromHere: (nodeView) ->
-    appManager.open "WebTerm", (appInstance) =>
+    @appManager.open "WebTerm", (appInstance) =>
       path          = nodeView.getData().path
-      appManager    = @getSingleton "appManager"
-      {webTermView} = appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
+      {webTermView} = @appManager.getFrontApp().getView().tabView.getActivePane().getOptions()
 
       webTermView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
@@ -485,9 +487,9 @@ class NFinderTreeController extends JTreeViewController
   cmExtract:       (nodeView, contextMenuItem)-> @extractFiles nodeView
   cmZip:           (nodeView, contextMenuItem)-> @compressFiles nodeView, "zip"
   cmTarball:       (nodeView, contextMenuItem)-> @compressFiles nodeView, "tar.gz"
-  cmUpload:        (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmDownload:      (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
-  cmGitHubClone:   (nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
+  cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
+  cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
   cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView, contextMenuItem
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
   cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
@@ -500,7 +502,7 @@ class NFinderTreeController extends JTreeViewController
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
 
-  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> KD.getSingleton("appManager").notify()
+  cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
   ###
   CONTEXT MENU CREATE/MANAGE
@@ -721,7 +723,7 @@ class NFinderTreeController extends JTreeViewController
             duration  : 0
             click     : -> details.destroy()
 
-          @getSingleton('windowController').addLayer details
+          KD.getSingleton('windowController').addLayer details
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
 

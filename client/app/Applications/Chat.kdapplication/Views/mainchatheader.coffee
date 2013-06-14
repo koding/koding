@@ -4,6 +4,8 @@ class MainChatHeader extends JView
     super
       cssClass : 'main-chat-header'
 
+    chatPanel = KD.getSingleton "chatPanel"
+
     @header = new HeaderViewSection
       type    : "big"
       title   : "Conversations"
@@ -18,13 +20,13 @@ class MainChatHeader extends JView
         title         : "show"
         iconClass     : "left"
         callback      : (callback)->
-          KD.singletons.chatPanel.toggleInboxMode()
+          chatPanel.toggleInboxMode()
           callback?()
       ,
         title         : "hide"
         iconClass     : "right"
         callback      : (callback)->
-          KD.singletons.chatPanel.toggleInboxMode()
+          chatPanel.toggleInboxMode()
           callback?()
       ]
 
@@ -36,7 +38,7 @@ class MainChatHeader extends JView
         title         : "pin"
         iconClass     : "left"
         callback      : (callback)->
-          contentPanel = @getSingleton('contentPanel')
+          contentPanel = KD.getSingleton('contentPanel')
           contentPanel.chatMargin = 250
           contentPanel._windowDidResize()
           callback?()
@@ -44,13 +46,10 @@ class MainChatHeader extends JView
         title         : "unpin"
         iconClass     : "right"
         callback      : (callback)->
-          contentPanel = @getSingleton('contentPanel')
+          contentPanel = KD.getSingleton('contentPanel')
           contentPanel.chatMargin = 0
           contentPanel._windowDidResize()
-
-          chatPanel    = @getSingleton('chatPanel')
           chatPanel.hidePanel()
-
           callback?()
       ]
 
