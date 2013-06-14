@@ -90,9 +90,7 @@ module.exports = class JGroupBundle extends JBundle
           arr.forEach (vm)->
             createdVMs += 1
 
-          console.log paidVMs, createdVMs
-
-          if paidVMs > createdVMs
+          if (group.slug is 'koding' and createdVMs == 0) or paidVMs > createdVMs
             options     =
               planCode  : planCode
               usage     : {cpu: 1, ram: 1, disk: 1}
