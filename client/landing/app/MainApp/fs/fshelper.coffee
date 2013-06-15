@@ -138,7 +138,7 @@ class FSHelper
       return warn "pass a path and type to create a file instance"
 
     unless data.vmName?
-      data.vmName = KD.getSingleton('vmController').getDefaultVmName()
+      data.vmName = KD.getSingleton('vmController').defaultVmName
 
     if @registry[data.path]
       instance = @registry[data.path]
