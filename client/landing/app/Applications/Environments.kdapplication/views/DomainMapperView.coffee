@@ -21,13 +21,15 @@ class DomainMapperView extends KDView
     KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
       if vms
 
+        hostnameAliases = domain.hostnameAlias
+
         @vmListViewController = new VMListViewController
           viewOptions :
             cssClass  : 'vm-list'
         
         @vmListViewController.getListView().setData
           domain          : domain
-          hostnameAliases : if domain.hostnameAlias then (hostnameAlias for hostnameAlias in domain.hostnameAlias) else []
+          hostnameAliases : if hostnameAliases then (alias for alias in hostnameAliases) else []
 
         @vmListViewController.instantiateListItems vms
         @addSubView @vmListViewController.getView()
