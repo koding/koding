@@ -159,7 +159,6 @@ class FSHelper
 
   @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
     return warn "Pass a path to create folders recursively"  unless path
-    vmName or= KD.getSingleton("vmController").getDefaultVmName()
 
     KD.getSingleton("kiteController").run {
       kiteName    : "os"
