@@ -6,7 +6,7 @@ class ActivityUpdateWidget extends KDView
 
     super options, data
 
-    @windowController = @getSingleton('windowController')
+    @windowController = KD.getSingleton('windowController')
     @listenWindowResize()
 
   setMainSections:->

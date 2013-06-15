@@ -113,7 +113,7 @@ class Sidebar extends JView
       iconOnly  : yes
       iconClass : "cog"
       cssClass  : "clean-gray open-environment"
-      callback  :-> appManager.open "Environments"
+      callback  :-> KD.getSingleton("appManager").open "Environments"
 
     @listenWindowResize()
 
@@ -127,13 +127,13 @@ class Sidebar extends JView
 
   setListeners:->
 
-    mainController                 = @getSingleton "mainController"
-    mainViewController             = @getSingleton "mainViewController"
-    mainView                       = @getSingleton "mainView"
+    mainController                 = KD.getSingleton "mainController"
+    mainViewController             = KD.getSingleton "mainViewController"
+    mainView                       = KD.getSingleton "mainView"
     {@contentPanel, @sidebarPanel} = mainView
     $fp                            = @$('#finder-panel')
     cp                             = @contentPanel
-    @wc                            = @getSingleton "windowController"
+    @wc                            = KD.getSingleton "windowController"
     fpLastWidth                    = null
 
     mainController.on "AvatarPopupIsActive",   => @_popupIsActive = yes
@@ -150,7 +150,7 @@ class Sidebar extends JView
   changeLayout:(options)->
 
     {type, hideTabs} = options
-    windowController = @getSingleton 'windowController'
+    windowController = KD.getSingleton 'windowController'
 
     @$finderPanel       or= @$('#finder-panel')
     @$avatarPlaceholder or= @$('.avatar-placeholder')
@@ -264,39 +264,22 @@ class Sidebar extends JView
   navItems =
     # temp until groups are implemented
     do ->
-      if location.hostname is "koding.com"
-        id        : "navigation"
-        title     : "navigation"
-        items     : [
-          { title : "Home",           path : "/Activity" }
-          { title : "Activity",       path : "/Activity" }
-          { title : "Topics",         path : "/Topics" }
-          { title : "Members",        path : "/Members" }
-          { title : "Develop",        path : "/Develop", loggedIn: yes }
-          { title : "Apps",           path : "/Apps" }
-          { type  : "separator" }
-          { title : "Invite Friends", type : "account", loggedIn: yes }
-          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
-          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
-        ]
-      else
-        id        : "navigation"
-        title     : "navigation"
-        items     : [
-          { title : "Home",           path : "/Activity" }
-          { title : "Activity",       path : "/Activity" }
-          { title : "Topics",         path : "/Topics" }
-          { title : "Members",        path : "/Members" }
-          { title : "Groups",         path : "/Groups" }
-          { title : "Develop",        path : "/Develop",  loggedIn: yes }
-          { title : "Apps",           path : "/Apps" }
-          { type  : "separator" }
-          { title : "Invite Friends", type : "account", loggedIn: yes }
-          { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-          { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
-          { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
-        ]
+      id        : "navigation"
+      title     : "navigation"
+      items     : [
+        { title : "Home",           path : "/Activity" }
+        { title : "Activity",       path : "/Activity" }
+        { title : "Topics",         path : "/Topics" }
+        { title : "Members",        path : "/Members" }
+        { title : "Groups",         path : "/Groups" }
+        { title : "Develop",        path : "/Develop",  loggedIn: yes }
+        { title : "Apps",           path : "/Apps" }
+        { type  : "separator" }
+        { title : "Invite Friends", type : "account", loggedIn: yes }
+        { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
+        { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
+        { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
+      ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
@@ -338,7 +321,7 @@ class Sidebar extends JView
       {
         title    : "Help",
         callback : ->
-          @getSingleton('mainController').emit "ShowInstructionsBook"
+          KD.getSingleton('mainController').emit "ShowInstructionsBook"
       }
       {
         title    : "About",
@@ -347,6 +330,6 @@ class Sidebar extends JView
       {
         title    : "Chat",
         callback : ->
-          @getSingleton('mainController').emit "ToggleChatPanel"
+          KD.getSingleton('mainController').emit "ToggleChatPanel"
       }
     ]

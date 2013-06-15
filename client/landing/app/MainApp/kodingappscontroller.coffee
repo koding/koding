@@ -23,9 +23,9 @@ class KodingAppsController extends KDController
 
     super
 
-    @appManager     = @getSingleton "appManager"
-    @kiteController = @getSingleton "kiteController"
-    mainController  = @getSingleton "mainController"
+    @appManager     = KD.getSingleton "appManager"
+    @kiteController = KD.getSingleton "kiteController"
+    mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @getPublishedApps()
 

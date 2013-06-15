@@ -16,7 +16,7 @@ class ActivityContentDisplay extends KDScrollView
       click   : (event)=>
         event.stopPropagation()
         event.preventDefault()
-        @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
+        KD.getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @
 
 
 

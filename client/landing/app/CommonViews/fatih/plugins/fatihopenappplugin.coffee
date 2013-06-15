@@ -9,7 +9,7 @@ class FatihOpenAppPlugin extends FatihPluginAbstract
     super options, data
 
     @on "FatihPluginListItemClicked", (item) ->
-      appManager.open item.data.name
+      KD.getSingleton("appManager").open item.data.name
       @fatihView.destroy()
 
   generateIndex: ->
@@ -19,7 +19,6 @@ class FatihOpenAppPlugin extends FatihPluginAbstract
       @index       = res
 
   action: (keyword) ->
-    appManager     = @getSingleton "appManager"
     keyword        = keyword.toLowerCase()
     possibleApps   = []
 
@@ -32,7 +31,7 @@ class FatihOpenAppPlugin extends FatihPluginAbstract
         possibleApps.push currentApp
 
     if app
-      appManager.open app
+      KD.getSingleton("appManager").open app
       return @fatihView.destroy()
 
     listData = []

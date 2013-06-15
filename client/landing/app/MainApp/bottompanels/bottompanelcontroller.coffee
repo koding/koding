@@ -15,7 +15,7 @@ class BottomPanelController extends KDController
     return unless options.name
     {panelClass} = options
     delete options.panelClass if options.panelClass
-    @getSingleton('mainView').addSubView panel = new (panelClass or BottomPanel) options
+    KD.getSingleton('mainView').addSubView panel = new (panelClass or BottomPanel) options
     @panels[options.name] = panel
     return panel
 

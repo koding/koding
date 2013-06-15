@@ -14,7 +14,7 @@ class AppsAppController extends AppController
 
     super options, data
 
-    @appsController = @getSingleton "kodingAppsController"
+    @appsController = KD.getSingleton "kodingAppsController"
 
     @appsController.on "AnAppHasBeenUpdated", @bound "updateApps"
 
@@ -123,7 +123,7 @@ class AppsAppController extends AppController
     @utils.defer => callback contentDisplay
 
   showContentDisplay:(content)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     controller = new ContentDisplayControllerApps null, content
     contentDisplay = controller.getView()
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay

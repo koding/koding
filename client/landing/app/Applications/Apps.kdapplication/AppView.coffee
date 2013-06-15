@@ -16,7 +16,7 @@ class AppsMainView extends KDView
       title     : "Update All"
       style     : "cupid-green update-apps-button"
       callback  : ->
-        @getSingleton("kodingAppsController").updateAllApps()
+        KD.getSingleton("kodingAppsController").updateAllApps()
         @hide()
 
     @updateAppsButton.hide()
