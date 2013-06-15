@@ -28,10 +28,11 @@ class FirewallMapperView extends KDView
       if err
         @ruleListController.hideLazyLoader()
         @actionListController.hideLazyLoader()
-        if err is "not found"
-          notifyMsg = "You don't have any rules set for this domain."
-        else
-          notifyMsg = "An error occured while fetching the rules. Please try again."
+        
+        notifyMsg = if err is "not found"
+        then "You don't have any rules set for this domain."
+        else "An error occured while fetching the rules. Please try again."
+
         return new KDNotificationView
           title : notifyMsg
           type  : "top"
