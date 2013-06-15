@@ -90,7 +90,7 @@ class HomeSlideShow extends KDView
     @addSubView @leftArrow
     @addSubView @rightArrow
     @wrapper.on "viewAppended", @bound "_windowDidResize"
-    @getSingleton('mainView').on "transitionend", @bound "_windowDidResize"
+    KD.getSingleton('mainView').on "transitionend", @bound "_windowDidResize"
 
     @on "FirstSlideShown", =>
       @rightArrow.$().css right : 0

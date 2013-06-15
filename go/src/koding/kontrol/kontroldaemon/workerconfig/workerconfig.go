@@ -283,13 +283,19 @@ func (w *WorkerConfig) Stop(hostname, uuid string) (MsgWorker, error) {
 	return workerResult, nil
 }
 
-func (w *WorkerConfig) Kill(hostname, uuid string) (MsgWorker, error) {
+func (w *WorkerConfig) Kill(hostname, uuid, mode string) (MsgWorker, error) {
 	workerResult, err := w.GetWorker(uuid)
 	if err != nil {
 		return workerResult, fmt.Errorf("kill method error '%s'", err)
 	}
 
-	workerResult.Message.Result = "killed.now"
+	switch mode {
+	case "force":
+		workerResult.Message.Result = "killedforce.now"
+	case "default":
+		workerResult.Message.Result = "killed.now"
+	}
+
 	workerResult.Status = Waiting
 	log.Printf("killing worker with pid: %d on hostname: %s", workerResult.Pid, hostname)
 
@@ -390,9 +396,8 @@ func (w *WorkerConfig) ApprovedHost(name, host string) bool {
 	return false
 }
 
-func (w *WorkerConfig) NumberOfWorker(workerName, workerHostname string) int {
-	count, _ := w.Collection.Find(bson.M{"name": workerName, "hostname": workerHostname}).Count()
-
+func (w *WorkerConfig) NumberOfWorker(name string, version int) int {
+	count, _ := w.Collection.Find(bson.M{"name": name, "version": version}).Count()
 	return count
 }
 
@@ -419,7 +424,7 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 	result.Uuid = worker.Uuid
 	result.Version = worker.Version
 
-	log.Printf("updating worker '%s' - '%s' - '%s'", worker.Name, worker.Hostname, worker.Uuid)
+	log.Printf("updating worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
 	w.AddWorker(result)
 	return nil
 }
@@ -427,7 +432,7 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 func (w *WorkerConfig) Ack(worker MsgWorker) error {
 	workerResult, err := w.GetWorker(worker.Uuid)
 	if err != nil {
-		return fmt.Errorf("ack method error '%s'", err)
+		return fmt.Errorf("ack method error for hostanme %s worker %s version %d '%s'", worker.Hostname, worker.Name, worker.Version, err)
 	}
 
 	workerResult.Message.Result = "alive"

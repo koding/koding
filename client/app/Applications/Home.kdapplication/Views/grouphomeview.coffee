@@ -15,7 +15,7 @@ class GroupHomeView extends KDView
 
   viewAppended:->
     {entryPoint}     = KD.config
-    groupsController = @getSingleton "groupsController"
+    groupsController = KD.getSingleton "groupsController"
 
     KD.remote.cacheable entryPoint.slug, (err, models)=>
       if err then callback err

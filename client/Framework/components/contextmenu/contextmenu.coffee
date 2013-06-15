@@ -16,7 +16,7 @@ class JContextMenu extends KDView
 
     o = @getOptions()
 
-    @getSingleton("windowController").addLayer @
+    KD.getSingleton("windowController").addLayer @
 
     @on 'ReceivedClickElsewhere', => @destroy()
 
@@ -87,7 +87,7 @@ class JContextMenu extends KDView
   positionContextMenu:->
     options     = @getOptions()
     event       = options.event or {}
-    mainView    = @getSingleton 'mainView'
+    mainView    = KD.getSingleton 'mainView'
 
     mainHeight  = mainView.getHeight()
     mainWidth   = mainView.getWidth()

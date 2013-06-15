@@ -31,14 +31,14 @@ class GroupsAppController extends AppController
     @listItemClass = GroupsListItemView
     @controllers   = {}
     @isReady       = no
-    @getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
+    KD.getSingleton('windowController').on "FeederListViewItemCountChanged", (count, itemClass, filterName)=>
       if @_searchValue and itemClass is @listItemClass then @setCurrentViewHeader count
 
     @utils.defer @bound 'init'
 
   init:->
-    mainController = @getSingleton 'mainController'
-    router         = @getSingleton 'router'
+    mainController = KD.getSingleton 'mainController'
+    router         = KD.getSingleton 'router'
     {entryPoint}   = KD.config
     mainController.on 'NavigationLinkTitleClick', (pageInfo)=>
       return unless pageInfo.path
@@ -297,7 +297,7 @@ class GroupsAppController extends AppController
     KD.track "Groups", "GroupOpeningError", err.accessCode if err
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
-      @getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
+      KD.getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
       @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
@@ -351,7 +351,7 @@ class GroupsAppController extends AppController
         KD.track "Groups", "JoinedGroup", group.slug
         new KDNotificationView
           title : "You've successfully joined the group!"
-        @getSingleton('mainController').emit 'JoinedGroup'
+        KD.getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>
@@ -730,7 +730,7 @@ class GroupsAppController extends AppController
       title   : 'Open group'
       # click   : (event)->
       #   event.preventDefault()
-      #   @getSingleton('windowManager').open @href, slug
+      #   KD.getSingleton('windowManager').open @href, slug
 
   setCurrentViewHeader:(count)->
     if typeof 1 isnt typeof count
@@ -771,7 +771,7 @@ class GroupsAppController extends AppController
 
 
   showContentDisplay:(groupView)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", groupView
     groupView.on 'PrivateGroupIsOpened', @bound 'openPrivateGroup'
     return groupView
@@ -833,16 +833,16 @@ class GroupsAppController extends AppController
   #     if role is "super-admin"
   #       @listItemClass = GroupsListItemViewEditable
   #       if firstRun
-  #         @getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
+  #         KD.getSingleton('mainController').on "EditPermissionsButtonClicked", (groupItem)=>
   #           @editPermissions groupItem
-  #         @getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
+  #         KD.getSingleton('mainController').on "EditGroupButtonClicked", (groupItem)=>
   #           groupData = groupItem.getData()
   #           groupData.canEditGroup (err, hasPermission)=>
   #             unless hasPermission
   #               new KDNotificationView title: 'Access denied'
   #             else
   #               @showGroupSubmissionView groupData
-  #         @getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
+  #         KD.getSingleton('mainController').on "MyRolesRequested", (groupItem)=>
   #           groupItem.getData().fetchRoles console.log.bind console
 
   #     @createFeed mainView

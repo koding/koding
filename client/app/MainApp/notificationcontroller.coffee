@@ -17,7 +17,7 @@ class NotificationController extends KDObject
 
     super
 
-    @getSingleton('mainController').on "AccountChanged", =>
+    KD.getSingleton('mainController').on "AccountChanged", =>
       @off 'NotificationHasArrived'
       @notificationChannel?.close().off()
       @setListeners()
@@ -104,7 +104,7 @@ class NotificationController extends KDObject
           options.click = ->
             view = @
             if subject.constructorName is "JPrivateMessage"
-              appManager.openApplication "Inbox"
+              KD.getSingleton("appManager").openApplication "Inbox"
             else if subject.constructorName in ["JComment", "JOpinion"]
               KD.remote.api[subject.constructorName].fetchRelated subject.id, (err, post) ->
                 KD.getSingleton('router').handleRoute "/Activity/#{post.slug}", state:post

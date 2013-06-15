@@ -79,5 +79,5 @@ class ConversationStarter extends JView
       {nickname} = account.profile
       invitees.push nickname
 
-    KD.singletons.chatController.create invitees, =>
+    KD.getSingleton("chatController").create invitees, =>
       @emit 'ConversationStarted'

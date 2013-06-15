@@ -20,7 +20,7 @@ class ContentDisplayControllerApps extends KDViewController
         event.preventDefault()
         contentDisplayController.emit "ContentDisplayWantsToBeHidden", mainView
 
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
 
     # mainView.addSubView wrapperView = new AppViewMainPanel {}, app
 

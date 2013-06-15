@@ -5,7 +5,7 @@ class AceAppView extends JView
 
     @aceViews   = {}
     @timestamp  = Date.now()
-    @appManager = @getSingleton "appManager"
+    @appManager = KD.getSingleton "appManager"
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate: @
@@ -141,7 +141,7 @@ class AceAppView extends JView
 
   openFile: (file, isAceAppOpen) ->
     if file and @isFileOpen file
-      mainTabView = @getSingleton("mainView").mainTabView
+      mainTabView = KD.getSingleton("mainView").mainTabView
       mainTabView.showPane @parent
       @tabView.showPane @aceViews[file.path].parent
     else
@@ -163,7 +163,7 @@ class AceAppView extends JView
         view.ace.setData newFile
         @setFileListeners newFile
         view.ace.notify "New file is created!", "success"
-        @getSingleton('mainController').emit "NewFileIsCreated", newFile
+        KD.getSingleton('mainController').emit "NewFileIsCreated", newFile
     file.on "fs.delete.finished", => @removeOpenDocument @aceViews[file.path]
 
   clearFileRecords: (view) ->

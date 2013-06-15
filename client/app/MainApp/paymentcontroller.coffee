@@ -238,13 +238,13 @@ class PaymentController extends KDController
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.singletons.finderController.mountVm vm.name
+        KD.getSingleton("finderController").mountVm vm.name
         vmController.emit 'VMListChanged'
       paymentModal?.destroy()
 
     planCode = plan.code
     if type is 'group' or type is 'expensed'
-      group = KD.singletons.groupsController.getCurrentGroup()
+      group = KD.getSingleton("groupsController").getCurrentGroup()
       group.checkPayment (err, payments)->
         if err or payments.length is 0
 
@@ -265,7 +265,7 @@ class PaymentController extends KDController
               delete data.cardYear
               delete data.cardCV
 
-              @paymentModal = @createPaymentMethodModal data, (newData, onError, onSuccess)->
+              @paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
                 newData.plan = planCode
                 newData.type = type
                 group.makePayment newData, (err, subscription)->
