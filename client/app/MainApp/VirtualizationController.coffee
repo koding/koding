@@ -6,6 +6,7 @@ class VirtualizationController extends KDController
     @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
+    (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
 
   run:(vm, command, callback)->
     KD.requireMembership
@@ -28,8 +29,9 @@ class VirtualizationController extends KDController
 
   _runWraper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
-    vm or= @getDefaultVmName vm
-    @run vm, command, callback
+    @fetchDefaultVmName (defaultVm)=>
+      vm or= defaultVm
+      @run vm, command, callback  if vm
 
   start:(vm, callback)->
     @_runWraper 'vm.start', vm, callback
@@ -54,18 +56,48 @@ class VirtualizationController extends KDController
 
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
-    vm or= @getDefaultVmName vm
-    @_runWraper 'vm.info', vm, (err, info)=>
-      warn "[VM-#{vm}]", err  if err
-      @emit 'StateChanged', err, vm, info
-      callback? err, vm, info
-    , no
+    @fetchDefaultVmName (defaultVm)=>
+      vm or= defaultVm
+      @_runWraper 'vm.info', vm, (err, info)=>
+        warn "[VM-#{vm}]", err  if err
+        @emit 'StateChanged', err, vm, info
+        callback? err, vm, info
+      , no
 
-  getDefaultVmName:->
-    {entryPoint} = KD.config
-    currentGroup = if entryPoint?.type is 'group' then entryPoint.slug
-    if not currentGroup or currentGroup is 'koding' then "koding~#{KD.nick()}~0"
-    else "#{currentGroup}~0"
+  hasThisVM:(vmTemplate, vms)->
+    for i in [0..vms.length]  when "#{vmTemplate}#{i}" in vms
+      return "#{vmTemplate}#{i}"
+    return no
+
+  fetchDefaultVmName:(callback=noop, force=no)->
+    if @defaultVmName and not force
+      return callback @defaultVmName
+
+    {entryPoint}   = KD.config
+    currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
+    currentGroup or= 'koding'
+
+    @fetchVMs (err, vms)=>
+      if err or not vms
+        return callback null
+
+      # If there is just one return it
+      if vms.length is 1
+        return callback @defaultVmName = vms.first
+
+      # Check for personal VMs in current group
+      vmName = @hasThisVM("#{currentGroup}~#{KD.nick()}~", vms)
+      return callback @defaultVmName = vmName  if vmName
+
+      # Check for shared VMs in current group
+      vmName = @hasThisVM("#{currentGroup}~", vms)
+      return callback @defaultVmName = vmName  if vmName
+
+      # Check for personal VMs in Koding group
+      vmName = @hasThisVM("koding~#{KD.nick()}~", vms)
+      return callback @defaultVmName = vmName  if vmName
+
+      callback @defaultVmName = vms.first
 
   createGroupVM:(type='user', planCode, callback)->
     defaultVMOptions = {planCode}
@@ -76,16 +108,17 @@ class VirtualizationController extends KDController
     return callback null, @vms  if @vms.length > 0
     KD.remote.api.JVM.fetchVms (err, vms)=>
       @vms = vms  unless err
-      callback err, vms
+      callback? err, vms
 
   fetchGroupVMs:(callback)->
     return callback null, @groupVms  if @groupVms.length > 0
     KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @groupVms = vms  unless err
-      callback err, vms
+      callback? err, vms
 
   resetVMData:->
     @vms = @groupVms = []
+    @defaultVmName = null
 
   # fixme GG!
   fetchTotalVMCount:(callback)->
@@ -100,41 +133,32 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   hasDefaultVM:(callback)->
-    defaulVmName = "koding~#{KD.nick()}~0"
-    if @vms.length is 0
-      @fetchVMs (err, vms)-> callback defaulVmName in vms
-    else
-      callback defaulVmName in @vms
+    @fetchDefaultVmName (defaultVmName)=>
+      @fetchVMs (err, vms)->
+        callback defaultVmName in vms
 
   createDefaultVM:->
-
-    defaulVmName = "koding~#{KD.nick()}~0"
-    createDefaultVM = ->
-      KD.remote.cacheable 'koding', (err, group)->
-        if err or not group?.length
-          return warn err
-
-        koding = group.first
-        koding.createVM
-          planCode : 'free'
-          type     : 'user'
-        , (err)->
-          unless err
-            KD.getSingleton('vmController').emit 'VMListChanged'
-            KD.getSingleton('finderController').mountVm defaulVmName
-          else warn err
-
-    @hasDefaultVM (state)->
-      return warn 'Default VM already exists.'  if state
-      createDefaultVM()
+    @fetchDefaultVmName (defaultVmName)=>
+      @hasDefaultVM (state)->
+        return warn 'Default VM already exists.'  if state
+        KD.remote.cacheable 'koding', (err, group)->
+          if err or not group?.length
+            return warn err
+          koding = group.first
+          koding.createVM
+            planCode : 'free'
+            type     : 'user'
+          , (err)->
+            unless err
+              KD.getSingleton('vmController').emit 'VMListChanged'
+              KD.getSingleton('finderController').mountVm defaultVmName
+            else warn err
 
   createNewVM:->
     vmController = @getSingleton('vmController')
     vmController.hasDefaultVM (state)->
-      unless state
-        vmController.createDefaultVM()
-      else
-        vmController.createPaidVM()
+      unless state then vmController.createDefaultVM()
+      else vmController.createPaidVM()
 
   createPaidVM:->
     return  if @dialogIsOpen
