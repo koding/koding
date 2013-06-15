@@ -331,7 +331,7 @@ class KodingAppsController extends KDController
       @kiteController.run "kdc #{appPath}", (err, response)=>
         if not err
           nickname    = KD.nick()
-          publishPath = "/home/#{nickname}/Sites/#{nickname}.koding.kd.io/.applications"
+          publishPath = "/home/#{nickname}/Sites/.applications"
           @kiteController.run
             kiteName    : "os"
             method      : "fs.createDirectory"
