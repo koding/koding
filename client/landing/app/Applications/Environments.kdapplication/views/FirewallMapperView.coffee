@@ -4,8 +4,6 @@ class FirewallMapperView extends KDView
     data or= {}
     super options, data
 
-    domain = data?.domain
-
     @on "domainChanged", (domainListItem)->
       @getData().domain = domainListItem.data
       @updateViewContent()
@@ -26,7 +24,7 @@ class FirewallMapperView extends KDView
     @ruleListController.showLazyLoader()
     @actionListController.showLazyLoader()
 
-    KD.remote.api.JDomain.fetchProxyRules domain.domain, (err, response)=>
+    domain.fetchProxyRules (err, response)=>
       if err
         @ruleListController.hideLazyLoader()
         @actionListController.hideLazyLoader()
@@ -61,7 +59,7 @@ class FirewallMapperView extends KDView
     @actionListView.addSubView @actionListScrollView
     @actionListView.addSubView new KDButtonView
       title    : "Update Action Order"
-      callback : => @updateActionOrders()
+      callback : => @updateActionOrders domain
 
     @actionListScrollView.addSubView @actionListController.getView()
 
@@ -99,11 +97,10 @@ class FirewallMapperView extends KDView
     @actionListController.instantiateListItems actionList
     @actionListController.hideLazyLoader()
 
-  updateActionOrders:->
+  updateActionOrders:(domain)->
     for item, index in @actionListController.itemsOrdered
       data = item.getData()
-      KD.remote.api.JDomain.updateBehavior
-        domainName : data.domainName
+      domain.updateRuleBehavior
         ruleName   : data.ruleName
         behaviorInfo :
           enabled : "yes"
@@ -111,7 +108,6 @@ class FirewallMapperView extends KDView
           index   : "#{index}"
       , (err, response)=>
         return console.log err if err?
-
 
 
 class FirewallRuleListItemView extends KDListItemView
@@ -142,16 +138,17 @@ class FirewallRuleListItemView extends KDListItemView
     data = @getData()
     delegate = @getDelegate()
 
-    KD.remote.api.JDomain.createBehavior
-      domainName : data.domainName
-      ruleName   : data.ruleName
-      behaviorInfo :
-        enabled : "yes"
-        action  : behavior
-        index   : "0"
-    , (err, response)=>
-      if not err
-        delegate.emit "behaviorCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
+    KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)->
+      return console.log err if err
+      domain.createRuleBehavior
+        ruleName   : data.ruleName
+        behaviorInfo :
+          enabled : "yes"
+          action  : behavior
+          index   : "0"
+      , (err, response)=>
+        if not err
+          delegate.emit "behaviorCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
 
   pistachio:->
     """
@@ -213,29 +210,27 @@ class FirewallActionListItemView extends KDListItemView
     newAction = @actionButton.getOptions().title.toLowerCase()
     futureAction = if newAction is 'deny' then 'allow' else 'deny'
 
-    KD.remote.api.JDomain.updateBehavior
-      domainName : data.domainName
-      ruleName   : data.ruleName
-      behaviorInfo :
-        enabled : "yes"
-        action  : newAction
-        index   : "0"
-    , (err, response)=>
-      return console.log err if err?
-      @$().find("div.fw-li-view").removeClass(futureAction).addClass(newAction)
-      @actionButton.setTitle futureAction
+    KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
+      domain.updateRuleBehavior
+        ruleName   : data.ruleName
+        behaviorInfo :
+          enabled : "yes"
+          action  : newAction
+          index   : "0"
+      , (err, response)=>
+        return console.log err if err?
+        @$().find("div.fw-li-view").removeClass(futureAction).addClass(newAction)
+        @actionButton.setTitle futureAction
 
 
   deleteProxyRule:->
     data = @getData()
 
-    KD.remote.api.JDomain.deleteBehavior
-      domainName : data.domainName
-      ruleName   : data.ruleName
-    , (err, result)=>
-      return console.log err if err?
-      new KDNotificationView {title:"Action has been deleted from your firewall.", type:"top"}
-      @destroy()
+    KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
+      domain.deleteRuleBehavior {ruleName:data.ruleName}, (err, result)=>
+        return console.log err if err?
+        new KDNotificationView {title:"Action has been deleted from your firewall.", type:"top"}
+        @destroy()
 
 
   viewAppended:->
@@ -279,17 +274,19 @@ class FirewallRuleFormView extends KDCustomHTMLView
     ruleType   = if @ruleInput.getValue().match /[0-9+]/ then "ip" else "country"
     ruleName   = @ruleNameInput.getValue()
     ruleMatch  = @ruleInput.getValue()
-    domainName = @getData().domain.domain
+    domain     = @getData().domain
+    domainName = domain.domain
     delegate   = @getDelegate()
 
-    KD.remote.api.JDomain.createProxyRule  {
-      domainName, ruleInfo:{type:ruleType, match:ruleMatch}
-    }, (err, response)->
+    domain.createProxyRule {ruleInfo:{type:ruleType, match:ruleMatch}}, (err, response)->
       if err
         return new KDNotificationView 
           title : "An error occured while performing your action. Please try again."
           type  : "top"
-      delegate.emit "newRuleCreated", {domainName:domainName, ruleName:response.Name, match:response.Match}
+      delegate.emit "newRuleCreated", 
+        domainName:domainName
+        ruleName:response.Name
+        match:response.Match
 
 
   viewAppended:->
