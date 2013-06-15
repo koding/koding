@@ -25,7 +25,7 @@ class CommonInnerNavigation extends KDView
     if itemToBeSelected
       @sortController.selectItem itemToBeSelected
 
-class CommonInnerNavigationListController extends KDListViewController
+class CommonInnerNavigationListController extends NavigationController
   constructor:(options={},data)->
     options.viewOptions or= itemClass : options.itemClass or CommonInnerNavigationListItem
     options.view or= mainView = new CommonInnerNavigationList options.viewOptions

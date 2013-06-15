@@ -24,6 +24,10 @@ class ActivityInnerNavigation extends CommonInnerNavigation
       itemClass : ListGroupShowMeItem
     , menudata
 
+    KD.getSingleton('mainController').on "AccountChanged", (account)=>
+      filterFirstController.reset()
+      filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
+
     @addSubView filterController.getView()
     filterController.selectItem filterController.getItemsOrdered()[0]
 
@@ -41,7 +45,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     title: 'FILTER'
     items: [
       {title: "Public",    type: "Public" },
-      {title: "Following", type: "Followed"}
+      {title: "Following", type: "Followed", loggedIn: yes }
     ]
 
   followerMenuData :
