@@ -61,9 +61,10 @@ class DomainVMListItemView extends KDListItemView
           state      : state
         , (err) =>
           unless err
+            {name} = @getData()
             notificationMsg = if state
-            then "Your domain is connected to the #{@getData().name} VM."
-            else "Your domain is disconnected from the #{@getData().name} VM."
+            then "Your domain is connected to the #{name} VM."
+            else "Your domain is disconnected from the #{name} VM."
             new KDNotificationView {type: "top", title: notificationMsg}
           else
             new KDNotificationView {type: "top", title: err}
