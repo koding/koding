@@ -18,18 +18,19 @@ module.exports = class JDomain extends jraphical.Module
   @set
     softDelete      : yes
 
-    permissions          :
-      'create domains'   : ['member']
-      'edit domains'     : ['member']
-      'edit own domains' : ['member']
-      'delete domains'   : ['member']
-      'list domains'     : ['member']
-      'list own domains' : ['member']
+    permissions     :
+      'create domains'     : ['member']
+      'edit domains'       : ['member']
+      'edit own domains'   : ['member']
+      'delete domains'     : ['member']
+      'delete own domains' : ['member']
+      'list domains'       : ['member']
+      'list own domains'   : ['member']
 
     sharedMethods   :
-      instance      : ['bindVM']
-      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain', 'createProxyRule', 
-                      'fetchProxyRules', 'createBehavior', 'updateBehavior', 'deleteBehavior']
+      instance      : ['bindVM', 'createProxyRule', 'fetchProxyRules', 'createRuleBehavior', 
+                       'updateRuleBehavior', 'deleteRuleBehavior']
+      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain']
 
     indexes         :
       domain        : 'unique'
@@ -145,23 +146,53 @@ module.exports = class JDomain extends jraphical.Module
     ]
     success: (client, params, callback)-> @bindVM client, params, callback
 
+  @one$: permit 'list domains',
+    success: (client, selector, callback)->
+      {delegate} = client.connection
+      delegate.fetchDomains (err, domains)->
+        return callback err if err
+        for domain in domains
+          return callback null, domain if domain.domain is selector.domainName
 
-  @fetchProxyRules: secure (client, params, callback)->
-    domainManager.domainService.fetchProxyRules params, (err, response)-> callback err, response
+  fetchProxyRules: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, callback)-> 
+      domainManager.domainService.fetchProxyRules @domain, (err, response)-> callback err, response
 
-  @createProxyRule: secure (client, params, callback)->
-    domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
+  createProxyRule: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
 
-  @createBehavior: secure (client, params, callback)->
-    domainManager.domainService.createBehavior params, (err, response)-> callback err, response
+  createRuleBehavior: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      domainManager.domainService.createBehavior params, (err, response)-> callback err, response
 
-  @updateBehavior: secure (client, params, callback)->
-    domainManager.domainService.updateBehavior params, (err, response)-> 
-      console.log err, response
-      callback err, response
+  updateRuleBehavior: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      domainManager.domainService.updateBehavior params, (err, response)-> 
+        callback err, response
 
-  @deleteBehavior: secure (client, params, callback)->
-    domainManager.domainService.deleteBehavior params, (err, response)-> callback err, response
+  deleteRuleBehavior: permit
+    advanced: [
+      {permission: 'edit own domains', validateWith: Validators.own}
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      domainManager.domainService.deleteBehavior params, (err, response)-> callback err, response
 
 
 
