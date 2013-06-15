@@ -25,7 +25,7 @@ class CommonInnerNavigation extends KDView
     if itemToBeSelected
       @sortController.selectItem itemToBeSelected
 
-class CommonInnerNavigationListController extends KDListViewController
+class CommonInnerNavigationListController extends NavigationController
   constructor:(options={},data)->
     options.viewOptions or= itemClass : options.itemClass or CommonInnerNavigationListItem
     options.view or= mainView = new CommonInnerNavigationList options.viewOptions
@@ -46,14 +46,6 @@ class CommonInnerNavigationListController extends KDListViewController
     mainView.addSubView new KDHeaderView size : 'small', title : @getData().title, cssClass : "list-group-title"
     mainView.addSubView list
     @instantiateListItems(@getData().items or [])
-
-  getItemByName:(name)->
-    for navItem in @itemsOrdered when navItem.getData()?.title is name
-      return navItem
-
-  selectItemByName:(name)->
-    @selectItem item  if item = @getItemByName name
-    return item
 
 class CommonInnerNavigationList extends KDListView
   constructor : (options = {},data)->
