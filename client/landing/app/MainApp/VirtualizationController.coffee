@@ -69,7 +69,7 @@ class VirtualizationController extends KDController
 
   createGroupVM:(type='user', planCode, callback)->
     defaultVMOptions = {planCode}
-    group = KKD.getSingleton("groupsController").getCurrentGroup()
+    group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, callback
 
   fetchVMs:(callback)->
