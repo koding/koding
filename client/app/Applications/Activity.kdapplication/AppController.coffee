@@ -36,14 +36,14 @@ class ActivityAppController extends AppController
     @feedType       = "Public"
     @appStorage     = new AppStorage 'Activity', '1.0'
     @isLoading      = no
-    @mainController = @getSingleton 'mainController'
+    @mainController = KD.getSingleton 'mainController'
     @lastTo         = null
     @lastFrom       = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'FrameworkIsReady', => @putListeners()
 
-    @status = @getSingleton "status"
+    @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=>
       if conn && conn.reason is "internetDownForLongTime"
       then @refresh()
@@ -75,7 +75,7 @@ class ActivityAppController extends AppController
   attachEvents:(controller)->
 
     @listController    = controller
-    activityController = @getSingleton('activityController')
+    activityController = KD.getSingleton('activityController')
 
     controller.on 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
     controller.on 'teasersLoaded', @teasersLoaded.bind @
@@ -182,7 +182,7 @@ class ActivityAppController extends AppController
     @listController.hideNoItemWidget()
 
     @isLoading       = yes
-    groupsController = @getSingleton 'groupsController'
+    groupsController = KD.getSingleton 'groupsController'
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
 
@@ -337,7 +337,7 @@ class ActivityAppController extends AppController
     # we need a different approach tho, tBDL - SY
 
     # due to complex nesting of subviews, i used jQuery here. - AK
-    contentPanel     = @getSingleton('contentPanel')
+    contentPanel     = KD.getSingleton('contentPanel')
     scrollViewHeight = @listController.scrollView.$()[0].clientHeight
     headerHeight     = contentPanel.$('.feeder-header')[0].offsetHeight
     panelHeight      = contentPanel.$('.activity-content')[0].clientHeight
@@ -355,7 +355,7 @@ class ActivityAppController extends AppController
     @utils.defer -> callback controller
 
   showContentDisplay:(contentDisplay)->
-    contentDisplayController = @getSingleton "contentDisplayController"
+    contentDisplayController = KD.getSingleton "contentDisplayController"
     contentDisplayController.emit "ContentDisplayWantsToBeShown", contentDisplay
     return contentDisplayController
 

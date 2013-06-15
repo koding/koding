@@ -109,7 +109,7 @@ class KeyboardHelperModalView extends KDModalView
     @display()
     @setPositions()
 
-    # @getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
+    # KD.getSingleton("windowController").setKeyView @ ---------> disabled because KDEnterinputView was not working in KDmodal
     $(window).on "keydown.modal",(e)=>
       @destroy() if e.which is 27
 

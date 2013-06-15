@@ -17,7 +17,7 @@ class LoginView extends KDScrollView
 
     handler =(route, event)=>
       stop event
-      @getSingleton('router').handleRoute route, {entryPoint}
+      KD.getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
     learnMoreHandler  = handler.bind null, '/Join'
@@ -96,11 +96,11 @@ class LoginView extends KDScrollView
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
-    @getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
+    KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
   viewAppended:->
 
-    @setY -@getSingleton('windowController').winHeight
+    @setY -KD.getSingleton('windowController').winHeight
     @listenWindowResize()
     @setClass "login-screen login"
 
@@ -109,7 +109,7 @@ class LoginView extends KDScrollView
 
   _windowDidResize:->
     if @hidden
-      @setY -@getSingleton('windowController').winHeight
+      @setY -KD.getSingleton('windowController').winHeight
 
   pistachio:->
     """
@@ -182,7 +182,7 @@ class LoginView extends KDScrollView
         @registerForm.emit "SubmitFailed", message
       else
         $.cookie 'clientId', replacementToken
-        @getSingleton('mainController').accountChanged account
+        KD.getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
@@ -194,7 +194,7 @@ class LoginView extends KDScrollView
           @registerForm.reset()
           @registerForm.button.hideLoader()
           # setTimeout =>
-          #   @getSingleton('mainController').emit "ShowInstructionsBook"
+          #   KD.getSingleton('mainController').emit "ShowInstructionsBook"
           # , 1000
         , 1000
 
@@ -212,13 +212,13 @@ class LoginView extends KDScrollView
         @loginForm.resetDecoration()
       else
         $.cookie 'clientId', replacementToken  if replacementToken
-        mainController = @getSingleton('mainController')
+        mainController = KD.getSingleton('mainController')
         mainView       = mainController.mainViewController.getView()
         mainController.accountChanged account
         mainView.show()
         mainView.$().css "opacity", 1
 
-        @getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+        KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
 
         new KDNotificationView
           cssClass  : "login"
@@ -265,7 +265,7 @@ class LoginView extends KDScrollView
   headBannerShowRecovery:(recoveryToken)->
 
     @showHeadBanner "Hi, seems like you came here to reclaim your account. <span>Click here when you're ready!</span>", =>
-      @getSingleton('router').clear '/Recover/Password'
+      KD.getSingleton('router').clear '/Recover/Password'
       @headBanner.updatePartial "You can now create a new password for your account"
       @resetForm.addCustomData {recoveryToken}
       @animateToForm "reset"
@@ -274,15 +274,15 @@ class LoginView extends KDScrollView
 
     @showHeadBanner "Cool! you got an invite! <span>Click here to register your account.</span>", =>
       @headBanner.hide()
-      @getSingleton('router').clear @getRouteWithEntryPoint('Register')
+      KD.getSingleton('router').clear @getRouteWithEntryPoint('Register')
       $('body').removeClass 'recovery'
       @show =>
         @animateToForm "register"
-        @getSingleton('mainController').emit 'InvitationReceived', invite
+        KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
 
-    @setY -@getSingleton('windowController').winHeight
+    @setY -KD.getSingleton('windowController').winHeight
 
     cb = =>
       @requestForm.email.show()

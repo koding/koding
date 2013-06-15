@@ -59,7 +59,7 @@ class CommentListViewController extends KDListViewController
       listView.emit "BackgroundActivityStarted"
       model.reply reply, (err, reply)=>
         # listView.emit "AllCommentsLinkWasClicked"
-        if not @getSingleton('activityController').flags?.liveUpdates
+        if not KD.getSingleton('activityController').flags?.liveUpdates
           listView.addItem reply
           listView.emit "OwnCommentHasArrived"
         else

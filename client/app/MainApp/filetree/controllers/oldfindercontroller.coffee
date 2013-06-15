@@ -25,8 +25,8 @@ class NFinderControllerOld extends KDViewController
 
     super options, data
 
-    @kiteController = @getSingleton('kiteController')
-    @appStorage     = @getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
+    @kiteController = KD.getSingleton('kiteController')
+    @appStorage     = KD.getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
 
     @treeController = new NFinderTreeController treeOptions, []
     @treeController.on "file.opened", (file)=> @setRecentFile file.path
@@ -42,7 +42,7 @@ class NFinderControllerOld extends KDViewController
 
     # temp hack, if page opens in develop section.
     @utils.wait 2500, =>
-      @getSingleton("mainView").sidebar._windowDidResize()
+      KD.getSingleton("mainView").sidebar._windowDidResize()
 
   expandInitialPath:(path)->
     pathArray = []
@@ -62,7 +62,7 @@ class NFinderControllerOld extends KDViewController
 
   reset:->
 
-    @appStorage = @getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
+    @appStorage = KD.getSingleton('mainController').getAppStorageSingleton 'Finder', '1.0'
     @appStorage.once "storageFetched", =>
       {nickname}    = KD.whoami().profile
       @mount        = FSHelper.createFile

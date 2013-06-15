@@ -12,7 +12,7 @@ class Ace extends KDView
 
     super options, file
     @lastSavedContents = ""
-    @appStorage = @getSingleton('mainController').getAppStorageSingleton 'Ace', '1.0'
+    @appStorage = KD.getSingleton('mainController').getAppStorageSingleton 'Ace', '1.0'
 
   setDomElement:(cssClass)->
 
@@ -78,7 +78,7 @@ class Ace extends KDView
 
     @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
-    @getSingleton('windowController').on "keydown", (e) =>
+    KD.getSingleton('windowController').on "keydown", (e) =>
       {findAndReplaceView} = @getDelegate()
       findAndReplaceView.close() if e.keyCode is 27 and findAndReplaceView
 
@@ -293,7 +293,7 @@ class Ace extends KDView
             duration  : 0
             click     : -> details.destroy()
 
-          @getSingleton('windowController').addLayer details
+          KD.getSingleton('windowController').addLayer details
 
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()

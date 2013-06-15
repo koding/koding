@@ -9,18 +9,18 @@ class StartTabMainView extends JView
     @listenWindowResize()
 
     @appIcons       = {}
-    mainView        = @getSingleton('mainView')
+    mainView        = KD.getSingleton('mainView')
 
-    @appStorage = @getSingleton('mainController') \
+    @appStorage = KD.getSingleton('mainController') \
                     .getAppStorageSingleton 'Finder', '1.0'
 
-    @appsController = @getSingleton("kodingAppsController")
+    @appsController = KD.getSingleton("kodingAppsController")
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps
     @appsController.on "aNewAppCreated", =>
       @aNewAppCreated()
 
-    finder = @getSingleton("finderController")
+    finder = KD.getSingleton("finderController")
     finder.on 'recentfiles.updated', =>
       @updateRecentFileViews()
 
@@ -96,7 +96,7 @@ class StartTabMainView extends JView
 
     # FIXME Use Default VM ~ GG
     # # Refresh Applications Folder
-    # finder = @getSingleton("finderController").treeController
+    # finder = KD.getSingleton("finderController").treeController
     # finder.refreshFolder finder.nodes["/home/#{KD.whoami().profile.nickname}/Applications"]
 
   pistachio:->
@@ -177,7 +177,7 @@ class StartTabMainView extends JView
     @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
       recentFilePaths or= []
       @updateRecentFileViews()
-      @getSingleton('mainController').on "NoSuchFile", (file)=>
+      KD.getSingleton('mainController').on "NoSuchFile", (file)=>
         recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
         @appStorage.setValue 'recentFiles', recentFilePaths, ->
           log "Storage updated for recent files"
