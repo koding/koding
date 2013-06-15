@@ -4,7 +4,4 @@ class FirewallActionListController extends KDListViewController
     options.itemClass = FirewallActionListItemView
     super options, data
 
-    @getListView().on "moveToIndexRequested", @bound 'moveItemToNewIndex'
-
-   moveItemToNewIndex:(item, index)->
-   	@moveItemToIndex item, index
+    @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'

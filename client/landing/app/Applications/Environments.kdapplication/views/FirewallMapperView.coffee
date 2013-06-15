@@ -269,7 +269,6 @@ class FirewallRuleFormView extends KDCustomHTMLView
       callback : =>
         @updateDomainRules()
 
-
   updateDomainRules:->
     ruleType   = if @ruleInput.getValue().match /[0-9+]/ then "ip" else "country"
     ruleName   = @ruleNameInput.getValue()
@@ -284,15 +283,13 @@ class FirewallRuleFormView extends KDCustomHTMLView
           title : "An error occured while performing your action. Please try again."
           type  : "top"
       delegate.emit "newRuleCreated", 
-        domainName:domainName
-        ruleName:response.Name
-        match:response.Match
-
+        domainName : domainName
+        ruleName   : response.Name
+        match      : response.Match
 
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
-
 
   pistachio:->
     ###
