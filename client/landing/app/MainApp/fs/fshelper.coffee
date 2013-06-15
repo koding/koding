@@ -157,6 +157,20 @@ class FSHelper
 
     return instance
 
+  @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
+    return warn "Pass a path to create folders recursively"  unless path
+    vmName or= KD.getSingleton("vmController").getDefaultVmName()
+
+    KD.getSingleton("kiteController").run {
+      kiteName    : "os"
+      method      : "fs.createDirectory"
+      withArgs    : {
+        recursive : yes
+        path
+      }
+      vmName
+    }, callback
+
   @isValidFileName = (name) ->
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name
 

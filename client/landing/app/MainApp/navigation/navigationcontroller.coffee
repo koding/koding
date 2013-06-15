@@ -6,11 +6,12 @@ class NavigationController extends KDListViewController
     @instantiateListItems @getData().items
     @selectItemByName name  for {name} in previousSelection
 
+  getItemByName:(name)->
+    for navItem in @itemsOrdered when navItem.getData()?.title is name
+      return navItem
+
   selectItemByName:(name)->
-    item = no
-    for navItem in @itemsOrdered when navItem.name is name
-      @selectItem item = navItem
-      break
+    @selectItem item  if item = @getItemByName name
     return item
 
   instantiateListItems:(items)->
