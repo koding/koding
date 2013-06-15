@@ -228,6 +228,8 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
+  "app/CommonViews/ModalViewWithTerminal.coffee",
+
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
