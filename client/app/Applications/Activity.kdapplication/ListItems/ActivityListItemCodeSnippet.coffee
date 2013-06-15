@@ -116,29 +116,23 @@ class CodeSnippetView extends KDCustomHTMLView
       tooltip   :
         title   : 'Save'
       callback  : ->
-        {nickname} = KD.whoami().profile
-        rootPath   = "/home/#{nickname}/Documents/CodeSnippets"
+        rootPath   = "Documents/CodeSnippets"
         fileName   = "#{@utils.slugify title}.#{__aceSettings.syntaxAssociations[syntax][1].split('|')[0]}"
         fullPath   = "#{rootPath}/#{fileName}"
 
-        KD.getSingleton('kiteController').run "mkdir -p #{rootPath}", (err, res) ->
-          file    = FSHelper.createFileFromPath fullPath
+        FSHelper.createRecursiveFolder path : rootPath , =>
+          file    = FSHelper.createFileFromPath "#{fullPath}"
           content = Encoder.htmlDecode content
           file.save content, (err) ->
-
             notificationTitle = new KDView
-              partial : "Your file is saved."
+              partial : "Your file is saved into Documents/CodeSnippets"
 
             notificationTitle.addSubView link = new KDCustomHTMLView
               tagName  : "a"
               partial  : "Click here to open."
               cssClass : "code-share-open"
               click    : ->
-                KD.getSingleton('appManager').openFile file
-                {treeController} = KD.getSingleton('finderController')
-                treeController.refreshFolder treeController.nodes["/Users/#{nickname}"], ->
-                  treeController.navigateTo rootPath, ->
-                    treeController.selectNode treeController.nodes[fullPath]
+                KD.getSingleton("appManager").openFile file
 
             new KDNotificationView
               title     : notificationTitle
