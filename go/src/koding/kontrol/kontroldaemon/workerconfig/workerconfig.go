@@ -432,7 +432,7 @@ func (w *WorkerConfig) Update(worker MsgWorker) error {
 func (w *WorkerConfig) Ack(worker MsgWorker) error {
 	workerResult, err := w.GetWorker(worker.Uuid)
 	if err != nil {
-		return fmt.Errorf("ack method error '%s'", err)
+		return fmt.Errorf("ack method error for hostanme %s worker %s version %d '%s'", worker.Hostname, worker.Name, worker.Version, err)
 	}
 
 	workerResult.Message.Result = "alive"

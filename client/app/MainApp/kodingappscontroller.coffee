@@ -360,17 +360,58 @@ class KodingAppsController extends KDController
         title    : "Compiling #{name}..."
         type     : "mini"
 
-      @kiteController.run "kd app compile #{appPath}", (err, response)=>
+      @kiteController.run "kdc #{appPath}", (err, response)=>
         if not err
-          loader.notificationSetTitle "Fetching compiled app..."
-          @fetchCompiledAppSource app, (err, res)=>
-            if not err
-              @defineApp name, res
-              loader.notificationSetTitle "App compiled successfully"
-              loader.notificationSetTimer 2000
-            callback? err, res
+          nickname    = KD.nick()
+          publishPath = "/home/#{nickname}/Sites/.applications"
+          @kiteController.run
+            kiteName    : "os"
+            method      : "fs.createDirectory"
+            withArgs    :
+              path      : publishPath
+              recursive : yes
+          , (err, response)=>
+            loader.notificationSetTitle "Publishing app static files..."
+            @kiteController.run "ln -s #{appPath} #{publishPath}/#{KD.utils.slugify name}", (err, response)=>
+              loader.notificationSetTitle "Fetching compiled app..."
+              @fetchCompiledAppSource app, (err, res)=>
+                if not err
+                  @defineApp name, res
+                  loader.notificationSetTitle "App compiled successfully"
+                  loader.notificationSetTimer 2000
+                callback? err, res
         else
           loader.destroy()
+
+          if err.message is "exit status 127"
+            modal = new ModalViewWithTerminal
+              title   : "Koding app compiler is not installed in your VM."
+              width   : 500
+              overlay : yes
+              terminal:
+                hidden: yes
+              content : """
+                        <div class='modalformline'>
+                          <p>
+                            If you want to install it now, click <strong>Install Compiler</strong> button.
+                          </p>
+                          <p>
+                            <strong>Remember to enter your password when asked.</strong>
+                          </p>
+                        </div>
+                        """
+              buttons:
+                "Install Compiler":
+                  cssClass: "modal-clean-green"
+                  callback: =>
+                    modal.run "sudo npm install -g kdc"
+
+            modal.on "terminal.event", (data)->
+              new KDNotificationView
+                title: "Installed successfully!"
+
+            callback? err
+            return
 
           if response
             details = """<pre>#{response}</pre>"""
