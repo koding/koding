@@ -17,7 +17,6 @@ class VMMainView extends JView
         cssClass          : "vm-list"
         itemClass         : VMListItemView
 
-
     @vmListView = @vmListController.getView()
 
     @on "Clicked", (item)=>
@@ -25,31 +24,31 @@ class VMMainView extends JView
       @vmListController.deselectAllItems()
       @vmListController.selectSingleItem item
 
-    @graphView = new VMDetailView
-      cssClass  : 'vm-details'
+    @on "State", (item, state)=>
+      cmd = if state then 'vm.start' else 'vm.stop'
+      kc = KD.getSingleton("kiteController")
+      kc.run
+        kiteName  : 'os',
+        vmName    : item.data.name,
+        method    : cmd
 
+    @graphView = new VMDetailView
     @splitView = new KDSplitView
       type      : 'vertical'
       resizable : no
-      sizes     : ['40%', '70%']
+      sizes     : ['30%', '70%']
       views     : [@vmListView, @graphView]
-
-    @vmListController.on "ItemSelectionPerformed", (listController, {event, items})=>
-      @graphView.update items[0].data
 
     @loadItems()
 
   checkVMState:(err, vm, info)->
-    if not @vmList[vm]
-      @loadItems()
-    else if info.state is "RUNNING"
-      @vmList[vm].updateStatus yes
-    else
-      @vmList[vm].updateStatus no
+    return  if not @vmList[vm]
+    if err or not info or not info.state is "RUNNING"
+    then @vmList[vm].updateStatus no
+    else @vmList[vm].updateStatus yes
 
   getVMInfo: (vmName, callback)->
-    kc = KD.singletons.kiteController
-    kc.run
+    KD.getSingleton("kiteController").run
       kiteName  : 'os',
       vmName    : vmName,
       method    : 'vm.info'
@@ -85,8 +84,7 @@ class VMMainView extends JView
         async.parallel stack, (err, results)=>
           @vmListController.hideLazyLoader()
           unless err
-            items = @vmListController.instantiateListItems results
-            @vmListController.selectSingleItem items[0]
+            @vmListController.instantiateListItems results
 
   pistachio:->
     """
@@ -96,25 +94,7 @@ class VMMainView extends JView
 
 class VMDetailView extends KDView
   constructor: (options, data) ->
-    options.cssClass or= "vm-details"
     super options, data
-
-    @vmTitle = new KDLabelView
-      title: 'VM Name'
-
-  update: (data)->
-    @vmTitle.updateTitle data.vmName
-
-  viewAppended:()->
-    super()
-
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    """
-      <h2>VM: {{> @vmTitle}}</h2>
-    """
 
 class VMListItemView extends KDListItemView
   constructor: (options, data) ->

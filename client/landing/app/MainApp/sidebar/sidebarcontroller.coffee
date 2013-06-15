@@ -3,12 +3,12 @@ class SidebarController extends KDViewController
   constructor:->
     super
 
-    mainController = @getSingleton 'mainController'
+    mainController = KD.getSingleton 'mainController'
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
     mainController.on 'AccountChanged', @bound 'accountChanged'
 
-    groupsController = @getSingleton 'groupsController'
+    groupsController = KD.getSingleton 'groupsController'
     groupsController.on 'GroupChanged', @bound 'resetGroupSettingsItem'
 
     mainController.ready @bound 'accountChanged'

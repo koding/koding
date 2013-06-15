@@ -12,4 +12,4 @@ class NFolderItemView extends NFileItemView
        ///#{nickname}\/Applications$///.test data.path
 
       data.on "fs.delete.finished", =>
-        @getSingleton("kodingAppsController").refreshApps()
+        KD.getSingleton("kodingAppsController").refreshApps()

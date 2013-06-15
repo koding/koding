@@ -20,7 +20,7 @@ class TopicsListItemView extends KDListItemView
         cssClass    : 'edit-topic'
         pistachio   : '<span class="icon"></span>Edit'
         click       : (event) =>
-          @getSingleton('mainController').emit 'TopicItemEditLinkClicked', @
+          KD.getSingleton('mainController').emit 'TopicItemEditLinkClicked', @
       , null
     else
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'

@@ -321,6 +321,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           4: (params) ->
             parts = params.raw[2].match(/^rgb:(..)\/(..)\/(..)$/)
             terminal.defineColor params[1], "##{parts[1]}#{parts[2]}#{parts[3]}"
+          100: (params) -> terminal.eventHandler? params.raw[1]
 
   return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(),
     new WebTerm.ControlCodeReader(terminal, initEscapeSequenceHandler(),

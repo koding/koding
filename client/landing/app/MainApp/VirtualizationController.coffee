@@ -3,7 +3,7 @@ class VirtualizationController extends KDController
   constructor:->
     super
 
-    @kc = KD.singletons.kiteController
+    @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
 
@@ -48,8 +48,8 @@ class VirtualizationController extends KDController
       return callback null  unless state
       KD.remote.api.JVM.removeByName vm, (err)->
         return callback err  if err
-        KD.singletons.finderController.unmountVm vm
-        KD.singletons.vmController.emit 'VMListChanged'
+        KD.getSingleton("finderController").unmountVm vm
+        KD.getSingleton("vmController").emit 'VMListChanged'
         callback null
 
   info:(vm, callback)->
@@ -69,7 +69,7 @@ class VirtualizationController extends KDController
 
   createGroupVM:(type='user', planCode, callback)->
     defaultVMOptions = {planCode}
-    group = KD.singletons.groupsController.getCurrentGroup()
+    group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, callback
 
   fetchVMs:(callback)->
@@ -129,10 +129,18 @@ class VirtualizationController extends KDController
       createDefaultVM()
 
   createNewVM:->
+    vmController = @getSingleton('vmController')
+    vmController.hasDefaultVM (state)->
+      unless state
+        vmController.createDefaultVM()
+      else
+        vmController.createPaidVM()
+
+  createPaidVM:->
     return  if @dialogIsOpen
 
-    vmController        = @getSingleton('vmController')
-    paymentController   = @getSingleton('paymentController')
+    vmController        = KD.getSingleton('vmController')
+    paymentController   = KD.getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
 
@@ -142,11 +150,11 @@ class VirtualizationController extends KDController
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.singletons.finderController.mountVm vm.name
+        KD.getSingleton("finderController").mountVm vm.name
         vmController.emit 'VMListChanged'
       paymentModal?.destroy()
 
-    group = KD.singletons.groupsController.getGroupSlug()
+    group = KD.getSingleton("groupsController").getGroupSlug()
 
     if canCreateSharedVM
       content = """You can create a <b>Personal</b> or <b>Shared</b> VM for
@@ -259,7 +267,7 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      # group = KD.singletons.groupsController.getCurrentGroup()
+      # group = KD.getSingleton("groupsController").getCurrentGroup()
       # group.vmUsage (err, limit)->
       #   if limit and limit.usage < limit.quota
       #     # content += """<br/><br/>
@@ -359,7 +367,7 @@ class VirtualizationController extends KDController
               modal.destroy()
               if appName
                 @once 'StateChanged', ->
-                  appManager.open appName
+                  KD.getSingleton("appManager").open appName
         Cancel       :
           style      : "modal-clean-gray"
           callback   : ->

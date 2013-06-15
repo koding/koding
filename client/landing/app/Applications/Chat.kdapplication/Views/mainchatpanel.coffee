@@ -20,13 +20,13 @@ class MainChatPanel extends JView
 
     @on 'PanelVisibilityChanged', (visible)=>
       if visible
-        @getSingleton('windowController').addLayer @
+        KD.getSingleton('windowController').addLayer @
         @once 'ReceivedClickElsewhere', (event)=>
           unless $(event.target).closest('.main-chat-handler').length > 0
             @hidePanel()
 
     # FIXME Later ~ GG
-    {mainController} = KD.singletons
+    mainController = KD.getSingleton("mainController")
     mainController.on "accountChanged.to.loggedIn", =>
       @conversationListController.loadItems()
       # @showPanel()
@@ -52,7 +52,7 @@ class MainChatPanel extends JView
       @emit 'PanelVisibilityChanged', true
 
   hidePanel:->
-    contentPanel = @getSingleton('contentPanel')
+    contentPanel = KD.getSingleton('contentPanel')
     return  if contentPanel.chatMargin is 250
 
     @unsetClass 'visible'
@@ -67,7 +67,7 @@ class MainChatPanel extends JView
 
   toggleInboxMode:->
     if @getWidth() is 250
-      {winWidth} = @getSingleton('windowController')
+      {winWidth} = KD.getSingleton('windowController')
       @setWidth winWidth - 160
       @toggleClass 'inbox-mode'
       @inboxMode = yes
@@ -79,5 +79,5 @@ class MainChatPanel extends JView
     @listenWindowResize @inboxMode
 
   _windowDidResize:->
-    {winWidth} = @getSingleton('windowController')
+    {winWidth} = KD.getSingleton('windowController')
     @setWidth winWidth - 160
