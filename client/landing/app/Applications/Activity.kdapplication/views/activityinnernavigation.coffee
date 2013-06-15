@@ -3,7 +3,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
   viewAppended:->
 
-    filterFirstController = @setListController
+    filterController = @setListController
       type: "filterme"
       itemClass: ListGroupShowMeItem
     , @filterMenuData
@@ -11,25 +11,25 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     {useNeo4j} = KD.config
 
     if useNeo4j
-      @addSubView filterFirstController.getView()
-      filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
+      @addSubView filterController.getView()
+      filterController.selectItem filterController.getItemsOrdered()[0]
 
     if useNeo4j
       menudata = @followerMenuData
     else
       menudata = @showMenuData
 
-    filterController = @setListController
+    showMeFilterController = @setListController
       type : "showme"
       itemClass : ListGroupShowMeItem
     , menudata
 
     KD.getSingleton('mainController').on "AccountChanged", (account)=>
-      filterFirstController.reset()
-      filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
+      filterController.reset()
+      filterController.selectItem filterController.getItemsOrdered()[0]
 
-    @addSubView filterController.getView()
-    filterController.selectItem filterController.getItemsOrdered()[0]
+    @addSubView showMeFilterController.getView()
+    showMeFilterController.selectItem showMeFilterController.getItemsOrdered()[0]
 
     @addSubView helpBox = new HelpBox
       subtitle    : "About Your Activity Feed"
