@@ -291,7 +291,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
-
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
@@ -348,7 +347,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		// 		return
 		// 	}
-
 		// }
 
 		copyHeader(rw.Header(), res.Header)
