@@ -92,8 +92,10 @@ class NFinderController extends KDViewController
           KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
             return callback? err  if err
             if not vms or vms.length is 0
-              vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
-            mountVms vms
+              KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
+                mountVms [vm]  if vm
+            else
+              mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName
