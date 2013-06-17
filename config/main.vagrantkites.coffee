@@ -14,6 +14,7 @@ module.exports =
   uri           :
     address     : "http://local.koding.com:80"
   userSitesDomain: 'local.koding.com'
+  containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
   webserver     :
@@ -34,6 +35,8 @@ module.exports =
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
+  runUserPresence: yes
+  runPersistence: yes
   compileGo     : yes
   buildClient   : yes
   runOsKite     : yes
@@ -73,10 +76,6 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
-  feeder        :
-    queueName   : "koding-feeder"
-    exchangePrefix: "followable-"
-    numberOfWorkers: 1
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -103,7 +102,7 @@ module.exports =
       # Is this correct?
       version   : version
       mainUri   : 'http://local.koding.com'
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : 'http://local.koding.com:3526'
   mq            :
     host        : 'local.koding.com'
@@ -185,4 +184,13 @@ module.exports =
   #     b = decipher.final('utf-8')
   #     return b
   recurly       :
-    apiKey      : '0cb2777651034e6889fb0d091126481a'
+    apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+  opsview       :
+    push        : no
+    host        : ''
+  followFeed    :
+    host        : 'local.koding.com'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'

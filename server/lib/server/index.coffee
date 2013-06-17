@@ -200,25 +200,19 @@ app.get "/-/kite/login", (req, res) ->
                   vhost     : mq.vhost
                 
                 console.log creds
-
+                console.log "kodingkey.owner:::::", kodingKey.owner
                 # ADD TO JUSERKITE
                 {JUserKite} = koding.models
                 JUserKite.fetchOrCreate
-                  kitename      : file.filename
-                  latest_s3url  :  zipurl
-                  account_id    :  kodingKey.owner._id
+                  kitename      : name
+                  latest_s3url  : "_"
+                  account_id    : kodingKey.owner
                 , (err, userkite)->
                   if err
                     console.log "error", err
                     return res.send err
                   userkite.newVersion (err)->
-                    if not err
-                      res.send {url:zipurl, version: userkite.latest_version}
-                    else
-                      res.send err
-
-
-
+                    res.send err
                 res.header "Content-Type", "application/json"
                 res.send 200, JSON.stringify creds
 
@@ -271,22 +265,22 @@ s3 = require('./s3') uploads.s3, findUsernameFromKey
 app.post "/-/kd/upload", s3..., (req, res)->
   {JUserKite} = koding.models
   for own key, file of req.files
-      console.log "--------------------------------->>>>>>>>>>", req.account
-      zipurl = "#{uploads.distribution}#{file.path}"
-      JUserKite.fetchOrCreate
-        kitename      : file.filename
-        latest_s3url  : zipurl
-        account_id    : req.account._id
-        hash: req.fields.hash
-      , (err, userkite)->
-        if err
-          console.log "error", err
-          return res.send err
-        userkite.newVersion (err)->
-          if not err
-            res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
-          else
-            res.send err
+    console.log "--------------------------------->>>>>>>>>>", req.account
+    zipurl = "#{uploads.distribution}#{file.path}"
+    JUserKite.fetchOrCreate
+      kitename      : file.filename
+      latest_s3url  : zipurl
+      account_id    : req.account._id
+      hash: req.fields.hash
+    , (err, userkite)->
+      if err
+        console.log "error", err
+        return res.send err
+      userkite.newVersion (err)->
+        if not err
+          res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
+        else
+          res.send err
 
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command
