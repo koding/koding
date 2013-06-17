@@ -82,6 +82,10 @@ func (u *UserInfo) populateTarget() error {
 	case "maintenance":
 		return nil
 	case "redirect":
+		if !strings.HasPrefix(fullurl, "http://") && !strings.HasPrefix(fullurl, "https://") {
+			fullurl = "https://" + fullurl
+		}
+
 		u.Target, err = url.Parse(fullurl)
 		if err != nil {
 			return err
