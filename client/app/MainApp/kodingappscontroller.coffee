@@ -357,7 +357,7 @@ class KodingAppsController extends KDController
       @kiteController.run "kdc #{appPath}", (err, response)=>
         if not err
           nickname    = KD.nick()
-          publishPath = "/home/#{nickname}/Sites/.applications"
+          publishPath = "/home/#{nickname}/Web/.applications"
           @kiteController.run
             kiteName    : "os"
             method      : "fs.createDirectory"
@@ -366,7 +366,8 @@ class KodingAppsController extends KDController
               recursive : yes
           , (err, response)=>
             loader.notificationSetTitle "Publishing app static files..."
-            @kiteController.run "ln -s #{appPath} #{publishPath}/#{KD.utils.slugify name}", (err, response)=>
+            linkFile = "#{publishPath}/#{KD.utils.slugify name}"
+            @kiteController.run "rm #{linkFile}; ln -s #{appPath} #{linkFile}", (err, response)=>
               loader.notificationSetTitle "Fetching compiled app..."
               @fetchCompiledAppSource app, (err, res)=>
                 if not err
