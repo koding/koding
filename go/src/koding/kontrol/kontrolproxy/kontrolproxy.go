@@ -119,7 +119,7 @@ func main() {
 	listener, ppid, err = goagain.GetEnvs(addr)
 	if err != nil {
 		log.Printf("normal mode is enabled. serving at :%s ...", port)
-		laddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+port)
+		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
 		if nil != err {
 			log.Fatalln(err)
 		}
