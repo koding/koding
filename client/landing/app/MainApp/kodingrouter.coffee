@@ -4,10 +4,10 @@ class KodingRouter extends KDRouter
 
     @openRoutes = {}
     @openRoutesById = {}
-    @getSingleton('contentDisplayController')
+    KD.getSingleton('contentDisplayController')
       .on 'ContentDisplayIsDestroyed', @bound 'cleanupRoute'
     @ready = no
-    @getSingleton('mainController').once 'AccountChanged', =>
+    KD.getSingleton('mainController').once 'AccountChanged', =>
       @ready = yes
       @utils.defer =>
         @emit 'ready'
@@ -20,7 +20,7 @@ class KodingRouter extends KDRouter
       #   type : 'mini'
 
     @on 'Params', ({params, query})=>
-      #@utils.defer => @getSingleton('groupsController').changeGroup params.name
+      #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name
 
   listen:->
     super
@@ -63,7 +63,7 @@ class KodingRouter extends KDRouter
 
   openSection:(app, group, query)->
     return @once 'ready', @openSection.bind this, arguments...  unless @ready
-    @getSingleton('groupsController').changeGroup group, (err)=>
+    KD.getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
         appManager = KD.getSingleton "appManager"
@@ -205,7 +205,8 @@ class KodingRouter extends KDRouter
 
       '/'      : handleRoot
       ''       : handleRoot
-      '/About' : createStaticContentHandler 'Home', yes
+      # '/About' : createStaticContentHandler 'Home', yes
+      '/About' : createSectionHandler 'Activity'
 
       # verbs
       '/:name?/Login'     : ({params:{name}})->

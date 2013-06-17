@@ -29,7 +29,7 @@ class ActivityActionsView extends KDView
     unless KD.isLoggedIn()
       @commentLink.setTooltip title: "Login required"
       @likeView.likeLink.setTooltip title: "Login required"
-      KD.singletons.mainController.on "accountChanged.to.loggedIn", =>
+      KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
         delete @likeView.likeLink.tooltip
         delete @commentLink.tooltip
 

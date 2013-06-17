@@ -138,7 +138,7 @@ class FSHelper
       return warn "pass a path and type to create a file instance"
 
     unless data.vmName?
-      data.vmName = KD.getSingleton('vmController').getDefaultVmName()
+      data.vmName = KD.getSingleton('vmController').defaultVmName
 
     if @registry[data.path]
       instance = @registry[data.path]
@@ -156,6 +156,19 @@ class FSHelper
       @register instance
 
     return instance
+
+  @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
+    return warn "Pass a path to create folders recursively"  unless path
+
+    KD.getSingleton("kiteController").run {
+      kiteName    : "os"
+      method      : "fs.createDirectory"
+      withArgs    : {
+        recursive : yes
+        path
+      }
+      vmName
+    }, callback
 
   @isValidFileName = (name) ->
     return /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test name

@@ -81,7 +81,7 @@ class ContentDisplayCodeShare extends ContentDisplayStatusUpdate
       cssClass:"clean-gray fork-button"
       click:=>
         @emit "ContentDisplayWantsToBeHidden"
-        @getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
+        KD.getSingleton('mainController').emit 'ContentDisplayItemForkLinkClicked', data
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 

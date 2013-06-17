@@ -8,7 +8,7 @@ class GroupSummaryView extends KDCustomHTMLView
 
     group = @getData()
 
-    @lazyDomController = @getSingleton("lazyDomController")
+    @lazyDomController = KD.getSingleton("lazyDomController")
 
     @lazyDomController.on "landingViewIsShown",  @bound "landingViewIsShown"
     @lazyDomController.on "landingViewIsHidden", @bound "landingViewIsHidden"
@@ -120,7 +120,7 @@ class GroupSummaryView extends KDCustomHTMLView
     """
 
   showSummary:(event)->
-    @getSingleton('windowController').addLayer @
+    KD.getSingleton('windowController').addLayer @
     @once 'ReceivedClickElsewhere', =>
       @hideSummary()
       unless @lazyDomController.isLandingPageVisible()

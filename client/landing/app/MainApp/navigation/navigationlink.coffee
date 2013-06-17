@@ -16,7 +16,7 @@ class NavigationLink extends KDListItemView
     # or if the item is a separator
     return unless path
 
-    mc = @getSingleton 'mainController'
+    mc = KD.getSingleton 'mainController'
     mc.emit "NavigationLinkTitleClick",
       pageName  : title
       appPath   : appPath or title

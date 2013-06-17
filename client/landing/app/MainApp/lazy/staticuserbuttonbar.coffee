@@ -4,8 +4,8 @@ class StaticUserButtonBar extends KDView
 
     @setClass 'user-button-bar'
 
-    @ldc = @getSingleton 'lazyDomController'
-    @mc  = @getSingleton 'mainController'
+    @ldc = KD.getSingleton 'lazyDomController'
+    @mc  = KD.getSingleton 'mainController'
 
     @refreshButtons()
     @attachListeners()

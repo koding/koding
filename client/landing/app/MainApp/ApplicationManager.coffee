@@ -33,7 +33,7 @@ class ApplicationManager extends KDObject
 
   # temp fix, until router logic is complete
   setMissingRoute:(appController, appView, appOptions)->
-    router       = @getSingleton('router')
+    router       = KD.getSingleton('router')
     {entryPoint} = KD.config
 
     route = if entryPoint?.slug? and entryPoint.type is 'group'
@@ -68,7 +68,7 @@ class ApplicationManager extends KDObject
       appOptions           = KD.getAppOptions name
       appParams            = options.params or {}
       defaultCallback      = -> createOrShow appOptions, appParams, callback
-      kodingAppsController = @getSingleton("kodingAppsController")
+      kodingAppsController = KD.getSingleton("kodingAppsController")
 
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
@@ -132,7 +132,7 @@ class ApplicationManager extends KDObject
 
   fetchManifests:(appName, callback)->
 
-    @getSingleton("kodingAppsController").fetchApps (err, manifests)->
+    KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
       manifestsFetched = yes
       for name, manifest of manifests when name is appName
 

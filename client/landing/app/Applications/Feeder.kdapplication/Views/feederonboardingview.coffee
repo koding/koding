@@ -16,7 +16,7 @@ class FeederOnboardingView extends KDCustomHTMLView
         cssClass : "close-icon"
       click      : (event)=>
         event.preventDefault()
-        appManager = @getSingleton("appManager")
+        appManager = KD.getSingleton("appManager")
         app        = appManager.getFrontApp()
         app.appStorage?.fetchStorage =>
           {name} = @getOptions()

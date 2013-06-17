@@ -42,8 +42,8 @@ class MainTabHandleHolder extends KDView
 
   createPlusHandleDropDown:(event)->
 
-    appsController = @getSingleton "kodingAppsController"
-    appManager     = @getSingleton "appManager"
+    appsController = KD.getSingleton "kodingAppsController"
+    appManager     = KD.getSingleton "appManager"
 
     if @plusHandle.$().hasClass('first')
       KD.getSingleton("appManager").open "StartTab"

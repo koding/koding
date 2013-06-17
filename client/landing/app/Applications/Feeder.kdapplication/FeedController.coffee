@@ -73,11 +73,19 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-    @selectFilter filter, no      if filter?
-    @changeActiveSort sort, no    if sort?
+
+    if filter
+      unless @filters[filter]?
+        filter = (Object.keys @filters).first
+      @selectFilter filter, no
+
+    if sort
+      unless @sorts[sort]?
+        sort = (Object.keys @sorts).first
+      @changeActiveSort sort, no
+
     @highlightFacets()
     @loadFeed()
-    # console.log 'handle query is called on feed controller', @, arguments
 
   defineFilter:(name, filter)->
     filter.name     = name
@@ -100,6 +108,7 @@ class FeedController extends KDViewController
     @resultsController.openTab @filters[name]
     if @resultsController.listControllers[name].itemsOrdered.length is 0
       @loadFeed() if loadFeed
+    @emit 'FilterChanged', name
 
   changeActiveSort:(name, loadFeed=yes)->
     @selection.activeSort = name

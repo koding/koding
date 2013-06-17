@@ -72,7 +72,7 @@ class Fatih extends KDModalView
       @updatePluginsKeyword newPrefs
       @fetchStorage()
 
-    @getSingleton("mainController").on "AppIsReady", =>
+    KD.getSingleton("mainController").on "AppIsReady", =>
       @appStorage = new AppStorage "Fatih", "1.0"
       @fetchStorage =>
         @getFromStorage "preferences", (prefs) =>
@@ -85,7 +85,7 @@ class Fatih extends KDModalView
     # @on "ReceivedClickElsewhere", => @destroy()
 
   setMagicKeyCombo: ->
-    @getSingleton('windowController').on "keydown", (e) =>
+    KD.getSingleton('windowController').on "keydown", (e) =>
       isCtrlAndSpacePressed  = e.which is 32 and e.ctrlKey
       isOptionPressed        = e.which is 18
       isLastPressedKeyOption = @lastPressedKey is 18
@@ -96,7 +96,7 @@ class Fatih extends KDModalView
         @show()
         @showStaticViews()
         @input.setFocus()
-        @getSingleton("windowController").addLayer @
+        KD.getSingleton("windowController").addLayer @
 
       @lastPressedKey = e.which
 

@@ -85,7 +85,7 @@ class FeederResultsController extends KDViewController
 
     return unless view
 
-    appManager = @getSingleton("appManager")
+    appManager = KD.getSingleton("appManager")
     app        = appManager.getFrontApp()
 
     cb = ->
