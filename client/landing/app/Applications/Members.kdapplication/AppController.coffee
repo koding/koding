@@ -45,6 +45,7 @@ class MembersAppController extends AppController
                 relationshipOptions = {
                   targetOptions: {options}
                 }
+                console.log {options}
                 selector = {}
                 group.fetchMembers selector, relationshipOptions, callback
                 # group.countMembers selector, (err, count)=>
