@@ -130,6 +130,10 @@ class ApplicationManager extends KDObject
 
       else do defaultCallback
 
+  openFileWithApplication: (appName, file) ->
+    @open appName, =>
+      @utils.defer => @getFrontApp().openFile file
+
   fetchManifests:(appName, callback)->
 
     KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
@@ -337,10 +341,6 @@ class ApplicationManager extends KDObject
 
 
   # setGroup:-> console.log 'setGroup', arguments
-
-  # openFileWithApplication:(file, appPath)->
-  #   @open appPath, no, (app)->
-  #     app.openFile file
 
   # temp
   notification = null
