@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
+	"github.com/rcrowley/goagain"
 	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
@@ -14,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -61,36 +63,42 @@ func main() {
 	}
 
 	// create amqpStream for rabbitmq proxyieng
-	amqpStream = setupAmqp()
+	// amqpStream = setupAmqp()
 
 	reverseProxy := &ReverseProxy{}
-	// http.HandleFunc("/", reverseProxy.ServeHTTP) this works for 1.1
-	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	reverseProxy.ServeHTTP(w, r)
-	// })
 
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
+	var (
+		listener  net.Listener
+		ppid      int
+		listeners = make(map[string]net.Listener, 0)
+	)
+
 	for _, sslip := range sslips {
-		go func(sslip string) {
-			laddr, err := net.ResolveTCPAddr("tcp", sslip+":"+portssl)
+		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
+		if nil != err {
+			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+			return
+		}
+
+		addr := sslip + ":" + portssl
+		listener, _, err = goagain.GetEnvs(addr)
+		listeners[addr] = listener
+		if err != nil {
+			laddr, err := net.ResolveTCPAddr("tcp", addr)
 			if nil != err {
 				log.Fatalln(err)
 			}
 
-			var listener net.Listener
 			listener, err = net.ListenTCP("tcp", laddr)
 			if nil != err {
 				log.Fatalln(err)
 			}
 
-			cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
-			if nil != err {
-				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-				return
-			}
+			listeners[addr] = listener
 
 			listener = tls.NewListener(listener, &tls.Config{
 				NextProtos:   []string{"http/1.1"},
@@ -98,30 +106,56 @@ func main() {
 			})
 
 			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-			err = http.Serve(listener, reverseProxy)
-			if err != nil {
-				log.Println(err)
-			}
-		}(sslip)
+			go http.Serve(listener, reverseProxy)
+		} else {
+			go http.Serve(listener, reverseProxy)
+		}
+
 	}
 
 	// HTTP handling
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
-	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	laddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+port)
-	if nil != err {
-		log.Fatalln(err)
-	}
-
-	listener, err := net.ListenTCP("tcp", laddr)
-	if nil != err {
-		log.Fatalln(err)
-	}
-
-	err = http.Serve(listener, reverseProxy)
+	addr := "127.0.0.1:" + port
+	listener, ppid, err = goagain.GetEnvs(addr)
 	if err != nil {
-		log.Println(err)
+		log.Printf("normal mode is enabled. serving at :%s ...", port)
+		laddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+port)
+		if nil != err {
+			log.Fatalln(err)
+		}
+
+		listener, err = net.ListenTCP("tcp", laddr)
+		if nil != err {
+			log.Fatalln(err)
+		}
+		go http.Serve(listener, reverseProxy)
+	} else {
+		go http.Serve(listener, reverseProxy) // resume listening
+
+		// Kill the parent, now that the child has started successfully.
+		if err := goagain.KillParent(ppid); nil != err {
+			log.Fatalln(err)
+		}
+
 	}
+	listeners[addr] = listener
+
+	// needed until all go routines are ready. otherwise the log below is printed earlier
+	time.Sleep(time.Second * 2)
+	log.Printf("started and waiting for signals on pid %d.\n\t* for a stop send SIGTERM.\n\t* for a new binary restart send SIGUSR2\n", os.Getpid())
+
+	// Block the main goroutine awaiting signals.
+	if err := goagain.AwaitSignals(listeners); nil != err {
+		log.Fatalln(err)
+	}
+
+	// Do whatever's necessary to ensure a graceful exit like waiting for
+	// goroutines to terminate or a channel to become closed.
+	// In this case, we'll simply stop listening and wait one second.
+	if err := listener.Close(); nil != err {
+		log.Fatalln(err)
+	}
+	log.Printf("stopped current listener with pid %d\n", os.Getpid())
 }
 
 /*************************************************
