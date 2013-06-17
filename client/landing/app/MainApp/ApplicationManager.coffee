@@ -145,23 +145,20 @@ class ApplicationManager extends KDObject
       callback?()
 
 
-  openFile: (file, app) ->
+  openFile: (file) ->
 
-    extension = file.getExtension()
-    type      = FSItem.getFileType extension
+    extension  = file.getExtension()
+    type       = FSItem.getFileType extension
+    defaultApp = @defaultApps[extension]
 
-    if @defaultApps[extension] and not app
-      return @open @defaultApps[extension], (appController = @getFrontApp()) =>
-        appController.openFile file
+    return @openFileWithApplication defaultApp, file  if defaultApp
 
     switch type
       when 'code','text','unknown'
         log "open with a text editor"
-        @open app or @defaultApps.text,  (appController = @getFrontApp()) =>
-          appController.openFile file
+        @open @defaultApps.text, (appController)-> appController.openFile file
       when 'image'
-        @open app or @defaultApps.image, (appController = @getFrontApp()) =>
-          appController.openFile file
+        log "open with an image processing app"
       when 'video'
         log "open with a video app"
       when 'sound'
