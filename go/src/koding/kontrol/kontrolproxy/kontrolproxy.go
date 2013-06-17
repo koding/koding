@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
@@ -64,27 +65,60 @@ func main() {
 
 	reverseProxy := &ReverseProxy{}
 	// http.HandleFunc("/", reverseProxy.ServeHTTP) this works for 1.1
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		reverseProxy.ServeHTTP(w, r)
-	})
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	reverseProxy.ServeHTTP(w, r)
+	// })
 
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
 	for _, sslip := range sslips {
 		go func(sslip string) {
-			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
-			if err != nil {
+			laddr, err := net.ResolveTCPAddr("tcp", sslip+":"+portssl)
+			if nil != err {
+				log.Fatalln(err)
+			}
+
+			var listener net.Listener
+			listener, err = net.ListenTCP("tcp", laddr)
+			if nil != err {
+				log.Fatalln(err)
+			}
+
+			cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
+			if nil != err {
 				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			} else {
-				log.Printf("https mode is enabled. serving at :%s ...", portssl)
+				return
+			}
+
+			listener = tls.NewListener(listener, &tls.Config{
+				NextProtos:   []string{"http/1.1"},
+				Certificates: []tls.Certificate{cert},
+			})
+
+			log.Printf("https mode is enabled. serving at :%s ...", portssl)
+			err = http.Serve(listener, reverseProxy)
+			if err != nil {
+				log.Println(err)
 			}
 		}(sslip)
 	}
 
+	// HTTP handling
+	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	err = http.ListenAndServe(":"+port, nil)
+	laddr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:"+port)
+	if nil != err {
+		log.Fatalln(err)
+	}
+
+	listener, err := net.ListenTCP("tcp", laddr)
+	if nil != err {
+		log.Fatalln(err)
+	}
+
+	err = http.Serve(listener, reverseProxy)
 	if err != nil {
 		log.Println(err)
 	}
@@ -165,6 +199,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	target := user.Target
 
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 	if user.Redirect {
 		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
@@ -224,8 +259,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
@@ -361,6 +394,12 @@ func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 	io.Copy(dst, src)
 }
 
+/*************************************************
+*
+*  unique IP handling and cleaner
+*
+*  - arslan
+*************************************************/
 func registerUser(ip string) {
 	usersLock.Lock()
 	defer usersLock.Unlock()
@@ -369,13 +408,6 @@ func registerUser(ip string) {
 		go cleaner()
 	}
 }
-
-/*************************************************
-*
-*  unique IP handling and cleaner
-*
-*  - arslan
-*************************************************/
 
 // The goroutine basically does this: as long as there are users in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
