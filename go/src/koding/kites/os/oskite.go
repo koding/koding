@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha1"
 	"encoding/binary"
 	"io"
 	"io/ioutil"
@@ -312,11 +313,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 
 		if !vm.IsTemporary() {
+			// Check for existance of users home dir
 			if _, err := rootVos.Stat("/home/" + user.Name); err != nil {
+				// How can this ever happen ?
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
-
+				// If it doesnt exist then create it, chown it and then populate it
 				if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
@@ -328,12 +331,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			websiteDir := "/home/" + vm.SitesHomeName() + "/Sites/" + vm.Hostname()
+			websiteDir := "/home/" + vm.SitesHomeName() + "/Web/"
+			// Check for existance of the of the koding default webroot
 			if _, err := rootVos.Stat(websiteDir); err != nil {
+				// How can this ever happen ?
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
-
+				// If it doesnt exist then create it and populate it
 				websiteVos := rootVos
 				if vm.SitesHomeName() == user.Name {
 					websiteVos = userVos
@@ -345,13 +350,40 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					panic(err)
 				}
 			}
+			// Check for existance of apache directory
 			if _, err := rootVos.Stat("/etc/apache2"); err == nil {
+				// Check for existance of koding generated apache vhost definition
 				if _, err := rootVos.Stat("/etc/apache2/sites-available/" + vm.Hostname()); err != nil {
+					// How can this ever happen ?
 					if !os.IsNotExist(err) {
 						panic(err)
 					}
-
+					// If it doesnt exist then create it, populate it, enable it
 					file, err := rootVos.Create("/etc/apache2/sites-available/" + vm.Hostname())
+					if err != nil {
+						panic(err)
+					}
+					defer file.Close()
+					if err := virt.Templates.ExecuteTemplate(file, "apache-site-v1", vm); err != nil {
+						panic(err)
+					}
+
+					if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
+						panic(err)
+					}
+				} else if _, err := rootVos.Stat("/home/" + user.Name + "/.kversion"); err == nil {
+					// Okay so this vm has a config, lets check if the vm needs an update
+					vhost, err := rootVos.OpenFile("/etc/apache2/sites-available/"+vm.Hostname(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						panic(err)
+					}
+					// Lets sha1 the existing vhost
+					sha1o := sha1.New()
+					io.Copy(sha1o, vhost)
+					defer vhost.Close()
+
+					// Render a temporary vhost config using apache-site (legacy)
+					file, err := rootVos.Create("/etc/apache2/sites-available/" + vm.Hostname() + ".kd")
 					if err != nil {
 						panic(err)
 					}
@@ -360,10 +392,39 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 						panic(err)
 					}
 
-					if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
+					// sha1 the temp vhost
+					tmpvhost, err := rootVos.OpenFile("/etc/apache2/sites-available/"+vm.Hostname()+".kd", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
 						panic(err)
 					}
+					sha1t := sha1.New()
+					io.Copy(sha1t, tmpvhost)
+					defer tmpvhost.Close()	
+
+					osum := string(sha1o.Sum(nil))
+					tsum := string(sha1t.Sum(nil))
+
+					// If the sha's match then the original is a legacy config - update it
+					if osum == tsum {
+
+						if err := virt.Templates.ExecuteTemplate(vhost, "apache-site-v1", vm); err != nil {
+							panic(err)
+						}
+
+					}
+					// Remove the temp config
+					if err := rootVos.Remove("/etc/apache2/sites-available/"+vm.Hostname()+".kd"); err != nil {
+						panic(err)
+					}
+					// Create the version file
+					verfile, err := rootVos.OpenFile("/home/" + user.Name + "/.kversion", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						panic(err)
+					}
+					verfile.WriteString("1")
+					defer verfile.Close()
 				}
+
 			}
 
 			if vm.SitesHomeName() != user.Name {
