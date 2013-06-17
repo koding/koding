@@ -181,6 +181,7 @@ class GroupCreationModal extends KDModalView
             cssClass      : "allocation"
             change        : @bound "allocationChanged"
             selectOptions : [
+              { title : "None",  value : "0" }
               { title : "$ 10",  value : "10" }
               { title : "$ 20",  value : "20" }
               { title : "$ 30",  value : "30" }
@@ -197,6 +198,7 @@ class GroupCreationModal extends KDModalView
                 <cite>VMs</cite>
               </p>
               Each member of your group can have $<span class='price'>10</span> worth of Koding resources e.g. <span class='vm'>2</span> VMs.
+              <strong>You</strong> will be charged for each member.
               </section>"
           approval       :
             title        : "Admin approval is required on member purchases"
@@ -242,6 +244,15 @@ class GroupCreationModal extends KDModalView
     price = parseInt sharedHost.getValue(), 10
     desc.$('section span.vm').text price / 5
     desc.$('section span.price').text price
+
+    if price > 0
+      @allocation.fields["Admin approval is required on member purchases"].show()
+      @allocation.fields["Allow over-usage"].show()
+      desc.show()
+    else
+      @allocation.fields["Admin approval is required on member purchases"].hide()
+      @allocation.fields["Allow over-usage"].hide()
+      desc.hide()
 
   back:->
 
