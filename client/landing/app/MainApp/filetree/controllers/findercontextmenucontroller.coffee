@@ -364,7 +364,7 @@ class NFinderContextMenuController extends KDController
     {extensionToApp} = appsController
     possibleApps     = extensionToApp[fileExtension] or extensionToApp.txt
     for appName in possibleApps
-      items[appName] = action: "openFile"
+      items[appName] = action: "openFileWithApp"
 
     items["separator"]            = type     : "separator"
     items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
