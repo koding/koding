@@ -86,7 +86,6 @@ func main() {
 
 		addr := sslip + ":" + portssl
 		listener, _, err = goagain.GetEnvs(addr)
-		listeners[addr] = listener
 		if err != nil {
 			laddr, err := net.ResolveTCPAddr("tcp", addr)
 			if nil != err {
@@ -97,19 +96,16 @@ func main() {
 			if nil != err {
 				log.Fatalln(err)
 			}
-
-			listeners[addr] = listener
-
-			listener = tls.NewListener(listener, &tls.Config{
-				NextProtos:   []string{"http/1.1"},
-				Certificates: []tls.Certificate{cert},
-			})
-
-			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-			go http.Serve(listener, reverseProxy)
-		} else {
-			go http.Serve(listener, reverseProxy)
 		}
+
+		listeners[addr] = listener
+		listener = tls.NewListener(listener, &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{cert},
+		})
+
+		log.Printf("https mode is enabled. serving at :%s ...", portssl)
+		go http.Serve(listener, reverseProxy)
 
 	}
 
