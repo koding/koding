@@ -14,18 +14,21 @@ manifest = require "./manifest.json"
 {spawn}  = require "child_process"
 https    = require 'https' 
 fs       = require 'fs-extra'
-os = require 'os'
+os       = require 'os'
 path     = require 'path'
-uuid = require 'node-uuid'
+uuid     = require 'node-uuid'
+wrench   = require 'wrench'
 
 
 class Deployment
   @pathToContainers = "/var/lib/lxc"
   constructor: (@kiteName, @version, @zipUrl) ->
-    @kitePath = path.join Deployment.pathToContainers, "#{@kiteName}-#{@version}", "overlay", "opt", "kites"
+    @deployId = uuid.v4()
+    @lxcId = "#{@kiteName}-#{@version}-#{@deployId}"
+    @kitePath = path.join Deployment.pathToContainers, @lxcId, "overlay", "opt", "kites"
 
   createLxc: (callback) ->
-    cmd = spawn "create-lxc", [@kiteName]
+    cmd = spawn "/usr/sbin/create-lxc", [@lxcId]
     console.log 'create lxc'
     cmd.stdout.on 'data', (data) ->
       console.log 'stdout: ', data.toString()
@@ -37,7 +40,7 @@ class Deployment
 
   downloadAndExtractKite: (callback) ->
     {kitePath, zipUrl, version, kiteName} = this
-    fs.mkdirsSync(kitePath) ## TODO mkdir creates 0777, exists check
+    fs.mkdirsSync kitePath ## TODO mkdir creates 0777, exists check
     
     filepath = path.join kitePath, "#{kiteName}.zip"
     file     = fs.createWriteStream filepath
@@ -49,7 +52,7 @@ class Deployment
       response.on "end", () ->
         console.log "file download complete", response.statusCode
         if response.statusCode is 200
-          cmd = spawn "unzip", [ path.join(@kitesPath, "#{kiteName}.zip"), "-d", @kitesPath]
+          cmd = spawn "unzip", [ path.join(kitePath, "#{kiteName}.zip"), "-d", kitePath]
           console.log 'unziping kite'
           
           cmd.stdout.on 'data', (data) ->
@@ -63,14 +66,17 @@ class Deployment
             content = JSON.parse fs.readFileSync(manifestFilePath)
             content.version = version
             fs.writeFileSync manifestFilePath, JSON.stringify(content)
+            wrench.chownSyncRecursive kitePath, 500000, 500000
             callback()
 
   runKite: () ->
     kiteInLxc = path.join "/opt", "kites", @kiteName
-    runner    = path.join(@pathToContainers, @name, "overlay", "opt", "runner")
-    fs.writeFileSync runner, "#!/bin/bash -l \n export HOME=/root \n /usr/sbin/kd.sh #{kiteInLxc} > /tmp/kd.out & \n"
+    runner    = path.join Deployment.pathToContainers, @lxcId, "overlay", "opt", "runner"
+    console.log runner
+    fs.writeFileSync runner, "#!/bin/bash -l \n export HOME=/root \n /usr/bin/kd kite run #{kiteInLxc} > /tmp/kd.out & \n"
+    fs.chownSync runner, 500000, 500000
     fs.chmodSync runner, "0755"
-    cmd = spawn "/usr/bin/lxc-start", ["-d", "-n", @name]
+    cmd = spawn "/usr/bin/lxc-start", ["-d", "-n", @lxcId]
     
     cmd.stdout.on 'data', (data) ->
       console.log 'stdout kite : ', data.toString()
@@ -80,21 +86,21 @@ class Deployment
       console.log 'lxc-execute process exited with code ', code
 
 
-uuidFile = "/home/vmroot/.kd/uuid"
-if fs.existsSync uuidFile
-  uuid = (fs.readFileSync uuidFile).toString()
+deployerIdFile = "/home/vmroot/.kd/deployerId"
+if fs.existsSync deployerIdFile
+  deployerId = (fs.readFileSync deployerIdFile).toString()
 else
-  uuid = uuid.v4()
-  fs.writeFileSync uuidFile, uuid
+  deployerId = uuid.v4()
+  fs.writeFileSync deployerIdFile, deployerId
 
-manifest.name = "Deployer_#{os.hostname()}_#{uuid}"
+manifest.name = "Deployer_#{os.hostname()}_#{deployerId}"
 console.log "deployer:", manifest.name
 kite.worker manifest, 
 
   deploy: (options, callback) ->
     {kiteName, version, zipUrl} = options
     deployment = new Deployment(kiteName, version, zipUrl)
-    deployment.create-lxc () ->
+    deployment.createLxc () ->
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
 
     return callback null, "Hello, This is #{manifest.name}"

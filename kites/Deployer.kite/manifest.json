@@ -6,7 +6,7 @@
   "identifier": "com.koding.kites.Deployer",
   "path": "~/Kites/Deployer.kite",
   "homepage": "armagankim.koding.com/kites/Deployer",
-  "author": "armagan",
+  "author": "devrim",
   "repository": "git://github.com/armagankim/Deployer.kite.git",
   "description": "Deployer : a Koding kite",
   "category": "web-api",
