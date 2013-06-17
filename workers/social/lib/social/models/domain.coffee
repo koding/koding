@@ -81,7 +81,7 @@ module.exports = class JDomain extends jraphical.Module
     success:(client, options={}, callback)->
       model = new JDomain options
       model.save (err) ->
-        if err then callback err
+        return callback err if err
 
         account = client.connection.delegate
         rel = new Relationship
@@ -92,7 +92,7 @@ module.exports = class JDomain extends jraphical.Module
           as: 'owner'
         
         rel.save (err)->
-          callback err
+          return callback err if err
 
         callback err, model
 
