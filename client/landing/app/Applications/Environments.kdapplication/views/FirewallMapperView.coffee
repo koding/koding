@@ -16,22 +16,22 @@ class FirewallMapperView extends KDView
 
     @destroySubViews()
 
-    @ruleListController = new KDListViewController
-      itemClass : FirewallRuleListItemView
+    @filterListController = new KDListViewController
+      itemClass : FirewallFilterListItemView
 
-    @actionListController = new FirewallActionListController
+    @ruleListController = new FirewallRuleListController
 
+    @filterListController.showLazyLoader()
     @ruleListController.showLazyLoader()
-    @actionListController.showLazyLoader()
 
-    domain.fetchProxyRules (err, response)=>
+    domain.fetchProxyFilters (err, response)=>
       if err
+        @filterListController.hideLazyLoader()
         @ruleListController.hideLazyLoader()
-        @actionListController.hideLazyLoader()
         
         notifyMsg = if err is "not found"
-        then "You don't have any rules set for this domain."
-        else "An error occured while fetching the rules. Please try again."
+        then "You don't have any filters set for this domain."
+        else "An error occured while fetching the filters. Please try again."
 
         @actionOrdersButton.hide() if err is "not found"
 
@@ -42,66 +42,71 @@ class FirewallMapperView extends KDView
 
       @iniateControllerListItems domain, response
 
-    @fwRuleFormView = new FirewallRuleFormView delegate:this, {domain}
+    @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
 
     @addSubView @fwRuleFormView
 
-    @addSubView @ruleListView = new KDCustomHTMLView
-      partial  : "<h3>Rule List for #{domain.domain}</h3>"
+    @addSubView @filterListView = new KDCustomHTMLView
+      partial  : "<h3>Your Filter List</h3>"
       cssClass : 'rule-list-view'
 
-    @addSubView @actionListView = new KDCustomHTMLView
-      partial  : "<h3>Action List for #{domain.domain}</h3>"
+    @addSubView @ruleListView = new KDCustomHTMLView
+      partial  : "<h3>Rule List for #{domain.domain}</h3>"
       cssClass : "action-list-view"
 
-    @ruleListView.addSubView @ruleListController.getView()
+    @filterListView.addSubView @filterListController.getView()
 
-    @actionListScrollView = new KDScrollView
+    @ruleListScrollView = new KDScrollView
       cssClass : 'fw-al-sw'
 
-    @actionListView.addSubView @actionListScrollView
-    @actionListView.addSubView @actionOrdersButton = new KDButtonView
+    @ruleListView.addSubView @ruleListScrollView
+    @ruleListView.addSubView @actionOrdersButton = new KDButtonView
       title    : "Update Action Order"
       callback : => @updateActionOrders domain
 
-    @actionListScrollView.addSubView @actionListController.getView()
+    @ruleListScrollView.addSubView @ruleListController.getView()
 
     @on "newRuleCreated", (item) => 
-      @ruleListController.addItem item
+      @filterListController.addItem item
 
     # this event is on rule list controller because 
-    # both allow & deny buttons live on FirewallRuleListItemView.
-    @ruleListController.getListView().on "behaviorCreated", (item) => 
-      @actionListController.addItem item
+    # both allow & deny buttons live on FirewallfilterListItemView.
+    @filterListController.getListView().on "behaviorCreated", (item) => 
+      @ruleListController.addItem item
 
   iniateControllerListItems:(domain, response)->
+    ###
     ruleKeys         = Object.keys(response.rules)
-    actionKeys       = Object.keys(response.RuleList)
+    actionKeys       = Object.keys(response.filterList)
     responseRules    = response.rules
-    responseRuleList = response.RuleList
-    ruleList         = []
-    actionList       = []
+    responsefilterList = response.filterList
+    filterList         = []
+    ruleList       = []
 
     for key in ruleKeys
-      ruleList.push 
+      filterList.push 
         domainName : domain.domain
         ruleName   : responseRules[key].Name
         match      : responseRules[key].Match
         type       : responseRules[key].Type
     
     for key in actionKeys
-      actionList.push
+      ruleList.push
         domainName : domain.domain
-        ruleName   : responseRuleList[key].RuleName
-        action     : responseRuleList[key].Action
+        ruleName   : responsefilterList[key].RuleName
+        action     : responsefilterList[key].Action
+    ###
 
+
+
+
+    @filterListController.instantiateListItems filterList
+    @filterListController.hideLazyLoader()
     @ruleListController.instantiateListItems ruleList
     @ruleListController.hideLazyLoader()
-    @actionListController.instantiateListItems actionList
-    @actionListController.hideLazyLoader()
 
   updateActionOrders:(domain)->
-    for item, index in @actionListController.itemsOrdered
+    for item, index in @ruleListController.itemsOrdered
       data = item.getData()
       domain.updateRuleBehavior
         ruleName   : data.ruleName
@@ -113,7 +118,7 @@ class FirewallMapperView extends KDView
         return console.log err if err?
 
 
-class FirewallRuleListItemView extends KDListItemView
+class FirewallFilterListItemView extends KDListItemView
 
   constructor:(options={}, data)->
     options.cssClass = 'fw-rl-view'
@@ -166,7 +171,7 @@ class FirewallRuleListItemView extends KDListItemView
     """
 
 
-class FirewallActionListItemView extends KDListItemView
+class FirewallRuleListItemView extends KDListItemView
 
   constructor:(options={}, data)->
     options.cssClass = 'fw-al-view'
@@ -253,7 +258,7 @@ class FirewallActionListItemView extends KDListItemView
     """
 
 
-class FirewallRuleFormView extends KDCustomHTMLView
+class FirewallFilterFormView extends KDCustomHTMLView
 
   constructor:(options={}, data)->
     options.cssClass = "rule-form-view"
@@ -295,13 +300,11 @@ class FirewallRuleFormView extends KDCustomHTMLView
     @template.update()
 
   pistachio:->
-    ###
+    """
     <div class="fl">
       <label for="rulename" class="">Rule Name:</label>
       {{> @ruleNameInput }}
     </div>
-    ###
-    """
     <div class="fl">
       <label for="rule">Rule:</label>
       {{> @ruleInput }}
