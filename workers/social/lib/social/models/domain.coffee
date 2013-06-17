@@ -28,9 +28,9 @@ module.exports = class JDomain extends jraphical.Module
       'list own domains'   : ['member']
 
     sharedMethods   :
-      instance      : ['bindVM', 'createProxyRule', 'fetchProxyRules', 'createRuleBehavior', 
-                       'updateRuleBehavior', 'deleteRuleBehavior', 'setDomainCNameToProxyDomain']
-      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain', 'createDomain']
+      instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule', 
+                       'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain']
+      static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
     indexes         :
       domain        : 'unique'
@@ -156,14 +156,14 @@ module.exports = class JDomain extends jraphical.Module
         for domain in domains
           return callback null, domain if domain.domain is selector.domainName
 
-  fetchProxyRules: permit
+  fetchProxyFilters: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
     success: (client, callback)-> 
       domainManager.domainService.fetchProxyRules @domain, (err, response)-> callback err, response
 
-  createProxyRule: permit
+  createProxyFilters: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
@@ -171,7 +171,7 @@ module.exports = class JDomain extends jraphical.Module
       params.domainName = @domain
       domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
 
-  createRuleBehavior: permit
+  createProxyRule: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
@@ -179,7 +179,7 @@ module.exports = class JDomain extends jraphical.Module
       params.domainName = @domain
       domainManager.domainService.createBehavior params, (err, response)-> callback err, response
 
-  updateRuleBehavior: permit
+  updateProxyRule: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
@@ -188,7 +188,7 @@ module.exports = class JDomain extends jraphical.Module
       domainManager.domainService.updateBehavior params, (err, response)-> 
         callback err, response
 
-  deleteRuleBehavior: permit
+  deleteProxyRule: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
