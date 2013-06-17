@@ -69,7 +69,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Code Snippets",    type : "CCodeSnipActivity" }
         { title : "Discussions",      type : "CDiscussionActivity" }
         { title : "Tutorials",        type : "CTutorialActivity" }
-        { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
+        # { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
         # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
         # { title : "Commits",          type : "commit", disabledForBeta : yes }
         # { title : "Projects",         type : "newproject", disabledForBeta : yes }
