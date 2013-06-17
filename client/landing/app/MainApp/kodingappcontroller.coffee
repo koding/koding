@@ -7,7 +7,7 @@ class KodingAppController extends KDViewController
     super options, data
 
   handleQuery: (query) ->
-    @getView().emit "AppQueryPerformed", query
+    @getView().emit "HandleQuery", query
 
   openFile: (file) ->
     @getView().emit "OpenFile", file
