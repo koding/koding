@@ -81,7 +81,7 @@ func main() {
 		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
 		if nil != err {
 			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			return
+			continue
 		}
 
 		addr := sslip + ":" + portssl
