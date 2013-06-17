@@ -494,7 +494,7 @@ class NFinderTreeController extends JTreeViewController
   cmUpload:        (nodeView, contextMenuItem)-> @appManager.notify()
   cmDownload:      (nodeView, contextMenuItem)-> @appManager.notify()
   cmGitHubClone:   (nodeView, contextMenuItem)-> @appManager.notify()
-  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView, contextMenuItem
+  cmOpenFile:      (nodeView, contextMenuItem)-> @openFile nodeView
   cmPreviewFile:   (nodeView, contextMenuItem)-> @previewFile nodeView
   cmCompile:       (nodeView, contextMenuItem)-> @compileApp nodeView
   cmRunApp:        (nodeView, contextMenuItem)-> @runApp nodeView
@@ -834,9 +834,7 @@ class OpenWithModalApp extends JView
       delegate.selectedApp = @
 
   pistachio: ->
-    data = @getData()
-
-    return """
+    """
       {{> @img}}
-      <div class="app-name">#{data.name}</div>
+      <div class="app-name">#{@getData().name}</div>
     """
