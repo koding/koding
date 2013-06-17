@@ -61,12 +61,16 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
+  openFileWithApp: (nodeView, contextMenuItem) ->
+    return warn "no app passed to open this file"  unless contextMenuItem
+    app = contextMenuItem.getData().title
+    KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+
   openFile:(nodeView, contextMenuItem)->
 
     return unless nodeView
     file = nodeView.getData()
-    app  = contextMenuItem?.getData().title or null
-    @appManager.openFile file, app
+    @appManager.openFile file
 
   previewFile:(nodeView)->
     {vmName, path} = nodeView.getData()
@@ -501,6 +505,7 @@ class NFinderTreeController extends JTreeViewController
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
+  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -755,7 +760,7 @@ class NFinderTreeController extends JTreeViewController
               if @alwaysOpenWith.getValue()
                 appsController.emit "UpdateDefaultApp", fileExtension, appName
 
-              appManager.openFile nodeView.getData(), appName
+              appManager.openFileWithApplication appName, nodeView.getData()
               modal.destroy()
           Cancel     :
             title    : "Cancel"
