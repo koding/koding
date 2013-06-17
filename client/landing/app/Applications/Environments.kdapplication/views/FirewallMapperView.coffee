@@ -40,7 +40,7 @@ class FirewallMapperView extends KDView
 
       @iniateControllerListItems domain, response
 
-    @fwRuleFormView = new FirewallRuleFormView {delegate:this}, {domain:domain}
+    @fwRuleFormView = new FirewallRuleFormView delegate:this, {domain}
 
     @addSubView @fwRuleFormView
 
@@ -64,12 +64,12 @@ class FirewallMapperView extends KDView
 
     @actionListScrollView.addSubView @actionListController.getView()
 
-    @on "newRuleCreated", (item)=>
+    @on "newRuleCreated", (item) => 
       @ruleListController.addItem item
 
     # this event is on rule list controller because 
     # both allow & deny buttons live on FirewallRuleListItemView.
-    @ruleListController.getListView().on "behaviorCreated", (item)=>
+    @ruleListController.getListView().on "behaviorCreated", (item) => 
       @actionListController.addItem item
 
   iniateControllerListItems:(domain, response)->
@@ -115,6 +115,7 @@ class FirewallRuleListItemView extends KDListItemView
 
   constructor:(options={}, data)->
     options.cssClass = 'fw-rl-view'
+    options.type     = 'rules'
     super options, data
 
     @allowButton = new KDButtonView
@@ -153,15 +154,13 @@ class FirewallRuleListItemView extends KDListItemView
 
   pistachio:->
     """
-    <div class="fw-li-view">
-      <div class="fl fw-lookup-icon"></div>
-      <div class="fl fw-li-rule">{{ #(match) }}</div>
-      <div class="fr fw-li-buttons">
-        {{> @allowButton }}
-        {{> @denyButton }}
-        {{> @deleteButton }}
-      </div>
+    {div.fl.fw-li-rule{ #(match)}}
+    <div class="fr buttons">
+      {{> @allowButton }}
+      {{> @denyButton }}
+      {{> @deleteButton }}
     </div>
+    <div class="clearfix"></div>
     """
 
 
@@ -169,6 +168,7 @@ class FirewallActionListItemView extends KDListItemView
 
   constructor:(options={}, data)->
     options.cssClass = 'fw-al-view'
+    options.type     = 'actions'
     super options, data
 
     @actionButton = new KDButtonView
@@ -243,7 +243,7 @@ class FirewallActionListItemView extends KDListItemView
     """
     <div class="fw-li-view #{@getData().action}">
       <div class="fl">{{ #(ruleName) }}</div>
-      <div class="fr fw-li-buttons">
+      <div class="fr buttons">
         {{> @actionButton }}
         {{> @deleteButton }}
       </div>
