@@ -33,6 +33,8 @@ class FirewallMapperView extends KDView
         then "You don't have any rules set for this domain."
         else "An error occured while fetching the rules. Please try again."
 
+        @actionOrdersButton.hide() if err is "not found"
+
         return new KDNotificationView
           title : notifyMsg
           type  : "top"
@@ -58,7 +60,7 @@ class FirewallMapperView extends KDView
       cssClass : 'fw-al-sw'
 
     @actionListView.addSubView @actionListScrollView
-    @actionListView.addSubView new KDButtonView
+    @actionListView.addSubView @actionOrdersButton = new KDButtonView
       title    : "Update Action Order"
       callback : => @updateActionOrders domain
 
