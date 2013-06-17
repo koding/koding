@@ -196,10 +196,10 @@ func (p *ProxyConfiguration) GetDomains() []Domain {
 	return domains
 }
 
-func (p *ProxyConfiguration) GetDomainRuleId(sourceId bson.ObjectId) (bson.ObjectId, error) {
+func (p *ProxyConfiguration) GetDomainRestrictionId(sourceId bson.ObjectId) (bson.ObjectId, error) {
 	relationship := Relationship{}
 	err := p.Collection["relationships"].Find(
-		bson.M{"sourceID": sourceId, "targetName": "JProxyRules"},
+		bson.M{"sourceID": sourceId, "targetName": "JProxyRestrictions"},
 	).One(&relationship)
 	if err != nil {
 		return "", err
