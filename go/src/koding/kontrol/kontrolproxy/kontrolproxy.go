@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
+	"github.com/rcrowley/goagain"
 	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
@@ -13,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -34,7 +37,7 @@ var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var templates = template.Must(template.ParseFiles("go/templates//proxy/securepage.html"))
+var templates = template.Must(template.ParseFiles("go/templates/proxy/securepage.html", "client/maintenance.html"))
 var users = make(map[string]time.Time)
 var usersLock sync.RWMutex
 
@@ -60,63 +63,95 @@ func main() {
 	}
 
 	// create amqpStream for rabbitmq proxyieng
-	amqpStream = setupAmqp()
+	// amqpStream = setupAmqp()
 
 	reverseProxy := &ReverseProxy{}
-	// http.HandleFunc("/", reverseProxy.ServeHTTP) this works for 1.1
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		reverseProxy.ServeHTTP(w, r)
-	})
 
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
+	var (
+		listener  net.Listener
+		ppid      int
+		listeners = make(map[string]net.Listener, 0)
+	)
+
 	for _, sslip := range sslips {
-		go func(sslip string) {
-			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
-			if err != nil {
-				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			} else {
-				log.Printf("https mode is enabled. serving at :%s ...", portssl)
+		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
+		if nil != err {
+			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+			continue
+		}
+
+		addr := sslip + ":" + portssl
+		listener, _, err = goagain.GetEnvs(addr)
+		if err != nil {
+			laddr, err := net.ResolveTCPAddr("tcp", addr)
+			if nil != err {
+				log.Fatalln(err)
 			}
-		}(sslip)
+
+			listener, err = net.ListenTCP("tcp", laddr)
+			if nil != err {
+				log.Fatalln(err)
+			}
+		}
+
+		listeners[addr] = listener
+		listener = tls.NewListener(listener, &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{cert},
+		})
+
+		log.Printf("https mode is enabled. serving at :%s ...", portssl)
+		go http.Serve(listener, reverseProxy)
+
 	}
 
-	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	err = http.ListenAndServe(":"+port, nil)
+	// HTTP handling
+	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	addr := "127.0.0.1:" + port
+	listener, ppid, err = goagain.GetEnvs(addr)
 	if err != nil {
-		log.Println(err)
+		log.Printf("normal mode is enabled. serving at :%s ...", port)
+		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
+		if nil != err {
+			log.Fatalln(err)
+		}
+
+		listener, err = net.ListenTCP("tcp", laddr)
+		if nil != err {
+			log.Fatalln(err)
+		}
+		go http.Serve(listener, reverseProxy)
+	} else {
+		go http.Serve(listener, reverseProxy) // resume listening
+
+		// Kill the parent, now that the child has started successfully.
+		if err := goagain.KillParent(ppid); nil != err {
+			log.Fatalln(err)
+		}
+
 	}
-}
+	listeners[addr] = listener
 
-/*************************************************
-*
-*  util functions
-*
-*  - arslan
-*************************************************/
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+	// needed until all go routines are ready. otherwise the log below is printed earlier
+	time.Sleep(time.Second * 2)
+	log.Printf("started and waiting for signals on pid %d.\n\t* for a stop send SIGTERM.\n\t* for a new binary restart send SIGUSR2\n", os.Getpid())
 
-// Given a string of the form "host", "port", returns "host:port"
-func addPort(host, port string) string {
-	if ok := hasPort(host); ok {
-		return host
+	// Block the main goroutine awaiting signals.
+	if err := goagain.AwaitSignals(listeners); nil != err {
+		log.Fatalln(err)
 	}
 
-	return host + ":" + port
-}
-
-// Check if a server is alive or not
-func checkServer(host string) error {
-	c, err := net.Dial("tcp", host)
-	if err != nil {
-		return err
+	// Do whatever's necessary to ensure a graceful exit like waiting for
+	// goroutines to terminate or a channel to become closed.
+	// In this case, we'll simply stop listening and wait one second.
+	if err := listener.Close(); nil != err {
+		log.Fatalln(err)
 	}
-	c.Close()
-	return nil
+	log.Printf("stopped current listener with pid %d\n", os.Getpid())
 }
 
 /*************************************************
@@ -171,8 +206,8 @@ var hopHeaders = []string{
 
 func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// redirect http to https
-	if req.TLS == nil && req.Host == "new.koding.com" {
-		http.Redirect(rw, req, "https://new.koding.com"+req.RequestURI, http.StatusMovedPermanently)
+	if req.TLS == nil && (req.Host == "koding.com" || req.Host == "www.koding.com") {
+		http.Redirect(rw, req, "https://koding.com"+req.RequestURI, http.StatusMovedPermanently)
 		return
 	}
 
@@ -188,32 +223,42 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	user, err := populateUser(outreq)
 	if err != nil {
 		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
-		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+		http.Error(rw, "error contacting backend server.", http.StatusInternalServerError)
 		return
 	}
 
 	target := user.Target
-	if user.Domain.LoadBalancer.Mode == "sticky" {
+
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
+	if user.Redirect {
+		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
+		return
+	}
+
+	switch user.Domain.Proxy.Mode {
+	case "maintenance":
+		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
+		if err != nil {
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	switch user.Domain.LoadBalancer.Mode {
+	case "sticky":
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
 		targetURL, ok := session.Values["GOSESSIONID"]
 		if ok {
-			fmt.Printf("proxy via session cookie\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			target, err = url.Parse(targetURL.(string))
 			if err != nil {
 				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 				return
 			}
 		} else {
-			fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.Host)
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
-	}
-
-	if user.Redirect {
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
-		return
 	}
 
 	_, err = validate(user)
@@ -242,7 +287,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			log.Printf("error validating user %s: %s", user.IP, err.Error())
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
-
 		}
 	}
 
@@ -268,11 +312,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.ProtoMinor = 1
 	outreq.Close = false
 
-	if !isUserRegistered(user.IP) {
-		go registerUser(user.IP)
-		go logDomainRequests(outreq.Host)
-		go logProxyStat(hostname, user.Country)
-	}
+	go func() {
+		if !isUserRegistered(user.IP) {
+			go registerUser(user.IP)
+			go logDomainRequests(outreq.Host)
+			go logProxyStat(hostname, user.Country)
+		}
+	}()
 
 	// if connection is of type websocket, hijacking is used instead of http proxy
 	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
@@ -308,7 +354,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
-
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
@@ -365,7 +410,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		// 		return
 		// 	}
-
 		// }
 
 		copyHeader(rw.Header(), res.Header)
@@ -380,6 +424,12 @@ func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 	io.Copy(dst, src)
 }
 
+/*************************************************
+*
+*  unique IP handling and cleaner
+*
+*  - arslan
+*************************************************/
 func registerUser(ip string) {
 	usersLock.Lock()
 	defer usersLock.Unlock()
@@ -410,6 +460,7 @@ func cleaner() {
 		// negative duration is no-op, means it will not panic
 		time.Sleep(time.Hour - time.Now().Sub(nextTime))
 		usersLock.Lock()
+		log.Println("deleting user from internal map", nextUser)
 		delete(users, nextUser)
 		usersLock.Unlock()
 		usersLock.RLock()
@@ -423,4 +474,33 @@ func isUserRegistered(ip string) bool {
 	defer usersLock.RUnlock()
 	_, ok := users[ip]
 	return ok
+}
+
+/*************************************************
+*
+*  util functions
+*
+*  - arslan
+*************************************************/
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func addPort(host, port string) string {
+	if ok := hasPort(host); ok {
+		return host
+	}
+
+	return host + ":" + port
+}
+
+// Check if a server is alive or not
+func checkServer(host string) error {
+	c, err := net.Dial("tcp", host)
+	if err != nil {
+		return err
+	}
+	c.Close()
+	return nil
 }

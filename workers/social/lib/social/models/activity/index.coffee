@@ -236,6 +236,7 @@ module.exports = class CActivity extends jraphical.Capsule
     "JCodeShare"
   ]
 
+
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
       {to, limit, facets, lowQuality, originId, sort, skip} = options
@@ -273,58 +274,107 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
 
-  @fetchPublicContents:(options={}, callback)->
-    {groupId, facets, to, limit} = options
-    if not groupId
-      return callback new KodingError  "GroupId is not set"
+  # this function fetchs content for public activity
+  @fetchPublicContents = secure (client, options, callback)->
+    @getCurrentGroup client, (err, group)=>
+      if err then return callback err
 
-    query = [
-      "START koding=node:koding(id='#{groupId}')"
-      'MATCH koding-[:member]->members<-[:author]-items'
-      'WHERE has(items.`meta.createdAtEpoch`)'
-    ]
+      {facets, to, limit} = options
+      limit or= 20
 
-    if facets and 'Everything' not in facets
-      s = []
-      for facet in facets
-        if facet not in neo4jFacets
-          return callback new KodingError "Unknown facet: " + facets.join()
-        s.push("items.name='#{facet}'")
-      query.push("AND (" + s.join(' OR ') + ")")
+      groupId = group._id
+      groupName = group.slug
 
-    if to
-      ts = Math.floor(to / 1000)
-      query.push "AND items.`meta.createdAtEpoch` < #{ts}"
+      query = [
+        'START koding=node:koding(id="' + groupId + '")'
+        'MATCH koding-[:member]->members<-[:author]-items'
+        'WHERE items.group = "' + groupName + '"'
+      ]
 
-    query.push 'return items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
-    query = query.join('\n')
-    graph = new Graph({config:KONFIG['neo4j']})
-    graph.fetchFromNeo4j(query, options, callback)
+      # build facet queries
+      if facets and 'Everything' not in facets
+        facetQueryList = []
+        for facet in facets
+          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
+          facetQueryList.push("items.name='#{facet}'")
+        query.push("AND (" + facetQueryList.join(' OR ') + ")")
 
-  @fetchFolloweeContents: secure ({connection:{delegate}}, options, callback)->
-    userId = delegate.getId()
-    {facets, to, limit} = options
-    query = ["start koding=node:koding(id='#{userId}')"
-             'MATCH koding<-[:follower]-myfollowees-[:creator]->items'
-             'where myfollowees.name="JAccount"'
-            ]
+      # add timestamp
+      if to
+        timestamp = Math.floor(to / 1000)
+        query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
 
-    if facets and 'Everything' not in facets
-      s = []
-      for facet in facets
-        if facet not in neo4jFacets
-          return callback new KodingError "Unknown facet: " + facets.join()
-        s.push("items.name='#{facet}'")
-      query.push("AND (" + s.join(' OR ') + ")")
+      # add return statement
+      query.push "return items"
+      # add sorting option
+      query.push "order by items.`meta.createdAtEpoch` DESC"
+      # add limit option
+      query.push "LIMIT #{limit}"
 
-    if to
-      ts = Math.floor(to / 1000)
-      query.push("AND items.`meta.createdAtEpoch` < #{ts}")
+      # join query
+      query = query.join('\n')
+      graph = new Graph({config:KONFIG['neo4j']})
+      graph.fetchFromNeo4j(query, options, callback)
 
-    query.push 'return myfollowees, items', 'order by items.`meta.createdAtEpoch` DESC', "LIMIT #{limit}"
-    query = query.join('\n')
-    graph = new Graph({config:KONFIG['neo4j']})
-    graph.fetchFromNeo4j(query, options, callback)
+
+  @getCurrentGroup: (client, callback)->
+    {delegate} = client.connection
+    if not delegate
+      callback callback {error: "Request not valid"}
+    else
+      groupName = client.context.group
+      JGroup = require '../group'
+      JGroup.one slug : groupName, (err, group)=>
+        if err then return callback err
+        unless group then return callback {error: "Group not found"}
+        group.canReadActivity client, (err, res)->
+          if err then return callback {error: "Not allowed to open this group"}
+          else callback null, group
+
+
+
+  @fetchFolloweeContents: secure (client, options, callback)->
+    @getCurrentGroup client, (err, group)=>
+      if err then return callback err
+      userId = client.connection.delegate.getId()
+
+
+      {facets, to, limit} = options
+      limit or= 20
+
+      groupId = group._id
+      groupName = group.slug
+
+      query = [
+        "start koding=node:koding(id='#{userId}')"
+        'MATCH koding<-[:follower]-myfollowees-[:author]->items'
+        'where myfollowees.name="JAccount"'
+        'AND items.group = "' + groupName + '"'
+      ]
+
+      # build facet queries
+      if facets and 'Everything' not in facets
+        facetQueryList = []
+        for facet in facets
+          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
+          facetQueryList.push("items.name='#{facet}'")
+        query.push("AND (" + facetQueryList.join(' OR ') + ")")
+      # add timestamp
+
+      if to
+        timestamp = Math.floor(to / 1000)
+        query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
+
+      # add return statement
+      query.push "return myfollowees, items"
+      # add sorting option
+      query.push "order by items.`meta.createdAtEpoch` DESC"
+      # add limit option
+      query.push "LIMIT #{limit}"
+
+      query = query.join('\n')
+      graph = new Graph({config:KONFIG['neo4j']})
+      graph.fetchFromNeo4j(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
@@ -359,34 +409,23 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
   @fetchPublicActivityFeed = secure (client, options, callback)->
-    {delegate} = client.connection
-    if not delegate
-      callback null, []
-    else
-      groupName = options.groupName
-      unless groupName then return callback new Error "Group name is undefined"
-      JGroup = require '../group'
-      JGroup.one slug : groupName, (err, group)=>
-        if err then return callback err
-        unless group then return callback {error: "Group not found"}
-        group.canReadActivity client, (err, res)->
-          if err then return callback {error: "Not allowed to open this group"}
+    @getCurrentGroup client, (err, group) =>
+      if err then return callback err
+      timestamp  = options.timestamp
+      rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
+      # this is for unix and javascript timestamp differance
+      startDate  = Math.floor(rawStartDate/1000)
 
-          timestamp  = options.timestamp
-          rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
-          # this is for unix and javascript timestamp differance
-          startDate  = Math.floor(rawStartDate/1000)
-
-          neo4jConfig = KONFIG.neo4j
-          requestOptions =
-            startDate : startDate
-            neo4j : neo4jConfig
-            group :
-              groupName : group.slug
-              groupId : group._id
+      neo4jConfig = KONFIG.neo4j
+      requestOptions =
+        startDate : startDate
+        neo4j : neo4jConfig
+        group :
+          groupName : group.slug
+          groupId : group._id
 
 
-          FetchAllActivityParallel = require './../graph/fetch'
-          fetch = new FetchAllActivityParallel requestOptions
-          fetch.get (results)->
-            callback null, results
+      FetchAllActivityParallel = require './../graph/fetch'
+      fetch = new FetchAllActivityParallel requestOptions
+      fetch.get (results)->
+        callback null, results

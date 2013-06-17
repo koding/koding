@@ -79,11 +79,18 @@ func (u *UserInfo) populateTarget() error {
 	fullurl := u.Domain.Proxy.FullUrl
 
 	switch u.Domain.Proxy.Mode {
-	case "direct":
-		u.Target, err = url.Parse("http://" + fullurl)
+	case "maintenance":
+		return nil
+	case "redirect":
+		if !strings.HasPrefix(fullurl, "http://") && !strings.HasPrefix(fullurl, "https://") {
+			fullurl = "https://" + fullurl
+		}
+
+		u.Target, err = url.Parse(fullurl)
 		if err != nil {
 			return err
 		}
+		u.Redirect = true
 		return nil
 	case "vm":
 		switch u.Domain.LoadBalancer.Mode {
@@ -149,6 +156,11 @@ func (u *UserInfo) populateTarget() error {
 }
 
 func parseDomain(host string) (*UserInfo, error) {
+	// forward www.foo.com to foo.com
+	if strings.HasPrefix(host, "www.") {
+		host = strings.TrimPrefix(host, "www.")
+	}
+
 	// Then make a lookup for domains
 	domain, err := proxyDB.GetDomain(host)
 	if err != nil {
@@ -201,35 +213,18 @@ func parseDomain(host string) (*UserInfo, error) {
 }
 
 func validate(u *UserInfo) (bool, error) {
-	ruleId, err := proxyDB.GetDomainRuleId(u.Domain.Id)
+	restrictionId, err := proxyDB.GetDomainRestrictionId(u.Domain.Id)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
-	rule, err := proxyDB.GetRuleByID(ruleId)
+	restriction, err := proxyDB.GetRestrictionByID(restrictionId)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
-	return validator(rule, u).AddRules().Check()
+	return validator(restriction, u).AddRules().Check()
 }
-
-// func lookupRabbitKey(username, servicename, key string) (string, error) {
-// 	res, err := proxyDB.GetKey(username, servicename, key)
-// 	if err != nil {
-// 		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
-// 	}
-//
-// 	if res.Mode == "roundrobin" {
-// 		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
-// 	}
-//
-// 	if res.RabbitKey == "" {
-// 		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
-// 	}
-//
-// 	return res.RabbitKey, nil
-// }
 
 func isWebsocket(req *http.Request) bool {
 	conn_hdr := ""
@@ -277,3 +272,20 @@ func logDomainDenied(domain, ip, country, reason string) {
 		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
 	}
 }
+
+// func lookupRabbitKey(username, servicename, key string) (string, error) {
+// 	res, err := proxyDB.GetKey(username, servicename, key)
+// 	if err != nil {
+// 		return "", fmt.Errorf("no rabbitkey available for user '%s'\n", username)
+// 	}
+//
+// 	if res.Mode == "roundrobin" {
+// 		return "", fmt.Errorf("round-robin is disabled for user %s\n", username)
+// 	}
+//
+// 	if res.RabbitKey == "" {
+// 		return "", fmt.Errorf("rabbitkey is empty for user %s\n", username)
+// 	}
+//
+// 	return res.RabbitKey, nil
+// }

@@ -40,8 +40,8 @@ class CommentViewHeader extends JView
       cssClass  : "new-items"
       click     : => list.emit "AllCommentsLinkWasClicked", @
 
-    @liveUpdate = @getSingleton('activityController').flags?.liveUpdates or off
-    @getSingleton('activityController').on "LiveStatusUpdateStateChanged", (newstate)=>
+    @liveUpdate = KD.getSingleton('activityController').flags?.liveUpdates or off
+    KD.getSingleton('activityController').on "LiveStatusUpdateStateChanged", (newstate)=>
       # log "Live update state changed to", newstate
       @liveUpdate = newstate
 

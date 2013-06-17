@@ -2,7 +2,7 @@ class StaticProfileCustomizeView extends StaticPageCustomizeView
 
   constructor:(options,data)->
     super options,data
-    @staticController = @getSingleton('staticProfileController')
+    @staticController = KD.getSingleton('staticProfileController')
     @setClass 'profile-customize-view'
 
     user = @getData()

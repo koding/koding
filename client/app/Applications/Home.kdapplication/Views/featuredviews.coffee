@@ -7,7 +7,7 @@ class HomeFeaturedActivitiesView extends JView
         lastToFirst   : no
         itemClass     : HomeActivityItem
 
-    @getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", {limit:10}, (err,activity)=>
+    KD.getSingleton("appManager").tell "Activity", "fetchFeedForHomePage", {limit:10}, (err,activity)=>
       if activity
         @activityController.instantiateListItems activity
 

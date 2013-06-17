@@ -91,15 +91,18 @@ func main() {
 	rout.HandleFunc("/domains/{domain}", CreateOrUpdateDomain).Methods("POST", "PUT")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
-	// Rule handlers
+	// Restriction/Rule handlers
 	rout.HandleFunc("/restrictions", GetRestrictions).Methods("GET")
-	rout.HandleFunc("/restrictions/{domain}", GetRestriction).Methods("GET")
+	rout.HandleFunc("/restrictions/{domain}", GetRestrictionByDomain).Methods("GET")
 	rout.HandleFunc("/restrictions/{domain}", DeleteRestriction).Methods("DELETE")
-	rout.HandleFunc("/restrictions/{domain}/rules", CreateRule).Methods("POST")
-	rout.HandleFunc("/restrictions/{domain}/rules/{rule}", GetRule).Methods("GET")
-	rout.HandleFunc("/restrictions/{domain}/rules/{rule}", DeleteRule).Methods("DELETE")
-	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", CreateBehaviour).Methods("POST")
-	rout.HandleFunc("/restrictions/{domain}/list/{behaviour}", DeleteBehaviour).Methods("DELETE")
+	rout.HandleFunc("/restrictions/{domain}/{match}", CreateRuleByMatch).Methods("POST", "PUT")
+	rout.HandleFunc("/restrictions/{domain}/{match}", DeleteRuleByMatch).Methods("DELETE")
+
+	// Filter handlers
+	rout.HandleFunc("/filters", GetFilters).Methods("GET")
+	rout.HandleFunc("/filters/{match}", GetFilter).Methods("GET")
+	rout.HandleFunc("/filters/{match}", CreateFilterByMatch).Methods("POST")
+	rout.HandleFunc("/filters/{match}", DeleteFilterByMatch).Methods("DELETE")
 
 	// Statistics handlers
 	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")

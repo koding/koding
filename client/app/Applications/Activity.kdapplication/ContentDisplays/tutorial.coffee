@@ -201,7 +201,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
               modal.buttons.Delete.hideLoader()
               modal.destroy()
               unless err
-                @getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
+                KD.getSingleton("contentDisplayController").emit 'ContentDisplayWantsToBeHidden', @
                 @utils.wait 2000, =>
                   @destroy()
 
@@ -330,7 +330,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 #         unless @getData().lazyNode is true then KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
 #   click:->
-#     @getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
+#     KD.getSingleton("contentDisplayController").emit "ContentDisplayWantsToBeHidden", @getDelegate()
 #     unless @getData().lazyNode is true then KD.getSingleton("appManager").tell "Activity", "createContentDisplay", @getData()
 
 #   viewAppended:->

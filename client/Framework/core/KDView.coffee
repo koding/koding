@@ -594,7 +594,7 @@ class KDView extends KDObject
   paste:(event)->      yes
 
   mouseDown:(event)->
-    (@getSingleton "windowController").setKeyView null
+    (KD.getSingleton "windowController").setKeyView null
     yes
 
   # HTML5 DND
@@ -693,7 +693,7 @@ class KDView extends KDObject
       dragPos.initial.x     = event.pageX
       dragPos.initial.y     = event.pageY
 
-      @getSingleton('windowController').setDragView @
+      KD.getSingleton('windowController').setDragView @
       @emit "DragStarted", event, @dragState
       event.stopPropagation()
       event.preventDefault()
@@ -856,51 +856,51 @@ class KDView extends KDObject
   listenWindowResize:(state=yes)->
 
     if state
-      @getSingleton('windowController').registerWindowResizeListener @
+      KD.getSingleton('windowController').registerWindowResizeListener @
     else
-      @getSingleton('windowController').unregisterWindowResizeListener @
+      KD.getSingleton('windowController').unregisterWindowResizeListener @
 
   notifyResizeListeners:->
 
-    @getSingleton('windowController').notifyWindowResizeListeners()
+    KD.getSingleton('windowController').notifyWindowResizeListeners()
 
   setKeyView:->
 
-    @getSingleton("windowController").setKeyView @
+    KD.getSingleton("windowController").setKeyView @
 
-  setPreserveValue:(preserveValue={})->
-    storedValue = @getSingleton('localStorageController').getValueById preserveValue.name
+  # setPreserveValue:(preserveValue={})->
+  #   storedValue = KD.getSingleton('localStorageController').getValueById preserveValue.name
 
-    if "string" is typeof preserveValue.saveEvents
-      preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
-    if "string" is typeof preserveValue.clearEvents
-      preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
+  #   if "string" is typeof preserveValue.saveEvents
+  #     preserveValue.saveEvents = preserveValue.saveEvents.split(' ')
+  #   if "string" is typeof preserveValue.clearEvents
+  #     preserveValue.clearEvents = preserveValue.clearEvents.split(' ')
 
-    for preserveEvent in preserveValue.saveEvents
-      @on preserveEvent, (event)=>
-        value = @getOptions().preserveValue.getValue?() ? @getValue?()
-        @savePreserveValue preserveValue.name, value
+  #   for preserveEvent in preserveValue.saveEvents
+  #     @on preserveEvent, (event)=>
+  #       value = @getOptions().preserveValue.getValue?() ? @getValue?()
+  #       @savePreserveValue preserveValue.name, value
 
-    for preserveEvent in preserveValue.clearEvents
-      @on preserveEvent, (event)=>
-        @clearPreserveValue()
+  #   for preserveEvent in preserveValue.clearEvents
+  #     @on preserveEvent, (event)=>
+  #       @clearPreserveValue()
 
-    if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
-      @on displayEvent, (event)=>
-        @applyPreserveValue storedvalue if storedValue
+  #   if preserveValue.displayEvents then for displayEvent in preserveValue.displayEvents
+  #     @on displayEvent, (event)=>
+  #       @applyPreserveValue storedvalue if storedValue
 
-    if storedValue
-      @utils.defer => @applyPreserveValue storedValue
+  #   if storedValue
+  #     @utils.defer => @applyPreserveValue storedValue
 
-  applyPreserveValue:(value)->
-    if @getOptions().preserveValue.setValue
-      @getOptions().preserveValue.setValue value
-    else @setValue? value
+  # applyPreserveValue:(value)->
+  #   if @getOptions().preserveValue.setValue
+  #     @getOptions().preserveValue.setValue value
+  #   else @setValue? value
 
-  savePreserveValue:(id,value)->
-    @getSingleton('localStorageController').setValueById id, value
+  # savePreserveValue:(id,value)->
+  #   KD.getSingleton('localStorageController').setValueById id, value
 
-  clearPreserveValue:->
-    if @getOptions().preserveValue
-      @getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
+  # clearPreserveValue:->
+  #   if @getOptions().preserveValue
+  #     KD.getSingleton('localStorageController').deleteId @getOptions().preserveValue.name
 

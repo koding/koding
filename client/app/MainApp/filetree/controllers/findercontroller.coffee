@@ -61,11 +61,11 @@ class NFinderController extends KDViewController
 
     # temp hack, if page opens in develop section.
     @utils.wait 2500, =>
-      @getSingleton("mainView").sidebar._windowDidResize()
+      KD.getSingleton("mainView").sidebar._windowDidResize()
 
   reset:->
     if @getOptions().useStorage
-      @appStorage = @getSingleton('mainController').\
+      @appStorage = KD.getSingleton('mainController').\
                       getAppStorageSingleton 'Finder', '1.0'
       @appStorage.once "storageFetched", @bound 'loadVms'
     else
@@ -81,7 +81,7 @@ class NFinderController extends KDViewController
 
     if vmNames then mountVms vmNames
     else
-      groupSlug  = KD.singletons.groupsController.getGroupSlug()
+      groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
       groupSlug ?= 'koding'
       @appStorage.fetchValue "mountedVM", (vms)->
         vms            or= {}
@@ -92,8 +92,10 @@ class NFinderController extends KDViewController
           KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
             return callback? err  if err
             if not vms or vms.length is 0
-              vms = [(KD.getSingleton 'vmController').getDefaultVmName()]
-            mountVms vms
+              KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
+                mountVms [vm]  if vm
+            else
+              mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName
@@ -101,7 +103,7 @@ class NFinderController extends KDViewController
       return vmItem  if vmItem.data.vmName is vmName
 
   updateMountState:(vmName, state)->
-    groupSlug  = KD.singletons.groupsController.getGroupSlug()
+    groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
     groupSlug ?= 'koding'
     @appStorage.fetchValue "mountedVM", (vms)=>
       vms or= {}
@@ -228,7 +230,7 @@ class VMMountStateWidget extends JView
 
     showMessage:(message)->
       message or= """There is no VM attached to filetree, you can
-                     attach one from environment menu below."""
+                     attach or create one from environment menu below."""
 
       @warning.updatePartial message
       @warning.show()
@@ -240,12 +242,12 @@ class VMMountStateWidget extends JView
       @warning.hide()
       @loader.show()
 
-      if KD.singletons.groupsController.getGroupSlug() is 'koding'
+      if KD.getSingleton("groupsController").getGroupSlug() is 'koding'
         @showMessage()
 
       # Not sure about it I guess only owners can create GroupVM?
       else if ("admin" in KD.config.roles) or ("owner" in KD.config.roles)
-        group = KD.singletons.groupsController.getCurrentGroup()
+        group = KD.getSingleton("groupsController").getCurrentGroup()
         group.checkPayment (err, payments)=>
           warn err  if err
           if payments.length is 0

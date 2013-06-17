@@ -28,8 +28,8 @@ type unicastSockoptTest struct {
 }
 
 var unicastSockoptTests = []unicastSockoptTest{
-	{ipv4.DSCP_CS0 | ipv4.ECN_NOTECT, 127},
-	{ipv4.DSCP_AF11 | ipv4.ECN_NOTECT, 255},
+	{DiffServCS0 | NotECNTransport, 127},
+	{DiffServAF11 | NotECNTransport, 255},
 }
 
 func TestTCPUnicastSockopt(t *testing.T) {
@@ -88,8 +88,7 @@ func TestUDPUnicastSockopt(t *testing.T) {
 
 func TestIPUnicastSockopt(t *testing.T) {
 	if os.Getuid() != 0 {
-		t.Logf("skipping test; must be root")
-		return
+		t.Skip("must be root")
 	}
 
 	for _, tt := range unicastSockoptTests {

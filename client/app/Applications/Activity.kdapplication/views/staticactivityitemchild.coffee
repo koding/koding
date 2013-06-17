@@ -43,7 +43,7 @@ class StaticActivityItemChild extends KDView
         @utils.wait 30000, ->
           activityItem.slideOut -> activityItem.destroy()
 
-    @contentDisplayController = @getSingleton "contentDisplayController"
+    @contentDisplayController = KD.getSingleton "contentDisplayController"
 
     KD.remote.cacheable data.originType, data.originId, (err, account)=>
       @setClass "exempt" if account and KD.checkFlag 'exempt', account
@@ -63,4 +63,4 @@ class StaticTagLinkView extends TagLinkView
   click:(event)->
     event.stopPropagation()
     event.preventDefault()
-    @getSingleton('staticProfileController').emit 'StaticInteractionHappened', @
+    KD.getSingleton('staticProfileController').emit 'StaticInteractionHappened', @

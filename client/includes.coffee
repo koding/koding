@@ -138,6 +138,7 @@ module.exports = [
   "app/MainApp/activitycontroller.coffee",
   "app/MainApp/notificationcontroller.coffee",
   "app/MainApp/linkcontroller.coffee",
+  "app/MainApp/paymentcontroller.coffee",
 
   # COMMON VIEWS
   "app/CommonViews/applicationview/applicationtabview.coffee",
@@ -161,9 +162,11 @@ module.exports = [
   "app/CommonViews/avatarviews/avatarswapview.coffee",
   "app/CommonViews/avatarviews/autocompleteavatarview.coffee",
 
+
+  "app/MainApp/navigation/navigationcontroller.coffee",
+
   "app/CommonViews/LinkViews.coffee",
   "app/CommonViews/VideoPopup.coffee",
-
   "app/CommonViews/LikeView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
@@ -225,6 +228,8 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
+  "app/CommonViews/ModalViewWithTerminal.coffee",
+
   "app/MainApp/kodingappcontroller.coffee",
   "app/MainApp/sidebar/sidebarcontroller.coffee",
   "app/MainApp/sidebar/sidebarview.coffee",
@@ -238,13 +243,13 @@ module.exports = [
   "app/MainApp/sidebar/modals/adminmodal.coffee",
   "app/MainApp/sidebar/modals/kiteselector.coffee",
 
-  "app/MainApp/navigation/navigationcontroller.coffee",
   "app/MainApp/navigation/navigationlist.coffee",
   "app/MainApp/navigation/navigationlink.coffee",
   "app/MainApp/navigation/navigationseparator.coffee",
   "app/MainApp/navigation/navigationadminlink.coffee",
   "app/MainApp/navigation/navigationinvitationlink.coffee",
   "app/MainApp/navigation/navigationactivitylink.coffee",
+  "app/MainApp/navigation/navigationappslink.coffee",
 
   # BOOK
   "app/MainApp/book/embedded/tableofcontents.coffee",

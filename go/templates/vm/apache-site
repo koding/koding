@@ -1,12 +1,13 @@
 <VirtualHost *:80>
   ServerName {{.Hostname}}
-  DocumentRoot /home/{{.Name}}/Sites/{{.Hostname}}/
+  ServerAlias {{.HostnameAliasesLine}}
+  DocumentRoot /home/{{.SitesHomeName}}/Sites/{{.Hostname}}/
 
   <Directory />
     Options FollowSymLinks
     AllowOverride None
   </Directory>
-  <Directory /home/{{.Name}}/Sites/{{.Hostname}}/>
+  <Directory /home/{{.SitesHomeName}}/Sites/{{.Hostname}}/>
     Options Indexes FollowSymLinks MultiViews +ExecCGI
     AddHandler cgi-script .cgi .pl .rb .py
     AllowOverride All

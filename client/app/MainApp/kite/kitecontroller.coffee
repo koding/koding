@@ -86,34 +86,37 @@ class KiteController extends KDController
     options.kiteName or= "os"
     options.method   or= "exec"
 
-    vmName = if options.vmName then options.vmName \
-             else KD.singletons.vmController.getDefaultVmName()
-    options.vmName = vmName
+    KD.getSingleton("vmController").fetchDefaultVmName (defaultVmName)=>
+      vmName = if options.vmName then options.vmName else defaultVmName
+      unless vmName
+        return callback message: 'There is no VM for this account.'
 
-    kite = @getKite options.kiteName, vmName
+      options.vmName = vmName
 
-    if command
-      options.withArgs = command
-    else
-      options.withArgs or= {}
+      kite = @getKite options.kiteName, vmName
 
-    if KD.logsEnabled and KD.showKiteCalls
-      notify """
-              Calling <b>#{options.method}</b> method,
-              from <b>#{options.kiteName}</b> kite
-             """
+      if command
+        options.withArgs = command
+      else
+        options.withArgs or= {}
 
-    log "Kite Request:", options
+      if KD.logsEnabled and KD.showKiteCalls
+        notify """
+                Calling <b>#{options.method}</b> method,
+                from <b>#{options.kiteName}</b> kite
+               """
 
-    kite.tell options, (err, response)=>
-      @parseKiteResponse {err, response}, options, callback
+      log "Kite Request:", options
+
+      kite.tell options, (err, response)=>
+        @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
 
-    mainController = @getSingleton "mainController"
+    mainController = KD.getSingleton "mainController"
 
     @on "CreatingUserEnvironment", =>
-      mainView = @getSingleton "mainView"
+      mainView = KD.getSingleton "mainView"
       mainView.contentPanel.putOverlay
         isRemovable : no
         cssClass    : "dummy"
@@ -123,7 +126,7 @@ class KiteController extends KDController
     @on "UserEnvironmentIsCreated", =>
       return if _attempt is 1
       notify _notifications.envCreated
-      mainView = @getSingleton "mainView"
+      mainView = KD.getSingleton "mainView"
       mainView.removeOverlay()
       mainView.contentPanel.removeOverlay()
       _attempt = 1

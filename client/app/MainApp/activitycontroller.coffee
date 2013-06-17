@@ -4,7 +4,7 @@ class ActivityController extends KDObject
 
     super
 
-    groupsController = @getSingleton 'groupsController'
+    groupsController = KD.getSingleton 'groupsController'
 
     groupChannel = null
 

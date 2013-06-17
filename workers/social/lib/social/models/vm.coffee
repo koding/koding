@@ -7,6 +7,8 @@ module.exports = class JVM extends Model
 
   KodingError = require '../error'
 
+  JRecurlySubscription = require './recurly/subscription'
+
   @share()
 
   @trait __dirname, '../traits/protected'
@@ -38,6 +40,8 @@ module.exports = class JVM extends Model
       hostnameAlias     : [String]
       planOwner         : String
       planCode          : String
+      expensedUser      : String
+      expensed          : Boolean
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -69,15 +73,20 @@ module.exports = class JVM extends Model
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
-    if type is 'user'
-      prefix = if uid > 0 then "vm#{uid}." else ""
-      aliases = ["#{prefix}#{nickname}.#{groupSlug}.#{domain}"]
+    aliases      = []
+    if type is 'user' or type is 'expensed'
+      aliases = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
+      if uid is 0
+        aliases.push "#{nickname}.#{groupSlug}.#{domain}"
       if groupSlug is 'koding'
-        aliases.push "#{prefix}#{nickname}.#{domain}"
+        aliases.push "#{nickname}.#{domain}"  if uid is 0
+        aliases.push "vm-#{uid}.#{nickname}.#{domain}"
+
     else if type is 'group'
       if uid is 0
         aliases = ["#{groupSlug}.#{domain}"
-                 "shared.#{groupSlug}.#{domain}"]
+                   "shared.#{groupSlug}.#{domain}"
+                   "shared-0.#{groupSlug}.#{domain}"]
       else
         aliases = ["shared-#{uid}.#{groupSlug}.#{domain}"]
 
@@ -85,15 +94,16 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
+  @createVm = ({account, type, groupSlug, usage, planCode, expensed}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
       account.fetchUser (err, user)=>
         return callback err  if err
-        name = "#{groupSlug}~"
-        if type is 'user'
-          name = "#{name}#{user.username}-"
+        if type is 'user' or type is 'expensed'
+          name = "#{groupSlug}~#{user.username}~"
+        else
+          name = "#{groupSlug}~"
 
         nameFactory = (require 'koding-counter') {
           db          : JVM.getClient()
@@ -101,10 +111,14 @@ module.exports = class JVM extends Model
           offset      : 0
         }
 
-        if type is 'group'
+        if type is 'group' or type is 'expensed'
           planOwner = "group_#{group._id}"
         else
           planOwner = "user_#{account._id}"
+
+        expensedUser = ""
+        if expensed
+          expensedUser = "user_#{account._id}"
 
         nameFactory.next (err, uid)=>
           return callback err  if err
@@ -117,11 +131,13 @@ module.exports = class JVM extends Model
           JVM.createDomains hostnameAlias
 
           vm = new JVM {
-            name    : "#{name}#{uid}"
-            planCode : planCode
-            planOwner: planOwner
-            users   : [{ id: user.getId(), sudo: yes, owner: yes }]
-            groups  : [{ id: group.getId() }]
+            name        : "#{name}#{uid}"
+            planCode    : planCode
+            planOwner   : planOwner
+            users       : [{ id: user.getId(), sudo: yes, owner: yes }]
+            groups      : [{ id: group.getId() }]
+            expensed    : expensed
+            expensedUser: expensedUser
             hostnameAlias
             usage
           }
@@ -227,7 +243,28 @@ module.exports = class JVM extends Model
         JVM.one selector, (err, vm)->
           return callback err  if err
           return callback new KodingError 'No such VM'  unless vm
-          vm.remove callback
+          if vm.planCode isnt 'free'
+            JRecurlySubscription.getSubscriptionsAll vm.planOwner,
+              userCode : vm.planOwner
+              planCode : vm.planCode
+              status   : 'active'
+            , (err, subs)->
+              if err
+                return callback new KodingError 'Unable to update payment (1)'
+              subs.forEach (sub)->
+                if sub.quantity > 1
+                  sub.update sub.quantity - 1, (err, sub)->
+                    if err
+                      return callback new KodingError 'Unable to update payment (2)'
+                    vm.remove callback
+                else
+                  sub.terminate (err, sub)->
+                    if err
+                      return callback new KodingError 'Unable to update payment (3)'
+                    else
+                      vm.remove callback
+          else
+            vm.remove callback
 
   do ->
 
@@ -236,10 +273,10 @@ module.exports = class JVM extends Model
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = ({ target, user, name, sudo, groups, type, planCode, planOwner })->
+    addVm = ({ target, user, name, sudo, groups, groupSlug
+               type, planCode, planOwner })->
 
       uid = 0
-      groupSlug = if type is 'group' then name else 'koding'
       hostnameAlias = JVM.createAliases {
         nickname : user.username
         type, uid, groupSlug
@@ -273,6 +310,33 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
+    JGroup.on 'GroupCreated', ({group, creator})->
+      group.fetchBundle (err, bundle)->
+        console.log err, bundle
+        if err then handleError err
+        else if bundle and bundle.sharedVM
+          creator.fetchUser (err, user)->
+            if err then handleError err
+            else
+              # Following is just here to register this name in the counters collection
+              ((require 'koding-counter') {
+                db          : JVM.getClient()
+                counterName : "#{group.slug}~"
+                offset      : 0
+              }).next ->
+
+              addVm {
+                user
+                type     : 'group'
+                target   : group
+                planCode : 'free'
+                planOwner: "group_#{group._id}"
+                sudo     : yes
+                name     : "#{group.slug}~0"
+                groupSlug: group.slug
+                groups   : wrapGroup group
+              }
+
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
         if err then handleError err
@@ -282,6 +346,13 @@ module.exports = class JVM extends Model
       member.fetchUser (err, user)->
         if err then handleError err
         else if group.slug is 'koding'
+          # Following is just here to register this name in the counters collection
+          ((require 'koding-counter') {
+            db          : JVM.getClient()
+            counterName : "koding~#{member.profile.nickname}~"
+            offset      : 0
+          }).next ->
+
           # TODO: this special case for koding should be generalized for any group.
           addVm {
             user
@@ -290,7 +361,8 @@ module.exports = class JVM extends Model
             planCode  : 'free'
             planOwner : "user_#{member._id}"
             sudo      : yes
-            name      : "koding~#{member.profile.nickname}"
+            name      : "koding~#{member.profile.nickname}~0"
+            groupSlug : group.slug
             groups    : wrapGroup group
           }
         else

@@ -121,7 +121,7 @@ class GroupCreationModal extends KDModalView
                 { title : "Hidden in group listings",  value : "hidden" }
               ]
 
-    vmController = @getSingleton('vmController')
+    vmController = KD.getSingleton('vmController')
     vmController.fetchVMPlans (err, plans)=>
       @plans = plans
       {descriptions, hostTypes} = vmController.sanitizeVMPlansForInputs plans
@@ -302,7 +302,7 @@ class GroupCreationModal extends KDModalView
         new KDNotificationView title: err.message, duration: 1000
       else
         callback? err, group
-        @getSingleton("groupsController").showGroupCreatedModal group
+        KD.getSingleton("groupsController").showGroupCreatedModal group
         @destroy()
 
   makeSlug: ->

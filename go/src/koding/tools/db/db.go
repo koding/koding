@@ -7,7 +7,8 @@ import (
 )
 
 type Counter struct {
-	Value int `bson:"v"`
+	Name  string `bson:"_id"`
+	Value int    `bson:"seq"`
 }
 
 var database *mgo.Database
@@ -23,15 +24,22 @@ func init() {
 	}
 	session.SetSafe(&mgo.Safe{})
 	database = session.DB("")
-	counters = database.C("jCounters")
+	counters = database.C("counters")
 	Users = database.C("jUsers")
 	VMs = database.C("jVMs")
 }
 
 // may panic
-func NextCounterValue(counterName string) int {
+func NextCounterValue(counterName string, initialValue int) int {
 	var c Counter
-	if _, err := counters.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"v": 1}}}, &c); err != nil {
+	if _, err := counters.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &c); err != nil {
+		if err == mgo.ErrNotFound {
+			counters.Insert(Counter{Name: counterName, Value: initialValue}) // ignore error and try to do atomic update again
+			if _, err := counters.FindId(counterName).Apply(mgo.Change{Update: bson.M{"$inc": bson.M{"seq": 1}}}, &c); err != nil {
+				panic(err)
+			}
+			return c.Value
+		}
 		panic(err)
 	}
 	return c.Value
