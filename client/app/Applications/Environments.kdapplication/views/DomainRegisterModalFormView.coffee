@@ -58,70 +58,43 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
     
     super options, data
     
-    KD.remote.api.JVM.fetchVms (err, vms)=>
-      selects = []
-      for i, vmName of vms
-        selects.push {
-          title :"#{vmName}.kd.io"
-          value:"#{vmName}.kd.io"
-          }
-           
-      @emit "UserVMMenuReady", selects
-      
-
     @on "DomainRegistered", (orderInfo) =>
-      @modalTabs.forms["Connect"].buttons.Next.hideLoader()
-      
       @modalTabs.forms["Done"].addSubView (
         new DomainRegistrationCompleteView {orderInfo : orderInfo}
         )
         
-      @modalTabs.showPaneByIndex "3"
+      @modalTabs.showPaneByIndex "2"
       
       
     @on "DomainForwarded", (orderInfo) =>
-      @modalTabs.forms["Connect"].buttons.Next.hideLoader()
-      
       @modalTabs.forms["Done"].addSubView (
         new DomainForwardingCompleteView {orderInfo : orderInfo}
         )
         
-      @modalTabs.showPaneByIndex "3"
+      @modalTabs.showPaneByIndex "2"
       
       
   loadSearchDomainPane:->
     @modalTabs.showPaneByIndex 1
     @setData {}
-    
+
+    actionState = @modalTabs.forms["Domain Address"].inputs.DomainOption.getValue()
     
     if actionState is "new"
-      
       @modalTabs.forms["Find Your Domain"].addSubView (
         new DomainSearchForm { 
           modalTabs  : @modalTabs
           parentData : @getData()
           }
         )
+
     else
-      
       @modalTabs.forms["Find Your Domain"].addSubView (
         new DomainForwardForm {
           modalTabs  : @modalTabs
           parentData : @getData()
           }
         )
-        
-  saveDomainInformation:->
-    {selectedDomain, newDomain} = @getData()
-    
-    if newDomain 
-      VMToBind = @modalTabs.forms["Connect"].inputs.SelectVM.getValue()
-      KD.remote.api.JDomain.registerNewDomain {domainAddress:selectedDomain, selectedVM : VMToBind}, (err, orderInfo)=>
-        @emit "DomainRegistered", orderInfo
-    else
-      VMToBind = @modalTabs.forms["Connect"].inputs.SelectVM.getValue()
-      KD.remote.api.JDomain.addNewDNSRecord {domainAddress:selectedDomain, selectedVM : VMToBind}, (err, orderInfo)=>
-        @emit "DomainForwarded", orderInfo
 
     
 class DomainSearchForm extends KDScrollView
@@ -151,7 +124,7 @@ class DomainSearchForm extends KDScrollView
         domainName      :
           label         : "Domain Name:"
           name          : "domainName"
-          placeholder   : "Domain (e.g. www.example.com)"
+          placeholder   : "Domain (e.g. example.com)"
           validate      :
             rules       :
               required  : yes
@@ -210,14 +183,14 @@ class DomainSearchForm extends KDScrollView
     {{> @header}}
     {{> @searchForm}}
     {{> @domainSearchResultView}}
-    
     """
     
   viewAppended: JView::viewAppended
     
 
 class DomainForwardForm extends KDView
-  constructor:(options = {}, data)->
+  
+  constructor:(options={}, data)->  
     super options, data
     
     @header = new KDHeaderView 
@@ -225,12 +198,7 @@ class DomainForwardForm extends KDView
       title : "Forward My Domain"
       
     @forwardForm = new KDFormViewWithFields
-      callback          : =>
-        {modalTabs,parentData} = @getOptions()
-        parentData["selectedDomain"] = @forwardForm.inputs.domainAddress.getValue()
-        parentData["newDomain"] = no
-        modalTabs.showPaneByIndex 2
-        
+      callback          : @bound "saveDomain"
       buttons           :
         Forward         :
           type          : "submit"
@@ -239,15 +207,30 @@ class DomainForwardForm extends KDView
             diameter    : 12
       
       fields            :
-          domainAddress :
-            label       : "Enter your domain address"
-            placeholder : "mydomain.com"
+          domainName    :
+            label       : "Enter your domain name"
+            placeholder : "Domain (e.g. example.com)"
             validate    :
               rules     :
                 required: yes
               messages  :
-                requires: "write domain name"
+                requires: "Enter your domain name"
             
+  saveDomain:->
+    modalTabs = @getOptions().modalTabs
+    domainName = @forwardForm.inputs.domainName.getValue()
+
+    KD.remote.api.JDomain.createDomain
+      domain         : domainName
+      regYears       : 0
+      hostnameAlias  : []
+      loadBalancer   :
+          mode       : "roundrobin"
+    , (err, domain)=>
+      unless err
+        modalTabs.parent.emit "DomainForwarded", {}
+      console.log err
+
 
   pistachio:->
     """
@@ -302,8 +285,8 @@ class DomainForwardingCompleteView extends JView
     @content = new KDView
       partial : """
       <div class = "hate-that-css-stuff">
-        Your #{orderInfo.domain} domain address is linked to -> #{orderInfo.linkedVM} </br>
-        You should add CNAME record from your domain name provider.</br>
+        Thank you! Your domain #{domainName} has been added to our database. 
+        Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com.
       </div>
       """
       

@@ -30,7 +30,7 @@ module.exports = class JDomain extends jraphical.Module
     sharedMethods   :
       instance      : ['bindVM', 'createProxyRule', 'fetchProxyRules', 'createRuleBehavior', 
                        'updateRuleBehavior', 'deleteRuleBehavior', 'setDomainCNameToProxyDomain']
-      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain']
+      static        : ['one', 'count', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
     indexes         :
       domain        : 'unique'
@@ -77,23 +77,25 @@ module.exports = class JDomain extends jraphical.Module
         type        : Date
         default     : -> new Date
 
-  @createDomain: secure (client, options={}, callback)->
-    model = new JDomain options
-    model.save (err) ->
-      if err then callback err
+  @createDomain: permit 'create domains',
+    success:(client, options={}, callback)->
+      model = new JDomain options
+      model.save (err) ->
+        if err then callback err
 
-      account = client.connection.delegate
-      rel = new Relationship
-        targetId: model.getId()
-        targetName: 'JDomain'
-        sourceId: account.getId()
-        sourceName: 'JAccount'
-        as: 'owner'
-      
-      rel.save (err)->
-        callback err
+        account = client.connection.delegate
+        rel = new Relationship
+          targetId: model.getId()
+          targetName: 'JDomain'
+          sourceId: account.getId()
+          sourceName: 'JAccount'
+          as: 'owner'
+        
+        rel.save (err)->
+          callback err
 
-      callback err, model
+        callback err, model
+
 
   @isDomainAvailable = (domainName, tld, callback)->
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
