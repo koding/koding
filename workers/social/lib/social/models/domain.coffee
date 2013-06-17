@@ -10,8 +10,8 @@ module.exports = class JDomain extends jraphical.Module
   @trait __dirname, '../traits/protected'
 
   domainManager = new DomainManager
-  JAccount  = require './account'
-  JVM       = require './vm'
+  JAccount      = require './account'
+  JVM           = require './vm'
 
   @share()
 
@@ -29,7 +29,7 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       instance      : ['bindVM', 'createProxyRule', 'fetchProxyRules', 'createRuleBehavior', 
-                       'updateRuleBehavior', 'deleteRuleBehavior']
+                       'updateRuleBehavior', 'deleteRuleBehavior', 'setDomainCNameToProxyDomain']
       static        : ['one', 'count', 'isDomainAvailable', 'registerDomain']
 
     indexes         :
@@ -193,6 +193,12 @@ module.exports = class JDomain extends jraphical.Module
     success: (client, params, callback)->
       params.domainName = @domain
       domainManager.domainService.deleteBehavior params, (err, response)-> callback err, response
+
+  setDomainCNameToProxyDomain:(callback)->
+      domainManager.domainService.updateDomainCName 
+        domainName : @domain
+        orderId    : @orderId.resellerClub
+      , (err, response)-> callback err, response if callback?
 
 
 
