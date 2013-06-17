@@ -66,7 +66,7 @@ class NFinderTreeController extends JTreeViewController
     app = contextMenuItem.getData().title
     KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
 
-  openFile:(nodeView, contextMenuItem)->
+  openFile:(nodeView)->
 
     return unless nodeView
     file = nodeView.getData()
@@ -758,7 +758,7 @@ class NFinderTreeController extends JTreeViewController
               appName = modal.selectedApp.getData().name
 
               if @alwaysOpenWith.getValue()
-                appsController.emit "UpdateDefaultApp", fileExtension, appName
+                appsController.emit "UpdateDefaultAppConfig", fileExtension, appName
 
               appManager.openFileWithApplication appName, nodeView.getData()
               modal.destroy()

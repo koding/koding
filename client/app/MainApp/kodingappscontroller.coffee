@@ -32,7 +32,7 @@ class KodingAppsController extends KDController
     @createExtensionToAppMap()
     @fetchUserDefaultAppConfig()
 
-    @on "UpdateDefaultApp", (extension, appName) =>
+    @on "UpdateDefaultAppConfig", (extension, appName) =>
       @updateDefaultAppConfig extension, appName
 
     mainController.on "accountChanged.to.loggedIn", @bound "getPublishedApps"
