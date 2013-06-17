@@ -163,13 +163,13 @@ module.exports = class JDomain extends jraphical.Module
     success: (client, callback)-> 
       domainManager.domainService.fetchProxyRules @domain, (err, response)-> callback err, response
 
-  createProxyFilters: permit
+  createProxyFilter: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
     success: (client, params, callback)->
       params.domainName = @domain
-      domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
+      domainManager.domainService.createProxyFilter params, (err, response)-> callback err, response
 
   createProxyRule: permit
     advanced: [
@@ -177,7 +177,7 @@ module.exports = class JDomain extends jraphical.Module
     ]
     success: (client, params, callback)->
       params.domainName = @domain
-      domainManager.domainService.createBehavior params, (err, response)-> callback err, response
+      domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
 
   updateProxyRule: permit
     advanced: [
@@ -185,7 +185,7 @@ module.exports = class JDomain extends jraphical.Module
     ]
     success: (client, params, callback)->
       params.domainName = @domain
-      domainManager.domainService.updateBehavior params, (err, response)-> 
+      domainManager.domainService.updateProxyRule params, (err, response)-> 
         callback err, response
 
   deleteProxyRule: permit
@@ -194,7 +194,7 @@ module.exports = class JDomain extends jraphical.Module
     ]
     success: (client, params, callback)->
       params.domainName = @domain
-      domainManager.domainService.deleteBehavior params, (err, response)-> callback err, response
+      domainManager.domainService.deleteProxyRule params, (err, response)-> callback err, response
 
   setDomainCNameToProxyDomain:(callback)->
       domainManager.domainService.updateDomainCName 

@@ -264,40 +264,38 @@ class FirewallFilterFormView extends KDCustomHTMLView
     options.cssClass = "rule-form-view"
     super options, data
 
-    @ruleNameInput  = new KDInputView {tooltip: {title: "Enter a name for the rule.", placement:"bottom"}}
-    @ruleInput      = new KDInputView
+    @filterNameInput  = new KDInputView {tooltip: {title: "Enter a name for the rule.", placement:"bottom"}}
+    @filterInput      = new KDInputView
       tooltip : 
         title     : "You can enter IP, IP Range or a country name. (ie: 192.168.1.1/24 or China)"
         placement : "bottom"
-    @ruleNameInput.unsetClass 'kdinput'
-    @ruleInput.unsetClass 'kdinput'
+    @filterNameInput.unsetClass 'kdinput'
+    @filterInput.unsetClass 'kdinput'
 
     @addButton = new KDButtonView
       title    : "Add"
       callback : =>
-        @updateDomainRules()
+        @updateFilters()
 
-  updateDomainRules:->
-    ruleType   = if @ruleInput.getValue().match /[0-9+]/ then "ip" else "country"
-    ruleName   = @ruleNameInput.getValue()
-    ruleMatch  = @ruleInput.getValue()
-    domain     = @getData().domain
-    domainName = domain.domain
-    delegate   = @getDelegate()
+  updateFilters:->
+    filterType  = if @filterInput.getValue().match /[0-9+]/ then "ip" else "country"
+    filterName  = @filterNameInput.getValue()
+    filterMatch = @filterInput.getValue()
+    domain      = @getData().domain
+    domainName  = domain.domain
+    delegate    = @getDelegate()
 
-    domain.createProxyRule {ruleInfo:{type:ruleType, match:ruleMatch}}, (err, response)->
+    domain.createProxyFilter {filterInfo:{type:filterType, match:filterMatch}}, (err, response)->
       if err
         return new KDNotificationView 
           title : "An error occured while performing your action. Please try again."
           type  : "top"
-      delegate.emit "newRuleCreated", 
-        domainName : domainName
-        ruleName   : response.Name
-        match      : response.Match
+      delegate.emit "newFilterCreated", 
+        domainName  : domainName
+        filterName  : response.Name
+        filterMatch : response.Match
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+  viewAppended: JView::viewAppended
 
   pistachio:->
     """
