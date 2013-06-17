@@ -14,16 +14,6 @@ class DomainMainView extends KDView
 
     @domainsListViewController.on "domainItemClicked", @bound "decorateMapperView"
 
-    """
-    KD.getSingleton("kiteController").run
-      vmName: "koding~mengu"
-      kiteName: "os"
-      method: "exec"
-      withArgs: "sed 's/ServerName \(.*\)/ServerName www.mengu.net/g' /etc/apache2/sites-available/"
-    , (err, response) ->
-      if err then warn err
-    """
-
   buildView:->
     @domainsListView    = @domainsListViewController.getView()
     @domainMapperView   = new DomainMapperView
@@ -33,7 +23,10 @@ class DomainMainView extends KDView
       title    : 'Add New Domain'
       cssClass : 'editor-button new-domain-button'
       callback : (elm, event) =>
-        @domainModalView = new DomainRegisterModalFormView #successCallback: @domainsListViewController.appendNewDomain
+        @domainModalView = new DomainRegisterModalFormView
+        @domainModalView.on "DomainSaved", =>
+          @domainsListViewController.update()
+
 
     @refreshDomainsButton = new KDButtonView
       title    : 'Refresh Domains'
@@ -64,7 +57,7 @@ class DomainMainView extends KDView
     @kitesAccPane.setContent new KDCustomHTMLView
 
   buildTabs:->
-    # Routing & Analytics Tabs
+    # Routing, Analytics & Firewall Tabs
     @tabView       = new KDTabView
     @routingPane   = new KDTabPaneView
       name     : "Routing"
@@ -75,7 +68,6 @@ class DomainMainView extends KDView
     @firewallPane  = new KDTabPaneView
       name     : "Firewall"
       closable : no
-
     
     vmMapperSubView   = @domainMapperView
     kiteMapperSubView = new KDView
@@ -101,14 +93,12 @@ class DomainMainView extends KDView
 
     @firewallPane.addSubView @firewallMapperView
 
-    [@routingPane, @analyticsPane, @firewallPane].forEach (pane)=>
+    for pane in [@routingPane, @analyticsPane, @firewallPane]
       @tabView.addPane pane
 
     @tabView.showPaneByIndex 0
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+  viewAppended: JView::viewAppended
 
   pistachio:->
     """
@@ -120,7 +110,17 @@ class DomainMainView extends KDView
     """
 
   decorateMapperView:(item)->
-    [@firewallMapperView, @domainMapperView].forEach (view) ->view.emit "domainChanged", item
+    # Going to be used for just to update the open tab
+    ###
+    activePaneName = @tabView.getActivePane().name
+    tabMappings    =
+      "Firewall": @firewallMapperView
+      "Routing": @domainMapperView
+
+    tabMappings[activePaneName].emit "domainChanged", item
+    ###
+    for view in [@firewallMapperView, @domainMapperView]
+      view.emit "domainChanged", item
   
 
 class DomainsListItemView extends KDListItemView
@@ -133,16 +133,31 @@ class DomainsListItemView extends KDListItemView
     listView = @getDelegate()
     listView.emit "domainsListItemViewClicked", this
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+  contextMenu:(event)->
+    contextMenu = new JContextMenu
+      menuWidth   : 200
+      delegate    : this
+      x           : @getX() + 26
+      y           : @getY() - 19
+      arrow       :
+        placement : "left"
+        margin    : 19
+      lazyLoad    : yes
+    ,
+      'Bind to VM' :
+        callback         : ->
+          @destroy()
+      'Delete Domain'    :
+        callback         : ->
+          @destroy()
+        separator        : yes
+    
+  viewAppended: JView::viewAppended
 
   pistachio:->
     """
-    <div>
-      <span class="domain-icon link"></span>
-      <span class="domain-title">{{ #(domain)}}</span>
-    </div>
+    <span class="domain-icon link"></span>
+    <span class="domain-title">{{ #(domain)}}</span>
     """
 
 

@@ -15,7 +15,7 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
       <div class="modalformline">Register your next awesome, incredible domain address!!!</div>
     """
     
-    options = {      
+    options = $.extend(options,
       title                             : "Domain Registration"
       content                           : formInfo
       overlay                           : no
@@ -54,7 +54,7 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
           "Done"                        :
             buttons                     : null
             fields                      : {}
-    }
+    )
     
     super options, data
     
@@ -64,6 +64,8 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
         )
         
       @modalTabs.showPaneByIndex "2"
+
+      @emit "DomainSaved"
       
       
     @on "DomainForwarded", (orderInfo) =>
@@ -147,6 +149,7 @@ class DomainSearchForm extends KDScrollView
     lastItemIndex  = domainInfo.length-1
     domain         = domainInfo.slice(0, lastItemIndex).join ""
     tld            = domainInfo[lastItemIndex]
+    modalTabs      = @getOptions().modalTabs
 
     KD.remote.api.JDomain.isDomainAvailable domain, tld, (err, domainStatus)=>
       if err then @notifyUser err
@@ -167,6 +170,7 @@ class DomainSearchForm extends KDScrollView
           @searchForm.buttons.Register.hideLoader()
           @modalTabs.showPaneByIndex 2
           domain.setDomainCNameToProxyDomain()
+          modalTabs.parent.emit "DomainRegistered", domainName:domain.domain
 
         warn err
 
@@ -255,13 +259,9 @@ class DomainRegistrationCompleteView extends JView
     @content = new KDView
       partial : """
       <div class = "hate-that-css-stuff">
-        Your #{orderInfo.domain} domain address is linked to -> 
-        #{orderInfo.linkedVM} with order id of #{orderInfo.orderId}</br>
-        I think we add CNAME record to your domain to point koding.[CNAME * 
-        #{orderInfo.linkedVM}] </br>
-        May be we should also change your nameservers to us but not sure! </br>
-        Please give us some time do update DNS. </br>
-        To Team: May be we can put some screen shots to explain what we did to user.
+        Your #{orderInfo.domainName} domain has been successfully registered. 
+        You can select your domain from the left panel and connect it to any VM 
+        listed on the right panel.
       </div>
       """
       
