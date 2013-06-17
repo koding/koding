@@ -60,7 +60,7 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
     
     KD.remote.api.JVM.fetchVms (err, vms)=>
       selects = []
-      for i,vmName of vms
+      for i, vmName of vms
         selects.push {
           title :"#{vmName}.kd.io"
           value:"#{vmName}.kd.io"
@@ -186,13 +186,15 @@ class DomainSearchForm extends KDScrollView
         @notifyUser "This domain is already registered. Please try another domain."
         @searchForm.buttons.Register.hideLoader()
 
-      KD.remote.api.JDomain.registerDomain {domainName:domainInputVal, years:regYears}, (err, result)=>
+      KD.remote.api.JDomain.registerDomain {domainName:domainInputVal, years:regYears}, (err, domain)=>
         if not err 
           new KDNotificationView
             type  : "top"
             title : "Your domain has been successfully registered."
           @searchForm.buttons.Register.hideLoader()
           @modalTabs.showPaneByIndex 2
+          domain.setDomainCNameToProxyDomain()
+
         warn err
 
     subView.destroy() for subView, i in @domainNameFieldView.getSubViews() when i > 1
