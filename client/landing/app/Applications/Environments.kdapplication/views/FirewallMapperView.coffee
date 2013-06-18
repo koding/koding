@@ -186,8 +186,10 @@ class FirewallRuleListItemView extends KDListItemView
     newAction = @actionButton.getOptions().title.toLowerCase()
     futureAction = if newAction is 'deny' then 'allow' else 'deny'
 
+    console.log data
+
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
-      domain.updateRuleBehavior
+      domain.updateProxyRule
         ruleName   : data.ruleName
         behaviorInfo :
           enabled : "yes"
