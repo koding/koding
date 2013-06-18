@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/tools/db"
 	"koding/virt"
@@ -15,11 +17,10 @@ import (
 )
 
 type UserInfo struct {
-	Domain   *proxyconfig.Domain
-	IP       string
-	Country  string
-	Target   *url.URL
-	Redirect bool
+	Domain  *proxyconfig.Domain
+	IP      string
+	Country string
+	Target  *url.URL
 }
 
 func NewUserInfo(domain *proxyconfig.Domain) *UserInfo {
@@ -28,48 +29,32 @@ func NewUserInfo(domain *proxyconfig.Domain) *UserInfo {
 	}
 }
 
-func populateUser(outreq *http.Request) (*UserInfo, error) {
+func populateUser(outreq *http.Request) (*UserInfo, io.Reader, error) {
 	user, err := parseDomain(outreq.Host)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	host, err := user.populateIP(outreq.RemoteAddr)
-	if err != nil {
-		fmt.Println(err)
-	} else {
-		user.populateCountry(host)
+	user.IP, _, err = net.SplitHostPort(outreq.RemoteAddr)
+	if err == nil {
+		if geoIP != nil {
+			loc := geoIP.GetLocationByIP(user.IP)
+			if loc != nil {
+				user.Country = loc.CountryName
+			}
+		}
 	}
 
-	err = user.populateTarget()
+	buf, err := user.populateTarget()
 	if err != nil {
-		return nil, err
+		return nil, buf, err
 	}
 
 	fmt.Printf("--\nmode '%s'\t: %s %s\n", user.Domain.Proxy.Mode, user.IP, user.Country)
-	return user, nil
+	return user, buf, nil
 }
 
-func (u *UserInfo) populateIP(remoteAddr string) (string, error) {
-	host, _, err := net.SplitHostPort(remoteAddr)
-	if err != nil {
-		fmt.Printf("could not split host and port: %s", err.Error())
-		return "", err
-	}
-	u.IP = host
-	return host, nil
-}
-
-func (u *UserInfo) populateCountry(host string) {
-	if geoIP != nil {
-		loc := geoIP.GetLocationByIP(host)
-		if loc != nil {
-			u.Country = loc.CountryName
-		}
-	}
-}
-
-func (u *UserInfo) populateTarget() error {
+func (u *UserInfo) populateTarget() (io.Reader, error) {
 	var err error
 	var hostname string
 
@@ -80,7 +65,11 @@ func (u *UserInfo) populateTarget() error {
 
 	switch u.Domain.Proxy.Mode {
 	case "maintenance":
-		return nil
+		buf, err := executeTemplate("maintenance.html", nil)
+		if err != nil {
+			return nil, err
+		}
+		return buf, nil
 	case "redirect":
 		if !strings.HasPrefix(fullurl, "http://") && !strings.HasPrefix(fullurl, "https://") {
 			fullurl = "https://" + fullurl
@@ -88,10 +77,9 @@ func (u *UserInfo) populateTarget() error {
 
 		u.Target, err = url.Parse(fullurl)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		u.Redirect = true
-		return nil
+		return nil, nil
 	case "vm":
 		switch u.Domain.LoadBalancer.Mode {
 		case "roundrobin":
@@ -103,34 +91,55 @@ func (u *UserInfo) populateTarget() error {
 			go proxyDB.UpdateDomain(u.Domain)
 		case "sticky":
 			hostname = u.Domain.HostnameAlias[u.Domain.LoadBalancer.Index]
-		case "default":
+		case "default", "":
 			hostname = u.Domain.HostnameAlias[0]
 		}
 
 		var vm virt.VM
 		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
-			u.Target, _ = url.Parse("http://www.koding.com/notfound.html")
-			u.Redirect = true
-			return nil
+			buf, err := executeTemplate("notfound.html", hostname)
+			if err != nil {
+				return nil, err
+			}
+
+			return buf, errors.New("vm not found")
 		}
 		if vm.IP == nil {
-			u.Target, _ = url.Parse("http://www.koding.com/notactive.html")
-			u.Redirect = true
-			return nil
-		}
-		u.Target, err = url.Parse("http://" + vm.IP.String())
-		if err != nil {
-			return err
+			buf, err := executeTemplate("notactiveVM.html", hostname)
+			if err != nil {
+				return nil, err
+			}
+
+			return buf, errors.New("vm not active")
 		}
 
-		return nil
+		vmAddr := vm.IP.String()
+		if !hasPort(vmAddr) {
+			vmAddr = addPort(vmAddr, "80")
+		}
+
+		err := checkServer(vmAddr)
+		if err != nil {
+			buf, errTemp := executeTemplate("notactiveVM.html", hostname)
+			if err != nil {
+				return nil, errTemp
+			}
+			return buf, fmt.Errorf("vm is down: '%s'", err)
+		}
+
+		u.Target, err = url.Parse("http://" + vmAddr)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, nil
 	case "internal":
 		break // internal is done below
 	}
 
 	keyData, err := proxyDB.GetKey(username, servicename, key)
 	if err != nil {
-		return fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
+		return nil, fmt.Errorf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
 	}
 
 	switch keyData.Mode {
@@ -147,12 +156,10 @@ func (u *UserInfo) populateTarget() error {
 
 	u.Target, err = url.Parse("http://" + hostname)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	u.Redirect = false
-
-	return nil
+	return nil, nil
 }
 
 func parseDomain(host string) (*UserInfo, error) {

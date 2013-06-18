@@ -1,5 +1,9 @@
 class KodingRouter extends KDRouter
 
+  nicenames = {
+    StartTab  : 'Develop'
+  }
+
   constructor:(@defaultRoute)->
 
     @openRoutes = {}
@@ -66,6 +70,7 @@ class KodingRouter extends KDRouter
     KD.getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
+        @setPageTitle nicenames[app] ? app
         appManager = KD.getSingleton "appManager"
         appManager.open app
         appManager.tell app, 'handleQuery', query
@@ -99,6 +104,8 @@ class KodingRouter extends KDRouter
   openContent:(name, section, models, route, query, passOptions=no)->
     method   = 'createContentDisplay'
     [models] = models  if Array.isArray models
+
+    @setPageTitle @getContentTitle models
 
     # HK: with passOptions false an application only gets the information
     # 'hey open content' with this model. But some applications require

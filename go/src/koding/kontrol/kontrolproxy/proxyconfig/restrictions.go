@@ -49,7 +49,7 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, m
 		restriction = *NewRestriction(domainname)
 	}
 
-	_, err = p.GetFilter(match)
+	_, err = p.GetFilterByField("match", match)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return rule, fmt.Errorf("rule match '%s' does not exist. not allowed.", match)

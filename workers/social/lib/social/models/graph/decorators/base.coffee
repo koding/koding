@@ -40,6 +40,7 @@ module.exports = class BaseDecorator
       bongo_            :
         constructorName : @datum.name
       slug              : @datum.slug
+      link              : @datum.link
       title             : @datum.title
       slug_             : @datum.slug_
       originId          : @datum.originId
