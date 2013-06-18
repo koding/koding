@@ -105,7 +105,7 @@ func DeleteFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	match := vars["match"]
 	fmt.Printf("DELETE\t/filters/%s\n", match)
 
-	err := proxyDB.DeleteFilter(match)
+	err := proxyDB.DeleteFilterByField("match", match)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

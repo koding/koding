@@ -42,8 +42,8 @@ func (p *ProxyConfiguration) AddFilter(r *Filter) (Filter, error) {
 }
 
 // DeleteFilter deletes the document with the given "match" argument.
-func (p *ProxyConfiguration) DeleteFilter(match string) error {
-	err := p.Collection["filter"].Remove(bson.M{"match": match})
+func (p *ProxyConfiguration) DeleteFilterByField(key, value string) error {
+	err := p.Collection["filter"].Remove(bson.M{key: value})
 	if err != nil {
 		return err
 	}
