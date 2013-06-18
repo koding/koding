@@ -13,6 +13,7 @@ module.exports = class JDomain extends jraphical.Module
   JAccount          = require './account'
   JVM               = require './vm'
   JProxyRule        = require './proxy/rule'
+  JProxyRestriction = require './proxy/restriction'
 
   @share()
 
@@ -30,7 +31,7 @@ module.exports = class JDomain extends jraphical.Module
 
     sharedMethods   :
       instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule', 
-                       'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain']
+                       'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain', 'updateRuleOrders']
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
     indexes         :
@@ -162,33 +163,26 @@ module.exports = class JDomain extends jraphical.Module
       { permission: 'edit own domains', validateWith: Validators.own }
     ]
     success: (client, params, callback)->
-      console.log params
-      JProxyRule.fetchRuleByDomainAndMatch client,
-        domain : params.domain
-        match  : params.match
-      , (err, rule)->
+      JProxyRestriction.fetchRestrictionByDomain params.domainName, (err, restriction)->
         return callback err if err
-        unless rule
-          rule = new JProxyRule params
-          rule.save (err)->
+
+        unless restriction
+          restriction = new JProxyRestriction {domainName: params.domainName}
+          restriction.save (err)->
+            console.log err
             return callback err if err
-        else
-          rule.action = params.action
-          rule.save (err)->
-            return callback err if err
-        callback null, rule
 
+        restriction.addRule params, (err, rule)->
+          return callback err if err
+          callback err, rule
 
-
-  ###
-  createProxyRule: permit
+  updateRuleOrders: permit
     advanced: [
-      {permission: 'edit own domains', validateWith: Validators.own}
+      { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, params, callback)->
-      params.domainName = @domain
-      domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
-  ###
+    success: (client, newRuleList, callback)->
+      JProxyRestriction.updateRuleOrders {domainName:@domain, ruleList:newRuleList}, (err)->
+        callback err
 
   updateProxyRule: permit
     advanced: [

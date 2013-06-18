@@ -71,9 +71,7 @@ module.exports = class JProxyFilter extends jraphical.Module
   @remove$: permit 'delete filters',
     success: (client, selector, callback)->
       @remove selector, (err)->
-        console.log err
         callback err
-
 
 
   
