@@ -17,10 +17,6 @@
      e.g. /home/USERNAME/Web/1.txt
      is at http://USERNAME.kd.io/1.txt
 
-   - If you have multiple VM's you can reassign which one is accessable
-     via "http(s)://USERNAME.kd.io" by right clicking the VM and choosing 
-     "Set as default"
-
    - All VM's are accessable at "http(s)://VMNAME.USERNAME.kd.io"
 
    - Double-click on a file to open it within your editor.
