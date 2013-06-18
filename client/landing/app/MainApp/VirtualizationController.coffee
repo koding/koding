@@ -249,7 +249,7 @@ class VirtualizationController extends KDController
             "Create VM"             :
               callback              : (formData)=>
                 modal.destroy()
-                @confirmPayment formData.type, @paymentPlans[formData.host]
+                paymentController.confirmPayment formData.type, @paymentPlans[formData.host]
               buttons               :
                 user                :
                   title             : "Create a <b>Personal</b> VM"
@@ -324,84 +324,6 @@ class VirtualizationController extends KDController
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
 
-  confirmPayment: (type, plan, callback=->)->
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-
-    getBalance = (type, cb)->
-      if type is 'user'
-        KD.remote.api.JRecurlyPlan.getUserBalance cb
-      else
-        KD.remote.api.JRecurlyPlan.getGroupBalance group, cb
-
-    buildModal = (content, cb)->
-      modal           = new KDModalView
-        title         : "Confirm VM Creation"
-        content       : "<div class='modalformline'>#{content}</div>"
-        overlay       : yes
-        buttons       :
-          No          :
-            title     : "Cancel"
-            cssClass  : "modal-clean-gray"
-            callback  : =>
-              modal.destroy()
-              cb()
-          Yes         :
-            title     : "OK, create the VM"
-            cssClass  : "modal-clean-green"
-            callback  : =>
-              modal.destroy()
-              cb()
-              paymentController.makePaymentModal type, plan, ->
-                console.log "I'm done."
-    
-    group.canCreateVM
-      type     : type
-      planCode : plan.code
-    , (err, status)->
-      if not err and status
-        content = """<p>
-                       You already subscribed for an additional 
-                       <strong>#{type}</strong> VM.
-                     </p>
-                     <p>
-                       You <strong>won't</strong> be charged. Do you want to 
-                       continue?.
-                     </p>
-                  """
-        buildModal content, callback
-      else
-        getBalance type, (err, balance)->
-          if not err and balance > 0
-            charge = (plan.feeMonthly - balance) / 100
-            balance = balance / 100
-
-            content = """<p>
-                           You have $#{balance.toFixed(2)} credited to your 
-                           <strong>#{type}</strong> account.
-                         </p>
-                      """
-
-            if charge > 0
-              content += """<p>
-                              You will be charged for $#{charge.toFixed(2)}. 
-                              Do you want to continue?
-                            </p>
-                         """
-            else
-              content += """<p>
-                              You <strong>won't</strong> be charged. Do you 
-                              want to continue?
-                            </p>
-                         """
-          else
-            charge = plan.feeMonthly / 100
-            content = """<p>
-                           You will be charged for $#{charge.toFixed(2)}. Do 
-                           you want to continue?
-                         </p>
-                      """
-          buildModal content, callback
 
   askForApprove:(command, callback)->
 
