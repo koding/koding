@@ -14,7 +14,6 @@ module.exports = class JLink extends JPost
   schema = extend {}, JPost.schema, {
     link_url   : String
     link_embed : Object
-    link_embed_hidden_items : Array
   }
 
   @set
@@ -30,7 +29,6 @@ module.exports = class JLink extends JPost
       body                    : data.body
       link_url                : data.link_url
       link_embed              : data.link_embed
-      link_embed_hidden_items : data.link_embed_hidden_items
       meta                    : data.meta
     JPost.create.call @, client, link, callback
 
@@ -40,7 +38,6 @@ module.exports = class JLink extends JPost
       body        : data.body
       link_url    : data.link_url
       link_embed  : data.link_embed
-      link_embed_hidden_items : data.link_embed_hidden_items
       meta        : data.meta
     JPost::modify.call @, client, link, callback
 
