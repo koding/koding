@@ -130,8 +130,7 @@ catch e
 
     {name} = options
 
-    unless name
-      return error "AppClass is missing a name!"
+    return error "AppClass is missing a name!"  unless name
 
     if KD.appClasses[name]
       return warn "AppClass #{name} is already registered or the name is already taken!"
