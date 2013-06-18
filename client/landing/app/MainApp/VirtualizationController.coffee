@@ -230,16 +230,6 @@ class VirtualizationController extends KDController
                   callback          : ->
                     form = modal.modalTabs.forms["Create VM"]
                     form.inputs.type.setValue "user"
-                expensed            :
-                  title             : "Create a <b>Personal</b> VM using group quota"
-                  style             : "modal-clean-gray hidden"
-                  type              : "submit"
-                  loader            :
-                    color           : "#ffffff"
-                    diameter        : 12
-                  callback          : ->
-                    form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "expensed"
                 group               :
                   title             : "Create a <b>Shared</b> VM"
                   style             : "modal-clean-gray hidden"
@@ -296,10 +286,9 @@ class VirtualizationController extends KDController
       form = modal.modalTabs.forms["Create VM"]
 
       hideLoaders = ->
-        {group, user, expensed} = form.buttons
+        {group, user} = form.buttons
         user.hideLoader()
         group.hideLoader()
-        expensed.hideLoader()
 
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
@@ -352,6 +341,7 @@ class VirtualizationController extends KDController
         buildModal content, callback
       else
         getBalance type, (err, balance)->
+          console.log arguments
           if not err and balance > 0
             charge = (plan.feeMonthly - balance) / 100
             balance = balance / 100
