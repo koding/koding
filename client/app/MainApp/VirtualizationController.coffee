@@ -160,6 +160,32 @@ class VirtualizationController extends KDController
       unless state then vmController.createDefaultVM()
       else vmController.createPaidVM()
 
+  showVMDetails: (vm)->
+    content = "Name: #{vm.name}"
+    
+    modal           = new KDModalView
+      title         : "VM Details"
+      content       : "<div class='modalformline'>#{content}</div>"
+      overlay       : yes
+      buttons       :
+        OK          :
+          title     : "OK"
+          cssClass  : "modal-clean-green"
+          callback  : =>
+            modal.destroy()
+
+  vmCreateCallback: (err, vm)->
+    vmController = KD.getSingleton('vmController')
+
+    if err
+      warn err
+      return new KDNotificationView
+        title : err.message or "Something bad happened while creating VM"
+    else
+      KD.getSingleton("finderController").mountVm vm.name
+      vmController.emit 'VMListChanged'
+      vmController.showVMDetails vm
+
   createPaidVM:->
     return  if @dialogIsOpen
 
@@ -167,16 +193,6 @@ class VirtualizationController extends KDController
     paymentController   = KD.getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
-
-    vmCreateCallback=(err, vm)->
-      if err
-        warn err
-        return new KDNotificationView
-          title : err.message or "Something bad happened while creating VM"
-      else
-        KD.getSingleton("finderController").mountVm vm.name
-        vmController.emit 'VMListChanged'
-      paymentModal?.destroy()
 
     group = KD.getSingleton("groupsController").getGroupSlug()
 
