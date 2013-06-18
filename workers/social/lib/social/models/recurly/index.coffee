@@ -21,7 +21,8 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     sharedMethods  :
       static       : [
         'getPlans', 'getPlanWithCode',
-        'setUserAccount', 'getUserAccount', 'getUserTransactions'
+        'setUserAccount', 'getUserAccount', 'getUserTransactions',
+        'getUserBalance', 'getGroupBalance'
       ]
       instance     : [
         'getToken', 'subscribe'
@@ -314,3 +315,35 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
+
+  @getUserBalance = secure (client, callback)->
+    {delegate} = client.connection
+    userCode      = "user_#{delegate._id}"
+
+    payment.getUserAdjustments userCode, (err, adjs)->
+      return callback err  if err
+      amount = 0
+      adjs.every (adj)->
+        if adj.origin in ['one_time', 'plan']
+          return false
+        amount += parseInt adj.amount, 10
+        return true
+      amount *= -1
+      callback null, amount
+
+  @getGroupBalance = secure (client, group, callback)->
+    {delegate} = client.connection
+    userCode      = "group_#{group._id}"
+
+    payment.getUserAdjustments userCode, (err, adjs)->
+      return callback err  if err
+      amount = 0
+      adjs.every (adj)->
+        if adj.origin in ['one_time', 'plan']
+          return false
+        amount += parseInt adj.amount, 10
+        return true
+      amount *= -1
+      callback null, amount
+
+  
