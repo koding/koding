@@ -250,7 +250,7 @@ class PaymentController extends KDController
           if err
             onError err
           else
-            vmController.createGroupVM type, planCode, vmController.vmCreateCallback
+            vmController.createGroupVM type, planCode
             onSuccess()
             callback()
       @paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
@@ -261,7 +261,7 @@ class PaymentController extends KDController
     KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
       plan.subscribe {}, (err, subscription)->
         return callback err  if callback and err
-        vmController.createGroupVM type, planCode, vmController.vmCreateCallback
+        vmController.createGroupVM type, planCode
         callback?()
 
   makePaymentModal: (type, plan, callback)->
@@ -279,7 +279,7 @@ class PaymentController extends KDController
         return new KDNotificationView
           title : "There is an error in payment backend, please try again later."
       if status
-        vmController.createGroupVM type, planCode, vmController.vmCreateCallback
+        vmController.createGroupVM type, planCode
         callback()
       else
         if type is 'group'
@@ -288,7 +288,7 @@ class PaymentController extends KDController
               paymentController.subscribeGroup group, type, planCode, callback
             else
               group.updatePayment {plan: planCode, type: type}, (err, subscription)->
-                vmController.createGroupVM type, planCode, vmController.vmCreateCallback
+                vmController.createGroupVM type, planCode
                 callback()
         else
           KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->

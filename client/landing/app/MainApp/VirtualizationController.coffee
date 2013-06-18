@@ -99,10 +99,22 @@ class VirtualizationController extends KDController
 
       callback @defaultVmName = vms.first
 
-  createGroupVM:(type='user', planCode, callback)->
+  createGroupVM:(type='user', planCode, callback=->)->
+    vmCreateCallback = (err, vm)->
+      vmController = KD.getSingleton('vmController')
+
+      if err
+        warn err
+        return new KDNotificationView
+          title : err.message or "Something bad happened while creating VM"
+      else
+        KD.getSingleton("finderController").mountVm vm.name
+        vmController.emit 'VMListChanged'
+        vmController.showVMDetails vm
+        
     defaultVMOptions = {planCode}
     group = KD.getSingleton("groupsController").getCurrentGroup()
-    group.createVM {type, planCode}, callback
+    group.createVM {type, planCode}, vmCreateCallback
 
   fetchVMs:(callback)->
     return callback null, @vms  if @vms.length > 0
@@ -162,7 +174,7 @@ class VirtualizationController extends KDController
 
   showVMDetails: (vm)->
     content = "Name: #{vm.name}"
-    
+
     modal           = new KDModalView
       title         : "VM Details"
       content       : "<div class='modalformline'>#{content}</div>"
@@ -173,18 +185,6 @@ class VirtualizationController extends KDController
           cssClass  : "modal-clean-green"
           callback  : =>
             modal.destroy()
-
-  vmCreateCallback: (err, vm)->
-    vmController = KD.getSingleton('vmController')
-
-    if err
-      warn err
-      return new KDNotificationView
-        title : err.message or "Something bad happened while creating VM"
-    else
-      KD.getSingleton("finderController").mountVm vm.name
-      vmController.emit 'VMListChanged'
-      vmController.showVMDetails vm
 
   createPaidVM:->
     return  if @dialogIsOpen
