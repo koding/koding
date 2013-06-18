@@ -346,4 +346,23 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       amount *= -1
       callback null, amount
 
-  
+  transferCredits: (group, account, amount, callback)->
+    {profile}    = account
+
+    idFrom = "group_#{group._id}"
+    idTo   = "user_#{account._id}"
+
+    labelGroup = "Group: #{group.title}"
+    labelUser  = "#{profile.firstName} #{profile.lastName} (#{profile.nickname})"
+
+    payment.addUserTransaction idFrom,
+        amount: amount
+        desc  : "Transfer to #{labelUser}"
+    , (err, transaction)->
+      return callback err  if err
+      payment.addUserCharge idTo,
+        desc  : "Transfer from #{labelGroup}"
+        amount: amount * -1
+      , (err, charge)->
+        return callback err  if err
+        callback null, charge
