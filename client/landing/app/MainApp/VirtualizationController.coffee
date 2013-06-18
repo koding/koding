@@ -286,18 +286,45 @@ class VirtualizationController extends KDController
                 type                :
                   name              : "type"
                   type              : "hidden"
+                "userCredits"       :
+                  itemClass         : KDCustomHTMLView
+                  partial           : "<p>
+                                        You have $<span class='price'>0</span> credited to your <strong>personal</strong> account. You <strong>won't
+                                        be charged</strong> until you consume that amount.
+                                      </p>"
+                "groupCredits"      :
+                  itemClass         : KDCustomHTMLView
+                  partial           : "<p>
+                                        You have $<span class='price'>0</span> credited to your <strong>group</strong> account. You <strong>won't
+                                        be charged</strong> until you consume that amount.
+                                      </p>"
 
 
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      # group = KD.getSingleton("groupsController").getCurrentGroup()
-      # group.vmUsage (err, limit)->
-      #   if limit and limit.usage < limit.quota
-      #     # content += """<br/><br/>
-      #     #               You can also get a <b>Personal</b> VM using your
-      #     #               <b>goups</b> quota. Your group will be charged."""
-      #     modal.modalTabs.forms["Create VM"].buttons.expensed.show()
+      # Show user account balance, if necessary
+      {userCredits} = modal.modalTabs.forms["Create VM"].inputs
+      userCredits.setClass "hidden"
+
+      KD.remote.api.JRecurlyPlan.getUserBalance (err, balance)->
+        if err or balance <= 0
+          userCredits.setClass "hidden"
+        else
+          userCredits.$('p span.price').text (balance / 100).toFixed(2)
+          userCredits.unsetClass "hidden"
+
+      # Show group account balance, if necessary
+      {groupCredits} = modal.modalTabs.forms["Create VM"].inputs
+      groupCredits.setClass "hidden"
+
+      group = KD.getSingleton("groupsController").getCurrentGroup()
+      KD.remote.api.JRecurlyPlan.getGroupBalance group, (err, balance)->
+        if err or balance <= 0
+          groupCredits.setClass "hidden"
+        else
+          groupCredits.$('p span.price').text (balance / 100).toFixed(2)
+          groupCredits.unsetClass "hidden"
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
