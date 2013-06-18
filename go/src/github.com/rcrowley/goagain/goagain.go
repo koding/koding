@@ -52,9 +52,9 @@ func AwaitSignals(listeners map[string]net.Listener) error {
 		// SIGUSR2 begins the process of restarting without dropping
 		// the listener passed to this function.
 		case syscall.SIGUSR2:
-			fmt.Printf("relaunching listeners\n")
+			log.Printf("relaunching listeners\n")
 			for addr, _ := range listeners {
-				fmt.Printf("\t%s\n", addr)
+				log.Printf("\t%s\n", addr)
 			}
 
 			err := Relaunch(listeners)
