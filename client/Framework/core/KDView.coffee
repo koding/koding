@@ -495,6 +495,7 @@ class KDView extends KDObject
     if @getSubViews()
       (subView.parentDidResize(parent,event) for subView in @getSubViews())
 
+  # if threshold is greater than 1 it is treated as pixel value
   setLazyLoader:(threshold=.75)->
     @getOptions().bind += ' scroll' unless /\bscroll\b/.test @getOptions().bind
     view = @
@@ -502,9 +503,17 @@ class KDView extends KDObject
       lastRatio = 0
       (event)->
         el = view.$()[0]
-        ratio = (el.scrollTop + view.getHeight()) / el.scrollHeight
-        if ratio > lastRatio and ratio > threshold
+        {scrollHeight, scrollTop} = el
+
+        dynamicThreshold = if threshold > 1
+        then (scrollHeight - threshold) / scrollHeight
+        else threshold
+
+        ratio = (scrollTop + view.getHeight()) / scrollHeight
+
+        if dynamicThreshold > ratio > lastRatio
           @emit 'LazyLoadThresholdReached', {ratio}
+
         lastRatio = ratio
 
   bindEvents:($elm)->
