@@ -120,11 +120,11 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 
 		err := checkServer(vmAddr)
 		if err != nil {
-			buf, err := executeTemplate("notactiveVM.html", hostname)
+			buf, errTemp := executeTemplate("notactiveVM.html", hostname)
 			if err != nil {
-				return nil, err
+				return nil, errTemp
 			}
-			return buf, errors.New("vm is down")
+			return buf, fmt.Errorf("vm is down: '%s'", err)
 		}
 
 		u.Target, err = url.Parse("http://" + vmAddr)
