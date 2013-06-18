@@ -26,7 +26,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData'
+                           'removeByName', 'someData', 'fetchDomains'
                           ]
       instance          : []
     schema              :
@@ -228,6 +228,21 @@ module.exports = class JVM extends Model
     #   @fetchDefaultVmByContext client, (err, vm)->
     #     return callback err  if err
     #     callback null, [vm]
+
+  @fetchDomains = permit 'list all vms',
+    success:(client, vmName, callback)->
+      {delegate} = client.connection
+
+      delegate.fetchUser (err, user) ->
+        return callback err  if err
+
+        selector =
+          name   : vmName
+          users  : { $elemMatch: id: user.getId(), owner: yes }
+
+        JVM.one selector, {hostnameAlias:1}, (err, vm)->
+          return callback err, []  if err or not vm
+          callback null, vm.hostnameAlias or []
 
   @removeByName = permit 'delete vms',
     success:(client, vmName, callback)->
