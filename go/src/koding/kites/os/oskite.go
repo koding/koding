@@ -331,7 +331,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			websiteDir := "/home/" + vm.SitesHomeName() + "/Web/"
+			websiteDir := "/home/" + vm.SitesHomeName() + "/Web"
 			// Check for existance of the of the koding default webroot
 			if _, err := rootVos.Stat(websiteDir); err != nil {
 				// How can this ever happen ?
