@@ -75,7 +75,7 @@ class AceView extends JView
     return @ace.notify "Not found an app to compile", null, yes unless manifest?.name
     KD.getSingleton('kodingAppsController').compileApp manifest.name, (err) =>
       @ace.notify "Trying to run old version..." if err
-      KD.getSingleton('kodingAppsController').runApp manifest
+      KD.getSingleton('appManager').open manifest.name
 
   viewAppended:->
 

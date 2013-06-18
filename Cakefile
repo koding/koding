@@ -825,7 +825,7 @@ task 'analyzeCss','',(options)->
     # log.debug arr
     arr = br.split "\n"
     css = {}
-    for own line in arr
+    for line in arr
       ln = line.split "{"
       ln1 = ln[1]?.substr 0,ln[1].length-1
       css[ln[0]] = ln1?.split ";"

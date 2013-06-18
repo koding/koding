@@ -239,51 +239,31 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  runApp:(manifest, callback)->
+  putAppResources:(appInstance)->
 
-    unless manifest
-      warn "AppManager doesn't know what to run, no options passed!"
-      return
+    manifest = appInstance.getOptions()
+    {devMode, forceUpdate, name, options, version} = manifest
 
-    if @isAppUpdateAvailable(manifest.name, manifest.version) and not manifest.devMode and manifest.forceUpdate
+    if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
       @showUpdateRequiredModal manifest
-      return callback?()
-
-    {options, name} = manifest
+      return callback()
 
     putStyleSheets manifest
 
     @getAppScript manifest, (err, appScript)=>
-      if err then warn err
-      else
-        if options and options.type is "tab"
-          @appManager.open manifest.name,
-            requestedFromAppsController : yes
-          , (appInstance)->
+      return warn err  if err
 
-            appView = appInstance.getView()
-            id      = appView.getId()
+      appView = appInstance.getView()
+      id      = appView.getId()
 
-            try
-              # security please!
-              do (appView)->
-                eval "var appView = KD.instances[\"#{id}\"];\n\n" + appScript
-            catch error
-              # if not manifest.ignoreWarnings? # GG FIXME
-              showError error
-            callback?()
-            return appView
-        else
-          try
-            # security please!
-            do ->
-              eval appScript
-          catch error
-            showError error
-          callback?()
-          return null
+      try
+        # security please!
+        do (appView)->
+          eval "var appView = KD.instances[\"#{id}\"];\n\n" + appScript
+      catch error
+        # if not manifest.ignoreWarnings? # GG FIXME
+        showError error
 
-        callback?()
 
   publishApp:(path, callback)->
 
