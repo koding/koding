@@ -198,6 +198,9 @@ class KodingRouter extends KDRouter
     createSectionHandler = (sec)=>
       ({params:{name}, query})=> @openSection sec, name, query
 
+    createSectionHandlerForDevelop = (sec)=>
+      ({params:{name, slug}, query})=> @openSection slug, name, query
+
     createContentHandler       = @bound 'createContentDisplayHandler'
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
 
@@ -227,6 +230,7 @@ class KodingRouter extends KDRouter
       '/:name?/Members'                 : createSectionHandler 'Members'
       '/:name?/Topics'                  : createSectionHandler 'Topics'
       '/:name?/Develop'                 : createSectionHandler 'StartTab'
+      '/:name?/Develop/:slug'           : createSectionHandlerForDevelop 'Develop'
       '/:name?/Apps'                    : createSectionHandler 'Apps'
       '/:name?/Account'                 : createSectionHandler 'Account'
       '/:name?/Demos'                   : createSectionHandler 'Demos'
