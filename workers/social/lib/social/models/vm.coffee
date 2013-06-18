@@ -282,6 +282,8 @@ module.exports = class JVM extends Model
         type, uid, groupSlug
       }
 
+      JVM.createDomains hostnameAlias
+
       vm = new JVM {
         name      : name
         planCode  : planCode
