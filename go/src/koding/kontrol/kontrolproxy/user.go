@@ -121,7 +121,7 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 		err := checkServer(vmAddr)
 		if err != nil {
 			buf, errTemp := executeTemplate("notactiveVM.html", hostname)
-			if err != nil {
+			if errTemp != nil {
 				return nil, errTemp
 			}
 			return buf, fmt.Errorf("vm is down: '%s'", err)
