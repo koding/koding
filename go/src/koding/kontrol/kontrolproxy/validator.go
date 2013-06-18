@@ -47,28 +47,31 @@ func (v *Validator) addFilter(ruletype, name, action, match string, validateFn f
 }
 
 func (v *Validator) AddRules() *Validator {
-	for _, behaviour := range v.rules.RuleList {
-		if !behaviour.Enabled {
+	for _, rule := range v.rules.RuleList {
+		if !rule.Enabled {
 			continue
 		}
 
-		rule := v.rules.Rules[behaviour.RuleName]
+		filter, err := proxyDB.GetFilter(rule.Match)
+		if err != nil {
+			continue // if not found just continue with next rule
+		}
 
 		f := func() bool {
-			if rule.Match == "all" {
+			if filter.Match == "all" {
 				return true // assume allowed for all
 			}
 
-			switch rule.Type {
+			switch filter.Type {
 			case "ip":
-				re, err := regexp.Compile(rule.Match)
+				re, err := regexp.Compile(filter.Match)
 				if err != nil {
 					return false // dont block anyone if regex compile get wrong
 				}
 
 				return re.MatchString(v.user.IP)
 			case "country":
-				if rule.Match == v.user.Country {
+				if filter.Match == v.user.Country {
 					return true
 				}
 				return false
@@ -77,7 +80,7 @@ func (v *Validator) AddRules() *Validator {
 			return false
 		}
 
-		v.addFilter(rule.Type, rule.Name, rule.Match, behaviour.Action, f)
+		v.addFilter(filter.Type, filter.Name, filter.Match, rule.Action, f)
 	}
 
 	return v

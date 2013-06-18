@@ -1,9 +1,11 @@
 package main
 
 import (
+	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
+	"github.com/rcrowley/goagain"
 	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
@@ -13,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -60,34 +63,95 @@ func main() {
 	}
 
 	// create amqpStream for rabbitmq proxyieng
-	amqpStream = setupAmqp()
+	// amqpStream = setupAmqp()
 
 	reverseProxy := &ReverseProxy{}
-	// http.HandleFunc("/", reverseProxy.ServeHTTP) this works for 1.1
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		reverseProxy.ServeHTTP(w, r)
-	})
 
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 
+	var (
+		listener  net.Listener
+		ppid      int
+		listeners = make(map[string]net.Listener, 0)
+	)
+
 	for _, sslip := range sslips {
-		go func(sslip string) {
-			err = http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", nil)
-			if err != nil {
-				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			} else {
-				log.Printf("https mode is enabled. serving at :%s ...", portssl)
+		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
+		if nil != err {
+			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+			continue
+		}
+
+		addr := sslip + ":" + portssl
+		listener, _, err = goagain.GetEnvs(addr)
+		if err != nil {
+			laddr, err := net.ResolveTCPAddr("tcp", addr)
+			if nil != err {
+				log.Fatalln(err)
 			}
-		}(sslip)
+
+			listener, err = net.ListenTCP("tcp", laddr)
+			if nil != err {
+				log.Fatalln(err)
+			}
+		}
+
+		listeners[addr] = listener
+		listener = tls.NewListener(listener, &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{cert},
+		})
+
+		log.Printf("https mode is enabled. serving at :%s ...", portssl)
+		go http.Serve(listener, reverseProxy)
+
 	}
 
-	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	err = http.ListenAndServe(":"+port, nil)
+	// HTTP handling
+	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	addr := "127.0.0.1:" + port
+	listener, ppid, err = goagain.GetEnvs(addr)
 	if err != nil {
-		log.Println(err)
+		log.Printf("normal mode is enabled. serving at :%s ...", port)
+		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
+		if nil != err {
+			log.Fatalln(err)
+		}
+
+		listener, err = net.ListenTCP("tcp", laddr)
+		if nil != err {
+			log.Fatalln(err)
+		}
+		go http.Serve(listener, reverseProxy)
+	} else {
+		go http.Serve(listener, reverseProxy) // resume listening
+
+		// Kill the parent, now that the child has started successfully.
+		if err := goagain.KillParent(ppid); nil != err {
+			log.Fatalln(err)
+		}
+
 	}
+	listeners[addr] = listener
+
+	// needed until all go routines are ready. otherwise the log below is printed earlier
+	time.Sleep(time.Second * 2)
+	log.Printf("started and waiting for signals on pid %d.\n\t* for a stop send SIGTERM.\n\t* for a new binary restart send SIGUSR2\n", os.Getpid())
+
+	// Block the main goroutine awaiting signals.
+	if err := goagain.AwaitSignals(listeners); nil != err {
+		log.Fatalln(err)
+	}
+
+	// Do whatever's necessary to ensure a graceful exit like waiting for
+	// goroutines to terminate or a channel to become closed.
+	// In this case, we'll simply stop listening and wait one second.
+	if err := listener.Close(); nil != err {
+		log.Fatalln(err)
+	}
+	log.Printf("stopped current listener with pid %d\n", os.Getpid())
 }
 
 /*************************************************
@@ -165,6 +229,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	target := user.Target
 
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 	if user.Redirect {
 		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
@@ -224,8 +289,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 	}
-
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
 
 	// Smart handling incoming request path/query, example:
 	// incoming : foo.com/dir
@@ -291,7 +354,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		p.copyResponse(conn, rConn)
 
 	} else {
-
 		transport := p.Transport
 		if transport == nil {
 			transport = http.DefaultTransport
@@ -348,7 +410,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 		// 		return
 		// 	}
-
 		// }
 
 		copyHeader(rw.Header(), res.Header)
@@ -363,6 +424,12 @@ func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 	io.Copy(dst, src)
 }
 
+/*************************************************
+*
+*  unique IP handling and cleaner
+*
+*  - arslan
+*************************************************/
 func registerUser(ip string) {
 	usersLock.Lock()
 	defer usersLock.Unlock()
@@ -371,13 +438,6 @@ func registerUser(ip string) {
 		go cleaner()
 	}
 }
-
-/*************************************************
-*
-*  unique IP handling and cleaner
-*
-*  - arslan
-*************************************************/
 
 // The goroutine basically does this: as long as there are users in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
