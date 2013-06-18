@@ -60,6 +60,9 @@ class Ace extends KDView
       unless err
         @notify "Successfully saved!", "success"
         @lastSavedContents = @lastContentsSentForSave
+        unless @askedForSave
+          log "this file has changed, put a modal and block editing @fatihacet!"
+        @askedForSave = no
 
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
@@ -109,6 +112,7 @@ class Ace extends KDView
 
     contents = @getContents()
     return @notify "Nothing to save!" unless contents isnt @lastSavedContents
+    @askedForSave = yes
     @emit "ace.requests.save", contents
 
   requestSaveAs:->
