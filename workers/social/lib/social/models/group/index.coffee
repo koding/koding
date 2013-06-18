@@ -1353,7 +1353,7 @@ module.exports = class JGroup extends Module
   canCreateVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type in ['user', 'group', 'expensed']
+    if data.type in ['user', 'group']
       @fetchBundle (err, bundle)=>
         if err or not bundle
           if @slug == 'koding'
@@ -1375,7 +1375,7 @@ module.exports = class JGroup extends Module
   createVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type in ['user', 'group', 'expensed']
+    if data.type in ['user', 'group']
       @fetchBundle (err, bundle)=>
         if err or not bundle
           if @slug == 'koding'

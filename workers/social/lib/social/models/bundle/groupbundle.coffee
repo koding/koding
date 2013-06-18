@@ -52,7 +52,7 @@ module.exports = class JGroupBundle extends JBundle
       planOwner = "user_#{account._id}"
     else if type is 'group'
       planOwner = "group_#{group._id}"
-    else if type is 'expensed'
+    else if type is 'ex'
       planOwner = "group_#{group._id}"
 
     JRecurlySubscription.getSubscriptionsAll planOwner,
@@ -65,25 +65,14 @@ module.exports = class JGroupBundle extends JBundle
     , (err, subs)=>
       return callback new KodingError "Payment backend error: #{err}"  if err
 
-      expensed = type is "expensed"
-
       paidVMs     = 0
-      expensedVMs = 0
       subs.forEach (sub)->
         paidVMs = sub.quantity
-        if type is 'expensed'
-          expensedVMs = sub.expensed
-        else if type is 'group'
-          paidVMs    -= sub.expensed
-
-      if expensed
-        paidVMs = expensedVMs
 
       createdVMs = 0
       JVM.someData
         planOwner: planOwner
         planCode : planCode
-        expensed : expensed
       ,
         name     : 1
       , {}, (err, cursor)=>
@@ -104,10 +93,6 @@ module.exports = class JGroupBundle extends JBundle
       planOwner = "user_#{account._id}"
     else if type is 'group'
       planOwner = "group_#{group._id}"
-    else if type is 'expensed'
-      planOwner = "group_#{group._id}"
-
-    expensed = type is "expensed"
 
     @canCreateVM account, group, data, (err, status)=>
       return callback err  if err
@@ -119,47 +104,7 @@ module.exports = class JGroupBundle extends JBundle
           type      : type
           account   : account
           groupSlug : group.slug
-          expensed  : expensed
 
-        unless expensed
-          JVM.createVm options, callback
-        else
-          @checkUsage account, group, (err, limit)=>
-            return callback err  if err
-            if limit.usage >= limit.quota
-              return callback new KodingError "You can't create expensed VMs. (quota exceeded)"
-            else
-              JVM.createVm options, callback
+        JVM.createVm options, callback
       else
         callback new KodingError "Can't create new VM (payment missing)"
-
-  checkUsage: (account, group, callback)->
-    JVM.someData
-      planOwner   : "group_#{group._id}"
-      expensedUser: "user_#{account._id}"
-      expensed    : yes
-    ,
-      name        : 1
-      planCode    : 1
-    , {}, (err, cursor)=>
-      cursor.toArray (err, arr)=>
-        return callback err  if err
-
-        stack = []
-        arr.forEach (vmData)->
-          stack.push (cb)->
-            JRecurlyPlan.one
-              code: vmData.planCode
-            , (err, plan)->
-              return cb err  if err
-              cb null, plan.feeMonthly
-
-        async.parallel stack, (err, result)=>
-          return callback err  if err
-          cost = 0
-          result.forEach (fee)->
-            cost += fee
-
-          callback null,
-            usage: cost
-            quota: @.allocation

@@ -256,10 +256,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         subs.quantity ?= 1
         subs.quantity += 1
 
-        if data.type is 'expensed'
-          subs.expensed ?= 0
-          subs.expensed += 1
-
         payment.updateUserSubscription userCode,
           quantity: subs.quantity
           plan    : @code
@@ -280,10 +276,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.firstName   = groupAccount.firstName
           data.lastName    = groupAccount.lastName
 
-          expensed = 0
-          if data.type is 'expensed'
-            expensed = 1
-
           JRecurlyPlan.getGroupAccount group, (err, account)->
             if account and not err
               payment.addUserSubscription userCode, data, (err, result)->
@@ -296,7 +288,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
-                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
@@ -311,59 +302,32 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
-                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
+
+  @getAccountBalance = (account, callback)->
+    payment.getUserTransactions account, (err, adjs)->
+      spent = 0
+      adjs.forEach (adj)->
+        spent += parseInt adj.amount, 10
+
+      payment.getUserAdjustments account, (err, adjs)->
+        charged = 0
+        adjs.forEach (adj)->
+          charged += parseInt adj.amount, 10
+
+        callback null, spent-charged
+      
 
   @getUserBalance = secure (client, callback)->
     {delegate} = client.connection
     userCode      = "user_#{delegate._id}"
 
-    payment.getUserAdjustments userCode, (err, adjs)->
-      return callback err  if err
-      amount = 0
-      adjs.every (adj)->
-        if adj.origin in ['one_time', 'plan']
-          return false
-        amount += parseInt adj.amount, 10
-        return true
-      amount *= -1
-      callback null, amount
+    @getAccountBalance userCode, callback
 
   @getGroupBalance = secure (client, group, callback)->
     {delegate} = client.connection
     userCode      = "group_#{group._id}"
-
-    payment.getUserAdjustments userCode, (err, adjs)->
-      return callback err  if err
-      amount = 0
-      adjs.every (adj)->
-        if adj.origin in ['one_time', 'plan']
-          return false
-        amount += parseInt adj.amount, 10
-        return true
-      amount *= -1
-      callback null, amount
-
-  # WIP
-  # transferCredits: (group, account, amount, callback)->
-  #   {profile}    = account
-
-  #   idFrom = "group_#{group._id}"
-  #   idTo   = "user_#{account._id}"
-
-  #   labelGroup = "Group: #{group.title}"
-  #   labelUser  = "#{profile.firstName} #{profile.lastName} (#{profile.nickname})"
-
-  #   payment.addUserTransaction idFrom,
-  #       amount: amount
-  #       desc  : "Transfer to #{labelUser}"
-  #   , (err, transaction)->
-  #     return callback err  if err
-  #     payment.addUserCharge idTo,
-  #       desc  : "Transfer from #{labelGroup}"
-  #       amount: amount * -1
-  #     , (err, charge)->
-  #       return callback err  if err
-  #       callback null, charge
+    
+    @getAccountBalance userCode, callback
