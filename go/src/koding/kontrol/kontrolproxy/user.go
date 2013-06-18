@@ -113,15 +113,14 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 			return buf, errors.New("vm not active")
 		}
 
-		err := checkServer(vm.IP.String())
-		if err != nil {
-			buf, err := executeTemplate("notactiveVM.html", hostname)
-			if err != nil {
-				return nil, err
-			}
-
-			return buf, errors.New("vm is down")
-		}
+		// err := checkServer(vm.IP.String())
+		// if err != nil {
+		// 	buf, err := executeTemplate("notactiveVM.html", hostname)
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// 	return buf, errors.New("vm is down")
+		// }
 
 		u.Target, err = url.Parse("http://" + vm.IP.String())
 		if err != nil {

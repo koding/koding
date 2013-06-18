@@ -120,8 +120,8 @@ func main() {
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	addr := "127.0.0.1:" + port
 	listener, ppid, err = goagain.GetEnvs(addr)
+	log.Printf("normal mode is enabled. serving at :%s ...", port)
 	if err != nil {
-		log.Printf("normal mode is enabled. serving at :%s ...", port)
 		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
 		if nil != err {
 			log.Fatalln(err)
@@ -131,9 +131,19 @@ func main() {
 		if nil != err {
 			log.Fatalln(err)
 		}
-		go http.Serve(listener, reverseProxy)
+		go func() {
+			err := http.Serve(listener, reverseProxy) // resume listening
+			if err != nil {
+				log.Println("normal mode is disabled", err)
+			}
+		}()
 	} else {
-		go http.Serve(listener, reverseProxy) // resume listening
+		go func() {
+			err := http.Serve(listener, reverseProxy) // resume listening
+			if err != nil {
+				log.Println("normal mode is disabled", err)
+			}
+		}()
 
 		// Kill the parent, now that the child has started successfully.
 		if err := goagain.KillParent(ppid); nil != err {
