@@ -22,7 +22,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
     schema          :
       
       domainName    : String
-      ruleList      : [JProxyRule]
+      ruleList      : [Object]
 
       createdAt     :
         type        : Date
@@ -53,7 +53,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
       if params.action isnt rule.action
         JProxyRule.update {_id:rule.getId()}, {$set: action: params.action}, (err)->
-          console.log err
           return callback err if err
 
         JProxyRestriction.update 
@@ -63,7 +62,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
         , (err)->
           return callback err if err
       else
-        console.log 'adding ', params.match 
         @update {$addToSet: ruleList:ruleObj}, (err)->
           callback err
 
