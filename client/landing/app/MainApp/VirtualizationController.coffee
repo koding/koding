@@ -128,9 +128,17 @@ class VirtualizationController extends KDController
       @groupVms = vms  unless err
       callback? err, vms
 
+  fetchVMDomains:(vmName, callback)->
+    domains = @vmDomains[vmName]
+    return callback null, domains  if domains
+    KD.remote.api.JVM.fetchDomains vmName, (err, domains=[])=>
+      return callback err, domains  if err
+      callback null, @vmDomains[vmName] = domains.sort()
+
   resetVMData:->
     @vms = @groupVms = []
     @defaultVmName = null
+    @vmDomains = {}
 
   # fixme GG!
   fetchTotalVMCount:(callback)->
