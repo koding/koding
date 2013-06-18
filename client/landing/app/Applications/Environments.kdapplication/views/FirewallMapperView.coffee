@@ -21,13 +21,8 @@ class FirewallMapperView extends KDView
 
     @ruleListController = new FirewallRuleListController
 
-    @filterListController.showLazyLoader()
-    @ruleListController.showLazyLoader()
-
     KD.remote.api.JProxyFilter.fetchFiltersByContext (err, filters)=>
       if err
-        @filterListController.hideLazyLoader()
-        #@ruleListController.hideLazyLoader()
 
         notifyMsg = if err is "not found"
         then "You don't have any filters set for this domain."
@@ -42,8 +37,10 @@ class FirewallMapperView extends KDView
         filter.domainName = domain.domain
 
       @filterListController.instantiateListItems filters
-      @filterListController.showLazyLoader()
 
+    KD.remote.api.JProxyRestriction.fetchRestrictionByDomain domain.domain, (err, restriction)=>
+      unless err
+        @ruleListController.instantiateListItems restriction.ruleList
 
     @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
 
@@ -78,16 +75,9 @@ class FirewallMapperView extends KDView
       @ruleListController.addItem item
 
   updateActionOrders:(domain)->
-    for item, index in @ruleListController.itemsOrdered
-      data = item.getData()
-      domain.updateRuleBehavior
-        ruleName   : data.ruleName
-        behaviorInfo :
-          enabled : "yes"
-          action  : data.action
-          index   : "#{index}"
-      , (err, response)=>
-        return console.log err if err?
+    newRulesList = (item.getData() for item in @ruleListController.itemsOrdered)
+    domain.updateRuleOrders newRulesList, (err, response)->
+      return console.log err if err?
 
 
 class FirewallFilterListItemView extends KDListItemView
@@ -122,10 +112,12 @@ class FirewallFilterListItemView extends KDListItemView
 
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)->
       return console.log err if err
+
       params = 
-        domain    : domain.getId()
+        domainName: domain.domain
         action    : behavior
         match     : data.match
+      
       domain.createProxyRule params, (err, rule)->
         return console.log err if err
         delegate.emit "newRuleCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
@@ -225,7 +217,7 @@ class FirewallRuleListItemView extends KDListItemView
   pistachio:->
     """
     <div class="fw-li-view #{@getData().action}">
-      <div class="fl">{{ #(ruleName) }}</div>
+      <div class="fl">{{ #(match) }}</div>
       <div class="fr buttons">
         {{> @actionButton }}
         {{> @deleteButton }}
