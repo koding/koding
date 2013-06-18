@@ -44,7 +44,7 @@ class NVMDetailsView extends JView
 
     if info.state is "RUNNING"
       # Memory
-      mem = (info.memoryUsage / info.memoryLimit * 100).toFixed(2)
+      mem = ((info.memoryUsage * 100) / info.memoryLimit).toFixed(2)
       @labelRAM.updateTitle "#{mem}%"
       # RX
       @kcRun cmdRX, (err, out)=>
