@@ -286,11 +286,23 @@ class VirtualizationController extends KDController
                 type                :
                   name              : "type"
                   type              : "hidden"
+                "userVM"            :
+                  itemClass         : KDCustomHTMLView
+                  partial           : "<p>
+                                        You already have a subscription for <strong>personal</strong> VM. You
+                                        <strong>won't be charged</strong>.
+                                      </p>"
                 "userCredits"       :
                   itemClass         : KDCustomHTMLView
                   partial           : "<p>
                                         You have $<span class='price'>0</span> credited to your <strong>personal</strong> account. You <strong>won't
                                         be charged</strong> until you consume that amount.
+                                      </p>"
+                "groupVM"           :
+                  itemClass         : KDCustomHTMLView
+                  partial           : "<p>
+                                        You already have a subscription for <strong>group</strong> VM. You
+                                        <strong>won't be charged</strong>.
                                       </p>"
                 "groupCredits"      :
                   itemClass         : KDCustomHTMLView
@@ -303,33 +315,12 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      # Show user account balance, if necessary
-      {userCredits} = modal.modalTabs.forms["Create VM"].inputs
-      userCredits.setClass "hidden"
-
-      KD.remote.api.JRecurlyPlan.getUserBalance (err, balance)->
-        if err or balance <= 0
-          userCredits.setClass "hidden"
-        else
-          userCredits.$('p span.price').text (balance / 100).toFixed(2)
-          userCredits.unsetClass "hidden"
-
-      # Show group account balance, if necessary
-      {groupCredits} = modal.modalTabs.forms["Create VM"].inputs
-      groupCredits.setClass "hidden"
-
-      group = KD.getSingleton("groupsController").getCurrentGroup()
-      KD.remote.api.JRecurlyPlan.getGroupBalance group, (err, balance)->
-        if err or balance <= 0
-          groupCredits.setClass "hidden"
-        else
-          groupCredits.$('p span.price').text (balance / 100).toFixed(2)
-          groupCredits.unsetClass "hidden"
-
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
       form = modal.modalTabs.forms["Create VM"]
+
+      @showPaymentNotices form
 
       hideLoaders = ->
         {group, user, expensed} = form.buttons
@@ -339,6 +330,47 @@ class VirtualizationController extends KDController
 
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
+
+  showPaymentNotices: (form)->
+    group = KD.getSingleton("groupsController").getCurrentGroup()
+    
+    # Show user account balance, if necessary
+    {userCredits, userVM} = form.fields
+    userCredits.setClass "hidden"
+    userVM.setClass "hidden"
+
+    group.canCreateVM
+      type    : "user"
+      planCode: "group_vm_1xs_1"
+    , (err, status)->
+      if not err and status
+        userVM.unsetClass "hidden"
+      else
+        KD.remote.api.JRecurlyPlan.getUserBalance (err, balance)->
+          if err or balance <= 0
+            userCredits.setClass "hidden"
+          else
+            userCredits.$('p span.price').text (balance / 100).toFixed(2)
+            userCredits.unsetClass "hidden"
+
+    # Show group account balance, if necessary
+    {groupCredits, groupVM} = form.fields
+    groupCredits.setClass "hidden"
+    groupVM.setClass "hidden"
+
+    group.canCreateVM
+      type    : "group"
+      planCode: "group_vm_1xs_1"
+    , (err, status)->
+      if not err and status
+        groupVM.unsetClass "hidden"
+      else
+        KD.remote.api.JRecurlyPlan.getGroupBalance group, (err, balance)->
+          if err or balance <= 0
+            groupCredits.setClass "hidden"
+          else
+            groupCredits.$('p span.price').text (balance / 100).toFixed(2)
+            groupCredits.unsetClass "hidden"
 
   askForApprove:(command, callback)->
 
