@@ -66,14 +66,9 @@ module.exports = class JProxyRestriction extends jraphical.Module
           callback err
 
   @updateRuleOrders: (params, callback)->
-    newRuleList = []
-    for rule in params.ruleList
-      newRuleList.push
-        match   : rule.match
-        action  : rule.action
-        enabled : rule.enabled
-
-    JProxyRestriction.update {domainName:params.domainName}, {$set: ruleList: newRuleList}, (err)->
+    domainName = params.domainName
+    newRuleList = params.ruleList
+    JProxyRestriction.update {domainName}, {$set: ruleList: newRuleList}, (err)->
       callback err
     
 
