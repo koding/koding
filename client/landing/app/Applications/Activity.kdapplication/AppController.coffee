@@ -45,9 +45,9 @@ class ActivityAppController extends AppController
 
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=>
-      if conn && conn.reason is "internetDownForLongTime"
-      then @refresh()
-      else @fetchSomeActivities()
+      #if conn && conn.reason is "internetDownForLongTime"
+      #then @refresh()
+      #else @fetchSomeActivities()
 
   loadView:->
     # Do we really need this? ~ GG
