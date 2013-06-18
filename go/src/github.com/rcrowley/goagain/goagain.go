@@ -125,7 +125,7 @@ func KillParent(ppid int) error {
 // Re-exec this image without dropping the listener passed to this function.
 // func Relaunch(l net.Listener, envs []string) error {
 func Relaunch(listeners map[string]net.Listener) error {
-	files := make([]*os.File, 15)
+	files := make([]*os.File, 20)
 	files[syscall.Stdin] = os.Stdin
 	files[syscall.Stdout] = os.Stdout
 	files[syscall.Stderr] = os.Stderr
