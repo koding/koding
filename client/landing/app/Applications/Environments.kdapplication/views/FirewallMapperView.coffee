@@ -24,23 +24,22 @@ class FirewallMapperView extends KDView
     @filterListController.showLazyLoader()
     @ruleListController.showLazyLoader()
 
-    domain.fetchProxyFilters (err, response)=>
+    KD.remote.api.JProxyFilter.fetchFiltersByContext (err, filters)=>
       if err
         @filterListController.hideLazyLoader()
-        @ruleListController.hideLazyLoader()
-        
+        #@ruleListController.hideLazyLoader()
+
         notifyMsg = if err is "not found"
         then "You don't have any filters set for this domain."
         else "An error occured while fetching the filters. Please try again."
 
         @actionOrdersButton.hide() if err is "not found"
-
         return new KDNotificationView
           title : notifyMsg
           type  : "top"
 
+      @filterListController.instantiateListItems filters
 
-      @iniateControllerListItems domain, response
 
     @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
 
@@ -66,12 +65,12 @@ class FirewallMapperView extends KDView
 
     @ruleListScrollView.addSubView @ruleListController.getView()
 
-    @on "newRuleCreated", (item) => 
+    @on "newFilterCreated", (item) => 
       @filterListController.addItem item
 
     # this event is on rule list controller because 
     # both allow & deny buttons live on FirewallfilterListItemView.
-    @filterListController.getListView().on "behaviorCreated", (item) => 
+    @ruleListController.getListView().on "newRuleCreated", (item) => 
       @ruleListController.addItem item
 
   iniateControllerListItems:(domain, response)->
@@ -157,11 +156,11 @@ class FirewallFilterListItemView extends KDListItemView
           index   : "0"
       , (err, response)=>
         if not err
-          delegate.emit "behaviorCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
+          delegate.emit "newRuleCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
 
   pistachio:->
     """
-    {div.fl.fw-li-rule{ #(match)}}
+    <div class="fl fw-li-rule"> {{ #(name) }} - {{ #(match) }}</div>
     <div class="fr buttons">
       {{> @allowButton }}
       {{> @denyButton }}
@@ -261,10 +260,10 @@ class FirewallRuleListItemView extends KDListItemView
 class FirewallFilterFormView extends KDCustomHTMLView
 
   constructor:(options={}, data)->
-    options.cssClass = "rule-form-view"
+    options.cssClass = "filter-form-view"
     super options, data
 
-    @filterNameInput  = new KDInputView {tooltip: {title: "Enter a name for the rule.", placement:"bottom"}}
+    @filterNameInput  = new KDInputView {tooltip: {title: "Enter a name for the filter.", placement:"bottom"}}
     @filterInput      = new KDInputView
       tooltip : 
         title     : "You can enter IP, IP Range or a country name. (ie: 192.168.1.1/24 or China)"
@@ -281,31 +280,32 @@ class FirewallFilterFormView extends KDCustomHTMLView
     filterType  = if @filterInput.getValue().match /[0-9+]/ then "ip" else "country"
     filterName  = @filterNameInput.getValue()
     filterMatch = @filterInput.getValue()
-    domain      = @getData().domain
-    domainName  = domain.domain
     delegate    = @getDelegate()
 
-    domain.createProxyFilter {filterInfo:{type:filterType, match:filterMatch}}, (err, response)->
-      if err
-        return new KDNotificationView 
-          title : "An error occured while performing your action. Please try again."
-          type  : "top"
-      delegate.emit "newFilterCreated", 
-        domainName  : domainName
-        filterName  : response.Name
-        filterMatch : response.Match
+    KD.remote.api.JProxyFilter.createFilter
+      name  : filterName
+      type  : filterType
+      match : filterMatch
+    , (err, filter)->
+      unless err 
+        delegate.emit "newFilterCreated", {filterName, filterMatch}
+
+      return new KDNotificationView 
+        title : "An error occured while performing your action. Please try again."
+        type  : "top"
+      
 
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
     <div class="fl">
-      <label for="rulename" class="">Rule Name:</label>
-      {{> @ruleNameInput }}
+      <label for="filtername" class="">Filter Name:</label>
+      {{> @filterNameInput }}
     </div>
     <div class="fl">
-      <label for="rule">Rule:</label>
-      {{> @ruleInput }}
+      <label for="filter">Match:</label>
+      {{> @filterInput }}
       {{> @addButton }}
     </div>
     
