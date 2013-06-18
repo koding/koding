@@ -3,7 +3,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
 
   viewAppended:->
 
-    filterFirstController = @setListController
+    filterController = @setListController
       type: "filterme"
       itemClass: ListGroupShowMeItem
     , @filterMenuData
@@ -11,21 +11,25 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     {useNeo4j} = KD.config
 
     if useNeo4j
-      @addSubView filterFirstController.getView()
-      filterFirstController.selectItem filterFirstController.getItemsOrdered()[0]
+      @addSubView filterController.getView()
+      filterController.selectItem filterController.getItemsOrdered()[0]
 
     if useNeo4j
       menudata = @followerMenuData
     else
       menudata = @showMenuData
 
-    filterController = @setListController
+    showMeFilterController = @setListController
       type : "showme"
       itemClass : ListGroupShowMeItem
     , menudata
 
-    @addSubView filterController.getView()
-    filterController.selectItem filterController.getItemsOrdered()[0]
+    KD.getSingleton('mainController').on "AccountChanged", (account)=>
+      filterController.reset()
+      filterController.selectItem filterController.getItemsOrdered()[0]
+
+    @addSubView showMeFilterController.getView()
+    showMeFilterController.selectItem showMeFilterController.getItemsOrdered()[0]
 
     @addSubView helpBox = new HelpBox
       subtitle    : "About Your Activity Feed"
@@ -41,7 +45,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     title: 'FILTER'
     items: [
       {title: "Public",    type: "Public" },
-      {title: "Following", type: "Followed"}
+      {title: "Following", type: "Followed", loggedIn: yes }
     ]
 
   followerMenuData :
@@ -65,7 +69,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Code Snippets",    type : "CCodeSnipActivity" }
         { title : "Discussions",      type : "CDiscussionActivity" }
         { title : "Tutorials",        type : "CTutorialActivity" }
-        { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
+        # { title : "Links",            type : "CLinkActivity", disabledForBeta : yes }
         # { title : "Code Shares",      type : "codeshare", disabledForBeta : yes }
         # { title : "Commits",          type : "commit", disabledForBeta : yes }
         # { title : "Projects",         type : "newproject", disabledForBeta : yes }
