@@ -311,7 +311,6 @@ task 'persistence',(options)->
 
 
 task 'osKite',({configFile})->
-  return 
   processes.spawn
     name  : 'osKite'
     cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
