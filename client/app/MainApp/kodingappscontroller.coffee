@@ -29,6 +29,12 @@ class KodingAppsController extends KDController
     @manifests      = KodingAppsController.manifests
     @getPublishedApps()
 
+    @createExtensionToAppMap()
+    @fetchUserDefaultAppConfig()
+
+    @on "UpdateDefaultAppConfig", (extension, appName) =>
+      @updateDefaultAppConfig extension, appName
+
     mainController.on "accountChanged.to.loggedIn", @bound "getPublishedApps"
 
   getAppPath:(manifest, escaped=no)->
@@ -671,6 +677,34 @@ class KodingAppsController extends KDController
         "Close" :
           style      : "modal-cancel"
           callback   : => modal.destroy()
+
+  createExtensionToAppMap: ->
+    @extensionToApp = map = {}
+    @fetchApps (err, res) =>
+      for key, app of res
+        fileTypes = app.fileTypes
+        if fileTypes
+          for type in fileTypes
+            map[type] = [] unless map[type]
+            map[type].push app.name
+
+      # Still there should be a more elagant way to add ace file types into map.
+      for type in KD.getAppOptions("Ace").fileTypes
+        map[type] = [] unless map[type]
+        map[type].push "Ace"
+
+  fetchUserDefaultAppConfig: ->
+    @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
+    @appConfigStorage.fetchStorage (storage) =>
+      settings = @appConfigStorage.getValue "settings"
+      for extension, appName of settings
+        @appManager.defaultApps[extension] = appName
+
+  updateDefaultAppConfig: (extension, appName) ->
+    {defaultApps} = @appManager
+    defaultApps[extension] = appName
+    @appConfigStorage.setValue "settings", defaultApps
+
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()

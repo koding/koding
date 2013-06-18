@@ -129,6 +129,10 @@ class ApplicationManager extends KDObject
 
       else do defaultCallback
 
+  openFileWithApplication: (appName, file) ->
+    @open appName, =>
+      @utils.defer => @getFrontApp().openFile file
+
   fetchManifests:(appName, callback)->
 
     KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
@@ -146,7 +150,11 @@ class ApplicationManager extends KDObject
 
   openFile:(file)->
 
-    type = FSItem.getFileType file.getExtension()
+    extension  = file.getExtension()
+    type       = FSItem.getFileType extension
+    defaultApp = @defaultApps[extension]
+
+    return @openFileWithApplication defaultApp, file  if defaultApp
 
     switch type
       when 'code','text','unknown'
@@ -333,14 +341,7 @@ class ApplicationManager extends KDObject
       else optionSet.lastActiveIndex = index
 
 
-
-
-
   # setGroup:-> console.log 'setGroup', arguments
-
-  # openFileWithApplication:(file, appPath)->
-  #   @open appPath, no, (app)->
-  #     app.openFile file
 
   # temp
   notification = null
