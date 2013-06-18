@@ -161,6 +161,10 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JDomain'
 
+      proxyFilter   :
+        as          : 'owner'
+        targetType  : 'JProxyFilter'
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
@@ -976,10 +980,9 @@ module.exports = class JAccount extends jraphical.Module
       sourceId  : @getId()
       sourceName: "JAccount"
     , (err, rels)->
-      console.log err, rels
-      callback err if err
+      return callback err if err
       
-      JDomain.all {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
+      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
         callback err, domains
 
   fetchDomains$: permit
