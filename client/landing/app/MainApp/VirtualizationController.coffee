@@ -111,7 +111,7 @@ class VirtualizationController extends KDController
         KD.getSingleton("finderController").mountVm vm.name
         vmController.emit 'VMListChanged'
         vmController.showVMDetails vm
-        
+
     defaultVMOptions = {planCode}
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
@@ -173,11 +173,26 @@ class VirtualizationController extends KDController
       else vmController.createPaidVM()
 
   showVMDetails: (vm)->
-    content = "Name: #{vm.name}"
+    vmName = vm.name
+    url    = "https://#{vm.hostnameAlias.first}"
+
+    content = """
+                <div class="item">
+                  <span class="title">Name:</span>
+                  <span class="value">#{vmName}</span>
+                </div>
+                <div class="item">
+                  <span class="title">Hostname:</span>
+                  <span class="value">
+                    <a target="_new" href="#{url}">#{url}</a>
+                  </span>
+                </div>
+              """
 
     modal           = new KDModalView
-      title         : "VM Details"
+      title         : "Your VM is ready"
       content       : "<div class='modalformline'>#{content}</div>"
+      cssClass      : "vm-details-modal"
       overlay       : yes
       buttons       :
         OK          :
