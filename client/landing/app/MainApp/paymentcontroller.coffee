@@ -253,8 +253,6 @@ class PaymentController extends KDController
         return new KDNotificationView
           title : "There is an error in payment backend, please try again later."
       if status
-        new KDNotificationView
-          title : "You already have an active subscription for that VM, you'll not be charged."
         vmController.createGroupVM type, planCode, vmCreateCallback
         callback()
       else
