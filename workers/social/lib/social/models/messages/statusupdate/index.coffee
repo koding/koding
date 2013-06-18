@@ -12,7 +12,6 @@ module.exports = class JStatusUpdate extends JPost
 
   schema = extend {}, JPost.schema, {
     link :
-      link_cache : Array
       link_url   : String
       link_embed : Object
   }
@@ -40,8 +39,6 @@ module.exports = class JStatusUpdate extends JPost
   @getActivityType =-> require './statusactivity'
 
   @fetchDataFromEmbedly = (url, options, callback)->
-    {log}      = console
-    util       = require "util"
     {Api}      = require "embedly"
 
     embedly = new Api
@@ -65,11 +62,10 @@ module.exports = class JStatusUpdate extends JPost
 
     if data.link_url and data.link_embed
       statusUpdate.link =
-        link_cache : data.link_cache
         link_url   : data.link_url
         link_embed : data.link_embed
 
-    JPost.create.call @, client, statusUpdate, callback
+    JPost.create.call this, client, statusUpdate, callback
 
   modify: secure (client, data, callback)->
     statusUpdate =
@@ -78,14 +74,13 @@ module.exports = class JStatusUpdate extends JPost
       body        : data.body
 
     if data.link_url and data.link_embed
-      statusUpdate.link         =
-        link_cache : data.link_cache
+      statusUpdate.link =
         link_url   : data.link_url
         link_embed : data.link_embed
 
-    JPost::modify.call @, client, statusUpdate, callback
+    JPost::modify.call this, client, statusUpdate, callback
 
   reply: permit 'reply to posts',
     success:(client, comment, callback)->
       JComment = require '../comment'
-      JPost::reply.call @, client, JComment, comment, callback
+      JPost::reply.call this, client, JComment, comment, callback

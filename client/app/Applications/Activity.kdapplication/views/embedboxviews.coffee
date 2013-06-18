@@ -50,8 +50,8 @@ class EmbedBoxLinksView extends KDView
     super options,data
 
     @linkList = new KDListView
-      cssClass : 'embed-link-list layout-wrapper'
-      delegate :@
+      cssClass  : 'embed-link-list layout-wrapper'
+      delegate  : this
       itemClass : EmbedBoxLinksViewItem
     ,{}
 
@@ -70,7 +70,7 @@ class EmbedBoxLinksView extends KDView
     currentLinks = (item.data.url for item in @linkList.items)
     newLinks     = _.difference links, currentLinks
     isAllNew     = newLinks.length is links.length
-    
+
     @clearLinks()                    if isAllNew
     @linkList.addItem url : link     for link in newLinks
     @linkList.items[0].makeActive()  if isAllNew
@@ -89,18 +89,18 @@ class EmbedBoxLinkView extends KDView
 
     @embedImage = new EmbedBoxLinkViewImage
       cssClass : 'preview_image'
-      delegate : @
+      delegate : this
     ,data
 
     @embedText = new EmbedBoxLinkViewText
       cssClass  : 'preview_text'
       hasConfig : data.link_options.hasConfig or no
-      delegate  : @
+      delegate  : this
     ,data
 
     @embedImageSwitch = new EmbedBoxLinkViewImageSwitch
       cssClass : 'preview_link_pager'
-      delegate : @
+      delegate : this
     ,data
 
   render:->
@@ -268,12 +268,8 @@ class EmbedBoxLinkViewImage extends KDView
     super options, data
 
     oembed = @getData().link_embed
-
-    @hide()  unless oembed?.images?.length > 1
-
     @imageLink    = @utils.proxifyUrl(oembed.images?[0]?.url) or\
                     'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==' # hardcode a default
-
     altSuffix     = if oembed.author_name then " by #{oembed.author_name}" else ''
     @imageAltText = oembed.title + altSuffix
 
@@ -419,7 +415,7 @@ class EmbedBoxLinkViewDescription extends KDView
 
     oembed = data.link_embed
 
-    @hide()  if oembed?.description? or oembed?.description.trim() is ''
+    @hide()  unless oembed?.description? or oembed?.description.trim() isnt ''
 
     @originalDescription = oembed?.description
 

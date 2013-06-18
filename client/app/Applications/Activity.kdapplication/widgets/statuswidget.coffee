@@ -162,7 +162,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       setTimeout =>
         firstUrl = @largeInput.getValue().match /([a-zA-Z]+\:\/\/)?(\w+:\w+@)?[a-zA-Z\d\.-]+\.([a-zA-Z]{2,4}(:\d+)?)([\/\?]\S*)?\b/g
         return @requestEmbedLock = off  unless firstUrl
-        
+
         @initialRequest = no
         @embedBox.embedLinks.setLinks firstUrl
         @embedBox.show()

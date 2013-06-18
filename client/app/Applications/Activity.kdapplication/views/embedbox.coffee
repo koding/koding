@@ -1,6 +1,6 @@
 ###
   Expected data structure:
-    
+
     link :
       link_url                : String
       link_embed              : Object (oembed structure)
@@ -27,9 +27,7 @@ class EmbedBox extends KDView
         iconOnly    : yes
         iconClass   : 'hide'
         title       : 'hide'
-        callback    :=>
-          @addEmbedHiddenItem 'embed'
-          @refreshEmbed()
+        callback    : @bound 'resetEmbedAndHide'
     else
       @settingsButton = new KDView
 
@@ -52,7 +50,7 @@ class EmbedBox extends KDView
 
     @embedLinks = new EmbedBoxLinksView
       cssClass : 'embed-links-container'
-      delegate : @
+      delegate : this
     @embedLinks.hide()
 
     @embedContainer = new KDView options, data
@@ -91,6 +89,8 @@ class EmbedBox extends KDView
     @imageIndex = 0
 
   getDataForSubmit:->
+    return {}  if _.isEmpty @oembed
+
     data             = @oembed
     embedText        = @embedContainer.embedText
     data.title       = embedText?.embedTitle?.titleInput?.getValue() or ''
@@ -102,12 +102,25 @@ class EmbedBox extends KDView
     unless data.original_description?
       data.original_description = embedText?.embedDescription?.getOriginalValue() or ''
 
-    data
+    # remove unneded data
+    delete data.original_url
+    delete data.favicon_url
+    delete data.place
+    delete data.embeds
+    delete data.cache_age
+    delete data.event
+
+    for image, i in data.images
+      delete data.images[i]  if i isnt @imageIndex
+    @imageIndex = 0
+
+    return data
 
   getRichEmbedWhitelist:-> [] # add provider name here if we dont want to embed
 
   populateEmbed:(data={}, options={})->
-    console.log data
+    return  unless data
+
     @oembed = data
     @url    = data.url
 
@@ -125,6 +138,7 @@ class EmbedBox extends KDView
         else               containerClass = EmbedBoxLinkView
 
       @embedContainer.destroy()
+      @embedLinks.hide()
       @embedContainer = new containerClass embedOptions, data
       @embedContainer.show()
       @addSubView @embedContainer
@@ -132,7 +146,7 @@ class EmbedBox extends KDView
 
     # embedly uses the https://developers.google.com/safe-browsing/ API
     # to stop phishing/malware sites from being embedded
-    if data?.safe? and data?.safe is yes
+    if data.safe? and (data.safe is yes or data.safe is 'true')
 
       # types should be covered, but if the embed call fails partly, default to link
       type = data.object?.type or 'link'
@@ -141,7 +155,6 @@ class EmbedBox extends KDView
         link_embed   : data
         link_url     : data.url
         link_options : _.extend {}, options, @options
-        link_cached  : @cache
 
       switch type
         when 'audio', 'xml', 'json', 'ppt', 'rss', 'atom'
@@ -160,12 +173,12 @@ class EmbedBox extends KDView
           # Unless the provider is whitelisted by us, we will not allow the custom HTML
           # that embedly provides to be displayed, rather use our own small box
           # that shows a  thumbnail, some info about the author and a desc.
-          if data?.provider_name in @getRichEmbedWhitelist()
+          if data.provider_name in @getRichEmbedWhitelist()
             displayEmbedType 'object', populateData
 
           # the original type needs to be HTML, else it would be a link to a specific
           # file on the web. they can always link to it, it just will not be embedded
-          else if data?.type in ['html', 'xml', 'text', 'video']
+          else if data.type in ['html', 'xml', 'text', 'video']
             unless @options.forceType? and options.forceType?
               displayEmbedType 'link', populateData
             else
@@ -177,7 +190,7 @@ class EmbedBox extends KDView
 
         # embedly supports many error types. we could display those to the user
         when 'error'
-          log 'Embedding error ', data?.error_type, data?.error_message
+          log 'Embedding error ', data.error_type, data?.error_message
           return 'There was an error'
         else
           log "EmbedBox encountered an unhandled content type '#{type}' - please implement a population method."
@@ -186,12 +199,18 @@ class EmbedBox extends KDView
 
     # In the case of unsafe data (most likely phishing), this should be used
     # to log the user, the url and other data to our admins.
-    else if data?.safe is no
-      log 'There was unsafe content.',data,data?.safe_type,data?.safe_message
+    else if data.safe is no
+      log 'There was unsafe content.', data, data?.safe_type, data?.safe_message
       @hide()
     else
-      log 'EmbedBox encountered an Error!',data?.error_type,data?.error_message
+      log 'EmbedBox encountered an error!', data?.error_type, data?.error_message
       @hide()
+
+  setActiveLink:(url)->
+    for item,i in @cache
+      for link,j in @embedLinks.linkList.items
+        if link.getData().url is url
+          link.makeActive()
 
   embedExistingData:(data={}, options={}, callback=noop)->
     unless data.type is 'error'

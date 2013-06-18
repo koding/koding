@@ -32,7 +32,6 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
         $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
       element
 
-
   viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
