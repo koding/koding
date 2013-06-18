@@ -114,21 +114,18 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 		}
 
 		vmAddr := vm.IP.String()
-		/*
-			vmAddr := vm.IP.String()
-			if !hasPort(vmAddr) {
-				vmAddr = addPort(vmAddr, "80")
-			}
+		if !hasPort(vmAddr) {
+			vmAddr = addPort(vmAddr, "80")
+		}
 
-			err := checkServer(vmAddr)
+		err := checkServer(vmAddr)
+		if err != nil {
+			buf, err := executeTemplate("notactiveVM.html", hostname)
 			if err != nil {
-				buf, err := executeTemplate("notactiveVM.html", hostname)
-				if err != nil {
-					return nil, err
-				}
-				return buf, errors.New("vm is down")
+				return nil, err
 			}
-		*/
+			return buf, errors.New("vm is down")
+		}
 
 		u.Target, err = url.Parse("http://" + vmAddr)
 		if err != nil {
