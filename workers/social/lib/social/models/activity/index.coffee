@@ -347,7 +347,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
       query = [
         "start koding=node:koding(id='#{userId}')"
-        'MATCH koding<-[:follower]-myfollowees-[:author]->items'
+        'MATCH koding<-[:follower]-myfollowees-[:author]-items'
         'where myfollowees.name="JAccount"'
         'AND items.group = "' + groupName + '"'
       ]
