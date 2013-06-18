@@ -124,7 +124,7 @@ module.exports = class Graph
         collectRelations = race (i, res, fin)=>
           id = res.id
 
-          @fecthRelatedItems id, (err, relatedResult)=>
+          @fetchRelatedItems id, (err, relatedResult)=>
             if err
               callback err
               fin()
@@ -143,12 +143,12 @@ module.exports = class Graph
             tempRes.push objected
             collectRelations objected
 
-  fecthRelatedItems:(itemId, callback)->
+  fetchRelatedItems:(itemId, callback)->
     query = """
       start koding=node:koding("id:#{itemId}")
       match koding-[r]-all
       return all, r
-      order by koding.`meta.createdAtEpoch` DESC
+      order by r.createdAtEpoch DESC
     """
 
     @db.query query, {}, (err, results) ->
@@ -167,7 +167,6 @@ module.exports = class Graph
           if not respond[type] then respond[type] = []
           respond[type].push obj
         callback err, respond
-
 
   fetchNewInstalledApps:(group, startDate, callback)->
     {groupId} = group
