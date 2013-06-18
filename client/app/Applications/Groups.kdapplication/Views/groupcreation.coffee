@@ -45,19 +45,20 @@ class GroupCreationModal extends KDModalView
   viewAppended:->
 
     @addSubView @typeSelector = new KDFormViewWithFields
-      cssClass      : "type-selector"
-      fields        :
-        label       :
-          itemClass : KDCustomHTMLView
-          tagName   : 'h2'
-          cssClass  : 'heading'
-          partial   : "<span>1</span> What will be this group for?"
-        selector    :
-          name      : "type"
-          itemClass : GroupCreationSelector
-          cssClass  : "group-type"
-          radios    : GROUP_TYPES
-          change    : =>
+      cssClass         : "type-selector"
+      fields           :
+        label          :
+          itemClass    : KDCustomHTMLView
+          tagName      : 'h2'
+          cssClass     : 'heading'
+          partial      : "<span>1</span> What will be this group for?"
+        selector       :
+          name         : "type"
+          itemClass    : GroupCreationSelector
+          cssClass     : "group-type"
+          defaultValue : "project"
+          radios       : GROUP_TYPES
+          change       : =>
             @ready =>
               typeSelector = @typeSelector.inputs.selector
               # hostSelector = @hostSelector.inputs.selector

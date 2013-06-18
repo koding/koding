@@ -253,17 +253,19 @@ class AdminModal extends KDModalViewWithForms
                       duration: 300
                       type    : 'restart'
                     'reload'  :
-                      title   : 'Koding was updated. Please refresh!'
+                      title   : 'Koding is updated. Please refresh!'
                       content : 'Please refresh your browser to be able to use the newest features of Koding.'
                       duration: 10
                       type    : 'reload'
 
                   {inputs, buttons} = @modalTabs.forms["Broadcast Message"]
-                  preset = inputs.Presets.getValue()
-                  inputs['Title'].setValue msgMap[preset].title
-                  inputs['Description'].setValue msgMap[preset].content
-                  inputs['Duration'].setValue msgMap[preset].duration
-                  inputs['Type'].setValue msgMap[preset].type
+                  {title, content, duration, type} = msgMap[inputs.Presets.getValue()]
+
+                  inputs.Title.setValue       title
+                  inputs.Description.setValue content
+                  inputs.Duration.setValue    duration
+                  inputs.Type.setValue        type
+
               Title           :
                 label         : "Message Title"
                 type          : "text"

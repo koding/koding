@@ -28,12 +28,12 @@ func GetFilters(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetFilter(writer http.ResponseWriter, req *http.Request) {
+func GetFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	match := vars["match"]
 	fmt.Printf("GET\t/filters/%s\n", match)
 
-	res, err := proxyDB.GetFilter(match)
+	res, err := proxyDB.GetFilterByField("match", match)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
@@ -49,7 +49,7 @@ func GetFilter(writer http.ResponseWriter, req *http.Request) {
 
 func CreateFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	match := vars["domain"]
+	match := vars["match"]
 	fmt.Printf("POST\t/filters/%s\n", match)
 
 	var msg FiltersPostMessage
@@ -105,7 +105,7 @@ func DeleteFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	match := vars["match"]
 	fmt.Printf("DELETE\t/filters/%s\n", match)
 
-	err := proxyDB.DeleteFilter(match)
+	err := proxyDB.DeleteFilterByField("match", match)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

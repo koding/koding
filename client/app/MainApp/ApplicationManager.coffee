@@ -8,7 +8,7 @@ class ApplicationManager extends KDObject
   ###
 
   * EMITTED EVENTS
-    - AppDidInitiate              [appController, appView, appOptions]
+    - AppCreated                  [appController]
     - AppDidShow                  [appController, appView, appOptions]
     - AppDidQuit                  [appOptions]
     - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
@@ -93,40 +93,39 @@ class ApplicationManager extends KDObject
       # appManager.open back, this method should be divided
       # to some logical parts, and runApp should call the
       # appropriate method rather than ::open.
-      if not appOptions? and not options.requestedFromAppManager?
-        @fetchManifests name, =>
-          options.requestedFromAppManager = yes
+      if not appOptions? and not options.avoidRecursion?
+        return @fetchManifests name, =>
+          options.avoidRecursion = yes
+          @on "AppCreated", (appInstance)->
+            kodingAppsController.putAppResources appInstance
           @open name, options, callback
-        return
-      else if appOptions?.thirdParty and not options.requestedFromAppsController
-        kodingAppsController.runApp (KD.getAppOptions name), callback
-        return
+          delete options.avoidRecursion
 
       appParams = options.params or {}
 
       if appOptions?.multiple
         if options.forceNew or appOptions.openWith is "forceNew"
-          @create name, appParams, (appInstance)=>
+          return @create name, appParams, (appInstance)=>
             @showInstance appInstance, callback
-          return
 
         switch appOptions.openWith
           when "lastActive" then do defaultCallback
-          when "prompt"
-            log "prompting"
-            if @appControllers[name]?.instances.length > 1
-              log "more than one, namely", @appControllers[name].instances.length
-              @createPromptModal appOptions, (appInstanceIndex, openNew)=>
-                if typeof appInstanceIndex is "number"
-                  appInstance = @appControllers[name].instances[appInstanceIndex]
-                  # user selected appInstance to open
-                  @show appInstance, callback
-                else if openNew
-                  # user wants to open a fresh instance
-                  @create name, appParams, callback
-                else
-                  warn "user cancelled app to open"
-            else do defaultCallback
+          when "prompt"     then do defaultCallback
+          # when "prompt"
+          #   log "prompting"
+          #   if @appControllers[name]?.instances.length > 1
+          #     log "more than one, namely", @appControllers[name].instances.length
+          #     @createPromptModal appOptions, (appInstanceIndex, openNew)=>
+          #       if typeof appInstanceIndex is "number"
+          #         appInstance = @appControllers[name].instances[appInstanceIndex]
+          #         # user selected appInstance to open
+          #         @show appInstance, callback
+          #       else if openNew
+          #         # user wants to open a fresh instance
+          #         @create name, appParams, callback
+          #       else
+          #         warn "user cancelled app to open"
+          #  else do defaultCallback
 
       else do defaultCallback
 
@@ -183,7 +182,9 @@ class ApplicationManager extends KDObject
     appOptions            = $.extend {}, true, KD.getAppOptions name
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
-    @utils.defer -> callback? appInstance
+    @utils.defer =>
+      @emit "AppCreated", appInstance
+      callback? appInstance
 
   show:(appOptions, callback)->
 
