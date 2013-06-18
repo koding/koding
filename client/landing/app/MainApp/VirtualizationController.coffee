@@ -341,7 +341,6 @@ class VirtualizationController extends KDController
         buildModal content, callback
       else
         getBalance type, (err, balance)->
-          console.log arguments
           if not err and balance > 0
             charge = (plan.feeMonthly - balance) / 100
             balance = balance / 100
