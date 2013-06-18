@@ -3,21 +3,26 @@ package proxyconfig
 import (
 	"fmt"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
 
 type Filter struct {
-	Id    bson.ObjectId `bson:"_id" json:"-"`
-	Type  string        `bson:"type", json:"type"`
-	Name  string        `bson:"name", json:"name" `
-	Match string        `bson:"match", json:"match"`
+	Id         bson.ObjectId `bson:"_id" json:"-"`
+	Type       string        `bson:"type", json:"type"`
+	Name       string        `bson:"name", json:"name" `
+	Match      string        `bson:"match", json:"match"`
+	CreatedAt  time.Time     `bson:"createdAt", json:"createdAt"`
+	ModifiedAt time.Time     `bson:"modifiedAt", json:"modifiedAt"`
 }
 
 func NewFilter(filtertype, name, match string) *Filter {
 	return &Filter{
-		Id:    bson.NewObjectId(),
-		Type:  filtertype,
-		Name:  name,
-		Match: match,
+		Id:         bson.NewObjectId(),
+		Type:       filtertype,
+		Name:       name,
+		Match:      match,
+		CreatedAt:  time.Now(),
+		ModifiedAt: time.Now(),
 	}
 }
 
@@ -41,18 +46,17 @@ func (p *ProxyConfiguration) AddFilter(r *Filter) (Filter, error) {
 	return filter, nil
 }
 
-// DeleteFilter deletes the document with the given "match" argument.
-func (p *ProxyConfiguration) DeleteFilter(match string) error {
-	err := p.Collection["filter"].Remove(bson.M{"match": match})
+func (p *ProxyConfiguration) DeleteFilterByField(key, value string) error {
+	err := p.Collection["filter"].Remove(bson.M{key: value})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *ProxyConfiguration) GetFilter(match string) (Filter, error) {
+func (p *ProxyConfiguration) GetFilterByField(key, value string) (Filter, error) {
 	filter := Filter{}
-	err := p.Collection["filters"].Find(bson.M{"match": match}).One(&filter)
+	err := p.Collection["filters"].Find(bson.M{key: value}).One(&filter)
 	if err != nil {
 		return Filter{}, err
 	}

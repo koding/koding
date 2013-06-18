@@ -115,16 +115,12 @@ class KDInputView extends KDView
 
     @$().val @getDefaultValue()
 
-  setDefaultValue:(value) ->
-    if @getOption("type") is "checkbox"
-      @getDomElement().attr checked : value
-    else
-      @getDomElement().val value if value isnt ""
-
+  setDefaultValue:(value)->
+    return  if not value? and value isnt ''
+    KDInputView::setValue.call this, value
     @inputDefaultValue = value
 
-  getDefaultValue:->
-    @inputDefaultValue
+  getDefaultValue:-> @inputDefaultValue
 
   setPlaceHolder:(value)->
     if @$().is("input") or @$().is("textarea")
@@ -152,9 +148,9 @@ class KDInputView extends KDView
     return value
 
   setValue:(value)->
-    if @getOption("type") is "checkbox"
-      @getDomElement().attr checked : value
-    else @getDomElement().val(value) if value?
+    if @getOption("type") in ["checkbox", "radio"]
+    then @$()[0].setAttribute "checked", "checked"
+    else @$().val value
 
   _prevVal = null
 

@@ -100,7 +100,7 @@ func main() {
 
 	// Filter handlers
 	rout.HandleFunc("/filters", GetFilters).Methods("GET")
-	rout.HandleFunc("/filters/{match}", GetFilter).Methods("GET")
+	rout.HandleFunc("/filters/{match}", GetFilterByMatch).Methods("GET")
 	rout.HandleFunc("/filters/{match}", CreateFilterByMatch).Methods("POST")
 	rout.HandleFunc("/filters/{match}", DeleteFilterByMatch).Methods("DELETE")
 

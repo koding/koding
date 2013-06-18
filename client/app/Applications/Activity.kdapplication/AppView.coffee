@@ -36,6 +36,7 @@ class ActivityAppView extends KDScrollView
     @header.bindTransitionEnd()
 
     @decorate()
+    # after resolving non-blocking socket problem, change this value to 100
     @setLazyLoader .99
 
     {scrollView} = @feedWrapper.controller
@@ -113,7 +114,6 @@ class ActivityListContainer extends JView
 
     @controller = new ActivityListController
       delegate          : @
-      lazyLoadThreshold : .99
       itemClass         : ActivityListItemView
       # wrapper           : no
       # scrollView        : no

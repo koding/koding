@@ -328,40 +328,34 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			websiteDir := "/home/" + vm.SitesHomeName() + "/Sites/" + vm.Hostname()
-			if _, err := rootVos.Stat(websiteDir); err != nil {
-				if !os.IsNotExist(err) {
-					panic(err)
-				}
+			websiteDir := "/home/" + vm.SitesHomeName() + "/Web"
+			if err := rootVos.Symlink(websiteDir, "/var/www"); err == nil {
+				// symlink successfully created
 
-				websiteVos := rootVos
-				if vm.SitesHomeName() == user.Name {
-					websiteVos = userVos
-				}
-				if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
-					panic(err)
-				}
-				if err := copyIntoVos(templateDir+"/website", websiteDir, websiteVos); err != nil {
-					panic(err)
-				}
-			}
-			if _, err := rootVos.Stat("/etc/apache2"); err == nil {
-				if _, err := rootVos.Stat("/etc/apache2/sites-available/" + vm.Hostname()); err != nil {
+				if _, err := rootVos.Stat(websiteDir); err != nil {
 					if !os.IsNotExist(err) {
 						panic(err)
 					}
+					// Web directory does not yes exist
 
-					file, err := rootVos.Create("/etc/apache2/sites-available/" + vm.Hostname())
-					if err != nil {
-						panic(err)
-					}
-					defer file.Close()
-					if err := virt.Templates.ExecuteTemplate(file, "apache-site", vm); err != nil {
-						panic(err)
+					websiteVos := rootVos
+					if vm.SitesHomeName() == user.Name {
+						websiteVos = userVos
 					}
 
-					if err := rootVos.Symlink("/etc/apache2/sites-available/"+vm.Hostname(), "/etc/apache2/sites-enabled/"+vm.Hostname()); err != nil && !os.IsExist(err) {
-						panic(err)
+					// migration of old Sites directory
+					migrationErr := websiteVos.Rename("/home/"+vm.SitesHomeName()+"/Sites/"+vm.Hostname(), websiteDir)
+					websiteVos.Remove("/home/" + vm.SitesHomeName() + "/Sites")
+					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname())
+
+					if migrationErr != nil {
+						// create fresh Web directory if migration unsuccessful
+						if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
+							panic(err)
+						}
+						if err := copyIntoVos(templateDir+"/website", websiteDir, websiteVos); err != nil {
+							panic(err)
+						}
 					}
 				}
 			}
