@@ -49,7 +49,7 @@ func GetFilter(writer http.ResponseWriter, req *http.Request) {
 
 func CreateFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	match := vars["domain"]
+	match := vars["match"]
 	fmt.Printf("POST\t/filters/%s\n", match)
 
 	var msg FiltersPostMessage
