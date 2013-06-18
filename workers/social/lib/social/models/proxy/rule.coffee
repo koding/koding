@@ -2,7 +2,7 @@ jraphical = require 'jraphical'
 
 module.exports = class JProxyRule extends jraphical.Module
 
-  {secure, ObjectId}  = require 'bongo'
+  {ObjectId} = require 'bongo'
 
   @share()
 
@@ -11,10 +11,7 @@ module.exports = class JProxyRule extends jraphical.Module
 
     sharedMethods   :
       instance      : []
-      static        : ['one', 'all', 'count']
-
-    indexes         :
-      name          : 'unique'
+      static        : ['fetchRulesByDomain', 'fetchRuleByDomainAndMatch']
 
     schema          :
       

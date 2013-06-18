@@ -12,7 +12,7 @@ module.exports = class JDomain extends jraphical.Module
   domainManager     = new DomainManager
   JAccount          = require './account'
   JVM               = require './vm'
-  JProxyRestriction = require './proxy/restriction'
+  JProxyRule        = require './proxy/rule'
 
   @share()
 
@@ -157,15 +157,30 @@ module.exports = class JDomain extends jraphical.Module
         for domain in domains
           return callback null, domain if domain.domain is selector.domainName
 
-  createRestriction: permit
+  createProxyRule: permit
     advanced: [
       { permission: 'edit own domains', validateWith: Validators.own }
     ]
     success: (client, params, callback)->
-      params.domainname = @domain
-      JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+      console.log params
+      JProxyRule.fetchRuleByDomainAndMatch client,
+        domain : params.domain
+        match  : params.match
+      , (err, rule)->
         return callback err if err
+        unless rule
+          rule = new JProxyRule params
+          rule.save (err)->
+            return callback err if err
+        else
+          rule.action = params.action
+          rule.save (err)->
+            return callback err if err
+        callback null, rule
 
+
+
+  ###
   createProxyRule: permit
     advanced: [
       {permission: 'edit own domains', validateWith: Validators.own}
@@ -173,6 +188,7 @@ module.exports = class JDomain extends jraphical.Module
     success: (client, params, callback)->
       params.domainName = @domain
       domainManager.domainService.createProxyRule params, (err, response)-> callback err, response
+  ###
 
   updateProxyRule: permit
     advanced: [

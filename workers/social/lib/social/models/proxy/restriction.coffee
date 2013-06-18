@@ -31,6 +31,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
 
   @fetchRestrictionByDomain: (domainName, callback)->
-    @one {domainname:domainName}, (err, restrictions)->
+    @one {domainname:domainName}, (err, restriction)->
       return callback err if err
-      callback err, restrictions
+      callback err, restriction

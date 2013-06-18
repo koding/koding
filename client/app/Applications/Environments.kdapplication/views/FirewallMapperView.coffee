@@ -38,7 +38,11 @@ class FirewallMapperView extends KDView
           title : notifyMsg
           type  : "top"
 
+      for filter in filters
+        filter.domainName = domain.domain
+
       @filterListController.instantiateListItems filters
+      @filterListController.showLazyLoader()
 
 
     @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
@@ -73,37 +77,6 @@ class FirewallMapperView extends KDView
     @ruleListController.getListView().on "newRuleCreated", (item) => 
       @ruleListController.addItem item
 
-  iniateControllerListItems:(domain, response)->
-    ###
-    ruleKeys         = Object.keys(response.rules)
-    actionKeys       = Object.keys(response.filterList)
-    responseRules    = response.rules
-    responsefilterList = response.filterList
-    filterList         = []
-    ruleList       = []
-
-    for key in ruleKeys
-      filterList.push 
-        domainName : domain.domain
-        ruleName   : responseRules[key].Name
-        match      : responseRules[key].Match
-        type       : responseRules[key].Type
-    
-    for key in actionKeys
-      ruleList.push
-        domainName : domain.domain
-        ruleName   : responsefilterList[key].RuleName
-        action     : responsefilterList[key].Action
-    ###
-
-
-
-
-    @filterListController.instantiateListItems filterList
-    @filterListController.hideLazyLoader()
-    @ruleListController.instantiateListItems ruleList
-    @ruleListController.hideLazyLoader()
-
   updateActionOrders:(domain)->
     for item, index in @ruleListController.itemsOrdered
       data = item.getData()
@@ -126,37 +99,41 @@ class FirewallFilterListItemView extends KDListItemView
 
     @allowButton = new KDButtonView
       title    : "Allow"
-      callback : => @createBehavior 'allow'
+      callback : => @createRule 'allow'
 
     @denyButton = new KDButtonView
       title    : "Deny"
-      callback : => @createBehavior 'deny'
+      callback : => @createRule 'deny'
 
     @deleteButton = new KDButtonView
-      title : "Delete"
-      viewOptions:
-        cssClass : 'delete-button'
+      title       : "Delete"
+      viewOptions :
+        cssClass  : 'delete-button'
+      callback    : => @deleteFilter()
 
   viewAppended:->
     @unsetClass 'kdview'
     @setTemplate @pistachio()
     @template.update()
 
-  createBehavior:(behavior)->
+  createRule:(behavior)->
     data = @getData()
     delegate = @getDelegate()
 
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)->
       return console.log err if err
-      domain.createRuleBehavior
-        ruleName   : data.ruleName
-        behaviorInfo :
-          enabled : "yes"
-          action  : behavior
-          index   : "0"
-      , (err, response)=>
-        if not err
-          delegate.emit "newRuleCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
+      params = 
+        domain    : domain.getId()
+        action    : behavior
+        match     : data.match
+      domain.createProxyRule params, (err, rule)->
+        return console.log err if err
+        delegate.emit "newRuleCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
+
+  deleteFilter:->
+    data = @getData()
+    KD.remote.api.JProxyFilter.remove {_id:data.getId()}, (err)=>
+      unless err then @destroy()
 
   pistachio:->
     """
@@ -287,8 +264,9 @@ class FirewallFilterFormView extends KDCustomHTMLView
       type  : filterType
       match : filterMatch
     , (err, filter)->
+      console.log err, filter
       unless err 
-        delegate.emit "newFilterCreated", {filterName, filterMatch}
+        delegate.emit "newFilterCreated", {name:filterName, match:filterMatch}
 
       return new KDNotificationView 
         title : "An error occured while performing your action. Please try again."

@@ -1,4 +1,5 @@
 jraphical = require 'jraphical'
+KodingError = require '../../error'
 
 module.exports = class JProxyFilter extends jraphical.Module
 
@@ -24,7 +25,7 @@ module.exports = class JProxyFilter extends jraphical.Module
 
     sharedMethods   :
       instance      : []
-      static        : ['one', 'all', 'count', 'createFilter', 'fetchFiltersByContext']
+      static        : ['one', 'all', 'count', 'createFilter', 'fetchFiltersByContext', 'remove']
 
     indexes         :
       name          : 'unique'
@@ -66,6 +67,14 @@ module.exports = class JProxyFilter extends jraphical.Module
       @some {owner:delegate.getId()}, {name:1, match:1},  (err, filters)->
         return callback err if err
         callback err, filters
+
+  @remove$: permit 'delete filters',
+    success: (client, selector, callback)->
+      @remove selector, (err)->
+        console.log err
+        callback err
+
+
 
   
 
