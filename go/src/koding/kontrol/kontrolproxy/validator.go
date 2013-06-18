@@ -52,7 +52,7 @@ func (v *Validator) AddRules() *Validator {
 			continue
 		}
 
-		filter, err := proxyDB.GetFilter(rule.Match)
+		filter, err := proxyDB.GetFilterByField("match", rule.Match)
 		if err != nil {
 			continue // if not found just continue with next rule
 		}

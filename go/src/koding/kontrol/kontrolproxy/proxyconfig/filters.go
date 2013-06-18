@@ -50,9 +50,9 @@ func (p *ProxyConfiguration) DeleteFilter(match string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) GetFilter(match string) (Filter, error) {
+func (p *ProxyConfiguration) GetFilterByField(key, value string) (Filter, error) {
 	filter := Filter{}
-	err := p.Collection["filters"].Find(bson.M{"match": match}).One(&filter)
+	err := p.Collection["filters"].Find(bson.M{key: value}).One(&filter)
 	if err != nil {
 		return Filter{}, err
 	}

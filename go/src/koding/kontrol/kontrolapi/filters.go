@@ -28,12 +28,12 @@ func GetFilters(writer http.ResponseWriter, req *http.Request) {
 	writer.Write([]byte(data))
 }
 
-func GetFilter(writer http.ResponseWriter, req *http.Request) {
+func GetFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	match := vars["match"]
 	fmt.Printf("GET\t/filters/%s\n", match)
 
-	res, err := proxyDB.GetFilter(match)
+	res, err := proxyDB.GetFilterByField("match", match)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
