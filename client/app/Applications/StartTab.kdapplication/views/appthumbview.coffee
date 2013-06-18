@@ -183,7 +183,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
               $(event.target).closest('.dev-mode').length > 0
     manifest = @getData()
     @showLoader()
-    @appsController.runApp manifest, =>
+    KD.getSingleton("appManager").open manifest.name, =>
       @hideLoader()
       KD.track "Apps", "ApplicationRun", manifest.name
 

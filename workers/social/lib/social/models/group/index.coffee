@@ -570,8 +570,12 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
+      console.time('fetch members')
       [selector, options, callback] = Module.limitEdges 100, rest
-      @fetchMembers selector, options, callback
+      # delete options.targetOptions
+      @fetchMembers selector, options, ->
+        console.timeEnd('fetch members')
+        callback arguments...
 
   fetchNewestMembers$: permit 'list members',
     success:(client, rest...)->

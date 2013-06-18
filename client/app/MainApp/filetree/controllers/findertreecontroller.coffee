@@ -371,11 +371,11 @@ class NFinderTreeController extends JTreeViewController
 
     folder = nodeView.getData()
     folder.emit "fs.job.started"
-    kodingAppsController = KD.getSingleton('kodingAppsController')
+    kodingAppsController = KD.getSingleton 'kodingAppsController'
 
     manifest = KodingAppsController.getManifestFromPath folder.path
 
-    kodingAppsController.runApp manifest, =>
+    KD.getSingleton("appManager").open manifest.name, =>
       folder.emit "fs.job.finished"
       callback?()
 

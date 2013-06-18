@@ -280,7 +280,7 @@ module.exports = class CActivity extends jraphical.Capsule
       if err then return callback err
 
       {facets, to, limit} = options
-      limit or= 20
+      limit = 5 #bandage for now
 
       groupId = group._id
       groupName = group.slug
@@ -340,7 +340,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
       {facets, to, limit} = options
-      limit or= 20
+      limit = 5 #bandage for now
 
       groupId = group._id
       groupName = group.slug

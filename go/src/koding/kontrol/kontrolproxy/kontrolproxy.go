@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
@@ -23,7 +24,7 @@ import (
 )
 
 func init() {
-	log.SetPrefix("kontrol-proxy ")
+	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
 type RabbitChannel struct {
@@ -31,13 +32,19 @@ type RabbitChannel struct {
 	Receive chan []byte
 }
 
+var templates = template.Must(template.ParseFiles(
+	"go/templates/proxy/securepage.html",
+	"go/templates/proxy/notfound.html",
+	"go/templates/proxy/notactiveVM.html",
+	"client/maintenance.html",
+))
+
 var proxyDB *proxyconfig.ProxyConfiguration
 var amqpStream *AmqpStream
 var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var templates = template.Must(template.ParseFiles("go/templates/proxy/securepage.html", "client/maintenance.html"))
 var users = make(map[string]time.Time)
 var usersLock sync.RWMutex
 
@@ -86,7 +93,6 @@ func main() {
 
 		addr := sslip + ":" + portssl
 		listener, _, err = goagain.GetEnvs(addr)
-		listeners[addr] = listener
 		if err != nil {
 			laddr, err := net.ResolveTCPAddr("tcp", addr)
 			if nil != err {
@@ -97,19 +103,16 @@ func main() {
 			if nil != err {
 				log.Fatalln(err)
 			}
-
-			listeners[addr] = listener
-
-			listener = tls.NewListener(listener, &tls.Config{
-				NextProtos:   []string{"http/1.1"},
-				Certificates: []tls.Certificate{cert},
-			})
-
-			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-			go http.Serve(listener, reverseProxy)
-		} else {
-			go http.Serve(listener, reverseProxy)
 		}
+
+		listeners[addr] = listener
+		listener = tls.NewListener(listener, &tls.Config{
+			NextProtos:   []string{"http/1.1"},
+			Certificates: []tls.Certificate{cert},
+		})
+
+		log.Printf("https mode is enabled. serving at :%s ...", portssl)
+		go http.Serve(listener, reverseProxy)
 
 	}
 
@@ -117,8 +120,8 @@ func main() {
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	addr := "127.0.0.1:" + port
 	listener, ppid, err = goagain.GetEnvs(addr)
+	log.Printf("normal mode is enabled. serving at :%s ...", port)
 	if err != nil {
-		log.Printf("normal mode is enabled. serving at :%s ...", port)
 		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
 		if nil != err {
 			log.Fatalln(err)
@@ -128,9 +131,19 @@ func main() {
 		if nil != err {
 			log.Fatalln(err)
 		}
-		go http.Serve(listener, reverseProxy)
+		go func() {
+			err := http.Serve(listener, reverseProxy) // resume listening
+			if err != nil {
+				log.Println("normal mode is disabled", err)
+			}
+		}()
 	} else {
-		go http.Serve(listener, reverseProxy) // resume listening
+		go func() {
+			err := http.Serve(listener, reverseProxy) // resume listening
+			if err != nil {
+				log.Println("normal mode is disabled", err)
+			}
+		}()
 
 		// Kill the parent, now that the child has started successfully.
 		if err := goagain.KillParent(ppid); nil != err {
@@ -224,27 +237,33 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq := new(http.Request)
 	*outreq = *req // includes shallow copies of maps, but okay
 
-	user, err := populateUser(outreq)
+	user, buf, err := populateUser(outreq)
 	if err != nil {
-		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
-		http.Error(rw, "error contacting backend server.", http.StatusInternalServerError)
+		rw.WriteHeader(http.StatusNotFound)
+		log.Printf("parsing incoming request %s: %s", outreq.Host, err.Error())
+		if buf != nil { // if any pre rendered html is available, use that for error displaying
+			p.copyResponse(rw, buf)
+		} else {
+			buf, err := executeTemplate("notfound.html", outreq.Host)
+			if err != nil {
+				log.Println("error executing template", err.Error())
+				return
+			}
+			p.copyResponse(rw, buf)
+		}
 		return
 	}
 
 	target := user.Target
 
 	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
-	if user.Redirect {
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
-		return
-	}
 
 	switch user.Domain.Proxy.Mode {
 	case "maintenance":
-		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-		}
+		p.copyResponse(rw, buf)
+		return
+	case "redirect":
+		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -501,10 +520,20 @@ func addPort(host, port string) string {
 
 // Check if a server is alive or not
 func checkServer(host string) error {
-	c, err := net.Dial("tcp", host)
+	c, err := net.DialTimeout("tcp", host, time.Second*5)
 	if err != nil {
 		return err
 	}
 	c.Close()
 	return nil
+}
+
+func executeTemplate(filename string, data interface{}) (io.Reader, error) {
+	buf := new(bytes.Buffer)
+	err := templates.ExecuteTemplate(buf, filename, data)
+	if err != nil {
+		return buf, err
+	}
+
+	return buf, nil
 }
