@@ -12,10 +12,16 @@
      "/home/USERNAME/Web"
 
      every file under that location can be viewed with URL
-     "http://USERNAME.kd.io"
+     "http(s)://USERNAME.kd.io"
 
      e.g. /home/USERNAME/Web/1.txt
      is at http://USERNAME.kd.io/1.txt
+
+   - If you have multiple VM's you can reassign which one is accessable
+     via "http(s)://USERNAME.kd.io" by right clicking the VM and choosing 
+     "Set as default"
+
+   - All VM's are accessable at "http(s)://VMNAME.USERNAME.kd.io"
 
    - Double-click on a file to open it within your editor.
 
@@ -33,6 +39,15 @@
 
    - Try opening one of the default files provided in your
      "Web" folder!
+
+   - Your VM's are full Ubuntu servers with root access, to access
+     root use "sudo su -".
+
+   - You can install any software from the apt repositories using 
+     "apt-get install <package name>".
+
+   - By default apache runs on your VM, this can be replaced with any
+     other httpd of your choice.
 
    - Feel free to write any questions, comments, or issues as a
      Status Update in your Activity Feed.
@@ -59,5 +74,5 @@
 '---'                    `----'     ---`-'                  \   \  /
                                                              `--`-'
 
-                                 2012
+                                 2013
 ---------------------------------------------------------------------
