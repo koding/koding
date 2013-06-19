@@ -82,6 +82,11 @@ class ResourcesListItem extends KDListItemView
       attributes:
         title  : "#{vmName}"
 
+    @vm.fetchVMDomains vmName, (err, domains)=>
+      unless err and domains.length > 0
+        @vmInfo.updatePartial "#{domains.first}"
+        @vmInfo.setDomAttributes title : "#{domains.first}"
+
     @addSubView @vmDesc = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'vm-desc'
