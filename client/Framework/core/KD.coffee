@@ -128,30 +128,45 @@ catch e
 
   registerAppClass:(fn, options = {})->
 
-    {name} = options
+    return error "AppClass is missing a name!"  unless options.name
 
-    return error "AppClass is missing a name!"  unless name
-
-    if KD.appClasses[name]
-      return warn "AppClass #{name} is already registered or the name is already taken!"
+    if KD.appClasses[options.name]
+      return warn "AppClass #{options.name} is already registered or the name is already taken!"
 
     options.multiple      ?= no           # a Boolean
     options.background    ?= no           # a Boolean
     options.hiddenHandle  ?= no           # a Boolean
-    options.route        or= ""           # a String
     options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
-    options.menu         or= null         # {Array.<Object{{title: string, eventName: string, shortcut: string}}>}
+    options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
+
+    options.route        or= {}           # <string> or <Object{slug: string, handler: function}>
+
+    slug                   = if "string" is typeof options.route then options.route else options.route.slug
+    options.route          =
+      slug                 : slug or '/'
+      handler              : options.route.handler or null
+
+    if options.route.slug isnt '/'
+
+      {route}         = options
+      {slug, handler} = route
+
+      cb = (router)->
+        handler or= ({params:{name}, query})->
+          router.openSection options.name, name, query
+        router.addRoute slug, handler
+
+      if router = KD.getSingleton('router')
+      then do -> cb router
+      else KodingRouter.on 'RouterReady', do -> cb
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes
       enumerable    : yes
       writable      : no
-      value         : {
-        fn
-        options
-      }
+      value         : { fn, options }
 
   unregisterAppClass :(name)-> delete KD.appClasses[name]
 
@@ -169,8 +184,7 @@ catch e
 
   getAllKDInstances  :-> KD.instances
 
-  getKDViewInstanceFromDomElement:(domElement)->
-    @instances[$(domElement).data("data-id")]
+  getKDViewInstanceFromDomElement:(el)-> @instances[el.getAttribute "data-id"]
 
   enableLogs:do->
     oldConsole = window.console
