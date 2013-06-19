@@ -100,8 +100,8 @@ func main() {
 
 	// Filter handlers
 	rout.HandleFunc("/filters", GetFilters).Methods("GET")
+	rout.HandleFunc("/filters", CreateFilterByMatch).Methods("POST")
 	rout.HandleFunc("/filters/{match}", GetFilterByMatch).Methods("GET")
-	rout.HandleFunc("/filters/{match}", CreateFilterByMatch).Methods("POST")
 	rout.HandleFunc("/filters/{match}", DeleteFilterByMatch).Methods("DELETE")
 
 	// Statistics handlers
@@ -111,9 +111,6 @@ func main() {
 	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
 	rout.HandleFunc("/stats/proxies/{proxy}", GetProxyStat).Methods("GET")
 	rout.HandleFunc("/stats/proxies/{proxy}", DeleteProxyStat).Methods("DELETE")
-
-	// Rollbar api
-	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
 
 	log.Printf("kontrol api is started. serving at :%s ...", port)
 

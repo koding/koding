@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
 
 type Rule struct {
@@ -21,6 +22,8 @@ type Restriction struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
 	DomainName string        `bson:"domainname" json:"domainname"`
 	RuleList   []Rule        `bson:"rulelist", json:"rulelist"`
+	CreatedAt  time.Time     `bson:"createdAt", json:"createdAt"`
+	ModifiedAt time.Time     `bson:"modifiedAt", json:"modifiedAt"`
 }
 
 func NewRule(enabled bool, action, match string) *Rule {
@@ -36,6 +39,8 @@ func NewRestriction(domainname string) *Restriction {
 		Id:         bson.NewObjectId(),
 		DomainName: domainname,
 		RuleList:   make([]Rule, 0),
+		CreatedAt:  time.Now(),
+		ModifiedAt: time.Now(),
 	}
 }
 
@@ -52,7 +57,7 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, m
 	_, err = p.GetFilterByField("match", match)
 	if err != nil {
 		if err == mgo.ErrNotFound {
-			return rule, fmt.Errorf("rule match '%s' does not exist. not allowed.", match)
+			return rule, fmt.Errorf("rule match '%s' does not exist. you have to create a filter that contains the match '%s'.", match, match)
 		}
 
 	}
@@ -61,13 +66,14 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, m
 	case "add":
 		for _, b := range restriction.RuleList {
 			if b.Match == match {
-				return rule, fmt.Errorf("rule for rule match '%s' does exist already. not allowed.", match)
+				return rule, fmt.Errorf("rule match '%s' does exist already. not allowed.", match)
 			}
 		}
 
 		rule = *NewRule(enabled, action, match)
 		ruleList := insertRule(restriction.RuleList, rule, index)
 		restriction.RuleList = ruleList
+		restriction.ModifiedAt = time.Now()
 	case "update":
 		foundRule := false
 		for i, b := range restriction.RuleList {
@@ -77,11 +83,12 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, m
 				ruleList := deleteRule(restriction.RuleList, i)
 				ruleList = insertRule(ruleList, rule, index)
 				restriction.RuleList = ruleList
+				restriction.ModifiedAt = time.Now()
 				break
 			}
 		}
 		if !foundRule {
-			return rule, fmt.Errorf("rule for rule match '%s' does not exist.", match)
+			return rule, fmt.Errorf("rule match '%s' does not exist. you have to create it before you can update any rule", match)
 		}
 	case "default":
 		return rule, fmt.Errorf("mode is not valid: '%s'.", mode)

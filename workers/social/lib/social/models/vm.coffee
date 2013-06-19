@@ -26,7 +26,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData'
+                           'removeByName', 'someData', 'fetchDomains'
                           ]
       instance          : []
     schema              :
@@ -40,8 +40,6 @@ module.exports = class JVM extends Model
       hostnameAlias     : [String]
       planOwner         : String
       planCode          : String
-      expensedUser      : String
-      expensed          : Boolean
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -74,7 +72,7 @@ module.exports = class JVM extends Model
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
-    if type is 'user' or type is 'expensed'
+    if type is 'user'
       aliases = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
@@ -94,13 +92,13 @@ module.exports = class JVM extends Model
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode, expensed}, callback)->
+  @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
       account.fetchUser (err, user)=>
         return callback err  if err
-        if type is 'user' or type is 'expensed'
+        if type is 'user'
           name = "#{groupSlug}~#{user.username}~"
         else
           name = "#{groupSlug}~"
@@ -111,14 +109,10 @@ module.exports = class JVM extends Model
           offset      : 0
         }
 
-        if type is 'group' or type is 'expensed'
+        if type is 'group'
           planOwner = "group_#{group._id}"
         else
           planOwner = "user_#{account._id}"
-
-        expensedUser = ""
-        if expensed
-          expensedUser = "user_#{account._id}"
 
         nameFactory.next (err, uid)=>
           return callback err  if err
@@ -136,8 +130,6 @@ module.exports = class JVM extends Model
             planOwner   : planOwner
             users       : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups      : [{ id: group.getId() }]
-            expensed    : expensed
-            expensedUser: expensedUser
             hostnameAlias
             usage
           }
@@ -228,6 +220,21 @@ module.exports = class JVM extends Model
     #   @fetchDefaultVmByContext client, (err, vm)->
     #     return callback err  if err
     #     callback null, [vm]
+
+  @fetchDomains = permit 'list all vms',
+    success:(client, vmName, callback)->
+      {delegate} = client.connection
+
+      delegate.fetchUser (err, user) ->
+        return callback err  if err
+
+        selector =
+          name   : vmName
+          users  : { $elemMatch: id: user.getId(), owner: yes }
+
+        JVM.one selector, {hostnameAlias:1}, (err, vm)->
+          return callback err, []  if err or not vm
+          callback null, vm.hostnameAlias or []
 
   @removeByName = permit 'delete vms',
     success:(client, vmName, callback)->

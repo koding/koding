@@ -28,7 +28,6 @@ func startRouting() {
 	streams := make(map[string]<-chan amqp.Delivery)
 
 	bindings := []bind{ // redeclaring the same exchange is OK, we are doing it once
-		bind{"cli", "kontrol-cli", "input.cli", "infoExchange", "topic"},
 		bind{"api", "kontrol-api", "input.api", "infoExchange", "topic"},
 		bind{"worker", "kontrol-worker", "input.worker", "workerExchange", "topic"},
 		bind{"client", "kontrol-client", "", "clientExchange", "fanout"},
@@ -49,10 +48,8 @@ func startRouting() {
 	log.Println("kontrold started")
 	for {
 		select {
-		case d := <-streams["cli"]:
-			handler.HandleApiMessage(d.Body, d.AppId)
 		case d := <-streams["api"]:
-			handler.HandleApiMessage(d.Body, "")
+			handler.HandleApiMessage(d.Body)
 		case d := <-streams["worker"]:
 			handler.HandleWorkerMessage(d.Body)
 		case d := <-streams["client"]:

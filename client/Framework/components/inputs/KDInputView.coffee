@@ -72,14 +72,15 @@ class KDInputView extends KDView
       when "range"    then $ "<input #{name} type='range' class='kdinput range #{cssClass}'/>"
       else                 $ "<input #{name} type='#{@getType()}' class='kdinput #{@getType()} #{cssClass}'/>"
 
-  setLabel:(label = @options.label)->
+  setLabel:(label = @getOptions().label)->
 
-    return no unless @options.label?
+    return  unless label
+
     @inputLabel = label
-    @inputLabel.getDomElement().attr "for", @getName()
-    @inputLabel.getDomElement().bind "click",()=>
-      @getDomElement().trigger "focus"
-      @getDomElement().trigger "click"
+    @inputLabel.$()[0].setAttribute "for", @getName()
+    @inputLabel.$().bind "click",()=>
+      @$().trigger "focus"
+      @$().trigger "click"
 
   getLabel:-> @inputLabel
 
@@ -148,12 +149,13 @@ class KDInputView extends KDView
     return value
 
   setValue:(value)->
+    $  = @$()
+    el = $[0]
     if @getOption("type") in ["checkbox", "radio"]
       if value
-        @$()[0].setAttribute "checked", "checked"
-      else
-        @$()[0].removeAttribute "checked"
-    else @$().val value
+      then el.setAttribute "checked", "checked"
+      else el.removeAttribute "checked"
+    else $.val value
 
   _prevVal = null
 

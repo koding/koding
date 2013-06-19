@@ -5,61 +5,33 @@ class AceAppController extends AppController
     multiple      : yes
     hiddenHandle  : no
     openWith      : "lastActive"
-    route         : "/Develop"
+    route         :
+      slug        : "/:name?/Develop/Ace"
+      handler     : ({params:{name}, query})->
+        router = KD.getSingleton 'router'
+        warn "ace handling itself", name, query, arguments
+        router.openSection "Ace", name, query
     behavior      : "application"
     menu          : [
-      {
-        title     : "Save"
-        eventName : "save"
-      }
-      {
-        title     : "Save As"
-        eventName : "saveAs"
-      }
-      {
-        type      : "separator"
-      }
-      {
-        title     : "Find"
-        eventName : "find"
-      }
-      {
-        title     : "Find and Replace"
-        eventName : "findAndReplace"
-      }
-      {
-        type      : "separator"
-      }
-      {
-        title     : "Compile and Run"
-        eventName : "compileAndRun"
-      }
-      {
-        type      : "separator"
-      }
-      {
-        title     : "Preview"
-        eventName : "preview"
-      }
-      {
-        type      : "separator"
-      }
-      {
-        title     : "Recently Opened"
-        eventName : "recents"
-        closeMenuWhenClicked: no
-      }
-      {
-        title     : "Reopen Latest Files"
-        eventName : "reopen"
-      }
-      {
-        type      : "separator"
-      }
-      {
-        title     : "Exit"
-        eventName : "exit"
-      }
+      { title     : "Save",                eventName : "save" }
+      { title     : "Save As",             eventName : "saveAs" }
+      { type      : "separator" }
+      { title     : "Find",                eventName : "find" }
+      { title     : "Find and Replace",    eventName : "findAndReplace" }
+      { type      : "separator" }
+      { title     : "Compile and Run",     eventName : "compileAndRun" }
+      { type      : "separator" }
+      { title     : "Preview",             eventName : "preview" }
+      { type      : "separator" }
+      { title     : "Recently Opened",     eventName : "recents", closeMenuWhenClicked: no }
+      { title     : "Reopen Latest Files", eventName : "reopen" }
+      { type      : "separator" }
+      { title     : "Exit",                eventName : "exit" }
+    ]
+    fileTypes     : [
+      "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
+      "sh", "cgi", "htaccess","fcgi","wsgi","mvc","xml","sql","rhtml", "diff",
+      "js","json", "coffee", "css","styl","sass", "scss", "less", "txt"
     ]
     # mimeTypes    : "text"
 

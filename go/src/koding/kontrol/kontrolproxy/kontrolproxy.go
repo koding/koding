@@ -307,7 +307,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 		} else {
-			log.Printf("error validating user %s: %s", user.IP, err.Error())
+			log.Printf("error validating user: %s", err.Error())
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
 		}
@@ -520,7 +520,7 @@ func addPort(host, port string) string {
 
 // Check if a server is alive or not
 func checkServer(host string) error {
-	c, err := net.Dial("tcp", host)
+	c, err := net.DialTimeout("tcp", host, time.Second*5)
 	if err != nil {
 		return err
 	}

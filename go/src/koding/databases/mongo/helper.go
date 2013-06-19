@@ -3,6 +3,7 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/grsmv/inflect"
 	"koding/tools/mapping"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -62,14 +63,17 @@ func getCollectionName(name string) string {
 	//in mongo collection names are hold as "<lowercase_first_letter>...<add (s)>
 	// sample if name is Koding, in database it is "kodings"
 
+	//pluralize name
+	name = inflect.Pluralize(name)
+
 	//split name into string array
 	splittedName := strings.Split(name, "")
 	//uppercase first character and assign back
 	splittedName[0] = strings.ToLower(splittedName[0])
+	splittedName[1] = strings.ToUpper(splittedName[1])
+
 	//merge string array
 	name = strings.Join(splittedName, "")
-	//pluralize name
-	name += "s"
 	return name
 }
 

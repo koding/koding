@@ -88,7 +88,7 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'vmUsage',
+        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'canCreateVM', 'vmUsage',
         'fetchBundle', 'updateBundle', 'saveInvitationMessage'
       ]
     schema          :
@@ -571,11 +571,9 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      console.time('fetch members')
       [selector, options, callback] = Module.limitEdges 100, rest
       # delete options.targetOptions
       @fetchMembers selector, options, ->
-        console.timeEnd('fetch members')
         callback arguments...
 
   fetchNewestMembers$: permit 'list members',
@@ -1360,10 +1358,10 @@ module.exports = class JGroup extends Module
       else
         bundle.checkUsage delegate, @, callback
 
-  createVM: secure (client, data, callback)->
+  canCreateVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type in ['user', 'group', 'expensed']
+    if data.type in ['user', 'group']
       @fetchBundle (err, bundle)=>
         if err or not bundle
           if @slug == 'koding'
@@ -1373,7 +1371,28 @@ module.exports = class JGroup extends Module
               allocation   : 0
               sharedVM     : yes
             , (err, bundle)=>
-              console.log err, bundle
+              return callback new KodingError "Unable to create default group bundle"  if err
+              bundle.canCreateVM delegate, @, data, callback
+          else
+            callback new KodingError "Unable to fetch group bundle"
+        else
+          bundle.canCreateVM delegate, @, data, callback
+    else
+      callback new KodingError "No such VM type: #{data.type}"
+
+  createVM: secure (client, data, callback)->
+    {delegate} = client.connection
+
+    if data.type in ['user', 'group']
+      @fetchBundle (err, bundle)=>
+        if err or not bundle
+          if @slug == 'koding'
+            @createBundle
+              overagePolicy: "not allowed"
+              paymentPlan  : ""
+              allocation   : 0
+              sharedVM     : yes
+            , (err, bundle)=>
               return callback new KodingError "Unable to create default group bundle"  if err
               bundle.createVM delegate, @, data, callback
           else
