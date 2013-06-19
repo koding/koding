@@ -27,6 +27,7 @@ class KodingAppsController extends KDController
     @kiteController = KD.getSingleton "kiteController"
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
+    @publishedApps  = {}
     @getPublishedApps()
 
     @createExtensionToAppMap()
@@ -248,13 +249,13 @@ class KodingAppsController extends KDController
   putAppResources:(appInstance)->
 
     manifest = appInstance.getOptions()
-    {devMode, forceUpdate, name, options, version} = manifest
+    {devMode, forceUpdate, name, options, version, thirdParty} = manifest
+
+    return  unless thirdParty
 
     if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
       @showUpdateRequiredModal manifest
       return callback()
-
-    putStyleSheets manifest
 
     @getAppScript manifest, (err, appScript)=>
       return warn err  if err
