@@ -351,16 +351,16 @@ func parseMongoLogin(login string) string {
 }
 
 func domainInfo() (Domain, error) {
-	d := &Domain{}
+	d := Domain{}
 	domainApi := "http://kontrol.in.koding.com/domains/koding.com"
 	resp, err := http.Get(domainApi)
 	if err != nil {
-		return *d, err
+		return d, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return *d, err
+		return d, err
 	} else {
 		fmt.Println(string(body))
 	}
@@ -368,8 +368,8 @@ func domainInfo() (Domain, error) {
 	err = json.Unmarshal(body, &d)
 	if err != nil {
 		fmt.Println("Couldn't unmarshall koding.com into a domain object.")
-		return *d, err
+		return d, err
 	}
 
-	return *d, nil
+	return d, nil
 }
