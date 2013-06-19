@@ -2,7 +2,7 @@ class DashboardAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Dashboard"
-    route        : "/Dashboard"
+    route        : "/:name?/Dashboard"
     hiddenHandle : yes
 
   constructor:(options={},data)->
