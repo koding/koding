@@ -48,13 +48,11 @@ class OpenWithModal extends KDObject
       modal.addSubView new OpenWithModalItem { delegate: modal }, manifest
 
     label = new KDLabelView
-      title        : "Always open with..."
-      attributes   :
-        "for"      : "alwaysOpenWith"
+      title : "Always open with..."
 
     @alwaysOpenWith = new KDInputView
-      type         : "checkbox"
-      domId        : "alwaysOpenWith"
+      label : label
+      type  : "checkbox"
 
     modal.buttonHolder.addSubView @alwaysOpenWith
     modal.buttonHolder.addSubView label
