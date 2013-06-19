@@ -17,7 +17,7 @@ print <<HTML;
     <div id=\"main\" role=\"main\"  class=\"hellobox\" >
 <header><a href=\"http://koding.com\">Koding.com</a></header>
     <h1>Hello World!</h1>
-    <h2>From Perl 5.10.1</h2>
+    <h2>From Perl $^V</h2>
    </div>
 <nav>
 	<ul>
