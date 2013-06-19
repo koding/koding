@@ -14,11 +14,14 @@ class NVMItemView extends NFileItemView
       delegate : @
       click    : @bound "createRootContextMenu"
 
-    vmName = if data.vmName is KD.nick() then "Koding" else data.vmName
     @vmInfo = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'vm-info'
-      partial  : "on <strong>#{vmName}</strong> VM"
+      partial  : "on <strong>#{data.vmName}</strong> VM"
+
+    @vm.fetchVMDomains data.vmName, (err, domains)=>
+      unless err and domains.length > 0
+        @vmInfo.updatePartial "on <strong>#{domains.first}</strong> VM"
 
   createRootContextMenu:->
     offset = @changePathButton.$().offset()
