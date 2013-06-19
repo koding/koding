@@ -38,11 +38,12 @@ class FirewallMapperView extends KDView
 
       @filterListController.instantiateListItems filters
 
-    KD.remote.api.JProxyRestriction.fetchRestrictionByDomain domain.domain, (err, restriction)=>
-      if restriction
-        for rule in restriction.ruleList
+    domain.fetchProxyRules (err, ruleList)=>
+      return console.log err if err
+      if ruleList
+        for rule in ruleList
           rule.domainName = domain.domain
-        @ruleListController.instantiateListItems restriction.ruleList
+        @ruleListController.instantiateListItems ruleList
 
     @fwRuleFormView = new FirewallFilterFormView delegate:@filterListController.getListView(), {domain}
 
