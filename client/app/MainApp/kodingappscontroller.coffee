@@ -257,6 +257,8 @@ class KodingAppsController extends KDController
       @showUpdateRequiredModal manifest
       return callback()
 
+    putStyleSheets manifest
+
     @getAppScript manifest, (err, appScript)=>
       return warn err  if err
 
