@@ -18,11 +18,18 @@ class WebTermAppView extends JView
       @_windowDidResize()
       {webTermView} = pane.getOptions()
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes
+      webTermView.once 'viewAppended', => @emit "ready"
       webTermView.terminal?.setFocused yes
 
       webTermView.on "WebTerm.terminated", (server) =>
         if not pane.isDestroyed and @tabView.getActivePane() is pane
           @tabView.removePane pane
+
+  handleQuery:(query)->
+    pane = @tabView.getActivePane()
+    {webTermView} = pane.getOptions()
+    webTermView.once 'WebTermConnected', (remote)->
+      remote.input decodeURIComponent query.command+'\n'
 
   _windowDidResize:->
     # 10px being the application page's padding
@@ -34,7 +41,7 @@ class WebTermAppView extends JView
 
   addNewTab: ->
     webTermView = new WebTermView
-      delegate: @
+      delegate: this
 
     pane = new KDTabPaneView
       name: 'Terminal'
