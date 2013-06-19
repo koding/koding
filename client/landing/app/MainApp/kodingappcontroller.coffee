@@ -2,12 +2,17 @@ class KodingAppController extends KDViewController
 
   constructor: (options = {}, data)->
 
-    options.view = new KDView
+    options.view = view = new KDView
 
     super options, data
 
+    view.on 'ready', => @emit 'ready'
+
   handleQuery: (query) ->
-    @getView().emit "HandleQuery", query
+    @ready => @getView().emit "QueryPassedFromRouter", query
 
   openFile: (file) ->
-    @getView().emit "OpenFile", file
+    @ready => @getView().emit "FileNeedsToBeOpened", file
+
+
+
