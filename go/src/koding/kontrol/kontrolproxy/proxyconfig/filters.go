@@ -3,21 +3,26 @@ package proxyconfig
 import (
 	"fmt"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
 
 type Filter struct {
-	Id    bson.ObjectId `bson:"_id" json:"-"`
-	Type  string        `bson:"type", json:"type"`
-	Name  string        `bson:"name", json:"name" `
-	Match string        `bson:"match", json:"match"`
+	Id         bson.ObjectId `bson:"_id" json:"-"`
+	Type       string        `bson:"type", json:"type"`
+	Name       string        `bson:"name", json:"name" `
+	Match      string        `bson:"match", json:"match"`
+	CreatedAt  time.Time     `bson:"createdAt", json:"createdAt"`
+	ModifiedAt time.Time     `bson:"modifiedAt", json:"modifiedAt"`
 }
 
 func NewFilter(filtertype, name, match string) *Filter {
 	return &Filter{
-		Id:    bson.NewObjectId(),
-		Type:  filtertype,
-		Name:  name,
-		Match: match,
+		Id:         bson.NewObjectId(),
+		Type:       filtertype,
+		Name:       name,
+		Match:      match,
+		CreatedAt:  time.Now(),
+		ModifiedAt: time.Now(),
 	}
 }
 

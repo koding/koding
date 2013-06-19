@@ -10,12 +10,11 @@ class LinkActivityItemView extends ActivityItemChild
 
     super options,data
 
-    embedOptions = $.extend {}, options, {
-      delegate:@
-      hasDropdown: no
-    }
+    embedOptions = $.extend {}, options,
+      delegate    : this
+      hasDropdown : no
 
-    @embedBox = new EmbedBox embedOptions,data
+    @embedBox = new EmbedBox embedOptions, data
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
@@ -26,9 +25,9 @@ class LinkActivityItemView extends ActivityItemChild
     @template.update()
 
     if @getData().link_embed?
-      @embedBox.embedExistingData @getData().link_embed, {}, noop, getData().link_cache
-
-    else if @getData().link_url? then @embedBox.embedUrl @getData().link_url, {}
+      @embedBox.embedExistingData @getData().link_embed
+    else if @getData().link_url?
+      embedBox.embedUrl @getData().link_url
     else log "There is no link information to embed."
 
   # click:(event)->

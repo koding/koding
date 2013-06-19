@@ -30,7 +30,6 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       datetime     : String
       expires      : String
       renew        : String
-      expensed     : Number
       lastUpdate   : Number
 
   @getUserSubscriptions = secure (client, callback)->

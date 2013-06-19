@@ -21,7 +21,8 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     sharedMethods  :
       static       : [
         'getPlans', 'getPlanWithCode',
-        'setUserAccount', 'getUserAccount', 'getUserTransactions'
+        'setUserAccount', 'getUserAccount', 'getUserTransactions',
+        'getUserBalance', 'getGroupBalance'
       ]
       instance     : [
         'getToken', 'subscribe'
@@ -255,10 +256,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         subs.quantity ?= 1
         subs.quantity += 1
 
-        if data.type is 'expensed'
-          subs.expensed ?= 0
-          subs.expensed += 1
-
         payment.updateUserSubscription userCode,
           quantity: subs.quantity
           plan    : @code
@@ -279,10 +276,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           data.firstName   = groupAccount.firstName
           data.lastName    = groupAccount.lastName
 
-          expensed = 0
-          if data.type is 'expensed'
-            expensed = 1
-
           JRecurlyPlan.getGroupAccount group, (err, account)->
             if account and not err
               payment.addUserSubscription userCode, data, (err, result)->
@@ -295,7 +288,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
-                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
@@ -310,7 +302,32 @@ module.exports = class JRecurlyPlan extends jraphical.Module
                   status   : result.status
                   datetime : result.datetime
                   expires  : result.expires
-                  expensed : expensed
                   renew    : result.renew
                 sub.save ->
                   callback no, sub
+
+  @getAccountBalance = (account, callback)->
+    payment.getUserTransactions account, (err, adjs)->
+      spent = 0
+      adjs.forEach (adj)->
+        spent += parseInt adj.amount, 10
+
+      payment.getUserAdjustments account, (err, adjs)->
+        charged = 0
+        adjs.forEach (adj)->
+          charged += parseInt adj.amount, 10
+
+        callback null, spent-charged
+      
+
+  @getUserBalance = secure (client, callback)->
+    {delegate} = client.connection
+    userCode      = "user_#{delegate._id}"
+
+    @getAccountBalance userCode, callback
+
+  @getGroupBalance = secure (client, group, callback)->
+    {delegate} = client.connection
+    userCode      = "group_#{group._id}"
+    
+    @getAccountBalance userCode, callback

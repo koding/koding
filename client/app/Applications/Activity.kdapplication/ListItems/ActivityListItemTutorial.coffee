@@ -21,7 +21,7 @@ class TutorialActivityItemView extends ActivityItemChild
 
     @embedOptions = $.extend {}, options,
       hasDropdown : no
-      delegate : @
+      delegate    : this
 
     @actionLinks = new TutorialActivityActionsView
       delegate : @commentBox.opinionList
@@ -29,13 +29,13 @@ class TutorialActivityItemView extends ActivityItemChild
     , data
 
     @previewImage = new KDCustomHTMLView
-      tagName : "img"
-      cssClass : "tutorial-preview-image"
-      attributes:
-        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
-        title:"View the full Tutorial"
-        alt:"View the full tutorial"
-        "data-paths":"preview"
+      tagName    : "img"
+      cssClass   : "tutorial-preview-image"
+      attributes :
+        src      : @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title    : "View the full Tutorial"
+        alt      : "View the full tutorial"
+        "data-paths": "preview"
 
     @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
 
@@ -193,8 +193,8 @@ class TutorialActivityItemView extends ActivityItemChild
 
       @videoPopup = new VideoPopup
         delegate : @previewImage
-        title : @getData().link?.link_embed?.title or "Untitled Video"
-        thumb : @getData().link?.link_embed?.images?[0]?.url
+        title    : @getData().link?.link_embed?.title or "Untitled Video"
+        thumb    : @getData().link?.link_embed?.images?[0]?.url
       ,@getData().link?.link_embed?.object?.html
 
       @videoPopup.openVideoPopup()

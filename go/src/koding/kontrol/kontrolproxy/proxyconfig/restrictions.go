@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+	"time"
 )
 
 type Rule struct {
@@ -21,6 +22,8 @@ type Restriction struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
 	DomainName string        `bson:"domainname" json:"domainname"`
 	RuleList   []Rule        `bson:"rulelist", json:"rulelist"`
+	CreatedAt  time.Time     `bson:"createdAt", json:"createdAt"`
+	ModifiedAt time.Time     `bson:"modifiedAt", json:"modifiedAt"`
 }
 
 func NewRule(enabled bool, action, match string) *Rule {
@@ -36,6 +39,8 @@ func NewRestriction(domainname string) *Restriction {
 		Id:         bson.NewObjectId(),
 		DomainName: domainname,
 		RuleList:   make([]Rule, 0),
+		CreatedAt:  time.Now(),
+		ModifiedAt: time.Now(),
 	}
 }
 
@@ -68,6 +73,7 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, m
 		rule = *NewRule(enabled, action, match)
 		ruleList := insertRule(restriction.RuleList, rule, index)
 		restriction.RuleList = ruleList
+		restriction.ModifiedAt = time.Now()
 	case "update":
 		foundRule := false
 		for i, b := range restriction.RuleList {
@@ -77,6 +83,7 @@ func (p *ProxyConfiguration) AddOrUpdateRule(enabled bool, domainname, action, m
 				ruleList := deleteRule(restriction.RuleList, i)
 				ruleList = insertRule(ruleList, rule, index)
 				restriction.RuleList = ruleList
+				restriction.ModifiedAt = time.Now()
 				break
 			}
 		}
