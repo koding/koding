@@ -68,9 +68,9 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
       @emit "DomainSaved"
       
       
-    @on "DomainForwarded", (orderInfo) =>
+    @on "DomainForwarded", (domainInfo) =>
       @modalTabs.forms["Done"].addSubView (
-        new DomainForwardingCompleteView {orderInfo : orderInfo}
+        new DomainForwardingCompleteView {}, domainInfo
         )
         
       @modalTabs.showPaneByIndex "2"
@@ -232,7 +232,7 @@ class DomainForwardForm extends KDView
           mode       : "roundrobin"
     , (err, domain)=>
       unless err
-        modalTabs.parent.emit "DomainForwarded", {}
+        modalTabs.parent.emit "DomainForwarded", {domainName}
       console.log err
 
 
@@ -276,7 +276,7 @@ class DomainForwardingCompleteView extends JView
   constructor:(options = {}, data)->
     super options,data
     
-    {orderInfo} = @getOptions()
+    {domainName} = @getData()
     
     @header  = new KDHeaderView 
       type  : "Small"

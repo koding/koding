@@ -238,7 +238,7 @@ class FirewallFilterFormView extends KDCustomHTMLView
     options.cssClass = "filter-form-view"
     super options, data
 
-    @filterNameInput  = new KDInputView {tooltip: {title: "Enter a name for the filter.", placement:"bottom"}}
+    @filterNameInput  = new KDInputView tooltip: {title: "Enter a name for the filter.", placement:"bottom"}
     @filterInput      = new KDInputView
       tooltip : 
         title     : "You can enter IP, IP Range or a country name. (ie: 192.168.1.1/24 or China)"
