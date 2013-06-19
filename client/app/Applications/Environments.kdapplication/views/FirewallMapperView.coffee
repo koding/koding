@@ -44,7 +44,7 @@ class FirewallMapperView extends KDView
           rule.domainName = domain.domain
         @ruleListController.instantiateListItems restriction.ruleList
 
-    @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
+    @fwRuleFormView = new FirewallFilterFormView delegate:@filterListController.getListView(), {domain}
 
     @addSubView @fwRuleFormView
 
@@ -68,7 +68,8 @@ class FirewallMapperView extends KDView
 
     @ruleListScrollView.addSubView @ruleListController.getView()
 
-    @on "newFilterCreated", (item) => @filterListController.addItem item
+    @filterListController.getListView().on "newFilterCreated", (item) => 
+      @filterListController.addItem item
 
     # this event is on rule list controller because 
     # both allow & deny buttons live on FirewallFilterListItemView.
@@ -264,6 +265,7 @@ class FirewallFilterFormView extends KDCustomHTMLView
     , (err, filter)->
       unless err 
         delegate.emit "newFilterCreated", {name:filterName, match:filterMatch}
+        return
 
       return new KDNotificationView 
         title : "An error occured while performing your action. Please try again."
