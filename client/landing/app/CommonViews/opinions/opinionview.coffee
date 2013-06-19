@@ -61,8 +61,8 @@ class OpinionView extends KDView
     @opinionList.on "OpinionViewShouldReset", @bound "resetDecoration"
 
   resetDecoration:->
-    post = @getData()
-    if post.opinionCount is 0
+    opinions = @getData().opinions
+    if opinions and opinions.length is 0
       @decorateNoCommentState()
     else
       @decorateCommentedState()
