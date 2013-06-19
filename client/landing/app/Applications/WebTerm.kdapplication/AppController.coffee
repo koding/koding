@@ -2,7 +2,14 @@ class WebTermController extends AppController
 
   KD.registerAppClass this,
     name         : "WebTerm"
-    route        : "/Develop"
+    route        :
+      slug       : "/:name?/Develop/Terminal"
+      handler     : ({params:{name}, query})->
+        vmName   = KD.getSingleton('vmController').defaultVmName
+        KD.utils.wait 3000, ->
+          router = KD.getSingleton 'router'
+          warn "webterm handling itself", name, query, arguments
+          router.openSection "WebTerm", name, query
     multiple     : yes
     hiddenHandle : no
     behavior     : "application"
@@ -23,5 +30,10 @@ class WebTermController extends AppController
       cssClass      : "webterm"
 
     super options, data
+
+  handleQuery: (query) ->
+    @getView().ready =>
+      @getView().handleQuery query
+
 
 WebTerm = {}

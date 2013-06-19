@@ -4,7 +4,6 @@ class MainController extends KDController
 
   * EMITTED EVENTS
     - AppIsReady
-    - FrameworkIsReady
     - AccountChanged                [account, firstLoad]
     - pageLoaded.as.loggedIn        [account, connectedState, firstLoad]
     - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
@@ -46,7 +45,6 @@ class MainController extends KDController
       KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
-      @emit 'FrameworkIsReady'
 
     @setFailTimer()
     @attachListeners()
