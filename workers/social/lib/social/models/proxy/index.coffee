@@ -3,9 +3,10 @@ KodingError = require '../../error'
 
 module.exports = class JProxyFilter extends jraphical.Module
 
-  {secure, ObjectId}  = require 'bongo'
-  {Relationship} = jraphical
-  {permit} = require '../group/permissionset'
+  {secure, ObjectId} = require 'bongo'
+  {Relationship}     = jraphical
+  {permit}           = require '../group/permissionset'
+  JProxyRule         = './rule'
 
   @trait __dirname, '../../traits/protected'
 
@@ -25,7 +26,7 @@ module.exports = class JProxyFilter extends jraphical.Module
 
     sharedMethods   :
       instance      : []
-      static        : ['one', 'all', 'count', 'createFilter', 'fetchFiltersByContext', 'remove']
+      static        : ['createFilter', 'fetchFiltersByContext', 'remove']
 
     indexes         :
       name          : 'unique'
@@ -70,9 +71,24 @@ module.exports = class JProxyFilter extends jraphical.Module
 
   @remove$: permit 'delete filters',
     success: (client, selector, callback)->
-      @remove selector, (err)->
-        callback err
+      {delegate} = client.connection
+      selector.owner = delegate.getId()
 
+      @one selector, {}, (err, filter)=>
+        return callback err if err
+
+        @remove selector, (err)->
+          return callback err if err
+
+        match = filter.match 
+
+        JProxyRestriction.update
+          "ruleList.match": match
+        , {$pull: {"ruleList": {match}}}
+        , (err)->
+          return callback err if err
+
+        callback null
 
   
 
