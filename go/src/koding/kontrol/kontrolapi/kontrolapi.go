@@ -112,9 +112,6 @@ func main() {
 	rout.HandleFunc("/stats/proxies/{proxy}", GetProxyStat).Methods("GET")
 	rout.HandleFunc("/stats/proxies/{proxy}", DeleteProxyStat).Methods("DELETE")
 
-	// Rollbar api
-	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
-
 	log.Printf("kontrol api is started. serving at :%s ...", port)
 
 	http.Handle("/", rout)

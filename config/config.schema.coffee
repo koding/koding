@@ -180,8 +180,6 @@ config =
         port        : 1
         portssl     : 1
         sslips      : 1
-      mongo         :
-        host        : 1
       rabbitmq      :
         host        : 1
         port        : 1

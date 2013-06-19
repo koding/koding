@@ -46,13 +46,15 @@ type ClientConfig struct {
 }
 
 func Connect() (*ClientConfig, error) {
-	host := config.Current.Kontrold.Mongo.Host
-	session, err := mgo.Dial(host)
+	session, err := mgo.Dial(config.Current.Mongo)
 	if err != nil {
 		return nil, err
 	}
 	session.SetMode(mgo.Strong, true)
-	col := session.DB("kontrol").C("clients")
+	session.SetSafe(&mgo.Safe{})
+	database := session.DB("")
+
+	col := database.C("jKontrolClients")
 
 	cc := &ClientConfig{
 		Session:    session,

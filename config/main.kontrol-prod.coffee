@@ -158,8 +158,6 @@ module.exports =
       port        : 80
       portssl     : 443
       sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
-    mongo         :
-      host        : 'kontrol.in.koding.com'
     rabbitmq      :
       host        : 'kontrol.in.koding.com'
       port        : '5672'

@@ -18,7 +18,6 @@
     "aws2js"          : "0.8.2",
     "aws-sdk"         : "0.9.5-pre.6",
     "bitly"           : "1.2.4",
-    "cli-table"       : "0.2.0",
     "coffee-script"   : "1.6.2",
     "colors"          : "0.6.0-1",
     "commander"       : "1.0.4",

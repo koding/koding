@@ -32,9 +32,7 @@ type Workers []Worker
 
 var StatusCode = map[workerconfig.WorkerStatus]string{
 	workerconfig.Running:    "running",
-	workerconfig.Pending:    "waiting",
 	workerconfig.Waiting:    "waiting",
-	workerconfig.Stopped:    "stopped",
 	workerconfig.Notstarted: "stopped",
 	workerconfig.Killed:     "dead",
 	workerconfig.Dead:       "dead",
@@ -107,7 +105,7 @@ func UpdateWorker(writer http.ResponseWriter, req *http.Request) {
 	uuid, action := vars["uuid"], vars["action"]
 	fmt.Printf("%s /workers/%s\n", strings.ToUpper(action), uuid)
 
-	buildSendCmd(action, "", uuid)
+	buildSendCmd(action, uuid)
 	resp := fmt.Sprintf("worker: '%s' is updated in db", uuid)
 	io.WriteString(writer, resp)
 }
@@ -117,14 +115,14 @@ func DeleteWorker(writer http.ResponseWriter, req *http.Request) {
 	uuid := vars["uuid"]
 	fmt.Printf("DELETE /workers/%s\n", uuid)
 
-	buildSendCmd("delete", "", uuid)
+	buildSendCmd("delete", uuid)
 	resp := fmt.Sprintf("worker: '%s' is deleted from db", uuid)
 	io.WriteString(writer, resp)
 }
 
 func queryResult(query bson.M, latestVersion bool) Workers {
 	workers := make(Workers, 0)
-	worker := workerconfig.MsgWorker{}
+	worker := workerconfig.Worker{}
 
 	iter := kontrolConfig.Collection.Find(query).Iter()
 	for iter.Next(&worker) {
@@ -172,17 +170,13 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	return workers
 }
 
-func buildSendCmd(action, host, uuid string) {
-	cmd := workerconfig.Request{Command: action, Hostname: host, Uuid: uuid}
-	log.Println("Sending cmd to kontrold:", cmd)
-
-	// Wrap message for dynamic unmarshaling at endpoint
-	type Wrap struct{ Worker workerconfig.Request }
-
-	data, err := json.Marshal(&Wrap{cmd})
+func buildSendCmd(action, uuid string) {
+	cmd := workerconfig.ApiRequest{Uuid: uuid, Command: action}
+	data, err := json.Marshal(cmd)
 	if err != nil {
 		log.Println("Json marshall error", data)
 	}
 
+	log.Println("Sending cmd to kontrold:", cmd)
 	amqpWrapper.Publish(data)
 }
