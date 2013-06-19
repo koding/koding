@@ -371,5 +371,5 @@ func domainInfo() (Domain, error) {
 		return *d, err
 	}
 
-	return *d, fmt.Errorf("no domain info available for koding.com")
+	return *d, nil
 }
