@@ -27,7 +27,7 @@ class AccountPaymentHistoryListController extends KDListViewController
             amount     : ((t.amount + t.tax) / 100).toFixed(2)
             currency   : 'USD'
             createdAt  : t.datetime
-            paidVia    : if t.card then t.card else ""
+            paidVia    : t.card or ""
             owner      : t.owner
             refundable : t.refundable
         @instantiateListItems transactions
