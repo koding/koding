@@ -2,7 +2,7 @@ class ActivityAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Activity"
-    route        : "/Activity"
+    route        : "/:name?/Activity"
     hiddenHandle : yes
 
   {dash} = Bongo
@@ -41,7 +41,7 @@ class ActivityAppController extends AppController
     @lastFrom       = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
-    # else @mainController.on 'FrameworkIsReady', => @putListeners()
+    # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=>

@@ -5,6 +5,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"time"
 )
 
 type ServerInfo struct {
@@ -15,6 +16,7 @@ type ServerInfo struct {
 	Config      *ConfigFile
 	Hostname    Hostname
 	IP          IP
+	CreatedAt   time.Time
 }
 
 type ConfigFile struct {
@@ -46,13 +48,15 @@ type ClientConfig struct {
 }
 
 func Connect() (*ClientConfig, error) {
-	host := config.Current.Kontrold.Mongo.Host
-	session, err := mgo.Dial(host)
+	session, err := mgo.Dial(config.Current.Mongo)
 	if err != nil {
 		return nil, err
 	}
 	session.SetMode(mgo.Strong, true)
-	col := session.DB("kontrol").C("clients")
+	session.SetSafe(&mgo.Safe{})
+	database := session.DB("")
+
+	col := database.C("jKontrolClients")
 
 	cc := &ClientConfig{
 		Session:    session,
@@ -63,6 +67,7 @@ func Connect() (*ClientConfig, error) {
 }
 
 func (c *ClientConfig) AddClient(info ServerInfo) {
+	info.CreatedAt = time.Now()
 	_, err := c.Collection.Upsert(bson.M{"buildnumber": info.BuildNumber}, info)
 	if err != nil {
 		log.Println(err)

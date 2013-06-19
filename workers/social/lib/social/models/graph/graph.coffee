@@ -98,7 +98,9 @@ module.exports = class Graph
 
   fetchAll:(group, startDate, callback)->
     {groupName, groupId} = group
-    start = new Date().getTime()
+
+    console.time 'fetchAll'
+
     # do not remove white-spaces
     query = """
         START koding=node:koding("id:#{groupId}")
@@ -132,7 +134,8 @@ module.exports = class Graph
               tempRes[i].relationData =  relatedResult
               fin()
         , =>
-          console.log new Date().getTime() - start
+          console.timeEnd "fetchAll"
+
           if groupName == "koding"
             @removePrivateContent  groupId, tempRes, callback
           else
@@ -166,9 +169,12 @@ module.exports = class Graph
           type = obj.relationType
           if not respond[type] then respond[type] = []
           respond[type].push obj
+
         callback err, respond
 
   fetchNewInstalledApps:(group, startDate, callback)->
+    console.time 'fetchNewInstalledApps'
+
     {groupId} = group
 
     query = """
@@ -182,6 +188,8 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results) =>
+      console.timeEnd 'fetchNewInstalledApps'
+
       if err then throw err
       @generateInstalledApps [], results, callback
 
@@ -200,6 +208,8 @@ module.exports = class Graph
           @generateInstalledApps resultData, results, callback
 
   fetchNewMembers:(group, startDate, callback)->
+    console.time 'fetchNewMembers'
+
     {groupId} = group
 
     query = """
@@ -219,6 +229,8 @@ module.exports = class Graph
 
         objectify resultData, (objected)->
           callback err, objected
+
+          console.timeEnd 'fetchNewMembers'
 
   fetchMemberFollows:(group, startDate, callback)->
     {groupId} = group
@@ -250,8 +262,11 @@ module.exports = class Graph
     @fetchFollows query, callback
 
   fetchFollows:(query, callback)->
+    console.time "fetchFollows"
 
     @db.query query, {}, (err, results)=>
+      console.timeEnd "fetchFollows"
+
       if err then throw err
       @generateFollows [], results, callback
 

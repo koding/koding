@@ -18,7 +18,7 @@ class KDRouter extends KDObject
     @tree          = {} # this is the tree for quick lookups
     @routes        = {} # this is the flat namespace containing all routes
     @visitedRoutes = []
-    @addRoutes routes
+    @addRoutes routes  if routes
 
   listen:->
     # this handles the case that the url is an "old-style" hash fragment hack.
@@ -74,6 +74,9 @@ class KDRouter extends KDObject
     "/#{route.slice(0, i).concat(route.slice i + 1).join '/'}"
 
   addRoute:(route, listener)->
+
+    # log "route added ---->", route
+
     @routes[route] = listener
     node = @tree
     route = route.split '/'
@@ -116,7 +119,7 @@ class KDRouter extends KDObject
     frag = frag.split '/'
     frag.shift() # first edge is garbage like '' or '#!'
 
-    path = frag.join '/'
+    path = "/#{frag.join '/'}"
 
     qs = @utils.stringifyQuery query
     path += "?#{qs}"  if qs.length
@@ -129,7 +132,7 @@ class KDRouter extends KDObject
 
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
-      history[method] objRef, path, "/#{path}"
+      history[method] objRef, null, path
 
     for edge in frag
       if node[edge]
