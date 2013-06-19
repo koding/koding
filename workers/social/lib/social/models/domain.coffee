@@ -161,13 +161,10 @@ module.exports = class JDomain extends jraphical.Module
           return callback null, domain if domain.domain is selector.domainName
 
   fetchProxyRules: (callback)->
-    unless @proxyRules
-      JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
-        return callback err if err
-        if restriction
-          @proxyRules = restriction.ruleList
-          callback null, @proxyRules
-    callback null, @proxyRules
+    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+      return callback err if err
+      return callback null, restriction.ruleList if restriction
+      return callback null, []
 
   createProxyRule: permit
     advanced: [

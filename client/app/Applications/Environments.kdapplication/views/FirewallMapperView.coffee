@@ -119,21 +119,26 @@ class FirewallFilterListItemView extends KDListItemView
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
       return console.log err if err
 
-      params = 
-        domainName: domain.domain
-        action    : behavior
-        match     : data.match
-      
-      domain.createProxyRule params, (err, rule)=>
-        return console.log err if err
+      domain.fetchProxyRules (err, rules)->
 
-        ruleObj =
-          domainName : data.domainName
-          action     : rule.action
-          match      : rule.match
-          enabled    : rule.enabled
-        
-        delegate.emit "newRuleCreated", ruleObj
+        proxyRuleMatches = (rule.match for rule in rules)
+
+        if (proxyRuleMatches.indexOf data.match) is -1
+          params = 
+            domainName: domain.domain
+            action    : behavior
+            match     : data.match
+          
+          domain.createProxyRule params, (err, rule)=>
+            return console.log err if err
+
+            ruleObj =
+              domainName : data.domainName
+              action     : rule.action
+              match      : rule.match
+              enabled    : rule.enabled
+            
+            delegate.emit "newRuleCreated", ruleObj
 
   deleteFilter:->
     data = @getData()
