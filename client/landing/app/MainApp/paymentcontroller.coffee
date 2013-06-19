@@ -257,7 +257,9 @@ class PaymentController extends KDController
     else
       KD.remote.api.JRecurlyPlan.getUserAccount cb
 
-  createPaymentConfirmationModal: (type, group, plan, content, needBilling, willCharge, cb)->
+  createPaymentConfirmationModal: (type, group, plan, needBilling, balance, amount, cb)->
+    content = @paymentWarning balance, amount
+
     modal           = new KDModalView
       title         : "Confirm VM Creation"
       content       : "<div class='modalformline'>#{content}</div>"
@@ -282,13 +284,34 @@ class PaymentController extends KDController
           cssClass  : "modal-clean-green hidden"
           callback  : =>
             modal.destroy()
-            @makePayment type, plan, willCharge, ->
+            @makePayment type, plan, amount, ->
               cb()
 
     if needBilling
       modal.buttons.Billing.show()
     else
       modal.buttons.Yes.show()
+
+  paymentWarning: do->
+
+    formatMoney = (amount)-> (amount / 100).toFixed 2
+
+    (balance, amount)->
+      content = ""
+
+      chargeAmount = Math.max amount - balance, 0
+
+      if amount is 0
+        content += "<p>You are already subscribed for an extra VM.</p>"
+      else if balance > 0
+        content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
+
+      if chargeAmount > 0
+        content += "<p>You will be charged for $#{formatMoney chargeAmount}</p>"
+      else
+        content += "<p>You won't be charged for this</p>"
+
+      content
 
   confirmPayment:(type, plan, callback=->)->
     group = KD.getSingleton("groupsController").getCurrentGroup()
@@ -298,59 +321,21 @@ class PaymentController extends KDController
       planCode : plan.code
     , (err, status)=>
       if not err and status
-        content = """<p>
-                       You already subscribed for an additional 
-                       <strong>#{type}</strong> VM.
-                     </p>
-                     <p>
-                       You <strong>won't</strong> be charged. Do you want to 
-                       continue?.
-                     </p>
-                  """
-        buildModal content, no, no, callback
+        @createPaymentConfirmationModal type, group, plan, no, 0, 0, callback
       else
         @getBillingInfo type, group, (err, account)=>
-          billing = err or not account or not account.cardNumber
+          needBilling = err or not account or not account.cardNumber
 
           @getBalance type, group, (err, balance)=>
-            if not err and balance > 0
-              charge = (plan.feeMonthly - balance) / 100
-              balance = balance / 100
+            if err
+              balance = 0
+            @createPaymentConfirmationModal type, group, plan, needBilling, balance, plan.feeMonthly, callback
 
-              content = """<p>
-                             You have $#{balance.toFixed(2)} credited to your 
-                             <strong>#{type}</strong> account.
-                           </p>
-                        """
-
-              if charge > 0
-                content += """<p>
-                                You will be charged for $#{charge.toFixed(2)}. 
-                                Do you want to continue?
-                              </p>
-                           """
-                @createPaymentConfirmationModal type, group, plan, content, billing, yes, callback
-              else
-                content += """<p>
-                                You <strong>won't</strong> be charged. Do you 
-                                want to continue?
-                              </p>
-                           """
-                @createPaymentConfirmationModal type, group, plan, content, no, no, callback
-            else
-              charge = plan.feeMonthly / 100
-              content = """<p>
-                             You will be charged for $#{charge.toFixed(2)}. Do 
-                             you want to continue?
-                           </p>
-                        """
-              @createPaymentConfirmationModal type, group, plan, content, billing, yes, callback
-
-  makePayment: (type, plan, willCharge, callback)->
+  makePayment: (type, plan, amount, callback)->
     vmController = KD.getSingleton('vmController')
     group        = KD.getSingleton("groupsController").getCurrentGroup()
 
-    unless willCharge
+    if amount is 0
       vmController.createGroupVM type, plan.code
     else
       if type is 'group'
