@@ -169,7 +169,6 @@ module.exports = class JDomain extends jraphical.Module
         unless restriction
           restriction = new JProxyRestriction {domainName: params.domainName}
           restriction.save (err)->
-            console.log err
             return callback err if err
 
         restriction.addRule params, (err, rule)->
@@ -189,9 +188,7 @@ module.exports = class JDomain extends jraphical.Module
       {permission: 'edit own domains', validateWith: Validators.own}
     ]
     success: (client, params, callback)->
-      params.domainName = @domain
-      domainManager.domainService.updateProxyRule params, (err, response)-> 
-        callback err, response
+      JProxyRestriction.updateRule params, (err)-> callback err
 
   deleteProxyRule: permit
     advanced: [
@@ -199,7 +196,7 @@ module.exports = class JDomain extends jraphical.Module
     ]
     success: (client, params, callback)->
       params.domainName = @domain
-      domainManager.domainService.deleteProxyRule params, (err, response)-> callback err, response
+      JProxyRestriction.deleteRule params, (err)-> callback err
 
   setDomainCNameToProxyDomain:(callback)->
       domainManager.domainService.updateDomainCName 

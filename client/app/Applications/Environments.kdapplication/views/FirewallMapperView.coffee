@@ -39,7 +39,9 @@ class FirewallMapperView extends KDView
       @filterListController.instantiateListItems filters
 
     KD.remote.api.JProxyRestriction.fetchRestrictionByDomain domain.domain, (err, restriction)=>
-      unless err
+      if restriction
+        for rule in restriction.ruleList
+          rule.domainName = domain.domain
         @ruleListController.instantiateListItems restriction.ruleList
 
     @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
@@ -66,12 +68,11 @@ class FirewallMapperView extends KDView
 
     @ruleListScrollView.addSubView @ruleListController.getView()
 
-    @on "newFilterCreated", (item) => 
-      @filterListController.addItem item
+    @on "newFilterCreated", (item) => @filterListController.addItem item
 
     # this event is on rule list controller because 
-    # both allow & deny buttons live on FirewallfilterListItemView.
-    @ruleListController.getListView().on "newRuleCreated", (item) => 
+    # both allow & deny buttons live on FirewallFilterListItemView.
+    @filterListController.getListView().on "newRuleCreated", (item) => 
       @ruleListController.addItem item
 
   updateActionOrders:(domain)->
@@ -110,7 +111,7 @@ class FirewallFilterListItemView extends KDListItemView
     data = @getData()
     delegate = @getDelegate()
 
-    KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)->
+    KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
       return console.log err if err
 
       params = 
@@ -118,9 +119,16 @@ class FirewallFilterListItemView extends KDListItemView
         action    : behavior
         match     : data.match
       
-      domain.createProxyRule params, (err, rule)->
+      domain.createProxyRule params, (err, rule)=>
         return console.log err if err
-        delegate.emit "newRuleCreated", {domainName:data.domainName, ruleName:data.ruleName, action:behavior}
+
+        ruleObj =
+          domainName : data.domainName
+          action     : rule.action
+          match      : rule.match
+          enabled    : rule.enabled
+        
+        delegate.emit "newRuleCreated", ruleObj
 
   deleteFilter:->
     data = @getData()
@@ -185,29 +193,22 @@ class FirewallRuleListItemView extends KDListItemView
     delegate = @getDelegate()
     newAction = @actionButton.getOptions().title.toLowerCase()
     futureAction = if newAction is 'deny' then 'allow' else 'deny'
-
-    console.log data
+    data.action = newAction
 
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
-      domain.updateProxyRule
-        ruleName   : data.ruleName
-        behaviorInfo :
-          enabled : "yes"
-          action  : newAction
-          index   : "0"
-      , (err, response)=>
+      domain.updateProxyRule data, (err)=>
         return console.log err if err?
         @$().find("div.fw-li-view").removeClass(futureAction).addClass(newAction)
-        @actionButton.setTitle futureAction
+        @actionButton.setTitle futureAction.capitalize()
 
 
   deleteProxyRule:->
     data = @getData()
 
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
-      domain.deleteRuleBehavior {ruleName:data.ruleName}, (err, result)=>
+      domain.deleteProxyRule {match:data.match}, (err, result)=>
         return console.log err if err?
-        new KDNotificationView {title:"Action has been deleted from your firewall.", type:"top"}
+        new KDNotificationView {title:"Rule has been deleted from your firewall.", type:"top"}
         @destroy()
 
 
@@ -258,7 +259,6 @@ class FirewallFilterFormView extends KDCustomHTMLView
       type  : filterType
       match : filterMatch
     , (err, filter)->
-      console.log err, filter
       unless err 
         delegate.emit "newFilterCreated", {name:filterName, match:filterMatch}
 

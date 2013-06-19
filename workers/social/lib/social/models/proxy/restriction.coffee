@@ -13,7 +13,7 @@ module.exports = class JProxyRestriction extends jraphical.Module
     softDelete      : no
 
     sharedMethods   :
-      instance      : ['addRule']
+      instance      : ['addRule', 'updateRule']
       static        : ['one', 'fetchRestrictionByDomain', 'updateRuleOrders']
 
     indexes         :
@@ -63,13 +63,49 @@ module.exports = class JProxyRestriction extends jraphical.Module
           return callback err if err
       else
         @update {$addToSet: ruleList:ruleObj}, (err)->
-          callback err
+          callback err if err
+
+      callback null, rule
+
+  @updateRule: (params, callback)->
+    JProxyRestriction.update
+      domainName: params.domainName
+      "ruleList.match": params.match
+    , {$set: "ruleList.$.action": params.action}
+    , (err)->
+      callback err if err
+
+    JProxyRule.update {match:params.match}, {$set: action: params.action}, (err)->
+      callback err if err
+
+    callback null
+
 
   @updateRuleOrders: (params, callback)->
     domainName = params.domainName
     newRuleList = params.ruleList
     JProxyRestriction.update {domainName}, {$set: ruleList: newRuleList}, (err)->
       callback err
+
+  @deleteRule: (params, callback)->
+    domainName = params.domainName
+
+    JProxyRule.one {match:params.match}, (err, rule)->
+      return callback err if err
+      return callback (new KodingError("No rule found.")) unless rule
+
+      rule.remove (err)->
+        return callback err if err
+
+      ruleObj = 
+        match   : rule.match
+        action  : rule.action
+        enabled : rule.enabled
+
+      JProxyRestriction.update {domainName}, {$pull: ruleList: ruleObj}, (err)->
+        return callback err if err
+
+      callback null
     
 
 
