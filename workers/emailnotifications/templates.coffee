@@ -103,7 +103,6 @@ Templates =
     """
 
   singleEvent : (m)->
-
     action       = ''
     if m.sender.profile?
       sender     = link "#{uri.address}/#{m.sender.profile.nickname}", \
@@ -139,6 +138,13 @@ Templates =
           #   action = "#{action} own"
       when 'Invited'
         action  = 'has invited you to join the group'
+        if m.notification.activity.message # we want to customize the whole message
+          sender = @htmlify m.notification.activity.message
+          sender = sender.replace /#INVITER#/g, "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+          sender = sender.replace /#URL#/g, "<a href='#{uri.address}/#{m.realContent.slug}' #{Templates.linkStyle}>#{uri.address}/#{m.realContent.slug}</a>"
+          action        = ''
+          preview       = ''
+          m.contentLink = ''
       when 'ApprovalRequested'
         action  = 'has requested access to the group'
         preview = ''
@@ -202,5 +208,28 @@ Templates =
   dailyHeader  : (m)->
     currentDate  = dateFormat m.notification.dateIssued, "mmm dd"
     return """Your Koding Activity for today: #{currentDate}"""
+
+  # Taken and modified from http://stackoverflow.com/a/7138764/1370271
+  # duplicate from emailsender/main
+  htmlify: (content)->
+    # http://, https://, ftp://
+    urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim
+    # www. sans http:// or https://
+    pseudoUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim
+    # Email addresses *** here I've changed the expression ***
+    emailAddressPattern = /(([a-zA-Z0-9_\-\.]+)@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6}))+/gim
+
+    html   = ""
+    chunks = content.split "\n"
+    for chunk in chunks when chunk isnt ''
+      if chunk.indexOf("- ", 0) is 0
+        html += "<li>#{chunk.split('- ')[1]}</li>"
+      else
+        html += "<p>#{chunk}</p>"
+
+    html
+        .replace urlPattern, "<a #{Templates.linkStyle} target='_blank' href='$&'>$&</a>"
+        .replace pseudoUrlPattern, "$1<a #{Templates.linkStyle} target='_blank' href='http://$2'>$2</a>"
+        .replace emailAddressPattern, "<a #{Templates.linkStyle} target='_blank' href='mailto:$1'>$1</a>"
 
 module.exports = Templates

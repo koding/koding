@@ -89,7 +89,7 @@ module.exports = class JGroup extends Module
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'vmUsage',
-        'fetchBundle', 'updateBundle'
+        'fetchBundle', 'updateBundle', 'saveInvitationMessage'
       ]
     schema          :
       title         :
@@ -125,6 +125,7 @@ module.exports = class JGroup extends Module
       payment       :
         plan        : String
         paymentQuota: Number
+      invitationMessage : String
     relationships   :
       bundle        :
         targetType  : 'JGroupBundle'
@@ -830,11 +831,11 @@ module.exports = class JGroup extends Module
             else callback null
 
   inviteByEmail: permit 'send invitations',
-    success: (client, email, callback)->
+    success: (client, email, message, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
         cb = (user, account)=>
-          @inviteMember client, email, user, account, callback
+          @inviteMember client, email, user, account, message, callback
 
         if err or not user
           cb null, null
@@ -846,15 +847,19 @@ module.exports = class JGroup extends Module
               cb user, account
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, callback)->
+    success: (client, emails, message, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), (err)->
+        @inviteByEmail client, email.trim(), message, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
+
+  saveInvitationMessage: permit 'send invitations',
+    success: (client, message, callback=noop)->
+      @update $set: invitationMessage: message, callback
 
   inviteByUsername: permit 'send invitations',
     success: (client, usernames, callback)->
@@ -878,9 +883,10 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, user, account, callback)->
+  inviteMember: (client, email, user, account, message, callback)->
     JInvitationRequest = require '../invitationrequest'
 
+    [callback, message] = [message, callback]  unless callback
     [callback, account] = [account, callback]  unless callback
     [callback, user]    = [user, callback]     unless callback
 
@@ -905,7 +911,7 @@ module.exports = class JGroup extends Module
           if err then callback err
           else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else invitationRequest.sendInvitation client, callback
+            else invitationRequest.sendInvitation client, message, callback
 
   isMember: (account, callback)->
     selector =
@@ -1316,7 +1322,7 @@ module.exports = class JGroup extends Module
         return callback err  if err?
         @addBundle bundle, ->
           callback null, bundle
- 
+
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
