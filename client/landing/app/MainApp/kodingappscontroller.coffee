@@ -411,7 +411,7 @@ class KodingAppsController extends KDController
     else
       compileOnServer @constructor.manifests[name]
 
-  installApp:(app, version='latest', callback)->
+  installApp:(app, version, callback)->
 
     # add group membership control when group based apps feature is implemented!
     KD.requireMembership
@@ -441,7 +441,7 @@ class KodingAppsController extends KDController
                       owner       : acc.profile.nickname
                       identifier  : app.manifest.identifier
                       appPath     : @getAppPath app.manifest
-                      version     : app.versions.last
+                      version     : version
 
                   @kiteController.run options, (err, res)=>
                     if err then warn err
@@ -610,7 +610,7 @@ class KodingAppsController extends KDController
   escapeFilePath = FSHelper.escapeFilePath
 
   putStyleSheets = (manifest)->
-    {name, devMode} = manifest
+    {name, devMode, version, identifier} = manifest
     {stylesheets} = manifest.source if manifest.source
 
     return unless stylesheets
@@ -618,14 +618,14 @@ class KodingAppsController extends KDController
     $("head .app-#{__utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.whoami().profile.nickname}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
+        urlToStyle = "https://#{KD.nick()}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
         $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
           warn "external sheets cannot be used"
         else
           sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.nick()}/#{__utils.stripTags identifier}/#{__utils.stripTags version}/#{__utils.stripTags sheet}'>")
 
   showError = (error)->
     new KDModalView

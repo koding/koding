@@ -129,7 +129,6 @@ class AppView extends KDView
           version  : version
           callback : (item)=>
             {version} = item.data
-            version   = 'latest' if app.versions.last is item.data.version
             appsController.installApp app, version, (err)=>
               KD.track "Apps", "Install", app.title unless err
               if err then warn err
@@ -144,7 +143,7 @@ class AppView extends KDView
         delegate  : @
         menu      : menu
         callback  : ->
-          appsController.installApp app, 'latest', (err)=>
+          appsController.installApp app, app.versions.last, (err)=>
             @hideLoader()
 
     else
@@ -156,7 +155,7 @@ class AppView extends KDView
           diameter: 30
           color   : "#ffffff"
         callback  : ->
-          appsController.installApp app, 'latest', (err)=>
+          appsController.installApp app, app.versions.last, (err)=>
             @hideLoader()
 
     @runButton = new KDButtonView
