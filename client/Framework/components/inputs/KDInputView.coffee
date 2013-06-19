@@ -149,7 +149,10 @@ class KDInputView extends KDView
 
   setValue:(value)->
     if @getOption("type") in ["checkbox", "radio"]
-    then @$()[0].setAttribute "checked", "checked"
+      if value
+        @$()[0].setAttribute "checked", "checked"
+      else
+        @$()[0].removeAttribute "checked"
     else @$().val value
 
   _prevVal = null
