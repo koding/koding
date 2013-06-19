@@ -228,77 +228,75 @@ class PaymentController extends KDController
               modal.destroy()
               callback?()
 
-  confirmPayment: (type, plan, callback=->)->
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
+  getBalance: (type, group, cb)->
+    if type is 'user'
+      KD.remote.api.JRecurlyPlan.getUserBalance cb
+    else
+      KD.remote.api.JRecurlyPlan.getGroupBalance group, cb
 
-    getBalance = (type, cb)->
-      if type is 'user'
-        KD.remote.api.JRecurlyPlan.getUserBalance cb
-      else
-        KD.remote.api.JRecurlyPlan.getGroupBalance group, cb
-
-    askBillingInfo = (cb)->
-      paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
-        if type is 'group'
-          group.setBillingInfo newData, (err, result)->
-            if err
-              onError err
-            else
-              onSuccess result
-              cb yes
-        else
-          KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-            if err
-              onError err
-            else
-              onSuccess result
-              cb yes
-
-    buildModal = (content, needBilling, willCharge, cb)->
-      modal           = new KDModalView
-        title         : "Confirm VM Creation"
-        content       : "<div class='modalformline'>#{content}</div>"
-        overlay       : yes
-        buttons       :
-          No          :
-            title     : "Cancel"
-            cssClass  : "modal-clean-gray"
-            callback  : =>
-              modal.destroy()
-              cb()
-          Billing     :
-            title     : "Enter Billing Info"
-            cssClass  : "modal-clean-green"
-            callback  : =>
-              askBillingInfo (success)->
-                if success
-                  modal.buttons.Yes.show()
-                  modal.buttons.Billing.hide()
-          Yes         :
-            title     : "OK, create the VM"
-            cssClass  : "modal-clean-green"
-            callback  : =>
-              modal.destroy()
-              paymentController.makePayment type, plan, willCharge, ->
-                cb()
-
-      if needBilling
-        modal.buttons.Billing.show()
-        modal.buttons.Yes.hide()
-      else
-        modal.buttons.Billing.hide()
-
-    getBillingInfo = (cb)->
+  setBillingInfo: (type, group, cb)->
+    @createPaymentMethodModal {}, (newData, onError, onSuccess)->
       if type is 'group'
-        group.getBillingInfo cb
+        group.setBillingInfo newData, (err, result)->
+          if err
+            onError err
+          else
+            onSuccess result
+            cb yes
       else
-        KD.remote.api.JRecurlyPlan.getUserAccount cb
+        KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
+          if err
+            onError err
+          else
+            onSuccess result
+            cb yes
+
+  getBillingInfo: (type, group, cb)->
+    if type is 'group'
+      group.getBillingInfo cb
+    else
+      KD.remote.api.JRecurlyPlan.getUserAccount cb
+
+  createPaymentConfirmationModal: (type, group, plan, content, needBilling, willCharge, cb)->
+    modal           = new KDModalView
+      title         : "Confirm VM Creation"
+      content       : "<div class='modalformline'>#{content}</div>"
+      overlay       : yes
+      buttons       :
+        No          :
+          title     : "Cancel"
+          cssClass  : "modal-clean-gray"
+          callback  : =>
+            modal.destroy()
+            cb()
+        Billing     :
+          title     : "Enter Billing Info"
+          cssClass  : "modal-clean-green hidden"
+          callback  : =>
+            @setBillingInfo type, group, (success)->
+              if success
+                modal.buttons.Yes.show()
+                modal.buttons.Billing.hide()
+        Yes         :
+          title     : "OK, create the VM"
+          cssClass  : "modal-clean-green hidden"
+          callback  : =>
+            modal.destroy()
+            @makePayment type, plan, willCharge, ->
+              cb()
+
+    if needBilling
+      modal.buttons.Billing.show()
+    else
+      modal.buttons.Yes.show()
+
+  confirmPayment:(type, plan, callback=->)->
+    group = KD.getSingleton("groupsController").getCurrentGroup()
 
     group.canCreateVM
       type     : type
       planCode : plan.code
-    , (err, status)->
+    , (err, status)=>
       if not err and status
         content = """<p>
                        You already subscribed for an additional 
@@ -311,10 +309,10 @@ class PaymentController extends KDController
                   """
         buildModal content, no, no, callback
       else
-        getBillingInfo (err, account)->
+        @getBillingInfo type, group, (err, account)=>
           billing = err or not account or not account.cardNumber
 
-          getBalance type, (err, balance)->
+          @getBalance type, group, (err, balance)=>
             if not err and balance > 0
               charge = (plan.feeMonthly - balance) / 100
               balance = balance / 100
@@ -331,14 +329,14 @@ class PaymentController extends KDController
                                 Do you want to continue?
                               </p>
                            """
-                buildModal content, billing, yes, callback
+                @createPaymentConfirmationModal type, group, plan, content, billing, yes, callback
               else
                 content += """<p>
                                 You <strong>won't</strong> be charged. Do you 
                                 want to continue?
                               </p>
                            """
-                buildModal content, no, no, callback
+                @createPaymentConfirmationModal type, group, plan, content, no, no, callback
             else
               charge = plan.feeMonthly / 100
               content = """<p>
@@ -346,7 +344,7 @@ class PaymentController extends KDController
                              you want to continue?
                            </p>
                         """
-              buildModal content, billing, yes, callback
+              @createPaymentConfirmationModal type, group, plan, content, billing, yes, callback
 
   makePayment: (type, plan, willCharge, callback)->
     vmController = KD.getSingleton('vmController')
