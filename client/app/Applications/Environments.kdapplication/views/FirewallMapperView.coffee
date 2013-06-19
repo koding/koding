@@ -79,6 +79,9 @@ class FirewallMapperView extends KDView
     newRulesList = (item.getData() for item in @ruleListController.itemsOrdered)
     domain.updateRuleOrders newRulesList, (err, response)->
       return console.log err if err?
+      new KDNotificationView
+        title : "Order of your rule list has been successfully updated."
+        type  : "top"
 
 
 class FirewallFilterListItemView extends KDListItemView
