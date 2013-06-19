@@ -29,7 +29,37 @@ class WebTermAppView extends JView
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
     webTermView.once 'WebTermConnected', (remote)->
-      remote.input decodeURIComponent query.command+'\n'
+      if query.command
+        command = decodeURIComponent query.command
+        modal = new KDModalView
+          title   : "Warning!"
+          content : """
+          <div class="modalformline">
+            <p>
+              If you <strong>don't trust this app</strong>, or if you clicked on this
+              link <strong>not knowing what it would do</strong> - be careful it <strong>can
+              damage/destroy</strong> your Koding VM.
+            </p>
+          </div>
+          <div class="modalformline">
+            <p>
+              This URL is set to execute the command below:
+            </p>
+          </div>
+          <pre>
+            #{Encoder.XSSEncode command}
+          </pre>
+          """
+          buttons :
+            "Run" :
+              cssClass: "modal-clean-gray"
+              callback: ->
+                remote.input "#{command}\n"
+                modal.destroy()
+            "Cancel":
+              cssClass: "modal-cancel"
+              callback: ->
+                modal.destroy()
 
   _windowDidResize:->
     # 10px being the application page's padding
