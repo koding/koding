@@ -48,12 +48,10 @@ func GetFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 }
 
 func CreateFilterByMatch(writer http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	match := vars["match"]
-	fmt.Printf("POST\t/filters/%s\n", match)
-
+	fmt.Printf("POST\t/filters\n")
 	var msg FiltersPostMessage
 	var filterType string
+	var filterMatch string
 
 	body, _ := ioutil.ReadAll(req.Body)
 	err := json.Unmarshal(body, &msg)
@@ -62,11 +60,19 @@ func CreateFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if match == "" {
-		err := "match field can't be empty"
+	if msg.FilterMatch != nil {
+		filterMatch = *msg.FilterMatch
+		if filterMatch == "" {
+			err := "match field can't be empty"
+			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+			return
+		}
+	} else {
+		err := "no 'match' field available"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
 	}
+
 	if msg.FilterType != nil {
 		filterType = *msg.FilterType
 	} else {
@@ -84,7 +90,7 @@ func CreateFilterByMatch(writer http.ResponseWriter, req *http.Request) {
 	// 	return
 	// }
 
-	filter := proxyconfig.NewFilter(filterType, "", match)
+	filter := proxyconfig.NewFilter(filterType, "", filterMatch)
 	resFilter, err := proxyDB.AddFilter(filter)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
