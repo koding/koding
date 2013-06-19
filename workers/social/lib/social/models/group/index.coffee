@@ -88,7 +88,8 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'canCreateVM', 'vmUsage',
+        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'createVM', 'canCreateVM', 'vmUsage',
         'fetchBundle', 'updateBundle'
       ]
     schema          :
@@ -1320,6 +1321,14 @@ module.exports = class JGroup extends Module
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
+  setBillingInfo: secure (client, data, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.setGroupAccount @, data, callback
+
+  getBillingInfo: secure (client, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.getGroupAccount @, callback
+
   makePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
     JRecurlyPlan = require '../recurly'
@@ -1328,17 +1337,6 @@ module.exports = class JGroup extends Module
     , (err, plan)=>
       return callback err  if err
       plan.subscribeGroup @, data, callback
-
-  updatePayment: secure (client, data, callback)->
-    data.plan ?= @payment.plan
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
-      return callback err  if err
-      plan.subscribeGroup @, data, (err, subs)=>
-        return callback err  if err
-        callback no, subs
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
