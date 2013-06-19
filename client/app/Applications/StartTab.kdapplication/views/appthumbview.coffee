@@ -26,10 +26,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
     proxifyUrl=(url)->
       KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
-    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/"
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
     if manifest.devMode
-      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/"
+      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}"
 
     thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
 

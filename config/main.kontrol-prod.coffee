@@ -111,7 +111,7 @@ module.exports =
         sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
     host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'

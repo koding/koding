@@ -52,9 +52,9 @@ func AwaitSignals(listeners map[string]net.Listener) error {
 		// SIGUSR2 begins the process of restarting without dropping
 		// the listener passed to this function.
 		case syscall.SIGUSR2:
-			fmt.Printf("relaunching listeners\n")
+			log.Printf("relaunching listeners\n")
 			for addr, _ := range listeners {
-				fmt.Printf("\t%s\n", addr)
+				log.Printf("\t%s\n", addr)
 			}
 
 			err := Relaunch(listeners)
@@ -125,7 +125,7 @@ func KillParent(ppid int) error {
 // Re-exec this image without dropping the listener passed to this function.
 // func Relaunch(l net.Listener, envs []string) error {
 func Relaunch(listeners map[string]net.Listener) error {
-	files := make([]*os.File, 15)
+	files := make([]*os.File, 20)
 	files[syscall.Stdin] = os.Stdin
 	files[syscall.Stdout] = os.Stdout
 	files[syscall.Stderr] = os.Stderr
