@@ -55,7 +55,7 @@ class KodingAppsController extends KDController
       @fetchAppsFromDb (err, apps)=>
         if err
           @fetchAppsFromFs (err, apps)=>
-            if err then callback()
+            if err then callback? err
             else callback null, apps
         else
           callback? err, apps

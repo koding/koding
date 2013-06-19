@@ -179,7 +179,7 @@ class AppView extends KDView
 
     appsController.fetchApps (err, manifests) =>
       # user have the app, show just show open button
-      if app.title in Object.keys manifests
+      if manifests and app.title in Object.keys manifests
         @installButton.hide()
         @runButton.show()
 
