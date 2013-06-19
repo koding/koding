@@ -84,6 +84,9 @@ module.exports = class JProxyRestriction extends jraphical.Module
   @updateRuleOrders: (params, callback)->
     domainName = params.domainName
     newRuleList = params.ruleList
+    for rule in newRuleList
+      if rule.domainName?
+        delete rule.domainName
     JProxyRestriction.update {domainName}, {$set: ruleList: newRuleList}, (err)->
       callback err
 
