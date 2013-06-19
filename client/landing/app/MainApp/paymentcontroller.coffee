@@ -242,7 +242,6 @@ class PaymentController extends KDController
       paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
         if type is 'group'
           group.setBillingInfo newData, (err, result)->
-            console.log "Group Billing:", arguments
             if err
               onError err
             else
@@ -250,7 +249,6 @@ class PaymentController extends KDController
               cb yes
         else
           KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-            console.log "User Billing:", arguments
             if err
               onError err
             else
