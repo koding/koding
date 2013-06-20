@@ -117,12 +117,6 @@ class AccountSubscriptionsListItem extends KDListItemView
     @template.update()
 
   pistachio:->
-    # TODO:
-    # - Make UI beautiful
-    # - Show monthly fee if type is recurring
-    # - Hide expire date if status is not canceled
-    # - Hide renew date if status is canceled
-
     {quantity,plan,status,renew,expires} = @getData()
 
     statusNotice = ""
