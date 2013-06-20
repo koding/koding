@@ -61,16 +61,25 @@ func main() {
 
 var GRAPH_URL = "http://kgraphdb3.in.koding.com:7474"
 
-func checkRelationshipExists(sourceId, targetId, relType string) (bool, error) {
-	url := fmt.Sprintf("%v/db/data/node/%v/relationships/all/%v", GRAPH_URL, sourceId, relType)
-
+func getAndParse(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func checkRelationshipExists(sourceId, targetId, relType string) (bool, error) {
+	url := fmt.Sprintf("%v/db/data/node/%v/relationships/all/%v", GRAPH_URL, sourceId, relType)
+
+	body, err := getAndParse(url)
 	if err != nil {
 		return false, err
 	}
@@ -92,14 +101,8 @@ func checkRelationshipExists(sourceId, targetId, relType string) (bool, error) {
 }
 
 func checkNodeExists(id string) (string, error) {
-	url := GRAPH_URL + "/db/data/index/node/koding/id/"
-	resp, err := http.Get(url + id)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	url := fmt.Sprintf("%v/db/data/index/node/koding/id/%v", GRAPH_URL, id)
+	body, err := getAndParse(url)
 	if err != nil {
 		return "", err
 	}
