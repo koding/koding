@@ -162,13 +162,13 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Do whatever's necessary to ensure a graceful exit like waiting for
-	// goroutines to terminate or a channel to become closed.
-	// In this case, we'll simply stop listening and wait one second.
-	if err := listener.Close(); nil != err {
-		log.Fatalln(err)
+	// we need to close all listeners..
+	for _, l := range listeners {
+		if err := l.Close(); nil != err {
+			log.Fatalln(err)
+		}
+		log.Printf("stopped listener: %s\n", l.Addr().String())
 	}
-	log.Printf("stopped current listener with pid %d\n", os.Getpid())
 }
 
 /*************************************************
