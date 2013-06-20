@@ -52,8 +52,6 @@ module.exports = class JGroupBundle extends JBundle
       planOwner = "user_#{account._id}"
     else if type is 'group'
       planOwner = "group_#{group._id}"
-    else if type is 'ex'
-      planOwner = "group_#{group._id}"
 
     JRecurlySubscription.getSubscriptionsAll planOwner,
       userCode: planOwner
