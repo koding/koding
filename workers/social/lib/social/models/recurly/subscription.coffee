@@ -133,7 +133,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
 
   calculateRefund: (callback)->
     refundMap = [
-      {uplimit: 1000 * 60 * 60 * 24 * 1,  percent: 100}
+      {uplimit: 1000 * 60 * 60 * 24 * 1,  percent: 90}
       {uplimit: 1000 * 60 * 60 * 24 * 7,  percent: 40}
       {uplimit: 1000 * 60 * 60 * 24 * 15, percent: 20}
     ]
@@ -159,7 +159,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       @calculateRefund (status, percent)=>
         if status
           @refund percent, ->
-            console.log "Refunding #{ref.percent}% of the payment."
+            console.log "Refunding #{percent}% of the payment."
 
       @status   = sub.status
       @datetime = sub.datetime
