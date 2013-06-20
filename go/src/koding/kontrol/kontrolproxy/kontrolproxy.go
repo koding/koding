@@ -26,9 +26,9 @@ func init() {
 	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
-type RabbitChannel struct {
-	ReplyTo string
-	Receive chan []byte
+type client struct {
+	target     string
+	registered time.Time
 }
 
 var templates = template.Must(template.ParseFiles(
@@ -39,13 +39,11 @@ var templates = template.Must(template.ParseFiles(
 ))
 
 var proxyDB *proxyconfig.ProxyConfiguration
-var amqpStream *AmqpStream
-var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var users = make(map[string]time.Time)
-var usersLock sync.RWMutex
+var clients = make(map[string]client)
+var clientsLock sync.RWMutex
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -194,20 +192,24 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		log.Printf("parsing incoming request from %s to %s: %s", outreq.RemoteAddr, outreq.Host, err.Error())
 		if buf != nil { // if any pre rendered html is available, use that for error displaying
 			p.copyResponse(rw, buf)
-		} else {
-			buf, err := executeTemplate("notfound.html", outreq.Host)
-			if err != nil {
-				log.Println("error executing template", err.Error())
-				return
-			}
-			p.copyResponse(rw, buf)
+			return
 		}
+
+		buf, err := executeTemplate("notfound.html", outreq.Host)
+		if err != nil {
+			log.Println("error executing template", err.Error())
+			return
+		}
+		p.copyResponse(rw, buf)
 		return
 	}
 
-	target := user.Target
-
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.String())
+	if user.Redirect {
+		// 302 redirect
+		http.Redirect(rw, req, user.Target.String(), http.StatusFound)
+		return
+	}
 
 	switch user.Domain.Proxy.Mode {
 	case "maintenance":
@@ -218,10 +220,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	switch user.Domain.LoadBalancer.Mode {
-	case "sticky":
+	var target *url.URL
+	switch user.LoadBalancer.Persistence {
+	case "cookie":
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
+
+		session.Options = &sessions.Options{MaxAge: 20} //seconds
 		targetURL, ok := session.Values["GOSESSIONID"]
 		if ok {
 			target, err = url.Parse(targetURL.(string))
@@ -233,6 +238,17 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
+	case "sourceAddress":
+		if client, ok := getClient(user.IP); !ok {
+			target, err = url.Parse(client.target)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+				return
+			}
+		}
+	default:
+		// if not set don't use session affinity
+		target = user.Target
 	}
 
 	_, err = validate(user)
@@ -287,8 +303,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.Close = false
 
 	go func() {
-		if !isUserRegistered(user.IP) {
-			go registerUser(user.IP)
+		if _, ok := getClient(user.IP); !ok {
+			go registerClient(user.IP, target.String())
 			go logDomainRequests(outreq.Host)
 			go logProxyStat(hostname, user.Country)
 		}
@@ -379,19 +395,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 		defer res.Body.Close()
 
-		// rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
-		// if err != nil {
-		// 	// add :80 if not available
-		// } else {
-		// 	fmt.Println("connection via rabbitmq")
-		// 	res, err = rabbitTransport(outreq, user, rabbitKey)
-		// 	if err != nil {
-		// 		log.Printf("rabbit proxy %s", err.Error())
-		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-		// 		return
-		// 	}
-		// }
-
 		copyHeader(rw.Header(), res.Header)
 		rw.WriteHeader(res.StatusCode)
 		p.copyResponse(rw, res.Body)
@@ -410,50 +413,50 @@ func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 *
 *  - arslan
 *************************************************/
-func registerUser(ip string) {
-	usersLock.Lock()
-	defer usersLock.Unlock()
-	users[ip] = time.Now()
-	if len(users) == 1 {
+func registerClient(ip, host string) {
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	clients[ip] = client{target: host, registered: time.Now()}
+	if len(clients) == 1 {
 		go cleaner()
 	}
 }
 
-// The goroutine basically does this: as long as there are users in the map, it
+// Needed to avoid race condition between multiple go routines
+func getClient(ip string) (client, bool) {
+	clientsLock.RLock()
+	defer clientsLock.RUnlock()
+	c, ok := clients[ip]
+	return c, ok
+}
+
+// The goroutine basically does this: as long as there are clients in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
-// (one hour - time since user registration) and deletes it.  If there are no
-// users, the goroutine exits and a new one is created the next time a user is
+// (one hour - time since client registration) and deletes it.  If there are no
+// clients, the goroutine exits and a new one is created the next time a user is
 // registered. The time.Sleep goes toward zero, thus it will not lock the
 // for iterator forever.
 func cleaner() {
-	usersLock.RLock()
-	for len(users) > 0 {
+	clientsLock.RLock()
+	for len(clients) > 0 {
 		var nextTime time.Time
-		var nextUser string
-		for u, t := range users {
-			if nextTime.IsZero() || t.Before(nextTime) {
-				nextTime = t
-				nextUser = u
+		var nextClient string
+		for ip, c := range clients {
+			if nextTime.IsZero() || c.registered.Before(nextTime) {
+				nextTime = c.registered
+				nextClient = ip
 			}
 		}
-		usersLock.RUnlock()
+		clientsLock.RUnlock()
 		// negative duration is no-op, means it will not panic
 		time.Sleep(time.Hour - time.Now().Sub(nextTime))
-		usersLock.Lock()
-		log.Println("deleting user from internal map", nextUser)
-		delete(users, nextUser)
-		usersLock.Unlock()
-		usersLock.RLock()
+		clientsLock.Lock()
+		log.Println("deleting client from internal map", nextClient)
+		delete(clients, nextClient)
+		clientsLock.Unlock()
+		clientsLock.RLock()
 	}
-	usersLock.RUnlock()
-}
-
-// Needed to avoid race condition between multiple go routines
-func isUserRegistered(ip string) bool {
-	usersLock.RLock()
-	defer usersLock.RUnlock()
-	_, ok := users[ip]
-	return ok
+	clientsLock.RUnlock()
 }
 
 /*************************************************

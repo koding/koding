@@ -261,7 +261,12 @@ func main() {
 		panic(err)
 	}
 
-	if err := kontrolhelper.RegisterToKontrol("broker", config.Uuid, config.Current.Broker.Port); err != nil {
+	if err := kontrolhelper.RegisterToKontrol(
+		"broker", // servicename
+		config.Uuid,
+		"broker-"+kontrolhelper.ReadVersion()+".koding.com", //hostname
+		config.Current.Broker.Port,
+	); err != nil {
 		panic(err)
 	}
 
