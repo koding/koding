@@ -69,9 +69,10 @@ class AccountSubscriptionsListItem extends KDListItemView
 
     @changePlan = new KDButtonView
       style       : "clean-gray"
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : 'delete'
+      cssClass    : "edit-plan #{data.status}"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "refresh"
       tooltip     :
         title     : title
         placement : "left"
@@ -133,18 +134,18 @@ class AccountSubscriptionsListItem extends KDListItemView
     dateNotice = ""
     if plan.type != 'single'
       if status == 'active'
-        dateNotice = "Plan will renew on #{renew}"
+        dateNotice = "Plan will renew on #{dateFormat renew}"
       else if status == 'canceled'
-        dateNotice = "Plan will be available till #{expires}"
+        dateNotice = "Plan will be available till #{dateFormat expires}"
 
     amount = (plan.feeMonthly / 100).toFixed 2
 
     """
-    <span class='payment-type'>#{statusNotice}</span>
     <div class='payment-details'>
-      {{> @changePlan}}
       <h4>{{#(plan.title)}} - $#{amount}</h4>
+      <span class='payment-type'>#{statusNotice}</span>
+      {{> @changePlan}}
       <br/>
-      #{dateNotice}
+      <p>#{dateNotice}</p>
     </div>
     """
