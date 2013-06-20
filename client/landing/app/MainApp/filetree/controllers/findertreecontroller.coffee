@@ -61,7 +61,12 @@ class NFinderTreeController extends JTreeViewController
         @emit "file.opened", nodeData
         @setBlurState()
 
-  openFile:(nodeView, event)->
+  openFileWithApp: (nodeView, contextMenuItem) ->
+    return warn "no app passed to open this file"  unless contextMenuItem
+    app = contextMenuItem.getData().title
+    KD.getSingleton("appManager").openFileWithApplication app, nodeView.getData()
+
+  openFile:(nodeView)->
 
     return unless nodeView
     file = nodeView.getData()
@@ -499,6 +504,8 @@ class NFinderTreeController extends JTreeViewController
   cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
+  cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
+  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -730,3 +737,10 @@ class NFinderTreeController extends JTreeViewController
 
     {nickname} = KD.whoami().profile
     @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+
+  showOpenWithModal: (nodeView) ->
+    KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
+      new OpenWithModal {}, {
+        nodeView
+        apps
+      }

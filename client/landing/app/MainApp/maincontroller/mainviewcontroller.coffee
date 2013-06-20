@@ -37,14 +37,13 @@ class MainViewController extends KDViewController
 
     @setViewState pane.getOptions()
 
-    # fixme: make a name/route map somewhere
-    # probably in KD so that we can use sitewide
-    navController.selectItemByName switch route.slice(1)
+    {slug} = route
+    slug or= route
+    slug   = slug.slice(1)
+    slug   = if slug.slice(0,6) is "Develop" then "Develop" else slug
+    navController.selectItemByName switch slug
       when 'Dashboard' then 'Group'
-      else route.slice(1)
-
-
-
+      else slug
 
   isEntryPointSet = null
 

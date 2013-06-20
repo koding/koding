@@ -269,6 +269,10 @@ module.exports = [
   # global notifications
   "app/MainApp/globalnotification.coffee",
 
+  #Finder Modals
+  "app/MainApp/filetree/modals/openwith/openwithmodalitem.coffee",
+  "app/MainApp/filetree/modals/openwith/openwithmodal.coffee",
+
   # SINANS FINDER
   "app/MainApp/filetree/controllers/findercontroller.coffee",
   "app/MainApp/filetree/controllers/findertreecontroller.coffee",

@@ -38,13 +38,14 @@ class FirewallMapperView extends KDView
 
       @filterListController.instantiateListItems filters
 
-    KD.remote.api.JProxyRestriction.fetchRestrictionByDomain domain.domain, (err, restriction)=>
-      if restriction
-        for rule in restriction.ruleList
+    domain.fetchProxyRules (err, ruleList)=>
+      return console.log err if err
+      if ruleList
+        for rule in ruleList
           rule.domainName = domain.domain
-        @ruleListController.instantiateListItems restriction.ruleList
+        @ruleListController.instantiateListItems ruleList
 
-    @fwRuleFormView = new FirewallFilterFormView delegate:this, {domain}
+    @fwRuleFormView = new FirewallFilterFormView delegate:@filterListController.getListView(), {domain}
 
     @addSubView @fwRuleFormView
 
@@ -68,7 +69,8 @@ class FirewallMapperView extends KDView
 
     @ruleListScrollView.addSubView @ruleListController.getView()
 
-    @on "newFilterCreated", (item) => @filterListController.addItem item
+    @filterListController.getListView().on "newFilterCreated", (item) => 
+      @filterListController.addItem item
 
     # this event is on rule list controller because
     # both allow & deny buttons live on FirewallFilterListItemView.
@@ -117,21 +119,26 @@ class FirewallFilterListItemView extends KDListItemView
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
       return console.log err if err
 
-      params =
-        domainName: domain.domain
-        action    : behavior
-        match     : data.match
+      domain.fetchProxyRules (err, rules)->
 
-      domain.createProxyRule params, (err, rule)=>
-        return console.log err if err
+        proxyRuleMatches = (rule.match for rule in rules)
 
-        ruleObj =
-          domainName : data.domainName
-          action     : rule.action
-          match      : rule.match
-          enabled    : rule.enabled
+        if (proxyRuleMatches.indexOf data.match) is -1
+          params = 
+            domainName: domain.domain
+            action    : behavior
+            match     : data.match
+          
+          domain.createProxyRule params, (err, rule)=>
+            return console.log err if err
 
-        delegate.emit "newRuleCreated", ruleObj
+            ruleObj =
+              domainName : data.domainName
+              action     : rule.action
+              match      : rule.match
+              enabled    : rule.enabled
+            
+            delegate.emit "newRuleCreated", ruleObj
 
   deleteFilter:->
     data = @getData()
@@ -273,6 +280,7 @@ class FirewallFilterFormView extends KDCustomHTMLView
     , (err, filter)->
       unless err
         delegate.emit "newFilterCreated", {name:filterName, match:filterMatch}
+        return
 
       return new KDNotificationView
         title : "An error occured while performing your action. Please try again."
