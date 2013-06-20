@@ -27,6 +27,24 @@ type Relationship struct {
 	Data       bson.Binary
 }
 
+// get from mongo
+// check if available worker, start go routine
+// if no worker, wait till something returns
+
+var numberOfAvailableWorkers = 500
+
+func canStartWork() bool {
+	numberOfAvailableWorkers = numberOfAvailableWorkers - 1
+	if numberOfAvailableWorkers > 1 {
+		return true
+	}
+}
+
+func waitTillFree(doneWorking <-chan bool) {
+	<-doneWorking
+	numberOfAvailableWorkers = numberOfAvailableWorkers + 1
+}
+
 func main() {
 	coll := mongo.GetCollection("relationships")
 	query := bson.M{
@@ -35,32 +53,47 @@ func main() {
 	}
 	iter := coll.Find(query).Skip(0).Limit(1000).Sort("-timestamp").Iter()
 
+	alertDone := make(chan bool)
+
 	var result Relationship
 	for iter.Next(&result) {
-		sourceId, err := checkNodeExists(result.SourceId.Hex())
-		if err != nil {
-			log.Println("SourceNode", result.SourceName, result.SourceId, err)
-			continue
-		}
-
-		targetId, err := checkNodeExists(result.TargetId.Hex())
-		if err != nil {
-			log.Println("TargetNode", result.TargetName, result.TargetId, err)
-			continue
-		}
-
-		exists, err := checkRelationshipExists(sourceId, targetId, result.As)
-		if err != nil {
-			log.Println("Relationship ERROR", err)
-			continue
-		}
-
-		if exists == true {
-			log.Println("Relationship:", result.Id.Hex(), "exists")
+		if canStartWork() {
+			work(result)
 		} else {
-			log.Println("Relationship:", result, "does not exist")
+			waitTillFree(alertDone)
 		}
 	}
+}
+
+func work(result Relationship, alertDone chan<- bool) {
+	sourceId, err := checkNodeExists(result.SourceId.Hex())
+	if err != nil {
+		log.Println("SourceNode", result.SourceName, result.SourceId, err)
+		alertDone <- true
+		return
+	}
+
+	targetId, err := checkNodeExists(result.TargetId.Hex())
+	if err != nil {
+		log.Println("TargetNode", result.TargetName, result.TargetId, err)
+		alertDone <- true
+		return
+	}
+
+	exists, err := checkRelationshipExists(sourceId, targetId, result.As)
+	if err != nil {
+		log.Println("Relationship ERROR", err)
+		alertDone <- true
+		return
+	}
+
+	if exists == true {
+		log.Println("Relationship:", result.Id.Hex(), "exists")
+	} else {
+		log.Println("Relationship:", result, "does not exist")
+	}
+
+	alertDone <- true
 }
 
 func getAndParse(url string) ([]byte, error) {
