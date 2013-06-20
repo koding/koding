@@ -126,8 +126,8 @@ module.exports =
   broker        :
     ip          : ""
     port        : 8008
-    certFile    : ""
-    keyFile     : ""
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
