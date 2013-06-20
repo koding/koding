@@ -7,11 +7,15 @@ import (
 	"github.com/siesta/neo4j"
 	"io/ioutil"
 	"koding/databases/mongo"
+	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
+
+var GRAPH_URL = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
 
 type Relationship struct {
 	Id         bson.ObjectId `bson:"_id,omitempty"`
@@ -58,8 +62,6 @@ func main() {
 		}
 	}
 }
-
-var GRAPH_URL = "http://kgraphdb3.in.koding.com:7474"
 
 func getAndParse(url string) ([]byte, error) {
 	resp, err := http.Get(url)
