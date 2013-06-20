@@ -241,7 +241,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	user, buf, err := populateUser(outreq)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
-		log.Printf("parsing incoming request %s: %s", outreq.Host, err.Error())
+		log.Printf("parsing incoming request from %s to %s: %s", outreq.RemoteAddr, outreq.Host, err.Error())
 		if buf != nil { // if any pre rendered html is available, use that for error displaying
 			p.copyResponse(rw, buf)
 		} else {
