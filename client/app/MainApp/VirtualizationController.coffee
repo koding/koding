@@ -354,10 +354,15 @@ class VirtualizationController extends KDController
           style : "modal-clean-red"
 
       when 'vm.remove'
-        content = """Removing this VM will <b>destroy</b> all the data in
-                     this VM including all other users in filesystem.
-                     <b>Please be careful this process cannot be undone</b>.
-                     Do you want to continue?"""
+        content = """<p>Removing this VM will <b>destroy</b> all the data in
+                     this VM including all other users in filesystem. <b>Please
+                     be careful this process cannot be undone.</b></p>
+
+                     <p>Remaning amount of your subscription will be credited
+                     to your account. You can use this credit to purchase
+                     new VM(s later.</p>
+
+                     <p>Do you want to continue?</p>"""
         button  =
           title : "Remove VM"
           style : "modal-clean-red"
