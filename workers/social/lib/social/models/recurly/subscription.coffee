@@ -123,9 +123,10 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       @save =>
         callback no, @
 
-  terminate: (callback)->
+  terminate: (refund, callback)->
     payment.terminateUserSubscription @userCode,
-      uuid: @uuid
+      uuid   : @uuid
+      refund : refund
     , (err, sub)=>
       return callback err  if err
       @status   = sub.status

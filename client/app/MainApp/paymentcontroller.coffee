@@ -228,159 +228,125 @@ class PaymentController extends KDController
               modal.destroy()
               callback?()
 
-  subscribeGroup: (group, type, planCode, callback)->
-    paymentController = KD.getSingleton('paymentController')
-    vmController      = KD.getSingleton('vmController')
+  getBalance: (type, group, cb)->
+    if type is 'user'
+      KD.remote.api.JRecurlyPlan.getUserBalance cb
+    else
+      KD.remote.api.JRecurlyPlan.getGroupBalance group, cb
 
-    # Copy account creator's billing information
-    KD.remote.api.JRecurlyPlan.getUserAccount (err, data)=>
-      warn err
-      if err or not data
-        data = {}
-
-      # These will go into Recurly module
-      delete data.cardNumber
-      delete data.cardMonth
-      delete data.cardYear
-      delete data.cardCV
-
-      @paymentModal = paymentController.createPaymentMethodModal data, (newData, onError, onSuccess)->
-        newData.plan = planCode
-        newData.type = type
-        group.makePayment newData, (err, subscription)->
+  setBillingInfo: (type, group, cb)->
+    @createPaymentMethodModal {}, (newData, onError, onSuccess)->
+      if type is 'group'
+        group.setBillingInfo newData, (err, result)->
           if err
             onError err
           else
-            vmController.createGroupVM type, planCode
-            onSuccess()
-            callback()
-      @paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
-
-  subscribeUser: (type, planCode, callback)->
-    vmController = KD.getSingleton('vmController')
-
-    KD.remote.api.JRecurlyPlan.getPlanWithCode planCode, (err, plan)->
-      plan.subscribe {}, (err, subscription)->
-        return callback err  if callback and err
-        vmController.createGroupVM type, planCode
-        callback?()
-
-  confirmPayment: (type, plan, callback=->)->
-    paymentController = KD.getSingleton('paymentController')
-    group             = KD.getSingleton("groupsController").getCurrentGroup()
-
-    getBalance = (type, cb)->
-      if type is 'user'
-        KD.remote.api.JRecurlyPlan.getUserBalance cb
+            onSuccess result
+            cb yes
       else
-        KD.remote.api.JRecurlyPlan.getGroupBalance group, cb
+        KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
+          if err
+            onError err
+          else
+            onSuccess result
+            cb yes
 
-    buildModal = (content, cb)->
-      modal           = new KDModalView
-        title         : "Confirm VM Creation"
-        content       : "<div class='modalformline'>#{content}</div>"
-        overlay       : yes
-        buttons       :
-          No          :
-            title     : "Cancel"
-            cssClass  : "modal-clean-gray"
-            callback  : =>
-              modal.destroy()
+  getBillingInfo: (type, group, cb)->
+    if type is 'group'
+      group.getBillingInfo cb
+    else
+      KD.remote.api.JRecurlyPlan.getUserAccount cb
+
+  createPaymentConfirmationModal: (type, group, plan, needBilling, balance, amount, cb)->
+    content = @paymentWarning balance, amount
+
+    modal           = new KDModalView
+      title         : "Confirm VM Creation"
+      content       : "<div class='modalformline'>#{content}</div>"
+      overlay       : yes
+      buttons       :
+        No          :
+          title     : "Cancel"
+          cssClass  : "modal-clean-gray"
+          callback  : =>
+            modal.destroy()
+            cb()
+        Billing     :
+          title     : "Enter Billing Info"
+          cssClass  : "modal-clean-green hidden"
+          callback  : =>
+            @setBillingInfo type, group, (success)->
+              if success
+                modal.buttons.Yes.show()
+                modal.buttons.Billing.hide()
+        Yes         :
+          title     : "OK, create the VM"
+          cssClass  : "modal-clean-green hidden"
+          callback  : =>
+            modal.destroy()
+            @makePayment type, plan, amount, ->
               cb()
-          Yes         :
-            title     : "OK, create the VM"
-            cssClass  : "modal-clean-green"
-            callback  : =>
-              modal.destroy()
-              cb()
-              paymentController.makePaymentModal type, plan, ->
-                console.log "I'm done."
-    
+
+    if needBilling
+      modal.buttons.Billing.show()
+    else
+      modal.buttons.Yes.show()
+
+  paymentWarning: do->
+
+    formatMoney = (amount)-> (amount / 100).toFixed 2
+
+    (balance, amount)->
+      content = ""
+
+      chargeAmount = Math.max amount - balance, 0
+
+      if amount is 0
+        content += "<p>You are already subscribed for an extra VM.</p>"
+      else if balance > 0
+        content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
+
+      if chargeAmount > 0
+        content += "<p>You will be charged for $#{formatMoney chargeAmount}.</p>"
+      else
+        content += "<p>You won't be charged for this VM.</p>"
+
+      content += "<p>Do you want to continue?</p>"
+
+      content
+
+  confirmPayment:(type, plan, callback=->)->
+    group = KD.getSingleton("groupsController").getCurrentGroup()
+
     group.canCreateVM
       type     : type
       planCode : plan.code
-    , (err, status)->
+    , (err, status)=>
       if not err and status
-        content = """<p>
-                       You already subscribed for an additional 
-                       <strong>#{type}</strong> VM.
-                     </p>
-                     <p>
-                       You <strong>won't</strong> be charged. Do you want to 
-                       continue?.
-                     </p>
-                  """
-        buildModal content, callback
+        @createPaymentConfirmationModal type, group, plan, no, 0, 0, callback
       else
-        getBalance type, (err, balance)->
-          if not err and balance > 0
-            charge = (plan.feeMonthly - balance) / 100
-            balance = balance / 100
+        @getBillingInfo type, group, (err, account)=>
+          needBilling = err or not account or not account.cardNumber
 
-            content = """<p>
-                           You have $#{balance.toFixed(2)} credited to your 
-                           <strong>#{type}</strong> account.
-                         </p>
-                      """
+          @getBalance type, group, (err, balance)=>
+            if err
+              balance = 0
+            @createPaymentConfirmationModal type, group, plan, needBilling, balance, plan.feeMonthly, callback
 
-            if charge > 0
-              content += """<p>
-                              You will be charged for $#{charge.toFixed(2)}. 
-                              Do you want to continue?
-                            </p>
-                         """
-            else
-              content += """<p>
-                              You <strong>won't</strong> be charged. Do you 
-                              want to continue?
-                            </p>
-                         """
-          else
-            charge = plan.feeMonthly / 100
-            content = """<p>
-                           You will be charged for $#{charge.toFixed(2)}. Do 
-                           you want to continue?
-                         </p>
-                      """
-          buildModal content, callback
+  makePayment: (type, plan, amount, callback)->
+    vmController = KD.getSingleton('vmController')
+    group        = KD.getSingleton("groupsController").getCurrentGroup()
 
-  makePaymentModal: (type, plan, callback)->
-    vmController      = KD.getSingleton('vmController')
-    paymentController = KD.getSingleton('paymentController')
-
-    group = KD.getSingleton("groupsController").getCurrentGroup()
-    planCode = plan.code
-
-    group.canCreateVM
-      type    : type
-      planCode: planCode
-    , (err, status)->
-      if err
-        return new KDNotificationView
-          title : "There is an error in payment backend, please try again later."
-      if status
-        vmController.createGroupVM type, planCode
-        callback()
+    if amount is 0
+      vmController.createGroupVM type, plan.code
+    else
+      if type is 'group'
+        group.makePayment
+          plan: plan.code
+        , (err, result)->
+          unless err
+            vmController.createGroupVM type, plan.code
       else
-        if type is 'group'
-          group.checkPayment (err, payments)->
-            if err or payments.length is 0
-              paymentController.subscribeGroup group, type, planCode, callback
-            else
-              group.updatePayment {plan: planCode, type: type}, (err, subscription)->
-                vmController.createGroupVM type, planCode
-                callback()
-        else
-          KD.remote.api.JRecurlyPlan.getUserAccount (err, account)->
-            if err or not account
-              paymentModal = paymentController.createPaymentMethodModal {}, (newData, onError, onSuccess)->
-                newData.plan = planCode
-                KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
-                  if err
-                    onError err
-                  else
-                    onSuccess result
-                    paymentController.subscribeUser type, planCode, callback
-              paymentModal.on "KDModalViewDestroyed", -> vmController.emit "PaymentModalDestroyed"
-            else
-              paymentController.subscribeUser type, planCode, callback
+        plan.subscribe {}, (err, result)->
+          unless err
+            vmController.createGroupVM type, plan.code
