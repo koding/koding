@@ -1,8 +1,8 @@
 class EnvironmentsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Environments"
-    route        : "/Environments"
+    route        : "/:name?/Environments"
     hiddenHandle : no
     behavior     : "application"
 

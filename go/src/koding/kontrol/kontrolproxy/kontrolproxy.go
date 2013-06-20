@@ -307,7 +307,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 		} else {
-			log.Printf("error validating user %s: %s", user.IP, err.Error())
+			log.Printf("error validating user: %s", err.Error())
 			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
 			return
 		}

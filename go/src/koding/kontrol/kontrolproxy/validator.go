@@ -79,8 +79,7 @@ func (v *Validator) AddRules() *Validator {
 
 			return false
 		}
-
-		v.addFilter(filter.Type, filter.Name, filter.Match, rule.Action, f)
+		v.addFilter(filter.Type, filter.Name, rule.Action, filter.Match, f)
 	}
 
 	return v
@@ -91,14 +90,14 @@ func (v *Validator) Check() (bool, error) {
 		switch filter.action {
 		case "deny":
 			if filter.validate() {
-				reason := fmt.Sprintf("%s (%s) for %s - %s", filter.action, filter.ruletype, filter.name, filter.match)
+				reason := fmt.Sprintf("%s (%s - %s) - filter name: %s", filter.action, filter.ruletype, filter.match, filter.name)
 				go logDomainDenied(
 					v.user.Domain.Domain,
 					v.user.IP,
 					v.user.Country,
 					reason,
 				)
-				return false, ErrNotValidated
+				return false, fmt.Errorf("%s", reason)
 			} else {
 				return true, nil
 			}

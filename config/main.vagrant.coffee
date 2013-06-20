@@ -164,8 +164,6 @@ module.exports =
       port        : 8080
       portssl     : 8081
       sslips      : '127.0.0.1'
-    mongo         :
-      host        : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'

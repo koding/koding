@@ -40,6 +40,7 @@ class OpinionListViewController extends KDListViewController
 
     listView.on "OwnOpinionHasArrived",(data)->
       listView.addItem data, null, {type : "slideDown", duration : 100}
+      @getDelegate().resetDecoration()
 
     listView.on "AllOpinionsLinkWasClicked", (opinionHeader)=>
 

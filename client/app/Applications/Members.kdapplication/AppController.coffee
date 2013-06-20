@@ -2,7 +2,7 @@ class MembersAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Members"
-    route        : "/Members"
+    route        : "/:name?/Members"
     hiddenHandle : yes
 
   constructor:(options = {}, data)->

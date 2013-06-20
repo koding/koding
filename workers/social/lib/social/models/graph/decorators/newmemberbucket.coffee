@@ -21,8 +21,8 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
     for member in data
       id = member.id
       generatedMember = {}
-      generatedMember.modifiedAt = member.meta.cretadAt
-      generatedMember.createdAt  = member.meta.cretadAt
+      generatedMember.modifiedAt = member.meta.createdAt
+      generatedMember.createdAt  = member.meta.createdAt
       generatedMember.type       = @activityName
       generatedMember._id        = id
       snapshot = @generateSnapshot member
