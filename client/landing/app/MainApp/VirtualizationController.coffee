@@ -375,6 +375,7 @@ class VirtualizationController extends KDController
     modal = new KDModalView
       title          : "Approval required"
       content        : "<div class='modalformline'>#{content}</div>"
+      cssClass       : "vm-approval"
       height         : "auto"
       overlay        : yes
       buttons        :
