@@ -121,7 +121,7 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 		case "sticky":
 			hostname = u.Domain.HostnameAlias[u.Domain.LoadBalancer.Index]
 		case "random":
-			randomIndex := rand.Intn(len(u.Domain.HostnameAlias))
+			randomIndex := rand.Intn(len(u.Domain.HostnameAlias) - 1)
 			hostname = u.Domain.HostnameAlias[randomIndex]
 		default:
 			hostname = u.Domain.HostnameAlias[0]
@@ -187,7 +187,7 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 		case "sticky":
 			hostname = keyData.Host[keyData.LoadBalancer.Index]
 		case "random":
-			randomIndex := rand.Intn(len(keyData.Host))
+			randomIndex := rand.Intn(len(keyData.Host) - 1)
 			hostname = keyData.Host[randomIndex]
 		default:
 			hostname = keyData.Host[0]
