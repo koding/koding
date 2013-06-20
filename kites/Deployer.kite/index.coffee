@@ -124,6 +124,7 @@ kite.worker manifest,
 
   doDeploy: (options, callback)->
     console.log "now doing the deploy", options
+    deploys.push options
     return ["Hello, This is #{manifest.name}"]
 
     # {kiteName, version, zipUrl} = options
@@ -151,14 +152,21 @@ kite.worker manifest,
       if deployers.length > 0
         last = 0
         for d in deployers
+          console.log "d.deployCnt:::", d.deployCnt, last, d
           if d.deployCnt <= last
             best = d
           last = d.deployCnt
+
+        console.log "====================="
+        console.log best
+        console.log "====================="
+        if not best
+          best = deployers[0]
         return best
 
     who [], (err, kites)=>
       bestKite = findBestDeployer(kites)
-      @one bestKite.kiteName, 'doDeploy', options, (args)->
+      @one bestKite.id, 'doDeploy', [options], (args)->
         console.log "[[[[[[[[ doDeploy returned yay ....."
         callback(bestKite) 
 
