@@ -138,13 +138,12 @@ app.get "/-/kite/login", (req, res) ->
       message: "Not enough parameters."
   else
     {JKodingKey} = koding.models
-
     JKodingKey.fetchByUserKey
       username: username
       key     : key
     , (err, kodingKey)=>
       if err or not kodingKey
-        console.log "ERROR", err
+        console.log "ERROR - 0", err
         res.status 401
         res.send
           error: true
@@ -154,7 +153,7 @@ app.get "/-/kite/login", (req, res) ->
           when 'webserver'
             rabbitAPI.newProxyUser username, key, (err, data) =>
               if err?
-                console.log "ERROR", err
+                console.log "ERROR - 1", err
                 res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
               else
                 postData =
@@ -190,7 +189,7 @@ app.get "/-/kite/login", (req, res) ->
           when 'openservice'
             rabbitAPI.newUser key, name, (err, data) =>
               if err?
-                console.log "ERROR", err
+                console.log "ERROR - 3", err
                 res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
               else
                 creds =
@@ -199,11 +198,90 @@ app.get "/-/kite/login", (req, res) ->
                   username  : data.username
                   password  : data.password
                   vhost     : mq.vhost
+                
                 console.log creds
+                console.log "kodingkey.owner:::::", kodingKey.owner
+                # ADD TO JUSERKITE
+                {JUserKite} = koding.models
+                JUserKite.fetchOrCreate
+                  kitename      : name
+                  latest_s3url  : "_"
+                  account_id    : kodingKey.owner
+                , (err, userkite)->
+                  if err
+                    console.log "error", err
+                    return res.send err
+                  userkite.newVersion (err)->
+                    res.send err
                 res.header "Content-Type", "application/json"
                 res.send 200, JSON.stringify creds
 
+# TODO: we have to move kd related functions to somewhere else...
+
 # gate for kd
+findUsernameFromKey = (req, res, callback) ->
+  fetchJAccountByKiteUserNameAndKey req, (err, account)->
+    if err
+      console.log "we have a problem houston", err
+      callback err, null
+    else if not account
+      console.log "couldnt find the account"
+      res.send 401
+      callback false, null
+    else
+      callback false, account.profile.nickname
+
+fetchJAccountByKiteUserNameAndKey = (req, callback)->
+  if req.fields
+    {username, key} = req.fields
+  else
+    {username, key} = req.body
+
+  {JKodingKey, JAccount} = koding.models
+  {ObjectId} = require "bongo"
+
+  JKodingKey.fetchByUserKey
+    username: username
+    key     : key
+  , (err, kodingKey)=>
+    console.log err, kodingKey.owner
+    #if err or not kodingKey
+    #  return callback(err, kodingKey)
+
+    JAccount.one
+      _id: ObjectId(kodingKey.owner)
+    , (err, account)->
+      if not account or err
+         callback("couldnt find account #{kodingKey.owner}", null)
+         return
+      console.log "account ====================="
+      console.log account
+      console.log "======== account"
+      req.account = account
+      callback(err, account)
+
+
+s3 = require('./s3') uploads.s3, findUsernameFromKey
+app.post "/-/kd/upload", s3..., (req, res)->
+  {JUserKite} = koding.models
+  for own key, file of req.files
+    console.log "--------------------------------->>>>>>>>>>", req.account
+    zipurl = "#{uploads.distribution}#{file.path}"
+    JUserKite.fetchOrCreate
+      kitename      : file.filename
+      latest_s3url  : zipurl
+      account_id    : req.account._id
+      hash: req.fields.hash
+    , (err, userkite)->
+      if err
+        console.log "error", err
+        return res.send err
+      userkite.newVersion (err)->
+        if not err
+          res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
+        else
+          res.send err
+
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command
     when "register-check"
@@ -224,9 +302,20 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
+findUsernameFromSession = (req, res, callback) ->
+  {clientId} = req.cookies
+  koding.models.JSession.fetchSession clientId, (err, session)->
+    if err
+      console.error err
+      callback "", err
+    else unless session?
+      res.send 403, 'Access denied!'
+      callback false, ""
+    callback false, session.username
+
 if uploads?.enableStreamingUploads
 
-  s3 = require('./s3') uploads.s3
+  s3 = require('./s3') uploads.s3, findUsernameFromSession
 
   app.post '/Upload', s3..., (req, res)->
     res.send(for own key, file of req.files
