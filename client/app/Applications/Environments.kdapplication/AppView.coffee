@@ -14,9 +14,7 @@ class EnvironmentsMainView extends JView
     title : "Settings"
     items : ({title:item.name, hiddenHandle:'hidden'} for item in tabData)
 
-  constructor:(options={}, data)->
-
-    data or= {}
+  constructor:(options = {}, data = {})->
     super options, data
 
     @header = new HeaderViewSection type : "big", title : "Environments"

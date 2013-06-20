@@ -6,7 +6,8 @@ class DomainMainView extends KDView
 
     @domainsListViewController = new DomainsListViewController
       viewOptions:
-        cssClass : 'domain-list'
+        tagName  : "ul"
+        cssClass : "split-section-list left-section"
 
     @buildView()
 
@@ -19,28 +20,18 @@ class DomainMainView extends KDView
     @domainMapperView   = new DomainMapperView
     @firewallMapperView = new FirewallMapperView
 
-    @addNewDomainButton = new KDButtonView
-      title    : 'Add New Domain'
-      cssClass : 'editor-button new-domain-button'
-      callback : (elm, event) =>
-        @domainModalView = new DomainRegisterModalFormView
-        @domainModalView.on "DomainSaved", =>
-          @domainsListViewController.update()
-
-
-    @refreshDomainsButton = new KDButtonView
-      title    : 'Refresh Domains'
-      cssClass : 'editor-button refresh-domains-button'
-      callback : (elm, event)=>
-        @domainsListViewController.update()
+    @buildButtonsBar()
 
     @buildTabs()
 
-    @splitView = new KDSplitView
+    @splitView = new SplitViewWithOlderSiblings
       type      : "vertical"
       resizable : no
-      sizes     : ["10%", "90%"]
+      sizes     : ["100%", null]
       views     : [@domainsListView, @tabView]
+
+    @getSingleton("mainView").once "transitionend", =>
+      @splitView._windowDidResize()
 
   buildAccordions:->
     # VM, Kite & Firewall Accordion Groups
@@ -59,16 +50,21 @@ class DomainMainView extends KDView
   buildTabs:->
     # Routing, Analytics & Firewall Tabs
     @tabView       = new KDTabView
+      cssClass     : "domain-detail-tabs"
+
     @routingPane   = new KDTabPaneView
       name     : "Routing"
       closable : no
+
     @analyticsPane = new KDTabPaneView
       name     : "Analytics"
       closable : no
+      partial  : "Domain analytics will be added soon!"
+
     @firewallPane  = new KDTabPaneView
       name     : "Firewall"
       closable : no
-    
+
     vmMapperSubView   = @domainMapperView
     kiteMapperSubView = new KDView
       partial: 'Kites are listed here.'
@@ -93,39 +89,54 @@ class DomainMainView extends KDView
 
     @firewallPane.addSubView @firewallMapperView
 
-    for pane in [@routingPane, @analyticsPane, @firewallPane]
+    for pane in [@routingPane, @firewallPane, @analyticsPane]
       @tabView.addPane pane
 
     @tabView.showPaneByIndex 0
 
   viewAppended: JView::viewAppended
 
+  buildButtonsBar: ->
+    @buttonsBar = new KDView
+      cssClass  : "header"
+
+    @buttonsBar.addSubView @addNewDomainButton = new KDButtonView
+      title    : 'Add New Domain'
+      cssClass : 'editor-button new-domain-button left'
+      callback : (elm, event) =>
+        @domainModalView = new DomainRegisterModalFormView
+        @domainModalView.on "DomainSaved", =>
+          @domainsListViewController.update()
+
+    @buttonsBar.addSubView @refreshDomainsButton = new KDButtonView
+      style       : "clean-gray"
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : "refresh"
+      loader      :
+        color     : "#777777"
+        diameter  : 24
+      tooltip     :
+        title     : "Refresh"
+        placement : "left"
+      callback : (elm, event)=>
+        @domainsListViewController.update()
+
   pistachio:->
     """
-    <div class="start-tab app-list-wrapper">
-    {{> @addNewDomainButton}}
-    {{> @refreshDomainsButton}}
-    </div>
+    {{> @buttonsBar}}
     {{> @splitView}}
     """
 
   decorateMapperView:(item)->
-    # Going to be used for just to update the open tab
-    ###
-    activePaneName = @tabView.getActivePane().name
-    tabMappings    =
-      "Firewall": @firewallMapperView
-      "Routing": @domainMapperView
-
-    tabMappings[activePaneName].emit "domainChanged", item
-    ###
     for view in [@firewallMapperView, @domainMapperView]
       view.emit "domainChanged", item
-  
+    @splitView.resizePanel "300px", 0
 
 class DomainsListItemView extends KDListItemView
 
   constructor: (options={}, data)->
+    options.tagName  = "li"
     options.cssClass = 'domain-item'
     super options, data
 
@@ -151,17 +162,21 @@ class DomainsListItemView extends KDListItemView
         callback         : ->
           @destroy()
         separator        : yes
-    
+
   viewAppended: JView::viewAppended
 
   pistachio:->
+    {domain, regYears, createdAt, hostnameAlias} = @getData()
+    @createdAgo  = new KDTimeAgoView {}, createdAt
+    regYearsText = ""
+
+    if regYears > 0
+      yearText = if regYears > 1 then "years" else "year"
+      regYearsText = "Registered for #{regYears} #{yearText}"
+
     """
-    <span class="domain-icon link"></span>
-    <span class="domain-title">{{ #(domain)}}</span>
+      <div class="domain-icon link"></div>
+      <div class="domain-title">#{domain}</div>
+      <div class="domain-detail">#{regYearsText}</div>
+      {{> @createdAgo}}
     """
-
-
-
-  
-  
-

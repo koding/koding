@@ -15,9 +15,6 @@ class DomainMapperView extends KDView
     @updatePartial ""
     @destroySubViews()
 
-    @addSubView new KDCustomHTMLView
-      partial : """<div class="domain-name">Your domain: <strong>#{domain.domain}</strong></div>"""
-
     KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
       if vms
 
@@ -26,7 +23,7 @@ class DomainMapperView extends KDView
         @vmListViewController = new VMListViewController
           viewOptions :
             cssClass  : 'vm-list'
-        
+
         @vmListViewController.getListView().setData
           domain          : domain
           hostnameAliases : if hostnameAliases then (alias for alias in hostnameAliases) else []
@@ -53,10 +50,10 @@ class DomainVMListItemView extends KDListItemView
 
     @onOff = new KDOnOffSwitch
       size        : 'small'
-      labels      : ['CON', "DCON"]
+      labels      : ['CONNECTED', "DISCONNECTED"]
       defaultValue: switchStatus
       callback : (state) =>
-        domainInstance.bindVM 
+        domainInstance.bindVM
           vmName     : @getData().name
           state      : state
         , (err) =>
@@ -65,9 +62,17 @@ class DomainVMListItemView extends KDListItemView
             notificationMsg = if state
             then "Your domain is connected to the #{name} VM."
             else "Your domain is disconnected from the #{name} VM."
-            new KDNotificationView {type: "top", title: notificationMsg}
+            new KDNotificationView
+              type     : "mini"
+              cssClass : "success"
+              duration : 5000
+              title    : notificationMsg
           else
-            new KDNotificationView {type: "top", title: err}
+            new KDNotificationView
+              type     : "mini"
+              cssClass : "error"
+              duration : 5000
+              title    : err
 
   viewAppended:->
     @setTemplate @pistachio()
