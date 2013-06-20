@@ -80,6 +80,8 @@ Vagrant.configure("2") do |config|
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"
+    default.vm.synced_folder "../kd-npm/kd", "/opt/kd"
+
     default.vm.synced_folder "saltstack", "/srv" if provision
 
     default.vm.provider "virtualbox" do |v|

@@ -9,7 +9,10 @@
 #    - fooBar
 #
 ###
-kite     = require "kd-kite"
+redis = require 'redis'
+kite     = require "kite-amqp/lib/kite-amqp/kite.coffee"
+Kite     = require "kite-amqp/lib/kite-amqp/index.coffee"
+
 manifest = require "./manifest.json"
 {spawn}  = require "child_process"
 https    = require 'https' 
@@ -93,9 +96,20 @@ else
   deployerId = uuid.v4()
   fs.writeFileSync deployerIdFile, deployerId
 
-manifest.name = "Deployer_#{os.hostname()}_#{deployerId}"
+manifest.name = "Deployer"
+manifest.uuid = deployerId
 console.log "deployer:", manifest.name
+
+
+console.log "Kite", Kite
+
+
+
 kite.worker manifest, 
+  
+  who: (args, callback)->
+    console.log ">>>>>>>>", arguments
+    return callback null, @getKiteId()
 
   deploy: (options, callback) ->
     {kiteName, version, zipUrl} = options
