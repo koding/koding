@@ -337,18 +337,18 @@ class VirtualizationController extends KDController
 
     switch command
       when 'vm.stop', 'vm.shutdown'
-        content = """Turning off your VM will <b>stop</b> running Terminal
+        content = """<p>Turning off your VM will <b>stop</b> running Terminal
                      instances and all running proccesess that you have on
-                     your VM. Do you want to continue?"""
+                     your VM. Do you want to continue?</p>"""
         button  =
           title : "Turn off"
           style : "modal-clean-red"
 
       when 'vm.reinitialize'
-        content = """Re-initializing your VM will <b>reset</b> all of your
+        content = """<p>Re-initializing your VM will <b>reset</b> all of your
                      settings that you've done in root filesystem. This
                      process will not remove any of your files under your
-                     home directory. Do you want to continue?"""
+                     home directory. Do you want to continue?</p>"""
         button  =
           title : "Re-initialize"
           style : "modal-clean-red"
@@ -360,7 +360,7 @@ class VirtualizationController extends KDController
 
                      <p>Remaning amount of your subscription will be credited
                      to your account. You can use this credit to purchase
-                     new VM(s later.</p>
+                     new VM(s) later.</p>
 
                      <p>Do you want to continue?</p>"""
         button  =
@@ -374,7 +374,7 @@ class VirtualizationController extends KDController
 
     modal = new KDModalView
       title          : "Approval required"
-      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      content        : "<div class='modalformline'>#{content}</div>"
       height         : "auto"
       overlay        : yes
       buttons        :
