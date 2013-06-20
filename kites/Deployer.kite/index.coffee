@@ -122,7 +122,7 @@ kite.worker manifest,
       callback null, kites
     , 3000
 
-  doDeploy: (options, callback)->
+  doDeploy: (options)->
     console.log "now doing the deploy", options
     deploys.push options
     return ["Hello, This is #{manifest.name}"]
@@ -166,8 +166,9 @@ kite.worker manifest,
 
     who [], (err, kites)=>
       bestKite = findBestDeployer(kites)
-      @one bestKite.id, 'doDeploy', [options], (args)->
-        console.log "[[[[[[[[ doDeploy returned yay ....."
+      console.log "sending options:::: ", options
+      @one bestKite.kiteName, 'doDeploy', [options], (args)->
+        console.log "[[[[[[[[ doDeploy returned yay .....", args
         callback(bestKite) 
 
 
