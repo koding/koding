@@ -125,7 +125,7 @@ module.exports =
     vhost       : 'new'
   broker        :
     ip          : ""
-    port        : 8008
+    port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
   kites:
