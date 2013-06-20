@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
-	"github.com/rcrowley/goagain"
 	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
@@ -27,9 +26,9 @@ func init() {
 	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
-type RabbitChannel struct {
-	ReplyTo string
-	Receive chan []byte
+type client struct {
+	target     string
+	registered time.Time
 }
 
 var templates = template.Must(template.ParseFiles(
@@ -40,13 +39,11 @@ var templates = template.Must(template.ParseFiles(
 ))
 
 var proxyDB *proxyconfig.ProxyConfiguration
-var amqpStream *AmqpStream
-var connections = make(map[string]RabbitChannel)
 var geoIP *libgeo.GeoIP
 var hostname = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var users = make(map[string]time.Time)
-var usersLock sync.RWMutex
+var clients = make(map[string]client)
+var clientsLock sync.RWMutex
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -69,106 +66,58 @@ func main() {
 		log.Printf("load GeoIP.dat: %s\n", err.Error())
 	}
 
-	// create amqpStream for rabbitmq proxyieng
-	// amqpStream = setupAmqp()
-
 	reverseProxy := &ReverseProxy{}
 
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
-
-	var (
-		listener  net.Listener
-		ppid      int
-		listeners = make(map[string]net.Listener, 0)
-	)
-
 	for _, sslip := range sslips {
-		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
-		if nil != err {
-			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			continue
-		}
+		go func(sslip string) {
+			cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
+			if nil != err {
+				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+				return
+			}
 
-		addr := sslip + ":" + portssl
-		listener, _, err = goagain.GetEnvs(addr)
-		if err != nil {
+			addr := sslip + ":" + portssl
 			laddr, err := net.ResolveTCPAddr("tcp", addr)
 			if nil != err {
 				log.Fatalln(err)
 			}
 
-			listener, err = net.ListenTCP("tcp", laddr)
+			listener, err := net.ListenTCP("tcp", laddr)
 			if nil != err {
 				log.Fatalln(err)
 			}
-		}
 
-		listeners[addr] = listener
-		listener = tls.NewListener(listener, &tls.Config{
-			NextProtos:   []string{"http/1.1"},
-			Certificates: []tls.Certificate{cert},
-		})
+			sslListener := tls.NewListener(listener, &tls.Config{
+				NextProtos:   []string{"http/1.1"},
+				Certificates: []tls.Certificate{cert},
+			})
 
-		log.Printf("https mode is enabled. serving at :%s ...", portssl)
-		go http.Serve(listener, reverseProxy)
+			log.Printf("https mode is enabled. serving at :%s ...", portssl)
+			http.Serve(sslListener, reverseProxy)
 
+		}(sslip)
 	}
 
 	// HTTP handling
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
-	addr := "127.0.0.1:" + port
-	listener, ppid, err = goagain.GetEnvs(addr)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
+	laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
+	if nil != err {
+		log.Fatalln(err)
+	}
+
+	listener, err := net.ListenTCP("tcp", laddr)
+	if nil != err {
+		log.Fatalln(err)
+	}
+
+	err = http.Serve(listener, reverseProxy)
 	if err != nil {
-		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
-		if nil != err {
-			log.Fatalln(err)
-		}
-
-		listener, err = net.ListenTCP("tcp", laddr)
-		if nil != err {
-			log.Fatalln(err)
-		}
-		go func() {
-			err := http.Serve(listener, reverseProxy) // resume listening
-			if err != nil {
-				log.Println("normal mode is disabled", err)
-			}
-		}()
-	} else {
-		go func() {
-			err := http.Serve(listener, reverseProxy) // resume listening
-			if err != nil {
-				log.Println("normal mode is disabled", err)
-			}
-		}()
-
-		// Kill the parent, now that the child has started successfully.
-		if err := goagain.KillParent(ppid); nil != err {
-			log.Fatalln(err)
-		}
-
+		log.Println("normal mode is disabled", err)
 	}
-	listeners[addr] = listener
-
-	// needed until all go routines are ready. otherwise the log below is printed earlier
-	time.Sleep(time.Second * 2)
-	log.Printf("started and waiting for signals on pid %d.\n\t* for a stop send SIGTERM.\n\t* for a new binary restart send SIGUSR2\n", os.Getpid())
-
-	// Block the main goroutine awaiting signals.
-	if err := goagain.AwaitSignals(listeners); nil != err {
-		log.Fatalln(err)
-	}
-
-	// Do whatever's necessary to ensure a graceful exit like waiting for
-	// goroutines to terminate or a channel to become closed.
-	// In this case, we'll simply stop listening and wait one second.
-	if err := listener.Close(); nil != err {
-		log.Fatalln(err)
-	}
-	log.Printf("stopped current listener with pid %d\n", os.Getpid())
 }
 
 /*************************************************
@@ -240,23 +189,27 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	user, buf, err := populateUser(outreq)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
-		log.Printf("parsing incoming request %s: %s", outreq.Host, err.Error())
+		log.Printf("parsing incoming request from %s to %s: %s", outreq.RemoteAddr, outreq.Host, err.Error())
 		if buf != nil { // if any pre rendered html is available, use that for error displaying
 			p.copyResponse(rw, buf)
-		} else {
-			buf, err := executeTemplate("notfound.html", outreq.Host)
-			if err != nil {
-				log.Println("error executing template", err.Error())
-				return
-			}
-			p.copyResponse(rw, buf)
+			return
 		}
+
+		buf, err := executeTemplate("notfound.html", outreq.Host)
+		if err != nil {
+			log.Println("error executing template", err.Error())
+			return
+		}
+		p.copyResponse(rw, buf)
 		return
 	}
 
-	target := user.Target
-
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
+	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.String())
+	if user.Redirect {
+		// 302 redirect
+		http.Redirect(rw, req, user.Target.String(), http.StatusFound)
+		return
+	}
 
 	switch user.Domain.Proxy.Mode {
 	case "maintenance":
@@ -267,10 +220,13 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	switch user.Domain.LoadBalancer.Mode {
-	case "sticky":
+	var target *url.URL
+	switch user.LoadBalancer.Persistence {
+	case "cookie":
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
 		session, _ := store.Get(req, sessionName)
+
+		session.Options = &sessions.Options{MaxAge: 20} //seconds
 		targetURL, ok := session.Values["GOSESSIONID"]
 		if ok {
 			target, err = url.Parse(targetURL.(string))
@@ -282,6 +238,17 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			session.Values["GOSESSIONID"] = target.String()
 			session.Save(outreq, rw)
 		}
+	case "sourceAddress":
+		if client, ok := getClient(user.IP); !ok {
+			target, err = url.Parse(client.target)
+			if err != nil {
+				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
+				return
+			}
+		}
+	default:
+		// if not set don't use session affinity
+		target = user.Target
 	}
 
 	_, err = validate(user)
@@ -336,8 +303,8 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	outreq.Close = false
 
 	go func() {
-		if !isUserRegistered(user.IP) {
-			go registerUser(user.IP)
+		if _, ok := getClient(user.IP); !ok {
+			go registerClient(user.IP, target.String())
 			go logDomainRequests(outreq.Host)
 			go logProxyStat(hostname, user.Country)
 		}
@@ -373,9 +340,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		go p.copyResponse(rConn, conn)
-		p.copyResponse(conn, rConn)
-
+		errc := make(chan error, 2)
+		cp := func(dst io.Writer, src io.Reader) {
+			_, err := io.Copy(dst, src)
+			errc <- err
+		}
+		go cp(rConn, conn)
+		go cp(conn, rConn)
+		<-errc
+		return
 	} else {
 		transport := p.Transport
 		if transport == nil {
@@ -422,19 +395,6 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 		defer res.Body.Close()
 
-		// rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
-		// if err != nil {
-		// 	// add :80 if not available
-		// } else {
-		// 	fmt.Println("connection via rabbitmq")
-		// 	res, err = rabbitTransport(outreq, user, rabbitKey)
-		// 	if err != nil {
-		// 		log.Printf("rabbit proxy %s", err.Error())
-		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-		// 		return
-		// 	}
-		// }
-
 		copyHeader(rw.Header(), res.Header)
 		rw.WriteHeader(res.StatusCode)
 		p.copyResponse(rw, res.Body)
@@ -453,50 +413,50 @@ func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 *
 *  - arslan
 *************************************************/
-func registerUser(ip string) {
-	usersLock.Lock()
-	defer usersLock.Unlock()
-	users[ip] = time.Now()
-	if len(users) == 1 {
+func registerClient(ip, host string) {
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	clients[ip] = client{target: host, registered: time.Now()}
+	if len(clients) == 1 {
 		go cleaner()
 	}
 }
 
-// The goroutine basically does this: as long as there are users in the map, it
+// Needed to avoid race condition between multiple go routines
+func getClient(ip string) (client, bool) {
+	clientsLock.RLock()
+	defer clientsLock.RUnlock()
+	c, ok := clients[ip]
+	return c, ok
+}
+
+// The goroutine basically does this: as long as there are clients in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
-// (one hour - time since user registration) and deletes it.  If there are no
-// users, the goroutine exits and a new one is created the next time a user is
+// (one hour - time since client registration) and deletes it.  If there are no
+// clients, the goroutine exits and a new one is created the next time a user is
 // registered. The time.Sleep goes toward zero, thus it will not lock the
 // for iterator forever.
 func cleaner() {
-	usersLock.RLock()
-	for len(users) > 0 {
+	clientsLock.RLock()
+	for len(clients) > 0 {
 		var nextTime time.Time
-		var nextUser string
-		for u, t := range users {
-			if nextTime.IsZero() || t.Before(nextTime) {
-				nextTime = t
-				nextUser = u
+		var nextClient string
+		for ip, c := range clients {
+			if nextTime.IsZero() || c.registered.Before(nextTime) {
+				nextTime = c.registered
+				nextClient = ip
 			}
 		}
-		usersLock.RUnlock()
+		clientsLock.RUnlock()
 		// negative duration is no-op, means it will not panic
 		time.Sleep(time.Hour - time.Now().Sub(nextTime))
-		usersLock.Lock()
-		log.Println("deleting user from internal map", nextUser)
-		delete(users, nextUser)
-		usersLock.Unlock()
-		usersLock.RLock()
+		clientsLock.Lock()
+		log.Println("deleting client from internal map", nextClient)
+		delete(clients, nextClient)
+		clientsLock.Unlock()
+		clientsLock.RLock()
 	}
-	usersLock.RUnlock()
-}
-
-// Needed to avoid race condition between multiple go routines
-func isUserRegistered(ip string) bool {
-	usersLock.RLock()
-	defer usersLock.RUnlock()
-	_, ok := users[ip]
-	return ok
+	clientsLock.RUnlock()
 }
 
 /*************************************************

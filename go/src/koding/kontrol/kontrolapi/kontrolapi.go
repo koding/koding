@@ -16,8 +16,9 @@ type ProxyPostMessage struct {
 	Name          string
 	Username      string
 	Domain        string
+	Persistence   string
 	Mode          string
-	CurrentIndex  string
+	Index         string
 	Key           string
 	RabbitKey     string
 	Host          string
