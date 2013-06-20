@@ -162,13 +162,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// Do whatever's necessary to ensure a graceful exit like waiting for
-	// goroutines to terminate or a channel to become closed.
-	// In this case, we'll simply stop listening and wait one second.
-	if err := listener.Close(); nil != err {
-		log.Fatalln(err)
+	// we need to close all listeners..
+	for _, l := range listeners {
+		if err := l.Close(); nil != err {
+			log.Fatalln(err)
+		}
+		log.Printf("stopping listener: %s\n", l.Addr().String())
 	}
-	log.Printf("stopped current listener with pid %d\n", os.Getpid())
+	log.Printf("stopped current instance with pid %d\n", os.Getpid())
 }
 
 /*************************************************
@@ -240,7 +241,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	user, buf, err := populateUser(outreq)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
-		log.Printf("parsing incoming request %s: %s", outreq.Host, err.Error())
+		log.Printf("parsing incoming request from %s to %s: %s", outreq.RemoteAddr, outreq.Host, err.Error())
 		if buf != nil { // if any pre rendered html is available, use that for error displaying
 			p.copyResponse(rw, buf)
 		} else {
@@ -373,9 +374,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		go p.copyResponse(rConn, conn)
-		p.copyResponse(conn, rConn)
-
+		errc := make(chan error, 2)
+		cp := func(dst io.Writer, src io.Reader) {
+			_, err := io.Copy(dst, src)
+			errc <- err
+		}
+		go cp(rConn, conn)
+		go cp(conn, rConn)
+		<-errc
+		return
 	} else {
 		transport := p.Transport
 		if transport == nil {
