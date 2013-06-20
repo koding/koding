@@ -63,16 +63,18 @@ class AccountSubscriptionsListItem extends KDListItemView
     listView = @getDelegate()
 
     if data.status == 'canceled'
-      title = 'Renew Next Month'
+      title     = "Renew Next Month"
+      iconClass = "canceled"
     else if data.status in ['active', 'modified']
-      title = "Don't Renew Next Month"
+      title     = "Don't Renew Next Month"
+      iconClass = "active" 
 
     @changePlan = new KDButtonView
       style       : "clean-gray"
-      cssClass    : "edit-plan #{data.status}"
-      icon      : yes
-      iconOnly  : yes
-      iconClass : "refresh"
+      cssClass    : "edit-plan"
+      icon        : yes
+      iconOnly    : yes
+      iconClass   : iconClass
       tooltip     :
         title     : title
         placement : "left"
