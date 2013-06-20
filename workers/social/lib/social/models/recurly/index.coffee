@@ -98,7 +98,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           else
             JRecurlyPlan.all selector, callback
 
-  @getPlanWithCode = secure (client, code, callback)->
+  @getPlanWithCode = (code, callback)->
     JRecurlyPlan.one
       code: code
     , callback

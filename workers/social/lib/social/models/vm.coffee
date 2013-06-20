@@ -265,13 +265,9 @@ module.exports = class JVM extends Model
                       return callback new KodingError 'Unable to update subscription.'
                     vm.remove callback
                 else
-                  sub.terminate "partial", (err, newSub)->
+                  sub.terminate (err, newSub)->
                     if err
-                      sub.terminate "none", (err, newSub)->
-                        if err
-                          return callback new KodingError 'Unable to terminate payment'
-                        else
-                        vm.remove callback
+                      return callback new KodingError 'Unable to terminate payment'
                     else
                       vm.remove callback
           else
