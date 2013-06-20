@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
-	"github.com/rcrowley/goagain"
 	"html/template"
 	"io"
 	"koding/kontrol/kontrolhelper"
@@ -69,107 +68,58 @@ func main() {
 		log.Printf("load GeoIP.dat: %s\n", err.Error())
 	}
 
-	// create amqpStream for rabbitmq proxyieng
-	// amqpStream = setupAmqp()
-
 	reverseProxy := &ReverseProxy{}
 
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
-
-	var (
-		listener  net.Listener
-		ppid      int
-		listeners = make(map[string]net.Listener, 0)
-	)
-
 	for _, sslip := range sslips {
-		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
-		if nil != err {
-			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			continue
-		}
+		go func(sslip string) {
+			cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
+			if nil != err {
+				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
+				return
+			}
 
-		addr := sslip + ":" + portssl
-		listener, _, err = goagain.GetEnvs(addr)
-		if err != nil {
+			addr := sslip + ":" + portssl
 			laddr, err := net.ResolveTCPAddr("tcp", addr)
 			if nil != err {
 				log.Fatalln(err)
 			}
 
-			listener, err = net.ListenTCP("tcp", laddr)
+			listener, err := net.ListenTCP("tcp", laddr)
 			if nil != err {
 				log.Fatalln(err)
 			}
-		}
 
-		listeners[addr] = listener
-		listener = tls.NewListener(listener, &tls.Config{
-			NextProtos:   []string{"http/1.1"},
-			Certificates: []tls.Certificate{cert},
-		})
+			sslListener := tls.NewListener(listener, &tls.Config{
+				NextProtos:   []string{"http/1.1"},
+				Certificates: []tls.Certificate{cert},
+			})
 
-		log.Printf("https mode is enabled. serving at :%s ...", portssl)
-		go http.Serve(listener, reverseProxy)
+			log.Printf("https mode is enabled. serving at :%s ...", portssl)
+			http.Serve(sslListener, reverseProxy)
 
+		}(sslip)
 	}
 
 	// HTTP handling
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
-	addr := "127.0.0.1:" + port
-	listener, ppid, err = goagain.GetEnvs(addr)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	if err != nil {
-		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
-		if nil != err {
-			log.Fatalln(err)
-		}
-
-		listener, err = net.ListenTCP("tcp", laddr)
-		if nil != err {
-			log.Fatalln(err)
-		}
-		go func() {
-			err := http.Serve(listener, reverseProxy) // resume listening
-			if err != nil {
-				log.Println("normal mode is disabled", err)
-			}
-		}()
-	} else {
-		go func() {
-			err := http.Serve(listener, reverseProxy) // resume listening
-			if err != nil {
-				log.Println("normal mode is disabled", err)
-			}
-		}()
-
-		// Kill the parent, now that the child has started successfully.
-		if err := goagain.KillParent(ppid); nil != err {
-			log.Fatalln(err)
-		}
-
-	}
-	listeners[addr] = listener
-
-	// needed until all go routines are ready. otherwise the log below is printed earlier
-	time.Sleep(time.Second * 2)
-	log.Printf("started and waiting for signals on pid %d.\n\t* for a stop send SIGTERM.\n\t* for a new binary restart send SIGUSR2\n", os.Getpid())
-
-	// Block the main goroutine awaiting signals.
-	if err := goagain.AwaitSignals(listeners); nil != err {
+	laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
+	if nil != err {
 		log.Fatalln(err)
 	}
 
-	// we need to close all listeners..
-	for _, l := range listeners {
-		if err := l.Close(); nil != err {
-			log.Fatalln(err)
-		}
-		log.Printf("stopping listener: %s\n", l.Addr().String())
+	listener, err := net.ListenTCP("tcp", laddr)
+	if nil != err {
+		log.Fatalln(err)
 	}
-	log.Printf("stopped current instance with pid %d\n", os.Getpid())
+
+	err = http.Serve(listener, reverseProxy)
+	if err != nil {
+		log.Println("normal mode is disabled", err)
+	}
 }
 
 /*************************************************
