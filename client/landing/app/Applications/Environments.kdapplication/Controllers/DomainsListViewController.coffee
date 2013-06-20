@@ -1,7 +1,9 @@
 class DomainsListViewController extends KDListViewController
 
   constructor:(options={}, data)->
+
     options.itemClass = DomainsListItemView
+
     super options, data
 
     @loadItems()

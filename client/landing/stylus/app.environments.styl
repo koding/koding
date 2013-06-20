@@ -43,37 +43,56 @@ app.environments.styl
     float              right
 
 .environment-content
-  border-left          1px solid #ddd
-  padding-left         10px
-  padding-top          10px
+  .split-layout
+    .header
+      border-left     none
 
-  .domain-list
+  .split-section-list
     .selected
       bg               color, #eee
 
     .domain-item
       cursor           pointer
-      height           35px
       width            100%
-      margin           1px
+      overflow         hidden
 
       .domain-icon
-        top            6px
-        left           7px
-        width          30px
-        height         30px
-        abs()
+        width          40px
+        height         40px
+        margin-right   10px
+        fl()
+
+      .domain-detail, time
+        color          #888
 
       .link
         sprite()
-        bg position,   -626px -565px
+        bg position,   -626px -521px
 
       .domain-title
         font-weight    bold
+        margin-left    10px
+        font-size      12px
         color          #ff9600
-        top            10px
-        left           50px
-        abs()
+
+  .kdsplitview-panel.panel-1
+    border-left       1px solid #ddd
+
+  .domain-detail-tabs .kdtabpaneview
+    height            auto
+    width             auto
+    padding           10px
+
+  .kdtabpaneview.analytics
+    font-size         22px
+    top               20%
+    text-align        center
+
+  .kdtabhandlecontainer .kdtabhandle
+    &.active
+      vendor          box-sizing, content-box
+    &:first-child
+      margin-left     10px
 
   .domain-vm-item
     margin-bottom     10px
@@ -83,13 +102,15 @@ app.environments.styl
       font-weight    bold
       color          #fe9600
       left           35px
+      top            7px
       abs()
 
     .on-off
-      left      35px
-      bottom    3px
-      abs()
+      fr()
 
+    .on-off a
+      width          auto
+      padding        7px 10px 6px
 
     .vm-icon
       top            1px
@@ -102,15 +123,9 @@ app.environments.styl
       sprite()
       bg position,   -360px -390px
 
-
-
   .vm-list
-    border-right       1px solid #ddd
     padding-right      10px
     height             100%
-
-    .selected
-      bg               color, #eee
 
     .vm-item
       cursor           pointer
@@ -170,15 +185,22 @@ app.environments.styl
 
   .domain-vm-item
     padding          5px
-    height           40px
-    margin-bottom    5px
+    margin-bottom    10px
+
+  .routing .kdselectbox
+      width         60px
+      margin-left   15px
+      top           -1px
+  .input-container
+    width           220px
+    float           left
 
   .routing-view
     padding    10px
 
   .domain-mapper-view
     margin-top    10px
-  
+
   .domain-mapper-view
 
     .listview-wrapper

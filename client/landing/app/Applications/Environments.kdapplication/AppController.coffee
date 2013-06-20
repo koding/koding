@@ -9,7 +9,7 @@ class EnvironmentsAppController extends AppController
   constructor:(options = {}, data)->
 
     options.view    = new EnvironmentsMainView
-      cssClass      : "Environments"
+      cssClass      : "environments split-layout"
     options.appInfo =
       name          : "Environments"
 

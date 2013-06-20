@@ -739,6 +739,7 @@ module.exports = [
 
   "stylus/app.styl",
   "stylus/app.bottom.styl",
+  "stylus/app.splitlayout.styl",
   "stylus/app.about.styl",
   "stylus/app.commons.styl",
   "stylus/app.editor.styl",

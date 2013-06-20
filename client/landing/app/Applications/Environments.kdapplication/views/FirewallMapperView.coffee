@@ -70,9 +70,9 @@ class FirewallMapperView extends KDView
 
     @on "newFilterCreated", (item) => @filterListController.addItem item
 
-    # this event is on rule list controller because 
+    # this event is on rule list controller because
     # both allow & deny buttons live on FirewallFilterListItemView.
-    @filterListController.getListView().on "newRuleCreated", (item) => 
+    @filterListController.getListView().on "newRuleCreated", (item) =>
       @ruleListController.addItem item
 
   updateActionOrders:(domain)->
@@ -117,11 +117,11 @@ class FirewallFilterListItemView extends KDListItemView
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
       return console.log err if err
 
-      params = 
+      params =
         domainName: domain.domain
         action    : behavior
         match     : data.match
-      
+
       domain.createProxyRule params, (err, rule)=>
         return console.log err if err
 
@@ -130,7 +130,7 @@ class FirewallFilterListItemView extends KDListItemView
           action     : rule.action
           match      : rule.match
           enabled    : rule.enabled
-        
+
         delegate.emit "newRuleCreated", ruleObj
 
   deleteFilter:->
@@ -238,18 +238,27 @@ class FirewallFilterFormView extends KDCustomHTMLView
     options.cssClass = "filter-form-view"
     super options, data
 
-    @filterNameInput  = new KDInputView {tooltip: {title: "Enter a name for the filter.", placement:"bottom"}}
+    @nameLabel        = new KDLabelView
+      title           : "Filter Name:"
+
+    @filterLabel      = new KDLabelView
+      title           : "Match:"
+
+    @filterNameInput  = new KDInputView
+      label           : @nameLabel
+      tooltip         :
+        title         : "Enter a name for the filter."
+        placement     : "right"
+
     @filterInput      = new KDInputView
-      tooltip : 
-        title     : "You can enter IP, IP Range or a country name. (ie: 192.168.1.1/24 or China)"
-        placement : "bottom"
-    @filterNameInput.unsetClass 'kdinput'
-    @filterInput.unsetClass 'kdinput'
+      label           : @filterLabel
+      tooltip         :
+        title         : "You can enter IP, IP Range or a country name. (ie: 192.168.1.1/24 or China)"
+        placement     : "right"
 
     @addButton = new KDButtonView
       title    : "Add"
-      callback : =>
-        @updateFilters()
+      callback : @bound "updateFilters"
 
   updateFilters:->
     filterType  = if @filterInput.getValue().match /[0-9+]/ then "ip" else "country"
@@ -262,27 +271,29 @@ class FirewallFilterFormView extends KDCustomHTMLView
       type  : filterType
       match : filterMatch
     , (err, filter)->
-      unless err 
+      unless err
         delegate.emit "newFilterCreated", {name:filterName, match:filterMatch}
 
-      return new KDNotificationView 
+      return new KDNotificationView
         title : "An error occured while performing your action. Please try again."
         type  : "top"
-      
+
 
   viewAppended: JView::viewAppended
 
   pistachio:->
     """
-    <div class="fl">
-      <label for="filtername" class="">Filter Name:</label>
-      {{> @filterNameInput }}
-    </div>
-    <div class="fl">
-      <label for="filter">Match:</label>
-      {{> @filterInput }}
-      {{> @addButton }}
-    </div>
-    
-    <div class="clearfix"></div>
+      <section class="clearfix">
+        <div class="input-container">
+          {{> @nameLabel}}
+          {{> @filterNameInput }}
+        </div>
+        <div class="input-container">
+          {{> @filterLabel}}
+          {{> @filterInput }}
+        </div>
+        <div class="input-container">
+          {{> @addButton }}
+        </div>
+      </section>
     """
