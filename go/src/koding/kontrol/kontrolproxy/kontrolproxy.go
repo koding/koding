@@ -167,8 +167,9 @@ func main() {
 		if err := l.Close(); nil != err {
 			log.Fatalln(err)
 		}
-		log.Printf("stopped listener: %s\n", l.Addr().String())
+		log.Printf("stopping listener: %s\n", l.Addr().String())
 	}
+	log.Printf("stopped current instance with pid %d\n", os.Getpid())
 }
 
 /*************************************************
@@ -373,9 +374,15 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		go p.copyResponse(rConn, conn)
-		p.copyResponse(conn, rConn)
-
+		errc := make(chan error, 2)
+		cp := func(dst io.Writer, src io.Reader) {
+			_, err := io.Copy(dst, src)
+			errc <- err
+		}
+		go cp(rConn, conn)
+		go cp(conn, rConn)
+		<-errc
+		return
 	} else {
 		transport := p.Transport
 		if transport == nil {
