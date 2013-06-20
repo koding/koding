@@ -80,14 +80,10 @@ class AccountSubscriptionsListItem extends KDListItemView
         diameter  : 16
       callback    : =>
         if data.status in ['active', 'modified', 'canceled']
-          editPlan listView, data
+          @editPlan listView, data
           @changePlan.hideLoader()
 
-    if data.status == 'single'
-      @changePlan.hide()
-
-
-  warnUser: (message, cb)->
+  confirmOperation: (message, cb)->
     modal = new KDModalView
       title        : "Warning"
       content      : "<div class='modalformline'>#{message}</div>"
@@ -105,12 +101,12 @@ class AccountSubscriptionsListItem extends KDListItemView
 
   editPlan: (listView, data)->
     if data.status == 'canceled'
-      warnUser 'Are you sure you want to resume your subscription?', ->
+      @confirmOperation 'Are you sure you want to resume your subscription?', ->
         data.resume (err, res)->
           unless err
             listView.emit "reload"
     else
-      warnUser 'Are you sure you want to cancel your subscription?', ->
+      @confirmOperation 'Are you sure you want to cancel your subscription?', ->
         data.cancel (err, res)->
           unless err
             listView.emit "reload"
