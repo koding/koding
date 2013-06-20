@@ -34,20 +34,20 @@ module.exports = class JSession extends Model
         { name: 'updateInstance' }
       ]
 
-  @cycleSession =(clientId, callback=->)->
-    @remove {clientId}, (err)=>
+  @cycleSession =(clientId, callback=(->)) ->
+    @remove {clientId}, (err) =>
       if err
         callback err
       else
-        @createSession (err, session, guest)->
+        @createSession (err, session, guest) ->
           if err
             callback err
           else
             callback null, guest, session.clientId
 
-  @createSession =(callback)->
+  @createSession =(callback) ->
     clientId = createId()
-    JGuest.obtain null, clientId, (err, guest)=>
+    JGuest.obtain null, clientId, (err, guest) =>
       if err
         @emit 'error', err
       else

@@ -164,6 +164,37 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
+  changeUsername: do ->
+
+    handleErr = (err, callback)->
+      if err.code is 11000
+      then return callback new KodingError 'Username is not available!'
+      else if err?
+      then return callback err
+
+    changeUsername = secure (client, username, callback) ->
+      {delegate} = client.connection
+
+      unless delegate.equals this
+      then return callback new KodingError 'Access denied!'
+
+      unless @constructor.validateAt 'profile.nickname', username
+      then return callback new KodingError 'Invalid username!'
+
+      oldUsername = delegate.profile.nickname
+
+      @fetchUser client, (err, user) =>
+        return callback err  if err
+
+        user.update { $set: username }, (err) =>
+          if err then handleErr err, callback
+          else
+            @update { $set: 'profile.nickname': username }, (err) =>
+              if err then handleErr err, callback
+              else
+                @constructor.emit 'UsernameChanged', oldUsername, username
+
+
   checkPermission: (target, permission, callback)->
     JPermissionSet = require '../group/permissionset'
     client =
