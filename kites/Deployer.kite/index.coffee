@@ -124,15 +124,13 @@ kite.worker manifest,
 
   doDeploy: (options)->
     console.log "now doing the deploy", options
-    deploys.push options
-    return ["Hello, This is #{manifest.name}"]
+    {kiteName, version, zipUrl} = options
+    deployment = new Deployment(kiteName, version, zipUrl)
+    deployment.createLxc () ->
+      deployment.downloadAndExtractKite deployment.runKite.bind deployment
+      deploys.push options
+      return ["deployed to #{manifest.name} #{manifest.uuid}"]
 
-    # {kiteName, version, zipUrl} = options
-    # deployment = new Deployment(kiteName, version, zipUrl)
-    # deployment.createLxc () ->
-    #   deployment.downloadAndExtractKite deployment.runKite.bind deployment
-    #   deploys.push deployment.deployId
-    # return callback null, "Hello, This is #{manifest.name}"
 
   deploy: (options, callback) ->
 
@@ -166,8 +164,8 @@ kite.worker manifest,
 
     who [], (err, kites)=>
       bestKite = findBestDeployer(kites)
-      console.log "sending options:::: ", options
-      @one bestKite.kiteName, 'doDeploy', [options], (args)->
+      console.log "sending options:::: ", options, " to ", bestKite
+      @one bestKite.id, 'doDeploy', [options], (args)->
         console.log "[[[[[[[[ doDeploy returned yay .....", args
         callback(bestKite) 
 
