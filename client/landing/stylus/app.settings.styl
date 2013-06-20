@@ -488,7 +488,18 @@ positiveGreen = rgba(58,200,2,1)
   .edit-plan
     top                   25px
     left                  10px
+    size(26px,26px)
     abs()
+
+    span.icon
+      sprite()
+      bg(position,20px 20px)
+      rel()
+
+      &.canceled
+        bg                  position,-280px -440px
+      &.active
+        bg                  position,-120px -580px
 
   h4
     top                   8px
