@@ -30,6 +30,10 @@ module.exports = class JVM extends Model
                           ]
       instance          : []
     schema              :
+      type              :
+        type            : String
+        enum            : ['invalid vm type', ['user', 'group']]
+      uid               : Number
       ip                :
         type            : String
         default         : -> null
@@ -68,6 +72,11 @@ module.exports = class JVM extends Model
         proxy         : { mode: 'vm' }
         regYears      : 0
       ).save (err)-> console.log err  if err?
+
+  @removeDomains = (domains) ->
+    JDomain = require './domain'
+    JDomain.remove domain: $in: domains, (err) ->
+      console.error err  if err?
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
@@ -125,7 +134,9 @@ module.exports = class JVM extends Model
           JVM.createDomains hostnameAlias
 
           vm = new JVM {
-            name        : "#{name}#{uid}"
+            type
+            uid
+            name        : "#{name}~#{uid}"
             planCode    : planCode
             planOwner   : planOwner
             users       : [{ id: user.getId(), sudo: yes, owner: yes }]
@@ -293,6 +304,8 @@ module.exports = class JVM extends Model
       JVM.createDomains hostnameAlias
 
       vm = new JVM {
+        type
+        uid
         name      : name
         planCode  : planCode
         planOwner : planOwner
@@ -321,15 +334,31 @@ module.exports = class JVM extends Model
         else user.update { $set: { uid } }, handleError
 
     JAccount.on 'UsernameChanged', (oldUsername, newUsername) ->
-      # JVM.each name: ///^\w+~#{oldUsername}~///, (err, vm) ->
-      #   groupName = vm.name.substr 0, vm.name.indexOf '~'
-      #   hostnameAlias = vm.hostnameAlias.map (alias)->
-      #     edges = alias.split '.'
-      #     console.log edges
+      re = ///^\w+~#{oldUsername}~///
+      JVM.each name: re, {}, (err, vm) ->
+        return callback err  if err?
+
+        if vm?
+          [groupSlug] = vm.name.split '~'
+
+          name = "#{groupSlug}~#{newUsername}~#{vm.uid}"
+
+          JVM.removeDomains vm.hostnameAlias  if vm.hostnameAlias?
+
+          hostnameAlias = JVM.createAliases {
+            nickname  : newUsername
+            type      : vm.type
+            uid       : vm.uid
+            groupSlug
+          }
+
+          JVM.createDomains hostnameAlias
+
+          vm.update $set: { name, hostnameAlias }, (err) ->
+            console.error err  if err?
 
     JGroup.on 'GroupCreated', ({group, creator})->
       group.fetchBundle (err, bundle)->
-        console.log err, bundle
         if err then handleError err
         else if bundle and bundle.sharedVM
           creator.fetchUser (err, user)->
