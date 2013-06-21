@@ -105,7 +105,7 @@ class ActivityListController extends KDListViewController
     @checkIfLikedBefore activityIds
 
     @lastItemTimeStamp or= Date.now()
-    
+
     for obj in activities
       objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
       if objectTimestamp < @lastItemTimeStamp
@@ -151,7 +151,7 @@ class ActivityListController extends KDListViewController
   checkIfLikedBefore:(activityIds)->
 
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
-      for activity in @getListView().items when activity.data._id.toString() in likedIds
+      for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
         if likeView
           likeView.likeLink.updatePartial 'Unlike'
