@@ -8,14 +8,7 @@ class ActivityAppController extends AppController
   {dash} = Bongo
 
   activityTypes = [
-    'CStatusActivity'
-    'CCodeSnipActivity'
-    'CFollowerBucketActivity'
-    'CNewMemberBucketActivity'
-    'CDiscussionActivity'
-    'CTutorialActivity'
-    'CInstallerBucketActivity'
-    'CBlogPostActivity'
+    'Everything'
   ]
 
   @clearQuotes = clearQuotes = (activities)->
@@ -115,19 +108,17 @@ class ActivityAppController extends AppController
     KD.time "Activity fetch took - "
     options = to : options.to or Date.now()
 
-    @fetchActivity options, (err, teasers)=>
+    @fetchCachedActivity options, (err, cache)=>
       @isLoading = no
-      @listController.hideLazyLoader()
-      KD.timeEnd "Activity fetch took"
-
-      if err or teasers.length is 0
-        warn "An error occured:", err  if err
+      if err or cache.length is 0
+        warn err  if err
+        @listController.hideLazyLoader()
         @listController.showNoItemWidget()
       else
-        @extractTeasersTimeStamps(teasers)
-        @listController.listActivities teasers
-
-      callback? err, teasers
+        @extractCacheTimeStamps cache
+        @sanitizeCache cache, (err, cache)=>
+          @listController.hideLazyLoader()
+          @listController.listActivitiesFromCache cache
 
   fetchActivitiesFromCache:(options = {})->
     @fetchCachedActivity options, (err, cache)=>
@@ -304,11 +295,13 @@ class ActivityAppController extends AppController
   fetchCachedActivity:(options = {}, callback)->
     if KD.config.useNeo4j
       options.timestamp or= options.to
-      options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+      options.groupName   = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+      options.facets      = @getFilter()
 
       KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
         result.overview.reverse() if result?.overview
         return callback err, result
+
     else
       $.ajax
         url     : "/-/cache/#{options.slug or 'latest'}"

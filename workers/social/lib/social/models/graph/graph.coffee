@@ -3,8 +3,9 @@ neo4j = require "neo4j"
 {Base, ObjectId, race} = require 'bongo'
 
 module.exports = class Graph
-  constructor:({config})->
+  constructor:({config, facets})->
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
+    @facets = facets
 
   fetchObjectsFromMongo:(collections, wantedOrder, callback)->
     sortThem=(err, objects)->
@@ -96,27 +97,55 @@ module.exports = class Graph
         filteredContent.push content if content.group not in secretGroups
       callback null, filteredContent
 
+  neo4jFacets = [
+    "JLink"
+    "JBlogPost"
+    "JTutorial"
+    "JStatusUpdate"
+    "JOpinion"
+    "JDiscussion"
+    "JCodeSnip"
+    "JCodeShare"
+  ]
+
   fetchAll:(group, startDate, callback)->
     {groupName, groupId} = group
 
-    console.time 'fetchAll'
+    #console.time 'fetchAll'
 
     # do not remove white-spaces
     query = """
-        START koding=node:koding("id:#{groupId}")
-        MATCH koding-[:member]->members<-[:author]-content
-        WHERE content.`meta.createdAtEpoch` < #{startDate}
+      START koding=node:koding("id:#{groupId}")
+      MATCH koding-[:member]->members<-[:author]-content
+      WHERE content.`meta.createdAtEpoch` < #{startDate}
+    """
 
-      """
+    # build facet queries
+    facets = @facets
+    if facets and "Everything" not in facets
+      facetQueryList = []
+      for facet in facets
+        if facet not in neo4jFacets
+          console.log "Unknown facet: " + facets.join() 
+          continue
+
+        facetQueryList.push("content.name=\"#{facet}\"")
+
+      query += (" AND (" + facetQueryList.join(' OR ') + ")")
+
     if groupName isnt "koding"
       query += """
-          and content.group! = "#{groupName}"
-        """
-    query += """
-        return content
-        order by content.`meta.createdAtEpoch` DESC
-        limit 20
+        and content.group! = "#{groupName}"
+
       """
+    query += """
+
+      return content
+      order by content.`meta.createdAtEpoch` DESC
+      limit 20
+    """
+
+    console.log "fetchAll", query
 
     @db.query query, {}, (err, results)=>
       tempRes = []
