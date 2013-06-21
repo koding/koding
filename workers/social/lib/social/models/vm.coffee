@@ -27,7 +27,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData', 'fetchDomains'
+                           'removeByName', 'someData', 'fetchDomains', 'fetchVMInfo'
                           ]
       instance          : []
     schema              :
@@ -179,6 +179,23 @@ module.exports = class JVM extends Model
     success: (client, groupSlug, callback)->
       {delegate} = client.connection
       @calculateUsage delegate, groupSlug, callback
+
+  @fetchVMInfo = secure (client, vmName, callback)-> 
+    {delegate} = client.connection
+
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+
+      JVM.one
+        name  : vmName
+        users : { $elemMatch: id: user.getId() }
+      , (err, vm)->
+        return callback err  if err
+        return callback null, null  unless vm
+        callback null,
+          name     : vm.name
+          planCode : vm.planCode
+          planOwner: vm.planOwner
 
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
