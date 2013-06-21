@@ -257,12 +257,13 @@ class PaymentController extends KDController
     else
       KD.remote.api.JRecurlyPlan.getUserAccount cb
 
-  createPaymentConfirmationModal: (type, group, plan, needBilling, balance, amount, cb)->
-    content = @paymentWarning balance, amount
+  createPaymentConfirmationModal: (type, group, plan, needBilling, balance, amount, subscription, cb)->
+    content = @paymentWarning balance, amount, subscription
 
     modal           = new KDModalView
       title         : "Confirm VM Creation"
       content       : "<div class='modalformline'>#{content}</div>"
+      cssClass      : "vm-new"
       overlay       : yes
       buttons       :
         No          :
@@ -270,38 +271,57 @@ class PaymentController extends KDController
           cssClass  : "modal-clean-gray"
           callback  : =>
             modal.destroy()
-            cb()
+        ReActivate  :
+          title     : "Re-activate Plan"
+          cssClass  : "modal-clean-green hidden"
+          callback  : =>
+            subscription.resume ->
+              modal.buttons.ReActivate.hide()
+              modal.buttons.Yes.show()
         Billing     :
           title     : "Enter Billing Info"
           cssClass  : "modal-clean-green hidden"
           callback  : =>
             @setBillingInfo type, group, (success)->
               if success
-                modal.buttons.Yes.show()
+                if subscription.status is "canceled"
+                  modal.buttons.ReActivate.show()
+                else
+                  modal.buttons.Yes.show()
                 modal.buttons.Billing.hide()
         Yes         :
           title     : "OK, create the VM"
           cssClass  : "modal-clean-green hidden"
           callback  : =>
             modal.destroy()
-            @makePayment type, plan, amount, ->
-              cb()
+            @makePayment type, plan, amount
+
+    modal.on "KDModalViewDestroyed", ->
+      cb()
 
     if needBilling
       modal.buttons.Billing.show()
     else
-      modal.buttons.Yes.show()
+      if subscription.status is 'canceled'
+        modal.buttons.ReActivate.show()
+      else
+        modal.buttons.Yes.show()
 
   paymentWarning: do->
 
     formatMoney = (amount)-> (amount / 100).toFixed 2
 
-    (balance, amount)->
+    (balance, amount, subscription)->
       content = ""
 
       chargeAmount = Math.max amount - balance, 0
 
-      if amount is 0
+      if subscription.status is "canceled" and amount > 0
+        content += "<p>You have a canceled subscription for #{subscription.quantity} x VM(s).
+                    To add a new VM, you should re-activate your subscription.</p>"
+        if balance > 0
+          content += "<p>You also have $#{formatMoney balance} credited to your account.</p>"
+      else if amount is 0
         content += "<p>You are already subscribed for an extra VM.</p>"
       else if balance > 0
         content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
@@ -315,6 +335,26 @@ class PaymentController extends KDController
 
       content
 
+  getSubscriptionInfo: do->
+
+    findActiveSubscription = (subs, planCode, callback)->
+      info = "none"
+      subs.every (sub)->
+        if sub.planCode is planCode and sub.status in ['canceled', 'active']
+          info = sub
+          return no
+        return yes
+      callback info
+
+    (group, type, planCode, callback)->
+      info = "none"
+      if type is "group"
+        group.checkPayment (err, subs)=>
+          findActiveSubscription subs, planCode, callback
+      else
+        KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs)->
+          findActiveSubscription subs, planCode, callback
+
   confirmPayment:(type, plan, callback=->)->
     group = KD.getSingleton("groupsController").getCurrentGroup()
 
@@ -322,18 +362,19 @@ class PaymentController extends KDController
       type     : type
       planCode : plan.code
     , (err, status)=>
-      if not err and status
-        @createPaymentConfirmationModal type, group, plan, no, 0, 0, callback
-      else
-        @getBillingInfo type, group, (err, account)=>
-          needBilling = err or not account or not account.cardNumber
+      @getSubscriptionInfo group, type, plan.code, (subscription)=>
+        if status
+          @createPaymentConfirmationModal type, group, plan, no, 0, 0, subscription, callback
+        else
+          @getBillingInfo type, group, (err, account)=>
+            needBilling = err or not account or not account.cardNumber
 
-          @getBalance type, group, (err, balance)=>
-            if err
-              balance = 0
-            @createPaymentConfirmationModal type, group, plan, needBilling, balance, plan.feeMonthly, callback
+            @getBalance type, group, (err, balance)=>
+              if err
+                balance = 0
+              @createPaymentConfirmationModal type, group, plan, needBilling, balance, plan.feeMonthly, subscription, callback
 
-  makePayment: (type, plan, amount, callback)->
+  makePayment: (type, plan, amount)->
     vmController = KD.getSingleton('vmController')
     group        = KD.getSingleton("groupsController").getCurrentGroup()
 
