@@ -34,6 +34,32 @@ class NotificationController extends KDObject
         @emit notification.event, notification.contents
         @prepareNotification notification
 
+    @on 'UsernameChanged', ({username, oldUsername}) ->
+
+      $.cookie 'clientId', erase: yes
+
+      new KDModalView
+        title         : "Your username was changed"
+        overlay       : yes
+        content       :
+          """
+          <div class="modalformline">
+          Your username has been changed to <strong>#{username}</strong>.
+          Your <em>old</em> username <strong>#{oldUsername}</strong> is
+          now available for registration by another Koding user.  You have
+          been logged out.  If you wish, you may close this box, and save
+          your work locally.
+          </div>
+          """
+        buttons       :
+          "Refresh":
+            style     : "modal-clean-red"
+            callback  : (event) -> location.replace '/Login'
+          "Close"     :
+            style     : "modal-clean-gray"
+            callback  : (event) -> modal.destroy()
+
+
   prepareNotification: (notification)->
 
     # NOTIFICATION SAMPLES
