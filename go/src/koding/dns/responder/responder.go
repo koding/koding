@@ -26,10 +26,7 @@ func Respond(query types.DNSquery, config map[string]interface{}) types.DNSrespo
 	result.Ansection = nil
 	switch {
 	case query.Qtype == types.A:
-		// Set the return to NOERROR initially
-		result.Responsecode = types.NOERROR
 			ancount := 1
-			result.Ansection = make([]types.RR, ancount)
 			var vm virt.VM
 			// Lookup the IP for the given Hostname
 			if err := db.VMs.Find(bson.M{"hostnameAlias": query.Qname}).One(&vm); err != nil {
@@ -38,7 +35,9 @@ func Respond(query types.DNSquery, config map[string]interface{}) types.DNSrespo
 				fmt.Println(err)
 			}
 			if vm.IP != nil {
+				result.Ansection = make([]types.RR, ancount)
 				result.Ansection[0] = addressSection(query.Qname, vm.IP.To4())
+				result.Responsecode = types.NOERROR
 			} else {
 				// VM Has no IP, return SERVFAIL
 				result.Responsecode = types.SERVFAIL
