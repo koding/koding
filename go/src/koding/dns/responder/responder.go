@@ -43,11 +43,10 @@ func Respond(query types.DNSquery, config map[string]interface{}) types.DNSrespo
 				// VM Has no IP, return SERVFAIL
 				result.Responsecode = types.SERVFAIL
 			}
-		} else {
-			// ancount := 0
-		}
+
 	default:
 		result.Responsecode = types.SERVFAIL
+	}
 	return result
 }
 
