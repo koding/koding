@@ -28,12 +28,17 @@ class ApplicationManager extends KDObject
     @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
     # @on 'AnInstanceIsShown', @bound "setMissingRoute"
 
+    # set unload listener
+    windowController = @getSingleton 'windowController'
+    windowController.addUnloadListener =>
+      safeToUnload = no for app of @appControllers when app in ['Ace', 'WebTerm']
+      return safeToUnload ? yes
+
   setMissingRoute:(appController, appView, appOptions)->
     router       = KD.getSingleton('router')
     {entryPoint} = KD.config
 
     route = appOptions.route.slug.replace /:\w+.?\//g, ''
-    log route, router.getCurrentPath()
     comparedRoute = router.getCurrentPath().split('?').first
     if route isnt comparedRoute
       missingRoute = appController.getOption('initialRoute') or route
