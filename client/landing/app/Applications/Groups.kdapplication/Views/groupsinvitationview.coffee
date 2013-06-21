@@ -103,7 +103,8 @@ class GroupsInvitationView extends KDView
           @modalCallback @inviteByEmail, noop, err
           if saveMessage
             @getData().saveInvitationMessage message
-            @getData().invitationMessage = message
+            @policy.communications ?= {}
+            @policy.communications.invitationMessage = message
       fields             :
         emails           :
           label          : 'Emails'
@@ -119,7 +120,7 @@ class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : @getData().invitationMessage or defaultMessage
+          defaultValue   : @policy.communications?.invitationMessage or defaultMessage
           validate       :
             rules        :
               required   : yes
