@@ -189,7 +189,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
-      status  : 'active'
+      $or      : [
+        {status: 'active'}
+        {status: 'canceled'}
+      ]
     , (err, subs)=>
       return callback err  if err
       if subs.length > 0
@@ -234,7 +237,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
-      status  : 'active'
+      $or      : [
+        {status: 'active'}
+        {status: 'canceled'}
+      ]
     , (err, subs)=>
       return callback err  if err
       if subs.length > 0
