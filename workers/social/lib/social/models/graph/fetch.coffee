@@ -19,7 +19,17 @@ module.exports = class FetchAllActivityParallel
     @newMemberBucketIndex = null
 
   get:(callback)->
-    methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls, @fetchNewMembers]
+    globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
+    kodingMethods = [@fetchInstalls]
+    methods = []
+
+    # HACK: we don't want to show app install in groups other than koding,
+    #       but they're currently global, so we manually filter them out.
+    if @group.groupName == "koding"
+      methods = globalMethods.concat kodingMethods
+    else
+      methods = globalMethods
+
     holder = []
     boundMethods = holder.push method.bind this for method in methods
     async.parallel holder, (err, results)=>

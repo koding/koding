@@ -156,16 +156,17 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
-		loadBalance := "roundrobin"
+		mode := "roundrobin"
 		if worker.Name == "broker" {
-			loadBalance = "sticky"
+			mode = "sticky"
 		}
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		err = proxyDB.UpsertKey(
 			"koding",    // username
-			loadBalance, // loadbalancing mode
+			"",          // persistence, empty means disabled
+			mode,        // loadbalancing mode
 			worker.Name, // servicename
 			key,         // version
 			worker.Hostname+":"+port, // host
