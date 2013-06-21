@@ -184,7 +184,7 @@ func (err *VMNotFoundError) Error() string {
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
+	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
 			panic(err)
@@ -264,6 +264,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		info.mutex.Lock()
 		defer info.mutex.Unlock()
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
+				methodError = &kite.InternalKiteError{}
+			}
+		}()
 
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
