@@ -60,12 +60,12 @@ class VirtualizationController extends KDController
           if vmInfo.planCode is 'free'
             @askForApprove 'vm.remove', (state)->
               return callback null  unless state
-              deleteVM vm
+              deleteVM vm, callback
           else
             paymentController = KD.getSingleton('paymentController')
             paymentController.deleteVM vmInfo, (state)->
               return callback null  unless state
-              deleteVM vm
+              deleteVM vm, callback
 
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
