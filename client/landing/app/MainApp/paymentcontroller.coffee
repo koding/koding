@@ -304,7 +304,7 @@ class PaymentController extends KDController
     if needBilling
       modal.buttons.Billing.show()
     else
-      if subscription.status is 'canceled'
+      if subscription.status is 'canceled' and amount > 0
         modal.buttons.ReActivate.show()
       else
         modal.buttons.Yes.show()
