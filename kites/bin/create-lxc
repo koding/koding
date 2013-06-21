@@ -13,7 +13,7 @@ if [[ $# -ne 1 ]]; then
 fi
 
 lxcName=$1
-lxcIP=$((`ls -1 /var/lib/lxc | wc -l` + 1))
+lxcIP=$((`ls -1 /var/lib/lxc | wc -l` + 2))
 
 mkdir -p /var/lib/lxc/$lxcName/rootfs
 mkdir -p /var/lib/lxc/$lxcName/overlay
@@ -21,7 +21,7 @@ mkdir -p /var/lib/lxc/$lxcName/overlay
 mount -t aufs -o br=/var/lib/lxc/$lxcName/overlay:/var/lib/lxc/vmroot/rootfs aufs /var/lib/lxc/$lxcName/rootfs
 chown vmroot: /var/lib/lxc/$lxcName/rootfs
 
-cp /var/lib/lxc/vmroot/config /var/lib/lxc/$lxcName/
+cp /var/lib/lxc/vmroot/config-template /var/lib/lxc/$lxcName/config
 sed -i "s/#NAME#/$lxcName/" /var/lib/lxc/$lxcName/config
 sed -i "s/#IP#/$lxcIP/" /var/lib/lxc/$lxcName/config
 

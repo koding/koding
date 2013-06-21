@@ -89,7 +89,7 @@ class Deployment
       console.log 'lxc-execute process exited with code ', code
 
 
-deployerIdFile = "/home/vmroot/.kd/deployerId"
+deployerIdFile = "/root/.kd/deployerId"
 if fs.existsSync deployerIdFile
   deployerId = (fs.readFileSync deployerIdFile).toString()
 else

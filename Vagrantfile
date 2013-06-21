@@ -61,6 +61,10 @@ if provision
 end
 
 Vagrant.configure("2") do |config|
+
+  config.vm.provision :shell, :path => "kites/bin/prepare.sh"
+
+
   config.vm.define :default do |default|
     if provision
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
