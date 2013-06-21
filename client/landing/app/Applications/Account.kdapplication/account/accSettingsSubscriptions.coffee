@@ -23,7 +23,7 @@ class AccountSubscriptionsListController extends KDListViewController
         stack = []
 
         subs.forEach (sub)=>
-          if sub.status != 'expired'
+          if sub.status isnt 'expired'
             stack.push (cb)->
               KD.remote.api.JRecurlyPlan.getPlanWithCode sub.planCode, (err, plan)->
                 return cb err  if err
@@ -31,8 +31,7 @@ class AccountSubscriptionsListController extends KDListViewController
                 cb null, sub
 
           async.parallel stack, (err, result)=>
-            if err
-              result = []
+            result = [] if err
             @instantiateListItems result
             @hideLazyLoader()
 
@@ -61,8 +60,7 @@ class AccountSubscriptionsListItem extends KDListItemView
     super options, data
 
     listView = @getDelegate()
-    
-    if data.status == 'canceled'
+    if data.status is 'canceled'
       title     = "Renew Next Month"
       iconClass = "canceled"
     else if data.status in ['active', 'modified']
@@ -103,7 +101,7 @@ class AccountSubscriptionsListItem extends KDListItemView
             cb?()
  
   editPlan: (listView, data)->
-    if data.status == 'canceled'
+    if data.status is 'canceled'
       @confirmOperation 'Are you sure you want to resume your subscription?', ->
         data.resume (err, res)->
           unless err
@@ -114,9 +112,7 @@ class AccountSubscriptionsListItem extends KDListItemView
           unless err
             listView.emit "reload"
  
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
+  viewAppended: JView::viewAppended
 
   pistachio:->
     {quantity,plan,status,renew,expires} = @getData()
@@ -124,14 +120,14 @@ class AccountSubscriptionsListItem extends KDListItemView
     statusNotice = ""
     if status in ['active', 'modified']
       statusNotice = "Subscription for #{quantity} VM(s) is active"
-    else if status == 'canceled'
+    else if status is 'canceled'
       statusNotice = "Subscription for #{quantity} VM(s) will end soon"
 
     dateNotice = ""
-    if plan.type != 'single'
-      if status == 'active'
+    if plan.type isnt 'single'
+      if status is 'active'
         dateNotice = "Plan will renew on #{dateFormat renew}"
-      else if status == 'canceled'
+      else if status is 'canceled'
         dateNotice = "Plan will be available till #{dateFormat expires}"
 
     amount = (plan.feeMonthly / 100).toFixed 2

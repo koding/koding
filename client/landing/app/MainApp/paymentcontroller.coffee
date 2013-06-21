@@ -257,7 +257,9 @@ class PaymentController extends KDController
     else
       KD.remote.api.JRecurlyPlan.getUserAccount cb
 
-  createPaymentConfirmationModal: (type, group, plan, needBilling, balance, amount, subscription, cb)->
+  createPaymentConfirmationModal: (options, cb)->
+    {type, group, plan, needBilling, balance, amount, subscription} = options
+
     content = @paymentWarning balance, amount, subscription
 
     modal           = new KDModalView
@@ -364,7 +366,15 @@ class PaymentController extends KDController
     , (err, status)=>
       @getSubscriptionInfo group, type, plan.code, (subscription)=>
         if status
-          @createPaymentConfirmationModal type, group, plan, no, 0, 0, subscription, callback
+          @createPaymentConfirmationModal {
+            needBilling: no
+            balance    : 0
+            amount     : 0
+            type
+            group
+            plan
+            subscription
+          }, callback
         else
           @getBillingInfo type, group, (err, account)=>
             needBilling = err or not account or not account.cardNumber
@@ -372,7 +382,15 @@ class PaymentController extends KDController
             @getBalance type, group, (err, balance)=>
               if err
                 balance = 0
-              @createPaymentConfirmationModal type, group, plan, needBilling, balance, plan.feeMonthly, subscription, callback
+              @createPaymentConfirmationModal {
+                amount : plan.feeMonthly
+                type
+                group
+                plan
+                subscription
+                needBilling
+                balance
+              }, callback
 
   makePayment: (type, plan, amount)->
     vmController = KD.getSingleton('vmController')
@@ -391,3 +409,61 @@ class PaymentController extends KDController
         plan.subscribe {}, (err, result)->
           unless err
             vmController.createGroupVM type, plan.code
+
+  createDeleteConfirmationModal: (subscription, cb)->
+
+    if subscription.status is 'canceled'
+      content = """<p>Removing this VM will <b>destroy</b> all the data in
+                   this VM including all other users in filesystem. <b>Please
+                   be careful this process cannot be undone.</b></p>
+
+                   <p>Do you want to continue?</p>"""
+    else
+      content = """<p>Removing this VM will <b>destroy</b> all the data in
+                   this VM including all other users in filesystem. <b>Please
+                   be careful this process cannot be undone.</b></p>
+
+                   <p>You can 'pause' your plan instead, and continue using it
+                   until #{dateFormat subscription.renew }.</p>
+
+                   <p>What do you want to do?</p>"""
+
+    modal           = new KDModalView
+      title         : "Confirm VM Deletion"
+      content       : "<div class='modalformline'>#{content}</div>"
+      cssClass      : "vm-delete"
+      overlay       : yes
+      buttons       :
+        No          :
+          title     : "Cancel"
+          cssClass  : "modal-clean-gray"
+          callback  : =>
+            modal.destroy()
+            cb no
+        Pause       :
+          title     : "Pause Plan"
+          cssClass  : "modal-clean-green hidden"
+          callback  : =>
+            subscription.cancel ->
+              modal.destroy()
+              cb no
+        Delete      :
+          title     : "Delete VM"
+          cssClass  : "modal-clean-red"
+          callback  : =>
+            modal.destroy()
+            cb yes
+
+    if subscription.status isnt 'canceled'
+      modal.buttons.Pause.show()
+
+  deleteVM: (vmInfo, callback)->
+    group = KD.getSingleton("groupsController").getCurrentGroup()
+
+    if vmInfo.planOwner.indexOf("user_") > -1
+      type = "user"
+    else
+      type = "group"
+
+    @getSubscriptionInfo group, type, vmInfo.planCode, (subscription)=>
+      @createDeleteConfirmationModal subscription, callback
