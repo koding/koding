@@ -139,6 +139,13 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 					"gidNumber":   "27",
 				}).Bytes())
 			}
+
+			conn.Write(createSearchResultEntry(messageID, map[string]string{
+				"objectClass": "posixGroup",
+				"cn":          "www-data",
+				"gidNumber":   "33",
+			}).Bytes())
+
 			return true
 		}
 
