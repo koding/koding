@@ -244,12 +244,17 @@ module.exports = class JVM extends Model
       JRecurlySubscription.getSubscriptionsAll vm.planOwner,
         userCode : vm.planOwner
         planCode : vm.planCode
-        status   : 'active'
+        $or      : [
+          {status: 'active'}
+          {status: 'canceled'}
+        ]
       , (err, subs)->
         if err
           return callback new KodingError 'Unable to update subscription.'
         subs.forEach (sub)->
-          if sub.quantity > 1
+          if sub.status is 'canceled'
+            vm.remove callback
+          else if sub.quantity > 1
             sub.update sub.quantity - 1, (err, sub)->
               if err
                 return callback new KodingError 'Unable to update subscription.'
@@ -274,10 +279,6 @@ module.exports = class JVM extends Model
       JVM.one selector, (err, vm)=>
         return callback err  if err
         return callback new KodingError 'No such VM'  unless vm
-
-        #   console.log "Delete free VM"
-        # else
-        #   console.log "Delete user VM"
 
         if vm.planOwner.indexOf("user_") > -1
           @deleteVM vm, callback
