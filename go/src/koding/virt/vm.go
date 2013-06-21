@@ -278,6 +278,14 @@ func (vm *VM) MountRBD(mountDir string) error {
 		}
 	}
 
+	// check/correct filesystem
+	if out, err := exec.Command("/sbin/fsck.ext4", "-p", vm.RbdDevice()).CombinedOutput(); err != nil {
+		exitError, ok := err.(*exec.ExitError)
+		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() >= 4 {
+			return commandError("fsck.ext4 failed.", err, out)
+		}
+	}
+
 	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
