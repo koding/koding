@@ -1,5 +1,6 @@
 package main
 
+/* disable until we use this
 import (
 	"bufio"
 	"bytes"
@@ -9,6 +10,14 @@ import (
 	"net/http"
 	"time"
 )
+
+type RabbitChannel struct {
+	ReplyTo string
+	Receive chan []byte
+}
+
+var amqpStream *AmqpStream
+var connections = make(map[string]RabbitChannel)
 
 func rabbitTransport(outreq *http.Request, userInfo *UserInfo, rabbitKey string) (*http.Response, error) {
 	requestHost := outreq.Host
@@ -82,3 +91,5 @@ func rabbitTransport(outreq *http.Request, userInfo *UserInfo, rabbitKey string)
 
 	return res, nil
 }
+
+*/

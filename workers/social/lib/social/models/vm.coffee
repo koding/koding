@@ -257,17 +257,21 @@ module.exports = class JVM extends Model
               status   : 'active'
             , (err, subs)->
               if err
-                return callback new KodingError 'Unable to update payment (1)'
+                return callback new KodingError 'Unable to update subscription.'
               subs.forEach (sub)->
                 if sub.quantity > 1
                   sub.update sub.quantity - 1, (err, sub)->
                     if err
-                      return callback new KodingError 'Unable to update payment (2)'
+                      return callback new KodingError 'Unable to update subscription.'
                     vm.remove callback
                 else
-                  sub.terminate (err, sub)->
+                  sub.terminate "partial", (err, newSub)->
                     if err
-                      return callback new KodingError 'Unable to update payment (3)'
+                      sub.terminate "none", (err, newSub)->
+                        if err
+                          return callback new KodingError 'Unable to terminate payment'
+                        else
+                        vm.remove callback
                     else
                       vm.remove callback
           else
