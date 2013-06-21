@@ -31,6 +31,7 @@ class MainController extends KDController
   createSingletons:->
 
     KD.registerSingleton "mainController",            this
+    KD.registerSingleton "windowController",          new KDWindowController
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
