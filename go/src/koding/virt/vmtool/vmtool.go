@@ -218,4 +218,5 @@ func selectVMs(selector string) []*virt.VM {
 
 	fmt.Println("Invalid selector: " + selector)
 	os.Exit(1)
+	return nil
 }
