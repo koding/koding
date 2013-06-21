@@ -32,7 +32,7 @@ class Deployment
 
   createLxc: (callback) ->
     cmd = spawn "/usr/sbin/create-lxc", [@lxcId]
-    console.log 'create lxc'
+    console.log 'create lxc', "/usr/sbin/create-lxc", @lxcId
     cmd.stdout.on 'data', (data) ->
       console.log 'stdout: ', data.toString()
     cmd.stderr.on 'data', (data) -> 
@@ -89,7 +89,7 @@ class Deployment
       console.log 'lxc-execute process exited with code ', code
 
 
-deployerIdFile = "/home/vmroot/.kd/deployerId"
+deployerIdFile = "/root/.kd/deployerId"
 if fs.existsSync deployerIdFile
   deployerId = (fs.readFileSync deployerIdFile).toString()
 else
@@ -124,12 +124,12 @@ kite.worker manifest,
 
   doDeploy: (options)->
     console.log "now doing the deploy", options
-    {kiteName, version, zipUrl} = options
-    deployment = new Deployment(kiteName, version, zipUrl)
+    {kiteName, version, url} = options
+    deployment = new Deployment(kiteName, version, url)
     deployment.createLxc () ->
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
       deploys.push options
-      return ["deployed to #{manifest.name} #{manifest.uuid}"]
+    return ["deployed to #{manifest.name} #{manifest.uuid}"]
 
 
   deploy: (options, callback) ->

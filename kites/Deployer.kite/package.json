@@ -2,7 +2,6 @@
   "name": "Deployer.kite",
   "main": "index.js",
   "dependencies": {
-    "kite-amqp"  : "latest",
     "fs-extra" : "latest",
     "node-uuid": "latest",
     "wrench"   : "latest"
