@@ -132,15 +132,16 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       , callback
 
   calculateRefund: (callback)->
+    aDay = 1000 * 60 * 60 * 24
     refundMap = [
-      {uplimit: 1000 * 60 * 60 * 24 * 1,  percent: 90}
-      {uplimit: 1000 * 60 * 60 * 24 * 7,  percent: 40}
-      {uplimit: 1000 * 60 * 60 * 24 * 15, percent: 20}
+      {uplimit: aDay * 1,  percent: 90}
+      {uplimit: aDay * 7,  percent: 40}
+      {uplimit: aDay * 15, percent: 20}
     ]
 
     dateNow = new Date()
     dateEnd = new Date(@renew)
-    usage   = (dateEnd.getTime() - dateNow.getTime()) / (1000 * 60 * 60 * 24)
+    usage   = (dateEnd.getTime() - dateNow.getTime()) / aDay
 
     refundMap.every (ref)=>
       if usage < ref.uplimit
