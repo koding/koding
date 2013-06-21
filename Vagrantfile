@@ -70,6 +70,7 @@ Vagrant.configure("2") do |config|
       default.vm.box_url = "http://salt-master.in.koding.com/downloads/vagrant-kite.box"
       default.vm.synced_folder ".", "/opt/koding"
       default.vm.synced_folder "~/.kd", "/root/.kd"
+      default.vm.synced_folder "../kd", "/opt/kd"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
@@ -80,10 +81,6 @@ Vagrant.configure("2") do |config|
     # default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
     default.vm.hostname = "vagrant"
 
-    default.vm.synced_folder "../kd", "/opt/kd"
-
-    default.vm.synced_folder "saltstack", "/srv" if provision
-
     default.vm.provider "virtualbox" do |v|
       v.name = "koding_#{Time.new.to_i}"
       v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
@@ -91,6 +88,7 @@ Vagrant.configure("2") do |config|
     end
 
     if provision
+      default.vm.synced_folder "saltstack", "/srv"
       default.vm.provision :shell, :inline => "
         apt-get --assume-yes install python-pip python-dev
         pip install mako
