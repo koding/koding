@@ -193,10 +193,7 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 			hostname = keyData.Host[0]
 		}
 
-		if servicename == "broker" {
-			u.Redirect = true
-			hostname = "https://" + hostname
-		} else {
+		if !strings.HasPrefix(hostname, "http://") {
 			hostname = "http://" + hostname
 		}
 
