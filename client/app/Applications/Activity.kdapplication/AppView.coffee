@@ -35,6 +35,16 @@ class ActivityAppView extends KDScrollView
     @on 'scroll', @bound "changePageToActivity"
     @header.bindTransitionEnd()
 
+    @feedWrapper.ready =>
+      @activityHeader = @feedWrapper.controller.activityHeader
+      @on 'scroll', (event) =>
+        if event.delegateTarget.scrollTop > 0
+          @activityHeader.setClass "scrolling-up-outset"
+          @activityHeader.liveUpdateButton.setValue off
+        else
+          @activityHeader.unsetClass "scrolling-up-outset"
+          @activityHeader.liveUpdateButton.setValue on
+
     @decorate()
     # after resolving non-blocking socket problem, change this value to 100
     @setLazyLoader .99
@@ -120,7 +130,7 @@ class ActivityListContainer extends JView
 
     @listWrapper = @controller.getView()
 
-    @utils.defer => @emit 'ready'
+    @controller.ready => @emit "ready"
 
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER
