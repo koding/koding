@@ -277,8 +277,9 @@ module.exports = class JVM extends Model
 
     handleError = (err)-> console.error err  if err
 
-    JGroup  = require './group'
-    JUser   = require './user'
+    JGroup    = require './group'
+    JUser     = require './user'
+    JAccount  = require './account'
 
     addVm = ({ target, user, name, sudo, groups, groupSlug
                type, planCode, planOwner })->
@@ -318,6 +319,13 @@ module.exports = class JVM extends Model
       uidFactory.next (err, uid)->
         if err then handleError err
         else user.update { $set: { uid } }, handleError
+
+    JAccount.on 'UsernameChanged', (oldUsername, newUsername) ->
+      # JVM.each name: ///^\w+~#{oldUsername}~///, (err, vm) ->
+      #   groupName = vm.name.substr 0, vm.name.indexOf '~'
+      #   hostnameAlias = vm.hostnameAlias.map (alias)->
+      #     edges = alias.split '.'
+      #     console.log edges
 
     JGroup.on 'GroupCreated', ({group, creator})->
       group.fetchBundle (err, bundle)->

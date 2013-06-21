@@ -72,8 +72,9 @@ module.exports = class JUser extends jraphical.Module
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
-        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
+        'login','logout','register','usernameAvailable','emailAvailable',
+        'changePassword','changeEmail', 'fetchUser','setDefaultHash','whoami',
+        'isRegistrationEnabled'
       ]
 
     schema          :
@@ -165,6 +166,8 @@ module.exports = class JUser extends jraphical.Module
           JUser.one {username}, (err, user)->
             if err
               callback createKodingError err
+            else unless user?
+              callback createKodingError 'Unknown user!'
             else
               user.fetchAccount context, (err, account)->
                 if err

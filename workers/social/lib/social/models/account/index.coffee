@@ -56,6 +56,7 @@ module.exports = class JAccount extends jraphical.Module
       ]
       instance      : [
         { name: 'updateInstance' }
+        { name: 'notification' }
       ]
     sharedMethods :
       static      : sharedStaticMethods()
@@ -164,35 +165,61 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-  changeUsername: do ->
+  changeUsername: secure (client, username, callback) ->
 
-    handleErr = (err, callback)->
+    {delegate} = client.connection
+    JName = require '../name'
+
+    oldUsername = delegate.profile.nickname
+
+    if username is oldUsername
+    then return callback new KodingError "Username was not changed!"
+
+    freeOldUsername = ->
+      JName.remove name: oldUsername, (err) ->
+        return callback err  if err
+        callback null
+
+    handleErr = (err) ->
+      JName.remove name: username, (err) ->
+        return callback err  if err
+
       if err.code is 11000
       then return callback new KodingError 'Username is not available!'
       else if err?
       then return callback err
 
-    changeUsername = secure (client, username, callback) ->
-      {delegate} = client.connection
+    unless delegate.equals this
+    then return callback new KodingError 'Access denied!'
 
-      unless delegate.equals this
-      then return callback new KodingError 'Access denied!'
+    unless @constructor.validateAt 'profile.nickname', username
+    then return callback new KodingError 'Invalid username!'
 
-      unless @constructor.validateAt 'profile.nickname', username
-      then return callback new KodingError 'Invalid username!'
+    name = new JName
+      name: username
+      slugs: [
+        constructorName : 'JUser'
+        collectionName  : 'jUsers'
+        slug            : username
+        usedAsPath      : 'username'
+      ]
 
-      oldUsername = delegate.profile.nickname
+    name.save (err) =>
+      return handleErr err  if err
 
-      @fetchUser client, (err, user) =>
+      @fetchUser (err, user) =>
         return callback err  if err
 
-        user.update { $set: username }, (err) =>
+        user.update { $set: { username } }, (err) =>
+          console.log 'updated the user'
           if err then handleErr err, callback
           else
+            @sendNotification 'UsernameChanged', { username, oldUsername }
             @update { $set: 'profile.nickname': username }, (err) =>
-              if err then handleErr err, callback
+              if err then handleErr err
               else
                 @constructor.emit 'UsernameChanged', oldUsername, username
+                freeOldUsername()
 
 
   checkPermission: (target, permission, callback)->

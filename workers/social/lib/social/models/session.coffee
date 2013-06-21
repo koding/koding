@@ -12,7 +12,7 @@ module.exports = class JSession extends Model
 
   createId = require 'hat'
 
-  JGuest = require './guest'
+  JGuest    = require './guest'
 
   @set
     indexes         :
@@ -33,6 +33,13 @@ module.exports = class JSession extends Model
       instance      : [
         { name: 'updateInstance' }
       ]
+
+  do ->
+    JAccount  = require './account'
+
+    JAccount.on 'UsernameChanged', ({oldUsername}) ->
+      JSession.remove username: oldUsername, (err) ->
+        console.error err  if err?
 
   @cycleSession =(clientId, callback=(->)) ->
     @remove {clientId}, (err) =>
