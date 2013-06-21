@@ -11,7 +11,6 @@ class MainController extends KDController
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
   ###
 
-
   connectedState =
     connected   : no
 
@@ -20,6 +19,16 @@ class MainController extends KDController
     options.failWait  = 5000            # duration in miliseconds to show a connection failed modal
 
     super options, data
+
+    @appStorages = {}
+
+    @createSingletons()
+    @setFailTimer()
+    @attachListeners()
+
+    @introductionTooltipController = new IntroductionTooltipController
+
+  createSingletons:->
 
     KD.registerSingleton "mainController",            this
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
@@ -45,13 +54,6 @@ class MainController extends KDController
       KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
-
-    @setFailTimer()
-    @attachListeners()
-
-    @appStorages = {}
-
-    @introductionTooltipController = new IntroductionTooltipController
 
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
