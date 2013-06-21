@@ -256,8 +256,8 @@ class VirtualizationController extends KDController
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-                modal.destroy()
-                paymentController.confirmPayment formData.type, @paymentPlans[formData.host]
+                paymentController.confirmPayment formData.type, @paymentPlans[formData.host], ->
+                  modal.destroy()
               buttons               :
                 user                :
                   title             : "Create a <b>Personal</b> VM"
