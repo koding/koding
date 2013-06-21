@@ -7,9 +7,9 @@ module.exports = class FetchAllActivityParallel
   GraphDecorator = require "./graphdecorator"
 
   constructor:(requestOptions)->
-    {startDate, neo4j, group, facets} = requestOptions
+    {startDate, neo4j, group} = requestOptions
 
-    @graph = new Graph {config : neo4j, facets: group.facets}
+    @graph = new Graph {config : neo4j}
     @startDate            = startDate
     @group                = group
     @randomIdToOriginal   = {}
@@ -18,22 +18,17 @@ module.exports = class FetchAllActivityParallel
     @overviewObjects      = []
     @newMemberBucketIndex = null
 
-    facets = group.facets
-    if facets[0] is 'Everything' or facets.length > 2
-      @globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
-    else
-      @globalMethods = [@fetchSingles]
-
   get:(callback)->
+    globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
     kodingMethods = [@fetchInstalls]
     methods = []
 
     # HACK: we don't want to show app install in groups other than koding,
     #       but they're currently global, so we manually filter them out.
     if @group.groupName == "koding"
-      methods = @globalMethods.concat kodingMethods
+      methods = globalMethods.concat kodingMethods
     else
-      methods = @globalMethods
+      methods = globalMethods
 
     holder = []
     boundMethods = holder.push method.bind this for method in methods

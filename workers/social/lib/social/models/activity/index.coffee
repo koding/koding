@@ -419,11 +419,11 @@ module.exports = class CActivity extends jraphical.Capsule
       neo4jConfig = KONFIG.neo4j
       requestOptions =
         startDate : startDate
-        neo4j     : neo4jConfig
-        group     :
+        neo4j : neo4jConfig
+        group :
           groupName : group.slug
-          groupId   : group._id
-          facets    : options.facets
+          groupId : group._id
+
 
       FetchAllActivityParallel = require './../graph/fetch'
       fetch = new FetchAllActivityParallel requestOptions
