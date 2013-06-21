@@ -18,7 +18,8 @@ module.exports = class FetchAllActivityParallel
     @overviewObjects      = []
     @newMemberBucketIndex = null
 
-    if group.facets[0] is 'Everything'
+    facets = group.facets
+    if facets[0] is 'Everything' or facets.length > 2
       @globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
     else
       @globalMethods = [@fetchSingles]
