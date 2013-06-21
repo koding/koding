@@ -159,7 +159,7 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 			return buf, fmt.Errorf("vm is down: '%s'", err)
 		}
 
-		u.Target, err = url.Parse("https://" + vmAddr)
+		u.Target, err = url.Parse("http://" + vmAddr)
 		if err != nil {
 			return nil, err
 		}
