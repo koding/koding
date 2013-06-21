@@ -69,6 +69,7 @@ Vagrant.configure("2") do |config|
       default.vm.box = "vagrant-kite"
       default.vm.box_url = "http://salt-master.in.koding.com/downloads/vagrant-kite.box"
       default.vm.synced_folder ".", "/opt/koding"
+      default.vm.synced_folder "~/.kd", "/root/.kd"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
@@ -79,8 +80,7 @@ Vagrant.configure("2") do |config|
     # default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
     default.vm.hostname = "vagrant"
 
-    default.vm.synced_folder ".", "/opt/koding"
-    default.vm.synced_folder "../kd-npm/kd", "/opt/kd"
+    default.vm.synced_folder "../kd", "/opt/kd"
 
     default.vm.synced_folder "saltstack", "/srv" if provision
 
