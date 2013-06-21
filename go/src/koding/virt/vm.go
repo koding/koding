@@ -76,10 +76,6 @@ func (vm *VM) Hostname() string {
 	return vm.HostnameAlias[0]
 }
 
-func (vm *VM) HostnameAliasesLine() string {
-	return strings.Join(vm.HostnameAlias[1:], " ")
-}
-
 func (vm *VM) WebHomeName() string {
 	// vm.Name is group~n or group~user~n
 	parts := strings.Split(vm.Name, "~")
