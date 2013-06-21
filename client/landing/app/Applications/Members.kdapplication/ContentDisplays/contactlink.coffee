@@ -33,6 +33,8 @@ class MemberMailLink extends KDCustomHTMLView
         navigable             : yes
         callback              : (formOutput)=>
           callback = modal.destroy.bind modal
+          [{profile: {nickname}}] = recipient.selectedItemData
+          formOutput.recipients = [nickname]
           @emit "MessageShouldBeSent", {formOutput, callback}
         forms                 :
           sendForm            :
