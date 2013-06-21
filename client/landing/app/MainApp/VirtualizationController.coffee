@@ -337,27 +337,32 @@ class VirtualizationController extends KDController
 
     switch command
       when 'vm.stop', 'vm.shutdown'
-        content = """Turning off your VM will <b>stop</b> running Terminal
+        content = """<p>Turning off your VM will <b>stop</b> running Terminal
                      instances and all running proccesess that you have on
-                     your VM. Do you want to continue?"""
+                     your VM. Do you want to continue?</p>"""
         button  =
           title : "Turn off"
           style : "modal-clean-red"
 
       when 'vm.reinitialize'
-        content = """Re-initializing your VM will <b>reset</b> all of your
+        content = """<p>Re-initializing your VM will <b>reset</b> all of your
                      settings that you've done in root filesystem. This
                      process will not remove any of your files under your
-                     home directory. Do you want to continue?"""
+                     home directory. Do you want to continue?</p>"""
         button  =
           title : "Re-initialize"
           style : "modal-clean-red"
 
       when 'vm.remove'
-        content = """Removing this VM will <b>destroy</b> all the data in
-                     this VM including all other users in filesystem.
-                     <b>Please be careful this process cannot be undone</b>.
-                     Do you want to continue?"""
+        content = """<p>Removing this VM will <b>destroy</b> all the data in
+                     this VM including all other users in filesystem. <b>Please
+                     be careful this process cannot be undone.</b></p>
+
+                     <p>Remaning amount of your subscription will be credited
+                     to your account. You can use this credit to purchase
+                     new VM(s) later.</p>
+
+                     <p>Do you want to continue?</p>"""
         button  =
           title : "Remove VM"
           style : "modal-clean-red"
@@ -369,7 +374,8 @@ class VirtualizationController extends KDController
 
     modal = new KDModalView
       title          : "Approval required"
-      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      content        : "<div class='modalformline'>#{content}</div>"
+      cssClass       : "vm-approval"
       height         : "auto"
       overlay        : yes
       buttons        :
