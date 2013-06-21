@@ -145,8 +145,6 @@ module.exports = class Graph
       limit 20
     """
 
-    console.log "fetchAll", query
-
     @db.query query, {}, (err, results)=>
       tempRes = []
       if err then callback err
