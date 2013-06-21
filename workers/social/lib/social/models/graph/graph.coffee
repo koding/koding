@@ -111,7 +111,7 @@ module.exports = class Graph
   fetchAll:(group, startDate, callback)->
     {groupName, groupId} = group
 
-    #console.time 'fetchAll'
+    console.time 'fetchAll'
 
     # do not remove white-spaces
     query = """
