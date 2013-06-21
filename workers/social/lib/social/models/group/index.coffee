@@ -126,7 +126,6 @@ module.exports = class JGroup extends Module
       payment       :
         plan        : String
         paymentQuota: Number
-      invitationMessage : String
     relationships   :
       bundle        :
         targetType  : 'JGroupBundle'
@@ -858,7 +857,9 @@ module.exports = class JGroup extends Module
 
   saveInvitationMessage: permit 'send invitations',
     success: (client, message, callback=noop)->
-      @update $set: invitationMessage: message, callback
+      @fetchMembershipPolicy (err, policy)=>
+        return callback err  if err
+        policy.update $set: 'communications.invitationMessage': message, callback
 
   inviteByUsername: permit 'send invitations',
     success: (client, usernames, callback)->
