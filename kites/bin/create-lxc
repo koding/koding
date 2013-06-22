@@ -25,4 +25,7 @@ cp /var/lib/lxc/vmroot/config-template /var/lib/lxc/$lxcName/config
 sed -i "s/#NAME#/$lxcName/" /var/lib/lxc/$lxcName/config
 sed -i "s/#IP#/$lxcIP/" /var/lib/lxc/$lxcName/config
 
+echo $lxcName | sed "s/\./-/" > /var/lib/lxc/$lxcName/rootfs/etc/hostname
+
+
 echo -e "Your VM $lxcName was now created\nstart it with:\n lxc-start -n $lxcName -d\n\nthen attach with:\n lxc-attach -n $lxcName"
