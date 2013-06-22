@@ -44,8 +44,10 @@ class KDTabPaneView extends KDView
     @getDelegate().hideCloseIcon @
 
   setMainView:->
+
     {view, viewOptions} = @getOptions()
-    return if @mainView
+
+    return if @mainView or not view
 
     if view instanceof KDView
       @mainView = @addSubView view
