@@ -19,7 +19,7 @@ func (vm *VM) Shutdown() ([]byte, error) {
 	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String()).CombinedOutput(); err != nil {
 		return out, err
 	}
-	vm.WaitForState("STOPPED", 2*time.Second) // may time out, then vm is force stopped
+	vm.WaitForState("STOPPED", 5*time.Second) // may time out, then vm is force stopped
 	return vm.Stop()
 }
 
