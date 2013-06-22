@@ -75,7 +75,6 @@ Vagrant.configure("2") do |config|
       default.vm.synced_folder ".", "/opt/koding"
       default.vm.synced_folder "~/.kd", "/root/.kd"
       default.vm.synced_folder "../kd", "/opt/kd"
-      default.vm.synced_folder "~/.kd", "/var/lib/lxc/vmroot/rootfs/root/.kd"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
