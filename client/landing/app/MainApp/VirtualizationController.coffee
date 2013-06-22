@@ -45,14 +45,27 @@ class VirtualizationController extends KDController
   reinitialize:(vm, callback)->
     @_runWraper 'vm.reinitialize', vm, callback
 
-  remove:(vm, callback=noop)->
-    @askForApprove 'vm.remove', (state)->
-      return callback null  unless state
+  remove: do->
+
+    deleteVM = (vm, cb)->
       KD.remote.api.JVM.removeByName vm, (err)->
-        return callback err  if err
+        return cb err  if err
         KD.getSingleton("finderController").unmountVm vm
         KD.getSingleton("vmController").emit 'VMListChanged'
-        callback null
+        cb null
+
+    (vm, callback=noop)->
+      KD.remote.api.JVM.fetchVMInfo vm, (err, vmInfo)=>
+        if vmInfo
+          if vmInfo.planCode is 'free'
+            @askForApprove 'vm.remove', (state)->
+              return callback null  unless state
+              deleteVM vm, callback
+          else
+            paymentController = KD.getSingleton('paymentController')
+            paymentController.deleteVM vmInfo, (state)->
+              return callback null  unless state
+              deleteVM vm, callback
 
   info:(vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
@@ -256,8 +269,8 @@ class VirtualizationController extends KDController
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-                modal.destroy()
-                paymentController.confirmPayment formData.type, @paymentPlans[formData.host]
+                paymentController.confirmPayment formData.type, @paymentPlans[formData.host], ->
+                  modal.destroy()
               buttons               :
                 user                :
                   title             : "Create a <b>Personal</b> VM"
@@ -357,10 +370,6 @@ class VirtualizationController extends KDController
         content = """<p>Removing this VM will <b>destroy</b> all the data in
                      this VM including all other users in filesystem. <b>Please
                      be careful this process cannot be undone.</b></p>
-
-                     <p>Remaning amount of your subscription will be credited
-                     to your account. You can use this credit to purchase
-                     new VM(s) later.</p>
 
                      <p>Do you want to continue?</p>"""
         button  =
