@@ -25,7 +25,7 @@ class WebTermAppView extends JView
         if not pane.isDestroyed and @tabView.getActivePane() is pane
           @tabView.removePane pane
 
-  showApprovalModal: (command)->
+  showApprovalModal: (remote, command)->
     modal = new KDModalView
       title   : "Warning!"
       content : """
@@ -62,7 +62,7 @@ class WebTermAppView extends JView
       {webTermView} = pane.getOptions()
       webTermView.once 'WebTermConnected', (remote)=>
         command = decodeURIComponent query.command
-        @showApprovalModal command
+        @showApprovalModal remote, command
 
   _windowDidResize:->
     # 10px being the application page's padding
