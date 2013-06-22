@@ -48,11 +48,6 @@ class ActivityAppView extends KDScrollView
     @addSubView @widget
     @addSubView @innerNav
     @addSubView @feedWrapper
-    @utils.wait 1500, =>
-      {navController} = @mainController.sidebarController.getView()
-      navController.selectItemByName 'Home'
-      @_windowDidResize()
-
 
   decorate:->
     @unsetClass "guest"
