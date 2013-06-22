@@ -132,7 +132,7 @@ class KDRouter extends KDObject
 
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
-      history[method] objRef, '', path
+      history[method] objRef, path, path
 
     for edge in frag
       if node[edge]
