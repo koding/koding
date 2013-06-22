@@ -230,7 +230,7 @@ func (k *Kite) Run() {
 					Username           string `json:"username"`
 					RoutingKey         string `json:"routingKey"`
 					CorrelationName    string `json:"correlationName"`
-					DeadService        string `json:"deadService"`
+					DeadService        string `json:"deadService",omitempty`
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}
