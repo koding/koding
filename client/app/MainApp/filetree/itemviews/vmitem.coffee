@@ -1,6 +1,8 @@
 class NVMItemView extends NFileItemView
 
   constructor:(options = {},data)->
+  
+    console.log {data}
 
     options.cssClass or= "vm"
     super options, data

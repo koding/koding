@@ -70,6 +70,8 @@ class ResourcesListItem extends KDListItemView
   viewAppended:->
 
     {vmName} = @getData()
+    
+    console.log d: @getData()
 
     @addSubView @icon = new KDCustomHTMLView
       tagName   : "span"
@@ -83,6 +85,7 @@ class ResourcesListItem extends KDListItemView
         title  : "#{vmName}"
 
     @vm.fetchVMDomains vmName, (err, domains)=>
+      console.log {domains}
       unless err and domains.length > 0
         @vmInfo.updatePartial "#{domains.first}"
         @vmInfo.setDomAttributes title : "#{domains.first}"

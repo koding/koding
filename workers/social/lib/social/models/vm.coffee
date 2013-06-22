@@ -42,6 +42,7 @@ module.exports = class JVM extends Model
         default         : -> null
       name              : String
       hostnameAlias     : [String]
+      hostKite          : String
       planOwner         : String
       planCode          : String
       users             : Array
@@ -65,10 +66,13 @@ module.exports = class JVM extends Model
 
   @createDomains = (domains) ->
     JDomain = require './domain'
+
+    [hostnameAlias] = domains
+
     domains.forEach (domain) ->
       (new JDomain
         domain        : domain
-        hostnameAlias : [domain]
+        hostnameAlias : hostnameAlias
         proxy         : { mode: 'vm' }
         regYears      : 0
       ).save (err)-> console.log err  if err?
@@ -78,26 +82,24 @@ module.exports = class JVM extends Model
     JDomain.remove domain: $in: domains, (err) ->
       console.error err  if err?
 
-  @createAliases = ({nickname, type, uid, groupSlug})->
+  @generateDomainNames = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
-    aliases      = []
+    domains      = []
     if type is 'user'
-      aliases = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
+      domains = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
       if uid is 0
-        aliases.push "#{nickname}.#{groupSlug}.#{domain}"
+        domains.push "#{nickname}.#{groupSlug}.#{domain}"
       if groupSlug is 'koding'
-        aliases.push "#{nickname}.#{domain}"  if uid is 0
-        aliases.push "vm-#{uid}.#{nickname}.#{domain}"
+        domains.push "#{nickname}.#{domain}"  if uid is 0
+        domains.push "vm-#{uid}.#{nickname}.#{domain}"
 
     else if type is 'group'
+      domains = ["shared-#{uid}.#{groupSlug}.#{domain}"]
       if uid is 0
-        aliases = ["#{groupSlug}.#{domain}"
-                   "shared.#{groupSlug}.#{domain}"
-                   "shared-0.#{groupSlug}.#{domain}"]
-      else
-        aliases = ["shared-#{uid}.#{groupSlug}.#{domain}"]
+        domains.push "#{groupSlug}.#{domain}"
+        domains.push "shared.#{groupSlug}.#{domain}"
 
-    return aliases
+    return domains
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
@@ -126,17 +128,19 @@ module.exports = class JVM extends Model
         nameFactory.next (err, uid)=>
           return callback err  if err
 
-          hostnameAlias = JVM.createAliases {
+          domains = JVM.generateDomainNames {
             nickname : user.username
             type, uid, groupSlug
           }
 
-          JVM.createDomains hostnameAlias
+          [hostnameAlias] = domains
+
+          JVM.createDomains domains
 
           vm = new JVM {
             type
             uid
-            name        : "#{name}~#{uid}"
+            name        : "#{name}#{uid}"
             planCode    : planCode
             planOwner   : planOwner
             users       : [{ id: user.getId(), sudo: yes, owner: yes }]
@@ -236,6 +240,8 @@ module.exports = class JVM extends Model
     success:(client, vmName, callback)->
       {delegate} = client.connection
 
+      JDomain = require './domain'
+
       delegate.fetchUser (err, user) ->
         return callback err  if err
 
@@ -245,7 +251,10 @@ module.exports = class JVM extends Model
 
         JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm
-          callback null, vm.hostnameAlias or []
+          JDomain.all {hostnameAlias: vm.hostnameAlias}, (err, domains)->
+            return callback err  if err
+            callback null, domains?.map((d) -> d.domain) or []
+          # callback null, vm.hostnameAlias or []
 
   @removeByName = permit 'delete vms',
     success:(client, vmName, callback)->
@@ -296,12 +305,15 @@ module.exports = class JVM extends Model
                type, planCode, planOwner })->
 
       uid = 0
-      hostnameAlias = JVM.createAliases {
+
+      domains = JVM.generateDomainNames {
         nickname : user.username
         type, uid, groupSlug
       }
 
-      JVM.createDomains hostnameAlias
+      [hostnameAlias] = domains
+
+      JVM.createDomains domains
 
       vm = new JVM {
         type
@@ -345,14 +357,16 @@ module.exports = class JVM extends Model
 
           JVM.removeDomains vm.hostnameAlias  if vm.hostnameAlias?
 
-          hostnameAlias = JVM.createAliases {
+          domains = JVM.generateDomainNames {
             nickname  : newUsername
             type      : vm.type
             uid       : vm.uid
             groupSlug
           }
 
-          JVM.createDomains hostnameAlias
+          [hostnameAlias] = domains
+
+          JVM.createDomains domains
 
           vm.update $set: { name, hostnameAlias }, (err) ->
             console.error err  if err?
