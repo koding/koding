@@ -83,6 +83,13 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
       environmentIsCreated  : Boolean
+      type                  :
+        type                : String
+        enum                : ['invalid account type',[
+                                'registered'
+                                'unregistered'
+                              ]]
+        default             : 'unregistered'
       profile               :
         about               : String
         nickname            :
@@ -96,9 +103,10 @@ module.exports = class JAccount extends jraphical.Module
         firstName           :
           type              : String
           required          : yes
+          default           : 'a koding'
         lastName            :
           type              : String
-          default           : ''
+          default           : 'user'
         description         : String
         avatar              : String
         status              : String

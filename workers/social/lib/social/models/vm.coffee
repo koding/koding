@@ -342,8 +342,12 @@ module.exports = class JVM extends Model
 
     JUser.on 'UserCreated', (user)->
       uidFactory.next (err, uid)->
+        console.log {uid}
         if err then handleError err
-        else user.update { $set: { uid } }, handleError
+        else
+          JUser.update {_id: user.getId() }, { $set: { uid } }, ->
+            console.log {arguments}
+            handleError arguments...
 
     JAccount.on 'UsernameChanged', (oldUsername, newUsername) ->
       re = ///^\w+~#{oldUsername}~///

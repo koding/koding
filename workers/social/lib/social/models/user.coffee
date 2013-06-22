@@ -151,7 +151,8 @@ module.exports = class JUser extends jraphical.Module
       if err
         callback createKodingError err
       else unless session?
-        JGuest.obtain null, clientId, callback
+        JUser.createTemporaryUser callback
+#        JGuest.obtain null, clientId, callback
       else
         {username, guestId} = session
         if guestId?
@@ -330,6 +331,26 @@ module.exports = class JUser extends jraphical.Module
           @addToGroup account, invite.group or entryPoint, invite.group?, callback
       else callback null
 
+  @createTemporaryUser = (callback) ->
+    ((require 'koding-counter') {
+      db          : @getClient()
+      counterName : 'guest'
+      offset      : 0
+    }).next (err, guestId) =>
+      return callback err  if err
+
+      username = "guest-#{guestId}"
+
+      options     =
+        username  : username
+        email     : "#{username}@koding.com"
+        password  : createId()
+
+      @createUser options, (err, user, account) =>
+
+        @configureNewAcccount account, user, createId(), callback
+
+
   @createUser = ({ username, email, password, firstName, lastName }, callback)->
     slug =
       slug            : username
@@ -377,6 +398,15 @@ module.exports = class JUser extends jraphical.Module
               else user.addOwnAccount account, (err) ->
                 return callback err  if err
                 callback null, user, account
+
+  @configureNewAcccount = (account, user, replacementToken, callback) ->
+    console.log {account, user, callback}
+    user.sendEmailConfirmation()
+    JUser.grantInitialInvitations user.username
+    JUser.emit 'UserCreated', user
+    createNewMemberActivity account
+    JAccount.emit "AccountAuthenticated", account
+    callback null, account, replacementToken
 
   @register = secure (client, userFormData, callback)->
     {connection} = client
@@ -451,12 +481,7 @@ module.exports = class JUser extends jraphical.Module
                             }, (err, docs) ->
                               if err then callback err
                               else
-                                user.sendEmailConfirmation()
-                                JUser.grantInitialInvitations user.username
-                                JUser.emit 'UserCreated', user
-                                createNewMemberActivity account
-                                JAccount.emit "AccountAuthenticated", account
-                                callback null, account, replacementToken
+                                @configureNewAcccount account, user, replacementToken, callback
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require './unsubscribedmail'

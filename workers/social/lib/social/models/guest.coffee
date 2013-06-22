@@ -59,6 +59,10 @@ module.exports = class JGuest extends jraphical.Module
         avatar      : String
         status      : String
 
+  constructor:->
+    console.trace()
+    super
+
   @resetAllGuests =(count=1e4)->
     @drop ->
       queue = [0...count].map (guestId)->->
@@ -82,45 +86,45 @@ module.exports = class JGuest extends jraphical.Module
 
   recycle:-> @constructor.recycle this # YAGNI?
 
-  @obtain = do->
-    obtaining = {}
-    secure (client, clientId, callback)->
-      [callback, clientId] = [clientId, callback] unless callback
-      JAccount = require './account'
-      createId = require 'hat'
-      if clientId?
-        if obtaining[clientId]
-          @once "ready.#{clientId}", (guest)-> callback null, guest
-          return
-        obtaining[clientId] = yes
-      {delegate} = client?.connection
-      if delegate instanceof JAccount
-        callback error 'Logged in user cannot obtain a guest account!'
-      else
-        leaseId = createId()
-        @update {status: 'pristine'}, $set:{
-          status    : 'leasing'
-          leasedAt  : new Date
-          leaseId
-        }, (err)=>
-          if err then callback error err
-          else
-            @one {leaseId}, (err, guest)=>
-              if err then callback error err
-              else unless guest?
-                callback error "We've reached maximum occupancy for guests.  Please try again later."
-              else
-                @update {_id:guest.getId()}, {
-                  $unset    :
-                    leaseId : 1
-                  $set      :
-                    status  : 'in use'
-                }, (err)=>
-                  if err then callback error err
-                  else
-                    @emit "ready.#{clientId}", guest
-                    delete obtaining[clientId]
-                    callback null, guest
+  @obtain =-> console.log "this should not be called" # do->
+#    obtaining = {}
+#    secure (client, clientId, callback)->
+#      [callback, clientId] = [clientId, callback] unless callback
+#      JAccount = require './account'
+#      createId = require 'hat'
+#      if clientId?
+#        if obtaining[clientId]
+#          @once "ready.#{clientId}", (guest)-> callback null, guest
+#          return
+#        obtaining[clientId] = yes
+#      {delegate} = client?.connection
+#      if delegate instanceof JAccount
+#        callback error 'Logged in user cannot obtain a guest account!'
+#      else
+#        leaseId = createId()
+#        @update {status: 'pristine'}, $set:{
+#          status    : 'leasing'
+#          leasedAt  : new Date
+#          leaseId
+#        }, (err)=>
+#          if err then callback error err
+#          else
+#            @one {leaseId}, (err, guest)=>
+#              if err then callback error err
+#              else unless guest?
+#                callback error "We've reached maximum occupancy for guests.  Please try again later."
+#              else
+#                @update {_id:guest.getId()}, {
+#                  $unset    :
+#                    leaseId : 1
+#                  $set      :
+#                    status  : 'in use'
+#                }, (err)=>
+#                  if err then callback error err
+#                  else
+#                    @emit "ready.#{clientId}", guest
+#                    delete obtaining[clientId]
+#                    callback null, guest
 
   checkFlag:-> no
 
