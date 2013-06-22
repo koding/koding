@@ -712,10 +712,7 @@ __utils =
   # Get next highest Z-index
   getNextHighestZIndex:(context)->
    uniqid = context.data 'data-id'
-   if isNaN zIndexContexts[uniqid]
-     zIndexContexts[uniqid] = 0
-   else
-     zIndexContexts[uniqid]++
+   zIndexContexts[uniqid] if isNaN zIndexContexts[uniqid] then 0 else zIndexContexts[uniqid]++
 
   # deprecated ends
 
