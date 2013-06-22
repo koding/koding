@@ -215,6 +215,7 @@ module.exports = [
 
   "app/CommonViews/markdownmodal.coffee",
 
+  # FATIH
   "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
   "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
   "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
@@ -225,8 +226,19 @@ module.exports = [
   "app/CommonViews/fatih/fatihprefpane.coffee",
   "app/CommonViews/fatih/fatih.coffee",
 
+  # INTRODUCTION TOOLTIP
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
+
+  # WORKSPACE
+  "app/CommonViews/workspace/panes/pane.coffee",
+  "app/CommonViews/workspace/panes/editorpane.coffee",
+  "app/CommonViews/workspace/panes/previewpane.coffee",
+  "app/CommonViews/workspace/panes/terminalpane.coffee",
+  "app/CommonViews/workspace/panes/videopane.coffee",
+  "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspace.coffee",
+
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
 
