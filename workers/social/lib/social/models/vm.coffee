@@ -8,6 +8,7 @@ module.exports = class JVM extends Model
   KodingError = require '../error'
 
   JRecurlySubscription = require './recurly/subscription'
+  JPermissionSet       = require './group/permissionset'
 
   @share()
 
@@ -26,7 +27,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData', 'fetchDomains'
+                           'removeByName', 'someData', 'fetchDomains', 'fetchVMInfo'
                           ]
       instance          : []
     schema              :
@@ -179,6 +180,23 @@ module.exports = class JVM extends Model
       {delegate} = client.connection
       @calculateUsage delegate, groupSlug, callback
 
+  @fetchVMInfo = secure (client, vmName, callback)-> 
+    {delegate} = client.connection
+
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+
+      JVM.one
+        name  : vmName
+        users : { $elemMatch: id: user.getId() }
+      , (err, vm)->
+        return callback err  if err
+        return callback null, null  unless vm
+        callback null,
+          name     : vm.name
+          planCode : vm.planCode
+          planOwner: vm.planOwner
+
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
 
@@ -236,46 +254,62 @@ module.exports = class JVM extends Model
           return callback err, []  if err or not vm
           callback null, vm.hostnameAlias or []
 
-  @removeByName = permit 'delete vms',
-    success:(client, vmName, callback)->
-      {delegate} = client.connection
-
-      delegate.fetchUser (err, user) ->
-        return callback err  if err
-
-        selector =
-          name   : vmName
-          users  : { $elemMatch: id: user.getId(), owner: yes }
-
-        JVM.one selector, (err, vm)->
-          return callback err  if err
-          return callback new KodingError 'No such VM'  unless vm
-          if vm.planCode isnt 'free'
-            JRecurlySubscription.getSubscriptionsAll vm.planOwner,
-              userCode : vm.planOwner
-              planCode : vm.planCode
-              status   : 'active'
-            , (err, subs)->
+  @deleteVM = (vm, callback)->
+    if vm.planCode is 'free'
+      vm.remove callback
+    else
+      JRecurlySubscription.getSubscriptionsAll vm.planOwner,
+        userCode : vm.planOwner
+        planCode : vm.planCode
+        $or      : [
+          {status: 'active'}
+          {status: 'canceled'}
+        ]
+      , (err, subs)->
+        if err
+          return callback new KodingError 'Unable to update subscription.'
+        subs.forEach (sub)->
+          if sub.status is 'canceled'
+            vm.remove callback
+          else if sub.quantity > 1
+            sub.update sub.quantity - 1, (err, sub)->
               if err
                 return callback new KodingError 'Unable to update subscription.'
-              subs.forEach (sub)->
-                if sub.quantity > 1
-                  sub.update sub.quantity - 1, (err, sub)->
-                    if err
-                      return callback new KodingError 'Unable to update subscription.'
-                    vm.remove callback
-                else
-                  sub.terminate "partial", (err, newSub)->
-                    if err
-                      sub.terminate "none", (err, newSub)->
-                        if err
-                          return callback new KodingError 'Unable to terminate payment'
-                        else
-                        vm.remove callback
-                    else
-                      vm.remove callback
+              vm.remove callback
           else
-            vm.remove callback
+            sub.terminate (err, newSub)->
+              if err
+                return callback new KodingError 'Unable to terminate payment'
+              else
+                vm.remove callback
+
+  @removeByName = secure (client, vmName, callback)->
+    {delegate} = client.connection
+
+    delegate.fetchUser (err, user)=>
+      return callback err  if err
+
+      selector =
+        name   : vmName
+        users  : { $elemMatch: id: user.getId(), owner: yes }
+
+      JVM.one selector, (err, vm)=>
+        return callback err  if err
+        return callback new KodingError 'No such VM'  unless vm
+
+        if vm.planOwner.indexOf("user_") > -1
+          @deleteVM vm, callback
+        else
+          groupID = vm.planOwner.split('_')[1]
+
+          JGroup = require './group'
+          JGroup.one {_id: groupID}, (err, group)=>
+            return callback err  if err
+            JPermissionSet.checkPermission client, "delete vms", group,
+            (err, hasPermission)=>
+              return callback err  if err
+              if hasPermission
+                @deleteVM vm, callback
 
   do ->
 

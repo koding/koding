@@ -76,7 +76,7 @@ class AccountPaymentHistoryListItem extends KDListItemView
     cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
     """
       <div class='labelish'>
-        <span class='invoice-date'>#{data.createdAt}</span>
+        <span class='invoice-date'>#{dateFormat data.createdAt}</span>
       </div>
       <div class='swappableish swappable-wrapper posstatic'>
         <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>

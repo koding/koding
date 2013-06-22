@@ -159,7 +159,7 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 			return buf, fmt.Errorf("vm is down: '%s'", err)
 		}
 
-		u.Target, err = url.Parse("https://" + vmAddr)
+		u.Target, err = url.Parse("http://" + vmAddr)
 		if err != nil {
 			return nil, err
 		}
@@ -193,10 +193,8 @@ func (u *UserInfo) populateTarget() (io.Reader, error) {
 			hostname = keyData.Host[0]
 		}
 
-		hostname = "http://" + hostname
-		if servicename == "broker" {
-			u.Redirect = true
-			hostname = "https://" + hostname
+		if !strings.HasPrefix(hostname, "http://") {
+			hostname = "http://" + hostname
 		}
 
 		u.Target, err = url.Parse(hostname)

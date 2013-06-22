@@ -146,6 +146,13 @@ func (k *Kite) Run() {
 						}
 
 						execHandler := func() {
+							defer func() {
+								if err := recover(); err != nil {
+									log.LogError(err, 1, channel.Username, channel.CorrelationName)
+									resultCallback(CreateErrorObject(&InternalKiteError{}), nil)
+								}
+							}()
+
 							result, err := handler.Callback(options.WithArgs, &channel)
 							if b, ok := result.([]byte); ok {
 								result = string(b)
@@ -167,10 +174,7 @@ func (k *Kite) Run() {
 						}
 
 						if handler.Concurrent {
-							go func() {
-								defer log.RecoverAndLog()
-								execHandler()
-							}()
+							go execHandler()
 							return
 						}
 
