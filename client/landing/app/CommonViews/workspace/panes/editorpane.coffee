@@ -6,12 +6,41 @@ class EditorPane extends Pane
 
     super options, data
 
-    @container = new KDView
+    @appStorage = new AppStorage "Ace", "1.0"
 
-    require ["ace/ace"], (ace) =>
-      @editor = ace.edit @container.getDomElement()[0]
+    @files = @getProperty "files"
+
+    if Array.isArray @files then @createEditorTabs() else @createSingleEditor()
+
+  createEditorInstance: (file) ->
+    return new Ace
+      delegate        : @
+      enableShortcuts : no
+    , file
+
+  createSingleEditor: ->
+    path = @files or "localfile:/Untitled.txt"
+    file = FSHelper.createFileFromPath path
+    @ace = @createEditorInstance file
+
+  createEditorTabs: ->
+    @tabHandleContainer = new ApplicationTabHandleHolder
+      delegate      : @
+      addPlusHandle : no
+
+    @tabView = new ApplicationTabView
+      delegate           : @
+      tabHandleContainer : @tabHandleContainer
+
+    for fileOptions in @files
+      file   = FSHelper.createFileFromPath fileOptions.path
+      pane   = new KDTabPaneView
+        name : file.name or "Untitled.txt"
+
+      pane.addSubView @createEditorInstance file
+      @tabView.addPane pane
 
   pistachio: ->
-    """
-      {{> @container}}
-    """
+    single   = "{{> @ace}}"
+    multiple = "{{> @tabHandleContainer}} {{> @tabView}}"
+    return  if Array.isArray @files then multiple else single
