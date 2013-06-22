@@ -72,11 +72,29 @@ class Deployment
             wrench.chownSyncRecursive kitePath, 500000, 500000
             callback()
 
-  runKite: () ->
+  runKiteInStrippedContainer: () ->
+    # this starts container/vm and then the kite
     kiteInLxc = path.join "/opt", "kites", @kiteName
     runner    = path.join Deployment.pathToContainers, @lxcId, "overlay", "opt", "runner"
     console.log runner
-    fs.writeFileSync runner, "#!/bin/bash -l \n export HOME=/root \n /usr/bin/kd kite run #{kiteInLxc} > /tmp/kd.out & \n"
+    fs.writeFileSync runner, "#!/bin/bash\nexport HOME=/root \n/usr/bin/kd kite run #{kiteInLxc}\n"
+    fs.chownSync runner, 500000, 500000
+    fs.chmodSync runner, "0755"
+    cmd = spawn "/usr/bin/lxc-start", ["-n", @lxcId, "/opt/runner"]
+    
+    cmd.stdout.on 'data', (data) ->
+      console.log 'stdout kite : ', data.toString()
+    cmd.stderr.on 'data', (data) -> 
+      console.log 'stderr kite : ', data.toString()
+    cmd.on 'close', (code) ->
+      console.log 'lxc-execute process exited with code ', code
+
+  runKite: () ->
+    # this starts a full blown container/vm
+    kiteInLxc = path.join "/opt", "kites", @kiteName
+    runner    = path.join Deployment.pathToContainers, @lxcId, "overlay", "opt", "runner"
+    console.log runner
+    fs.writeFileSync runner, "#!/bin/bash\nexport HOME=/root \n/usr/bin/kd kite run #{kiteInLxc} > /tmp/kd.out & \n"
     fs.chownSync runner, 500000, 500000
     fs.chmodSync runner, "0755"
     cmd = spawn "/usr/bin/lxc-start", ["-d", "-n", @lxcId]
