@@ -39,11 +39,14 @@ type VMInfo struct {
 }
 
 var infos = make(map[bson.ObjectId]*VMInfo)
+var runningVmMethods = make(map[string]string)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
 var firstContainerIP net.IP
 var containerSubnet *net.IPNet
 var ipCounterInitialValue int
+var shutdownStarted bool
+var shutdownMutex sync.Mutex
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -58,13 +61,24 @@ func main() {
 		log.LogError(err, 0)
 		return
 	}
-
 	unprepareAll()
-
 	go func() {
 		sigtermChannel := make(chan os.Signal)
 		signal.Notify(sigtermChannel, syscall.SIGTERM)
 		<-sigtermChannel
+		shutdownMutex.Lock()
+		shutdownStarted = true
+		shutdownMutex.Unlock()
+		// wait for the current running methods to return
+		// we know newcoming methods will be thrown away thanks to 
+		// shutdownStarted variable
+		for  {
+			if len(runningVmMethods) == 0 {
+				break
+			} else {
+				time.Sleep(1 * time.Second)
+			}
+		}
 		unprepareAll()
 		log.SendLogsAndExit(0)
 	}()
@@ -184,6 +198,18 @@ func (err *VMNotFoundError) Error() string {
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
+	shutdownMutex.Lock()
+	if shutdownStarted {
+		log.Warn("Requests thrown away during shutdown.")
+		return
+	} else {
+		myId := utils.RandomString()
+		runningVmMethods[myId] = method
+		defer func(id string) {
+			delete(runningVmMethods, id)
+		}(myId)
+	}
+	shutdownMutex.Unlock()
 	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
