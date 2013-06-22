@@ -279,7 +279,10 @@ func (vm *VM) MountRBD(mountDir string) error {
 		exitError, ok := err.(*exec.ExitError)
 		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
 			if out, err := exec.Command("/sbin/fsck.ext4", "-y", vm.RbdDevice()).CombinedOutput(); err != nil {
-				return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.Name), err, out)
+				exitError, ok := err.(*exec.ExitError)
+				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.Name), err, out)
+				}
 			}
 		} else {
 			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.Name), err, out)
