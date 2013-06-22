@@ -185,7 +185,7 @@ func (vm *VM) Unprepare() error {
 	var firstError error
 
 	// stop VM
-	out, err := vm.Stop()
+	out, err := vm.Shutdown()
 	if vm.GetState() != "STOPPED" {
 		panic(commandError("Could not stop VM.", err, out))
 	}
