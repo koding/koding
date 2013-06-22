@@ -47,7 +47,8 @@ class KDTabPaneView extends KDView
 
     {view, viewOptions} = @getOptions()
 
-    return if @mainView or not view
+    return if @mainView
+    return unless view or viewOptions
 
     if view instanceof KDView
       @mainView = @addSubView view
