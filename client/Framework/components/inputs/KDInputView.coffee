@@ -141,21 +141,20 @@ class KDInputView extends KDView
       value = @getDomElement().val()
       {forceCase} = @getOptions()
       if forceCase
-        value = if /uppercase/i.test forceCase
-          value.toUpperCase()
-        else
-          value.toLowerCase()
+        value = if forceCase.toLowerCase() is 'uppercase'
+        then value.toUpperCase()
+        else value.toLowerCase()
 
     return value
 
   setValue:(value)->
-    $  = @$()
-    el = $[0]
+    $el = @$()
+    el  = $el[0]
     if @getOption("type") in ["checkbox", "radio"]
       if value
       then el.setAttribute "checked", "checked"
       else el.removeAttribute "checked"
-    else $.val value
+    else $el.val value
 
   _prevVal = null
 
