@@ -94,6 +94,8 @@ class KiteController extends KDController
       options.vmName = vmName
 
       kite = @getKite options.kiteName, vmName
+      
+      console.log {kiteName, vmName}
 
       if command
         options.withArgs = command

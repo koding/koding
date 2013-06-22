@@ -182,7 +182,7 @@ class VirtualizationController extends KDController
 
   showVMDetails: (vm)->
     vmName = vm.name
-    url    = "https://#{vm.hostnameAlias.first}"
+    url    = "https://#{vm.hostnameAlias}"
 
     content = """
                 <div class="item">
