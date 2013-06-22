@@ -141,6 +141,7 @@ class ApplicationManager extends KDObject
 
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
+        manifest.navItem      = title : "Develop"
         manifest.thirdParty or= yes
 
         KD.registerAppClass KodingAppController, manifest

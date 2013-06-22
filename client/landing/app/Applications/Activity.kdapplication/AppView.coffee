@@ -75,14 +75,14 @@ class ActivityAppView extends KDScrollView
 
   changePageToActivity:(event)->
 
-    if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
-      {navController} = @mainController.sidebarController.getView()
-      navController.selectItemByName 'Activity'
-      @setClass "fixed"
-      @header.once "transitionend", @header.bound "hide"
-      @header.$().css marginTop : -headerHeight
-      KD.getSingleton('mainViewController').emit "browseRequested"
-
+    if KD.isLoggedIn()
+      if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
+        {navController} = @mainController.sidebarController.getView()
+        navController.selectItemByName 'Activity'
+        @setClass "fixed"
+        @header.once "transitionend", @header.bound "hide"
+        @header.$().css marginTop : -headerHeight
+        KD.getSingleton('mainViewController').emit "browseRequested"
 
   navigateHome:(itemData)->
 
