@@ -10,30 +10,31 @@ class Panel extends JView
     @panes         = []
 
     @createHeader()
-    @createHeaderHint()     if options.hint
     @createHeaderButtons()  if options.buttons?.length
+    # @createHeaderHint()     if options.hint
 
     @createLayout()
 
     @createPanes()
 
   createHeader: ->
-    @header     = new KDHeaderView
-      cssClass: "editor-header"
-      partial   : @getOptions().title
-
-  createHeaderHint: ->
-    @header.addSubView new KDCustomHTMLView
-      partial   : "?"
-      cssClasss : "hint"
-      tooltip   :
-        title   : @getOptions().hint
+    @header     = new KDView
+      cssClass  : "inner-header"
+      partial   : """<span class="title">#{@getOptions().title}</span>"""
 
   createHeaderButtons: ->
     for buttonOptions in @getOptions().buttons
       buttonView = new KDButtonView buttonOptions
       @headerButtons[buttonOptions.title] = buttonView
       @header.addSubView buttonView
+
+  createHeaderHint: ->
+    @header.addSubView new KDButtonView
+      cssClass  : "hint"
+      iconOnly  : yes
+      iconClass : "exclamation"
+      tooltip   :
+        title   : @getOptions().hint
 
   createLayout: ->
     @container = new KDView
