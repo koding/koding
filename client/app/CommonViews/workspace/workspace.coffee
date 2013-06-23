@@ -14,6 +14,8 @@ class Workspace extends JView
   createPanel: ->
     panelOptions = @getOptions().panels[@lastCreatedPanelIndex]
     @container.addSubView new Panel panelOptions
+    @on "NewPanelAdded", (pane) =>
+      # callback for pane added
 
   next: ->
     @lastCreatedPanelIndex++

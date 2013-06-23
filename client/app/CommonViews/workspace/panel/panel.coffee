@@ -122,6 +122,10 @@ class Panel extends JView
     @container.addSubView baseSplit
     @panesContainer.push pane1, pane2, pane3, pane4
 
+  viewAppended: ->
+    super
+    @getDelegate().emit "NewPanelAdded", @
+
   pistachio: ->
     """
       {{> @header}}
