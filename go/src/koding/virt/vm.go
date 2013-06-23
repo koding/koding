@@ -185,7 +185,7 @@ func (vm *VM) Unprepare() error {
 	var firstError error
 
 	// stop VM
-	out, err := vm.Stop()
+	out, err := vm.Shutdown()
 	if vm.GetState() != "STOPPED" {
 		panic(commandError("Could not stop VM.", err, out))
 	}
@@ -277,8 +277,15 @@ func (vm *VM) MountRBD(mountDir string) error {
 	// check/correct filesystem
 	if out, err := exec.Command("/sbin/fsck.ext4", "-p", vm.RbdDevice()).CombinedOutput(); err != nil {
 		exitError, ok := err.(*exec.ExitError)
-		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() >= 4 {
-			return commandError("fsck.ext4 failed.", err, out)
+		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
+			if out, err := exec.Command("/sbin/fsck.ext4", "-y", vm.RbdDevice()).CombinedOutput(); err != nil {
+				exitError, ok := err.(*exec.ExitError)
+				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.Name), err, out)
+				}
+			}
+		} else {
+			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.Name), err, out)
 		}
 	}
 

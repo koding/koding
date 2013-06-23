@@ -149,7 +149,7 @@ class FeedController extends KDViewController
     if @noItemFound? then @noItemFound.destroy()
     controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
       cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
+      partial  : noItemFoundText or @getOptions().noItemFoundText or "There are no items."
     @noItemFound.hide()
 
   # this is a temporary solution for a bug that
