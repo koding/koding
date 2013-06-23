@@ -88,7 +88,7 @@ class DashboardAppView extends JView
       navItems = []
       for {name, hiddenHandle, viewOptions}, i in tabData
         viewOptions.data = data
-        @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), !(~i+1) # making 0 true the rest false
+        @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
         navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
 
       @navController.instantiateListItems navItems

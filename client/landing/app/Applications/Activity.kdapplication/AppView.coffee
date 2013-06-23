@@ -35,6 +35,16 @@ class ActivityAppView extends KDScrollView
     @on 'scroll', @bound "changePageToActivity"
     @header.bindTransitionEnd()
 
+    @feedWrapper.ready =>
+      @activityHeader = @feedWrapper.controller.activityHeader
+      @on 'scroll', (event) =>
+        if event.delegateTarget.scrollTop > 0
+          @activityHeader.setClass "scrolling-up-outset"
+          @activityHeader.liveUpdateButton.setValue off
+        else
+          @activityHeader.unsetClass "scrolling-up-outset"
+          @activityHeader.liveUpdateButton.setValue on
+
     @decorate()
     # after resolving non-blocking socket problem, change this value to 100
     @setLazyLoader .99
@@ -48,11 +58,6 @@ class ActivityAppView extends KDScrollView
     @addSubView @widget
     @addSubView @innerNav
     @addSubView @feedWrapper
-    @utils.wait 1500, =>
-      {navController} = @mainController.sidebarController.getView()
-      navController.selectItemByName 'Home'
-      @_windowDidResize()
-
 
   decorate:->
     @unsetClass "guest"
@@ -70,14 +75,14 @@ class ActivityAppView extends KDScrollView
 
   changePageToActivity:(event)->
 
-    if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
-      {navController} = @mainController.sidebarController.getView()
-      navController.selectItemByName 'Activity'
-      @setClass "fixed"
-      @header.once "transitionend", @header.bound "hide"
-      @header.$().css marginTop : -headerHeight
-      KD.getSingleton('mainViewController').emit "browseRequested"
-
+    if KD.isLoggedIn()
+      if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
+        {navController} = @mainController.sidebarController.getView()
+        navController.selectItemByName 'Activity'
+        @setClass "fixed"
+        @header.once "transitionend", @header.bound "hide"
+        @header.$().css marginTop : -headerHeight
+        KD.getSingleton('mainViewController').emit "browseRequested"
 
   navigateHome:(itemData)->
 
@@ -120,7 +125,7 @@ class ActivityListContainer extends JView
 
     @listWrapper = @controller.getView()
 
-    @utils.defer => @emit 'ready'
+    @controller.ready => @emit "ready"
 
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER

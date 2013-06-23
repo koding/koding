@@ -11,7 +11,6 @@ class MainController extends KDController
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
   ###
 
-
   connectedState =
     connected   : no
 
@@ -21,7 +20,18 @@ class MainController extends KDController
 
     super options, data
 
+    @appStorages = {}
+
+    @createSingletons()
+    @setFailTimer()
+    @attachListeners()
+
+    @introductionTooltipController = new IntroductionTooltipController
+
+  createSingletons:->
+
     KD.registerSingleton "mainController",            this
+    KD.registerSingleton "windowController",          new KDWindowController
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
@@ -45,13 +55,6 @@ class MainController extends KDController
       KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
-
-    @setFailTimer()
-    @attachListeners()
-
-    @appStorages = {}
-
-    @introductionTooltipController = new IntroductionTooltipController
 
   # FIXME GG
   getAppStorageSingleton:(appName, version)->
