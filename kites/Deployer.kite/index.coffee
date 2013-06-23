@@ -12,7 +12,6 @@
 redis = require 'redis'
 kite     = require "kite-amqp/lib/kite-amqp/kite.coffee"
 Kite     = require "kite-amqp/lib/kite-amqp/index.coffee"
-
 manifest = require "./manifest.json"
 {spawn}  = require "child_process"
 https    = require 'https' 
@@ -116,23 +115,17 @@ else
 
 manifest.name = "Deployer"
 manifest.uuid = deployerId
-console.log "deployer:", manifest.name
-console.log "Kite", Kite
-
 
 deploys = []
-
 kite.worker manifest, 
 
   report: (args)->
     o = {id: @communicator.getChannelNameForKite(), deployCnt: deploys.length}
-    console.log "reporting:::::", o
     return [o]
 
   who: (args, callback)->
     kites = []
     @all "report", [], (kiteId)->
-      console.log ">>>>>>>>>", kiteId
       kites.push kiteId
     # if anyone hasn't replied in 3 seconds just dont care
     # about them, either they are busy, or dead
@@ -156,11 +149,11 @@ kite.worker manifest,
       kites = []
       @all "report", [], (kiteId)->
         kites.push kiteId
-      # if anyone hasn't replied in 3 seconds just dont care
+      # if anyone hasn't replied in 500msec just dont care
       # about them, either they are busy, or dead
       setTimeout ()->
         callback null, kites
-      , 300
+      , 500
 
     findBestDeployer = (deployers)->
       if not deployers
@@ -168,23 +161,17 @@ kite.worker manifest,
       if deployers.length > 0
         last = 0
         for d in deployers
-          console.log "d.deployCnt:::", d.deployCnt, last, d
           if d.deployCnt <= last
             best = d
           last = d.deployCnt
-
-        console.log "====================="
-        console.log best
-        console.log "====================="
         if not best
           best = deployers[0]
         return best
 
     who [], (err, kites)=>
       bestKite = findBestDeployer(kites)
-      console.log "sending options:::: ", options, " to ", bestKite
       @one bestKite.id, 'doDeploy', [options], (args)->
-        console.log "[[[[[[[[ doDeploy returned yay .....", args
+        console.log "doDeploy returned.....", args
         callback(bestKite) 
 
 
