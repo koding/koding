@@ -7,19 +7,28 @@ class Workspace extends JView
     @container = new KDView
       cssClass : "workspace"
 
+    @panels                = []
     @lastCreatedPanelIndex = 0
 
     @createPanel()
 
-  createPanel: ->
-    panelOptions = @getOptions().panels[@lastCreatedPanelIndex]
-    @container.addSubView new Panel panelOptions
     @on "NewPanelAdded", (pane) =>
       # callback for pane added
 
+  createPanel: (callback = noop) ->
+    panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
+    panelOptions.delegate = @
+    newPanel              = new Panel panelOptions
+
+    @container.addSubView newPanel
+    @panels.push newPanel
+
+    callback()
+
   next: ->
     @lastCreatedPanelIndex++
-    @createPanel()
+    @createPanel =>
+      @panels[@lastCreatedPanelIndex - 1].setClass "hidden"
 
   prev: ->
 

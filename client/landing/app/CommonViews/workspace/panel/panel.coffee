@@ -28,7 +28,7 @@ class Panel extends JView
       buttonView = new KDButtonView
         title    : buttonOptions.title
         callback : =>
-          buttonOptions.callback @
+          buttonOptions.callback @getDelegate(), @
 
       @headerButtons[buttonOptions.title] = buttonView
       @header.addSubView buttonView
