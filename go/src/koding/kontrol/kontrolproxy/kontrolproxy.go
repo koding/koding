@@ -207,7 +207,7 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.String())
 	if user.Redirect {
 		// 302 redirect
-		http.Redirect(rw, req, user.Target.String(), http.StatusFound)
+		http.Redirect(rw, req, user.Target.String()+req.RequestURI, http.StatusFound)
 		return
 	}
 

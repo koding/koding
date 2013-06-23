@@ -39,11 +39,14 @@ type VMInfo struct {
 }
 
 var infos = make(map[bson.ObjectId]*VMInfo)
+var runningVmMethods = make(map[string]string)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
 var firstContainerIP net.IP
 var containerSubnet *net.IPNet
 var ipCounterInitialValue int
+var shutdownStarted bool
+var shutdownMutex sync.Mutex
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -58,13 +61,24 @@ func main() {
 		log.LogError(err, 0)
 		return
 	}
-
 	unprepareAll()
-
 	go func() {
 		sigtermChannel := make(chan os.Signal)
 		signal.Notify(sigtermChannel, syscall.SIGTERM)
 		<-sigtermChannel
+		shutdownMutex.Lock()
+		shutdownStarted = true
+		shutdownMutex.Unlock()
+		// wait for the current running methods to return
+		// we know newcoming methods will be thrown away thanks to 
+		// shutdownStarted variable
+		for  {
+			if len(runningVmMethods) == 0 {
+				break
+			} else {
+				time.Sleep(1 * time.Second)
+			}
+		}
 		unprepareAll()
 		log.SendLogsAndExit(0)
 	}()
@@ -184,7 +198,19 @@ func (err *VMNotFoundError) Error() string {
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
+	shutdownMutex.Lock()
+	if shutdownStarted {
+		log.Warn("Requests thrown away during shutdown.")
+		return
+	} else {
+		myId := utils.RandomString()
+		runningVmMethods[myId] = method
+		defer func(id string) {
+			delete(runningVmMethods, id)
+		}(myId)
+	}
+	shutdownMutex.Unlock()
+	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
 			panic(err)
@@ -213,8 +239,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
+			if k.ServiceUniqueName == "" {
+				log.Warn("Service unique name is empty")
+			}
 
-			if vm.HostKite != k.ServiceUniqueName {
+			if vm.HostKite != k.ServiceUniqueName && k.ServiceUniqueName != "" {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
 					return nil, &kite.WrongChannelError{}
 				}
@@ -264,6 +293,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		info.mutex.Lock()
 		defer info.mutex.Unlock()
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
+				methodError = &kite.InternalKiteError{}
+			}
+		}()
 
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
@@ -328,43 +364,53 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			websiteDir := "/home/" + vm.SitesHomeName() + "/Web"
-			if err := rootVos.Symlink(websiteDir, "/var/www"); err == nil {
+			vmWebDir := "/home/" + vm.WebHomeName() + "/Web"
+			userWebDir := "/home/" + user.Name + "/Web"
+
+			if err := rootVos.Symlink(vmWebDir, "/var/www"); err == nil {
 				// symlink successfully created
 
-				if _, err := rootVos.Stat(websiteDir); err != nil {
+				if _, err := rootVos.Stat(vmWebDir); err != nil {
 					if !os.IsNotExist(err) {
 						panic(err)
 					}
-					// Web directory does not yes exist
+					// vmWebDir directory does not yes exist
 
-					websiteVos := rootVos
-					if vm.SitesHomeName() == user.Name {
-						websiteVos = userVos
+					vmWebVos := rootVos
+					if vmWebDir == userWebDir {
+						vmWebVos = userVos
 					}
 
 					// migration of old Sites directory
-					migrationErr := websiteVos.Rename("/home/"+vm.SitesHomeName()+"/Sites/"+vm.Hostname(), websiteDir)
-					websiteVos.Remove("/home/" + vm.SitesHomeName() + "/Sites")
+					migrationErr := vmWebVos.Rename("/home/"+vm.WebHomeName()+"/Sites/"+vm.Hostname(), vmWebDir)
+					vmWebVos.Remove("/home/" + vm.WebHomeName() + "/Sites")
 					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname())
 
 					if migrationErr != nil {
 						// create fresh Web directory if migration unsuccessful
-						if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
+						if err := vmWebVos.MkdirAll(vmWebDir, 0755); err != nil {
 							panic(err)
 						}
-						if err := copyIntoVos(templateDir+"/website", websiteDir, websiteVos); err != nil {
+						if err := copyIntoVos(templateDir+"/website", vmWebDir, vmWebVos); err != nil {
 							panic(err)
 						}
 					}
 				}
 			}
 
-			if vm.SitesHomeName() != user.Name {
-				if err := userVos.Mkdir("/home/"+user.Name+"/Web", 0755); err != nil && !os.IsExist(err) {
+			if _, err := rootVos.Stat(userWebDir); err != nil && vmWebDir != userWebDir {
+				if !os.IsNotExist(err) {
 					panic(err)
 				}
-				if err := rootVos.Symlink("/home/"+user.Name+"/Web", websiteDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
+				// userWebDir directory does not yes exist
+
+				if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
+					panic(err)
+				}
+				if err := copyIntoVos(templateDir+"/website", userWebDir, userVos); err != nil {
+					panic(err)
+				}
+				if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
 			}

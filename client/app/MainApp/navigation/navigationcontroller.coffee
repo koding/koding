@@ -14,15 +14,25 @@ class NavigationController extends KDListViewController
     @selectItem item  if item = @getItemByName name
     return item
 
-  instantiateListItems:(items)->
-
-    newItems = for itemData in items
-      if KD.isLoggedIn()
-        continue if itemData.loggedOut
-      else
-        continue if itemData.loggedIn
-      @getListView().addItem itemData
-
   removeItemByTitle:(name)->
     for navItem in @itemsOrdered when navItem?.name is name
       @removeItem navItem
+
+class MainNavController extends NavigationController
+
+  reset:->
+    previousSelection = @selectedItems.slice()
+    @removeAllItems()
+    @instantiateListItems KD.getNavItems()
+    @selectItemByName name  for {name} in previousSelection
+
+  instantiateListItems:(items)->
+    {roles} = KD.config
+
+    newItems = for itemData in items
+      if itemData.role
+        if itemData.role in roles
+          @getListView().addItem itemData
+      else
+        @getListView().addItem itemData
+

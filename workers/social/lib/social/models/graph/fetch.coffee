@@ -7,9 +7,9 @@ module.exports = class FetchAllActivityParallel
   GraphDecorator = require "./graphdecorator"
 
   constructor:(requestOptions)->
-    {startDate, neo4j, group} = requestOptions
+    {startDate, neo4j, group, facets} = requestOptions
 
-    @graph = new Graph {config : neo4j}
+    @graph = new Graph {config : neo4j, facets: group.facets}
     @startDate            = startDate
     @group                = group
     @randomIdToOriginal   = {}
@@ -18,20 +18,20 @@ module.exports = class FetchAllActivityParallel
     @overviewObjects      = []
     @newMemberBucketIndex = null
 
-  get:(callback)->
-    globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
     kodingMethods = [@fetchInstalls]
-    methods = []
+    if group.facets[0] is 'Everything'
+      @globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
 
-    # HACK: we don't want to show app install in groups other than koding,
-    #       but they're currently global, so we manually filter them out.
-    if @group.groupName == "koding"
-      methods = globalMethods.concat kodingMethods
+      # HACK: we don't want to show app install in groups other than koding,
+      #       but they're currently global, so we manually filter them out.
+      if @group.groupName == "koding"
+        @globalMethods = @globalMethods.concat kodingMethods
     else
-      methods = globalMethods
+      @globalMethods = [@fetchSingles]
 
+  get:(callback)->
     holder = []
-    boundMethods = holder.push method.bind this for method in methods
+    boundMethods = holder.push method.bind this for method in @globalMethods
     async.parallel holder, (err, results)=>
       callback @decorateAll(err, results)
 

@@ -4,6 +4,7 @@
 {CronJob} = require 'cron'
 Bongo     = require 'bongo'
 Broker    = require 'broker'
+htmlify   = require 'koding-htmlify'
 
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
@@ -27,28 +28,6 @@ log = ->
 
 log "E-Mail Sender Worker has started with PID #{process.pid}"
 
-# Taken and modified from http://stackoverflow.com/a/7138764/1370271
-htmlify = (content)->
-  # http://, https://, ftp://
-  urlPattern = /\b(?:https?|ftp):\/\/[a-z0-9-+&@#\/%?=~_|!:,.;]*[a-z0-9-+&@#\/%=~_|]/gim
-  # www. sans http:// or https://
-  pseudoUrlPattern = /(^|[^\/])(www\.[\S]+(\b|$))/gim
-  # Email addresses *** here I've changed the expression ***
-  emailAddressPattern = /(([a-zA-Z0-9_\-\.]+)@[a-zA-Z_]+?(?:\.[a-zA-Z]{2,6}))+/gim
-
-  html   = ""
-  chunks = content.split "\n"
-  for chunk in chunks when chunk isnt ''
-    if chunk.indexOf("- ", 0) is 0
-      html += "<li>#{chunk.split('- ')[1]}</li>"
-    else
-      html += "<p>#{chunk}</p>"
-
-  html
-      .replace urlPattern, "<a #{template.linkStyle} target='_blank' href='$&'>$&</a>"
-      .replace pseudoUrlPattern, "$1<a #{template.linkStyle} target='_blank' href='http://$2'>$2</a>"
-      .replace emailAddressPattern, "<a #{template.linkStyle} target='_blank' href='mailto:$1'>$1</a>"
-
 sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
 
@@ -59,7 +38,7 @@ sendEmail = (emailContent)->
       From      : from
       To        : to
       Subject   : subject or "Notification"
-      HtmlBody  : template.htmlTemplate htmlify(content), unsubscribeId, email
+      HtmlBody  : template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
       TextBody  : template.textTemplate content, unsubscribeId, email
       ReplyTo   : replyto
     , (err, status)->

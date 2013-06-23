@@ -271,25 +271,29 @@ module.exports = class JInvitation extends jraphical.Module
     subject += ' on Koding' if isPublic
     subject += '!'
 
-  @getMessageForInviteViaGroup =({inviter, group, isPublic, url})->
-    subject  = "#{inviter} has invited you to the group #{group}"
-    subject += ' on Koding' if isPublic
-    subject += '.'
+  @getMessageForInviteViaGroup =({inviter, group, isPublic, url, message})->
+    if message
+      message = message.replace /#INVITER#/g, inviter
+      message = message.replace /#URL#/g,     url
+      content = message
+    else
+      subject  = "#{inviter} has invited you to the group #{group}"
+      subject += ' on Koding' if isPublic
+      subject += '.'
+      content = """
+        Hi there,
 
-    message = """
-    Hi there,
+        #{subject}
 
-    #{subject}
+        This link will allow you to join the group: #{url}
 
-    This link will allow you to join the group: #{url}
+        If you reply to this email, it will go to #{inviter}.
 
-    If you reply to this email, it will go to #{inviter}.
+        Enjoy! :)
+        """
 
-    Enjoy! :)
-
-    """
-    message += @getInviteFooter() if isPublic
-    return message
+    content += @getInviteFooter() if isPublic
+    return content
 
   @byCode = (code, callback)-> @one {code}, callback
 
@@ -398,6 +402,7 @@ module.exports = class JInvitation extends jraphical.Module
       inviter  : delegate.getFullName()
       url      : "#{protocol}//#{host}/#{group.slug}/Invitation/#{encodeURIComponent invite.code}"
       isPublic : if group.privacy == 'public' then true else false
+      message  : group.invitationMessage
 
     JUser.fetchUser client, (err, inviter)=>
       email = new JMail

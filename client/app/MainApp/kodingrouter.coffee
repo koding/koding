@@ -1,7 +1,7 @@
 class KodingRouter extends KDRouter
 
   @registerStaticEmitter()
-  
+
   nicenames = {
     StartTab  : 'Develop'
   }
@@ -234,27 +234,6 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.loginScreen.animateToForm 'join'
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
-
-      # section
-      # TODO: nested groups are disabled.
-      # '/:name?/Groups'                  : createSectionHandler 'Groups'
-      # '/:name?/Activity'                : createSectionHandler 'Activity'
-      # '/:name?/Members'                 : createSectionHandler 'Members'
-      # '/:name?/Topics'                  : createSectionHandler 'Topics'
-      # '/:name?/Develop'                 : createSectionHandler 'StartTab'
-      # '/:name?/Apps'                    : createSectionHandler 'Apps'
-      # '/:name?/Account'                 : createSectionHandler 'Account'
-      # '/:name?/Demos'                   : createSectionHandler 'Demos'
-      # '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
-      # '/:name?/Inbox'                   : createSectionHandler 'Inbox'
-      # '/:name?/Environments'            : createSectionHandler 'Environments'
-
-      # group dashboard
-      # '/:name?/Dashboard'               : (routeInfo, state, route)->
-      #   {name} = routeInfo.params
-      #   n = name ? 'koding'
-      #   KD.remote.cacheable n, (err, groups, nameObj)=>
-      #     @openContent name, 'Groups', groups, route
 
       # apps
       '/:name?/Develop/:slug'           : createSectionHandler 'Develop'

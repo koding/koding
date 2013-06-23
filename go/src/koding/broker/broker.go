@@ -146,10 +146,8 @@ func main() {
 					if subscriptions[routingKeyPrefix] {
 						log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 					}
-					if len(subscriptions) >= 1000 {
-						session.Close()
-						log.Warn("Dropped session because of too many subscriptions.", session.Tag)
-						return
+					if len(subscriptions)%1000 == 0 {
+						log.Warn("There were more than 1000 subscriptions.", session.Tag)
 					}
 					addToRouteMap(routingKeyPrefix)
 					subscriptions[routingKeyPrefix] = true
@@ -264,7 +262,7 @@ func main() {
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
 		config.Uuid,
-		"broker-"+kontrolhelper.ReadVersion()+".koding.com", //hostname
+		kontrolhelper.CustomHostname(),
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)

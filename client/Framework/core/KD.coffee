@@ -63,8 +63,8 @@ catch e
                 ? @classes["KD#{constructorName}"]
     new konstructor options, data  if konstructor?
 
-  create    : create
-  new       : create
+  create          : create
+  new             : create
 
   debugStates     : {}
   instances       : {}
@@ -78,6 +78,7 @@ catch e
   appClasses      : {}
   appScripts      : {}
   lastFuncCall    : null
+  navItems        : []
 
   socketConnected:->
     @backendIsConnected = yes
@@ -158,15 +159,22 @@ catch e
           router.openSection options.name, name, query
         router.addRoute slug, handler
 
-      if router = KD.getSingleton('router')
-      then do -> cb router
+      if KD.singletons.router
+      then do -> cb KD.getSingleton('router')
       else KodingRouter.on 'RouterReady', do -> cb
+
+    if options.navItem?.order
+      @registerNavItem options.navItem
 
     Object.defineProperty KD.appClasses, options.name,
       configurable  : yes
       enumerable    : yes
       writable      : no
       value         : { fn, options }
+
+  registerNavItem    : (itemData)-> @navItems.push itemData
+
+  getNavItems        : -> @navItems.sort (a, b)-> a.order - b.order
 
   unregisterAppClass :(name)-> delete KD.appClasses[name]
 

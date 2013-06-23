@@ -8,18 +8,19 @@ class NavigationInviteLink extends KDCustomHTMLView
     super options, data
 
     @hide()
+
     @count = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "main-nav-icon #{__utils.slugify @getData().title}"
       pistachio : "{{#(quota)-#(usage)}}"
 
-    @utils.wait 10000, =>
+    @utils.wait 7500, =>
       KD.whoami().fetchLimit? 'invite', (err, limit)=>
         if limit?
-          @show()
-          @count.setData limit
           limit.on 'update', => @count.render()
+          @count.setData limit
           @count.render()
+          @show()
 
   sendInvite:(formData, modal)->
 
@@ -41,13 +42,9 @@ class NavigationInviteLink extends KDCustomHTMLView
         modal.destroy()
         KD.track "Members", "InvitationSentToFriend"
 
-  viewAppended:->
+  viewAppended: JView::viewAppended
 
-    @setTemplate @pistachio()
-    @template.update()
-
-  pistachio:->
-    "{{> @count}}#{@getData().title}"
+  pistachio:-> "{{> @count}}#{@getData().title}"
 
   # take this somewhere else
   # was a beta quick solution

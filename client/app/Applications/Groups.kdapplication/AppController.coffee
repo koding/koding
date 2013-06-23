@@ -4,6 +4,10 @@ class GroupsAppController extends AppController
     name         : "Groups"
     route        : "/Groups"
     hiddenHandle : yes
+    navItem      :
+      title      : "Groups"
+      path       : "/Groups"
+      order      : 40
 
   @privateGroupOpenHandler =(event)->
     event.preventDefault()
