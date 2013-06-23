@@ -163,7 +163,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // handler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) handler(req *http.Request) http.Handler {
-	fmt.Println("incoming request host:", req.Host)
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
@@ -173,7 +172,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 	domain, err := proxyDB.GetDomain(req.Host)
 	if err != nil {
 		if err != mgo.ErrNotFound {
-			log.Printf("domain lookup error '%s'\n", err.Error())
+			log.Printf("incoming req host: %s, domain lookup error '%s'\n", req.Host, err.Error())
 			return templateHandler("notfound.html", req.Host)
 		}
 
@@ -364,7 +363,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.String())
 
 	if isWebsocket(req) {
-		return websocketHandler(req.URL.Host)
+		return websocketHandler(target.String())
 	}
 
 	return reverseProxyHandler(target)
