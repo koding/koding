@@ -46,7 +46,7 @@ class HomeAppView extends KDView
     vms.ready => vmController.fetchTotalVMCount (err, count)=> vms.update count        or 0
     # loc.ready => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
     groups.ready => JGroup.count                (err, count)=> groups.update count     or 0
-    topics.ready => JTag.count                  (err, count)=> topics.update count     or 0
+    topics.ready => JTag.fetchCount             (err, count)=> topics.update count     or 0
     activities.ready => CActivity.fetchCount    (err, count)=> activities.update count or 0
 
     KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
