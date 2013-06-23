@@ -40,6 +40,9 @@ class EditorPane extends Pane
       pane.addSubView @createEditorInstance file
       @tabView.addPane pane
 
+  getValue: ->
+    return  @ace.editor.getSession().getValue()
+
   pistachio: ->
     single   = "{{> @ace}}"
     multiple = "{{> @tabHandleContainer}} {{> @tabView}}"
