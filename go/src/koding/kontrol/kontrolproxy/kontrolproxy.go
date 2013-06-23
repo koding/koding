@@ -417,6 +417,7 @@ func websocketHandler(target string) http.Handler {
 		defer nc.Close()
 		defer d.Close()
 
+		// write back the request of the client to the server.
 		err = r.Write(d)
 		if err != nil {
 			log.Printf("Error copying request to target: %v", err)
@@ -525,22 +526,13 @@ func checkServer(host string) error {
 	return nil
 }
 
+// is the incoming request a part of websocket handshake?
 func isWebsocket(req *http.Request) bool {
-	conn_hdr := ""
-	conn_hdrs := req.Header["Connection"]
-	if len(conn_hdrs) > 0 {
-		conn_hdr = conn_hdrs[0]
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
 	}
-
-	upgrade_websocket := false
-	if strings.ToLower(conn_hdr) == "upgrade" {
-		upgrade_hdrs := req.Header["Upgrade"]
-		if len(upgrade_hdrs) > 0 {
-			upgrade_websocket = (strings.ToLower(upgrade_hdrs[0]) == "websocket")
-		}
-	}
-
-	return upgrade_websocket
+	return true
 }
 
 func logDomainRequests(domain string) {
