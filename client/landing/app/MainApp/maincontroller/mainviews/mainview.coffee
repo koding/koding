@@ -169,6 +169,14 @@ class MainView extends KDView
           content    : systemStatus.content
           type       : systemStatus.type
 
+  enableFullscreen: ->
+    @contentPanel.$().addClass "fullscreen no-anim"
+    $(window).resize()
+
+  disableFullscreen: ->
+    @contentPanel.$().removeClass "fullscreen no-anim"
+    $(window).resize()
+
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
 
@@ -187,7 +195,6 @@ class MainView extends KDView
           title       : systemStatus.title
           content     : systemStatus.content
           type        : systemStatus.type
-
 
 # inactive code
 

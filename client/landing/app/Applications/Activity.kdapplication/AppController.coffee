@@ -4,18 +4,15 @@ class ActivityAppController extends AppController
     name         : "Activity"
     route        : "/:name?/Activity"
     hiddenHandle : yes
+    navItem      :
+      title      : "Activity"
+      path       : "/Activity"
+      order      : 10
 
   {dash} = Bongo
 
   activityTypes = [
-    'CStatusActivity'
-    'CCodeSnipActivity'
-    'CFollowerBucketActivity'
-    'CNewMemberBucketActivity'
-    'CDiscussionActivity'
-    'CTutorialActivity'
-    'CInstallerBucketActivity'
-    'CBlogPostActivity'
+    'Everything'
   ]
 
   @clearQuotes = clearQuotes = (activities)->
@@ -223,38 +220,17 @@ class ActivityAppController extends AppController
         createdAt : -1
 
     {CActivity}   = KD.remote.api
-    if KD.config.useNeo4j
-      options.feedType = @feedType
+    options.feedType = @feedType
 
-      if options.facets is activityTypes
-        options.facets = ['Everything']
+    if options.facets is activityTypes
+      options.facets = ['Everything']
 
-      if @feedType is "Public"
-        options.groupId = KD.getSingleton("groupsController").getCurrentGroup().getId()
-        CActivity.fetchPublicContents options, callback
-      else
-        CActivity.fetchFolloweeContents options, callback
+    if @feedType is "Public"
+      options.groupId = KD.getSingleton("groupsController").getCurrentGroup().getId()
 
+      @fetchActivitiesFromCache options, callback
     else
-      @isExempt (exempt)->
-        options.lowQuality = exempt
-        CActivity.fetchFacets options, (err, activities)->
-          if err
-            callback err
-          else if not exempt
-            KD.remote.reviveFromSnapshots clearQuotes(activities), callback
-          else
-            # trolls and admins in show troll mode will load data on request
-            # as the snapshots do not include troll comments
-            stack = activities.map (activity)-> (cb)->
-              activity.fetchTeaser (err, teaser)->
-                if err then console.warn 'could not fetch teaser'
-                else cb err, teaser
-                stack.fin()
-              , yes
-
-            dash stack, (err, res)->
-              callback null, res
+      CActivity.fetchFolloweeContents options, callback
 
   # Fetches activities that occured after the first entry in user feed,
   # used for minor disruptions.
@@ -302,21 +278,13 @@ class ActivityAppController extends AppController
         log "fetchSomeActivities timeout reached"
 
   fetchCachedActivity:(options = {}, callback)->
-    if KD.config.useNeo4j
-      options.timestamp or= options.to
-      options.groupName = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+    options.timestamp or= options.to
+    options.groupName   = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
+    options.facets      = @getFilter()
 
-      KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
-        result.overview.reverse() if result?.overview
-        return callback err, result
-    else
-      $.ajax
-        url     : "/-/cache/#{options.slug or 'latest'}"
-        cache   : no
-        error   : (err)->   callback? err
-        success : (cache)->
-          cache.overview.reverse()  if cache?.overview
-          callback null, cache
+    KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
+      result.overview.reverse() if result?.overview
+      return callback err, result
 
   continueLoadingTeasers:->
     # fix me

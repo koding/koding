@@ -26,13 +26,24 @@ class Sidebar extends JView
       cssClass : 'status-leds'
 
     # Main Navigations
-    @navController = new NavigationController
+    @navController = new MainNavController
       view           : new NavigationList
         type         : "navigation"
         itemClass    : NavigationLink
       wrapper        : no
       scrollView     : no
-    , navItems
+    ,
+      id        : "navigation"
+      title     : "navigation"
+
+    navAdditions = [
+      { type  : 'separator',      order : 61}
+      { title : 'Invite Friends', order : 62,  type : 'account', role : 'member' }
+      { title : 'Logout',         order : 100, path : '/Logout', type : 'account', role : 'member' }
+      { title : 'Login',          order : 101, path : '/Login',  type : 'account', role : 'guest' }
+    ]
+
+    KD.registerNavItem navItem for navItem in navAdditions
 
     @nav = @navController.getView()
 
@@ -260,26 +271,6 @@ class Sidebar extends JView
     $fbc = @$('#finder-bottom-controls')
     h = @_resizeResourcesList()
     @$("#finder-holder").height @getHeight() - h - 50
-
-  navItems =
-    # temp until groups are implemented
-    do ->
-      id        : "navigation"
-      title     : "navigation"
-      items     : [
-        { title : "Home",           path : "/Activity" }
-        { title : "Activity",       path : "/Activity" }
-        { title : "Topics",         path : "/Topics" }
-        { title : "Members",        path : "/Members" }
-        { title : "Groups",         path : "/Groups" }
-        { title : "Develop",        path : "/Develop",  loggedIn: yes }
-        { title : "Apps",           path : "/Apps" }
-        { type  : "separator" }
-        { title : "Invite Friends", type : "account", loggedIn: yes }
-        { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-        { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
-        { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
-      ]
 
   bottomControlsItems =
     id : "finder-bottom-controls"
