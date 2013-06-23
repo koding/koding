@@ -6,8 +6,9 @@ class Panel extends JView
 
     super options, data
 
-    @headerButtons = {}
-    @panes         = []
+    @headerButtons  = {}
+    @panesContainer = []
+    @panes          = []
 
     @createHeader()
     @createHeaderButtons()  if options.buttons?.length
@@ -41,10 +42,10 @@ class Panel extends JView
         title   : @getOptions().hint
 
   createLayout: ->
-    @container = new KDView
-      cssClass : "panel-container"
+    @container  = new KDView
+      cssClass  : "panel-container"
 
-    panesLength            = @getOptions().panes.length
+    panesLength = @getOptions().panes.length
     return  unless panesLength
     panelTypeByPaneLength  =
       "1"                  : "SingleLayout"
@@ -56,7 +57,7 @@ class Panel extends JView
 
   createPanes: ->
     for paneOptions, index in @getOptions().panes
-      @createPane paneOptions, @getPaneByIndex index
+      @createPane paneOptions, @getPaneContainerByIndex index
 
   createPane: (paneOptions, targetContainer) ->
     paneTypesToPaneClass =
@@ -64,17 +65,20 @@ class Panel extends JView
       "editor"           : EditorPane
       "video"            : VideoPane
       "preview"          : PreviewPane
-    PaneClass            = paneTypesToPaneClass[paneOptions.type]
+    paneType             = paneOptions.type
+    PaneClass            = paneTypesToPaneClass[paneType]
+    pane                 = new PaneClass paneOptions
 
-    targetContainer.addSubView new PaneClass paneOptions
+    targetContainer.addSubView pane
+    @panes.push pane
 
   # GETTERS #
-  getPaneByIndex: (index) ->
-    return @panes[index]
+  getPaneContainerByIndex: (index) ->
+    return  @panesContainer[index]
 
   # LAYOUT CREATOR HELPERS #
   createSplitView: (type, views) ->
-    return new KDSplitView {
+    return  new KDSplitView {
       resizable : yes
       sizes     : ["50%", "50%"]
       type
@@ -86,7 +90,7 @@ class Panel extends JView
       cssClass : "panel-container"
 
     @container.addSubView view
-    @panes.push view
+    @panesContainer.push view
 
   createDoubleLayout: ->
     pane1     = new KDView
@@ -94,7 +98,7 @@ class Panel extends JView
     splitView = @createSplitView "vertical", [pane1, pane2]
 
     @container.addSubView splitView
-    @panes.push pane1, pane2
+    @panesContainer.push pane1, pane2
 
   createTripleLayout: ->
     pane1           = new KDView
@@ -104,8 +108,7 @@ class Panel extends JView
     baseSplit       = @createSplitView "vertical", [pane1, rightInnerSplit]
 
     @container.addSubView baseSplit
-
-    @panes.push pane1, pane2, pane3
+    @panesContainer.push pane1, pane2, pane3
 
   createQuadrupleLayout: ->
     pane1           = new KDView
@@ -117,8 +120,7 @@ class Panel extends JView
     baseSplit         = @createSplitView "vertical", [leftInnerSplit, rightInnerSplit]
 
     @container.addSubView baseSplit
-
-    @panes.push pane1, pane2, pane3, pane4
+    @panesContainer.push pane1, pane2, pane3, pane4
 
   pistachio: ->
     """
