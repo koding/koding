@@ -57,12 +57,21 @@ class WebTermAppView extends JView
             modal.destroy()
 
   handleQuery:(query)->
-    if query.command
-      pane = @tabView.getActivePane()
-      {webTermView} = pane.getOptions()
-      webTermView.once 'WebTermConnected', (remote)=>
+    pane = @tabView.getActivePane()
+    {webTermView} = pane.getOptions()
+    webTermView.once 'WebTermConnected', (remote)=>
+      
+      if query.command
         command = decodeURIComponent query.command
         @showApprovalModal remote, command
+      
+      if query.fullscreen
+        KD.getSingleton("mainView").enableFullscreen()
+        if window.parent?.postMessage
+          window.parent.postMessage "fullScreenTerminalReady", "*"
+          @on "KDObjectWillBeDestroyed", ->
+            log "hello i am going"
+            window.parent.postMessage "fullScreenWillBeDestroyed", "*"
 
   _windowDidResize:->
     # 10px being the application page's padding
