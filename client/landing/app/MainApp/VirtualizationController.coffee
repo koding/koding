@@ -155,7 +155,9 @@ class VirtualizationController extends KDController
 
   # fixme GG!
   fetchTotalVMCount:(callback)->
-    callback null, "0"
+    KD.remote.api.JVM.count (err, count)->
+      if err then warn err
+      callback null, count ? "0"
 
   # fixme GG!
   fetchTotalLoC:(callback)->
