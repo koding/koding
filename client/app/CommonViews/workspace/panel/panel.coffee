@@ -24,7 +24,11 @@ class Panel extends JView
 
   createHeaderButtons: ->
     for buttonOptions in @getOptions().buttons
-      buttonView = new KDButtonView buttonOptions
+      buttonView = new KDButtonView
+        title    : buttonOptions.title
+        callback : =>
+          buttonOptions.callback @
+
       @headerButtons[buttonOptions.title] = buttonView
       @header.addSubView buttonView
 
