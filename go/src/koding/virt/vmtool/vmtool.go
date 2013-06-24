@@ -203,6 +203,19 @@ func selectVMs(selector string) []*virt.VM {
 		}
 		return vms
 	}
+
+	if strings.HasPrefix(selector, "vm-") {
+		_, err := os.Stat("/var/lib/lxc/" + selector)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+			fmt.Println("No prepared VM with name: " + selector)
+			os.Exit(1)
+		}
+		return []*virt.VM{&virt.VM{Id: bson.ObjectIdHex(selector[3:])}}
+	}
+
 	fmt.Println("Invalid selector: " + selector)
 	os.Exit(1)
 	return nil
