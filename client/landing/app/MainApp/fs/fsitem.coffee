@@ -224,7 +224,7 @@ class FSItem extends KDObject
       method      : "fs.setPermissions"
       vmName      : @vmName
       withArgs    :
-        path      : @path
+        path      : FSHelper.plainPath @path
         recursive : recursive
         mode      : permissions
     , (err, res)=>

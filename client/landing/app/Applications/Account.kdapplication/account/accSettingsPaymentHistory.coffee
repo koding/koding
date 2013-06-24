@@ -27,7 +27,7 @@ class AccountPaymentHistoryListController extends KDListViewController
             amount     : ((t.amount + t.tax) / 100).toFixed(2)
             currency   : 'USD'
             createdAt  : t.datetime
-            paidVia    : t.card
+            paidVia    : t.card or ""
             owner      : t.owner
             refundable : t.refundable
         @instantiateListItems transactions
@@ -76,7 +76,7 @@ class AccountPaymentHistoryListItem extends KDListItemView
     cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
     """
       <div class='labelish'>
-        <span class='invoice-date'>#{data.createdAt}</span>
+        <span class='invoice-date'>#{dateFormat data.createdAt}</span>
       </div>
       <div class='swappableish swappable-wrapper posstatic'>
         <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>

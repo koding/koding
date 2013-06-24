@@ -4,6 +4,10 @@ class TopicsAppController extends AppController
     name         : "Topics"
     route        : "/:name?/Topics"
     hiddenHandle : yes
+    navItem      :
+      title      : "Topics"
+      path       : "/Topics"
+      order      : 20
 
   constructor:(options = {}, data)->
 
