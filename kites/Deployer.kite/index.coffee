@@ -119,13 +119,14 @@ manifest.uuid = deployerId
 deploys = []
 kite.worker manifest, 
 
-  report: (args)->
+  report: (args, cb)->
     o = {id: @communicator.getChannelNameForKite(), deployCnt: deploys.length}
-    return [o]
+    return cb(false, o)
 
   who: (args, callback)->
     kites = []
-    @all "report", [], (kiteId)->
+    @all "report", [], (err, kiteId)->
+      console.log "kiteId", kiteId
       kites.push kiteId
     # if anyone hasn't replied in 3 seconds just dont care
     # about them, either they are busy, or dead
@@ -133,31 +134,35 @@ kite.worker manifest,
       callback null, kites
     , 3000
 
-  doDeploy: (options)->
-    console.log "now doing the deploy", options
-    {kiteName, version, url} = options
+  doDeploy: (options, callback)->
+    console.log "now doing the deploy", options.args[0]
+    {kiteName, version, url} = options.args[0]
     deployment = new Deployment(kiteName, version, url)
     deployment.createLxc () ->
       deployment.downloadAndExtractKite deployment.runKite.bind deployment
       deploys.push options
-    return ["deployed to #{manifest.name} #{manifest.uuid}"]
+      return callback false, "deployed to #{manifest.name} #{manifest.uuid}"
 
 
   deploy: (options, callback) ->
 
-    who = (args, callback)=>
+    who = (args, cb)=>
       kites = []
-      @all "report", [], (kiteId)->
-        kites.push kiteId
+      console.log "deploy.who called???"
+      @all "report", [], (err, opts)->
+        console.log "deploy.who: ", arguments
+        kites.push opts.args[1]
       # if anyone hasn't replied in 500msec just dont care
       # about them, either they are busy, or dead
       setTimeout ()->
-        callback null, kites
+        cb null, kites
       , 500
 
     findBestDeployer = (deployers)->
-      if not deployers
+      if not deployers or deployers.length==0
         throw new Error "no deployers", deployers
+
+      console.log "findBestDeployer>>", deployers
       if deployers.length > 0
         last = 0
         for d in deployers
@@ -170,7 +175,7 @@ kite.worker manifest,
 
     who [], (err, kites)=>
       bestKite = findBestDeployer(kites)
-      @one bestKite.id, 'doDeploy', [options], (args)->
+      @one bestKite.id, 'doDeploy', options.args, (args)->
         console.log "doDeploy returned.....", args
         callback(bestKite) 
 
