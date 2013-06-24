@@ -12,6 +12,14 @@ class ActivityAppController extends AppController
   {dash} = Bongo
 
   activityTypes = [
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CFollowerBucketActivity'
+    'CNewMemberBucketActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CInstallerBucketActivity'
+    'CBlogPostActivity'
     'Everything'
   ]
 
