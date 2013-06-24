@@ -142,23 +142,25 @@ func main() {
 				action := message["action"]
 				switch action {
 				case "subscribe":
-					routingKeyPrefix := message["routingKeyPrefix"].(string)
-					if subscriptions[routingKeyPrefix] {
-						log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+						if subscriptions[routingKeyPrefix] {
+							log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+							sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
+							return
+						}
+						if len(subscriptions)%1000 == 0 {
+							log.Warn("There were more than 1000 subscriptions.", session.Tag)
+						}
+						addToRouteMap(routingKeyPrefix)
+						subscriptions[routingKeyPrefix] = true
 						sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
-						return
 					}
-					if len(subscriptions)%1000 == 0 {
-						log.Warn("There were more than 1000 subscriptions.", session.Tag)
-					}
-					addToRouteMap(routingKeyPrefix)
-					subscriptions[routingKeyPrefix] = true
-					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 
 				case "unsubscribe":
-					routingKeyPrefix := message["routingKeyPrefix"].(string)
-					removeFromRouteMap(routingKeyPrefix)
-					delete(subscriptions, routingKeyPrefix)
+					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+						removeFromRouteMap(routingKeyPrefix)
+						delete(subscriptions, routingKeyPrefix)
+					}
 
 				case "publish":
 					exchange := message["exchange"].(string)
