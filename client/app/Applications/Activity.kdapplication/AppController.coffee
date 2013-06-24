@@ -12,14 +12,6 @@ class ActivityAppController extends AppController
   {dash} = Bongo
 
   activityTypes = [
-    'CStatusActivity'
-    'CCodeSnipActivity'
-    'CFollowerBucketActivity'
-    'CNewMemberBucketActivity'
-    'CDiscussionActivity'
-    'CTutorialActivity'
-    'CInstallerBucketActivity'
-    'CBlogPostActivity'
     'Everything'
   ]
 
@@ -105,7 +97,18 @@ class ActivityAppController extends AppController
       @populateActivity()
 
   activitiesArrived:(activities)->
-    for activity in activities when activity.bongo_.constructorName in @getFilter()
+    filter = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+      'CBlogPostActivity'
+    ]
+
+    for activity in activities when activity.bongo_.constructorName in filter
       @listController?.newActivityArrived activity
 
   isExempt:(callback)->
