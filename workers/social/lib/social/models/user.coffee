@@ -81,7 +81,7 @@ module.exports = class JUser extends jraphical.Module
         type        : String
         validate    : require('./name').validateName
         set         : (value)-> value.toLowerCase()
-      uid           : ->
+      uid           :
         type        : Number
         set         : Math.floor
       email         :
@@ -471,8 +471,12 @@ module.exports = class JUser extends jraphical.Module
         callback err
       else
         {username} = session
-        JUser.one {username}, (err, user)->
-          callback null, user
+
+        if username?
+          JUser.one {username}, (err, user)->
+            callback null, user
+        else
+          callback null
 
   @changePassword = secure (client,password,callback)->
     @fetchUser client, (err,user)-> user.changePassword password, callback
