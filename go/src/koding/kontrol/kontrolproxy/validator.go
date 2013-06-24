@@ -23,13 +23,17 @@ type filter struct {
 type Validator struct {
 	filters []filter
 	rules   proxyconfig.Restriction
-	user    *UserInfo
+	ip      string
+	country string
+	domain  string
 }
 
-func validator(rules proxyconfig.Restriction, user *UserInfo) *Validator {
+func validator(rules proxyconfig.Restriction, ip, country, domain string) *Validator {
 	validator := &Validator{
 		rules:   rules,
-		user:    user,
+		ip:      ip,
+		country: country,
+		domain:  domain,
 		filters: make([]filter, 0),
 	}
 	return validator
@@ -69,9 +73,9 @@ func (v *Validator) AddRules() *Validator {
 					return false // dont block anyone if regex compile get wrong
 				}
 
-				return re.MatchString(v.user.IP)
+				return re.MatchString(v.ip)
 			case "country":
-				if filter.Match == v.user.Country {
+				if filter.Match == v.country {
 					return true
 				}
 				return false
@@ -92,9 +96,9 @@ func (v *Validator) Check() (bool, error) {
 			if filter.validate() {
 				reason := fmt.Sprintf("%s (%s - %s) - filter name: %s", filter.action, filter.ruletype, filter.match, filter.name)
 				go logDomainDenied(
-					v.user.Domain.Domain,
-					v.user.IP,
-					v.user.Country,
+					v.domain,
+					v.ip,
+					v.country,
 					reason,
 				)
 				return false, fmt.Errorf("%s", reason)
