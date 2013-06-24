@@ -20,6 +20,7 @@ services=(
   koding/alice
   koding/kontrol/kontrolclient
   koding/workers/neo4jfeeder
+  koding/dns
 )
 
 go install -v -ldflags "$ldflags" "${services[@]}"

@@ -82,27 +82,69 @@ class GroupsInvitationView extends KDView
             placeholder   : "How many people can redeem this code?"
 
   showInviteByEmailModal:->
-    @inviteByEmail = @showModalForm
-      title            : 'Invite by Email'
-      cssClass         : 'invite-by-email'
-      callback         : ({emails})=>
-        @getData().inviteByEmails emails, @modalCallback.bind this, @inviteByEmail
-      fields           :
-        emails         :
-          label        : 'Emails'
-          type         : 'textarea'
-          cssClass     : 'emails-input'
-          placeholder  : 'Enter each email address on a new line...'
-          validate     :
-            rules      :
-              required : yes
-            messages   :
-              required : 'At least one email address required!'
-        report         :
-          itemClass    : KDScrollView
-          cssClass     : 'report'
+    defaultMessage =
+      """
+      Hi there,
 
-    @inviteByEmail.modalTabs.forms.invite.fields.report.hide()
+      #INVITER# has invited you to the group #{@getData().title}.
+
+      This link will allow you to join the group: #URL#
+
+      If you reply to this email, it will go to #INVITER#.
+
+      Enjoy! :)
+      """
+
+    @inviteByEmail = @showModalForm
+      title              : 'Invite by Email'
+      cssClass           : 'invite-by-email'
+      callback           : ({emails, message, saveMessage})=>
+        @getData().inviteByEmails emails, message, (err)=>
+          @modalCallback @inviteByEmail, noop, err
+          if saveMessage
+            @getData().saveInvitationMessage message
+            @policy.communications ?= {}
+            @policy.communications.invitationMessage = message
+      fields             :
+        emails           :
+          label          : 'Emails'
+          type           : 'textarea'
+          cssClass       : 'emails-input'
+          placeholder    : 'Enter each email address on a new line...'
+          validate       :
+            rules        :
+              required   : yes
+            messages     :
+              required   : 'At least one email address required!'
+        message          :
+          label          : 'Message'
+          type           : 'textarea'
+          cssClass       : 'message-input'
+          defaultValue   : @policy.communications?.invitationMessage or defaultMessage
+          validate       :
+            rules        :
+              required   : yes
+              regExp     : /(#URL#)+/
+            messages     :
+              required   : 'Message is required!'
+              regExp     : 'Message must contain #URL# for invitation link!'
+        saveMessage      :
+          type           : 'checkbox'
+          cssClass       : 'save-message'
+          defaultValue   : no
+          nextElement    :
+            saveMsgLabel :
+              itemClass  : KDLabelView
+              title      : 'Remember this message'
+              click      : (event)=>
+                @inviteByEmail.modalTabs.forms.invite.fields.saveMessage.subViews.first.subViews.first.getDomElement().click()
+        report           :
+          itemClass      : KDScrollView
+          cssClass       : 'report'
+
+    form = @inviteByEmail.modalTabs.forms.invite
+
+    form.fields.report.hide()
 
   showBulkApproveModal:->
     subject = if @policy.approvalEnabled then 'Membership' else 'Invitation'
@@ -110,7 +152,7 @@ class GroupsInvitationView extends KDView
       title            : "Bulk Approve #{subject} Requests"
       callback         : ({count})=>
         @getData().sendSomeInvitations count,
-          @modalCallback.bind this, @bulkApprove
+          @modalCallback.bind this, @bulkApprove, noop
       content          : "<div class='modalformline'>Enter how many of the pending #{subject.toLowerCase()} requests you want to approve:</div>"
       fields           :
         count          :
@@ -125,8 +167,6 @@ class GroupsInvitationView extends KDView
               regExp   : 'numbers only please'
 
   modalCallback:(modal, errCallback, err)->
-    [err, errCallback] = [errCallback, err]  unless errCallback
-
     form = modal.modalTabs.forms.invite
     form.buttons.Send.hideLoader()
     @tabView.getActivePane().subViews.first.refresh()

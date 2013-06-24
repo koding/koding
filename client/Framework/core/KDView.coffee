@@ -221,10 +221,9 @@ class KDView extends KDObject
   # shortcut method for @getDomElement()
 
   $:(selector)->
-    if selector?
-      @getDomElement().find(selector)
-    else
-      @getDomElement()
+    if selector
+    then @getDomElement().find(selector)
+    else @getDomElement()
 
 # #
 # MANIPULATE DOM ELEMENT
@@ -287,20 +286,25 @@ class KDView extends KDObject
 # CSS METHODS
 # #
 
+  _helpSetClass = (el, addOrRemove, cssClass)->
+    el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
+
   setClass:(cssClass)->
-    @$().addClass cssClass
-    @
+    return unless cssClass
+    _helpSetClass @getElement(), "add", cssClass
+    return this
 
   unsetClass:(cssClass)->
-    @$().removeClass cssClass
-    @
+    return unless cssClass
+    _helpSetClass @getElement(), "remove", cssClass
+    return this
 
   toggleClass:(cssClass)->
     @$().toggleClass cssClass
-    @
+    return this
 
   hasClass:(cssClass)->
-    @$().hasClass cssClass
+    @getElement().classList.contains cssClass
 
   getBounds:->
     #return false unless @viewDidAppend

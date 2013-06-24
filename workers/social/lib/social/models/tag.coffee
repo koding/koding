@@ -54,7 +54,7 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        'one','on','some','create', 'count' #,'updateAllSlugs'
+        'one','on','some','create', 'count', 'fetchCount' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
         'cursor','cursorWithRelationship','fetchMyFollowees','each'
         'fetchSkillTags', 'byRelevanceForSkills'
@@ -273,6 +273,10 @@ module.exports = class JTag extends jraphical.Module
     success:(client, selector, options, callback)->
       selector.group = makeGroupSelector client.context.group
       @some selector, options, callback
+
+  # fix: having read activity permission here may lead to obscurity - SY
+  @fetchCount = permit 'read activity',
+    success:(client, callback)-> @count callback
 
   @count$ = permit 'read tags',
     success:(client, selector, callback)->

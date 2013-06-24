@@ -146,6 +146,13 @@ func (k *Kite) Run() {
 						}
 
 						execHandler := func() {
+							defer func() {
+								if err := recover(); err != nil {
+									log.LogError(err, 1, channel.Username, channel.CorrelationName)
+									resultCallback(CreateErrorObject(&InternalKiteError{}), nil)
+								}
+							}()
+
 							result, err := handler.Callback(options.WithArgs, &channel)
 							if b, ok := result.([]byte); ok {
 								result = string(b)
@@ -167,10 +174,7 @@ func (k *Kite) Run() {
 						}
 
 						if handler.Concurrent {
-							go func() {
-								defer log.RecoverAndLog()
-								execHandler()
-							}()
+							go execHandler()
 							return
 						}
 
@@ -226,7 +230,7 @@ func (k *Kite) Run() {
 					Username           string `json:"username"`
 					RoutingKey         string `json:"routingKey"`
 					CorrelationName    string `json:"correlationName"`
-					DeadService        string `json:"deadService"`
+					DeadService        string `json:"deadService",omitempty`
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}

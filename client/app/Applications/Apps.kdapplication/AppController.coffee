@@ -4,6 +4,10 @@ class AppsAppController extends AppController
     name         : "Apps"
     route        : "/:name?/Apps"
     hiddenHandle : yes
+    navItem      :
+      title      : "Apps"
+      path       : "/Apps"
+      order      : 60
 
   constructor:(options = {}, data)->
 

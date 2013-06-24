@@ -42,7 +42,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'fetchPublicContents', 'fetchFolloweeContents'
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
-        'checkIfLikedBefore', 'count'
+        'checkIfLikedBefore', 'count', 'fetchCount'
         'fetchPublicActivityFeed'
       ]
       instance        : ['fetchTeaser']
@@ -236,6 +236,8 @@ module.exports = class CActivity extends jraphical.Capsule
     "JCodeShare"
   ]
 
+  @fetchCount = permit 'read activity',
+    success:(client, callback)-> @count callback
 
   @fetchFacets = permit 'read activity',
     success:(client, options, callback)->
@@ -419,11 +421,11 @@ module.exports = class CActivity extends jraphical.Capsule
       neo4jConfig = KONFIG.neo4j
       requestOptions =
         startDate : startDate
-        neo4j : neo4jConfig
-        group :
+        neo4j     : neo4jConfig
+        group     :
           groupName : group.slug
-          groupId : group._id
-
+          groupId   : group._id
+          facets    : options.facets
 
       FetchAllActivityParallel = require './../graph/fetch'
       fetch = new FetchAllActivityParallel requestOptions
