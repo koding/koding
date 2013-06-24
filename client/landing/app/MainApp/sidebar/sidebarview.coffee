@@ -195,9 +195,6 @@ class Sidebar extends JView
       {{> @footerMenu}}
     </div>
     <div id='finder-panel'>
-      <div id='finder-header-holder'>
-        {{> @finderHeader}}
-      </div>
       <div id='finder-holder'>
         {{> @finder}}
       </div>
