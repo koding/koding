@@ -535,10 +535,14 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
   "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
+  "app/Applications/Environments.kdapplication/views/FirewallFilterListItemView.coffee",
+  "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
+  "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
+  "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
   "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
 
   # GROUPS
