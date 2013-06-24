@@ -80,6 +80,31 @@ func (p *ProxyConfiguration) GetService(username string) (Service, error) {
 	return service, nil
 }
 
+func (p *ProxyConfiguration) GetLatestKey(username, servicename string) string {
+	service, err := p.GetService(username)
+	if err != nil {
+		return ""
+	}
+
+	keyRoutingTable, ok := service.Services[servicename]
+	if !ok {
+		return ""
+	}
+
+	lenKeys := len(keyRoutingTable.Keys)
+	listOfKeys := make([]int, lenKeys)
+	i := 0
+	for k, _ := range keyRoutingTable.Keys {
+		listOfKeys[i], _ = strconv.Atoi(k)
+		i++
+	}
+	sort.Ints(listOfKeys)
+
+	// give precedence to the largest key number
+	key := strconv.Itoa(listOfKeys[len(listOfKeys)-1])
+	return key
+}
+
 func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData, error) {
 	service, err := p.GetService(username)
 	if err != nil {

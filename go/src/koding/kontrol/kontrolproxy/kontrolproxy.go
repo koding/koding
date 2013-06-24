@@ -173,14 +173,14 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			log.Printf("incoming req host: %s, domain lookup error '%s'\n", req.Host, err.Error())
-			return templateHandler("notfound.html", req.Host)
+			return templateHandler("notfound.html", req.Host, 404)
 		}
 
 		// lookup didn't found anything, move on to .x.koding.com domains
 		if strings.HasSuffix(req.Host, "x.koding.com") {
 			if c := strings.Count(req.Host, "-"); c != 1 {
 				log.Println("not valid req host", req.Host)
-				return templateHandler("notfound.html", req.Host)
+				return templateHandler("notfound.html", req.Host, 404)
 			}
 			subdomain := strings.TrimSuffix(req.Host, ".x.koding.com")
 			servicename := strings.Split(subdomain, "-")[0]
@@ -189,7 +189,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 			user.Domain = domain
 		} else {
 			log.Printf("domain %s is unknown", req.Host)
-			return templateHandler("notfound.html", req.Host)
+			return templateHandler("notfound.html", req.Host, 404)
 		}
 	} else {
 		user.Domain = &domain
@@ -209,7 +209,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 
 	switch user.Domain.Proxy.Mode {
 	case "maintenance":
-		return templateHandler("maintenance.html", nil)
+		return templateHandler("maintenance.html", nil, 200)
 	case "redirect":
 		target, err := url.Parse(user.Domain.Proxy.FullUrl)
 		if err != nil {
@@ -238,11 +238,11 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		var vm virt.VM
 		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
 			log.Printf("vm for hostname %s is not found", hostname)
-			return templateHandler("notfound.html", req.Host)
+			return templateHandler("notfound.html", req.Host, 404)
 		}
 		if vm.IP == nil {
 			log.Printf("vm for hostname %s is not active", hostname)
-			return templateHandler("notactiveVM.html", req.Host)
+			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 
 		vmAddr := vm.IP.String()
@@ -253,7 +253,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		err := checkServer(vmAddr)
 		if err != nil {
 			log.Printf("vm for hostname %s is down: '%s'", hostname, err)
-			return templateHandler("notactiveVM.html", req.Host)
+			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
 
 		user.Target, err = url.Parse("http://" + vmAddr)
@@ -266,11 +266,21 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		username := user.Domain.Proxy.Username
 		servicename := user.Domain.Proxy.Servicename
 		key := user.Domain.Proxy.Key
+		latestKey := proxyDB.GetLatestKey(username, servicename)
+		if latestKey == "" {
+			latestKey = key
+		}
 
 		keyData, err := proxyDB.GetKey(username, servicename, key)
 		if err != nil {
+			currentVersion, _ := strconv.Atoi(key)
+			latestVersion, _ := strconv.Atoi(latestKey)
 			log.Printf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
-			return templateHandler("notfound.html", req.Host)
+			if currentVersion < latestVersion {
+				return templateHandler("notfound.html", req.Host, 410)
+			} else {
+				return templateHandler("notfound.html", req.Host, 404)
+			}
 		}
 
 		switch keyData.LoadBalancer.Mode {
@@ -302,7 +312,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		user.LoadBalancer = &keyData.LoadBalancer
 	default:
 		log.Printf("ERROR: proxy mode is not supported: %s", user.Domain.Proxy.Mode)
-		return templateHandler("notfound.html", req.Host)
+		return templateHandler("notfound.html", req.Host, 404)
 	}
 
 	var target *url.URL
@@ -347,7 +357,7 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 			}
 		} else {
 			log.Printf("error validating user: %s", err.Error())
-			return templateHandler("notfound.html", req.Host)
+			return templateHandler("notfound.html", req.Host, 404)
 		}
 	}
 
@@ -435,8 +445,9 @@ func websocketHandler(target string) http.Handler {
 	})
 }
 
-func templateHandler(path string, data interface{}) http.Handler {
+func templateHandler(path string, data interface{}, code int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
 			log.Printf("template %s could not be executed", path)
