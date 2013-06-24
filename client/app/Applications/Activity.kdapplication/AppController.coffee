@@ -195,13 +195,13 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      if slug isnt 'koding' and not KD.config.useNeo4j
-        @fetchActivitiesDirectly options, callback
-      else
-        @isExempt (exempt)=>
-          if exempt or @getFilter() isnt activityTypes
-          then @fetchActivitiesDirectly options, callback
-          else @fetchActivitiesFromCache options, callback
+
+      # since it is not working, disabled it,
+      # to-do add isExempt control.
+      # @isExempt (exempt)=>
+      #   if exempt or @getFilter() isnt activityTypes
+
+      @fetchActivitiesDirectly options, callback
 
     unless isReady
     then groupsController.once 'groupChanged', fetch
