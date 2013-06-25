@@ -74,13 +74,14 @@ module.exports = class JVM extends Model
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
+
     if type is 'user'
-      aliases = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
       if groupSlug is 'koding'
         aliases.push "#{nickname}.#{domain}"  if uid is 0
         aliases.push "vm-#{uid}.#{nickname}.#{domain}"
+      aliases.push "vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"
 
     else if type is 'group'
       if uid is 0
@@ -90,6 +91,7 @@ module.exports = class JVM extends Model
       else
         aliases = ["shared-#{uid}.#{groupSlug}.#{domain}"]
 
+    aliases.reverse()
     return aliases
 
   # TODO: this needs to be rethought in terms of bundles, as per the
