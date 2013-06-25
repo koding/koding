@@ -65,10 +65,10 @@ module.exports = class JUser extends jraphical.Module
       username      : 'unique'
       email         : 'unique'
 
-    sharedEvents    :
-      static        : [
-        { name: 'UserCreated' }
-      ]
+    sharedEvents    : {}
+      # static        : [
+      #   { name: 'UserCreated' }
+      # ]
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
@@ -400,7 +400,6 @@ module.exports = class JUser extends jraphical.Module
                 callback null, user, account
 
   @configureNewAcccount = (account, user, replacementToken, callback) ->
-    console.log {account, user, callback}
     user.sendEmailConfirmation()
     JUser.grantInitialInvitations user.username
     JUser.emit 'UserCreated', user

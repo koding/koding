@@ -19,6 +19,7 @@ module.exports = new Bongo {
     'workers/social/lib/social/models/account'
     'workers/social/lib/social/models/group'
     'workers/social/lib/social/models/name.coffee'
+    'workers/social/lib/social/models/vm.coffee'
     # 'workers/social/lib/social/models/guest.coffee'
   ]
   mq: new Broker mqOptions

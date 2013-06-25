@@ -33,7 +33,6 @@ controlCallCount = (info, kiteCall) =>
 
           if memberKite.count >= kiteCall.count
             memberKite.update {$set: 'status': 'passive'} , (err) =>
-          else
 
 incrementCallCount = (deliveryKey, info) =>
 
