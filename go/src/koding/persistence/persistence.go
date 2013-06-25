@@ -186,11 +186,12 @@ func persistMessages(
 
 		amqpChannel.Publish(
 			"neo4jFeederExchange", // exchange name
-			"",    // key
-			false, // mandatory
-			false, // immediate
+			"",                    // key
+			false,                 // mandatory
+			false,                 // immediate
 			amqp.Publishing{
-				Body: neoMessage,
+				DeliveryMode: amqp.Persistent,
+				Body:         neoMessage,
 			},
 		)
 	}
