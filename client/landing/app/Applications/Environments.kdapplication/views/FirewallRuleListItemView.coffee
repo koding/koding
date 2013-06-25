@@ -1,8 +1,11 @@
 class FirewallRuleListItemView extends KDListItemView
 
   constructor:(options={}, data)->
-    options.cssClass = 'fw-al-view'
-    options.type     = 'actions'
+    options = $.extend
+      type     : 'rules'
+      tagName  : 'tr'
+    , options
+
     super options, data
 
     @actionButton = new KDButtonView
@@ -69,12 +72,16 @@ class FirewallRuleListItemView extends KDListItemView
     @template.update()
 
   pistachio:->
+    {action, match} = @getData()
+    ruleText = if action is "deny"
+    then "Denying network connections from #{match}"
+    else "Allowing network connections from #{match}"
+
     """
-    <div class="fw-li-view #{@getData().action}">
-      <div class="fl">{{ #(match) }}</div>
-      <div class="fr buttons">
-        {{> @actionButton }}
-        {{> @deleteButton }}
-      </div>
-    </div>
+    <td class="action"><span class="fl #{action}-icon"></span></td>
+    <td>#{ruleText}</td>
+    <td>
+      {{> @actionButton }}
+      {{> @deleteButton }}
+    </td>
     """

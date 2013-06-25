@@ -20,12 +20,22 @@ class FirewallFilterListController extends KDListViewController
 
     super options, data
 
-    @getListView().setData(data)
+    listView = @getListView()
+    # set the data so filter items know which domain to work on
+    listView.setData(data)
+
+    listView.on "newFilterCreated", @bound 'addItem'
+
+    @fetchFilters()
 
 
-  fetchFilters:(callback)->
+  fetchFilters:->
     {domain} = @getData()
 
     KD.remote.api.JProxyFilter.fetchFiltersByContext (err, filters)=>
-      return callback err if err
-      callback null, filters
+      domain.fetchProxyRules (err, ruleList)=>
+        ruleMatches = Object.keys(ruleList)
+        for filter in filters
+          if filter.match in ruleMatches
+            filter.ruleAction = ruleList[filter.match]
+        @instantiateListItems filters

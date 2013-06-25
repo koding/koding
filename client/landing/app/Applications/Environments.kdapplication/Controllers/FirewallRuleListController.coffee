@@ -1,10 +1,28 @@
 class FirewallRuleListController extends KDListViewController
 
   constructor:(options={}, data)->
-    options.itemClass = FirewallRuleListItemView
+    options = $.extend
+      itemClass   : FirewallRuleListItemView
+      viewOptions :
+        tagName   : "table"
+        type      : "rules"
+        partial   : 
+          """
+          <thead>
+            <tr>
+              <th></th>
+              <th>Rule</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          """
+    , options
     super options, data
 
     @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'
+    @on "newRuleCreated", @bound 'addItem'
+
+    @fetchProxyRules()
 
   fetchProxyRules:->
   	{domain} = @getData()
@@ -12,6 +30,5 @@ class FirewallRuleListController extends KDListViewController
   	domain.fetchProxyRules (err, ruleList)=>
       return console.log err if err
       if ruleList
-        for rule in ruleList
-          rule.domainName = domain.domain
+        rule.domainName = domain.domain for rule in ruleList
         @instantiateListItems ruleList

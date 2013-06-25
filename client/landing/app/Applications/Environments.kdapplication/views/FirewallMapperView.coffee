@@ -1,6 +1,6 @@
 class FirewallMapperView extends KDView
 
-  constructor:(options={}, data) ->
+  constructor:(options={}, data)->
     data or= {}
     super options, data
 
@@ -8,63 +8,75 @@ class FirewallMapperView extends KDView
       @getData().domain = domainListItem.data
       @updateViewContent()
 
-    @addSubView new KDCustomHTMLView
-      partial: 'Select a domain to continue.'
+    @nav = new KDView
+      tagName  : "ul"
+      cssClass : "kdlistview kdlistview-default"
+    @utils.defer => @nav.unsetClass "kdtabhandlecontainer"
+
+    @tabView = new KDTabView
+      cssClass           : 'environment-content'
+      tabHandleContainer : @nav
+      tabHandleClass     : EnvironmentsTabHandleView
+
+    @filtersPane = new KDTabPaneView
+      name     : "Filters"
+      closable : no
+
+    @rulesPane = new KDTabPaneView
+      name     : "Rules"
+      closable : no
+
+    @tabView.addPane @rulesPane
+    @tabView.addPane @filtersPane
+    @tabView.showPaneByIndex 0
 
   updateViewContent:->
-    domain = @getData().domain
+    {domain} = @getData()
 
-    @destroySubViews()
+    @rulesPane.destroySubViews()
+    @filtersPane.destroySubViews()
 
     @filterListController = new FirewallFilterListController {}, {domain}
-    @filterListController.fetchFilters (err, filters)=>
-      if err
-
-        notifyMsg = if err is "not found"
-        then "You don't have any filters set for this domain."
-        else "An error occured while fetching the filters. Please try again."
-
-        @actionOrdersButton.hide() if err is "not found"
-        return new KDNotificationView
-          title : notifyMsg
-          type  : "top"
-
-      @filterListController.instantiateListItems filters
-
     @ruleListController = new FirewallRuleListController {}, {domain}
-    @ruleListController.fetchProxyRules()
 
-    @addSubView @fwRuleFormView = new FirewallFilterFormView 
+    @rulesPane.addSubView @ruleListView = new KDCustomHTMLView
+      partial  : "<h3>Rule List For #{domain.domain}</h3>"
+      cssClass : 'rule-list-view'
+
+    @ruleListView.addSubView @ruleListController.getView()
+
+    @filtersPane.addSubView @fwRuleFormView = new FirewallFilterFormView 
       delegate : @filterListController.getListView()
       , {domain}
 
-    @addSubView @filterListView = new KDCustomHTMLView
+    @filtersPane.addSubView @filterListView = new KDCustomHTMLView
       partial  : "<h3>Your Filter List</h3>"
       cssClass : 'filter-list-view'
 
-    @addSubView @ruleListView = new KDCustomHTMLView
-      partial  : "<h3>Rule List for #{domain.domain}</h3>"
-      cssClass : "rule-list-view"
+    @filterListView.addSubView @filterListController.getView()    
 
-    @filterListView.addSubView @filterListController.getView()
+    @filterListController.getListView().on "newRuleCreated", (item)=>
+      @ruleListController.emit "newRuleCreated", item
 
-    @ruleListScrollView = new KDScrollView
-      cssClass : 'fw-rl-sw'
 
-    @ruleListView.addSubView @ruleListScrollView
-    @ruleListView.addSubView @actionOrdersButton = new KDButtonView
-      title    : "Update Action Order"
-      callback : => @updateActionOrders domain
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
 
-    @ruleListScrollView.addSubView @ruleListController.getView()
-
-    @filterListController.getListView().on "newFilterCreated", (item) => 
-      @filterListController.addItem item
-
-    # this event is on rule list controller because
-    # both allow & deny buttons live on FirewallFilterListItemView.
-    @filterListController.getListView().on "newRuleCreated", (item) =>
-      @ruleListController.addItem item
+  pistachio:->
+    """
+    <aside class="fl">
+        <div class="kdview common-inner-nav">
+          <div class="kdview listview-wrapper list">
+            <h4 class="kdview kdheaderview list-group-title"><span></span></h4>
+            {{> @nav }}
+          </div>
+        </div>
+      </aside>
+      <section class='right-overflow'>
+        {{> @tabView }}
+      </section>
+    """
 
   updateActionOrders:(domain)->
     newRulesList = (item.getData() for item in @ruleListController.itemsOrdered)
