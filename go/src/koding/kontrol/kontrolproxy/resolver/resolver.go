@@ -111,7 +111,7 @@ func GetTarget(host string) (*Target, error) {
 		}
 
 		var vm virt.VM
-		if err := db.VMs.Find(bson.M{"hostname": hostname}).One(&vm); err != nil {
+		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
 			return nil, fmt.Errorf("vm for hostname %s is not found", hostname)
 		}
 
