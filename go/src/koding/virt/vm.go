@@ -187,7 +187,7 @@ func (vm *VM) Unprepare() error {
 	// stop VM
 	out, err := vm.Shutdown()
 	if vm.GetState() != "STOPPED" {
-		panic(commandError("Could not stop VM.", err, out))
+		panic(commandError("Could not shut down VM.", err, out))
 	}
 
 	// backup dpkg database for statistical purposes
