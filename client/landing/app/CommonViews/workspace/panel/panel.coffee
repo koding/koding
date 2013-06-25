@@ -9,9 +9,13 @@ class Panel extends JView
     @headerButtons  = {}
     @panesContainer = []
     @panes          = []
+    @header         = new KDCustomHTMLView
 
-    @createHeader()
-    @createHeaderButtons()  if options.buttons?.length
+    {title}         = options
+    buttonsLength   = options.buttons and options.buttons.length
+
+    @createHeader title     if title or buttonsLength
+    @createHeaderButtons()  if buttonsLength
     # @createHeaderHint()     if options.hint
 
     @createLayout()
@@ -20,10 +24,10 @@ class Panel extends JView
     @getSingleton("mainView").once "transitionend", =>
       @splitView._windowDidResize()
 
-  createHeader: ->
+  createHeader: (title = "") ->
     @header     = new KDView
       cssClass  : "inner-header"
-      partial   : """<span class="title">#{@getOptions().title}</span>"""
+      partial   : """<span class="title">#{title}</span>"""
 
   createHeaderButtons: ->
     for buttonOptions in @getOptions().buttons
