@@ -83,12 +83,14 @@ var Profile string
 var Current Config
 var LogDebug bool
 var Uuid string
+var Host string
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
 	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
+	flag.StringVar(&Host, "h", "", "hostname to be resolved")
 
 	flag.Parse()
 	if flag.NArg() != 0 {
