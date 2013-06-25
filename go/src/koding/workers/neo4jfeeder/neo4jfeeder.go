@@ -55,7 +55,7 @@ func startConsuming() {
 	c.conn = amqputil.CreateConnection("neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
 
-	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", false, false, false, false, nil)
+	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
 		log.Fatal("exchange.declare: %s", err)
 	}
