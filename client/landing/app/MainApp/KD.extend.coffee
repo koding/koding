@@ -62,22 +62,6 @@ KD.extend
           @notify_ "You have joined to #{groupName} group!", "success"
           return callback true
 
-  jsonhTest:->
-    method    = 'fetchQuestionTeasers'
-    testData  = {
-      foo: 10
-      bar: 11
-    }
-
-    start = Date.now()
-    $.ajax "/#{method}.jsonh",
-      data     : testData
-      dataType : 'jsonp'
-      success : (data)->
-        inflated = JSONH.unpack data
-        KD.log 'success', inflated
-        KD.log Date.now()-start
-
   nick:-> KD.whoami().profile.nickname
 
   whoami:-> KD.getSingleton('mainController').userAccount
@@ -86,7 +70,7 @@ KD.extend
     mainController = KD.getSingleton('mainController')
     delete mainController?.userAccount
 
-  isLoggedIn:-> KD.whoami() instanceof KD.remote.api.JAccount
+  isLoggedIn:-> KD.whoami().type is 'registered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 

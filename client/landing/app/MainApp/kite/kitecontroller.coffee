@@ -87,6 +87,7 @@ class KiteController extends KDController
     options.method   or= "exec"
 
     KD.getSingleton("vmController").fetchDefaultVmName (defaultVmName)=>
+
       vmName = if options.vmName then options.vmName else defaultVmName
       unless vmName
         return callback message: 'There is no VM for this account.'
@@ -94,8 +95,6 @@ class KiteController extends KDController
       options.vmName = vmName
 
       kite = @getKite options.kiteName, vmName
-      
-      console.log {kiteName, vmName}
 
       if command
         options.withArgs = command
@@ -145,7 +144,6 @@ class KiteController extends KDController
 
 
   parseKiteResponse:({err, response}, options, callback)->
-
     if err and response
       callback? err, response
       warn "Command failed:", err
