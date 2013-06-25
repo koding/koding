@@ -145,8 +145,8 @@ func main() {
 							sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 							return
 						}
-						if len(subscriptions)%1000 == 0 {
-							log.Warn("There were more than 1000 subscriptions.", session.Tag)
+						if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
+							log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
 						}
 						routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
 						subscriptions[routingKeyPrefix] = true
