@@ -428,7 +428,6 @@ class VirtualizationController extends KDController
               modal.destroy()
               if appName
                 @once 'StateChanged', ->
-                  console.trace()
                   KD.getSingleton("appManager").open appName
         Cancel       :
           style      : "modal-clean-gray"
