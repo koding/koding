@@ -15,6 +15,17 @@ class ActivityAppController extends AppController
     'Everything'
   ]
 
+  newActivitiesArrivedTypes = [
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CFollowerBucketActivity'
+    'CNewMemberBucketActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CInstallerBucketActivity'
+    'CBlogPostActivity'
+  ]
+
   @clearQuotes = clearQuotes = (activities)->
     return activities = for activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
@@ -148,18 +159,7 @@ class ActivityAppController extends AppController
       CActivity.fetchFolloweeContents options, callback
 
   activitiesArrived:(activities)->
-    filter = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-      'CBlogPostActivity'
-    ]
-
-    for activity in activities when activity.bongo_.constructorName in filter
+    for activity in activities when activity.bongo_.constructorName in newActivitiesArrivedTypes
       @listController?.newActivityArrived activity
 
   teasersLoaded:->
