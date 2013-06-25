@@ -4,6 +4,13 @@ class Pane extends JView
 
     super options, data
 
+    title      = options.title or @getProperties().title
+    if title
+      @header    = new KDHeaderView
+        cssClass : "header"
+        partial  : title
+    else title = new KDCustomHTMLView { tagName: "span" }
+
   getProperties: ->
     {properties} = @getOptions()
     return {}  unless properties

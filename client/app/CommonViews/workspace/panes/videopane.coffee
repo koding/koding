@@ -17,5 +17,6 @@ class VideoPane extends Pane
 
   pistachio: ->
     """
+      {{> @header}}
       {{> @container}}
     """

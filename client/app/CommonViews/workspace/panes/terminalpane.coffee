@@ -25,5 +25,6 @@ class TerminalPane extends Pane
 
   pistachio: ->
     """
+      {{> @header}}
       {{> @terminal}}
     """

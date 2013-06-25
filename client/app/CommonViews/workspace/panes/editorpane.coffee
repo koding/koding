@@ -46,4 +46,8 @@ class EditorPane extends Pane
   pistachio: ->
     single   = "{{> @ace}}"
     multiple = "{{> @tabHandleContainer}} {{> @tabView}}"
-    return  if Array.isArray @files then multiple else single
+    template = if Array.isArray @files then multiple else single
+    return  """
+      {{> @header}}
+      #{template}
+    """
