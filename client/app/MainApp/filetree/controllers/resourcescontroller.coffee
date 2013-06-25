@@ -83,10 +83,12 @@ class ResourcesListItem extends KDListItemView
       attributes:
         title  : "#{vmName}"
 
-    # @vm.fetchVMDomains vmName, (err, domains)=>
-    #   unless err and domains.length > 0
-    #     @vmInfo.updatePartial "#{domains.first}"
-    #     @vmInfo.setDomAttributes title : "#{domains.first}"
+    @vm.fetchVMDomains vmName, (err, domains)=>
+      unless err and domains.length > 0
+        @vmInfo.updatePartial "#{domains.first}"
+        @vmInfo.setDomAttributes title : "#{domains.first}"
+        # @setTooltip
+        #   title : "Also reachable from: <br/><li>" + domains.join '<li>'
 
     @addSubView @vmDesc = new KDCustomHTMLView
       tagName  : 'span'

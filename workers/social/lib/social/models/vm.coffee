@@ -27,7 +27,7 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext'#,'calculateUsage'
-                           'removeByHostname', 'someData'#, 'fetchDomains'
+                           'removeByHostname', 'someData', 'fetchDomains'
                            'fetchVMInfo', 'count'
                           ]
       instance          : []
@@ -243,20 +243,26 @@ module.exports = class JVM extends Model
     #     return callback err  if err
     #     callback null, [vm]
 
-  # @fetchDomains = permit 'list all vms',
-  #   success:(client, alias, callback)->
-  #     {delegate} = client.connection
+  @fetchDomains = permit 'list all vms',
+    success:(client, hostname, callback)->
+      {delegate} = client.connection
 
-  #     delegate.fetchUser (err, user) ->
-  #       return callback err  if err
+      delegate.fetchUser (err, user) ->
+        return callback err  if err
 
-  #       selector =
-  #         hostnameAlias : alias
-  #         users         : { $elemMatch: id: user.getId(), owner: yes }
+        selector =
+          hostname : hostname
+          users    : { $elemMatch: id: user.getId(), owner: yes }
 
-  #       JVM.one selector, {hostnameAlias:1}, (err, vm)->
-  #         return callback err, []  if err or not vm
-  #         callback null, vm.hostnameAlias or []
+        JVM.one selector, {hostname:1}, (err, vm)->
+          return callback err, []  if err or not vm
+          JDomain = require './domain'
+          JDomain.someData {hostnameAlias: vm.hostname}, {domain:1}, \
+          (err, cursor)->
+            return callback err, []  if err
+            cursor.toArray (err, arr)->
+              return callback err, []  if err
+              callback null, arr.map (vm)-> vm.domain
 
   @deleteVM = (vm, callback)->
     if vm.planCode is 'free'
