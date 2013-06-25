@@ -39,3 +39,4 @@ class FirewallFilterListController extends KDListViewController
           if filter.match in ruleMatches
             filter.ruleAction = ruleList[filter.match]
         @instantiateListItems filters
+        @emit 'itemsFetched'

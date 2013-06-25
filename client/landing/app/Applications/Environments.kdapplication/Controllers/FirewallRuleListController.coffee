@@ -34,6 +34,7 @@ class FirewallRuleListController extends KDListViewController
       if ruleList
         rule.domainName = domain.domain for rule in ruleList
         @instantiateListItems ruleList
+        @emit 'itemsFetched'
 
   updateProxyRulesList:->
     @removeAllItems()

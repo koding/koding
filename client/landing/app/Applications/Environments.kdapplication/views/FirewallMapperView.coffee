@@ -30,6 +30,9 @@ class FirewallMapperView extends KDView
     @tabView.addPane @filtersPane
     @tabView.showPaneByIndex 0
 
+    @once 'viewAppended', =>
+      @_windowDidResize()
+
   updateViewContent:->
     {domain} = @getData()
 
@@ -43,7 +46,12 @@ class FirewallMapperView extends KDView
       partial  : "<h3>Rule List For #{domain.domain}</h3>"
       cssClass : 'rule-list-view'
 
-    @ruleListView.addSubView @ruleListController.getView()
+    @ruleListController.on "itemsFetched", =>
+      if @ruleListController.itemsOrdered.length is 0
+        @ruleListView.addSubView new KDCustomHTMLView
+          partial : "You don't have any rules for this domain."
+      else
+        @ruleListView.addSubView @ruleListController.getView()
 
     @filtersPane.addSubView @fwRuleFormView = new FirewallFilterFormView 
       delegate : @filterListController.getListView()
@@ -53,16 +61,19 @@ class FirewallMapperView extends KDView
       partial  : "<h3>Your Filter List</h3>"
       cssClass : 'filter-list-view'
 
-    @filterListView.addSubView @filterListController.getView()    
+    @filterListController.on "itemsFetched", =>
+      if @filterListController.itemsOrdered.length is 0
+        @filterListView.addSubView new KDCustomHTMLView
+          partial : "You dont' have any filters."
+      else
+        @filterListView.addSubView @filterListController.getView()
 
     @filterListController.getListView().on "newRuleCreated", (item)=>
       @ruleListController.emit "newRuleCreated", item
 
 
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
+  viewAppended: JView::viewAppended
+  
   pistachio:->
     """
     <aside class="fl">
