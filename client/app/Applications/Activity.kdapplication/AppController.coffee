@@ -12,14 +12,6 @@ class ActivityAppController extends AppController
   {dash} = Bongo
 
   activityTypes = [
-    'CStatusActivity'
-    'CCodeSnipActivity'
-    'CFollowerBucketActivity'
-    'CNewMemberBucketActivity'
-    'CDiscussionActivity'
-    'CTutorialActivity'
-    'CInstallerBucketActivity'
-    'CBlogPostActivity'
     'Everything'
   ]
 
@@ -105,7 +97,18 @@ class ActivityAppController extends AppController
       @populateActivity()
 
   activitiesArrived:(activities)->
-    for activity in activities when activity.bongo_.constructorName in @getFilter()
+    filter = [
+      'CStatusActivity'
+      'CCodeSnipActivity'
+      'CFollowerBucketActivity'
+      'CNewMemberBucketActivity'
+      'CDiscussionActivity'
+      'CTutorialActivity'
+      'CInstallerBucketActivity'
+      'CBlogPostActivity'
+    ]
+
+    for activity in activities when activity.bongo_.constructorName in filter
       @listController?.newActivityArrived activity
 
   isExempt:(callback)->
@@ -192,13 +195,13 @@ class ActivityAppController extends AppController
     currentGroup     = groupsController.getCurrentGroup()
 
     fetch = (slug)=>
-      if slug isnt 'koding' and not KD.config.useNeo4j
-        @fetchActivitiesDirectly options, callback
-      else
-        @isExempt (exempt)=>
-          if exempt or @getFilter() isnt activityTypes
-          then @fetchActivitiesDirectly options, callback
-          else @fetchActivitiesFromCache options, callback
+
+      # since it is not working, disabled it,
+      # to-do add isExempt control.
+      # @isExempt (exempt)=>
+      #   if exempt or @getFilter() isnt activityTypes
+
+      @fetchActivitiesDirectly options, callback
 
     unless isReady
     then groupsController.once 'groupChanged', fetch
