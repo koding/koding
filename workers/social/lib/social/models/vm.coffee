@@ -383,7 +383,7 @@ module.exports = class JVM extends Model
       uidFactory.next (err, uid)->
         if err then handleError err
         else
-          JUser.update {_id: user.getId() }, { $set: { uid } }, ->
+          JUser.update { _id: user.getId() }, { $set: { uid } }, ->
             handleError arguments...
 
     JAccount.on 'UsernameChanged', (oldUsername, newUsername) ->

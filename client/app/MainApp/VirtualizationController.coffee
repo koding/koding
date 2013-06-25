@@ -9,23 +9,23 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
 
   run:(vm, command, callback)->
-    KD.requireMembership
-      callback : =>
-        @askForApprove command, (approved)=>
-          if approved
-            cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-                 else callback
-            @kc.run
-              kiteName : 'os'
-              method   : command
-              vmName   : vm
-            , cb
-          else unless command is 'vm.info' then @info vm
-      onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-      onFail    : =>
-        unless command is 'vm.info' then callback yes
-        else callback null, state: 'STOPPED'
-      silence   : yes
+    # KD.requireMembership
+    #   callback : =>
+    @askForApprove command, (approved)=>
+      if approved
+        cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
+             else callback
+        @kc.run
+          kiteName : 'os'
+          method   : command
+          vmName   : vm
+        , cb
+      else unless command is 'vm.info' then @info vm
+      # onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
+      # onFail    : =>
+      #   unless command is 'vm.info' then callback yes
+      #   else callback null, state: 'STOPPED'
+      # silence   : yes
 
   _runWraper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
@@ -428,6 +428,7 @@ class VirtualizationController extends KDController
               modal.destroy()
               if appName
                 @once 'StateChanged', ->
+                  console.trace()
                   KD.getSingleton("appManager").open appName
         Cancel       :
           style      : "modal-clean-gray"
