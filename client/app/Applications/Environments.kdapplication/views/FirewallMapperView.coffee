@@ -30,9 +30,6 @@ class FirewallMapperView extends KDView
     @tabView.addPane @filtersPane
     @tabView.showPaneByIndex 0
 
-    @once 'viewAppended', =>
-      @_windowDidResize()
-
   updateViewContent:->
     {domain} = @getData()
 
@@ -73,7 +70,7 @@ class FirewallMapperView extends KDView
 
 
   viewAppended: JView::viewAppended
-  
+
   pistachio:->
     """
     <aside class="fl">
