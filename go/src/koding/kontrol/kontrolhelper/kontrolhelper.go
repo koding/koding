@@ -122,7 +122,7 @@ func CreateProducer(name string) (*Producer, error) {
 	return p, nil
 }
 
-func RegisterToKontrol(name, uuid string, port int) error {
+func RegisterToKontrol(name, uuid, hostname string, port int) error {
 	connection := CreateAmqpConnection()
 	channel := CreateChannel(connection)
 
@@ -149,7 +149,7 @@ func RegisterToKontrol(name, uuid string, port int) error {
 	cmd := workerMain{
 		Name:     name,
 		Uuid:     uuid,
-		Hostname: CustomHostname(),
+		Hostname: hostname,
 		Message: workerMessage{
 			Command: "addWithProxy",
 			Option:  "many",

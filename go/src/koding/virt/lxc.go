@@ -19,7 +19,7 @@ func (vm *VM) Shutdown() ([]byte, error) {
 	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String()).CombinedOutput(); err != nil {
 		return out, err
 	}
-	vm.WaitForState("STOPPED", 2*time.Second) // may time out, then vm is force stopped
+	vm.WaitForState("STOPPED", 5*time.Second) // may time out, then vm is force stopped
 	return vm.Stop()
 }
 
@@ -44,5 +44,8 @@ func (vm *VM) GetState() string {
 }
 
 func (vm *VM) WaitForState(state string, timeout time.Duration) ([]byte, error) {
-	return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput()
+	if timeout != 0 {
+		return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput()
+	}
+		return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state).CombinedOutput()
 }

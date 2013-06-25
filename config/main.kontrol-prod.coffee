@@ -108,7 +108,7 @@ module.exports =
       version   : version
       mainUri   : "http://koding.com"
       broker    :
-        sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
+        sockJS   : "https://broker-#{version}.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       # Is this correct?
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
@@ -125,9 +125,9 @@ module.exports =
     vhost       : 'new'
   broker        :
     ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

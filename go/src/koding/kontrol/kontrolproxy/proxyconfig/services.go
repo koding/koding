@@ -10,23 +10,19 @@ import (
 
 type KeyData struct {
 	// Versioning of hosts
-	Key string
+	Key string `json:"key"`
 
 	// List of hosts to proxy
-	Host []string
+	Host []string `json:"host"`
 
-	// load-balancing, sticky or roundrobin
-	Mode string `json:"mode"`
-
-	// current index of hosts. Updated automatically in roundrobin
-	// change manually when using sticky mode
-	CurrentIndex int `json:"currentindex"`
+	// LoadBalance for this server
+	LoadBalancer LoadBalancer `json:"loadBalancer"`
 
 	// future usage...
-	HostData string
+	HostData string `json:"hostData"`
 
 	// future usage, proxy via mq
-	RabbitKey string
+	RabbitKey string `json:"rabbitKey"`
 }
 
 type KeyRoutingTable struct {
@@ -45,13 +41,12 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 	}
 }
 
-func NewKeyData(key, mode, hostdata, rabbitkey string, host []string, currentindex int) *KeyData {
+func NewKeyData(key, persistence, mode, hostdata, rabbitkey string, host []string, index int) *KeyData {
 	return &KeyData{
 		Key:          key,
 		Host:         host,
-		Mode:         mode,
+		LoadBalancer: LoadBalancer{persistence, mode, index},
 		HostData:     hostdata,
-		CurrentIndex: currentindex,
 		RabbitKey:    rabbitkey,
 	}
 }
@@ -83,6 +78,31 @@ func (p *ProxyConfiguration) GetService(username string) (Service, error) {
 	}
 
 	return service, nil
+}
+
+func (p *ProxyConfiguration) GetLatestKey(username, servicename string) string {
+	service, err := p.GetService(username)
+	if err != nil {
+		return ""
+	}
+
+	keyRoutingTable, ok := service.Services[servicename]
+	if !ok {
+		return ""
+	}
+
+	lenKeys := len(keyRoutingTable.Keys)
+	listOfKeys := make([]int, lenKeys)
+	i := 0
+	for k, _ := range keyRoutingTable.Keys {
+		listOfKeys[i], _ = strconv.Atoi(k)
+		i++
+	}
+	sort.Ints(listOfKeys)
+
+	// give precedence to the largest key number
+	key := strconv.Itoa(listOfKeys[len(listOfKeys)-1])
+	return key
 }
 
 func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData, error) {
@@ -120,7 +140,7 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData,
 }
 
 // Update or add a key. service and username will be created if not available
-func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, hostdata, rabbitkey string, currentindex int) error {
+func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string, index int) error {
 	service, err := p.GetService(username)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -138,7 +158,7 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 	_, ok = keyRoutingTable.Keys[key] // empty routing table or not existing key
 	if !ok {
 		hosts := []string{host}
-		keyRoutingTable.Keys[key] = *NewKeyData(key, mode, hostdata, rabbitkey, hosts, 0)
+		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, rabbitkey, hosts, 0)
 		service.Services[servicename] = keyRoutingTable
 		err = p.UpsertService(username, service)
 		if err != nil {
@@ -160,12 +180,13 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 		keyData.Host = append(keyData.Host, host)
 	}
 
-	if currentindex >= len(keyData.Host) && mode == "sticky" {
-		return fmt.Errorf("currentindex: %d can't be larger or equal to the lenght of host-list: %d", currentindex, len(keyData.Host))
+	if index >= len(keyData.Host) && mode == "sticky" {
+		return fmt.Errorf("index: %d can't be larger or equal to the length of host-list: %d", index, len(keyData.Host))
 	}
 
-	keyData.Mode = mode
-	keyData.CurrentIndex = currentindex
+	keyData.LoadBalancer.Persistence = persistence
+	keyData.LoadBalancer.Mode = mode
+	keyData.LoadBalancer.Index = index
 	keyData.HostData = hostdata
 	keyData.RabbitKey = rabbitkey
 
