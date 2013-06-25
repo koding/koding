@@ -237,7 +237,9 @@ module.exports = [
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/workspace.coffee",
+  "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
 
   "app/CommonViews/ModalViewWithTerminal.coffee",
