@@ -142,16 +142,15 @@ func main() {
 					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
 						if subscriptions[routingKeyPrefix] {
 							log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
-							sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
-							return
+							continue
 						}
-						if len(subscriptions)%1000 == 0 {
-							log.Warn("There were more than 1000 subscriptions.", session.Tag)
+						if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
+							log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
 						}
 						routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
 						subscriptions[routingKeyPrefix] = true
-						sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
 					}
+					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": message["routingKeyPrefix"].(string)})
 
 				case "unsubscribe":
 					routeMapMutex.Lock()
