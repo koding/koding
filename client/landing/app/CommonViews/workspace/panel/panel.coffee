@@ -15,8 +15,10 @@ class Panel extends JView
     # @createHeaderHint()     if options.hint
 
     @createLayout()
-
     @createPanes()
+
+    @getSingleton("mainView").once "transitionend", =>
+      @splitView._windowDidResize()
 
   createHeader: ->
     @header     = new KDView
@@ -95,9 +97,9 @@ class Panel extends JView
   createDoubleLayout: ->
     pane1     = new KDView
     pane2     = new KDView
-    splitView = @createSplitView "vertical", [pane1, pane2]
+    @splitView = @createSplitView "vertical", [pane1, pane2]
 
-    @container.addSubView splitView
+    @container.addSubView @splitView
     @panesContainer.push pane1, pane2
 
   createTripleLayout: ->
@@ -105,9 +107,9 @@ class Panel extends JView
     pane2           = new KDView
     pane3           = new KDView
     rightInnerSplit = @createSplitView "horizontal", [pane2, pane3]
-    baseSplit       = @createSplitView "vertical", [pane1, rightInnerSplit]
+    @splitView      = @createSplitView "vertical", [pane1, rightInnerSplit]
 
-    @container.addSubView baseSplit
+    @container.addSubView @splitView
     @panesContainer.push pane1, pane2, pane3
 
   createQuadrupleLayout: ->
@@ -117,9 +119,9 @@ class Panel extends JView
     pane4           = new KDView
     leftInnerSplit    = @createSplitView "horizontal", [pane1, pane2]
     rightInnerSplit   = @createSplitView "horizontal", [pane3, pane4]
-    baseSplit         = @createSplitView "vertical", [leftInnerSplit, rightInnerSplit]
+    @splitView        = @createSplitView "vertical",   [leftInnerSplit, rightInnerSplit]
 
-    @container.addSubView baseSplit
+    @container.addSubView @splitView
     @panesContainer.push pane1, pane2, pane3, pane4
 
   viewAppended: ->
