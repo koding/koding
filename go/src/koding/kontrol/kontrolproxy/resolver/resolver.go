@@ -123,7 +123,7 @@ func GetTarget(host string) (*Target, error) {
 		vmAddr := vm.IP.String()
 		portInt, _ := strconv.Atoi(port)
 		if !utils.HasPort(vmAddr) {
-			if portInt >= 8000 && portInt <= 8100 {
+			if portInt >= 1100 && portInt <= 10000 {
 				vmAddr = utils.AddPort(vmAddr, port)
 			} else {
 				vmAddr = utils.AddPort(vmAddr, "80")

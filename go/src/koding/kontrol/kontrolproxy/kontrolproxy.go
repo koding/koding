@@ -108,7 +108,7 @@ func main() {
 	}
 
 	log.Println("creating listeners between 8000-8100 for vm ports")
-	for i := 8000; i <= 8100; i++ {
+	for i := 1100; i <= 10000; i++ {
 		go func(i int) {
 			port := strconv.Itoa(i)
 			laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
