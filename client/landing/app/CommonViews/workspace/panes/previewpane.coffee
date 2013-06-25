@@ -11,6 +11,7 @@ class PreviewPane extends Pane
     if options.url then @setIframe()
     else
       @placeholder = new KDView
+        cssClass : "placeholder"
         partial  : "Your result will be displayed here"
       @container.addSubView @placeholder
 
@@ -28,5 +29,6 @@ class PreviewPane extends Pane
 
   pistachio: ->
     """
+      {{> @header}}
       {{> @container}}
     """
