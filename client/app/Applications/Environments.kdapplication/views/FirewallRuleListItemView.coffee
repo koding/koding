@@ -52,8 +52,8 @@ class FirewallRuleListItemView extends KDListItemView
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
       domain.updateProxyRule data, (err)=>
         return console.log err if err?
-        @$().find("div.fw-li-view").removeClass(futureAction).addClass(newAction)
         @actionButton.setTitle futureAction.capitalize()
+        delegate.emit 'ruleActionChanged'
 
 
   deleteProxyRule:->
