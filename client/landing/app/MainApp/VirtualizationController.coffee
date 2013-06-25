@@ -48,7 +48,7 @@ class VirtualizationController extends KDController
   remove: do->
 
     deleteVM = (vm, cb)->
-      KD.remote.api.JVM.removeByName vm, (err)->
+      KD.remote.api.JVM.removeByHostname vm, (err)->
         return cb err  if err
         KD.getSingleton("finderController").unmountVm vm
         KD.getSingleton("vmController").emit 'VMListChanged'
@@ -78,8 +78,8 @@ class VirtualizationController extends KDController
       , no
 
   hasThisVM:(vmTemplate, vms)->
-    for i in [0..vms.length]  when "#{vmTemplate}#{i}" in vms
-      return "#{vmTemplate}#{i}"
+    for i in [0..vms.length]  when ("#{vmTemplate}".replace '%d', i) in vms
+      return ("#{vmTemplate}".replace '%d', i)
     return no
 
   fetchDefaultVmName:(callback=noop, force=no)->
@@ -99,15 +99,15 @@ class VirtualizationController extends KDController
         return callback @defaultVmName = vms.first
 
       # Check for personal VMs in current group
-      vmName = @hasThisVM("#{currentGroup}~#{KD.nick()}~", vms)
+      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{currentGroup}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       # Check for shared VMs in current group
-      vmName = @hasThisVM("#{currentGroup}~", vms)
+      vmName = @hasThisVM("shared-%d.#{currentGroup}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       # Check for personal VMs in Koding group
-      vmName = @hasThisVM("koding~#{KD.nick()}~", vms)
+      vmName = @hasThisVM("vm-%d.#{KD.nick()}.koding.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       callback @defaultVmName = vms.first
@@ -121,7 +121,7 @@ class VirtualizationController extends KDController
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.getSingleton("finderController").mountVm vm.name
+        KD.getSingleton("finderController").mountVm vm.hostname
         vmController.emit 'VMListChanged'
         vmController.showVMDetails vm
 
@@ -196,8 +196,8 @@ class VirtualizationController extends KDController
       else vmController.createPaidVM()
 
   showVMDetails: (vm)->
-    vmName = vm.name
-    url    = "https://#{vm.hostnameAlias.first}"
+    vmName = vm.hostname
+    url    = "https://#{vm.hostname}"
 
     content = """
                 <div class="item">
