@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
@@ -10,10 +9,13 @@ import (
 	"io"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/resolver"
+	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
 	"log"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"strconv"
@@ -24,6 +26,9 @@ import (
 
 func init() {
 	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
+}
+
+type Proxy struct {
 }
 
 type client struct {
@@ -40,10 +45,11 @@ var templates = template.Must(template.ParseFiles(
 
 var proxyDB *proxyconfig.ProxyConfiguration
 var geoIP *libgeo.GeoIP
-var hostname = kontrolhelper.CustomHostname()
+var proxyName = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var clients = make(map[string]client)
 var clientsLock sync.RWMutex
+var deadline = time.Now().Add(time.Second * 5)
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -54,7 +60,7 @@ func main() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	err = proxyDB.AddProxy(hostname)
+	err = proxyDB.AddProxy(proxyName)
 	if err != nil {
 		log.Println(err)
 	}
@@ -66,7 +72,7 @@ func main() {
 		log.Printf("load GeoIP.dat: %s\n", err.Error())
 	}
 
-	reverseProxy := &ReverseProxy{}
+	reverseProxy := &Proxy{}
 
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
@@ -101,6 +107,27 @@ func main() {
 		}(sslip)
 	}
 
+	log.Println("creating listeners between 8000-8100 for vm ports")
+	for i := 1100; i <= 10000; i++ {
+		go func(i int) {
+			port := strconv.Itoa(i)
+			laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
+			if nil != err {
+				log.Fatalln(err)
+			}
+
+			listener, err := net.ListenTCP("tcp", laddr)
+			if nil != err {
+				log.Fatalln(err)
+			}
+
+			err = http.Serve(listener, reverseProxy)
+			if err != nil {
+				log.Println("normal mode is disabled", err)
+			}
+		}(i)
+	}
+
 	// HTTP handling
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
@@ -120,221 +147,170 @@ func main() {
 	}
 }
 
-/*************************************************
-*
-*  modified version of go's reverseProxy source code
-*  has support for dynamic target url, websockets and amqp
-*
-*  - arslan
-*************************************************/
-
-// ReverseProxy is an HTTP Handler that takes an incoming request and
-// sends it to another server, proxying the response back to the
-// client.
-type ReverseProxy struct {
-	// The transport used to perform proxy requests.
-	// If nil, http.DefaultTransport is used.
-	Transport http.RoundTripper
-}
-
-func singleJoiningSlash(a, b string) string {
-	aslash := strings.HasSuffix(a, "/")
-	bslash := strings.HasPrefix(b, "/")
-	switch {
-	case aslash && bslash:
-		return a + b[1:]
-	case !aslash && !bslash:
-		return a + "/" + b
-	}
-	return a + b
-}
-
-func copyHeader(dst, src http.Header) {
-	for k, vv := range src {
-		for _, v := range vv {
-			dst.Add(k, v)
-		}
-	}
-}
-
-// Hop-by-hop headers. These are removed when sent to the backend.
-// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
-var hopHeaders = []string{
-	"Connection",
-	"Keep-Alive",
-	"Proxy-Authenticate",
-	"Proxy-Authorization",
-	"Te", // canonicalized version of "TE"
-	"Trailers",
-	"Transfer-Encoding",
-	"Upgrade",
-}
-
-func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	// redirect http to https
-	if req.TLS == nil && (req.Host == "koding.com" || req.Host == "www.koding.com") {
-		http.Redirect(rw, req, "https://koding.com"+req.RequestURI, http.StatusMovedPermanently)
+func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
+		http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
 		return
 	}
 
 	// Display error when someone hits the main page
-	if hostname == req.Host {
-		io.WriteString(rw, "Hello kontrol proxy :)")
+	if proxyName == r.Host {
+		io.WriteString(w, "Hello kontrol proxy :)")
 		return
 	}
 
-	outreq := new(http.Request)
-	*outreq = *req // includes shallow copies of maps, but okay
+	if h := p.handler(r); h != nil {
+		h.ServeHTTP(w, r)
+		return
+	}
 
-	user, buf, err := populateUser(outreq)
+	log.Println("couldn't find any handler")
+	http.Error(w, "Not found.", http.StatusNotFound)
+	return
+}
+
+// handler returns the appropriate Handler for the given Request,
+// or nil if none found.
+func (p *Proxy) handler(req *http.Request) http.Handler {
+	// remove www from the hostname (i.e. www.foo.com -> foo.com)
+	if strings.HasPrefix(req.Host, "www.") {
+		req.Host = strings.TrimPrefix(req.Host, "www.")
+	}
+
+	userIP, userCountry := getIPandCountry(req.RemoteAddr)
+
+	target, err := resolver.GetTarget(req.Host)
 	if err != nil {
-		rw.WriteHeader(http.StatusNotFound)
-		log.Printf("parsing incoming request from %s to %s: %s", outreq.RemoteAddr, outreq.Host, err.Error())
-		if buf != nil { // if any pre rendered html is available, use that for error displaying
-			p.copyResponse(rw, buf)
-			return
+		if err == resolver.ErrGone {
+			return templateHandler("notfound.html", req.Host, 410)
 		}
-
-		buf, err := executeTemplate("notfound.html", outreq.Host)
-		if err != nil {
-			log.Println("error executing template", err.Error())
-			return
-		}
-		p.copyResponse(rw, buf)
-		return
+		log.Println("resolver error", err)
+		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.String())
-	if user.Redirect {
-		// 302 redirect
-		http.Redirect(rw, req, user.Target.String()+req.RequestURI, http.StatusFound)
-		return
-	}
-
-	switch user.Domain.Proxy.Mode {
+	switch target.Mode {
 	case "maintenance":
-		p.copyResponse(rw, buf)
-		return
+		return templateHandler("maintenance.html", nil, 200)
 	case "redirect":
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
-		return
+		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
+	case "vm":
+		err := utils.CheckServer(target.Url.Host)
+		if err != nil {
+			log.Printf("vm host %s is down: '%s'", req.Host, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
 	}
 
-	var target *url.URL
-	switch user.LoadBalancer.Persistence {
+	switch target.Persistence {
 	case "cookie":
-		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
-		session, _ := store.Get(req, sessionName)
-
-		session.Options = &sessions.Options{MaxAge: 20} //seconds
-		targetURL, ok := session.Values["GOSESSIONID"]
-		if ok {
-			target, err = url.Parse(targetURL.(string))
-			if err != nil {
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-				return
-			}
-		} else {
-			session.Values["GOSESSIONID"] = target.String()
-			session.Save(outreq, rw)
-		}
+		// sessionName := fmt.Sprintf("kodingproxy-%s-%s", host, ip)
+		// session, _ := store.Get(req, sessionName)
+		// session.Options = &sessions.Options{MaxAge: 20} //seconds
+		// targetURL, ok := session.Values["GOSESSIONID"]
+		// if ok {
+		// 	target, err = url.Parse(targetURL.(string))
+		// 	if err != nil {
+		// 		log.Println("could not parse targetUrl", targetURL.(string))
+		// 		return nil, ErrNotFound
+		// 	}
+		// } else {
+		// 	session.Values["GOSESSIONID"] = target.String()
+		// 	session.Save(req, w)
+		// }
 	case "sourceAddress":
-		if client, ok := getClient(user.IP); !ok {
-			target, err = url.Parse(client.target)
+		if client, ok := getClient(userIP); !ok {
+			target.Url, err = url.Parse(client.target)
 			if err != nil {
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-				return
+				log.Println("could not parse client.target", client.target)
+				return templateHandler("notfound.html", req.Host, 404)
 			}
 		}
-	default:
-		// if not set don't use session affinity
-		target = user.Target
 	}
 
-	_, err = validate(user)
+	_, err = validate(userIP, userCountry, req.Host)
 	if err != nil {
 		if err == ErrSecurePage {
-			sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
-			// We're ignoring the error resulted from decoding an existing
-			// session: Get() always returns a session, even if empty.
+			sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
 			session, _ := store.Get(req, sessionName)
-
-			// Timeout for secure page. After timeout secure page is showed
-			// again to the user
 			session.Options = &sessions.Options{MaxAge: 20} //seconds
-
 			_, ok := session.Values["securePage"]
 			if !ok {
-				session.Values["securePage"] = time.Now().String()
-				session.Save(req, rw)
-				err := templates.ExecuteTemplate(rw, "securepage.html", user)
-				if err != nil {
-					http.Error(rw, err.Error(), http.StatusInternalServerError)
-				}
-				return
+				return sessionHandler("securePage", req.Host)
 			}
 		} else {
 			log.Printf("error validating user: %s", err.Error())
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-			return
+			return templateHandler("notfound.html", req.Host, 404)
 		}
 	}
 
-	// Smart handling incoming request path/query, example:
-	// incoming : foo.com/dir
-	// target	: bar.com/base
-	// proxy to : bar.com/base/dir
-	outreq.URL.Scheme = target.Scheme
-	outreq.URL.Host = target.Host
-	outreq.URL.Path = singleJoiningSlash(target.Path, outreq.URL.Path)
-
-	// incoming : foo.com/name=arslan
-	// target	: bar.com/q=example
-	// proxy to : bar.com/q=example&name=arslan
-	if target.RawQuery == "" || outreq.URL.RawQuery == "" {
-		outreq.URL.RawQuery = target.RawQuery + outreq.URL.RawQuery
-	} else {
-		outreq.URL.RawQuery = target.RawQuery + "&" + outreq.URL.RawQuery
-	}
-
-	outreq.Proto = "HTTP/1.1"
-	outreq.ProtoMajor = 1
-	outreq.ProtoMinor = 1
-	outreq.Close = false
-
 	go func() {
-		if _, ok := getClient(user.IP); !ok {
-			go registerClient(user.IP, target.String())
-			go logDomainRequests(outreq.Host)
-			go logProxyStat(hostname, user.Country)
+		if _, ok := getClient(userIP); !ok {
+			go registerClient(userIP, target.Url.String())
+			go logDomainRequests(req.Host)
+			go logProxyStat(proxyName, userCountry)
 		}
 	}()
 
-	// if connection is of type websocket, hijacking is used instead of http proxy
-	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
-	if isWebsocket(outreq) {
-		rConn, err := net.Dial("tcp", outreq.URL.Host)
+	fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
+	fmt.Printf("proxy via db\t: %s --> %s\n", req.Host, target.Url.String())
+
+	if isWebsocket(req) {
+		return websocketHandler(target.Url.String())
+	}
+
+	return reverseProxyHandler(target.Url)
+}
+
+func reverseProxyHandler(target *url.URL) http.Handler {
+	return &httputil.ReverseProxy{
+		Director: func(req *http.Request) {
+			if !utils.HasPort(target.Host) {
+				req.URL.Host = utils.AddPort(target.Host, "80")
+			} else {
+				req.URL.Host = target.Host
+			}
+			req.URL.Scheme = target.Scheme
+		},
+	}
+}
+
+func sessionHandler(val, userIP string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
+		session, _ := store.Get(r, sessionName)
+		session.Values[val] = time.Now().String()
+		session.Save(r, w)
+		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
-			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
-			log.Printf("Error dialing websocket backend %s: %v", outreq.URL.Host, err)
+			log.Println("template securepage could not be executed")
 			return
 		}
+	})
+}
 
-		hj, ok := rw.(http.Hijacker)
+func websocketHandler(target string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d, err := net.Dial("tcp", target)
+		if err != nil {
+			http.Error(w, "Error contacting backend server.", 500)
+			log.Printf("Error dialing websocket backend %s: %v", target, err)
+			return
+		}
+		hj, ok := w.(http.Hijacker)
 		if !ok {
-			http.Error(rw, "Not a hijacker?", http.StatusInternalServerError)
+			http.Error(w, "Not a hijacker?", 500)
 			return
 		}
-
-		conn, _, err := hj.Hijack()
+		nc, _, err := hj.Hijack()
 		if err != nil {
 			log.Printf("Hijack error: %v", err)
 			return
 		}
-		defer conn.Close()
-		defer rConn.Close()
+		defer nc.Close()
+		defer d.Close()
 
-		err = req.Write(rConn)
+		// write back the request of the client to the server.
+		err = r.Write(d)
 		if err != nil {
 			log.Printf("Error copying request to target: %v", err)
 			return
@@ -345,66 +321,21 @@ func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			_, err := io.Copy(dst, src)
 			errc <- err
 		}
-		go cp(rConn, conn)
-		go cp(conn, rConn)
+		go cp(d, nc)
+		go cp(nc, d)
 		<-errc
-		return
-	} else {
-		transport := p.Transport
-		if transport == nil {
-			transport = http.DefaultTransport
-		}
-
-		// Remove hop-by-hop headers to the backend.  Especially
-		// important is "Connection" because we want a persistent
-		// connection, regardless of what the client sent to us.  This
-		// is modifying the same underlying map from req (shallow
-		// copied above) so we only copy it if necessary.
-		copiedHeaders := false
-		for _, h := range hopHeaders {
-			if outreq.Header.Get(h) != "" {
-				if !copiedHeaders {
-					outreq.Header = make(http.Header)
-					copyHeader(outreq.Header, req.Header)
-					copiedHeaders = true
-				}
-				outreq.Header.Del(h)
-			}
-		}
-
-		if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
-			// If we aren't the first proxy retain prior
-			// X-Forwarded-For information as a comma+space
-			// separated list and fold multiple headers into one.
-			if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
-				clientIP = strings.Join(prior, ", ") + ", " + clientIP
-			}
-			outreq.Header.Set("X-Forwarded-For", clientIP)
-		}
-
-		res := new(http.Response)
-
-		if !hasPort(outreq.URL.Host) {
-			outreq.URL.Host = addPort(outreq.URL.Host, "80")
-		}
-
-		res, err = transport.RoundTrip(outreq)
-		if err != nil {
-			io.WriteString(rw, fmt.Sprint(err))
-			return
-		}
-		defer res.Body.Close()
-
-		copyHeader(rw.Header(), res.Header)
-		rw.WriteHeader(res.StatusCode)
-		p.copyResponse(rw, res.Body)
-		return
-	}
-
+	})
 }
 
-func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
-	io.Copy(dst, src)
+func templateHandler(path string, data interface{}, code int) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(code)
+		err := templates.ExecuteTemplate(w, path, data)
+		if err != nil {
+			log.Printf("template %s could not be executed", path)
+			return
+		}
+	})
 }
 
 /*************************************************
@@ -459,41 +390,73 @@ func cleaner() {
 	clientsLock.RUnlock()
 }
 
-/*************************************************
-*
-*  util functions
-*
-*  - arslan
-*************************************************/
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-// Given a string of the form "host", "port", returns "host:port"
-func addPort(host, port string) string {
-	if ok := hasPort(host); ok {
-		return host
+// is the incoming request a part of websocket handshake?
+func isWebsocket(req *http.Request) bool {
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
 	}
-
-	return host + ":" + port
+	return true
 }
 
-// Check if a server is alive or not
-func checkServer(host string) error {
-	c, err := net.DialTimeout("tcp", host, time.Second*5)
-	if err != nil {
-		return err
+func getIPandCountry(addr string) (string, string) {
+	var ip, country string
+	ip, _, err := net.SplitHostPort(addr)
+	if err == nil {
+		if geoIP != nil {
+			loc := geoIP.GetLocationByIP(ip)
+			if loc != nil {
+				country = loc.CountryName
+			}
+		}
 	}
-	c.Close()
-	return nil
+	return ip, country
 }
 
-func executeTemplate(filename string, data interface{}) (io.Reader, error) {
-	buf := new(bytes.Buffer)
-	err := templates.ExecuteTemplate(buf, filename, data)
-	if err != nil {
-		return buf, err
+func logDomainRequests(domain string) {
+	if domain == "" {
+		return
 	}
 
-	return buf, nil
+	err := proxyDB.AddDomainRequests(domain)
+	if err != nil {
+		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
+	}
+}
+
+func logProxyStat(name, country string) {
+	err := proxyDB.AddProxyStat(name, country)
+	if err != nil {
+		fmt.Printf("could not add proxy statistisitcs for %s\n", err.Error())
+	}
+}
+
+func logDomainDenied(domain, ip, country, reason string) {
+	if domain == "" {
+		return
+	}
+
+	err := proxyDB.AddDomainDenied(domain, ip, country, reason)
+	if err != nil {
+		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
+	}
+}
+
+func validate(ip, country, domain string) (bool, error) {
+	// restrictionId, err := proxyDB.GetDomainRestrictionId(u.Domain.Id)
+	// if err != nil {
+	// 	return true, nil //don't block if we don't get a rule (pre-caution))
+	// }
+
+	restriction, err := proxyDB.GetRestrictionByDomain(domain)
+	if err != nil {
+		return true, nil //don't block if we don't get a rule (pre-caution))
+	}
+
+	// restriction, err := proxyDB.GetRestrictionByID(restrictionId)
+	// if err != nil {
+	// 	return true, nil //don't block if we don't get a rule (pre-caution))
+	// }
+
+	return validator(restriction, ip, country, domain).AddRules().Check()
 }

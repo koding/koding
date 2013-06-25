@@ -27,7 +27,8 @@ module.exports = class JVM extends Model
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData', 'fetchDomains', 'fetchVMInfo'
+                           'removeByName', 'someData', 'fetchDomains'
+                           'fetchVMInfo', 'count'
                           ]
       instance          : []
     schema              :
@@ -180,7 +181,7 @@ module.exports = class JVM extends Model
       {delegate} = client.connection
       @calculateUsage delegate, groupSlug, callback
 
-  @fetchVMInfo = secure (client, vmName, callback)-> 
+  @fetchVMInfo = secure (client, vmName, callback)->
     {delegate} = client.connection
 
     delegate.fetchUser (err, user) ->
