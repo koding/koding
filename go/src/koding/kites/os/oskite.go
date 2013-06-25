@@ -70,9 +70,9 @@ func main() {
 		shutdownStarted = true
 		shutdownMutex.Unlock()
 		// wait for the current running methods to return
-		// we know newcoming methods will be thrown away thanks to 
+		// we know newcoming methods will be thrown away thanks to
 		// shutdownStarted variable
-		for  {
+		for {
 			if len(runningVmMethods) == 0 {
 				break
 			} else {
@@ -99,7 +99,7 @@ func main() {
 			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 		}
 		if vm == nil {
-			if err := db.VMs.Find(bson.M{"name": correlationName}).One(&vm); err != nil {
+			if err := db.VMs.Find(bson.M{"hostname": correlationName}).One(&vm); err != nil {
 				return k.ServiceUniqueName
 			}
 		}
@@ -194,7 +194,7 @@ type VMNotFoundError struct {
 }
 
 func (err *VMNotFoundError) Error() string {
-	return "There is no VM with name/id '" + err.Name + "'."
+	return "There is no VM with hostname/id '" + err.Name + "'."
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
@@ -235,7 +235,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
 			}
 			if vm == nil {
-				if err := db.VMs.Find(bson.M{"name": channel.CorrelationName}).One(&vm); err != nil {
+				if err := db.VMs.Find(bson.M{"hostname": channel.CorrelationName}).One(&vm); err != nil {
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
@@ -364,7 +364,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			vmWebDir := "/home/" + vm.WebHomeName() + "/Web"
+			vmWebDir := "/home/" + vm.WebHome + "/Web"
 			userWebDir := "/home/" + user.Name + "/Web"
 
 			if err := rootVos.Symlink(vmWebDir, "/var/www"); err == nil {
@@ -382,9 +382,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					}
 
 					// migration of old Sites directory
-					migrationErr := vmWebVos.Rename("/home/"+vm.WebHomeName()+"/Sites/"+vm.Hostname(), vmWebDir)
-					vmWebVos.Remove("/home/" + vm.WebHomeName() + "/Sites")
-					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname())
+					migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.Hostname, vmWebDir)
+					vmWebVos.Remove("/home/" + vm.WebHome + "/Sites")
+					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname)
 
 					if migrationErr != nil {
 						// create fresh Web directory if migration unsuccessful

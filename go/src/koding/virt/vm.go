@@ -9,22 +9,20 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"syscall"
 	"text/template"
 	"time"
 )
 
 type VM struct {
-	Id            bson.ObjectId  `bson:"_id"`
-	Name          string         `bson:"name"`
-	Users         []*Permissions `bson:"users"`
-	LdapPassword  string         `bson:"ldapPassword"`
-	IP            net.IP         `bson:"ip"`
-	HostKite      string         `bson:"hostKite"`
-	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
-	HostnameAlias []string       `bson:"hostnameAlias"`
-	hostname      string
+	Id           bson.ObjectId  `bson:"_id"`
+	Hostname     string         `bson:"hostname"`
+	WebHome      string         `bson:"webHome"`
+	Users        []*Permissions `bson:"users"`
+	LdapPassword string         `bson:"ldapPassword"`
+	IP           net.IP         `bson:"ip"`
+	HostKite     string         `bson:"hostKite"`
+	SnapshotOf   bson.ObjectId  `bson:"snapshotOf"`
 }
 
 type Permissions struct {
@@ -70,22 +68,6 @@ func (vm *VM) VEth() string {
 
 func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
-}
-
-func (vm *VM) Hostname() string {
-	return vm.HostnameAlias[0]
-}
-
-func (vm *VM) WebHomeName() string {
-	// vm.Name is group~n or group~user~n
-	parts := strings.Split(vm.Name, "~")
-	switch len(parts) {
-	case 2:
-		return parts[0]
-	case 3:
-		return parts[1]
-	}
-	panic("Invalid vm.Name format.")
 }
 
 func (vm *VM) RbdDevice() string {
@@ -281,11 +263,11 @@ func (vm *VM) MountRBD(mountDir string) error {
 			if out, err := exec.Command("/sbin/fsck.ext4", "-y", vm.RbdDevice()).CombinedOutput(); err != nil {
 				exitError, ok := err.(*exec.ExitError)
 				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.Name), err, out)
+					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.Hostname), err, out)
 				}
 			}
 		} else {
-			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.Name), err, out)
+			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.Hostname), err, out)
 		}
 	}
 
