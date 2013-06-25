@@ -19,7 +19,7 @@ module.exports = class FetchAllActivityParallel
     @newMemberBucketIndex = null
 
     kodingMethods = [@fetchInstalls]
-    if group.facets[0] is 'Everything'
+    if group.facets is 'Everything'
       @globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
 
       # HACK: we don't want to show app install in groups other than koding,

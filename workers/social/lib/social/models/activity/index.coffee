@@ -340,7 +340,6 @@ module.exports = class CActivity extends jraphical.Capsule
       if err then return callback err
       userId = client.connection.delegate.getId()
 
-
       {facets, to, limit} = options
       limit = 5 #bandage for now
 
@@ -355,6 +354,7 @@ module.exports = class CActivity extends jraphical.Capsule
       ]
 
       # build facet queries
+      facets = [facets]
       if facets and 'Everything' not in facets
         facetQueryList = []
         for facet in facets
@@ -409,18 +409,17 @@ module.exports = class CActivity extends jraphical.Capsule
   @on 'BucketIsUpdated',   notifyCache.bind this, 'BucketIsUpdated'
   @on 'UserMarkedAsTroll', notifyCache.bind this, 'UserMarkedAsTroll'
 
-
   @fetchPublicActivityFeed = secure (client, options, callback)->
     @getCurrentGroup client, (err, group) =>
       if err then return callback err
-      timestamp  = options.timestamp
-      rawStartDate  = if timestamp? then parseInt(timestamp, 10) else (new Date).getTime()
-      # this is for unix and javascript timestamp differance
-      startDate  = Math.floor(rawStartDate/1000)
+
+      to = options.to
+      to = if to then parseInt(to, 10) else (new Date).getTime()
+      to = Math.floor(to/1000)  # unix vs js timestamp diff.
 
       neo4jConfig = KONFIG.neo4j
       requestOptions =
-        startDate : startDate
+        startDate : to
         neo4j     : neo4jConfig
         group     :
           groupName : group.slug
