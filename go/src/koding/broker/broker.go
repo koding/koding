@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
@@ -175,7 +176,7 @@ func main() {
 							break
 						}
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-							panic(err)
+							log.Warn(fmt.Sprintf("payload: %s routing key: %s exchange: %s", message["payload"].(string), message["routingKey"].(string), message["exchange"].(string)), err)
 						}
 						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
