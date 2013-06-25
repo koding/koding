@@ -78,24 +78,38 @@ module.exports = class Graph
       generatedObjects.push generatedObject
     callback generatedObjects
 
-  removePrivateContent:(groupId, contents, callback)->
-    query = """
-      start  kd=node:koding("id:#{groupId}")
-      MATCH  kd-[:member]->users-[r:owner]-groups
-      WHERE groups.name = "JGroup"
-       AND ( groups.privacy = "private"
-        OR  groups.visibility=  "hidden" )
-      RETURN groups
-      ORDER BY r.createdAtEpoch DESC
-    """
-
-    @db.query query, {}, (err, results)=>
+  getSecretGroups:(client, callback)->
+    JGroup = require '../group'
+    JGroup.some
+      $or : [
+        { privacy: "private" }
+        { visibility: "hidden" }
+      ]
+      slug:
+        $nin: ["koding"] # we need koding even if its private
+    , {}, (err, groups)=>
       if err then return callback err
-      secretGroups = (result.groups.data.slug for result in results)
+      else
+        if groups.length < 1 then callback null, []
+        secretGroups = []
+        checkUserCanReadActivity = race (i, {client, group}, fin)=>
+          group.canReadActivity client, (err, res)=>
+            secretGroups.push group.slug if err
+            fin()
+        , -> callback null, secretGroups
+        for group in groups
+          checkUserCanReadActivity {client: client, group: group}
+
+  # we may need to add public group's read permission checking
+  removePrivateContent:(client, groupId, contents, callback)->
+    if contents.length < 1 then return callback null, contents
+    @getSecretGroups client, (err, secretGroups)=>
+      if err then return callback err
+      if secretGroups.length < 1 then return callback null, contents
       filteredContent = []
       for content in contents
         filteredContent.push content if content.group not in secretGroups
-      callback null, filteredContent
+      return callback null, filteredContent
 
   neo4jFacets = [
     "JLink"
@@ -108,8 +122,8 @@ module.exports = class Graph
     "JCodeShare"
   ]
 
-  fetchAll:(group, startDate, callback)->
-    {groupName, groupId} = group
+  fetchAll:(requestOptions, callback)->
+    {group:{groupName, groupId}, startDate, client} = requestOptions
 
     console.time "fetchAll"
 
@@ -155,7 +169,7 @@ module.exports = class Graph
           console.timeEnd "fetchAll"
 
           if groupName == "koding"
-            @removePrivateContent  groupId, tempRes, callback
+            @removePrivateContent client, groupId, tempRes, callback
           else
             callback null, tempRes
         resultData = ( result.content.data for result in results)

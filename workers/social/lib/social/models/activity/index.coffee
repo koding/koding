@@ -419,6 +419,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
       neo4jConfig = KONFIG.neo4j
       requestOptions =
+        client    : client
         startDate : to
         neo4j     : neo4jConfig
         group     :
