@@ -12,6 +12,7 @@ import (
 	"log"
 	"math"
 	"math/rand"
+	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -47,6 +48,16 @@ func GetTarget(host string) (*Target, error) {
 	var domain proxyconfig.Domain
 	var hostname string
 	var err error
+	var port string
+
+	if !utils.HasPort(host) {
+		port = "80"
+	} else {
+		host, port, err = net.SplitHostPort(host)
+		if err != nil {
+			log.Println(err)
+		}
+	}
 
 	domain, err = proxyDB.GetDomain(host)
 	if err != nil {
@@ -110,8 +121,13 @@ func GetTarget(host string) (*Target, error) {
 		}
 
 		vmAddr := vm.IP.String()
+		portInt, _ := strconv.Atoi(port)
 		if !utils.HasPort(vmAddr) {
-			vmAddr = utils.AddPort(vmAddr, "80")
+			if portInt >= 8000 && portInt <= 8100 {
+				vmAddr = utils.AddPort(vmAddr, port)
+			} else {
+				vmAddr = utils.AddPort(vmAddr, "80")
+			}
 		}
 
 		target, err = url.Parse("http://" + vmAddr)
