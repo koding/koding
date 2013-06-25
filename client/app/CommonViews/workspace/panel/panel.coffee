@@ -12,7 +12,7 @@ class Panel extends JView
     @header         = new KDCustomHTMLView
 
     {title}         = options
-    buttonsLength   = options.buttons and options.buttons.length
+    buttonsLength   = options.buttons?.length
 
     @createHeader title     if title or buttonsLength
     @createHeaderButtons()  if buttonsLength
@@ -34,7 +34,7 @@ class Panel extends JView
       buttonView = new KDButtonView
         title    : buttonOptions.title
         callback : =>
-          buttonOptions.callback @getDelegate(), @
+          buttonOptions.callback @, @getDelegate()
 
       @headerButtons[buttonOptions.title] = buttonView
       @header.addSubView buttonView
@@ -84,7 +84,7 @@ class Panel extends JView
 
   # LAYOUT CREATOR HELPERS #
   createSplitView: (type, views) ->
-    return  new KDSplitView {
+    return  new SplitViewWithOlderSiblings {
       resizable : yes
       sizes     : ["50%", "50%"]
       type
@@ -99,8 +99,8 @@ class Panel extends JView
     @panesContainer.push view
 
   createDoubleLayout: ->
-    pane1     = new KDView
-    pane2     = new KDView
+    pane1      = new KDView
+    pane2      = new KDView
     @splitView = @createSplitView "vertical", [pane1, pane2]
 
     @container.addSubView @splitView
@@ -117,10 +117,10 @@ class Panel extends JView
     @panesContainer.push pane1, pane2, pane3
 
   createQuadrupleLayout: ->
-    pane1           = new KDView
-    pane2           = new KDView
-    pane3           = new KDView
-    pane4           = new KDView
+    pane1             = new KDView
+    pane2             = new KDView
+    pane3             = new KDView
+    pane4             = new KDView
     leftInnerSplit    = @createSplitView "horizontal", [pane1, pane2]
     rightInnerSplit   = @createSplitView "horizontal", [pane3, pane4]
     @splitView        = @createSplitView "vertical",   [leftInnerSplit, rightInnerSplit]
