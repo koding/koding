@@ -382,9 +382,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					}
 
 					// migration of old Sites directory
-					migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.Hostname, vmWebDir)
+					migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.HostnameAlias, vmWebDir)
 					vmWebVos.Remove("/home/" + vm.WebHome + "/Sites")
-					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname)
+					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.HostnameAlias)
 
 					if migrationErr != nil {
 						// create fresh Web directory if migration unsuccessful

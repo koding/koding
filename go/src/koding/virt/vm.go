@@ -15,14 +15,14 @@ import (
 )
 
 type VM struct {
-	Id           bson.ObjectId  `bson:"_id"`
-	Hostname     string         `bson:"hostname"`
-	WebHome      string         `bson:"webHome"`
-	Users        []*Permissions `bson:"users"`
-	LdapPassword string         `bson:"ldapPassword"`
-	IP           net.IP         `bson:"ip"`
-	HostKite     string         `bson:"hostKite"`
-	SnapshotOf   bson.ObjectId  `bson:"snapshotOf"`
+	Id            bson.ObjectId  `bson:"_id"`
+	HostnameAlias string         `bson:"hostnameAlias"`
+	WebHome       string         `bson:"webHome"`
+	Users         []*Permissions `bson:"users"`
+	LdapPassword  string         `bson:"ldapPassword"`
+	IP            net.IP         `bson:"ip"`
+	HostKite      string         `bson:"hostKite"`
+	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
 }
 
 type Permissions struct {
@@ -263,11 +263,11 @@ func (vm *VM) MountRBD(mountDir string) error {
 			if out, err := exec.Command("/sbin/fsck.ext4", "-y", vm.RbdDevice()).CombinedOutput(); err != nil {
 				exitError, ok := err.(*exec.ExitError)
 				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
-					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.Hostname), err, out)
+					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.HostnameAlias), err, out)
 				}
 			}
 		} else {
-			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.Hostname), err, out)
+			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.HostnameAlias), err, out)
 		}
 	}
 
