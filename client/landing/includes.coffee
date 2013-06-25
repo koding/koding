@@ -231,6 +231,10 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   # WORKSPACE
+  "libs/firebase/firebase.all.js",
+  "libs/codemirror/lib/codemirror.js",
+  "libs/codemirror/mode/javascript/javascript.js",
+  "libs/firepad/firepad.js",
   "app/CommonViews/workspace/panes/pane.coffee",
   "app/CommonViews/workspace/panes/editorpane.coffee",
   "app/CommonViews/workspace/panes/previewpane.coffee",
