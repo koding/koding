@@ -81,31 +81,34 @@ module.exports = class Graph
   getSecretGroups:(client, callback)->
     JGroup = require '../group'
     JGroup.some
-      privacy: "private"
-      visibility: "hidden"
+      $or : [
+        { privacy: "private" }
+        { visibility: "hidden" }
+      ]
       slug:
         $nin: ["koding"] # we need koding even if its private
     , {}, (err, groups)=>
       if err then return callback err
       else
+        if groups.length < 1 then callback null, []
         secretGroups = []
         checkUserCanReadActivity = race (i, {client, group}, fin)=>
           group.canReadActivity client, (err, res)=>
-            secretGroups.push group.slug unless err
+            secretGroups.push group.slug if err
             fin()
-        , =>
-          callback null, secretGroups
+        , -> callback null, secretGroups
         for group in groups
           checkUserCanReadActivity {client: client, group: group}
 
   removePrivateContent:(client, groupId, contents, callback)->
-      @getSecretGroups client, (err, secretGroups)=>
-        if err then return callback err
-        else
-          filteredContent = []
-          for content in contents
-            filteredContent.push content if content.group not in secretGroups
-          callback null, filteredContent
+    if contents.length < 1 then return callback null, contents
+    @getSecretGroups client, (err, secretGroups)=>
+      if err then return callback err
+      if secretGroups.length < 1 then return callback null, contents
+      filteredContent = []
+      for content in contents
+        filteredContent.push content if content.group not in secretGroups
+      return callback null, filteredContent
 
   neo4jFacets = [
     "JLink"
