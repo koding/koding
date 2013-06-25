@@ -100,6 +100,7 @@ module.exports = class Graph
         for group in groups
           checkUserCanReadActivity {client: client, group: group}
 
+  # we may need to add public group's read permission checking
   removePrivateContent:(client, groupId, contents, callback)->
     if contents.length < 1 then return callback null, contents
     @getSecretGroups client, (err, secretGroups)=>
