@@ -31,13 +31,14 @@ class ResourcesController extends KDListViewController
       return  unless vms
       # vms.sort cmp
       stack   = []
-      vms.forEach (vmName)=>
+      vms.forEach (hostname)=>
+        group = hostname.replace('.kd.io','').split('.').last or 'koding'
         stack.push (cb)->
-          KD.remote.cacheable (vmName.split '~').first, (err, res)->
+          KD.remote.cacheable group, (err, res)->
             return cb err  if err
             group = res?.first or 'koding'
             data  =
-              vmName     : vmName
+              vmName     : hostname
               groupSlug  : group?.slug  or 'koding'
               groupTitle : group?.title or 'Koding'
             cb null, data
@@ -59,10 +60,10 @@ class ResourcesView extends KDListView
 
 class ResourcesListItem extends KDListItemView
 
-  constructor:(options = {}, vmName)->
+  constructor:(options = {}, data)->
 
     options.cssClass or= 'vm'
-    super options, vmName
+    super options, data
 
     @vm = KD.getSingleton 'vmController'
     @vm.on 'StateChanged', @bound 'checkVMState'
