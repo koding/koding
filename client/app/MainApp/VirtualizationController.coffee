@@ -121,7 +121,7 @@ class VirtualizationController extends KDController
         return new KDNotificationView
           title : err.message or "Something bad happened while creating VM"
       else
-        KD.getSingleton("finderController").mountVm vm.hostname
+        KD.getSingleton("finderController").mountVm vm.hostnameAlias
         vmController.emit 'VMListChanged'
         vmController.showVMDetails vm
 
@@ -196,8 +196,8 @@ class VirtualizationController extends KDController
       else vmController.createPaidVM()
 
   showVMDetails: (vm)->
-    vmName = vm.hostname
-    url    = "https://#{vm.hostname}"
+    vmName = vm.hostnameAlias
+    url    = "https://#{vm.hostnameAlias}"
 
     content = """
                 <div class="item">

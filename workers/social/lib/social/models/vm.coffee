@@ -38,7 +38,7 @@ module.exports = class JVM extends Model
       ldapPassword      :
         type            : String
         default         : -> null
-      hostname          : String
+      hostnameAlias     : String
       webHome           : String
       planOwner         : String
       planCode          : String
@@ -133,7 +133,7 @@ module.exports = class JVM extends Model
             planOwner     : planOwner
             users         : [{ id: user.getId(), sudo: yes, owner: yes }]
             groups        : [{ id: group.getId() }]
-            hostname      : hostnameAliases[0]
+            hostnameAlias : hostnameAliases[0]
             webHome
             usage
           }
@@ -184,22 +184,22 @@ module.exports = class JVM extends Model
   #     {delegate} = client.connection
   #     @calculateUsage delegate, groupSlug, callback
 
-  @fetchVMInfo = secure (client, hostname, callback)->
+  @fetchVMInfo = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
     delegate.fetchUser (err, user) ->
       return callback err  if err
 
       JVM.one
-        hostname      : hostname
+        hostnameAlias : hostnameAlias
         users         : { $elemMatch: id: user.getId() }
       , (err, vm)->
         return callback err  if err
         return callback null, null  unless vm
         callback null,
-          planCode    : vm.planCode
-          planOwner   : vm.planOwner
-          hostname    : vm.hostname
+          planCode      : vm.planCode
+          planOwner     : vm.planOwner
+          hostnameAlias : vm.hostnameAlias
 
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -212,12 +212,12 @@ module.exports = class JVM extends Model
 
       selector.users = { $elemMatch: id: user.getId() }
 
-      JVM.someData selector, { hostname: 1 }, options, (err, cursor)->
+      JVM.someData selector, { hostnameAlias: 1 }, options, (err, cursor)->
         return callback err  if err
 
         cursor.toArray (err, arr)->
           return callback err  if err
-          callback null, arr.map (vm)-> vm.hostname
+          callback null, arr.map (vm)-> vm.hostnameAlias
 
   @fetchVmsByContext = permit 'list all vms',
     success: (client, options, callback) ->
@@ -244,20 +244,20 @@ module.exports = class JVM extends Model
     #     callback null, [vm]
 
   @fetchDomains = permit 'list all vms',
-    success:(client, hostname, callback)->
+    success:(client, hostnameAlias, callback)->
       {delegate} = client.connection
 
       delegate.fetchUser (err, user) ->
         return callback err  if err
 
         selector =
-          hostname : hostname
-          users    : { $elemMatch: id: user.getId(), owner: yes }
+          hostnameAlias : hostnameAlias
+          users         : { $elemMatch: id: user.getId(), owner: yes }
 
-        JVM.one selector, {hostname:1}, (err, vm)->
+        JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm
           JDomain = require './domain'
-          JDomain.someData {hostnameAlias: vm.hostname}, {domain:1}, \
+          JDomain.someData {hostnameAlias: vm.hostnameAlias}, {domain:1}, \
           (err, cursor)->
             return callback err, []  if err
             cursor.toArray (err, arr)->
@@ -293,15 +293,15 @@ module.exports = class JVM extends Model
               else
                 vm.remove callback
 
-  @removeByHostname = secure (client, hostname, callback)->
+  @removeByHostname = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
     delegate.fetchUser (err, user)=>
       return callback err  if err
 
       selector =
-        hostname : hostname
-        users    : { $elemMatch: id: user.getId(), owner: yes }
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId(), owner: yes }
 
       JVM.one selector, (err, vm)=>
         return callback err  if err
@@ -340,13 +340,13 @@ module.exports = class JVM extends Model
       JVM.createDomains hostnameAliases
 
       vm = new JVM {
-        planCode  : planCode
-        planOwner : planOwner
-        users     : [
+        users         : [
           { id: user.getId(), sudo: yes, owner: yes }
         ]
-        groups    : groups ? []
-        hostname  : hostnameAliases[0]
+        groups        : groups ? []
+        hostnameAlias : hostnameAliases[0]
+        planOwner
+        planCode
         webHome
       }
       vm.save (err)-> target.addVm vm, handleError
