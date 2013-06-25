@@ -24,6 +24,7 @@ class FirewallFilterListItemView extends KDListItemView
     @unsetClass 'kdview'
     @setTemplate @pistachio()
     @template.update()
+    #@$().hide()
 
   createRule:(behavior)->
     data = @getData()
@@ -38,7 +39,7 @@ class FirewallFilterListItemView extends KDListItemView
 
         proxyRuleMatches = (rule.match for rule in rules)
 
-        if (proxyRuleMatches.indexOf data.match) is -1
+        if proxyRuleMatches.indexOf(data.match) is -1
           params = 
             domainName: domain.domain
             action    : behavior
@@ -63,7 +64,9 @@ class FirewallFilterListItemView extends KDListItemView
   pistachio:->
     {name, match} = @getData()
     """
-    <td class="filter-name">#{name}</td>
+    <td class="filter-name">
+      #{name}
+    </td>
     <td class="filter-match">#{match}</td>
     <td class="actions">
       {{> @allowButton }}

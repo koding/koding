@@ -81,7 +81,14 @@ app.environments.styl
   .domain-detail-tabs .kdtabpaneview
     height            auto
     width             auto
-    padding           10px
+
+    .common-inner-nav
+      background      #f8f8f8
+      margin          0px !important
+      height          100%
+
+    &.routing, .analytics, .rules, .filters
+      padding         10px
 
   .kdtabpaneview.analytics
     font-size         22px
@@ -260,7 +267,7 @@ app.environments.styl
   .input-wrapper
     margin-right     5px
 
-  .kdlistview-filters
+  .kdlistview-filters, .kdlistview-rules
 
     border-collapse    separate
     border-spacing     0
@@ -279,28 +286,67 @@ app.environments.styl
       font-size        11px
       padding          9px 8px 7px 8px
       text-shadow      0 -1px 0 rgba(0, 0, 0, 0.6)
-      text-transform   uppercase
-  
-    td
-      padding          6px
 
     tbody td
       border-bottom    1px solid #c6c9cc
       border-left      1px solid #e4e7eb
       border-right     1px solid rgba(255, 255, 255, 0.6)
       box-shadow       inset 0 1px 0 rgba(255, 255, 255, 0.6)
+      padding          10px
+
+    .slide-icon
+      sprite()
+      bg position,     -121px -559px
+      display          block
+      abs()
+
+    .filter-item
+      height           45px
+      cursor           pointer
+      text-transform   uppercase
 
     td.filter-name
-      width            15%
+      width            40%
 
     td.filter-match
-      width            15%
+      width            40%
+
+    td.action
+      width            1%
 
     td.actions
-      width            5%
+      width            20%
+      
+      .on-off
+        display        block
+
+      .on-off a
+        padding        7px 10px 6px
 
     tbody td.item, tbody tr:nth-child(even) td.item 
-      border-left: 1px solid #c6c9cc
+      border-left      1px solid #c6c9cc
+
+    .allow-icon
+      width          10px
+      height         10px    
+      margin-left    10px
+      sprite()
+      bg position,   -25px -145px
+      position       relative
+      top            6px
+      left           -5px
+
+    .deny-icon
+      width          10px
+      height         10px    
+      margin-left    10px
+      sprite()
+      bg position,   -25px -125px
+      position       relative
+      top            6px
+      left           -5px
+    
+
 
     .filter-icon
       width          40px
