@@ -176,7 +176,7 @@ func main() {
 							break
 						}
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-							log.Warn(fmt.Sprintf("payload: %s routing key: %s exchange: %s", message["payload"].(string), message["routingKey"].(string), message["exchange"].(string)), err)
+							log.Warn(fmt.Sprintf("payload: %v routing key: %v exchange: %v", message["payload"], message["routingKey"], message["exchange"]), err)
 						}
 						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
