@@ -47,7 +47,7 @@ class FSHelper
 
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
-    KD.getSingleton('kiteController').run command, (err, res) =>
+    KD.getSingleton('vmController').run command, (err, res) =>
       result = {}
 
       if res
@@ -79,14 +79,14 @@ class FSHelper
       callback err, res?
 
   @getInfo = (path, vmName, callback=noop)->
-    KD.getSingleton('kiteController').run
+    KD.getSingleton('vmController').run
       method   : "fs.getInfo"
       vmName   : vmName
       withArgs : {path}
     , callback
 
   @ensureNonexistentPath = (path, vmName, callback=noop)->
-    KD.getSingleton('kiteController').run
+    KD.getSingleton('vmController').run
       method   : "fs.ensureNonexistentPath"
       vmName   : vmName
       withArgs : {path}
@@ -160,7 +160,7 @@ class FSHelper
   @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
     return warn "Pass a path to create folders recursively"  unless path
 
-    KD.getSingleton("kiteController").run {
+    KD.getSingleton("vmController").run {
       kiteName    : "os"
       method      : "fs.createDirectory"
       withArgs    : {
