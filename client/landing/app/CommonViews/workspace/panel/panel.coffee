@@ -67,10 +67,11 @@ class Panel extends JView
 
   createPane: (paneOptions, targetContainer) ->
     paneTypesToPaneClass =
-      "terminal"         : TerminalPane
-      "editor"           : EditorPane
-      "video"            : VideoPane
-      "preview"          : PreviewPane
+      "terminal"         : @TerminalPaneClass
+      "editor"           : @EditorPaneClass
+      "video"            : @VideoPaneClass
+      "preview"          : @PreviewPaneClass
+
     paneType             = paneOptions.type
     PaneClass            = paneTypesToPaneClass[paneType]
     pane                 = new PaneClass paneOptions
@@ -137,3 +138,8 @@ class Panel extends JView
       {{> @header}}
       {{> @container}}
     """
+
+Panel::EditorPaneClass   = EditorPane
+Panel::TerminalPaneClass = TerminalPane
+Panel::VideoPaneClass    = VideoPane
+Panel::PreviewPaneClass  = PreviewPane
