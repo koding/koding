@@ -178,7 +178,7 @@ class GroupCreationModal extends KDModalView
             itemClass     : KDSelectBox
             type          : "select"
             name          : "allocation"
-            defaultValue  : "10"
+            defaultValue  : "0"
             cssClass      : "allocation"
             change        : @bound "allocationChanged"
             selectOptions : [
