@@ -83,33 +83,33 @@ class KiteController extends KDController
       command = options
       options = {}
 
-    options.kiteName or= "os"
     options.method   or= "exec"
+    options.kiteName or= "os"
 
-    KD.getSingleton("vmController").fetchDefaultVmName (defaultVmName)=>
-      vmName = if options.vmName then options.vmName else defaultVmName
-      unless vmName
-        return callback message: 'There is no VM for this account.'
+    correlationName = options.correlationName or ""
 
-      options.vmName = vmName
+    if options.kiteName is "os" and not correlationName
+      warn """OS kite call requested without providing
+              correlationName, using default if exists."""
+      correlationName = KD.getSingleton('vmController').defaultVmName
 
-      kite = @getKite options.kiteName, vmName
+    kite = @getKite options.kiteName, correlationName
 
-      if command
-        options.withArgs = command
-      else
-        options.withArgs or= {}
+    if command
+      options.withArgs = command
+    else
+      options.withArgs or= {}
 
-      if KD.logsEnabled and KD.showKiteCalls
-        notify """
-                Calling <b>#{options.method}</b> method,
-                from <b>#{options.kiteName}</b> kite
-               """
+    if KD.logsEnabled and KD.showKiteCalls
+      notify """
+              Calling <b>#{options.method}</b> method,
+              from <b>#{options.kiteName}</b> kite
+             """
 
-      log "Kite Request:", options
+    log "Kite Request:", options
 
-      kite.tell options, (err, response)=>
-        @parseKiteResponse {err, response}, options, callback
+    kite.tell options, (err, response)=>
+      @parseKiteResponse {err, response}, options, callback
 
   setListeners:->
 
