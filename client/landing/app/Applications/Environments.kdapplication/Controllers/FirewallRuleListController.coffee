@@ -22,7 +22,7 @@ class FirewallRuleListController extends KDListViewController
     @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'
     @getListView().on "ruleActionChanged", @bound 'updateProxyRulesList'
     @on "newRuleCreated", @bound 'addItem'
-
+    @on "itemsFetched", @bound 'itemsFetched'
 
     @fetchProxyRules()
 
@@ -34,9 +34,12 @@ class FirewallRuleListController extends KDListViewController
       if ruleList
         rule.domainName = domain.domain for rule in ruleList
         @instantiateListItems ruleList
-        @emit 'itemsFetched'
+      @emit 'itemsFetched'
 
   updateProxyRulesList:->
     @removeAllItems()
     @fetchProxyRules()
 
+  itemsFetched:->
+    if @itemsOrdered.length is 0
+      @getView().updatePartial "You don't have any rules set for this domain."
