@@ -109,7 +109,7 @@ func main() {
 	}
 
 	// HTTP Handling for VM port forwardings
-	log.Println("normal mode is enabled. serving ports between 1100-1000 for vms...")
+	log.Println("normal mode is enabled. serving ports between 1024-10000 for vms...")
 	for i := 1024; i <= 10000; i++ {
 		go func(i int) {
 			port := strconv.Itoa(i)
