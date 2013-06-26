@@ -52,6 +52,12 @@ class DashboardAppController extends AppController
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @policyViewAdded
+      ,
+        name         : 'Payment'
+        viewOptions  :
+          viewClass  : GroupPaymentSettingsView
+          lazy       : yes
+          callback   : @paymentViewAdded
 
       # CURRENTLY DISABLED
 
@@ -82,6 +88,8 @@ class DashboardAppController extends AppController
       # tabHandle.markDirty()
 
   policyViewAdded:(pane, view)->
+
+  paymentViewAdded:(pane, view)->
 
   vocabularyViewAdded:(pane, view)->
     group = view.getData()
