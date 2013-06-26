@@ -498,9 +498,7 @@ func newInfo(vm *virt.VM) *VMInfo {
 }
 
 func (info *VMInfo) startTimeout() {
-	//info.timeout = time.AfterFunc(10*time.Minute, info.unprepareVM)
-	<-time.After(10*time.Minute)
-	info.unprepareVM()
+	info.timeout = time.AfterFunc(10*time.Minute, func() { info.unprepareVM() })
 }
 
 func (info *VMInfo) unprepareVM() {
