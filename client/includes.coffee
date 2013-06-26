@@ -231,18 +231,23 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
   # WORKSPACE
-  "libs/firebase/firebase.all.js",
-  "libs/codemirror/lib/codemirror.js",
-  "libs/codemirror/mode/javascript/javascript.js",
-  "libs/firepad/firepad.js",
   "app/CommonViews/workspace/panes/pane.coffee",
   "app/CommonViews/workspace/panes/editorpane.coffee",
   "app/CommonViews/workspace/panes/previewpane.coffee",
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
-  "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/workspace.coffee",
+
+  # COLLABORATIVE WORKSPACE
+  "libs/firebase/firebase.all.js",
+  "libs/codemirror/lib/codemirror.js",
+  "libs/codemirror/mode/javascript/javascript.js",
+  "libs/firebase/firepad.js",
+  "libs/firepad/firepad.css",
+  "libs/codemirror/lib/codemirror.css",
+  "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
 
