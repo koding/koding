@@ -37,18 +37,27 @@ class GroupPaymentSettingsView extends JView
         billing             :
           label             : "Billing Method"
           tagName           : "a"
-          partial           : ""
+          partial           : "Enter Billing Information"
           itemClass         : KDCustomHTMLView
           cssClass          : "billing-link"
           click             : =>
             @updateBillingInfo group
+        history             :
+          label             : "Payment History"
+          tagName           : "a"
+          partial           : "Show Payment History"
+          itemClass         : KDCustomHTMLView
+          cssClass          : "billing-link"
+          click             : =>
+            new GroupPaymentHistoryModal {group}
         sharedVM            :
           label             : "Shared VM"
           itemClass         : KDOnOffSwitch
           name              : "shared-vm"
+          cssClass          : "hidden"
         vmDesc              :
           itemClass         : KDCustomHTMLView
-          cssClass          : "vm-description"
+          cssClass          : "vm-description hidden"
           partial           : """<section>
                                 <p>If you enable this, your group will have a shared VM.</p>
                               </section>"""
@@ -60,11 +69,11 @@ class GroupPaymentSettingsView extends JView
           defaultValue      : "0"
           selectOptions     : [
             { title : "None",  value : "0" }
-            { title : "$ 10",  value : "10" }
-            { title : "$ 20",  value : "20" }
-            { title : "$ 30",  value : "30" }
-            { title : "$ 50",  value : "50" }
-            { title : "$ 100", value : "100" }
+            { title : "$ 10",  value : "1000" }
+            { title : "$ 20",  value : "2000" }
+            { title : "$ 30",  value : "3000" }
+            { title : "$ 50",  value : "5000" }
+            { title : "$ 100", value : "10000" }
           ]
         allocDesc           :
           itemClass         : KDCustomHTMLView
@@ -141,8 +150,101 @@ class GroupPaymentSettingsView extends JView
                    #{billing.city}, #{billing.state} #{billing.zip}
                    """
       else
-        cardInfo = ""
+        cardInfo = "Enter Billing Information"
       @settingsForm.inputs.billing.updatePartial cardInfo
       callback err, billing
 
   pistachio:-> "{{> @settingsForm}}"
+
+class GroupPaymentHistoryModal extends KDModalViewWithForms
+
+  constructor:(options, data)->
+    {group} = options
+
+    options =
+      title                   : "Payment History"
+      content                 : ''
+      overlay                 : yes
+      width                   : 500
+      height                  : "auto"
+      cssClass                : "databases-modal"
+      tabs                    :
+        navigable             : yes
+        goToNextFormOnSubmit  : no
+        forms                 :
+          history             :
+            fields            :
+              Instances       :
+                type          : 'hidden'
+                cssClass      : 'database-list'
+            buttons           :
+              Refresh         :
+                style         : "modal-clean-gray"
+                type          : 'submit'
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : =>
+                  form = @modalTabs.forms.history
+                  @dbController.loadItems =>
+                    form.buttons.Refresh.hideLoader()
+
+    super options, data
+
+    @dbController = new GroupPaymentHistoryListController
+      group     : group
+      itemClass : AccountPaymentHistoryListItem
+
+    dbList = @dbController.getListView()
+
+    dbListForm = @modalTabs.forms.history
+    dbListForm.fields.Instances.addSubView @dbController.getView()
+
+    @dbController.loadItems()
+
+class GroupPaymentHistoryListController extends KDListViewController
+
+  constructor:(options = {}, data)->
+    @group = options.group
+    super
+
+  loadView:->
+
+    super
+    @loadItems()
+
+  loadItems:(callback)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @showLazyLoader no
+
+    transactions = []
+    @group.checkPayment (err, trans) =>
+      if err
+        @instantiateListItems []
+        @hideLazyLoader()
+      unless err
+        for t in trans
+          if t.amount + t.tax is 0
+            continue
+          transactions.push
+            status     : t.status
+            amount     : ((t.amount + t.tax) / 100).toFixed(2)
+            currency   : 'USD'
+            createdAt  : t.datetime
+            paidVia    : t.card or ""
+            owner      : t.owner
+            refundable : t.refundable
+        if transactions.length is 0
+          @addCustomItem "There are no transactions."
+        else
+          @instantiateListItems transactions
+        @hideLazyLoader()
+        callback?()
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
