@@ -75,6 +75,7 @@ class HomeLoginBar extends JView
             unless err
               @access.hide()
               @requested.show()
+              @listenToApproval()
 
     @join         = new CustomLinkView
       tagName     : "a"
@@ -232,6 +233,8 @@ class HomeLoginBar extends JView
 
               return  unless KD.isLoggedIn()
 
+              @group.on 'MemberAdded', @emit.bind this, 'MemberAdded'
+
               KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
                 return console.warn err if err
                 return unless request
@@ -240,9 +243,18 @@ class HomeLoginBar extends JView
                 if request.status is 'sent'
                   @invited.show()
                 else
+                  @listenToApproval()
                   @requested.show()
     else
       @hide()
+
+  listenToApproval:->
+    @once 'MemberAdded', @listenToApprovalCallback ?= =>
+      @group.fetchMyRoles (err, roles)=>
+        return warn err  if err
+        if 'member' not in roles
+          return @once 'MemberAdded', @listenToApprovalCallback
+        KD.getSingleton('mainController').accountChanged KD.whoami()
 
   viewAppended:->
     super

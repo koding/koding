@@ -35,6 +35,7 @@ class Sidebar extends JView
     ,
       id        : "navigation"
       title     : "navigation"
+      items     : []
 
     navAdditions = [
       { type  : 'separator',      order : 61}
