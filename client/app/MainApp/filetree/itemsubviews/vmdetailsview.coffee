@@ -20,7 +20,7 @@ class NVMDetailsView extends JView
     # @vm.on 'StateChanged', @bound 'checkVMState'
 
   kcRun:(command, callback)->
-    kc = KD.getSingleton("kiteController")
+    kc = KD.getSingleton("vmController")
     kc.run
       kiteName : "os"
       method   : "exec"

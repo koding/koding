@@ -11,9 +11,7 @@ import (
 )
 
 const (
-	Stopped WorkerStatus = iota
-	Running
-	Notstarted
+	Started WorkerStatus = iota
 	Killed
 	Dead
 	Waiting
@@ -21,8 +19,6 @@ const (
 
 type WorkerStatus int
 
-// WorkerResponse will replace WorkerMessage as a seperated message format
-// Not used currently, wip...
 type WorkerResponse struct {
 	Name    string `json:"name"`
 	Uuid    string `json:"uuid"`
@@ -214,11 +210,7 @@ func (w *WorkerConfig) RefreshStatus(uuid string) error {
 		return err
 	}
 
-	if worker.Timestamp.IsZero() {
-		worker.Status = Notstarted
-		worker.Monitor.Mem = MemData{}
-		worker.Monitor.Uptime = 0
-	} else if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
+	if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
 		worker.Status = Dead
 		worker.Monitor.Mem = MemData{}
 		worker.Monitor.Uptime = 0

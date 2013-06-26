@@ -15,36 +15,42 @@ class ActivityAppController extends AppController
     'Everything'
   ]
 
-  @clearQuotes = clearQuotes = (activities)->
+  newActivitiesArrivedTypes = [
+    'CStatusActivity'
+    'CCodeSnipActivity'
+    'CFollowerBucketActivity'
+    'CNewMemberBucketActivity'
+    'CDiscussionActivity'
+    'CTutorialActivity'
+    'CInstallerBucketActivity'
+    'CBlogPostActivity'
+  ]
 
+  @clearQuotes = clearQuotes = (activities)->
     return activities = for activityId, activity of activities
       activity.snapshot = activity.snapshot?.replace /&quot;/g, '\"'
       activity
 
   constructor:(options={})->
-
     options.view    = new ActivityAppView
     options.appInfo =
       name          : 'Activity'
 
     super options
 
-    @currentFilter  = activityTypes
-    @feedType       = "Public"
-    @appStorage     = new AppStorage 'Activity', '1.0'
-    @isLoading      = no
-    @mainController = KD.getSingleton 'mainController'
-    @lastTo         = null
-    @lastFrom       = Date.now()
+    @currentFeedFilter     = "Public"
+    @currentActivityFilter = "Everything"
+    @appStorage            = new AppStorage 'Activity', '1.0'
+    @isLoading             = no
+    @mainController        = KD.getSingleton 'mainController'
+    @lastTo                = null
+    @lastFrom              = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
-    @status.on "reconnected", (conn)=>
-      #if conn && conn.reason is "internetDownForLongTime"
-      #then @refresh()
-      #else @fetchSomeActivities()
+    @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>
@@ -52,139 +58,70 @@ class ActivityAppController extends AppController
       @ready @bound "populateActivity"
 
     @emit 'ready'
+    console.clear()
 
   resetAll:->
-    @lastTo   = null
-    @lastFrom = null
+    @lastTo    = null
+    @lastFrom  = Date.now()
+    @isLoading = no
     @listController.resetList()
     @listController.removeAllItems()
-
-  setFilter:(type) -> @currentFilter = if type? then [type] else activityTypes
-
-  getFilter: -> @currentFilter
 
   ownActivityArrived:(activity)-> @listController.ownActivityArrived activity
 
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
+  bindLazyLoad:->
+    @listController.once 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
+    @listController.once 'teasersLoaded', @teasersLoaded.bind @
+
+  continueLoadingTeasers:->
+    @clearPopulateActivityBindings()
+    @populateActivity to : @lastFrom
+
   attachEvents:(controller)->
-
-    @listController    = controller
     activityController = KD.getSingleton('activityController')
-
-    controller.on 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
-    controller.on 'teasersLoaded', @teasersLoaded.bind @
-
-    @getView().widgetController.on "FakeActivityHasArrived", (activity)->
-      controller.fakeActivityArrived activity
-
-    @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
-
+    appView            = @getView()
+    {widgetController} = appView
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
-    @getView().innerNav.on "NavItemReceivedClick", (data)=>
+    @listController = controller
+    @bindLazyLoad()
+
+    widgetController.on "FakeActivityHasArrived", (activity)->
+      controller.fakeActivityArrived activity
+
+    widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
+
+    appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
-      @isLoading = no
+
       @resetAll()
-      # the filterList on top of the innerNav is clicked
+
+      @clearPopulateActivityBindings()
       if data.type in ["Public", "Followed"]
-        @feedType = data.type
-      else
-        @setFilter data.type
+      then @setFeedFilter data.type
+      else @setActivityFilter data.type
+
       @populateActivity()
 
-  activitiesArrived:(activities)->
-    filter = [
-      'CStatusActivity'
-      'CCodeSnipActivity'
-      'CFollowerBucketActivity'
-      'CNewMemberBucketActivity'
-      'CDiscussionActivity'
-      'CTutorialActivity'
-      'CInstallerBucketActivity'
-      'CBlogPostActivity'
-    ]
+  setFeedFilter: (feedType) -> @currentFeedFilter = feedType
+  getFeedFilter: -> @currentFeedFilter
 
-    for activity in activities when activity.bongo_.constructorName in filter
-      @listController?.newActivityArrived activity
+  setActivityFilter: (activityType)-> @currentActivityFilter = activityType
+  getActivityFilter: -> @currentActivityFilter
 
-  isExempt:(callback)->
+  clearPopulateActivityBindings:->
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    @off "followingFeedFetched_#{eventSuffix}"
+    @off "publicFeedFetched_#{eventSuffix}"
+    # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-    @appStorage.fetchStorage (storage) =>
-      flags  = KD.whoami().globalFlags
-      exempt = flags?.indexOf 'exempt'
-      exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
-      callback exempt
-
-  fetchActivitiesDirectly:(options = {}, callback)->
-    KD.time "Activity fetch took - "
-    options = to : options.to or Date.now()
-
-    @fetchActivity options, (err, teasers)=>
-      @isLoading = no
-      @listController.hideLazyLoader()
-      KD.timeEnd "Activity fetch took"
-
-      if err or teasers.length is 0
-        warn "An error occured:", err  if err
-        @listController.showNoItemWidget()
-      else
-        @extractTeasersTimeStamps(teasers)
-        @listController.listActivities teasers
-
-      callback? err, teasers
-
-  fetchActivitiesFromCache:(options = {})->
-    @fetchCachedActivity options, (err, cache)=>
-      @isLoading = no
-      if err or cache.length is 0
-        warn err  if err
-        @listController.hideLazyLoader()
-        @listController.showNoItemWidget()
-      else
-        @extractCacheTimeStamps cache
-        @sanitizeCache cache, (err, cache)=>
-          @listController.hideLazyLoader()
-          @listController.listActivitiesFromCache cache
-
-  # Store first & last activity timestamp.
-  extractTeasersTimeStamps:(teasers)->
-    @lastTo   = teasers.first.meta.createdAt
-    @lastFrom = teasers.last.meta.createdAt
-
-  # Store first & last cache activity timestamp.
-  extractCacheTimeStamps: (cache)->
-    @lastTo   = cache.to
-    @lastFrom = cache.from
-
-  # Refreshes activity feed, used when user has been disconnected
-  # for so long, backend connection is long gone.
-  refresh:->
-    # prevents multiple clicks to refresh from interfering
+  populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
 
-    @resetAll()
-    @populateActivityWithTimeout()
-
-  populateActivityWithTimeout:->
-    @populateActivity {},\
-      KD.utils.getTimedOutCallbackOne
-        name      : "populateActivity",
-        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        onTimeout : @recover.bind this
-
-  recover:->
-
-    KD.logToMixpanel "activity feed render failed; recovering"
-
-    @isLoading = no
-    @status.reconnect()
-
-  populateActivity:(options = {}, callback)->
-    return if @isLoading
-
-    @listController.showLazyLoader()
+    @listController.showLazyLoader no
     @listController.hideNoItemWidget()
 
     @isLoading       = yes
@@ -192,121 +129,99 @@ class ActivityAppController extends AppController
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
 
-    fetch = (slug)=>
+    reset = =>
+      @isLoading = no
+      @bindLazyLoad()
 
-      # since it is not working, disabled it,
-      # to-do add isExempt control.
-      # @isExempt (exempt)=>
-      #   if exempt or @getFilter() isnt activityTypes
+    fetch = do =>=>
+      #since it is not working, disabled it,
+      #to-do add isExempt control.
+      #@isExempt (exempt)=>
+        #if exempt or @getFilter() isnt activityTypes
 
-      @fetchActivitiesDirectly options, callback
+      options =
+        to     : options.to or Date.now()
+        group  :
+          slug : currentGroup.slug or "koding"
+          id   : currentGroup.getId()
+        limit  : 20
+        facets : @getActivityFilter()
 
-    unless isReady
-    then groupsController.once 'groupChanged', fetch
-    else fetch currentGroup.slug
+      eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
+      if @getFeedFilter() is "Public"
+        @once "publicFeedFetched_#{eventSuffix}", (cache)=>
+          reset()
+          @extractCacheTimeStamps cache
+          @listController.listActivitiesFromCache cache
+          callback cache
+
+        @fetchPublicActivities options
+      else
+        @once "followingFeedFetched_#{eventSuffix}", (activities)=>
+          reset()
+          @extractTeasersTimeStamps activities
+          @listController.listActivities activities
+          callback activities
+
+        @fetchFollowingActivities options
+
+      # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
+
+    if isReady
+    then fetch()
+    else groupsController.once 'groupChanged', fetch
+
+  fetchPublicActivities:(options = {})->
+    {CStatusActivity} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
+      cache.overview.reverse()  if cache.overview
+
+      return @emit "activitiesCouldntBeFetched", err  if err
+
+      @sanitizeCache cache, (err, sanitizedCache)=>
+        if err
+        then @emit "activitiesCouldntBeFetched", err
+        else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
+
+
+  fetchFollowingActivities:(options = {})->
+    {CActivity} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    CActivity.fetchFolloweeContents options, (err, activities) =>
+      if err
+      then @emit "activitiesCouldntBeFetched", err
+      else @emit "followingFeedFetched_#{eventSuffix}", activities
+
+  setLastTimestamps:(from, to)->
+    # debugger
+    @lastTo   = to
+    @lastFrom = from
+
+
+  # Store first & last cache activity timestamp.
+  extractCacheTimeStamps: (cache)->
+    @setLastTimestamps (new Date cache.from).getTime(), (new Date cache.to).getTime()
+
+  # Store first & last activity timestamp.
+  extractTeasersTimeStamps:(teasers)->
+    return unless teasers.first
+    @setLastTimestamps new Date(teasers.last.meta.createdAt).getTime(), new Date(teasers.first.meta.createdAt).getTime()
 
   sanitizeCache:(cache, callback)->
-
     activities = clearQuotes cache.activities
 
     KD.remote.reviveFromSnapshots activities, (err, instances)->
-
       for activity,i in activities
         cache.activities[activity._id] or= {}
         cache.activities[activity._id].teaser = instances[i]
 
       callback null, cache
 
-  fetchActivity:(options = {}, callback)->
-
-    options       =
-      limit       : options.limit    or 20
-      to          : options.to       or Date.now()
-      facets      : options.facets   or @getFilter()
-      originId    : options.originId or null
-      sort        :
-        createdAt : -1
-
-    {CActivity}   = KD.remote.api
-    options.feedType = @feedType
-
-    if options.facets is activityTypes
-      options.facets = ['Everything']
-
-    if @feedType is "Public"
-      options.groupId = KD.getSingleton("groupsController").getCurrentGroup().getId()
-
-      @fetchActivitiesFromCache options, callback
-    else
-      CActivity.fetchFolloweeContents options, callback
-
-  # Fetches activities that occured after the first entry in user feed,
-  # used for minor disruptions.
-  fetchSomeActivities:(options = {}) ->
-    return if @isLoading
-    @isLoading = yes
-
-    lastItemCreatedAt = @listController.getLastItemTimeStamp()
-    unless lastItemCreatedAt? or lastItemCreatedAt is ""
-      @isLoading = no
-      log "lastItemCreatedAt is empty"
-      # if lastItemCreatedAt is null, we assume there are no entries
-      # and refresh the entire feed
-      @refresh()
-      return
-
-    selector       =
-      createdAt    :
-        $gt        : options.createdAt or lastItemCreatedAt
-      type         : { $in : options.facets or @getFilter() }
-      isLowQuality : { $ne : options.exempt or no }
-
-    options       =
-      limit       : 20
-      sort        :
-        createdAt : -1
-
-    KD.remote.api.CActivity.some selector, options,\
-      KD.utils.getTimedOutCallback (err, activities) =>
-        if err then warn err
-        else
-
-          KD.logToMixpanel "refresh activity feed success"
-
-          # FIXME: SY
-          # if it is exact 20 there may be other items
-          # put a separator and check for new items in between
-          if activities.length is 20
-            warn "put a separator in between new and old activities"
-
-          @activitiesArrived activities.reverse()
-          @isLoading = no
-      , =>
-        @isLoading = no
-        log "fetchSomeActivities timeout reached"
-
-  fetchCachedActivity:(options = {}, callback)->
-    options.timestamp or= options.to
-    options.groupName   = KD.getSingleton("groupsController").getCurrentGroup()?.slug or "koding"
-    options.facets      = @getFilter()
-
-    KD.remote.api.CStatusActivity.fetchPublicActivityFeed options, (err, result)=>
-      result.overview.reverse() if result?.overview
-      return callback err, result
-
-  continueLoadingTeasers:->
-    # fix me
-    # this is a monkeypatch
-    # find the original problem and get rid of @continueLoadingTeasersLastTimeStamp
-    # and isNaN - SY
-    lastTimeStamp = (new Date @lastFrom).getTime()
-    if isNaN(lastTimeStamp) or @continueLoadingTeasersLastTimeStamp is lastTimeStamp
-      @listController.hideLazyLoader()
-      return
-
-    @continueLoadingTeasersLastTimeStamp = lastTimeStamp
-    @populateActivity {slug : "before/#{lastTimeStamp}", to: lastTimeStamp}
+  activitiesArrived:(activities)->
+    for activity in activities when activity.bongo_.constructorName in newActivitiesArrivedTypes
+      @listController?.newActivityArrived activity
 
   teasersLoaded:->
     # the page structure has changed
@@ -391,3 +306,28 @@ class ActivityAppController extends AppController
 
   getNewItemsCount: (callback) ->
     callback? @listController?.activityHeader?.getNewItemsCount() or 0
+
+  # Refreshes activity feed, used when user has been disconnected
+  # for so long, backend connection is long gone.
+  refresh:->
+    # prevents multiple clicks to refresh from interfering
+    return  if @isLoading
+
+    @resetAll()
+    @clearPopulateActivityBindings()
+    @populateActivityWithTimeout()
+
+  populateActivityWithTimeout:->
+    @populateActivity {},\
+      KD.utils.getTimedOutCallbackOne
+        name      : "populateActivity",
+        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
+        onTimeout : @recover.bind this
+
+  recover:->
+    KD.logToMixpanel "activity feed render failed; recovering"
+
+    @isLoading = no
+
+    @status.reconnect()
+    @refresh()

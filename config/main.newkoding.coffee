@@ -85,6 +85,8 @@ module.exports =
     watch       : no
     queueName   : socialQueueName+'cache'
     run         : no
+  graphFeederWorker:
+    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 10

@@ -12,7 +12,7 @@ class FSFile extends FSItem
   fetchContents:(callback)->
 
     @emit "fs.job.started"
-    @kiteController.run
+    @vmController.run
       kiteName  : 'os'
       method    : 'fs.readFile'
       vmName    : @vmName
@@ -53,7 +53,7 @@ class FSFile extends FSItem
     # Convert to base64
     content = btoa KD.utils.utf8Encode contents
 
-    @kiteController.run
+    @vmController.run
       kiteName  : 'os'
       method    : 'fs.writeFile'
       vmName    : @vmName
