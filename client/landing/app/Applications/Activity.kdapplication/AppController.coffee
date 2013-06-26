@@ -47,8 +47,6 @@ class ActivityAppController extends AppController
       #else @fetchSomeActivities()
 
   loadView:->
-    # Do we really need this? ~ GG
-    # yes - SY
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"

@@ -23,7 +23,7 @@ class NVMItemView extends NFileItemView
       if not err and domains.length > 0
         @vmInfo.updatePartial """
           on <a id="open-vm-page-#{data.vmName}"
-          href="https://#{domains.first}" target="_blank">
+          href="http://#{domains.first}" target="_blank">
           #{domains.first}</a> VM
         """
 
