@@ -116,7 +116,7 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
@@ -173,7 +173,7 @@ module.exports =
     push	: yes
     host	: 'opsview.in.koding.com'
   followFeed    :
-    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
