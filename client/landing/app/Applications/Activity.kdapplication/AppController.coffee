@@ -38,13 +38,13 @@ class ActivityAppController extends AppController
 
     super options
 
-    @currentFilter  = activityTypes
-    @feedType       = "Public"
-    @appStorage     = new AppStorage 'Activity', '1.0'
-    @isLoading      = no
-    @mainController = KD.getSingleton 'mainController'
-    @lastTo         = null
-    @lastFrom       = Date.now()
+    @currentFeedFilter     = "Public"
+    @currentActivityFilter = "Everything"
+    @appStorage            = new AppStorage 'Activity', '1.0'
+    @isLoading             = no
+    @mainController        = KD.getSingleton 'mainController'
+    @lastTo                = null
+    @lastFrom              = Date.now()
 
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
@@ -72,7 +72,7 @@ class ActivityAppController extends AppController
 
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
-  listenToLazyThreshold:->
+  bindLazyLoad:->
     @listController.once 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
     @listController.once 'teasersLoaded', @teasersLoaded.bind @
 
@@ -89,7 +89,7 @@ class ActivityAppController extends AppController
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller
-    @listenToLazyThreshold()
+    @bindLazyLoad()
 
     @getView().widgetController.on "FakeActivityHasArrived", (activity)->
       controller.fakeActivityArrived activity
@@ -102,7 +102,7 @@ class ActivityAppController extends AppController
       @isLoading = no
       @resetAll()
 
-      if @activityCallback? then @activityCallback.cancel()
+      if @responseHandler? then @responseHandler.cancel()
 
       if data.type in ["Public", "Followed"] then @setFeedFilter data.type
       else @setActivityFilter data.type
@@ -110,10 +110,10 @@ class ActivityAppController extends AppController
       @populateActivity()
 
   setFeedFilter: (feedType) -> @currentFeedFilter = feedType
-  getFeedFilter: -> @currentFeedFilter or "Public"
+  getFeedFilter: -> @currentFeedFilter
 
   setActivityFilter: (activityType)-> @currentActivityFilter = activityType
-  getActivityFilter: -> @currentActivityFilter or "Everything"
+  getActivityFilter: -> @currentActivityFilter
 
   populateActivity:(options = {}, callback)->
     return  if @isLoading
@@ -126,38 +126,38 @@ class ActivityAppController extends AppController
     {isReady}        = groupsController
     currentGroup     = groupsController.getCurrentGroup()
 
-    #fetch = ()=>
+    fetch = ()=>
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
         #if exempt or @getFilter() isnt activityTypes
 
-    #if isReady
-    #then fetch
-    #else groupsController.once 'groupChanged', fetch
+      options =
+        to     : options.to or Date.now()
+        group  :
+          slug : currentGroup.slug or "koding"
+          id   : currentGroup.getId()
+        limit  : 20
+        facets : @getActivityFilter()
 
-    options =
-      to     : options.to or Date.now()
-      group  :
-        slug : currentGroup.slug or "koding"
-        id   : currentGroup.getId()
-      limit  : 20
-      facets : @getActivityFilter()
+      @responseHandler = KD.utils.getCancellableCallback (err, activities, callback)=>
+        @responseHandler = null
+        @isLoading = no
+        @bindLazyLoad()
 
-    @activityCallback = KD.utils.getCancellableCallback (err, activities, callback)=>
-      @activityCallback = null
-      @isLoading = no
-      @listenToLazyThreshold()
+        if err or activities.length is 0
+          warn err  if err
 
-      if err or activities.length is 0
-        warn err  if err
+          @listController.hideLazyLoader()
+          @listController.showNoItemWidget()
+        else
+          callback activities
 
-        @listController.hideLazyLoader()
-        @listController.showNoItemWidget()
-      else
-        callback activities
+      @fetchActivities options, @responseHandler
 
-    @fetchActivities options, @activityCallback
+    if isReady
+    then fetch()
+    else groupsController.once 'groupChanged', fetch
 
   fetchActivities: (options={}, callback)->
     if @getFeedFilter() is "Public" then @fetchPublicActivities options, callback
