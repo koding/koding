@@ -121,13 +121,8 @@ func GetTarget(host string) (*Target, error) {
 		}
 
 		vmAddr := vm.IP.String()
-		portInt, _ := strconv.Atoi(port)
 		if !utils.HasPort(vmAddr) {
-			if portInt >= 1100 && portInt <= 10000 {
-				vmAddr = utils.AddPort(vmAddr, port)
-			} else {
-				vmAddr = utils.AddPort(vmAddr, "80")
-			}
+			vmAddr = utils.AddPort(vmAddr, port)
 		}
 
 		target, err = url.Parse("http://" + vmAddr)
