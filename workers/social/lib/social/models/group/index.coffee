@@ -1298,13 +1298,11 @@ module.exports = class JGroup extends Module
   updateBundle: (formData, callback = (->)) ->
     @fetchBundle (err, bundle) =>
       return callback err  if err?
-      bundle.update $set: { overagePolicy: formData.overagePolicy,  }, callback
-      bundle.fetchLimits (err, limits) ->
-        return callback err  if err?
-        queue = limits.map (limit) -> ->
-          limit.update { $set: quota: formData.quotas[limit.title] }, fin
-        dash queue, callback
-        fin = queue.fin.bind queue
+      bundle.update $set: {
+        overagePolicy: formData.overagePolicy
+        sharedVM     : formData.sharedVM
+        allocation   : formData.allocation
+      }, callback
 
   updateBundle$: permit 'change bundle',
     success: (client, formData, callback)->
