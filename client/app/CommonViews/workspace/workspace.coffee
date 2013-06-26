@@ -13,7 +13,7 @@ class Workspace extends JView
   createPanel: (callback = noop) ->
     panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
     panelOptions.delegate = @
-    newPanel              = new @PanelClass panelOptions
+    newPanel              = new Panel panelOptions
 
     @container.addSubView newPanel
     @panels.push newPanel
@@ -27,13 +27,9 @@ class Workspace extends JView
 
   prev: ->
 
-  viewAppended: ->
-    super
-    @createPanel()
+  ready: -> @createPanel()
 
   pistachio: ->
     """
       {{> @container}}
     """
-
-Workspace::PanelClass = Panel
