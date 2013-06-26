@@ -1,5 +1,5 @@
-# uncomplicate this - Sinan 7/2012
-# rewriting this - Sinan 2/2013
+# √ uncomplicate this - Sinan 7/2012
+# √ rewriting this - Sinan 2/2013
 
 class ApplicationManager extends KDObject
 
