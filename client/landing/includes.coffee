@@ -567,6 +567,7 @@ module.exports = [
   "app/Applications/Groups.kdapplication/Views/groupsvocabulariesview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupswebhookview.coffee",
   "app/Applications/Groups.kdapplication/Views/grouptabhandleview.coffee",
+  "app/Applications/Groups.kdapplication/Views/paymentsettingsview.coffee",
   "app/Applications/Groups.kdapplication/Views/groupview.coffee",
   "app/Applications/Groups.kdapplication/Views/joinbutton.coffee",
   "app/Applications/Groups.kdapplication/Views/permissionsmodal.coffee",
