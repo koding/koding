@@ -4,6 +4,8 @@ class CollaborativeEditorPane extends Pane
 
     super options, data
 
+    log "i am an CollaborativeEditorPane and my session key is #{options.sessionKey}" if options.sessionKey
+
   viewAppended: ->
     super
 
@@ -13,7 +15,7 @@ class CollaborativeEditorPane extends Pane
 
     panel       = @getDelegate()
     workspace   = panel.getDelegate()
-    @sessionKey = @getOptions().sessionKey or @createSessionId()
+    @sessionKey = @getOptions().sessionKey or @createSessionKey()
     ref         = workspace.firepadRef.child @sessionKey
     @firepad    = Firepad.fromCodeMirror ref, @codeMirrorEditor
 
@@ -23,7 +25,7 @@ class CollaborativeEditorPane extends Pane
       if @firepad.isHistoryEmpty()
         @firepad.setText "" # this should be
 
-  createSessionId: ->
+  createSessionKey: ->
     nick = KD.nick()
     u    = KD.utils
     return "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
