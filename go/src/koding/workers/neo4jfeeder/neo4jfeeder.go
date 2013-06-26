@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	EXCHANGE_NAME     = "neo4jFeederExchange"
-	WORKER_QUEUE_NAME = "neo4jFeederWorkerQueue"
+	EXCHANGE_NAME     = "graphFeederExchange"
+	WORKER_QUEUE_NAME = "graphFeederWorkerQueue"
 )
 
 type Consumer struct {
