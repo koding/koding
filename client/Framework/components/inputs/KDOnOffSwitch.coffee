@@ -23,7 +23,6 @@ class KDOnOffSwitch extends KDInputView
     @inputName  = name
     @domElement = $ """
       <div class='kdinput on-off off #{cssClass}'>
-        #{title}
         <a href='#' class='on' title='turn on'>#{labels[0]}</a><a href='#' class='off' title='turn off'>#{labels[1]}</a>
       </div> """
 
