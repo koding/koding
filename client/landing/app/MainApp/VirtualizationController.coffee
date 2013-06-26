@@ -8,30 +8,44 @@ class VirtualizationController extends KDController
     @resetVMData()
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
 
-  run:(vm, command, callback)->
-    KD.requireMembership
-      callback : =>
-        @askForApprove command, (approved)=>
-          if approved
-            cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-                 else callback
-            @kc.run
-              kiteName : 'os'
-              method   : command
-              vmName   : vm
-            , cb
-          else unless command is 'vm.info' then @info vm
-      onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-      onFail    : =>
-        unless command is 'vm.info' then callback yes
-        else callback null, state: 'STOPPED'
-      silence   : yes
+  run:(options={}, callback)->
+
+    if "string" is typeof options
+      command = options
+      options =
+        withArgs : command
+
+    @fetchDefaultVmName (defaultVmName)=>
+      log "Found defaultVm as:", defaultVmName
+      vmName = if options.vmName then options.vmName else defaultVmName
+      log "Requested VM is:", vmName
+      unless vmName
+        return callback message: 'There is no VM for this account.'
+      options.correlationName = vmName
+      @kc.run options, callback
 
   _runWraper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @run vm, command, callback  if vm
+      return  unless vm
+      KD.requireMembership
+        callback : =>
+          @askForApprove command, (approved)=>
+            if approved
+              cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
+                   else callback
+              @run
+                kiteName : 'os'
+                method   : command
+                vmName   : vm
+              , cb
+            else unless command is 'vm.info' then @info vm
+        onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
+        onFail    : =>
+          unless command is 'vm.info' then callback yes
+          else callback null, state: 'STOPPED'
+        silence   : yes
 
   start:(vm, callback)->
     @_runWraper 'vm.start', vm, callback
@@ -67,7 +81,7 @@ class VirtualizationController extends KDController
               return callback null  unless state
               deleteVM vm, callback
 
-  info:(vm, callback)->
+  info:(vm, callback=noop)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
