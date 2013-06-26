@@ -314,6 +314,7 @@ class ActivityAppController extends AppController
     return  if @isLoading
 
     @resetAll()
+    @clearPopulateActivityBindings()
     @populateActivityWithTimeout()
 
   populateActivityWithTimeout:->
