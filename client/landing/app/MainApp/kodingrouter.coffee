@@ -145,7 +145,7 @@ class KodingRouter extends KDRouter
         then onSuccess models
         else onError err
     else
-      KD.remote.api.JName.one {name: routeWithoutParams}, (err, jName)=>
+      KD.remote.api.JName.one {name: routeWithoutParams.slice(1)}, (err, jName)=>
         if err then onError err
         else if jName?
           models = []
