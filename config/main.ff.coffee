@@ -157,6 +157,7 @@ module.exports =
     proxy         :
       port        : 80
       portssl     : 443
+      ftpip       : '54.208.3.200'
       sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
       host        : 'kontrol.in.koding.com'

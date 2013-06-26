@@ -58,6 +58,7 @@ type Config struct {
 		Proxy struct {
 			Port    int
 			PortSSL int
+			FTPIP   string
 			SSLIPS  string
 		}
 		RabbitMq struct {

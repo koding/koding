@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
@@ -12,6 +11,10 @@ import (
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
+	"koding/tools/db"
+	"koding/tools/fastproxy"
+	"koding/virt"
+	"labix.org/v2/mgo/bson"
 	"log"
 	"net"
 	"net/http"
@@ -74,76 +77,58 @@ func main() {
 
 	reverseProxy := &Proxy{}
 
+	// FTP handling
+	log.Println("ftp mode is enabled. serving at :21...")
+	go fastproxy.ListenFTP(&net.TCPAddr{IP: nil, Port: 21}, net.ParseIP(config.Current.Kontrold.Proxy.FTPIP), nil, func(req *fastproxy.FTPRequest) {
+		userName := req.User
+		vmName := req.User
+		if userParts := strings.SplitN(userName, "@", 2); len(userParts) == 2 {
+			userName = userParts[0]
+			vmName = userParts[1]
+		}
+
+		var vm virt.VM
+		if err := db.VMs.Find(bson.M{"hostnameAlias": vmName}).One(&vm); err != nil {
+			req.Respond("530 No Koding VM with name '" + vmName + "' found.\r\n")
+			return
+		}
+
+		if err := req.Relay(&net.TCPAddr{IP: vm.IP, Port: 21}, userName); err != nil {
+			req.Respond("530 The Koding VM '" + vmName + "' did not respond.")
+		}
+	})
+
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	log.Printf("https mode is enabled. serving at :%s ...", portssl)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 	for _, sslip := range sslips {
 		go func(sslip string) {
-			cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
-			if nil != err {
-				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-				return
+			err := http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", reverseProxy)
+			if err != nil {
+				log.Println(err)
 			}
-
-			addr := sslip + ":" + portssl
-			laddr, err := net.ResolveTCPAddr("tcp", addr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			listener, err := net.ListenTCP("tcp", laddr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			sslListener := tls.NewListener(listener, &tls.Config{
-				NextProtos:   []string{"http/1.1"},
-				Certificates: []tls.Certificate{cert},
-			})
-
-			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-			http.Serve(sslListener, reverseProxy)
-
 		}(sslip)
 	}
 
-	log.Println("creating listeners between 8000-8100 for vm ports")
+	// HTTP Handling for VM port forwardings
+	log.Println("normal mode is enabled. serving ports between 1100-1000 for vms...")
 	for i := 1100; i <= 10000; i++ {
 		go func(i int) {
 			port := strconv.Itoa(i)
-			laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			listener, err := net.ListenTCP("tcp", laddr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			err = http.Serve(listener, reverseProxy)
+			err := http.ListenAndServe(":"+port, reverseProxy)
 			if err != nil {
-				log.Println("normal mode is disabled", err)
+				log.Println(err)
 			}
 		}(i)
 	}
 
-	// HTTP handling
+	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
-	if nil != err {
-		log.Fatalln(err)
-	}
-
-	listener, err := net.ListenTCP("tcp", laddr)
-	if nil != err {
-		log.Fatalln(err)
-	}
-
-	err = http.Serve(listener, reverseProxy)
+	err = http.ListenAndServe(":"+port, reverseProxy)
 	if err != nil {
-		log.Println("normal mode is disabled", err)
+		log.Panic(err)
 	}
 }
 

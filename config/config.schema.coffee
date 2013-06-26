@@ -181,6 +181,7 @@ config =
       proxy         :
         port        : 1
         portssl     : 1
+        ftpip       : 1
         sslips      : 1
       rabbitmq      :
         host        : 1
