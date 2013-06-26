@@ -498,18 +498,17 @@ func newInfo(vm *virt.VM) *VMInfo {
 }
 
 func (info *VMInfo) startTimeout() {
-	//info.timeout = time.AfterFunc(10*time.Minute, info.unprepareVM)
-	<-time.After(10*time.Minute)
-	info.unprepareVM()
+	info.timeout = time.AfterFunc(10*time.Minute, func() {
+		if len(info.channels) != 0 {
+			return
+		}
+		info.unprepareVM()
+	})
 }
 
 func (info *VMInfo) unprepareVM() {
 	infosMutex.Lock()
 	defer infosMutex.Unlock()
-
-	if len(info.channels) != 0 {
-		return
-	}
 
 	var vm virt.VM
 	if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
