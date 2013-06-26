@@ -24,20 +24,25 @@ class FirewallFilterListItemView extends KDListItemView
     @unsetClass 'kdview'
     @setTemplate @pistachio()
     @template.update()
-    #@$().hide()
+
+    data = @getData()
+    if data and data.ruleAction in ['allow', 'deny']
+      @hide()
+    
 
   createRule:(behavior)->
     data = @getData()
     delegate = @getDelegate()
     delegateData = delegate.getData()
     domainName = delegateData.domain.domain
+    ctx = this
 
     KD.remote.api.JDomain.one {domainName}, (err, domain)=>
       return console.log err if err
 
-      domain.fetchProxyRules (err, rules)->
+      domain.fetchProxyRules (err, rules)=>
 
-        proxyRuleMatches = (rule.match for rule in rules)
+        proxyRuleMatches = if rules then (rule.match for rule in rules) else []
 
         if proxyRuleMatches.indexOf(data.match) is -1
           params = 
@@ -55,6 +60,7 @@ class FirewallFilterListItemView extends KDListItemView
               enabled    : rule.enabled
             
             delegate.emit "newRuleCreated", ruleObj
+            @hide()
 
   deleteFilter:->
     data = @getData()

@@ -25,18 +25,33 @@ class FirewallFilterListController extends KDListViewController
     listView.setData(data)
 
     listView.on "newFilterCreated", @bound 'addItem'
+    @on "itemsFetched", @bound 'itemsFetched'
 
     @fetchFilters()
-
 
   fetchFilters:->
     {domain} = @getData()
 
     KD.remote.api.JProxyFilter.fetchFiltersByContext (err, filters)=>
-      domain.fetchProxyRules (err, ruleList)=>
+      
+      domain.fetchProxyRulesWithMatches (err, ruleList)=>
+        return console.log err if err
+
         ruleMatches = Object.keys(ruleList)
-        for filter in filters
-          if filter.match in ruleMatches
-            filter.ruleAction = ruleList[filter.match]
+
+        if ruleMatches.length > 0
+          for filter in filters
+            if filter.match in ruleMatches
+              filter.ruleAction = ruleList[filter.match]
+
         @instantiateListItems filters
         @emit 'itemsFetched'
+
+  itemsFetched:->
+    if @itemsOrdered.length is 0
+      @getView().updatePartial "You don't have any filters."
+
+  refreshFilters:->
+    @removeAllItems()
+    @fetchFilters()
+

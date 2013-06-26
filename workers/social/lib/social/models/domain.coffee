@@ -32,7 +32,7 @@ module.exports = class JDomain extends jraphical.Module
     sharedMethods   :
       instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule', 
                        'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain', 
-                       'updateRuleOrders', 'fetchProxyRules'
+                       'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches'
                       ]
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
@@ -165,6 +165,18 @@ module.exports = class JDomain extends jraphical.Module
       return callback err if err
       return callback null, restriction.ruleList if restriction
       return callback null, []
+
+  fetchProxyRulesWithMatches: (callback)->
+    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+      return callback err if err
+
+      restrictions = {}
+
+      if restriction and restriction.ruleList?
+        for rest in restriction.ruleList
+          restrictions[rest.match] = rest.action
+
+      callback null, restrictions
 
   createProxyRule: permit
     advanced: [

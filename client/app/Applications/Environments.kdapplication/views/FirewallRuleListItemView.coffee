@@ -55,16 +55,21 @@ class FirewallRuleListItemView extends KDListItemView
         @actionButton.setTitle futureAction.capitalize()
         delegate.emit 'ruleActionChanged'
 
-
   deleteProxyRule:->
     data = @getData()
+    delegate = @getDelegate()
 
     KD.remote.api.JDomain.one {domainName:data.domainName}, (err, domain)=>
-      domain.deleteProxyRule {match:data.match}, (err, result)=>
+      domain.deleteProxyRule
+        match   : data.match
+        action  : data.action
+        enabled : data.enabled
+      , (err, result)=>
         return console.log err if err?
         new KDNotificationView {title:"Rule has been deleted from your firewall.", type:"top"}
         @destroy()
-
+        delegate.emit "ruleDeleted"
+        delegate.emit "ruleActionChanged"
 
   viewAppended:->
     @unsetClass 'kdivew'
@@ -74,8 +79,8 @@ class FirewallRuleListItemView extends KDListItemView
   pistachio:->
     {action, match} = @getData()
     ruleText = if action is "deny"
-    then "Denying network connections from #{match}"
-    else "Allowing network connections from #{match}"
+    then "Denying network connections from <strong>#{match}</strong>"
+    else "Allowing network connections from <strong>#{match}</strong>"
 
     """
     <td class="action"><span class="fl #{action}-icon"></span></td>
