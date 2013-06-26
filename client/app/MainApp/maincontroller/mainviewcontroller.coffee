@@ -15,6 +15,8 @@ class MainViewController extends KDViewController
     mainController.on "ShowInstructionsBook", (index)=>
       book = mainView.addBook()
       book.fillPage index
+      # passing book object to catch listeners
+      KD.getSingleton("router").emit "InstructionsBookAdded",book
 
     mainController.on "ToggleChatPanel", =>
       mainView.chatPanel.toggle()

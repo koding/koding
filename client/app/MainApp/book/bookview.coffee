@@ -3,6 +3,9 @@
     - page switching ui
     - develop fake button items and styling
     - flip pages by clicking left or right half of the pages
+
+    KD.getSingleton("router").handleRoute("/Develop")
+    KD.singletons.appManager.openFile(FSHelper.createFileFromPath("/home/devrim/Web/index.html"))
 ###
 
 class BookView extends JView
@@ -21,7 +24,6 @@ class BookView extends JView
 
     options.domId    = "instruction-book"
     options.cssClass = "book"
-
     super options, data
 
     @currentIndex = 0
@@ -36,6 +38,24 @@ class BookView extends JView
     @pagerWrapper = new KDCustomHTMLView
       cssClass : "controls"
 
+
+    @pagerWrapper.addSubView new KDCustomHTMLView
+      tagName : "a"
+      partial : "close"
+      click   : => @emit "OverlayWillBeRemoved"
+      tooltip :
+        title : "ESC"
+        gravity:"ne"
+
+
+    @pagerWrapper.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "home"
+      click     : (pubInst, event)=> @fillPage 0
+      tooltip   :
+        title   : "Table of contents"
+        gravity : "sw"
+
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "◀"
@@ -44,6 +64,15 @@ class BookView extends JView
         title   : "⌘ Left Arrow"
         gravity : "sw"
 
+
+    @pagerWrapper.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "Panic!"
+      click     : (pubInst, event)=> @changePageFromRoute KD.getSingleton("router").currentPath
+      tooltip   :
+        title   : "help me right here!"
+
+      
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "▶"
@@ -52,10 +81,12 @@ class BookView extends JView
         title   : "⌘ Right Arrow"
         gravity : "se"
 
-    @putOverlay
-      cssClass    : ""
-      isRemovable : yes
-      animated    : yes
+    
+
+    #@putOverlay
+    #  cssClass    : ""
+    #  isRemovable : no
+    #  animated    : yes
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
     @once "OverlayWillBeRemoved", => @unsetClass "in"
@@ -97,15 +128,37 @@ class BookView extends JView
 
     return page
 
+
+  changePageFromRoute:(route)->
+    for index, page of __bookPages 
+      if page.routeURL == route 
+        @fillPage index
+
+  ###shouldNavigateWithUser:->
+    appStorage = new AppStorage "instruction-book", "1.0"
+    appStorage.fetchValue "readPages", (pages) ->
+      pages or= []
+      if pages.length is 0
+        pages.push "table-of-contents"
+        @firstTime = true
+      else
+        @firstTime = false
+      appStorage.setValue "readPages", pages
+  ###
+  openFileWithPage:(page)->
+    user = KD.whoami().profile
+    if page.data.file
+      fileName = "/home/#{user.nickname}#{page.data.file}"
+      KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))    
+
   fillPrevPage:->
 
     return if @currentIndex - 1 < 0
     @fillPage @currentIndex - 1
 
   fillNextPage:->
-
     return if __bookPages.length is @currentIndex + 1
-    @fillPage @currentIndex + 1
+    @fillPage parseInt(@currentIndex,10) + 1
 
   fillPage:(index)->
 
@@ -127,3 +180,19 @@ class BookView extends JView
       @utils.wait 400, =>
         @setClass "in"
 
+    if page.data.app is "Chat"
+      KD.singletons.chatPanel.showPanel()
+
+    if page.data.app is "Terminal"
+      @utils.wait 1500, =>
+        @setClass "more-terminal"
+    else 
+      @unsetClass "more-terminal"
+
+    @openFileWithPage page
+
+    if page.data.title
+      KD.mixpanel.track "Read Tutorial Page", {"page":page.data.title}
+
+    if page.data.routeURL
+      KD.getSingleton("router").handleRoute(page.data.routeURL)

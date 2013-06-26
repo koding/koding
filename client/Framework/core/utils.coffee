@@ -449,7 +449,7 @@ __utils =
     kallback
 
   logTimeoutToExternal: (timerName)->
-    KD.logToMixpanel timerName+".timeout"
+    #KD.logToMixpanel timerName+".timeout"
 
   logTimer:(timerName, timerNumber, startTime)->
     log "logTimer name:#{timerName}"

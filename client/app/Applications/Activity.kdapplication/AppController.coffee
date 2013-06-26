@@ -165,12 +165,12 @@ class ActivityAppController extends AppController
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
-        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
+        #onSuccess : -> KD.logToMixpanel "refresh activity feed success"
         onTimeout : @recover.bind this
 
   recover:->
 
-    KD.logToMixpanel "activity feed render failed; recovering"
+    #KD.logToMixpanel "activity feed render failed; recovering"
 
     @isLoading = no
     @status.reconnect()
@@ -287,7 +287,7 @@ class ActivityAppController extends AppController
         if err then warn err
         else
 
-          KD.logToMixpanel "refresh activity feed success"
+          #KD.logToMixpanel "refresh activity feed success"
 
           # FIXME: SY
           # if it is exact 20 there may be other items

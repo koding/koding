@@ -1,7 +1,7 @@
 class KodingRouter extends KDRouter
 
   @registerStaticEmitter()
-  
+
   nicenames = {
     StartTab  : 'Develop'
   }
@@ -31,6 +31,12 @@ class KodingRouter extends KDRouter
     @on 'Params', ({params, query})=>
       #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name
 
+    @on 'InstructionsBookAdded', (@book) ->
+      KD.mixpanel.track "InstructionsBookClicked", 
+        username:KD.whoami().profile.nickname
+      
+
+
   listen:->
     super
     unless @userRoute
@@ -56,7 +62,12 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
+    #on every routing, inform book. TODO: we should fire, if instructions enabled.
+    if @book 
+      @book.emit "RouteChanged",route
+
     super route, options
+  
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment

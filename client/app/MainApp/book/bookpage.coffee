@@ -5,6 +5,9 @@ class BookPage extends JView
     data.cssClass  or= ""
     data.content   or= ""
     data.profile     = KD.whoami().profile
+    data.routeURL  or= ""
+    data.file      or= ""
+    data.app       or= ""
     options.cssClass = "page #{@utils.slugify data.title} #{data.cssClass} #{unless data.title then "no-header"}"
     options.tagName  = "section"
 
@@ -20,6 +23,8 @@ class BookPage extends JView
       cssClass  : "content-wrapper"
       pistachio : data.content
     , data
+
+
 
     konstructor = if data.embed and "function" is typeof (k = data.embed) then k else KDCustomHTMLView
 
