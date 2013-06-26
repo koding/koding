@@ -329,7 +329,7 @@ class PaymentController extends KDController
         content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
 
       if chargeAmount > 0
-        content += "<p>You will be charged for $#{formatMoney chargeAmount}.</p>"
+        content += "<p>You will be charged $#{formatMoney chargeAmount}.</p>"
       else
         content += "<p>You won't be charged for this VM.</p>"
 
