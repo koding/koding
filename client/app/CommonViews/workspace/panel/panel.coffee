@@ -68,14 +68,7 @@ class Panel extends JView
       @createPane paneOptions, @getPaneContainerByIndex index
 
   createPane: (paneOptions, targetContainer) ->
-    paneTypesToPaneClass =
-      "terminal"         : @TerminalPaneClass
-      "editor"           : @EditorPaneClass
-      "video"            : @VideoPaneClass
-      "preview"          : @PreviewPaneClass
-
-    paneType             = paneOptions.type
-    PaneClass            = paneTypesToPaneClass[paneType]
+    PaneClass            = @getPaneClass paneOptions.type
     paneOptions.delegate = @
     pane                 = new PaneClass paneOptions
 
@@ -86,6 +79,15 @@ class Panel extends JView
   # GETTERS #
   getPaneContainerByIndex: (index) ->
     return  @panesContainer[index]
+
+  getPaneClass: (paneType) ->
+    paneTypesToPaneClass =
+      "terminal"         : @TerminalPaneClass
+      "editor"           : @EditorPaneClass
+      "video"            : @VideoPaneClass
+      "preview"          : @PreviewPaneClass
+
+    return  paneTypesToPaneClass[paneType]
 
   # LAYOUT CREATOR HELPERS #
   createSplitView: (type, views) ->
