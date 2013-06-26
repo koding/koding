@@ -46,9 +46,9 @@ class FirewallFilterListItemView extends KDListItemView
 
         if proxyRuleMatches.indexOf(data.match) is -1
           params = 
-            domainName: domain.domain
-            action    : behavior
-            match     : data.match
+            domainName : domain.domain
+            action     : behavior
+            match      : data.match
           
           domain.createProxyRule params, (err, rule)=>
             return console.log err if err

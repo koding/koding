@@ -539,12 +539,14 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/FirewallRuleListItemView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
   "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
+  "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
   "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"
+  "app/Applications/Environments.kdapplication/Controllers/DNSRecordListController.coffee"
 
   # GROUPS
 

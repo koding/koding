@@ -20,8 +20,8 @@ class FirewallRuleListController extends KDListViewController
     super options, data
 
     @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'
-    @getListView().on "ruleActionChanged", @bound 'updateProxyRulesList'
-    @on "newRuleCreated", @bound 'addItem'
+    @getListView().on "ruleActionChanged", @bound 'refreshProxyRulesList'
+    @on "newRuleCreated", @bound 'refreshProxyRulesList'
     @on "itemsFetched", @bound 'itemsFetched'
 
     @fetchProxyRules()
@@ -36,7 +36,7 @@ class FirewallRuleListController extends KDListViewController
         @instantiateListItems ruleList
       @emit 'itemsFetched'
 
-  updateProxyRulesList:->
+  refreshProxyRulesList:->
     @removeAllItems()
     @fetchProxyRules()
 
