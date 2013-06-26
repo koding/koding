@@ -133,8 +133,12 @@ class GroupPaymentSettingsView extends JView
       unless err
         cardInfo = """
                    #{billing.cardFirstName} #{billing.cardLastName}
-                   -
+                   <br><br>
                    #{billing.cardNumber} - #{billing.cardMonth}/#{billing.cardYear} (#{billing.cardType})
+                   <br><br>
+                   #{billing.address1} #{billing.address2}
+                   <br>
+                   #{billing.city}, #{billing.state} #{billing.zip}
                    """
       else
         cardInfo = ""
