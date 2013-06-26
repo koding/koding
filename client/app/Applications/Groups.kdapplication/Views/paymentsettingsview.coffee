@@ -43,7 +43,7 @@ class GroupPaymentSettingsView extends JView
           click             : =>
             @updateBillingInfo group
         history             :
-          label             : "Payment History"
+          label             : "History"
           tagName           : "a"
           partial           : "Show Payment History"
           itemClass         : KDCustomHTMLView

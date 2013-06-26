@@ -13,6 +13,7 @@ class AccountSubscriptionsListController extends KDListViewController
 
   loadItems: ()->
     @removeAllItems()
+    @customItem?.destroy()
     @showLazyLoader no
 
     KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs) =>
@@ -32,8 +33,18 @@ class AccountSubscriptionsListController extends KDListViewController
 
           async.parallel stack, (err, result)=>
             result = [] if err
-            @instantiateListItems result
+            if result.length is 0
+              @addCustomItem "There are no subscriptions."
+            else
+              @instantiateListItems result
             @hideLazyLoader()
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
   loadView:->
     super
