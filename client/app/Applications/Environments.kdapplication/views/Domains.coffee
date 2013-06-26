@@ -19,6 +19,7 @@ class DomainMainView extends KDView
     @domainsListView    = @domainsListViewController.getView()
     @domainMapperView   = new DomainMapperView
     @firewallMapperView = new FirewallMapperView
+    @dnsManagerView     = new DNSManagerView
 
     @buildButtonsBar()
 
@@ -48,7 +49,7 @@ class DomainMainView extends KDView
     @kitesAccPane.setContent new KDCustomHTMLView
 
   buildTabs:->
-    # Routing, Analytics & Firewall Tabs
+    # Routing, Analytics, Firewall & DNS Manager Tabs
     @tabView       = new KDTabView
       cssClass     : "domain-detail-tabs"
 
@@ -63,6 +64,10 @@ class DomainMainView extends KDView
 
     @firewallPane  = new KDTabPaneView
       name     : "Firewall"
+      closable : no
+
+    @dnsManagerPane = new KDTabPaneView
+      name     : "DNS Manager"
       closable : no
 
     vmMapperSubView   = @domainMapperView
@@ -89,7 +94,9 @@ class DomainMainView extends KDView
 
     @firewallPane.addSubView @firewallMapperView
 
-    for pane in [@routingPane, @firewallPane, @analyticsPane]
+    @dnsManagerPane.addSubView @dnsManagerView
+
+    for pane in [@routingPane, @firewallPane, @dnsManagerPane, @analyticsPane]
       @tabView.addPane pane
 
     @tabView.showPaneByIndex 0
@@ -129,7 +136,8 @@ class DomainMainView extends KDView
     """
 
   decorateMapperView:(item)->
-    for view in [@firewallMapperView, @domainMapperView]
+    mapperViews = [@firewallMapperView, @domainMapperView, @dnsManagerView]
+    for view in mapperViews
       view.emit "domainChanged", item
     @splitView.resizePanel "300px", 0
 

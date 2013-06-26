@@ -95,20 +95,18 @@ module.exports = class JProxyRestriction extends jraphical.Module
 
     JProxyRule.one {match:params.match}, (err, rule)->
       return callback err if err
-      return callback (new KodingError("No rule found.")) unless rule
-
-      rule.remove (err)->
-        return callback err if err
 
       ruleObj = 
-        match   : rule.match
-        action  : rule.action
-        enabled : rule.enabled
+        match   : params.match
+        action  : params.action
+        enabled : params.enabled
+
+      if rule
+        rule.remove (err)->
+        return callback err if err
 
       JProxyRestriction.update {domainName}, {$pull: ruleList: ruleObj}, (err)->
         return callback err if err
 
-      callback null
-    
-
+        callback null
 

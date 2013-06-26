@@ -2,6 +2,7 @@ jraphical = require 'jraphical'
 module.exports = class JDomain extends jraphical.Module
 
   DomainManager = require 'domainer'
+
   {secure, ObjectId}  = require 'bongo'
   {Relationship} = jraphical
   {permit} = require './group/permissionset'
@@ -32,7 +33,8 @@ module.exports = class JDomain extends jraphical.Module
     sharedMethods   :
       instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule', 
                        'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain', 
-                       'updateRuleOrders', 'fetchProxyRules'
+                       'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
+                       'fetchDNSRecords', 'createDNSRecord'
                       ]
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
@@ -174,6 +176,18 @@ module.exports = class JDomain extends jraphical.Module
       return callback null, restriction.ruleList if restriction
       return callback null, []
 
+  fetchProxyRulesWithMatches: (callback)->
+    JProxyRestriction.fetchRestrictionByDomain @domain, (err, restriction)->
+      return callback err if err
+
+      restrictions = {}
+
+      if restriction and restriction.ruleList?
+        for rest in restriction.ruleList
+          restrictions[rest.match] = rest.action
+
+      callback null, restrictions
+
   createProxyRule: permit
     advanced: [
       { permission: 'edit own domains', validateWith: Validators.own }
@@ -220,5 +234,17 @@ module.exports = class JDomain extends jraphical.Module
         orderId    : @orderId.resellerClub
       , (err, response)-> callback err, response if callback?
 
+  fetchDNSRecords: permit
+    advanced: [
+      { permission: 'edit own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      domainManager.dnsManager.fetchDNSRecords {domainName:@domain}, (err, records)-> callback err, records
 
-
+  createDNSRecord: permit
+    advanced: [
+      { permission: 'edit own domains', validateWith: Validators.own }
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      domainManager.dnsManager.createDNSRecord params, (err, record)-> callback err, records

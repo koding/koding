@@ -8,83 +8,41 @@ class FirewallMapperView extends KDView
       @getData().domain = domainListItem.data
       @updateViewContent()
 
-    @nav = new KDView
-      tagName  : "ul"
-      cssClass : "kdlistview kdlistview-default"
-    @utils.defer => @nav.unsetClass "kdtabhandlecontainer"
-
-    @tabView = new KDTabView
-      cssClass           : 'environment-content'
-      tabHandleContainer : @nav
-      tabHandleClass     : EnvironmentsTabHandleView
-
-    @filtersPane = new KDTabPaneView
-      name     : "Filters"
-      closable : no
-
-    @rulesPane = new KDTabPaneView
-      name     : "Rules"
-      closable : no
-
-    @tabView.addPane @rulesPane
-    @tabView.addPane @filtersPane
-    @tabView.showPaneByIndex 0
-
   updateViewContent:->
     {domain} = @getData()
 
-    @rulesPane.destroySubViews()
-    @filtersPane.destroySubViews()
+    @destroySubViews()
 
     @filterListController = new FirewallFilterListController {}, {domain}
     @ruleListController = new FirewallRuleListController {}, {domain}
 
-    @rulesPane.addSubView @ruleListView = new KDCustomHTMLView
-      partial  : "<h3>Rule List For #{domain.domain}</h3>"
+    @ruleListView = new KDCustomHTMLView
+      partial  : "<h4>Rule List For #{domain.domain}</h4>"
       cssClass : 'rule-list-view'
 
-    @ruleListController.on "itemsFetched", =>
-      if @ruleListController.itemsOrdered.length is 0
-        @ruleListView.addSubView new KDCustomHTMLView
-          partial : "You don't have any rules for this domain."
-      else
-        @ruleListView.addSubView @ruleListController.getView()
-
-    @filtersPane.addSubView @fwRuleFormView = new FirewallFilterFormView 
+    @fwRuleFormView = new FirewallFilterFormView 
       delegate : @filterListController.getListView()
       , {domain}
 
-    @filtersPane.addSubView @filterListView = new KDCustomHTMLView
-      partial  : "<h3>Your Filter List</h3>"
+    @filterListView = new KDCustomHTMLView
+      partial  : "<h4>Your Filter List</h4>"
       cssClass : 'filter-list-view'
 
-    @filterListController.on "itemsFetched", =>
-      if @filterListController.itemsOrdered.length is 0
-        @filterListView.addSubView new KDCustomHTMLView
-          partial : "You dont' have any filters."
-      else
-        @filterListView.addSubView @filterListController.getView()
+    @filterListView.addSubView @fwRuleFormView
+    @filterListView.addSubView @filterListController.getView()
 
-    @filterListController.getListView().on "newRuleCreated", (item)=>
-      @ruleListController.emit "newRuleCreated", item
+    @ruleListView.addSubView @ruleListController.getView()
+    @ruleListView.addSubView new KDButtonView
+        title : "Update Rule Orders"
 
+    @filterListController.getListView().on "newRuleCreated", (ruleObj)=>
+      @ruleListController.emit "newRuleCreated"
 
-  viewAppended: JView::viewAppended
+    @ruleListController.getListView().on "ruleDeleted", =>
+      @filterListController.refreshFilters()
 
-  pistachio:->
-    """
-    <aside class="fl">
-        <div class="kdview common-inner-nav">
-          <div class="kdview listview-wrapper list">
-            <h4 class="kdview kdheaderview list-group-title"><span></span></h4>
-            {{> @nav }}
-          </div>
-        </div>
-      </aside>
-      <section class='right-overflow'>
-        {{> @tabView }}
-      </section>
-    """
+    @addSubView @ruleListView
+    @addSubView @filterListView
 
   updateActionOrders:(domain)->
     newRulesList = (item.getData() for item in @ruleListController.itemsOrdered)
