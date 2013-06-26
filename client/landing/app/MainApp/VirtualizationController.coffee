@@ -16,9 +16,7 @@ class VirtualizationController extends KDController
         withArgs : command
 
     @fetchDefaultVmName (defaultVmName)=>
-      log "Found defaultVm as:", defaultVmName
       vmName = if options.vmName then options.vmName else defaultVmName
-      log "Requested VM is:", vmName
       unless vmName
         return callback message: 'There is no VM for this account.'
       options.correlationName = vmName
