@@ -921,7 +921,12 @@ module.exports = class JGroup extends Module
           if err then callback err
           else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else invitationRequest.sendInvitation client, message, callback
+            else
+              if user
+                user.fetchOwnAccount (err, account)->
+                  return console.warn err  if err # this is minor work, workflow should not stop cause of this
+                  account.emit 'NewPendingInvitation'
+              invitationRequest.sendInvitation client, message, callback
 
   isMember: (account, callback)->
     selector =
