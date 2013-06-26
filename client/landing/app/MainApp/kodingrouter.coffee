@@ -140,12 +140,14 @@ class KodingRouter extends KDRouter
       @handleNotFound route
 
     if name
-      KD.remote.cacheable name or routeWithoutParams, (err, models)=>
+      KD.remote.cacheable name, (err, models)=>
         if models?
         then onSuccess models
         else onError err
     else
-      KD.remote.api.JName.one {name: routeWithoutParams.slice(1)}, (err, jName)=>
+      # TEMP FIX: getting rid of the leading slash for the post slugs
+      slashlessSlug = routeWithoutParams.slice(1)
+      KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
         if err then onError err
         else if jName?
           models = []
