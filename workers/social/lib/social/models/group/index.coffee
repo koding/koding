@@ -68,6 +68,7 @@ module.exports = class JGroup extends Module
         { name: 'MemberAdded',      filter: -> null }
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
+        { name: 'updateInstance' }
       ]
     sharedMethods   :
       static        : [
@@ -440,7 +441,8 @@ module.exports = class JGroup extends Module
   @broadcast = (groupSlug, event, message)->
     if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
-        if err or not group then console.error "unknown group #{groupSlug}"
+        if err then console.error err
+        unless group then console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message

@@ -181,11 +181,11 @@ dimmedNeighbor()
     .title
       cursor          default
       font-weight     normal
-      width           66%
       margin-right    26px
       display         block
       overflow        hidden
       text-overflow   ellipsis
+      white-space     nowrap
 
     form
       height          22px
@@ -688,12 +688,15 @@ div.led-wrapper
       abs()
 
     span.vm-info
-      top           15px
+      top           20px
       left          22px
       font-size     10px
       font-style    italic
       opacity       .7
+      line-height   10px
       abs()
+      a
+        text-decoration none
 
     div.vm-toggle
       top           3px

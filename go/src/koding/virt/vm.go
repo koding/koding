@@ -158,7 +158,7 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	// mount overlay
 	prepareDir(vm.File("rootfs"), RootIdOffset)
 	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("br=%s:%s", vm.OverlayFile("/"), LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		panic(commandError("mount overlay failed.", err, out))
 	}
 
@@ -187,7 +187,7 @@ func (vm *VM) Unprepare() error {
 	// stop VM
 	out, err := vm.Shutdown()
 	if vm.GetState() != "STOPPED" {
-		panic(commandError("Could not stop VM.", err, out))
+		panic(commandError("Could not shut down VM.", err, out))
 	}
 
 	// backup dpkg database for statistical purposes
@@ -215,6 +215,10 @@ func (vm *VM) Unprepare() error {
 	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
+	}
+	//Flush the aufs
+	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("AUFS flush failed.", err, out)
 	}
 	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount overlay failed.", err, out)
@@ -411,7 +415,12 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) {
 		panic(err)
 	}
 
-	chown(p, id, id)
+	if err := file.Chown(id, id); err != nil {
+		panic(err)
+	}
+	if err := file.Chmod(mode); err != nil {
+		panic(err)
+	}
 }
 
 // may panic

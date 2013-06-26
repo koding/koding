@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
@@ -9,14 +8,11 @@ import (
 	"io"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/resolver"
+	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
-	"koding/tools/db"
-	"koding/virt"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"koding/tools/fastproxy"
 	"log"
-	"math"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -38,14 +34,6 @@ type Proxy struct {
 type client struct {
 	target     string
 	registered time.Time
-}
-
-type UserInfo struct {
-	Domain       *proxyconfig.Domain
-	IP           string
-	Country      string
-	Target       *url.URL
-	LoadBalancer *proxyconfig.LoadBalancer
 }
 
 var templates = template.Must(template.ParseFiles(
@@ -86,55 +74,58 @@ func main() {
 
 	reverseProxy := &Proxy{}
 
+	// FTP handling
+	log.Println("ftp mode is enabled. serving at :21...")
+	go fastproxy.ListenFTP(&net.TCPAddr{IP: nil, Port: 21}, net.ParseIP(config.Current.Kontrold.Proxy.FTPIP), nil, func(req *fastproxy.FTPRequest) {
+		userName := req.User
+		vmName := req.User
+		if userParts := strings.SplitN(userName, "@", 2); len(userParts) == 2 {
+			userName = userParts[0]
+			vmName = userParts[1]
+		}
+
+		vm, err := proxyDB.GetVM(vmName)
+		if err != nil {
+			req.Respond("530 No Koding VM with name '" + vmName + "' found.\r\n")
+			return
+		}
+
+		if err = req.Relay(&net.TCPAddr{IP: vm.IP, Port: 21}, userName); err != nil {
+			req.Respond("530 The Koding VM '" + vmName + "' did not respond.")
+		}
+	})
+
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	log.Printf("https mode is enabled. serving at :%s ...", portssl)
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
 	for _, sslip := range sslips {
 		go func(sslip string) {
-			cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
-			if nil != err {
-				log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-				return
+			err := http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", reverseProxy)
+			if err != nil {
+				log.Println(err)
 			}
-
-			addr := sslip + ":" + portssl
-			laddr, err := net.ResolveTCPAddr("tcp", addr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			listener, err := net.ListenTCP("tcp", laddr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			sslListener := tls.NewListener(listener, &tls.Config{
-				NextProtos:   []string{"http/1.1"},
-				Certificates: []tls.Certificate{cert},
-			})
-
-			log.Printf("https mode is enabled. serving at :%s ...", portssl)
-			http.Serve(sslListener, reverseProxy)
-
 		}(sslip)
 	}
 
-	// HTTP handling
+	// HTTP Handling for VM port forwardings
+	log.Println("normal mode is enabled. serving ports between 1024-10000 for vms...")
+	for i := 1024; i <= 10000; i++ {
+		go func(i int) {
+			port := strconv.Itoa(i)
+			err := http.ListenAndServe(":"+port, reverseProxy)
+			if err != nil {
+				log.Println(err)
+			}
+		}(i)
+	}
+
+	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
-	laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
-	if nil != err {
-		log.Fatalln(err)
-	}
-
-	listener, err := net.ListenTCP("tcp", laddr)
-	if nil != err {
-		log.Fatalln(err)
-	}
-
-	err = http.Serve(listener, reverseProxy)
+	err = http.ListenAndServe(":"+port, reverseProxy)
 	if err != nil {
-		log.Println("normal mode is disabled", err)
+		log.Panic(err)
 	}
 }
 
@@ -168,147 +159,33 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
 	}
 
-	user := &UserInfo{}
-	domain, err := proxyDB.GetDomain(req.Host)
+	userIP, userCountry := getIPandCountry(req.RemoteAddr)
+
+	target, err := resolver.GetTarget(req.Host)
 	if err != nil {
-		if err != mgo.ErrNotFound {
-			log.Printf("incoming req host: %s, domain lookup error '%s'\n", req.Host, err.Error())
-			return templateHandler("notfound.html", req.Host)
+		if err == resolver.ErrGone {
+			return templateHandler("notfound.html", req.Host, 410)
 		}
-
-		// lookup didn't found anything, move on to .x.koding.com domains
-		if strings.HasSuffix(req.Host, "x.koding.com") {
-			if c := strings.Count(req.Host, "-"); c != 1 {
-				log.Println("not valid req host", req.Host)
-				return templateHandler("notfound.html", req.Host)
-			}
-			subdomain := strings.TrimSuffix(req.Host, ".x.koding.com")
-			servicename := strings.Split(subdomain, "-")[0]
-			key := strings.Split(subdomain, "-")[1]
-			domain := proxyconfig.NewDomain(req.Host, "internal", "koding", servicename, key, "", []string{})
-			user.Domain = domain
-		} else {
-			log.Printf("domain %s is unknown", req.Host)
-			return templateHandler("notfound.html", req.Host)
-		}
-	} else {
-		user.Domain = &domain
+		log.Println("resolver error", err)
+		return templateHandler("notfound.html", req.Host, 404)
 	}
 
-	user.IP, _, err = net.SplitHostPort(req.RemoteAddr)
-	if err == nil {
-		if geoIP != nil {
-			loc := geoIP.GetLocationByIP(user.IP)
-			if loc != nil {
-				user.Country = loc.CountryName
-			}
-		}
-	}
-
-	var hostname string
-
-	switch user.Domain.Proxy.Mode {
+	switch target.Mode {
 	case "maintenance":
-		return templateHandler("maintenance.html", nil)
+		return templateHandler("maintenance.html", nil, 200)
 	case "redirect":
-		target, err := url.Parse(user.Domain.Proxy.FullUrl)
-		if err != nil {
-			return nil
-		}
-
-		return http.RedirectHandler(target.String()+req.RequestURI, http.StatusFound)
+		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
 	case "vm":
-		switch user.Domain.LoadBalancer.Mode {
-		case "roundrobin": // equal weights
-			N := float64(len(user.Domain.HostnameAlias))
-			n := int(math.Mod(float64(user.Domain.LoadBalancer.Index+1), N))
-			hostname = user.Domain.HostnameAlias[n]
-
-			user.Domain.LoadBalancer.Index = n
-			go proxyDB.UpdateDomain(user.Domain)
-		case "sticky":
-			hostname = user.Domain.HostnameAlias[user.Domain.LoadBalancer.Index]
-		case "random":
-			randomIndex := rand.Intn(len(user.Domain.HostnameAlias) - 1)
-			hostname = user.Domain.HostnameAlias[randomIndex]
-		default:
-			hostname = user.Domain.HostnameAlias[0]
-		}
-
-		var vm virt.VM
-		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
-			log.Printf("vm for hostname %s is not found", hostname)
-			return templateHandler("notfound.html", req.Host)
-		}
-		if vm.IP == nil {
-			log.Printf("vm for hostname %s is not active", hostname)
-			return templateHandler("notactiveVM.html", req.Host)
-		}
-
-		vmAddr := vm.IP.String()
-		if !hasPort(vmAddr) {
-			vmAddr = addPort(vmAddr, "80")
-		}
-
-		err := checkServer(vmAddr)
+		err := utils.CheckServer(target.Url.Host)
 		if err != nil {
-			log.Printf("vm for hostname %s is down: '%s'", hostname, err)
-			return templateHandler("notactiveVM.html", req.Host)
+			log.Printf("vm host %s is down: '%s'", req.Host, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
 		}
-
-		user.Target, err = url.Parse("http://" + vmAddr)
-		if err != nil {
-			log.Println("could not parse vmAddr", vmAddr)
-			return nil
-		}
-		user.LoadBalancer = &user.Domain.LoadBalancer
-	case "internal":
-		username := user.Domain.Proxy.Username
-		servicename := user.Domain.Proxy.Servicename
-		key := user.Domain.Proxy.Key
-
-		keyData, err := proxyDB.GetKey(username, servicename, key)
-		if err != nil {
-			log.Printf("no keyData for username '%s', servicename '%s' and key '%s'", username, servicename, key)
-			return templateHandler("notfound.html", req.Host)
-		}
-
-		switch keyData.LoadBalancer.Mode {
-		case "roundrobin":
-			N := float64(len(keyData.Host))
-			n := int(math.Mod(float64(keyData.LoadBalancer.Index+1), N))
-			hostname = keyData.Host[n]
-
-			keyData.LoadBalancer.Index = n
-			go proxyDB.UpdateKeyData(username, servicename, keyData)
-		case "sticky":
-			hostname = keyData.Host[keyData.LoadBalancer.Index]
-		case "random":
-			randomIndex := rand.Intn(len(keyData.Host) - 1)
-			hostname = keyData.Host[randomIndex]
-		default:
-			hostname = keyData.Host[0]
-		}
-
-		if !strings.HasPrefix(hostname, "http://") {
-			hostname = "http://" + hostname
-		}
-
-		user.Target, err = url.Parse(hostname)
-		if err != nil {
-			log.Println("could not parse hostname", hostname)
-			return nil
-		}
-		user.LoadBalancer = &keyData.LoadBalancer
-	default:
-		log.Printf("ERROR: proxy mode is not supported: %s", user.Domain.Proxy.Mode)
-		return templateHandler("notfound.html", req.Host)
 	}
 
-	var target *url.URL
-	switch user.LoadBalancer.Persistence {
+	switch target.Persistence {
 	case "cookie":
-		// sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, user.IP)
+		// sessionName := fmt.Sprintf("kodingproxy-%s-%s", host, ip)
 		// session, _ := store.Get(req, sessionName)
 		// session.Options = &sessions.Options{MaxAge: 20} //seconds
 		// targetURL, ok := session.Values["GOSESSIONID"]
@@ -316,64 +193,61 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		// 	target, err = url.Parse(targetURL.(string))
 		// 	if err != nil {
 		// 		log.Println("could not parse targetUrl", targetURL.(string))
-		// 		return nil
+		// 		return nil, ErrNotFound
 		// 	}
 		// } else {
 		// 	session.Values["GOSESSIONID"] = target.String()
 		// 	session.Save(req, w)
 		// }
 	case "sourceAddress":
-		if client, ok := getClient(user.IP); !ok {
-			target, err = url.Parse(client.target)
+		if client, ok := getClient(userIP); !ok {
+			target.Url, err = url.Parse(client.target)
 			if err != nil {
 				log.Println("could not parse client.target", client.target)
-				return nil
+				return templateHandler("notfound.html", req.Host, 404)
 			}
 		}
-	default:
-		// don't use any kind of session affinity
-		target = user.Target
 	}
 
-	_, err = validate(user)
+	_, err = validate(userIP, userCountry, req.Host)
 	if err != nil {
 		if err == ErrSecurePage {
-			sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, user.IP)
+			sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
 			session, _ := store.Get(req, sessionName)
 			session.Options = &sessions.Options{MaxAge: 20} //seconds
 			_, ok := session.Values["securePage"]
 			if !ok {
-				return sessionHandler("securePage", user)
+				return sessionHandler("securePage", req.Host)
 			}
 		} else {
 			log.Printf("error validating user: %s", err.Error())
-			return templateHandler("notfound.html", req.Host)
+			return templateHandler("notfound.html", req.Host, 404)
 		}
 	}
 
 	go func() {
-		if _, ok := getClient(user.IP); !ok {
-			go registerClient(user.IP, target.String())
+		if _, ok := getClient(userIP); !ok {
+			go registerClient(userIP, target.Url.String())
 			go logDomainRequests(req.Host)
-			go logProxyStat(hostname, user.Country)
+			go logProxyStat(proxyName, userCountry)
 		}
 	}()
 
-	fmt.Printf("--\nmode '%s'\t: %s %s\n", user.Domain.Proxy.Mode, user.IP, user.Country)
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, user.Target.String())
+	fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
+	fmt.Printf("proxy via db\t: %s --> %s\n", req.Host, target.Url.String())
 
 	if isWebsocket(req) {
-		return websocketHandler(target.String())
+		return websocketHandler(target.Url.String())
 	}
 
-	return reverseProxyHandler(target)
+	return reverseProxyHandler(target.Url)
 }
 
 func reverseProxyHandler(target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
-			if !hasPort(target.Host) {
-				req.URL.Host = addPort(target.Host, "80")
+			if !utils.HasPort(target.Host) {
+				req.URL.Host = utils.AddPort(target.Host, "80")
 			} else {
 				req.URL.Host = target.Host
 			}
@@ -382,13 +256,13 @@ func reverseProxyHandler(target *url.URL) http.Handler {
 	}
 }
 
-func sessionHandler(val string, user *UserInfo) http.Handler {
+func sessionHandler(val, userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, user.IP)
+		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
 		session, _ := store.Get(r, sessionName)
 		session.Values[val] = time.Now().String()
 		session.Save(r, w)
-		err := templates.ExecuteTemplate(w, "securepage.html", user)
+		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
 			log.Println("template securepage could not be executed")
 			return
@@ -417,6 +291,7 @@ func websocketHandler(target string) http.Handler {
 		defer nc.Close()
 		defer d.Close()
 
+		// write back the request of the client to the server.
 		err = r.Write(d)
 		if err != nil {
 			log.Printf("Error copying request to target: %v", err)
@@ -434,8 +309,9 @@ func websocketHandler(target string) http.Handler {
 	})
 }
 
-func templateHandler(path string, data interface{}) http.Handler {
+func templateHandler(path string, data interface{}, code int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(code)
 		err := templates.ExecuteTemplate(w, path, data)
 		if err != nil {
 			log.Printf("template %s could not be executed", path)
@@ -496,51 +372,27 @@ func cleaner() {
 	clientsLock.RUnlock()
 }
 
-/*************************************************
-*
-*  util functions
-*
-*  - arslan
-*************************************************/
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-// Given a string of the form "host", "port", returns "host:port"
-func addPort(host, port string) string {
-	if ok := hasPort(host); ok {
-		return host
-	}
-
-	return host + ":" + port
-}
-
-// Check if a server is alive or not
-func checkServer(host string) error {
-	c, err := net.DialTimeout("tcp", host, time.Second*5)
-	if err != nil {
-		return err
-	}
-	c.Close()
-	return nil
-}
-
+// is the incoming request a part of websocket handshake?
 func isWebsocket(req *http.Request) bool {
-	conn_hdr := ""
-	conn_hdrs := req.Header["Connection"]
-	if len(conn_hdrs) > 0 {
-		conn_hdr = conn_hdrs[0]
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
 	}
+	return true
+}
 
-	upgrade_websocket := false
-	if strings.ToLower(conn_hdr) == "upgrade" {
-		upgrade_hdrs := req.Header["Upgrade"]
-		if len(upgrade_hdrs) > 0 {
-			upgrade_websocket = (strings.ToLower(upgrade_hdrs[0]) == "websocket")
+func getIPandCountry(addr string) (string, string) {
+	var ip, country string
+	ip, _, err := net.SplitHostPort(addr)
+	if err == nil {
+		if geoIP != nil {
+			loc := geoIP.GetLocationByIP(ip)
+			if loc != nil {
+				country = loc.CountryName
+			}
 		}
 	}
-
-	return upgrade_websocket
+	return ip, country
 }
 
 func logDomainRequests(domain string) {
@@ -572,13 +424,13 @@ func logDomainDenied(domain, ip, country, reason string) {
 	}
 }
 
-func validate(u *UserInfo) (bool, error) {
+func validate(ip, country, domain string) (bool, error) {
 	// restrictionId, err := proxyDB.GetDomainRestrictionId(u.Domain.Id)
 	// if err != nil {
 	// 	return true, nil //don't block if we don't get a rule (pre-caution))
 	// }
 
-	restriction, err := proxyDB.GetRestrictionByDomain(u.Domain.Domain)
+	restriction, err := proxyDB.GetRestrictionByDomain(domain)
 	if err != nil {
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
@@ -588,5 +440,5 @@ func validate(u *UserInfo) (bool, error) {
 	// 	return true, nil //don't block if we don't get a rule (pre-caution))
 	// }
 
-	return validator(restriction, u).AddRules().Check()
+	return validator(restriction, ip, country, domain).AddRules().Check()
 }
