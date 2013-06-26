@@ -33,7 +33,7 @@ class GroupPaymentSettingsView extends JView
           loader            :
             color           : "#444444"
             diameter        : 12
-      fields
+      fields                :
         billing             :
           label             : "Billing Method"
           tagName           : "a"
@@ -131,14 +131,14 @@ class GroupPaymentSettingsView extends JView
   getBillingInfo:(group, callback=->)->
     group.getBillingInfo (err, billing)=>
       unless err
-        cardInfo = """#{billing.cardLastName} #{billing.cardLastName} - #{billing.cardType}
-                   <br>
-                   #{billing.cardNumber} - #{billing.cardMonth}/#{billing.cardYear}
-                   <br>
-                   #{billing.address1} #{billing.address2}
-                   <br>
-                   #{billing.city}, #{billing.state} #{billing.zip}"""
-        @settingsForm.inputs.billing.updatePartial cardInfo
+        cardInfo = """
+                   #{billing.cardFirstName} #{billing.cardLastName}
+                   -
+                   #{billing.cardNumber} - #{billing.cardMonth}/#{billing.cardYear} (#{billing.cardType})
+                   """
+      else
+        cardInfo = ""
+      @settingsForm.inputs.billing.updatePartial cardInfo
       callback err, billing
 
   pistachio:-> "{{> @settingsForm}}"
