@@ -332,17 +332,20 @@ task 'proxy',({configFile})->
 task 'neo4jfeeder',({configFile})->
 
   config = require('koding-config-manager').load("main.#{configFile}")
+  feederConfig = config.graphFeederWorker
+  numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
 
-  processes.spawn
-    name    : 'neo4jfeeder'
-    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
-    restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
+  for i in [1..numberOfWorkers]
+    processes.spawn
+      name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
+      cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+      restart : yes
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
+      kontrol        :
+        enabled      : if config.runKontrol is yes then yes else no
+        startMode    : "one"
 
 task 'libratoWorker',({configFile})->
 

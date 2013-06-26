@@ -83,6 +83,8 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  graphFeederWorker:
+    numberOfWorkers: 2
   presence        :
     exchange      : 'services-presence'
   client          :
