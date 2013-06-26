@@ -13,7 +13,7 @@ class FSItem extends KDObject
         callback? err, response
         warn err
       else
-        KD.getSingleton('kiteController').run
+        KD.getSingleton('vmController').run
           method           : if type is 'folder' then "fs.createDirectory" \
                              else "fs.writeFile"
           vmName           : vmName
@@ -37,7 +37,7 @@ class FSItem extends KDObject
         warn err
         callback? err, response
       else
-        KD.getSingleton('kiteController').run
+        KD.getSingleton('vmController').run
           vmName   : vmName
           withArgs : "cp -R #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
@@ -57,7 +57,7 @@ class FSItem extends KDObject
         warn err
         callback? err, response
       else
-        KD.getSingleton('kiteController').run
+        KD.getSingleton('vmController').run
           vmName   : vmName
           withArgs : "mv #{escapeFilePath(sourceItem.path)} #{escapeFilePath(response)}"
         , (err, res)->
@@ -80,7 +80,7 @@ class FSItem extends KDObject
         command = switch type
           when "tar.gz" then "tar -pczf #{escapeFilePath response} #{escapeFilePath file.path}"
           else "zip -r #{escapeFilePath response} #{escapeFilePath file.path}"
-        KD.getSingleton('kiteController').run
+        KD.getSingleton('vmController').run
           vmName   : vmName
           withArgs : command
         , (err, res)->
@@ -100,7 +100,7 @@ class FSItem extends KDObject
           "cd #{escapeFilePath file.parentPath};tar -zxf #{escapeFilePath file.name} -C #{folder.path}"
         else if /\.zip$/.test file.name
           "cd #{escapeFilePath file.parentPath};unzip #{escapeFilePath file.name} -d #{folder.path}"
-      KD.getSingleton('kiteController').run
+      KD.getSingleton('vmController').run
         vmName   : vmName
         withArgs : command
       , (err, res)->
@@ -164,7 +164,7 @@ class FSItem extends KDObject
     super
 
     @treeController = KD.getSingleton('finderController').treeController
-    @kiteController = KD.getSingleton('kiteController')
+    @vmController   = KD.getSingleton('vmController')
 
   getExtension:-> FSItem.getFileExtension @name
 
@@ -176,7 +176,7 @@ class FSItem extends KDObject
 
   remove:(callback, recursive=no)->
     @emit "fs.delete.started"
-    @kiteController.run
+    @vmController.run
       method      : "fs.remove"
       vmName      : @vmName
       withArgs    :
@@ -199,7 +199,7 @@ class FSItem extends KDObject
         warn err
         callback? err, response
       else
-        @kiteController.run
+        @vmController.run
           method    : "fs.rename"
           vmName    : @vmName
           withArgs  :
@@ -220,7 +220,7 @@ class FSItem extends KDObject
     return callback? "no permissions passed" unless permissions?
     @emit "fs.job.started"
 
-    @kiteController.run
+    @vmController.run
       method      : "fs.setPermissions"
       vmName      : @vmName
       withArgs    :

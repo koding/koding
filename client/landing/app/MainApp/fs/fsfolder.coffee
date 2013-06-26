@@ -5,7 +5,7 @@ class FSFolder extends FSFile
     {nickname} = KD.whoami().profile
 
     @emit "fs.job.started"
-    @kiteController.run
+    @vmController.run
       kiteName   : 'os'
       method     : 'fs.readDirectory'
       vmName     : @vmName
@@ -26,7 +26,7 @@ class FSFolder extends FSFile
 
     @emit "fs.save.started"
 
-    @kiteController.run
+    @vmController.run
       kiteName  : 'os'
       vmName    : @vmName
       method    : 'fs.createDirectory'

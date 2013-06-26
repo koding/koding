@@ -18,14 +18,6 @@ class NavigationController extends KDListViewController
     for navItem in @itemsOrdered when navItem?.name is name
       @removeItem navItem
 
-class MainNavController extends NavigationController
-
-  reset:->
-    previousSelection = @selectedItems.slice()
-    @removeAllItems()
-    @instantiateListItems KD.getNavItems()
-    @selectItemByName name  for {name} in previousSelection
-
   instantiateListItems:(items)->
     {roles} = KD.config
 
@@ -36,3 +28,11 @@ class MainNavController extends NavigationController
       else
         @getListView().addItem itemData
 
+
+class MainNavController extends NavigationController
+
+  reset:->
+    previousSelection = @selectedItems.slice()
+    @removeAllItems()
+    @instantiateListItems KD.getNavItems()
+    @selectItemByName name  for {name} in previousSelection
