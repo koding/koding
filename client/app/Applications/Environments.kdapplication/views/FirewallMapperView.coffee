@@ -36,7 +36,7 @@ class FirewallMapperView extends KDView
         title : "Update Rule Orders"
 
     @filterListController.getListView().on "newRuleCreated", (ruleObj)=>
-      @ruleListController.emit "newRuleCreated", ruleObj
+      @ruleListController.emit "newRuleCreated"
 
     @ruleListController.getListView().on "ruleDeleted", =>
       @filterListController.refreshFilters()

@@ -96,7 +96,7 @@ class DomainMainView extends KDView
 
     @dnsManagerPane.addSubView @dnsManagerView
 
-    for pane in [@routingPane, @firewallPane, @analyticsPane, @dnsManagerPane]
+    for pane in [@routingPane, @firewallPane, @dnsManagerPane, @analyticsPane]
       @tabView.addPane pane
 
     @tabView.showPaneByIndex 0

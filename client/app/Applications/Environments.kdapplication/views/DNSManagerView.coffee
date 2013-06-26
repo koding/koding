@@ -8,11 +8,15 @@ class DNSManagerView extends KDView
       @getData().domain = domainListItem.data
       @updateViewContent()
 
-  viewAppended: JView::viewAppended
-
   updateViewContent:->
+    {domain} = @getData()
+
+    @destroySubViews()
+
+    @newRecordForm = new NewDNSRecordFormView {}, {domain}
+    @recordsListController = new DNSRecordListController {}, {domain}
+
+    @addSubView @newRecordForm
+    @addSubView @recordsListController.getView()
 
 
-  pistachio:->
-    """
-    """

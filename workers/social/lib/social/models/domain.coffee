@@ -2,6 +2,7 @@ jraphical = require 'jraphical'
 module.exports = class JDomain extends jraphical.Module
 
   DomainManager = require 'domainer'
+
   {secure, ObjectId}  = require 'bongo'
   {Relationship} = jraphical
   {permit} = require './group/permissionset'
@@ -32,7 +33,8 @@ module.exports = class JDomain extends jraphical.Module
     sharedMethods   :
       instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule', 
                        'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain', 
-                       'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches'
+                       'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
+                       'fetchDNSRecords', 'createDNSRecord'
                       ]
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
@@ -224,5 +226,17 @@ module.exports = class JDomain extends jraphical.Module
         orderId    : @orderId.resellerClub
       , (err, response)-> callback err, response if callback?
 
+  fetchDNSRecords: permit
+    advanced: [
+      { permission: 'edit own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback)->
+      domainManager.dnsManager.fetchDNSRecords {domainName:@domain}, (err, records)-> callback err, records
 
-
+  createDNSRecord: permit
+    advanced: [
+      { permission: 'edit own domains', validateWith: Validators.own }
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      domainManager.dnsManager.createDNSRecord params, (err, record)-> callback err, records
