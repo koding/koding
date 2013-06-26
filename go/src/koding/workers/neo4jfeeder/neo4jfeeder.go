@@ -27,7 +27,6 @@ type Message struct {
 }
 
 func main() {
-	fmt.Println("Neo4J Feeder worker started")
 	startConsuming()
 	//looooop forever
 	select {}
@@ -77,6 +76,8 @@ func startConsuming() {
 		fmt.Println("basic.consume: %s", err)
 		panic(err)
 	}
+
+	fmt.Println("Neo4J Feeder worker started")
 
 	go func() {
 		for msg := range relationshipEvent {
