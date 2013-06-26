@@ -107,6 +107,27 @@ func main() {
 		}(sslip)
 	}
 
+	log.Println("creating listeners between 8000-8100 for vm ports")
+	for i := 1100; i <= 10000; i++ {
+		go func(i int) {
+			port := strconv.Itoa(i)
+			laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
+			if nil != err {
+				log.Fatalln(err)
+			}
+
+			listener, err := net.ListenTCP("tcp", laddr)
+			if nil != err {
+				log.Fatalln(err)
+			}
+
+			err = http.Serve(listener, reverseProxy)
+			if err != nil {
+				log.Println("normal mode is disabled", err)
+			}
+		}(i)
+	}
+
 	// HTTP handling
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	log.Printf("normal mode is enabled. serving at :%s ...", port)
