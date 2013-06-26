@@ -111,6 +111,8 @@ config =
       watch           : 1
       queueName       : 1
       run             : 1
+    graphFeederWorker :
+      numberOfWorkers : 1
     presence        :
       exchange      : 1
     client          :
