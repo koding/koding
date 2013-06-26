@@ -64,7 +64,6 @@ class ActivityAppController extends AppController
     @lastTo    = null
     @lastFrom  = Date.now()
     @isLoading = no
-    @clearPopulateActivityBindings()
     @listController.resetList()
     @listController.removeAllItems()
 
@@ -100,6 +99,7 @@ class ActivityAppController extends AppController
 
       @resetAll()
 
+      @clearPopulateActivityBindings()
       if data.type in ["Public", "Followed"]
       then @setFeedFilter data.type
       else @setActivityFilter data.type
@@ -114,8 +114,9 @@ class ActivityAppController extends AppController
 
   clearPopulateActivityBindings:->
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    @off "activitiesFetched_#{eventSuffix}"
-    @off "cacheFetched_#{eventSuffix}"
+    @off "followingFeedFetched_#{eventSuffix}"
+    @off "publicFeedFetched_#{eventSuffix}"
+    # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
   populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
@@ -165,7 +166,7 @@ class ActivityAppController extends AppController
 
         @fetchFollowingActivities options
 
-      # log "------------------    populateActivity", @getActivityFilter(), @lastFrom
+      # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
     if isReady
     then fetch()
@@ -193,16 +194,20 @@ class ActivityAppController extends AppController
       then @emit "activitiesCouldntBeFetched", err
       else @emit "followingFeedFetched_#{eventSuffix}", activities
 
+  setLastTimestamps:(from, to)->
+    # debugger
+    @lastTo   = to
+    @lastFrom = from
+
+
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
-    @lastTo   = (new Date cache.to).getTime()
-    @lastFrom = (new Date cache.from).getTime()
+    @setLastTimestamps (new Date cache.from).getTime(), (new Date cache.to).getTime()
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
     return unless teasers.first
-    @lastTo   = new Date(teasers.first.meta.createdAt).getTime()
-    @lastFrom = new Date(teasers.last.meta.createdAt).getTime()
+    @setLastTimestamps new Date(teasers.last.meta.createdAt).getTime(), new Date(teasers.first.meta.createdAt).getTime()
 
   sanitizeCache:(cache, callback)->
     activities = clearQuotes cache.activities
