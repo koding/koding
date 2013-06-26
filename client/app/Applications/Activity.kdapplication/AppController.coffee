@@ -49,11 +49,10 @@ class ActivityAppController extends AppController
     # if @mainController.appIsReady then @putListeners()
     # else @mainController.on 'AppIsReady', => @putListeners()
 
-    #@status = KD.getSingleton "status"
-    #@status.on "reconnected", (conn)=>
-      #if conn && conn.reason is "internetDownForLongTime"
-      #then @refresh()
-      #else @fetchSomeActivities()
+    @status = KD.getSingleton "status"
+    @status.on "reconnected", (conn)=>
+      if conn && conn.reason is "internetDownForLongTime"
+      then @refresh()
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>
@@ -119,11 +118,8 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     @off "activitiesFetched_#{eventSuffix}"
     @off "cacheFetched_#{eventSuffix}"
-    # log ">>>>>>>>>>>>>>>>>    clearPopulateActivityBindings", @_e
 
-
-  populateActivity:(options = {})->
-
+  populateActivity:(options = {}, callback)->
     return  if @isLoading
 
     @listController.showLazyLoader no
@@ -159,12 +155,16 @@ class ActivityAppController extends AppController
           reset()
           @extractCacheTimeStamps cache
           @listController.listActivitiesFromCache cache
+          callback? cache
+
         @fetchPublicActivities options
       else
         @once "followingFeedFetched_#{eventSuffix}", (activities)=>
           reset()
           @extractTeasersTimeStamps activities
           @listController.listActivities activities
+          callback? activities
+
         @fetchFollowingActivities options
 
       # log "------------------    populateActivity", @getActivityFilter(), @lastFrom
@@ -311,70 +311,17 @@ class ActivityAppController extends AppController
     return  if @isLoading
 
     @resetAll()
+    @populateActivityWithTimeout()
 
-  #populateActivityWithTimeout:->
-    #@populateActivity {},\
-      #KD.utils.getTimedOutCallbackOne
-        #name      : "populateActivity",
-        #onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        #onTimeout : @recover.bind this
+  populateActivityWithTimeout:->
+    @populateActivity {},\
+      KD.utils.getTimedOutCallbackOne
+        name      : "populateActivity",
+        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
+        onTimeout : @recover.bind this
 
-  #recover:->
+  recover:->
+    KD.logToMixpanel "activity feed render failed; recovering"
 
-    #KD.logToMixpanel "activity feed render failed; recovering"
-
-    #@isLoading = no
-    #@status.reconnect()
-
-  ## Fetches activities that occured after the first entry in user feed,
-  ## used for minor disruptions.
-  #fetchSomeActivities:(options = {}) ->
-    #return if @isLoading
-    #@isLoading = yes
-
-    #lastItemCreatedAt = @listController.getLastItemTimeStamp()
-    #unless lastItemCreatedAt? or lastItemCreatedAt is ""
-      #@isLoading = no
-      #log "lastItemCreatedAt is empty"
-      ## if lastItemCreatedAt is null, we assume there are no entries
-      ## and refresh the entire feed
-      #@refresh()
-      #return
-
-    #selector       =
-      #createdAt    :
-        #$gt        : options.createdAt or lastItemCreatedAt
-      #type         : { $in : options.facets or @getFilter() }
-      #isLowQuality : { $ne : options.exempt or no }
-
-    #options       =
-      #limit       : 20
-      #sort        :
-        #createdAt : -1
-
-    #KD.remote.api.CActivity.some selector, options,\
-      #KD.utils.getTimedOutCallback (err, activities) =>
-        #if err then warn err
-        #else
-
-          #KD.logToMixpanel "refresh activity feed success"
-
-          ## FIXME: SY
-          ## if it is exact 20 there may be other items
-          ## put a separator and check for new items in between
-          #if activities.length is 20
-            #warn "put a separator in between new and old activities"
-
-          #@activitiesArrived activities.reverse()
-          #@isLoading = no
-      #, =>
-        #@isLoading = no
-        #log "fetchSomeActivities timeout reached"
-
-  #isExempt:(callback)->
-
-    #@appStorage.fetchStorage (storage) =>
-      #flags  = KD.whoami().globalFlags
-      #exempt = flags?.indexOf 'exempt'
-      #exempt = (exempt? and exempt > -1) or storage.getAt 'bucket.showLowQualityContent'
-      #callback exempt
+    @isLoading = no
+    @status.reconnect()
