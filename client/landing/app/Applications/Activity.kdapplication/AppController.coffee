@@ -61,10 +61,12 @@ class ActivityAppController extends AppController
       @ready @bound "populateActivity"
 
     @emit 'ready'
+    console.clear()
 
   resetAll:->
-    @lastTo   = null
-    @lastFrom = null
+    @lastTo    = null
+    @lastFrom  = Date.now()
+    @isLoading = no
     @listController.resetList()
     @listController.removeAllItems()
 
@@ -77,34 +79,32 @@ class ActivityAppController extends AppController
     @listController.once 'teasersLoaded', @teasersLoaded.bind @
 
   continueLoadingTeasers:->
-    if isNaN(@lastFrom)
-      @listController.hideLazyLoader()
-      return
-
-    @populateActivity {to: @lastFrom}
+    @clearPopulateActivityBindings()
+    @populateActivity to : @lastFrom
 
   attachEvents:(controller)->
     activityController = KD.getSingleton('activityController')
+    appView            = @getView()
+    {widgetController} = appView
     activityController.on 'ActivitiesArrived', @bound "activitiesArrived"
     activityController.on 'Refresh', @bound "refresh"
 
     @listController = controller
     @bindLazyLoad()
 
-    @getView().widgetController.on "FakeActivityHasArrived", (activity)->
+    widgetController.on "FakeActivityHasArrived", (activity)->
       controller.fakeActivityArrived activity
 
-    @getView().widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
+    widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
-    @getView().innerNav.on "NavItemReceivedClick", (data)=>
+    appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
 
-      @isLoading = no
+      @clearPopulateActivityBindings()
       @resetAll()
 
-      @off ["activitiesFetched", "cacheFetched"]
-
-      if data.type in ["Public", "Followed"] then @setFeedFilter data.type
+      if data.type in ["Public", "Followed"]
+      then @setFeedFilter data.type
       else @setActivityFilter data.type
 
       @populateActivity()
@@ -115,16 +115,18 @@ class ActivityAppController extends AppController
   setActivityFilter: (activityType)-> @currentActivityFilter = activityType
   getActivityFilter: -> @currentActivityFilter
 
-
-
-
-
+  clearPopulateActivityBindings:->
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    @off "activitiesFetched_#{eventSuffix}"
+    @off "cacheFetched_#{eventSuffix}"
+    # log ">>>>>>>>>>>>>>>>>    clearPopulateActivityBindings", @_e
 
 
   populateActivity:(options = {})->
+
     return  if @isLoading
 
-    @listController.showLazyLoader()
+    @listController.showLazyLoader no
     @listController.hideNoItemWidget()
 
     @isLoading       = yes
@@ -136,7 +138,7 @@ class ActivityAppController extends AppController
       @isLoading = no
       @bindLazyLoad()
 
-    fetch = =>
+    fetch = do =>=>
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
@@ -150,30 +152,30 @@ class ActivityAppController extends AppController
         limit  : 20
         facets : @getActivityFilter()
 
+      eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      @on 'cacheFetched', (cache)=>
-        reset()
-        @extractCacheTimeStamps cache
-        @listController.listActivitiesFromCache cache
+      if @getFeedFilter() is "Public"
+        @once "publicFeedFetched_#{eventSuffix}", (cache)=>
+          reset()
+          @extractCacheTimeStamps cache
+          @listController.listActivitiesFromCache cache
+        @fetchPublicActivities options
+      else
+        @once "followingFeedFetched_#{eventSuffix}", (activities)=>
+          reset()
+          @extractTeasersTimeStamps activities
+          @listController.listActivities activities
+        @fetchFollowingActivities options
 
-      @on 'activitiesFetched', (activities)=>
-        reset()
-        @extractTeasersTimeStamps activities
-        @listController.listActivities activities
-
-      @fetchActivities options
+      # log "------------------    populateActivity", @getActivityFilter(), @lastFrom
 
     if isReady
     then fetch()
     else groupsController.once 'groupChanged', fetch
 
-  fetchActivities: (options={})->
-    if @getFeedFilter() is "Public"
-    then @fetchPublicActivities options
-    else @fetchFollowingActivities options
-
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
       cache.overview.reverse()  if cache.overview
 
@@ -182,39 +184,16 @@ class ActivityAppController extends AppController
       @sanitizeCache cache, (err, sanitizedCache)=>
         if err
         then @emit "activitiesCouldntBeFetched", err
-        else @emit "cacheFetched", sanitizedCache
+        else @emit "publicFeedFetched_#{eventSuffix}", sanitizedCache
 
 
   fetchFollowingActivities:(options = {})->
     {CActivity} = KD.remote.api
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CActivity.fetchFolloweeContents options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err
-      else @emit "activitiesFetched", activities
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      else @emit "followingFeedFetched_#{eventSuffix}", activities
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
@@ -223,8 +202,9 @@ class ActivityAppController extends AppController
 
   # Store first & last activity timestamp.
   extractTeasersTimeStamps:(teasers)->
-    @lastTo   = teasers.first.meta.createdAt
-    @lastFrom = teasers.last.meta.createdAt
+    return unless teasers.first
+    @lastTo   = new Date(teasers.first.meta.createdAt).getTime()
+    @lastFrom = new Date(teasers.last.meta.createdAt).getTime()
 
   sanitizeCache:(cache, callback)->
     activities = clearQuotes cache.activities

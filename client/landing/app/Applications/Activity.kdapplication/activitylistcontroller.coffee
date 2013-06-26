@@ -106,7 +106,8 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
     @hideLazyLoader()
-    return @showNoItemWidget() unless cache.overview.length > 0
+    # fixme: Senthil "?"
+    return @showNoItemWidget() unless cache.overview?.length > 0
 
     activityIds = []
     for overviewItem in cache.overview when overviewItem
