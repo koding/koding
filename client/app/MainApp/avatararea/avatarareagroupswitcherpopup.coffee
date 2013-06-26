@@ -21,7 +21,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @_popupListPending.on 'PendingCountDecreased', @bound 'decreasePendingCount'
     @_popupListPending.on 'UpdateGroupList',       @bound 'populateGroups'
     # does not work
-    KD.whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
+    # KD.whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
 
     @listControllerPending = new KDListViewController
       view                : @_popupListPending
