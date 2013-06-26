@@ -9,7 +9,7 @@
 #    - fooBar
 #
 ###
-redis = require 'redis'
+redis    = require 'redis'
 kite     = require "kite-amqp/lib/kite-amqp/kite.coffee"
 Kite     = require "kite-amqp/lib/kite-amqp/index.coffee"
 manifest = require "./manifest.json"
