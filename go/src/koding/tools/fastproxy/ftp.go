@@ -31,17 +31,19 @@ func ListenFTP(privateAddr *net.TCPAddr, publicIP net.IP, cert *tls.Certificate,
 		source.Write([]byte("220 Welcome to Koding!\r\n"))
 
 		r := bufio.NewReaderSize(source, 128)
-		line, err := r.ReadSlice('\n')
-		if err != nil {
-			return
-		}
+		for {
+			line, err := r.ReadSlice('\n')
+			if err != nil {
+				return
+			}
+			req.buffer.Next(len(line)) // USER line will be sent by FTPRequest.Relay
 
-		if !bytes.HasPrefix(line, []byte("USER ")) {
-			source.Write([]byte("500 Syntax error.\r\n"))
-			return
+			if bytes.HasPrefix(line, []byte("USER ")) {
+				req.User = string(bytes.TrimSpace(line[5:]))
+				break
+			}
+			source.Write([]byte("502 Command not implemented.\r\n"))
 		}
-		req.User = string(bytes.TrimSpace(line[5:]))
-		req.buffer.Next(len(line)) // USER line will be sent by FTPRequest.Relay
 
 		handler(&req)
 	})

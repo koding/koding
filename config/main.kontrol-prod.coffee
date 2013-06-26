@@ -75,6 +75,8 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  graphFeederWorker:
+    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 4
@@ -114,7 +116,7 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
@@ -157,6 +159,7 @@ module.exports =
     proxy         :
       port        : 80
       portssl     : 443
+      ftpip       : '54.208.3.200'
       sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
     rabbitmq      :
       host        : 'kontrol.in.koding.com'
@@ -170,7 +173,7 @@ module.exports =
     push	: yes
     host	: 'opsview.in.koding.com'
   followFeed    :
-    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
