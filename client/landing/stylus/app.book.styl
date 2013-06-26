@@ -3,7 +3,7 @@
 
 #instruction-book
   abs()
-  top                       50%
+  top                       83%
   margin-top                -222px
   left                      -1509px
   size                      1509px, 425px
@@ -12,6 +12,10 @@
   shadow                    inset 0 5px 5px rgba(0,0,0,.35)\, 0 15px 40px rgba(0,0,0,.8)
   background                transparent url("../images/book/book.jpg") no-repeat 0 0
   vendor                    transition, left .3s ease-in-out
+  vendor                    transition, top .3s ease-in-out
+  &.more-terminal
+      top               74%
+    
   &.in
     left                    -700px
   .controls
@@ -48,7 +52,7 @@ section.page
     bg                  position, 55px 90px
     .embedded
       margin            20px 60px 0 450px
-      line-height       30px
+      line-height       25px
       font-size         14px
       a
         color           linkColor1
@@ -192,6 +196,30 @@ section.page
       font-size         13px
       p
         width           auto
+    &.more-1
+      >article
+        strong
+          margin        14px 20px 0 40px
+          display       block
+          font-size     14px
+          padding       3px 6px
+          color         linkColor1
+          background    #f2f2f2
+          font-weight   400
+          border        1px solid #eee
+          word-break    break-all
+          rounded       4px
+        code 
+          margin        14px 20px 0 40px
+          display       block
+          font-size     14px
+          padding       3px 6px
+          color         #28fe14
+          background    #444
+          font-weight   400
+          border        1px solid #eee
+          word-break    break-all
+          rounded       2px
 
   &.apps
     bg                  image, url("../images/book/18.png")

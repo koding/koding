@@ -111,8 +111,6 @@ class ActivityListController extends KDListViewController
       if objectTimestamp < @lastItemTimeStamp
         @lastItemTimeStamp = objectTimestamp
 
-    KD.logToMixpanel "populateActivity.success", 5
-
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
@@ -143,8 +141,6 @@ class ActivityListController extends KDListViewController
     @checkIfLikedBefore activityIds
 
     @lastItemTimeStamp = cache.from
-
-    KD.logToMixpanel "populateActivity.cache.success", 5
 
     @emit "teasersLoaded"
 
