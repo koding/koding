@@ -50,9 +50,7 @@ class ActivityAppController extends AppController
     # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
-    @status.on "reconnected", (conn)=>
-      if conn && conn.reason is "internetDownForLongTime"
-      then @refresh()
+    @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>
@@ -66,6 +64,7 @@ class ActivityAppController extends AppController
     @lastTo    = null
     @lastFrom  = Date.now()
     @isLoading = no
+    @clearPopulateActivityBindings()
     @listController.resetList()
     @listController.removeAllItems()
 
@@ -99,7 +98,6 @@ class ActivityAppController extends AppController
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
 
-      @clearPopulateActivityBindings()
       @resetAll()
 
       if data.type in ["Public", "Followed"]
@@ -119,7 +117,7 @@ class ActivityAppController extends AppController
     @off "activitiesFetched_#{eventSuffix}"
     @off "cacheFetched_#{eventSuffix}"
 
-  populateActivity:(options = {}, callback)->
+  populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
 
     @listController.showLazyLoader no
@@ -155,7 +153,7 @@ class ActivityAppController extends AppController
           reset()
           @extractCacheTimeStamps cache
           @listController.listActivitiesFromCache cache
-          callback? cache
+          callback cache
 
         @fetchPublicActivities options
       else
@@ -163,7 +161,7 @@ class ActivityAppController extends AppController
           reset()
           @extractTeasersTimeStamps activities
           @listController.listActivities activities
-          callback? activities
+          callback activities
 
         @fetchFollowingActivities options
 
