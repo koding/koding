@@ -9,7 +9,7 @@ class Pane extends JView
 
     if title or hasButtons
       @header    = new KDHeaderView
-        cssClass : "header"
+        cssClass : "inner-header"
         partial  : title
     else
       @header    = new KDCustomHTMLView
