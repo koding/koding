@@ -11,6 +11,7 @@ class AccountPaymentHistoryListController extends KDListViewController
 
   loadItems:->
     @removeAllItems()
+    @customItem?.destroy()
     @showLazyLoader no
 
     transactions = []
@@ -30,8 +31,18 @@ class AccountPaymentHistoryListController extends KDListViewController
             paidVia    : t.card or ""
             owner      : t.owner
             refundable : t.refundable
-        @instantiateListItems transactions
+        if transactions.length is 0
+          @addCustomItem "There are no transactions."
+        else
+          @instantiateListItems transactions
         @hideLazyLoader()
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
   loadView:->
     super
