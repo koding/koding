@@ -19,7 +19,6 @@ class Panel extends JView
     # @createHeaderHint()     if options.hint
 
     @createLayout()
-    @createPanes()
 
     @getSingleton("mainView").once "transitionend", =>
       @splitView._windowDidResize()
@@ -52,13 +51,16 @@ class Panel extends JView
       cssClass  : "panel-container"
 
     panesLength = @getOptions().panes.length
+
     return  unless panesLength
+
     panelTypeByPaneLength  =
       "1"                  : "SingleLayout"
       "2"                  : "DoubleLayout"
       "3"                  : "TripleLayout"
       "4"                  : "QuadrupleLayout"
     methodName             = "create#{panelTypeByPaneLength[panesLength]}"
+
     do @[methodName]
 
   createPanes: ->
@@ -74,10 +76,12 @@ class Panel extends JView
 
     paneType             = paneOptions.type
     PaneClass            = paneTypesToPaneClass[paneType]
+    paneOptions.delegate = @
     pane                 = new PaneClass paneOptions
 
     targetContainer.addSubView pane
     @panes.push pane
+    @emit "NewPaneCreated", pane
 
   # GETTERS #
   getPaneContainerByIndex: (index) ->
@@ -132,6 +136,7 @@ class Panel extends JView
   viewAppended: ->
     super
     @getDelegate().emit "NewPanelAdded", @
+    @createPanes()
 
   pistachio: ->
     """

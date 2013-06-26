@@ -10,11 +10,6 @@ class Workspace extends JView
     @panels                = []
     @lastCreatedPanelIndex = 0
 
-    @createPanel()
-
-    @on "NewPanelAdded", (pane) =>
-      # callback for pane added
-
   createPanel: (callback = noop) ->
     panelOptions          = @getOptions().panels[@lastCreatedPanelIndex]
     panelOptions.delegate = @
@@ -31,6 +26,10 @@ class Workspace extends JView
       @panels[@lastCreatedPanelIndex - 1].setClass "hidden"
 
   prev: ->
+
+  viewAppended: ->
+    super
+    @createPanel()
 
   pistachio: ->
     """
