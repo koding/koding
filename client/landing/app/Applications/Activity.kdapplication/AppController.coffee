@@ -324,4 +324,6 @@ class ActivityAppController extends AppController
     KD.logToMixpanel "activity feed render failed; recovering"
 
     @isLoading = no
+
     @status.reconnect()
+    @refresh()
