@@ -415,7 +415,12 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) {
 		panic(err)
 	}
 
-	chown(p, id, id)
+	if err := file.Chown(id, id); err != nil {
+		panic(err)
+	}
+	if err := file.Chmod(mode); err != nil {
+		panic(err)
+	}
 }
 
 // may panic
