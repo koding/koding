@@ -11,10 +11,7 @@ import (
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
-	"koding/tools/db"
 	"koding/tools/fastproxy"
-	"koding/virt"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net"
 	"net/http"
@@ -87,13 +84,13 @@ func main() {
 			vmName = userParts[1]
 		}
 
-		var vm virt.VM
-		if err := db.VMs.Find(bson.M{"hostnameAlias": vmName}).One(&vm); err != nil {
+		vm, err := proxyDB.GetVM(vmName)
+		if err != nil {
 			req.Respond("530 No Koding VM with name '" + vmName + "' found.\r\n")
 			return
 		}
 
-		if err := req.Relay(&net.TCPAddr{IP: vm.IP, Port: 21}, userName); err != nil {
+		if err = req.Relay(&net.TCPAddr{IP: vm.IP, Port: 21}, userName); err != nil {
 			req.Respond("530 The Koding VM '" + vmName + "' did not respond.")
 		}
 	})
