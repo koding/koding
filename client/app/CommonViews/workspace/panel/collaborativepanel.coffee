@@ -28,6 +28,6 @@ class CollaborativePanel extends Panel
 
 
 CollaborativePanel::EditorPaneClass   = CollaborativeEditorPane
-CollaborativePanel::TerminalPaneClass = TerminalPane
+CollaborativePanel::TerminalPaneClass = CollaborativeTerminalPane
 CollaborativePanel::VideoPaneClass    = VideoPane
 CollaborativePanel::PreviewPaneClass  = PreviewPane
