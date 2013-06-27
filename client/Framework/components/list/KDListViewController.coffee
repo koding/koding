@@ -63,7 +63,7 @@ class KDListViewController extends KDViewController
     @defaultItem.destroy() if @defaultItem
 
   putDefaultItem:(list=[])->
-    if @getOptions().showDefaultItem
+    if @getOptions().showDefaultItem and not @defaultItem
       if list.length is 0 then @addDefaultItem()
       else @removeDefaultItem()
 
