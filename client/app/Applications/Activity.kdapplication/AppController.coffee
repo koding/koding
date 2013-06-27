@@ -76,7 +76,6 @@ class ActivityAppController extends AppController
     @listController.once 'teasersLoaded', @teasersLoaded.bind @
 
   continueLoadingTeasers:->
-    @clearPopulateActivityBindings()
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->

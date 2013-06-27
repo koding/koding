@@ -101,7 +101,7 @@ module.exports = class FetchAllActivityParallel
     # get the right number of results
     overview = overview[-20..overview.length]
 
-    allTimes = _.map(overview, (activity)-> activity.createdAt)
+    allTimes = _.map(overview, (activity)-> activity.createdAt.first)
     allTimes = _.flatten allTimes
     sortedAllTimes = _.sortBy(allTimes, (activity)-> activity)
 
