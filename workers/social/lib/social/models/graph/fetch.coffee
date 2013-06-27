@@ -124,7 +124,7 @@ module.exports = class FetchAllActivityParallel
     return response
 
   generateUniqueRandomKey: ->
-    randomId = Math.floor(Math.random()*1000)
+    randomId = Math.floor(Math.random()*100000)
     if @usedIds[randomId]
       @generateUniqueRandomKey()
     else
