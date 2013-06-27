@@ -31,6 +31,8 @@ module.exports = class JVM extends Model
                            'fetchVMInfo', 'count'
                           ]
       instance          : []
+    indexes             :
+      hostnameAlias     : 'unique'
     schema              :
       ip                :
         type            : String
