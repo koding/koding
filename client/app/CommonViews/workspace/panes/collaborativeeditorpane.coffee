@@ -19,11 +19,9 @@ class CollaborativeEditorPane extends Pane
       ref         = workspace.firepadRef.child @sessionKey
       @firepad    = Firepad.fromCodeMirror ref, @codeMirrorEditor
 
-      # workspace.workspaceRef.set "help me" : {szki: "obi-wan", jedi: "tes"}
-
       @firepad.on "ready", =>
         if @firepad.isHistoryEmpty()
-          @firepad.setText "" # this should be
+          @firepad.setText "" # fix for a firepad bug
 
   createSessionKey: ->
     nick = KD.nick()
