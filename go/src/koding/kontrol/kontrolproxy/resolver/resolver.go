@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/kontrol/kontrolproxy/utils"
-	"koding/tools/db"
-	"koding/virt"
 	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"math"
 	"math/rand"
@@ -110,24 +107,18 @@ func GetTarget(host string) (*Target, error) {
 			hostname = domain.HostnameAlias[0]
 		}
 
-		var vm virt.VM
-		if err := db.VMs.Find(bson.M{"hostnameAlias": hostname}).One(&vm); err != nil {
-			return nil, fmt.Errorf("vm for hostname %s is not found", hostname)
+		vm, err := proxyDB.GetVM(hostname)
+		if err != nil {
+			return nil, err
 		}
 
 		if vm.IP == nil {
-
 			return nil, fmt.Errorf("vm for hostname %s is not active", hostname)
 		}
 
 		vmAddr := vm.IP.String()
-		portInt, _ := strconv.Atoi(port)
 		if !utils.HasPort(vmAddr) {
-			if portInt >= 8000 && portInt <= 8100 {
-				vmAddr = utils.AddPort(vmAddr, port)
-			} else {
-				vmAddr = utils.AddPort(vmAddr, "80")
-			}
+			vmAddr = utils.AddPort(vmAddr, port)
 		}
 
 		target, err = url.Parse("http://" + vmAddr)

@@ -66,7 +66,6 @@ class ResourcesListItem extends KDListItemView
     super options, data
 
     @vm = KD.getSingleton 'vmController'
-    @vm.on 'StateChanged', @bound 'checkVMState'
 
   viewAppended:->
 
@@ -106,8 +105,6 @@ class ResourcesListItem extends KDListItemView
     @addSubView @chevron = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "chevron"
-
-    @vm.info @getData(), @bound 'checkVMState'
 
   click:->
     KD.getSingleton("windowController").addLayer @delegate

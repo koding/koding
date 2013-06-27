@@ -24,7 +24,7 @@ class KodingAppsController extends KDController
     super
 
     @appManager     = KD.getSingleton "appManager"
-    @kiteController = KD.getSingleton "kiteController"
+    @vmController   = KD.getSingleton "vmController"
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
     @publishedApps  = {}
@@ -305,7 +305,7 @@ class KodingAppsController extends KDController
         method   : "app.publish"
         withArgs : {appPath}
 
-      @kiteController.run options, (err, res)=>
+      @vmController.run options, (err, res)=>
         if err
           warn err
           notification.destroy()
@@ -343,11 +343,11 @@ class KodingAppsController extends KDController
         title    : "Compiling #{name}..."
         type     : "mini"
 
-      @kiteController.run "kdc #{appPath}", (err, response)=>
+      @vmController.run "kdc #{appPath}", (err, response)=>
         if not err
           nickname    = KD.nick()
           publishPath = "/home/#{nickname}/Web/.applications"
-          @kiteController.run
+          @vmController.run
             kiteName    : "os"
             method      : "fs.createDirectory"
             withArgs    :
@@ -356,7 +356,7 @@ class KodingAppsController extends KDController
           , (err, response)=>
             loader.notificationSetTitle "Publishing app static files..."
             linkFile = "#{publishPath}/#{KD.utils.slugify name}"
-            @kiteController.run "rm #{linkFile}; ln -s #{appPath} #{linkFile}", (err, response)=>
+            @vmController.run "rm #{linkFile}; ln -s #{appPath} #{linkFile}", (err, response)=>
               loader.notificationSetTitle "Fetching compiled app..."
               @fetchCompiledAppSource app, (err, res)=>
                 if not err
@@ -452,7 +452,7 @@ class KodingAppsController extends KDController
                       appPath     : @getAppPath app.manifest
                       version     : version
 
-                  @kiteController.run options, (err, res)=>
+                  @vmController.run options, (err, res)=>
                     if err then warn err
                     else
                       app.install (err)=>
@@ -567,7 +567,7 @@ class KodingAppsController extends KDController
 
     # Copy default app files (app Skeleton)
     stack.push (cb)=>
-      @kiteController.run
+      @vmController.run
         method    : "app.skeleton"
         withArgs  :
           type    : if isBlank then "blank" else "sample"
@@ -595,7 +595,7 @@ class KodingAppsController extends KDController
         callback new KDNotificationView type : "mini", title : "Please refresh your apps and try again!"
         return
 
-      @kiteController.run
+      @vmController.run
         kiteName    : "applications"
         method      : "downloadApp"
         withArgs    :

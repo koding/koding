@@ -68,6 +68,7 @@ module.exports = class JGroup extends Module
         { name: 'MemberAdded',      filter: -> null }
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
+        { name: 'updateInstance' }
       ]
     sharedMethods   :
       static        : [
@@ -288,6 +289,14 @@ module.exports = class JGroup extends Module
       group                 = new this groupData
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
+
+      # remove permissions for guest which made sense for public but not for private
+      if group.privacy is 'private'
+        toBeRemoved = ['read activity', 'read tags', 'list members']
+        for perm, i in permissionSet.permissions when perm.role is 'guest'
+          for permission, j in perm.permissions when permission in toBeRemoved
+            permissionSet.permissions[i].permissions.splice j, 1
+
       queue = [
         -> group.useSlug group.slug, (err, slug)->
           if err then callback err
@@ -440,7 +449,8 @@ module.exports = class JGroup extends Module
   @broadcast = (groupSlug, event, message)->
     if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
-        if err or not group then console.error "unknown group #{groupSlug}"
+        if err then console.error err
+        unless group then console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
@@ -911,7 +921,12 @@ module.exports = class JGroup extends Module
           if err then callback err
           else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else invitationRequest.sendInvitation client, message, callback
+            else
+              if user
+                user.fetchOwnAccount (err, account)->
+                  return console.warn err  if err # this is minor work, workflow should not stop cause of this
+                  account.emit 'NewPendingInvitation'
+              invitationRequest.sendInvitation client, message, callback
 
   isMember: (account, callback)->
     selector =
