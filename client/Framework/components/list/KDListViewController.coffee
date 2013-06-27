@@ -56,6 +56,7 @@ class KDListViewController extends KDViewController
       listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
 
   addDefaultItem:->
+    return  if @defaultItem
     {itemClass,options,data} = @getOptions().defaultItem
     @getListView().addSubView @defaultItem = new itemClass options, data
 
@@ -63,7 +64,7 @@ class KDListViewController extends KDViewController
     @defaultItem.destroy() if @defaultItem
 
   putDefaultItem:(list=[])->
-    if @getOptions().showDefaultItem and not @defaultItem
+    if @getOptions().showDefaultItem
       if list.length is 0 then @addDefaultItem()
       else @removeDefaultItem()
 
