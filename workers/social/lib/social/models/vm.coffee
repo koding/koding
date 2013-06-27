@@ -26,9 +26,9 @@ module.exports = class JVM extends Model
       'list default vm' : ['member','moderator']
     sharedMethods       :
       static            : [
-                           'fetchVms','fetchVmsByContext'#,'calculateUsage'
-                           'removeByHostname', 'someData', 'fetchDomains'
-                           'fetchVMInfo', 'count'
+                           'fetchVms','fetchVmsByContext', 'fetchVMInfo'
+                           'fetchDomains', 'removeByHostname', 'someData'
+                           'count', #'calculateUsage'
                           ]
       instance          : []
     indexes             :
