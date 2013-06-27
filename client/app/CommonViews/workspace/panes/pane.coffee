@@ -5,6 +5,13 @@ class Pane extends JView
     super options, data
 
     hasButtons = options.buttons?.length
+
+    @createHeader()
+    @createButtons()  if hasButtons
+
+  createHeader: ->
+    options    = @getOptions()
+    hasButtons = options.buttons?.length
     title      = options.title or @getProperties().title or ""
 
     if title or hasButtons
@@ -13,8 +20,6 @@ class Pane extends JView
         partial  : title
     else
       @header    = new KDCustomHTMLView
-
-    @createButtons()  if hasButtons
 
   createButtons: ->
     for buttonOptions in @getOptions().buttons
