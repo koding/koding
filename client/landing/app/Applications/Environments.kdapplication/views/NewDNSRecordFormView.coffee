@@ -7,14 +7,18 @@ class NewDNSRecordFormView extends KDCustomHTMLView
     @typeLabel        = new KDLabelView
       title : "Record Type"
 
-    @hostnameLabel    = new KDLabelView
-      title : "Hostname"
+    @hostLabel    = new KDLabelView
+      title : "Host"
 
     @destinationLabel = new KDLabelView
       title : "Points to"
 
     @ttlLabel         = new KDLabelView
       title : "TTL"
+
+    @priorityLabel    = new KDLabelView
+      cssClass : "hidden"
+      title    : "Priority"
 
     @typeSelectBox    = new KDSelectBox
       selectOptions : [
@@ -26,10 +30,19 @@ class NewDNSRecordFormView extends KDCustomHTMLView
         {title: "SRV", value: "SRV"}
         {title: "AAAA", value: "AAAA"}
       ]
+      change:=>
+        if @typeSelectBox.getValue() isnt "MX"
+          @priorityLabel.hide()
+          @priorityInput.hide()
+        else
+          @priorityLabel.show()
+          @priorityInput.show()
 
-    @hostnameInput    = new KDInputView
+    @hostInput        = new KDInputView
     @destinationInput = new KDInputView
     @ttlInput         = new KDInputView
+    @priorityInput    = new KDInputView
+      cssClass : "hidden"
 
     @addButton = new KDButtonView
       title    : "Add Record"
@@ -38,14 +51,15 @@ class NewDNSRecordFormView extends KDCustomHTMLView
   updateRecords:->
     {domain} = @getData()
 
-    recordType = "A"#@typeSelectBox.getValue()
-    hostname   = "www"#@hostnameInput.getValue()
-    value      = "127.0.0.1"#@destinationInput.getValue()
+    recordType = @typeSelectBox.getValue()
+    host       = @hostInput.getValue()
+    value      = @destinationInput.getValue()
     ttl        = @ttlInput.getValue()
+    priority   = @priorityInput.getValue()
 
-    domain.createDNSRecord {recordType, hostname, value, ttl}, (err, record)=>
+    domain.createDNSRecord {recordType, host, value, ttl, priority}, (err, record)=>
       console.log err, record
-    
+
 
 
   viewAppended: JView::viewAppended
@@ -55,15 +69,19 @@ class NewDNSRecordFormView extends KDCustomHTMLView
       <section class="clearfix">
         <div class="input-container">
           {{> @typeLabel}}
-          {{> @typeSelectBox }}
+          <div>{{> @typeSelectBox }}</div>
         </div>
         <div class="input-container">
-          {{> @hostnameLabel}}
-          {{> @hostnameInput }}
+          {{> @hostLabel}}
+          {{> @hostInput }}
         </div>
         <div class="input-container">
           {{> @destinationLabel}}
           {{> @destinationInput }}
+        </div>
+        <div class="input-container">
+          {{> @priorityLabel }}
+          {{> @priorityInput }}
         </div>
         <div class="input-container">
           {{> @ttlLabel}}

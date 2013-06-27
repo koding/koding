@@ -24,6 +24,9 @@ class FirewallRuleListController extends KDListViewController
 
     @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'
     @getListView().on "ruleActionChanged", @bound 'refreshProxyRulesList'
+    @getListView().on "ruleDeleted", (item)=>
+      @removeItem item
+      @refreshProxyRulesList()
     @on "newRuleCreated", @bound 'refreshProxyRulesList'
 
     @fetchProxyRules()

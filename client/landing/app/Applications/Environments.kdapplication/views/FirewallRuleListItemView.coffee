@@ -67,8 +67,7 @@ class FirewallRuleListItemView extends KDListItemView
       , (err, result)=>
         return console.log err if err?
         new KDNotificationView {title:"Rule has been deleted from your firewall.", type:"top"}
-        delegate.removeItem this
-        delegate.emit "ruleDeleted"
+        delegate.emit "ruleDeleted", this
         delegate.emit "ruleActionChanged"
 
   viewAppended:->

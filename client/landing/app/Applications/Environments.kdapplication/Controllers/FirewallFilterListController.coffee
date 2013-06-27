@@ -28,7 +28,9 @@ class FirewallFilterListController extends KDListViewController
     listView.setData(data)
 
     listView.on "newFilterCreated", @bound 'fetchFilters'
-    listView.on "filterDeleted", @bound 'fetchFilters'
+    listView.on "filterDeleted", (item)=>
+      @removeItem item
+      @fetchFilters()
 
     @fetchFilters()
 

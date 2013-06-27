@@ -361,7 +361,7 @@ class DomainCreationForm extends KDTabViewWithForms
       hideHandleContainer             : yes
       forms                           :
         "Domain Address"              :
-          # callback                    : => @loadSearchDomainPane()
+          callback                    : @bound "registerDomain"
           buttons                     :
             Next                      :
               title                   : "Add Domain"
@@ -377,23 +377,26 @@ class DomainCreationForm extends KDTabViewWithForms
               cssClass                : "group-type"
               defaultValue            : "new"
               radios                  : [
-                { title : "I want to register one",               value : "new" }
+                { title : "I want to register a domain",          value : "new" }
                 { title : "i have a domain",                      value : "existing" }
                 { title : "Create a #{nickname}.kd.io subdomain", value : "subdomain" }
               ]
               change                  : =>
-                {DomainOption, domainName, domains} = @forms["Domain Address"].inputs
+                {DomainOption, domainName, domains, regYears} = @forms["Domain Address"].inputs
                 actionState = DomainOption.getValue()
-                log "does this work"
+                log "does this work" # yes it works :)
                 domainName.getElement().setAttribute 'placeholder', switch actionState
                   when "new"
                     domains.hide()
+                    regYears.show()
                     "#{KD.utils.slugify firstName}s-new-domain.com"
                   when "existing"
                     domains.hide()
+                    regYears.hide()
                     "#{KD.utils.slugify firstName}s-existing-domain.com"
                   when "subdomain"
                     domains.show()
+                    regYears.hide()
                     "#{KD.utils.slugify firstName}s-subdomain"
             domainName                :
               placeholder             : "#{KD.utils.slugify firstName}s-new-domain.com"
@@ -403,6 +406,9 @@ class DomainCreationForm extends KDTabViewWithForms
                 messages              :
                   requires            : "Enter your domain name"
               nextElement             :
+                regYears              :
+                  itemClass           : KDSelectBox
+                  selectOptions       : ({title: "#{i} Year#{if i > 1 then 's' else ''}", value:i} for i in [1..10])
                 domains               :
                   cssClass            : "hidden"
                   itemClass           : KDSelectBox
@@ -416,3 +422,48 @@ class DomainCreationForm extends KDTabViewWithForms
                       required        : yes
                     messages          :
                       requires        : "Enter your domain name"
+
+  registerDomain:->
+    form = @forms["Domain Address"]
+    {NextButton} = form.buttons
+
+    {DomainOption, domainName, regYears} = form.inputs
+    domainInfo     = domainName.getValue().split "."
+    lastItemIndex  = domainInfo.length-1
+    domain         = domainInfo.slice(0, lastItemIndex).join ""
+    tld            = domainInfo[lastItemIndex]
+    domainOptionValue = DomainOption.getValue()
+
+    if domainOptionValue is 'new'
+      KD.remote.api.JDomain.isDomainAvailable domain, tld, (err, domainStatus)=>
+        if err then console.log err
+
+        if domainStatus is "unknown"
+          @notiyfyUser "An unknown error occured. Please try again later."
+
+        if domainStatus in ["regthroughus", "regthroughothers"]
+          @notifyUser "This domain is already registered. Please try another domain."
+
+        KD.remote.api.JDomain.registerDomain
+          domainName : domainName.getValue()
+          years      : regYears.getValue()
+        , (err, domain)=>
+          unless err
+            @notifyUser "Your domain has been successfully registered."
+            @emit 'DomainSaved'
+            domain.setDomainCNameToProxyDomain()
+
+    else if domainOptionValue is 'existing'
+      KD.remote.api.JDomain.createDomain
+        domain         : domainName.getValue()
+        regYears       : 0
+        hostnameAlias  : []
+        loadBalancer   :
+            mode       : "roundrobin"
+      , (err, domain)=>
+        @emit 'DomainSaved'  unless err
+    else
+
+  notifyUser:(msg)->
+    new KDNotificationView
+      title : msg

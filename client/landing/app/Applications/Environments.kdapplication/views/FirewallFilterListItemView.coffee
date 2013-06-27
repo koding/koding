@@ -66,8 +66,7 @@ class FirewallFilterListItemView extends KDListItemView
 
     KD.remote.api.JProxyFilter.remove {_id:data.getId()}, (err)=>
       unless err
-        @getDelegate().removeItem this
-        @getDelegate().emit "filterDeleted"
+        @getDelegate().emit "filterDeleted", this
 
   pistachio:->
     {name, match} = @getData()
