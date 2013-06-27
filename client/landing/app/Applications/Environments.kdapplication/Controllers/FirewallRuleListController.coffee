@@ -2,11 +2,14 @@ class FirewallRuleListController extends KDListViewController
 
   constructor:(options={}, data)->
     options = $.extend
+      showDefaultItem : yes
+      defaultItem :
+        itemClass : EmptyFirewallRuleListItemView
       itemClass   : FirewallRuleListItemView
       viewOptions :
         tagName   : "table"
         type      : "rules"
-        partial   : 
+        partial   :
           """
           <thead>
             <tr>
@@ -22,7 +25,6 @@ class FirewallRuleListController extends KDListViewController
     @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'
     @getListView().on "ruleActionChanged", @bound 'refreshProxyRulesList'
     @on "newRuleCreated", @bound 'refreshProxyRulesList'
-    @on "itemsFetched", @bound 'itemsFetched'
 
     @fetchProxyRules()
 
@@ -34,12 +36,7 @@ class FirewallRuleListController extends KDListViewController
       if ruleList
         rule.domainName = domain.domain for rule in ruleList
         @instantiateListItems ruleList
-      @emit 'itemsFetched'
 
   refreshProxyRulesList:->
     @removeAllItems()
     @fetchProxyRules()
-
-  itemsFetched:->
-    if @itemsOrdered.length is 0
-      @getView().updatePartial "You don't have any rules set for this domain."

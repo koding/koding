@@ -20,7 +20,7 @@ class FirewallMapperView extends KDView
       partial  : "<h4>Rule List For #{domain.domain}</h4>"
       cssClass : 'rule-list-view'
 
-    @fwRuleFormView = new FirewallFilterFormView 
+    @fwRuleFormView = new FirewallFilterFormView
       delegate : @filterListController.getListView()
       , {domain}
 
