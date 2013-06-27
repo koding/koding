@@ -20,7 +20,12 @@ class CollaborativePanel extends Panel
     PaneClass              = @getPaneClass paneOptions.type
     paneOptions.delegate   = @
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
-    pane                   = new PaneClass paneOptions
+    isJoinedASession       = !!paneOptions.sessionKey
+
+    if isJoinedASession and paneOptions.type is "terminal"
+      PaneClass = CollaborativeClientTerminalPane
+
+    pane = new PaneClass paneOptions
 
     targetContainer.addSubView pane
     @panes.push pane
