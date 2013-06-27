@@ -84,6 +84,8 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   listActivities:(activities)->
+    @hideLazyLoader()
+    return @showNoItemWidget() unless activities.length > 0
     activityIds = []
     for activity in activities when activity
       @addItem activity
@@ -103,7 +105,9 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-    return @showNoItemWidget() unless cache.overview?
+    @hideLazyLoader()
+    # fixme: Senthil "?"
+    return @showNoItemWidget() unless cache.overview?.length > 0
 
     activityIds = []
     for overviewItem in cache.overview when overviewItem
