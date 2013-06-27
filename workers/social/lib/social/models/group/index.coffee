@@ -293,9 +293,16 @@ module.exports = class JGroup extends Module
       # remove permissions for guest which made sense for public but not for private
       if group.privacy is 'private'
         toBeRemoved = ['read activity', 'read tags', 'list members']
-        for perm, i in permissionSet.permissions when perm.role is 'guest'
-          for permission, j in perm.permissions when permission in toBeRemoved
-            permissionSet.permissions[i].permissions.splice j, 1
+        i = permissionSet.permissions.length
+        while i--
+          if permissionSet.permissions[i].role is 'guest'
+            j = permissionSet.permissions[i].permissions.length
+            while j--
+              if permissionSet.permissions[i].permissions[j] in toBeRemoved
+                permissionSet.permissions[i].permissions.splice j, 1
+                if permissionSet.permissions[i].permissions.length <= 0
+                  permissionSet.permissions.splice i, 1
+                  break
 
       queue = [
         -> group.useSlug group.slug, (err, slug)->
