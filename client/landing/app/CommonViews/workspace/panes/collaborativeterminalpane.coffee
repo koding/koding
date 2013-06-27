@@ -11,16 +11,16 @@ class CollaborativeTerminalPane extends TerminalPane
 
     @terminal.on "WebTerm.flushed", _.throttle =>
       lines   = (line.innerHTML for line in @terminal.terminal.screenBuffer.lineDivs)
-      # encoded =  window.btoa Encoder.htmlEncode JSON.stringify lines # FINISH HIM!!!
       encoded =  JSON.stringify lines
-      @syncContent encoded
+      @syncContent window.btoa encoded
     , 500
 
-    @workspaceRef.on "value", (snapshot) =>
-      # log JSON.parse Encoder.htmlDecode window.atob snapshot.val().terminal
-      encoded = snapshot.val()?.terminal
-      return  unless encoded
-      log JSON.parse encoded
+    # @workspaceRef.on "value", (snapshot) =>
+    #   encoded = snapshot.val()?.terminal
+    #   return  unless encoded
+    #   log JSON.parse(window.atob(encoded)).join "<br />"
+
+    log "i'm a host terminal and my session key is #{@sessionKey}"
 
   syncContent: (encoded) ->
     @workspaceRef.set "terminal": encoded
