@@ -34,20 +34,6 @@ class DomainMainView extends KDView
     @getSingleton("mainView").once "transitionend", =>
       @splitView._windowDidResize()
 
-  buildAccordions:->
-    # VM, Kite & Firewall Accordion Groups
-    @accordionView = new AccordionView
-      activePane : "Virtual Machines"
-    @vmsAccPane    = new AccordionPaneView
-      title: "Virtual Machines"
-    @kitesAccPane  = new AccordionPaneView
-      title: "Kites"
-
-    @accordionView.addPanes [@vmsAccPane, @kitesAccPane]
-
-    @vmsAccPane.setContent @domainMapperView
-    @kitesAccPane.setContent new KDCustomHTMLView
-
   buildTabs:->
     # Routing, Analytics, Firewall & DNS Manager Tabs
     @tabView       = new KDTabView
@@ -109,11 +95,15 @@ class DomainMainView extends KDView
 
     @buttonsBar.addSubView @addNewDomainButton = new KDButtonView
       title    : 'Add New Domain'
-      cssClass : 'editor-button new-domain-button left'
+      cssClass        : 'editor-button new-domain-button left'
+      icon            : yes
+      iconClass       : 'plus'
       callback : (elm, event) =>
-        @domainModalView = new DomainRegisterModalFormView
-        @domainModalView.on "DomainSaved", =>
-          @domainsListViewController.update()
+        @actionArea.setClass 'in'
+        @buttonsBar.setClass 'out'
+      #   @domainModalView = new DomainRegisterModalFormView
+      #   @domainModalView.on "DomainSaved", =>
+      #     @domainsListViewController.update()
 
     @buttonsBar.addSubView @refreshDomainsButton = new KDButtonView
       style       : "clean-gray"
@@ -129,9 +119,19 @@ class DomainMainView extends KDView
       callback : (elm, event)=>
         @domainsListViewController.update()
 
+    @actionArea = new KDView
+      cssClass : 'action-area'
+
+    @actionArea.addSubView creationForm = new DomainCreationForm
+
+    creationForm.on 'DomainCreationCancelled', =>
+      @actionArea.unsetClass 'in'
+      @buttonsBar.unsetClass 'out'
+
   pistachio:->
     """
     {{> @buttonsBar}}
+    {{> @actionArea}}
     {{> @splitView}}
     """
 

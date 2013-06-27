@@ -43,13 +43,88 @@ app.environments.styl
     float              right
 
 .environment-content
+  .formline.DomainOption
+    border              none
+  .formline.domainName
+    padding-top         0
+    padding-left        25px
+    input.text
+      max-width         400px
+      padding           2px 10px
+      line-height       32px
+      height            36px
+      font-size         14px
+
+    > .input-wrapper
+      width             400px
+      margin-right      0
+      rel()
+
+      > .input-wrapper
+        position          absolute
+        display           inline-block
+        top               6px
+        right             6px
+        margin-right      0
+        abs()
+
+  .kd-radio-holder
+    label
+      vertical-align  top
+    span.icon
+      cursor          pointer
+      vertical-align  top
+      margin          5px
+      size            20px, 20px
+      sprite()
+      bg              position, -40px -480px
+      display         inline-block
+    &.active
+      span.icon
+        bg            position, -40px -500px
+
+  .header
+    button.new-domain-button
+      height           25px
+      .icon
+        bg              position, -120px -460px
+        padding         0
+        margin          -4px 0 0 -10px
+      &.active
+        gradient        #666, #999
+        .button-title
+          color         white
+          text-shadow   0 1px 0 #111
+        .icon
+          bg            position, -60px -500px
+
+  .action-area
+    border-left         1px solid #e8e8e8
+    shadow              inset 0 -1px #e8e8e8
+    height              0
+    vendor              transition, .15s height ease
+    bg                  color, #f5f5f5
+    borderBox()
+    &.in
+      height            223px
+    .button-field
+      .kdbutton
+        font-weight      400
+        font-size        16px
+        line-height      24px!important
+        &.modal-cancel
+          margin         2px 10px 0 0
+
+
+
+
   .split-layout
     .header
-      border-left     none
+      border-left       none
 
   .split-section-list
     .selected
-      bg               color, #eee
+      bg                color, #eee
 
     .domain-item
       cursor           pointer
@@ -330,19 +405,19 @@ app.environments.styl
 
     td.actions
       width            20%
-      
+
       .on-off
         display        block
 
       .on-off a
         padding        7px 10px 6px
 
-    tbody td.item, tbody tr:nth-child(even) td.item 
+    tbody td.item, tbody tr:nth-child(even) td.item
       border-left      1px solid #c6c9cc
 
     .allow-icon
       width          10px
-      height         10px    
+      height         10px
       margin-left    10px
       sprite()
       bg position,   -25px -145px
@@ -352,19 +427,19 @@ app.environments.styl
 
     .deny-icon
       width          10px
-      height         10px    
+      height         10px
       margin-left    10px
       sprite()
       bg position,   -25px -125px
       position       relative
       top            6px
       left           -5px
-    
+
 
 
     .filter-icon
       width          40px
-      height         40px    
+      height         40px
       margin-right   10px
       sprite()
       bg position,   -780px -521px

@@ -1,20 +1,28 @@
 class DomainRegisterModalFormView extends KDModalViewWithForms
 
   # created by: Erdinc
-  
+
   actionState = "new"
-  
+
   constructor:(options={}, data)->
     parentData = @getData()
-  
-    selectOptions = [{title: "Select your vm" , value :"null"}]
-    radioOptions = [{ title : "I want to register one...", value : "new"}
-                    { title : "i have a domain...",        value : "existing"}]
-    formInfo = 
+
+    selectOptions = [
+      { title : "Select your vm" , value :"null" }
+    ]
+
+    {nickname} = KD.whoami().profile
+
+    radioOptions = [
+      { title : "I want to register one...",               value : "new" }
+      { title : "i have a domain...",                      value : "existing" }
+      { title : "Create a #{nickname}.kd.io subdomain...", value : "subdomain" }
+    ]
+    formInfo =
     """
       <div class="modalformline">Register your next awesome, incredible domain address!!!</div>
     """
-    
+
     options = $.extend(options,
       title                             : "Domain Registration"
       content                           : formInfo
@@ -36,7 +44,7 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
                 loader                  :
                   color                 : "#444444"
                   diameter              : 12
-                  
+
             fields                      :
               DomainOption              :
                 name                    : "DomainOption"
@@ -46,45 +54,45 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
                 radios                  : radioOptions
                 change                  : =>
                   actionState = @modalTabs.forms["Domain Address"].inputs.DomainOption.getValue()
-                  
+
           "Find Your Domain"            :
             buttons                     : null
             fields                      : {}
-          
+
           "Done"                        :
             buttons                     : null
             fields                      : {}
     )
-    
+
     super options, data
-    
+
     @on "DomainRegistered", (orderInfo) =>
       @modalTabs.forms["Done"].addSubView (
         new DomainRegistrationCompleteView {orderInfo : orderInfo}
         )
-        
+
       @modalTabs.showPaneByIndex "2"
 
       @emit "DomainSaved"
-      
-      
+
+
     @on "DomainForwarded", (domainInfo) =>
       @modalTabs.forms["Done"].addSubView (
         new DomainForwardingCompleteView {}, domainInfo
         )
-        
+
       @modalTabs.showPaneByIndex "2"
-      
-      
+
+
   loadSearchDomainPane:->
     @modalTabs.showPaneByIndex 1
     @setData {}
 
     actionState = @modalTabs.forms["Domain Address"].inputs.DomainOption.getValue()
-    
+
     if actionState is "new"
       @modalTabs.forms["Find Your Domain"].addSubView (
-        new DomainSearchForm { 
+        new DomainSearchForm {
           modalTabs  : @modalTabs
           parentData : @getData()
           }
@@ -98,21 +106,21 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
           }
         )
 
-    
+
 class DomainSearchForm extends KDScrollView
 
   constructor:(options = {}, data)->
     super options,data
-    
+
     {@modalTabs,parentData} = @getOptions()
-    
+
     #TODO : change it to list view
-    @domainSearchResultView = new KDView 
-    
+    @domainSearchResultView = new KDView
+
     @header = new KDHeaderView
       type: "big"
       title: "Search Domain Address"
-    
+
     @searchForm = new KDFormViewWithFields
       callback        : @bound "searchDomain"
       buttons         :
@@ -121,7 +129,7 @@ class DomainSearchForm extends KDScrollView
           loader      :
             color     : "#444444"
             diameter  : 12
-      
+
       fields            :
         domainName      :
           label         : "Domain Name:"
@@ -141,7 +149,7 @@ class DomainSearchForm extends KDScrollView
 
     @searchForm.on "FormValidationFailed", =>
       @searchForm.buttons.Register.hideLoader()
-      
+
   searchDomain:->
     domainInputVal = @searchForm.inputs.domainName.getValue()
     regYears       = @searchForm.inputs.regYears.getValue()
@@ -163,7 +171,7 @@ class DomainSearchForm extends KDScrollView
         @searchForm.buttons.Register.hideLoader()
 
       KD.remote.api.JDomain.registerDomain {domainName:domainInputVal, years:regYears}, (err, domain)=>
-        if not err 
+        if not err
           new KDNotificationView
             type  : "top"
             title : "Your domain has been successfully registered."
@@ -188,19 +196,19 @@ class DomainSearchForm extends KDScrollView
     {{> @searchForm}}
     {{> @domainSearchResultView}}
     """
-    
+
   viewAppended: JView::viewAppended
-    
+
 
 class DomainForwardForm extends KDView
-  
-  constructor:(options={}, data)->  
+
+  constructor:(options={}, data)->
     super options, data
-    
-    @header = new KDHeaderView 
+
+    @header = new KDHeaderView
       type  : "small"
       title : "Forward My Domain"
-      
+
     @forwardForm = new KDFormViewWithFields
       callback          : @bound "saveDomain"
       buttons           :
@@ -209,7 +217,7 @@ class DomainForwardForm extends KDView
           loader        :
             color       : "#444444"
             diameter    : 12
-      
+
       fields            :
           domainName    :
             label       : "Enter your domain name"
@@ -219,7 +227,7 @@ class DomainForwardForm extends KDView
                 required: yes
               messages  :
                 requires: "Enter your domain name"
-            
+
   saveDomain:->
     modalTabs = @getOptions().modalTabs
     domainName = @forwardForm.inputs.domainName.getValue()
@@ -241,55 +249,55 @@ class DomainForwardForm extends KDView
     {{> @header}}
     {{> @forwardForm}}
     """
-    
+
   viewAppended: JView::viewAppended
-  
-  
+
+
 class DomainRegistrationCompleteView extends JView
 
   constructor:(options = {}, data)->
     super options,data
-    
+
     {orderInfo} = @getOptions()
-    
-    @header  = new KDHeaderView 
+
+    @header  = new KDHeaderView
       type  : "Small"
       title : "Domain Registration Complete"
-    
+
     @content = new KDView
       partial : """
       <div class = "hate-that-css-stuff">
-        Your #{orderInfo.domainName} domain has been successfully registered. 
-        You can select your domain from the left panel and connect it to any VM 
+        Your #{orderInfo.domainName} domain has been successfully registered.
+        You can select your domain from the left panel and connect it to any VM
         listed on the right panel.
       </div>
       """
-      
+
   pistachio:->
     """
     {{> @header}}
     {{> @content}}
     """
-    
+
 class DomainForwardingCompleteView extends JView
 
   constructor:(options = {}, data)->
     super options,data
-    
+
     {domainName} = @getData()
-    
-    @header  = new KDHeaderView 
+
+    @header  = new KDHeaderView
       type  : "Small"
       title : "Domain Forwarding Complete"
-    
+
     @content = new KDView
       partial : """
       <div class = "hate-that-css-stuff">
-        Thank you! Your domain #{domainName} has been added to our database. 
+        Thank you! Your domain #{domainName} has been added to our database.
         Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com.
       </div>
       """
-      
+
   pistachio:->
     """
     {{> @header}}
@@ -300,8 +308,8 @@ class DomainForwardingCompleteView extends JView
 class DomainSettingsModalForm extends KDModalViewWithForms
 
   constructor : (options = {}, data) ->
-    
-    options = {  
+
+    options = {
       title                             : "Domain Settings"
       overlay                           : no
       width                             : 600
@@ -320,22 +328,89 @@ class DomainSettingsModalForm extends KDModalViewWithForms
                 defaultValue            : "2012/12/12"
                 disabled                : yes
                 partial                 : =>"asdasd"
-                                  
+
           "Domain Contact Information"  :
             buttons                     : null
-            fields                      : {}    
-          
+            fields                      : {}
+
           "DNS Management"              :
             buttons                     : null
             fields                      : {}
-              
+
           "Statitics"                   :
             buttons                     : null
             fields                      : {}
     }
-    
+
     super options, data
 
 
 
 
+class DomainCreationForm extends KDTabViewWithForms
+
+  constructor:->
+
+    {nickname, firstName, lastName} = KD.whoami().profile
+
+    super
+      navigable                       : no
+      goToNextFormOnSubmit            : no
+      hideHandleContainer             : yes
+      forms                           :
+        "Domain Address"              :
+          # callback                    : => @loadSearchDomainPane()
+          buttons                     :
+            Next                      :
+              title                   : "Create Domain"
+              style                   : "cupid-green"
+              type                    : "submit"
+            cancel                    :
+              style                   : "modal-cancel"
+              callback                : => @emit 'DomainCreationCancelled'
+          fields                      :
+            DomainOption              :
+              name                    : "DomainOption"
+              itemClass               : KDRadioGroup
+              cssClass                : "group-type"
+              defaultValue            : "new"
+              radios                  : [
+                { title : "I want to register one",               value : "new" }
+                { title : "i have a domain",                      value : "existing" }
+                { title : "Create a #{nickname}.kd.io subdomain", value : "subdomain" }
+              ]
+              change                  : =>
+                {DomainOption, domainName, domains} = @forms["Domain Address"].inputs
+                actionState = DomainOption.getValue()
+                log "does this work"
+                domainName.getElement().setAttribute 'placeholder', switch actionState
+                  when "new"
+                    domains.hide()
+                    "#{KD.utils.slugify firstName}s-new-domain.com"
+                  when "existing"
+                    domains.hide()
+                    "#{KD.utils.slugify firstName}s-existing-domain.com"
+                  when "subdomain"
+                    domains.show()
+                    "#{KD.utils.slugify firstName}s-subdomain"
+            domainName                :
+              placeholder             : "#{KD.utils.slugify firstName}s-new-domain.com"
+              validate                :
+                rules                 :
+                  required            : yes
+                messages              :
+                  requires            : "Enter your domain name"
+              nextElement             :
+                domains               :
+                  cssClass            : "hidden"
+                  itemClass           : KDSelectBox
+                  selectOptions       : [
+                      # wire this
+                      {title : "vm-0.#{nickname}.kd.io", value : "vm-0"}
+                      {title : "vm-1.#{nickname}.kd.io", value : "vm-1"}
+                    ]
+                  validate            :
+                    rules             :
+                      required        : yes
+                    messages          :
+                      requires        : "Enter your domain name"
