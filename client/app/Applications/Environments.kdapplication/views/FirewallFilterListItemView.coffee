@@ -28,7 +28,6 @@ class FirewallFilterListItemView extends KDListItemView
     data = @getData()
     if data and data.ruleAction in ['allow', 'deny']
       @hide()
-    
 
   createRule:(behavior)->
     data = @getData()
@@ -45,11 +44,11 @@ class FirewallFilterListItemView extends KDListItemView
         proxyRuleMatches = if rules then (rule.match for rule in rules) else []
 
         if proxyRuleMatches.indexOf(data.match) is -1
-          params = 
+          params =
             domainName : domain.domain
             action     : behavior
             match      : data.match
-          
+
           domain.createProxyRule params, (err, rule)=>
             return console.log err if err
 
@@ -58,14 +57,17 @@ class FirewallFilterListItemView extends KDListItemView
               action     : rule.action
               match      : rule.match
               enabled    : rule.enabled
-            
+
             delegate.emit "newRuleCreated", ruleObj
             @hide()
 
   deleteFilter:->
     data = @getData()
+
     KD.remote.api.JProxyFilter.remove {_id:data.getId()}, (err)=>
-      unless err then @destroy()
+      unless err
+        @getDelegate().removeItem this
+        @getDelegate().emit "filterDeleted"
 
   pistachio:->
     {name, match} = @getData()
@@ -79,4 +81,11 @@ class FirewallFilterListItemView extends KDListItemView
       {{> @denyButton }}
       {{> @deleteButton }}
     </td>
+    """
+
+class EmptyFirewallFilterListItemView extends FirewallFilterListItemView
+
+  pistachio:->
+    """
+    <td colspan="3">You don't have any filters.</td>
     """

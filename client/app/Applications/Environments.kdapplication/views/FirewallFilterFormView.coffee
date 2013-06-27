@@ -38,7 +38,7 @@ class FirewallFilterFormView extends KDCustomHTMLView
       match : filterMatch
     , (err, filter)->
       unless err
-        delegate.emit "newFilterCreated", {name:filterName, match:filterMatch}
+        delegate.emit "newFilterCreated"
         return
 
       return new KDNotificationView

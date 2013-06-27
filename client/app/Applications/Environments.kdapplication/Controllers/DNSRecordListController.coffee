@@ -11,8 +11,7 @@ class DNSRecordListController extends KDListViewController
     {domain} = @getData()
 
     domain.fetchDNSRecords (err, records)=>
-      console.log records
-      @instantiateListItems records
+      @instantiateListItems records if records
 
   refreshRecords:->
     @removeAllItems()

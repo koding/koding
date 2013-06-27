@@ -2,11 +2,14 @@ class FirewallFilterListController extends KDListViewController
 
   constructor:(options={}, data)->
     options = $.extend
+      showDefaultItem : yes
+      defaultItem :
+        itemClass : EmptyFirewallFilterListItemView
       itemClass   : FirewallFilterListItemView
-      viewOptions : 
+      viewOptions :
         type      : 'filters'
         tagName   : 'table'
-        partial   : 
+        partial   :
           """
           <thead>
             <tr>
@@ -24,8 +27,8 @@ class FirewallFilterListController extends KDListViewController
     # set the data so filter items know which domain to work on
     listView.setData(data)
 
-    listView.on "newFilterCreated", @bound 'addItem'
-    @on "itemsFetched", @bound 'itemsFetched'
+    listView.on "newFilterCreated", @bound 'fetchFilters'
+    listView.on "filterDeleted", @bound 'fetchFilters'
 
     @fetchFilters()
 
@@ -33,7 +36,7 @@ class FirewallFilterListController extends KDListViewController
     {domain} = @getData()
 
     KD.remote.api.JProxyFilter.fetchFiltersByContext (err, filters)=>
-      
+
       domain.fetchProxyRulesWithMatches (err, ruleList)=>
         return console.log err if err
 
@@ -45,11 +48,7 @@ class FirewallFilterListController extends KDListViewController
               filter.ruleAction = ruleList[filter.match]
 
         @instantiateListItems filters
-        @emit 'itemsFetched'
 
-  itemsFetched:->
-    if @itemsOrdered.length is 0
-      @getView().updatePartial "You don't have any filters."
 
   refreshFilters:->
     @removeAllItems()

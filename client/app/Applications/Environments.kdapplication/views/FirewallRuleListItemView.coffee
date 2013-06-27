@@ -67,7 +67,7 @@ class FirewallRuleListItemView extends KDListItemView
       , (err, result)=>
         return console.log err if err?
         new KDNotificationView {title:"Rule has been deleted from your firewall.", type:"top"}
-        @destroy()
+        delegate.removeItem this
         delegate.emit "ruleDeleted"
         delegate.emit "ruleActionChanged"
 
@@ -89,4 +89,11 @@ class FirewallRuleListItemView extends KDListItemView
       {{> @actionButton }}
       {{> @deleteButton }}
     </td>
+    """
+
+class EmptyFirewallRuleListItemView extends FirewallRuleListItemView
+
+  pistachio:->
+    """
+    <td colspan="3">You don't have any rules for this domain.</td>
     """
