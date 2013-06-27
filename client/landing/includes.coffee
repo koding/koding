@@ -246,6 +246,7 @@ module.exports = [
   "libs/firebase/firepad.js",
   "libs/firepad/firepad.css",
   "libs/codemirror/lib/codemirror.css",
+  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
