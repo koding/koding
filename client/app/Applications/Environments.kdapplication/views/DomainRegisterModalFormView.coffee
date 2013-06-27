@@ -84,8 +84,8 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
       @modalTabs.showPaneByIndex "2"
 
       @emit "DomainSaved"
-      
-      
+
+
   loadSearchDomainPane:->
     @modalTabs.showPaneByIndex 1
     @setData {}
@@ -364,7 +364,7 @@ class DomainCreationForm extends KDTabViewWithForms
           # callback                    : => @loadSearchDomainPane()
           buttons                     :
             Next                      :
-              title                   : "Create Domain"
+              title                   : "Add Domain"
               style                   : "cupid-green"
               type                    : "submit"
             cancel                    :
