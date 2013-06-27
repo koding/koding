@@ -74,6 +74,8 @@ class DomainRegisterModalFormView extends KDModalViewWithForms
         )
         
       @modalTabs.showPaneByIndex "2"
+
+      @emit "DomainSaved"
       
       
   loadSearchDomainPane:->
