@@ -3,14 +3,13 @@ class EnvironmentsAppController extends AppController
   KD.registerAppClass this,
     name         : "Environments"
     route        : "/:name?/Environments"
-    hiddenHandle : no
-    behavior     : "application"
+    hiddenHandle : yes
+    # behavior     : "application"
     navItem      :
       title      : "Environments"
       path       : "/Environments"
-      order      : 85
+      order      : 61
       role       : "member"
-      type       : "account"
 
   constructor:(options = {}, data)->
 

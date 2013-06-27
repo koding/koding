@@ -8,6 +8,10 @@ class EnvironmentsMainView extends JView
     name        : 'VMS'
     viewOptions :
       viewClass : VMMainView
+  ,
+    name        : 'Kites'
+    viewOptions :
+      viewClass : KDView
   ]
 
   navData =

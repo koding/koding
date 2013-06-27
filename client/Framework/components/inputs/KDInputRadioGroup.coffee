@@ -1,6 +1,9 @@
 class KDInputRadioGroup extends KDInputView
   constructor:(options)->
+
     options.type           or= 'radio'
+    options.hideRadios      ?= no
+    options.showIcons       ?= no
     options.cssClassPrefix or= ''
 
     super options
@@ -20,7 +23,7 @@ class KDInputRadioGroup extends KDInputView
         type   : @getType()
         name   : options.name
         value  : radioOptions.value
-        class  : "no-kdinput"
+        class  : "no-kdinput#{if options.hideRadios then ' hidden' else ''}"
         id     : "#{@getId()}_#{@getType()}_#{i}"
         change : radioOptions.callback
 
@@ -30,6 +33,8 @@ class KDInputRadioGroup extends KDInputView
         class  : options.cssClassPrefix + @utils.slugify radioOptions.value
 
       div.append radio
+      if options.showIcons
+        div.append $ "<span/>", class  : "icon"
       div.append label
       @domElement.append div
 
@@ -43,11 +48,11 @@ class KDInputRadioGroup extends KDInputView
 
   setDefaultValue:(value) ->
     @inputDefaultValue = value
-    @setValue value
+    @setValue value, yes
 
   getValue:-> @$('input[checked=checked]').val()
 
-  setValue:(value)->
+  setValue:(value, isDefault=no)->
     @$("input").attr "checked", no
     @$("input[value='#{value}']").attr "checked", "checked"
     @$("input[value='#{value}']").prop "checked", yes
@@ -56,3 +61,17 @@ class KDInputRadioGroup extends KDInputView
 
   getInputElements:->
     @getDomElement().find('input')
+
+class KDRadioGroup extends KDInputRadioGroup
+
+  constructor:(options={}, data)->
+
+    options.hideRadios = yes
+    options.showIcons  = yes
+
+    super options, data
+
+  setValue:(value, isDefault)->
+    super
+    @$().trigger "change" unless isDefault
+

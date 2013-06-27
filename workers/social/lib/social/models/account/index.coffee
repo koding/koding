@@ -1,11 +1,9 @@
-jraphical = require 'jraphical'
-
+jraphical   = require 'jraphical'
 KodingError = require '../../error'
 
 likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
-                      'JBlogPost'
-                     ]
+                      'JBlogPost']
 
 {sharedStaticMethods, sharedInstanceMethods} = require '../account/methods'
 
@@ -973,14 +971,14 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchDomains: (callback) ->
     JDomain = require '../domain'
-      
+
     Relationship.some
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
     , (err, rels)->
       return callback err if err
-      
+
       JDomain.some {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
         callback err, domains
 
