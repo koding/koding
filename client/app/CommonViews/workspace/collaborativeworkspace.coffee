@@ -55,7 +55,6 @@ class CollaborativeWorkspace extends Workspace
     callback()
 
   createSessionKey: ->
-    return "alexx:zota:82"
     nick = KD.nick()
     u    = KD.utils
     return  "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
