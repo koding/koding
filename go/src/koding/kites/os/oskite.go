@@ -102,7 +102,7 @@ func main() {
 			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 		}
 		if vm == nil {
-			if err := db.VMs.Find(bson.M{"hostname": correlationName}).One(&vm); err != nil {
+			if err := db.VMs.Find(bson.M{"hostnameAlias": correlationName}).One(&vm); err != nil {
 				return k.ServiceUniqueName
 			}
 		}
@@ -239,7 +239,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
 			}
 			if vm == nil {
-				if err := db.VMs.Find(bson.M{"hostname": channel.CorrelationName}).One(&vm); err != nil {
+				if err := db.VMs.Find(bson.M{"hostnameAlias": channel.CorrelationName}).One(&vm); err != nil {
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
@@ -358,6 +358,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					panic(err)
 				}
 
+				log.Info("Creating /home/" + user.Name)
 				if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
