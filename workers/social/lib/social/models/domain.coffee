@@ -31,8 +31,8 @@ module.exports = class JDomain extends jraphical.Module
       'list own domains'   : ['member']
 
     sharedMethods   :
-      instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule', 
-                       'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain', 
+      instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule',
+                       'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain',
                        'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
                        'fetchDNSRecords', 'createDNSRecord'
                       ]
@@ -104,7 +104,7 @@ module.exports = class JDomain extends jraphical.Module
           sourceId: account.getId()
           sourceName: 'JAccount'
           as: 'owner'
-        
+
         rel.save (err)->
           return callback err if err
 
@@ -115,7 +115,7 @@ module.exports = class JDomain extends jraphical.Module
     domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
       callback err, isAvailable
 
-  @registerDomain = permit 'create domains', 
+  @registerDomain = permit 'create domains',
     success: (client, data, callback)->
       #default user info / all domains are under koding account.
       params =
@@ -229,7 +229,7 @@ module.exports = class JDomain extends jraphical.Module
       JProxyRestriction.deleteRule params, (err)-> callback err
 
   setDomainCNameToProxyDomain:(callback)->
-      domainManager.domainService.updateDomainCName 
+      domainManager.domainService.updateDomainCName
         domainName : @domain
         orderId    : @orderId.resellerClub
       , (err, response)-> callback err, response if callback?

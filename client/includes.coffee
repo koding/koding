@@ -530,6 +530,7 @@ module.exports = [
   # VMs
   "app/Applications/Environments.kdapplication/views/VMs.coffee",
   "app/Applications/Environments.kdapplication/views/Domains.coffee",
+  "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/NewDomainModalView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
