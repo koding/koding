@@ -167,7 +167,7 @@ func Debug(text string, data ...interface{}) {
 	Log(DEBUG, text, data...)
 }
 
-func LogError(err interface{}, stackOffset int) {
+func LogError(err interface{}, stackOffset int, additionalData ...interface{}) {
 	data := make([]interface{}, 0)
 	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
@@ -180,6 +180,7 @@ func LogError(err interface{}, stackOffset int) {
 		}
 		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 	}
+	data = append(data, additionalData...)
 	Log(ERR, fmt.Sprint(err), data...)
 }
 

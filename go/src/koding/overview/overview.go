@@ -24,14 +24,14 @@ type ConfigFile struct {
 }
 
 type Domain struct {
-	Domainname  string `json:"Domain"`
-	Proxy struct {
+	Domainname string `json:"Domain"`
+	Proxy      struct {
 		Mode        string `json:"mode"`
 		Username    string `json:"username"`
 		Servicename string `json:"servicename"`
 		Key         string `json:"key"`
-  }`json:"Proxy"`
-	FullUrl     string `json:"Domain"`
+	} `json:"Proxy"`
+	FullUrl string `json:"Domain"`
 }
 
 type ServerInfo struct {
@@ -86,12 +86,12 @@ type WorkerInfo struct {
 
 type StatusInfo struct {
 	BuildNumber string
-	Koding   struct {
+	Koding      struct {
 		ServerHost string
 		BrokerHost string
 	}
 	Workers struct {
-		Running int
+		Started int
 		Dead    int
 	}
 }
@@ -259,8 +259,8 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 	for i, val := range workers {
 		switch val.State {
-		case "running":
-			s.Workers.Running++
+		case "started":
+			s.Workers.Started++
 			workers[i].Info = "success"
 		case "dead":
 			s.Workers.Dead++

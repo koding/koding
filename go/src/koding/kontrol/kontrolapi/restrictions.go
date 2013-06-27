@@ -90,7 +90,7 @@ func CreateRuleByMatch(writer http.ResponseWriter, req *http.Request) {
 			ruleEnabled = true
 		case "false", "off", "no":
 			ruleEnabled = false
-		case "default":
+		default:
 			err := "enabled field is invalid. should one of 'true,on,yes' or 'false,off,no'"
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return

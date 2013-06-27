@@ -50,7 +50,7 @@
     "sqwish"          : "0.2.0",
     "stylus"          : "0.29.0",
     "portchecker"     : "0.1.1",
-    "uglify-js"       : "2.2.5",
+    "uglify-js"       : "2.3.6",
     "underscore"      : "1.2.3",
     "url"             : "0.4.9",
     "validator"       : "0.2.0",

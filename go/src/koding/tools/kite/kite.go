@@ -34,10 +34,17 @@ type Channel struct {
 	onDisconnect    []func()
 }
 
-func New(name string) *Kite {
+func New(name string, onePerHost bool) *Kite {
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "kite-" + name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	if onePerHost {
+		serviceUniqueName = "kite-" + name + "|" + strings.Replace(hostname, ".", "_", -1)
+	}
+
 	return &Kite{
-		Name:     name,
-		Handlers: make(map[string]Handler),
+		Name:              name,
+		Handlers:          make(map[string]Handler),
+		ServiceUniqueName: serviceUniqueName,
 	}
 }
 
@@ -69,8 +76,6 @@ func (k *Kite) Run() {
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
 
-	hostname, _ := os.Hostname()
-	k.ServiceUniqueName = "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
@@ -146,6 +151,13 @@ func (k *Kite) Run() {
 						}
 
 						execHandler := func() {
+							defer func() {
+								if err := recover(); err != nil {
+									log.LogError(err, 1, channel.Username, channel.CorrelationName)
+									resultCallback(CreateErrorObject(&InternalKiteError{}), nil)
+								}
+							}()
+
 							result, err := handler.Callback(options.WithArgs, &channel)
 							if b, ok := result.([]byte); ok {
 								result = string(b)
@@ -153,7 +165,7 @@ func (k *Kite) Run() {
 
 							if err != nil {
 								if _, ok := err.(*WrongChannelError); ok {
-									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{}); err != nil {
+									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{Body: []byte("null")}); err != nil {
 										log.LogError(err, 0)
 									}
 									return
@@ -167,10 +179,7 @@ func (k *Kite) Run() {
 						}
 
 						if handler.Concurrent {
-							go func() {
-								defer log.RecoverAndLog()
-								execHandler()
-							}()
+							go execHandler()
 							return
 						}
 
@@ -226,7 +235,7 @@ func (k *Kite) Run() {
 					Username           string `json:"username"`
 					RoutingKey         string `json:"routingKey"`
 					CorrelationName    string `json:"correlationName"`
-					DeadService        string `json:"deadService"`
+					DeadService        string `json:"deadService",omitempty`
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}

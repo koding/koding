@@ -4,6 +4,12 @@ class DashboardAppController extends AppController
     name         : "Dashboard"
     route        : "/:name?/Dashboard"
     hiddenHandle : yes
+    navItem      :
+      title      : "Group"
+      path       : "/Dashboard"
+      order      : 75
+      role       : "admin"
+      type       : "account"
 
   constructor:(options={},data)->
 

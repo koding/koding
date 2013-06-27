@@ -1,4 +1,3 @@
-
 class ActivityInnerNavigation extends CommonInnerNavigation
 
   viewAppended:->
@@ -45,7 +44,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     title: 'FILTER'
     items: [
       {title: "Public",    type: "Public" },
-      {title: "Following", type: "Followed", loggedIn: yes }
+      {title: "Following", type: "Followed", role: "member" }
     ]
 
   followerMenuData :
@@ -57,7 +56,6 @@ class ActivityInnerNavigation extends CommonInnerNavigation
         { title : "Code Snippets",  type : "JCodeSnip" }
         { title : "Discussions",    type : "JDiscussion" }
         { title : "Tutorials",      type : "JTutorial" }
-        { title : "Links",          type : "JLink", disabledForBeta : yes }
     ]
 
   showMenuData :

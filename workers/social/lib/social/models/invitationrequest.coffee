@@ -212,7 +212,7 @@ module.exports = class JInvitationRequest extends Model
           if err then callback err
           else callback null
 
-  sendInvitation:(client, callback=->)->
+  sendInvitation:(client, message, callback=noop)->
     JUser       = require './user'
     JGroup      = require './group'
     JInvitation = require './invitation'
@@ -232,12 +232,12 @@ module.exports = class JInvitationRequest extends Model
               if err then callback err
               else
                 # send invite to existing koding user
-                @sendInviteMailToKodingUser client, user, group, callback
+                @sendInviteMailToKodingUser client, user, group, message, callback
 
   sendInvitation$: permit 'send invitations',
     success: (client, callback)-> @sendInvitation client, callback
 
-  sendInviteMailToKodingUser:(client, user, group, callback)->
+  sendInviteMailToKodingUser:(client, user, group, message, callback)->
     JAccount          = require './account'
     JMailNotification = require './emailnotification'
 
@@ -258,6 +258,7 @@ module.exports = class JInvitationRequest extends Model
                 actorType  : 'admin'
                 invite     : ObjectRef(@).data
                 admin      : ObjectRef(client).data
+                message    : message
 
             receiver.sendNotification 'GroupInvited',
               actionType : 'groupInvited'

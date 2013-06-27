@@ -548,7 +548,7 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim","gokmen", "chris", "testdude", "blum", "neelance", "halk",
-                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint"]
+                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -992,33 +992,16 @@ module.exports = class JAccount extends jraphical.Module
       @fetchDomains callback
 
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    userId = client.connection.delegate._id
-    options.currentUserId = userId
-    graph.fetchFollowingMembers options, (err, results)=>
-      if err then return callback err
-      else
-        tempRes = []
-        collectContents = race (i, res, fin)=>
-          objId = res.id
-          JAccount.one  { _id : objId }, (err, account)=>
-            if err
-              callback err
-              fin()
-            else
-              tempRes[i] =  account
-              fin()
-        , ->
-          callback null, tempRes
-        for res in results
-          collectContents res
-
+    @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback
 
   fetchMyFollowersFromGraph: secure (client, options, callback)->
+    @fetchFollowFromGraph "fetchFollowerMembers", client, options, callback
+
+  fetchFollowFromGraph: secure (followType, client, options, callback)->
     graph = new Graph({config:KONFIG['neo4j']})
     userId = client.connection.delegate._id
     options.currentUserId = userId
-    graph.fetchFollowerMembers options, (err, results)=>
+    graph[followType] options, (err, results)=>
       if err then return callback err
       else
         tempRes = []
@@ -1035,5 +1018,3 @@ module.exports = class JAccount extends jraphical.Module
           callback null, tempRes
         for res in results
           collectContents res
-
-

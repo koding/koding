@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 	"io/ioutil"
 	"koding/kites/os/ldapserver"
@@ -43,7 +44,8 @@ var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
 var firstContainerIP net.IP
 var containerSubnet *net.IPNet
-var ipCounterInitialValue int
+var shuttingDown = false
+var requestWaitGroup sync.WaitGroup
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -59,27 +61,42 @@ func main() {
 		return
 	}
 
-	unprepareAll()
-
-	go func() {
-		sigtermChannel := make(chan os.Signal)
-		signal.Notify(sigtermChannel, syscall.SIGTERM)
-		<-sigtermChannel
-		unprepareAll()
-		log.SendLogsAndExit(0)
-	}()
-
 	go ldapserver.Listen()
 	go LimiterLoop()
-	k := kite.New("os")
+	k := kite.New("os", true)
 
-	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
-		if deadService != "" {
-			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": deadService}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		log.LogError(err, 0)
+		return
+	}
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			info := newInfo(&vm)
+			infos[vm.Id] = info
+			info.startTimeout()
+		}
+	}
+
+	sigtermChannel := make(chan os.Signal)
+	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	go func() {
+		sig := <-sigtermChannel
+		shuttingDown = true
+		requestWaitGroup.Wait()
+		if sig == syscall.SIGUSR1 {
+			for _, info := range infos {
+				info.unprepareVM()
+			}
+			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
 				log.LogError(err, 0)
 			}
 		}
+		log.SendLogsAndExit(0)
+	}()
 
+	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
 			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
@@ -91,6 +108,10 @@ func main() {
 		}
 
 		if vm.HostKite == "" {
+			return k.ServiceUniqueName
+		}
+		if vm.HostKite == deadService {
+			log.Warn("VM is registered as running on dead service.", correlationName, username, deadService)
 			return k.ServiceUniqueName
 		}
 		return vm.HostKite
@@ -184,7 +205,16 @@ func (err *VMNotFoundError) Error() string {
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
+	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+		if shuttingDown {
+			return nil, errors.New("Kite is shutting down.")
+		}
+		requestWaitGroup.Add(1)
+		defer requestWaitGroup.Done()
+		if shuttingDown { // check second time after sync to avoid additional mutex
+			return nil, errors.New("Kite is shutting down.")
+		}
+
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
 			panic(err)
@@ -213,9 +243,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
+			if k.ServiceUniqueName == "" {
+				log.Warn("Service unique name is empty")
+			}
 
-			if vm.HostKite != k.ServiceUniqueName {
+			if vm.HostKite != k.ServiceUniqueName && k.ServiceUniqueName != "" {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+					time.Sleep(time.Second) // to avoid rapid cycle channel loop
 					return nil, &kite.WrongChannelError{}
 				}
 				vm.HostKite = k.ServiceUniqueName
@@ -264,6 +298,13 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		info.mutex.Lock()
 		defer info.mutex.Unlock()
+
+		defer func() {
+			if err := recover(); err != nil {
+				log.LogError(err, 1, channel.Username, channel.CorrelationName, vm.String())
+				methodError = &kite.InternalKiteError{}
+			}
+		}()
 
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
@@ -328,49 +369,61 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			websiteDir := "/home/" + vm.SitesHomeName() + "/Web"
-			if err := rootVos.Symlink(websiteDir, "/var/www"); err == nil {
+			vmWebDir := "/home/" + vm.WebHomeName() + "/Web"
+			userWebDir := "/home/" + user.Name + "/Web"
+
+			if err := rootVos.Symlink(vmWebDir, "/var/www"); err == nil {
 				// symlink successfully created
 
-				if _, err := rootVos.Stat(websiteDir); err != nil {
+				if _, err := rootVos.Stat(vmWebDir); err != nil {
 					if !os.IsNotExist(err) {
 						panic(err)
 					}
-					// Web directory does not yes exist
+					// vmWebDir directory does not yes exist
 
-					websiteVos := rootVos
-					if vm.SitesHomeName() == user.Name {
-						websiteVos = userVos
+					vmWebVos := rootVos
+					if vmWebDir == userWebDir {
+						vmWebVos = userVos
 					}
 
 					// migration of old Sites directory
-					migrationErr := websiteVos.Rename("/home/"+vm.SitesHomeName()+"/Sites/"+vm.Hostname(), websiteDir)
-					websiteVos.Remove("/home/" + vm.SitesHomeName() + "/Sites")
+					migrationErr := vmWebVos.Rename("/home/"+vm.WebHomeName()+"/Sites/"+vm.Hostname(), vmWebDir)
+					vmWebVos.Remove("/home/" + vm.WebHomeName() + "/Sites")
 					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname())
 
 					if migrationErr != nil {
 						// create fresh Web directory if migration unsuccessful
-						if err := websiteVos.MkdirAll(websiteDir, 0755); err != nil {
+						if err := vmWebVos.MkdirAll(vmWebDir, 0755); err != nil {
 							panic(err)
 						}
-						if err := copyIntoVos(templateDir+"/website", websiteDir, websiteVos); err != nil {
+						if err := copyIntoVos(templateDir+"/website", vmWebDir, vmWebVos); err != nil {
 							panic(err)
 						}
 					}
 				}
 			}
 
-			if vm.SitesHomeName() != user.Name {
-				if err := userVos.Mkdir("/home/"+user.Name+"/Web", 0755); err != nil && !os.IsExist(err) {
+			if _, err := rootVos.Stat(userWebDir); err != nil && vmWebDir != userWebDir {
+				if !os.IsNotExist(err) {
 					panic(err)
 				}
-				if err := rootVos.Symlink("/home/"+user.Name+"/Web", websiteDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
+				// userWebDir directory does not yes exist
+
+				if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
+					panic(err)
+				}
+				if err := copyIntoVos(templateDir+"/website", userWebDir, userVos); err != nil {
+					panic(err)
+				}
+				if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
 					panic(err)
 				}
 			}
 		}
 
 		if concurrent {
+			requestWaitGroup.Done()
+			defer requestWaitGroup.Add(1)
 			info.mutex.Unlock()
 			defer info.mutex.Lock()
 		}
@@ -446,53 +499,36 @@ func newInfo(vm *virt.VM) *VMInfo {
 
 func (info *VMInfo) startTimeout() {
 	info.timeout = time.AfterFunc(10*time.Minute, func() {
-		infosMutex.Lock()
-		defer infosMutex.Unlock()
-
 		if len(info.channels) != 0 {
 			return
 		}
-
-		var vm virt.VM
-		if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
-			log.Err("Could not find VM for shutdown.", err)
-		}
-		if out, err := vm.Shutdown(); err != nil {
-			log.Err("Could not shutdown VM.", err, out)
-		}
-
-		if err := vm.Unprepare(); err != nil {
-			log.Warn(err.Error())
-		}
-
-		if !vm.IsTemporary() {
-			if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
-				log.LogError(err, 0)
-			}
-		}
-
-		if vm.IsTemporary() {
-			if err := vm.Destroy(); err != nil {
-				log.Warn(err.Error())
-			}
-		}
-
-		delete(infos, vm.Id)
+		info.unprepareVM()
 	})
 }
 
-func unprepareAll() {
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		log.LogError(err, 0)
-		return
+func (info *VMInfo) unprepareVM() {
+	infosMutex.Lock()
+	defer infosMutex.Unlock()
+
+	var vm virt.VM
+	if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
+		log.Err("Could not find VM for shutdown.", err)
 	}
-	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
-			if err := vm.Unprepare(); err != nil {
-				log.Warn(err.Error())
-			}
+	if err := vm.Unprepare(); err != nil {
+		log.Warn(err.Error())
+	}
+
+	if !vm.IsTemporary() {
+		if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+			log.LogError(err, 0)
 		}
 	}
+
+	if vm.IsTemporary() {
+		if err := vm.Destroy(); err != nil {
+			log.Warn(err.Error())
+		}
+	}
+
+	delete(infos, vm.Id)
 }

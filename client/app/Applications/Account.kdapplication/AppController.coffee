@@ -5,6 +5,12 @@ class AccountAppController extends AppController
     route        : "/:name?/Account"
     behavior     : "hideTabs"
     hiddenHandle : yes
+    navItem      :
+      title      : "Account"
+      path       : "/Account"
+      order      : 70
+      type       : "account"
+      role       : "member"
 
   constructor:(options={},data)->
 
@@ -126,7 +132,7 @@ class AccountAppController extends AppController
       title : "Billing"
       items : [
         { title : "Payment methods",      listHeader: "Your Payment Methods",       listType: "methods",        id : 10,      parentId : null }
-        # { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
+        { title : "Your subscriptions",   listHeader: "Your Active Subscriptions",  listType: "subscriptions",  id : 20,      parentId : null }
         { title : "Billing history",      listHeader: "Billing History",            listType: "history",        id : 30,      parentId : null }
       ]
     develop :

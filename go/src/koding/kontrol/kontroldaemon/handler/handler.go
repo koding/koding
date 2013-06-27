@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -58,7 +59,7 @@ func Startup() {
 	}
 
 	// cleanup death workers at intervals
-	ticker := time.NewTicker(time.Hour * 1)
+	ticker := time.NewTicker(time.Minute * 20)
 	go func() {
 		for _ = range ticker.C {
 			log.Println("cleanup death workers")
@@ -156,16 +157,17 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
 		}
 
-		loadBalance := "roundrobin"
+		mode := "roundrobin"
 		if worker.Name == "broker" {
-			loadBalance = "sticky"
+			mode = "sticky"
 		}
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
 		err = proxyDB.UpsertKey(
 			"koding",    // username
-			loadBalance, // loadbalancing mode
+			"",          // persistence, empty means disabled
+			mode,        // loadbalancing mode
 			worker.Name, // servicename
 			key,         // version
 			worker.Hostname+":"+port, // host
@@ -237,12 +239,18 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 
 	switch option {
 	case "force":
+		/* force mode immediately run the worker, however before it will run,
+		it tries to find all workers with the same name(foo and foo-1
+		counts as the same) on other host's. Basically 'force' mode makes
+		the worker exclusive on all machines and no other worker with the
+		same name can run anymore.  */
 		log.Printf("force kill all workers with name '%s' and not hostname '%s'\n", worker.Name, worker.Hostname)
 		result := workerconfig.Worker{}
 		iter := kontrolDB.Collection.Find(bson.M{
-			"name":     worker.Name,
+			"name":     bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
 			"hostname": bson.M{"$ne": worker.Hostname},
 		}).Iter()
+
 		for iter.Next(&result) {
 			res, err := kontrolDB.Kill(result.Uuid, "force")
 			if err != nil {
@@ -257,72 +265,54 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		}
 
 		log.Printf("start our new worker '%s' with version %d and pid: '%d'\n", worker.Name, worker.Version, worker.Pid)
-
-		worker.Status = workerconfig.Running
+		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
 
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
 		return response, nil
 	case "one":
-		var command string
-		otherWorkers := false
+		/* one mode will try to start a worker that has a different version
+		than the current available workers. But before it starts it look for
+		other workers. If there is worker available that are already started
+		with a different version then the worker don't get any permission. If
+		not it get's the permission to run.
+		Basically 'one' mode makes the worker 'version' exclusive. That means
+		only workers with that exclusive version has the permission to run.  */
+
+		err := kontrolDB.RefreshStatusAll() // needed to update the status
+		if err != nil {
+			log.Println("couldn't refresh data", err)
+		}
+
 		result := workerconfig.Worker{}
 		iter := kontrolDB.Collection.Find(bson.M{
-			"name":    worker.Name,
+			"name":    bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
 			"version": bson.M{"$ne": worker.Version},
-		}).Iter()
+			"status": bson.M{"$in": []int{
+				int(workerconfig.Started),
+				int(workerconfig.Waiting),
+			}}}).Iter()
+
+		otherWorkers := false
 		for iter.Next(&result) {
 			otherWorkers = true
 		}
 
 		if !otherWorkers {
-			log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
-			worker.Status = workerconfig.Running
+			log.Printf("no runnning workers found, adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
+			worker.Status = workerconfig.Started
 			kontrolDB.AddWorker(worker)
 			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
 			return response, nil
 		}
 
-		log.Printf("worker '%s' is already registered. checking for status...", worker.Name)
-		err := kontrolDB.RefreshStatusAll()
-		if err != nil {
-			log.Println("couldn't refresh data", err)
-		}
-
-		iter = kontrolDB.Collection.Find(bson.M{
-			"name":    worker.Name,
-			"version": bson.M{"$ne": worker.Version},
-			"status": bson.M{"$in": []int{
-				int(workerconfig.Notstarted),
-				int(workerconfig.Killed),
-				int(workerconfig.Dead),
-			}}}).Iter()
-
-		var gotPermission bool = false
-		result = workerconfig.Worker{}
-		for iter.Next(&result) {
-			kontrolDB.DeleteWorker(result.Uuid)
-
-			log.Printf("worker '%s' is not alive anymore. permission grant to run for the new worker", worker.Name)
-			log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
-
-			worker.Status = workerconfig.Running
-			kontrolDB.AddWorker(worker)
-			command = "first.start"
-			gotPermission = true
-		}
-
-		if !gotPermission {
-			log.Printf("another worker other then version '%d' is already running.", worker.Version)
-			log.Printf("no permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
-			command = "added.before"
-		}
-
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, command)
+		log.Printf("another worker other then version '%d' is already started.", worker.Version)
+		log.Printf("no permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "added.before")
 		return response, nil // contains first.start or added.before
 	case "many":
 		log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
-		worker.Status = workerconfig.Running
+		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "first.start")
 		return response, nil //
@@ -358,4 +348,12 @@ func deliver(res workerconfig.WorkerResponse) {
 		log.Printf("error while publishing message: %s", err)
 	}
 	// log.Println("SENDING WORKER data ", string(data))
+}
+
+// convert foo-1, foo-*, etc to foo
+func normalizeName(name string) string {
+	if counts := strings.Count(name, "-"); counts > 0 {
+		return strings.Split(name, "-")[0]
+	}
+	return name
 }
