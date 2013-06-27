@@ -8,30 +8,42 @@ class VirtualizationController extends KDController
     @resetVMData()
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
 
-  run:(vm, command, callback)->
-    KD.requireMembership
-      callback : =>
-        @askForApprove command, (approved)=>
-          if approved
-            cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-                 else callback
-            @kc.run
-              kiteName : 'os'
-              method   : command
-              vmName   : vm
-            , cb
-          else unless command is 'vm.info' then @info vm
-      onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-      onFail    : =>
-        unless command is 'vm.info' then callback yes
-        else callback null, state: 'STOPPED'
-      silence   : yes
+  run:(options={}, callback)->
+
+    if "string" is typeof options
+      command = options
+      options =
+        withArgs : command
+
+    @fetchDefaultVmName (defaultVmName)=>
+      vmName = if options.vmName then options.vmName else defaultVmName
+      unless vmName
+        return callback message: 'There is no VM for this account.'
+      options.correlationName = vmName
+      @kc.run options, callback
 
   _runWraper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @run vm, command, callback  if vm
+      return  unless vm
+      KD.requireMembership
+        callback : =>
+          @askForApprove command, (approved)=>
+            if approved
+              cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
+                   else callback
+              @run
+                kiteName : 'os'
+                method   : command
+                vmName   : vm
+              , cb
+            else unless command is 'vm.info' then @info vm
+        onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
+        onFail    : =>
+          unless command is 'vm.info' then callback yes
+          else callback null, state: 'STOPPED'
+        silence   : yes
 
   start:(vm, callback)->
     @_runWraper 'vm.start', vm, callback
@@ -45,16 +57,29 @@ class VirtualizationController extends KDController
   reinitialize:(vm, callback)->
     @_runWraper 'vm.reinitialize', vm, callback
 
-  remove:(vm, callback=noop)->
-    @askForApprove 'vm.remove', (state)->
-      return callback null  unless state
+  remove: do->
+
+    deleteVM = (vm, cb)->
       KD.remote.api.JVM.removeByName vm, (err)->
-        return callback err  if err
+        return cb err  if err
         KD.getSingleton("finderController").unmountVm vm
         KD.getSingleton("vmController").emit 'VMListChanged'
-        callback null
+        cb null
 
-  info:(vm, callback)->
+    (vm, callback=noop)->
+      KD.remote.api.JVM.fetchVMInfo vm, (err, vmInfo)=>
+        if vmInfo
+          if vmInfo.planCode is 'free'
+            @askForApprove 'vm.remove', (state)->
+              return callback null  unless state
+              deleteVM vm, callback
+          else
+            paymentController = KD.getSingleton('paymentController')
+            paymentController.deleteVM vmInfo, (state)->
+              return callback null  unless state
+              deleteVM vm, callback
+
+  info:(vm, callback=noop)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
@@ -142,7 +167,9 @@ class VirtualizationController extends KDController
 
   # fixme GG!
   fetchTotalVMCount:(callback)->
-    callback null, "0"
+    KD.remote.api.JVM.count (err, count)->
+      if err then warn err
+      callback null, count ? "0"
 
   # fixme GG!
   fetchTotalLoC:(callback)->
@@ -256,8 +283,8 @@ class VirtualizationController extends KDController
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-                modal.destroy()
-                paymentController.confirmPayment formData.type, @paymentPlans[formData.host]
+                paymentController.confirmPayment formData.type, @paymentPlans[formData.host], ->
+                  modal.destroy()
               buttons               :
                 user                :
                   title             : "Create a <b>Personal</b> VM"
@@ -337,27 +364,28 @@ class VirtualizationController extends KDController
 
     switch command
       when 'vm.stop', 'vm.shutdown'
-        content = """Turning off your VM will <b>stop</b> running Terminal
+        content = """<p>Turning off your VM will <b>stop</b> running Terminal
                      instances and all running proccesess that you have on
-                     your VM. Do you want to continue?"""
+                     your VM. Do you want to continue?</p>"""
         button  =
           title : "Turn off"
           style : "modal-clean-red"
 
       when 'vm.reinitialize'
-        content = """Re-initializing your VM will <b>reset</b> all of your
+        content = """<p>Re-initializing your VM will <b>reset</b> all of your
                      settings that you've done in root filesystem. This
                      process will not remove any of your files under your
-                     home directory. Do you want to continue?"""
+                     home directory. Do you want to continue?</p>"""
         button  =
           title : "Re-initialize"
           style : "modal-clean-red"
 
       when 'vm.remove'
-        content = """Removing this VM will <b>destroy</b> all the data in
-                     this VM including all other users in filesystem.
-                     <b>Please be careful this process cannot be undone</b>.
-                     Do you want to continue?"""
+        content = """<p>Removing this VM will <b>destroy</b> all the data in
+                     this VM including all other users in filesystem. <b>Please
+                     be careful this process cannot be undone.</b></p>
+
+                     <p>Do you want to continue?</p>"""
         button  =
           title : "Remove VM"
           style : "modal-clean-red"
@@ -369,7 +397,8 @@ class VirtualizationController extends KDController
 
     modal = new KDModalView
       title          : "Approval required"
-      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      content        : "<div class='modalformline'>#{content}</div>"
+      cssClass       : "vm-approval"
       height         : "auto"
       overlay        : yes
       buttons        :

@@ -56,15 +56,6 @@ class CommonInnerNavigationListItem extends KDListItemView
   constructor : (options = {},data)->
     options.tagName or= "li"
     options.partial or= "<a href='#'>#{data.title}</a>"
-    if data.disabledForBeta
-      options = $.extend
-        tooltip     :
-          title     : "<p class='login-tip'>Coming Soon</p>"
-          placement : "right"
-          offset    :
-            top     : 0
-            left    : 3
-      ,options
     super options,data
     @setClass data.type
 
