@@ -87,6 +87,7 @@ class GroupPaymentSettingsView extends JView
           label             : "Over-usage"
           itemClass         : KDOnOffSwitch
           name              : "allow-over-usage"
+          cssClass          : "no-title"
           callback          : (state)=>
             if state
               @settingsForm.fields.approval.show()
@@ -96,6 +97,7 @@ class GroupPaymentSettingsView extends JView
           label             : "Need Approval"
           itemClass         : KDOnOffSwitch
           name              : "require-approval"
+          cssClass          : "no-title"
         overageDesc         :
           itemClass         : KDCustomHTMLView
           cssClass          : "overage-description"
