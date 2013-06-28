@@ -325,7 +325,7 @@ module.exports = class AuthWorker extends EventEmitter
 
           @addBinding 'chat', bindingKey, 'chat-hose', consumerRoutingKey, username
 
-          @_fakePersistenceWorker secretChannelName
+          # @_fakePersistenceWorker secretChannelName
           @notify username, 'chatOpen', {
             publicName  : name
             routingKey  : personalToken

@@ -233,7 +233,7 @@ class MembersAppController extends AppController
         controller.ready -> controller.handleQuery? query
       callback contentDisplay
 
-    switch route.split('/')[1]
+    switch route.split('/')[2]
       when 'Followers'
         @createFolloweeContentDisplay model, 'followers', kallback
       when 'Following'

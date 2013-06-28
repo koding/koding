@@ -31,11 +31,10 @@ type Worker struct {
 type Workers []Worker
 
 var StatusCode = map[workerconfig.WorkerStatus]string{
-	workerconfig.Running:    "running",
-	workerconfig.Waiting:    "waiting",
-	workerconfig.Notstarted: "stopped",
-	workerconfig.Killed:     "dead",
-	workerconfig.Dead:       "dead",
+	workerconfig.Started: "started",
+	workerconfig.Waiting: "waiting",
+	workerconfig.Killed:  "dead",
+	workerconfig.Dead:    "dead",
 }
 
 func GetWorkers(writer http.ResponseWriter, req *http.Request) {

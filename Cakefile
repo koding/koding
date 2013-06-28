@@ -173,7 +173,7 @@ task 'authWorker',({configFile}) ->
       restartTimeout : 1000
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "one"
+        startMode    : "version"
       verbose        : yes
 
   if config.watch is yes
@@ -210,7 +210,7 @@ task 'emailWorker',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
+      startMode    : "one"
     verbose        : yes
 
   watcher = new Watcher
@@ -230,7 +230,7 @@ task 'emailSender',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
+      startMode    : "one"
     verbose        : yes
 
   watcher = new Watcher
@@ -332,17 +332,20 @@ task 'proxy',({configFile})->
 task 'neo4jfeeder',({configFile})->
 
   config = require('koding-config-manager').load("main.#{configFile}")
+  feederConfig = config.graphFeederWorker
+  numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
 
-  processes.spawn
-    name    : 'neo4jfeeder'
-    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
-    restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
+  for i in [1..numberOfWorkers]
+    processes.spawn
+      name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
+      cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+      restart : yes
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
+      kontrol        :
+        enabled      : if config.runKontrol is yes then yes else no
+        startMode    : "version"
 
 task 'libratoWorker',({configFile})->
 

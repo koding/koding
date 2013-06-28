@@ -125,7 +125,7 @@ module.exports = class Graph
   fetchAll:(requestOptions, callback)->
     {group:{groupName, groupId}, startDate, client} = requestOptions
 
-    console.time 'fetchAll'
+    console.time "fetchAll"
 
     # do not remove white-spaces
     query = """
@@ -134,18 +134,9 @@ module.exports = class Graph
       WHERE content.`meta.createdAtEpoch` < #{startDate}
     """
 
-    # build facet queries
     facets = @facets
-    if facets and "Everything" not in facets
-      facetQueryList = []
-      for facet in facets
-        if facet not in neo4jFacets
-          console.log "Unknown facet: " + facet
-          continue
-
-        facetQueryList.push("content.name=\"#{facet}\"")
-
-      query += (" AND (" + facetQueryList.join(' OR ') + ")")
+    if facets and facets isnt "Everything"
+      query += (" AND (content.name=\"#{facets}\")")
 
     if groupName isnt "koding"
       query += """

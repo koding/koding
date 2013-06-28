@@ -78,6 +78,8 @@ module.exports = deepFreeze
     watch       : no
     queueName   : socialQueueName+'cache'
     run         : yes
+  graphFeederWorker:
+    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 20
