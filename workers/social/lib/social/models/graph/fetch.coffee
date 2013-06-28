@@ -78,6 +78,7 @@ module.exports = class FetchAllActivityParallel
         if @bucketNames()[value.type]
           oldSnapshot = JSON.parse(value.snapshot)
           oldSnapshot._id = randomId
+          oldSnapshot.bongo_.subscribable = false
           value.snapshot = JSON.stringify oldSnapshot
 
         @cacheObjects[randomId] = value
@@ -123,7 +124,7 @@ module.exports = class FetchAllActivityParallel
     return response
 
   generateUniqueRandomKey: ->
-    randomId = Math.floor(Math.random()*1000)
+    randomId = Math.floor(Math.random()*100000)
     if @usedIds[randomId]
       @generateUniqueRandomKey()
     else
