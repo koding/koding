@@ -119,8 +119,7 @@ class DomainMainView extends KDView
       callback : (elm, event)=>
         @domainsListViewController.update()
 
-    @actionArea = new KDView
-      cssClass : 'action-area'
+    @actionArea = new KDView cssClass : 'action-area'
 
     @actionArea.addSubView creationForm = new DomainCreationForm
 
@@ -130,6 +129,11 @@ class DomainMainView extends KDView
 
     creationForm.on 'DomainSaved', =>
       @domainsListViewController.update()
+
+    creationForm.on 'CloseClicked', =>
+      @actionArea.unsetClass 'in'
+      @buttonsBar.unsetClass 'out'
+
 
   pistachio:->
     """
