@@ -47,7 +47,7 @@ class ActivityAppView extends KDScrollView
 
     @decorate()
     # after resolving non-blocking socket problem, change this value to 100
-    @setLazyLoader .99
+    @setLazyLoader 200
 
     {scrollView} = @feedWrapper.controller
     @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
