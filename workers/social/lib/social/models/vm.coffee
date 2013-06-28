@@ -264,7 +264,19 @@ module.exports = class JVM extends Model
     #     return callback err  if err
     #     callback null, [vm]
 
-  @fetchDomains = permit 'list all vms',
+  # Private static method to fetch domains
+  @fetchDomains = (selector, callback)->
+    JDomain = require './domain'
+    JDomain.someData selector, {domain:1}, \
+    (err, cursor)->
+      return callback err, []  if err
+      cursor.toArray (err, arr)->
+        return callback err, []  if err
+        callback null, arr.map (vm)-> vm.domain
+
+  # Public(shared) static method to fetch domains
+  # which points to given hostnameAlias
+  @fetchDomains$ = permit 'list all vms',
     success:(client, hostnameAlias, callback)->
       {delegate} = client.connection
 
@@ -277,13 +289,8 @@ module.exports = class JVM extends Model
 
         JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm
-          JDomain = require './domain'
-          JDomain.someData {hostnameAlias: vm.hostnameAlias}, {domain:1}, \
-          (err, cursor)->
-            return callback err, []  if err
-            cursor.toArray (err, arr)->
-              return callback err, []  if err
-              callback null, arr.map (vm)-> vm.domain
+          JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
+
   @removeRelatedDomains = (vm)->
     vmInfo = @parseAlias vm.hostnameAlias
     return  unless vmInfo
