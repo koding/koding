@@ -63,15 +63,17 @@ module.exports = class JVM extends Model
         type            : Boolean
         default         : no
 
-  @createDomains = (domains) ->
+  @createDomains = (domains, hostnameAlias) ->
     JDomain = require './domain'
     domains.forEach (domain) ->
-      (new JDomain
-        domain        : domain
-        hostnameAlias : [domains[0]]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-      ).save (err)-> console.log err  if err?
+      JDomain.one {domain}, (err, domainData)->
+        return  if domainData or err
+        (new JDomain
+          domain        : domain
+          hostnameAlias : [hostnameAlias]
+          proxy         : { mode: 'vm' }
+          regYears      : 0
+        ).save (err)-> console.log err  if err?
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
