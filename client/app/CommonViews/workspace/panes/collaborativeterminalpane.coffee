@@ -15,10 +15,21 @@ class CollaborativeTerminalPane extends TerminalPane
       @syncContent window.btoa encoded
     , 500
 
-    # @workspaceRef.on "value", (snapshot) =>
-    #   encoded = snapshot.val()?.terminal
-    #   return  unless encoded
-    #   log JSON.parse(window.atob(encoded)).join "<br />"
+    @workspaceRef.on "value", (snapshot) =>
+      log "everything is something happened", snapshot.name(), snapshot.val()
+
+      {keyEventFromClient} = snapshot.val()
+
+      if keyEventFromClient
+        log "host terminal received a key event from a client", keyEventFromClient
+
+        eventInstance = new Event "ClientTerminalKeyEvent"
+        eventName     = if keyEventFromClient.type is "keyup" then "keyDown" else "keyPress"
+        eventInstance.initEvent keyEventFromClient.type, true, true
+
+        eventInstance[key] = value for key, value of keyEventFromClient
+
+        @terminal.terminal.inputHandler[eventName] eventInstance
 
     log "i'm a host terminal and my session key is #{@sessionKey}"
 
