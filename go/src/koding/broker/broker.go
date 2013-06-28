@@ -78,7 +78,7 @@ func main() {
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 					log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-					sendToClient(session, map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
+					sendToClient(session, "broker.error", map[string]interface{}{"code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 				}
 			}()
 		}
@@ -153,7 +153,7 @@ func main() {
 			panic(err)
 		}
 
-		sendToClient(session, map[string]interface{}{"routingKey": "broker.connected", "socketId": socketId})
+		sendToClient(session, "broker.connected", socketId)
 
 		for data := range session.ReceiveChan {
 			if data == nil || session.Closed {
@@ -173,7 +173,7 @@ func main() {
 					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
 						subscribe(routingKeyPrefix)
 					}
-					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": message["routingKeyPrefix"].(string)})
+					sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
 
 				case "resubscribe":
 					globalMapMutex.Lock()
@@ -184,7 +184,7 @@ func main() {
 							subscribe(routingKeyPrefix)
 						}
 					}
-					sendToClient(session, map[string]interface{}{"routingKey": "broker.resubscribed", "successful": found})
+					sendToClient(session, "broker.resubscribed", found)
 
 				case "unsubscribe":
 					globalMapMutex.Lock()
@@ -215,7 +215,7 @@ func main() {
 					}
 
 				case "ping":
-					sendToClient(session, map[string]string{"routingKey": "broker.pong"})
+					sendToClient(session, "broker.pong", nil)
 
 				default:
 					log.Warn("Invalid action.", message, socketId)
@@ -306,7 +306,6 @@ func main() {
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
 		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
-		jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 		for pos != -1 && pos < len(routingKey) {
@@ -318,7 +317,7 @@ func main() {
 			prefix := routingKey[:pos]
 			globalMapMutex.Lock()
 			for _, routeSession := range routeMap[prefix] {
-				sendToClient(routeSession, jsonMessage)
+				sendToClient(routeSession, routingKey, &payload)
 			}
 			globalMapMutex.Unlock()
 		}
@@ -327,8 +326,14 @@ func main() {
 	time.Sleep(5 * time.Second) // give amqputil time to log connection error
 }
 
-func sendToClient(session *sockjs.Session, data interface{}) {
-	if !session.Send(data) {
+func sendToClient(session *sockjs.Session, routingKey string, payload interface{}) {
+	var message struct {
+		RoutingKey string      `json:"routingKey"`
+		Payload    interface{} `json:"payload"`
+	}
+	message.RoutingKey = routingKey
+	message.Payload = payload
+	if !session.Send(message) {
 		session.Close()
 		log.Warn("Dropped session because of broker to client buffer overflow.", session.Tag)
 	}
