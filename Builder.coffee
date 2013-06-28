@@ -178,7 +178,14 @@ module.exports = class Builder
     return true
 
   buildJS: (options)->
-    js = "(function(){ "
+    # NOTE: DO NOT WRAP EVERYTHING IN A CLOSURE BY DESIGN
+    # Some of our libraries expect that they'll be executed in
+    # the global scope.  This can introduce subtle errant
+    # behavior that can go completely undetected. C.T.
+    # DON'T DO THIS:
+    # js = "(function(){ "
+    # serve the JS bare instead:
+    js = ""
     sourceMap =
       version: 3
       file: @config.client.js
@@ -222,7 +229,7 @@ module.exports = class Builder
 
       fileLineOffset += file.content.split("\n").length
 
-    js += "}).call(this);\n//@ sourceMappingURL=/#{@config.client.js}.map"
+    js += "//@ sourceMappingURL=/#{@config.client.js}.map"
 
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.js, js
     fs.writeFileSync @config.client.websitePath + "/" + @config.client.js + ".map", JSON.stringify(sourceMap)

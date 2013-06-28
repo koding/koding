@@ -36,6 +36,7 @@ class NFinderController extends KDViewController
         @stopWatching path
 
     @noVMFoundWidget = new VMMountStateWidget
+    @cleanup()
 
   watchers: {}
 
@@ -83,17 +84,18 @@ class NFinderController extends KDViewController
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
       groupSlug ?= 'koding'
-      @appStorage.fetchValue "mountedVM", (vms)->
+      @appStorage.fetchValue "mountedVM", (vms)=>
         vms            or= {}
         vms[groupSlug] or= []
         if vms[groupSlug].length > 0
           mountVms vms[groupSlug]
         else
-          KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)->
+          KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)=>
             return callback? err  if err
             if not vms or vms.length is 0
               KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
-                mountVms [vm]  if vm
+                if vm then mountVms [vm]
+                else @noVMFoundWidget.show()
             else
               mountVms vms
 
