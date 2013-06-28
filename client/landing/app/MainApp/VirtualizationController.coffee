@@ -7,6 +7,7 @@ class VirtualizationController extends KDController
     @dialogIsOpen = no
     @resetVMData()
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
+    @on 'VMListChanged', @bound 'resetVMData'
 
   run:(options={}, callback)->
 
@@ -187,21 +188,21 @@ class VirtualizationController extends KDController
         callback defaultVmName in vms
 
   createDefaultVM:->
-    @fetchDefaultVmName (defaultVmName)=>
-      @hasDefaultVM (state)->
-        return warn 'Default VM already exists.'  if state
-        KD.remote.cacheable 'koding', (err, group)->
-          if err or not group?.length
-            return warn err
-          koding = group.first
-          koding.createVM
-            planCode : 'free'
-            type     : 'user'
-          , (err)->
-            unless err
+    @hasDefaultVM (state)->
+      return warn 'Default VM already exists.'  if state
+      KD.remote.cacheable 'koding', (err, group)->
+        if err or not group?.length
+          return warn err
+        koding = group.first
+        koding.createVM
+          planCode : 'free'
+          type     : 'user'
+        , (err)->
+          unless err
+            KD.getSingleton('vmController').fetchDefaultVmName (defaultVmName)->
               KD.getSingleton('vmController').emit 'VMListChanged'
               KD.getSingleton('finderController').mountVm defaultVmName
-            else warn err
+          else warn err
 
   createNewVM:->
     vmController = @getSingleton('vmController')
