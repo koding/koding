@@ -58,7 +58,6 @@ class ActivityAppController extends AppController
       @ready @bound "populateActivity"
 
     @emit 'ready'
-    console.clear()
 
   resetAll:->
     @lastTo    = null
@@ -76,7 +75,6 @@ class ActivityAppController extends AppController
     @listController.once 'teasersLoaded', @teasersLoaded.bind @
 
   continueLoadingTeasers:->
-    @clearPopulateActivityBindings()
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->

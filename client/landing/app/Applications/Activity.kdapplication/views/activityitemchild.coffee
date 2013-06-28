@@ -60,10 +60,17 @@ class ActivityItemChild extends KDView
         @tags.setData tags
         @tags.render()
 
+    deleteActivity = (activityItem)->
+      activityItem.slideOut -> activityItem.destroy()
+
+    @on 'ActivityIsDeleted', =>
+      activityItem = @getDelegate()
+      deleteActivity activityItem
+
     data.on 'PostIsDeleted', =>
       activityItem = @getDelegate()
       if KD.whoami().getId() is data.getAt('originId')
-        activityItem.slideOut -> activityItem.destroy()
+        deleteActivity activityItem
       else
         activityItem.putOverlay
           isRemovable : no
