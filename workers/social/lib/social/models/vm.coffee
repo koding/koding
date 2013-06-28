@@ -97,6 +97,23 @@ module.exports = class JVM extends Model
 
     return aliases.reverse()
 
+  @parseAlias = (alias)->
+    # group-vm alias
+    if /^shared-[0-9]/.test alias
+      result = alias.match /(.*)\.(\w+).kd.io$/
+      if result
+        [rest..., prefix, groupSlug] = result
+        uid = parseInt(prefix.split(/-/)[1], 10)
+        return {groupSlug, prefix, uid, type:'group', alias}
+    # personal-vm alias
+    else if /^vm-[0-9]/.test alias
+      result = alias.match /(.*)\.(\w+)\.(\w+).kd.io$/
+      if result
+        [rest..., prefix, nickname, groupSlug] = result
+        uid = parseInt(prefix.split(/-/)[1], 10)
+        return {groupSlug, prefix, nickname, uid, type:'user', alias}
+    return null
+
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
   @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
@@ -267,6 +284,32 @@ module.exports = class JVM extends Model
             cursor.toArray (err, arr)->
               return callback err, []  if err
               callback null, arr.map (vm)-> vm.domain
+  @removeRelatedDomains = (vm)->
+    vmInfo = @parseAlias vm.hostnameAlias
+    return  unless vmInfo
+
+    # Create same aliases based on vm info
+    aliasesToDelete = @createAliases vmInfo
+
+    # If calculated uid is greater than 0 we also try to add
+    # aliases which has uid 0
+    if vmInfo.uid > 0
+      vmInfo.uid = 0
+      aliasesToDelete = uniq aliasesToDelete.concat @createAliases vmInfo
+
+    console.log "Found these:", aliasesToDelete
+
+    selector =
+      hostnameAlias : vm.hostnameAlias
+      domain        : { $in : aliasesToDelete }
+
+    JDomain = require './domain'
+    JDomain.remove selector, (err)->
+      return console.error "Failed to delete domains:", err  if err
+
+  remove: (callback)->
+    JVM.removeRelatedDomains this
+    super callback
 
   @deleteVM = (vm, callback)->
     if vm.planCode is 'free'
