@@ -38,5 +38,5 @@ class EmptyDNSRecordListItemView extends DNSRecordListItemView
 
   pistachio:->
     """
-    <td colspan="3">There is no DNS record for this domain.</td>
+    <td colspan="5">There is no DNS record for this domain.</td>
     """
