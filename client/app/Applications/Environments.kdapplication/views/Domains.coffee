@@ -101,9 +101,6 @@ class DomainMainView extends KDView
       callback : (elm, event) =>
         @actionArea.setClass 'in'
         @buttonsBar.setClass 'out'
-      #   @domainModalView = new DomainRegisterModalFormView
-      #   @domainModalView.on "DomainSaved", =>
-      #     @domainsListViewController.update()
 
     @buttonsBar.addSubView @refreshDomainsButton = new KDButtonView
       style       : "clean-gray"

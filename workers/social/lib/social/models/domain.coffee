@@ -34,7 +34,7 @@ module.exports = class JDomain extends jraphical.Module
       instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule',
                        'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain',
                        'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
-                       'fetchDNSRecords', 'createDNSRecord'
+                       'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord'
                       ]
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
@@ -83,6 +83,8 @@ module.exports = class JDomain extends jraphical.Module
         resellerClub: String
 
       regYears      : Number
+
+      dnsRecords    : [Object]
 
       createdAt     :
         type        : Date
@@ -237,8 +239,13 @@ module.exports = class JDomain extends jraphical.Module
     advanced: [
       { permission: 'edit own domains', validateWith: Validators.own }
     ]
-    success: (client, callback)->
-      domainManager.dnsManager.fetchDNSRecords {domainName:@domain}, (err, records)-> callback err, records
+    success: (client, recordType, callback)->
+      domainManager.dnsManager.fetchDNSRecords
+        domainName : @domain
+        recordType : recordType
+      , (err, records)->
+        callback err if err
+        callback null, records if records
 
   createDNSRecord: permit
     advanced: [
@@ -246,4 +253,33 @@ module.exports = class JDomain extends jraphical.Module
     ]
     success: (client, params, callback)->
       params.domainName = @domain
-      domainManager.dnsManager.createDNSRecord params, (err, record)-> callback err, records
+      recordObj =
+        recordType : params.recordType
+        host       : params.host
+        value      : params.value
+        ttl        : params.ttl
+        priority   : params.priority
+
+      domainManager.dnsManager.createDNSRecord params, (err, response)=>
+        unless err
+          JDomain.update {domain:@domain}, {$addToSet: dnsRecords: recordObj}, (err)=>
+            return callback err if err
+        callback err, response
+
+  deleteDNSRecord: permit
+    advanced: [
+      { permission: 'edit own domains', validateWith: Validators.own }
+    ]
+    success: (client, params, callback)->
+      params.domainName = @domain
+      recordObj =
+        recordType : params.recordType
+        host       : params.host
+        value      : params.value
+
+      domainManager.dnsManager.deleteDNSRecord params, (err, response)=>
+        unless err
+          JDomain.update {domain:@domain}, {$pull: dnsRecords: recordObj}, (err)->
+            console.log err
+            return callback err if err
+        callback err, response

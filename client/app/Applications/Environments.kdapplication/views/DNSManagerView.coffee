@@ -16,6 +16,9 @@ class DNSManagerView extends KDView
     @newRecordForm = new NewDNSRecordFormView {}, {domain}
     @recordsListController = new DNSRecordListController {}, {domain}
 
+    @newRecordForm.on "newRecordCreated", (recordObj)=>
+      @recordsListController.emit "newRecordCreated", recordObj
+
     @addSubView @newRecordForm
     @addSubView @recordsListController.getView()
 
