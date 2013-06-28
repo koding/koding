@@ -98,12 +98,6 @@ class GroupPaymentSettingsView extends JView
           itemClass         : KDOnOffSwitch
           name              : "require-approval"
           cssClass          : "no-title"
-        overageDesc         :
-          itemClass         : KDCustomHTMLView
-          cssClass          : "overage-description"
-          partial           : """<section>
-                                <p>Resource overage description here...</p>
-                              </section>"""
 
     @settingsForm = new KDFormViewWithFields formOptions, group
 
