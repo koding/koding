@@ -22,6 +22,10 @@ class NFinderItem extends JTreeItemView
     @childView = new childConstructor {}, data
     @childView.$().css "margin-left", (data.depth)*10
 
+    if data.name? and data.name.length > 20 - data.depth
+      @childView.setDomAttributes
+        title : FSHelper.plainPath data.name
+
   mouseDown:-> yes
 
   resetView:(view)->

@@ -1,5 +1,5 @@
-# uncomplicate this - Sinan 7/2012
-# rewriting this - Sinan 2/2013
+# √ uncomplicate this - Sinan 7/2012
+# √ rewriting this - Sinan 2/2013
 
 class ApplicationManager extends KDObject
 
@@ -9,8 +9,6 @@ class ApplicationManager extends KDObject
 
   * EMITTED EVENTS
     - AppCreated                  [appController]
-    - AppDidShow                  [appController, appView, appOptions]
-    - AppDidQuit                  [appOptions]
     - AppManagerWantsToShowAnApp  [appController, appView, appOptions]
   ###
 
@@ -27,21 +25,24 @@ class ApplicationManager extends KDObject
       sound : "Viewer"
 
     @on 'AppManagerWantsToShowAnApp', @bound "setFrontApp"
-
-    # temp fix, until router logic is complete
     @on 'AppManagerWantsToShowAnApp', @bound "setMissingRoute"
+    # @on 'AnInstanceIsShown', @bound "setMissingRoute"
 
-  # temp fix, until router logic is complete
+    # set unload listener
+    windowController = @getSingleton 'windowController'
+    windowController.addUnloadListener =>
+      safeToUnload = no for app of @appControllers when app in ['Ace', 'WebTerm']
+      return safeToUnload ? yes
+
   setMissingRoute:(appController, appView, appOptions)->
     router       = KD.getSingleton('router')
     {entryPoint} = KD.config
 
-    route = if entryPoint?.slug? and entryPoint.type is 'group'
-    then "#{entryPoint.slug}#{appOptions.route}"
-    else appOptions.route.slice(1)
-
-    if router.getCurrentPath().search(route) isnt 0
-      router.handleRoute appOptions.route, {suppressListeners : yes, entryPoint}
+    route = appOptions.route.slug.replace /:\w+.?\//g, ''
+    comparedRoute = router.getCurrentPath().split('?').first
+    if route isnt comparedRoute
+      missingRoute = appController.getOption('initialRoute') or route
+      router.handleRoute missingRoute, { suppressListeners : yes, entryPoint }
 
 
   open: do ->
@@ -59,12 +60,10 @@ class ApplicationManager extends KDObject
 
     (name, options, callback)->
 
-      [callback, options] = [options, callback] if 'function' is typeof options
-
-      options or= {}
-
       return warn "ApplicationManager::open called without an app name!"  unless name
 
+      [callback, options]  = [options, callback] if 'function' is typeof options
+      options            or= {}
       appOptions           = KD.getAppOptions name
       appParams            = options.params or {}
       defaultCallback      = -> createOrShow appOptions, appParams, callback
@@ -73,6 +72,7 @@ class ApplicationManager extends KDObject
       # If app has a preCondition then first check condition in it
       # if it returns true then continue, otherwise call failure
       # method of preCondition if exists
+
       if appOptions?.preCondition? and not options.conditionPassed
         appOptions.preCondition.condition appParams, (state, newParams)=>
           if state
@@ -129,14 +129,19 @@ class ApplicationManager extends KDObject
 
       else do defaultCallback
 
+  openFileWithApplication: (appName, file) ->
+    @open appName, =>
+      @utils.defer => @getFrontApp().openFile file
+
   fetchManifests:(appName, callback)->
 
     KD.getSingleton("kodingAppsController").fetchApps (err, manifests)->
       manifestsFetched = yes
       for name, manifest of manifests when name is appName
 
-        manifest.route        = "/Develop"
+        manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
+        manifest.navItem      = title : "Develop"
         manifest.thirdParty or= yes
 
         KD.registerAppClass KodingAppController, manifest
@@ -146,7 +151,11 @@ class ApplicationManager extends KDObject
 
   openFile:(file)->
 
-    type = FSItem.getFileType file.getExtension()
+    extension  = file.getExtension()
+    type       = FSItem.getFileType extension
+    defaultApp = @defaultApps[extension]
+
+    return @openFileWithApplication defaultApp, file  if defaultApp
 
     switch type
       when 'code','text','unknown'
@@ -208,10 +217,11 @@ class ApplicationManager extends KDObject
 
     if KD.isLoggedIn()
       @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+      @emit 'AnInstanceIsShown', appInstance, appView, appOptions
       @setLastActiveIndex appInstance
       @utils.defer -> callback? appInstance
     else
-      KD.getSingleton('router').handleRoute '/', replaceState: yes
+      KD.getSingleton('router').clear()
 
   quit:(appInstance, callback = noop)->
 
@@ -333,14 +343,7 @@ class ApplicationManager extends KDObject
       else optionSet.lastActiveIndex = index
 
 
-
-
-
   # setGroup:-> console.log 'setGroup', arguments
-
-  # openFileWithApplication:(file, appPath)->
-  #   @open appPath, no, (app)->
-  #     app.openFile file
 
   # temp
   notification = null

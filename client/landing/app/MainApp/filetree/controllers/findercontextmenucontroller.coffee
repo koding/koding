@@ -50,18 +50,7 @@ class NFinderContextMenuController extends KDController
         action                    : 'openFile'
       'Open with...'              :
         separator                 : yes
-        children                  :
-          'Ace Editor'            :
-            action                : 'openFile'
-          'CodeMirror'            :
-            action                : 'openFileWithCodeMirror'
-          'Viewer'                :
-            separator             : yes
-            action                : 'previewFile'
-          'Search the App Store'  :
-            disabled              : yes
-          'Contribute an Editor'  :
-            disabled              : yes
+        children                  : @getOpenWithMenuItems fileView
       Delete                      :
         action                    : 'delete'
         separator                 : yes
@@ -347,20 +336,6 @@ class NFinderContextMenuController extends KDController
     items =
       'Open Files'                :
         action                    : 'openFile'
-      'Open with...'              :
-        separator                 : yes
-        children                  :
-          'Ace Editor'            :
-            action                : 'openFile'
-          'CodeMirror'            :
-            action                : 'openFileWithCodeMirror'
-          'Viewer'                :
-            separator             : yes
-            action                : 'previewFile'
-          'Search the App Store'  :
-            disabled              : yes
-          'Contribute an Editor'  :
-            disabled              : yes
       'Delete all'                :
         action                    : 'delete'
         separator                 : yes
@@ -382,6 +357,21 @@ class NFinderContextMenuController extends KDController
 
     return items
 
+  getOpenWithMenuItems: (fileView) ->
+    items            = {}
+    fileExtension    = FSItem.getFileExtension fileView.getData().path
+    appsController   = @getSingleton "kodingAppsController"
+    {extensionToApp} = appsController
+    possibleApps     = extensionToApp[fileExtension] or extensionToApp.txt
+    for appName in possibleApps
+      items[appName] = action: "openFileWithApp"
+
+    items["separator"]            = type     : "separator"
+    items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
+    items["Search the App Store"] = disabled : yes
+    items["Contribute an Editor"] = disabled : yes
+
+    return items
 
 # this is shorter but needs coffee script update
 
