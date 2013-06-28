@@ -78,6 +78,8 @@ class VirtualizationController extends KDController
             paymentController.deleteVM vmInfo, (state)->
               return callback null  unless state
               deleteVM vm, callback
+        else
+          callback message: "No such VM!"
 
   info:(vm, callback=noop)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
