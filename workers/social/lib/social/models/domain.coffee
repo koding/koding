@@ -112,8 +112,7 @@ module.exports = class JDomain extends jraphical.Module
 
 
   @isDomainAvailable = (domainName, tld, callback)->
-    domainManager.domainService.isDomainAvailable domainName, tld, (err, isAvailable)->
-      callback err, isAvailable
+    domainManager.domainService.isDomainAvailable domainName, tld, callback
 
   @registerDomain = permit 'create domains',
     success: (client, data, callback)->

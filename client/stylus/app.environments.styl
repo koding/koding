@@ -43,10 +43,11 @@ app.environments.styl
     float              right
 
 .environment-content
-  .formline.DomainOption
+  .formline
     border              none
-  .formline.domainName
+  .formline.suggestionbox
     padding-top         0
+  .formline.domainname
     padding-left        25px
     input.text
       max-width         400px
@@ -67,6 +68,51 @@ app.environments.styl
         right             6px
         margin-right      0
         abs()
+
+  h4.kdheaderview
+    display               inline-block
+    font-size             16px
+    line-height           28px
+    height                28px
+    clear                 both
+
+  p.success
+    padding               10px 20px 20px
+    line-height           22px
+    bg                    color, #E3EEDA
+    color                 #59824D
+    rounded               4px
+    max-width             400px
+    margin-top            20px
+    b
+      font-size           22px
+      line-height         42px
+      font-weight         400
+      color               #444
+      rounded             4px
+
+  ul.suggestion-box
+    margin-left           6px
+    li
+      display             inline-block
+      line-height         12px
+      font-size           12px
+      padding             6px 10px
+      margin              10px 10px 0 0
+      border              0
+      rounded             4px
+      vertical-align      middle
+      color               white
+      cursor              pointer
+      bg                  color, #7ab100
+      &.com
+        bg                color, #4F87A7
+      &.biz
+        bg                color, #59824D
+      &.org
+        bg                color, #E99647
+      &.net
+        bg                color, #333333
 
   .kd-radio-holder
     label
@@ -101,15 +147,21 @@ app.environments.styl
   .action-area
     border-left         1px solid #e8e8e8
     shadow              inset 0 -1px #e8e8e8
-    height              0
-    vendor              transition, .15s height ease
+    height              0%
+    vendor              transition, .3s height ease
     bg                  color, #fbfbfb
     borderBox()
     &.in
-      height            224px
+      height            100%
+    .kdtabpaneview
+      padding-bottom    64px
+      borderBox()
     .button-field
       bg                color, #f5f5f5
-      border-bottom     1px solid #e8e8e8
+      border-top        1px solid #e8e8e8
+      bottom            0
+      width             100%
+      abs()
       .kdbutton
         font-weight     400
         font-size       16px
