@@ -90,7 +90,7 @@ module.exports = class JGroup extends Module
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
-        'createVM', 'canCreateVM', 'vmUsage',
+        'createVM', 'canCreateVM', 'vmUsage', 'getTransactions',
         'fetchBundle', 'updateBundle', 'saveInvitationMessage'
       ]
     schema          :
@@ -1359,6 +1359,10 @@ module.exports = class JGroup extends Module
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
     JRecurlySubscription.getGroupSubscriptions @, callback
+
+  getTransactions: (callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.getGroupTransactions @, callback
 
   vmUsage: secure (client, callback)->
     {delegate} = client.connection

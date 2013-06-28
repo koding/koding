@@ -76,6 +76,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     {delegate}    = client.connection
     payment.getUserTransactions "user_#{delegate._id}", callback
 
+  @getGroupTransactions = (group, callback)->
+    payment.getUserTransactions "group_#{group._id}", callback
+
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
     selector = {}

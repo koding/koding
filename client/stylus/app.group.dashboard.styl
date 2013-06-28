@@ -1046,3 +1046,33 @@ Dashboard Invitations Modal Styles
 .no-title
   span
     display               none
+
+.billing-history-modal
+  .labelish
+    font-weight       bold
+    font-size         12px
+    line-height       26px
+
+  span.ttag
+    // -webkit-font-smoothing          antialiased
+    display           inline-block
+    padding           3px 5px 1px 5px
+    font-size         9px
+    font-weight       bold
+    color             white
+    text-transform    uppercase
+    text-shadow       none
+    rounded(3px)
+
+  span.ttag.paid
+    bg(color,positiveGreen)
+  span.ttag.pending
+    bg(color,darkorange)
+  span.ttag.cancelled
+  span.ttag.declined
+    bg(color,crimson)
+
+  .swappable-wrapper
+    span,strong,cite
+      padding-left        5px
+      font-style          normal
