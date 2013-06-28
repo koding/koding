@@ -4,6 +4,7 @@ module.exports = class JVM extends Model
 
   {permit} = require './group/permissionset'
   {secure} = require 'bongo'
+  {uniq}   = require 'underscore'
 
   KodingError = require '../error'
 
@@ -75,10 +76,19 @@ module.exports = class JVM extends Model
           regYears      : 0
         ).save (err)-> console.log err  if err?
 
+  @ensureDomainSettings = ({vm, type, nickname, groupSlug})->
+    domain = 'kd.io'
+    if type is 'user'
+      requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
+      if groupSlug is 'koding'
+        requiredDomains.push "#{nickname}.#{domain}"
+    else
+      requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
+    @createDomains requiredDomains, vm.hostnameAlias
+
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
-
     if type is 'user'
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
@@ -142,12 +152,12 @@ module.exports = class JVM extends Model
         nameFactory.next (err, uid)=>
           return callback err  if err
 
+          nickname = user.username
           hostnameAliases = JVM.createAliases {
-            nickname : user.username
-            type, uid, groupSlug
+            nickname, type, uid, groupSlug
           }
 
-          JVM.createDomains hostnameAliases
+          JVM.createDomains hostnameAliases, hostnameAliases[0]
 
           vm = new JVM {
             planCode      : planCode
@@ -163,6 +173,7 @@ module.exports = class JVM extends Model
             return callback err  if err
             group.addVm vm, (err)=>
               return callback err  if err
+              JVM.ensureDomainSettings {vm, type, nickname, groupSlug}
               if type is 'group'
                 @addVmUsers vm, group, ->
                   callback null, vm
@@ -391,7 +402,7 @@ module.exports = class JVM extends Model
         type, uid, groupSlug
       }
 
-      JVM.createDomains hostnameAliases
+      JVM.createDomains hostnameAliases, hostnameAliases[0]
 
       vm = new JVM {
         users         : [
