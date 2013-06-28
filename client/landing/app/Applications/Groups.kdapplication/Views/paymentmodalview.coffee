@@ -9,7 +9,7 @@ class GroupPaymentHistoryModal extends KDModalViewWithForms
       overlay                 : yes
       width                   : 500
       height                  : "auto"
-      cssClass                : "databases-modal"
+      cssClass                : "billing-history-modal"
       tabs                    :
         navigable             : yes
         goToNextFormOnSubmit  : no
@@ -61,7 +61,7 @@ class GroupPaymentHistoryListController extends KDListViewController
     @showLazyLoader no
 
     transactions = []
-    @group.checkPayment (err, trans) =>
+    @group.getTransactions (err, trans) =>
       if err
         @instantiateListItems []
         @hideLazyLoader()
