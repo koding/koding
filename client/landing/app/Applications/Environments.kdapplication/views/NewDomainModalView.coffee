@@ -1,11 +1,11 @@
 class NewDomainModalView extends KDModalViewWithForms
 
   constructor: (options={}, data)->
-    sucessCallbackError = 
+    sucessCallbackError =
     """
       You must send a successCallback method for a successfull creation handling.
     """
-    
+
     unless options.successCallback then warn sucessCallbackError
 
     options = $.extend(options,
@@ -47,17 +47,17 @@ class NewDomainModalView extends KDModalViewWithForms
       title: msg
 
   addNewDomain:(formData)->
-    
+
     {form}          = @modalTabs.forms
     domainInfo      = form.inputs.domain.getValue().split "."
-    successCallback = @getOptions().successCallback  
-  
+    successCallback = @getOptions().successCallback
+
     domain = domainInfo.slice(0, domainInfo.length-1).join ""
     tld = domainInfo[domainInfo.length-1]
 
     KD.remote.api.JDomain.count {domain: domain}, (err, count) =>
       if err then warn err
-      
+
       if count > 0
         @notify "Someone has already added this domain."
 
@@ -72,7 +72,7 @@ class NewDomainModalView extends KDModalViewWithForms
           @notify "This domain is already registered. Please try another domain."
           form.buttons.Create.hideLoader()
 
-          
+
 
 
           """
@@ -80,7 +80,7 @@ class NewDomainModalView extends KDModalViewWithForms
             domain : domain
             owner  : KD.whoami()
             , (err, model) =>
-              if not err 
+              if not err
                 new KDNotificationView
                   type  : "top"
                   title : "Your domain has been successfully saved."
