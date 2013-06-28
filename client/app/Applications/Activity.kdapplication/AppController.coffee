@@ -58,7 +58,6 @@ class ActivityAppController extends AppController
       @ready @bound "populateActivity"
 
     @emit 'ready'
-    console.clear()
 
   resetAll:->
     @lastTo    = null

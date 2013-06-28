@@ -6,7 +6,7 @@ lxc.network.hwaddr = {{.MAC}}
 lxc.network.ipv4 = {{.IP}}/9
 lxc.network.ipv4.gateway = auto
 lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
-lxc.utsname = {{.Hostname}}
+lxc.utsname = {{.HostnameAlias}}
 
 lxc.tty = 0
 lxc.pts = 0
