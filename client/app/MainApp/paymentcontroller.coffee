@@ -200,6 +200,16 @@ class PaymentController extends KDController
 
     form = modal.modalTabs.forms["Billing Info"]
 
+    # Credit card icon
+    form.fields['cardNumber'].addSubView icon = new KDCustomHTMLView tagName : "span", cssClass : "icon"
+
+    form.inputs['cardNumber'].on "CreditCardTypeIdentified", (type)=>
+      cardType = type.toLowerCase()
+      $icon = icon.$()
+      unless $icon.hasClass cardType
+        $icon.removeClass "visa mastercard discover amex"
+        $icon.addClass cardType
+
     form.on "FormValidationFailed", => modal.buttons.Save.hideLoader()
 
     for k, v of data
