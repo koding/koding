@@ -78,7 +78,7 @@ module.exports = class FetchAllActivityParallel
         if @bucketNames()[value.type]
           oldSnapshot = JSON.parse(value.snapshot)
           oldSnapshot._id = randomId
-          oldSnapshot.subscribeable = false
+          oldSnapshot.bongo_.subscribable = false
           value.snapshot = JSON.stringify oldSnapshot
 
         @cacheObjects[randomId] = value
