@@ -1,19 +1,42 @@
 class DNSRecordListController extends KDListViewController
 
   constructor:(options={}, data)->
+    options = $.extend
+      defaultItem :
+        itemClass : EmptyDNSRecordListItemView
+      itemClass   : DNSRecordListItemView
+      viewOptions :
+        type      : 'dns-records'
+        tagName   : 'table'
+        partial   :
+          """
+          <thead>
+            <tr>
+              <th>Record Type</th>
+              <th>Host</th>
+              <th>Value</th>
+              <th>TTL</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          """
+    , options
     super options, data
 
-    @on "newRecordCreated", @bound 'addItem'
+    {domain} = @getData()
+    @instantiateListItems domain.dnsRecords  if domain.dnsRecords?
 
-    @fetchRecords()
+    @getListView().on "recordDeletionRequested", @bound "deleteRecordItem"
+    @on "newRecordCreated", @bound "addItem"
 
-  fetchRecords:->
+  deleteRecordItem:(recordItem)->
+    {recordType, value, host} = recordItem.getData()
     {domain} = @getData()
 
-    domain.fetchDNSRecords (err, records)=>
-      @instantiateListItems records if records
-
-  refreshRecords:->
-    @removeAllItems()
-    @fetchRecords()
+    domain.deleteDNSRecord {recordType, value, host}, (err, response)=>
+      unless err
+        @removeItem recordItem
+      else
+        new KDNotificationView
+          title : "An error occured while removing your record. Please try again."
 

@@ -38,18 +38,18 @@ class FirewallFilterListController extends KDListViewController
     {domain} = @getData()
 
     KD.remote.api.JProxyFilter.fetchFiltersByContext (err, filters)=>
+      if filters
+        domain.fetchProxyRulesWithMatches (err, ruleList)=>
+          return console.log err if err
 
-      domain.fetchProxyRulesWithMatches (err, ruleList)=>
-        return console.log err if err
+          ruleMatches = Object.keys(ruleList)
 
-        ruleMatches = Object.keys(ruleList)
+          if ruleMatches.length > 0
+            for filter in filters
+              if filter.match in ruleMatches
+                filter.ruleAction = ruleList[filter.match]
 
-        if ruleMatches.length > 0
-          for filter in filters
-            if filter.match in ruleMatches
-              filter.ruleAction = ruleList[filter.match]
-
-        @instantiateListItems filters
+          @instantiateListItems filters
 
 
   refreshFilters:->
