@@ -541,6 +541,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/FirewallFilterFormView.coffee",
   "app/Applications/Environments.kdapplication/views/DNSManagerView.coffee",
   "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
+  "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",

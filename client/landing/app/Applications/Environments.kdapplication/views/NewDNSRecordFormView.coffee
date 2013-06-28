@@ -46,9 +46,9 @@ class NewDNSRecordFormView extends KDCustomHTMLView
 
     @addButton = new KDButtonView
       title    : "Add Record"
-      callback : @bound "updateRecords"
+      callback : @bound "createNewRecord"
 
-  updateRecords:->
+  createNewRecord:->
     {domain} = @getData()
 
     recordType = @typeSelectBox.getValue()
@@ -57,10 +57,13 @@ class NewDNSRecordFormView extends KDCustomHTMLView
     ttl        = @ttlInput.getValue()
     priority   = @priorityInput.getValue()
 
-    domain.createDNSRecord {recordType, host, value, ttl, priority}, (err, record)=>
-      console.log err, record
+    recordObj = {recordType, host, value, ttl, priority}
 
-
+    domain.createDNSRecord recordObj, (err, record)=>
+      unless err
+        if record
+          new KDNotificationView {title:"Your record has been saved."}
+          @emit "newRecordCreated", recordObj
 
   viewAppended: JView::viewAppended
 

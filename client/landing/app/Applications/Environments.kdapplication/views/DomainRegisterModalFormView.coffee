@@ -191,6 +191,7 @@ class DomainCreationForm extends KDTabViewWithForms
                   regExp              : "This doesn't look like a valid domain name."
               nextElement             :
                 regYears              :
+                  cssClass            : "hidden"
                   itemClass           : KDSelectBox
                   selectOptions       : ({title: "#{i} Year#{if i > 1 then 's' else ''}", value:i} for i in [1..10])
                 domains               :
