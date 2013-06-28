@@ -36,7 +36,8 @@ func main() {
 	defer publishConn.Close()
 
 	routeMap := make(map[string]([]*sockjs.Session))
-	var routeMapMutex sync.Mutex
+	socketSubscriptionsMap := make(map[string]*map[string]bool)
+	var globalMapMutex sync.Mutex
 
 	service := sockjs.NewService(config.Current.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
 		defer log.RecoverAndLog()
@@ -59,24 +60,6 @@ func main() {
 				changeWebsocketClientsGauge(-1)
 			}
 		}()
-
-		removeFromRouteMap := func(routingKeyPrefix string) {
-			routeSessions := routeMap[routingKeyPrefix]
-			for i, routeSession := range routeSessions {
-				if routeSession == session {
-					routeSessions[i] = routeSessions[len(routeSessions)-1]
-					routeSessions = routeSessions[:len(routeSessions)-1]
-					break
-				}
-			}
-			if len(routeSessions) == 0 {
-				delete(routeMap, routingKeyPrefix)
-				return
-			}
-			routeMap[routingKeyPrefix] = routeSessions
-		}
-
-		subscriptions := make(map[string]bool)
 
 		var controlChannel *amqp.Channel
 		var lastPayload string
@@ -102,17 +85,57 @@ func main() {
 		resetControlChannel()
 		defer func() { controlChannel.Close() }()
 
-		err := controlChannel.Publish("authAll", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-		if err != nil {
-			panic(err)
+		subscriptions := make(map[string]bool)
+		globalMapMutex.Lock()
+		socketSubscriptionsMap[socketId] = &subscriptions
+		globalMapMutex.Unlock()
+
+		removeFromRouteMap := func(routingKeyPrefix string) {
+			routeSessions := routeMap[routingKeyPrefix]
+			for i, routeSession := range routeSessions {
+				if routeSession == session {
+					routeSessions[i] = routeSessions[len(routeSessions)-1]
+					routeSessions = routeSessions[:len(routeSessions)-1]
+					break
+				}
+			}
+			if len(routeSessions) == 0 {
+				delete(routeMap, routingKeyPrefix)
+				return
+			}
+			routeMap[routingKeyPrefix] = routeSessions
+		}
+
+		subscribe := func(routingKeyPrefix string) {
+			if subscriptions[routingKeyPrefix] {
+				log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				return
+			}
+			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
+				log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
+			}
+			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
+			subscriptions[routingKeyPrefix] = true
+		}
+
+		unsubscribe := func(routingKeyPrefix string) {
+			removeFromRouteMap(routingKeyPrefix)
+			delete(subscriptions, routingKeyPrefix)
 		}
 
 		defer func() {
-			routeMapMutex.Lock()
+			globalMapMutex.Lock()
 			for routingKeyPrefix := range subscriptions {
 				removeFromRouteMap(routingKeyPrefix)
 			}
-			routeMapMutex.Unlock()
+			globalMapMutex.Unlock()
+
+			time.AfterFunc(5*time.Minute, func() {
+				globalMapMutex.Lock()
+				delete(socketSubscriptionsMap, socketId)
+				globalMapMutex.Unlock()
+			})
+
 			for {
 				err := controlChannel.Publish("authAll", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err == nil {
@@ -124,6 +147,13 @@ func main() {
 				resetControlChannel()
 			}
 		}()
+
+		err := controlChannel.Publish("authAll", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+		if err != nil {
+			panic(err)
+		}
+
+		sendToClient(session, map[string]interface{}{"routingKey": "broker.connected", "socketId": socketId})
 
 		for data := range session.ReceiveChan {
 			if data == nil || session.Closed {
@@ -138,27 +168,29 @@ func main() {
 				action := message["action"]
 				switch action {
 				case "subscribe":
-					routeMapMutex.Lock()
-					defer routeMapMutex.Unlock()
+					globalMapMutex.Lock()
+					defer globalMapMutex.Unlock()
 					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-						if subscriptions[routingKeyPrefix] {
-							log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
-							continue
-						}
-						if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
-							log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
-						}
-						routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
-						subscriptions[routingKeyPrefix] = true
+						subscribe(routingKeyPrefix)
 					}
 					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": message["routingKeyPrefix"].(string)})
 
+				case "resubscribe":
+					globalMapMutex.Lock()
+					defer globalMapMutex.Unlock()
+					oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
+					if found {
+						for routingKeyPrefix := range *oldSubscriptions {
+							subscribe(routingKeyPrefix)
+						}
+					}
+					sendToClient(session, map[string]interface{}{"routingKey": "broker.resubscribed", "successful": found})
+
 				case "unsubscribe":
-					routeMapMutex.Lock()
-					defer routeMapMutex.Unlock()
+					globalMapMutex.Lock()
+					defer globalMapMutex.Unlock()
 					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
-						removeFromRouteMap(routingKeyPrefix)
-						delete(subscriptions, routingKeyPrefix)
+						unsubscribe(routingKeyPrefix)
 					}
 
 				case "publish":
@@ -284,11 +316,11 @@ func main() {
 				pos = len(routingKey)
 			}
 			prefix := routingKey[:pos]
-			routeMapMutex.Lock()
+			globalMapMutex.Lock()
 			for _, routeSession := range routeMap[prefix] {
 				sendToClient(routeSession, jsonMessage)
 			}
-			routeMapMutex.Unlock()
+			globalMapMutex.Unlock()
 		}
 	}
 
