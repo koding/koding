@@ -33,6 +33,8 @@ type FileEntry struct {
 	Mode     os.FileMode `json:"mode"`
 	Time     time.Time   `json:"time"`
 	IsBroken bool        `json:"isBroken"`
+	Readable bool        `json:"readable"`
+	Writable bool        `json:"writable"`
 }
 
 func init() {
@@ -367,11 +369,13 @@ func (watch *Watch) Close() error {
 
 func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	entry := FileEntry{
-		Name:  fi.Name(),
-		IsDir: fi.IsDir(),
-		Size:  fi.Size(),
-		Mode:  fi.Mode(),
-		Time:  fi.ModTime(),
+		Name:     fi.Name(),
+		IsDir:    fi.IsDir(),
+		Size:     fi.Size(),
+		Mode:     fi.Mode(),
+		Time:     fi.ModTime(),
+		Readable: vos.IsReadable(fi),
+		Writable: vos.IsWritable(fi),
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
