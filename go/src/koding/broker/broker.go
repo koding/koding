@@ -303,6 +303,10 @@ func main() {
 		panic(err)
 	}
 
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
 		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
