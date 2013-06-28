@@ -315,8 +315,6 @@ module.exports = class JVM extends Model
       vmInfo.uid = 0
       aliasesToDelete = uniq aliasesToDelete.concat @createAliases vmInfo
 
-    console.log "Found these:", aliasesToDelete
-
     selector =
       hostnameAlias : vm.hostnameAlias
       domain        : { $in : aliasesToDelete }
