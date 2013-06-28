@@ -2,8 +2,12 @@ class MembersAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Members"
-    route        : "/Members"
+    route        : "/:name?/Members"
     hiddenHandle : yes
+    navItem      :
+      title      : "Members"
+      path       : "/Members"
+      order      : 30
 
   constructor:(options = {}, data)->
 
@@ -229,7 +233,7 @@ class MembersAppController extends AppController
         controller.ready -> controller.handleQuery? query
       callback contentDisplay
 
-    switch route.split('/')[1]
+    switch route.split('/')[2]
       when 'Followers'
         @createFolloweeContentDisplay model, 'followers', kallback
       when 'Following'

@@ -23,6 +23,17 @@ func NewRelationship() *Relationship {
 	}
 }
 
+type LoadBalancer struct {
+	// cookie or sourceAddress
+	Persistence string `json:"persistence"`
+
+	// roundrobin, random or sticky
+	Mode string `json:"mode"`
+	// current index of hosts. Updated automatically in roundrobin
+	// change manually when using sticky mode
+	Index int `json:"index"`
+}
+
 type Domain struct {
 	// Id defines the ObjectId of a single mongo document.
 	Id bson.ObjectId `bson:"_id" json:"-"`
@@ -30,13 +41,12 @@ type Domain struct {
 	// Domain is the domain in host form without any scheme (i.e: new.koding.com)
 	Domain string `bson:"domain"`
 
-	// HostnameAlias is the current VM's used
+	// HostnameAlias is used for proxy to route the domain to their VM defined
+	// by the HostnameAlias.
 	HostnameAlias []string `bson:"hostnameAlias"`
 
-	LoadBalancer struct {
-		Mode  string
-		Index int
-	} `bson:"loadBalancer"`
+	// LoadBalance for this server
+	LoadBalancer LoadBalancer `bson:"loadBalancer"`
 
 	// ProxyTable is used for proxy to route domains to their specific targets
 	Proxy *ProxyTable `bson:"proxy"`

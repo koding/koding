@@ -19,7 +19,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         'getUserSubscriptions'
       ]
       instance     : [
-        'cancel', 'resume'
+        'cancel', 'resume', 'calculateRefund'
       ]
     schema         :
       uuid         : String
@@ -123,11 +123,45 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       @save =>
         callback no, @
 
+  refund: (percent, callback)->
+    JRecurlyPlan = require './index'
+    JRecurlyPlan.getPlanWithCode @planCode, (err, plan)=>
+      return callback err  if err
+      payment.addUserCharge @userCode,
+        amount: (-1 * plan.feeMonthly * percent / 100)
+      , callback
+
+  calculateRefund: (callback)->
+    aDay = 1000 * 60 * 60 * 24
+    refundMap = [
+      {uplimit: aDay * 1,  percent: 90}
+      {uplimit: aDay * 7,  percent: 40}
+      {uplimit: aDay * 15, percent: 20}
+    ]
+
+    dateNow = new Date()
+    dateEnd = new Date(@renew)
+    usage   = (dateEnd.getTime() - dateNow.getTime()) / aDay
+
+    refundMap.every (ref)=>
+      if usage < ref.uplimit
+        callback yes, ref.percent
+        return no
+      callback no, 0
+      return yes
+
   terminate: (callback)->
     payment.terminateUserSubscription @userCode,
-      uuid: @uuid
+      uuid   : @uuid
+      refund : "none"
     , (err, sub)=>
       return callback err  if err
+
+      @calculateRefund (status, percent)=>
+        if status
+          @refund percent, ->
+            console.log "Refunding #{percent}% of the payment."
+
       @status   = sub.status
       @datetime = sub.datetime
       @expires  = sub.expires

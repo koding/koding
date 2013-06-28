@@ -21,6 +21,7 @@ module.exports = class JDomain extends jraphical.Module
 
     indexes         :
       domain        : 'unique'
+      hostnameAlias : 'sparse'
 
     schema          :
       domain        :
@@ -38,6 +39,14 @@ module.exports = class JDomain extends jraphical.Module
         fullUrl     : String
 
       loadBalancer  :
+        persistence :
+          type      : String
+          enum      : ['invalid persistence mode',[
+            'disabled'
+            # 'cookie'
+            # 'sourceAdress'
+          ]]
+          default   : 'disabled'
         mode        :
           type      : String
           enum      : ['invalid load balancer mode',[

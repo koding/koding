@@ -11,7 +11,7 @@ import (
 func main() {
 	lifecycle.Startup("kite.irc", false)
 
-	k := kite.New("irc")
+	k := kite.New("irc", false)
 	k.Handle("connect", false, func(args *dnode.Partial, channel *kite.Channel) (interface{}, error) {
 		var params struct {
 			Host      string         `json:"host"`

@@ -111,6 +111,8 @@ config =
       watch           : 1
       queueName       : 1
       run             : 1
+    graphFeederWorker :
+      numberOfWorkers : 1
     presence        :
       exchange      : 1
     client          :
@@ -179,9 +181,8 @@ config =
       proxy         :
         port        : 1
         portssl     : 1
+        ftpip       : 1
         sslips      : 1
-      mongo         :
-        host        : 1
       rabbitmq      :
         host        : 1
         port        : 1

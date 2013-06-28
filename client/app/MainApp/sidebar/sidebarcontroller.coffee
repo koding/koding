@@ -7,10 +7,6 @@ class SidebarController extends KDViewController
     mainController.on 'ManageRemotes', -> new ManageRemotesModal
     mainController.on 'ManageDatabases', -> new ManageDatabasesModal
     mainController.on 'AccountChanged', @bound 'accountChanged'
-
-    groupsController = KD.getSingleton 'groupsController'
-    groupsController.on 'GroupChanged', @bound 'resetGroupSettingsItem'
-
     mainController.ready @bound 'accountChanged'
 
   accountChanged:(account)->
@@ -51,18 +47,3 @@ class SidebarController extends KDViewController
           type     : "admin"
           loggedIn : yes
           callback : -> new AdminModal
-
-      @resetGroupSettingsItem()
-
-  resetGroupSettingsItem:->
-    return unless KD.isLoggedIn()
-
-    if 'admin' in KD.config.roles
-      {navController} = @getView()
-
-      navController.removeItemByTitle 'Group'
-      navController.addItem
-        title     : 'Group'
-        type      : 'account'
-        path      : "/Dashboard"
-        loggedIn  : yes

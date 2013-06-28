@@ -2,8 +2,12 @@ class TopicsAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Topics"
-    route        : "/Topics"
+    route        : "/:name?/Topics"
     hiddenHandle : yes
+    navItem      :
+      title      : "Topics"
+      path       : "/Topics"
+      order      : 20
 
   constructor:(options = {}, data)->
 

@@ -1,0 +1,11 @@
+inflect/inflect.go:634: cannot use c (type rune) as type int in assignment
+inflect/inflect.go:636: cannot convert o (type []int) to type string
+inflect/inflect.go:657: cannot use c (type rune) as type int in function argument
+inflect/inflect.go:660: cannot convert word (type []int) to type string
+inflect/inflect.go:665: cannot use unicode.ToLower(c) (type rune) as type int in append
+inflect/inflect.go:668: cannot convert word (type []int) to type string
+inflect/inflect.go:676: cannot use c (type rune) as type int in function argument
+inflect/inflect.go:679: cannot convert word (type []int) to type string
+inflect/inflect.go:685: cannot use unicode.ToLower(c) (type rune) as type int in append
+inflect/inflect.go:687: cannot use unicode.ToUpper(c) (type rune) as type int in append
+inflect/inflect.go:687: too many errors

@@ -1,8 +1,14 @@
 class KodingRouter extends KDRouter
 
+  @registerStaticEmitter()
+
   nicenames = {
     StartTab  : 'Develop'
   }
+
+  getSectionName =(model)->
+    sectionName = nicenames[model.bongo_.constructorName]
+    if sectionName? then " - #{sectionName}" else ''
 
   constructor:(@defaultRoute)->
 
@@ -13,16 +19,15 @@ class KodingRouter extends KDRouter
     @ready = no
     KD.getSingleton('mainController').once 'AccountChanged', =>
       @ready = yes
-      @utils.defer =>
-        @emit 'ready'
-    super getRoutes.call this
+      @utils.defer => @emit 'ready'
 
-    @on 'AlreadyHere', ->
-      log "You're already here!"
-      # new KDNotificationView
-      #   title: "You're already here!"
-      #   type : 'mini'
+    super()
 
+    KodingRouter.emit 'RouterReady', this
+
+    @addRoutes getRoutes.call this
+
+    @on 'AlreadyHere', -> log "You're already here!"
     @on 'Params', ({params, query})=>
       #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name
 
@@ -42,6 +47,7 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoute:(route, options={})->
+
     {entryPoint} = options
     if entryPoint?.slug? and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
@@ -67,12 +73,14 @@ class KodingRouter extends KDRouter
 
   openSection:(app, group, query)->
     return @once 'ready', @openSection.bind this, arguments...  unless @ready
+
     KD.getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
         @setPageTitle nicenames[app] ? app
         appManager = KD.getSingleton "appManager"
-        appManager.open app
+        appManager.open app, (appInstance)=>
+          appInstance.setOption "initialRoute", @getCurrentPath()
         appManager.tell app, 'handleQuery', query
 
   handleNotFound:(route)->
@@ -132,12 +140,14 @@ class KodingRouter extends KDRouter
       @handleNotFound route
 
     if name
-      KD.remote.cacheable name or routeWithoutParams, (err, models)=>
+      KD.remote.cacheable name, (err, models)=>
         if models?
         then onSuccess models
         else onError err
     else
-      KD.remote.api.JName.one {name: routeWithoutParams}, (err, jName)=>
+      # TEMP FIX: getting rid of the leading slash for the post slugs
+      slashlessSlug = routeWithoutParams.slice(1)
+      KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
         if err then onError err
         else if jName?
           models = []
@@ -189,7 +199,6 @@ class KodingRouter extends KDRouter
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
-
     clear = @bound 'clear'
 
     requireLogin =(fn)->
@@ -203,7 +212,8 @@ class KodingRouter extends KDRouter
         else clear()
 
     createSectionHandler = (sec)=>
-      ({params:{name}, query})=> @openSection sec, name, query
+      ({params:{name, slug}, query})=>
+        @openSection slug or sec, name, query
 
     createContentHandler       = @bound 'createContentDisplayHandler'
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
@@ -227,26 +237,8 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
-      # section
-      # TODO: nested groups are disabled.
-      '/:name?/Groups'                  : createSectionHandler 'Groups'
-      '/:name?/Activity'                : createSectionHandler 'Activity'
-      '/:name?/Members'                 : createSectionHandler 'Members'
-      '/:name?/Topics'                  : createSectionHandler 'Topics'
-      '/:name?/Develop'                 : createSectionHandler 'StartTab'
-      '/:name?/Apps'                    : createSectionHandler 'Apps'
-      '/:name?/Account'                 : createSectionHandler 'Account'
-      '/:name?/Demos'                   : createSectionHandler 'Demos'
-      '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
-      '/:name?/Inbox'                   : createSectionHandler 'Inbox'
-      #'/:name?/Environments'            : createSectionHandler 'Environments'
-
-      # group dashboard
-      # '/:name?/Dashboard'               : (routeInfo, state, route)->
-      #   {name} = routeInfo.params
-      #   n = name ? 'koding'
-      #   KD.remote.cacheable n, (err, groups, nameObj)=>
-      #     @openContent name, 'Groups', groups, route
+      # apps
+      '/:name?/Develop/:slug'           : createSectionHandler 'Develop'
 
       # content
       '/:name?/Topics/:slug'            : createContentHandler 'Topics'

@@ -8,13 +8,12 @@ import (
 	"koding/databases/neo4j"
 	"koding/tools/amqputil"
 	"labix.org/v2/mgo/bson"
-	"log"
 	"strings"
 )
 
 var (
-	EXCHANGE_NAME     = "neo4jFeederExchange"
-	WORKER_QUEUE_NAME = "neo4jFeederWorkerQueue"
+	EXCHANGE_NAME     = "graphFeederExchange"
+	WORKER_QUEUE_NAME = "graphFeederWorkerQueue"
 )
 
 type Consumer struct {
@@ -28,7 +27,6 @@ type Message struct {
 }
 
 func main() {
-	log.Println("Neo4J Feeder worker started")
 	startConsuming()
 	//looooop forever
 	select {}
@@ -55,25 +53,31 @@ func startConsuming() {
 	c.conn = amqputil.CreateConnection("neo4jFeeding")
 	c.channel = amqputil.CreateChannel(c.conn)
 
-	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", false, false, false, false, nil)
+	err := c.channel.ExchangeDeclare(EXCHANGE_NAME, "fanout", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("exchange.declare: %s", err)
+		fmt.Println("exchange.declare: %s", err)
+		panic(err)
 	}
 
 	//name, durable, autoDelete, exclusive, noWait, args Table
 	if _, err := c.channel.QueueDeclare(WORKER_QUEUE_NAME, true, false, false, false, nil); err != nil {
-		log.Fatal("queue.declare: %s", err)
+		fmt.Println("queue.declare: %s", err)
+		panic(err)
 	}
 
 	if err := c.channel.QueueBind(WORKER_QUEUE_NAME, "" /* binding key */, EXCHANGE_NAME, false, nil); err != nil {
-		log.Fatal("queue.bind: %s", err)
+		fmt.Println("queue.bind: %s", err)
+		panic(err)
 	}
 
 	//(queue, consumer string, autoAck, exclusive, noLocal, noWait bool, args Table) (<-chan Delivery, error) {
 	relationshipEvent, err := c.channel.Consume(WORKER_QUEUE_NAME, "neo4jFeeding", true, false, false, false, nil)
 	if err != nil {
-		log.Fatal("basic.consume: %s", err)
+		fmt.Println("basic.consume: %s", err)
+		panic(err)
 	}
+
+	fmt.Println("Neo4J Feeder worker started")
 
 	go func() {
 		for msg := range relationshipEvent {
@@ -81,19 +85,19 @@ func startConsuming() {
 
 			message, err := jsonDecode(body)
 			if err != nil {
-				log.Println("Wrong message format", err, body)
+				fmt.Println("Wrong message format", err, body)
 
 				continue
 			}
 
 			if len(message.Payload) < 1 {
-				log.Println("Wrong message format; payload should be an Array", message)
+				fmt.Println("Wrong message format; payload should be an Array", message)
 
 				continue
 			}
 			data := message.Payload[0]
 
-			log.Println(message.Event)
+			fmt.Println(message.Event)
 			if message.Event == "RelationshipSaved" {
 				createNode(data)
 			} else if message.Event == "RelationshipRemoved" {
@@ -136,12 +140,12 @@ func checkIfEligible(sourceName, targetName string) bool {
 
 	for _, name := range notAllowedNames {
 		if name == sourceName {
-			log.Println("not eligible " + sourceName)
+			fmt.Println("not eligible " + sourceName)
 			return false
 		}
 
 		if name == targetName {
-			log.Println("not eligible " + targetName)
+			fmt.Println("not eligible " + targetName)
 			return false
 		}
 	}
@@ -149,12 +153,12 @@ func checkIfEligible(sourceName, targetName string) bool {
 	for _, name := range notAllowedSuffixes {
 
 		if strings.HasSuffix(sourceName, name) {
-			log.Println("not eligible " + sourceName)
+			fmt.Println("not eligible " + sourceName)
 			return false
 		}
 
 		if strings.HasSuffix(targetName, name) {
-			log.Println("not eligible " + targetName)
+			fmt.Println("not eligible " + targetName)
 			return false
 		}
 
@@ -179,7 +183,7 @@ func createNode(data map[string]interface{}) {
 
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	} else {
 		neo4j.UpdateNode(sourceId, sourceContent)
 	}
@@ -187,7 +191,7 @@ func createNode(data map[string]interface{}) {
 	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
 	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	} else {
 		neo4j.UpdateNode(targetId, targetContent)
 	}
@@ -211,7 +215,7 @@ func createNode(data map[string]interface{}) {
 
 		neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
 	} else {
-		log.Println("id is not in correct format")
+		fmt.Println("id is not in correct format")
 	}
 
 }
@@ -232,9 +236,9 @@ func deleteRelationship(data map[string]interface{}) {
 
 	result := neo4j.DeleteRelationship(sourceId, targetId, as)
 	if result {
-		log.Println("Relationship deleted")
+		fmt.Println("Relationship deleted")
 	} else {
-		log.Println("Relationship couldnt be deleted")
+		fmt.Println("Relationship couldnt be deleted")
 	}
 }
 
@@ -260,7 +264,7 @@ func updateNode(data map[string]interface{}) {
 	neo4j.CreateUniqueNode(sourceId, sourceName)
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	} else {
 		neo4j.UpdateNode(sourceId, sourceContent)
 	}

@@ -20,8 +20,12 @@ class NVMItemView extends NFileItemView
       partial  : "on <strong>#{data.vmName}</strong> VM"
 
     @vm.fetchVMDomains data.vmName, (err, domains)=>
-      unless err and domains.length > 0
-        @vmInfo.updatePartial "on <strong>#{domains.first}</strong> VM"
+      if not err and domains.length > 0
+        @vmInfo.updatePartial """
+          on <a id="open-vm-page-#{data.vmName}"
+          href="http://#{domains.first}" target="_blank">
+          #{domains.first}</a> VM
+        """
 
   createRootContextMenu:->
     offset = @changePathButton.$().offset()

@@ -108,6 +108,8 @@ module.exports = class JMailNotification extends Model
       actionType : contents.actionType
       content    : contents[contents.actionType]
 
+    activity.message = contents.message  if contents.message
+
     # console.log "SENDER  :", sender
     # console.log "EVENT   :", event
     # console.log "RECEIVER:", receiver
@@ -128,7 +130,7 @@ module.exports = class JMailNotification extends Model
                              and event in type.eventType][0][0]?[0]
 
     selector = {event, receiver, contentId}
-    if sender instanceof ObjectId 
+    if sender instanceof ObjectId
     then selector.sender = sender
     else selector.senderEmail = sender
 

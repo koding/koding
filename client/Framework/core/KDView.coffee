@@ -209,7 +209,8 @@ class KDView extends KDObject
 # #
 # TRAVERSE DOM ELEMENT
 # #
-  Object.defineProperty @prototype, "$$", get : @::$
+  Object.defineProperty @::, "$$", get : @::$
+  Object.defineProperty @::, "el", get : @::getElement
 
   getDomElement:-> @domElement
 
@@ -219,11 +220,10 @@ class KDView extends KDObject
 
   # shortcut method for @getDomElement()
 
-  $ :(selector)->
-    if selector?
-      @getDomElement().find(selector)
-    else
-      @getDomElement()
+  $:(selector)->
+    if selector
+    then @getDomElement().find(selector)
+    else @getDomElement()
 
 # #
 # MANIPULATE DOM ELEMENT
@@ -286,20 +286,25 @@ class KDView extends KDObject
 # CSS METHODS
 # #
 
+  _helpSetClass = (el, addOrRemove, cssClass)->
+    el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
+
   setClass:(cssClass)->
-    @$().addClass cssClass
-    @
+    return unless cssClass
+    _helpSetClass @getElement(), "add", cssClass
+    return this
 
   unsetClass:(cssClass)->
-    @$().removeClass cssClass
-    @
+    return unless cssClass
+    _helpSetClass @getElement(), "remove", cssClass
+    return this
 
   toggleClass:(cssClass)->
     @$().toggleClass cssClass
-    @
+    return this
 
   hasClass:(cssClass)->
-    @$().hasClass cssClass
+    @getElement().classList.contains cssClass
 
   getBounds:->
     #return false unless @viewDidAppend
@@ -511,7 +516,7 @@ class KDView extends KDObject
 
         ratio = (scrollTop + view.getHeight()) / scrollHeight
 
-        if dynamicThreshold > ratio > lastRatio
+        if dynamicThreshold < ratio > lastRatio
           @emit 'LazyLoadThresholdReached', {ratio}
 
         lastRatio = ratio

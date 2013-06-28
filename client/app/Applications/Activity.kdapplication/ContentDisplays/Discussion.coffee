@@ -37,10 +37,11 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       partial  : @opinionHeaderCountString data.opinionCount
 
     @opinionBox.opinionList.on "OwnOpinionHasArrived", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
+      @resetHeaderCount data
+      @opinionBox.resetDecoration()
 
     @opinionBox.opinionList.on "OpinionIsDeleted", (data)=>
-      @opinionBoxHeader.updatePartial @opinionHeaderCountString @getData().opinionCount
+      @resetHeaderCount data
 
     @opinionForm = new OpinionFormView
       preview         :
@@ -170,7 +171,7 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
           @opinionBox.opinionList.emit "NewOpinionHasArrived"
 
-        @opinionBoxHeader.updatePartial @opinionHeaderCountString data.opinionCount
+        @opinionBoxHeader.updatePartial @opinionHeaderCountString reply.opinionCount
 
     # When the activity gets deleted correctly, it will emit this event,
     # which leaves only the count of the custom element to be updated
@@ -203,6 +204,10 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
           for comment in comments       # and add them to the commentBox
             @commentBox.commentList.addItem comment
 
+
+  resetHeaderCount:(data)->
+    opinionCount = @opinionBox.opinionList.items and @opinionBox.opinionList.items.length or 0
+    @opinionBoxHeader.updatePartial @opinionHeaderCountString opinionCount
 
   opinionHeaderCountString:(count)->
 

@@ -76,6 +76,8 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  graphFeederWorker:
+    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -157,9 +159,8 @@ module.exports =
     proxy         :
       port        : 8080
       portssl     : 8081
+      ftpip       : '127.0.0.1'
       sslips      : '127.0.0.1'
-    mongo         :
-      host        : '127.0.0.1'
     rabbitmq      :
       host        : 'local.koding.com'
       port        : '5672'
