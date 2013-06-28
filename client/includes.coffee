@@ -16,6 +16,8 @@ module.exports = [
   "libs/broker.js",
   "libs/bongo.js",
 
+  # TODO: reenable closure wrapping:
+  # "includes/header.inc.js",
   # core
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
@@ -800,4 +802,5 @@ module.exports = [
   "app/Applications/WebTerm.kdapplication/themes/black-on-white.styl",
   "app/Applications/WebTerm.kdapplication/themes/solarized-dark.styl",
   "app/Applications/WebTerm.kdapplication/themes/solarized-light.styl",
+  # "includes/footer.inc.js"
 ]
