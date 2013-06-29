@@ -130,22 +130,39 @@ module.exports = class JDomain extends jraphical.Module
         invoiceOption      : "NoInvoice"
         protectPrivacy     : no
 
-      domainManager.domainService.registerDomain params, (err, data)=>
-        if err then return callback err, data
+      # Make transaction
+      @makeTransaction client, data, (err, charge)=>
+        return callback err  if err
 
-        if data.actionstatus is "Success"
-          @createDomain client,
-            domain         : data.description
-            hostnameAlias  : []
-            regYears       : params.years
-            orderId        :
-              resellerClub : data.entityid
-            loadBalancer   :
-                mode       : "roundrobin"
-            , (err, model) =>
-              callback err, model
-        else
-            callback "Domain registration failed"
+        domainManager.domainService.registerDomain params, (err, data)=>
+          if err
+            return charge.cancel client, ->
+              callback err, data
+
+          if data.actionstatus is "Success"
+            @createDomain client,
+              domain         : data.description
+              hostnameAlias  : []
+              regYears       : params.years
+              orderId        :
+                resellerClub : data.entityid
+              loadBalancer   :
+                  mode       : "roundrobin"
+              , (err, model) =>
+                callback err, model
+          else
+              callback "Domain registration failed"
+
+  @makeTransaction: (client, data, callback)->
+    JRecurlyCharge = require './recurly/charge'
+
+    amount = 100 * 10 * data.years
+
+    JRecurlyCharge.charge client,
+      code   : 'domain_abc'
+      amount : amount
+      desc   : "Domain registration fee - #{data.domain} (#{data.years} year(s)})"
+    , callback
 
   bindVM: (client, params, callback)->
     domainName = @domain

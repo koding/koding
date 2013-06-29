@@ -185,7 +185,7 @@ func (w *WorkerConfig) Update(worker Worker) error {
 	result.Uuid = worker.Uuid
 	result.Version = worker.Version
 
-	log.Printf("updating worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
+	log.Printf("[%s (%d)] updating with new info from '%s'", worker.Name, worker.Version, worker.Hostname)
 	w.AddWorker(result)
 	return nil
 }
@@ -204,30 +204,21 @@ func (w *WorkerConfig) Ack(worker Worker) error {
 	return nil
 }
 
-func (w *WorkerConfig) RefreshStatus(uuid string) error {
-	worker, err := w.GetWorker(uuid)
-	if err != nil {
-		return err
-	}
-
-	if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
-		worker.Status = Dead
-		worker.Monitor.Mem = MemData{}
-		worker.Monitor.Uptime = 0
-	} // otherwise the workers are still alive
-
-	w.UpdateWorker(worker)
-	return nil
-}
-
 func (w *WorkerConfig) RefreshStatusAll() error {
-	result := Worker{}
+	worker := Worker{}
 	iter := w.Collection.Find(nil).Iter()
-	for iter.Next(&result) {
-		err := w.RefreshStatus(result.Uuid)
-		if err != nil {
-			return err
+	for iter.Next(&worker) {
+		if worker.Status == Dead {
+			continue
 		}
+
+		if worker.Timestamp.Add(15 * time.Second).Before(time.Now().UTC()) {
+			log.Printf("[%s (%d)] no activity at '%s' (pid: %d). marking as dead\n", worker.Name, worker.Version, worker.Hostname, worker.Pid)
+			worker.Status = Dead
+			worker.Monitor.Mem = MemData{}
+			worker.Monitor.Uptime = 0
+			w.UpdateWorker(worker)
+		} // otherwise the workers are still alive
 	}
 
 	return nil
