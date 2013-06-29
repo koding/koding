@@ -9,76 +9,48 @@ import (
 	"koding/kontrol/kontroldaemon/workerconfig"
 	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
-	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
-type cliRequest struct {
-	workerconfig.Request
-	Data string `json:"data"`
-}
-
 type IncomingMessage struct {
-	Worker  *workerconfig.MsgWorker
+	Worker  *workerconfig.Worker
 	Monitor *workerconfig.Monitor
 }
 
-type ApiMessage struct {
-	Worker *workerconfig.Request
-	Cli    *cliRequest
-}
-
-var kontrolConfig *workerconfig.WorkerConfig
+var kontrolDB *workerconfig.WorkerConfig
 var proxyDB *proxyconfig.ProxyConfiguration
 var clientDB *clientconfig.ClientConfig
-
-var workerProducer *kontrolhelper.Producer
-var cliProducer *kontrolhelper.Producer
-var apiProducer *kontrolhelper.Producer
-var clientProducer *kontrolhelper.Producer
+var producer *kontrolhelper.Producer
 
 func init() {
-	log.SetPrefix("kontrol-daemonhandler ")
+	log.SetPrefix(fmt.Sprintf("kontrold [%5d] ", os.Getpid()))
 }
 
 func Startup() {
 	var err error
-	workerProducer, err = kontrolhelper.CreateProducer("worker")
+	producer, err = kontrolhelper.CreateProducer("worker")
 	if err != nil {
 		log.Println(err)
 	}
 
-	cliProducer, err = kontrolhelper.CreateProducer("cli")
+	err = producer.Channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
 	if err != nil {
-		log.Println(err)
+		log.Printf("clientExchange exchange.declare: %s", err)
 	}
 
-	apiProducer, err = kontrolhelper.CreateProducer("api")
+	kontrolDB, err = workerconfig.Connect()
 	if err != nil {
-		log.Println(err)
-	}
-
-	clientProducer, err = kontrolhelper.CreateProducer("client")
-	if err != nil {
-		log.Println(err)
-	}
-
-	err = clientProducer.Channel.ExchangeDeclare("clientExchange", "fanout", true, false, false, false, nil)
-	if err != nil {
-		log.Printf("Supervisor: worker exchange.declare: %s", err)
-	}
-
-	kontrolConfig, err = workerconfig.Connect()
-	if err != nil {
-		log.Fatalf("wokerconfig mongodb connect: %s", err)
+		log.Fatalf("workerconfig mongodb connect: %s", err)
 	}
 
 	clientDB, err = clientconfig.Connect()
 	if err != nil {
-		log.Fatalf("wokerconfig mongodb connect: %s", err)
+		log.Fatalf("clientconfig mongodb connect: %s", err)
 	}
 
 	proxyDB, err = proxyconfig.Connect()
@@ -87,17 +59,17 @@ func Startup() {
 	}
 
 	// cleanup death workers at intervals
-	ticker := time.NewTicker(time.Hour * 1)
+	ticker := time.NewTicker(time.Minute * 20)
 	go func() {
 		for _ = range ticker.C {
 			log.Println("cleanup death workers")
-			iter := kontrolConfig.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
-			result := workerconfig.MsgWorker{}
+			iter := kontrolDB.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
+			result := workerconfig.Worker{}
 			for iter.Next(&result) {
 				// If it's still death just remove it
 				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
 					log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
-					kontrolConfig.DeleteWorker(result.Uuid)
+					kontrolDB.DeleteWorker(result.Uuid)
 				}
 			}
 		}
@@ -107,7 +79,7 @@ func Startup() {
 	tickerWorker := time.NewTicker(time.Second * 1)
 	go func() {
 		for _ = range tickerWorker.C {
-			err := kontrolConfig.RefreshStatusAll()
+			err := kontrolDB.RefreshStatusAll()
 			if err != nil {
 				log.Println("couldn't update worker data", err)
 			}
@@ -142,7 +114,7 @@ func HandleWorkerMessage(data []byte) {
 			log.Println(err)
 		}
 	} else if msg.Worker != nil {
-		err = DoAction(msg.Worker.Message.Command, msg.Worker.Message.Option, *msg.Worker)
+		err = DoWorkerCommand(msg.Worker.Message.Command, *msg.Worker)
 		if err != nil {
 			log.Println(err)
 		}
@@ -151,374 +123,224 @@ func HandleWorkerMessage(data []byte) {
 	}
 }
 
-func HandleApiMessage(data []byte, appId string) {
-	var msg ApiMessage
-	err := json.Unmarshal(data, &msg)
+func HandleApiMessage(data []byte) {
+	var req workerconfig.ApiRequest
+	err := json.Unmarshal(data, &req)
 	if err != nil {
 		log.Print("bad json incoming msg: ", err)
 	}
 
-	if msg.Worker != nil {
-		err = DoRequest(msg.Worker.Command, msg.Worker.Hostname, msg.Worker.Uuid, "", appId)
-		if err != nil {
-			log.Println(err)
-		}
-	} else if msg.Cli != nil {
-		err = DoRequest(msg.Cli.Command, msg.Cli.Hostname, msg.Cli.Uuid, msg.Cli.Data, appId)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		log.Println("incoming api message is in wrong format")
+	err = DoApiRequest(req.Command, req.Uuid)
+	if err != nil {
+		log.Println(err)
 	}
 }
 
-func DoAction(command, option string, worker workerconfig.MsgWorker) error {
-	if command == "" {
-		return errors.New(" empty command, nothing to do")
-	}
-
-	if command == "add" || command == "addWithProxy" {
-		log.Printf("ACTION RECEIVED: --  %s  --", command)
+func DoWorkerCommand(command string, worker workerconfig.Worker) error {
+	switch command {
+	case "add", "addWithProxy":
+		log.Printf("[%s (%d)] received: %s - %s ", worker.Name, worker.Version, command, worker.Message.Option)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
 		if err != nil {
 			return err
 		}
-		go sendWorker(res)
+		go deliver(res)
 
-		// register to kontrol proxy
+		// rest is proxy related
 		if command != "addWithProxy" {
 			return nil
 		}
 
-		if worker.Port == 0 { // but not if it has port of 0
+		if worker.Port == 0 { // zero port is useless for proxy
 			return fmt.Errorf("register to kontrol proxy not possible. port number is '0' for %s", worker.Name)
+		}
+
+		mode := "roundrobin"
+		if worker.Name == "broker" {
+			mode = "sticky"
 		}
 
 		port := strconv.Itoa(worker.Port)
 		key := strconv.Itoa(worker.Version)
-
 		err = proxyDB.UpsertKey(
-			"koding",
-			"sticky",
-			worker.Name, //service name
-			key,
+			"koding",    // username
+			"",          // persistence, empty means disabled
+			mode,        // loadbalancing mode
+			worker.Name, // servicename
+			key,         // version
 			worker.Hostname+":"+port, // host
-			"FromKontrolDaemon",
-			"",
-			0,
+			"FromKontrolDaemon",      // hostdata
+			"",                       // rabbitkey, not used
+			0,                        // currentindex, not used
 		)
 		if err != nil {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())
 		}
-
-		return nil
-	}
-
-	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
-		return fmt.Errorf(" do action: %s", err.Error())
-	}
-
-	actions := map[string]func(worker workerconfig.MsgWorker) error{
-		"ack":    func(worker workerconfig.MsgWorker) error { return kontrolConfig.Ack(worker) },
-		"update": func(worker workerconfig.MsgWorker) error { return kontrolConfig.Update(worker) },
-	}
-
-	if _, ok := actions[command]; !ok {
+	case "ack":
+		err := kontrolDB.Ack(worker)
+		if err != nil {
+			return err
+		}
+	case "update":
+		log.Printf("[%s (%d)] received: %s", worker.Name, worker.Version, command)
+		err := kontrolDB.Update(worker)
+		if err != nil {
+			return err
+		}
+	default:
 		return fmt.Errorf(" command not recognized: %s", command)
 	}
 
-	if config.Verbose && command != "ack" {
-		log.Printf("ACTION RECEIVED: --  %s  --", command)
-	}
-
-	err := actions[command](worker)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func DoRequest(command, hostname, uuid, data, appId string) error {
-	if command == "" {
-		return errors.New("empty command, nothing to do")
-	}
-
-	if isEmpty, err := kontrolConfig.IsEmpty(); isEmpty {
-		return fmt.Errorf("do request %s", err.Error())
-	}
-
-	log.Printf("ACTION RECEIVED: --  %s  --", command)
-
-	if command == "cmd" {
-		req := buildReq("start", data, hostname, 0)
-		go deliver(req, clientProducer, "")
-		return nil
-	}
-
-	if command == "status" {
-		res, err := kontrolConfig.Status(hostname, uuid)
-		if err != nil {
-			log.Println(err)
-		}
-
-		response, err := json.Marshal(res)
-		if appId == "" {
-			go deliver(response, apiProducer, "")
-		} else {
-			go deliver(response, cliProducer, appId)
-		}
-		return nil
-	}
-
-	if command == "delete" {
-		result := workerconfig.MsgWorker{}
-		if hostname == "" && uuid == "" {
-			// Apply action to all workers
-			log.Printf("'%s' all workers", command)
-			iter := kontrolConfig.Collection.Find(nil).Iter()
-			for iter.Next(&result) {
-				err := killAndDelete(result.Hostname, result.Uuid)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		} else if hostname != "" && uuid == "" {
-			// Apply action on all workers on the hostname
-			log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
-			iter := kontrolConfig.Collection.Find(bson.M{"hostname": hostname}).Iter()
-			for iter.Next(&result) {
-				err := killAndDelete(result.Hostname, result.Uuid)
-				if err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-
-		err := killAndDelete(hostname, uuid)
+func DoApiRequest(command, uuid string) error {
+	log.Printf("[%s] received: %s", uuid, command)
+	switch command {
+	case "delete":
+		err := kontrolDB.Delete(uuid)
 		if err != nil {
 			return err
 		}
-		return nil
-	}
-
-	if command == "kill" {
-		res, err := kontrolConfig.Kill(hostname, uuid, "normal")
+	case "kill":
+		res, err := kontrolDB.Kill(uuid, "normal")
 		if err != nil {
 			log.Println(err)
 		}
-		go sendWorker(res)
-		return nil
-	}
-
-	actions := map[string]func(hostname, uuid string) (workerconfig.MsgWorker, error){
-		"stop": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
-			return kontrolConfig.Stop(hostname, uuid)
-		},
-		"start": func(hostname, uuid string) (workerconfig.MsgWorker, error) {
-			return kontrolConfig.Start(hostname, uuid)
-		},
-	}
-
-	if _, ok := actions[command]; !ok {
-		return fmt.Errorf("command not recognized: %s", command)
-	}
-
-	// this mess will be cleanup up, sigh... - arslan
-	result := workerconfig.MsgWorker{}
-	if hostname == "" && uuid == "" {
-		// Apply action to all workers
-		log.Printf("'%s' all workers", command)
-		iter := kontrolConfig.Collection.Find(nil).Iter()
-		for iter.Next(&result) {
-			res, err := actions[command](result.Hostname, result.Uuid)
-			if err != nil {
-				log.Println(err)
-			}
-			go sendWorker(res)
-		}
-	} else if hostname != "" && uuid == "" {
-		// Apply action on all workers on the hostname
-		log.Printf("'%s' all workers on the hostname '%s'", command, hostname)
-		iter := kontrolConfig.Collection.Find(bson.M{"hostname": hostname}).Iter()
-		for iter.Next(&result) {
-			res, err := actions[command](result.Hostname, result.Uuid)
-			if err != nil {
-				log.Println(err)
-			}
-			go sendWorker(res)
-		}
-	} else if uuid != "" {
-		// Apply action on single worker, hostname is just for backward compatibility
-		workerResult, err := kontrolConfig.GetWorker(uuid)
+		go deliver(res)
+	case "start":
+		res, err := kontrolDB.Start(uuid)
 		if err != nil {
-			return fmt.Errorf("dorequest method error '%s'", err)
+			log.Println(err)
 		}
-
-		if hostname == "" {
-			hostname = workerResult.Hostname
-		}
-
-		if command != "ack" {
-			log.Printf(" '%s' worker '%s' on host '%s'", command, workerResult.Name, hostname)
-		}
-
-		res, err := actions[command](hostname, workerResult.Uuid)
-		if err != nil {
-			return err
-		}
-		go sendWorker(res)
-	}
-
-	return nil
-}
-
-func killAndDelete(hostname, uuid string) error {
-	// Kill the worker for preventing him sending messages to us
-	res, err := kontrolConfig.Kill(hostname, uuid, "normal")
-	if err != nil {
-		log.Println(err)
-	}
-	go sendWorker(res)
-
-	err = kontrolConfig.Delete(hostname, uuid)
-	if err != nil {
-		return err
+		go deliver(res)
+	default:
+		return fmt.Errorf(" command not recognized: %s", command)
 	}
 	return nil
-
 }
 
 func SaveMonitorData(data *workerconfig.Monitor) error {
-	workerResult, err := kontrolConfig.GetWorker(data.Uuid)
+	worker, err := kontrolDB.GetWorker(data.Uuid)
 	if err != nil {
 		return fmt.Errorf("monitor data error '%s'", err)
 	}
 
-	workerResult.Monitor.Mem = *data.Mem
-	workerResult.Monitor.Uptime = data.Uptime
-	kontrolConfig.UpdateWorker(workerResult)
+	worker.Monitor.Mem = *data.Mem
+	worker.Monitor.Uptime = data.Uptime
+	kontrolDB.UpdateWorker(worker)
 	return nil
 }
 
-func handleAdd(worker workerconfig.MsgWorker) (workerconfig.MsgWorker, error) {
+func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) {
 	option := worker.Message.Option
 
 	switch option {
 	case "force":
-		log.Println("force option is enabled.")
-		log.Printf("trying to kill and delete all workers with the name '%s' and not version '%d'\n", worker.Name, worker.Version)
-
-		result := workerconfig.MsgWorker{}
-		iter := kontrolConfig.Collection.Find(bson.M{
-			"name":     worker.Name,
+		/* force mode immediately run the worker, however before it will run,
+		it tries to find all workers with the same name(foo and foo-1
+		counts as the same) on other host's. Basically 'force' mode makes
+		the worker exclusive on all machines and no other worker with the
+		same name can run anymore.  */
+		log.Printf("[%s (%d)] killing all other workers except hostname '%s'\n", worker.Name, worker.Version, worker.Hostname)
+		result := workerconfig.Worker{}
+		iter := kontrolDB.Collection.Find(bson.M{
+			"name":     bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
 			"hostname": bson.M{"$ne": worker.Hostname},
 		}).Iter()
+
 		for iter.Next(&result) {
-			res, err := kontrolConfig.Kill(result.Hostname, result.Uuid, "force")
+			res, err := kontrolDB.Kill(result.Uuid, "force")
 			if err != nil {
 				log.Println(err)
 			}
-			go sendWorker(res)
+			go deliver(res)
 
-			err = kontrolConfig.Delete(result.Hostname, result.Uuid)
+			err = kontrolDB.Delete(result.Uuid)
 			if err != nil {
 				log.Println(err)
 			}
 		}
 
-		// kontrolConfig.AddWorker(worker)
-		worker.Message.Result = "added.now"
-		worker.Status = workerconfig.Running
-		log.Printf("start our new worker '%s' with version % and pid: '%d'\n", worker.Name, worker.Version, worker.Pid)
-		kontrolConfig.AddWorker(worker)
+		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		worker.Status = workerconfig.Started
+		kontrolDB.AddWorker(worker)
 
-		return worker, nil
-	case "one":
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
+		return response, nil
+	case "one", "version":
+		/* one mode will try to start a worker that has a different version
+		than the current available workers. But before it starts it look for
+		other workers. If there is worker available that are already started
+		with a different version then the worker don't get any permission. If
+		not it get's the permission to run.
+		Basically 'one' mode makes the worker 'version' exclusive. That means
+		only workers with that exclusive version has the permission to run.  */
+
+		query := bson.M{}
+		reason := ""
+		if option == "version" {
+			query = bson.M{
+				"name":    bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
+				"version": bson.M{"$ne": worker.Version},
+				"status": bson.M{"$in": []int{
+					int(workerconfig.Started),
+					int(workerconfig.Waiting),
+				}}}
+			reason = "workers with different versions: "
+		}
+
+		if option == "one" {
+			query = bson.M{
+				"name": worker.Name,
+				"status": bson.M{"$in": []int{
+					int(workerconfig.Started),
+					int(workerconfig.Waiting),
+				}}}
+			reason = "workers with same names: "
+		}
+
+		result := workerconfig.Worker{}
 		otherWorkers := false
-		result := workerconfig.MsgWorker{}
-		iter := kontrolConfig.Collection.Find(bson.M{
-			"name":    worker.Name,
-			"version": bson.M{"$ne": worker.Version},
-		}).Iter()
+		iter := kontrolDB.Collection.Find(query).Iter()
 		for iter.Next(&result) {
+			reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s", result.Version, result.Pid, result.Hostname)
 			otherWorkers = true
 		}
 
 		if !otherWorkers {
-			log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
-			worker.Message.Result = "added.now"
-			worker.Status = workerconfig.Running
-			kontrolConfig.AddWorker(worker)
-			return worker, nil
+			log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+			worker.Status = workerconfig.Started
+			kontrolDB.AddWorker(worker)
+			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
+			return response, nil
 		}
 
-		log.Printf("worker '%s' is already registered. checking for status...", worker.Name)
-		err := kontrolConfig.RefreshStatusAll()
-		if err != nil {
-			log.Println("couldn't refresh data", err)
-		}
-
-		iter = kontrolConfig.Collection.Find(bson.M{
-			"name":    worker.Name,
-			"version": bson.M{"$ne": worker.Version},
-			"status": bson.M{"$in": []int{
-				int(workerconfig.Notstarted),
-				int(workerconfig.Killed),
-				int(workerconfig.Dead),
-			}}}).Iter()
-
-		var gotPermission bool = false
-		result = workerconfig.MsgWorker{}
-		for iter.Next(&result) {
-			kontrolConfig.DeleteWorker(result.Uuid)
-
-			log.Printf("worker '%s' is not alive anymore. permission grant to run for the new worker", worker.Name)
-			log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
-
-			worker.Message.Result = "first.start"
-			worker.Status = workerconfig.Running
-
-			kontrolConfig.AddWorker(worker)
-			gotPermission = true
-		}
-
-		if !gotPermission {
-			log.Printf("another worker other then version '%d' is already running. no permission to worker '%s' on hostname '%s'", worker.Version, worker.Name, worker.Hostname)
-			worker.Message.Result = "added.before"
-		}
-
-		return worker, nil // contains first.start or added.before
+		log.Printf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "added.before")
+		return response, nil // contains first.start or added.before
 	case "many":
-		log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
-		worker.Message.Result = "first.start"
-		worker.Status = workerconfig.Running
-		kontrolConfig.AddWorker(worker)
-		return worker, nil //
+		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		worker.Status = workerconfig.Started
+		kontrolDB.AddWorker(worker)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "first.start")
+		return response, nil //
 	default:
-		return worker, errors.New("no option specified for add action. aborting add handler...")
+		return workerconfig.WorkerResponse{}, errors.New("no option specified for add action. aborting add handler...")
 	}
 
-	return worker, errors.New("couldn't add any worker")
+	return workerconfig.WorkerResponse{}, errors.New("couldn't add any worker")
 
 }
 
-func sendWorker(res workerconfig.MsgWorker) {
-	workerJson, err := json.Marshal(res)
+func deliver(res workerconfig.WorkerResponse) {
+	data, err := json.Marshal(res)
 	if err != nil {
 		log.Printf("could not marshall worker: %s", err)
 	}
 
-	go deliver(workerJson, workerProducer, res.Uuid)
-	return
-}
-
-func deliver(data []byte, producer *kontrolhelper.Producer, appId string) {
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",
@@ -528,51 +350,21 @@ func deliver(data []byte, producer *kontrolhelper.Producer, appId string) {
 		Priority:        0, // 0-9
 	}
 
-	switch producer.Name {
-	case "cli":
-		if appId == "" {
-			log.Printf(" Can't send to cli. appId is missing")
-		}
-		cliOut := "output.cli." + appId
-		err := cliProducer.Channel.Publish("infoExchange", cliOut, false, false, msg)
-		if err != nil {
-			log.Printf("error while publishing cli message: %s", err)
-		}
-	case "client":
-		err := clientProducer.Channel.Publish("clientExchange", "", false, false, msg)
-		if err != nil {
-			log.Printf("error while publishing client message: %s", err)
-		}
-		if config.Verbose {
-			log.Printf("SENDING CLIENT data %s", string(data))
-		}
-	case "api":
-		err := apiProducer.Channel.Publish("infoExchange", "output.api", false, false, msg)
-		if err != nil {
-			log.Printf("error while publishing api message: %s", err)
-		}
-		if config.Verbose {
-			log.Println("SENDING API data ", string(data))
-		}
-	case "worker":
-		if appId == "" {
-			log.Printf("can't send to worker. appId is missing")
-		}
-		workerOut := "output.worker." + appId
-		err := workerProducer.Channel.Publish("workerExchange", workerOut, false, false, msg)
-		if err != nil {
-			log.Printf("error while publishing message: %s", err)
-		}
+	if res.Uuid == "" {
+		log.Printf("can't send to worker. appId is missing")
 	}
+	workerOut := "output.worker." + res.Uuid
+	err = producer.Channel.Publish("workerExchange", workerOut, false, false, msg)
+	if err != nil {
+		log.Printf("error while publishing message: %s", err)
+	}
+	// log.Println("SENDING WORKER data ", string(data))
 }
 
-func buildReq(action, cmd, hostname string, pid int) []byte {
-	req := workerconfig.ClientRequest{Action: action, Cmd: cmd, Hostname: hostname, Pid: pid}
-	log.Println("Sending cmd to kontrold-client:", req)
-
-	data, err := json.Marshal(req)
-	if err != nil {
-		log.Println("Json marshall error", req)
+// convert foo-1, foo-*, etc to foo
+func normalizeName(name string) string {
+	if counts := strings.Count(name, "-"); counts > 0 {
+		return strings.Split(name, "-")[0]
 	}
-	return data
+	return name
 }

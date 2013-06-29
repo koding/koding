@@ -24,12 +24,14 @@ type ConfigFile struct {
 }
 
 type Domain struct {
-	Domainname  string
-	Mode        string
-	Username    string
-	Servicename string
-	Key         string
-	FullUrl     string
+	Domainname string `json:"Domain"`
+	Proxy      struct {
+		Mode        string `json:"mode"`
+		Username    string `json:"username"`
+		Servicename string `json:"servicename"`
+		Key         string `json:"key"`
+	} `json:"Proxy"`
+	FullUrl string `json:"Domain"`
 }
 
 type ServerInfo struct {
@@ -84,12 +86,12 @@ type WorkerInfo struct {
 
 type StatusInfo struct {
 	BuildNumber string
-	NewKoding   struct {
+	Koding      struct {
 		ServerHost string
 		BrokerHost string
 	}
 	Workers struct {
-		Running int
+		Started int
 		Dead    int
 	}
 }
@@ -149,14 +151,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		server = NewServerInfo()
 	}
 
-	domain, err := domainInfo("new.koding.com")
+	domain, err := domainInfo()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	s, b := keyLookup(domain.Key)
-	status.NewKoding.ServerHost = s
-	status.NewKoding.BrokerHost = b
+	s, b := keyLookup(domain.Proxy.Key)
+	status.Koding.ServerHost = s
+	status.Koding.BrokerHost = b
 
 	home := HomePage{
 		Status:  status,
@@ -257,8 +259,8 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 	for i, val := range workers {
 		switch val.State {
-		case "running":
-			s.Workers.Running++
+		case "started":
+			s.Workers.Started++
 			workers[i].Info = "success"
 		case "dead":
 			s.Workers.Dead++
@@ -348,29 +350,26 @@ func parseMongoLogin(login string) string {
 	)
 }
 
-func domainInfo(domainname string) (Domain, error) {
-	domainApi := "http://kontrol.in.koding.com/domains"
+func domainInfo() (Domain, error) {
+	d := Domain{}
+	domainApi := "http://kontrol.in.koding.com/domains/koding.com"
 	resp, err := http.Get(domainApi)
 	if err != nil {
-		return Domain{}, err
+		return d, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Domain{}, err
+		return d, err
+	} else {
+		fmt.Println(string(body))
 	}
 
-	d := make([]Domain, 0)
 	err = json.Unmarshal(body, &d)
 	if err != nil {
-		return Domain{}, err
+		fmt.Println("Couldn't unmarshall koding.com into a domain object.")
+		return d, err
 	}
 
-	for _, domain := range d {
-		if domain.Domainname == domainname {
-			return domain, nil
-		}
-	}
-
-	return Domain{}, fmt.Errorf("no domain info available for %s", domainname)
+	return d, nil
 }

@@ -75,6 +75,8 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  graphFeederWorker:
+    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 4
@@ -108,13 +110,13 @@ module.exports =
       version   : version
       mainUri   : "http://koding.com"
       broker    :
-        sockJS   : "https://broker-#{version}.x.koding.com/subscribe"
+        sockJS   : "https://broker-#{version}.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       # Is this correct?
-      appsUri   : 'https://dev-app.koding.com'
+      appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
     apiPort     : 15672
@@ -125,9 +127,9 @@ module.exports =
     vhost       : 'new'
   broker        :
     ip          : ""
-    port        : 8008
-    certFile    : ""
-    keyFile     : ""
+    port        : 443
+    certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
+    keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -157,9 +159,8 @@ module.exports =
     proxy         :
       port        : 80
       portssl     : 443
+      ftpip       : '54.208.3.200'
       sslips      : '10.0.5.231,10.0.5.215,10.0.5.102'
-    mongo         :
-      host        : 'kontrol.in.koding.com'
     rabbitmq      :
       host        : 'kontrol.in.koding.com'
       port        : '5672'
@@ -172,7 +173,7 @@ module.exports =
     push	: yes
     host	: 'opsview.in.koding.com'
   followFeed    :
-    host        : 'internal-vpc-rabbit-721699402.us-east-1.elb.amazonaws.com'
+    host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'

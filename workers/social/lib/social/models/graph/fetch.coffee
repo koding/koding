@@ -6,10 +6,11 @@ module.exports = class FetchAllActivityParallel
   Graph          = require "./graph"
   GraphDecorator = require "./graphdecorator"
 
-  constructor:(requestOptions)->
-    {startDate, neo4j, group} = requestOptions
+  constructor:(@requestOptions)->
+    {client, startDate, neo4j, group, facets} = @requestOptions
 
-    @graph = new Graph {config : neo4j}
+    @client               = client
+    @graph                = new Graph {config : neo4j, facets: group.facets}
     @startDate            = startDate
     @group                = group
     @randomIdToOriginal   = {}
@@ -18,15 +19,25 @@ module.exports = class FetchAllActivityParallel
     @overviewObjects      = []
     @newMemberBucketIndex = null
 
+    kodingMethods = [@fetchInstalls]
+    if group.facets is 'Everything'
+      @globalMethods = [@fetchSingles, @fetchTagFollows, @fetchNewMembers, @fetchMemberFollows]
+
+      # HACK: we don't want to show app install in groups other than koding,
+      #       but they're currently global, so we manually filter them out.
+      if @group.groupName == "koding"
+        @globalMethods = @globalMethods.concat kodingMethods
+    else
+      @globalMethods = [@fetchSingles]
+
   get:(callback)->
-    methods = [@fetchSingles, @fetchTagFollows, @fetchMemberFollows, @fetchInstalls, @fetchNewMembers]
     holder = []
-    boundMethods = holder.push method.bind this for method in methods
+    boundMethods = holder.push method.bind this for method in @globalMethods
     async.parallel holder, (err, results)=>
       callback @decorateAll(err, results)
 
   fetchSingles:(callback)->
-    @graph.fetchAll @group, @startDate, (err, rawResponse=[])->
+    @graph.fetchAll @requestOptions, (err, rawResponse=[])->
       GraphDecorator.decorateSingles rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
@@ -67,6 +78,7 @@ module.exports = class FetchAllActivityParallel
         if @bucketNames()[value.type]
           oldSnapshot = JSON.parse(value.snapshot)
           oldSnapshot._id = randomId
+          oldSnapshot.bongo_.subscribable = false
           value.snapshot = JSON.stringify oldSnapshot
 
         @cacheObjects[randomId] = value
@@ -90,7 +102,7 @@ module.exports = class FetchAllActivityParallel
     # get the right number of results
     overview = overview[-20..overview.length]
 
-    allTimes = _.map(overview, (activity)-> activity.createdAt)
+    allTimes = _.map(overview, (activity)-> activity.createdAt.first)
     allTimes = _.flatten allTimes
     sortedAllTimes = _.sortBy(allTimes, (activity)-> activity)
 
@@ -112,7 +124,7 @@ module.exports = class FetchAllActivityParallel
     return response
 
   generateUniqueRandomKey: ->
-    randomId = Math.floor(Math.random()*1000)
+    randomId = Math.floor(Math.random()*100000)
     if @usedIds[randomId]
       @generateUniqueRandomKey()
     else

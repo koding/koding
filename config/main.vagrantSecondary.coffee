@@ -63,6 +63,8 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 1
     watch       : yes
+  graphFeederWorker:
+    numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1

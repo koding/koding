@@ -68,6 +68,7 @@ module.exports = class JGroup extends Module
         { name: 'MemberAdded',      filter: -> null }
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
+        { name: 'updateInstance' }
       ]
     sharedMethods   :
       static        : [
@@ -88,8 +89,9 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'canCreateVM', 'vmUsage',
-        'fetchBundle', 'updateBundle'
+        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'createVM', 'canCreateVM', 'vmUsage',
+        'fetchBundle', 'updateBundle', 'saveInvitationMessage'
       ]
     schema          :
       title         :
@@ -287,6 +289,14 @@ module.exports = class JGroup extends Module
       group                 = new this groupData
       permissionSet         = new JPermissionSet
       defaultPermissionSet  = new JPermissionSet
+
+      # remove permissions for guest which made sense for public but not for private
+      if group.privacy is 'private'
+        toBeRemoved = ['read activity', 'read tags', 'list members']
+        for perm, i in permissionSet.permissions when perm.role is 'guest'
+          for permission, j in perm.permissions when permission in toBeRemoved
+            permissionSet.permissions[i].permissions.splice j, 1
+
       queue = [
         -> group.useSlug group.slug, (err, slug)->
           if err then callback err
@@ -439,7 +449,8 @@ module.exports = class JGroup extends Module
   @broadcast = (groupSlug, event, message)->
     if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
-        if err or not group then console.error "unknown group #{groupSlug}"
+        if err then console.error err
+        unless group then console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
@@ -570,11 +581,9 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      console.time('fetch members')
       [selector, options, callback] = Module.limitEdges 100, rest
       # delete options.targetOptions
       @fetchMembers selector, options, ->
-        console.timeEnd('fetch members')
         callback arguments...
 
   fetchNewestMembers$: permit 'list members',
@@ -830,11 +839,11 @@ module.exports = class JGroup extends Module
             else callback null
 
   inviteByEmail: permit 'send invitations',
-    success: (client, email, callback)->
+    success: (client, email, message, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
         cb = (user, account)=>
-          @inviteMember client, email, user, account, callback
+          @inviteMember client, email, user, account, message, callback
 
         if err or not user
           cb null, null
@@ -846,15 +855,21 @@ module.exports = class JGroup extends Module
               cb user, account
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, callback)->
+    success: (client, emails, message, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), (err)->
+        @inviteByEmail client, email.trim(), message, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
+
+  saveInvitationMessage: permit 'send invitations',
+    success: (client, message, callback=noop)->
+      @fetchMembershipPolicy (err, policy)=>
+        return callback err  if err
+        policy.update $set: 'communications.invitationMessage': message, callback
 
   inviteByUsername: permit 'send invitations',
     success: (client, usernames, callback)->
@@ -878,9 +893,10 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, user, account, callback)->
+  inviteMember: (client, email, user, account, message, callback)->
     JInvitationRequest = require '../invitationrequest'
 
+    [callback, message] = [message, callback]  unless callback
     [callback, account] = [account, callback]  unless callback
     [callback, user]    = [user, callback]     unless callback
 
@@ -905,7 +921,12 @@ module.exports = class JGroup extends Module
           if err then callback err
           else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else invitationRequest.sendInvitation client, callback
+            else
+              if user
+                user.fetchOwnAccount (err, account)->
+                  return console.warn err  if err # this is minor work, workflow should not stop cause of this
+                  account.emit 'NewPendingInvitation'
+              invitationRequest.sendInvitation client, message, callback
 
   isMember: (account, callback)->
     selector =
@@ -1316,9 +1337,17 @@ module.exports = class JGroup extends Module
         return callback err  if err?
         @addBundle bundle, ->
           callback null, bundle
- 
+
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
+
+  setBillingInfo: secure (client, data, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.setGroupAccount @, data, callback
+
+  getBillingInfo: secure (client, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.getGroupAccount @, callback
 
   makePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
@@ -1328,17 +1357,6 @@ module.exports = class JGroup extends Module
     , (err, plan)=>
       return callback err  if err
       plan.subscribeGroup @, data, callback
-
-  updatePayment: secure (client, data, callback)->
-    data.plan ?= @payment.plan
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
-      return callback err  if err
-      plan.subscribeGroup @, data, (err, subs)=>
-        return callback err  if err
-        callback no, subs
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'

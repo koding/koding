@@ -3,7 +3,7 @@ nodePath        = require 'path'
 deepFreeze      = require 'koding-deep-freeze'
 
 version         = "0.0.1"
-mongo           = 'local.koding.com:27017/koding'
+mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
@@ -35,7 +35,7 @@ module.exports =
   runGoBroker   : yes
   runKontrol    : no
   runRerouting  : yes
-  runUserPresence: no
+  runUserPresence: yes
   runPersistence: yes
   compileGo     : yes
   buildClient   : yes
@@ -76,6 +76,8 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  graphFeederWorker:
+    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -105,9 +107,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : 'http://localhost:3526'
   mq            :
-    host        : 'local.koding.com'
+    host        : 'localhost'
     port        : 5672
-    apiAddress  : "local.koding.com"
+    apiAddress  : "localhost"
     apiPort     : 15672
     login       : 'PROD-k5it50s4676pO9O'
     componentUser: "PROD-k5it50s4676pO9O"
@@ -157,11 +159,10 @@ module.exports =
     proxy         :
       port        : 8080
       portssl     : 8081
+      ftpip       : '127.0.0.1'
       sslips      : '127.0.0.1'
-    mongo         :
-      host        : 'local.koding.com'
     rabbitmq      :
-      host        : 'local.koding.com'
+      host        : 'localhost'
       port        : '5672'
       login       : 'guest'
       password    : 'guest'

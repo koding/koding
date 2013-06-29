@@ -52,6 +52,19 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       data.email = r.email
       payment.setAccountWithBilling "user_#{delegate._id}", data, callback
 
+  @setGroupAccount = (group, data, callback)->
+    JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>
+      return callback err  if err
+
+      userCode         = "group_#{group._id}"
+      data.accountCode = userCode
+      data.email       = groupAccount.email
+      data.username    = groupAccount.username
+      data.firstName   = groupAccount.firstName
+      data.lastName    = groupAccount.lastName
+
+      payment.setAccountWithBilling userCode, data, callback
+
   @getUserAccount = secure (client, callback)->
     {delegate}    = client.connection
     payment.getAccount "user_#{delegate._id}", callback
@@ -85,7 +98,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           else
             JRecurlyPlan.all selector, callback
 
-  @getPlanWithCode = secure (client, code, callback)->
+  @getPlanWithCode = (code, callback)->
     JRecurlyPlan.one
       code: code
     , callback
@@ -172,16 +185,21 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   subscribe: secure (client, data, callback)->
     {delegate} = client.connection
     userCode      = "user_#{delegate._id}"
+
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
-      status  : 'active'
+      $or      : [
+        {status: 'active'}
+        {status: 'canceled'}
+      ]
     , (err, subs)=>
       return callback err  if err
       if subs.length > 0
         subs = subs[0]
         subs.quantity ?= 1
         subs.quantity += 1
+
         payment.updateUserSubscription userCode,
           quantity: subs.quantity
           plan    : @code
@@ -190,47 +208,19 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           subs.save ->
             callback no, subs
       else
-        JRecurlyPlan.fetchAccount client, (err, userAccount)=>
+        payment.addUserSubscription userCode, {plan: @code}, (err, result)->
           return callback err  if err
-
-          data.quantity    = 1
-          data.accountCode = userCode
-          data.plan        = @code
-          data.email       = userAccount.email
-          data.username    = userAccount.username
-          data.firstName   = userAccount.firstName
-          data.lastName    = userAccount.lastName
-
-          JRecurlyPlan.getUserAccount client, (err, account)->
-            if account and not err
-              payment.addUserSubscription userCode, data, (err, result)->
-                return callback err  if err
-                sub = new JRecurlySubscription
-                  planCode : result.plan
-                  userCode : userCode
-                  uuid     : result.uuid
-                  quantity : result.quantity
-                  status   : result.status
-                  datetime : result.datetime
-                  expires  : result.expires
-                  renew    : result.renew
-                sub.save ->
-                  callback no, sub
-            else
-              payment.addSubscriptionAndAccount data, (err, result)->
-                return callback err  if err
-                sub = new JRecurlySubscription
-                  planCode : result.plan
-                  userCode : data.accountCode
-                  uuid     : result.uuid
-                  quantity : result.quantity
-                  status   : result.status
-                  datetime : result.datetime
-                  expires  : result.expires
-                  renew    : result.renew
-                sub.save ->
-                  callback no, sub
-
+          sub = new JRecurlySubscription
+            planCode : result.plan
+            userCode : userCode
+            uuid     : result.uuid
+            quantity : result.quantity
+            status   : result.status
+            datetime : result.datetime
+            expires  : result.expires
+            renew    : result.renew
+          sub.save ->
+            callback no, sub
 
   getSubscription: secure (client, callback)->
     {delegate} = client.connection
@@ -247,7 +237,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
-      status  : 'active'
+      $or      : [
+        {status: 'active'}
+        {status: 'canceled'}
+      ]
     , (err, subs)=>
       return callback err  if err
       if subs.length > 0
@@ -264,47 +257,19 @@ module.exports = class JRecurlyPlan extends jraphical.Module
           subs.save ->
             callback no, subs
       else
-
-        JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>
+        payment.addUserSubscription userCode, data, (err, result)->
           return callback err  if err
-
-          data.quantity    = 1
-          data.accountCode = userCode
-          data.plan        = @code
-          data.email       = groupAccount.email
-          data.username    = groupAccount.username
-          data.firstName   = groupAccount.firstName
-          data.lastName    = groupAccount.lastName
-
-          JRecurlyPlan.getGroupAccount group, (err, account)->
-            if account and not err
-              payment.addUserSubscription userCode, data, (err, result)->
-                return callback err  if err
-                sub = new JRecurlySubscription
-                  planCode : result.plan
-                  userCode : data.accountCode
-                  uuid     : result.uuid
-                  quantity : result.quantity
-                  status   : result.status
-                  datetime : result.datetime
-                  expires  : result.expires
-                  renew    : result.renew
-                sub.save ->
-                  callback no, sub
-            else
-              payment.addSubscriptionAndAccount data, (err, result)->
-                return callback err  if err
-                sub = new JRecurlySubscription
-                  planCode : result.plan
-                  userCode : data.accountCode
-                  uuid     : result.uuid
-                  quantity : result.quantity
-                  status   : result.status
-                  datetime : result.datetime
-                  expires  : result.expires
-                  renew    : result.renew
-                sub.save ->
-                  callback no, sub
+          sub = new JRecurlySubscription
+            planCode : result.plan
+            userCode : userCode
+            uuid     : result.uuid
+            quantity : result.quantity
+            status   : result.status
+            datetime : result.datetime
+            expires  : result.expires
+            renew    : result.renew
+          sub.save ->
+            callback no, sub
 
   @getAccountBalance = (account, callback)->
     payment.getUserTransactions account, (err, adjs)->
@@ -319,7 +284,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
         callback null, spent-charged
       
-
   @getUserBalance = secure (client, callback)->
     {delegate} = client.connection
     userCode      = "user_#{delegate._id}"

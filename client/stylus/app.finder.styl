@@ -181,11 +181,11 @@ dimmedNeighbor()
     .title
       cursor          default
       font-weight     normal
-      width           66%
       margin-right    26px
       display         block
       overflow        hidden
       text-overflow   ellipsis
+      white-space     nowrap
 
     form
       height          22px
@@ -688,12 +688,15 @@ div.led-wrapper
       abs()
 
     span.vm-info
-      top           15px
+      top           20px
       left          22px
       font-size     10px
       font-style    italic
       opacity       .7
+      line-height   10px
       abs()
+      a
+        text-decoration none
 
     div.vm-toggle
       top           3px
@@ -882,6 +885,37 @@ button.open-environment
   position          relative
   bottom            -8px
   left              40px
+
+
+.open-with-modal
+  .separator
+    border-bottom  1px solid #DDD
+  .app
+    cursor         pointer
+    padding        2px 0
+    &.selected
+      background   #F6A220
+      .app-name
+        color      #FFF !important
+    &.not-supported .app-name
+      color        #aaa
+    img
+      float        left
+      size         24px, 24px
+    .app-name
+      float        left
+      height       24px
+      line-height  24px
+      margin-left  4px
+    img
+      margin-left  17px
+  .kdmodal-buttons
+    .kdlabel
+      top          -11px
+      position     relative
+      font-size    11px
+    .checkbox
+      margin       15px 5px 15px 20px
 
 /*
 **  Overriding Treeview STYLES

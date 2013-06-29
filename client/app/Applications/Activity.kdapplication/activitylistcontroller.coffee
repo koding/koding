@@ -42,16 +42,6 @@ class ActivityListController extends KDListViewController
 
     @getListView().on "ItemWasAdded", @bound "removeNoItemFoundWidget"
 
-    @scrollView.on 'scroll', (event) =>
-      if event.delegateTarget.scrollTop > 0
-        @activityHeader.setClass "scrolling-up-outset"
-        @activityHeader.liveUpdateButton.setValue off
-      else
-        @emit "scrolledToTopOfPage"
-
-        @activityHeader.unsetClass "scrolling-up-outset"
-        @activityHeader.liveUpdateButton.setValue on
-
   removeNoItemFoundWidget:->
     if @getItemCount() is 1
       {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
@@ -77,12 +67,6 @@ class ActivityListController extends KDListViewController
 
     @activityHeader.hide() unless @getOptions().showHeader
 
-    @scrollView.on 'scroll', (event) =>
-      if event.delegateTarget.scrollTop > 10
-        @activityHeader.setClass "scrolling-up-outset"
-      else
-        @activityHeader.unsetClass "scrolling-up-outset"
-
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
       if firstHiddenItem.length > 0
@@ -90,6 +74,9 @@ class ActivityListController extends KDListViewController
         top or= 0
         @scrollView.scrollTo {top, duration : 200}, =>
           unhideNewHiddenItems hiddenItems
+
+    @emit "ready"
+
     super
 
   isMine:(activity)->
@@ -97,6 +84,8 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   listActivities:(activities)->
+    @hideLazyLoader()
+    return @showNoItemWidget() unless activities.length > 0
     activityIds = []
     for activity in activities when activity
       @addItem activity
@@ -105,7 +94,7 @@ class ActivityListController extends KDListViewController
     @checkIfLikedBefore activityIds
 
     @lastItemTimeStamp or= Date.now()
-    
+
     for obj in activities
       objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
       if objectTimestamp < @lastItemTimeStamp
@@ -116,7 +105,9 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
-    return @showNoItemWidget() unless cache.overview?
+    @hideLazyLoader()
+    # fixme: Senthil "?"
+    return @showNoItemWidget() unless cache.overview?.length > 0
 
     activityIds = []
     for overviewItem in cache.overview when overviewItem
@@ -151,7 +142,7 @@ class ActivityListController extends KDListViewController
   checkIfLikedBefore:(activityIds)->
 
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
-      for activity in @getListView().items when activity.data._id.toString() in likedIds
+      for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
         if likeView
           likeView.likeLink.updatePartial 'Unlike'
