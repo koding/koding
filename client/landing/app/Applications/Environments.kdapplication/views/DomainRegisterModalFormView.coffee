@@ -125,14 +125,34 @@ class DomainCreationForm extends KDTabViewWithForms
 
     {nickname, firstName, lastName} = KD.whoami().profile
 
+    paymentController = KD.getSingleton('paymentController')
+    group             = KD.getSingleton("groupsController").getCurrentGroup()
+
     super
       navigable                       : no
       goToNextFormOnSubmit            : no
       hideHandleContainer             : yes
       forms                           :
         "Domain Address"              :
-          callback                    : @bound "registerDomain"
           buttons                     :
+            billingButton             :
+              title                   : "Billing Info"
+              style                   : "cupid-green hidden"
+              type                    : "submit"
+              loader                  :
+                color                 : "#ffffff"
+                diameter              : 24
+              callback                : =>
+                form = @forms["Domain Address"]
+                {createButton, billingButton} = form.buttons
+
+                billingButton.hideLoader()
+                
+                paymentController.setBillingInfo 'user', group, (success)->
+                  if success
+                    billingButton.hide()
+                    createButton.show()
+
             createButton              :
               title                   : "Add Domain"
               style                   : "cupid-green"
@@ -140,6 +160,7 @@ class DomainCreationForm extends KDTabViewWithForms
               loader                  :
                 color                 : "#ffffff"
                 diameter              : 24
+              callback                : @bound "registerDomain"
             close                     :
               title                   : "Close"
               style                   : "cupid-green hidden"
@@ -169,16 +190,19 @@ class DomainCreationForm extends KDTabViewWithForms
                     @suggestionBox?.show()
                     domains.hide()
                     regYears.show()
+                    @needBilling yes
                     "#{KD.utils.slugify firstName}s-new-domain.com"
                   when "existing"
                     @suggestionBox?.hide()
                     domains.hide()
                     regYears.hide()
+                    @needBilling no
                     "#{KD.utils.slugify firstName}s-existing-domain.com"
                   when "subdomain"
                     @suggestionBox?.hide()
                     domains.show()
                     regYears.hide()
+                    @needBilling no
                     "#{KD.utils.slugify firstName}s-subdomain"
             domainName                :
               placeholder             : "#{KD.utils.slugify firstName}s-new-domain.com"
@@ -212,8 +236,31 @@ class DomainCreationForm extends KDTabViewWithForms
 
     form = @forms["Domain Address"]
     {createButton} = form.buttons
+
     form.on "FormValidationFailed", createButton.bound 'hideLoader'
     @on "DomainCreationCancelled", createButton.bound 'hideLoader'
+
+  needBilling:(paymentRequired)->
+    form = @forms["Domain Address"]
+    {createButton, billingButton} = form.buttons
+
+    unless paymentRequired
+      createButton.show()
+      billingButton.hide()
+      return
+
+    paymentController = KD.getSingleton('paymentController')
+    group             = KD.getSingleton("groupsController").getCurrentGroup()
+
+    paymentController.getBillingInfo 'user', group, (err, account)->
+      console.log arguments
+      need = err or not account or not account.cardNumber
+      if need
+        billingButton.show()
+        createButton.hide()
+      else
+        createButton.show()
+        billingButton.hide()
 
   registerDomain:->
     form = @forms["Domain Address"]
