@@ -1,26 +1,25 @@
 class DNSRecordListController extends KDListViewController
 
   constructor:(options={}, data)->
-    options = $.extend
-      defaultItem :
-        itemClass : EmptyDNSRecordListItemView
-      itemClass   : DNSRecordListItemView
-      viewOptions :
-        type      : 'dns-records'
-        tagName   : 'table'
-        partial   :
-          """
-          <thead>
-            <tr>
-              <th>Record Type</th>
-              <th>Host</th>
-              <th>Value</th>
-              <th>TTL</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          """
-    , options
+
+    options.itemClass   or= DNSRecordListItemView
+    options.defaultItem or=
+      itemClass : EmptyDNSRecordListItemView
+    options.viewOptions or=
+      type      : 'dns-records'
+      tagName   : 'table'
+      partial   :
+        """
+        <thead>
+          <tr>
+            <th>Record Type</th>
+            <th>Host</th>
+            <th>Value</th>
+            <th>TTL</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        """
     super options, data
 
     {domain} = @getData()
