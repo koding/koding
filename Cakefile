@@ -173,7 +173,7 @@ task 'authWorker',({configFile}) ->
       restartTimeout : 1000
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "one"
+        startMode    : "version"
       verbose        : yes
 
   if config.watch is yes
@@ -210,7 +210,7 @@ task 'emailWorker',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
+      startMode    : "one"
     verbose        : yes
 
   watcher = new Watcher
@@ -230,7 +230,7 @@ task 'emailSender',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
+      startMode    : "one"
     verbose        : yes
 
   watcher = new Watcher
@@ -345,7 +345,7 @@ task 'neo4jfeeder',({configFile})->
       verbose : yes
       kontrol        :
         enabled      : if config.runKontrol is yes then yes else no
-        startMode    : "one"
+        startMode    : "version"
 
 task 'libratoWorker',({configFile})->
 
