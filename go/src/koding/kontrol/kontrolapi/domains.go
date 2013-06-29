@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/resolver"
 	"net/http"
 )
 
@@ -40,6 +41,26 @@ func GetDomain(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	data, err := json.MarshalIndent(domain, "", "  ")
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	writer.Write([]byte(data))
+}
+
+func ResolveDomain(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	domainname := vars["domain"]
+	fmt.Printf("GET\t/domains/%s/resolv\n", domainname)
+
+	target, err := resolver.GetTarget(domainname)
+	if err != nil {
+		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
+		return
+	}
+
+	data, err := json.MarshalIndent(target.Url.String(), "", "  ")
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
