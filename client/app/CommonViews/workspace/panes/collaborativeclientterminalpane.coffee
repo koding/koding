@@ -44,7 +44,7 @@ class CollaborativeClientTerminalPane extends Pane
         inverse  = containerDomElement.find ".inverse"
         outlined = containerDomElement.find ".outlined"
         element  = if inverse?.length then inverse else if outlined.length then outlined
-        element.toggleClass "inverse"
+        element?.toggleClass "inverse"
 
   handleKey: (event) ->
     value = @textarea.getValue()
