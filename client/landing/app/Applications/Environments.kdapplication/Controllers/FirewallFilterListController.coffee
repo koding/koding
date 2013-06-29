@@ -1,25 +1,23 @@
 class FirewallFilterListController extends KDListViewController
 
   constructor:(options={}, data)->
-    options = $.extend
-      showDefaultItem : yes
-      defaultItem :
+    options.itemClass       or= FirewallFilterListItemView
+    options.showDefaultItem or= yes
+    options.defaultItem     or=
         itemClass : EmptyFirewallFilterListItemView
-      itemClass   : FirewallFilterListItemView
-      viewOptions :
-        type      : 'filters'
-        tagName   : 'table'
-        partial   :
-          """
-          <thead>
-            <tr>
-              <th>Filter Name</th>
-              <th>Filter Match</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          """
-    , options
+    options.viewOptions     or=
+      type      : 'filters'
+      tagName   : 'table'
+      partial   :
+        """
+        <thead>
+          <tr>
+            <th>Filter Name</th>
+            <th>Filter Match</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        """
 
     super options, data
 

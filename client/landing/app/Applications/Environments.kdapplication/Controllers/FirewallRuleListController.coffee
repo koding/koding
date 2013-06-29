@@ -1,25 +1,23 @@
 class FirewallRuleListController extends KDListViewController
 
   constructor:(options={}, data)->
-    options = $.extend
-      showDefaultItem : yes
-      defaultItem :
-        itemClass : EmptyFirewallRuleListItemView
-      itemClass   : FirewallRuleListItemView
-      viewOptions :
-        tagName   : "table"
-        type      : "rules"
-        partial   :
-          """
-          <thead>
-            <tr>
-              <th></th>
-              <th>Rule</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          """
-    , options
+    options.itemClass       or= FirewallRuleListItemView
+    options.showDefaultItem or= yes
+    options.defaultItem     or=
+      itemClass : EmptyFirewallRuleListItemView
+    options.viewOptions     or=
+      tagName   : "table"
+      type      : "rules"
+      partial   :
+        """
+        <thead>
+          <tr>
+            <th></th>
+            <th>Rule</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        """
     super options, data
 
     @getListView().on "moveToIndexRequested", @bound 'moveItemToIndex'

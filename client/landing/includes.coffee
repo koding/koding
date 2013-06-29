@@ -534,7 +534,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/Domains.coffee",
   "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
-  "app/Applications/Environments.kdapplication/views/NewDomainModalView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
   "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
   "app/Applications/Environments.kdapplication/views/FirewallMapperView.coffee",
