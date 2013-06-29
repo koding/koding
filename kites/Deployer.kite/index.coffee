@@ -10,7 +10,7 @@
 #
 ###
 redis    = require 'redis'
-kite     = require "kite-amqp/lib/kite-amqp/kite.coffee"
+kitehelper     = require "kite-amqp/lib/kite-amqp/kite.coffee"
 Kite     = require "kite-amqp/lib/kite-amqp/index.coffee"
 manifest = require "./manifest.json"
 {spawn}  = require "child_process"
@@ -117,7 +117,7 @@ manifest.name = "Deployer"
 manifest.uuid = deployerId
 
 deploys = []
-kite.worker manifest, 
+kitehelper.worker manifest, 
 
   report: (args, cb)->
     o = {id: @communicator.getChannelNameForKite(), deployCnt: deploys.length}
