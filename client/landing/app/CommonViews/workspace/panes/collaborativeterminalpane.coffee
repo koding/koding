@@ -16,6 +16,8 @@ class CollaborativeTerminalPane extends TerminalPane
     , 500
 
     @workspaceRef.on "value", (snapshot) =>
+      return unless snapshot.val()
+
       log "everything is something happened", snapshot.name(), snapshot.val()
 
       {keyEventFromClient} = snapshot.val()
