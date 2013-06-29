@@ -96,32 +96,4 @@ class JUserKiteVersion extends jraphical.Module
         type      : Date
         default   : -> new Date
 
-class JUserKiteInstance extends jraphical.Module
-  
-  # dont know if we really need this ??
-
-  {Relationship} = jraphical
-
-  {Base, secure, race} = require 'bongo'
-
-  @share()
-
-  @set
-    softDelete        : yes
-    sharedMethods     :
-      instance        : ['revoke']
-      static          : ['create', 'fetchAll', 'fetchByKey']
-    schema            :
-      ipaddr          : String
-      lxcid           : String
-      owner           : String
-      kite            : String
-      kite_version_id : String
-      run_started     : Date
-      createdAt   :
-        type      : Date
-        default   : -> new Date
-
-
-
-module.exports = {JUserKite, JUserKiteInstance, JUserKiteVersion}
+module.exports = {JUserKite, JUserKiteVersion}

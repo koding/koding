@@ -183,7 +183,7 @@ app.get "/-/kite/login", (req, res) ->
                       password  : data.password
                       vhost     : "/"
                       publicUrl : body
-                      messageBusUrl : '192.168.1.250:6380'
+                      messageBusUrl : 'koding.com:6380'
 
                     res.header "Content-Type", "application/json"
                     res.send JSON.stringify creds
@@ -199,11 +199,8 @@ app.get "/-/kite/login", (req, res) ->
                   username  : data.username
                   password  : data.password
                   vhost     : mq.vhost
-                  messageBusUrl : '192.168.1.250:6380'
+                  messageBusUrl : 'koding.com:6380'
 
-                console.log creds
-                console.log "kodingkey.owner:::::", kodingKey.owner
-                # ADD TO JUSERKITE
                 {JUserKite} = koding.models
                 JUserKite.fetchOrCreate
                   kitename      : name
