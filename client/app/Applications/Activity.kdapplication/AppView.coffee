@@ -46,11 +46,9 @@ class ActivityAppView extends KDScrollView
           @activityHeader.liveUpdateButton.setValue on
 
     @decorate()
-    # after resolving non-blocking socket problem, change this value to 100
-    @setLazyLoader .99
 
-    {scrollView} = @feedWrapper.controller
-    @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
+    @setLazyLoader 200
+
     @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()

@@ -516,7 +516,7 @@ class KDView extends KDObject
 
         ratio = (scrollTop + view.getHeight()) / scrollHeight
 
-        if dynamicThreshold > ratio > lastRatio
+        if dynamicThreshold < ratio > lastRatio
           @emit 'LazyLoadThresholdReached', {ratio}
 
         lastRatio = ratio

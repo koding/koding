@@ -1,31 +1,20 @@
 lxc.network.type = veth
 lxc.network.link = lxcbr0
-lxc.network.veth.pair = {{.VEth}}
+#lxc.network.veth.pair = vethVMRoot
 lxc.network.flags = up
-lxc.network.hwaddr = {{.MAC}}
-lxc.network.ipv4 = {{.IP}}/9
-lxc.network.ipv4.gateway = auto
-lxc.rootfs = /var/lib/lxc/{{.}}/rootfs
-lxc.utsname = {{.HostnameAlias}}
+lxc.network.ipv4 = 10.128.1.#IP#
+lxc.network.ipv4.gateway = 10.128.1.1
+lxc.rootfs = /var/lib/lxc/#NAME#/rootfs
+lxc.utsname = vmroot
 
 lxc.tty = 0
 lxc.pts = 0
 lxc.devttydir = lxc
-lxc.mount  = /var/lib/lxc/{{.}}/fstab
 lxc.cap.drop = sys_module mac_admin mac_override
 lxc.pivotdir = lxc_putold
 
-# better but not possible atm: lxc.id_map = u 0 50000000 1000000
 lxc.id_map = u 0 500000 500000
-lxc.id_map = u 1000000 1000000 49000000
-
-# better but not possible atm: lxc.id_map = g 0 50000000 1000000
 lxc.id_map = g 0 500000 500000
-lxc.id_map = g 1000000 1000000 49000000
-
-lxc.cgroup.cpu.shares = 1000
-#lxc.cgroup.memory.limit_in_bytes = 60M
-#lxc.cgroup.memory.memsw.limit_in_bytes = 1G
 
 # Deny all access to devices
 lxc.cgroup.devices.deny = a

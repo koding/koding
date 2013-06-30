@@ -139,7 +139,7 @@ func HandleApiMessage(data []byte) {
 func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 	switch command {
 	case "add", "addWithProxy":
-		log.Printf("ACTION RECEIVED: --  %s  --", command)
+		log.Printf("[%s (%d)] received: %s - %s ", worker.Name, worker.Version, command, worker.Message.Option)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
@@ -184,7 +184,7 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			return err
 		}
 	case "update":
-		log.Printf("ACTION RECEIVED: --  %s  --", command)
+		log.Printf("[%s (%d)] received: %s", worker.Name, worker.Version, command)
 		err := kontrolDB.Update(worker)
 		if err != nil {
 			return err
@@ -197,7 +197,7 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 }
 
 func DoApiRequest(command, uuid string) error {
-	log.Printf("ACTION RECEIVED: --  %s  --", command)
+	log.Printf("[%s] received: %s", uuid, command)
 	switch command {
 	case "delete":
 		err := kontrolDB.Delete(uuid)
@@ -244,7 +244,7 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		counts as the same) on other host's. Basically 'force' mode makes
 		the worker exclusive on all machines and no other worker with the
 		same name can run anymore.  */
-		log.Printf("force kill all workers with name '%s' and not hostname '%s'\n", worker.Name, worker.Hostname)
+		log.Printf("[%s (%d)] killing all other workers except hostname '%s'\n", worker.Name, worker.Version, worker.Hostname)
 		result := workerconfig.Worker{}
 		iter := kontrolDB.Collection.Find(bson.M{
 			"name":     bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
@@ -264,13 +264,13 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			}
 		}
 
-		log.Printf("start our new worker '%s' with version %d and pid: '%d'\n", worker.Name, worker.Version, worker.Pid)
+		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
 		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
 
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
 		return response, nil
-	case "one":
+	case "one", "version":
 		/* one mode will try to start a worker that has a different version
 		than the current available workers. But before it starts it look for
 		other workers. If there is worker available that are already started
@@ -279,39 +279,50 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		Basically 'one' mode makes the worker 'version' exclusive. That means
 		only workers with that exclusive version has the permission to run.  */
 
-		err := kontrolDB.RefreshStatusAll() // needed to update the status
-		if err != nil {
-			log.Println("couldn't refresh data", err)
+		query := bson.M{}
+		reason := ""
+		if option == "version" {
+			query = bson.M{
+				"name":    bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
+				"version": bson.M{"$ne": worker.Version},
+				"status": bson.M{"$in": []int{
+					int(workerconfig.Started),
+					int(workerconfig.Waiting),
+				}}}
+			reason = "workers with different versions: "
+		}
+
+		if option == "one" {
+			query = bson.M{
+				"name": worker.Name,
+				"status": bson.M{"$in": []int{
+					int(workerconfig.Started),
+					int(workerconfig.Waiting),
+				}}}
+			reason = "workers with same names: "
 		}
 
 		result := workerconfig.Worker{}
-		iter := kontrolDB.Collection.Find(bson.M{
-			"name":    bson.RegEx{Pattern: "^" + normalizeName(worker.Name), Options: "i"},
-			"version": bson.M{"$ne": worker.Version},
-			"status": bson.M{"$in": []int{
-				int(workerconfig.Started),
-				int(workerconfig.Waiting),
-			}}}).Iter()
-
 		otherWorkers := false
+		iter := kontrolDB.Collection.Find(query).Iter()
 		for iter.Next(&result) {
+			reason = reason + fmt.Sprintf("\n version: %d (pid: %d) at %s", result.Version, result.Pid, result.Hostname)
 			otherWorkers = true
 		}
 
 		if !otherWorkers {
-			log.Printf("no runnning workers found, adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
+			log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
 			worker.Status = workerconfig.Started
 			kontrolDB.AddWorker(worker)
 			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
 			return response, nil
 		}
 
-		log.Printf("another worker other then version '%d' is already started.", worker.Version)
-		log.Printf("no permission to worker '%s' on hostname '%s'", worker.Name, worker.Hostname)
+		log.Printf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "added.before")
 		return response, nil // contains first.start or added.before
 	case "many":
-		log.Printf("adding worker '%s' - '%s' - '%d'", worker.Name, worker.Hostname, worker.Version)
+		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
 		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
 		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "first.start")

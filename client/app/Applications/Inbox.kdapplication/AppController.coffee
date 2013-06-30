@@ -25,6 +25,69 @@ class InboxAppController extends AppController
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
+  createNewMessageModal:(to)->
+    modal = new KDModalViewWithForms
+      title                   : "Compose a message"
+      content                 : ""
+      cssClass                : "compose-message-modal"
+      height                  : "auto"
+      width                   : 500
+      overlay                 : yes
+      tabs                    :
+        navigable             : yes
+        callback              : (formOutput)=>
+          callback = modal.destroy.bind modal
+          @emit "MessageShouldBeSent", {formOutput,callback}
+        forms                 :
+          sendForm            :
+            fields            :
+              to              :
+                label         : "Send To:"
+                type          : "hidden"
+                name          : "dummy"
+              subject         :
+                label         : "Subject:"
+                placeholder   : 'Enter a subject'
+                name          : "subject"
+              Message         :
+                label         : "Message:"
+                type          : "textarea"
+                name          : "body"
+                placeholder   : 'Enter your message'
+            buttons           :
+              Send            :
+                title         : "Send"
+                style         : "modal-clean-gray"
+                type          : "submit"
+              Cancel          :
+                title         : "cancel"
+                style         : "modal-cancel"
+                callback      : -> modal.destroy()
+
+    toField = modal.modalTabs.forms.sendForm.fields.to
+
+    recipientsWrapper = new KDView
+      cssClass      : "completed-items"
+
+    recipient = new KDAutoCompleteController
+      name                : "recipient"
+      itemClass           : MemberAutoCompleteItemView
+      selectedItemClass   : MemberAutoCompletedItemView
+      outputWrapper       : recipientsWrapper
+      form                : modal.modalTabs.forms.sendForm
+      itemDataPath        : "profile.nickname"
+      listWrapperCssClass : "users"
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        blacklist = (data.getId() for data in recipient.getSelectedItemData())
+        @fetchAutoCompleteForToField inputValue, blacklist, callback
+
+    toField.addSubView recipient.getView()
+    toField.addSubView recipientsWrapper
+    recipient.setDefaultValue to  if to
+
+
   loadView:(mainView)->
     mainView.createCommons()
     mainView.createTabs()
@@ -67,11 +130,7 @@ class InboxAppController extends AppController
       newMessageBar.enableMessageActionButtons()
       @selectMessage data, item, paneView
 
-    newMessageBar.on "AutoCompleteNeedsMemberData", (event)=>
-      {callback,inputValue,blacklist} = event
-      @fetchAutoCompleteForToField inputValue,blacklist,callback
-
-    newMessageBar.on 'MessageShouldBeSent', ({formOutput,callback})=>
+    @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback, newMessageBar
 
     newMessageBar.on 'MessageShouldBeDisowned', do =>

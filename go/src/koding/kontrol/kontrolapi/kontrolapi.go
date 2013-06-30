@@ -89,6 +89,7 @@ func main() {
 	// Domain handlers
 	rout.HandleFunc("/domains", GetDomains).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", GetDomain).Methods("GET")
+	rout.HandleFunc("/domains/{domain}/resolv", ResolveDomain).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", CreateOrUpdateDomain).Methods("POST", "PUT")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
