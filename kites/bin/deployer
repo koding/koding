@@ -1,0 +1,4 @@
+#!/bin/bash
+export HOME=/root
+cd /opt/koding/kites/Deployer.kite
+kd kite run
