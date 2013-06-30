@@ -118,9 +118,9 @@ manifest.uuid = deployerId
 deploys = []
 kite.worker manifest, 
 
-  report: (args, cb)->
+  report: (args, callback)->
     o = {id: @communicator.getChannelNameForKite(), deployCnt: deploys.length}
-    return cb(false, o)
+    return callback(false, o)
 
   who: (args, callback)->
     kites = []
@@ -145,7 +145,7 @@ kite.worker manifest,
 
   deploy: (options, callback) ->
 
-    who = (args, cb)=>
+    who = (args, callback)=>
       kites = []
       console.log "deploy.who called???"
       @all "report", [], (err, opts)->
@@ -154,7 +154,7 @@ kite.worker manifest,
       # if anyone hasn't replied in 500msec just dont care
       # about them, either they are busy, or dead
       setTimeout ()->
-        cb null, kites
+        callback null, kites
       , 500
 
     findBestDeployer = (deployers)->
