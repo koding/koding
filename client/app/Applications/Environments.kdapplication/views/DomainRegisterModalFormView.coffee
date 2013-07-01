@@ -355,6 +355,8 @@ class DomainCreationForm extends KDTabViewWithForms
     suggestionBox.addSubView @successNote = new KDCustomHTMLView
       tagName : 'p'
       cssClass: 'success'
+      # the following partial will vary depending on the DomainOption value.
+      # Users who registered a domain through us won't need this change.
       partial : "<b>Thank you!</b><br>Your domain #{domainName.getValue()} has been added to our database. Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com."
       click   : => @reset()
 
