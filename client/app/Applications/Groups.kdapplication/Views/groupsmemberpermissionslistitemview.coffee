@@ -88,6 +88,11 @@ class GroupsMemberPermissionsListItemView extends KDListItemView
 
   viewAppended:JView::viewAppended
 
+  updateRoles:(roles)->
+    roles.push 'member'
+    @usersRole = roles
+    @userRole.updatePartial 'Roles: ' + @usersRole.join ', '
+
   pistachio:->
     """
     <div class="kdlistitemview-member-item-inner">
