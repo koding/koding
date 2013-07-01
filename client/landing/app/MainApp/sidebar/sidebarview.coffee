@@ -117,7 +117,8 @@ class Sidebar extends JView
       icon      : yes
       iconClass : "plus-orange"
       cssClass  : "clean-gray create-vm"
-      callback  : KD.getSingleton('vmController').createNewVM
+      callback  : ->
+        KD.getSingleton('vmController').createNewVM()
 
     @environmentButton = new KDButtonView
       title     : "Environments"
