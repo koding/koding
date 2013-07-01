@@ -4,7 +4,7 @@ class BookTableOfContents extends JView
 
     tmpl = ""
     for page, nr in __bookPages
-      if page.title and page.anchor isnt no
+      if page.parent == 0
         tmpl += "<a href='#'>#{page.title}</a><span>#{nr+1}</span><br>"
 
     return tmpl

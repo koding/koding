@@ -29,13 +29,7 @@ class KodingRouter extends KDRouter
 
     @on 'AlreadyHere', -> log "You're already here!"
     @on 'Params', ({params, query})=>
-      #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name
-
-    @on 'InstructionsBookAdded', (@book) ->
-      KD.mixpanel.track "InstructionsBookClicked", 
-        username:KD.whoami().profile.nickname
-      
-
+      #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name      
 
   listen:->
     super

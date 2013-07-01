@@ -3,15 +3,13 @@
     - page switching ui
     - develop fake button items and styling
     - flip pages by clicking left or right half of the pages
-
-    KD.getSingleton("router").handleRoute("/Develop")
-    KD.singletons.appManager.openFile(FSHelper.createFileFromPath("/home/devrim/Web/index.html"))
 ###
 
 class BookView extends JView
 
   @lastIndex = 0
   cached = []
+
   cachePage = (index)->
     return if not __bookPages[index] or cached[index]
     page = new BookPage {}, __bookPages[index]
@@ -126,33 +124,19 @@ class BookView extends JView
       delegate : @
     , __bookPages[index]
 
-    return page
-
+    return page 
 
   changePageFromRoute:(route)->
     for index, page of __bookPages 
       if page.routeURL == route 
         @fillPage index
 
-  ###shouldNavigateWithUser:->
-    appStorage = new AppStorage "instruction-book", "1.0"
-    appStorage.fetchValue "readPages", (pages) ->
-      pages or= []
-      if pages.length is 0
-        pages.push "table-of-contents"
-        @firstTime = true
-      else
-        @firstTime = false
-      appStorage.setValue "readPages", pages
-  ###
-  openFileWithPage:(page)->
+  openFileWithPage:(file)->
     user = KD.whoami().profile
-    if page.data.file
-      fileName = "/home/#{user.nickname}#{page.data.file}"
-      KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))    
+    fileName = "/home/#{user.nickname}#{file}"
+    KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))    
 
   fillPrevPage:->
-
     return if @currentIndex - 1 < 0
     @fillPage @currentIndex - 1
 
@@ -161,7 +145,6 @@ class BookView extends JView
     @fillPage parseInt(@currentIndex,10) + 1
 
   fillPage:(index)->
-
     cachePage index+1
     index ?= BookView.lastIndex
     BookView.lastIndex = index
@@ -180,19 +163,20 @@ class BookView extends JView
       @utils.wait 400, =>
         @setClass "in"
 
-    if page.data.app is "Chat"
+    @loadSectionRelatedElements page
+
+    if page.data.routeURL
+      KD.getSingleton("router").handleRoute(page.data.routeURL)
+
+  loadSectionRelatedElements:(page)->
+    if page.data.section is 6 and page.data.parent is 0
       KD.singletons.chatPanel.showPanel()
 
-    if page.data.app is "Terminal"
+    if page.data.section is 8 and page.data.parent is 4
       @utils.wait 1500, =>
         @setClass "more-terminal"
     else 
       @unsetClass "more-terminal"
 
-    @openFileWithPage page
-
-    if page.data.title
-      KD.mixpanel.track "Read Tutorial Page", {"page":page.data.title}
-
-    if page.data.routeURL
-      KD.getSingleton("router").handleRoute(page.data.routeURL)
+    if page.data.section is 1 and page.data.parent is 4
+      @openFileWithPage '/Web/index.html'
