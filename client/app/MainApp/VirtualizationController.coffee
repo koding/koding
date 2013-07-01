@@ -208,16 +208,15 @@ class VirtualizationController extends KDController
           type     : 'user'
         , (err)->
           unless err
-            KD.getSingleton('vmController').fetchDefaultVmName (defaultVmName)->
-              KD.getSingleton('vmController').emit 'VMListChanged'
+            vmController = KD.getSingleton('vmController')
+            vmController.fetchDefaultVmName (defaultVmName)->
+              vmController.emit 'VMListChanged'
               KD.getSingleton('finderController').mountVm defaultVmName
           else warn err
 
   createNewVM:->
-    vmController = @getSingleton('vmController')
-    vmController.hasDefaultVM (state)->
-      unless state then vmController.createDefaultVM()
-      else vmController.createPaidVM()
+    @hasDefaultVM (state)=>
+      if state then @createPaidVM() else @createDefaultVM()
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
