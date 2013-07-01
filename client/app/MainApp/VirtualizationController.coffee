@@ -161,7 +161,7 @@ class VirtualizationController extends KDController
     return callback null, domains  if domains
     KD.remote.api.JVM.fetchDomains vmName, (err, domains=[])=>
       return callback err, domains  if err
-      callback null, @vmDomains[vmName] = domains.sort()
+      callback null, @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
 
   resetVMData:->
     @vms = @groupVms = []
