@@ -27,7 +27,8 @@ import (
 type VMInfo struct {
 	vmId          bson.ObjectId
 	vmName        string
-	channels      map[*kite.Channel]bool
+	temporaryVM   *virt.VM
+	useCounter    int
 	timeout       *time.Timer
 	mutex         sync.Mutex
 	totalCpuUsage int
@@ -223,9 +224,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic("User with too low uid.")
 		}
 
-		vm, _ := channel.KiteData.(*virt.VM)
-		if vm != nil && !vm.IsTemporary() {
-			if err := db.VMs.FindId(vm.Id).One(&vm); err != nil {
+		info, _ := channel.KiteData.(*VMInfo)
+		var vm *virt.VM
+
+		if info != nil && info.temporaryVM == nil {
+			if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
 				return nil, &VMNotFoundError{Name: channel.CorrelationName}
 			}
 
@@ -234,7 +237,12 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				return nil, &kite.PermissionError{}
 			}
 		}
-		if vm == nil {
+
+		if info != nil && info.temporaryVM != nil {
+			vm = info.temporaryVM
+		}
+
+		if info == nil {
 			if bson.IsObjectIdHex(channel.CorrelationName) {
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
 			}
@@ -266,38 +274,37 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				if err != nil {
 					return nil, err
 				}
+				info.temporaryVM = vm
 			}
 
-			channel.KiteData = vm
-		}
-
-		infosMutex.Lock()
-		info, isExistingState := infos[vm.Id]
-		if !isExistingState {
-			info = newInfo(vm)
-			infos[vm.Id] = info
-		}
-		if !info.channels[channel] {
-			info.channels[channel] = true
-			if info.timeout != nil {
-				info.timeout.Stop()
-				info.timeout = nil
+			infosMutex.Lock()
+			info, found := infos[vm.Id]
+			if !found {
+				info = newInfo(vm)
+				infos[vm.Id] = info
 			}
-
-			channel.OnDisconnect(func() {
-				infosMutex.Lock()
-				defer infosMutex.Unlock()
-
-				delete(info.channels, channel)
-				if len(info.channels) == 0 {
-					info.startTimeout()
-				}
-			})
+			channel.KiteData = info
+			infosMutex.Unlock()
 		}
-		infosMutex.Unlock()
 
 		info.mutex.Lock()
 		defer info.mutex.Unlock()
+
+		info.useCounter += 1
+		if info.timeout != nil {
+			info.timeout.Stop()
+			info.timeout = nil
+		}
+
+		channel.OnDisconnect(func() {
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+
+			info.useCounter -= 1
+			if info.useCounter == 0 {
+				info.startTimeout()
+			}
+		})
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -309,7 +316,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-			if !vm.IsTemporary() {
+			if info.temporaryVM == nil {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
 					panic(err)
 				}
@@ -322,7 +329,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		if vm.LdapPassword == "" {
 			ldapPassword := utils.RandomString()
-			if !vm.IsTemporary() {
+			if info.temporaryVM == nil {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
 					panic(err)
 				}
@@ -352,7 +359,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic(err)
 		}
 
-		if !vm.IsTemporary() {
+		if info.temporaryVM == nil {
 			if _, err := rootVos.Stat("/home/" + user.Name); err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
@@ -491,7 +498,7 @@ func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vmId:          vm.Id,
 		vmName:        vm.String(),
-		channels:      make(map[*kite.Channel]bool),
+		useCounter:    0,
 		totalCpuUsage: utils.MaxInt,
 		CpuShares:     1000,
 	}
@@ -499,7 +506,7 @@ func newInfo(vm *virt.VM) *VMInfo {
 
 func (info *VMInfo) startTimeout() {
 	info.timeout = time.AfterFunc(10*time.Minute, func() {
-		if len(info.channels) != 0 {
+		if info.useCounter != 0 {
 			return
 		}
 		info.unprepareVM()
@@ -510,25 +517,21 @@ func (info *VMInfo) unprepareVM() {
 	infosMutex.Lock()
 	defer infosMutex.Unlock()
 
-	var vm virt.VM
-	if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
-		log.Err("Could not find VM for shutdown.", err)
-	}
-	if err := vm.Unprepare(); err != nil {
+	if err := virt.UnprepareVM(info.vmId); err != nil {
 		log.Warn(err.Error())
 	}
 
-	if !vm.IsTemporary() {
-		if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+	if info.temporaryVM == nil {
+		if err := db.VMs.Update(bson.M{"_id": info.vmId}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
 			log.LogError(err, 0)
 		}
 	}
 
-	if vm.IsTemporary() {
-		if err := vm.Destroy(); err != nil {
+	if info.temporaryVM != nil {
+		if err := virt.DestroyVM(info.vmId); err != nil {
 			log.Warn(err.Error())
 		}
 	}
 
-	delete(infos, vm.Id)
+	delete(infos, info.vmId)
 }
