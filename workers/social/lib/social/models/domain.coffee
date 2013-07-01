@@ -40,6 +40,7 @@ module.exports = class JDomain extends jraphical.Module
 
     indexes         :
       domain        : 'unique'
+      hostnameAlias : 'sparse'
 
     schema          :
       domain        :

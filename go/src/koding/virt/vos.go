@@ -25,6 +25,16 @@ func (vm *VM) OS(user *User) (*VOS, error) {
 	return &VOS{vm, user, permissions}, nil
 }
 
+func (vos *VOS) IsReadable(info os.FileInfo) bool {
+	sysinfo := info.Sys().(*syscall.Stat_t)
+	return info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
+}
+
+func (vos *VOS) IsWritable(info os.FileInfo) bool {
+	sysinfo := info.Sys().(*syscall.Stat_t)
+	return info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
+}
+
 func (vos *VOS) resolve(name string, followLastSymlink bool) (string, error) {
 	tildePrefix := strings.HasPrefix(name, "~/")
 	if !path.IsAbs(name) || tildePrefix {
@@ -67,9 +77,7 @@ func (vos *VOS) resolve(name string, followLastSymlink bool) (string, error) {
 			}
 
 			// check permissions
-			sysinfo := info.Sys().(*syscall.Stat_t)
-			readable := info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
-			if !readable {
+			if !vos.IsReadable(info) {
 				return "", &os.PathError{Op: "path", Path: constructedPath + "/" + segment, Err: errors.New("permission denied")}
 			}
 		}
@@ -90,9 +98,7 @@ func (vos *VOS) ensureWritable(name string) error {
 		return err
 	}
 
-	sysinfo := info.Sys().(*syscall.Stat_t)
-	writable := info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
-	if !writable {
+	if !vos.IsWritable(info) {
 		return &os.PathError{Op: "path", Path: name, Err: errors.New("permission denied")}
 	}
 	return nil

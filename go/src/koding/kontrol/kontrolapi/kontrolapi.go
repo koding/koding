@@ -64,6 +64,7 @@ func main() {
 	rout.HandleFunc("/deployments", GetClients).Methods("GET")
 	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
 	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
+	rout.HandleFunc("/deployments/{build}", DeleteClient).Methods("DELETE")
 
 	// Worker handlers
 	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
@@ -89,6 +90,7 @@ func main() {
 	// Domain handlers
 	rout.HandleFunc("/domains", GetDomains).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", GetDomain).Methods("GET")
+	rout.HandleFunc("/domains/{domain}/resolv", ResolveDomain).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", CreateOrUpdateDomain).Methods("POST", "PUT")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
