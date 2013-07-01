@@ -64,6 +64,7 @@ func main() {
 	rout.HandleFunc("/deployments", GetClients).Methods("GET")
 	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
 	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
+	rout.HandleFunc("/deployments/{build}", DeleteClient).Methods("DELETE")
 
 	// Worker handlers
 	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
