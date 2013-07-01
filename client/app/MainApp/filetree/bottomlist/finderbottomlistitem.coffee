@@ -21,20 +21,21 @@ class FinderBottomControlsListItem extends KDListItemView
     event.preventDefault()
     if appPath?
       KD.getSingleton("appManager").open appPath if appPath?
-    else if @getData().action is "showShortcuts"
-      @showShortcuts()
-    else if @getData().action is "manageRemotes"
-      KD.getSingleton('mainController').emit 'ManageRemotes'
-    else if @getData().action is "manageDatabases"
-      KD.getSingleton('mainController').emit 'ManageDatabases'
     else if @getData().action is "showEnvironments"
       KD.getSingleton('finderController').emit 'ShowEnvironments'
-    else if @getData().action is "createNewVM"
-      KD.getSingleton('vmController').createNewVM()
-    else
-      new KDNotificationView
-        title : "Coming Soon!"
-        duration : 1000
+
+    # else if @getData().action is "showShortcuts"
+    #   @showShortcuts()
+    # else if @getData().action is "manageRemotes"
+    #   KD.getSingleton('mainController').emit 'ManageRemotes'
+    # else if @getData().action is "manageDatabases"
+    #   KD.getSingleton('mainController').emit 'ManageDatabases'
+    # else if @getData().action is "createNewVM"
+    #   KD.getSingleton('vmController').createNewVM()
+    # else
+    #   new KDNotificationView
+    #     title : "Coming Soon!"
+    #     duration : 1000
 
   viewAppended:->
     @setTemplate @pistachio()
