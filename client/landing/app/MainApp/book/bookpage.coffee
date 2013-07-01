@@ -2,14 +2,15 @@ class BookPage extends JView
 
   constructor: (options = {},data) ->
 
-    data.cssClass  or= ""
-    data.content   or= ""
-    data.profile     = KD.whoami().profile
-    data.routeURL  or= ""
-    data.file      or= ""
-    data.app       or= ""
-    options.cssClass = "page #{@utils.slugify data.title} #{data.cssClass} #{unless data.title then "no-header"}"
-    options.tagName  = "section"
+    data.cssClass  or = ""
+    data.content   or = ""
+    # TODO : check do we really need that here?
+    data.profile      = KD.whoami().profile
+    data.routeURL  or = ""
+    data.section   or = 0
+    data.parent    or = 0
+    options.cssClass  = "page #{@utils.slugify data.title} #{data.cssClass} #{unless data.title then "no-header"}"
+    options.tagName   = "section"
 
     super options, data
 

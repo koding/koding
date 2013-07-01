@@ -245,6 +245,7 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     super
     KD.track "Activity", "StatusUpdateSubmitted"
+    KD.mixpanel.incrementUserProperty 'StatusUpdated',1
     @submitBtn.disable()
     @utils.wait 5000, => @submitBtn.enable()
 

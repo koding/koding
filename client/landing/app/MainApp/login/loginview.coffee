@@ -201,6 +201,14 @@ class LoginView extends KDScrollView
           # content   : 'Successfully registered!'
           duration  : 2000
           @showInstructionsBookIfFirstLogin()
+
+          #send information to mixpanel 
+        KD.track 'UserLogin', 'UserRegistered',
+          vendor    : 'mixpanel'
+          extra     : 
+            '$username'  : account.profile.nickname
+            '$loginDate' : Date.now()
+
         KD.getSingleton('router').clear()
         setTimeout =>
           @hide()
@@ -239,7 +247,7 @@ class LoginView extends KDScrollView
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
-
+        
         @hide()
 
   doRequest:(formData)->

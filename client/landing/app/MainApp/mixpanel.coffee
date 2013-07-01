@@ -1,6 +1,4 @@
-
 class KDMixpanel
-
 
   constructor:->
     @trackPageView "/Topics"
@@ -12,10 +10,9 @@ class KDMixpanel
     @trackPageView "/Apps"
     @trackPageView "/Account"
 
-
     KD.getSingleton('mainController').on "AccountChanged", (account) =>
-      @registerUser()
-    
+      if typeof account is 'JAccount'
+        @registerUser()
 
   track:(eventName, properties,callback)=>
     mixpanel.track eventName,properties,(callback)
@@ -31,6 +28,9 @@ class KDMixpanel
 
   getProperty:(name)=>
     mixpanel.get_property name
+
+  incrementUserProperty:(property, incrementBy=1)=>
+    mixpanel.people.increment property, incrementBy
 
   #identifies user on mixpanel, by default username on koding, should be unique
   registerUser:=>
@@ -52,6 +52,17 @@ class KDMixpanel
     @setOnce "Instructions Book",
       "Read Date"   : Date.now()
       "Pages"       : page
+
+  userLoggedIn:(account)=>
+    @track "UserLoggedIn" ,
+      "$username"   : account.profile.nickname
+      "$loginDate"  : Date.now()
+
+
+  userRegistered:(account)=>
+    @track "UserRegistered", 
+      "$username"   : account.profile.nickname
+      "$loginDate"  : Date.now()
 
 
 if mixpanel? && KD.config.logToExternal then do ->

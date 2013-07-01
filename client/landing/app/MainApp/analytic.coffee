@@ -1,16 +1,13 @@
 #to-do Inject this method with KD.extend!
 do ->
 
+  google =  require './google'
+  mixpanel =  require './mixpanel'
+  vendors = [google, mixpanel]
   # to-do log to mixpanel after subscription is upgraded
-  KD.track = (rest...)->
-    logToGoogle rest...
-
-  logToGoogle = (rest...)->
-    category = rest[0]
-    action  =  rest[1]
-    # there is nothing to do with the value now
-    # value = rest[2]
-
-    trackArray = ['_trackEvent', category, action]
-    # log to google analytic
-    _gaq.push(trackArray);
+  KD.track = (eventName, data)->
+    for eventData in data
+      if eventData.vendor is 'google'
+        _gaq.push data.module, eventName
+      if eventData.vendor is 'mixpanel'
+        KD.mixpanel.track eventName, data
