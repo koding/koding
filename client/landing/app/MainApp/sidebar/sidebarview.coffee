@@ -276,23 +276,10 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      # {
-      #   title   : "Launch Terminal", icon : "terminal",
-      #   appPath : "WebTerm", isWebTerm : yes
-      # }
-      # { title   : "Settings",           icon : "cog" }
-      # {
-      #   title   : "Keyboard Shortcuts", icon : "shortcuts",
-      #   action  : "showShortcuts"
-      # }
       {
         title   : "your environments",   icon : "resources",
         action  : "showEnvironments"
       }
-      # {
-      #   title   : "Create a new VM",      icon : "plus",
-      #   action  : "createNewVM"
-      # }
     ]
 
   adminNavItems =
