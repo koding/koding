@@ -232,29 +232,6 @@ module.exports = [
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
-  # WORKSPACE
-  "app/CommonViews/workspace/panes/pane.coffee",
-  "app/CommonViews/workspace/panes/editorpane.coffee",
-  "app/CommonViews/workspace/panes/previewpane.coffee",
-  "app/CommonViews/workspace/panes/terminalpane.coffee",
-  "app/CommonViews/workspace/panes/videopane.coffee",
-  "app/CommonViews/workspace/panel/panel.coffee",
-  "app/CommonViews/workspace/workspace.coffee",
-
-  # COLLABORATIVE WORKSPACE
-  "libs/firebase/firebase.all.js",
-  "libs/codemirror/lib/codemirror.js",
-  "libs/codemirror/mode/javascript/javascript.js",
-  "libs/firebase/firepad.js",
-  "libs/firepad/firepad.css",
-  "libs/codemirror/lib/codemirror.css",
-  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
-  "app/CommonViews/workspace/panel/collaborativepanel.coffee",
-  "app/CommonViews/workspace/collaborativeworkspace.coffee",
-
-
   "app/CommonViews/ModalViewWithTerminal.coffee",
 
   "app/MainApp/kodingappcontroller.coffee",
@@ -718,6 +695,33 @@ module.exports = [
 
   # Virtualization CONTROLLER
   "app/MainApp/VirtualizationController.coffee",
+
+
+  # WORKSPACE
+  "app/CommonViews/workspace/panes/pane.coffee",
+  "app/CommonViews/workspace/panes/editorpane.coffee",
+  "app/CommonViews/workspace/panes/previewpane.coffee",
+  "app/CommonViews/workspace/panes/terminalpane.coffee",
+  "app/CommonViews/workspace/panes/videopane.coffee",
+  "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspace.coffee",
+
+  # COLLABORATIVE WORKSPACE
+  # i know it's a CommonView and should include at the top but it have to
+  # wait for NFinderTreeController etc., so included at the bottom
+  "libs/firebase/firebase.all.js",
+  "libs/codemirror/lib/codemirror.js",
+  "libs/codemirror/mode/javascript/javascript.js",
+  "libs/firebase/firepad.js",
+  "libs/firepad/firepad.css",
+  "libs/codemirror/lib/codemirror.css",
+  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panel/collaborativepanel.coffee",
+  "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
