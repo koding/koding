@@ -36,8 +36,9 @@ class CollaborativeFinderPane extends Pane
 
       clientData = snapshot.val()?.ClientWantsToInteractWithRemoteTerminal
       if clientData
-        path     = "[#{clientData.vmName}]#{clientData.path}"
-        nodeView = @finderController.treeController.nodes[path]
+        path             = "[#{clientData.vmName}]#{clientData.path}"
+        {treeController} = @finderController
+        nodeView         = treeController.nodes[path]
 
         treeController.openItem nodeView, (err, res) =>
           log "Host terminal done with client request", res
