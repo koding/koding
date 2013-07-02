@@ -236,10 +236,16 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if vm.SnapshotOf == "" && permissions == nil {
 				return nil, &kite.PermissionError{}
 			}
+
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
 		}
 
 		if info != nil && info.temporaryVM != nil {
 			vm = info.temporaryVM
+
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
 		}
 
 		if info == nil {
@@ -278,33 +284,34 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 
 			infosMutex.Lock()
-			info, found := infos[vm.Id]
+			var found bool
+			info, found = infos[vm.Id]
 			if !found {
 				info = newInfo(vm)
 				infos[vm.Id] = info
 			}
 			channel.KiteData = info
 			infosMutex.Unlock()
-		}
 
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
-
-		info.useCounter += 1
-		if info.timeout != nil {
-			info.timeout.Stop()
-			info.timeout = nil
-		}
-
-		channel.OnDisconnect(func() {
 			info.mutex.Lock()
 			defer info.mutex.Unlock()
 
-			info.useCounter -= 1
-			if info.useCounter == 0 {
-				info.startTimeout()
+			info.useCounter += 1
+			if info.timeout != nil {
+				info.timeout.Stop()
+				info.timeout = nil
 			}
-		})
+
+			channel.OnDisconnect(func() {
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
+
+				info.useCounter -= 1
+				if info.useCounter == 0 {
+					info.startTimeout()
+				}
+			})
+		}
 
 		defer func() {
 			if err := recover(); err != nil {
