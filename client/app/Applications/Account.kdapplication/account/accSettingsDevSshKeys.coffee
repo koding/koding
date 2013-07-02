@@ -58,6 +58,7 @@ class AccountSshKeyForm extends KDFormView
       placeholder  : "Paste your SSH key"
       type         : "textarea"
       name         : "sshkey"
+      cssClass     : "light"
 
     @titleInput.setValue @data.title if @data.title
     @keyTextarea.setValue @data.key if @data.key
@@ -66,24 +67,26 @@ class AccountSshKeyForm extends KDFormView
       cssClass : "button-holder"
 
     formline2.addSubView save = new KDButtonView
-      style        : "clean-gray savebtn"
+      style        : "cupid-green savebtn"
       title        : "Save"
       callback     : => @emit "FormSaved"
+
+    formline2.addSubView cancel = new KDCustomHTMLView
+      tagName      : "button"
+      partial      : "Cancel"
+      cssClass     : "cancel-link clean-gray button"
+      click        : => @emit "FormCancelled"
 
     formline2.addSubView deletebtn = new KDButtonView
       style        : "clean-red deletebtn"
       title        : "Delete"
       callback     : => @emit "FormDeleted"
 
-    @addSubView actionsWrapper = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "actions-wrapper"
+    # @addSubView actionsWrapper = new KDCustomHTMLView
+    #   tagName : "div"
+    #   cssClass : "actions-wrapper"
 
-    actionsWrapper.addSubView cancel = new KDCustomHTMLView
-      tagName  : "a"
-      partial  : "cancel"
-      cssClass : "cancel-link"
-      click    : => @emit "FormCancelled"
+
 
 
 class AccountSshKeyListItem extends KDListItemView
@@ -100,23 +103,23 @@ class AccountSshKeyListItem extends KDListItemView
     @info = info = new KDCustomHTMLView
       tagName  : "span"
       partial  : """<div>
-                      <div class="title">#{@getData().title}</div>
-                      <div class="key">#{@getData().key}</div>
+                      <span class="title">#{@getData().title}</span>
+                      <span class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</span>
                     </div>"""
       cssClass : "posstatic"
-  
+
     info.addSubView editLink = new KDCustomHTMLView
       tagName  : "a"
       partial  : "Edit"
       cssClass : "action-link"
       click    : @bound "swapSwappable"
-  
+
     @swappable = swappable = new AccountsSwappable
       views : [form,info]
       cssClass : "posstatic"
-  
+
     @addSubView swappable,".swappable-wrapper"
-  
+
     form.on "FormCancelled", @bound "cancelItem"
     form.on "FormSaved", @bound "saveItem"
     form.on "FormDeleted", @bound "deleteItem"
@@ -129,7 +132,7 @@ class AccountSshKeyListItem extends KDListItemView
     if @data.key
       @swappable.swapViews()
     else
-      @deleteItem()      
+      @deleteItem()
 
   deleteItem:->
     {controller} = @getDelegate()
