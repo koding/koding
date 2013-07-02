@@ -1298,11 +1298,11 @@ module.exports = class JGroup extends Module
         #     return callback err if err
         #     queue.next()
 
-        => remove_.call this, (err)->
-          return callback err if err
+        => @constructor.emit 'GroupDestroyed', this, ->
           queue.next()
 
-        => @constructor.emit 'GroupDestroyed', this, ->
+        => remove_.call this, (err)->
+          return callback err if err
           queue.next()
 
         -> callback null
