@@ -199,7 +199,9 @@ class MainController extends KDController
               modal.modalTabs.forms.BlockUser.buttons.blockUser.showLoader()
               blockingTime = calculateBlockingTime modal.modalTabs.forms.BlockUser.inputs.duration.getValue()
               @blockUser data.originId, blockingTime, (err, res)->
-                if err then warn err
+                if err
+                  warn err
+                  modal.modalTabs.forms.BlockUser.buttons.blockUser.hideLoader()
                 else
                   modal.destroy()
                   new KDNotificationView title : "User is blocked!"
