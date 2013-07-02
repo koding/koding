@@ -28,6 +28,8 @@ class AccountPaymentHistoryListController extends KDListViewController
             currency   : 'USD'
             createdAt  : t.datetime
             paidVia    : t.card or ""
+            cardType   : t.cardType
+            cardNumber : t.cardNumber
             owner      : t.owner
             refundable : t.refundable
         @instantiateListItems transactions
