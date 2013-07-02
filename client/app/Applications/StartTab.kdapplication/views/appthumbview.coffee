@@ -44,7 +44,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       error       : =>
         @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
-        src       : thumb
+        src       : encodeURI thumb
 
     @loader = new KDLoaderView
       size          :
@@ -59,9 +59,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{name} #{version}</strong> <cite>by #{author}</cite></header>
-            <p class='app-desc'>#{description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{additionalinfo}
+            <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+            #{Encoder.XSSEncode additionalinfo}
           <div>
           """
       click    : -> no
