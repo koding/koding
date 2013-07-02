@@ -1004,4 +1004,4 @@ module.exports = class JAccount extends jraphical.Module
       content : "Reason: #{reason}"
       force   : yes
 
-    email.save callback
+    email.save ->
