@@ -23,6 +23,9 @@ class CollaborativeEditorPane extends Pane
         if @firepad.isHistoryEmpty()
           @firepad.setText "" # fix for a firepad bug
 
+  setContent: (content) ->
+    @firepad.setText content
+
   createSessionKey: ->
     nick = KD.nick()
     u    = KD.utils
