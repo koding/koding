@@ -580,6 +580,19 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
+  blockUser: secure (client, targetId, toDate, callback)->
+    {delegate} = client.connection
+    if delegate.can 'flag', this and targetId? and toDate?
+      JAccount.one _id : targetId, (err, account)->
+        if err then return callback err
+        JUser = require '../user'
+        JUser.one {username: account.profile.nickname}, (err, user)->
+          if err then return callback err
+          blockedDate = new Date(Date.now() + toDate)
+          user.block blockedDate, callback
+    else
+      callback new KodingError 'Access denied'
+
   checkFlag:(flagToCheck)->
     flags = @getAt('globalFlags')
     if flags
