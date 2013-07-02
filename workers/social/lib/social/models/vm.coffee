@@ -156,14 +156,17 @@ module.exports = class JVM extends Model
           hostnameAliases = JVM.createAliases {
             nickname, type, uid, groupSlug
           }
+          users         = [{ id: user.getId(), sudo: yes, owner: yes }]
+          groups        = [{ id: group.getId() }]
+          hostnameAlias = hostnameAliases[0]
 
           vm = new JVM {
-            planCode      : planCode
-            planOwner     : planOwner
-            users         : [{ id: user.getId(), sudo: yes, owner: yes }]
-            groups        : [{ id: group.getId() }]
-            hostnameAlias : hostnameAliases[0]
+            hostnameAlias
+            planOwner
+            planCode
             webHome
+            groups
+            users
             usage
           }
 
@@ -172,7 +175,7 @@ module.exports = class JVM extends Model
             handleError err
             if err
               return console.warn "Failed to create VM for ", \
-                                   {users, groups, hostnameAliases}
+                                   {users, groups, hostnameAlias}
 
             JVM.createDomains hostnameAliases, hostnameAliases[0]
 
@@ -405,16 +408,19 @@ module.exports = class JVM extends Model
         type, uid, groupSlug
       }
 
+      users = [
+        { id: user.getId(), sudo: yes, owner: yes }
+      ]
+      hostnameAlias = hostnameAliases[0]
+      groups       ?= []
 
       vm = new JVM {
-        users         : [
-          { id: user.getId(), sudo: yes, owner: yes }
-        ]
-        groups        : groups ? []
-        hostnameAlias : hostnameAliases[0]
+        hostnameAlias
         planOwner
         planCode
         webHome
+        groups
+        users
       }
 
       vm.save (err)->
@@ -422,7 +428,7 @@ module.exports = class JVM extends Model
         handleError err
         if err
           return console.warn "Failed to create VM for ", \
-                               {users, groups, hostnameAliases}
+                               {users, groups, hostnameAlias}
 
         JVM.createDomains hostnameAliases, hostnameAliases[0]
         target.addVm vm, handleError
