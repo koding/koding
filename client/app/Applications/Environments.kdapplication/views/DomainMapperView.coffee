@@ -15,12 +15,13 @@ class DomainMapperView extends KDView
     @updatePartial ""
     @destroySubViews()
 
-    KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
+    KD.remote.api.JVM.fetchVms (err, vms)=>
+      console.log vms
       if vms
 
         hostnameAliases = domain.hostnameAlias
         vmList = []
-        (vmList.push {hostnameAlias:vm} for vm in vms[0])  if vms.length > 0
+        (vmList.push {hostnameAlias:vm} for vm in vms)  if vms
 
         @vmListViewController = new VMListViewController
           viewOptions :

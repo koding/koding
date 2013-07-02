@@ -168,7 +168,7 @@ module.exports = class JDomain extends jraphical.Module
   bindVM: (client, params, callback)->
     updateOp = if params.state
     then {'$addToSet': hostnameAlias: params.hostnameAlias}
-    else {'$pullAll': hostnameAlias: params.hostnameAlias}
+    else {'$pull': hostnameAlias: params.hostnameAlias}
 
     JDomain.update {domain:@domain}, updateOp, (err)->
       callback err
