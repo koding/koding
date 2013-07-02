@@ -8,27 +8,22 @@ class CollaborativeWorkspace extends Workspace
     @firepadRef        = new Firebase "https://hulogggg.firebaseIO.com/"
     @sessionKey        = options.sessionKey or @createSessionKey()
     @workspaceRef      = @firepadRef.child @sessionKey
-    @isNewSession      = no
-    @isNeedToSave      = yes
 
-    @workspaceRef.on "value", (snapshot) =>
-      return unless @isNeedToSave
+    @workspaceRef.once "value", (snapshot) =>
       log "everything is something happened", "value", snapshot.val(), snapshot.name()
 
-      keys         = snapshot.val()?.keys
-      isOldSession = keys and not @isNewSession
+      keys = snapshot.val()?.keys
 
-      if isOldSession
+      if keys # if we have keys this means we're about to join an old session
         log "it's an old session, impressed!"
-        @isNewSession = no
         @sessionData  = keys
         @createPanel()
+        @workspaceRef.child("users").push KD.nick()
       else
         log "your awesome new session, saving keys now"
-        @isNewSession = yes
         @createPanel()
-        @isNeedToSave = no
         @workspaceRef.set "keys": @sessionData
+        @workspaceRef.child("users").push KD.nick()
 
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
