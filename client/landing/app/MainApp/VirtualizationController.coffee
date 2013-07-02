@@ -47,7 +47,12 @@ class VirtualizationController extends KDController
         silence   : yes
 
   start:(vm, callback)->
-    @_runWraper 'vm.start', vm, callback
+    @_runWraper 'vm.start', vm, KD.utils.getTimedOutCallbackOne
+      name      : "vm.start"
+      timeout   : 5000
+      onSuccess : callback?
+      onTimeout : KD.utils.notifyAndEmailVMTurnOnFailureToSysAdmin vm, "timeout"
+      onResult  : callback?
 
   stop:(vm, callback)->
     @_runWraper 'vm.shutdown', vm, callback
