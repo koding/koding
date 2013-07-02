@@ -109,12 +109,19 @@ class AccountSshKeyListItem extends KDListItemView
   
     @addSubView swappable,".swappable-wrapper"
   
-    form.on "FormCancelled", @bound "swapSwappable"
+    form.on "FormCancelled", @bound "cancelItem"
     form.on "FormSaved", @bound "saveItem"
     form.on "FormDeleted", @bound "deleteItem"
 
   swapSwappable:->
     @swappable.swapViews()
+
+  cancelItem:->
+    @data = @form.keyTextarea.getValue()
+    if @data
+      @swappable.swapViews()
+    else
+      @deleteItem()      
 
   deleteItem:->
     {controller} = @getDelegate()
@@ -124,9 +131,13 @@ class AccountSshKeyListItem extends KDListItemView
   saveItem:->
     {controller} = @getDelegate()
     @data = @form.keyTextarea.getValue()
-    @info.$('div.darkText').text @data
-    @swappable.swapViews()
-    controller.emit "UpdatedItems"
+    if @data
+      @info.$('div.darkText').text @data
+      @swappable.swapViews()
+      controller.emit "UpdatedItems"
+    else
+      new KDNotificationView
+        title : "Key shouldn't be empty."
 
   partial:(data)->
     """
