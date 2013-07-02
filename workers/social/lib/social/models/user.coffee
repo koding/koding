@@ -627,7 +627,7 @@ module.exports = class JUser extends jraphical.Module
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
 
   block:(blockedTo, callback)->
-    if blockedTo then return callback createKodingError "Blocking date is not defined"
+    unless blockedTo then return callback createKodingError "Blocking date is not defined"
 
     @update
       $set:
