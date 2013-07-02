@@ -19,6 +19,8 @@ module.exports = class JVM extends Model
 
   @set
     softDelete          : yes
+    indexes             :
+      hostnameAlias     : 'unique'
     permissions         :
       'sudoer'          : []
       'create vms'      : ['member','moderator']
@@ -32,8 +34,6 @@ module.exports = class JVM extends Model
                            'count', #'calculateUsage'
                           ]
       instance          : []
-    indexes             :
-      hostnameAlias     : 'unique'
     schema              :
       ip                :
         type            : String
@@ -168,7 +168,11 @@ module.exports = class JVM extends Model
           }
 
           vm.save (err) =>
-            return callback err  if err
+
+            handleError err
+            if err
+              return console.warn "Failed to create VM for ", \
+                                   {users, groups, hostnameAliases}
 
             JVM.createDomains hostnameAliases, hostnameAliases[0]
 
@@ -414,6 +418,12 @@ module.exports = class JVM extends Model
       }
 
       vm.save (err)->
+
+        handleError err
+        if err
+          return console.warn "Failed to create VM for ", \
+                               {users, groups, hostnameAliases}
+
         JVM.createDomains hostnameAliases, hostnameAliases[0]
         target.addVm vm, handleError
 
