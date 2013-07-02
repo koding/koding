@@ -14,7 +14,7 @@ class GroupsMemberPermissionsView extends JView
     @listWrapper    = @listController.getView()
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
-      view.on 'RolesChanged', @bound 'memberRolesChange'
+      view.on 'RolesChanged', @memberRolesChange.bind this, view
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
 
@@ -85,8 +85,9 @@ class GroupsMemberPermissionsView extends JView
   continueLoadingTeasers:->
     @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
 
-  memberRolesChange:(member, roles)->
-    @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
+  memberRolesChange:(view, member, roles)->
+    @getData().changeMemberRoles member.getId(), roles, (err)=>
+      view.updateRoles roles  unless err
 
   pistachio:->
     """
