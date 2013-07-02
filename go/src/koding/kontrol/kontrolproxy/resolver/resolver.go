@@ -44,6 +44,14 @@ func init() {
 	}
 }
 
+// GetTarget is used to resolve any hostname to their final target destination
+// together with the mode of the domain. Any incoming domain can have multiple
+// different target destinations. GetTarget returns the ultimate target
+// destinations. Some examples:
+//
+// koding.com -> "http://webserver-build-koding-813a.in.koding.com:3000", mode:internal
+// arslan.kd.io -> "http://10.128.2.25:80", mode:vm
+// y.koding.com -> "http://localhost/maintenance", mode:maintenance
 func GetTarget(host string) (*Target, error) {
 	var target *url.URL
 	var domain proxyconfig.Domain
@@ -97,8 +105,9 @@ func GetTarget(host string) (*Target, error) {
 	case "vm":
 		switch domain.LoadBalancer.Mode {
 		case "roundrobin": // equal weights
-			var n int
-			hostname, n = roundRobin(domain.HostnameAlias, domain.LoadBalancer.Index, 0)
+			N := float64(len(domain.HostnameAlias))
+			n := int(math.Mod(float64(domain.LoadBalancer.Index+1), N))
+			hostname = domain.HostnameAlias[n]
 			domain.LoadBalancer.Index = n
 			go proxyDB.UpdateDomain(&domain)
 		case "sticky":
@@ -152,12 +161,11 @@ func GetTarget(host string) (*Target, error) {
 		case "roundrobin":
 			var n int
 			hostname, n = roundRobin(keyData.Host, keyData.LoadBalancer.Index, 0)
+			keyData.LoadBalancer.Index = n
+			go proxyDB.UpdateKeyData(username, servicename, keyData)
 			if hostname == "" {
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
-
-			keyData.LoadBalancer.Index = n
-			go proxyDB.UpdateKeyData(username, servicename, keyData)
 		case "sticky":
 			hostname = keyData.Host[keyData.LoadBalancer.Index]
 		case "random":
@@ -182,9 +190,14 @@ func GetTarget(host string) (*Target, error) {
 	return NewTarget(target, mode, persistence), nil
 }
 
+// roundRobin is doing roundrobin between between the servers in the hosts
+// array. If picks the next item in the array, specified with index and then
+// checks for alivenes. If the server is dead it checks for the next item,
+// until all servers are checked. If all servers are dead it returns an empty
+// string, otherwise it returns the correct server name.
 func roundRobin(hosts []string, index, iter int) (string, int) {
 	if iter == len(hosts) {
-		return "", index // all hosts are dead
+		return "", 0 // all hosts are dead
 	}
 
 	N := float64(len(hosts))
