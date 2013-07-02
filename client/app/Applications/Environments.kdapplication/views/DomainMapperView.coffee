@@ -15,10 +15,12 @@ class DomainMapperView extends KDView
     @updatePartial ""
     @destroySubViews()
 
-    KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
+    KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       if vms
 
         hostnameAliases = domain.hostnameAlias
+        vmList = []
+        (vmList.push {hostnameAlias:vm} for vm in vms[0])  if vms.length > 0
 
         @vmListViewController = new VMListViewController
           viewOptions :
@@ -28,7 +30,7 @@ class DomainMapperView extends KDView
           domain          : domain
           hostnameAliases : if hostnameAliases then (alias for alias in hostnameAliases) else []
 
-        @vmListViewController.instantiateListItems vms
+        @vmListViewController.instantiateListItems vmList
         @addSubView @vmListViewController.getView()
       else
         @addSubView new KDCustomHTMLView
@@ -40,13 +42,10 @@ class DomainVMListItemView extends KDListItemView
     options.cssClass = 'domain-vm-item'
     super options, data
 
-    listViewData   = @getDelegate().getData()
-    switchStatus   = off
-    for hostnameAlias in @getData().hostnameAlias
-      if hostnameAlias in listViewData.hostnameAliases
-        switchStatus = on
-
-    domainInstance = listViewData.domain
+    {hostnameAlias} = @getData()
+    listViewData    = @getDelegate().getData()
+    switchStatus    = hostnameAlias in listViewData.hostnameAliases
+    domainInstance  = listViewData.domain
 
     @onOff = new KDOnOffSwitch
       size        : 'small'
@@ -54,14 +53,13 @@ class DomainVMListItemView extends KDListItemView
       defaultValue: switchStatus
       callback : (state) =>
         domainInstance.bindVM
-          vmName     : @getData().name
-          state      : state
+          hostnameAlias : hostnameAlias
+          state         : state
         , (err) =>
           unless err
-            {name} = @getData()
             notificationMsg = if state
-            then "Your domain is connected to the #{name} VM."
-            else "Your domain is disconnected from the #{name} VM."
+            then "Your domain is connected to the #{hostnameAlias} VM."
+            else "Your domain is disconnected from the #{hostnameAlias} VM."
             new KDNotificationView
               type     : "mini"
               cssClass : "success"
@@ -81,6 +79,6 @@ class DomainVMListItemView extends KDListItemView
   pistachio:->
     """
     <span class="vm-icon personal"></span>
-    <span class="vm-name">{{ #(name) }}</span>
+    <span class="vm-name">{{ #(hostnameAlias) }}</span>
     {{> @onOff }}
     """
