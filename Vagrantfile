@@ -101,11 +101,29 @@ Vagrant.configure("2") do |config|
       set_permissions = ""
       rabbit_users = ["PROD-k5it50s4676pO9O", "guest", "logger", "pingdom_monitor", "prod-applications-kite", "prod-auth-worker", "prod-authworker", "prod-broker", "prod-databases-kite", "prod-irc-kite", "prod-kite-os", "prod-kite-webterm", "prod-os", "prod-os-kite", "prod-sharedhosting-kite", "prod-social", "prod-webserver", "prod-webterm-kite"]
       for r_user in rabbit_users
-        set_permissions += '&& rabbitmqctl set_permissions -p followfeed %s ".*" ".*" ".*"' % r_user
+        set_permissions += '&& rabbitmqctl set_permissions -p followfeed %s ".*" ".*" ".*" 2>1 > /dev/null' % r_user
       end
       default.vm.provision :shell, :inline => "
-        apt-get install aufs-tools -y -qq
-        if ! rabbitmqctl list_vhosts|grep followfeed; then rabbitmqctl add_vhost followfeed %s ; fi
+        TRIALS=0
+        rabbitmqctl -q list_users 2>1 > /dev/null
+        while [ \"$TRIALS\" -ne \"3\" ]
+        do
+          sleep 2
+          TRIALS=`expr $TRIALS + 1`
+          rabbitmqctl -q list_users 2>1 > /dev/null
+          EXIT=$?
+          if [ \"$EXIT\" -eq \"0\" ]
+          then
+            if ! rabbitmqctl list_vhosts|grep followfeed
+            then
+              rabbitmqctl add_vhost followfeed %s 2>1 > /dev/null;
+              echo \"vhost fixed! Happy developments\";
+            else
+              echo \"vhost already created\"
+            fi;
+            break;
+          fi;
+        done
       " % set_permissions
     end
   end
