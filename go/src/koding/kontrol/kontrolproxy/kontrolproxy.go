@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
@@ -28,12 +29,13 @@ func init() {
 	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
-type Proxy struct {
-}
+type Proxy struct{}
 
-type client struct {
-	target     string
-	registered time.Time
+type Client struct {
+	Target     string    `json:"target"`
+	Registered time.Time `json:"firstVist"`
+	Reset      bool      `json:"-"`
+	Mode       string    `json:"-"`
 }
 
 var templates = template.Must(template.ParseFiles(
@@ -47,9 +49,9 @@ var proxyDB *proxyconfig.ProxyConfiguration
 var geoIP *libgeo.GeoIP
 var proxyName = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var clients = make(map[string]client)
+var clients = make(map[string]Client)
 var clientsLock sync.RWMutex
-var deadline = time.Now().Add(time.Second * 5)
+var cacheTimeout = time.Second * 60
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -135,13 +137,8 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Display error when someone hits the main page
-	if proxyName == r.Host {
-		io.WriteString(w, "Hello kontrol proxy :)")
-		return
-	}
-
-	if h := p.handler(r); h != nil {
+	// our main handler mux function goes and picks the correct handler
+	if h := p.getHandler(r); h != nil {
 		h.ServeHTTP(w, r)
 		return
 	}
@@ -153,7 +150,12 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // handler returns the appropriate Handler for the given Request,
 // or nil if none found.
-func (p *Proxy) handler(req *http.Request) http.Handler {
+func (p *Proxy) getHandler(req *http.Request) http.Handler {
+	// Execute endpoint handlers for in-memory lookup table
+	if proxyName == req.Host {
+		return endpointHandler(req.URL.Path)
+	}
+
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
@@ -161,13 +163,36 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
 
-	target, err := resolver.GetTarget(req.Host)
-	if err != nil {
-		if err == resolver.ErrGone {
-			return templateHandler("notfound.html", req.Host, 410)
+	// in memory lookup
+	target := &resolver.Target{}
+	uniqueIP := userIP + "-" + req.Host
+	var err error
+	client, ok := getClient(uniqueIP)
+	if !ok {
+		target, err = resolver.GetTarget(req.Host)
+		if err != nil {
+			if err == resolver.ErrGone {
+				return templateHandler("notfound.html", req.Host, 410)
+			}
+			log.Println("resolver error", err)
+			return templateHandler("notfound.html", req.Host, 404)
 		}
-		log.Println("resolver error", err)
-		return templateHandler("notfound.html", req.Host, 404)
+
+		go logDomainRequests(req.Host)
+		go logProxyStat(proxyName, userCountry)
+		go registerClient(uniqueIP, target.Url.String(), target.Mode)
+
+		fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
+		fmt.Printf("proxy via db\t: %s --> %s\n", req.Host, target.Url.String())
+	} else {
+		target.Url, err = url.Parse(client.Target)
+		if err != nil {
+			log.Println("could not parse client.target", client.Target)
+			return templateHandler("notfound.html", req.Host, 404)
+		}
+		target.Mode = client.Mode
+		fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
+		fmt.Printf("proxy via inmem\t: %s --> %s\n", req.Host, target.Url.String())
 	}
 
 	switch target.Mode {
@@ -180,32 +205,6 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		if err != nil {
 			log.Printf("vm host %s is down: '%s'", req.Host, err)
 			return templateHandler("notactiveVM.html", req.Host, 404)
-		}
-	}
-
-	switch target.Persistence {
-	case "cookie":
-		// sessionName := fmt.Sprintf("kodingproxy-%s-%s", host, ip)
-		// session, _ := store.Get(req, sessionName)
-		// session.Options = &sessions.Options{MaxAge: 20} //seconds
-		// targetURL, ok := session.Values["GOSESSIONID"]
-		// if ok {
-		// 	target, err = url.Parse(targetURL.(string))
-		// 	if err != nil {
-		// 		log.Println("could not parse targetUrl", targetURL.(string))
-		// 		return nil, ErrNotFound
-		// 	}
-		// } else {
-		// 	session.Values["GOSESSIONID"] = target.String()
-		// 	session.Save(req, w)
-		// }
-	case "sourceAddress":
-		if client, ok := getClient(userIP); !ok {
-			target.Url, err = url.Parse(client.target)
-			if err != nil {
-				log.Println("could not parse client.target", client.target)
-				return templateHandler("notfound.html", req.Host, 404)
-			}
 		}
 	}
 
@@ -225,23 +224,14 @@ func (p *Proxy) handler(req *http.Request) http.Handler {
 		}
 	}
 
-	go func() {
-		if _, ok := getClient(userIP); !ok {
-			go registerClient(userIP, target.Url.String())
-			go logDomainRequests(req.Host)
-			go logProxyStat(proxyName, userCountry)
-		}
-	}()
-
-	fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
-	fmt.Printf("proxy via db\t: %s --> %s\n", req.Host, target.Url.String())
-
 	if isWebsocket(req) {
 		return websocketHandler(target.Url.String())
 	}
 
 	return reverseProxyHandler(target.Url)
 }
+
+/* Handlers */
 
 func reverseProxyHandler(target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
@@ -320,23 +310,78 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 	})
 }
 
+func endpointHandler(endpoint string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if ok := strings.Contains(endpoint, "/reset/"); ok {
+			if key := strings.TrimPrefix(r.URL.Path, "/reset/"); key == "1123581321" {
+				log.Printf("clients are purged\n")
+				resetClients()
+				fmt.Fprintln(w, "clients are purged")
+				return
+			}
+			log.Println("wrong key")
+			w.WriteHeader(404)
+			fmt.Fprintln(w, "wrong key")
+			return
+		}
+
+		if ok := strings.Contains(endpoint, "/clients/"); ok {
+			if key := strings.TrimPrefix(r.URL.Path, "/clients/"); key == "1123581321" {
+				clients := getClients()
+				data, err := json.MarshalIndent(clients, "", "  ")
+				if err != nil {
+					io.WriteString(w, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+					return
+				}
+				w.Write([]byte(data))
+				return
+			}
+			log.Println("wrong key")
+			w.WriteHeader(404)
+			fmt.Fprintln(w, "wrong key")
+			return
+		}
+
+		w.WriteHeader(404)
+		err := templates.ExecuteTemplate(w, "notfound.html", r.Host)
+		if err != nil {
+			log.Printf("template notfound.html could not be executed")
+			return
+		}
+		return
+	})
+}
+
 /*************************************************
 *
 *  unique IP handling and cleaner
 *
 *  - arslan
 *************************************************/
-func registerClient(ip, host string) {
+
+func resetClients() {
 	clientsLock.Lock()
 	defer clientsLock.Unlock()
-	clients[ip] = client{target: host, registered: time.Now()}
+	clients = make(map[string]Client)
+}
+
+func registerClient(ip, target, mode string) {
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	clients[ip] = Client{Target: target, Registered: time.Now(), Mode: mode}
 	if len(clients) == 1 {
 		go cleaner()
 	}
 }
 
+func getClients() map[string]Client {
+	clientsLock.RLock()
+	defer clientsLock.RUnlock()
+	return clients
+}
+
 // Needed to avoid race condition between multiple go routines
-func getClient(ip string) (client, bool) {
+func getClient(ip string) (Client, bool) {
 	clientsLock.RLock()
 	defer clientsLock.RUnlock()
 	c, ok := clients[ip]
@@ -355,14 +400,14 @@ func cleaner() {
 		var nextTime time.Time
 		var nextClient string
 		for ip, c := range clients {
-			if nextTime.IsZero() || c.registered.Before(nextTime) {
-				nextTime = c.registered
+			if nextTime.IsZero() || c.Registered.Before(nextTime) {
+				nextTime = c.Registered
 				nextClient = ip
 			}
 		}
 		clientsLock.RUnlock()
 		// negative duration is no-op, means it will not panic
-		time.Sleep(time.Hour - time.Now().Sub(nextTime))
+		time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
 		clientsLock.Lock()
 		log.Println("deleting client from internal map", nextClient)
 		delete(clients, nextClient)

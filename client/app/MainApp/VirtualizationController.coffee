@@ -161,7 +161,7 @@ class VirtualizationController extends KDController
     return callback null, domains  if domains
     KD.remote.api.JVM.fetchDomains vmName, (err, domains=[])=>
       return callback err, domains  if err
-      callback null, @vmDomains[vmName] = domains.sort()
+      callback null, @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
 
   resetVMData:->
     @vms = @groupVms = []
@@ -183,9 +183,18 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   hasDefaultVM:(callback)->
-    @fetchDefaultVmName (defaultVmName)=>
-      @fetchVMs (err, vms)->
-        callback defaultVmName in vms
+    # Default VM should be the personal vm in Koding group
+    @fetchVMs (err, vms)->
+      if err
+        warn "An error occured while fetching VMs:", err
+        return callback yes
+
+      # Check if there is at least one personal vm from koding group
+      for vm in vms
+        if (vm.indexOf 'vm-') is 0 and (vm.indexOf 'koding.kd.io') > -1
+          return callback yes
+
+      callback no
 
   createDefaultVM:->
     @hasDefaultVM (state)->
@@ -199,16 +208,15 @@ class VirtualizationController extends KDController
           type     : 'user'
         , (err)->
           unless err
-            KD.getSingleton('vmController').fetchDefaultVmName (defaultVmName)->
-              KD.getSingleton('vmController').emit 'VMListChanged'
+            vmController = KD.getSingleton('vmController')
+            vmController.fetchDefaultVmName (defaultVmName)->
+              vmController.emit 'VMListChanged'
               KD.getSingleton('finderController').mountVm defaultVmName
           else warn err
 
   createNewVM:->
-    vmController = @getSingleton('vmController')
-    vmController.hasDefaultVM (state)->
-      unless state then vmController.createDefaultVM()
-      else vmController.createPaidVM()
+    @hasDefaultVM (state)=>
+      if state then @createPaidVM() else @createDefaultVM()
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias

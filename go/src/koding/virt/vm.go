@@ -163,6 +163,11 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	}
 }
 
+func UnprepareVM(id bson.ObjectId) error {
+	vm := VM{Id: id}
+	return vm.Unprepare()
+}
+
 func (vm *VM) Unprepare() error {
 	var firstError error
 
@@ -358,15 +363,11 @@ func (vm *VM) CreateTemporaryVM() (*VM, error) {
 	return &temporaryVM, nil
 }
 
-func (vm *VM) Destroy() error {
-	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+func DestroyVM(id bson.ObjectId) error {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", "vm-"+id.Hex()).CombinedOutput(); err != nil {
 		return commandError("Removing image failed.", err, out)
 	}
 	return nil
-}
-
-func (vm *VM) IsTemporary() bool {
-	return vm.SnapshotOf != ""
 }
 
 func commandError(message string, err error, out []byte) error {

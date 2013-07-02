@@ -14,7 +14,7 @@ class KDAutoComplete extends KDInputView
     @inputDefaultValue = value
     @setValue value
 
-  $input:->@$().find("input").eq(0)
+  $input:->@$("input").eq(0)
   getValue:-> @$input().val()
   setValue:(value)-> @$input().val(value)
 

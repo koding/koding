@@ -39,6 +39,8 @@ class NFinderController extends KDViewController
     @noVMFoundWidget = new VMMountStateWidget
     @cleanup()
 
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
+
   watchers: {}
 
   registerWatcher:(path, stopWatching)->
@@ -67,8 +69,6 @@ class NFinderController extends KDViewController
 
   reset:->
     if @getOptions().useStorage
-      @appStorage = KD.getSingleton('mainController').\
-                      getAppStorageSingleton 'Finder', '1.0'
       @appStorage.once "storageFetched", @bound 'loadVms'
     else
       @loadVms()
