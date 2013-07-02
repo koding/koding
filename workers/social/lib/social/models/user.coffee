@@ -113,7 +113,7 @@ module.exports = class JUser extends jraphical.Module
           type      : String
           # enum      : ['invalid status',['online','offline','away','busy']]
 
-      sshKeys       : [String]
+      sshKeys       : [Object]
 
     relationships       :
       ownAccount        :

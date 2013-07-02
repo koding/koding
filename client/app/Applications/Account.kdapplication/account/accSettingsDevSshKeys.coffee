@@ -40,7 +40,7 @@ class AccountSshKeyList extends KDListView
     console.log @getDelegate()
 
   addNewKey: (controller)->
-    controller.addItem '', 0
+    controller.addItem {key: '', title: ''}, 0
     @items.first.swapSwappable()
 
 class AccountSshKeyForm extends KDFormView
@@ -50,12 +50,17 @@ class AccountSshKeyForm extends KDFormView
       tagName : "div"
       cssClass : "formline"
 
+    formline1.addSubView @titleInput = new KDInputView
+      placeholder  : "Key Name"
+      name         : "sshtitle"
+
     formline1.addSubView @keyTextarea = new KDInputView
       placeholder  : "Paste your SSH key"
       type         : "textarea"
       name         : "sshkey"
 
-    @keyTextarea.setValue @data if @data
+    @titleInput.setValue @data.title if @data.title
+    @keyTextarea.setValue @data.key if @data.key
 
     @addSubView formline2 = new KDCustomHTMLView
       cssClass : "button-holder"
@@ -94,7 +99,10 @@ class AccountSshKeyListItem extends KDListItemView
 
     @info = info = new KDCustomHTMLView
       tagName  : "span"
-      partial  : "<div class='darkText'>#{@getData()}</div>"
+      partial  : """<div>
+                      <div class="title">#{@getData().title}</div>
+                      <div class="key">#{@getData().key}</div>
+                    </div>"""
       cssClass : "posstatic"
   
     info.addSubView editLink = new KDCustomHTMLView
@@ -117,8 +125,8 @@ class AccountSshKeyListItem extends KDListItemView
     @swappable.swapViews()
 
   cancelItem:->
-    @data = @form.keyTextarea.getValue()
-    if @data
+    @data.key = @form.keyTextarea.getValue()
+    if @data.key
       @swappable.swapViews()
     else
       @deleteItem()      
@@ -130,9 +138,12 @@ class AccountSshKeyListItem extends KDListItemView
 
   saveItem:->
     {controller} = @getDelegate()
-    @data = @form.keyTextarea.getValue()
-    if @data
-      @info.$('div.darkText').text @data
+    @data =
+      key   : @form.keyTextarea.getValue()
+      title : @form.titleInput.getValue()
+    if @data.key and @data.title
+      @info.$('div.title').text @data.title
+      @info.$('div.key').text @data.key
       @swappable.swapViews()
       controller.emit "UpdatedItems"
     else
@@ -141,10 +152,6 @@ class AccountSshKeyListItem extends KDListItemView
 
   partial:(data)->
     """
-      <div class='labelish'>
-        <span class="icon"></span>
-        <span class='editor-method-title'></span>
-      </div>
       <div class='swappableish swappable-wrapper posstatic'></div>
     """
 
