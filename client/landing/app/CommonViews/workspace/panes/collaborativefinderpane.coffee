@@ -76,6 +76,10 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
     super options, data
 
+  addNodes: (nodes) ->
+    super nodes
+    @syncInteraction()
+
   dblClick: (nodeView, e) ->
     super nodeView, e
     log "host interacted with file tree waiting for response"
@@ -96,9 +100,11 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
     return snapshot
 
+  syncInteraction: ->
+    @getDelegate().emit "FileTreeInteractionDone", @getSnapshot()
+
   toggleFolder: (nodeView, callback) ->
-    super nodeView, =>
-      @getDelegate().emit "FileTreeInteractionDone", @getSnapshot()
+    super nodeView, @syncInteraction()
 
   openFile: (nodeView) ->
     return unless nodeView
