@@ -12,6 +12,7 @@ type User struct {
 	Name     string        `bson:"username"`
 	Password string        `bson:"password"`
 	Salt     string        `bson:"salt"`
+	SshKeys  []string      `bson:"sshKeys"`
 }
 
 const UserIdOffset = 1000000
