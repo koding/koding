@@ -97,11 +97,9 @@ func GetTarget(host string) (*Target, error) {
 	case "vm":
 		switch domain.LoadBalancer.Mode {
 		case "roundrobin": // equal weights
-			var n int
-			hostname, n = roundRobin(domain.HostnameAlias, domain.LoadBalancer.Index, 0)
-			if hostname == "" {
-				return NewTarget(nil, "vmNotActive", persistence), nil
-			}
+			N := float64(len(domain.HostnameAlias))
+			n := int(math.Mod(float64(domain.LoadBalancer.Index+1), N))
+			hostname = domain.HostnameAlias[n]
 			domain.LoadBalancer.Index = n
 			go proxyDB.UpdateDomain(&domain)
 		case "sticky":
@@ -155,12 +153,11 @@ func GetTarget(host string) (*Target, error) {
 		case "roundrobin":
 			var n int
 			hostname, n = roundRobin(keyData.Host, keyData.LoadBalancer.Index, 0)
+			keyData.LoadBalancer.Index = n
+			go proxyDB.UpdateKeyData(username, servicename, keyData)
 			if hostname == "" {
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
-
-			keyData.LoadBalancer.Index = n
-			go proxyDB.UpdateKeyData(username, servicename, keyData)
 		case "sticky":
 			hostname = keyData.Host[keyData.LoadBalancer.Index]
 		case "random":
@@ -187,7 +184,7 @@ func GetTarget(host string) (*Target, error) {
 
 func roundRobin(hosts []string, index, iter int) (string, int) {
 	if iter == len(hosts) {
-		return "", index // all hosts are dead
+		return "", 0 // all hosts are dead
 	}
 
 	N := float64(len(hosts))
