@@ -51,7 +51,7 @@ var proxyName = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var clients = make(map[string]Client)
 var clientsLock sync.RWMutex
-var cacheTimeout = time.Second * 60
+var cacheTimeout = time.Second * 20
 
 func main() {
 	log.Printf("kontrol proxy started ")
