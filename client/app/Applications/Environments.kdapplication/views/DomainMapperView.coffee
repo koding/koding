@@ -16,7 +16,6 @@ class DomainMapperView extends KDView
     @destroySubViews()
 
     KD.remote.api.JVM.fetchVms (err, vms)=>
-      console.log vms
       if vms
 
         hostnameAliases = domain.hostnameAlias
