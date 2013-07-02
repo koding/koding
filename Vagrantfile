@@ -105,7 +105,6 @@ Vagrant.configure("2") do |config|
       end
       default.vm.provision :shell, :inline => "
         TRIALS=0
-        EXIT=1
         rabbitmqctl -q list_users 2>1 > /dev/null
         while [ \"$TRIALS\" -ne \"3\" ]
         do
