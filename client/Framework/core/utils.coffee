@@ -448,6 +448,12 @@ __utils =
     kallback.cancel =-> clearTimeout fallbackTimer
     kallback
 
+  notifyAndEmailVMTurnOnFailureToSysAdmin: (vmName)->
+    new KDNotificationView
+      title:"Sorry, your vm failed to turn on. An email has been sent to a sysadmin."
+
+    KD.whoami().sendEmailVMTurnOnFailureToSysAdmin vmName
+
   logTimeoutToExternal: (timerName)->
     KD.logToMixpanel timerName+".timeout"
 

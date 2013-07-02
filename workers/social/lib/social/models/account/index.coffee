@@ -993,3 +993,15 @@ module.exports = class JAccount extends jraphical.Module
           callback null, tempRes
         for res in results
           collectContents res
+
+  sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
+    time = (new Date).toJSON()
+    JMail = require '../email'
+    email = new JMail
+      from    : 'hello@koding.com'
+      email   : 'sysops@koding.com'
+      subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}' at #{time}"
+      content : "Reason: #{reason}"
+      force   : yes
+
+    email.save callback
