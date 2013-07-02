@@ -150,3 +150,19 @@ func CreateClient(writer http.ResponseWriter, req *http.Request) {
 	return
 
 }
+
+func DeleteClient(writer http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	build := vars["build"]
+	fmt.Printf("DELETE\t/deployments/%s\n", build)
+
+	err := clientDB.Collection.Remove(bson.M{"buildnumber": build})
+	if err != nil {
+		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
+		return
+	}
+
+	resp := fmt.Sprintf("build '%s' is deleted", build)
+	io.WriteString(writer, fmt.Sprintf("{\"res\":\"%s\"}\n", resp))
+	return
+}
