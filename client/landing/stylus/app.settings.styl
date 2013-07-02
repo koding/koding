@@ -454,7 +454,6 @@ positiveGreen = rgba(58,200,2,1)
   .labelish
     font-weight       bold
     font-size         12px
-    line-height       26px
 
   span.ttag
     // -webkit-font-smoothing          antialiased
@@ -465,11 +464,12 @@ positiveGreen = rgba(58,200,2,1)
     color             white
     text-transform    uppercase
     text-shadow       none
-    shadow(0 -1px 1px rgba(0,0,0,.7))
+    // shadow(0 -1px 1px rgba(0,0,0,.7))
     rounded(3px)
 
   span.ttag.paid
-    bg(color,positiveGreen)
+  span.ttag.success
+    bg(color,darkgreen)
   span.ttag.pending
     bg(color,darkorange)
   span.ttag.cancelled
@@ -481,6 +481,19 @@ positiveGreen = rgba(58,200,2,1)
       padding-left        5px
       font-style          normal
 
+.billing-history
+  .kdlistitemview
+    border-bottom-color:  rgba(0,0,0,0.4)
+    border-top            1px solid rgba(255,255,255,0.1)
+  .labelish
+    line-height           35px
+    min-width             50px !important
+  .swappableish
+    strong
+      font-size           17px
+      font-weight         bold
+      padding-right       10px
+      text-shadow         0px 1px 1px #111
 .your-subscriptions
   .kdlistitemview
     height                80px
