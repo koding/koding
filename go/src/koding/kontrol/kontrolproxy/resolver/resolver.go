@@ -22,6 +22,10 @@ type Target struct {
 }
 
 func NewTarget(url *url.URL, mode, persistence string) *Target {
+	if url == nil {
+		url, _ = url.Parse("http://localhost/maintenance")
+	}
+
 	return &Target{
 		Url:         url,
 		Mode:        mode,
@@ -82,12 +86,7 @@ func GetTarget(host string) (*Target, error) {
 	switch mode {
 	case "maintenance":
 		// for avoiding nil pointer referencing
-		target, err := url.Parse("http://localhost/maintenance")
-		if err != nil {
-			return nil, err
-		}
-
-		return NewTarget(target, mode, persistence), nil
+		return NewTarget(nil, mode, persistence), nil
 	case "redirect":
 		target, err := url.Parse(domain.Proxy.FullUrl)
 		if err != nil {
@@ -98,8 +97,8 @@ func GetTarget(host string) (*Target, error) {
 	case "vm":
 		switch domain.LoadBalancer.Mode {
 		case "roundrobin": // equal weights
-			n := roundRobin(domain.HostnameAlias, domain.LoadBalancer.Index)
-			hostname = domain.HostnameAlias[n]
+			var n int
+			hostname, n = roundRobin(domain.HostnameAlias, domain.LoadBalancer.Index, 0)
 			domain.LoadBalancer.Index = n
 			go proxyDB.UpdateDomain(&domain)
 		case "sticky":
@@ -151,8 +150,12 @@ func GetTarget(host string) (*Target, error) {
 
 		switch keyData.LoadBalancer.Mode {
 		case "roundrobin":
-			n := roundRobin(keyData.Host, keyData.LoadBalancer.Index)
-			hostname = keyData.Host[n]
+			var n int
+			hostname, n = roundRobin(keyData.Host, keyData.LoadBalancer.Index, 0)
+			if hostname == "" {
+				return NewTarget(nil, "maintenance", persistence), nil
+			}
+
 			keyData.LoadBalancer.Index = n
 			go proxyDB.UpdateKeyData(username, servicename, keyData)
 		case "sticky":
@@ -179,8 +182,18 @@ func GetTarget(host string) (*Target, error) {
 	return NewTarget(target, mode, persistence), nil
 }
 
-func roundRobin(hosts []string, index int) int {
+func roundRobin(hosts []string, index, iter int) (string, int) {
+	if iter == len(hosts) {
+		return "", index // all hosts are dead
+	}
+
 	N := float64(len(hosts))
 	n := int(math.Mod(float64(index+1), N))
-	return n
+	hostname := hosts[n]
+
+	if err := utils.CheckServer(hostname); err != nil {
+		hostname, n = roundRobin(hosts, index+1, iter+1)
+	}
+
+	return hostname, n
 }
