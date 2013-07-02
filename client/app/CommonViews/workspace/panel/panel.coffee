@@ -87,6 +87,7 @@ class Panel extends JView
       "editor"           : @EditorPaneClass
       "video"            : @VideoPaneClass
       "preview"          : @PreviewPaneClass
+      "finder"           : @FinderPaneClass
 
     return  paneTypesToPaneClass[paneType]
 

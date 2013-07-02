@@ -25,6 +25,11 @@ class CollaborativePanel extends Panel
     if isJoinedASession then log "#{KD.nick()} is joined a session"
     else log "#{KD.nick()} created a session"
 
+    if isJoinedASession
+      if paneOptions.type is "terminal"
+        PaneClass = CollaborativeClientTerminalPane
+      else if paneOptions.type is "finder"
+        PaneClass = CollaborativeClientFinderPane
 
     pane = new PaneClass paneOptions
 
@@ -39,5 +44,6 @@ class CollaborativePanel extends Panel
 
 CollaborativePanel::EditorPaneClass   = CollaborativeEditorPane
 CollaborativePanel::TerminalPaneClass = CollaborativeTerminalPane
+CollaborativePanel::FinderPaneClass   = CollaborativeFinderPane
 CollaborativePanel::VideoPaneClass    = VideoPane
 CollaborativePanel::PreviewPaneClass  = PreviewPane
