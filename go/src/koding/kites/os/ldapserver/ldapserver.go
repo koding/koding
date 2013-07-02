@@ -183,7 +183,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			"gidNumber":     strconv.Itoa(user.Uid),
 			"homeDirectory": "/home/" + user.Name,
 			"loginShell":    "/bin/bash",
-			"sshPublicKey":  strings.Join(user.SshKeys, "\n"),
+			"sshPublicKey":  strings.Join(user.SshKeyList(), "\n"),
 		}).Bytes())
 		return true
 
