@@ -33,7 +33,7 @@ class CollaborativeClientFinderPane extends Pane
       , fileInstances
 
       view = @fileTree.getView()
-      @container.destroySubViews()
+      @container.updatePartial ""
       @container.addSubView view
 
   pistachio: ->
