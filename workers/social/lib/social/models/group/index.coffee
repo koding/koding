@@ -456,27 +456,31 @@ module.exports = class JGroup extends Module
     @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',
-    success:(client, memberId, roles, callback)->
-      group = this
-      groupId = @getId()
+    success:(client, targetId, roles, callback)->
+      remove = []
+      sourceId = @getId()
       roles.push 'member'  unless 'member' in roles
-      oldRole =
-        targetId    : memberId
-        sourceId    : groupId
-      Relationship.remove oldRole, (err)->
-        if err then callback err
-        else
-          queue = roles.map (role)->->
-            (new Relationship
-              targetName  : 'JAccount'
-              targetId    : memberId
-              sourceName  : 'JGroup'
-              sourceId    : groupId
-              as          : role
-            ).save (err)->
-              callback err  if err
-              queue.fin()
-          dash queue, callback
+      Relationship.some {targetId, sourceId}, {}, (err, rels)->
+        return callback err  if err
+
+        for rel in rels
+          if rel.as in roles then roles.splice roles.indexOf(rel.as), 1
+          else remove.push rel._id
+
+        if remove.length > 0
+          Relationship.remove _id: $in: remove, (err)-> console.log 'removed'; callback err  if err
+
+        queue = roles.map (role)->->
+          (new Relationship
+            targetName  : 'JAccount'
+            targetId    : targetId
+            sourceName  : 'JGroup'
+            sourceId    : sourceId
+            as          : role
+          ).save (err)->
+            callback err  if err
+            queue.fin()
+        dash queue, callback
 
   addDefaultRoles:(callback)->
     group = this
@@ -1294,11 +1298,11 @@ module.exports = class JGroup extends Module
         #     return callback err if err
         #     queue.next()
 
-        => remove_.call this, (err)->
-          return callback err if err
+        => @constructor.emit 'GroupDestroyed', this, ->
           queue.next()
 
-        => @constructor.emit 'GroupDestroyed', this, ->
+        => remove_.call this, (err)->
+          return callback err if err
           queue.next()
 
         -> callback null

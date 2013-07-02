@@ -63,7 +63,8 @@ class KDFormView extends KDView
     for inputData in @getDomElement().serializeArray()
       data[inputData.name] = inputData.value
     data
-
+  
+  # this should be removed, this overrides KDObject::getData() and serialize is not enough for data collection - SY
   getData: ->
     formData = $.extend {},@getCustomData()
     @serializeFormData formData
@@ -111,7 +112,9 @@ class KDFormView extends KDView
         toBeValidatedInputs.push input
       else
         # put regular input values to formdata
-        formData[input.getName()] = input.getValue() if input.getName()
+        name  = input.getName()
+        value = input.getValue()
+        formData[name] = value  if name
 
     toBeValidatedInputs.forEach (inputToBeValidated)->
       # wait for the validation result of each input
