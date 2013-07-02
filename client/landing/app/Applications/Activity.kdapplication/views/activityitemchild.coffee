@@ -115,11 +115,15 @@ class ActivityItemChild extends KDView
         menu =
           'Mark User as Troll' :
             callback           : ->
-              mainController.markUserAsTroll data
+              mainController.blockUser data
 
       menu['Delete Post'] =
         callback : =>
           @confirmDeletePost data
+
+      menu['Block User'] =
+        callback : ->
+          mainController.openBlockUserModal data
 
       return menu
 
