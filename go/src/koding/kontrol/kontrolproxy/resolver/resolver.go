@@ -99,6 +99,9 @@ func GetTarget(host string) (*Target, error) {
 		case "roundrobin": // equal weights
 			var n int
 			hostname, n = roundRobin(domain.HostnameAlias, domain.LoadBalancer.Index, 0)
+			if hostname == "" {
+				return NewTarget(nil, "vmNotActive", persistence), nil
+			}
 			domain.LoadBalancer.Index = n
 			go proxyDB.UpdateDomain(&domain)
 		case "sticky":

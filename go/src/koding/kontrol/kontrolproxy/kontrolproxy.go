@@ -200,12 +200,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		return templateHandler("maintenance.html", nil, 200)
 	case "redirect":
 		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
-	case "vm":
-		err := utils.CheckServer(target.Url.Host)
-		if err != nil {
-			log.Printf("vm host %s is down: '%s'", req.Host, err)
-			return templateHandler("notactiveVM.html", req.Host, 404)
-		}
+	case "vmNotActive":
+		return templateHandler("notactiveVM.html", req.Host, 404)
 	}
 
 	_, err = validate(userIP, userCountry, req.Host)
