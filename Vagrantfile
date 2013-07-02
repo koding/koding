@@ -104,8 +104,8 @@ Vagrant.configure("2") do |config|
         set_permissions += '&& rabbitmqctl set_permissions -p followfeed %s ".*" ".*" ".*"' % r_user
       end
       default.vm.provision :shell, :inline => "
-        if ! rabbitmqctl list_vhosts|grep followfeed; then rabbitmqctl add_vhost followfeed %s ; fi
         apt-get install aufs-tools -y -qq
+        if ! rabbitmqctl list_vhosts|grep followfeed; then rabbitmqctl add_vhost followfeed %s ; fi
       " % set_permissions
     end
   end
