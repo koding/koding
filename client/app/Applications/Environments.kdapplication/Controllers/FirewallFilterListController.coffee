@@ -21,16 +21,21 @@ class FirewallFilterListController extends KDListViewController
 
     super options, data
 
+    @fetchFilters()
+
     listView = @getListView()
     # set the data so filter items know which domain to work on
     listView.setData(data)
 
     listView.on "newFilterCreated", @bound 'fetchFilters'
+
     listView.on "filterDeleted", (item)=>
       @removeItem item
-      @fetchFilters()
 
-    @fetchFilters()
+      if @itemsOrdered.length is 0
+        @defaultItem = null
+
+      @fetchFilters()
 
   fetchFilters:->
     {domain} = @getData()
