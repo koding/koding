@@ -278,7 +278,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			}
 
 			infosMutex.Lock()
-			info, found := infos[vm.Id]
+			var found bool
+			info, found = infos[vm.Id]
 			if !found {
 				info = newInfo(vm)
 				infos[vm.Id] = info
