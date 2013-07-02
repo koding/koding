@@ -81,7 +81,13 @@ func GetTarget(host string) (*Target, error) {
 
 	switch mode {
 	case "maintenance":
-		return NewTarget(nil, mode, persistence), nil
+		// for avoiding nil pointer referencing
+		target, err := url.Parse("http://localhost/maintenance")
+		if err != nil {
+			return nil, err
+		}
+
+		return NewTarget(target, mode, persistence), nil
 	case "redirect":
 		target, err := url.Parse(domain.Proxy.FullUrl)
 		if err != nil {
