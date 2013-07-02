@@ -35,18 +35,25 @@ class ResourcesController extends KDListViewController
         group = hostname.replace('.kd.io','').split('.').last or 'koding'
         stack.push (cb)->
           KD.remote.cacheable group, (err, res)->
-            return cb err  if err
-            group = res?.first or 'koding'
-            data  =
-              vmName     : hostname
-              groupSlug  : group?.slug  or 'koding'
-              groupTitle : group?.title or 'Koding'
-            cb null, data
+            if err or not res
+              warn "Fetching group info failed for '#{group}' Group."
+              cb null
+            else
+              group = res?.first or 'koding'
+              cb null,
+                vmName     : hostname
+                groupSlug  : group?.slug  or 'koding'
+                groupTitle : group?.title or 'Koding'
 
       async.parallel stack, (err, result)=>
-        @instantiateListItems result  unless err
+        warn err  if err
+        @instantiateListItems result
         @deselectAllItems()
         finder.emit 'EnvironmentsTabShow'
+
+  instantiateListItems:(items)->
+    items = [item for item in items when item][0]
+    super items
 
 class ResourcesView extends KDListView
 
