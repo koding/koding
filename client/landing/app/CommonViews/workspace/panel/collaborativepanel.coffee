@@ -20,10 +20,11 @@ class CollaborativePanel extends Panel
     PaneClass              = @getPaneClass paneOptions.type
     paneOptions.delegate   = @
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
-    isJoinedASession       = !!paneOptions.sessionKey
+    isJoinedASession       = !!paneOptions.sessionKey and not @amIHost paneOptions.sessionKey
 
-    if isJoinedASession and paneOptions.type is "terminal"
-      PaneClass = CollaborativeClientTerminalPane
+    if isJoinedASession then log "#{KD.nick()} is joined a session"
+    else log "#{KD.nick()} created a session"
+
 
     pane = new PaneClass paneOptions
 
@@ -31,6 +32,10 @@ class CollaborativePanel extends Panel
     @panes.push pane
     @emit "NewPaneCreated", pane
 
+  amIHost: (sessionKey) ->
+    return  no unless sessionKey
+    [sessionOwner] = sessionKey.split ":"
+    return sessionOwner == KD.nick()
 
 CollaborativePanel::EditorPaneClass   = CollaborativeEditorPane
 CollaborativePanel::TerminalPaneClass = CollaborativeTerminalPane
