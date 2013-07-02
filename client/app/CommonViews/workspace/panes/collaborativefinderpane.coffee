@@ -26,9 +26,6 @@ class CollaborativeFinderPane extends Pane
 
     @finder = @finderController.getView()
 
-    @finderController.on "FileTreeInteractionDone", (files) =>
-      @syncContent files
-
     @workspaceRef.on "value", (snapshot) =>
       return unless snapshot.val()
 
@@ -42,6 +39,16 @@ class CollaborativeFinderPane extends Pane
 
         treeController.openItem nodeView, (err, res) =>
           log "Host terminal done with client request", res
+
+    # event bindings
+
+    @finderController.on "FileTreeInteractionDone", (files) =>
+      @syncContent files
+
+    @finderController.on "OpenedAFile", (file, content) =>
+      editorPane = pane for pane in panel.panes when pane instanceof CollaborativeEditorPane
+      return  warn "could not find an editor instance to set file content" unless editorPane
+      editorPane.setContent content
 
     log "i'm a host file tree and my session key is #{@sessionKey}"
 
@@ -91,3 +98,10 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   toggleFolder: (nodeView, callback) ->
     super nodeView, =>
       @getDelegate().emit "FileTreeInteractionDone", @getSnapshot()
+
+  openFile: (nodeView) ->
+    return unless nodeView
+    file = nodeView.getData()
+    log "host terminal is opening a file", file
+    file.fetchContents (err, contents) =>
+      @getDelegate().emit "OpenedAFile", file, contents
