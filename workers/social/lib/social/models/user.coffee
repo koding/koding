@@ -73,7 +73,7 @@ module.exports = class JUser extends jraphical.Module
       instance      : ['sendEmailConfirmation']
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
-        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
+        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled', 'setSSHKeys', 'getSSHKeys'
       ]
 
     schema          :
@@ -112,6 +112,8 @@ module.exports = class JUser extends jraphical.Module
         userPreference:
           type      : String
           # enum      : ['invalid status',['online','offline','away','busy']]
+
+      sshKeys       : [String]
 
     relationships       :
       ownAccount        :
@@ -608,3 +610,13 @@ module.exports = class JUser extends jraphical.Module
 
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
   block:(callback)-> @update {$set: status: 'blocked'}, callback
+
+
+  @setSSHKeys: secure (client, sshKeys, callback)->
+    @fetchUser client, (err,user)->
+      user.sshKeys = sshKeys
+      user.save callback
+
+  @getSSHKeys: secure (client, callback)->
+    @fetchUser client, (err,user)->
+      callback user.sshKeys or []
