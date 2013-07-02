@@ -157,8 +157,6 @@ module.exports = class JVM extends Model
             nickname, type, uid, groupSlug
           }
 
-          JVM.createDomains hostnameAliases, hostnameAliases[0]
-
           vm = new JVM {
             planCode      : planCode
             planOwner     : planOwner
@@ -171,6 +169,9 @@ module.exports = class JVM extends Model
 
           vm.save (err) =>
             return callback err  if err
+
+            JVM.createDomains hostnameAliases, hostnameAliases[0]
+
             group.addVm vm, (err)=>
               return callback err  if err
               JVM.ensureDomainSettings {vm, type, nickname, groupSlug}
@@ -400,7 +401,6 @@ module.exports = class JVM extends Model
         type, uid, groupSlug
       }
 
-      JVM.createDomains hostnameAliases, hostnameAliases[0]
 
       vm = new JVM {
         users         : [
@@ -412,7 +412,10 @@ module.exports = class JVM extends Model
         planCode
         webHome
       }
-      vm.save (err)-> target.addVm vm, handleError
+
+      vm.save (err)->
+        JVM.createDomains hostnameAliases, hostnameAliases[0]
+        target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
 
