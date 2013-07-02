@@ -14,8 +14,29 @@
 <div id="container">
   <header><a href="http://koding.com">Koding.com</a></header>
   <footer>
-  <h4>The VM {{.}} is currently turned off.</h4>
-  <p>Be sure the VM is turned on.</p>
+  <h4>{{.}} website cannot be served at this time.</h4>
+  <p>Possible reasons
+  	<h3>Server that this website is served from is currently turned off</h3>
+  	<p>
+  	Koding free developer servers are provided for active development.
+  	<br>They are not suitable for hosting blogs, production sites.
+  	<br>Therefore, 15 mins after developer leaves the site, 
+  	<br>their resources are shut down.
+  	<br>
+  	<br>This also serves as protection for developers. 
+  	<br>Otherwise, abusive content creators, bots, malware producers, 
+  	<br>spammers, phishing sites could find Koding to be the best platform to live.
+  	<br>Koding wants to give free computing resources to good people of the world, thus 15 minute timeout.
+  	<br>
+  	</p>
+  	<h3>Wrong domain/server configuration</h3>
+  		<p>{{.}} might be pointing to an nonexistent server, you can correct this by logging in and going to your "Environment Settings".
+  		<br>Make sure this domain name is pointing to a server that's healthy and serving a web site.
+  		<br>(e.g. if you stop your webserver, or run it on a different port that we don't know about, this error can happen.)
+  	<h3>Our servers are not doing OK</h3>
+  		<p>If you're the owner, and think this is not supposed to happen, please let us know at <a href="mailto:support@koding.com&body={{.}} is not functioning.">support@koding.com</a>
+  		</p>	
+  </p>
   </footer>
 </div>
 </body>
