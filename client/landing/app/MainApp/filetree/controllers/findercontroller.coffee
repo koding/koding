@@ -22,7 +22,8 @@ class NFinderController extends KDViewController
 
     super options, data
 
-    @treeController = new NFinderTreeController treeOptions, []
+    TreeControllerClass = options.treeControllerClass or NFinderTreeController
+    @treeController     = new TreeControllerClass treeOptions, []
 
     if options.useStorage
 
