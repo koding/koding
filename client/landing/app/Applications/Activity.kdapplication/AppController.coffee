@@ -58,7 +58,6 @@ class ActivityAppController extends AppController
       @ready @bound "populateActivity"
 
     @emit 'ready'
-    console.clear()
 
   resetAll:->
     @lastTo    = null
@@ -72,10 +71,17 @@ class ActivityAppController extends AppController
   fetchCurrentGroup:(callback)-> callback @currentGroupSlug
 
   bindLazyLoad:->
-    @listController.once 'LazyLoadThresholdReached', @continueLoadingTeasers.bind @
-    @listController.once 'teasersLoaded', @teasersLoaded.bind @
+    @getView().once 'LazyLoadThresholdReached', @bound "continueLoadingTeasers"
+    @listController.once 'teasersLoaded', @bound "teasersLoaded"
 
   continueLoadingTeasers:->
+    # temp fix:
+    # if teasersLoaded and LazyLoadThresholdReached fire at the same time
+    # it leads to clear the callbacks so it will ask for the new activities
+    # but will newver put them in activity feed.
+    # so fix the teasersLoaded logic.
+    return  if @isLoading
+    @clearPopulateActivityBindings()
     @populateActivity to : @lastFrom
 
   attachEvents:(controller)->
@@ -99,6 +105,7 @@ class ActivityAppController extends AppController
       @resetAll()
 
       @clearPopulateActivityBindings()
+
       if data.type in ["Public", "Followed"]
       then @setFeedFilter data.type
       else @setActivityFilter data.type

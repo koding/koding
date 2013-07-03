@@ -12,7 +12,7 @@ class DomainMapperView extends KDView
     @updatePartial ""
     @destroySubViews()
 
-    KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
+    KD.remote.api.JVM.fetchVms (err, vms)=>
       if vms
         @vmListViewController = new KDListViewController
           view        : new KDListView
