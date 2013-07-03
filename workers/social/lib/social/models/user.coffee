@@ -312,24 +312,29 @@ module.exports = class JUser extends jraphical.Module
           data = JSON.parse data.substr(1, data.length - 2)
           if data.error then callback yes else callback null
 
-  @addToGroup = (account, slug, isInvited, callback)->
-    [callback, isInvited] = [isInvited, callback]  unless callback
-    isInvited ?= no
+  @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
-      else if not isInvited and group.privacy is 'private' and group.slug isnt 'koding'
+      else if invite?.group isnt slug and group.privacy is 'private' and group.slug isnt 'koding'
         group.requestAccessFor account, callback
-      else group.approveMember account, callback
+      else
+        group.approveMember account, (err)->
+          return callback err  if err
+          cb = (invite)-> invite.markAccepted connection:delegate:account, callback
+          if invite?.group is slug then cb invite
+          else
+            selector = {group: slug, inviteeEmail: email, status: 'sent'}
+            (require './invitation').one selector, (err, invite)->
+              if invite and not err then cb invite
+              else callback err
 
-  @addToGroups = (account, invite, entryPoint, callback)->
-    @addToGroup account, 'koding', (err)=>
+  @addToGroups = (account, invite, entryPoint, email, callback)->
+    @addToGroup account, 'koding', email, invite, (err)=>
       if err then callback err
-      else if invite.group or entryPoint
-        if invite.group is 'koding'
-          invite.markAccepted connection:delegate:account, callback
-        else
-          @addToGroup account, invite.group or entryPoint, invite.group?, callback
-      else callback null
+      else if (slug = invite.group or entryPoint) and slug isnt 'koding'
+        @addToGroup account, slug, email, invite, callback
+      else
+        callback null
 
   @createTemporaryUser = (callback) ->
     ((require 'koding-counter') {
@@ -462,7 +467,7 @@ module.exports = class JUser extends jraphical.Module
                       return callback err  if err
                       @removeUnsubscription userData, (err)=>
                         return callback err  if err
-                        @addToGroups account, invite, entryPoint, (err) ->
+                        @addToGroups account, invite, entryPoint, email, (err) ->
                           if err then callback err
                           else if silence
                             JUser.grantInitialInvitations user.username

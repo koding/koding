@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"errors"
 	"io"
 	"io/ioutil"
 	"koding/kites/os/ldapserver"
@@ -26,7 +27,8 @@ import (
 type VMInfo struct {
 	vmId          bson.ObjectId
 	vmName        string
-	channels      map[*kite.Channel]bool
+	temporaryVM   *virt.VM
+	useCounter    int
 	timeout       *time.Timer
 	mutex         sync.Mutex
 	totalCpuUsage int
@@ -39,14 +41,12 @@ type VMInfo struct {
 }
 
 var infos = make(map[bson.ObjectId]*VMInfo)
-var runningVmMethods = make(map[string]string)
 var infosMutex sync.Mutex
 var templateDir = config.Current.ProjectRoot + "/go/templates"
 var firstContainerIP net.IP
 var containerSubnet *net.IPNet
-var ipCounterInitialValue int
-var shutdownStarted bool
-var shutdownMutex sync.Mutex
+var shuttingDown = false
+var requestWaitGroup sync.WaitGroup
 
 func main() {
 	lifecycle.Startup("kite.os", true)
@@ -61,50 +61,58 @@ func main() {
 		log.LogError(err, 0)
 		return
 	}
-	unprepareAll()
-	go func() {
-		sigtermChannel := make(chan os.Signal)
-		signal.Notify(sigtermChannel, syscall.SIGTERM)
-		<-sigtermChannel
-		shutdownMutex.Lock()
-		shutdownStarted = true
-		shutdownMutex.Unlock()
-		// wait for the current running methods to return
-		// we know newcoming methods will be thrown away thanks to 
-		// shutdownStarted variable
-		for  {
-			if len(runningVmMethods) == 0 {
-				break
-			} else {
-				time.Sleep(1 * time.Second)
-			}
-		}
-		unprepareAll()
-		log.SendLogsAndExit(0)
-	}()
 
 	go ldapserver.Listen()
 	go LimiterLoop()
-	k := kite.New("os")
+	k := kite.New("os", true)
 
-	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
-		if deadService != "" {
-			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": deadService}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+	dirs, err := ioutil.ReadDir("/var/lib/lxc")
+	if err != nil {
+		log.LogError(err, 0)
+		return
+	}
+	for _, dir := range dirs {
+		if strings.HasPrefix(dir.Name(), "vm-") {
+			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
+			info := newInfo(&vm)
+			infos[vm.Id] = info
+			info.startTimeout()
+		}
+	}
+
+	sigtermChannel := make(chan os.Signal)
+	signal.Notify(sigtermChannel, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+	go func() {
+		sig := <-sigtermChannel
+		shuttingDown = true
+		requestWaitGroup.Wait()
+		if sig == syscall.SIGUSR1 {
+			for _, info := range infos {
+				info.unprepareVM()
+			}
+			if _, err := db.VMs.UpdateAll(bson.M{"hostKite": k.ServiceUniqueName}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil { // ensure that really all are set to nil
 				log.LogError(err, 0)
 			}
 		}
+		log.SendLogsAndExit(0)
+	}()
 
+	k.LoadBalancer = func(correlationName string, username string, deadService string) string {
 		var vm *virt.VM
 		if bson.IsObjectIdHex(correlationName) {
 			db.VMs.FindId(bson.ObjectIdHex(correlationName)).One(&vm)
 		}
 		if vm == nil {
-			if err := db.VMs.Find(bson.M{"name": correlationName}).One(&vm); err != nil {
+			if err := db.VMs.Find(bson.M{"hostnameAlias": correlationName}).One(&vm); err != nil {
 				return k.ServiceUniqueName
 			}
 		}
 
 		if vm.HostKite == "" {
+			return k.ServiceUniqueName
+		}
+		if vm.HostKite == deadService {
+			log.Warn("VM is registered as running on dead service.", correlationName, username, deadService)
 			return k.ServiceUniqueName
 		}
 		return vm.HostKite
@@ -194,23 +202,20 @@ type VMNotFoundError struct {
 }
 
 func (err *VMNotFoundError) Error() string {
-	return "There is no VM with name/id '" + err.Name + "'."
+	return "There is no VM with hostname/id '" + err.Name + "'."
 }
 
 func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback func(*dnode.Partial, *kite.Channel, *virt.VOS) (interface{}, error)) {
-	shutdownMutex.Lock()
-	if shutdownStarted {
-		log.Warn("Requests thrown away during shutdown.")
-		return
-	} else {
-		myId := utils.RandomString()
-		runningVmMethods[myId] = method
-		defer func(id string) {
-			delete(runningVmMethods, id)
-		}(myId)
-	}
-	shutdownMutex.Unlock()
 	k.Handle(method, concurrent, func(args *dnode.Partial, channel *kite.Channel) (methodReturnValue interface{}, methodError error) {
+		if shuttingDown {
+			return nil, errors.New("Kite is shutting down.")
+		}
+		requestWaitGroup.Add(1)
+		defer requestWaitGroup.Done()
+		if shuttingDown { // check second time after sync to avoid additional mutex
+			return nil, errors.New("Kite is shutting down.")
+		}
+
 		var user virt.User
 		if err := db.Users.Find(bson.M{"username": channel.Username}).One(&user); err != nil {
 			panic(err)
@@ -219,9 +224,11 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic("User with too low uid.")
 		}
 
-		vm, _ := channel.KiteData.(*virt.VM)
-		if vm != nil && !vm.IsTemporary() {
-			if err := db.VMs.FindId(vm.Id).One(&vm); err != nil {
+		info, _ := channel.KiteData.(*VMInfo)
+		var vm *virt.VM
+
+		if info != nil && info.temporaryVM == nil {
+			if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
 				return nil, &VMNotFoundError{Name: channel.CorrelationName}
 			}
 
@@ -229,13 +236,24 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if vm.SnapshotOf == "" && permissions == nil {
 				return nil, &kite.PermissionError{}
 			}
+
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
 		}
-		if vm == nil {
+
+		if info != nil && info.temporaryVM != nil {
+			vm = info.temporaryVM
+
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+		}
+
+		if info == nil {
 			if bson.IsObjectIdHex(channel.CorrelationName) {
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
 			}
 			if vm == nil {
-				if err := db.VMs.Find(bson.M{"name": channel.CorrelationName}).One(&vm); err != nil {
+				if err := db.VMs.Find(bson.M{"hostnameAlias": channel.CorrelationName}).One(&vm); err != nil {
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
@@ -245,6 +263,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 			if vm.HostKite != k.ServiceUniqueName && k.ServiceUniqueName != "" {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+					time.Sleep(time.Second) // to avoid rapid cycle channel loop
 					return nil, &kite.WrongChannelError{}
 				}
 				vm.HostKite = k.ServiceUniqueName
@@ -261,38 +280,38 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				if err != nil {
 					return nil, err
 				}
+				info.temporaryVM = vm
 			}
 
-			channel.KiteData = vm
-		}
+			infosMutex.Lock()
+			var found bool
+			info, found = infos[vm.Id]
+			if !found {
+				info = newInfo(vm)
+				infos[vm.Id] = info
+			}
+			channel.KiteData = info
+			infosMutex.Unlock()
 
-		infosMutex.Lock()
-		info, isExistingState := infos[vm.Id]
-		if !isExistingState {
-			info = newInfo(vm)
-			infos[vm.Id] = info
-		}
-		if !info.channels[channel] {
-			info.channels[channel] = true
+			info.mutex.Lock()
+			defer info.mutex.Unlock()
+
+			info.useCounter += 1
 			if info.timeout != nil {
 				info.timeout.Stop()
 				info.timeout = nil
 			}
 
 			channel.OnDisconnect(func() {
-				infosMutex.Lock()
-				defer infosMutex.Unlock()
+				info.mutex.Lock()
+				defer info.mutex.Unlock()
 
-				delete(info.channels, channel)
-				if len(info.channels) == 0 {
+				info.useCounter -= 1
+				if info.useCounter == 0 {
 					info.startTimeout()
 				}
 			})
 		}
-		infosMutex.Unlock()
-
-		info.mutex.Lock()
-		defer info.mutex.Unlock()
 
 		defer func() {
 			if err := recover(); err != nil {
@@ -304,7 +323,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-			if !vm.IsTemporary() {
+			if info.temporaryVM == nil {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
 					panic(err)
 				}
@@ -317,7 +336,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		if vm.LdapPassword == "" {
 			ldapPassword := utils.RandomString()
-			if !vm.IsTemporary() {
+			if info.temporaryVM == nil {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
 					panic(err)
 				}
@@ -347,7 +366,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic(err)
 		}
 
-		if !vm.IsTemporary() {
+		if info.temporaryVM == nil {
 			if _, err := rootVos.Stat("/home/" + user.Name); err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
@@ -364,7 +383,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				}
 			}
 
-			vmWebDir := "/home/" + vm.WebHomeName() + "/Web"
+			vmWebDir := "/home/" + vm.WebHome + "/Web"
 			userWebDir := "/home/" + user.Name + "/Web"
 
 			if err := rootVos.Symlink(vmWebDir, "/var/www"); err == nil {
@@ -382,9 +401,9 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					}
 
 					// migration of old Sites directory
-					migrationErr := vmWebVos.Rename("/home/"+vm.WebHomeName()+"/Sites/"+vm.Hostname(), vmWebDir)
-					vmWebVos.Remove("/home/" + vm.WebHomeName() + "/Sites")
-					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.Hostname())
+					migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.HostnameAlias, vmWebDir)
+					vmWebVos.Remove("/home/" + vm.WebHome + "/Sites")
+					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.HostnameAlias)
 
 					if migrationErr != nil {
 						// create fresh Web directory if migration unsuccessful
@@ -417,6 +436,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		}
 
 		if concurrent {
+			requestWaitGroup.Done()
+			defer requestWaitGroup.Add(1)
 			info.mutex.Unlock()
 			defer info.mutex.Lock()
 		}
@@ -484,7 +505,7 @@ func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
 		vmId:          vm.Id,
 		vmName:        vm.String(),
-		channels:      make(map[*kite.Channel]bool),
+		useCounter:    0,
 		totalCpuUsage: utils.MaxInt,
 		CpuShares:     1000,
 	}
@@ -492,53 +513,32 @@ func newInfo(vm *virt.VM) *VMInfo {
 
 func (info *VMInfo) startTimeout() {
 	info.timeout = time.AfterFunc(10*time.Minute, func() {
-		infosMutex.Lock()
-		defer infosMutex.Unlock()
-
-		if len(info.channels) != 0 {
+		if info.useCounter != 0 {
 			return
 		}
-
-		var vm virt.VM
-		if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
-			log.Err("Could not find VM for shutdown.", err)
-		}
-		if out, err := vm.Shutdown(); err != nil {
-			log.Err("Could not shutdown VM.", err, out)
-		}
-
-		if err := vm.Unprepare(); err != nil {
-			log.Warn(err.Error())
-		}
-
-		if !vm.IsTemporary() {
-			if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
-				log.LogError(err, 0)
-			}
-		}
-
-		if vm.IsTemporary() {
-			if err := vm.Destroy(); err != nil {
-				log.Warn(err.Error())
-			}
-		}
-
-		delete(infos, vm.Id)
+		info.unprepareVM()
 	})
 }
 
-func unprepareAll() {
-	dirs, err := ioutil.ReadDir("/var/lib/lxc")
-	if err != nil {
-		log.LogError(err, 0)
-		return
+func (info *VMInfo) unprepareVM() {
+	infosMutex.Lock()
+	defer infosMutex.Unlock()
+
+	if err := virt.UnprepareVM(info.vmId); err != nil {
+		log.Warn(err.Error())
 	}
-	for _, dir := range dirs {
-		if strings.HasPrefix(dir.Name(), "vm-") {
-			vm := virt.VM{Id: bson.ObjectIdHex(dir.Name()[3:])}
-			if err := vm.Unprepare(); err != nil {
-				log.Warn(err.Error())
-			}
+
+	if info.temporaryVM == nil {
+		if err := db.VMs.Update(bson.M{"_id": info.vmId}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
+			log.LogError(err, 0)
 		}
 	}
+
+	if info.temporaryVM != nil {
+		if err := virt.DestroyVM(info.vmId); err != nil {
+			log.Warn(err.Error())
+		}
+	}
+
+	delete(infos, info.vmId)
 }

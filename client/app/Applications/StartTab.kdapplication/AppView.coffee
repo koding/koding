@@ -11,9 +11,7 @@ class StartTabMainView extends JView
     @appIcons       = {}
     mainView        = KD.getSingleton('mainView')
 
-    @appStorage = KD.getSingleton('mainController') \
-                    .getAppStorageSingleton 'Finder', '1.0'
-
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
     @appsController = KD.getSingleton("kodingAppsController")
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps

@@ -325,7 +325,7 @@ module.exports = class AuthWorker extends EventEmitter
 
           @addBinding 'chat', bindingKey, 'chat-hose', consumerRoutingKey, username
 
-          @_fakePersistenceWorker secretChannelName
+          # @_fakePersistenceWorker secretChannelName
           @notify username, 'chatOpen', {
             publicName  : name
             routingKey  : personalToken
@@ -373,6 +373,7 @@ module.exports = class AuthWorker extends EventEmitter
     clientServices?.forEach @bound 'cleanUpClient'
 
   parseServiceKey = (serviceKey) ->
+    console.log "parseServiceKey", serviceKey
     last = null
     serviceInfo = serviceKey.split('.').reduce (acc, edge, i)->
       unless i % 2 then last = edge
