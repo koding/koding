@@ -23,6 +23,8 @@ class CollaborativeWorkspace extends Workspace
 
       keys = snapshot.val()?.keys
 
+      @workspaceRef.onDisconnect().remove()  if @amIHost()
+
       if keys # if we have keys this means we're about to join an old session
         log "it's an old session, impressed!"
         @sessionData  = keys
@@ -36,6 +38,11 @@ class CollaborativeWorkspace extends Workspace
 
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
+
+    @workspaceRef.on "child_removed", (snapshot) =>
+      log "possible disconnection occured"
+
+      @showDisconnectedModal()  unless @disconnectedModal
 
     @on "NewPanelAdded", (panel) ->
       log "New panel created", panel
@@ -65,7 +72,10 @@ class CollaborativeWorkspace extends Workspace
 
   ready: -> # have to override for collaborative workspace
 
-  showSessionModal: ->
+  amIHost: ->
+    [sessionOwner] = @sessionKey.split ":"
+    return sessionOwner == KD.nick()
+
   showNotActiveView: ->
     notValid = new KDView
       cssClass : "not-valid"
