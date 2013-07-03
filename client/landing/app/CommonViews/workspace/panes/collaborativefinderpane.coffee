@@ -27,8 +27,6 @@ class CollaborativeFinderPane extends Pane
     @finder = @finderController.getView()
 
     @workspaceRef.on "value", (snapshot) =>
-      return unless snapshot.val()
-
       log "everything is something happened in host filetree", snapshot.name(), snapshot.val()
 
       clientData = snapshot.val()?.ClientWantsToInteractWithRemoteFileTree
@@ -104,7 +102,7 @@ class CollaborativeFinderTreeController extends NFinderTreeController
     @getDelegate().emit "FileTreeInteractionDone", @getSnapshot()
 
   toggleFolder: (nodeView, callback) ->
-    super nodeView, @syncInteraction()
+    super nodeView, @bound "syncInteraction"
 
   openFile: (nodeView) ->
     return unless nodeView
