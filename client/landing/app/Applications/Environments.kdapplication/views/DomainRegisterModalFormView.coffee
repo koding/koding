@@ -127,6 +127,11 @@ class DomainCreationForm extends KDTabViewWithForms
 
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
+    domainOptions     = [
+      { title : "Create a #{nickname}.kd.io subdomain", value : "subdomain" }
+      { title : "I want to register a domain",          value : "new" }
+      { title : "I already have a domain",              value : "existing" }
+    ]
 
     super
       navigable                       : no
@@ -147,7 +152,7 @@ class DomainCreationForm extends KDTabViewWithForms
                 {createButton, billingButton} = form.buttons
 
                 billingButton.hideLoader()
-                
+
                 paymentController.setBillingInfo 'user', group, (success)->
                   if success
                     billingButton.hide()
@@ -177,11 +182,7 @@ class DomainCreationForm extends KDTabViewWithForms
               itemClass               : KDRadioGroup
               cssClass                : "group-type"
               defaultValue            : "subdomain"
-              radios                  : [
-                { title : "Create a #{nickname}.kd.io subdomain", value : "subdomain" }
-                { title : "I want to register a domain",          value : "new" }
-                { title : "i already have a domain",              value : "existing" }
-              ]
+              radios                  : domainOptions
               change                  : =>
                 {DomainOption, domainName, domains, regYears} = @forms["Domain Address"].inputs
                 actionState = DomainOption.getValue()
@@ -204,6 +205,8 @@ class DomainCreationForm extends KDTabViewWithForms
                     regYears.hide()
                     @needBilling no
                     "#{KD.utils.slugify firstName}s-subdomain"
+
+
             domainName                :
               placeholder             : "#{KD.utils.slugify firstName}s-new-domain.com"
               validate                :
@@ -221,11 +224,6 @@ class DomainCreationForm extends KDTabViewWithForms
                 domains               :
                   cssClass            : "hidden"
                   itemClass           : KDSelectBox
-                  selectOptions       : [
-                      # wire this
-                      {title : "vm-0.#{nickname}.kd.io", value : "vm-0"}
-                      {title : "vm-1.#{nickname}.kd.io", value : "vm-1"}
-                    ]
                   validate            :
                     rules             :
                       required        : yes
@@ -240,6 +238,14 @@ class DomainCreationForm extends KDTabViewWithForms
     form.on "FormValidationFailed", createButton.bound 'hideLoader'
     @on "DomainCreationCancelled", createButton.bound 'hideLoader'
 
+  viewAppended:->
+    KD.whoami().fetchDomains (err, userDomains)=>
+      warn err  if err
+      domainList = []
+      for domain in userDomains
+        domainList.push {title:domain.domain, value:domain.domain}  unless domain.regYears > 0
+      @forms["Domain Address"].inputs.domains.setSelectOptions domainList
+
   needBilling:(paymentRequired)->
     form = @forms["Domain Address"]
     {createButton, billingButton} = form.buttons
@@ -253,7 +259,6 @@ class DomainCreationForm extends KDTabViewWithForms
     group             = KD.getSingleton("groupsController").getCurrentGroup()
 
     paymentController.getBillingInfo 'user', group, (err, account)->
-      console.log arguments
       need = err or not account or not account.cardNumber
       if need
         billingButton.show()
@@ -315,8 +320,24 @@ class DomainCreationForm extends KDTabViewWithForms
           return notifyUser "An error occured. Please try again later."
         else
           @showSuccess()
-    else
-      log "mengu please handle this case as well... - SY"
+    else if domainOptionValue is 'subdomain'
+      KD.remote.api.JDomain.createDomain
+        domain         : domainName.getValue()
+        regYears       : 0
+        hostnameAlias  : []
+        loadBalancer   :
+            mode       : "roundrobin"
+      , (err, domain)=>
+        createButton.hideLoader()
+        if err
+          warn err
+          return notifyUser "An error occured. Please try again later."
+        else
+          @showSuccess()
+
+    else # groupSubDomain
+
+
 
   clearSuggestions:-> @suggestionBox?.destroy()
 
