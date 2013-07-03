@@ -147,7 +147,7 @@ class AccountSshKeyListItem extends KDListItemView
       
     if @data.key and @data.title
       @info.$('span.title').text @data.title
-      @info.$('span.key').text @data.key
+      @info.$('span.key').text "#{@data().key.substr(0,45)} . . . #{@data().key.substr(-25)}"
       @swappable.swapViews()
       controller.emit "UpdatedItems"
     else
