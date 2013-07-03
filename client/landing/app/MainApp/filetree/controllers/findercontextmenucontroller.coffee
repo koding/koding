@@ -74,8 +74,6 @@ class NFinderContextMenuController extends KDController
         action                    : 'download'
         disabled                  : yes
       'Copy Public URL'           :
-        children                  :
-          customView              : new  NCopyUrlView {}, fileData
         separator                 : yes
       'New File'                  :
         action                    : 'createFile'
@@ -92,6 +90,12 @@ class NFinderContextMenuController extends KDController
       delete items.Extract
     else
       delete items.Compress
+
+    unless FSHelper.isPublicPath fileData.path
+      delete items['Copy Public URL']
+    else
+      items['Copy Public URL'].children =
+        customView : new NCopyUrlView {}, fileData
 
     return items
 
@@ -135,14 +139,13 @@ class NFinderContextMenuController extends KDController
         disabled                  : yes
         action                    : 'upload'
       'Clone a repo here'         :
+        disabled                  : yes
         action                    : "cloneRepo"
       Download                    :
         disabled                  : yes
         action                    : "download"
         separator                 : yes
       'Copy Public URL'           :
-        children                  :
-          customView              : new NCopyUrlView {}, fileData
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'
@@ -157,6 +160,12 @@ class NFinderContextMenuController extends KDController
       delete items.Expand
     else
       delete items.Collapse
+
+    unless FSHelper.isPublicPath fileData.path
+      delete items['Copy Public URL']
+    else
+      items['Copy Public URL'].children =
+        customView : new NCopyUrlView {}, fileData
 
     {nickname} = KD.whoami().profile
 
