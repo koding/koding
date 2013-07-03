@@ -16,7 +16,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       uuid         : 'unique'
     sharedMethods  :
       static       : [
-        'getUserSubscriptions'
+        'getUserSubscriptions', 'checkUserSubscription'
       ]
       instance     : [
         'cancel', 'resume', 'calculateRefund'
@@ -35,6 +35,15 @@ module.exports = class JRecurlySubscription extends jraphical.Module
   @getUserSubscriptions = secure (client, callback)->
     {delegate} = client.connection
     JRecurlySubscription.getSubscriptions "user_#{delegate._id}", callback
+
+  @checkUserSubscription = secure (client, planCode, callback)->
+    {delegate} = client.connection
+    userCode  = "user_#{delegate._id}"
+
+    JRecurlySubscription.getSubscriptionsAll userCode,
+      userCode : userCode
+      planCode : planCode
+    , callback
 
   @getGroupSubscriptions = (group, callback)->
     JRecurlySubscription.getSubscriptions "group_#{group._id}", callback
