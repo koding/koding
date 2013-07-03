@@ -128,9 +128,9 @@ class DomainCreationForm extends KDTabViewWithForms
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
     domainOptions     = [
-      { title : "Create a #{nickname}.kd.io subdomain", value : "subdomain" }
-      { title : "I want to register a domain",          value : "new" }
-      { title : "I already have a domain",              value : "existing" }
+      { title : "Create a subdomain",          value : "subdomain" }
+      { title : "I want to register a domain", value : "new" }
+      { title : "I already have a domain",     value : "existing" }
     ]
 
     super
@@ -205,8 +205,6 @@ class DomainCreationForm extends KDTabViewWithForms
                     regYears.hide()
                     @needBilling no
                     "#{KD.utils.slugify firstName}s-subdomain"
-
-
             domainName                :
               placeholder             : "#{KD.utils.slugify firstName}s-new-domain.com"
               validate                :
@@ -243,7 +241,8 @@ class DomainCreationForm extends KDTabViewWithForms
       warn err  if err
       domainList = []
       for domain in userDomains
-        domainList.push {title:domain.domain, value:domain.domain}  unless domain.regYears > 0
+        if not domain.regYears > 0 and domain.domain.indexOf("shared") is -1
+          domainList.push {title:domain.domain, value:domain.domain}
       @forms["Domain Address"].inputs.domains.setSelectOptions domainList
 
   needBilling:(paymentRequired)->
