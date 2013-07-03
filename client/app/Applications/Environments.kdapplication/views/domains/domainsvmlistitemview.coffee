@@ -31,6 +31,6 @@ class DomainVMListItemView extends KDListItemView
     {{> @loader}}
     <section>
     <span class="vm-icon fl"></span>
-    {.vm-name.right-overflow{ #(name) }}
+    {.vm-name.right-overflow{ #(hostnameAlias) }}
     </section>
     """
