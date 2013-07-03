@@ -4,7 +4,7 @@ class CollaborativeEditorPane extends CollaborativePane
 
     super options, data
 
-    log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}" if options.sessionKey
+    log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}"
 
     @container = new KDView
 
@@ -22,11 +22,17 @@ class CollaborativeEditorPane extends CollaborativePane
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
       @firepad.on "ready", =>
+        {file, content} = @getOptions()
+        return @openFile file, content  if file
         if @firepad.isHistoryEmpty()
           @firepad.setText "" # fix for a firepad bug
 
       @ref.on "value", (snapshot) =>
         return @save()  if snapshot.val().WaitingSaveRequest is yes
+
+  openFile: (file, content) ->
+    @setData    file
+    @setContent content
 
   setContent: (content) ->
     @firepad.setText content

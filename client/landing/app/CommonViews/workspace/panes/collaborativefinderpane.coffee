@@ -44,10 +44,13 @@ class CollaborativeFinderPane extends CollaborativePane
       @syncContent files
 
     @finderController.on "OpenedAFile", (file, content) =>
-      editorPane = pane for pane in panel.panes when pane instanceof CollaborativeEditorPane
+      for pane in panel.panes
+        if pane instanceof CollaborativeEditorPane or pane instanceof CollaborativeTabbedEditorPane
+          editorPane = pane
+
       return  warn "could not find an editor instance to set file content" unless editorPane
-      editorPane.setData file
-      editorPane.setContent content
+
+      editorPane.openFile file, content
 
     log "i'm a host file tree and my session key is #{@sessionKey}"
 
