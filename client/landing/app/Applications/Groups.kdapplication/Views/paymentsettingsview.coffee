@@ -43,13 +43,8 @@ class GroupPaymentSettingsView extends JView
           click             : =>
             @updateBillingInfo group
         history             :
+          type              : "hidden"
           label             : "History"
-          tagName           : "a"
-          partial           : "Show Payment History"
-          itemClass         : KDCustomHTMLView
-          cssClass          : "billing-link"
-          click             : =>
-            new GroupPaymentHistoryModal {group}
         sharedVM            :
           label             : "Shared VM"
           itemClass         : KDOnOffSwitch
@@ -100,6 +95,19 @@ class GroupPaymentSettingsView extends JView
           cssClass          : "no-title"
 
     @settingsForm = new KDFormViewWithFields formOptions, group
+
+    # Embed list
+    @dbController = new GroupPaymentHistoryListController
+      group     : group
+      itemClass : AccountPaymentHistoryListItem
+
+    dbList = @dbController.getListView()
+
+    dbListForm = @settingsForm.fields.history
+    dbListForm.addSubView @dbController.getView()
+
+    @dbController.loadItems()
+    # Embed done
 
     @getBillingInfo group
 
