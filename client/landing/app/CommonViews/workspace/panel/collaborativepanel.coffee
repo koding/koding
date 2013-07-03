@@ -42,8 +42,9 @@ class CollaborativePanel extends Panel
     [sessionOwner] = sessionKey.split ":"
     return sessionOwner == KD.nick()
 
-CollaborativePanel::EditorPaneClass   = CollaborativeEditorPane
-CollaborativePanel::TerminalPaneClass = CollaborativeTerminalPane
-CollaborativePanel::FinderPaneClass   = CollaborativeFinderPane
-CollaborativePanel::VideoPaneClass    = VideoPane
-CollaborativePanel::PreviewPaneClass  = PreviewPane
+CollaborativePanel::EditorPaneClass        = CollaborativeEditorPane
+CollaborativePanel::TerminalPaneClass      = CollaborativeTerminalPane
+CollaborativePanel::FinderPaneClass        = CollaborativeFinderPane
+CollaborativePanel::TabbedEditorPaneClass  = CollaborativeTabbedEditorPane
+CollaborativePanel::VideoPaneClass         = VideoPane
+CollaborativePanel::PreviewPaneClass       = PreviewPane
