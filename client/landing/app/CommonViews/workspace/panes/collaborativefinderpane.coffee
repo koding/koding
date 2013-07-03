@@ -1,7 +1,7 @@
 # TODO: Should implement non-collaborative finder
 # TODO: Should extend this class from NonCollab one.
 
-class CollaborativeFinderPane extends Pane
+class CollaborativeFinderPane extends CollaborativePane
 
   constructor: (options = {}, data) ->
 
@@ -53,11 +53,6 @@ class CollaborativeFinderPane extends Pane
 
   syncContent: (files) ->
     @workspaceRef.set { files }
-
-  createSessionKey: ->
-    nick = KD.nick()
-    u    = KD.utils
-    return "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
 
   pistachio: ->
     """
