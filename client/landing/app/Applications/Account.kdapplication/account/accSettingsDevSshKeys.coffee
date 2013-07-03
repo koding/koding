@@ -4,12 +4,14 @@ class AccountSshKeyListController extends KDListViewController
 
     @loadItems()
 
-    @getListView().controller = @
-
-    @on "UpdatedItems", =>
+    @getListView().on "UpdatedItems", =>
       newKeys = @getItemsOrdered().map (item)-> item.getData()
       KD.remote.api.JUser.setSSHKeys newKeys, ->
-        console.log "Updated keys", arguments
+        console.log "Saved keys."
+
+    @getListView().on "RemoveItem", (item)=>
+      @removeItem item
+      @getListView().emit "UpdatedItems"
 
   loadItems: ()->
     @removeAllItems()
@@ -28,7 +30,8 @@ class AccountSshKeyListController extends KDListViewController
       iconOnly  : yes
       iconClass : "plus"
       callback  : =>
-        @getListView().addNewKey @
+        @addItem {key: '', title: ''}, 0
+        @getListView().items.first.swapSwappable()
 
 class AccountSshKeyList extends KDListView
   constructor:(options,data)->
@@ -37,11 +40,6 @@ class AccountSshKeyList extends KDListView
       itemClass  : AccountSshKeyListItem
     ,options
     super options,data
-    console.log @getDelegate()
-
-  addNewKey: (controller)->
-    controller.addItem {key: '', title: ''}, 0
-    @items.first.swapSwappable()
 
 class AccountSshKeyForm extends KDFormView
   viewAppended:->
@@ -135,21 +133,18 @@ class AccountSshKeyListItem extends KDListItemView
       @deleteItem()
 
   deleteItem:->
-    {controller} = @getDelegate()
-    controller.removeItem @
-    controller.emit "UpdatedItems"
+    @getDelegate().emit "RemoveItem", @
 
   saveItem:->
-    {controller} = @getDelegate()
     @data =
       key   : @form.keyTextarea.getValue()
       title : @form.titleInput.getValue()
       
     if @data.key and @data.title
       @info.$('span.title').text @data.title
-      @info.$('span.key').text "#{@data().key.substr(0,45)} . . . #{@data().key.substr(-25)}"
+      @info.$('span.key').text "#{@data.key.substr(0,45)} . . . #{@data.key.substr(-25)}"
       @swappable.swapViews()
-      controller.emit "UpdatedItems"
+      @getDelegate().emit "UpdatedItems"
     else
       new KDNotificationView
         title : "Key shouldn't be empty."
