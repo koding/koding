@@ -1,4 +1,4 @@
-class CollaborativeEditorPane extends Pane
+class CollaborativeEditorPane extends CollaborativePane
 
   constructor: (options = {}, data) ->
 
@@ -50,11 +50,6 @@ class CollaborativeEditorPane extends Pane
     else
       log "client wants to save a file"
       @ref.child("WaitingSaveRequest").set yes
-
-  createSessionKey: ->
-    nick = KD.nick()
-    u    = KD.utils
-    return "#{nick}:#{u.generatePassword(4)}:#{u.getRandomNumber(100)}"
 
   pistachio: ->
     """
