@@ -58,8 +58,10 @@ class AccountSshKeyForm extends KDFormView
       name         : "sshkey"
       cssClass     : "light"
 
-    @titleInput.setValue @data.title if @data.title
-    @keyTextarea.setValue @data.key if @data.key
+    {key, title} = @getData()
+
+    @titleInput.setValue  title if title
+    @keyTextarea.setValue key   if key
 
     @addSubView formline2 = new KDCustomHTMLView
       cssClass : "button-holder"
@@ -94,9 +96,9 @@ class AccountSshKeyListItem extends KDListItemView
   viewAppended:->
     super
     @form = form = new AccountSshKeyForm
-      delegate : @
+      delegate : this
       cssClass : "posrelative"
-    ,@data
+    , @getData()
 
     @info = info = new KDCustomHTMLView
       tagName  : "span"
@@ -126,8 +128,8 @@ class AccountSshKeyListItem extends KDListItemView
     @swappable.swapViews()
 
   cancelItem:->
-    @data.key = @form.keyTextarea.getValue()
-    if @data.key
+    @getData().key = @form.keyTextarea.getValue()
+    if @getData().key
       @swappable.swapViews()
     else
       @deleteItem()
@@ -136,13 +138,15 @@ class AccountSshKeyListItem extends KDListItemView
     @getDelegate().emit "RemoveItem", @
 
   saveItem:->
-    @data =
+    @setData
       key   : @form.keyTextarea.getValue()
       title : @form.titleInput.getValue()
+
+    {key, title} = @getData()
       
-    if @data.key and @data.title
-      @info.$('span.title').text @data.title
-      @info.$('span.key').text "#{@data.key.substr(0,45)} . . . #{@data.key.substr(-25)}"
+    if key and title
+      @info.$('span.title').text title
+      @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
       @getDelegate().emit "UpdatedItems"
     else
