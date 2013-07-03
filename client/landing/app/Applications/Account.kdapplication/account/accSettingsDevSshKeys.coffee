@@ -48,15 +48,25 @@ class AccountSshKeyForm extends KDFormView
       tagName : "div"
       cssClass : "formline"
 
+    formline1.addSubView @titleLabel = new KDLabelView
+      for      : "sshtitle"
+      title    : "Key Title"
+
     formline1.addSubView @titleInput = new KDInputView
-      placeholder  : "Key Name"
+      placeholder  : "Label your key here..."
       name         : "sshtitle"
+      label        : @titleLabel
+
+    formline1.addSubView @keyTextLabel = new KDLabelView
+      for      : "sshkey"
+      title    : "SSH Key"
 
     formline1.addSubView @keyTextarea = new KDInputView
-      placeholder  : "Paste your SSH key"
+      placeholder  : "Paste your SSH key here..."
       type         : "textarea"
       name         : "sshkey"
       cssClass     : "light"
+      label        : @keyTextLabel
 
     {key, title} = @getData()
 
@@ -143,7 +153,7 @@ class AccountSshKeyListItem extends KDListItemView
       title : @form.titleInput.getValue()
 
     {key, title} = @getData()
-      
+
     if key and title
       @info.$('span.title').text title
       @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
