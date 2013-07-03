@@ -61,7 +61,7 @@ class CollaborativeClientTreeViewController extends JTreeViewController
     log "Client interacted with this", nodeView
 
     nodeData = nodeView.getData()
-    @getOptions().workspaceRef.set "ClientWantsToInteractWithRemoteTerminal":
+    @getOptions().workspaceRef.set "ClientWantsToInteractWithRemoteFileTree":
       path   : nodeData.path
       type   : nodeData.type
       vmName : nodeData.vmName
