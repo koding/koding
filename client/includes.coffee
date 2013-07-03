@@ -716,6 +716,7 @@ module.exports = [
   "libs/firepad/firepad.css",
   "libs/codemirror/lib/codemirror.css",
   "app/CommonViews/workspace/panes/collaborativepane.coffee",
+  "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
