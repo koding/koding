@@ -3,21 +3,24 @@ class NCopyUrlView extends JView
   constructor: ->
     super
 
-    @path = FSHelper.plainPath @getData().path
-    @publicPath = @path.replace \
-      ////home/(.*)/Web/(.*)///, "http://$1.#{KD.config.userSitesDomain}/$2"
+    {path}      = @getData()
+    hostname    = FSHelper.getVMNameFromPath path
+    @publicPath = FSHelper.isPublicPath path
 
     @inputUrlLabel  = new KDLabelView
       cssClass      : 'public-url-label'
       title         : 'Public URL'
-      click         :=>
-        @focusAndSelectAll()
+      click         : => @focusAndSelectAll()
 
     @inputUrl       = new KDInputView
       label         : @inputUrlLabel
       cssClass      : 'public-url-input'
 
-    @inputUrl.setValue @publicPath
+    KD.getSingleton('vmController').fetchVMDomains hostname, (err, domains)=>
+      if domains?.length > 0 and not err
+        @publicPath = domains.first
+        @inputUrl.setValue (FSHelper.plainPath path).replace \
+          ////home/(.*)/Web/(.*)///, "http://#{@publicPath}/$2"
 
   focusAndSelectAll:->
     @inputUrl.setFocus()
@@ -28,9 +31,7 @@ class NCopyUrlView extends JView
     super
 
   pistachio:->
-    hasNoPublicPath = @publicPath is @path
-
-    if hasNoPublicPath
+    unless @publicPath
       """
       <div class="public-url-warning">This #{@getData().type} can not be reached over a public URL</div>
       """
