@@ -144,9 +144,10 @@ class AccountSshKeyListItem extends KDListItemView
     @data =
       key   : @form.keyTextarea.getValue()
       title : @form.titleInput.getValue()
+      
     if @data.key and @data.title
-      @info.$('div.title').text @data.title
-      @info.$('div.key').text @data.key
+      @info.$('span.title').text @data.title
+      @info.$('span.key').text @data.key
       @swappable.swapViews()
       controller.emit "UpdatedItems"
     else
