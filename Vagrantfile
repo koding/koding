@@ -105,16 +105,15 @@ Vagrant.configure("2") do |config|
       end
       default.vm.provision :shell, :inline => "
         TRIALS=0
-        rabbitmqctl -q list_users 2>1 > /dev/null
         while [ \"$TRIALS\" -ne \"3\" ]
         do
           sleep `expr 4 - $TRIALS`
           TRIALS=`expr $TRIALS + 1`
-          if rabbitmqctl -q list_users 2>1 | grep guest
+          if rabbitmqctl -q list_users 2>/dev/null | grep guest
           then
-            if ! rabbitmqctl list_vhosts|grep followfeed
+            if ! rabbitmqctl list_vhosts 2>/dev/null|grep followfeed
             then
-              rabbitmqctl add_vhost followfeed 2>1 > /dev/null; %s 
+              rabbitmqctl add_vhost followfeed 2>/dev/null; %s 
               if [ \"$?\" -ne \"0\" ]
               then
                 continue
