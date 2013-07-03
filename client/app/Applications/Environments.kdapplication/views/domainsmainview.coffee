@@ -72,6 +72,7 @@ class DomainsMainView extends JView
         placement : "left"
       callback    : (elm, event)=>
         @domainsListViewController.update()
+        @refreshDomainsButton.hideLoader()
 
     @actionArea.addSubView creationForm = new DomainCreationForm
 
