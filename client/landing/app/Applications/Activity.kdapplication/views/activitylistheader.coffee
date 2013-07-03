@@ -62,8 +62,9 @@ class ActivityListHeader extends JView
     @updateShowNewItemsLink()
 
   decorateLiveUpdateButton:->
-    if KD.isLoggedIn() then @liveUpdateButton.show()
-    else @liveUpdateButton.hide()
+    @liveUpdateButton.show()
+    # if KD.isLoggedIn() then @liveUpdateButton.show()
+    # else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0

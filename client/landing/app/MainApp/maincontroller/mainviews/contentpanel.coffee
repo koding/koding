@@ -11,7 +11,7 @@ class ContentPanel extends KDView
     @chatMargin = 0
     @windowController or= KD.getSingleton 'windowController'
 
-    @navOpenedOnce = if KD.isLoggedIn() then yes else no
+    @navOpenedOnce = yes #if KD.isLoggedIn() then yes else no
 
     mainViewController = KD.getSingleton "mainViewController"
     mainViewController.on "UILayoutNeedsToChange", @bound "changeLayout"
@@ -50,7 +50,7 @@ class ContentPanel extends KDView
     @[if hideTabs then 'setClass' else 'unsetClass'] "no-shadow"
 
   adjustLayoutHelper:(name, type)->
-    if KD.isLoggedIn() or @navOpenedOnce
+    if @navOpenedOnce # KD.isLoggedIn() or
     then @[nameMap[name] or typeMap[type] or typeMap[@state]]?()
     else @adjustForFullWidth()
 

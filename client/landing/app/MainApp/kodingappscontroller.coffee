@@ -53,7 +53,7 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
-    if KD.isLoggedIn() and not @appStorage?
+    if not @appStorage? # KD.isLoggedIn() and
       @appStorage = new AppStorage 'KodingApps', '1.0'
 
     if Object.keys(@constructor.manifests).length isnt 0
@@ -190,7 +190,7 @@ class KodingAppsController extends KDController
           callback err, script
 
   getPublishedApps: (callback) ->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     @fetchApps (err, apps) =>
       appNames = []
       appNames.push appName for appName, manifest of apps

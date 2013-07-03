@@ -63,10 +63,10 @@ class KodingRouter extends KDRouter
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      if KD.isLoggedIn()
-        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      else
-        @handleRoute @getDefaultRoute(), {entryPoint}
+      # if KD.isLoggedIn()
+      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      # else
+      #   @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
@@ -204,13 +204,15 @@ class KodingRouter extends KDRouter
 
     requireLogin =(fn)->
       mainController.ready ->
-        if KD.isLoggedIn() then __utils.defer fn
-        else clear()
+        __utils.defer fn
+        # if KD.isLoggedIn() then __utils.defer fn
+        # else clear()
 
     requireLogout =(fn)->
       mainController.ready ->
-        unless KD.isLoggedIn() then __utils.defer fn
-        else clear()
+        __utils.defer fn
+        # unless KD.isLoggedIn() then __utils.defer fn
+        # else clear()
 
     createSectionHandler = (sec)=>
       ({params:{name, slug}, query})=>

@@ -219,7 +219,7 @@ class GroupsAppController extends AppController
       @emit 'ready'
 
   markGroupRelationship:(controller, ids)->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
 
     fetchRoles =
       member: (view)-> view.markMemberGroup()
