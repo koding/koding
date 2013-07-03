@@ -31,7 +31,7 @@ class CollaborativeFinderPane extends Pane
 
       log "everything is something happened in host filetree", snapshot.name(), snapshot.val()
 
-      clientData = snapshot.val()?.ClientWantsToInteractWithRemoteTerminal
+      clientData = snapshot.val()?.ClientWantsToInteractWithRemoteFileTree
       if clientData
         path             = "[#{clientData.vmName}]#{clientData.path}"
         {treeController} = @finderController
