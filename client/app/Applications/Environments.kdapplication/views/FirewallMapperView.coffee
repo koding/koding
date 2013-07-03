@@ -4,7 +4,7 @@ class FirewallMapperView extends KDView
     data or= {}
     super options, data
 
-    @on "domainChanged", (domainListItem)->
+    @on "DomainChanged", (domainListItem)->
       @getData().domain = domainListItem.data
       @updateViewContent()
 

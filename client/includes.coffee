@@ -530,9 +530,11 @@ module.exports = [
   "app/Applications/Topics.kdapplication/Views/TopicsListItemView.coffee",
 
   # VMs
-  "app/Applications/Environments.kdapplication/views/VMs.coffee",
-  "app/Applications/Environments.kdapplication/views/Domains.coffee",
+  "app/Applications/Environments.kdapplication/views/vmsmainview.coffee",
+  "app/Applications/Environments.kdapplication/views/domainsmainview.coffee",
   "app/Applications/Environments.kdapplication/views/DomainListItemView.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
   "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
@@ -545,7 +547,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
   "app/Applications/Environments.kdapplication/AppController.coffee",
-  "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
+  # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
   "app/Applications/Environments.kdapplication/Controllers/FirewallRuleListController.coffee"

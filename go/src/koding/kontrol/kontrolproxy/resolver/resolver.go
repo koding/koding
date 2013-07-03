@@ -22,6 +22,10 @@ type Target struct {
 }
 
 func NewTarget(url *url.URL, mode, persistence string) *Target {
+	if url == nil {
+		url, _ = url.Parse("http://localhost/maintenance")
+	}
+
 	return &Target{
 		Url:         url,
 		Mode:        mode,
@@ -40,6 +44,14 @@ func init() {
 	}
 }
 
+// GetTarget is used to resolve any hostname to their final target destination
+// together with the mode of the domain. Any incoming domain can have multiple
+// different target destinations. GetTarget returns the ultimate target
+// destinations. Some examples:
+//
+// koding.com -> "http://webserver-build-koding-813a.in.koding.com:3000", mode:internal
+// arslan.kd.io -> "http://10.128.2.25:80", mode:vm
+// y.koding.com -> "http://localhost/maintenance", mode:maintenance
 func GetTarget(host string) (*Target, error) {
 	var target *url.URL
 	var domain proxyconfig.Domain
@@ -81,6 +93,7 @@ func GetTarget(host string) (*Target, error) {
 
 	switch mode {
 	case "maintenance":
+		// for avoiding nil pointer referencing
 		return NewTarget(nil, mode, persistence), nil
 	case "redirect":
 		target, err := url.Parse(domain.Proxy.FullUrl)
@@ -95,7 +108,6 @@ func GetTarget(host string) (*Target, error) {
 			N := float64(len(domain.HostnameAlias))
 			n := int(math.Mod(float64(domain.LoadBalancer.Index+1), N))
 			hostname = domain.HostnameAlias[n]
-
 			domain.LoadBalancer.Index = n
 			go proxyDB.UpdateDomain(&domain)
 		case "sticky":
@@ -147,12 +159,13 @@ func GetTarget(host string) (*Target, error) {
 
 		switch keyData.LoadBalancer.Mode {
 		case "roundrobin":
-			N := float64(len(keyData.Host))
-			n := int(math.Mod(float64(keyData.LoadBalancer.Index+1), N))
-			hostname = keyData.Host[n]
-
+			var n int
+			hostname, n = roundRobin(keyData.Host, keyData.LoadBalancer.Index, 0)
 			keyData.LoadBalancer.Index = n
 			go proxyDB.UpdateKeyData(username, servicename, keyData)
+			if hostname == "" {
+				return NewTarget(nil, "maintenance", persistence), nil
+			}
 		case "sticky":
 			hostname = keyData.Host[keyData.LoadBalancer.Index]
 		case "random":
@@ -175,4 +188,25 @@ func GetTarget(host string) (*Target, error) {
 	}
 
 	return NewTarget(target, mode, persistence), nil
+}
+
+// roundRobin is doing roundrobin between between the servers in the hosts
+// array. If picks the next item in the array, specified with index and then
+// checks for alivenes. If the server is dead it checks for the next item,
+// until all servers are checked. If all servers are dead it returns an empty
+// string, otherwise it returns the correct server name.
+func roundRobin(hosts []string, index, iter int) (string, int) {
+	if iter == len(hosts) {
+		return "", 0 // all hosts are dead
+	}
+
+	N := float64(len(hosts))
+	n := int(math.Mod(float64(index+1), N))
+	hostname := hosts[n]
+
+	if err := utils.CheckServer(hostname); err != nil {
+		hostname, n = roundRobin(hosts, index+1, iter+1)
+	}
+
+	return hostname, n
 }
