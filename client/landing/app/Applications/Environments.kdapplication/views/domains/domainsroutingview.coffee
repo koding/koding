@@ -79,11 +79,11 @@ class DomainsRoutingView extends JView
     @resize()
 
   bindVM:(listItem)->
-    domain  = @getData()
-    vm      = listItem.getData()
-    {name}  = vm
-    options =
-      vmName : name
+    domain          = @getData()
+    vm              = listItem.getData()
+    {hostnameAlias} = vm
+    options         = {hostnameAlias}
+
     domain.bindVM options, (err)=>
       unless err
         listItem.hideLoader()
@@ -95,9 +95,8 @@ class DomainsRoutingView extends JView
   unbindVM:(listItem)->
     domain  = @getData()
     vm      = listItem.getData()
-    {name}  = vm
-    options =
-      vmName : name
+    {hostnameAlias}  = vm
+    options = {hostnameAlias}
 
     domain.unbindVM options, (err)=>
       unless err
@@ -112,16 +111,17 @@ class DomainsRoutingView extends JView
     domain = @getData()
     @connectedVMController.showLazyLoader()
     @disconnectedVMController.showLazyLoader()
-    KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
+    KD.remote.api.JVM.fetchVms (err, vms)=>
       if vms
-        for vm in vms
-          for alias in vm.hostnameAlias
-            if alias in domain.hostnameAlias
-              continue if @connectedVMController.itemsIndexed[vm._id]
-              @connectedVMController.addItem vm
-            else
-              continue if @disconnectedVMController.itemsIndexed[vm._id]
-              @disconnectedVMController.addItem vm
+        vmList = ({hostnameAlias:vm} for vm in vms)  if vms.length > 0
+
+        for vm in vmList
+          if vm.hostnameAlias in domain.hostnameAlias
+            continue if @connectedVMController.itemsIndexed[vm.hostnameAlias]
+            @connectedVMController.addItem vm
+          else
+            continue if @disconnectedVMController.itemsIndexed[vm.hostnameAlias]
+            @disconnectedVMController.addItem vm
       else
         @connectedVMController.showNoItemWidget()
         @disconnectedVMController.showNoItemWidget()
