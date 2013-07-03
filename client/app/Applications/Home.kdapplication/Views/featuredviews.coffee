@@ -209,12 +209,12 @@ class HomeFeaturedAppsDetailsView extends JView
       title : "Install this app"
       cssClass : "cupid-green details-install-button"
       callback :=>
-        if KD.isLoggedIn()
-          KD.getSingleton('router').handleRoute "/Apps/#{slug}", state:@getData()
-          @getDelegate().emit "ModalShouldClose"
-        else
-          KD.getSingleton('router').handleRoute "/Login", state:@getData()
-          @getDelegate().emit "ModalShouldClose"
+        # if KD.isLoggedIn()
+        KD.getSingleton('router').handleRoute "/Apps/#{slug}", state:@getData()
+        @getDelegate().emit "ModalShouldClose"
+        # else
+        #   KD.getSingleton('router').handleRoute "/Login", state:@getData()
+        #   @getDelegate().emit "ModalShouldClose"
 
   pistachio:->
     """

@@ -118,7 +118,7 @@ class NFinderController extends KDViewController
       @appStorage.setValue "mountedVM", vms
 
   mountVm:(vm, fetchContent = yes)->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
     [vmName, path] = vm.split ":"
@@ -146,7 +146,7 @@ class NFinderController extends KDViewController
       , yes
 
   unmountVm:(vmName)->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     return warn 'No such VM!'  unless vmItem = @getVmNode vmName
 
     @updateMountState vmName, no

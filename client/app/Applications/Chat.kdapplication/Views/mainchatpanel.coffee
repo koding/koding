@@ -45,7 +45,7 @@ class MainChatPanel extends JView
     # @showPanel()  if KD.isLoggedIn()
 
   showPanel:->
-    return  unless KD.isLoggedIn()
+    # return  unless KD.isLoggedIn()
 
     @show()
     @utils.defer =>

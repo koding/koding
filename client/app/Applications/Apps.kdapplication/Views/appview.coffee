@@ -55,10 +55,10 @@ class AppView extends KDView
       ]
     , app
 
-    if KD.isLoggedIn()
-      KD.whoami().isFollowing? app.getId(), "JApp", (err, following) =>
-        app.followee = following
-        @followButton.setState "Unfollow"  if following
+    # if KD.isLoggedIn()
+    KD.whoami().isFollowing? app.getId(), "JApp", (err, following) =>
+      app.followee = following
+      @followButton.setState "Unfollow"  if following
 
     appsController = KD.getSingleton("kodingAppsController")
 
@@ -115,13 +115,14 @@ class AppView extends KDView
       @approveButton = new KDView
       @removeButton  = new KDView
 
-    if KD.isLoggedIn() then app.checkIfLikedBefore (err, likedBefore)=>
+    # if KD.isLoggedIn() then
+    app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
         @likeButton.setState "Unlike"
       else
         @likeButton.setState "Like"
 
-    if app.versions?.length > 1 and KD.isLoggedIn()
+    if app.versions?.length > 1# and KD.isLoggedIn()
       menu = {}
 
       for version,i in app.versions
