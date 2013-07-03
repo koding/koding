@@ -98,6 +98,37 @@ class CollaborativeWorkspace extends Workspace
         @addSubView new CollaborativeWorkspace options
 
     @container.addSubView notValid
+
+  showDisconnectedModal: ->
+    @disconnectedModal = new KDModalView
+      title        : "Host disconnected"
+      cssClass     : "host-disconnected-modal"
+      content      : "<p>It seems host is disconnected</p>"
+      overlay      : yes
+      buttons      :
+        Start      :
+          title    : "Start New Session"
+          callback : =>
+            @disconnectedModal.destroy()
+            delete @disconnectedModal
+            @showSessionModal()
+        Join       :
+          title    : "Join Another Session"
+          callback : =>
+            @disconnectedModal.destroy()
+            delete @disconnectedModal
+            @showSessionModal (modal) ->
+              modal.modalTabs.showPaneByIndex(1)
+        Exit       :
+          title    : "Exit App"
+          cssClass : "modal-cancel"
+          callback : ->
+            @disconnectedModal.destroy()
+            delete @disconnectedModal
+            appManager = KD.getSingleton("appManager")
+            appManager.quit appManager.frontApp
+
+  showSessionModal: (callback = noop) ->
     modal                       = new KDModalViewWithForms
       title                     : "Manage Your Session"
       content                   : ""
@@ -159,3 +190,5 @@ class CollaborativeWorkspace extends Workspace
                 title           : "Close"
                 cssClass        : "modal-cancel"
                 callback        : -> modal.destroy()
+
+    callback modal
