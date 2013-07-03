@@ -88,6 +88,7 @@ class Panel extends JView
       "video"            : @VideoPaneClass
       "preview"          : @PreviewPaneClass
       "finder"           : @FinderPaneClass
+      "tabbedEditor"     : @TabbedEditorPaneClass
 
     return  paneTypesToPaneClass[paneType]
 
@@ -148,7 +149,8 @@ class Panel extends JView
       {{> @container}}
     """
 
-Panel::EditorPaneClass   = EditorPane
-Panel::TerminalPaneClass = TerminalPane
-Panel::VideoPaneClass    = VideoPane
-Panel::PreviewPaneClass  = PreviewPane
+Panel::EditorPaneClass        = EditorPane
+Panel::TabbedEditorPaneClass  = EditorPane
+Panel::TerminalPaneClass      = TerminalPane
+Panel::VideoPaneClass         = VideoPane
+Panel::PreviewPaneClass       = PreviewPane
