@@ -79,10 +79,12 @@ class DomainsRoutingView extends JView
     @resize()
 
   bindVM:(listItem)->
-    domain = @getData()
-    vm     = listItem.getData()
-    {name} = vm
-    domain.bindVM vmName : name, (err)=>
+    domain  = @getData()
+    vm      = listItem.getData()
+    {name}  = vm
+    options =
+      vmName : name
+    domain.bindVM options, (err)=>
       unless err
         listItem.hideLoader()
         @disconnectedVMController.removeItem listItem
@@ -91,10 +93,13 @@ class DomainsRoutingView extends JView
         notifyError err
 
   unbindVM:(listItem)->
-    domain = @getData()
-    vm     = listItem.getData()
-    {name} = vm
-    domain.unbindVM vmName : name, (err)=>
+    domain  = @getData()
+    vm      = listItem.getData()
+    {name}  = vm
+    options =
+      vmName : name
+
+    domain.unbindVM options, (err)=>
       unless err
         listItem.hideLoader()
         @connectedVMController.removeItem listItem

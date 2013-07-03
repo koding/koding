@@ -22,13 +22,11 @@ class DomainListItemView extends KDListItemView
         margin    : 19
       lazyLoad    : yes
     ,
-      'Bind to VM' :
-        callback         : ->
-          @destroy()
-      'Delete Domain'    :
-        callback         : ->
-          @destroy()
-        separator        : yes
+      'Bind to VM'    :
+        callback      : -> @destroy()
+      'Delete Domain' :
+        callback      : -> @destroy()
+        separator     : yes
 
   viewAppended: JView::viewAppended
 
