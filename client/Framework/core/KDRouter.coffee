@@ -40,6 +40,7 @@ class KDRouter extends KDObject
           state             : state
 
   clear:(route = '/', replaceState = yes)->
+    console.log {arguments}
     delete @userRoute # TODO: i hope deleting the userRoute here doesn't break anything... C.T.
     @handleRoute route, {replaceState}
 
@@ -59,7 +60,9 @@ class KDRouter extends KDObject
     window.removeEventListener 'popstate', @bound "popState"
     return yes
 
-  @handleNotFound =(route)-> log "The route #{route} was not found!"
+  @handleNotFound =(route)->
+    console.trace()
+    log "The route #{route} was not found!"
 
   getCurrentPath:-> @currentPath
 
@@ -100,6 +103,9 @@ class KDRouter extends KDObject
     @addRoute route, listener  for own route, listener of routes
 
   handleRoute:(userRoute, options={})->
+
+    console.trace()
+    console.log
 
     userRoute = userRoute.slice 1  if userRoute.indexOf('!') is 0
     @visitedRoutes.push userRoute

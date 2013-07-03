@@ -189,12 +189,13 @@ class KodingRouter extends KDRouter
         @openContent null, section, models, route, null, passOptions
 
   clear:(route, replaceState=yes)->
+    console.log {arguments}
     unless route
       {entryPoint} = KD.config
       if entryPoint?.type is 'group' and entryPoint?.slug?
         route = "/#{KD.config.entryPoint?.slug}"
       else
-        route = '?'
+        route = '/'
     super route, replaceState
 
   getRoutes =->
@@ -381,7 +382,7 @@ class KodingRouter extends KDRouter
               run <code>$ kd register renew</code> on command line interface.</p>
               """
               showModal title, content
-              
+
       # top level names
       '/:name':do->
         open =(routeInfo, model)->

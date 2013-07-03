@@ -172,7 +172,6 @@ module.exports = class JVM extends Model
 
           vm.save (err) =>
 
-            handleError err
             if err
               return console.warn "Failed to create VM for ", \
                                    {users, groups, hostnameAlias}
