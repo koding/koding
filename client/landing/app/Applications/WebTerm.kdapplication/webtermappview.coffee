@@ -69,8 +69,8 @@ class WebTermAppView extends JView
         KD.getSingleton("mainView").enableFullscreen()
         if window.parent?.postMessage
           window.parent.postMessage "fullScreenTerminalReady", "*"
+          window.parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
           @on "KDObjectWillBeDestroyed", ->
-            log "hello i am going"
             window.parent.postMessage "fullScreenWillBeDestroyed", "*"
 
   _windowDidResize:->

@@ -35,6 +35,7 @@ class Sidebar extends JView
     ,
       id        : "navigation"
       title     : "navigation"
+      items     : []
 
     navAdditions = [
       { type  : 'separator',      order : 61}
@@ -116,7 +117,8 @@ class Sidebar extends JView
       icon      : yes
       iconClass : "plus-orange"
       cssClass  : "clean-gray create-vm"
-      callback  : KD.getSingleton('vmController').createNewVM
+      callback  : ->
+        KD.getSingleton('vmController').createNewVM()
 
     @environmentButton = new KDButtonView
       title     : "Environments"
@@ -275,23 +277,10 @@ class Sidebar extends JView
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      # {
-      #   title   : "Launch Terminal", icon : "terminal",
-      #   appPath : "WebTerm", isWebTerm : yes
-      # }
-      # { title   : "Settings",           icon : "cog" }
-      # {
-      #   title   : "Keyboard Shortcuts", icon : "shortcuts",
-      #   action  : "showShortcuts"
-      # }
       {
         title   : "your environments",   icon : "resources",
         action  : "showEnvironments"
       }
-      # {
-      #   title   : "Create a new VM",      icon : "plus",
-      #   action  : "createNewVM"
-      # }
     ]
 
   adminNavItems =
