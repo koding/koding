@@ -371,7 +371,7 @@ class NFinderContextMenuController extends KDController
     fileExtension    = FSItem.getFileExtension fileView.getData().path
     appsController   = @getSingleton "kodingAppsController"
     {extensionToApp} = appsController
-    possibleApps     = extensionToApp[fileExtension] or extensionToApp.txt
+    possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
     for appName in possibleApps
       items[appName] = action: "openFileWithApp"
 
