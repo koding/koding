@@ -6,13 +6,17 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     log "i am a CollaborativeTabbedEditorPane"
 
-    @panel         = @getDelegate()
-    @workspace     = @panel.getDelegate()
-    @sessionKey    = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef  = @workspace.firepadRef.child @sessionKey
+    @panel            = @getDelegate()
+    @workspace        = @panel.getDelegate()
+    @sessionKey       = @getOptions().sessionKey or @createSessionKey()
+    @workspaceRef     = @workspace.firepadRef.child @sessionKey
+    @isJoinedASession = @getOptions().sessionKey
+
+    log "joined an old session again, creating new tabbed editor"
 
     @createEditorTabs()
-    @createEditorInstance()
+    return @createEditorInstance()  unless @isJoinedASession
+    @recoverOldSessionTabs()
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
@@ -23,12 +27,13 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       delegate           : @
       tabHandleContainer : @tabHandleContainer
 
-  createEditorInstance: (file, content) ->
+  createEditorInstance: (file, content, sessionKey) ->
     pane   = new KDTabPaneView
       name : file?.name or "Untitled.txt"
 
     editor = new CollaborativeEditorPane {
       delegate : @getDelegate()
+      sessionKey
       file
       content
     }
@@ -47,6 +52,14 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       @workspaceRef.child("tabs").push
         path       : file.path
         sessionKey : editor.sessionKey
+
+  recoverOldSessionTabs: ->
+    @workspaceRef.once "value", (snapshot) =>
+      {tabs} = snapshot.val()?
+      return unless tabs
+      for key, value of tabs
+        file = FSHelper.createFileFromPath value.path
+        @createEditorInstance file, null, value.sessionKey
 
   openFile: CollaborativeTabbedEditorPane::createEditorInstance
 
