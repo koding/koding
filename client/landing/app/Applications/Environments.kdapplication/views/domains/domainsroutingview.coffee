@@ -1,0 +1,165 @@
+class DomainsRoutingView extends JView
+
+  notifyError = (err)->
+    new KDNotificationView
+      type     : "mini"
+      cssClass : "error"
+      duration : 5000
+      title    : err
+
+  constructor:->
+
+    super
+
+    domain = @getData()
+
+    @dropArea = new KDView
+      cssClass : 'drop-area'
+      bind     : "drop dragenter dragover"
+      partial  : "<span class='arrow'></span><cite>#{domain.domain}</domain>"
+
+    @vmMapperView = new DomainMapperView {}, domain
+
+    @kiteMapperView = new KDView
+      cssClass : 'hidden'
+      partial  : 'Kites are listed here.'
+
+    @routingSelector = new KDSelectBox
+      name          : 'routing-type'
+      selectOptions : [
+        { title:"VMs",   value:"VM" }
+        { title:"Kites", value:"Kite" }
+      ]
+      callback      : @bound 'switchRouting'
+
+    @disconnectedVMController = new KDListViewController
+      view        : new KDListView
+        cssClass  : 'vm-list'
+        itemClass : DomainVMListItemView
+      , domain
+
+    @disconnectedKiteController = new KDListViewController
+      view        : new KDListView
+        cssClass  : 'kite-list'
+        itemClass : DomainVMListItemView
+      , domain
+
+    @connectedVMController = new KDListViewController
+      view        : new KDListView
+        cssClass  : 'vm-list'
+        itemClass : DomainVMListItemView
+      , domain
+
+    @connectedKiteController = new KDListViewController
+      view        : new KDListView
+        cssClass  : 'kite-list'
+        itemClass : DomainVMListItemView
+      , domain
+
+    @disconnectedVMs   = @disconnectedVMController.getView()
+    @disconnectedKites = @disconnectedKiteController.getView()
+    @connectedVMs      = @connectedVMController.getView()
+    @connectedKites    = @connectedKiteController.getView()
+
+    @disconnectedKites.hide()
+    @connectedKites.hide()
+
+    @dropArea.addSubView @connectedVMs
+    @dropArea.addSubView @connectedKites
+
+    connectedVMList    = @connectedVMController.getListView()
+    disconnectedVMList = @disconnectedVMController.getListView()
+
+    connectedVMList.on    'VMItemClicked', @bound 'unbindVM'
+    disconnectedVMList.on 'VMItemClicked', @bound 'bindVM'
+
+  viewAppended:->
+    super
+    @fetchVms()
+    @resize()
+
+  bindVM:(listItem)->
+    domain  = @getData()
+    vm      = listItem.getData()
+    {name}  = vm
+    options =
+      vmName : name
+    domain.bindVM options, (err)=>
+      unless err
+        listItem.hideLoader()
+        @disconnectedVMController.removeItem listItem
+        @connectedVMController.addItem vm
+      else
+        notifyError err
+
+  unbindVM:(listItem)->
+    domain  = @getData()
+    vm      = listItem.getData()
+    {name}  = vm
+    options =
+      vmName : name
+
+    domain.unbindVM options, (err)=>
+      unless err
+        listItem.hideLoader()
+        @connectedVMController.removeItem listItem
+        @disconnectedVMController.addItem vm
+      else
+        notifyError err
+
+  fetchVms:->
+
+    domain = @getData()
+    @connectedVMController.showLazyLoader()
+    @disconnectedVMController.showLazyLoader()
+    KD.remote.api.JVM.fetchVmsWithHostnames (err, vms)=>
+      if vms
+        for vm in vms
+          for alias in vm.hostnameAlias
+            if alias in domain.hostnameAlias
+              continue if @connectedVMController.itemsIndexed[vm._id]
+              @connectedVMController.addItem vm
+            else
+              continue if @disconnectedVMController.itemsIndexed[vm._id]
+              @disconnectedVMController.addItem vm
+      else
+        @connectedVMController.showNoItemWidget()
+        @disconnectedVMController.showNoItemWidget()
+
+      @connectedVMController.hideLazyLoader()
+      @disconnectedVMController.hideLazyLoader()
+      # @connectedVMController.showNoItemWidget()
+      # @disconnectedVMController.showNoItemWidget()
+
+
+  switchRouting:(value)->
+    if value is "VM"
+      @connectedVMs.show()
+      @disconnectedVMs.show()
+      @disconnectedKites.hide()
+      @connectedKites.hide()
+    else
+      @connectedVMs.hide()
+      @disconnectedVMs.hide()
+      @disconnectedKites.show()
+      @connectedKites.show()
+
+  pistachio:->
+    """
+    <header>
+    Click on any of your {{> @routingSelector}} to point and load balance to {b{ #(domain)}}
+    </header>
+    {{> @disconnectedVMs}}
+    {{> @disconnectedKites}}
+    {{> @dropArea}}
+    """
+    # {{> @vmMapperView}}
+    # {{> @kiteMapperView}}
+
+  resize:->
+    tabs      = @parent.getDelegate()
+    container = tabs.tabHandleContainer
+    half = (tabs.getHeight() - container.getHeight() - @$('header').outerHeight(no))/2
+    @dropArea.setHeight half
+    @disconnectedKites.setHeight half
+    @disconnectedVMs.setHeight half

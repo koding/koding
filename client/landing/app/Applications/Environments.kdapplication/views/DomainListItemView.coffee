@@ -4,6 +4,8 @@ class DomainListItemView extends KDListItemView
     options.tagName  = "li"
     options.cssClass = 'domain-item'
     super options, data
+    {createdAt} = @getData()
+    @createdAgo  = new KDTimeAgoView {}, createdAt
 
   click: (event)->
     listView = @getDelegate()
@@ -20,28 +22,23 @@ class DomainListItemView extends KDListItemView
         margin    : 19
       lazyLoad    : yes
     ,
-      'Bind to VM' :
-        callback         : ->
-          @destroy()
-      'Delete Domain'    :
-        callback         : ->
-          @destroy()
-        separator        : yes
+      'Bind to VM'    :
+        callback      : -> @destroy()
+      'Delete Domain' :
+        callback      : -> @destroy()
+        separator     : yes
 
   viewAppended: JView::viewAppended
 
   pistachio:->
     {domain, regYears, createdAt, hostnameAlias} = @getData()
-    @createdAgo  = new KDTimeAgoView {}, createdAt
     regYearsText = ""
 
     if regYears > 0
       yearText = if regYears > 1 then "years" else "year"
-      regYearsText = "Registered for #{regYears} #{yearText}"
+      regYearsText = "Registered for #{regYears} #{yearText}, "
 
     """
-      <div class="domain-icon link"></div>
-      <div class="domain-title">#{domain}</div>
-      <div class="domain-detail">#{regYearsText}</div>
-      {{> @createdAgo}}
+      {.domain-title{ #(domain)}}
+      <div class="domain-detail">#{regYearsText}{{> @createdAgo}}</div>
     """
