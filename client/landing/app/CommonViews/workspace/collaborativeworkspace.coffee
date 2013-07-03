@@ -91,13 +91,15 @@ class CollaborativeWorkspace extends Workspace
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
       title    : "Start New Session"
-      callback : =>
-        @destroySubViews()
-        options = @getOptions()
-        delete options.sessionKey
-        @addSubView new CollaborativeWorkspace options
+      callback : @bound "startNewSession"
 
     @container.addSubView notValid
+
+  startNewSession: ->
+    @destroySubViews()
+    options = @getOptions()
+    delete options.sessionKey
+    @addSubView new CollaborativeWorkspace options
 
   showDisconnectedModal: ->
     @disconnectedModal = new KDModalView
@@ -111,7 +113,7 @@ class CollaborativeWorkspace extends Workspace
           callback : =>
             @disconnectedModal.destroy()
             delete @disconnectedModal
-            @showSessionModal()
+            @startNewSession()
         Join       :
           title    : "Join Another Session"
           callback : =>
