@@ -10,6 +10,15 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef      = @firepadRef.child @sessionKey
 
     @workspaceRef.once "value", (snapshot) =>
+      if @getOptions().sessionKey
+        log "user wants to join a session"
+        if snapshot.val() is null
+          log "session is not active"
+          @showNotActiveView()
+          return false
+
+        log "session is valid, trying to recover"
+
       log "everything is something happened", "value", snapshot.val(), snapshot.name()
 
       keys = snapshot.val()?.keys
@@ -57,6 +66,28 @@ class CollaborativeWorkspace extends Workspace
   ready: -> # have to override for collaborative workspace
 
   showSessionModal: ->
+  showNotActiveView: ->
+    notValid = new KDView
+      cssClass : "not-valid"
+      partial  : "This session is not valid or no longer available."
+
+    notValid.addSubView new KDView
+      cssClass : "description"
+      partial  : """
+        If there is nothing wrong with our servers, this usually means,
+        the person who is hosting this session is disconnected or closed the session.
+      """
+
+    notValid.addSubView new KDButtonView
+      cssClass : "cupid-green"
+      title    : "Start New Session"
+      callback : =>
+        @destroySubViews()
+        options = @getOptions()
+        delete options.sessionKey
+        @addSubView new CollaborativeWorkspace options
+
+    @container.addSubView notValid
     modal                       = new KDModalViewWithForms
       title                     : "Manage Your Session"
       content                   : ""
