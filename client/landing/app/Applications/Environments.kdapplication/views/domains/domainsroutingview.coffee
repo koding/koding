@@ -89,6 +89,7 @@ class DomainsRoutingView extends JView
         listItem.hideLoader()
         @disconnectedVMController.removeItem listItem
         @connectedVMController.addItem vm
+        domain.hostnameAlias.push hostnameAlias
       else
         notifyError err
 
@@ -103,6 +104,7 @@ class DomainsRoutingView extends JView
         listItem.hideLoader()
         @connectedVMController.removeItem listItem
         @disconnectedVMController.addItem vm
+        domain.hostnameAlias.splice domain.hostnameAlias.indexOf(hostnameAlias), 1
       else
         notifyError err
 
