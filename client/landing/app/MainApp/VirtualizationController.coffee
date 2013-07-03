@@ -9,25 +9,9 @@ class VirtualizationController extends KDController
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(vm, command, callback)->
-    # KD.requireMembership
-    #   callback : =>
-    @askForApprove command, (approved)=>
-      if approved
-        cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-             else callback
-        @kc.run
-          kiteName : 'os'
-          method   : command
-          vmName   : vm
-        , cb
-      else unless command is 'vm.info' then @info vm
-      # onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-      # onFail    : =>
-      #   unless command is 'vm.info' then callback yes
-      #   else callback null, state: 'STOPPED'
-      # silence   : yes
-
+  run:(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
     if "string" is typeof options
       command = options
       options =
@@ -49,8 +33,10 @@ class VirtualizationController extends KDController
       #   callback : =>
       @askForApprove command, (approved)=>
         if approved
-          cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-               else callback
+          cb =
+            unless command is 'vm.info'
+            then @_cbWrapper vm, callback
+            else callback
           @run
             kiteName : 'os'
             method   : command
@@ -99,8 +85,8 @@ class VirtualizationController extends KDController
         else
           callback message: "No such VM!"
 
-  info:(vm, callback=noop)->
-    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+  info:(vm, callback)->
+    [callback, vm] = [vm, callback]  unless callback
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       @_runWraper 'vm.info', vm, (err, info)=>
