@@ -31,7 +31,7 @@ module.exports = class JDomain extends jraphical.Module
       'list own domains'   : ['member']
 
     sharedMethods   :
-      instance      : ['bindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule',
+      instance      : ['bindVM', 'unbindVM', 'createProxyFilter', 'fetchProxyFilters', 'createProxyRule',
                        'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain',
                        'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
                        'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
@@ -164,21 +164,29 @@ module.exports = class JDomain extends jraphical.Module
       desc   : "Domain registration fee - #{data.domain} (#{data.years} year(s)})"
     , callback
 
+  bound: require 'koding-bound'
+
   bindVM: (client, params, callback)->
     domainName = @domain
     JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
-      if params.state
-        JDomain.update {domain:domainName}, {'$addToSet': hostnameAlias: '$each': hostnameAlias}, (err)->
-          callback err
-      else
-        JDomain.update {domain:domainName}, {'$pullAll': hostnameAlias:hostnameAlias}, (err)->
-          callback err
+      JDomain.update {domain:domainName}, {'$addToSet': hostnameAlias: '$each': hostnameAlias}, callback
+
+  unbindVM: (client, params, callback)->
+    domainName = @domain
+    JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
+      JDomain.update {domain:domainName}, {'$pullAll': hostnameAlias:hostnameAlias}, callback
 
   bindVM$: permit
     advanced: [
       { permission: "edit own domains", validateWith: Validators.own }
     ]
-    success: (client, params, callback)-> @bindVM client, params, callback
+    success: (rest...)-> @bindVM rest...
+
+  unbindVM$: permit
+    advanced: [
+      { permission: "edit own domains", validateWith: Validators.own }
+    ]
+    success: (rest...)-> @unbindVM rest...
 
   @one$: permit 'list domains',
     success: (client, selector, callback)->

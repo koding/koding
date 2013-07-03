@@ -3,11 +3,11 @@ class EnvironmentsMainView extends JView
   tabData = [
     name        : 'Domains'
     viewOptions :
-      viewClass : DomainMainView
+      viewClass : DomainsMainView
   ,
     name        : 'VMS'
     viewOptions :
-      viewClass : VMMainView
+      viewClass : VMsMainView
   ,
     name        : 'Kites'
     viewOptions :
@@ -24,7 +24,7 @@ class EnvironmentsMainView extends JView
     @header = new HeaderViewSection type : "big", title : "Environments"
 
     # * see the note below *
-    @nav    = new KDView
+    @nav = new KDView
       tagName  : "ul"
       cssClass : "kdlistview kdlistview-default"
 
