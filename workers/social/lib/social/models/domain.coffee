@@ -1,12 +1,13 @@
 jraphical = require 'jraphical'
 module.exports = class JDomain extends jraphical.Module
 
-  DomainManager = require 'domainer'
-
-  {secure, ObjectId}  = require 'bongo'
-  {Relationship} = jraphical
-  {permit} = require './group/permissionset'
-  Validators = require './group/validators'
+  DomainManager      = require 'domainer'
+  Validators         = require './group/validators'
+  KodingError        = require '../error'
+  {secure, ObjectId} = require 'bongo'
+  {Relationship}     = jraphical
+  {permit}           = require './group/permissionset'
+  JGroup             = require './group'
 
   @trait __dirname, '../traits/protected'
 
@@ -94,24 +95,63 @@ module.exports = class JDomain extends jraphical.Module
         type        : Date
         default     : -> new Date
 
-  @createDomain: permit 'create domains',
-    success:(client, options={}, callback)->
-      model = new JDomain options
-      model.save (err) ->
-        return callback err if err
+  @isDomainEligible: (params, callback)->
+    {delegate, domain} = params
+    return callback new KodingError("Invalid domain.")  unless /\.kd\.io$/.test domain
 
-        account = client.connection.delegate
-        rel = new Relationship
-          targetId: model.getId()
-          targetName: 'JDomain'
-          sourceId: account.getId()
-          sourceName: 'JAccount'
-          as: 'owner'
+    match = domain.match /(.*)\.(\w+)\.kd\.io$/
+    return callback new KodingError("Invalid domain.") unless match
 
-        rel.save (err)->
-          return callback err if err
+    [rest..., prefix, slug] = match
 
-        callback err, model
+    if slug is delegate.profile.nickname
+      callback null, /^vm[\-]([0-9]+)$/.test prefix
+
+    else
+      JGroup.one {slug}, (err, group)->
+        return callback err  if err
+
+        unless group
+          return callback new KodingError("No group found.")
+
+        delegate.checkPermission group, 'create domains', (err, hasPermission)->
+          return callback err  if err
+          return callback null, no  unless hasPermission
+          callback null, /shared[\-]?([0-9]+)?$/.test prefix
+
+  @createDomain: secure (client, options={}, callback)->
+      {delegate} = client.connection
+
+      JGroup.one {slug:'koding'}, (err, group)->
+        return callback err  if err
+
+        delegate.checkPermission group, 'create domains', (err, hasPermission)->
+          return callback err  if err
+          return callback new KodingError "Access denied"  unless hasPermission
+
+          JDomain.isDomainEligible
+            delegate : delegate
+            domain   : options.domain
+          , (err, isEligible)->
+            return callback err  if err
+            return callback new KodingError "You can't create this domain."  unless isEligible
+
+            model = new JDomain options
+            model.save (err) ->
+              return callback err if err
+
+              account = client.connection.delegate
+              rel = new Relationship
+                targetId: model.getId()
+                targetName: 'JDomain'
+                sourceId: account.getId()
+                sourceName: 'JAccount'
+                as: 'owner'
+
+              rel.save (err)->
+                return callback err if err
+
+              callback err, model
 
 
   @isDomainAvailable = (domainName, tld, callback)->
@@ -162,7 +202,7 @@ module.exports = class JDomain extends jraphical.Module
     JRecurlyCharge.charge client,
       code   : 'domain_abc'
       amount : amount
-      desc   : "Domain registration fee - #{data.domain} (#{data.years} year(s)})"
+      desc   : "Domain registration fee - #{data.domainName} (#{data.years} year(s)})"
     , callback
 
   bound: require 'koding-bound'
