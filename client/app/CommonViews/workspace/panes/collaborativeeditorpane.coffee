@@ -26,7 +26,7 @@ class CollaborativeEditorPane extends Pane
           @firepad.setText "" # fix for a firepad bug
 
       @ref.on "value", (snapshot) =>
-        return @save()  if snapshot.val().WaitingSaveRequest
+        return @save()  if snapshot.val().WaitingSaveRequest is yes
 
   setContent: (content) ->
     @firepad.setText content
@@ -49,11 +49,7 @@ class CollaborativeEditorPane extends Pane
           duration : 4000
     else
       log "client wants to save a file"
-
-      # i have a bad feeling about this. have to check with more clients.
-      # it might send lots of save requests to os kite.
       @ref.child("WaitingSaveRequest").set yes
-
 
   createSessionKey: ->
     nick = KD.nick()
