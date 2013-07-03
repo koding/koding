@@ -30,11 +30,10 @@ class FirewallFilterListItemView extends KDListItemView
       @hide()
 
   createRule:(behavior)->
-    data = @getData()
-    delegate = @getDelegate()
+    data         = @getData()
+    delegate     = @getDelegate()
     delegateData = delegate.getData()
-    domainName = delegateData.domain.domain
-    ctx = this
+    domainName   = delegateData.domain.domain
 
     KD.remote.api.JDomain.one {domainName}, (err, domain)=>
       return console.log err if err

@@ -45,8 +45,6 @@ class DNSRecordListController extends KDListViewController
     {domain} = @getData()
     newData = recordItem.getData()
 
-    console.log 'updating the record', oldData, ' with ', newData
-
     if oldData.recordType isnt newData.recordType or oldData.host isnt newData.host
       # record type is changing, delete the old one & add the new one.
       domain.deleteDNSRecord oldData, (err, response)->

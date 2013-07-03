@@ -24,6 +24,10 @@ class FirewallRuleListController extends KDListViewController
     @getListView().on "ruleActionChanged", @bound 'refreshProxyRulesList'
     @getListView().on "ruleDeleted", (item)=>
       @removeItem item
+
+      if @itemsOrdered.length is 0
+        @defaultItem = null
+
       @refreshProxyRulesList()
     @on "newRuleCreated", @bound 'refreshProxyRulesList'
 

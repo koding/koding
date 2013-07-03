@@ -40,6 +40,7 @@ module.exports = class JDomain extends jraphical.Module
 
     indexes         :
       domain        : 'unique'
+      hostnameAlias : 'sparse'
 
     schema          :
       domain        :
@@ -168,13 +169,13 @@ module.exports = class JDomain extends jraphical.Module
 
   bindVM: (client, params, callback)->
     domainName = @domain
-    JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
-      JDomain.update {domain:domainName}, {'$addToSet': hostnameAlias: '$each': hostnameAlias}, callback
+    operation  = {'$addToSet': hostnameAlias: params.hostnameAlias}
+    JDomain.update {domain:domainName}, operation, callback
 
   unbindVM: (client, params, callback)->
     domainName = @domain
-    JVM.findHostnameAlias client, params.vmName, (err, hostnameAlias)=>
-      JDomain.update {domain:domainName}, {'$pullAll': hostnameAlias:hostnameAlias}, callback
+    operation  = {'$pull': hostnameAlias: params.hostnameAlias}
+    JDomain.update {domain:domainName}, operation, callback
 
   bindVM$: permit
     advanced: [
@@ -281,10 +282,12 @@ module.exports = class JDomain extends jraphical.Module
       recordParams.domainName = @domain
 
       domainManager.dnsManager.createDNSRecord recordParams, (err, response)=>
-        unless err
-          JDomain.update {domain:@domain}, {$addToSet: dnsRecords: params}, (err)=>
-            return callback err if err
-        callback err, response
+        return callback err  if err
+
+        JDomain.update {domain:@domain}, {$addToSet: dnsRecords: params}, (err)=>
+          return callback err if err
+
+          callback err, response
 
   deleteDNSRecord: permit
     advanced: [
@@ -295,10 +298,12 @@ module.exports = class JDomain extends jraphical.Module
       recordParams.domainName = @domain
 
       domainManager.dnsManager.deleteDNSRecord recordParams, (err, response)=>
-        unless err
-          JDomain.update {domain:@domain}, {$pull: dnsRecords: params}, (err)->
-            return callback err if err
-        callback err, response
+        return callback err if err
+
+        JDomain.update {domain:@domain}, {$pull: dnsRecords: params}, (err)->
+          return callback err if err
+
+          callback err, response
 
   updateDNSRecord: permit
     advanced: [
