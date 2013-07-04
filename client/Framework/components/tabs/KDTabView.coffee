@@ -44,7 +44,6 @@ class KDTabView extends KDScrollView
 
   # ADD/REMOVE PANES
   createPanes:(paneData = @getOptions().paneData)->
-    log 'buraya gelmedi mi???', paneData
     for paneOptions in paneData
       @addPane new @tabConstructor paneOptions, null
 

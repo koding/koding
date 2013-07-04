@@ -173,8 +173,6 @@ class KDInputView extends KDView
 
   setValidation:(ruleSet)->
 
-    log "setValidation", ruleSet
-
     @valid                 = no
     @currentRuleset        = ruleSet
     @validationCallbacks or= {}
