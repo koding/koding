@@ -25,5 +25,6 @@ module.exports =
       'fetchPendingGroupInvitations', 'fetchPendingGroupRequests',
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'getInvitationRequestByGroup', 'fetchMyPermissions',
-      'fetchMyPermissionsAndRoles', 'fetchDomains', 'fetchMyFollowingsFromGraph', 'fetchMyFollowersFromGraph'
+      'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph', 'fetchMyFollowersFromGraph',
+      'fetchDomains', 'sendEmailVMTurnOnFailureToSysAdmin'
     ]
