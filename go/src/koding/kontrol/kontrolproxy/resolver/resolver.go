@@ -147,20 +147,12 @@ func GetTarget(host string) (*Target, error) {
 
 		switch domain.LoadBalancer.Mode {
 		case "roundrobin": // equal weights
-			index, ok := 0, false
-			index, ok = getIndex(host)
-			if !ok {
-				index = domain.LoadBalancer.Index
-				addOrUpdateIndex(host, index)
-			}
-
+			index := getIndex(host) // gives 0 if not available
 			N := float64(len(domain.HostnameAlias))
 			n := int(math.Mod(float64(index+1), N))
 
 			hostname = domain.HostnameAlias[n]
 			addOrUpdateIndex(host, n)
-		case "sticky":
-			hostname = domain.HostnameAlias[domain.LoadBalancer.Index]
 		case "random":
 			randomIndex := rand.Intn(len(domain.HostnameAlias) - 1)
 			hostname = domain.HostnameAlias[randomIndex]
@@ -209,20 +201,13 @@ func GetTarget(host string) (*Target, error) {
 		switch keyData.LoadBalancer.Mode {
 		case "roundrobin":
 			var n int
-			index, ok := 0, false
-			index, ok = getIndex(host)
-			if !ok {
-				index = keyData.LoadBalancer.Index
-				addOrUpdateIndex(host, index)
-			}
+			index := getIndex(host) // gives 0 if not available
 
 			hostname, n = roundRobin(keyData.Host, index, 0)
 			addOrUpdateIndex(host, n)
 			if hostname == "" {
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
-		case "sticky":
-			hostname = keyData.Host[keyData.LoadBalancer.Index]
 		case "random":
 			randomIndex := rand.Intn(len(keyData.Host) - 1)
 			hostname = keyData.Host[randomIndex]
@@ -321,11 +306,11 @@ func cacheCleaner() {
 
 // getIndex is used to get the current index for current the loadbalance
 // algorithm. It's concurrent-safe.
-func getIndex(host string) (int, bool) {
+func getIndex(host string) int {
 	indexesLock.RLock()
 	defer indexesLock.RUnlock()
-	index, ok := indexes[host]
-	return index, ok
+	index, _ := indexes[host]
+	return index
 }
 
 // addOrUpdateIndex is used to add the current index for the current loadbalacne
