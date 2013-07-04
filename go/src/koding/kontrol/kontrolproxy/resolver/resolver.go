@@ -131,6 +131,10 @@ func GetTarget(host string) (*Target, error) {
 
 		return NewTarget(target, mode, persistence), nil
 	case "vm":
+		if len(domain.HostnameAlias) == 0 {
+			return nil, fmt.Errorf("domain for hostname %s is not active")
+		}
+
 		switch domain.LoadBalancer.Mode {
 		case "roundrobin": // equal weights
 			N := float64(len(domain.HostnameAlias))
