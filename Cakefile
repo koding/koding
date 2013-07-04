@@ -480,7 +480,7 @@ task 'run', (options)->
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   if "vagrant" is options.configFile
-    exec 'sh ./vagrant/init.sh', console.log.bind console
+    exec './vagrant/init.sh', console.log.bind console
 
   oldIndex = nodePath.join __dirname, "website/index.html"
   if fs.existsSync oldIndex
