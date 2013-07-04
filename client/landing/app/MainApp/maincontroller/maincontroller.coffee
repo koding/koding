@@ -187,7 +187,6 @@ class MainController extends KDController
         forms                 :
           BlockUser           :
             callback          : =>
-              modal.modalTabs.forms.BlockUser.buttons.blockUser.showLoader()
               blockingTime = calculateBlockingTime modal.modalTabs.forms.BlockUser.inputs.duration.getValue()
               @blockUser data.originId, blockingTime, (err, res)->
                 if err
@@ -209,7 +208,6 @@ class MainController extends KDController
               cancel          :
                 title         : "Cancel"
                 style         : "modal-cancel"
-                callback      : (event)-> modal.destroy()
             fields            :
               duration        :
                 label         : "Block User For"
@@ -227,9 +225,6 @@ class MainController extends KDController
                   messages           :
                     required         : "Please enter a time period"
                     minLength        : "You must enter one pair"
-                  events             :
-                    required         : "blur"
-                    minLength        : "blur"
                 iconOptions          :
                   tooltip            :
                     placement        : "right"
@@ -238,35 +233,44 @@ class MainController extends KDController
                                        You can enter {#}H/D/W/M/Y,
                                        Order is not sensitive.
                                        """
+    form = modal.modalTabs.forms.BlockUser
+    form.on "FormValidationFailed", ->
+    form.buttons.blockUser.hideLoader()
 
     changeButtonTitle = (value)->
       blockingTime = calculateBlockingTime value
+      button = modal.modalTabs.forms.BlockUser.buttons.blockUser
       if blockingTime > 0
         date = new Date (Date.now() + blockingTime)
-        modal.modalTabs.forms.BlockUser.buttons.blockUser.setTitle "Block User to: #{date.toUTCString()}"
+        button.setTitle "Block User to: #{date.toUTCString()}"
       else
-        modal.modalTabs.forms.BlockUser.buttons.blockUser.setTitle "Block User"
+        button.setTitle "Block User"
 
 
     calculateBlockingTime = (value)->
+
       totalTimestamp = 0
-      if value
-        for val in value.split(" ")
-          intVal = parseInt(val.substring(0, val.length-1), 10) || 0
-          if intVal is 0 then continue
-          hour = intVal * 60 * 60 * 1000
-          timeCase = val.charAt(val.length-1)
-          switch timeCase.toUpperCase()
-            when "H"
-              totalTimestamp = hour
-            when "D"
-              totalTimestamp = hour * 24
-            when "W"
-              totalTimestamp = hour * 24 * 7
-            when "M"
-              totalTimestamp = hour * 24 * 30
-            when "Y"
-              totalTimestamp = hour * 24 * 365
+      unless value then return totalTimestamp
+      for val in value.split(" ")
+        # this is the first part of blocking time
+        # if val 2D then numericalValue will be 2
+        numericalValue = parseInt(val.slice(0, -1), 10) or 0
+        if numericalValue is 0 then continue
+        hour = numericalValue * 60 * 60 * 1000
+        # we will get the lastest part of val as time case
+        timeCase = val.charAt(val.length-1)
+        switch timeCase.toUpperCase()
+          when "H"
+            totalTimestamp = hour
+          when "D"
+            totalTimestamp = hour * 24
+          when "W"
+            totalTimestamp = hour * 24 * 7
+          when "M"
+            totalTimestamp = hour * 24 * 30
+          when "Y"
+            totalTimestamp = hour * 24 * 365
+
       return totalTimestamp
 
 
