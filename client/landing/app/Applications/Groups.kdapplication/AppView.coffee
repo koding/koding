@@ -17,6 +17,6 @@ class GroupsMainView extends KDView
         KD.track "Groups", "CreateNewGroupButtonClicked"
         KD.getSingleton('groupsController').showGroupSubmissionView()
 
-    # unless KD.isLoggedIn() then createGroupButton.hide()
+    unless KD.isLoggedIn() then createGroupButton.hide()
     KD.getSingleton("mainController").on "accountChanged.to.loggedIn",
       createGroupButton.bound 'show'

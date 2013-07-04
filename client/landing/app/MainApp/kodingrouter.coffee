@@ -204,15 +204,13 @@ class KodingRouter extends KDRouter
 
     requireLogin =(fn)->
       mainController.ready ->
-        __utils.defer fn
-        # if KD.isLoggedIn() then __utils.defer fn
-        # else clear()
+        if KD.isLoggedIn() then __utils.defer fn
+        else clear()
 
     requireLogout =(fn)->
       mainController.ready ->
-        __utils.defer fn
-        # unless KD.isLoggedIn() then __utils.defer fn
-        # else clear()
+        unless KD.isLoggedIn() then __utils.defer fn
+        else clear()
 
     createSectionHandler = (sec)=>
       ({params:{name, slug}, query})=>
