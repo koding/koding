@@ -18,12 +18,6 @@ class DomainsRoutingView extends JView
       bind     : "drop dragenter dragover"
       partial  : "<span class='arrow'></span><cite>#{domain.domain}</domain>"
 
-    @vmMapperView = new DomainMapperView {}, domain
-
-    @kiteMapperView = new KDView
-      cssClass : 'hidden'
-      partial  : 'Kites are listed here.'
-
     @routingSelector = new KDSelectBox
       name          : 'routing-type'
       selectOptions : [
@@ -149,7 +143,7 @@ class DomainsRoutingView extends JView
   pistachio:->
     """
     <header>
-    Click on any of your {{> @routingSelector}} to point and load balance to <a href='#{@getData().domain}'>{b{ #(domain)}}</a>
+    Click on any of your {{> @routingSelector}} to point and load balance to <a href='#{@getData().domain}' target='_blank'>{{ #(domain)}}</a>
     </header>
     {{> @disconnectedVMs}}
     {{> @disconnectedKites}}
