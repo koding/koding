@@ -55,9 +55,11 @@ class InboxView extends KDView
       cssClass  : "new-message-bar clearfix"
       delegate  : @inboxMessagesContainer
 
-    @newMessageBar.on "RefreshButtonClicked", =>
+    listMessages = =>
       inboxMessageListController.loadMessages =>
         @newMessageBar.refreshButton.hideLoader()
+    @newMessageBar.on "RefreshButtonClicked", listMessages
+    tab.on            "KDTabPaneActive",      listMessages
 
     @newMessageBar.disableMessageActionButtons()
 
