@@ -193,6 +193,8 @@ class DomainCreationForm extends KDTabViewWithForms
         createButton.hideLoader()
         if err
           warn err
+          if err.message?.indexOf("duplicate key error") isnt -1
+            return notifyUser "The domain #{domainName} already exists."
           return notifyUser "An error occured. Please try again later."
         else
           @showSuccess()
@@ -205,6 +207,8 @@ class DomainCreationForm extends KDTabViewWithForms
         createButton.hideLoader()
         if err
           warn err
+          if err.message?.indexOf("duplicate key error") isnt -1
+            return notifyUser "The domain #{domainName} already exists."
           return notifyUser "An error occured. Please try again later."
         else
           @showSuccess()
