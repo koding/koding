@@ -1,14 +1,55 @@
 class AccountSshKeyListController extends KDListViewController
   constructor:(options,data)->
-    data = $.extend
-      items : [
-        { title : "SSH keys are coming soon" }
-        # { title : "My Macbook Air",     key:"ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA/qhV71y0s1XkA35CK+KSwKuHPihZI9dxAkGtm/j+c2LwlA6hjJco17mhw2SUWJCFX66zMo2HbAYW2cXfuzAVNg/2RJjzC0s05MPAUiwO0vTg9G08wU4F41yfqKX7ggPZJVq1o6szNkL1u4jhksU05P2OOuSYh9aeuU8tooqQ6I46jzdrdSNyt6FAfd6F+YHvd7ZJIQoQ6aUUF8K1PwTHVbscuu8QRAkjszgZjLf/kcFYc76lD4BQ0d/NNtQzDTTxh1vTgVxWH0Grg5JzUN7Op17ESN800yJc0d9opATu9/nqGwv2vGJDH4q50MySJahlTD51UH7UlmoGz/KctKquDw=="}
-        # { title : "Office desktop",     key:"ssh-rsa j+c2LwlA6hjJco17mhw2SUWJCFX66zMo2HbAYW2cXfuzAVNg/2RJjzC0s05MPAUiwO0vTg9G08wU4F41yfqKX7ggPZJVq1o6szNkL1u4jhksU05P2OOuSYh9aeuU8tooqQ6I46jzdrdSNyt6FAfd6FAAAAB3NzaC1yc2EAAAABIwAAAQEA/qhV71y0s1XkA35CK+KSwKuHPihZI9dxAkGtm/+YHvd7ZJIQoQ6aUUF8K1PwTHVbscuu8QRAkjszgZjLf/kcFYc76lD4BQ0d/NNtQzDTTxh1vTgVxWH0Grg5JzUN7Op17ESN800yJc0d9opATu9/nqGwv2vGJDH4q50MySJahlTD51UH7UlmoGz/KctKquDw=="}
-        # { title : "Production Server",  key:"ssh-rsa kcFYc76lD4BQ0d/NNtQzDTTxh1vTgVxWH0Grg5JzUN7Op17ESN800yJc0d9opATu9/nqGwv2vGJDH4q50MySJahlTD51UH7UlmoGz/KctKquDwAAAAB3NzaC1yc2EAAAABIwAAAQEA/qhV71y0s1XkA35CK+KSwKuHPihZI9dxAkGtm/j+c2LwlA6hjJco17mhw2SUWJCFX66zMo2HbAYW2cXfuzAVNg/2RJjzC0s05MPAUiwO0vTg9G08wU4F41yfqKX7ggPZJVq1o6szNkL1u4jhksU05P2OOuSYh9aeuU8tooqQ6I46jzdrdSNyt6FAfd6F+YHvd7ZJIQoQ6aUUF8K1PwTHVbscuu8QRAkjszgZjLf/=="}
-      ]
-    ,data
     super options,data
+
+    @loadItems()
+
+    @getListView().on "UpdatedItems", =>
+      @newItem = no
+      newKeys = @getItemsOrdered().map (item)-> item.getData()
+      if newKeys.length is 0
+        @addCustomItem "You have no SSH keys."
+      KD.remote.api.JUser.setSSHKeys newKeys, ->
+        console.log "Saved keys."
+
+    @getListView().on "RemoveItem", (item)=>
+      @newItem = no
+      @removeItem item
+      @getListView().emit "UpdatedItems"
+
+    @newItem = no
+
+  loadItems: ()->
+    @removeAllItems()
+    @showLazyLoader no
+
+    KD.remote.api.JUser.getSSHKeys (keys)=>
+      if keys.length > 0
+        @instantiateListItems keys
+      else
+        @addCustomItem "You have no SSH keys."
+      @hideLazyLoader()
+
+  loadView:->
+    super
+    @getView().parent.addSubView addButton = new KDButtonView
+      style     : "clean-gray account-header-button"
+      title     : ""
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "plus"
+      callback  : =>
+        unless @newItem
+          @newItem = true
+          @addItem {key: '', title: ''}, 0
+          @getListView().items.first.swapSwappable()
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
 class AccountSshKeyList extends KDListView
   constructor:(options,data)->
@@ -19,48 +60,65 @@ class AccountSshKeyList extends KDListView
     super options,data
 
 class AccountSshKeyForm extends KDFormView
+
+  constructor:->
+
+    super
+
+    @titleLabel = new KDLabelView
+      for      : "sshtitle"
+      title    : "Label"
+
+    @titleInput = new KDInputView
+      placeholder  : "Label your SSH key here..."
+      name         : "sshtitle"
+      label        : @titleLabel
+
+    @keyTextLabel = new KDLabelView
+      for      : "sshkey"
+      title    : "SSH Key"
+
+    @keyTextarea = new KDInputView
+      placeholder  : "Paste your SSH key here..."
+      type         : "textarea"
+      name         : "sshkey"
+      cssClass     : "light"
+      label        : @keyTextLabel
+
   viewAppended:->
 
     @addSubView formline1 = new KDCustomHTMLView
       tagName : "div"
       cssClass : "formline"
 
-    formline1.addSubView keyTextarea = new KDInputView
-      placeholder  : "paste your sshkey (or type if you can)..."
-      type         : "textarea"
-      name         : "sshkey"
-
-    keyTextarea.setValue @data.key if @data
+    formline1.addSubView @titleLabel
+    formline1.addSubView @titleInput
+    formline1.addSubView @keyTextLabel
+    formline1.addSubView @keyTextarea
 
     @addSubView formline2 = new KDCustomHTMLView
       cssClass : "button-holder"
 
     formline2.addSubView save = new KDButtonView
-      style        : "clean-gray savebtn"
+      style        : "cupid-green savebtn"
       title        : "Save"
+      callback     : => @emit "FormSaved"
+
+    formline2.addSubView cancel = new KDCustomHTMLView
+      tagName      : "button"
+      partial      : "Cancel"
+      cssClass     : "cancel-link clean-gray button"
+      click        : => @emit "FormCancelled"
 
     formline2.addSubView deletebtn = new KDButtonView
       style        : "clean-red deletebtn"
       title        : "Delete"
+      callback     : => @emit "FormDeleted"
 
-    formline2.addSubView whatIsThis = new KDCustomHTMLView
-      tagName      : "a"
-      partial      : "What is This?"
-      cssClass     : "what-link"
+    # @addSubView actionsWrapper = new KDCustomHTMLView
+    #   tagName : "div"
+    #   cssClass : "actions-wrapper"
 
-    @addSubView actionsWrapper = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "actions-wrapper"
-
-    actionsWrapper.addSubView cancel = new KDCustomHTMLView
-      tagName  : "a"
-      partial  : "cancel"
-      cssClass : "cancel-link"
-      click    : => @emit "FormCancelled"
-
-    # @addSubView deleteLink   = new KDCustomHTMLView
-    #   tagName      : "a"
-    #   cssClass     : "delete-icon"
 
 
 
@@ -68,46 +126,73 @@ class AccountSshKeyListItem extends KDListItemView
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
 
-  # viewAppended:->
-  #   super
-  #   @form = form = new AccountSshKeyForm
-  #     delegate : @
-  #     cssClass : "posrelative"
-  #   ,@data
-  #
-  #   @info = info = new KDCustomHTMLView
-  #     tagName  : "span"
-  #     partial  : "<div class='darkText'>Click edit to get your key...</div>"
-  #     cssClass : "posstatic"
-  #
-  #   info.addSubView editLink = new KDCustomHTMLView
-  #     tagName  : "a"
-  #     partial  : "Edit"
-  #     cssClass : "action-link"
-  #     click    : @bound "swapSwappable"
-  #
-  #   @swappable = swappable = new AccountsSwappable
-  #     views : [form,info]
-  #     cssClass : "posstatic"
-  #
-  #   @addSubView swappable,".swappable-wrapper"
-  #
-  #   form.on "FormCancelled", @bound "swapSwappable"
+  viewAppended:->
+
+    super
+
+    @form = form = new AccountSshKeyForm
+      delegate : this
+      cssClass : "posrelative"
+
+    {title, key} = @getData()
+
+    form.titleInput.setValue  title if title
+    form.keyTextarea.setValue key   if key
+
+    @info = info = new KDCustomHTMLView
+      tagName  : "span"
+      partial  : """<div>
+                      <span class="title">#{@getData().title}</span>
+                      <span class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</span>
+                    </div>"""
+      cssClass : "posstatic"
+
+    info.addSubView editLink = new KDCustomHTMLView
+      tagName  : "a"
+      partial  : "Edit"
+      cssClass : "action-link"
+      click    : @bound "swapSwappable"
+
+    @swappable = swappable = new AccountsSwappable
+      views : [form,info]
+      cssClass : "posstatic"
+
+    @addSubView swappable,".swappable-wrapper"
+
+    form.on "FormCancelled", @bound "cancelItem"
+    form.on "FormSaved", @bound "saveItem"
+    form.on "FormDeleted", @bound "deleteItem"
 
   swapSwappable:->
     @swappable.swapViews()
 
+  cancelItem:->
+    {key} = @getData()
+    if key then @swappable.swapViews() else @deleteItem()
+
+  deleteItem:->
+    @getDelegate().emit "RemoveItem", @
+
+  saveItem:->
+    @setData
+      key   : @form.keyTextarea.getValue()
+      title : @form.titleInput.getValue()
+
+    {key, title} = @getData()
+
+    if key and title
+      @info.$('span.title').text title
+      @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
+      @swappable.swapViews()
+      @getDelegate().emit "UpdatedItems"
+    else
+      new KDNotificationView
+        title : "Key shouldn't be empty."
+
   partial:(data)->
     """
-      <span class='darkText'>#{data.title}</span>
+      <div class='swappableish swappable-wrapper posstatic'></div>
     """
-    # """
-    #   <div class='labelish'>
-    #     <span class="icon #{data.type}"></span>
-    #     <span class='editor-method-title'>#{data.title}</span>
-    #   </div>
-    #   <div class='swappableish swappable-wrapper posstatic'></div>
-    # """
 
 
 
