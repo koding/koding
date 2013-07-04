@@ -85,28 +85,28 @@ class DomainsRoutingView extends JView
     options         = {hostnameAlias}
 
     domain.bindVM options, (err)=>
+      listItem.hideLoader()
       unless err
-        listItem.hideLoader()
         @disconnectedVMController.removeItem listItem
         @connectedVMController.addItem vm
         domain.hostnameAlias.push hostnameAlias
       else
-        notifyError err
+        notifyError err.message or err
 
   unbindVM:(listItem)->
-    domain  = @getData()
-    vm      = listItem.getData()
-    {hostnameAlias}  = vm
-    options = {hostnameAlias}
+    domain          = @getData()
+    vm              = listItem.getData()
+    {hostnameAlias} = vm
+    options         = {hostnameAlias}
 
     domain.unbindVM options, (err)=>
+      listItem.hideLoader()
       unless err
-        listItem.hideLoader()
         @connectedVMController.removeItem listItem
         @disconnectedVMController.addItem vm
         domain.hostnameAlias.splice domain.hostnameAlias.indexOf(hostnameAlias), 1
       else
-        notifyError err
+        notifyError err.message or err
 
   fetchVms:->
 
