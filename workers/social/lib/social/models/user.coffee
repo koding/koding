@@ -89,7 +89,7 @@ module.exports = class JUser extends jraphical.Module
         email       : yes
       password      : String
       salt          : String
-      blockedTo     : Date
+      blockedUntil     : Date
       status        :
         type        : String
         enum        : [
@@ -221,8 +221,8 @@ module.exports = class JUser extends jraphical.Module
 
   checkBlockedStatus = (user, callback)->
     if user.status is 'blocked'
-      if user.blockedTo and user.blockedTo > new Date
-        toDate = user.blockedTo.toUTCString()
+      if user.blockedUntil and user.blockedUntil > new Date
+        toDate = user.blockedUntil.toUTCString()
         message = """
             You cannot login until #{toDate}.
             At least 10 moderators of Koding have decided that your participation is not of acceptable kind.
@@ -628,13 +628,13 @@ module.exports = class JUser extends jraphical.Module
 
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
 
-  block:(blockedTo, callback)->
-    unless blockedTo then return callback createKodingError "Blocking date is not defined"
+  block:(blockedUntil, callback)->
+    unless blockedUntil then return callback createKodingError "Blocking date is not defined"
 
     @update
       $set:
         status: 'blocked',
-        blockedTo : blockedTo
+        blockedUntil : blockedUntil
     , callback
 
   @setSSHKeys: secure (client, sshKeys, callback)->
