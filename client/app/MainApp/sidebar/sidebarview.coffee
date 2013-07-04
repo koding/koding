@@ -22,8 +22,8 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    @statusLEDs = new KDView
-      cssClass : 'status-leds'
+    # @statusLEDs = new KDView
+    #   cssClass : 'status-leds'
 
     # Main Navigations
     @navController = new MainNavController
@@ -39,9 +39,10 @@ class Sidebar extends JView
 
     navAdditions = [
       { type  : 'separator',      order : 61}
-      { title : 'Invite Friends', order : 62,  type : 'account', role : 'member' }
-      { title : 'Logout',         order : 100, path : '/Logout', type : 'account', role : 'member' }
-      { title : 'Login',          order : 101, path : '/Login',  type : 'account', role : 'guest' }
+      { title : 'Invite Friends', order : 62,  type : 'account', role   : 'member' }
+      { title : 'Logout',         order : 100, path : '/Logout',    type : 'account', role : 'member' }
+      { title : 'Login',          order : 101, path : '/Login',     type : 'account', role : 'guest' }
+      { title : 'Register',       order : 102, path : '/Register',  type : 'account', role : 'guest' }
     ]
 
     KD.registerNavItem navItem for navItem in navAdditions
@@ -192,7 +193,6 @@ class Sidebar extends JView
         </div>
       </div>
       {{> @avatarAreaIconMenu}}
-      {{> @statusLEDs}}
       {{> @nav}}
       {{> @footerMenu}}
     </div>

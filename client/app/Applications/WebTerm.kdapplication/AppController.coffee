@@ -22,7 +22,7 @@ class WebTermController extends AppController
         KD.getSingleton("vmController").info vmName, (err, vm, info)=>
           cb  if info?.state is 'RUNNING' then yes else no
       failure    : (options, cb)->
-        KD.getSingleton("vmController").askToTurnOn 'Terminal', cb
+        KD.getSingleton("vmController").askToTurnOn 'WebTerm', cb
 
   constructor:(options = {}, data)->
     vmName          = options.params?.vmName or (KD.getSingleton 'vmController').defaultVmName
