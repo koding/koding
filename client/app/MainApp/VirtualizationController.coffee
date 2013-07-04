@@ -50,9 +50,9 @@ class VirtualizationController extends KDController
     @_runWraper 'vm.start', vm, KD.utils.getTimedOutCallbackOne
       name      : "vm.start"
       timeout   : 5000
-      onSuccess : callback?
+      onSuccess : -> callback?()
       onTimeout : KD.utils.notifyAndEmailVMTurnOnFailureToSysAdmin vm, "timeout"
-      onResult  : callback?
+      onResult  : -> callback?()
 
   stop:(vm, callback)->
     @_runWraper 'vm.shutdown', vm, callback
