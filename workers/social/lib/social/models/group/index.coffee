@@ -379,6 +379,11 @@ module.exports = class JGroup extends Module
     JAccount = require '../account'
     {delegate} = client.connection
 
+    @one {slug:"koding"}, (err, kodingGroup)->
+      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)->
+        unless hasPermission
+          return callback new KodingError 'Access denied.'
+
     unless delegate instanceof JAccount
       return callback new KodingError 'Access denied.'
 
