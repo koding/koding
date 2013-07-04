@@ -6,6 +6,8 @@ class AccountSshKeyListController extends KDListViewController
 
     @getListView().on "UpdatedItems", =>
       newKeys = @getItemsOrdered().map (item)-> item.getData()
+      if newKeys.length is 0
+        @addCustomItem "You have no SSH keys."
       KD.remote.api.JUser.setSSHKeys newKeys, ->
         console.log "Saved keys."
 
@@ -18,7 +20,10 @@ class AccountSshKeyListController extends KDListViewController
     @showLazyLoader no
 
     KD.remote.api.JUser.getSSHKeys (keys)=>
-      @instantiateListItems keys
+      if keys.length > 0
+        @instantiateListItems keys
+      else
+        @addCustomItem "You have no SSH keys."
       @hideLazyLoader()
 
   loadView:->
@@ -32,6 +37,13 @@ class AccountSshKeyListController extends KDListViewController
       callback  : =>
         @addItem {key: '', title: ''}, 0
         @getListView().items.first.swapSwappable()
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
 class AccountSshKeyList extends KDListView
   constructor:(options,data)->
