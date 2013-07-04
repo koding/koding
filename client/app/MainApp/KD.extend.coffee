@@ -71,7 +71,7 @@ KD.extend
     mainController = KD.getSingleton('mainController')
     delete mainController?.userAccount
 
-  isLoggedIn:-> KD.whoami().type is 'registered'
+  isLoggedIn:-> KD.whoami().type isnt 'unregistered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
