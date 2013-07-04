@@ -28,3 +28,10 @@ func CheckServer(host string) error {
 	c.Close()
 	return nil
 }
+
+func CheckScheme(url string) string {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		url = "http://" + url
+	}
+	return url
+}

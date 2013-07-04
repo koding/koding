@@ -372,7 +372,6 @@ func getClients() map[string]Client {
 	return clients
 }
 
-// Needed to avoid race condition between multiple go routines
 func getClient(ip string) (Client, bool) {
 	clientsLock.RLock()
 	defer clientsLock.RUnlock()
