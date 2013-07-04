@@ -71,7 +71,7 @@ module.exports = class JReview extends Reply
                       app.getAt('originId').equals delegate.getId()
                 app.removeReview rel, -> queue.fin()
               else
-                callback new KodingError 'Access denied!'
+                callback new KodingError 'Access denied'
       =>
         deleter = ObjectRef(delegate)
         @update

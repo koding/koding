@@ -1,7 +1,7 @@
 {Model} = require 'bongo'
 
 module.exports = class JUrlAlias extends Model
-  
+
   KodingError = require '../error'
 
   {secure} = require 'bongo'
@@ -20,7 +20,7 @@ module.exports = class JUrlAlias extends Model
   @create =secure (client, alias, target, callback)->
     {delegate} = client.connection
     unless delegate.can 'administer url aliases'
-      return callback new KodingError 'Access denied!'
+      return callback new KodingError 'Access denied'
     aliasModel = new @ {alias, target}
     aliasModel.save (err, docs)->
       if err then callback err

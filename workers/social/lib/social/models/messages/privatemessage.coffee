@@ -73,7 +73,7 @@ module.exports = class JPrivateMessage extends JPost
       JAccount = require '../account'
 
       unless delegate instanceof JAccount
-        callback new KodingError 'Access denied.'
+        callback new KodingError 'Access denied'
         return no
 
       {to, subject, body} = data

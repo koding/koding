@@ -120,7 +120,7 @@ module.exports = class JTag extends jraphical.Module
           else
             @update $set: formData, callback
       else
-        callback new KodingError "Access denied"
+        callback new KodingError 'Access denied'
 
   fetchContentTeasers:(options, selector, callback)->
     [callback, selector] = [selector, callback] unless callback
@@ -223,7 +223,7 @@ module.exports = class JTag extends jraphical.Module
         if err
           callback err
         else unless role is 'super-admin'
-          callback new KodingError 'Access denied!'
+          callback new KodingError 'Access denied'
         else
           tagId = @getId()
           @fetchContents (err, contents)=>
