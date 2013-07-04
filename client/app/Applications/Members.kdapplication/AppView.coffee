@@ -188,23 +188,28 @@ class MemberFollowToggleButton extends KDToggleButton
       states          : [
         title         : "Follow"
         callback      : (callback)->
-          KD.requireMembership
-            callback  : =>
-              @getData().follow (err, response)=>
-                @hideLoader()
-                unless err
-                  @getData().followee = yes
-                  @setClass 'following-btn'
-                  KD.track "Members", "Follow", @getData().profile.nickname
-                  callback? null
-            tryAgain  : yes
-            onFailMsg : 'Login required to follow members'
-            onFail    : => @hideLoader()
+          @getData().follow (err, response)=>
+            @hideLoader()
+
+            KD.showError err,
+              AccessDenied : 'Permission denied to follow members'
+              KodingError  : 'Something went wrong while follow'
+
+            unless err
+              @getData().followee = yes
+              @setClass 'following-btn'
+              KD.track "Members", "Follow", @getData().profile.nickname
+              callback? null
       ,
         title         : "Unfollow"
         callback      : (callback)->
           @getData().unfollow (err, response)=>
             @hideLoader()
+
+            KD.showError err,
+              AccessDenied : 'Permission denied to unfollow members'
+              KodingError  : 'Something went wrong while unfollow'
+
             unless err
               @getData().followee = no
               @unsetClass 'following-btn'
