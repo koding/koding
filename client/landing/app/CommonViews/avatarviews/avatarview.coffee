@@ -35,27 +35,22 @@ class AvatarView extends LinkView
           @tooltip.getView().updateData data if data?.profile.nickname
 
     @bgImg = null
+    @fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
-  # click:(event)->
-  #   event.stopPropagation()
-  #   event.preventDefault()
-  #   @getTooltip().hide()
-  #   @utils.defer => @emit 'LinkClicked'
-  #   return no
+  setAvatar:(uri)->
+    if @bgImg isnt uri
+      @$().css "background-image", uri
+      @bgImg = uri
 
   render:->
     account = @getData()
     return unless account
-    {profile} = account
-    options = @getOptions()
-    fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
-    # this is a temp fix to avoid avatar flashing on every account change - Sinan 08/2012
-    bgImg = "url(//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent fallbackUri})"
+    {profile, type} = account
+    return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
 
-    if @bgImg isnt bgImg
-      @$().css "background-image", bgImg
-      @bgImg = bgImg
+    {width} = @getOptions().size
+    @setAvatar "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
 
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
@@ -77,8 +72,6 @@ class AvatarTooltipView extends KDView
     @profileName = new KDCustomHTMLView
       tagName : 'a'
       cssClass : 'profile-name'
-      # click:(event)=>
-      #   KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}", state:@getData()
       attributes:
         href : "/#{@getData().profile.nickname}"
         target : '_blank'
