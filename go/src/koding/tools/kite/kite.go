@@ -124,6 +124,9 @@ func (k *Kite) Run() {
 							d.Send("pong")
 							return
 						}
+						if method == "pong" {
+							return
+						}
 
 						var partials []*dnode.Partial
 						err := args.Unmarshal(&partials)
@@ -198,6 +201,7 @@ func (k *Kite) Run() {
 
 					d.Send("ready", k.ServiceUniqueName)
 
+					pingSent := false
 					for {
 						select {
 						case message, ok := <-route:
@@ -206,8 +210,14 @@ func (k *Kite) Run() {
 							}
 							log.Debug("Read", channel.RoutingKey, message)
 							d.ProcessMessage(message)
-						case <-time.After(24 * time.Hour):
-							timeoutChannel <- channel.RoutingKey
+							pingSent = false
+						case <-time.After(time.Minute):
+							if pingSent {
+								timeoutChannel <- channel.RoutingKey
+								break
+							}
+							d.Send("ping")
+							pingSent = true
 						}
 					}
 				}()
@@ -278,7 +288,6 @@ func (k *Kite) Run() {
 			if found {
 				close(route)
 				delete(routeMap, routingKey)
-				log.Warn("Dropped client because of fallback channel timeout.")
 			}
 		}
 	}
