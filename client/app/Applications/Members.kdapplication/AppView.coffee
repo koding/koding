@@ -30,7 +30,8 @@ class MembersListItemView extends KDListItemView
         height: options.avatarSizes[1]
     , memberData
 
-    if memberData.profile.nickname is KD.whoami().profile.nickname
+    if (memberData.profile.nickname is KD.whoami().profile.nickname) or \
+        memberData.type is 'unregistered'
     then @followButton = new KDView
     else @followButton = new MemberFollowToggleButton
       style       : "follow-btn"
