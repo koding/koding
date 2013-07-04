@@ -1042,7 +1042,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchMyFollowersFromGraph: secure (client, options, callback)->
     @fetchFollowFromGraph "fetchFollowerMembers", client, options, callback
 
-  fetchFollowFromGraph: secure (followType, client, options, callback)->
+  fetchFollowFromGraph: (followType, client, options, callback)->
     graph = new Graph({config:KONFIG['neo4j']})
     userId = client.connection.delegate._id
     options.currentUserId = userId
