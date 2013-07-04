@@ -245,6 +245,8 @@ class KodingRouter extends KDRouter
       '/:name?/Activity/:slug'          : createContentHandler 'Activity'
       '/:name?/Apps/:slug'              : createContentHandler 'Apps'
 
+      '/:name/Groups'                   : createSectionHandler 'Groups'
+
       '/:name/Followers'                : createContentHandler 'Members', yes
       '/:name/Following'                : createContentHandler 'Members', yes
       '/:name/Likes'                    : createContentHandler 'Members', yes
