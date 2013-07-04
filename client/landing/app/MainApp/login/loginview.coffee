@@ -173,30 +173,33 @@ class LoginView extends KDScrollView
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
-    KD.remote.api.JUser.register formData, (err, account, replacementToken)=>
-      @registerForm.button.hideLoader()
-      if err
-        {message} = err
-        warn "An error occured while registering:", err
-        @registerForm.notificationsDisabled = no
-        @registerForm.emit "SubmitFailed", message
-      else
-        $.cookie 'clientId', replacementToken
-        KD.getSingleton('mainController').accountChanged account
-        new KDNotificationView
-          cssClass  : "login"
-          title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
-          # content   : 'Successfully registered!'
-          duration  : 2000
-        KD.getSingleton('router').clear()
-        setTimeout =>
-          @hide()
-          @registerForm.reset()
-          @registerForm.button.hideLoader()
-          # setTimeout =>
-          #   KD.getSingleton('mainController').emit "ShowInstructionsBook"
-          # , 1000
-        , 1000
+    console.trace()
+
+    KD.remote.api.JUser.convert formData, (err, account, replacementToken)=>
+      console.log {arguments}
+      # @registerForm.button.hideLoader()
+      # if err
+      #   {message} = err
+      #   warn "An error occured while registering:", err
+      #   @registerForm.notificationsDisabled = no
+      #   @registerForm.emit "SubmitFailed", message
+      # else
+      #   $.cookie 'clientId', replacementToken
+      #   KD.getSingleton('mainController').accountChanged account
+      #   new KDNotificationView
+      #     cssClass  : "login"
+      #     title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
+      #     # content   : 'Successfully registered!'
+      #     duration  : 2000
+      #   KD.getSingleton('router').clear()
+      #   setTimeout =>
+      #     @hide()
+      #     @registerForm.reset()
+      #     @registerForm.button.hideLoader()
+      #     # setTimeout =>
+      #     #   KD.getSingleton('mainController').emit "ShowInstructionsBook"
+      #     # , 1000
+      #   , 1000
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()

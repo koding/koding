@@ -755,7 +755,7 @@ class KodingAppsController extends KDController
       description : 'Code Editor'
       author      : 'Mozilla'
     Terminal      :
-      name        : 'Terminal'
+      name        : 'WebTerm'
       type        : 'koding-app'
       icon        : 'icn-terminal.png'
       description : 'Koding Terminal'

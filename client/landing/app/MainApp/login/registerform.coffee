@@ -10,7 +10,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @firstName = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
-        # defaultValue  : "xx"
+        defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
         validate      :
@@ -25,7 +25,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
-        # defaultValue  : "xx"
+        defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
           container   : this
@@ -38,6 +38,7 @@ class RegisterInlineForm extends LoginViewInlineForm
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : "email"
+        defaultValue  : "chris+#{Math.random()}@koding.com"
         placeholder   : "Your email address"
         validate      :
           container   : this
@@ -77,11 +78,20 @@ class RegisterInlineForm extends LoginViewInlineForm
         firstName : "New koding user"
     @avatar.hide()
 
+    username = do ->
+      letters = 'abcdefghi'.split ''
+      String(Math.random())
+        .split('.')[1]
+        .split('')
+        .map((i)-> letters[i])
+        .join ''
+
     @username = new LoginInputViewWithLoader
       inputOptions       :
         name             : "username"
         forceCase        : "lowercase"
         placeholder      : "Desired username"
+        defaultValue     : username
         validate         :
           container      : this
           rules          :
@@ -116,6 +126,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "password"
         type          : "password"
         placeholder   : "Create a password"
+        defaultValue  : '123123123'
         validate      :
           container   : this
           event       : "blur"
@@ -135,6 +146,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "passwordConfirm"
         type          : "password"
         placeholder   : "Confirm your password"
+        defaultValue  : '123123123'
         validate      :
           container   : this
           event       : "blur"
