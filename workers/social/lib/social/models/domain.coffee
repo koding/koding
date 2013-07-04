@@ -97,16 +97,15 @@ module.exports = class JDomain extends jraphical.Module
 
   @isDomainEligible: (params, callback)->
     {delegate, domain} = params
-    return callback new KodingError("Invalid domain.")  unless /\.kd\.io$/.test domain
+    return callback new KodingError("Invalid domain: #{domain}")  unless /\.kd\.io$/.test domain
 
     match = domain.match /(.*)\.(\w+)\.kd\.io$/
-    return callback new KodingError("Invalid domain.") unless match
+    return callback new KodingError("Invalid domain: #{domain}.") unless match
 
     [rest..., prefix, slug] = match
 
     if slug is delegate.profile.nickname
-      callback null, /^vm[\-]([0-9]+)$/.test prefix
-
+      callback null, !/^vm[\-]([0-9]+)$/.test prefix
     else
       JGroup.one {slug}, (err, group)->
         return callback err  if err
@@ -117,7 +116,7 @@ module.exports = class JDomain extends jraphical.Module
         delegate.checkPermission group, 'create domains', (err, hasPermission)->
           return callback err  if err
           return callback null, no  unless hasPermission
-          callback null, /shared[\-]?([0-9]+)?$/.test prefix
+          callback null, !/shared[\-]?([0-9]+)?$/.test prefix
 
   @createDomain: secure (client, options={}, callback)->
       {delegate} = client.connection
