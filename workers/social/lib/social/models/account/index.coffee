@@ -1000,7 +1000,7 @@ module.exports = class JAccount extends jraphical.Module
     email = new JMail
       from    : 'hello@koding.com'
       email   : 'sysops@koding.com'
-      subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}' at #{time}"
+      subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
       content : "Reason: #{reason}"
       force   : yes
 
