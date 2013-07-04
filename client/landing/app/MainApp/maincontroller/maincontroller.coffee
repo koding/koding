@@ -53,18 +53,9 @@ class MainController extends KDController
     @ready =>
       router.listen()
       KD.registerSingleton "activityController",   new ActivityController
+      KD.registerSingleton "appStorageController", new AppStorageController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
-
-  # FIXME GG
-  getAppStorageSingleton:(appName, version)->
-    if @appStorages[appName]?
-      storage = @appStorages[appName]
-    else
-      storage = @appStorages[appName] = new AppStorage appName, version
-
-    storage.fetchStorage()
-    return storage
 
   accountChanged:(account, firstLoad = no)->
 
