@@ -5,7 +5,7 @@ class LikeView extends KDView
     options.tagName            or= 'span'
     options.cssClass           or= 'like-view'
     options.tooltipPosition    or= 'se'
-    options.checkIfLikedBefore  ?= yes
+    options.checkIfLikedBefore  ?= no
 
     super options, data
 
