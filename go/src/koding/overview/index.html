@@ -50,14 +50,24 @@
 				<table class="table table-hover table-bordered">
 					<tbody>
 						<tr>
-				<td rowspan="2"><a target="_blank" href="http://koding.com/">koding.com</a> is using</td> 
-						  <td>server</td>
-						  <td>
-						<a target="_blank" href="http://{{.Status.Koding.ServerHost}}">{{.Status.Koding.ServerHost}}</a></td>
+				            <td rowspan="2"><a target="_blank" href="http://koding.com/">koding.com</a> is using</td> 
+
+						  <td>servers</td>
+						{{range .Status.Koding.ServerHosts}} 
+                          <td>
+						    <a target="_blank" href="http://{{.}}">{{.}}</a></td>
+                          </td>
+						{{end}}
+
+
 						</tr>
 						<tr>
-						  <td>broker</td>
-						  <td>{{.Status.Koding.BrokerHost}}</td>
+						  <td>brokers</td>
+						{{range .Status.Koding.BrokerHosts}} 
+                          <td>
+						    <a target="_blank" href="http://{{.}}">{{.}}</a></td>
+                          </td>
+						{{end}}
 						</tr>
 						<tr>
 						</tr>

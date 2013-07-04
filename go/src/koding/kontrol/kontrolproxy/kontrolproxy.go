@@ -51,7 +51,7 @@ var proxyName = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var clients = make(map[string]Client)
 var clientsLock sync.RWMutex
-var cacheTimeout = time.Second * 60
+var cacheTimeout = time.Second * 20
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -231,8 +231,10 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	return reverseProxyHandler(target.Url)
 }
 
-/* Handlers */
-
+// reverseProxyHandler is the main handler that is used for copy the response
+// back and forth to the request iniator. We use Go's main
+// httputil.ReverseProxy but can easily switch to any custom handler in the
+// future
 func reverseProxyHandler(target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -246,6 +248,8 @@ func reverseProxyHandler(target *url.URL) http.Handler {
 	}
 }
 
+// sessionHandler is used currently for the securepage feature of our
+// validator/firewall. It is used to setup cookies to invalidate users visits.
 func sessionHandler(val, userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
@@ -260,6 +264,8 @@ func sessionHandler(val, userIP string) http.Handler {
 	})
 }
 
+// websocketHandler is used to reverseProxy websocket connection. It hijacks
+// the underlying http connection and copies forth and back the response
 func websocketHandler(target string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d, err := net.Dial("tcp", target)
@@ -299,6 +305,9 @@ func websocketHandler(target string) http.Handler {
 	})
 }
 
+// templateHandler is used to show static complied html pages. The path
+// variable is used to pick the correct template, data is used inside the
+// template and code is set as the response code.
 func templateHandler(path string, data interface{}, code int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
@@ -310,6 +319,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 	})
 }
 
+// endpointHandler is used to create and handle some proxy features.
 func endpointHandler(endpoint string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if ok := strings.Contains(endpoint, "/reset/"); ok {
@@ -417,7 +427,8 @@ func cleaner() {
 	clientsLock.RUnlock()
 }
 
-// is the incoming request a part of websocket handshake?
+// isWebsocket checks wether the incoming request is a part of websocket
+// handshake
 func isWebsocket(req *http.Request) bool {
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
 		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {

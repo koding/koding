@@ -114,7 +114,7 @@ func CreateOrUpdateDomain(writer http.ResponseWriter, req *http.Request) {
 	case "vm":
 		resp = fmt.Sprintf("{\"host\":\"%s\"}\n", domainname)
 	case "maintenance":
-		resp = fmt.Sprintf("{\"res\":\"maintenance mode enabled\"}\n", domainname)
+		resp = fmt.Sprintf("{\"res\":\"maintenance mode enabled for %s\"}\n", domainname)
 	}
 
 	io.WriteString(writer, resp)

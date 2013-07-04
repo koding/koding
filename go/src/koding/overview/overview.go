@@ -87,8 +87,8 @@ type WorkerInfo struct {
 type StatusInfo struct {
 	BuildNumber string
 	Koding      struct {
-		ServerHost string
-		BrokerHost string
+		ServerHosts []string
+		BrokerHosts []string
 	}
 	Workers struct {
 		Started int
@@ -157,8 +157,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s, b := keyLookup(domain.Proxy.Key)
-	status.Koding.ServerHost = s
-	status.Koding.BrokerHost = b
+	status.Koding.ServerHosts = s
+	status.Koding.BrokerHosts = b
 
 	home := HomePage{
 		Status:  status,
@@ -172,7 +172,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func keyLookup(key string) (string, string) {
+func keyLookup(key string) ([]string, []string) {
 	workersApi := "http://kontrol.in.koding.com/workers?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
@@ -190,20 +190,20 @@ func keyLookup(key string) (string, string) {
 		fmt.Println(err)
 	}
 
-	var server string
-	var broker string
+	servers := make([]string, 0)
+	brokers := make([]string, 0)
 	for _, w := range workers {
 		if w.Name == "server" {
-			server = w.Hostname + ":" + strconv.Itoa(w.Port)
+			servers = append(servers, w.Hostname+":"+strconv.Itoa(w.Port))
 		}
 
 		if w.Name == "broker" {
-			broker = w.Hostname + ":" + strconv.Itoa(w.Port)
+			brokers = append(brokers, w.Hostname+":"+strconv.Itoa(w.Port))
 		}
 
 	}
 
-	return server, broker
+	return servers, brokers
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
