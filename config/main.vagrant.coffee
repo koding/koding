@@ -100,7 +100,7 @@ module.exports =
       suppressLogs: no
       broker    :
         sockJS  : 'http://localhost:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+      apiUri    : 'https://api.koding.com'
       # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
