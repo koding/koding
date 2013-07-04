@@ -22,6 +22,7 @@ type Target struct {
 	Mode        string
 	Persistence string
 	FetchedAt   time.Time
+	UseCache    bool
 }
 
 func NewTarget(url *url.URL, mode, persistence string) *Target {
@@ -34,14 +35,21 @@ func NewTarget(url *url.URL, mode, persistence string) *Target {
 		Mode:        mode,
 		Persistence: persistence,
 		FetchedAt:   time.Now(),
+		UseCache:    true,
 	}
 }
 
 var proxyDB *proxyconfig.ProxyConfiguration
 var ErrGone = errors.New("target is gone")
+
+// used for inmemory lookup
 var targets = make(map[string]Target)
 var targetsLock sync.RWMutex
 var cacheTimeout = time.Second * 20
+
+// used for loadbalance modes, like roundrobin, random, etc..
+var indexes = make(map[string]int)
+var indexesLock sync.RWMutex
 
 func init() {
 	var err error
@@ -66,7 +74,9 @@ func GetMemTarget(host string) (*Target, string, error) {
 			return nil, "", err
 		}
 
-		go registerCacheTarget(host, target)
+		if target.UseCache {
+			go registerCacheTarget(host, target)
+		}
 	}
 
 	return target, dataSource, nil
@@ -137,11 +147,18 @@ func GetTarget(host string) (*Target, error) {
 
 		switch domain.LoadBalancer.Mode {
 		case "roundrobin": // equal weights
+			index, ok := 0, false
+			index, ok = getIndex(host)
+			if !ok {
+				index = domain.LoadBalancer.Index
+				addOrUpdateIndex(host, index)
+			}
+
 			N := float64(len(domain.HostnameAlias))
-			n := int(math.Mod(float64(domain.LoadBalancer.Index+1), N))
+			n := int(math.Mod(float64(index+1), N))
+
 			hostname = domain.HostnameAlias[n]
-			domain.LoadBalancer.Index = n
-			go proxyDB.UpdateDomain(&domain)
+			addOrUpdateIndex(host, n)
 		case "sticky":
 			hostname = domain.HostnameAlias[domain.LoadBalancer.Index]
 		case "random":
@@ -192,9 +209,15 @@ func GetTarget(host string) (*Target, error) {
 		switch keyData.LoadBalancer.Mode {
 		case "roundrobin":
 			var n int
-			hostname, n = roundRobin(keyData.Host, keyData.LoadBalancer.Index, 0)
-			keyData.LoadBalancer.Index = n
-			go proxyDB.UpdateKeyData(username, servicename, keyData)
+			index, ok := 0, false
+			index, ok = getIndex(host)
+			if !ok {
+				index = keyData.LoadBalancer.Index
+				addOrUpdateIndex(host, index)
+			}
+
+			hostname, n = roundRobin(keyData.Host, index, 0)
+			addOrUpdateIndex(host, n)
 			if hostname == "" {
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
@@ -243,6 +266,11 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	return hostname, n
 }
 
+/*************************************************
+*
+*  in-memory lookup functions needed for cache lookups and actions
+*
+*************************************************/
 func getCacheTarget(host string) (*Target, bool) {
 	targetsLock.RLock()
 	defer targetsLock.RUnlock()
@@ -283,4 +311,37 @@ func cacheCleaner() {
 		targetsLock.RLock()
 	}
 	targetsLock.RUnlock()
+}
+
+/*************************************************
+*
+*  the following functions are used for loadbalance indexing.
+*
+*************************************************/
+
+// getIndex is used to get the current index for current the loadbalance
+// algorithm. It's concurrent-safe.
+func getIndex(host string) (int, bool) {
+	indexesLock.RLock()
+	defer indexesLock.RUnlock()
+	index, ok := indexes[host]
+	return index, ok
+}
+
+// addOrUpdateIndex is used to add the current index for the current loadbalacne
+// algorithm. The index number is changed according to to the loadbalance mode.
+// When used roundrobin, the next items index is saved, for random a random
+// number is assigned, and so on. It's concurrent-safe.
+func addOrUpdateIndex(host string, index int) {
+	indexesLock.Lock()
+	defer indexesLock.Unlock()
+	indexes[host] = index
+}
+
+// deleteIndex is used to remove the current index from the indexes. It's
+// concurrent-safe.
+func deleteIndex(host string) {
+	indexesLock.Lock()
+	defer indexesLock.Unlock()
+	delete(indexes, host)
 }
