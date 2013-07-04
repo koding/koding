@@ -153,10 +153,11 @@ class DomainCreationForm extends KDTabViewWithForms
     {createButton} = form.buttons
     @clearSuggestions()
 
-    {DomainOption, domainName, regYears} = form.inputs
+    {DomainOption, domainName, regYears, domains} = form.inputs
     splittedDomain    = domainName.getValue().split "."
     domain            = splittedDomain.first
     tld               = splittedDomain.slice(1).join('')
+    domainName        = domainName.getValue()
 
     domainOptionValue = DomainOption.getValue()
 
@@ -188,27 +189,7 @@ class DomainCreationForm extends KDTabViewWithForms
             domain.setDomainCNameToProxyDomain()
 
     else if domainOptionValue is 'existing'
-      KD.remote.api.JDomain.createDomain
-        domain         : domainName.getValue()
-        regYears       : 0
-        hostnameAlias  : []
-        loadBalancer   :
-            mode       : "roundrobin"
-      , (err, domain)=>
-        createButton.hideLoader()
-        if err
-          warn err
-          return notifyUser "An error occured. Please try again later."
-        else
-          @showSuccess()
-    else if domainOptionValue is 'subdomain'
-      KD.remote.api.JDomain.createDomain
-        domain         : domainName.getValue()
-        regYears       : 0
-        hostnameAlias  : []
-        loadBalancer   :
-            mode       : "roundrobin"
-      , (err, domain)=>
+      @createDomain {domainName, regYears:0}, (err, domain)=>
         createButton.hideLoader()
         if err
           warn err
@@ -216,9 +197,27 @@ class DomainCreationForm extends KDTabViewWithForms
         else
           @showSuccess()
 
-    else # groupSubDomain
+    else # create a subdomain
+      subDomain = domainName.replace /\.{1,}(?=[^.]*$)/, ''
+      domainName = "#{subDomain}.#{domains.getValue()}"
 
+      @createDomain {domainName, regYears:0}, (err, domain)=>
+        createButton.hideLoader()
+        if err
+          warn err
+          return notifyUser "An error occured. Please try again later."
+        else
+          @showSuccess()
 
+  createDomain:(params, callback)->
+    KD.remote.api.JDomain.createDomain
+        domain         : params.domainName
+        regYears       : params.regYears
+        hostnameAlias  : []
+        loadBalancer   :
+            mode       : "roundrobin"
+      , (err, domain)=>
+        callback err, domain
 
   clearSuggestions:-> @suggestionBox?.destroy()
 
