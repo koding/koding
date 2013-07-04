@@ -96,7 +96,7 @@ class DomainCreationForm extends KDTabViewWithForms
                     @needBilling no
                     "#{KD.utils.slugify firstName}s-subdomain"
             domainName                :
-              placeholder             : "#{KD.utils.slugify firstName}s-new-domain.com"
+              placeholder             : "#{KD.utils.slugify firstName}s-subdomain"
               nextElement             :
                 regYears              :
                   cssClass            : "hidden"
@@ -124,7 +124,7 @@ class DomainCreationForm extends KDTabViewWithForms
       domainList = []
       for domain in userDomains
         if not domain.regYears > 0 and domain.domain.indexOf("shared") is -1
-          domainList.push {title:domain.domain, value:domain.domain}
+          domainList.push {title:".#{domain.domain}", value:domain.domain}
       @forms["Domain Address"].inputs.domains.setSelectOptions domainList
 
   needBilling:(paymentRequired)->
