@@ -84,3 +84,18 @@ KD.extend
           if flag in account.globalFlags
             return yes
     no
+
+  showError:(err, messages)->
+    return  unless err
+
+    if 'string' is typeof err
+      message = err
+      err     = {message}
+
+    err.name or= 'KodingError'
+    message    = messages[err.name] or err.message or 'Something went wrong'
+
+    new KDNotificationView
+      title : message
+
+    warn "KodingError:", err.message  unless err.name is 'AccessDenied'

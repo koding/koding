@@ -80,17 +80,15 @@ class LikeView extends KDView
     event.preventDefault()
 
     if $(event.target).is("a.action-link")
-      KD.requireMembership
-        callback  : =>
-          @getData().like (err)=>
-            if err
-              log "Something went wrong while like:", err
-            else
-              @_currentState = not @_currentState
-              @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
-        tryAgain  : yes
-        onFailMsg : 'Login required to like activities'
-        groupName : @parent.getDelegate().getData().group
+      @getData().like (err)=>
+
+        KD.showError err,
+          AccessDenied : 'Permission denied to like activities'
+          KodingError  : 'Something went wrong while like'
+
+        unless err
+          @_currentState = not @_currentState
+          @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""
