@@ -330,64 +330,74 @@ module.exports = class Graph
 
   fetchMembers:(options, callback)->
     {skip, limit, sort, groupId} = options
-    skip = 0 unless skip
-    limit = 20 unless limit
 
-    orderBy = ""
-    if sort?
+    skip   ?= 0
+    limit  ?= 20
+
+    if sort
       orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
+      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
+    else
+      orderByQuery = ''
 
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
       return members
-      order by #{orderByQuery} DESC
+      #{orderByQuery}
       skip #{skip}
       limit #{limit}
       """
+
     @queryMembers query, {}, callback
 
   fetchFollowingMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
 
-    skip = 0 unless skip
-    limit = 20 unless limit
+    skip   ?= 0
+    limit  ?= 20
 
-    orderBy = Object.keys(sort)[0]
-    orderByQuery = @getOrderByQuery orderBy
+    if sort
+      orderBy = Object.keys(sort)[0]
+      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
+    else
+      orderByQuery = ''
 
     query = """
-        start  group=node:koding("id:#{groupId}")
-        MATCH  group-[r:member]->members-[:follower]->currentUser
+        start group=node:koding("id:#{groupId}")
+        MATCH group-[r:member]->members-[:follower]->currentUser
         where currentUser.id = "#{currentUserId}"
         return members, r
-        order by #{orderByQuery} DESC
+        #{orderByQuery}
         skip #{skip}
         limit #{limit}
-        """
+    """
+
     @queryMembers query, {}, callback
 
 
   fetchFollowerMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
 
-    skip = 0 unless skip
-    limit = 20 unless limit
-    orderBy = Object.keys(sort)[0]
+    skip   ?= 0
+    limit  ?= 20
 
-    orderByQuery = @getOrderByQuery orderBy
+    if sort
+      orderBy = Object.keys(sort)[0]
+      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
+    else
+      orderByQuery = ''
 
     query = """
         start group=node:koding("id:#{groupId}")
         MATCH group-[r:member]->members<-[:follower]-currentUser
         where currentUser.id = "#{currentUserId}"
         return members, r
-        order by #{orderByQuery} DESC
+        #{orderByQuery}
         skip #{skip}
         limit #{limit}
-        """
+    """
+
     @queryMembers query, {}, callback
 
   queryMembers:(query, options={}, callback)->
