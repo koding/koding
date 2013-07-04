@@ -384,8 +384,8 @@ module.exports = class JGroup extends Module
         unless hasPermission
           return callback new KodingError 'Access denied.'
 
-    unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+    #unless delegate instanceof JAccount
+    #  return callback new KodingError 'Access denied.'
 
     @create formData, delegate, callback
 
