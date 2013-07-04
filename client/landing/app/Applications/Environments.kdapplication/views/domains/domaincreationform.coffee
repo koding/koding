@@ -103,7 +103,6 @@ class DomainCreationForm extends KDTabViewWithForms
                   itemClass           : KDSelectBox
                   selectOptions       : ({title: "#{i} Year#{if i > 1 then 's' else ''}", value:i} for i in [1..10])
                 domains               :
-                  cssClass            : "hidden"
                   itemClass           : KDSelectBox
                   validate            :
                     rules             :
