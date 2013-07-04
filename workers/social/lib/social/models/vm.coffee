@@ -74,7 +74,9 @@ module.exports = class JVM extends Model
           hostnameAlias : [hostnameAlias]
           proxy         : { mode: 'vm' }
           regYears      : 0
-        ).save (err)-> console.log err  if err?
+        ).save (err)->
+          unless err?.code is 11000
+            console.log err
 
   @ensureDomainSettings = ({vm, type, nickname, groupSlug})->
     domain = 'kd.io'
@@ -109,15 +111,15 @@ module.exports = class JVM extends Model
 
   @parseAlias = (alias)->
     # group-vm alias
-    if /^shared-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+)\.kd\.io$/
+    if /^shared-[0-9]+/.test alias
+      result = alias.match /(.*)\.([\w\-]+)\.kd\.io$/
       if result
         [rest..., prefix, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
         return {groupSlug, prefix, uid, type:'group', alias}
     # personal-vm alias
-    else if /^vm-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+)\.(\w+)\.kd\.io$/
+    else if /^vm-[0-9]+/.test alias
+      result = alias.match /(.*)\.([\w\-]+)\.([\w\-]+)\.kd\.io$/
       if result
         [rest..., prefix, nickname, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
