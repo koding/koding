@@ -24,6 +24,7 @@ module.exports = class JAccount extends jraphical.Module
   CActivity = require '../activity'
   Graph     = require "../graph/graph"
   @getFlagRole = 'content'
+  JName = require '../name'
 
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
@@ -227,7 +228,6 @@ module.exports = class JAccount extends jraphical.Module
   changeUsername$: secure (client, username, callback) ->
 
     {delegate} = client.connection
-    JName = require '../name'
 
     unless delegate.equals this
     then return callback new KodingError 'Access denied!'
@@ -437,7 +437,6 @@ module.exports = class JAccount extends jraphical.Module
     options ?= {}
     options.limit ?= 100
     options.skip ?= 0
-    JName = require '../name'
     @someData {}, {'profile.nickname':1}, options, (err, cursor)=>
       if err then callback err
       else
