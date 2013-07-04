@@ -50,10 +50,10 @@ class AccountSshKeyForm extends KDFormView
 
     formline1.addSubView @titleLabel = new KDLabelView
       for      : "sshtitle"
-      title    : "Key Title"
+      title    : "Label"
 
     formline1.addSubView @titleInput = new KDInputView
-      placeholder  : "Label your key here..."
+      placeholder  : "Label your SSH key here..."
       name         : "sshtitle"
       label        : @titleLabel
 
