@@ -201,7 +201,7 @@ func (k *Kite) Run() {
 
 					d.Send("ready", k.ServiceUniqueName)
 
-					pingSent := false
+					pingAlreadySent := false
 					for {
 						select {
 						case message, ok := <-route:
@@ -210,35 +210,20 @@ func (k *Kite) Run() {
 							}
 							log.Debug("Read", channel.RoutingKey, message)
 							d.ProcessMessage(message)
-							pingSent = false
-						case <-time.After(time.Minute):
-							if pingSent {
+							pingAlreadySent = false
+						case <-time.After(5 * time.Minute):
+							if pingAlreadySent {
 								timeoutChannel <- channel.RoutingKey
 								break
 							}
 							d.Send("ping")
-							pingSent = true
+							pingAlreadySent = true
 						}
 					}
 				}()
 
 			case "auth.leave":
-				log.Debug("auth.leave", message)
-
-				var client struct {
-					RoutingKey string
-				}
-				err := json.Unmarshal(message.Body, &client)
-				if err != nil || client.RoutingKey == "" {
-					log.Err("Invalid auth.leave message.", message.Body)
-					continue
-				}
-
-				route, found := routeMap[client.RoutingKey]
-				if found {
-					close(route)
-					delete(routeMap, client.RoutingKey)
-				}
+				// ignored, session end is handled by ping/pong timeout
 
 			case "auth.who":
 				var client struct {
