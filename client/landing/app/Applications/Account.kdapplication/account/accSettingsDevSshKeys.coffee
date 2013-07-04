@@ -42,36 +42,41 @@ class AccountSshKeyList extends KDListView
     super options,data
 
 class AccountSshKeyForm extends KDFormView
-  viewAppended:->
 
-    @addSubView formline1 = new KDCustomHTMLView
-      tagName : "div"
-      cssClass : "formline"
+  constructor:->
 
-    formline1.addSubView @titleLabel = new KDLabelView
+    super
+
+    @titleLabel = new KDLabelView
       for      : "sshtitle"
       title    : "Label"
 
-    formline1.addSubView @titleInput = new KDInputView
+    @titleInput = new KDInputView
       placeholder  : "Label your SSH key here..."
       name         : "sshtitle"
       label        : @titleLabel
 
-    formline1.addSubView @keyTextLabel = new KDLabelView
+    @keyTextLabel = new KDLabelView
       for      : "sshkey"
       title    : "SSH Key"
 
-    formline1.addSubView @keyTextarea = new KDInputView
+    @keyTextarea = new KDInputView
       placeholder  : "Paste your SSH key here..."
       type         : "textarea"
       name         : "sshkey"
       cssClass     : "light"
       label        : @keyTextLabel
 
-    {key, title} = @data
+  viewAppended:->
 
-    @titleInput.setValue  title if title
-    @keyTextarea.setValue key   if key
+    @addSubView formline1 = new KDCustomHTMLView
+      tagName : "div"
+      cssClass : "formline"
+
+    formline1.addSubView @titleLabel
+    formline1.addSubView @titleInput
+    formline1.addSubView @keyTextLabel
+    formline1.addSubView @keyTextarea
 
     @addSubView formline2 = new KDCustomHTMLView
       cssClass : "button-holder"
@@ -104,11 +109,17 @@ class AccountSshKeyListItem extends KDListItemView
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
 
   viewAppended:->
+
     super
+
     @form = form = new AccountSshKeyForm
       delegate : this
       cssClass : "posrelative"
-    , @getData()
+
+    {title, key} = @getData()
+
+    form.titleInput.setValue  title if title
+    form.keyTextarea.setValue key   if key
 
     @info = info = new KDCustomHTMLView
       tagName  : "span"
@@ -138,11 +149,8 @@ class AccountSshKeyListItem extends KDListItemView
     @swappable.swapViews()
 
   cancelItem:->
-    @getData().key = @form.keyTextarea.getValue()
-    if @getData().key
-      @swappable.swapViews()
-    else
-      @deleteItem()
+    {key} = @getData()
+    if key then @swappable.swapViews() else @deleteItem()
 
   deleteItem:->
     @getDelegate().emit "RemoveItem", @
