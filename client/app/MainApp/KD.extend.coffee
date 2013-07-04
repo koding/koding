@@ -93,9 +93,18 @@ KD.extend
       err     = {message}
 
     err.name or= 'KodingError'
-    message    = messages[err.name] or err.message or 'Something went wrong'
 
-    new KDNotificationView
-      title : message
+    content    = ''
+    errMessage = messages[err.name]
+    if errMessage?
+      if 'string' is typeof errMessage
+        title = errMessage
+      else if errMessage.title? and errMessage.content?
+        {title, content} = errMessage
+
+    duration = errMessage.duration or 2500
+    title  or= err.message or 'Something went wrong'
+
+    new KDNotificationView {title, content, duration}
 
     warn "KodingError:", err.message  unless err.name is 'AccessDenied'
