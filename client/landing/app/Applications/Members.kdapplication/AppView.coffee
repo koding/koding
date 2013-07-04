@@ -114,8 +114,13 @@ class MembersLikedContentDisplayView extends KDView
     super options, data
 
   createCommons:(account)->
+
+    if account.type is 'unregistered'
+    then name = account.profile.nickname.capitalize()
+    else name = "#{account.profile.firstName} #{account.profile.lastName}"
+
     contentDisplayController = KD.getSingleton "contentDisplayController"
-    headerTitle              = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
+    headerTitle              = "Activities which #{name} liked"
 
     @addSubView header = new HeaderViewSection
       type  : "big"
@@ -144,10 +149,16 @@ class MembersContentDisplayView extends KDView
     super options, data
 
   createCommons:(account, filter)->
-    headerTitle = if filter is "following" then "Members who #{account.profile.firstName} #{account.profile.lastName} follows" else "Members who follow #{account.profile.firstName} #{account.profile.lastName}"
-    @addSubView header = new HeaderViewSection
-      type  : "big"
-      title : headerTitle
+
+    if account.type is 'unregistered'
+    then name = account.profile.nickname.capitalize()
+    else name = "#{account.profile.firstName} #{account.profile.lastName}"
+
+    if filter is "following"
+    then title = "Members who #{name} follows"
+    else title = "Members who follow #{name}"
+
+    @addSubView header = new HeaderViewSection {type : "big", title}
 
     @addSubView subHeader = new KDCustomHTMLView
       tagName  : "h2"
