@@ -68,7 +68,7 @@ class AccountSshKeyForm extends KDFormView
       cssClass     : "light"
       label        : @keyTextLabel
 
-    {key, title} = @getData()
+    {key, title} = @data
 
     @titleInput.setValue  title if title
     @keyTextarea.setValue key   if key
