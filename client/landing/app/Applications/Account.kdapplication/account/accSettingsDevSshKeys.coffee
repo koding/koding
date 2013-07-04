@@ -5,6 +5,7 @@ class AccountSshKeyListController extends KDListViewController
     @loadItems()
 
     @getListView().on "UpdatedItems", =>
+      @newItem = no
       newKeys = @getItemsOrdered().map (item)-> item.getData()
       if newKeys.length is 0
         @addCustomItem "You have no SSH keys."
@@ -12,8 +13,11 @@ class AccountSshKeyListController extends KDListViewController
         console.log "Saved keys."
 
     @getListView().on "RemoveItem", (item)=>
+      @newItem = no
       @removeItem item
       @getListView().emit "UpdatedItems"
+
+    @newItem = no
 
   loadItems: ()->
     @removeAllItems()
@@ -35,8 +39,10 @@ class AccountSshKeyListController extends KDListViewController
       iconOnly  : yes
       iconClass : "plus"
       callback  : =>
-        @addItem {key: '', title: ''}, 0
-        @getListView().items.first.swapSwappable()
+        unless @newItem
+          @newItem = true
+          @addItem {key: '', title: ''}, 0
+          @getListView().items.first.swapSwappable()
 
   addCustomItem:(message)->
     @removeAllItems()
