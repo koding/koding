@@ -1,10 +1,10 @@
 version = `VBoxManage --version 2> /dev/null` rescue "0"
-if version < "4.2.12r84980"
-  print "VirtualBox not installed or outdated. "
+if version < "4.2.14r86644" and ARGV[0] != "halt"
+  print "\e[31mVirtualBox not installed or outdated. \e[30m"
 
   install = false
-  if `uname`.strip == "Darwin"
-    print "Download and install VirtualBox automatically? (yN) "
+  if `uname`.strip == "Darwin" and system "tty > /dev/null"
+    print "Download and install VirtualBox automatically? This will halt running Vagrant machines. (yN) "
     install = ($stdin.gets.strip == "y")
   end
 
@@ -14,7 +14,8 @@ if version < "4.2.12r84980"
     exit! 1
   end
 
-  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.12/VirtualBox-4.2.12-84980-OSX.dmg" or exit! 1
+  system "vagrant halt" or exit! 1
+  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.14/VirtualBox-4.2.14-86644-OSX.dmg" or exit! 1
   system "hdiutil attach /tmp/VirtualBox.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time
@@ -26,7 +27,7 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
-  if `uname`.strip == "Darwin"
+  if `uname`.strip == "Darwin" and system "tty > /dev/null"
     print "Download and install Vagrant automatically? (yN) "
     install = ($stdin.gets.strip == "y")
   end
