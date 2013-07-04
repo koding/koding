@@ -67,8 +67,8 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-9"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
+      default.vm.box = "koding-13"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-13.box"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
@@ -98,43 +98,14 @@ Vagrant.configure("2") do |config|
         salt.minion_config = "saltstack/vagrant-minion"
         salt.run_highstate = true
       end
-    else
-      set_permissions = ""
-      rabbit_users = ["PROD-k5it50s4676pO9O", "guest", "logger", "pingdom_monitor", "prod-applications-kite", "prod-auth-worker", "prod-authworker", "prod-broker", "prod-databases-kite", "prod-irc-kite", "prod-kite-os", "prod-kite-webterm", "prod-os", "prod-os-kite", "prod-sharedhosting-kite", "prod-social", "prod-webserver", "prod-webterm-kite"]
-      for r_user in rabbit_users
-        set_permissions += 'rabbitmqctl set_permissions -p followfeed %s ".*" ".*" ".*" 2>1 > /dev/null ;' % r_user
-      end
-      default.vm.provision :shell, :inline => "
-        TRIALS=0
-        while [ \"$TRIALS\" -ne \"3\" ]
-        do
-          sleep `expr 4 - $TRIALS`
-          TRIALS=`expr $TRIALS + 1`
-          if rabbitmqctl -q list_users 2>/dev/null | grep guest
-          then
-            if ! rabbitmqctl list_vhosts 2>/dev/null|grep followfeed
-            then
-              rabbitmqctl add_vhost followfeed 2>/dev/null; %s 
-              if [ \"$?\" -ne \"0\" ]
-              then
-                continue
-              fi
-              echo \"vhost fixed! Happy developments\";
-            else
-              echo \"vhost already created\"
-            fi;
-            break;
-          fi;
-        done
-      " % set_permissions
     end
   end
 
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
 
-      secondary.vm.box = "koding-9"
-      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
+      secondary.vm.box = "koding-13"
+      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-13.box"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 
