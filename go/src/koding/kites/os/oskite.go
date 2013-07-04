@@ -345,7 +345,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vm.LdapPassword = ldapPassword
 		}
 
-		if _, err := os.Stat(vm.File("")); err != nil {
+		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
