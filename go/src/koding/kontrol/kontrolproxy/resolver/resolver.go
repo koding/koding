@@ -13,12 +13,15 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 )
 
 type Target struct {
 	Url         *url.URL
 	Mode        string
 	Persistence string
+	FetchedAt   time.Time
 }
 
 func NewTarget(url *url.URL, mode, persistence string) *Target {
@@ -30,11 +33,15 @@ func NewTarget(url *url.URL, mode, persistence string) *Target {
 		Url:         url,
 		Mode:        mode,
 		Persistence: persistence,
+		FetchedAt:   time.Now(),
 	}
 }
 
 var proxyDB *proxyconfig.ProxyConfiguration
 var ErrGone = errors.New("target is gone")
+var targets = make(map[string]Target)
+var targetsLock sync.RWMutex
+var cacheTimeout = time.Second * 20
 
 func init() {
 	var err error
@@ -42,6 +49,27 @@ func init() {
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
+}
+
+// GetMemTarget is like GetTarget with a difference, that it f first makes a
+// lookup from the in-memory lookup, if not found it returns the result from
+// GetTarget()
+func GetMemTarget(host string) (*Target, string, error) {
+	var err error
+	var target = &Target{}
+	dataSource := "cache"
+	target, ok := getCacheTarget(host)
+	if !ok {
+		dataSource = "db"
+		target, err = GetTarget(host)
+		if err != nil {
+			return nil, "", err
+		}
+
+		go registerCacheTarget(host, target)
+	}
+
+	return target, dataSource, nil
 }
 
 // GetTarget is used to resolve any hostname to their final target destination
@@ -209,4 +237,46 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	}
 
 	return hostname, n
+}
+
+func getCacheTarget(host string) (*Target, bool) {
+	targetsLock.RLock()
+	defer targetsLock.RUnlock()
+	target, ok := targets[host]
+	return &target, ok
+}
+
+func registerCacheTarget(host string, target *Target) {
+	targetsLock.Lock()
+	defer targetsLock.Unlock()
+	targets[host] = *target
+	if len(targets) == 1 {
+		go cacheCleaner()
+	}
+}
+
+func deleteCacheTarget(host string) {
+	targetsLock.Lock()
+	defer targetsLock.Unlock()
+	delete(targets, host)
+}
+
+func cacheCleaner() {
+	targetsLock.RLock()
+	for len(targets) > 0 {
+		var nextTime time.Time
+		var nextTarget string
+		for ip, c := range targets {
+			if nextTime.IsZero() || c.FetchedAt.Before(nextTime) {
+				nextTime = c.FetchedAt
+				nextTarget = ip
+			}
+		}
+		targetsLock.RUnlock()
+		// negative duration is no-op, means it will not panic
+		time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
+		deleteCacheTarget(nextTarget)
+		targetsLock.RLock()
+	}
+	targetsLock.RUnlock()
 }

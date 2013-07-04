@@ -34,8 +34,6 @@ type Proxy struct{}
 type Client struct {
 	Target     string    `json:"target"`
 	Registered time.Time `json:"firstVist"`
-	Reset      bool      `json:"-"`
-	Mode       string    `json:"-"`
 }
 
 var templates = template.Must(template.ParseFiles(
@@ -51,7 +49,6 @@ var proxyName = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var clients = make(map[string]Client)
 var clientsLock sync.RWMutex
-var cacheTimeout = time.Second * 20
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -162,38 +159,17 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-
-	// in memory lookup
-	target := &resolver.Target{}
-	uniqueIP := userIP + "-" + req.Host
-	var err error
-	client, ok := getClient(uniqueIP)
-	if !ok {
-		target, err = resolver.GetTarget(req.Host)
-		if err != nil {
-			if err == resolver.ErrGone {
-				return templateHandler("notfound.html", req.Host, 410)
-			}
-			log.Println("resolver error", err)
-			return templateHandler("notfound.html", req.Host, 404)
+	target, source, err := resolver.GetMemTarget(req.Host)
+	if err != nil {
+		if err == resolver.ErrGone {
+			return templateHandler("notfound.html", req.Host, 410)
 		}
-
-		go logDomainRequests(req.Host)
-		go logProxyStat(proxyName, userCountry)
-		go registerClient(uniqueIP, target.Url.String(), target.Mode)
-
-		fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
-		fmt.Printf("proxy via db\t: %s --> %s\n", req.Host, target.Url.String())
-	} else {
-		target.Url, err = url.Parse(client.Target)
-		if err != nil {
-			log.Println("could not parse client.target", client.Target)
-			return templateHandler("notfound.html", req.Host, 404)
-		}
-		target.Mode = client.Mode
-		fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
-		fmt.Printf("proxy via inmem\t: %s --> %s\n", req.Host, target.Url.String())
+		log.Println("resolver error", err)
+		return templateHandler("notfound.html", req.Host, 404)
 	}
+
+	fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
+	fmt.Printf("proxy via %s\t: %s --> %s\n", source, req.Host, target.Url.String())
 
 	switch target.Mode {
 	case "maintenance":
@@ -222,6 +198,12 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			log.Printf("error validating user: %s", err.Error())
 			return templateHandler("notfound.html", req.Host, 404)
 		}
+	}
+
+	if _, ok := getClient(userIP); !ok {
+		go logDomainRequests(req.Host)
+		go logProxyStat(proxyName, userCountry)
+		go registerClient(userIP, target.Url.String())
 	}
 
 	if isWebsocket(req) {
@@ -375,10 +357,10 @@ func resetClients() {
 	clients = make(map[string]Client)
 }
 
-func registerClient(ip, target, mode string) {
+func registerClient(ip, target string) {
 	clientsLock.Lock()
 	defer clientsLock.Unlock()
-	clients[ip] = Client{Target: target, Registered: time.Now(), Mode: mode}
+	clients[ip] = Client{Target: target, Registered: time.Now()}
 	if len(clients) == 1 {
 		go cleaner()
 	}
@@ -417,7 +399,7 @@ func cleaner() {
 		}
 		clientsLock.RUnlock()
 		// negative duration is no-op, means it will not panic
-		time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
+		time.Sleep(time.Hour - time.Now().Sub(nextTime))
 		clientsLock.Lock()
 		log.Println("deleting client from internal map", nextClient)
 		delete(clients, nextClient)
