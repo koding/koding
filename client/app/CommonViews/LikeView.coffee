@@ -67,13 +67,14 @@ class LikeView extends KDView
             {firstName, lastName} = item.profile
             peopleWhoLiked.push "<strong>" + firstName + " " + lastName + "</strong>"
 
-        sep = ', '
+        sep  = ', '
+        and_ = if peopleWhoLiked.length>0 then 'and ' else ''
 
         guestLikes =
           switch guestsWhoLiked
             when 0 then ""
-            when 1 then "and <strong>a guest</strong>"
-            when 2 then "and <strong>2 guests</strong>"
+            when 1 then "#{and_}<strong>a guest</strong>"
+            when 2 then "#{and_}<strong>2 guests</strong>"
             when 3 then "<strong>3 guests</strong>"
 
         tooltip =
