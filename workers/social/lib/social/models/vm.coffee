@@ -10,15 +10,18 @@ module.exports = class JVM extends Model
 
   JRecurlySubscription = require './recurly/subscription'
   JPermissionSet       = require './group/permissionset'
-
   @share()
 
   @trait __dirname, '../traits/protected'
 
   @bound = require 'koding-bound'
 
+  handleError = (err)-> console.error err  if err
+
   @set
     softDelete          : yes
+    indexes             :
+      hostnameAlias     : 'unique'
     permissions         :
       'sudoer'          : []
       'create vms'      : ['member','moderator']
@@ -32,8 +35,6 @@ module.exports = class JVM extends Model
                            'count', #'calculateUsage'
                           ]
       instance          : []
-    indexes             :
-      hostnameAlias     : 'unique'
     schema              :
       ip                :
         type            : String
@@ -156,21 +157,29 @@ module.exports = class JVM extends Model
           hostnameAliases = JVM.createAliases {
             nickname, type, uid, groupSlug
           }
-
-          JVM.createDomains hostnameAliases, hostnameAliases[0]
+          users         = [{ id: user.getId(), sudo: yes, owner: yes }]
+          groups        = [{ id: group.getId() }]
+          hostnameAlias = hostnameAliases[0]
 
           vm = new JVM {
-            planCode      : planCode
-            planOwner     : planOwner
-            users         : [{ id: user.getId(), sudo: yes, owner: yes }]
-            groups        : [{ id: group.getId() }]
-            hostnameAlias : hostnameAliases[0]
+            hostnameAlias
+            planOwner
+            planCode
             webHome
+            groups
+            users
             usage
           }
 
           vm.save (err) =>
-            return callback err  if err
+
+            if err
+              console.error err
+              return console.warn "Failed to create VM for ", \
+                                   {users, groups, hostnameAlias}
+
+            JVM.createDomains hostnameAliases, hostnameAliases[0]
+
             group.addVm vm, (err)=>
               return callback err  if err
               JVM.ensureDomainSettings {vm, type, nickname, groupSlug}
@@ -386,8 +395,6 @@ module.exports = class JVM extends Model
 
   do ->
 
-    handleError = (err)-> console.error err  if err
-
     JGroup  = require './group'
     JUser   = require './user'
 
@@ -400,19 +407,30 @@ module.exports = class JVM extends Model
         type, uid, groupSlug
       }
 
-      JVM.createDomains hostnameAliases, hostnameAliases[0]
+      users = [
+        { id: user.getId(), sudo: yes, owner: yes }
+      ]
+      hostnameAlias = hostnameAliases[0]
+      groups       ?= []
 
       vm = new JVM {
-        users         : [
-          { id: user.getId(), sudo: yes, owner: yes }
-        ]
-        groups        : groups ? []
-        hostnameAlias : hostnameAliases[0]
+        hostnameAlias
         planOwner
         planCode
         webHome
+        groups
+        users
       }
-      vm.save (err)-> target.addVm vm, handleError
+
+      vm.save (err)->
+
+        handleError err
+        if err
+          return console.warn "Failed to create VM for ", \
+                               {users, groups, hostnameAlias}
+
+        JVM.createDomains hostnameAliases, hostnameAliases[0]
+        target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
 

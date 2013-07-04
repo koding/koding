@@ -96,6 +96,15 @@ func Init(service string) {
 	}()
 }
 
+func Send(event url.Values) {
+	select {
+	case sendChannel <- event:
+		// successful
+	default:
+		fmt.Println("logger error: sendChannel is full.")
+	}
+}
+
 func NewEvent(level int, text string, data ...interface{}) url.Values {
 	event := url.Values{
 		"source": {loggrSource},
@@ -129,16 +138,16 @@ func Log(level int, text string, data ...interface{}) {
 	logCounter += 1
 	if !config.LogDebug && MaxPerSecond > 0 && logCounter > MaxPerSecond {
 		if logCounter == MaxPerSecond+1 {
-			sendChannel <- NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond))
+			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond)))
 		}
 		return
 	}
 
-	sendChannel <- NewEvent(level, text, data...)
+	Send(NewEvent(level, text, data...))
 }
 
 func SendLogsAndExit(code int) {
-	sendChannel <- url.Values{"exit": {strconv.Itoa(code)}}
+	Send(url.Values{"exit": {strconv.Itoa(code)}})
 	time.Sleep(time.Hour) // wait for exit
 }
 

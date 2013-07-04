@@ -137,7 +137,7 @@ module.exports = class JOldUser extends jraphical.Module
               passwordConfirm : pass
               username        : user.nickname
               agree           : "on"
-              inviteCode      : "twitterfriends"
+              inviteCode      : "3adf0f2067"
               silence         : yes
             , (error, account, token)=>
               if not err and account
