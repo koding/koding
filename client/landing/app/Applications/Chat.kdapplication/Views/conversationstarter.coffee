@@ -11,6 +11,8 @@ class ConversationStarterButton extends KDButtonView
     super options, data
 
   click:->
+    return  unless KD.isLoggedIn()
+
     conversationStarter = new ConversationStarter
     contextMenu   = new JContextMenu
       menuWidth   : 200
