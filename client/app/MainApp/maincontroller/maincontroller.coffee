@@ -222,9 +222,11 @@ class MainController extends KDController
                   rules              :
                     required         : yes
                     minLength        : 2
+                    regExp           : /\d[A-Za-z]+/i
                   messages           :
                     required         : "Please enter a time period"
                     minLength        : "You must enter one pair"
+                    regExp           : "You must enter at least a number and a character e.g : 1y 1h"
                 iconOptions          :
                   tooltip            :
                     placement        : "right"
