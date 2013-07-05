@@ -24,7 +24,7 @@ class VirtualizationController extends KDController
       options.correlationName = vmName
       @kc.run options, callback
 
-  _runWraper:(command, vm, callback)->
+  _runWrapper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
@@ -50,16 +50,16 @@ class VirtualizationController extends KDController
         # silence   : yes
 
   start:(vm, callback)->
-    @_runWraper 'vm.start', vm, callback
+    @_runWrapper 'vm.start', vm, callback
 
   stop:(vm, callback)->
-    @_runWraper 'vm.shutdown', vm, callback
+    @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWraper 'vm.stop', vm, callback
+    @_runWrapper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
-    @_runWraper 'vm.reinitialize', vm, callback
+    @_runWrapper 'vm.reinitialize', vm, callback
 
   remove: do->
 
@@ -89,7 +89,7 @@ class VirtualizationController extends KDController
     [callback, vm] = [vm, callback]  unless callback
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @_runWraper 'vm.info', vm, (err, info)=>
+      @_runWrapper 'vm.info', vm, (err, info)=>
         warn "[VM-#{vm}]", err  if err
         @emit 'StateChanged', err, vm, info
         callback? err, vm, info
