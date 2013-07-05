@@ -46,6 +46,7 @@ func main() {
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
 		session.Tag = socketId
+		clientVersion := 0
 
 		log.Debug("Client connected: " + socketId)
 		changeClientsGauge(1)
@@ -167,6 +168,9 @@ func main() {
 
 				action := message["action"]
 				switch action {
+				case "clientInfo":
+					clientVersion = message["version"].(int)
+
 				case "subscribe":
 					globalMapMutex.Lock()
 					defer globalMapMutex.Unlock()
