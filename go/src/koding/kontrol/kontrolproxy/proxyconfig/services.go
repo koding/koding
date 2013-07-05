@@ -41,11 +41,11 @@ func NewKeyRoutingTable() *KeyRoutingTable {
 	}
 }
 
-func NewKeyData(key, persistence, mode, hostdata, rabbitkey string, host []string, index int) *KeyData {
+func NewKeyData(key, persistence, mode, hostdata, rabbitkey string, host []string) *KeyData {
 	return &KeyData{
 		Key:          key,
 		Host:         host,
-		LoadBalancer: LoadBalancer{persistence, mode, index},
+		LoadBalancer: LoadBalancer{persistence, mode},
 		HostData:     hostdata,
 		RabbitKey:    rabbitkey,
 	}
@@ -140,7 +140,7 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData,
 }
 
 // Update or add a key. service and username will be created if not available
-func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string, index int) error {
+func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string) error {
 	service, err := p.GetService(username)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -158,7 +158,7 @@ func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename,
 	_, ok = keyRoutingTable.Keys[key] // empty routing table or not existing key
 	if !ok {
 		hosts := []string{host}
-		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, rabbitkey, hosts, 0)
+		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, rabbitkey, hosts)
 		service.Services[servicename] = keyRoutingTable
 		err = p.UpsertService(username, service)
 		if err != nil {
@@ -180,13 +180,8 @@ func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename,
 		keyData.Host = append(keyData.Host, host)
 	}
 
-	if index >= len(keyData.Host) && mode == "sticky" {
-		return fmt.Errorf("index: %d can't be larger or equal to the length of host-list: %d", index, len(keyData.Host))
-	}
-
 	keyData.LoadBalancer.Persistence = persistence
 	keyData.LoadBalancer.Mode = mode
-	keyData.LoadBalancer.Index = index
 	keyData.HostData = hostdata
 	keyData.RabbitKey = rabbitkey
 

@@ -1,10 +1,10 @@
 version = `VBoxManage --version 2> /dev/null` rescue "0"
-if version < "4.2.12r84980"
-  print "VirtualBox not installed or outdated. "
+if version < "4.2.14r86644" and ARGV[0] != "halt"
+  print "\e[31mVirtualBox not installed or outdated. \e[30m"
 
   install = false
-  if `uname`.strip == "Darwin"
-    print "Download and install VirtualBox automatically? (yN) "
+  if `uname`.strip == "Darwin" and system "tty > /dev/null"
+    print "Download and install VirtualBox automatically? This will halt running Vagrant machines. (yN) "
     install = ($stdin.gets.strip == "y")
   end
 
@@ -14,7 +14,8 @@ if version < "4.2.12r84980"
     exit! 1
   end
 
-  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.12/VirtualBox-4.2.12-84980-OSX.dmg" or exit! 1
+  system "vagrant halt" or exit! 1
+  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.14/VirtualBox-4.2.14-86644-OSX.dmg" or exit! 1
   system "hdiutil attach /tmp/VirtualBox.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time
@@ -22,11 +23,20 @@ if version < "4.2.12r84980"
   puts "", "VirtualBox successfully installed.", ""
 end
 
+# Since Richard introduced Virtualbox 4.2.14 vagrant doesn't work
+# https://github.com/mitchellh/vagrant/issues/1847
+# This is a fix for this until this is addressed in vagrant / VirtualBox
+version = `VBoxManage --version 2> /dev/null` rescue "0"
+if not File.exists? File.expand_path "~/.vagrant.d/boxes/koding-13/virtualbox/box.mf" and version == "4.2.14r86644\n"
+  puts "", "\e[0;31mSeems like you updated to a virtualbox version with a vagrant bug :'( autofixing now!\e[0;0m", ""
+  system "/usr/bin/openssl sha1 ~/.vagrant.d/boxes/koding-13/virtualbox/*.vmdk ~/.vagrant.d/boxes/koding-13/virtualbox/*.ovf > ~/.vagrant.d/boxes/koding-13/virtualbox/box.mf"
+end
+
 if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
-  if `uname`.strip == "Darwin"
+  if `uname`.strip == "Darwin" and system "tty > /dev/null"
     print "Download and install Vagrant automatically? (yN) "
     install = ($stdin.gets.strip == "y")
   end
@@ -66,8 +76,8 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-9"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
+      default.vm.box = "koding-13"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-13.box"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
@@ -97,42 +107,14 @@ Vagrant.configure("2") do |config|
         salt.minion_config = "saltstack/vagrant-minion"
         salt.run_highstate = true
       end
-    else
-      set_permissions = ""
-      rabbit_users = ["PROD-k5it50s4676pO9O", "guest", "logger", "pingdom_monitor", "prod-applications-kite", "prod-auth-worker", "prod-authworker", "prod-broker", "prod-databases-kite", "prod-irc-kite", "prod-kite-os", "prod-kite-webterm", "prod-os", "prod-os-kite", "prod-sharedhosting-kite", "prod-social", "prod-webserver", "prod-webterm-kite"]
-      for r_user in rabbit_users
-        set_permissions += '&& rabbitmqctl set_permissions -p followfeed %s ".*" ".*" ".*" 2>1 > /dev/null' % r_user
-      end
-      default.vm.provision :shell, :inline => "
-        TRIALS=0
-        rabbitmqctl -q list_users 2>1 > /dev/null
-        while [ \"$TRIALS\" -ne \"3\" ]
-        do
-          sleep 2
-          TRIALS=`expr $TRIALS + 1`
-          rabbitmqctl -q list_users 2>1 > /dev/null
-          EXIT=$?
-          if [ \"$EXIT\" -eq \"0\" ]
-          then
-            if ! rabbitmqctl list_vhosts|grep followfeed
-            then
-              rabbitmqctl add_vhost followfeed %s 2>1 > /dev/null;
-              echo \"vhost fixed! Happy developments\";
-            else
-              echo \"vhost already created\"
-            fi;
-            break;
-          fi;
-        done
-      " % set_permissions
     end
   end
 
   if ENV.has_key? "SECONDARY"
     config.vm.define :secondary do |secondary|
 
-      secondary.vm.box = "koding-9"
-      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
+      secondary.vm.box = "koding-13"
+      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-13.box"
       secondary.vm.hostname = "secondary"
       secondary.vm.synced_folder ".", "/opt/koding"
 

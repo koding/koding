@@ -33,11 +33,12 @@ type VMInfo struct {
 	mutex         sync.Mutex
 	totalCpuUsage int
 
-	State       string `json:"state"`
-	CpuUsage    int    `json:"cpuUsage"`
-	CpuShares   int    `json:"cpuShares"`
-	MemoryUsage int    `json:"memoryUsage"`
-	MemoryLimit int    `json:"memoryLimit"`
+	State               string `json:"state"`
+	CpuUsage            int    `json:"cpuUsage"`
+	CpuShares           int    `json:"cpuShares"`
+	MemoryUsage         int    `json:"memoryUsage"`
+	PhysicalMemoryLimit int    `json:"physicalMemoryLimit"`
+	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
 }
 
 var infos = make(map[bson.ObjectId]*VMInfo)
@@ -252,16 +253,28 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if bson.IsObjectIdHex(channel.CorrelationName) {
 				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
 			}
-			if vm == nil {
+			if vm == nil && channel.CorrelationName != "guest" {
 				if err := db.VMs.Find(bson.M{"hostnameAlias": channel.CorrelationName}).One(&vm); err != nil {
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
-			if k.ServiceUniqueName == "" {
-				log.Warn("Service unique name is empty")
+
+			isTemporary := false
+			if channel.CorrelationName == "guest" || vm.SnapshotOf != "" {
+				var err error
+				vm, err = virt.CreateTemporaryVM(&user, vm)
+				if err != nil {
+					return nil, err
+				}
+				isTemporary = true
 			}
 
-			if vm.HostKite != k.ServiceUniqueName && k.ServiceUniqueName != "" {
+			permissions := vm.GetPermissions(&user)
+			if permissions == nil {
+				return nil, &kite.PermissionError{}
+			}
+
+			if !isTemporary && vm.HostKite != k.ServiceUniqueName {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
 					time.Sleep(time.Second) // to avoid rapid cycle channel loop
 					return nil, &kite.WrongChannelError{}
@@ -269,25 +282,14 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				vm.HostKite = k.ServiceUniqueName
 			}
 
-			permissions := vm.GetPermissions(&user)
-			if vm.SnapshotOf == "" && permissions == nil {
-				return nil, &kite.PermissionError{}
-			}
-
-			if vm.SnapshotOf != "" {
-				var err error
-				vm, err = vm.CreateTemporaryVM()
-				if err != nil {
-					return nil, err
-				}
-				info.temporaryVM = vm
-			}
-
 			infosMutex.Lock()
 			var found bool
 			info, found = infos[vm.Id]
 			if !found {
 				info = newInfo(vm)
+				if isTemporary {
+					info.temporaryVM = vm
+				}
 				infos[vm.Id] = info
 			}
 			channel.KiteData = info
@@ -344,7 +346,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vm.LdapPassword = ldapPassword
 		}
 
-		if _, err := os.Stat(vm.File("")); err != nil {
+		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
@@ -366,72 +368,70 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			panic(err)
 		}
 
-		if info.temporaryVM == nil {
-			if _, err := rootVos.Stat("/home/" + user.Name); err != nil {
+		if _, err := rootVos.Stat("/home/" + user.Name); err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+
+			if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
+				panic(err)
+			}
+			if err := rootVos.Chown("/home/"+user.Name, user.Uid, user.Uid); err != nil {
+				panic(err)
+			}
+			if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
+				panic(err)
+			}
+		}
+
+		vmWebDir := "/home/" + vm.WebHome + "/Web"
+		userWebDir := "/home/" + user.Name + "/Web"
+
+		if err := rootVos.Symlink(vmWebDir, "/var/www"); err == nil {
+			// symlink successfully created
+
+			if _, err := rootVos.Stat(vmWebDir); err != nil {
 				if !os.IsNotExist(err) {
 					panic(err)
 				}
+				// vmWebDir directory does not yes exist
 
-				if err := rootVos.MkdirAll("/home/"+user.Name, 0755); err != nil && !os.IsExist(err) {
-					panic(err)
+				vmWebVos := rootVos
+				if vmWebDir == userWebDir {
+					vmWebVos = userVos
 				}
-				if err := rootVos.Chown("/home/"+user.Name, user.Uid, user.Uid); err != nil {
-					panic(err)
-				}
-				if err := copyIntoVos(templateDir+"/user", "/home/"+user.Name, userVos); err != nil {
-					panic(err)
-				}
-			}
 
-			vmWebDir := "/home/" + vm.WebHome + "/Web"
-			userWebDir := "/home/" + user.Name + "/Web"
+				// migration of old Sites directory
+				migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.HostnameAlias, vmWebDir)
+				vmWebVos.Remove("/home/" + vm.WebHome + "/Sites")
+				rootVos.Remove("/etc/apache2/sites-enabled/" + vm.HostnameAlias)
 
-			if err := rootVos.Symlink(vmWebDir, "/var/www"); err == nil {
-				// symlink successfully created
-
-				if _, err := rootVos.Stat(vmWebDir); err != nil {
-					if !os.IsNotExist(err) {
+				if migrationErr != nil {
+					// create fresh Web directory if migration unsuccessful
+					if err := vmWebVos.MkdirAll(vmWebDir, 0755); err != nil {
 						panic(err)
 					}
-					// vmWebDir directory does not yes exist
-
-					vmWebVos := rootVos
-					if vmWebDir == userWebDir {
-						vmWebVos = userVos
-					}
-
-					// migration of old Sites directory
-					migrationErr := vmWebVos.Rename("/home/"+vm.WebHome+"/Sites/"+vm.HostnameAlias, vmWebDir)
-					vmWebVos.Remove("/home/" + vm.WebHome + "/Sites")
-					rootVos.Remove("/etc/apache2/sites-enabled/" + vm.HostnameAlias)
-
-					if migrationErr != nil {
-						// create fresh Web directory if migration unsuccessful
-						if err := vmWebVos.MkdirAll(vmWebDir, 0755); err != nil {
-							panic(err)
-						}
-						if err := copyIntoVos(templateDir+"/website", vmWebDir, vmWebVos); err != nil {
-							panic(err)
-						}
+					if err := copyIntoVos(templateDir+"/website", vmWebDir, vmWebVos); err != nil {
+						panic(err)
 					}
 				}
 			}
+		}
 
-			if _, err := rootVos.Stat(userWebDir); err != nil && vmWebDir != userWebDir {
-				if !os.IsNotExist(err) {
-					panic(err)
-				}
-				// userWebDir directory does not yes exist
+		if _, err := rootVos.Stat(userWebDir); err != nil && vmWebDir != userWebDir {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+			// userWebDir directory does not yes exist
 
-				if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
-					panic(err)
-				}
-				if err := copyIntoVos(templateDir+"/website", userWebDir, userVos); err != nil {
-					panic(err)
-				}
-				if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
-					panic(err)
-				}
+			if err := userVos.MkdirAll(userWebDir, 0755); err != nil {
+				panic(err)
+			}
+			if err := copyIntoVos(templateDir+"/website", userWebDir, userVos); err != nil {
+				panic(err)
+			}
+			if err := rootVos.Symlink(userWebDir, vmWebDir+"/~"+user.Name); err != nil && !os.IsExist(err) {
+				panic(err)
 			}
 		}
 
@@ -503,11 +503,12 @@ func getUsers(vm *virt.VM) []virt.User {
 
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
-		vmId:          vm.Id,
-		vmName:        vm.String(),
-		useCounter:    0,
-		totalCpuUsage: utils.MaxInt,
-		CpuShares:     1000,
+		vmId:             vm.Id,
+		vmName:           vm.String(),
+		useCounter:       0,
+		totalCpuUsage:    utils.MaxInt,
+		CpuShares:        1000,
+		TotalMemoryLimit: MaxMemoryLimit,
 	}
 }
 

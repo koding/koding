@@ -182,4 +182,7 @@ class FSHelper
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
 
+  @isPublicPath = (path)->
+    /^\/home\/.*\/Web\//.test FSHelper.plainPath path
+
 KD.classes.FSHelper = FSHelper
