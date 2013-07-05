@@ -18,6 +18,9 @@ services=(
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/alice
+  koding/kontrol/kontrolproxy
+  koding/kontrol/kontroldaemon
+  koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/neo4jfeeder
   koding/dns
