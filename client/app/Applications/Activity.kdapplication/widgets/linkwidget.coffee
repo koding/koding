@@ -24,10 +24,12 @@ class ActivityLinkWidget extends KDFormView
       title : "Description:"
       autogrow: yes
 
+    name = KD.utils.getFullnameFromAccount KD.whoami(), yes
+
     @description = new KDInputView
       label         : @labelDescription
       type          : "textarea"
-      placeholder   : "Please enter a description, #{Encoder.htmlDecode profile.firstName}."
+      placeholder   : "Please enter a description, #{name}."
       name          : 'body'
       style         : 'input-with-extras'
       autogrow      : yes

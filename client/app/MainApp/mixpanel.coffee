@@ -16,8 +16,8 @@ if mixpanel? && KD.config.logToExternal then do ->
     user_id = user.hash or user.nickname
     mixpanel.identify user_id
     mixpanel.people.set
-      "$username": user.nickname
-      "$name": user.firstName + " " + user.lastName
+      "$username" : user.nickname
+      "$name"     : KD.utils.getFullnameFromAccount()
 
   status = KD.getSingleton "status"
   status.on "connected",    -> KD.logToMixpanel 5, "connected"
