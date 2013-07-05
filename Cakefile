@@ -66,8 +66,18 @@ compileGoBinaries = (configFile,callback)->
     callback null
 
 task 'populateNeo4j', ({configFile})->
+  invoke 'deleteNeo4j'
+
   migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
   processes.exec migrator
+
+task 'deleteNeo4j', ({configFile})->
+  console.log "This task is hardcoded to delete only Neo running in localhost:7474\n"
+
+  query = """
+    curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node:koding(\\"id:*\\") match kod-[r]-() delete kod, r"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=relationship(*) delete kod;"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node(*) delete kod;"}' "http://localhost:7474/db/data/cypher"
+  """
+  processes.exec query
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
