@@ -382,12 +382,12 @@ module.exports = class JGroup extends Module
     @one {slug:"koding"}, (err, kodingGroup)=>
       delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
         unless hasPermission
-          return callback new KodingError 'Access denied.'
+          return callback new KodingError 'Access denied'
 
         @create formData, delegate, callback
 
     #unless delegate instanceof JAccount
-    #  return callback new KodingError 'Access denied.'
+    #  return callback new KodingError 'Access denied'
 
 
   @findSuggestions = (client, seed, options, callback)->

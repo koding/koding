@@ -234,7 +234,7 @@ module.exports = class JAccount extends jraphical.Module
     {delegate} = client.connection
 
     unless delegate.equals this
-    then return callback new KodingError 'Access denied!'
+    then return callback new KodingError 'Access denied'
 
     @changeUsername options, callback
 
@@ -320,7 +320,7 @@ module.exports = class JAccount extends jraphical.Module
       operation.$set[selector] = value
       @update operation, callback
     else
-      callback? new KodingError 'Access denied!'
+      callback? new KodingError 'Access denied'
 
   setStaticPageTitle: secure (client, title, callback)->
     {delegate}    = client.connection
@@ -331,7 +331,7 @@ module.exports = class JAccount extends jraphical.Module
       operation.$set[selector] = title
       @update operation, callback
     else
-      callback? new KodingError 'Access denied!'
+      callback? new KodingError 'Access denied'
 
   setStaticPageAbout: secure (client, about, callback)->
     {delegate}    = client.connection
@@ -342,7 +342,7 @@ module.exports = class JAccount extends jraphical.Module
       operation.$set[selector] = about
       @update operation, callback
     else
-      callback? new KodingError 'Access denied!'
+      callback? new KodingError 'Access denied'
 
 
   addStaticPageType: secure (client, type, callback)->
@@ -351,7 +351,7 @@ module.exports = class JAccount extends jraphical.Module
     if isMine
       @update {$addToSet: 'profile.staticPage.showTypes': type}, callback
     else
-      callback? new KodingError 'Access denied!'
+      callback? new KodingError 'Access denied'
 
   # addStaticBackground: secure (client, url, callback)->
   #   {delegate}    = client.connection
@@ -359,7 +359,7 @@ module.exports = class JAccount extends jraphical.Module
   #   if isMine
   #     @update {$addToSet: 'profile.staticPage.backgrounds': url}, callback
   #   else
-  #     callback? new KodingError 'Access denied!'
+  #     callback? new KodingError 'Access denied'
 
   removeStaticPageType: secure (client, type, callback)->
     {delegate}    = client.connection
@@ -367,7 +367,7 @@ module.exports = class JAccount extends jraphical.Module
     if isMine
       @update {$pullAll: 'profile.staticPage.showTypes': [type]}, callback
     else
-      callback? new KodingError 'Access denied!'
+      callback? new KodingError 'Access denied'
 
 
   setStaticPageVisibility: secure (client, visible=yes, callback)->
@@ -376,7 +376,7 @@ module.exports = class JAccount extends jraphical.Module
     if isMine
       @update ($set: 'profile.staticPage.show': visible), callback
     else
-      callback? new KodingError 'Access denied!'
+      callback? new KodingError 'Access denied'
 
 
   fetchGroups: secure (client, callback)->
@@ -431,7 +431,7 @@ module.exports = class JAccount extends jraphical.Module
   @impersonate = secure (client, nickname, callback)->
     {connection:{delegate}, sessionToken} = client
     unless delegate.can 'administer accounts'
-      callback new KodingError 'Access denied!'
+      callback new KodingError 'Access denied'
     else
       JSession = require '../session'
       JSession.update {clientId: sessionToken}, $set:{username: nickname}, callback
@@ -522,7 +522,7 @@ module.exports = class JAccount extends jraphical.Module
     [callback, activityId] = [activityId, callback] unless callback
     {delegate} = client.connection
     unless @equals delegate
-      callback new KodingError 'Access denied.'
+      callback new KodingError 'Access denied'
     else
       selector = {'data.flags.glanced' : $ne : yes}
       selector.targetId = activityId if activityId
@@ -537,7 +537,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchNonces: secure (client, callback)->
     {delegate} = client.connection
     unless @equals delegate
-      callback new KodingError 'Access denied.'
+      callback new KodingError 'Access denied'
     else
       client.connection.remote.fetchClientId (clientId)->
         JSession.one {clientId}, (err, session)->
@@ -554,7 +554,7 @@ module.exports = class JAccount extends jraphical.Module
   fetchKiteChannelId: secure (client, kiteName, callback)->
     {delegate} = client.connection
     unless delegate instanceof JAccount
-      callback new KodingError 'Access denied.'
+      callback new KodingError 'Access denied'
     else
       callback null, "private-#{kiteName}-#{delegate.profile.nickname}"
 
@@ -745,7 +745,7 @@ module.exports = class JAccount extends jraphical.Module
     secure ({connection}, options, callback)->
       [callback, options] = [options, callback] unless callback
       unless @equals connection.delegate
-        callback new KodingError 'Access denied.'
+        callback new KodingError 'Access denied'
       else
         options or= {}
         selector =
@@ -783,13 +783,13 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchNotificationsTimeline: secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
-      callback new KodingError 'Access denied.'
+      callback new KodingError 'Access denied'
     else
       @fetchActivities selector, options, @constructor.collectTeasersAllCallback callback
 
   fetchActivityTeasers : secure ({connection}, selector, options, callback)->
     unless @equals connection.delegate
-      callback new KodingError 'Access denied.'
+      callback new KodingError 'Access denied'
     else
       @fetchActivities selector, options, callback
 

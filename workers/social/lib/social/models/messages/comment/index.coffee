@@ -59,7 +59,7 @@ module.exports = class JComment extends jraphical.Reply
               else if delegate.can 'delete', comment
                 message.removeReply rel, -> queue.fin()
               else
-                callback new KodingError 'Access denied!'
+                callback new KodingError 'Access denied'
       =>
         deleter = ObjectRef(delegate)
         @update
@@ -84,8 +84,8 @@ module.exports = class JComment extends jraphical.Reply
           else
             repliesCount = message.getAt 'repliesCount'
             daisy queue = [
-              -> 
-                rel.update $set: 'data.flags.isLowQuality': isLowQuality, 
+              ->
+                rel.update $set: 'data.flags.isLowQuality': isLowQuality,
                   -> queue.next()
               ->
                 message.update $inc: repliesCount: inc, -> queue.next()

@@ -131,14 +131,19 @@ class ActivityUpdateWidgetController extends KDViewController
       data.group = KD.getSingleton('groupsController').getGroupSlug()
       KD.remote.api[constructorName].create data, (err, activity)=>
         callback? err, activity
+
+        KD.showError err,
+          AccessDenied :
+            title      : 'Permission denied to create activities'
+            content    : 'This activity will only be visible to you'
+            duration   : 5000
+          KodingError  : 'Something went wrong while creating activity'
+
         unless err
           @utils.killWait updateTimeout
           @emit 'OwnActivityHasArrived', activity
         else
-          warn err
           @emit 'OwnActivityHasFailed', data
-          new KDNotificationView
-            title : "There was an error, try again later!"
 
   createFakeTags = (originalTags)->
 

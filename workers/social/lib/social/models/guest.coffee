@@ -18,7 +18,7 @@ module.exports = class JGuest extends jraphical.Module
   # We import instance & static methods from JAccount into JGuest for
   # uniformty of interface
   do =>
-    errorCallback = (rest..., callback)-> callback? new KodingError "Access denied"
+    errorCallback = (rest..., callback)-> callback? new KodingError 'Access denied'
     @[method]    ?= errorCallback for method in sharedStaticMethods()
     @::[method]  ?= errorCallback for method in sharedInstanceMethods()
     return

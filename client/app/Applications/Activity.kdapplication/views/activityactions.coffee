@@ -23,7 +23,7 @@ class ActivityActionsView extends KDView
       click:(event)=>
         event.preventDefault()
 
-    @likeView     = new LikeView {checkIfLikedBefore: no}, activity
+    @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
 
     # unless KD.isLoggedIn()

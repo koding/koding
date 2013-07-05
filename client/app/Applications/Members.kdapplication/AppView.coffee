@@ -30,7 +30,8 @@ class MembersListItemView extends KDListItemView
         height: options.avatarSizes[1]
     , memberData
 
-    if memberData.profile.nickname is KD.whoami().profile.nickname
+    if (memberData.profile.nickname is KD.whoami().profile.nickname) or \
+        memberData.type is 'unregistered'
     then @followButton = new KDView
     else @followButton = new MemberFollowToggleButton
       style       : "follow-btn"
@@ -113,8 +114,13 @@ class MembersLikedContentDisplayView extends KDView
     super options, data
 
   createCommons:(account)->
+
+    if account.type is 'unregistered'
+    then name = account.profile.nickname.capitalize()
+    else name = "#{account.profile.firstName} #{account.profile.lastName}"
+
     contentDisplayController = KD.getSingleton "contentDisplayController"
-    headerTitle              = "Activities which #{account.profile.firstName} #{account.profile.lastName} liked"
+    headerTitle              = "Activities which #{name} liked"
 
     @addSubView header = new HeaderViewSection
       type  : "big"
@@ -143,10 +149,16 @@ class MembersContentDisplayView extends KDView
     super options, data
 
   createCommons:(account, filter)->
-    headerTitle = if filter is "following" then "Members who #{account.profile.firstName} #{account.profile.lastName} follows" else "Members who follow #{account.profile.firstName} #{account.profile.lastName}"
-    @addSubView header = new HeaderViewSection
-      type  : "big"
-      title : headerTitle
+
+    if account.type is 'unregistered'
+    then name = account.profile.nickname.capitalize()
+    else name = "#{account.profile.firstName} #{account.profile.lastName}"
+
+    if filter is "following"
+    then title = "Members who #{name} follows"
+    else title = "Members who follow #{name}"
+
+    @addSubView header = new HeaderViewSection {type : "big", title}
 
     @addSubView subHeader = new KDCustomHTMLView
       tagName  : "h2"
@@ -176,23 +188,28 @@ class MemberFollowToggleButton extends KDToggleButton
       states          : [
         title         : "Follow"
         callback      : (callback)->
-          KD.requireMembership
-            callback  : =>
-              @getData().follow (err, response)=>
-                @hideLoader()
-                unless err
-                  @getData().followee = yes
-                  @setClass 'following-btn'
-                  KD.track "Members", "Follow", @getData().profile.nickname
-                  callback? null
-            tryAgain  : yes
-            onFailMsg : 'Login required to follow members'
-            onFail    : => @hideLoader()
+          @getData().follow (err, response)=>
+            @hideLoader()
+
+            KD.showError err,
+              AccessDenied : 'Permission denied to follow members'
+              KodingError  : 'Something went wrong while follow'
+
+            unless err
+              @getData().followee = yes
+              @setClass 'following-btn'
+              KD.track "Members", "Follow", @getData().profile.nickname
+              callback? null
       ,
         title         : "Unfollow"
         callback      : (callback)->
           @getData().unfollow (err, response)=>
             @hideLoader()
+
+            KD.showError err,
+              AccessDenied : 'Permission denied to unfollow members'
+              KodingError  : 'Something went wrong while unfollow'
+
             unless err
               @getData().followee = no
               @unsetClass 'following-btn'

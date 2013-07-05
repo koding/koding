@@ -167,9 +167,9 @@ module.exports = [
 
   "app/MainApp/navigation/navigationcontroller.coffee",
 
-  "app/CommonViews/LinkViews.coffee",
   "app/CommonViews/VideoPopup.coffee",
   "app/CommonViews/LikeView.coffee",
+  "app/CommonViews/ShowMoreDataModalView.coffee",
   "app/CommonViews/Tags/TagViews.coffee",
   "app/CommonViews/Tags/TagAutoCompleteController.coffee",
   "app/CommonViews/FormViews.coffee",

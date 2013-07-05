@@ -67,7 +67,7 @@ class LinkGroup extends KDCustomHTMLView
         href      : "#"
         title     : "Click to view..."
       click       : =>
-        new FollowedModalView {group}, @getData()
+        new ShowMoreDataModalView {group}, @getData()
 
   pistachio:->
 
