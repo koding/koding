@@ -17,12 +17,12 @@ class VirtualizationController extends KDController
       options =
         withArgs : command
 
-    @fetchDefaultVmName (defaultVmName)=>
-      vmName = if options.vmName then options.vmName else defaultVmName
-      unless vmName
-        return callback message: 'There is no VM for this account.'
+    @fetchVmName options, (err, vmName) =>
+      return callback err  if err?
       options.correlationName = vmName
-      @kc.run options, callback
+      @kc.run options, (rest...) ->
+        log rest...
+        callback rest...
 
   _runWrapper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
@@ -100,9 +100,20 @@ class VirtualizationController extends KDController
       return ("#{vmTemplate}".replace '%d', i)
     return no
 
+  fetchVmName: (options, callback) ->
+    if options.vmName?
+    then @utils.defer -> callback null, options.vmName
+    else if KD.whoami().type is 'unregistered'
+    then @utils.defer -> callback null, 'guest'
+    else
+      @fetchDefaultVmName (defaultVmName) ->
+        if defaultVmName?
+        then callback null, defaultVmName
+        else callback message: 'There is no VM for this account.'
+
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
-      return callback @defaultVmName
+      return @utils.defer -> callback @defaultVmName
 
     {entryPoint}   = KD.config
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
