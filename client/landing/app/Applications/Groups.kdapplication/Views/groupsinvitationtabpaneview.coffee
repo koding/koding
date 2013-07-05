@@ -64,7 +64,6 @@ class GroupsInvitationRequestsTabPaneView extends GroupsInvitationTabPaneView
           warn err  if err
           return @controller.emit 'noItemsFound'
 
-        @controller.hideNoItemWidget()  if requests.length > 0
         @timestamp = requests.last.timestamp_
         @controller.instantiateListItems requests
         @emit 'teasersLoaded'  if requests.length is @requestLimit
@@ -127,7 +126,6 @@ class GroupsInvitationCodesTabPaneView extends GroupsInvitationTabPaneView
           warn err  if err
           return @controller.emit 'noItemsFound'
 
-        @controller.hideNoItemWidget()  if codes.length > 0
         @timestamp = codes.last._id
         @controller.instantiateListItems codes
         @emit 'teasersLoaded'  if codes.length is @requestLimit

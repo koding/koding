@@ -128,7 +128,6 @@ class ActivityAppController extends AppController
     return  if @isLoading
 
     @listController.showLazyLoader no
-    @listController.hideNoItemWidget()
 
     @isLoading       = yes
     groupsController = KD.getSingleton 'groupsController'
