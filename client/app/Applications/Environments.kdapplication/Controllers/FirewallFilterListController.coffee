@@ -2,9 +2,7 @@ class FirewallFilterListController extends KDListViewController
 
   constructor:(options={}, data)->
     options.itemClass       or= FirewallFilterListItemView
-    options.showDefaultItem or= yes
-    options.defaultItem     or=
-        itemClass : EmptyFirewallFilterListItemView
+    options.noItemView      or= new EmptyFirewallFilterListItemView
     options.viewOptions     or=
       type      : 'filters'
       tagName   : 'table'
@@ -31,10 +29,6 @@ class FirewallFilterListController extends KDListViewController
 
     listView.on "filterDeleted", (item)=>
       @removeItem item
-
-      if @itemsOrdered.length is 0
-        @defaultItem = null
-
       @fetchFilters()
 
   fetchFilters:->

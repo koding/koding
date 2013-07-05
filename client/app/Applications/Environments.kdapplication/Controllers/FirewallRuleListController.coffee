@@ -1,11 +1,9 @@
 class FirewallRuleListController extends KDListViewController
 
   constructor:(options={}, data)->
-    options.itemClass       or= FirewallRuleListItemView
-    options.showDefaultItem or= yes
-    options.defaultItem     or=
-      itemClass : EmptyFirewallRuleListItemView
-    options.viewOptions     or=
+    options.itemClass   or= FirewallRuleListItemView
+    options.noItemView  or= new EmptyFirewallRuleListItemView
+    options.viewOptions or=
       tagName   : "table"
       type      : "rules"
       partial   :
@@ -24,10 +22,6 @@ class FirewallRuleListController extends KDListViewController
     @getListView().on "ruleActionChanged", @bound 'refreshProxyRulesList'
     @getListView().on "ruleDeleted", (item)=>
       @removeItem item
-
-      if @itemsOrdered.length is 0
-        @defaultItem = null
-
       @refreshProxyRulesList()
     @on "newRuleCreated", @bound 'refreshProxyRulesList'
 

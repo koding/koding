@@ -80,6 +80,15 @@ class EnvironmentsTabHandleView extends KDTabHandleView
 
     @unsetClass 'kdtabhandle'
 
+  click: do->
+    notification = null
+    ->
+      unless @getOptions().title is "Domains"
+        notification?.destroy()
+        notification = new KDNotificationView title : 'Coming soon...'
+        return no
+
+
   partial:-> "<a href='#'>#{@getOptions().title or 'Default Title'}</a>"
 
 # * quick hack: don't copy/paste from here :)

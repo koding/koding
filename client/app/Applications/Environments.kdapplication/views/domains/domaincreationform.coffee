@@ -15,9 +15,9 @@ class DomainCreationForm extends KDTabViewWithForms
     paymentController = KD.getSingleton('paymentController')
     group             = KD.getSingleton("groupsController").getCurrentGroup()
     domainOptions     = [
-      { title : "Create a subdomain",          value : "subdomain" }
-      { title : "I want to register a domain", value : "new" }
-      { title : "I already have a domain",     value : "existing" }
+      { title : "Create a subdomain",                                      value : "subdomain" }
+      { title : "I want to register a domain <cite>coming soon...</cite>", value : "new",      disabled : "disabled" }
+      { title : "I already have a domain <cite>coming soon...</cite>",     value : "existing", disabled : "disabled" }
     ]
 
     super
@@ -26,6 +26,7 @@ class DomainCreationForm extends KDTabViewWithForms
       hideHandleContainer             : yes
       forms                           :
         "Domain Address"              :
+          callback                    : @bound "registerDomain"
           buttons                     :
             billingButton             :
               title                   : "Billing Info"
@@ -52,9 +53,8 @@ class DomainCreationForm extends KDTabViewWithForms
               loader                  :
                 color                 : "#ffffff"
                 diameter              : 24
-              callback                : @bound "registerDomain"
             close                     :
-              title                   : "Close"
+              title                   : "Back to settings"
               style                   : "cupid-green hidden"
               callback                : => @reset()
             cancel                    :
@@ -76,20 +76,20 @@ class DomainCreationForm extends KDTabViewWithForms
                 domainName.getElement().setAttribute 'placeholder', switch actionState
                   when "new"
                     @suggestionBox?.show()
-                    domainName.setValidation domainNameValidation
+                    # domainName.setValidation domainNameValidation
                     domains.hide()
                     regYears.show()
                     @needBilling yes
                     "#{KD.utils.slugify firstName}s-new-domain.com"
                   when "existing"
                     @suggestionBox?.hide()
-                    domainName.setValidation domainNameValidation
+                    # domainName.setValidation domainNameValidation
                     domains.hide()
                     regYears.hide()
                     @needBilling no
                     "#{KD.utils.slugify firstName}s-existing-domain.com"
                   when "subdomain"
-                    domainName.unsetValidation()
+                    # domainName.unsetValidation()
                     @suggestionBox?.hide()
                     domains.show()
                     regYears.hide()
@@ -97,6 +97,11 @@ class DomainCreationForm extends KDTabViewWithForms
                     "#{KD.utils.slugify firstName}s-subdomain"
             domainName                :
               placeholder             : "#{KD.utils.slugify firstName}s-subdomain"
+              validate                :
+                rules                 :
+                  required            : yes
+                messages              :
+                  required            : "Subdomain name is required!"
               nextElement             :
                 regYears              :
                   cssClass            : "hidden"
@@ -108,7 +113,7 @@ class DomainCreationForm extends KDTabViewWithForms
                     rules             :
                       required        : yes
                     messages          :
-                      requires        : "Enter your domain name"
+                      required        : "Please select a parent domain."
             suggestionBox             :
               type                    : "hidden"
 
@@ -262,7 +267,10 @@ class DomainCreationForm extends KDTabViewWithForms
       cssClass: 'success'
       # the following partial will vary depending on the DomainOption value.
       # Users who registered a domain through us won't need this change.
-      partial : "<b>Thank you!</b><br>Your domain #{domainName.getValue()} has been added to our database. Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com."
+      # partial : "<b>Thank you!</b><br>Your domain #{domainName.getValue()} has been added to our database. Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com."
+
+      # change this part when registering is there.
+      partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs or set load balancing on the settings screen."
       click   : => @reset()
 
 

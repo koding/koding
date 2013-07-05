@@ -3,8 +3,7 @@ class DNSRecordListController extends KDListViewController
   constructor:(options={}, data)->
 
     options.itemClass   or= DNSRecordListItemView
-    options.defaultItem or=
-      itemClass : EmptyDNSRecordListItemView
+    options.noItemView  or= new EmptyDNSRecordListItemView
     options.viewOptions or=
       type      : 'dns-records'
       tagName   : 'table'
