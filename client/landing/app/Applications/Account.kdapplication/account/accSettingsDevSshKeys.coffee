@@ -9,6 +9,8 @@ class AccountSshKeyListController extends KDListViewController
       newKeys = @getItemsOrdered().map (item)-> item.getData()
       if newKeys.length is 0
         @addCustomItem "You have no SSH keys."
+      else
+        @customItem?.destroy()
       KD.remote.api.JUser.setSSHKeys newKeys, ->
         console.log "Saved keys."
 
@@ -21,6 +23,7 @@ class AccountSshKeyListController extends KDListViewController
 
   loadItems: ()->
     @removeAllItems()
+    @customItem?.destroy()
     @showLazyLoader no
 
     KD.remote.api.JUser.getSSHKeys (keys)=>
