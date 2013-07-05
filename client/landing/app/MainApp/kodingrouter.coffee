@@ -103,7 +103,7 @@ class KodingRouter extends KDRouter
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
     @utils.shortenText(
       switch model.constructor
-        when JAccount       then "#{model.profile.firstName} #{model.profile.lastName}"
+        when JAccount       then  KD.utils.getFullnameFromAccount model
         when JStatusUpdate  then  model.body
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"

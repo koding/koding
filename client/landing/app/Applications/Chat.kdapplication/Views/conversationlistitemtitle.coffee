@@ -17,7 +17,7 @@ class ChatConversationListItemTitle extends JView
         @setTemplate @pistachio()  if @accounts.length is @getData().length
 
   getName:(index)->
-    "#{@accounts[index].profile.firstName} #{@accounts[index].profile.lastName}"
+    KD.utils.getFullnameFromAccount @accounts[index]
 
   pistachio:->
 
