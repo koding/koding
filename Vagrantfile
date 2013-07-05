@@ -23,6 +23,15 @@ if version < "4.2.14r86644" and ARGV[0] != "halt"
   puts "", "VirtualBox successfully installed.", ""
 end
 
+# Since Richard introduced Virtualbox 4.2.14 vagrant doesn't work
+# https://github.com/mitchellh/vagrant/issues/1847
+# This is a fix for this until this is addressed in vagrant / VirtualBox
+version = `VBoxManage --version 2> /dev/null` rescue "0"
+if not File.exists? File.expand_path "~/.vagrant.d/boxes/koding-13/virtualbox/box.mf" and version == "4.2.14r86644\n"
+  puts "", "\e[0;31mSeems like you updated to a virtualbox version with a vagrant bug :'( autofixing now!\e[0;0m", ""
+  system "/usr/bin/openssl sha1 ~/.vagrant.d/boxes/koding-13/virtualbox/*.vmdk ~/.vagrant.d/boxes/koding-13/virtualbox/*.ovf > ~/.vagrant.d/boxes/koding-13/virtualbox/box.mf"
+end
+
 if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
