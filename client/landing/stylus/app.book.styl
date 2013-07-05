@@ -16,7 +16,7 @@
   overflow                  visible
   &.more-terminal
       top               74%
-    
+
   &.in
     left                    -700px
   .controls
@@ -35,17 +35,17 @@
         fl()
       &:last-child
         fr()
-      
+
     .point
       position              relative
-      border-style          solid
-      border-width          1px
       display               block
-      width                 10px
-      height                10px
-      background-color      red
+      width                 25px
+      height                32px
+      bg                    image, url("../images/book/cursor_mac.png")
+      bg                    position, bottom right
+      bg                    repeat, no-repeat
       transition            left 2s, top 2s
-      
+
 
   >div
     size                    735px, 408px
@@ -221,7 +221,7 @@ section.page
           border        1px solid #eee
           word-break    break-all
           rounded       4px
-        code 
+        code
           margin        14px 20px 0 40px
           display       block
           font-size     14px
