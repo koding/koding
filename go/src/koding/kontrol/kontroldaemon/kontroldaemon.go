@@ -49,11 +49,11 @@ func startRouting() {
 	for {
 		select {
 		case d := <-streams["api"]:
-			handler.HandleApiMessage(d.Body)
+			handler.ApiMessage(d.Body)
 		case d := <-streams["worker"]:
-			handler.HandleWorkerMessage(d.Body)
+			handler.WorkerMessage(d.Body)
 		case d := <-streams["client"]:
-			handler.HandleClientMessage(d)
+			handler.ClientMessage(d)
 		}
 	}
 }

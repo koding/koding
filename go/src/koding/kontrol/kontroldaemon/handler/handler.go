@@ -89,7 +89,7 @@ func Startup() {
 	log.Println("kontrold handler plugin is initialized")
 }
 
-func HandleClientMessage(data amqp.Delivery) {
+func ClientMessage(data amqp.Delivery) {
 	if data.RoutingKey == "kontrol-client" {
 		var info clientconfig.ServerInfo
 		err := json.Unmarshal(data.Body, &info)
@@ -101,7 +101,7 @@ func HandleClientMessage(data amqp.Delivery) {
 	}
 }
 
-func HandleWorkerMessage(data []byte) {
+func WorkerMessage(data []byte) {
 	var msg IncomingMessage
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
@@ -123,7 +123,7 @@ func HandleWorkerMessage(data []byte) {
 	}
 }
 
-func HandleApiMessage(data []byte) {
+func ApiMessage(data []byte) {
 	var req workerconfig.ApiRequest
 	err := json.Unmarshal(data, &req)
 	if err != nil {
@@ -136,6 +136,7 @@ func HandleApiMessage(data []byte) {
 	}
 }
 
+// DoWorkerCommand is used to handle messages coming from workers.
 func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 	switch command {
 	case "add", "addWithProxy":
@@ -195,6 +196,8 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 	return nil
 }
 
+// DoApiRequest is used to make actions on workers. You can kill, delete or
+// start any worker with this api.
 func DoApiRequest(command, uuid string) error {
 	log.Printf("[%s] received: %s", uuid, command)
 	switch command {
