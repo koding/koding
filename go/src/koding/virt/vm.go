@@ -350,13 +350,19 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 	return nil
 }
 
-func (vm *VM) CreateTemporaryVM() (*VM, error) {
+func CreateTemporaryVM(user *User, snapshot *VM) (*VM, error) {
 	temporaryVM := VM{
-		Id:         bson.NewObjectId(),
-		SnapshotOf: vm.SnapshotOf,
+		Id:            bson.NewObjectId(),
+		HostnameAlias: user.Name + "-vm",
+		WebHome:       user.Name,
+		Users:         []*Permissions{&Permissions{Id: user.ObjectId, Sudo: false}},
 	}
 
-	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotOf.Hex(), "--snap", vm.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
+	if snapshot == nil {
+		return &temporaryVM, nil
+	}
+
+	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+snapshot.SnapshotOf.Hex(), "--snap", snapshot.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
 		return nil, commandError("Cloning snapshot failed.", err, out)
 	}
 
