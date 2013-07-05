@@ -189,7 +189,6 @@ class KodingRouter extends KDRouter
         @openContent null, section, models, route, null, passOptions
 
   clear:(route, replaceState=yes)->
-    console.log {arguments}
     unless route
       {entryPoint} = KD.config
       if entryPoint?.type is 'group' and entryPoint?.slug?
