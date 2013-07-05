@@ -7,6 +7,8 @@ class DomainsRoutingView extends JView
       duration : 5000
       title    : err
 
+  getNoItemView = (partial)-> new KDCustomHTMLView {cssClass : 'no-item', partial}
+
   constructor:->
 
     super
@@ -16,7 +18,7 @@ class DomainsRoutingView extends JView
     @dropArea = new KDView
       cssClass : 'drop-area'
       bind     : "drop dragenter dragover"
-      partial  : "<span class='arrow'></span><cite>#{domain.domain}</domain>"
+      partial  : "<span class='arrow'></span><cite class='bg-text'>#{domain.domain}</cite>"
 
     @routingSelector = new KDSelectBox
       name          : 'routing-type'
@@ -27,27 +29,31 @@ class DomainsRoutingView extends JView
       callback      : @bound 'switchRouting'
 
     @disconnectedVMController = new KDListViewController
-      view        : new KDListView
-        cssClass  : 'vm-list'
-        itemClass : DomainVMListItemView
+      noItemFoundWidget : getNoItemView "You do not have any more VMs to point to <b>#{domain.domain}</b>."
+      view              : new KDListView
+        cssClass        : 'vm-list'
+        itemClass       : DomainVMListItemView
       , domain
 
     @disconnectedKiteController = new KDListViewController
-      view        : new KDListView
-        cssClass  : 'kite-list'
-        itemClass : DomainVMListItemView
+      noItemFoundWidget : getNoItemView "No Kites available."
+      view              : new KDListView
+        cssClass        : 'kite-list'
+        itemClass       : DomainVMListItemView
       , domain
 
     @connectedVMController = new KDListViewController
-      view        : new KDListView
-        cssClass  : 'vm-list'
-        itemClass : DomainVMListItemView
+      noItemFoundWidget : getNoItemView "You haven't pointed any VMs to <b>#{domain.domain}</b> yet."
+      view              : new KDListView
+        cssClass        : 'vm-list'
+        itemClass       : DomainVMListItemView
       , domain
 
     @connectedKiteController = new KDListViewController
-      view        : new KDListView
-        cssClass  : 'kite-list'
-        itemClass : DomainVMListItemView
+      noItemFoundWidget : getNoItemView "No Kites available."
+      view              : new KDListView
+        cssClass        : 'kite-list'
+        itemClass       : DomainVMListItemView
       , domain
 
     @disconnectedVMs   = @disconnectedVMController.getView()
@@ -63,6 +69,9 @@ class DomainsRoutingView extends JView
 
     connectedVMList    = @connectedVMController.getListView()
     disconnectedVMList = @disconnectedVMController.getListView()
+
+    @disconnectedVMs.addSubView   new KDCustomHTMLView tagName : 'cite', pistachio : "your VMs",   cssClass : "bg-text"
+    @disconnectedKites.addSubView new KDCustomHTMLView tagName : 'cite', pistachio : "your Kites", cssClass : "bg-text"
 
     connectedVMList.on    'VMItemClicked', @bound 'unbindVM'
     disconnectedVMList.on 'VMItemClicked', @bound 'bindVM'
@@ -118,27 +127,22 @@ class DomainsRoutingView extends JView
           else
             continue if @disconnectedVMController.itemsIndexed[vm.hostnameAlias]
             @disconnectedVMController.addItem vm
-      else
-        @connectedVMController.showNoItemWidget()
-        @disconnectedVMController.showNoItemWidget()
 
       @connectedVMController.hideLazyLoader()
       @disconnectedVMController.hideLazyLoader()
-      # @connectedVMController.showNoItemWidget()
-      # @disconnectedVMController.showNoItemWidget()
 
 
   switchRouting:(value)->
     if value is "VM"
       @connectedVMs.show()
       @disconnectedVMs.show()
-      @disconnectedKites.hide()
       @connectedKites.hide()
+      @disconnectedKites.hide()
     else
       @connectedVMs.hide()
       @disconnectedVMs.hide()
-      @disconnectedKites.show()
       @connectedKites.show()
+      @disconnectedKites.show()
 
   pistachio:->
     """
@@ -149,8 +153,6 @@ class DomainsRoutingView extends JView
     {{> @disconnectedKites}}
     {{> @dropArea}}
     """
-    # {{> @vmMapperView}}
-    # {{> @kiteMapperView}}
 
   resize:->
     tabs      = @parent.getDelegate()

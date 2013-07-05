@@ -8,7 +8,6 @@ class EnvironmentsAppController extends AppController
     navItem      :
       title      : "Environments"
       path       : "/Environments"
-      order      : 61
       role       : "member"
 
   constructor:(options = {}, data)->
