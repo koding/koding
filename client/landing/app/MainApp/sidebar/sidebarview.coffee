@@ -207,7 +207,10 @@ class Sidebar extends JView
         {{> @finderBottomControls}}
         {{> @finderBottomControlPin}}
         {{> @resourcesWidget}}
-        {{> @createNewVMButton}}
+        <div class='button-wrapper'>
+          {{> @createNewVMButton}}
+          {{> @environmentButton}}
+        </div>
       </div>
     </div>
     """
