@@ -22,7 +22,7 @@ class InboxView extends KDView
     @inboxSplitView = new ContentPageSplitBelowHeader
       views     : [@commonInnerNavigation, @inboxTabs]
       sizes     : [138, null]
-      cssClass  : "inbox-main-split"
+      cssClass  : "split-layout inbox-main-split"
       resizable : no
 
     @addSubView @inboxSplitView
@@ -52,12 +52,14 @@ class InboxView extends KDView
     # inboxMessageListController.on 'LazyLoadThresholdReached', => log "asdfasdfasdfasdf"
 
     tab.addSubView @newMessageBar = new InboxNewMessageBar
-      cssClass  : "new-message-bar clearfix"
+      cssClass  : "header clearfix"
       delegate  : @inboxMessagesContainer
 
-    @newMessageBar.on "RefreshButtonClicked", =>
+    listMessages = =>
       inboxMessageListController.loadMessages =>
         @newMessageBar.refreshButton.hideLoader()
+    @newMessageBar.on "RefreshButtonClicked", listMessages
+    tab.on            "KDTabPaneActive",      listMessages
 
     @newMessageBar.disableMessageActionButtons()
 
@@ -102,7 +104,7 @@ class InboxView extends KDView
 
     inboxNotificationsController = new MessagesListController
       view            : inboxNotificationsList = new InboxMessagesList
-        cssClass      : "inbox-list notifications"
+        cssClass      : "split-section-list notifications"
         itemClass     : NotificationListItem
 
     tab.addSubView inboxNotificationsController.getView()

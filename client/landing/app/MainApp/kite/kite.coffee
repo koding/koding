@@ -79,6 +79,7 @@ class Kite extends KDObject
     callback = switch method
       when 'ready'            then @bound 'handleReady'
       when 'error'            then @bound 'handleError'
+      when 'ping'             then @bound 'handlePing'
       when 'pong'             then @bound 'handlePong'
       when 'cycleChannel'     then @bound 'cycleChannel'
       else (@localStore.get method) ? ->
@@ -116,6 +117,12 @@ class Kite extends KDObject
     @emit 'ready'
 
   handleError: (err) -> console.error err
+
+  handlePing: ->
+    @channel.publish JSON.stringify
+      method      : 'pong'
+      arguments   : []
+      callbacks   : {}
 
   handlePong: ->
     @channel.emit 'pong'

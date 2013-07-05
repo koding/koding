@@ -133,7 +133,6 @@ class FeedController extends KDViewController
   emitLoadStarted:(filter)->
     listController = @resultsController.listControllers[filter.name]
     listController.showLazyLoader no
-    @showNoItemFound listController, filter
     return listController
 
   emitLoadCompleted:(filter)->
@@ -143,14 +142,6 @@ class FeedController extends KDViewController
 
   emitCountChanged:(count, filter)->
     @resultsController.getDelegate().emit "FeederListViewItemCountChanged", count, filter
-
-  showNoItemFound:(controller, filter)->
-    {noItemFoundText} = filter
-    if @noItemFound? then @noItemFound.destroy()
-    controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There are no items."
-    @noItemFound.hide()
 
   # this is a temporary solution for a bug that
   # bongo returns correct result set in a wrong order
@@ -181,8 +172,6 @@ class FeedController extends KDViewController
         listController = @emitLoadCompleted filter
         if items?
           unless err
-            if items.length is 0 and listController.getItemCount() is 0
-              @noItemFound.show()
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
@@ -191,8 +180,6 @@ class FeedController extends KDViewController
           else
             warn err
         else unless err
-          if listController.getItemCount() is 0
-            @noItemFound.show()
           filter.dataEnd? @, rest...
         else
           filter.dataError? @, err
