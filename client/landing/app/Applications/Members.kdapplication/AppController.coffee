@@ -50,7 +50,7 @@ class MembersAppController extends AppController
         followed            :
           loggedInOnly      : yes
           title             : "Followers <span class='member-numbers-followers'></span>"
-          noItemFoundText   : "There is no member who follows you."
+          noItemFoundText   : "No one is following you yet."
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
             KD.whoami().fetchMyFollowersFromGraph options, callback

@@ -1,28 +1,30 @@
 class EnvironmentsMainView extends JView
 
   tabData = [
-    name        : 'VMS'
-    viewOptions :
-      viewClass : VMMainView
-  ,
     name        : 'Domains'
     viewOptions :
-      viewClass : DomainMainView
+      viewClass : DomainsMainView
+  ,
+    name        : 'VMS'
+    viewOptions :
+      viewClass : VMsMainView
+  ,
+    name        : 'Kites'
+    viewOptions :
+      viewClass : KDView
   ]
 
   navData =
     title : "Settings"
     items : ({title:item.name, hiddenHandle:'hidden'} for item in tabData)
 
-  constructor:(options={}, data)->
-
-    data or= {}
+  constructor:(options = {}, data = {})->
     super options, data
 
     @header = new HeaderViewSection type : "big", title : "Environments"
 
     # * see the note below *
-    @nav    = new KDView
+    @nav = new KDView
       tagName  : "ul"
       cssClass : "kdlistview kdlistview-default"
 
@@ -42,7 +44,7 @@ class EnvironmentsMainView extends JView
 
   createTabs:->
     for {name, viewOptions}, i in tabData
-      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 1
+      @tabs.addPane (new KDTabPaneView {name, viewOptions}), i is 0
 
   _windowDidResize:->
     contentHeight = @getHeight() - @header.getHeight()
@@ -77,6 +79,15 @@ class EnvironmentsTabHandleView extends KDTabHandleView
     super options, data
 
     @unsetClass 'kdtabhandle'
+
+  click: do->
+    notification = null
+    ->
+      unless @getOptions().title is "Domains"
+        notification?.destroy()
+        notification = new KDNotificationView title : 'Coming soon...'
+        return no
+
 
   partial:-> "<a href='#'>#{@getOptions().title or 'Default Title'}</a>"
 

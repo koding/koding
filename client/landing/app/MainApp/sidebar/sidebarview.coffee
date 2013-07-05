@@ -38,8 +38,8 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',      order : 61}
-      { title : 'Invite Friends', order : 62,  type : 'account', role : 'member' }
+      { type  : 'separator',      order : 65}
+      { title : 'Invite Friends', order : 66,  type : 'account', role : 'member' }
       { title : 'Logout',         order : 100, path : '/Logout', type : 'account', role : 'member' }
       { title : 'Login',          order : 101, path : '/Login',  type : 'account', role : 'guest' }
     ]
@@ -207,7 +207,10 @@ class Sidebar extends JView
         {{> @finderBottomControls}}
         {{> @finderBottomControlPin}}
         {{> @resourcesWidget}}
-        {{> @createNewVMButton}}
+        <div class='button-wrapper'>
+          {{> @createNewVMButton}}
+          {{> @environmentButton}}
+        </div>
       </div>
     </div>
     """
