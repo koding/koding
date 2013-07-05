@@ -16,8 +16,10 @@ class KDInputRadioGroup extends KDInputView
       radioOptions.visible   ?= yes
       radioOptions.callback or= ->
 
+      disabledClass = if radioOptions.disabled then 'disabled ' else ''
+
       div      = $ "<div/>",
-        class  : "kd-#{@getType()}-holder #{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
+        class  : "kd-#{@getType()}-holder #{disabledClass}#{options.cssClassPrefix}#{@utils.slugify radioOptions.value}"
 
       radio    = $ "<input/>",
         type   : @getType()
@@ -26,6 +28,9 @@ class KDInputRadioGroup extends KDInputView
         class  : "no-kdinput#{if options.hideRadios then ' hidden' else ''}"
         id     : "#{@getId()}_#{@getType()}_#{i}"
         change : radioOptions.callback
+
+      if radioOptions.disabled
+        radio[0].setAttribute 'disabled', 'disabled'
 
       label    = $ "<label/>",
         for    : "#{@getId()}_#{@getType()}_#{i}"
@@ -44,6 +49,7 @@ class KDInputRadioGroup extends KDInputView
 
   click:(event)->
     input = $(event.target).closest(".kd-#{@getType()}-holder").find('input')
+    return no if input[0].getAttribute('disabled') is 'disabled'
     @setValue input[0].getAttribute "value"
 
   setDefaultValue:(value) ->
