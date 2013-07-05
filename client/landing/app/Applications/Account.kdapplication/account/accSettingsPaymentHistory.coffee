@@ -17,7 +17,7 @@ class AccountPaymentHistoryListController extends KDListViewController
     transactions = []
     KD.remote.api.JRecurlyPlan.getUserTransactions (err, trans) =>
       if err
-        @instantiateListItems []
+        @addCustomItem "There are no transactions."
         @hideLazyLoader()
       unless err
         for t in trans

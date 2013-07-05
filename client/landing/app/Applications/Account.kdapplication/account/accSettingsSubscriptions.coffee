@@ -18,7 +18,7 @@ class AccountSubscriptionsListController extends KDListViewController
 
     KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs) =>
       if err or subs.length is 0
-        @instantiateListItems []
+        @addCustomItem "There are no subscriptions."
         @hideLazyLoader()
       else
         stack = []
