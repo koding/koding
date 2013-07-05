@@ -56,9 +56,7 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
-    #on every routing, inform book. TODO: we should fire, if instructions enabled.
-    if @book 
-      @book.emit "RouteChanged",route
+  
 
     super route, options
   

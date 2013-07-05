@@ -8,18 +8,21 @@ __bookPages = [
     routeURL  : ""
     section   : 1
     parent    : 0
+    showHow   : no
   ,
     cssClass  : "a-story more-1"
     content   : "Over time they noticed, that ‘how it’s done’ was slow<br/>“With 1,000 miles between us, problems start to show!”"
     routeURL  : ""
     section   : 2
     parent    : 1
+    showHow   : no
   ,
     cssClass  : "a-story more-2"
     content   : "“Several different services for just a hello world?<br/>And each a different cost!” Their heads began to swirl."
     routeURL  : ""
     section   : 3
     parent    : 1
+    showHow   : no
 
   ,
     cssClass  : "a-story more-3"
@@ -27,6 +30,7 @@ __bookPages = [
     routeURL  : ""
     section   : 4
     parent    : 1
+    showHow   : no
 
   ,
     cssClass  : "a-story more-4"
@@ -34,18 +38,21 @@ __bookPages = [
     routeURL  : ""
     section   : 5
     parent    : 1
+    showHow   : no
   ,
     cssClass  : "a-story more-5"
     content   : "Build it on a community, we'll teach and learn together<br/>Of course we'll charge nothing for it."
     routeURL  : ""
     section   : 6
     parent    : 1
+    showHow   : no
   ,
     cssClass  : "a-story more-6"
     content   : "“This sounds amazing!” They each began to sing,<br/>“Let’s package it together and call it Koding!”"
     routeURL  : ""
     section   : 7
     parent    : 1
+    showHow   : no
   ,
     title     : "Foreword"
     content   : """<p>Koding is your new development computer in your browser.</p>
@@ -54,6 +61,7 @@ __bookPages = [
     routeURL  : ""
     section   : 8
     parent    : 1
+    showHow   : no
   ,
     title     : "Activity"
     content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
@@ -61,6 +69,8 @@ __bookPages = [
     routeURL  : "/Activity"
     section   : 1
     parent    : 0
+    showHow   : yes
+    howToSteps: ['enterNewStatusUpdate']
   ,
     title     : "Topics"
     embed     : BookTopics
@@ -81,10 +91,26 @@ __bookPages = [
   ,
     title     : "Develop"
     content   : """<p>This is what Koding is all about. Here, you can view, edit, and preview files. Here’s a quick tour of the tool.</p>
-                   <p>Web/ Folder on file tree, is where your http://{{#(profile.nickname)}}.kd.io adress goes to.</p>"""
+                """
     routeURL  : "/Develop"
     section   : 4
     parent    : 0
+    showHow   : yes
+    howToSteps: ['clickAce', 'clickTerminal']
+
+  ,
+    cssClass  : "develop more-1"
+    content   : """
+              <p> <h1>What does folders are?</h1></p>
+              <p> Applications folder is a place where your koding applications will stay. </p>
+              <p> Web/ Folder on file tree, is where your http://{{#(profile.nickname)}}.kd.io adress goes to. </p>
+              <p> Other folders do what they intend to. Ofcourse you can create new folders by clicking right on your filetree </p>
+
+                """
+    section   : 1
+    parent    : 4  
+    showHow   : yes
+    howToSteps: ['createNewFolder', 'createNewFile']
 
   ,
     cssClass  : "develop more-1"
@@ -94,7 +120,7 @@ __bookPages = [
                    <p> Then save it with ⌘+S or clicking the save button to the right of your tabs </p>
 
                 """
-    section   : 1
+    section   : 2
     parent    : 4  
 
   ,
@@ -105,7 +131,7 @@ __bookPages = [
                    </p> Yes you made it!! </p>
                    <p>Now continue to learn more about development environment </p>
                 """
-    section    : 2
+    section    : 3
     parent     : 4
 
   ,
@@ -114,7 +140,7 @@ __bookPages = [
                    <p>You can also create a new file using either the “+” button on Tabs, or by right-clicking the file tree.</p>
                    <p>Save the new file to your file tree by clicking the save button to the right of your tabs. </p>
                 """
-    section   : 3
+    section   : 4
     parent    : 4
   ,
     cssClass  : "develop more-4"
@@ -126,7 +152,7 @@ __bookPages = [
                 """
     embed     : BookDevelopButton
     routeURL  : ""
-    section   : 4
+    section   : 5
     parent    : 4
   ,
     cssClass  : "develop more-3"
@@ -135,14 +161,14 @@ __bookPages = [
                 """
     embed     : BookDevelopButton
     routeURL  : ""
-    section   : 5
+    section   : 6
     parent    : 4  
   ,
     title     : "Terminal"
     content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console.</p>
                    <p>It's an Ubuntu VM that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Everything is possible. This VM is not a simulation, it is a real computer, and it's yours.</p>"""
     routeURL  : "/Develop/Terminal"
-    section   : 6
+    section   : 7
     parent    : 4
   ,
     cssClass  : "terminal more-1"
@@ -155,7 +181,7 @@ __bookPages = [
                 <p>You can also install new packages. Search mySQL packages and install if you want! </p>
                 <code> apt-cache search mysql </code>
                 """
-    section   : 7
+    section   : 8
     parent    : 4
   ,
     cssClass  : "terminal more-1"
@@ -165,7 +191,7 @@ __bookPages = [
                 <strong>From below, Click Personal VM ,see what you can do </strong>
                 """
     routeURL  : ""
-    section   : 8
+    section   : 9
     parent    : 4
   ,
     title     : "Groups"
