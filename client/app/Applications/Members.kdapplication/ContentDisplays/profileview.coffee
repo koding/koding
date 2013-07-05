@@ -28,12 +28,9 @@ class ProfileView extends JView
 
     defaultState = if memberData.followee is yes then "Unfollow" else "Follow"
 
-    if memberData.profile.nickname is KD.whoami().profile.nickname or KD.whoami().type is 'unregistered'
-      @followButton = new KDView
-    else
-      @followButton MemberFollowToggleButton
-        style      : "kdwhitebtn profilefollowbtn"
-      , memberData
+    @followButton MemberFollowToggleButton
+      style      : "kdwhitebtn profilefollowbtn"
+    , memberData
 
     @skillTags = @putSkillTags()
 

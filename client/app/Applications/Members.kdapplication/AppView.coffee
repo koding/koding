@@ -31,7 +31,7 @@ class MembersListItemView extends KDListItemView
     , memberData
 
     if (memberData.profile.nickname is KD.whoami().profile.nickname) or \
-        KD.whoami().type is 'unregistered'
+        memberData.type is 'unregistered'
     then @followButton = new KDView
     else @followButton = new MemberFollowToggleButton
       style       : "follow-btn"
