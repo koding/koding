@@ -72,15 +72,15 @@ class NFinderController extends KDViewController
     else
       @loadVms()
 
-  loadVms:(vmNames, callback)->
-    mountVms = (vms)=>
-      unless Array.isArray vms
-        return callback? "vmNames should be an Array"
-      @cleanup()
-      @mountVm vm  for vm in vms
-      callback?()
+  mountVms: (vms) ->
+    unless Array.isArray vms
+      return callback? "vmNames should be an Array"
+    @cleanup()
+    @mountVm vm  for vm in vms
+    callback?()
 
-    if vmNames then mountVms vmNames
+  loadVms:(vmNames, callback)->
+    if vmNames then @mountVms vmNames
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
       groupSlug ?= 'koding'
@@ -88,16 +88,16 @@ class NFinderController extends KDViewController
         vms            or= {}
         vms[groupSlug] or= []
         if vms[groupSlug].length > 0
-          mountVms vms[groupSlug]
+          @mountVms vms[groupSlug]
         else
           KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)=>
             return callback? err  if err
             if not vms or vms.length is 0
               KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
-                if vm then mountVms [vm]
+                if vm then @mountVms [vm]
                 else @noVMFoundWidget.show()
             else
-              mountVms vms
+              @mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName
