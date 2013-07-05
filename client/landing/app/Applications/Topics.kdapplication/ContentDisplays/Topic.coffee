@@ -92,6 +92,11 @@ class TopicView extends KDView
         title         : "Follow"
         callback      : (callback)->
           data.follow (err, response)=>
+
+            KD.showError err,
+              AccessDenied : 'You are not allowed to follow topics.'
+              KodingError  : 'Something went wrong while following.'
+
             data.followee = yes
             @hideLoader()
             unless err
