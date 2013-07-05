@@ -58,7 +58,7 @@ files are correct it starts a seperate server which listens to https requests.
 Kontrolproxy has support for websocket. It automatically detects it and uses
 hijacking for to reach the underlying tcp connection.
 
-* Stored configuration on MongoDB instance
+* Stored configuration on MongoDB instance with in built cache
 
 All the configuration is stored in a mongodb instance. However lookups are made
 on a loaded variable in the memory. The in-memory lookup is using a timeout of
@@ -88,6 +88,6 @@ be personalizable for VM's too.
 
 * wildcard support for fronted domains
 * improve routing table for paths (example.com/)
-* add weighted round-robin
+* other loadbalance options, like weighted round-robin
 
 

@@ -124,6 +124,9 @@ func (k *Kite) Run() {
 							d.Send("pong")
 							return
 						}
+						if method == "pong" {
+							return
+						}
 
 						var partials []*dnode.Partial
 						err := args.Unmarshal(&partials)
@@ -198,6 +201,7 @@ func (k *Kite) Run() {
 
 					d.Send("ready", k.ServiceUniqueName)
 
+					pingAlreadySent := false
 					for {
 						select {
 						case message, ok := <-route:
@@ -206,36 +210,27 @@ func (k *Kite) Run() {
 							}
 							log.Debug("Read", channel.RoutingKey, message)
 							d.ProcessMessage(message)
-						case <-time.After(24 * time.Hour):
-							timeoutChannel <- channel.RoutingKey
+							pingAlreadySent = false
+						case <-time.After(5 * time.Minute):
+							if pingAlreadySent {
+								timeoutChannel <- channel.RoutingKey
+								break
+							}
+							d.Send("ping")
+							pingAlreadySent = true
 						}
 					}
 				}()
 
 			case "auth.leave":
-				log.Debug("auth.leave", message)
-
-				var client struct {
-					RoutingKey string
-				}
-				err := json.Unmarshal(message.Body, &client)
-				if err != nil || client.RoutingKey == "" {
-					log.Err("Invalid auth.leave message.", message.Body)
-					continue
-				}
-
-				route, found := routeMap[client.RoutingKey]
-				if found {
-					close(route)
-					delete(routeMap, client.RoutingKey)
-				}
+				// ignored, session end is handled by ping/pong timeout
 
 			case "auth.who":
 				var client struct {
 					Username           string `json:"username"`
 					RoutingKey         string `json:"routingKey"`
 					CorrelationName    string `json:"correlationName"`
-					DeadService        string `json:"deadService",omitempty`
+					DeadService        string `json:"deadService"`
 					ServiceGenericName string `json:"serviceGenericName"`
 					ServiceUniqueName  string `json:"serviceUniqueName"` // used only for response
 				}
@@ -278,7 +273,6 @@ func (k *Kite) Run() {
 			if found {
 				close(route)
 				delete(routeMap, routingKey)
-				log.Warn("Dropped client because of fallback channel timeout.")
 			}
 		}
 	}
