@@ -244,8 +244,8 @@ class ActivityStatusUpdateWidget extends KDFormView
     @once 'FormValidationPassed', => @reset yes
 
     super
-    KD.track "Activity", "StatusUpdateSubmitted"
-    KD.mixpanel.incrementUserProperty 'StatusUpdated',1
+    #KD.track "Activity", "StatusUpdateSubmitted"
+    #KD.mixpanel.incrementUserProperty 'StatusUpdated',1
     @submitBtn.disable()
     @utils.wait 5000, => @submitBtn.enable()
 

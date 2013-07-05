@@ -13,6 +13,7 @@
   background                transparent url("../images/book/book.jpg") no-repeat 0 0
   vendor                    transition, left .3s ease-in-out
   vendor                    transition, top .3s ease-in-out
+  overflow                  visible
   &.more-terminal
       top               74%
     
@@ -34,6 +35,17 @@
         fl()
       &:last-child
         fr()
+      
+    .point
+      position              relative
+      border-style          solid
+      border-width          1px
+      display               block
+      width                 10px
+      height                10px
+      background-color      red
+      transition            left 2s, top 2s
+      
 
   >div
     size                    735px, 408px
@@ -276,3 +288,8 @@ section.page
     font-size           32px
     border-bottom       1px solid rgba(0,0,0,.08)
     padding-left        43px
+
+
+
+
+

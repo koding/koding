@@ -1,8 +1,6 @@
 ###
   todo
-    - page switching ui
     - develop fake button items and styling
-    - flip pages by clicking left or right half of the pages
 ###
 
 class BookView extends JView
@@ -19,10 +17,11 @@ class BookView extends JView
       page.destroy()
 
   constructor: (options = {},data) ->
-
     options.domId    = "instruction-book"
     options.cssClass = "book"
     super options, data
+
+    @mainView = @getOptions().delegate
 
     @currentIndex = 0
 
@@ -65,8 +64,8 @@ class BookView extends JView
 
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName   : "a"
-      partial   : "Panic!"
-      click     : (pubInst, event)=> @changePageFromRoute KD.getSingleton("router").currentPath
+      partial   : "Show ME HOW!"
+      click     : (pubInst, event)=> @showMeButtonClicked()
       tooltip   :
         title   : "help me right here!"
 
@@ -78,8 +77,6 @@ class BookView extends JView
       tooltip   :
         title   : "⌘ Right Arrow"
         gravity : "se"
-
-    
 
     #@putOverlay
     #  cssClass    : ""
@@ -105,7 +102,6 @@ class BookView extends JView
 
     @setKeyView()
     # if event.pageX < 400 then @fillPrevPage() else @fillNextPage()
-
 
   keyDown:(event)->
 
@@ -148,35 +144,208 @@ class BookView extends JView
     cachePage index+1
     index ?= BookView.lastIndex
     BookView.lastIndex = index
-    page = @getPage index
+    @page = @getPage index
 
     if @$().hasClass "in"
       @right.setClass "out"
       @utils.wait 300, =>
         @right.destroySubViews()
-        @right.addSubView page
+        @right.addSubView @page
         @right.unsetClass "out"
     else
       @right.destroySubViews()
-      @right.addSubView page
+      @right.addSubView @page
       @right.unsetClass "out"
       @utils.wait 400, =>
         @setClass "in"
 
-    @loadSectionRelatedElements page
+    @loadSectionRelatedElements()
+    # destroy @pointer
+    if @pointer then @pointer.destroy()
 
-    if page.data.routeURL
-      KD.getSingleton("router").handleRoute(page.data.routeURL)
-
-  loadSectionRelatedElements:(page)->
-    if page.data.section is 6 and page.data.parent is 0
+  loadSectionRelatedElements:->
+    if @page.data.section is 6 and @page.data.parent is 0
       KD.singletons.chatPanel.showPanel()
 
-    if page.data.section is 8 and page.data.parent is 4
+    if @page.data.section is 8 and @page.data.parent is 4
       @utils.wait 1500, =>
         @setClass "more-terminal"
     else 
       @unsetClass "more-terminal"
 
-    if page.data.section is 1 and page.data.parent is 4
+    if @page.data.section is 1 and @page.data.parent is 4
       @openFileWithPage '/Web/index.html'
+
+  showMeButtonClicked:->
+    return if @page.showHow is no
+
+    @pointer or = new KDCustomHTMLView
+      partial : '  '
+      cssClass : 'point'
+
+    @pointer.bindTransitionEnd()
+
+    @pagerWrapper.addSubView @pointer
+    #!!! we should check here if has tutorial avaible for current topic
+    @navigateCursorToMenuItem(@page.data.title)
+
+  navigateCursorToMenuItem:(menuItem)->
+    
+    @pointer.once 'transitionend', =>
+      # open side bar
+      @getDelegate().sidebar.animateLeftNavIn()
+      # click menu item
+      @selectedMenuItem[0].$().click()
+      @clickAnimation()
+
+     #head to next move
+      @continueNextMove()
+    
+    @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
+    selectedMenuItemX = @selectedMenuItem[0].$('.main-nav-icon').eq(0).offset().top
+    selectedMenuItemY = @selectedMenuItem[0].$('.main-nav-icon').eq(0).offset().left
+
+    @pointer.$().offset 
+      top: selectedMenuItemX
+      left: selectedMenuItemY
+
+
+  continueNextMove:->
+    steps = @page.data.howToSteps
+
+    if @page.data.section is 1 and @page.data.parent is 0
+      if steps[0] is 'enterNewStatusUpdate'
+        @navigateToStatusUpdateInput()
+
+    if @page.data.section is 4 and @page.data.parent is 0
+      if steps[0] is 'clickAce'
+        @clickAceIconInAppWindow()
+
+    if @page.data.section is 1 and @page.data.parent is 4
+      if steps[0] fis 'createNewFolder'
+        @createNewFolderOnFileTree
+
+
+  clickAceIconInAppWindow:->
+    @mainView = @getDelegate()
+    #find aceIconPositon
+    @mainView.once 'transitionend',=>
+      # just wait a little 
+      @utils.wait 500, =>
+        appIcons  = @mainView.mainTabView.activePane.options.view.appIcons
+        aceLeft   = appIcons.Ace.$('.kdloader').eq(0).offset().left
+        aceTop    = appIcons.Ace.$('.kdloader').eq(0).offset().top    
+
+        #catch callback 
+        @pointer.once 'transitionend', =>
+          # just wait a little 
+          @utils.wait 300, =>
+            #call click animation
+            @clickAnimation()
+            #open page
+            indexFile = '/Web/index.html'
+            @openFileWithPage indexFile
+            # TODO !!! start typing
+            
+        #navigate to aceIcon
+        @pointer.$().offset
+          top     : aceTop
+          left    : aceLeft
+
+  navigateToStatusUpdateInput:->
+    @pointer.once 'transitionend', =>
+      @utils.wait 2400, =>
+        @clickAnimation()
+        @simulateNewStatusUpdate()
+        #log 'navigateToStatusUpdateInput transend'
+
+    @mainView.once 'transitionend', =>
+      @utils.wait 500, =>
+        smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
+        
+        #log 'navigateToStatusUpdateInput main transend'
+        @pointer.$().offset
+          top   : smallInput.offset().top
+          left  : smallInput.offset().left + (smallInput.width() / 2)
+
+  simulateNewStatusUpdate:-> 
+    smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
+    largeInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.largeInput.$()
+    # focus to dummy input to open large textarea for status update
+    smallInput.focus()
+    # start typing
+    @utils.wait 1000, =>
+      textToWrite = 'Hello World!!'
+      ###waitSec = 300
+      for i in [0, textToWrite.length] by 1
+        # take a little break on each letter to seem like typing
+        log 'letterIndex' , i 
+        waitSec += (i * 100)
+        currentText = textToWrite.slice 0, i
+        log 'currentText', currentText
+        @utils.wait waitSec, =>
+          $('.status-update-input').eq(1).val(currentText)
+      ###
+      largeInput.val(textToWrite)
+      @pushSubmitButton()
+  
+  pushSubmitButton:->
+    # catch transition end to finish tutorial
+    @pointer.once 'transitionend', =>
+      # wait a little again
+      @utils.wait 500, =>
+        @clickAnimation()
+        # trigger push
+        @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
+        @utils.wait 500, =>
+          @pointer.destroy()
+      
+    # find offset of submit button
+    submitButtonOffset = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().offset()
+    # navigate there
+    @pointer.$().offset
+        top     : submitButtonOffset.top
+        left    : submitButtonOffset.left 
+  
+  createNewFolderOnFileTree:->
+    # check if user in develop tab if not navigate
+    # if not, open fileTree 
+    # find default vm position
+    # navigate fake cursor 
+    # simulate right click on fileTree
+    # open fileTree menu
+    # find create folder menu item
+    # navigate fake cursor to create folder item
+    # simulate left click
+    # simulate folder name typing 
+    # hit enter 
+    # destroy the cursor
+
+
+
+
+
+  clickAnimation:->
+    log 'hey! im gonna do some fancy click animation right here!!!!'
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  sayHelloMyFriend:->
+    log 'hello my friend'
+

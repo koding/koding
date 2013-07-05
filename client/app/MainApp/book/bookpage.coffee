@@ -1,7 +1,6 @@
 class BookPage extends JView
 
   constructor: (options = {},data) ->
-
     data.cssClass  or = ""
     data.content   or = ""
     # TODO : check do we really need that here?
@@ -9,6 +8,8 @@ class BookPage extends JView
     data.routeURL  or = ""
     data.section   or = 0
     data.parent    or = 0
+    data.showHow   or = no
+    data.howToSteps or = []
     options.cssClass  = "page #{@utils.slugify data.title} #{data.cssClass} #{unless data.title then "no-header"}"
     options.tagName   = "section"
 
