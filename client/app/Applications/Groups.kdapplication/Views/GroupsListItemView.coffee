@@ -309,14 +309,13 @@ class GroupItemMemberView extends KDListItemView
     super options, data
 
     account = @getData()
-    {firstName, lastName} = account.profile
     @avatar = new AvatarView
       size      :
         width   : @getOptions().childOptions?.avatarWidth or 40
         height  : @getOptions().childOptions?.avatarHeight or 40
       # detailed  : yes
       tooltip   :
-        title   : "#{firstName} #{lastName}"
+        title   : KD.utils.getFullnameFromAccount account
     , account
 
   viewAppended:JView::viewAppended

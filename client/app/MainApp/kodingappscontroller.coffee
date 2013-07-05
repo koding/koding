@@ -541,7 +541,7 @@ class KodingAppsController extends KDController
   _createChangeLog:(name)->
     today = new Date().format('yyyy-mm-dd')
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
 
     """
      #{today} #{fullName} <@#{profile.nickname}>
@@ -711,7 +711,7 @@ class KodingAppsController extends KDController
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
     raw =
       devMode       : yes
       authorNick    : "#{KD.nick()}"

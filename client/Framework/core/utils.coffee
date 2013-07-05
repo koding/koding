@@ -328,9 +328,15 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-  getFullnameFromAccount:(account)->
-    {firstName, lastName} = account.profile
-    return "#{firstName} #{lastName}"
+  getFullnameFromAccount:(account, justName=no)->
+    account or= KD.whoami()
+    if account.type is 'unregistered'
+      name = account.profile.nickname.capitalize()
+    else if justName
+      name = account.profile.firstName
+    else
+      name = "#{account.profile.firstName} #{account.profile.lastName}"
+    return Encoder.htmlDecode name
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]

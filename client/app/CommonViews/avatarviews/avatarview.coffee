@@ -68,19 +68,15 @@ class AvatarTooltipView extends KDView
     super options, data
 
     origin = options.origin
+    name   = KD.utils.getFullnameFromAccount @getData()
 
     @profileName = new KDCustomHTMLView
-      tagName : 'a'
-      cssClass : 'profile-name'
-      attributes:
-        href : "/#{@getData().profile.nickname}"
-        target : '_blank'
-      pistachio : \
-      """
-        <h2>
-        {{#(profile.firstName)+' '+#(profile.lastName)}}
-        </h2>
-      """
+      tagName    : 'a'
+      cssClass   : 'profile-name'
+      attributes :
+        href     : "/#{@getData().profile.nickname}"
+        target   : '_blank'
+      pistachio  : "<h2>#{name}</h2>"
     , data
 
     @staticAvatar = new AvatarStaticView

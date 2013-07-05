@@ -86,7 +86,7 @@ class NotificationController extends KDObject
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       KD.remote.api[subject.constructorName].one _id: subject.id, (err, subjectObj)=>
 
-        actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
+        actorName = KD.utils.getFullnameFromAccount actorAccount
 
         options.title = switch actionType
           when "reply", "opinion"
@@ -101,7 +101,7 @@ class NotificationController extends KDObject
                 when "JPrivateMessage"
                   "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
                 else
-                  originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
+                  originatorName   = KD.utils.getFullnameFromAccount origin
                   if actorName is originatorName
                     originatorName = "their own"
                     separator      = ""

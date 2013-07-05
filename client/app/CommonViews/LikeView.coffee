@@ -63,8 +63,8 @@ class LikeView extends KDView
           if item.type is 'unregistered'
             guestsWhoLiked++
           else
-            {firstName, lastName} = item.profile
-            peopleWhoLiked.push "<strong>" + firstName + " " + lastName + "</strong>"
+            name = KD.utils.getFullnameFromAccount item
+            peopleWhoLiked.push "<strong>#{name}</strong>"
 
         sep  = ', '
         and_ = if peopleWhoLiked.length>0 then 'and ' else ''

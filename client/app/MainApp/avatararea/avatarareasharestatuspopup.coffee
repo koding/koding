@@ -19,14 +19,13 @@ class AvatarPopupShareStatus extends AvatarPopup
 
     @avatarPopupContent.addSubView @loader
 
-    {profile} = KD.whoami()
-
+    name = KD.utils.getFullnameFromAccount KD.whoami(), yes
     @avatarPopupContent.addSubView @statusField = new KDHitEnterInputView
       type          : "textarea"
       validate      :
         rules       :
           required  : yes
-      placeholder   : "What's new, #{Encoder.htmlDecode profile.firstName}?"
+      placeholder   : "What's new, #{name}?"
       callback      : (status)=> @updateStatus status
 
   updateStatus:(status)->
