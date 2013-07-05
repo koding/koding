@@ -72,9 +72,9 @@ class ActivityListItemView extends KDListItemView
       @addChildView teaser, => @slideIn()
 
   slideIn:(callback=noop)->
-    @once 'transition', callback.bind @
+    @once 'transitionend', callback.bind @
     @unsetClass 'hidden-item'
 
   slideOut:(callback=noop)->
-    @once 'transition', callback.bind @
+    @once 'transitionend', callback.bind @
     @setClass 'hidden-item'
