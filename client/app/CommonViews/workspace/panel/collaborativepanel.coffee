@@ -31,6 +31,7 @@ class CollaborativePanel extends Panel
       else if paneOptions.type is "finder"
         PaneClass = CollaborativeClientFinderPane
 
+    return warn "Unknown pane class #{paneOptions.type}"  unless PaneClass
     pane = new PaneClass paneOptions
 
     targetContainer.addSubView pane
