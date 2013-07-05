@@ -79,38 +79,35 @@ class TopicView extends KDView
 
   constructor:(options, data)->
 
-    if KD.whoami().type is 'unregistered'
-      @followButton = new KDView
-    else
-      @followButton = new KDToggleButton
-        style           : if data.followee then "kdwhitebtn following-topic" else "kdwhitebtn"
-        title           : "Follow"
-        dataPath        : "followee"
-        defaultState    : if data.followee then "Following" else "Follow"
-        loader          :
-          color         : "#333333"
-          diameter      : 18
-          top           : 11
-        states          : [
-          title         : "Follow"
-          callback      : (callback)->
-            data.follow (err, response)=>
-              data.followee = yes
-              @hideLoader()
-              unless err
-                @setClass 'following-btn following-topic'
-                callback? null
-        ,
-          title         : "Following"
-          callback      : (callback)->
-            data.unfollow (err, response)=>
-              data.followee = no
-              @hideLoader()
-              unless err
-                @unsetClass 'following-btn following-topic'
-                callback? null
-        ]
-      , data
+    @followButton = new KDToggleButton
+      style           : if data.followee then "kdwhitebtn following-topic" else "kdwhitebtn"
+      title           : "Follow"
+      dataPath        : "followee"
+      defaultState    : if data.followee then "Following" else "Follow"
+      loader          :
+        color         : "#333333"
+        diameter      : 18
+        top           : 11
+      states          : [
+        title         : "Follow"
+        callback      : (callback)->
+          data.follow (err, response)=>
+            data.followee = yes
+            @hideLoader()
+            unless err
+              @setClass 'following-btn following-topic'
+              callback? null
+      ,
+        title         : "Following"
+        callback      : (callback)->
+          data.unfollow (err, response)=>
+            data.followee = no
+            @hideLoader()
+            unless err
+              @unsetClass 'following-btn following-topic'
+              callback? null
+      ]
+    , data
 
     super
     unless data.followee
