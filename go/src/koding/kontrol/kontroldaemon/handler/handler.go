@@ -58,7 +58,15 @@ func Startup() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	// cleanup death workers at intervals
+	runHelperFunctions()
+
+	log.Println("kontrold handler is initialized")
+}
+
+// runHelperFunctions contains several indepenendent helper functions that do
+// certain tasks.
+func runHelperFunctions() {
+	// cleanup death workers from the the DB at certain intervals
 	ticker := time.NewTicker(time.Minute * 20)
 	go func() {
 		for _ = range ticker.C {
@@ -75,7 +83,7 @@ func Startup() {
 		}
 	}()
 
-	// update workers
+	// update workers status
 	tickerWorker := time.NewTicker(time.Second * 1)
 	go func() {
 		for _ = range tickerWorker.C {
@@ -86,7 +94,34 @@ func Startup() {
 		}
 	}()
 
-	log.Println("kontrold handler plugin is initialized")
+	// cleanup death deployments at intervals
+	tickerDeployment := time.NewTicker(time.Hour * 12)
+	go func() {
+		for _ = range tickerDeployment.C {
+			log.Println("starting to remove unused deployments")
+			infos := clientDB.GetClients()
+			for _, info := range infos {
+				version, _ := strconv.Atoi(info.BuildNumber)
+
+				iter := kontrolDB.Collection.Find(bson.M{"version": version}).Iter()
+				worker := workerconfig.Worker{}
+				foundWorker := false
+
+				for iter.Next(&worker) {
+					foundWorker = true
+				}
+
+				// remove deployment if no workers are available
+				if !foundWorker {
+					log.Printf("removing deployment with build number %s\n", info.BuildNumber)
+					err := clientDB.DeleteClient(info.BuildNumber)
+					if err != nil {
+						log.Println(err)
+					}
+				}
+			}
+		}
+	}()
 }
 
 func ClientMessage(data amqp.Delivery) {

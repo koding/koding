@@ -20,14 +20,8 @@ type DeployPostMessage struct {
 }
 
 func GetClients(writer http.ResponseWriter, req *http.Request) {
-	clients := make([]clientconfig.ServerInfo, 0)
-	client := clientconfig.ServerInfo{}
 	fmt.Println("GET /deployments")
-
-	iter := clientDB.Collection.Find(nil).Iter()
-	for iter.Next(&client) {
-		clients = append(clients, client)
-	}
+	clients := clientDB.GetClients()
 
 	data, err := json.MarshalIndent(clients, "", "  ")
 	if err != nil {
@@ -156,7 +150,7 @@ func DeleteClient(writer http.ResponseWriter, req *http.Request) {
 	build := vars["build"]
 	fmt.Printf("DELETE\t/deployments/%s\n", build)
 
-	err := clientDB.Collection.Remove(bson.M{"buildnumber": build})
+	err := clientDB.DeleteClient(build)
 	if err != nil {
 		io.WriteString(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
 		return
