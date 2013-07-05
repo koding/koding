@@ -10,17 +10,9 @@ class KDListViewController extends KDViewController
     options.startWithLazyLoader   ?= no
     options.itemChildClass        or= null
     options.itemChildOptions      or= {}
-    options.showDefaultItem       or= no
-    options.defaultItem           or= {}
-    options.defaultItem.itemClass or= KDView
-    options.defaultItem.options   or= {}
-    options.defaultItem.data      or= {}
-
+    # rename these options
     options.noItemFoundWidget     or= null
     options.noMoreItemFoundWidget or= null
-
-    defaultOptions = options.defaultItem.options
-    defaultOptions.partial        or=  'This list is empty'
 
     @itemsOrdered                 = [] unless @itemsOrdered
     @itemsIndexed                 = {}
@@ -43,51 +35,42 @@ class KDListViewController extends KDViewController
         lazyLoadThreshold : options.lazyLoadThreshold
         ownScrollBars     : options.ownScrollBars
 
-    if options.wrapper
-      options.view = new KDView cssClass : "listview-wrapper"
-    else
-      options.view = listView
+    options.view = if options.wrapper
+    then new KDView cssClass : "listview-wrapper"
+    else listView
 
     super options, data
 
-    listView.on 'ItemWasAdded', (view, index)=> @registerItem view, index
-    listView.on 'ItemIsBeingDestroyed', (itemInfo)=> @unregisterItem itemInfo
+    listView.on 'ItemWasAdded', (view, index)=>
+      @registerItem view, index
+      @hideNoItemWidget() if options.noItemFoundWidget
+
+    listView.on 'ItemIsBeingDestroyed', (itemInfo)=>
+      @unregisterItem itemInfo
+      @showNoItemWidget() if options.noItemFoundWidget
+
     if options.keyNav
       listView.on 'KeyDownOnList', (event)=> @keyDownPerformed listView, event
-
-  addDefaultItem:->
-    return  if @defaultItem
-    {itemClass,options,data} = @getOptions().defaultItem
-    @getListView().addSubView @defaultItem = new itemClass options, data
-
-  removeDefaultItem:->
-    @defaultItem.destroy() if @defaultItem
-
-  putDefaultItem:(list=[])->
-    if @getOptions().showDefaultItem
-      if list.length is 0 then @addDefaultItem()
-      else @removeDefaultItem()
 
   loadView:(mainView)->
 
     options = @getOptions()
     if options.scrollView
-      scrollView = @scrollView
-      mainView.addSubView scrollView
-      scrollView.addSubView @getListView()
+      mainView.addSubView @scrollView
+      @scrollView.addSubView @getListView()
       if options.startWithLazyLoader
         @showLazyLoader no
-      scrollView.on 'LazyLoadThresholdReached', @showLazyLoader.bind @
+      @scrollView.on 'LazyLoadThresholdReached', @bound "showLazyLoader"
+
+    if options.noItemFoundWidget
+      @putNoItemView()
 
     @instantiateListItems(@getData()?.items or [])
-
     KD.getSingleton("windowController").on "ReceivedMouseUpElsewhere", (event)=> @mouseUpHappened event
 
   instantiateListItems:(items)->
     newItems = for itemData in items
       @getListView().addItem itemData
-
-    @putDefaultItem newItems
 
     @emit "AllItemsAddedToList"
 
@@ -97,25 +80,15 @@ class KDListViewController extends KDViewController
   HELPERS
   ###
 
-  itemForId:(id)->
+  itemForId:(id)-> @itemsIndexed[id]
 
-    @itemsIndexed[id]
+  getItemsOrdered:-> @itemsOrdered
 
-  getItemsOrdered:->
+  getItemCount:-> @itemsOrdered.length
 
-    @itemsOrdered
+  setListView:(listView)-> @listView = listView
 
-  getItemCount:->
-
-    @itemsOrdered.length
-
-  setListView:(listView)->
-
-    @listView = listView
-
-  getListView:->
-
-    @listView
+  getListView:-> @listView
 
   forEachItemByIndex:(ids, callback)->
     [callback, ids] = [ids, callback]  unless callback
@@ -124,17 +97,18 @@ class KDListViewController extends KDViewController
       item = @itemsIndexed[id]
       callback item  if item?
 
-  showNoItemWidget:->
-    {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-    if @itemsOrdered.length > 0
-      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
-    else
-      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
+  putNoItemView:->
+    {noItemFoundWidget} = @getOptions()
+    @getListView().addSubView @noItemView = noItemFoundWidget
 
-  hideNoItemWidget:->
-    {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-    noItemFoundWidget.destroy()     if noItemFoundWidget
-    noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
+  showNoItemWidget:-> @noItemView.show() if @itemsOrdered.length is 0
+  hideNoItemWidget:-> @noItemView.hide()
+
+  # regressed, will put back whenever i'm here again. - SY
+  showNoMoreItemWidget:->
+    {noMoreItemFoundWidget} = @getOptions()
+    @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
+
 
   ###
   ITEM OPERATIONS
@@ -143,12 +117,10 @@ class KDListViewController extends KDViewController
   addItem:(itemData, index, animation)->
 
     @getListView().addItem itemData, index, animation
-    @putDefaultItem @getListView().items
 
   removeItem:(itemInstance, itemData, index)->
 
     @getListView().removeItem itemInstance, itemData, index
-    @putDefaultItem @getListView().items
 
   registerItem:(view, index)->
 
@@ -364,6 +336,7 @@ class KDListViewController extends KDViewController
 
   showLazyLoader:(emitWhenReached = yes)->
 
+    @hideNoItemWidget() if @noItemView and @getOptions().noItemFoundWidget
     unless @lazyLoader
       @scrollView.addSubView @lazyLoader = new KDCustomHTMLView cssClass : "lazy-loader", partial : "Loading..."
       @lazyLoader.addSubView @lazyLoader.spinner = new KDLoaderView
@@ -381,6 +354,8 @@ class KDListViewController extends KDViewController
       @emit 'LazyLoadThresholdReached'  if emitWhenReached
 
   hideLazyLoader:->
+
+    @showNoItemWidget() if @noItemView and @getOptions().noItemFoundWidget
     if @lazyLoader
       @lazyLoader.spinner.hide()
       @lazyLoader.destroy()
