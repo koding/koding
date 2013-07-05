@@ -138,6 +138,7 @@ class AccountAppController extends AppController
     develop :
       title : "Develop"
       items : [
+        { title : "SSH keys",             listHeader: "Your SSH Keys",              listType: "keys",           id : 5,       parentId : null }
         { title : "Koding Keys",          listHeader: "Your Koding Keys",           listType: "kodingKeys",     id : 10,      parentId : null }
       ]
       # kites :

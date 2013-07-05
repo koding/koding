@@ -31,13 +31,13 @@ class AccountSubscriptionsListController extends KDListViewController
                 sub.plan = plan
                 cb null, sub
 
-          async.parallel stack, (err, result)=>
-            result = [] if err
-            if result.length is 0
-              @addCustomItem "There are no subscriptions."
-            else
-              @instantiateListItems result
-            @hideLazyLoader()
+        async.parallel stack, (err, result)=>
+          result = [] if err
+          if result.length is 0
+             @addCustomItem "There are no subscriptions."
+          else
+            @instantiateListItems result
+          @hideLazyLoader()
 
   addCustomItem:(message)->
     @removeAllItems()

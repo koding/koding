@@ -164,7 +164,7 @@ positiveGreen = rgba(58,200,2,1)
   a.action-link
     abs()
     display         none
-    float           right
+    fr()
     line-height     16px
     padding         7px
     top             50%
@@ -226,9 +226,9 @@ positiveGreen = rgba(58,200,2,1)
       opacity           1
 
 .email-on-off-loader
+  rel()
   margin-left           8px
   top                   3px
-  position              relative
 
 .login-email,
 .password-security,
@@ -323,7 +323,7 @@ positiveGreen = rgba(58,200,2,1)
   a
     width            70px
   .kdinput
-    float            left
+    fl()
 
 .payment-methods
   li
@@ -404,26 +404,30 @@ positiveGreen = rgba(58,200,2,1)
     bg(color,rgba(11,10,9,.6))
     rounded(5px,5px,5px,5px)
 
-  input,texarea
+  input
+  textarea
     rel()
     color         #63594a
     font-size     13px
     line-height   16px
     width         190px
+    padding       13px 10px
     shadow(0 1px 2px rgba(255,255,255,.24))
   ::-webkit-input-placeholder
     color             #63594a
   input:-moz-placeholder
     color             #63594a
   textarea
-    padding 10px
-    overflow hidden
+    padding           10px
+    overflow          hidden
     border            none
     resize            none
     bg(color,rgba(255, 255, 255, 0.1))
     color     rgba(255, 255, 255, 0.4)
     size(350px,240px)
-
+    &.light
+      bg(color,#fff)
+      color #555
 .swappable
   .actions-wrapper
     abs()
@@ -605,26 +609,60 @@ positiveGreen = rgba(58,200,2,1)
     gradient(rgb(177,217,254),rgb(105,182,253))
 
 .ssh-keys
-  .actions-wrapper
+  input
+    margin-bottom   14px
+    clear           both
+    width           100% !important
+
+
+  label
+    display         block
+    margin-bottom   8px
+    font-weight     bold
+    color           #eee
+    float           none
+    clear           both
+
+  .title
+    font-weight     bold
+    display         block
+
+  .action-link
     abs()
-    right               0px
-    width               auto
-    height              auto
-    top                 50%
-    margin-top          -14px
+    right           6px
+    top             16px
+    opacity         0
+    visibility      hidden
+    vendor transition, opacity .1s ease-in-out
+
+  .kdlistitemview
+    &:hover
+    &:focus
+      .action-link
+        opacity     1
+
+        visibility  visible
+  .kdformview
+    position        relative
+    size 50%, auto
+    min-width       400px
+    .formline
+      padding       0
+      border        none
+
+  textarea
+    size 100% !important, 100px !important
 
   button
-    width               80px
-    margin-right        10px
-
-  .button-holder
-      // bg(color,rgba(255, 255, 255, 0.4))
-      .what-link
-        cursor            pointer
-        line-height       30px
-        display           inline-block
-        padding           0px 7px
-        // bg(color,rgba(255, 255, 255, .5))
+    width           80px
+    height          23px
+    padding         0
+    line-height     22px
+    margin-right    10px
+    font-weight     bold
+    &.deletebtn
+      fr()
+      margin-right  0
 
 
 button.kdbutton.account-header-button
@@ -648,9 +686,9 @@ button.kdbutton.account-header-second-button
     margin          0
     border          none
     visibility      visible
-    float           left
+    fl()
     size            20px,20px
-    margin          0px auto
+    margin          0 auto
     sprite()
     bg              position,20px 20px
     &.plus
@@ -660,7 +698,7 @@ button.kdbutton.account-header-second-button
   right             50px
 
 .personal-emailNotifications .kdformview
-  float             left
+  fl()
 
 @media (min-width: 0) and (max-width: 1144px)
   .personal-emailNotifications .kdformview

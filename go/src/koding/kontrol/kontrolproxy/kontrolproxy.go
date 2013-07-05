@@ -34,8 +34,6 @@ type Proxy struct{}
 type Client struct {
 	Target     string    `json:"target"`
 	Registered time.Time `json:"firstVist"`
-	Reset      bool      `json:"-"`
-	Mode       string    `json:"-"`
 }
 
 var templates = template.Must(template.ParseFiles(
@@ -51,7 +49,6 @@ var proxyName = kontrolhelper.CustomHostname()
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var clients = make(map[string]Client)
 var clientsLock sync.RWMutex
-var cacheTimeout = time.Second * 60
 
 func main() {
 	log.Printf("kontrol proxy started ")
@@ -162,38 +159,17 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
-
-	// in memory lookup
-	target := &resolver.Target{}
-	uniqueIP := userIP + "-" + req.Host
-	var err error
-	client, ok := getClient(uniqueIP)
-	if !ok {
-		target, err = resolver.GetTarget(req.Host)
-		if err != nil {
-			if err == resolver.ErrGone {
-				return templateHandler("notfound.html", req.Host, 410)
-			}
-			log.Println("resolver error", err)
-			return templateHandler("notfound.html", req.Host, 404)
+	target, source, err := resolver.GetMemTarget(req.Host)
+	if err != nil {
+		if err == resolver.ErrGone {
+			return templateHandler("notfound.html", req.Host, 410)
 		}
-
-		go logDomainRequests(req.Host)
-		go logProxyStat(proxyName, userCountry)
-		go registerClient(uniqueIP, target.Url.String(), target.Mode)
-
-		fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
-		fmt.Printf("proxy via db\t: %s --> %s\n", req.Host, target.Url.String())
-	} else {
-		target.Url, err = url.Parse(client.Target)
-		if err != nil {
-			log.Println("could not parse client.target", client.Target)
-			return templateHandler("notfound.html", req.Host, 404)
-		}
-		target.Mode = client.Mode
-		fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
-		fmt.Printf("proxy via inmem\t: %s --> %s\n", req.Host, target.Url.String())
+		log.Println("resolver error", err)
+		return templateHandler("notfound.html", req.Host, 404)
 	}
+
+	fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
+	fmt.Printf("proxy via %s\t: %s --> %s\n", source, req.Host, target.Url.String())
 
 	switch target.Mode {
 	case "maintenance":
@@ -224,6 +200,12 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		}
 	}
 
+	if _, ok := getClient(userIP); !ok {
+		go logDomainRequests(req.Host)
+		go logProxyStat(proxyName, userCountry)
+		go registerClient(userIP, target.Url.String())
+	}
+
 	if isWebsocket(req) {
 		return websocketHandler(target.Url.String())
 	}
@@ -231,8 +213,10 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	return reverseProxyHandler(target.Url)
 }
 
-/* Handlers */
-
+// reverseProxyHandler is the main handler that is used for copy the response
+// back and forth to the request iniator. We use Go's main
+// httputil.ReverseProxy but can easily switch to any custom handler in the
+// future
 func reverseProxyHandler(target *url.URL) http.Handler {
 	return &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
@@ -246,6 +230,8 @@ func reverseProxyHandler(target *url.URL) http.Handler {
 	}
 }
 
+// sessionHandler is used currently for the securepage feature of our
+// validator/firewall. It is used to setup cookies to invalidate users visits.
 func sessionHandler(val, userIP string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
@@ -260,6 +246,8 @@ func sessionHandler(val, userIP string) http.Handler {
 	})
 }
 
+// websocketHandler is used to reverseProxy websocket connection. It hijacks
+// the underlying http connection and copies forth and back the response
 func websocketHandler(target string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		d, err := net.Dial("tcp", target)
@@ -299,6 +287,9 @@ func websocketHandler(target string) http.Handler {
 	})
 }
 
+// templateHandler is used to show static complied html pages. The path
+// variable is used to pick the correct template, data is used inside the
+// template and code is set as the response code.
 func templateHandler(path string, data interface{}, code int) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(code)
@@ -310,6 +301,7 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 	})
 }
 
+// endpointHandler is used to create and handle some proxy features.
 func endpointHandler(endpoint string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if ok := strings.Contains(endpoint, "/reset/"); ok {
@@ -365,10 +357,10 @@ func resetClients() {
 	clients = make(map[string]Client)
 }
 
-func registerClient(ip, target, mode string) {
+func registerClient(ip, target string) {
 	clientsLock.Lock()
 	defer clientsLock.Unlock()
-	clients[ip] = Client{Target: target, Registered: time.Now(), Mode: mode}
+	clients[ip] = Client{Target: target, Registered: time.Now()}
 	if len(clients) == 1 {
 		go cleaner()
 	}
@@ -380,7 +372,6 @@ func getClients() map[string]Client {
 	return clients
 }
 
-// Needed to avoid race condition between multiple go routines
 func getClient(ip string) (Client, bool) {
 	clientsLock.RLock()
 	defer clientsLock.RUnlock()
@@ -407,7 +398,7 @@ func cleaner() {
 		}
 		clientsLock.RUnlock()
 		// negative duration is no-op, means it will not panic
-		time.Sleep(cacheTimeout - time.Now().Sub(nextTime))
+		time.Sleep(time.Hour - time.Now().Sub(nextTime))
 		clientsLock.Lock()
 		log.Println("deleting client from internal map", nextClient)
 		delete(clients, nextClient)
@@ -417,7 +408,8 @@ func cleaner() {
 	clientsLock.RUnlock()
 }
 
-// is the incoming request a part of websocket handshake?
+// isWebsocket checks wether the incoming request is a part of websocket
+// handshake
 func isWebsocket(req *http.Request) bool {
 	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
 		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {

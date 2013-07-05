@@ -10,12 +10,13 @@ module.exports = class JVM extends Model
 
   JRecurlySubscription = require './recurly/subscription'
   JPermissionSet       = require './group/permissionset'
-
   @share()
 
   @trait __dirname, '../traits/protected'
 
   @bound = require 'koding-bound'
+
+  handleError = (err)-> console.error err  if err
 
   @set
     softDelete          : yes
@@ -172,8 +173,8 @@ module.exports = class JVM extends Model
 
           vm.save (err) =>
 
-            handleError err
             if err
+              console.error err
               return console.warn "Failed to create VM for ", \
                                    {users, groups, hostnameAlias}
 
@@ -393,8 +394,6 @@ module.exports = class JVM extends Model
                 @deleteVM vm, callback
 
   do ->
-
-    handleError = (err)-> console.error err  if err
 
     JGroup  = require './group'
     JUser   = require './user'

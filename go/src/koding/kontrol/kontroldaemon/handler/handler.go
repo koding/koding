@@ -173,7 +173,6 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 			worker.Hostname+":"+port, // host
 			"FromKontrolDaemon",      // hostdata
 			"",                       // rabbitkey, not used
-			0,                        // currentindex, not used
 		)
 		if err != nil {
 			return fmt.Errorf("register to kontrol proxy not possible: %s", err.Error())

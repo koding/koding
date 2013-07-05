@@ -543,7 +543,7 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim","gokmen", "chris", "testdude", "blum", "neelance", "halk",
-                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas"]
+                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas", "fkadev"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -577,6 +577,19 @@ module.exports = class JAccount extends jraphical.Module
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$set: globalFlags: flags}, callback
+    else
+      callback new KodingError 'Access denied'
+
+  blockUser: secure (client, targetId, toDate, callback)->
+    {delegate} = client.connection
+    if delegate.can('flag', this) and targetId? and toDate?
+      JAccount.one _id : targetId, (err, account)->
+        if err then return callback err
+        JUser = require '../user'
+        JUser.one {username: account.profile.nickname}, (err, user)->
+          if err then return callback err
+          blockedDate = new Date(Date.now() + toDate)
+          user.block blockedDate, callback
     else
       callback new KodingError 'Access denied'
 
@@ -993,3 +1006,15 @@ module.exports = class JAccount extends jraphical.Module
           callback null, tempRes
         for res in results
           collectContents res
+
+  sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
+    time = (new Date).toJSON()
+    JMail = require '../email'
+    email = new JMail
+      from    : 'hello@koding.com'
+      email   : 'sysops@koding.com'
+      subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
+      content : "Reason: #{reason}"
+      force   : yes
+
+    email.save ->

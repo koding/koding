@@ -33,11 +33,12 @@ type VMInfo struct {
 	mutex         sync.Mutex
 	totalCpuUsage int
 
-	State       string `json:"state"`
-	CpuUsage    int    `json:"cpuUsage"`
-	CpuShares   int    `json:"cpuShares"`
-	MemoryUsage int    `json:"memoryUsage"`
-	MemoryLimit int    `json:"memoryLimit"`
+	State               string `json:"state"`
+	CpuUsage            int    `json:"cpuUsage"`
+	CpuShares           int    `json:"cpuShares"`
+	MemoryUsage         int    `json:"memoryUsage"`
+	PhysicalMemoryLimit int    `json:"physicalMemoryLimit"`
+	TotalMemoryLimit    int    `json:"totalMemoryLimit"`
 }
 
 var infos = make(map[bson.ObjectId]*VMInfo)
@@ -344,7 +345,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vm.LdapPassword = ldapPassword
 		}
 
-		if _, err := os.Stat(vm.File("")); err != nil {
+		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
@@ -503,11 +504,12 @@ func getUsers(vm *virt.VM) []virt.User {
 
 func newInfo(vm *virt.VM) *VMInfo {
 	return &VMInfo{
-		vmId:          vm.Id,
-		vmName:        vm.String(),
-		useCounter:    0,
-		totalCpuUsage: utils.MaxInt,
-		CpuShares:     1000,
+		vmId:             vm.Id,
+		vmName:           vm.String(),
+		useCounter:       0,
+		totalCpuUsage:    utils.MaxInt,
+		CpuShares:        1000,
+		TotalMemoryLimit: MaxMemoryLimit,
 	}
 }
 

@@ -462,17 +462,6 @@ run =({configFile})->
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
-    invoke 'alertUserToRunNeo4jMigrator'
-
-task 'alertUserToRunNeo4jMigrator', (options)->
-  {configFile} = options
-  text =  "\n"
-  text += "RED ALERT: \n"
-  text += "Please run \"cake -c #{configFile} populateNeo4j\" if you haven't already.\n"
-  text += "Usually you need to run it only once when you initialize a new vagrant box\n"
-  text += "or you nuked your neo4j db.\n"
-
-  console.log text
 
 task 'run', (options)->
   {configFile} = options

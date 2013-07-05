@@ -27,11 +27,8 @@ type LoadBalancer struct {
 	// cookie or sourceAddress
 	Persistence string `json:"persistence"`
 
-	// roundrobin, random or sticky
+	// roundrobin or random
 	Mode string `json:"mode"`
-	// current index of hosts. Updated automatically in roundrobin
-	// change manually when using sticky mode
-	Index int `json:"index"`
 }
 
 type Domain struct {
@@ -161,7 +158,6 @@ func (p *ProxyConfiguration) UpdateDomain(d *Domain) error {
 	}
 
 	domain.Proxy = d.Proxy
-	domain.LoadBalancer.Index = d.LoadBalancer.Index
 	domain.LoadBalancer.Mode = d.LoadBalancer.Mode
 
 	err = p.Collection["domains"].Update(bson.M{"domain": d.Domain}, domain)

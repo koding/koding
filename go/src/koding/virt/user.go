@@ -12,6 +12,10 @@ type User struct {
 	Name     string        `bson:"username"`
 	Password string        `bson:"password"`
 	Salt     string        `bson:"salt"`
+	SshKeys  []struct {
+		Title string `bson:"title"`
+		Key   string `bson:"key"`
+	} `bson:"sshKeys"`
 }
 
 const UserIdOffset = 1000000
@@ -24,4 +28,12 @@ func (user *User) HasPassword(password string) bool {
 	hash.Write([]byte(user.Salt))
 	hash.Write([]byte(password))
 	return user.Password == hex.EncodeToString(hash.Sum(nil))
+}
+
+func (user *User) SshKeyList() []string {
+	keys := make([]string, len(user.SshKeys))
+	for i, entry := range user.SshKeys {
+		keys[i] = entry.Key
+	}
+	return keys
 }
