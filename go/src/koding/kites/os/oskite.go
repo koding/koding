@@ -258,11 +258,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 					return nil, &VMNotFoundError{Name: channel.CorrelationName}
 				}
 			}
-			if k.ServiceUniqueName == "" {
-				log.Warn("Service unique name is empty")
-			}
 
-			if vm.HostKite != k.ServiceUniqueName && k.ServiceUniqueName != "" {
+			if vm.HostKite != k.ServiceUniqueName {
 				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
 					time.Sleep(time.Second) // to avoid rapid cycle channel loop
 					return nil, &kite.WrongChannelError{}

@@ -44,8 +44,5 @@ func (vm *VM) GetState() string {
 }
 
 func (vm *VM) WaitForState(state string, timeout time.Duration) ([]byte, error) {
-	if timeout != 0 {
-		return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput()
-	}
-		return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state).CombinedOutput()
+	return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput()
 }
