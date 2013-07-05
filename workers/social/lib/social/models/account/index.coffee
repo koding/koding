@@ -1,11 +1,9 @@
-jraphical = require 'jraphical'
-
+jraphical   = require 'jraphical'
 KodingError = require '../../error'
 
 likeableActivities = ['JCodeSnip', 'JStatusUpdate', 'JDiscussion',
                       'JOpinion', 'JCodeShare', 'JLink', 'JTutorial',
-                      'JBlogPost'
-                     ]
+                      'JBlogPost']
 
 {sharedStaticMethods, sharedInstanceMethods} = require '../account/methods'
 
@@ -28,6 +26,7 @@ module.exports = class JAccount extends jraphical.Module
   {ObjectId, Register, secure, race, dash, daisy} = require 'bongo'
   {Relationship} = jraphical
   {permit} = require '../group/permissionset'
+  Validators = require '../group/validators'
 
   @share()
   Experience =
@@ -159,6 +158,10 @@ module.exports = class JAccount extends jraphical.Module
       domain        :
         as          : 'owner'
         targetType  : 'JDomain'
+
+      proxyFilter   :
+        as          : 'owner'
+        targetType  : 'JProxyFilter'
 
   constructor:->
     super
@@ -978,6 +981,26 @@ module.exports = class JAccount extends jraphical.Module
   addTags: secure (client, tags, options, callback)->
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
+
+  fetchDomains: (callback) ->
+    JDomain = require '../domain'
+
+    Relationship.some
+      targetName: "JDomain"
+      sourceId  : @getId()
+      sourceName: "JAccount"
+    , (err, rels)->
+      return callback err if err
+
+      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
+        callback err, domains
+
+  fetchDomains$: permit
+    advanced: [
+      { permission: 'list own domains', validateWith: Validators.own }
+    ]
+    success: (client, callback) ->
+      @fetchDomains callback
 
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
     @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback

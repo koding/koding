@@ -50,7 +50,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
     JUser.fetchUser client, (e, r) ->
       data.email = r.email
-      payment.setAccountWithBilling "user_#{delegate._id}", data, callback
+      payment.setAccount "user_#{delegate._id}", data, (err, res)->
+        return callback err  if err
+        payment.setBilling "user_#{delegate._id}", data, callback
 
   @setGroupAccount = (group, data, callback)->
     JRecurlyPlan.fetchGroupAccount group, (err, groupAccount)=>

@@ -17,12 +17,25 @@ import (
 	"time"
 )
 
+// Target is returned for every incoming request host.
 type Target struct {
-	Url         *url.URL
-	Mode        string
+	// Url contains the final target
+	Url *url.URL
+
+	// Mode contains the information get via proxyconfig.ProxyTable.Mode
+	Mode string
+
+	// Persistence contains the information get via
+	// proxyconfig.LoadBalancer.Persistence
 	Persistence string
-	FetchedAt   time.Time
-	UseCache    bool
+
+	// FetchedAt contains the time the target was fetched and stored. Useful
+	// for caching
+	FetchedAt time.Time
+
+	// UseCache is a switch to enable the cache for that target. By default
+	// it's set to true by resolver.
+	UseCache bool
 }
 
 func NewTarget(url *url.URL, mode, persistence string) *Target {
@@ -47,7 +60,7 @@ var targets = make(map[string]Target)
 var targetsLock sync.RWMutex
 var cacheTimeout = time.Second * 20
 
-// used for loadbalance modes, like roundrobin, random, etc..
+// used for loadbalance modes, like roundrobin or random
 var indexes = make(map[string]int)
 var indexesLock sync.RWMutex
 
@@ -134,7 +147,7 @@ func GetTarget(host string) (*Target, error) {
 		// for avoiding nil pointer referencing
 		return NewTarget(nil, mode, persistence), nil
 	case "redirect":
-		target, err := url.Parse(domain.Proxy.FullUrl)
+		target, err := url.Parse(utils.CheckScheme(domain.Proxy.FullUrl))
 		if err != nil {
 			return nil, err
 		}
@@ -150,7 +163,6 @@ func GetTarget(host string) (*Target, error) {
 			index := getIndex(host) // gives 0 if not available
 			N := float64(len(domain.HostnameAlias))
 			n := int(math.Mod(float64(index+1), N))
-
 			hostname = domain.HostnameAlias[n]
 			addOrUpdateIndex(host, n)
 		case "random":
@@ -202,7 +214,6 @@ func GetTarget(host string) (*Target, error) {
 		case "roundrobin":
 			var n int
 			index := getIndex(host) // gives 0 if not available
-
 			hostname, n = roundRobin(keyData.Host, index, 0)
 			addOrUpdateIndex(host, n)
 			if hostname == "" {
@@ -215,10 +226,7 @@ func GetTarget(host string) (*Target, error) {
 			hostname = keyData.Host[0]
 		}
 
-		if !strings.HasPrefix(hostname, "http://") {
-			hostname = "http://" + hostname
-		}
-
+		hostname := utils.CheckScheme(hostname)
 		target, err = url.Parse(hostname)
 		if err != nil {
 			return nil, err
@@ -232,7 +240,7 @@ func GetTarget(host string) (*Target, error) {
 
 // roundRobin is doing roundrobin between between the servers in the hosts
 // array. If picks the next item in the array, specified with index and then
-// checks for alivenes. If the server is dead it checks for the next item,
+// checks for aliveness. If the server is dead it checks for the next item,
 // until all servers are checked. If all servers are dead it returns an empty
 // string, otherwise it returns the correct server name.
 func roundRobin(hosts []string, index, iter int) (string, int) {
@@ -251,11 +259,14 @@ func roundRobin(hosts []string, index, iter int) (string, int) {
 	return hostname, n
 }
 
-/*************************************************
+/***********************************************************
 *
-*  in-memory lookup functions needed for cache lookups and actions
+*  in-memory lookup functions for cache lookups and actions
 *
-*************************************************/
+************************************************************/
+
+// getCacheTarget is used to get the cached Target for the incoming host. It's
+// concurrent safe.
 func getCacheTarget(host string) (*Target, bool) {
 	targetsLock.RLock()
 	defer targetsLock.RUnlock()
@@ -263,6 +274,9 @@ func getCacheTarget(host string) (*Target, bool) {
 	return &target, ok
 }
 
+// registerCacheTarget is used to register target for the incoming host to the
+// cache. It's concurrent safe. It also starts the cacheCleaner immediately
+// after the first registering, which is used for cache invalidation.
 func registerCacheTarget(host string, target *Target) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
@@ -272,12 +286,22 @@ func registerCacheTarget(host string, target *Target) {
 	}
 }
 
+// deleteCacheTarget is used to remove the incoming host from the cache. It's
+// concurrent safe.
 func deleteCacheTarget(host string) {
 	targetsLock.Lock()
 	defer targetsLock.Unlock()
 	delete(targets, host)
 }
 
+// cacheCleaner is used for cache invalidation. It is started whenever you call
+// registerCacheTarget().
+// It basically does this: as long as there are targets in the map, it
+// finds the one it should be deleted next, sleeps until it's time to delete it
+// (one hour - time since target is fetched ) and deletes it.  If there are no
+// targets, the goroutine exits and a new one is created the next time a user
+// is registered. The time.Sleep goes toward zero, thus it will not lock the
+// for iterator forever.
 func cacheCleaner() {
 	targetsLock.RLock()
 	for len(targets) > 0 {
@@ -298,14 +322,14 @@ func cacheCleaner() {
 	targetsLock.RUnlock()
 }
 
-/*************************************************
+/*******************************************************
 *
-*  the following functions are used for loadbalance indexing.
+*  loadbalance index functions for roundrobin or random
 *
-*************************************************/
+********************************************************/
 
 // getIndex is used to get the current index for current the loadbalance
-// algorithm. It's concurrent-safe.
+// algorithm/mode. It's concurrent-safe.
 func getIndex(host string) int {
 	indexesLock.RLock()
 	defer indexesLock.RUnlock()
