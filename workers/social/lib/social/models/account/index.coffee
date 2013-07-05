@@ -174,7 +174,11 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-  changeUsername: (username, callback) ->
+  changeUsername: (options, callback) ->
+    if 'string' is typeof options
+      username = options
+    else
+      { username, mustReauthenticate } = options
 
     oldUsername = @profile.nickname
 
@@ -214,25 +218,25 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
 
         user.update { $set: { username } }, (err) =>
-          console.log 'updated the user'
           if err then handleErr err, callback
           else
-            @sendNotification 'UsernameChanged', { username, oldUsername }
+            if mustReauthenticate
+              @sendNotification 'UsernameChanged', { username, oldUsername }
+
             @update { $set: 'profile.nickname': username }, (err) =>
               if err then handleErr err
               else
                 @constructor.emit 'UsernameChanged', oldUsername, username
                 freeOldUsername()
 
-
-  changeUsername$: secure (client, username, callback) ->
+  changeUsername$: secure (client, options, callback) ->
 
     {delegate} = client.connection
 
     unless delegate.equals this
     then return callback new KodingError 'Access denied!'
 
-    @changeUsername username, callback
+    @changeUsername options, callback
 
   checkPermission: (target, permission, callback)->
     JPermissionSet = require '../group/permissionset'

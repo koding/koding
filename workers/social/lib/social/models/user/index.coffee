@@ -331,7 +331,7 @@ module.exports = class JUser extends jraphical.Module
   @addToGroups = (account, invite, entryPoint, email, callback)->
     @addToGroup account, 'koding', email, invite, (err)=>
       if err then callback err
-      else if (slug = invite.group or entryPoint) and slug isnt 'koding'
+      else if (slug = invite?.group or entryPoint) and slug isnt 'koding'
         @addToGroup account, slug, email, invite, callback
       else
         callback null
@@ -420,10 +420,6 @@ module.exports = class JUser extends jraphical.Module
     isError = no
     errors = {}
 
-    i = 0
-
-    console.log Object.keys(userFormData)
-
     queue = Object.keys(userFormData).map (field) => =>
       if field of validate
         validate[field].call this, userFormData, (err) =>
@@ -431,48 +427,73 @@ module.exports = class JUser extends jraphical.Module
             errors[field] = err
             isError = yes
           queue.fin()
-      else
-        console.log 'are we here?'
-        queue.fin()
+      else queue.fin()
 
-    j = queue.length
-
-    dash queue, -> console.log('here'); callback(
+    dash queue, -> callback(
       if isError
       then { message: "Errors were encountered during validation", errors }
       else null
     )
+    
+  @changePasswordByUsername = (username, password, callback) ->
+    salt = createSalt()
+    hashedPassword = hashPassword password, salt
+    @update { username }, {
+      $set: { salt, password: hashedPassword }
+    }, callback
+  
+  @changeEmailByUsername = (username, email, callback) ->
+    @update { username }, { $set: { email }}, callback
+  
+  @changeUsernameByAccount = (account, username, clientId, callback)->
+    account.changeUsername username, (err) =>
+      return callback err  if err?
+      return callback null  unless clientId?
+      newToken = createId()
+      JSession.one { clientId }, (err, session) =>
+        if err?
+          return callback createKodingError "Could not update your session"
+        else if session?
+          session.update { $set: { clientId: newToken, username }}, (err) ->
+            return callback err  if err?
+            callback null, newToken
+        else
+          callback new KodingError "Session not found!"
+        
 
   @convert = secure (client, userFormData, callback) ->
-    { connection } = client
+    { connection, sessionToken : clientId } = client
     { delegate : account } = connection
+    { nickname : oldUsername } = account.profile
     { username, email, password, passwordConfirm, firstName, lastName,
-      agree, inviteCode, kodingenUser, clientId, entryPoint } = userFormData
+      agree, inviteCode, kodingenUser, entryPoint } = userFormData
 
     # only unreigstered accounts can be "converted"
     if account.status is "registered"
       return callback createKodingError "This account is already registered."
 
     @validateAll userFormData, (err) =>
-      console.log {'hello'}
-      salt = createSalt()
-      hashedPassword = hashPassword password, salt
-      @update { username: account.profile.nickname }, {
-        $set: { email, salt, password: hashedPassword }
-      }, (err) =>
+      @changePasswordByUsername oldUsername, password, (err) =>
         return callback err  if err?
-        account.changeUsername username, (err) ->
+        @changeEmailByUsername oldUsername, email, (err) =>
           return callback err  if err?
-          account.update $set: {
-            'profile.firstName' : firstName
-            'profile.lastName'  : lastName
-          }, callback
+          @changeUsernameByAccount account, username, clientId,
+            (err, newToken) =>
+              return callback err  if err?
+              @addToGroups account, null, entryPoint, email, (err) ->
+                return callback err  if err?
+                account.update $set: {
+                  'profile.firstName' : firstName
+                  'profile.lastName'  : lastName
+                  type                : 'registered'
+                }, (err) =>
+                  return callback err  if err?
+                  callback null, newToken
 
   @register = secure (client, userFormData, callback) ->
     { connection } = client
     { username, email, password, passwordConfirm, firstName, lastName,
-      agree, inviteCode, kodingenUser, clientId, entryPoint } = userFormData
-
+      agree, inviteCode, kodingenUser, entryPoint } = userFormData
     # The silence option provides silence registers,
     # means no welcome e-mail for new users.
     # We're using it for migrating Kodingen users to Koding
@@ -573,7 +594,6 @@ module.exports = class JUser extends jraphical.Module
           user.changeEmail account, options, callback
 
   @emailAvailable = (email, callback)->
-    console.log { email }
     @count {email}, (err, count)->
       if err
         callback err

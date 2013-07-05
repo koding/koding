@@ -373,7 +373,6 @@ module.exports = class AuthWorker extends EventEmitter
     clientServices?.forEach @bound 'cleanUpClient'
 
   parseServiceKey = (serviceKey) ->
-    console.log "parseServiceKey", serviceKey
     last = null
     serviceInfo = serviceKey.split('.').reduce (acc, edge, i)->
       unless i % 2 then last = edge
