@@ -246,6 +246,9 @@ module.exports = class AuthWorker extends EventEmitter
 
         { serviceUniqueName, serviceGenericName, loadBalancing } = serviceInfo
 
+        if messageData.serviceType is 'kite' and not messageData.correlationName
+          console.warn "No correlation name!", messageData, routingKey
+
         params = {
           serviceGenericName
           serviceUniqueName
