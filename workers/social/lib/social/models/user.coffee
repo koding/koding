@@ -73,7 +73,7 @@ module.exports = class JUser extends jraphical.Module
       instance      : ['sendEmailConfirmation']
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
-        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled'
+        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled', 'setSSHKeys', 'getSSHKeys'
       ]
 
     schema          :
@@ -89,6 +89,7 @@ module.exports = class JUser extends jraphical.Module
         email       : yes
       password      : String
       salt          : String
+      blockedUntil     : Date
       status        :
         type        : String
         enum        : [
@@ -112,6 +113,8 @@ module.exports = class JUser extends jraphical.Module
         userPreference:
           type      : String
           # enum      : ['invalid status',['online','offline','away','busy']]
+
+      sshKeys       : [Object]
 
     relationships       :
       ownAccount        :
@@ -216,10 +219,28 @@ module.exports = class JUser extends jraphical.Module
 
   @whoami = secure ({connection:{delegate}}, callback)-> callback delegate
 
+  checkBlockedStatus = (user, callback)->
+    if user.status is 'blocked'
+      if user.blockedUntil and user.blockedUntil > new Date
+        toDate = user.blockedUntil.toUTCString()
+        message = """
+            You cannot login until #{toDate}.
+            At least 10 moderators of Koding have decided that your participation is not of acceptable kind.
+            That's all I know.
+            You can demand further explanation from ban@koding.com. Please allow 1-2 days to receive a reply.
+            Your machines might be blocked, all types of activities might be suspended.
+            Your data is safe, you can access them when/if ban is lifted.
+          """
+        callback createKodingError message
+      else
+        user.update {$set: status: 'unconfirmed'}, callback
+    else
+      callback null
+
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
     constructor = @
-    JUser.one {username, status: $ne: 'blocked'}, (err, user)->
+    JUser.one {username}, (err, user)->
       if err
         callback createKodingError err.message
       else unless user?
@@ -227,40 +248,39 @@ module.exports = class JUser extends jraphical.Module
       else unless user.getAt('password') is hashPassword password, user.getAt('salt')
         callback createKodingError 'Access denied!'
       else
-        JSession.one {clientId}, (err, session)->
-          if err
-            callback err
-          else unless session
-            callback createKodingError 'Could not restore your session!'
-          else
-            replacementToken = createId()
-            JGuest.recycle session.guestId
-            session.update {
-              $set            :
-                username      : user.username
-                lastLoginDate : new Date
-                clientId      : replacementToken
-              $unset:
-                guestId       : 1
-            }, (err)->
-              if err
-                callback err
-              else
-                if err
-                  callback err
-                else user.fetchOwnAccount (err, account)->
+        checkBlockedStatus user, (err)->
+          if err then return callback err
+          JSession.one {clientId}, (err, session)->
+            if err
+              callback err
+            else unless session
+              callback createKodingError 'Could not restore your session!'
+            else
+              replacementToken = createId()
+              JGuest.recycle session.guestId
+              session.update {
+                $set            :
+                  username      : user.username
+                  lastLoginDate : new Date
+                  clientId      : replacementToken
+                $unset:
+                  guestId       : 1
+              }, (err)->
                   if err
                     callback err
-                  else
-                    connection.delegate = account
-                    JAccount.emit "AccountAuthenticated", account
+                  else user.fetchOwnAccount (err, account)->
+                    if err
+                      callback err
+                    else
+                      connection.delegate = account
+                      JAccount.emit "AccountAuthenticated", account
 
-                    # This should be called after login and this
-                    # is not correct place to do it, FIXME GG
-                    # p.s. we could do that in workers
-                    account.updateCounts()
+                      # This should be called after login and this
+                      # is not correct place to do it, FIXME GG
+                      # p.s. we could do that in workers
+                      account.updateCounts()
 
-                    callback null, account, replacementToken
+                      callback null, account, replacementToken
 
   @logout = secure (client, callback)->
     if 'string' is typeof clientId
@@ -607,4 +627,21 @@ module.exports = class JUser extends jraphical.Module
         confirmation.send callback
 
   confirmEmail:(callback)-> @update {$set: status: 'confirmed'}, callback
-  block:(callback)-> @update {$set: status: 'blocked'}, callback
+
+  block:(blockedUntil, callback)->
+    unless blockedUntil then return callback createKodingError "Blocking date is not defined"
+
+    @update
+      $set:
+        status: 'blocked',
+        blockedUntil : blockedUntil
+    , callback
+
+  @setSSHKeys: secure (client, sshKeys, callback)->
+    @fetchUser client, (err,user)->
+      user.sshKeys = sshKeys
+      user.save callback
+
+  @getSSHKeys: secure (client, callback)->
+    @fetchUser client, (err,user)->
+      callback user.sshKeys or []

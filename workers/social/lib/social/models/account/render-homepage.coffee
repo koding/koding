@@ -35,7 +35,7 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
           <div id="main-nav">
             <div class="avatar-placeholder">
               <div id="avatar-area">
-                <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(//api.koding.com/images/defaultavatar/default.avatar.160.png);"></div>
+                <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(/images/defaultavatar/default.avatar.160.png);"></div>
               </div>
             </div>
             <div class="kdview actions">

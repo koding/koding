@@ -1,4 +1,4 @@
-class VMMainView extends JView
+class VMsMainView extends JView
 
   constructor:(options={}, data)->
 

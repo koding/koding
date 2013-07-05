@@ -14,7 +14,7 @@ class ActivityListController extends KDListViewController
 
   resetNewMemberGroups = -> hiddenNewMemberItemGroups = [[]]
 
-  constructor:(options,data)->
+  constructor:(options={}, data)->
 
     viewOptions = options.viewOptions or {}
     viewOptions.cssClass      or= 'activity-related'
@@ -23,36 +23,19 @@ class ActivityListController extends KDListViewController
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
     options.showHeader         ?= yes
-
     options.noItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity."
 
-    options.noMoreItemFoundWidget or= new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : "There is no more activity."
+    # this is regressed until i touch this again. - SY
+    # options.noMoreItemFoundWidget or= new KDCustomHTMLView
+    #   cssClass : "lazy-loader"
+    #   partial  : "There is no more activity."
 
-    super
+    super options, data
 
     @resetList()
-
     @_state = 'public'
-
-    @getListView().on "ItemIsBeingDestroyed", @bound "addNoItemFoundWidget"
-
-    @getListView().on "ItemWasAdded", @bound "removeNoItemFoundWidget"
-
-  removeNoItemFoundWidget:->
-    if @getItemCount() is 1
-      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
-      noItemFoundWidget.destroy() if noItemFoundWidget
-
-  addNoItemFoundWidget:->
-    if @getItemCount() is 0
-      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-      noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
-      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
 
   resetList:->
     @newActivityArrivedList = {}
@@ -60,7 +43,6 @@ class ActivityListController extends KDListViewController
 
   loadView:(mainView)->
 
-    @hideNoItemWidget()
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'feeder-header clearfix'
@@ -85,7 +67,7 @@ class ActivityListController extends KDListViewController
 
   listActivities:(activities)->
     @hideLazyLoader()
-    return @showNoItemWidget() unless activities.length > 0
+    return  unless activities.length > 0
     activityIds = []
     for activity in activities when activity
       @addItem activity
@@ -106,9 +88,7 @@ class ActivityListController extends KDListViewController
 
   listActivitiesFromCache:(cache)->
     @hideLazyLoader()
-    # fixme: Senthil "?"
-    return @showNoItemWidget() unless cache.overview?.length > 0
-
+    return  unless cache.overview?.length > 0
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"

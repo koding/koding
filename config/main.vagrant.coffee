@@ -76,6 +76,12 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  followFeed    :
+    host        : 'localhost'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'
   graphFeederWorker:
     numberOfWorkers: 2
   presence      :
@@ -100,7 +106,7 @@ module.exports =
       suppressLogs: no
       broker    :
         sockJS  : 'http://localhost:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+      apiUri    : 'http://localhost:3020'
       # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -189,9 +195,3 @@ module.exports =
   opsview       :
     push        : no
     host        : ''
-  followFeed    :
-    host        : 'localhost'
-    port        : 5672
-    componentUser: 'guest'
-    password    : 'guest'
-    vhost       : 'followfeed'

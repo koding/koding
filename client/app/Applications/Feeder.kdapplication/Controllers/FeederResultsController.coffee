@@ -41,7 +41,9 @@ class FeederResultsController extends KDViewController
     @listControllers[name] = listController = new listControllerClass
       lazyLoadThreshold   : .75
       startWithLazyLoader : yes
-      noItemFoundText     : filter.noItemFoundText or null
+      noItemFoundWidget   : new KDCustomHTMLView
+        cssClass          : "lazy-loader"
+        partial           : filter.noItemFoundText or @getOptions().noItemFoundText or "There are no items."
       viewOptions         :
         cssClass          : listCssClass
         type              : name

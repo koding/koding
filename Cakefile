@@ -66,8 +66,18 @@ compileGoBinaries = (configFile,callback)->
     callback null
 
 task 'populateNeo4j', ({configFile})->
+  invoke 'deleteNeo4j'
+
   migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
   processes.exec migrator
+
+task 'deleteNeo4j', ({configFile})->
+  console.log "This task is hardcoded to delete only Neo running in localhost:7474\n"
+
+  query = """
+    curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node:koding(\\"id:*\\") match kod-[r]-() delete kod, r"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=relationship(*) delete kod;"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node(*) delete kod;"}' "http://localhost:7474/db/data/cypher"
+  """
+  processes.exec query
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
@@ -462,17 +472,6 @@ run =({configFile})->
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
-    invoke 'alertUserToRunNeo4jMigrator'
-
-task 'alertUserToRunNeo4jMigrator', (options)->
-  {configFile} = options
-  text =  "\n"
-  text += "RED ALERT: \n"
-  text += "Please run \"cake -c #{configFile} populateNeo4j\" if you haven't already.\n"
-  text += "Usually you need to run it only once when you initialize a new vagrant box\n"
-  text += "or you nuked your neo4j db.\n"
-
-  console.log text
 
 task 'run', (options)->
   {configFile} = options

@@ -167,6 +167,115 @@ class MainController extends KDController
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
 
+  blockUser:(accountId, duration, callback)->
+    KD.whoami().blockUser accountId, duration, callback
+
+  openBlockUserModal:(data)->
+    @modal = modal = new KDModalViewWithForms
+      title                   : "Block User For a Time Period"
+      content                 : """
+                                <div class='modalformline'>
+                                  This will block user from logging in to Koding(with all sub-groups).<br><br>
+                                  You can specify a duration to block user.
+                                </div>
+                                """
+      overlay                 : yes
+      cssClass                : "modalformline"
+      width                   : 500
+      height                  : "auto"
+      tabs                    :
+        forms                 :
+          BlockUser           :
+            callback          : =>
+              blockingTime = calculateBlockingTime modal.modalTabs.forms.BlockUser.inputs.duration.getValue()
+              @blockUser data.originId, blockingTime, (err, res)->
+                if err
+                  warn err
+                  modal.modalTabs.forms.BlockUser.buttons.blockUser.hideLoader()
+                else
+                  modal.destroy()
+                  new KDNotificationView title : "User is blocked!"
+
+            buttons           :
+              blockUser       :
+                title         : "Block User"
+                style         : "modal-clean-gray"
+                type          : "submit"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : -> @hideLoader()
+              cancel          :
+                title         : "Cancel"
+                style         : "modal-cancel"
+            fields            :
+              duration        :
+                label         : "Block User For"
+                itemClass     : KDInputView
+                name          : "duration"
+                placeholder   : "e.g. 1Y 1W 3D 2H..."
+                keyup         : ->
+                  changeButtonTitle @getValue()
+                change        : ->
+                  changeButtonTitle @getValue()
+                validate             :
+                  rules              :
+                    required         : yes
+                    minLength        : 2
+                    regExp           : /\d[A-Za-z]+/i
+                  messages           :
+                    required         : "Please enter a time period"
+                    minLength        : "You must enter one pair"
+                    regExp           : "You must enter at least a number and a character e.g : 1y 1h"
+                iconOptions          :
+                  tooltip            :
+                    placement        : "right"
+                    offset           : 2
+                    title            : """
+                                       You can enter {#}H/D/W/M/Y,
+                                       Order is not sensitive.
+                                       """
+    form = modal.modalTabs.forms.BlockUser
+    form.on "FormValidationFailed", ->
+    form.buttons.blockUser.hideLoader()
+
+    changeButtonTitle = (value)->
+      blockingTime = calculateBlockingTime value
+      button = modal.modalTabs.forms.BlockUser.buttons.blockUser
+      if blockingTime > 0
+        date = new Date (Date.now() + blockingTime)
+        button.setTitle "Block User to: #{date.toUTCString()}"
+      else
+        button.setTitle "Block User"
+
+
+    calculateBlockingTime = (value)->
+
+      totalTimestamp = 0
+      unless value then return totalTimestamp
+      for val in value.split(" ")
+        # this is the first part of blocking time
+        # if val 2D then numericalValue will be 2
+        numericalValue = parseInt(val.slice(0, -1), 10) or 0
+        if numericalValue is 0 then continue
+        hour = numericalValue * 60 * 60 * 1000
+        # we will get the lastest part of val as time case
+        timeCase = val.charAt(val.length-1)
+        switch timeCase.toUpperCase()
+          when "H"
+            totalTimestamp = hour
+          when "D"
+            totalTimestamp = hour * 24
+          when "W"
+            totalTimestamp = hour * 24 * 7
+          when "M"
+            totalTimestamp = hour * 24 * 30
+          when "Y"
+            totalTimestamp = hour * 24 * 365
+
+      return totalTimestamp
+
+
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
     then $('body').addClass 'super'

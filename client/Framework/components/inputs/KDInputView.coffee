@@ -43,11 +43,8 @@ class KDInputView extends KDView
     @enableTabKey() if options.enableTabKey
     @setCase options.forceCase if options.forceCase
 
-    if options.validate?
-      @setValidation options.validate
-      @on "ValidationError", @bound "giveValidationFeedback"
-      @on "ValidationPassed", @bound "giveValidationFeedback"
-      @on "focus", @bound "clearValidationFeedback"
+    @setValidation options.validate  if options.validate
+    @bindValidationEvents()
 
     if options.type is "select" and options.selectOptions
       @on "viewAppended", =>
@@ -71,6 +68,11 @@ class KDInputView extends KDView
       when "select"   then $ "<select #{name} class='kdinput select #{cssClass}'/>"
       when "range"    then $ "<input #{name} type='range' class='kdinput range #{cssClass}'/>"
       else                 $ "<input #{name} type='#{@getType()}' class='kdinput #{@getType()} #{cssClass}'/>"
+
+  bindValidationEvents:->
+    @on "ValidationError", @bound "giveValidationFeedback"
+    @on "ValidationPassed", @bound "giveValidationFeedback"
+    @on "focus", @bound "clearValidationFeedback"
 
   setLabel:(label = @getOptions().label)->
 
@@ -166,6 +168,8 @@ class KDInputView extends KDView
 
     @on "keyup", cb.bind this
     @on "blur",  cb.bind this
+
+  unsetValidation:-> @setValidation {}
 
   setValidation:(ruleSet)->
 

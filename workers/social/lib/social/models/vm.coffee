@@ -10,12 +10,13 @@ module.exports = class JVM extends Model
 
   JRecurlySubscription = require './recurly/subscription'
   JPermissionSet       = require './group/permissionset'
-
   @share()
 
   @trait __dirname, '../traits/protected'
 
   @bound = require 'koding-bound'
+
+  handleError = (err)-> console.error err  if err
 
   @set
     softDelete          : yes
@@ -64,19 +65,22 @@ module.exports = class JVM extends Model
         type            : Boolean
         default         : no
 
-  @createDomains = (domains, hostnameAlias) ->
+  @createDomains = (account, domains, hostnameAlias)->
     JDomain = require './domain'
+    console.log "creating domains for ", account, domains, hostnameAlias
     domains.forEach (domain) ->
-      JDomain.one {domain}, (err, domainData)->
-        return  if domainData or err
-        (new JDomain
-          domain        : domain
-          hostnameAlias : [hostnameAlias]
-          proxy         : { mode: 'vm' }
-          regYears      : 0
-        ).save (err)-> console.log err  if err?
+      domainObj = new JDomain
+        domain        : domain
+        hostnameAlias : [hostnameAlias]
+        proxy         : { mode: 'vm' }
+        regYears      : 0
+      domainObj.save (err)->
+        console.log err  if err?
+        unless err
+          account.addDomain domainObj, (err)->
+            console.log err  if err?
 
-  @ensureDomainSettings = ({vm, type, nickname, groupSlug})->
+  @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
     if type is 'user'
       requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
@@ -84,7 +88,7 @@ module.exports = class JVM extends Model
         requiredDomains.push "#{nickname}.#{domain}"
     else
       requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
-    @createDomains requiredDomains, vm.hostnameAlias
+    @createDomains account, requiredDomains, vm.hostnameAlias
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
@@ -172,16 +176,16 @@ module.exports = class JVM extends Model
 
           vm.save (err) =>
 
-            handleError err
             if err
+              console.error err
               return console.warn "Failed to create VM for ", \
                                    {users, groups, hostnameAlias}
 
-            JVM.createDomains hostnameAliases, hostnameAliases[0]
+            JVM.createDomains account, hostnameAliases, hostnameAliases[0]
 
             group.addVm vm, (err)=>
               return callback err  if err
-              JVM.ensureDomainSettings {vm, type, nickname, groupSlug}
+              JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug}
               if type is 'group'
                 @addVmUsers vm, group, ->
                   callback null, vm
@@ -394,12 +398,10 @@ module.exports = class JVM extends Model
 
   do ->
 
-    handleError = (err)-> console.error err  if err
-
     JGroup  = require './group'
     JUser   = require './user'
 
-    addVm = ({ target, user, sudo, groups, groupSlug
+    addVm = ({ account, target, user, sudo, groups, groupSlug
                type, planCode, planOwner, webHome })->
 
       uid = 0
@@ -430,7 +432,7 @@ module.exports = class JVM extends Model
           return console.warn "Failed to create VM for ", \
                                {users, groups, hostnameAlias}
 
-        JVM.createDomains hostnameAliases, hostnameAliases[0]
+        JVM.createDomains account, hostnameAliases, hostnameAliases[0]
         target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
@@ -466,6 +468,7 @@ module.exports = class JVM extends Model
 
               addVm {
                 user
+                account     : creator
                 sudo        : yes
                 type        : 'group'
                 target      : group
@@ -495,6 +498,7 @@ module.exports = class JVM extends Model
           # TODO: this special case for koding should be generalized for any group.
           addVm {
             user
+            account   : member
             sudo      : yes
             type      : 'user'
             target    : member

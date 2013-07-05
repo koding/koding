@@ -18,9 +18,19 @@ class NCopyUrlView extends JView
 
     KD.getSingleton('vmController').fetchVMDomains hostname, (err, domains)=>
       if domains?.length > 0 and not err
-        @publicPath = domains.first
-        @inputUrl.setValue (FSHelper.plainPath path).replace \
-          ////home/(.*)/Web/(.*)///, "http://#{@publicPath}/$2"
+
+        path  = FSHelper.plainPath path
+        match = path.match ///home/(\w+)/Web/(.*)///
+        return  unless match
+        [rest..., user, pathrest] = match
+
+        if /^shared-/.test hostname
+          subdomain = unless user is KD.nick() then "" else "#{user}."
+        else
+          subdomain = ''
+
+        @publicPath = "#{subdomain}#{domains.first}/#{pathrest}"
+        @inputUrl.setValue "http://#{@publicPath}"
 
   focusAndSelectAll:->
     @inputUrl.setFocus()

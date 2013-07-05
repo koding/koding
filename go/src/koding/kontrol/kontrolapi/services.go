@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
 func GetUsers(writer http.ResponseWriter, req *http.Request) {
@@ -99,15 +98,9 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 	}
 
 	if msg.Mode == "" {
-		err := "no 'mode' field available. should 'roundrobin', 'random' or 'sticky'"
+		err := "no 'mode' field available. should 'roundrobin' or  'random'"
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
-	} else {
-		if msg.Mode == "sticky" && msg.Index == "" {
-			err := "no 'index' field available. this is needed for 'sticky' mode"
-			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
-			return
-		}
 	}
 
 	if msg.Persistence == "" {
@@ -119,8 +112,7 @@ func CreateKey(writer http.ResponseWriter, req *http.Request) {
 		msg.Hostdata = "FromKontrolAPI"
 	}
 
-	index, _ := strconv.Atoi(msg.Index)
-	err = proxyDB.UpsertKey(username, msg.Persistence, msg.Mode, servicename, key, msg.Host, msg.Hostdata, msg.RabbitKey, index)
+	err = proxyDB.UpsertKey(username, msg.Persistence, msg.Mode, servicename, key, msg.Host, msg.Hostdata, msg.RabbitKey)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return
