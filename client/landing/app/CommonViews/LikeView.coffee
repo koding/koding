@@ -5,7 +5,7 @@ class LikeView extends KDView
     options.tagName            or= 'span'
     options.cssClass           or= 'like-view'
     options.tooltipPosition    or= 'se'
-    options.checkIfLikedBefore  ?= yes
+    options.checkIfLikedBefore  ?= no
 
     super options, data
 
@@ -21,18 +21,18 @@ class LikeView extends KDView
       attributes  :
         href      : "#"
       click       : (event)=>
-        # event.preventDefault()
         if data.meta.likes > 0
           data.fetchLikedByes {},
             sort : timestamp : -1
           , (err, likes) =>
-            new FollowedModalView {title:"Members who liked <cite>#{data.body}</cite>"}, likes
+            new ShowMoreDataModalView {title:"Members who liked <cite>#{data.body}</cite>"}, likes
       , data
 
     @likeLink = new ActivityActionLink
 
     @setTemplate @pistachio()
 
+    # We need to getridoff this asap FIXME ~HK
     if options.checkIfLikedBefore
       data.checkIfLikedBefore (err, likedBefore)=>
         @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
@@ -54,24 +54,34 @@ class LikeView extends KDView
       sort  : timestamp : -1
     , (err, likes) =>
 
-      peopleWhoLiked   = []
+      peopleWhoLiked = []
+      guestsWhoLiked = 0
 
       if likes
 
-        likes.forEach (item)=>
-          if peopleWhoLiked.length < 3
+        for item in likes
+          if item.type is 'unregistered'
+            guestsWhoLiked++
+          else
             {firstName, lastName} = item.profile
             peopleWhoLiked.push "<strong>" + firstName + " " + lastName + "</strong>"
-          else return
 
-        sep = ', '
-        tooltip =
-          switch data.meta.likes
+        sep  = ', '
+        and_ = if peopleWhoLiked.length>0 then 'and ' else ''
+
+        guestLikes =
+          switch guestsWhoLiked
             when 0 then ""
-            when 1 then "#{peopleWhoLiked[0]}"
-            when 2 then "#{peopleWhoLiked[0]} and #{peopleWhoLiked[1]}"
-            when 3 then "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]} and #{peopleWhoLiked[2]}"
-            else "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</stron>"
+            when 1 then "#{and_}<strong>a guest</strong>"
+            when 2 then "#{and_}<strong>2 guests</strong>"
+            when 3 then "<strong>3 guests</strong>"
+
+        tooltip =
+          switch peopleWhoLiked.length
+            when 0 then "#{guestLikes}"
+            when 1 then "#{peopleWhoLiked[0]} #{guestLikes}"
+            when 2 then "#{peopleWhoLiked[0]} and #{peopleWhoLiked[1]} #{guestLikes}"
+            else "#{peopleWhoLiked[0]}#{sep}#{peopleWhoLiked[1]}#{sep}#{peopleWhoLiked[2]} and <strong>#{data.meta.likes - 3} more.</strong>"
 
         @likeCount.getTooltip().update { title: tooltip }
         @_lastUpdatedCount = likes.length
@@ -80,17 +90,15 @@ class LikeView extends KDView
     event.preventDefault()
 
     if $(event.target).is("a.action-link")
-      KD.requireMembership
-        callback  : =>
-          @getData().like (err)=>
-            if err
-              log "Something went wrong while like:", err
-            else
-              @_currentState = not @_currentState
-              @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
-        tryAgain  : yes
-        onFailMsg : 'Login required to like activities'
-        groupName : @parent.getDelegate().getData().group
+      @getData().like (err)=>
+
+        KD.showError err,
+          AccessDenied : 'Permission denied to like activities'
+          KodingError  : 'Something went wrong while like'
+
+        unless err
+          @_currentState = not @_currentState
+          @likeLink.updatePartial if @_currentState is yes then "Unlike" else "Like"
 
   pistachio:->
     """{{> @likeLink}}{{> @likeCount}}"""

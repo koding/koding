@@ -1,23 +1,4 @@
-# This file is divided to many files, the classes left below should probably replaced too.
-
-#FIXME: check if we ever used this, and if we still use this - Sinan 08/2012
-class KDAccount extends Bongo.EventEmitter
-  @fromId = (_id)->
-    account = new KDAccount
-    KD.remote.cacheable 'JAccount', _id, (err, accountData)->
-      for own prop, val of accountData
-        account[prop] = val
-      setTimeout ->
-        account.emit 'update', account
-      , 1
-    return account
-
-  constructor:(data)->
-    $.extend @, data if data
-
-
-#FIXME: find a better place for this class - Sinan 08/2012
-class FollowedModalView extends KDModalView
+class ShowMoreDataModalView extends KDModalView
 
   titleMap = ->
     account : "members"
