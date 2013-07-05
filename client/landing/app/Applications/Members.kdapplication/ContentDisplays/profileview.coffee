@@ -102,6 +102,7 @@ class ProfileView extends JView
     userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     {nickname}   = account.profile
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
+    name         = KD.utils.getFullnameFromAccount account
     """
     <div class="profileleft">
       <span>
@@ -116,7 +117,7 @@ class ProfileView extends JView
 
     <section>
       <div class="profileinfo">
-        <h3 class="profilename">{{#(profile.firstName)}} {{#(profile.lastName)}}</h3>
+        <h3 class="profilename">#{name}</h3>
         <h4 class="profilelocation">{{> @location}}</h4>
         <h5>
           <a class="user-home-link" href="http://#{userDomain}" target="_blank">#{userDomain}</a>

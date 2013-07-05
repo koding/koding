@@ -13,7 +13,7 @@ class QuestionActivityItemView extends KDView
           firstName: 'Loading...'
           lastName: ''
 
-    name = "#{account.profile.firstName} #{account.profile.lastName}"
+    name = KD.utils.getFullnameFromAccount account
 
     # log data, "<=- this is data", "∆ ∆ QuestionActivityItemView ∆ ∆"
 

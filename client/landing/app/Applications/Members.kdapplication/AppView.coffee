@@ -115,9 +115,7 @@ class MembersLikedContentDisplayView extends KDView
 
   createCommons:(account)->
 
-    if account.type is 'unregistered'
-    then name = account.profile.nickname.capitalize()
-    else name = "#{account.profile.firstName} #{account.profile.lastName}"
+    name = KD.utils.getFullnameFromAccount account
 
     contentDisplayController = KD.getSingleton "contentDisplayController"
     headerTitle              = "Activities which #{name} liked"
@@ -150,9 +148,7 @@ class MembersContentDisplayView extends KDView
 
   createCommons:(account, filter)->
 
-    if account.type is 'unregistered'
-    then name = account.profile.nickname.capitalize()
-    else name = "#{account.profile.firstName} #{account.profile.lastName}"
+    name = KD.utils.getFullnameFromAccount account
 
     if filter is "following"
     then title = "Members who #{name} follows"
