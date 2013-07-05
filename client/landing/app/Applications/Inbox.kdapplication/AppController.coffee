@@ -4,6 +4,9 @@ class InboxAppController extends AppController
     name         : "Inbox"
     route        : "/:name?/Inbox"
     hiddenHandle : yes
+    navItem      :
+      title      : "Inbox"
+      path       : "/Inbox"
 
   {race} = Bongo
 
@@ -134,27 +137,27 @@ class InboxAppController extends AppController
       @prepareMessage formOutput, callback, newMessageBar
 
     newMessageBar.on 'MessageShouldBeDisowned', do =>
-        if not @selection
-          newMessageBar.disableMessageActionButtons()
+      if not @selection
+        newMessageBar.disableMessageActionButtons()
+        modal.destroy()
+        return
+      disownAll = (items, callback)->
+        disownItem = race (i, item, fin)->
+          item.data.disown (err)->
+            if err
+              fin err
+            else
+              fin()
+        , callback
+        disownItem item for own id, item of items
+      (modal) =>
+        disownAll @selection, =>
+          for own id, {item, paneView} of @selection
+            item.destroy()
+            paneView.destroy()
+            @deselectMessages()
           modal.destroy()
-          return
-        disownAll = (items, callback)->
-          disownItem = race (i, item, fin)->
-            item.data.disown (err)->
-              if err
-                fin err
-              else
-                fin()
-          , callback
-          disownItem item for own id, item of items
-        (modal) =>
-          disownAll @selection, =>
-            for own id, {item, paneView} of @selection
-              item.destroy()
-              paneView.destroy()
-              @deselectMessages()
-            modal.destroy()
-            newMessageBar.disableMessageActionButtons()
+          newMessageBar.disableMessageActionButtons()
 
     newMessageBar.on 'MessageShouldBeMarkedAsUnread', =>
       for own id, {item, data} of @selection

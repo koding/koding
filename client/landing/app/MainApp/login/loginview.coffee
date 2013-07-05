@@ -206,9 +206,23 @@ class LoginView extends KDScrollView
       {entryPoint} = KD.config
 
       if err
-        new KDNotificationView
-          title   : err.message
-          duration: 1000
+        if err.message.length > 50
+          new KDModalView
+            title        : "Something is wrong!"
+            width        : 500
+            overlay      : yes
+            cssClass     : "new-kdmodal"
+            content      :
+              """
+                <div class='modalformline'>
+                  #{err.message}
+                </div>
+              """
+        else
+          new KDNotificationView
+            title   : err.message
+            duration: 1000
+
         @loginForm.resetDecoration()
       else
         $.cookie 'clientId', replacementToken  if replacementToken

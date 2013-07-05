@@ -121,6 +121,10 @@ class ActivityItemChild extends KDView
         callback : =>
           @confirmDeletePost data
 
+      menu['Block User'] =
+        callback : ->
+          mainController.openBlockUserModal data
+
       return menu
 
 
