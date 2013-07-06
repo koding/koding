@@ -129,7 +129,6 @@ func RegisterToKontrol(name, serviceUniqueName, uuid, hostname string, port int)
 	type workerMessage struct {
 		Command string
 		Option  string
-		Result  string
 	}
 
 	type workerMain struct {
