@@ -49,6 +49,9 @@ func init() {
 			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
 				info, err := os.Lstat(ev.Name)
 				if err != nil {
+					if os.IsNotExist(err) {
+						continue // skip this event, file is deleted and deletion event will follow
+					}
 					log.Warn("Watcher error", err)
 					continue
 				}
