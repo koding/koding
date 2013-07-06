@@ -53,7 +53,7 @@ type ClientRequest struct {
 
 type Worker struct {
 	Name              string       `json:"name"`
-	ServiceUniqueName string       `json:"serviceUniqueName"`
+	ServiceUniqueName string       `json:"serviceUniqueName",bson:"serviceUniqueName"`
 	Uuid              string       `json:"uuid"`
 	Hostname          string       `json:"hostname"`
 	Version           int          `json:"version"`
