@@ -298,18 +298,19 @@ func main() {
 		panic(err)
 	}
 
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
+		serviceUniqueName,
 		config.Uuid,
 		kontrolhelper.CustomHostname(),
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)
 	}
-
-	hostname, _ := os.Hostname()
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
-	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
