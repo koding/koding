@@ -33,6 +33,7 @@ module.exports = class JVM extends Model
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
+                           'fixUserDomains'
                           ]
       instance          : []
     schema              :
@@ -69,16 +70,40 @@ module.exports = class JVM extends Model
     JDomain = require './domain'
     console.log "creating domains for ", account, domains, hostnameAlias
     domains.forEach (domain) ->
-      domainObj = new JDomain
-        domain        : domain
-        hostnameAlias : [hostnameAlias]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-      domainObj.save (err)->
-        console.log err  if err?
-        unless err
-          account.addDomain domainObj, (err)->
-            console.log err  if err?
+      JDomain.one
+        domain: domain
+      , (err, domainObj)->
+        unless domainObj
+          domainObj = new JDomain
+            domain        : domain
+        domainObj.hostnameAlias = [hostnameAlias]
+        domainObj.proxy         = { mode: 'vm' }
+        domainObj.regYears      = 0
+        domainObj.save (err)->
+          console.log err  if err?
+          unless err
+            account.fetchDomain (err, dObj)->
+              if err or not dObj
+                account.addDomain domainObj, (err)->
+                  console.log err  if err?
+
+  @fixUserDomains = secure (client, callback)->
+    {delegate} = client.connection
+
+    delegate.fetchUser (err, user)=>
+      return callback err  if err
+
+      JVM.all
+        users         : { $elemMatch: id: user.getId() }
+      , (err, vms)=>
+        return callback err  if err
+        return callback null, null  unless vms
+        vms.forEach (vm)=>
+          {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
+          hostnameAliases = JVM.createAliases {
+            nickname, type, uid, groupSlug
+          }
+          @createDomains delegate, hostnameAliases, hostnameAliases[0]
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
