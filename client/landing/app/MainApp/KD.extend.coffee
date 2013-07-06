@@ -67,6 +67,8 @@ KD.extend
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
+  isGuest:-> KD.whoami().type is 'unregistered'
+
   logout:->
     mainController = KD.getSingleton('mainController')
     delete mainController?.userAccount
