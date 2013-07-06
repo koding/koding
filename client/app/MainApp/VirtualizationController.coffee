@@ -6,6 +6,7 @@ class VirtualizationController extends KDController
     @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
+
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
@@ -21,7 +22,7 @@ class VirtualizationController extends KDController
       return callback err  if err?
       options.correlationName = vmName
       @kc.run options, (rest...) ->
-        log rest...
+        # log rest...
         callback rest...
 
   _runWrapper:(command, vm, callback)->
@@ -29,8 +30,6 @@ class VirtualizationController extends KDController
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       return  unless vm
-      # KD.requireMembership
-      #   callback : =>
       @askForApprove command, (approved)=>
         if approved
           cb =
@@ -43,11 +42,6 @@ class VirtualizationController extends KDController
             vmName   : vm
           , cb
         else unless command is 'vm.info' then @info vm
-        # onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-        # onFail    : =>
-        #   unless command is 'vm.info' then callback yes
-        #   else callback null, state: 'STOPPED'
-        # silence   : yes
 
   start:(vm, callback)->
     @_runWrapper 'vm.start', vm, callback
@@ -113,7 +107,7 @@ class VirtualizationController extends KDController
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
-      return @utils.defer -> callback @defaultVmName
+      return @utils.defer => callback @defaultVmName
 
     {entryPoint}   = KD.config
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
@@ -158,31 +152,43 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  fetchVMs:(callback)->
-    return callback null, @vms  if @vms.length > 0
+  fetchVMs:(callback = noop)->
+    if KD.isGuest() then @vms = ['guest']
+    if @vms.length > 0
+      return KD.utils.defer => callback null, @vms
+
     KD.remote.api.JVM.fetchVms (err, vms)=>
       @vms = vms  unless err
       callback? err, vms
 
-  fetchGroupVMs:(callback)->
-    return callback null, @groupVms  if @groupVms.length > 0
+  fetchGroupVMs:(callback = noop)->
+    if KD.isGuest() then @groupVms = ['guest']
+    if @groupVms.length > 0
+      return @utils.defer =>
+        callback null, @groupVms
+
     KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @groupVms = vms  unless err
       callback? err, vms
 
-  fetchVMDomains:(vmName, callback)->
-    domains = @vmDomains[vmName]
-    return callback null, domains  if domains
+  fetchVMDomains:(vmName, callback = noop)->
+    if KD.isGuest() then @vmDomains = guest: ['guest.kd.io']
+
+    if domains = @vmDomains[vmName]
+      return @utils.defer -> callback null, domains
+
     KD.remote.api.JVM.fetchDomains vmName, (err, domains=[])=>
-      return callback err, domains  if err
-      callback null, @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
+      if err
+        callback err, domains
+      else
+        @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
+        callback null, @vmDomains[vmName]
 
   resetVMData:->
     @vms = @groupVms = []
     @defaultVmName = null
     @vmDomains = {}
 
-  # fixme GG!
   fetchTotalVMCount:(callback)->
     KD.remote.api.JVM.count (err, count)->
       if err then warn err
@@ -197,6 +203,10 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   hasDefaultVM:(callback)->
+    # Guest is always has defaultVm
+    if KD.isGuest()
+      return callback yes
+
     # Default VM should be the personal vm in Koding group
     @fetchVMs (err, vms)->
       if err
