@@ -723,6 +723,7 @@ module.exports = [
   # wait for NFinderTreeController etc., so included at the bottom
   "libs/firebase/firebase.all.js",
   "libs/codemirror/lib/codemirror.js",
+  "libs/codemirror/addon/mode/loadmode.js",
   "libs/codemirror/mode/javascript/javascript.js",
   "libs/firebase/firepad.js",
   "libs/firepad/firepad.css",
