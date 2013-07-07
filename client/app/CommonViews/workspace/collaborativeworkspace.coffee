@@ -101,6 +101,14 @@ class CollaborativeWorkspace extends Workspace
     delete options.sessionKey
     @addSubView new CollaborativeWorkspace options
 
+  joinSession: (sessionKey) ->
+    {parent}           = @
+    options            = @getOptions()
+    options.sessionKey = sessionKey
+    @destroy()
+    parent.addSubView new CollaborativeWorkspace options
+    log "user joined a new session:", sessionKey
+
   showDisconnectedModal: ->
     @disconnectedModal = new KDModalView
       title        : "Host disconnected"
@@ -162,21 +170,20 @@ class CollaborativeWorkspace extends Workspace
                 tagName         : "p"
                 partial         : "Paste the session ID that you want to join and start collaborating."
               SessionInput      :
-                itemClass       : KDInputView
+                itemClass       : KDHitEnterInputView
                 type            : "text"
+                callback        : =>
+                  sessionKey = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
+                  @joinSession sessionKey
+                  modal.destroy()
             buttons             :
               Join              :
                 title           : "Join Session"
                 cssClass        : "modal-clean-green"
                 callback        : =>
-                  sessionKey         = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
-                  {parent}           = @
-                  options            = @getOptions()
-                  options.sessionKey = sessionKey
-                  @destroy()
-                  parent.addSubView new CollaborativeWorkspace options
+                  sessionKey = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
+                  @joinSession sessionKey
                   modal.destroy()
-                  log "user joined a new session:", sessionKey
               Close             :
                 title           : "Close"
                 cssClass        : "modal-cancel"
