@@ -29,7 +29,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
   createEditorInstance: (file, content, sessionKey) ->
     pane   = new KDTabPaneView
-      name : file?.name or "Untitled.txt"
+      name : file?.name or "untitled.js"
 
     editor = new CollaborativeEditorPane {
       delegate : @getDelegate()
