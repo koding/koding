@@ -57,16 +57,20 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
       @openedFiles.splice @openedFiles.indexOf(file.path), 1
 
-    if file
-      @workspaceRef.child("tabs").push
-        path       : file.path
-        sessionKey : editor.sessionKey
+    workspaceRefData =
+      sessionKey : editor.sessionKey
 
+    if file
+      workspaceRefData.path = file.path
       @openedFiles.push file.path
+
+    @workspaceRef.child("tabs").push workspaceRefData
+
+    return yes # return something instead of workspaceRef.child
 
   recoverOldSessionTabs: ->
     @workspaceRef.once "value", (snapshot) =>
-      {tabs} = snapshot.val()?
+      tabs = snapshot.val() and snapshot.val().tabs # not same with {tabs} = snapshot.val()?
       return unless tabs
       for key, value of tabs
         file = FSHelper.createFileFromPath value.path
