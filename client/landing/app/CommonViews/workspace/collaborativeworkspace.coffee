@@ -110,10 +110,17 @@ class CollaborativeWorkspace extends Workspace
     log "user joined a new session:", sessionKey
 
   showDisconnectedModal: ->
+    if @amIHost()
+      title   = "Disconnected from remote"
+      content = "It seems, you have been disconnected from Firebase server. You cannot continue this session."
+    else
+      title   = "Host disconnected"
+      content = "It seems, host is disconnected from Firebase server. You cannot continue this session."
+
     @disconnectedModal = new KDModalView
-      title        : "Host disconnected"
+      title        : title
+      content      : "<p>#{content}</p>"
       cssClass     : "host-disconnected-modal"
-      content      : "<p>It seems host is disconnected</p>"
       overlay      : yes
       buttons      :
         Start      :
