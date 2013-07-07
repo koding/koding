@@ -40,9 +40,11 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       if fileIndexInOpenedFiles > -1
         log "same file detected, setting tab acive"
         return  @tabView.showPaneByIndex fileIndexInOpenedFiles + 1
+    else
+      file = FSHelper.createFileFromPath "localfile:/untitled.js"
 
     pane   = new KDTabPaneView
-      name : file?.name or "untitled.js"
+      name : file.name
 
     editor = new CollaborativeEditorPane {
       delegate : @getDelegate()
