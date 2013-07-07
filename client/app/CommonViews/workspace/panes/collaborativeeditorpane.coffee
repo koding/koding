@@ -1,5 +1,7 @@
 class CollaborativeEditorPane extends CollaborativePane
 
+  cdnRoot = "https://fatihacet.kd.io/cdn/codemirror/latest"
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -9,12 +11,7 @@ class CollaborativeEditorPane extends CollaborativePane
     @container = new KDView
 
     @container.on "viewAppended", =>
-      @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
-        lineNumbers     : yes
-        mode            : "javascript"
-        extraKeys       :
-          "Cmd-S"       : @bound "save"
-
+      @createEditor()
       @panel      = @getDelegate()
       @workspace  = @panel.getDelegate()
       @sessionKey = @getOptions().sessionKey or @createSessionKey()
@@ -56,6 +53,48 @@ class CollaborativeEditorPane extends CollaborativePane
     else
       log "client wants to save a file"
       @ref.child("WaitingSaveRequest").set yes
+
+  createEditor: ->
+    @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
+      lineNumbers     : yes
+      mode            : "javascript"
+      extraKeys       :
+        "Cmd-S"       : @bound "save"
+
+    @setEditorTheme()
+    @setEditorMode()
+
+  setEditorTheme: ->
+    unless document.getElementById "codemirror-ambiance-style"
+      link       = document.createElement "link"
+      link.rel   = "stylesheet"
+      link.type  = "text/css"
+      link.href  = "#{cdnRoot}/theme/ambiance.css"
+      document.head.appendChild link
+      @codeMirrorEditor.setOption "theme", "ambiance"
+
+  setEditorMode: ->
+    {file} = @getOptions()
+
+    return  unless file
+
+    CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js" # TODO: fatihacet - it should be publicly available. should change the cdn url.
+    fileExtension      = file.getExtension()
+    syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
+    modeName           = null
+    corrections        =
+      html             : "xml"
+      json             : "javascript"
+      js               : "javascript"
+
+    if corrections[fileExtension]
+      modeName = corrections[fileExtension]
+    else if syntaxHandler
+      modeName = syntaxHandler[0].toLowerCase()
+
+    if modeName
+      @codeMirrorEditor.setOption "mode", modeName
+      CodeMirror.autoLoadMode @codeMirrorEditor, modeName
 
   pistachio: ->
     """
