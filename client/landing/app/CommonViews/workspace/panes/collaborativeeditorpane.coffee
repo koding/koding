@@ -8,13 +8,14 @@ class CollaborativeEditorPane extends CollaborativePane
 
     log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}"
 
+    @sessionKey = @getOptions().sessionKey or @createSessionKey()
+
     @container = new KDView
 
     @container.on "viewAppended", =>
       @createEditor()
       @panel      = @getDelegate()
       @workspace  = @panel.getDelegate()
-      @sessionKey = @getOptions().sessionKey or @createSessionKey()
       @ref        = @workspace.firepadRef.child @sessionKey
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
