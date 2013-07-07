@@ -21,9 +21,10 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @workspaceRef.on "value", (snapshot) =>
       tabs = snapshot.val() and snapshot.val().tabs # not same with {tabs} = snapshot.val()?
       return unless tabs
-      for key, value of tabs
-        file = FSHelper.createFileFromPath value.path
-        @createEditorInstance file, null, value.sessionKey
+      for key, data of tabs
+        if data.path and @openedFiles.indexOf(data.path) is -1
+          file = FSHelper.createFileFromPath data.path
+          @createEditorInstance file, null, data.sessionKey
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
