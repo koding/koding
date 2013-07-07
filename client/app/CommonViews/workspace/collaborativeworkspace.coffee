@@ -124,7 +124,7 @@ class CollaborativeWorkspace extends Workspace
         Exit       :
           title    : "Exit App"
           cssClass : "modal-cancel"
-          callback : ->
+          callback : =>
             @disconnectedModal.destroy()
             delete @disconnectedModal
             appManager = KD.getSingleton("appManager")
