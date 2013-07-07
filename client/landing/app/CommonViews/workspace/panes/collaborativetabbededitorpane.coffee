@@ -11,6 +11,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @sessionKey       = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef     = @workspace.firepadRef.child @sessionKey
     @isJoinedASession = @getOptions().sessionKey
+    @openedFiles      = []
 
     log "joined an old session again, creating new tabbed editor"
 
@@ -28,6 +29,12 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       tabHandleContainer : @tabHandleContainer
 
   createEditorInstance: (file, content, sessionKey) ->
+    if file
+      fileIndexInOpenedFiles = @openedFiles.indexOf(file.path)
+      if fileIndexInOpenedFiles > -1
+        log "same file detected, setting tab acive"
+        return  @tabView.showPaneByIndex fileIndexInOpenedFiles + 1
+
     pane   = new KDTabPaneView
       name : file?.name or "untitled.js"
 
@@ -48,10 +55,14 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
         delete tabs[key] for key, value of tabs when value.sessionKey is editor.sessionKey
         @workspaceRef.set "tabs": tabs
 
+      @openedFiles.splice @openedFiles.indexOf(file.path), 1
+
     if file
       @workspaceRef.child("tabs").push
         path       : file.path
         sessionKey : editor.sessionKey
+
+      @openedFiles.push file.path
 
   recoverOldSessionTabs: ->
     @workspaceRef.once "value", (snapshot) =>
