@@ -38,7 +38,7 @@ class CollaborativeEditorPane extends CollaborativePane
   save: ->
     file        = @getData()
     amIHost     = @panel.amIHost @sessionKey
-    isValidFile = file instanceof FSFile
+    isValidFile = file instanceof FSFile and file.path.indexOf("localfile") is -1
 
     if amIHost
       return warn "no file instance handle save as" unless isValidFile
