@@ -17,7 +17,13 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     @createEditorTabs()
     return @createEditorInstance()  unless @isJoinedASession
-    @recoverOldSessionTabs()
+
+    @workspaceRef.on "value", (snapshot) =>
+      tabs = snapshot.val() and snapshot.val().tabs # not same with {tabs} = snapshot.val()?
+      return unless tabs
+      for key, value of tabs
+        file = FSHelper.createFileFromPath value.path
+        @createEditorInstance file, null, value.sessionKey
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
@@ -64,17 +70,9 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       workspaceRefData.path = file.path
       @openedFiles.push file.path
 
-    @workspaceRef.child("tabs").push workspaceRefData
+    @workspaceRef.child("tabs").push workspaceRefData  unless sessionKey
 
     return yes # return something instead of workspaceRef.child
-
-  recoverOldSessionTabs: ->
-    @workspaceRef.once "value", (snapshot) =>
-      tabs = snapshot.val() and snapshot.val().tabs # not same with {tabs} = snapshot.val()?
-      return unless tabs
-      for key, value of tabs
-        file = FSHelper.createFileFromPath value.path
-        @createEditorInstance file, null, value.sessionKey
 
   openFile: CollaborativeTabbedEditorPane::createEditorInstance
 
