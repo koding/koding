@@ -50,11 +50,6 @@ class GroupPaymentHistoryListController extends KDListViewController
     @group = options.group
     super
 
-  loadView:->
-
-    super
-    @loadItems()
-
   loadItems:(callback)->
     @removeAllItems()
     @customItem?.destroy()
