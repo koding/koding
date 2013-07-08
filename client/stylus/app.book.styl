@@ -3,8 +3,8 @@
 
 #instruction-book
   abs()
-  top                       83%
-  margin-top                -222px
+  bottom                    15px
+  // margin-top                -222px
   left                      -1509px
   size                      1509px, 425px
   z-index                   1000
@@ -15,26 +15,74 @@
   vendor                    transition, top .3s ease-in-out
   overflow                  visible
   &.more-terminal
-      top               74%
+      bottom                40px
 
   &.in
     left                    -700px
   .controls
     abs()
-    bottom                  25px
-    right                   40px
+    top                     33px
+    right                   61px
+    z-index                 999
     size                    685px, auto
+    text-align              right
+    .page-nav
+      // float: right
+      display: inline-block
+      margin-left: 15px
+      a
+        width: 28px
+        padding: 0
+        text-align: center
+        &:first-child
+          border-top-right-radius: 0
+          border-bottom-right-radius: 0
+          border-right: 0
+        &:last-child
+          border-top-left-radius: 0
+          border-bottom-left-radius: 0
     a
-      color                 rgba(0,0,0,.1)
-      vendor                transition, color .1s linear
       noTextDeco()
-      &.active
+      font-size           11px
+      color               #727272
+      text-shadow         0px 1px 0px #FFFFFF
+      border-radius       4px
+      background          linear-gradient(#FFFFFF 0%, #F0F0F0 100%)
+      border              1px solid #D9D9D9
+      shadow              0px 1px 0px 0px #FFFFFF
+      height              26px
+      line-height         26px
+      display             inline-block
+      padding             0 0.8em
+      vendor              transition, color .1s linear
+      font-weight         600
+      &.dismiss-button
+        position: absolute
+        top: -45px
+        right: -73px
+        background: #111
+        border-radius: 50%
+        border: 3px solid white
+        shadow 0px 1px 3px 0px #000
+        color: white
+        width: 20px
+        height: 20px
+        line-height: 20px
+        padding: 0
+        text-align center
+        font-weight: bold
+        font-size: 0.7em
+        &:hover
+        &:focus
+          color: white
+          background: #555
       &:hover
-        color               rgba(0,0,0,.7)
-      &:first-child
-        fl()
-      &:last-child
-        fr()
+      &:focus
+        color             rgba(0,0,0,.8)
+      // &:first-child
+      //   fl()
+      // &:last-child
+      //   fr()
 
     .point
       position              relative
