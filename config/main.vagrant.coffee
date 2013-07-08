@@ -105,6 +105,7 @@ module.exports =
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
+        servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'http://localhost:3020'
       # Is this correct?
