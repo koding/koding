@@ -26,10 +26,6 @@ incService = (serviceKey, amount) ->
     else if genericServices[serviceUniqueName] < 0
       console.error 'Negative service count!'
 
-setInterval ->
-  console.log allServices
-, 3000
-
 koding.connect ->
   koding.monitorPresence
     join: (serviceKey) ->
@@ -53,7 +49,7 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
 module.exports = (req, res) ->
   {params:{service}, query} = req
 
-  protocol = KONFIG.mq.webProtocol ? 'https:'
+  protocol = KONFIG.broker.webProtocol ? 'https:'
 
   genericServices = allServices[service]
 
