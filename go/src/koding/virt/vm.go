@@ -20,6 +20,7 @@ type VM struct {
 	WebHome       string         `bson:"webHome"`
 	Users         []*Permissions `bson:"users"`
 	LdapPassword  string         `bson:"ldapPassword"`
+	DiskSizeInMB  int            `bson:"diskSizeInMB"`
 	IP            net.IP         `bson:"ip"`
 	HostKite      string         `bson:"hostKite"`
 	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
@@ -303,6 +304,22 @@ func (vm *VM) UnmountRBD(mountDir string) error {
 	return firstError
 }
 
+func (vm *VM) ResizeRBD() error {
+	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", "vms", "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
+		return commandError("rbd resize failed.", err, out)
+	}
+
+	if out, err := exec.Command("/sbin/resize2fs", vm.RbdDevice()).CombinedOutput(); err != nil {
+		return commandError("resize2fs failed.", err, out)
+	}
+
+	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
+		return commandError("remount failed.", err, out)
+	}
+
+	return nil
+}
+
 const FIFREEZE = 0xC0045877
 const FITHAW = 0xC0045878
 
@@ -350,13 +367,19 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 	return nil
 }
 
-func (vm *VM) CreateTemporaryVM() (*VM, error) {
+func CreateTemporaryVM(user *User, snapshot *VM) (*VM, error) {
 	temporaryVM := VM{
-		Id:         bson.NewObjectId(),
-		SnapshotOf: vm.SnapshotOf,
+		Id:            bson.NewObjectId(),
+		HostnameAlias: user.Name + "-vm",
+		WebHome:       user.Name,
+		Users:         []*Permissions{&Permissions{Id: user.ObjectId, Sudo: false}},
 	}
 
-	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotOf.Hex(), "--snap", vm.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
+	if snapshot == nil {
+		return &temporaryVM, nil
+	}
+
+	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+snapshot.SnapshotOf.Hex(), "--snap", snapshot.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
 		return nil, commandError("Cloning snapshot failed.", err, out)
 	}
 

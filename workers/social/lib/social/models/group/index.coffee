@@ -1453,6 +1453,7 @@ module.exports = class JGroup extends Module
       JAccount = require '../account'
       graph.fetchMembers options, (err, results)=>
         if err then return callback err
+        else if results.length < 1 then return callback null, []
         else
           tempRes = []
           collectContents = race (i, res, fin)=>

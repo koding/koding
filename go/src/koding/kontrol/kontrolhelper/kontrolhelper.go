@@ -122,23 +122,23 @@ func CreateProducer(name string) (*Producer, error) {
 	return p, nil
 }
 
-func RegisterToKontrol(name, uuid, hostname string, port int) error {
+func RegisterToKontrol(name, serviceUniqueName, uuid, hostname string, port int) error {
 	connection := CreateAmqpConnection()
 	channel := CreateChannel(connection)
 
 	type workerMessage struct {
 		Command string
 		Option  string
-		Result  string
 	}
 
 	type workerMain struct {
-		Name     string
-		Uuid     string
-		Hostname string
-		Version  int
-		Message  workerMessage
-		Port     int
+		Name              string
+		ServiceUniqueName string `json:"serviceUniqueName"`
+		Uuid              string
+		Hostname          string
+		Version           int
+		Message           workerMessage
+		Port              int
 	}
 
 	version, err := strconv.Atoi(ReadVersion())
@@ -147,9 +147,10 @@ func RegisterToKontrol(name, uuid, hostname string, port int) error {
 	}
 
 	cmd := workerMain{
-		Name:     name,
-		Uuid:     uuid,
-		Hostname: hostname,
+		Name:              name,
+		ServiceUniqueName: serviceUniqueName,
+		Uuid:              uuid,
+		Hostname:          hostname,
 		Message: workerMessage{
 			Command: "addWithProxy",
 			Option:  "many",

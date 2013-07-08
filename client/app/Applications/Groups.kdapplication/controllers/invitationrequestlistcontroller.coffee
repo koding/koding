@@ -14,6 +14,4 @@ class InvitationRequestListController extends KDListViewController
 
     @listView.setDelegate this
 
-    @on 'noItemsFound', =>
-      @showNoItemWidget()
-      @noItemLeft = true
+    @on 'noItemsFound', => @noItemLeft = true

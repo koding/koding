@@ -87,10 +87,13 @@ class EmbedBoxLinkView extends KDView
   constructor:(options={}, data)->
     super options, data
 
-    @embedImage = new EmbedBoxLinkViewImage
-      cssClass : 'preview_image'
-      delegate : this
-    ,data
+    if data.link_embed?.images?[0]?
+      @embedImage = new EmbedBoxLinkViewImage
+        cssClass : 'preview_image'
+        delegate : this
+      ,data
+    else
+      @embedImage = new KDCustomHTMLView 'hidden'
 
     @embedText = new EmbedBoxLinkViewText
       cssClass  : 'preview_text'
