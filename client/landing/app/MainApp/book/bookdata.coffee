@@ -22,7 +22,7 @@ __bookPages = [
     parent    : 0
   ,
     title     : "Activity"
-    content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
+    content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update! <a href='#' class='cta_button full_width'>Show me how!<a></p>"
     embed     : BookUpdateWidget
     routeURL  : "/Activity"
     section   : 3
