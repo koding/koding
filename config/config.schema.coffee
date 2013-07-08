@@ -136,6 +136,7 @@ config =
         version       : 1
         mainUri       : 1
         broker        :
+          servicesEndpoint: 1
           sockJS      : 1
         apiUri        : 1
         appsUri       : 1
