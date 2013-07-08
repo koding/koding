@@ -16,19 +16,20 @@ import (
 	"time"
 )
 
-type Worker struct {
-	Name      string    `json:"name"`
-	Uuid      string    `json:"uuid"`
-	Hostname  string    `json:"hostname"`
-	Version   int       `json:"version"`
-	Timestamp time.Time `json:"timestamp"`
-	Pid       int       `json:"pid"`
-	State     string    `json:"state"`
-	Uptime    int       `json:"uptime"`
-	Port      int       `json:"port"`
+type ApiWorker struct {
+	Name              string    `json:"name"`
+	ServiceUniqueName string    `json:"serviceUniqueName"`
+	Uuid              string    `json:"uuid"`
+	Hostname          string    `json:"hostname"`
+	Version           int       `json:"version"`
+	Timestamp         time.Time `json:"timestamp"`
+	Pid               int       `json:"pid"`
+	State             string    `json:"state"`
+	Uptime            int       `json:"uptime"`
+	Port              int       `json:"port"`
 }
 
-type Workers []Worker
+type Workers []ApiWorker
 
 var StatusCode = map[workerconfig.WorkerStatus]string{
 	workerconfig.Started: "started",
@@ -125,8 +126,9 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 
 	iter := kontrolConfig.Collection.Find(query).Iter()
 	for iter.Next(&worker) {
-		apiWorker := &Worker{
+		apiWorker := &ApiWorker{
 			worker.Name,
+			worker.ServiceUniqueName,
 			worker.Uuid,
 			worker.Hostname,
 			worker.Version,

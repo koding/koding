@@ -46,6 +46,7 @@ func main() {
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
 		session.Tag = socketId
+		clientVersion := 0
 
 		log.Debug("Client connected: " + socketId)
 		changeClientsGauge(1)
@@ -167,6 +168,9 @@ func main() {
 
 				action := message["action"]
 				switch action {
+				case "clientInfo":
+					clientVersion = message["version"].(int)
+
 				case "subscribe":
 					globalMapMutex.Lock()
 					defer globalMapMutex.Unlock()
@@ -294,18 +298,19 @@ func main() {
 		panic(err)
 	}
 
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
+		serviceUniqueName,
 		config.Uuid,
 		kontrolhelper.CustomHostname(),
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)
 	}
-
-	hostname, _ := os.Hostname()
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
-	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
