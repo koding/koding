@@ -156,6 +156,10 @@ config =
       port        : 1
       certFile    : 1
       keyFile     : 1
+      useKontrold : 1
+      webProtocol : 1
+      webHostname : 1
+      webPort     : 1
     kites:
       disconnectTimeout: 1
       vhost       : 1

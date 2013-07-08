@@ -127,6 +127,10 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    useKontrold : no
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8008
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

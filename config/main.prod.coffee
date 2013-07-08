@@ -126,6 +126,10 @@ module.exports = deepFreeze
     port        : brokerPort
     certFile    : "/etc/nginx/ssl/server_new.crt"
     keyFile     : "/etc/nginx/ssl/server_new.key"
+    useKontrold : yes
+    webProtocol : 'https:'
+    webHostname : null
+    webPort     : null
   kites:
     disconnectTimeout: 3e3
     vhost       : '/'
