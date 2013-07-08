@@ -33,7 +33,7 @@ Watcher            = require "koding-watcher"
 
 addFlags = (options)->
   flags  = ""
-  flags += " -a" if options.domain
+  flags += " -a #{options.domain}" if options.domain
   flags += " -d" if options.debug
   flags += " -v" if options.verbose
   return flags
