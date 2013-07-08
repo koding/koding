@@ -38,7 +38,7 @@ module.exports = class JTag extends jraphical.Module
       'delete tags'           : ['moderator']
       'edit own tags'         : ['moderator']
       'delete own tags'       : ['moderator']
-      'follow tags'           : ['guest', 'member', 'moderator']
+      'follow tags'           : ['member', 'moderator']
     emitFollowingActivities : yes # create buckets for follower / followees
     indexes         :
       # slug          : 'unique'
