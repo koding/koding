@@ -22,35 +22,13 @@ app.inbox.styl
   > .panel-1
     overflow              visible
 
-.new-message-bar
-  padding                 4px
-  height                  35px
-  border-bottom           1px solid #ddd
-  border-left             1px solid #ddd
-  gradient                rgba(255,255,255,1),rgba(240,240,240,1)
-  borderBox()
+.inbox-application .split-layout
+  .header
+    button
+      span.icon
+        &.mark-unread
+          bg              position,-140px -480px
 
-  button.kdbutton
-    margin-left           5px
-    fr()
-
-  button.kdbutton.new-message-button
-    font-size             12px
-    padding               4px 12px 3px 12px
-    font-weight           normal
-    color                 #3a3a3a
-    margin-left           0
-    fl()
-
-  button
-    span.icon
-      sprite()
-      &.delete
-        bg              position,-120px -420px
-      &.mark-unread
-        bg              position,-140px -480px
-      &.refresh
-        bg              position,-120px -580px
 
 .inbox-tabview,
 .inbox-tabview>.kdtabpaneview
@@ -64,10 +42,6 @@ app.inbox.styl
   > .panel-0
     // overflow-y       scroll
     bg(color,rgba(249,249,249,1))
-
-.message-list
-  border-right     1px solid #e8e8e8
-  border-left      1px solid #e8e8e8
 
 .message-thread-tabs
   .kdtabpaneview
@@ -192,7 +166,7 @@ app.inbox.styl
 
 
 
-ul.inbox-list
+ul.split-section-list
   margin                  0
   padding                 0
   overflow                visible
