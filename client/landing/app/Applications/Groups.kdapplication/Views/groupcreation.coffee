@@ -141,17 +141,17 @@ class GroupCreationModal extends KDModalView
       @addSubView @hostSelector = new KDFormViewWithFields
         cssClass         : "host-selector"
         fields           :
-          label          :
-            itemClass    : KDCustomHTMLView
-            tagName      : 'h2'
-            cssClass     : 'heading'
-            partial      : "<span>2</span> Do you want a shared host for your Group?"
-          sharedHost     :
-            itemClass    : KDOnOffSwitch
-            name         : "shared-vm"
-            defaultValue : no
-            cssClass     : "shared-vm"
-            callback     : @bound "hostChanged"
+          # label          :
+          #   itemClass    : KDCustomHTMLView
+          #   tagName      : 'h2'
+          #   cssClass     : 'heading'
+          #   partial      : "<span>2</span> Do you want a shared host for your Group?"
+          # sharedHost     :
+          #   itemClass    : KDOnOffSwitch
+          #   name         : "shared-vm"
+          #   defaultValue : no
+          #   cssClass     : "shared-vm"
+          #   callback     : @bound "hostChanged"
           # selector    :
           #   name      : "host"
           #   itemClass : HostCreationSelector
@@ -173,12 +173,12 @@ class GroupCreationModal extends KDModalView
             itemClass     : KDCustomHTMLView
             tagName       : 'h2'
             cssClass      : 'heading'
-            partial       : "<span>3</span> How much resources do you want to allocate to your each user?"
+            partial       : "<span>2</span> How much resources do you want to allocate to your each user?"
           sharedHost      :
             itemClass     : KDSelectBox
             type          : "select"
             name          : "allocation"
-            defaultValue  : "10"
+            defaultValue  : "0"
             cssClass      : "allocation"
             change        : @bound "allocationChanged"
             selectOptions : [
@@ -214,6 +214,7 @@ class GroupCreationModal extends KDModalView
             defaultValue : yes
             cssClass     : "right-aligned"
 
+      @allocationChanged()
       @emit 'ready'
 
   hostChanged:->
