@@ -328,6 +328,22 @@ module.exports = class Graph
 
     return orderByQuery
 
+
+  countMembers:(options, callback)->
+    {groupId} = options
+
+    query = """
+      START  group=node:koding("id:#{groupId}")
+      MATCH  group-[r:member]->members
+      return COUNT(*)
+      """
+    @db.query query, options, (err, results) ->
+      if err then throw err
+      countKey = 'COUNT(*)'
+      if results and results[0][countKey]
+        return callback null, results[0][countKey]
+      callback null, 0
+
   fetchMembers:(options, callback)->
     {skip, limit, sort, groupId} = options
     skip = 0 unless skip

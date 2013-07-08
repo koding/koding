@@ -91,7 +91,7 @@ module.exports = class JGroup extends Module
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
         'createVM', 'canCreateVM', 'vmUsage',
-        'fetchBundle', 'updateBundle', 'saveInvitationMessage'
+        'fetchBundle', 'updateBundle', 'saveInvitationMessage', 'countMembersFromGraph'
       ]
     schema          :
       title         :
@@ -1443,6 +1443,12 @@ module.exports = class JGroup extends Module
         ]
 
       @fetchInvitationRequests selector, options, callback
+
+  countMembersFromGraph: permit 'list members',
+    success:(client, options, callback)->
+      graph = new Graph({config:KONFIG['neo4j']})
+      options.groupId = @getId()
+      graph.countMembers options, callback
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
