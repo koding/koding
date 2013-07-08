@@ -77,6 +77,8 @@ class VirtualizationController extends KDController
               return callback null  unless state
               deleteVM vm, callback
         else
+          new KDNotificationView
+            title: 'Failed to remove!'
           callback message: "No such VM!"
 
   info:(vm, callback)->

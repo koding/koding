@@ -80,6 +80,10 @@ class NFinderController extends KDViewController
     callback?()
 
   loadVms:(vmNames, callback)->
+
+    if KD.isGuest()
+      vmNames ?= ['guest']
+
     if vmNames then @mountVms vmNames
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
