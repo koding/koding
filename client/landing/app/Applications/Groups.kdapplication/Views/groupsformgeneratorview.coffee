@@ -239,13 +239,11 @@ class FormGeneratorMultipleInputView extends JView
 
     {type,title} = @getOptions()
 
-    @listController   = new KDListViewController
-      itemClass       : FormGeneratorMultipleInputItemView
-      showDefaultItem : yes
-      defaultItem     :
-        options       :
-          cssClass    : 'default-item'
-          partial     : "Please add #{title} options"
+    @listController = new KDListViewController
+      itemClass     : FormGeneratorMultipleInputItemView
+      noItemView    : new KDListItemView
+        cssClass    : 'default-item'
+        partial     : "Please add #{title} options"
 
     @listWrapper      = @listController.getView()
     @listWrapper.setClass "form-builder-#{type}"

@@ -33,8 +33,10 @@ class LinkView extends KDCustomHTMLView
       @emit "OriginLoadComplete", data
 
     if origin.constructorName
-      KD.remote.cacheable origin.constructorName, origin.id, (err, origin)=>
-        callback origin
+      KD.remote.cacheable origin.constructorName, origin.id, (err, originModel)=>
+        unless originModel
+        then warn "couldn't get the model via cacheable", origin.constructorName, origin.id
+        else callback originModel
     else
       callback origin
 
