@@ -308,6 +308,7 @@ func main() {
 		config.Uuid,
 		kontrolhelper.CustomHostname(),
 		config.Current.Broker.Port,
+		config.BrokerDomain,
 	); err != nil {
 		panic(err)
 	}

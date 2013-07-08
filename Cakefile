@@ -11,6 +11,7 @@ option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
+option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
 {spawn, exec} = require 'child_process'
 
@@ -32,6 +33,7 @@ Watcher            = require "koding-watcher"
 
 addFlags = (options)->
   flags  = ""
+  flags += " -a" if options.domain
   flags += " -d" if options.debug
   flags += " -v" if options.verbose
   return flags

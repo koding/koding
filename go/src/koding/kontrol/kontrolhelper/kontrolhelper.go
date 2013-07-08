@@ -122,7 +122,7 @@ func CreateProducer(name string) (*Producer, error) {
 	return p, nil
 }
 
-func RegisterToKontrol(name, serviceUniqueName, uuid, hostname string, port int) error {
+func RegisterToKontrol(name, serviceUniqueName, uuid, hostname string, port int, brokerDomain string) error {
 	connection := CreateAmqpConnection()
 	channel := CreateChannel(connection)
 
@@ -157,6 +157,10 @@ func RegisterToKontrol(name, serviceUniqueName, uuid, hostname string, port int)
 		},
 		Port:    port,
 		Version: version,
+	}
+
+	if brokerDomain != "" {
+		cmd.Hostname = brokerDomain
 	}
 
 	type Wrap struct{ Worker workerMain }
