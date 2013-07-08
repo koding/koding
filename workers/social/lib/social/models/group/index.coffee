@@ -1345,7 +1345,10 @@ module.exports = class JGroup extends Module
 
   setBillingInfo: secure (client, data, callback)->
     JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.setGroupAccount @, data, callback
+    JRecurlyPlan.setGroupAccount @, data, (err, res)->
+      unless err
+        # TODO: Give credits to existing users
+      callback err, res
 
   getBillingInfo: secure (client, callback)->
     JRecurlyPlan = require '../recurly'
