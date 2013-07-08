@@ -31,7 +31,7 @@ class GroupsInvitationView extends KDView
             buttons          :
               Send           :
                 itemClass    : KDButtonView
-                label        : options.submitButtonLabel or 'Send'
+                title        : options.submitButtonLabel or 'Send'
                 type         : 'submit'
                 loader       :
                   color      : '#444444'
@@ -153,6 +153,7 @@ class GroupsInvitationView extends KDView
       callback         : ({count})=>
         @getData().sendSomeInvitations count,
           @modalCallback.bind this, @bulkApprove, noop
+      submitButtonLabel: 'Approve'
       content          : "<div class='modalformline'>Enter how many of the pending #{subject.toLowerCase()} requests you want to approve:</div>"
       fields           :
         count          :
