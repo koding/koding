@@ -950,8 +950,9 @@ module.exports = class JGroup extends Module
     success: (client, count, callback)->
       @fetchInvitationRequests {}, {
         targetOptions :
-          selector    : { status  : 'pending' }
-          options     : { limit   : count }
+          selector    : { status    : 'pending' }
+          options     : { limit     : count }
+        sort          : { timestamp : 1 }
       }, (err, requests)->
         if err then callback err
         else
