@@ -335,11 +335,11 @@ module.exports = class Graph
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
-      return COUNT(*)
+      RETURN count(members)
       """
     @db.query query, options, (err, results) ->
       if err then throw err
-      countKey = 'COUNT(*)'
+      countKey = 'count(members)'
       if results and results[0][countKey]
         return callback null, results[0][countKey]
       callback null, 0
