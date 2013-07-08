@@ -29,11 +29,11 @@ class CollaborativeEditorPane extends CollaborativePane
         return @save()  if snapshot.val().WaitingSaveRequest is yes
 
   openFile: (file, content) ->
-    @setData    file
-    @setContent content
-
-  setContent: (content) ->
-    @firepad.setText content  if content
+    @setData file
+    amIHost     = @panel.amIHost @sessionKey
+    isLocalFile = file.path.indexOf("localfile") is 0
+    content     = "" if amIHost and isLocalFile
+    @firepad.setText content  if amIHost
 
   save: ->
     file        = @getData()
