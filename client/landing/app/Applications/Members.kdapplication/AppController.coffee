@@ -45,7 +45,7 @@ class MembersAppController extends AppController
               group = KD.getSingleton('groupsController').getCurrentGroup()
               group.fetchMembersFromGraph options, callback
               if group.slug isnt 'koding'
-                group.countMembersFromGraph options, (err, count)=>
+                group.fetchMemberCountFromGraph options, (err, count)=>
                   unless err
                     @setCurrentViewNumber 'all', count
               else
