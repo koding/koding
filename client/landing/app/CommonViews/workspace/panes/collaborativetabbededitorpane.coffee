@@ -40,7 +40,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       fileIndexInOpenedFiles = @openedFiles.indexOf(file.path)
       if fileIndexInOpenedFiles > -1
         log "same file detected, setting tab acive"
-        return  @tabView.showPaneByIndex fileIndexInOpenedFiles + 1
+        return  @tabView.showPaneByIndex fileIndexInOpenedFiles
     else
       file = FSHelper.createFileFromPath "localfile:/untitled.js"
 
@@ -62,7 +62,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
         {tabs} = snapshot.val()
         return unless tabs
         delete tabs[key] for key, value of tabs when value.sessionKey is editor.sessionKey
-        @workspaceRef.set "tabs": tabs
+        @workspaceRef.set { tabs }
 
       @openedFiles.splice @openedFiles.indexOf(file.path), 1
 
