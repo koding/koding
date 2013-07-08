@@ -144,10 +144,12 @@ class ResourcesListItem extends KDListItemView
       customView1        : new NVMToggleButtonView {}, {vmName}
       customView2        : new NMountToggleButtonView {}, {vmName}
       'Re-initialize VM' :
+        disabled         : KD.isGuest()
         callback         : ->
           KD.getSingleton("vmController").reinitialize vmName
           @destroy()
       'Delete VM'        :
+        disabled         : KD.isGuest()
         callback         : ->
           KD.getSingleton("vmController").remove vmName
           @destroy()
