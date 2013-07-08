@@ -12,7 +12,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "koding.com"
+    address     : "https://koding.com"
   userSitesDomain: 'kd.io'
   containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot

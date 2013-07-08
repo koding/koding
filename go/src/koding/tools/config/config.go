@@ -88,6 +88,7 @@ var Host string
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
+	flag.StringVar(&FileProfile, "config", "", "Alias for -c")
 	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
 	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
