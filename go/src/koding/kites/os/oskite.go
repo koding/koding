@@ -123,21 +123,30 @@ func main() {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		return vos.VM.Start()
+		if err := vos.VM.Start(); err != nil {
+			panic(err)
+		}
+		return true, nil
 	})
 
 	registerVmMethod(k, "vm.shutdown", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		return vos.VM.Shutdown()
+		if err := vos.VM.Shutdown(); err != nil {
+			panic(err)
+		}
+		return true, nil
 	})
 
 	registerVmMethod(k, "vm.stop", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		return vos.VM.Stop()
+		if err := vos.VM.Stop(); err != nil {
+			panic(err)
+		}
+		return true, nil
 	})
 
 	registerVmMethod(k, "vm.reinitialize", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -145,7 +154,10 @@ func main() {
 			return nil, &kite.PermissionError{}
 		}
 		vos.VM.Prepare(getUsers(vos.VM), true)
-		return vos.VM.Start()
+		if err := vos.VM.Start(); err != nil {
+			panic(err)
+		}
+		return true, nil
 	})
 
 	registerVmMethod(k, "vm.info", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -158,7 +170,7 @@ func main() {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		return nil, vos.VM.ResizeRBD()
+		return true, vos.VM.ResizeRBD()
 	})
 
 	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -358,11 +370,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 				panic(err)
 			}
 			vm.Prepare(getUsers(vm), false)
-			if out, err := vm.Start(); err != nil {
-				log.Err("Could not start VM.", err, out)
-			}
-			if out, err := vm.WaitForState("RUNNING", time.Second); err != nil {
-				log.Warn("Waiting for VM startup failed.", err, out)
+			if err := vm.Start(); err != nil {
+				log.LogError(err, 0)
 			}
 		}
 
