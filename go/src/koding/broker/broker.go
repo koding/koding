@@ -302,11 +302,17 @@ func main() {
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
 
+	brokerDomain := kontrolhelper.CustomHostname()
+	//  but override if we pass a new domain trough commandline
+	if config.BrokerDomain != "" {
+		brokerDomain = config.BrokerDomain
+	}
+
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
 		serviceUniqueName,
 		config.Uuid,
-		kontrolhelper.CustomHostname(),
+		brokerDomain,
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)
