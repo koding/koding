@@ -115,6 +115,9 @@ module.exports = class Followable
     options or= {}
     follower = client.connection.delegate
 
+    if follower.type is 'unregistered'
+      return callback new KodingError 'Access denied'
+
     unless follower instanceof JAccount
       return callback new KodingError 'Access denied'
 
