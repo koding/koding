@@ -1033,11 +1033,14 @@ module.exports = class JAccount extends jraphical.Module
   sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
     time = (new Date).toJSON()
     JMail = require '../email'
-    email = new JMail
-      from    : 'hello@koding.com'
-      email   : 'senthil@koding.com'
-      subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
-      content : "Reason: #{reason}"
-      force   : yes
-
-    email.save ->
+    JUser = require '../user'
+    JUser.one username:client.context.user, (err, user)->
+      emailAddr = if user then user.email else ''
+      email     = new JMail
+        from    : 'hello@koding.com'
+        email   : 'sysops@koding.com'
+        replyto : emailAddr
+        subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
+        content : "Reason: #{reason}"
+        force   : yes
+      email.save ->
