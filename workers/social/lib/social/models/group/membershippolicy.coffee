@@ -26,7 +26,8 @@ module.exports = class JMembershipPolicy extends Module
       webhookEndpoint     : String
       explanation         : String
       communications      :
-        invitationMessage : String
+        inviteApprovedMessage : String
+        invitationMessage     : String
 
   @byGroupSlug =(slug, callback)->
     JGroup = require '../group'

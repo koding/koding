@@ -91,7 +91,7 @@ module.exports = class JGroup extends Module
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
         'createVM', 'canCreateVM', 'vmUsage',
-        'fetchBundle', 'updateBundle', 'saveInvitationMessage'
+        'fetchBundle', 'updateBundle', 'saveInviteMessage'
       ]
     schema          :
       title         :
@@ -869,11 +869,13 @@ module.exports = class JGroup extends Module
       queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
 
-  saveInvitationMessage: permit 'send invitations',
-    success: (client, message, callback=noop)->
+  saveInviteMessage: permit 'send invitations',
+    success: (client, messageType, message, callback=->)->
       @fetchMembershipPolicy (err, policy)=>
         return callback err  if err
-        policy.update $set: 'communications.invitationMessage': message, callback
+        set = {}
+        set["communications.#{messageType}"] = message
+        policy.update $set: set, callback
 
   inviteByUsername: permit 'send invitations',
     success: (client, usernames, callback)->
