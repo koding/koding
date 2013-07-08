@@ -51,8 +51,3 @@ module.exports = (req, res) ->
     i = seq++ % services.length
     res.send [ i, seq, allServices ]
     # res.send services[i]
-
-
-
-
-
