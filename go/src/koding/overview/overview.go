@@ -361,8 +361,6 @@ func domainInfo() (Domain, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return d, err
-	} else {
-		fmt.Println(string(body))
 	}
 
 	err = json.Unmarshal(body, &d)

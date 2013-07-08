@@ -40,22 +40,22 @@ func (s PackageWithCountSlice) Swap(i, j int) {
 var actions = map[string]func(){
 	"start": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.Start()
-			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+			err := vm.Start()
+			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
 	"shutdown": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.Shutdown()
-			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+			err := vm.Shutdown()
+			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
 	"stop": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.Stop()
-			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+			err := vm.Stop()
+			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 

@@ -91,7 +91,7 @@ module.exports = class JGroup extends Module
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
         'createVM', 'canCreateVM', 'vmUsage',
-        'fetchBundle', 'updateBundle', 'saveInvitationMessage'
+        'fetchBundle', 'updateBundle', 'saveInviteMessage'
       ]
     schema          :
       title         :
@@ -875,11 +875,13 @@ module.exports = class JGroup extends Module
       queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
 
-  saveInvitationMessage: permit 'send invitations',
-    success: (client, message, callback=noop)->
+  saveInviteMessage: permit 'send invitations',
+    success: (client, messageType, message, callback=->)->
       @fetchMembershipPolicy (err, policy)=>
         return callback err  if err
-        policy.update $set: 'communications.invitationMessage': message, callback
+        set = {}
+        set["communications.#{messageType}"] = message
+        policy.update $set: set, callback
 
   inviteByUsername: permit 'send invitations',
     success: (client, usernames, callback)->
@@ -954,8 +956,9 @@ module.exports = class JGroup extends Module
     success: (client, count, callback)->
       @fetchInvitationRequests {}, {
         targetOptions :
-          selector    : { status  : 'pending' }
-          options     : { limit   : count }
+          selector    : { status    : 'pending' }
+          options     : { limit     : count }
+        sort          : { timestamp : 1 }
       }, (err, requests)->
         if err then callback err
         else
@@ -1457,6 +1460,7 @@ module.exports = class JGroup extends Module
       JAccount = require '../account'
       graph.fetchMembers options, (err, results)=>
         if err then return callback err
+        else if results.length < 1 then return callback null, []
         else
           tempRes = []
           collectContents = race (i, res, fin)=>

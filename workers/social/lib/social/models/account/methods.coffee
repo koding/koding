@@ -26,6 +26,6 @@ module.exports =
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'getInvitationRequestByGroup', 'fetchMyPermissions',
       'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
-      'fetchMyFollowersFromGraph', 'changeUsername','blockUser'
-      'sendEmailVMTurnOnFailureToSysAdmin'
+      'fetchMyFollowersFromGraph', 'fetchDomains', 'sendEmailVMTurnOnFailureToSysAdmin',
+      'blockUser', 'fetchDomains', 'changeUsername'
     ]

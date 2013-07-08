@@ -73,8 +73,6 @@ class GroupsMemberPermissionsView extends JView
         @listController.instantiateListItems members
         @timestamp = new Date members.last.timestamp_
         @emit 'teasersLoaded' if members.length is 20
-    else
-      @listController.showNoItemWidget()
 
   refresh:->
     @listController.removeAllItems()

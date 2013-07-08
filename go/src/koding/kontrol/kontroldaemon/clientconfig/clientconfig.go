@@ -74,3 +74,22 @@ func (c *ClientConfig) AddClient(info ServerInfo) {
 	}
 
 }
+
+func (c *ClientConfig) GetClients() []ServerInfo {
+	info := ServerInfo{}
+	infos := make([]ServerInfo, 0)
+	iter := c.Collection.Find(nil).Iter()
+	for iter.Next(&info) {
+		infos = append(infos, info)
+	}
+
+	return infos
+}
+
+func (c *ClientConfig) DeleteClient(build string) error {
+	err := c.Collection.Remove(bson.M{"buildnumber": build})
+	if err != nil {
+		return err
+	}
+	return nil
+}
