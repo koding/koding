@@ -23,10 +23,21 @@ class ResourcesController extends KDListViewController
 
     finder = KD.getSingleton('finderController')
     finder.emit 'EnvironmentsTabHide'
+
     @removeAllItems()
+
+    if KD.isGuest()
+      @instantiateListItems [
+        vmName     : 'guest'
+        groupSlug  : 'koding'
+        groupTitle : 'koding'
+      ]
+      @deselectAllItems()
+      finder.emit 'EnvironmentsTabShow'
+      return
+
     vmController = KD.getSingleton("vmController")
     vmController.resetVMData()
-
     vmController.fetchVMs (err, vms)=>
       return  unless vms
       # vms.sort cmp
@@ -79,15 +90,15 @@ class ResourcesListItem extends KDListItemView
     {vmName} = @getData()
 
     @addSubView @icon = new KDCustomHTMLView
-      tagName   : "span"
-      cssClass  : "icon"
+      tagName  : "span"
+      cssClass : "icon"
 
     @addSubView @vmInfo = new KDCustomHTMLView
-      tagName  : 'span'
-      cssClass : 'vm-info'
-      partial  : "#{vmName}"
-      attributes:
-        title  : "#{vmName}"
+      tagName    : 'span'
+      partial    : "#{vmName}"
+      cssClass   : 'vm-info'
+      attributes :
+        title    : "#{vmName}"
 
     @vm.fetchVMDomains vmName, (err, domains)=>
       unless err and domains.length > 0
@@ -133,10 +144,12 @@ class ResourcesListItem extends KDListItemView
       customView1        : new NVMToggleButtonView {}, {vmName}
       customView2        : new NMountToggleButtonView {}, {vmName}
       'Re-initialize VM' :
+        disabled         : KD.isGuest()
         callback         : ->
           KD.getSingleton("vmController").reinitialize vmName
           @destroy()
       'Delete VM'        :
+        disabled         : KD.isGuest()
         callback         : ->
           KD.getSingleton("vmController").remove vmName
           @destroy()
