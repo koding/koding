@@ -132,7 +132,7 @@ module.exports =
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     useKontrold : yes
-    webProtocol : 'http:'
+    webProtocol : 'https:'
     webHostname : null
     webPort     : null
   kites:
