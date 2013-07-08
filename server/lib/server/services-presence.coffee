@@ -62,8 +62,3 @@ module.exports = (req, res) ->
     i = genericServices.seq++ % services.length
     res.set "Content-Type", "text/json"
     res.send "\"#{ protocol }//#{ services[i] }\""
-
-
-
-
-
