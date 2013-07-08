@@ -76,10 +76,9 @@ module.exports = class JGroupBundle extends JBundle
       , {}, (err, cursor)=>
         cursor.toArray (err, arr)=>
           return callback err  if err
-          arr.forEach (vm)->
-            createdVMs += 1
 
-          firstVM = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
+          createdVMs = arr.length
+          firstVM    = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
 
           callback null, paidVMs > createdVMs or firstVM
 
