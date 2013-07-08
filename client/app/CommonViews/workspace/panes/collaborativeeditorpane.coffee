@@ -33,7 +33,7 @@ class CollaborativeEditorPane extends CollaborativePane
     @setContent content
 
   setContent: (content) ->
-    @firepad.setText content
+    @firepad.setText content  if content
 
   save: ->
     file        = @getData()
