@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/nranchev/go-libGeoIP"
@@ -148,11 +147,6 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // handler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
-	// Execute endpoint handlers for in-memory lookup table
-	if proxyName == req.Host {
-		return endpointHandler(req.URL.Path)
-	}
-
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
 	if strings.HasPrefix(req.Host, "www.") {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
@@ -298,49 +292,6 @@ func templateHandler(path string, data interface{}, code int) http.Handler {
 			log.Printf("template %s could not be executed", path)
 			return
 		}
-	})
-}
-
-// endpointHandler is used to create and handle some proxy features.
-func endpointHandler(endpoint string) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if ok := strings.Contains(endpoint, "/reset/"); ok {
-			if key := strings.TrimPrefix(r.URL.Path, "/reset/"); key == "1123581321" {
-				log.Printf("clients are purged\n")
-				resetClients()
-				fmt.Fprintln(w, "clients are purged")
-				return
-			}
-			log.Println("wrong key")
-			w.WriteHeader(404)
-			fmt.Fprintln(w, "wrong key")
-			return
-		}
-
-		if ok := strings.Contains(endpoint, "/clients/"); ok {
-			if key := strings.TrimPrefix(r.URL.Path, "/clients/"); key == "1123581321" {
-				clients := getClients()
-				data, err := json.MarshalIndent(clients, "", "  ")
-				if err != nil {
-					io.WriteString(w, fmt.Sprintf("{\"err\":\"%s\"}\n", err))
-					return
-				}
-				w.Write([]byte(data))
-				return
-			}
-			log.Println("wrong key")
-			w.WriteHeader(404)
-			fmt.Fprintln(w, "wrong key")
-			return
-		}
-
-		w.WriteHeader(404)
-		err := templates.ExecuteTemplate(w, "notfound.html", r.Host)
-		if err != nil {
-			log.Printf("template notfound.html could not be executed")
-			return
-		}
-		return
 	})
 }
 
