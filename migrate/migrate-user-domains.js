@@ -6,6 +6,7 @@ db.jVMs.find().forEach(function(vm) {
       return u.owner === true;
     });
     if (!vmUser) {
+      console.warn("The VM " + hostnameAlias + "doesn't have any owners.");
       return;
     }
     rel = db.relationships.findOne({
