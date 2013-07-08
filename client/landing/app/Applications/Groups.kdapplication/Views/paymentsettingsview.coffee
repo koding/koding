@@ -129,7 +129,9 @@ class GroupPaymentSettingsView extends JView
 
   updateBillingInfo:(group)->
     @getBillingInfo group, (err, data)=>
+      firstTime = no
       if err or not data
+        firstTime = yes
         data = {}
 
       paymentController = KD.getSingleton "paymentController"
@@ -140,6 +142,8 @@ class GroupPaymentSettingsView extends JView
           else
             @getBillingInfo group
             onSuccess result
+            if firstTime
+              # TODO: Add credit to all users!
 
   getBillingInfo:(group, callback=->)->
     group.getBillingInfo (err, billing)=>
