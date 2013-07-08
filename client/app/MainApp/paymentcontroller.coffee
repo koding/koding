@@ -91,6 +91,9 @@ class PaymentController extends KDController
 
   createPaymentMethodModal:(data, callback) ->
 
+    creditCardPattern = 
+    doesValidate  = /((^4[0-9]{12}(?:[0-9]{3})?$)|(^5[1-5][0-9]{14}$)|(^3[47][0-9]{13}$)|(^3(?:0[0-5]|[68][0-9])[0-9]{11}$)|(^6(?:011|5[0-9]{2})[0-9]{12}$)|(^(?:2131|1800|35\d{3})\d{11}$))?/
+
     @modal = modal = new KDModalViewWithForms
       title                       : "Billing Information"
       width                       : 520
@@ -132,7 +135,7 @@ class PaymentController extends KDController
                 validate          :
                   event           : "blur"
                   rules           :
-                    creditCard    : yes
+                    regExp        : creditCardPattern
                 nextElementFlat   :
                   cardCV          :
                     # tooltip       :
@@ -144,9 +147,7 @@ class PaymentController extends KDController
                     defaultValue  : ""
                     validate      :
                       rules       :
-                        required  : yes
-                        minLength : 3
-                        regExp    : /[0-9]/
+                        regExp    : /[0-9]*/
                       messages    :
                         required  : "Card security code is required! (CVV)"
                         minLength : "Card security code needs to be at least 3 digits!"
@@ -184,7 +185,6 @@ class PaymentController extends KDController
                     name          : "state"
                     placeholder   : "State"
                     defaultValue  : ""
-                    validate      : required "State is required!"
               zip                 :
                 label             : "ZIP & Country"
                 name              : "zipCode"
@@ -214,7 +214,10 @@ class PaymentController extends KDController
 
     for k, v of data
       if form.inputs[k]
-        form.inputs[k].setValue v
+        if k is "cardNumber" or k is "cardCV"
+          form.inputs[k].setPlaceHolder v
+        else
+          form.inputs[k].setValue v
 
     modal.on "KDObjectWillBeDestroyed", => delete @modal
 
