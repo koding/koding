@@ -151,7 +151,7 @@ class GroupPaymentSettingsView extends JView
                    <br><br>
                    #{billing.address1} #{billing.address2}
                    <br>
-                   #{billing.city}, #{billing.state} #{billing.zip}
+                   #{billing.city} #{billing.state} #{billing.zip}
                    """
       else
         cardInfo = "Enter Billing Information"
