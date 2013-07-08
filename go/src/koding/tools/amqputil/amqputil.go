@@ -66,12 +66,13 @@ func DeclareBindConsumeQueue(channel *amqp.Channel, kind, exchange, key string, 
 	return stream
 }
 
-func JoinPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string, loadBalancing bool) {
+func JoinPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceGenericName, serviceUniqueName string, loadBalancing bool) string {
 	if err := channel.ExchangeDeclare(exchange, "x-presence", false, true, false, false, nil); err != nil {
 		panic(err)
 	}
 
-	if _, err := channel.QueueDeclare("", false, true, true, false, nil); err != nil {
+	queue, err := channel.QueueDeclare("", false, true, true, false, nil)
+	if err != nil {
 		panic(err)
 	}
 
@@ -81,7 +82,9 @@ func JoinPresenceExchange(channel *amqp.Channel, exchange, serviceType, serviceG
 		routingKey += ".loadBalancing"
 	}
 
-	if err := channel.QueueBind("", routingKey, exchange, false, nil); err != nil {
+	if err := channel.QueueBind(queue.Name, routingKey, exchange, false, nil); err != nil {
 		panic(err)
 	}
+
+	return queue.Name
 }
