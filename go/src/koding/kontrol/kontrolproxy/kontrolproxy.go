@@ -401,17 +401,6 @@ func logProxyStat(name, country string) {
 	}
 }
 
-func logDomainDenied(domain, ip, country, reason string) {
-	if domain == "" {
-		return
-	}
-
-	err := proxyDB.AddDomainDenied(domain, ip, country, reason)
-	if err != nil {
-		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
-	}
-}
-
 func validate(ip, country, domain string) (bool, error) {
 	// restrictionId, err := proxyDB.GetDomainRestrictionId(u.Domain.Id)
 	// if err != nil {

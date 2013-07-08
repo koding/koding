@@ -95,7 +95,7 @@ func (v *Validator) Check() (bool, error) {
 		case "deny":
 			if filter.validate() {
 				reason := fmt.Sprintf("%s (%s - %s) - filter name: %s", filter.action, filter.ruletype, filter.match, filter.name)
-				go logDomainDenied(
+				go domainDenied(
 					v.domain,
 					v.ip,
 					v.country,
@@ -123,4 +123,16 @@ func (v *Validator) Check() (bool, error) {
 	// user is validated because none of the rules applied to him
 	fmt.Println("user is validated")
 	return true, nil
+}
+
+func domainDenied(domain, ip, country, reason string) {
+	// log why the domain is denied with the reason itself
+	if domain == "" {
+		return
+	}
+
+	err := proxyDB.AddDomainDenied(domain, ip, country, reason)
+	if err != nil {
+		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
+	}
 }
