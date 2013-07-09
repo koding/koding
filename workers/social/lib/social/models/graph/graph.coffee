@@ -43,33 +43,7 @@ module.exports = class Graph
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
   fetchFromNeo4j:(query, options, callback)->
-    console.log ">>>>> options >>>>", options
     return @runQuery(query, options, callback)
-
-
-    # TODO: replies ???
-    # gets ids from neo4j, fetches objects from mongo, returns in the same order
-    @db.query query, params, (err, results)=>
-      if err
-        console.log ">>> err", err
-        return callback err
-
-      console.log "===== results ===="
-      console.log results
-      console.log "// ==== results ==="
-
-      if results.length == 0
-        callback null, []
-
-      wantedOrder = []
-      collections = {}
-      for result in results
-        oid = result.items._data.data.id
-        otype = result.items._data.data.name
-        wantedOrder.push({id: oid, collection: otype, idx: oid+'_'+otype})
-        collections[otype] ||= []
-        collections[otype].push(oid)
-      @fetchObjectsFromMongo(collections, wantedOrder, callback)
 
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
@@ -172,13 +146,19 @@ module.exports = class Graph
       else
         collectRelations = race (i, res, fin)=>
           id = res.id
-
+          tempRes[i].replies = [] 
           @fetchRelatedItems id, (err, relatedResult)=>
             if err
               callback err
               fin()
             else
               tempRes[i].relationData =  relatedResult
+              if relatedResult.reply?
+                for reply in relatedResult.reply
+                  reply.bongo_ = 
+                    constructorName: obj.name
+                    instanceId: obj.id
+                  tempRes[i].replies.push reply
               fin()
         , =>
           console.log "fetchAll finished"
