@@ -43,7 +43,7 @@ class Panel extends JView
   createHeaderHint: ->
     @header.addSubView new KDCustomHTMLView
       cssClass  : "help"
-      click     : => @getDelegate().showHelpModal()
+      click     : => @showHintModal()
 
   createLayout: ->
     @container  = new KDView
@@ -135,6 +135,19 @@ class Panel extends JView
 
     @container.addSubView @splitView
     @panesContainer.push pane1, pane2, pane3, pane4
+
+  showHintModal: ->
+    options        = @getOptions()
+    modal          = new KDModalView
+      cssClass     : "workspace-modal"
+      overlay      : yes
+      title        : options.title
+      content      : options.hint
+      buttons      :
+        Close      :
+          title    : "Close"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
 
   viewAppended: ->
     super
