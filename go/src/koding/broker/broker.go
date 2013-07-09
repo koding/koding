@@ -293,7 +293,6 @@ func main() {
 
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
-	presenceQueue := amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
 
 	go func() {
 		sigusr1Channel := make(chan os.Signal)
@@ -317,6 +316,8 @@ func main() {
 	); err != nil {
 		panic(err)
 	}
+
+	presenceQueue := amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
