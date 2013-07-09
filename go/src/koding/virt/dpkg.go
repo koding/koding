@@ -38,7 +38,7 @@ func (vm *VM) MergeDpkgDatabase() {
 		if !os.IsNotExist(err) {
 			panic(err)
 		}
-		return // no dpkg files in upper, no need to merge
+		return // no file in upper, no need to merge
 	}
 
 	lowerPackages, err := ReadDpkgStatus(LowerdirFile("/var/lib/dpkg/status"))

@@ -1,7 +1,6 @@
+{ argv } = require 'optimist'
+
 koding = require './bongo'
-
-console.log koding.monitorPresence
-
 
 parseServiceKey = require 'koding-service-key-parser'
 
@@ -12,24 +11,20 @@ incService = (serviceKey, amount) ->
 
   { serviceGenericName, serviceUniqueName } = serviceInfo
 
-  allServices[serviceGenericName] ?= { seq: 0, services: {}}
+  fetchHostname serviceGenericName, serviceUniqueName, (err, hostname) ->
 
-  genericServices = allServices[serviceGenericName].services
+    allServices[serviceGenericName] ?= { seq: 0, services: {} }
 
-  if genericServices[serviceUniqueName]?
-  then genericServices[serviceUniqueName] += amount
-  else genericServices[serviceUniqueName] = amount
+    genericServices = allServices[serviceGenericName].services
 
-  if genericServices[serviceUniqueName] is 0
-    delete genericServices[serviceUniqueName]
-  else if genericServices[serviceUniqueName] < 0
-    console.error 'Negative service count!'
+    if genericServices[serviceUniqueName]?
+    then genericServices[serviceUniqueName].amount += amount
+    else genericServices[serviceUniqueName] = { amount, hostname }
 
-packageCleverly = (serviceName) -> Object.keys(serviceName)
-
-setInterval ->
-  console.log allServices
-, 3000
+    if genericServices[serviceUniqueName].amount is 0
+      delete genericServices[serviceUniqueName]
+    else if genericServices[serviceUniqueName].amount < 0
+      console.error 'Negative service count!'
 
 koding.connect ->
   koding.monitorPresence
@@ -38,16 +33,43 @@ koding.connect ->
     leave: (serviceKey) ->
       incService serviceKey, -1
 
+fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
+  if 'broker' is serviceGenericName and not KONFIG.broker.useKontrold
+    process.nextTick -> callback null,
+      if KONFIG.broker.webPort?
+      then "#{ KONFIG.broker.webHostname }:#{ KONFIG.broker.webPort }"
+      else KONFIG.broker.webHostname
+  else
+    (koding.getClient().collection 'jKontrolWorkers')
+      .findOne {
+        serviceUniqueName
+        hostname:///^#{ serviceGenericName }///
+        status: 0
+      }, { hostname: 1 }, (err, worker) ->
+        return callback err  if err?
+        callback null, worker?.hostname ? null
+
 module.exports = (req, res) ->
   {params:{service}, query} = req
 
+  protocol = KONFIG.broker.webProtocol ? 'https:'
+
   genericServices = allServices[service]
 
-  { seq, services } = genericServices
+  services = Object.keys(genericServices.services).map( (k) ->
+    { hostname } = genericServices.services[k]
+    unless hostname?
+      console.warn """
+        Could not find that hostname:
+        #{k}
+        #{require('util').inspect genericServices.services[k]}
+        """
+    return hostname
+  ).filter Boolean
 
   if query.all?
-    res.send packageCleverly services
+    res.send services.map (hostname) -> "#{ protocol }//#{ hostname }"
   else
-    i = seq++ % services.length
-    res.send [ i, seq, allServices ]
-    # res.send services[i]
+    i = genericServices.seq++ % services.length
+    res.set "Content-Type", "text/json"
+    res.send "\"#{ protocol }//#{ services[i] }\""

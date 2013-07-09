@@ -110,6 +110,7 @@ module.exports =
       version   : version
       mainUri   : "http://koding.com"
       broker    :
+        servicesEndpoint: "https://server-#{version}.x.koding.com/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       # Is this correct?
@@ -130,6 +131,10 @@ module.exports =
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    useKontrold : yes
+    webProtocol : 'https:'
+    webHostname : null
+    webPort     : null
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

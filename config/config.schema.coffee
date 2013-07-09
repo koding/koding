@@ -136,6 +136,7 @@ config =
         version       : 1
         mainUri       : 1
         broker        :
+          servicesEndpoint: 1
           sockJS      : 1
         apiUri        : 1
         appsUri       : 1
@@ -156,6 +157,10 @@ config =
       port        : 1
       certFile    : 1
       keyFile     : 1
+      useKontrold : 1
+      webProtocol : 1
+      webHostname : 1
+      webPort     : 1
     kites:
       disconnectTimeout: 1
       vhost       : 1

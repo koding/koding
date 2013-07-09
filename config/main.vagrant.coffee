@@ -105,6 +105,7 @@ module.exports =
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
+        servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
       apiUri    : 'http://localhost:3020'
       # Is this correct?
@@ -127,6 +128,10 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    useKontrold : no
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8008
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
