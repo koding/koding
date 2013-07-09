@@ -26,6 +26,8 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
           file = FSHelper.createFileFromPath data.path
           @createEditorInstance file, null, data.sessionKey
 
+    @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
+
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate      : @

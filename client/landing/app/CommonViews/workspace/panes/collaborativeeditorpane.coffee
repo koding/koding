@@ -28,6 +28,8 @@ class CollaborativeEditorPane extends CollaborativePane
       @ref.on "value", (snapshot) =>
         return @save()  if snapshot.val().WaitingSaveRequest is yes
 
+      @ref.onDisconnect().remove()  if @workspace.amIHost()
+
   openFile: (file, content) ->
     @setData file
     amIHost     = @panel.amIHost @sessionKey
