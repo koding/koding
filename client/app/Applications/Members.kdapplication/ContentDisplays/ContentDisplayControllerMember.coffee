@@ -135,11 +135,11 @@ class ContentDisplayControllerMember extends KDViewController
         discussions         : @createFilter("Discussions", account, ['CDiscussionActivity'])
         tutorials           : @createFilter("Tutorials", account, ['CTutorialActivity'])
       sort                  :
-        'sorts.likesCount'  :
-          title             : "Most popular"
-          direction         : -1
         'modifiedAt'        :
           title             : "Latest activity"
+          direction         : -1
+        'sorts.likesCount'  :
+          title             : "Most popular"
           direction         : -1
         'sorts.repliesCount':
           title             : "Most activity"
