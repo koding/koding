@@ -429,7 +429,7 @@ func validate(ip, country, domain string) (bool, error) {
 	log.Println("validating", ip, country, domain)
 	restriction, err := proxyDB.GetRestrictionByDomain(domain)
 	if err != nil {
-		log.Printf("no restriction found for %s\n", domain)
+		// log.Printf("no restriction found for %s\n", domain)
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
