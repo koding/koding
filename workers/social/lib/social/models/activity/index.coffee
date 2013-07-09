@@ -36,7 +36,7 @@ module.exports = class CActivity extends jraphical.Capsule
       group                 : 'sparse'
 
     permissions             :
-      'read activity'       : ['guest','member','moderator']
+      'read activity'       : ['guest', 'member', 'moderator']
     sharedMethods     :
       static          : [
         'fetchPublicContents', 'fetchFolloweeContents'
