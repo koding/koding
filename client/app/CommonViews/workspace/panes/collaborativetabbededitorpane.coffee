@@ -41,8 +41,10 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       addPlusHandle     : no
 
     @tabView = new ApplicationTabView
-      delegate           : @
-      tabHandleContainer : @tabHandleContainer
+      delegate                  : @
+      sortable                  : no
+      closeAppWhenAllTabsClosed : no
+      tabHandleContainer        : @tabHandleContainer
 
     @tabView.on "PaneAdded", (pane) =>
       {tabHandle} = pane
