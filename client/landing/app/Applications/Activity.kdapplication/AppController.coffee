@@ -298,13 +298,27 @@ class ActivityAppController extends AppController
           callback null, null
 
   fetchTeasers:(options,callback)->
-    KD.remote.api.CActivity.fetchFacets options, (err, data) =>
-      if err then callback err
-      else
-        data = clearQuotes data
-        KD.remote.reviveFromSnapshots data, (err, instances)->
-          if err then callback err
-          else callback null, instances
+    console.log "fetch teasers", options
+    # xxx
+    {CStatusActivity} = KD.remote.api
+    options.to = options.to or Date.now()
+    #options.facets : @getActivityFilter()
+
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
+      console.log ">>>> err, ", err
+      return @emit "activitiesCouldntBeFetched", err  if err
+      console.log ">>>", activities
+      callback err, activities
+
+    # KD.remote.api.CActivity.fetchFacets options, (err, data) =>
+    #   if err then callback err
+    #   else
+    #     data = clearQuotes data
+    #     KD.remote.reviveFromSnapshots data, (err, instances)->
+    #       console.log instances
+    #       if err then callback err
+    #       else callback null, instances
 
   unhideNewItems: ->
     @listController?.activityHeader.updateShowNewItemsLink yes
