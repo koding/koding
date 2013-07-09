@@ -129,7 +129,7 @@ module.exports =
     certFile    : ""
     keyFile     : ""
     useKontrold : no
-    webProtocol : 'https:'
+    webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
   kites:
