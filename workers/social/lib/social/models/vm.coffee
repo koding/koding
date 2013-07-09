@@ -75,7 +75,7 @@ module.exports = class JVM extends Model
         proxy         : { mode: 'vm' }
         regYears      : 0
       domainObj.save (err)->
-        console.log err  if err?
+        console.log err  unless err?.code? is 11000
         unless err
           account.addDomain domainObj, (err)->
             console.log err  if err?
