@@ -43,7 +43,12 @@ module.exports = class JRecurlySubscription extends jraphical.Module
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode : userCode
       planCode : planCode
+      $or      : [
+        {status: 'active'}
+        {status: 'canceled'}
+      ]
     , callback
+
 
   @getGroupSubscriptions = (group, callback)->
     JRecurlySubscription.getSubscriptions "group_#{group._id}", callback
