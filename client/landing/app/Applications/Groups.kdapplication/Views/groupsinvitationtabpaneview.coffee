@@ -72,7 +72,7 @@ class GroupsInvitationRequestsTabPaneView extends GroupsInvitationTabPaneView
     pane  ?= @parent
     status = @options.unresolvedStatuses
     status = $in: status  if Array.isArray status
-    @getData().countInvitationRequests {}, {status}, (err, count)->
+    KD.remote.api.JInvitationRequest.count {status}, (err, count)->
       pane.getHandle().updatePendingCount count  unless err
 
   setStatusesByResolvedSwitch:(@resolvedState)->
