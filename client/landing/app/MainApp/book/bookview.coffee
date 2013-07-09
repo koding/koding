@@ -35,31 +35,35 @@ class BookView extends JView
     @pagerWrapper = new KDCustomHTMLView
       cssClass : "controls"
 
+    @pageNav = new KDCustomHTMLView
+      cssClass : "page-nav"
 
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName : "a"
-      partial : "close"
+      partial : "X"
+      cssClass: "dismiss-button"
       click   : => @emit "OverlayWillBeRemoved"
       tooltip :
-        title : "ESC"
+        title : "Press: Escape Key"
         gravity:"ne"
 
 
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName   : "a"
-      partial   : "home"
+      partial   : "Home"
       click     : (pubInst, event)=> @fillPage 0
       tooltip   :
         title   : "Table of contents"
         gravity : "sw"
 
-    @pagerWrapper.addSubView new KDCustomHTMLView
+    @pageNav.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "◀"
       click     : (pubInst, event)=> @fillPrevPage()
       tooltip   :
-        title   : "⌘ Left Arrow"
+        title   : "Press: Left Arrow Key"
         gravity : "sw"
+
 
       
     
@@ -78,8 +82,16 @@ class BookView extends JView
       partial   : "▶"
       click     : (pubInst, event)=> @fillNextPage()
       tooltip   :
-        title   : "⌘ Right Arrow"
-        gravity : "se"
+        title   : "Press: Right Arrow Key"
+        gravity : "sw"
+
+    @pagerWrapper.addSubView @pageNav
+
+    # @pagerWrapper.addSubView new KDCustomHTMLView
+    #   tagName   : "a"
+    #   partial   : "Show me how!"
+    #   click     : (pubInst, event)=> @showMeButtonClicked()
+
 
     #@putOverlay
     #  cssClass    : ""
@@ -96,9 +108,9 @@ class BookView extends JView
   pistachio:->
 
     """
+    {{> @pagerWrapper}}
     {{> @left}}
     {{> @right}}
-    {{> @pagerWrapper}}
     """
 
   click:(event)->
@@ -123,17 +135,17 @@ class BookView extends JView
       delegate : @
     , __bookPages[index]
 
-    return page 
+    return page
 
   changePageFromRoute:(route)->
-    for index, page of __bookPages 
-      if page.routeURL == route 
+    for index, page of __bookPages
+      if page.routeURL == route
         @fillPage index
 
   openFileWithPage:(file)->
     user = KD.whoami().profile
     fileName = "/home/#{user.nickname}#{file}"
-    KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))    
+    KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))
 
   fillPrevPage:->
     return if @currentIndex - 1 < 0
@@ -164,11 +176,27 @@ class BookView extends JView
 
     # destroy @pointer
     if @pointer then @pointer.destroy()
+
     # check if page has tutorial
     if @page.data.howToSteps.length < 1
       @showMeButton.hide()
     else 
       @showMeButton.show()
+
+
+  loadSectionRelatedElements:->
+    if @page.data.section is 6 and @page.data.parent is 0
+      KD.singletons.chatPanel.showPanel()
+
+    if @page.data.section is 8 and @page.data.parent is 4
+      @utils.wait 1500, =>
+        @setClass "more-terminal"
+    else
+      @unsetClass "more-terminal"
+
+    if @page.data.section is 1 and @page.data.parent is 4
+      @openFileWithPage '/Web/index.html'
+
 
   showMeButtonClicked:->
     return if @page.showHow is no
@@ -187,7 +215,7 @@ class BookView extends JView
       @continueNextMove()
     
   navigateCursorToMenuItem:(menuItem)->
-    
+
     @pointer.once 'transitionend', =>
       # open side bar
       @mainView.sidebar.animateLeftNavIn()
@@ -202,7 +230,7 @@ class BookView extends JView
     selectedMenuItemX = @selectedMenuItem[0].$('.main-nav-icon').eq(0).offset().top
     selectedMenuItemY = @selectedMenuItem[0].$('.main-nav-icon').eq(0).offset().left
 
-    @pointer.$().offset 
+    @pointer.$().offset
       top: selectedMenuItemX
       left: selectedMenuItemY
 
@@ -246,15 +274,15 @@ class BookView extends JView
     @mainView = @getDelegate()
     #find aceIconPositon
     @mainView.once 'transitionend',=>
-      # just wait a little 
+      # just wait a little
       @utils.wait 500, =>
         appIcons  = @mainView.mainTabView.activePane.options.view.appIcons
         aceLeft   = appIcons.Ace.$('.kdloader').eq(0).offset().left
-        aceTop    = appIcons.Ace.$('.kdloader').eq(0).offset().top    
+        aceTop    = appIcons.Ace.$('.kdloader').eq(0).offset().top
 
-        #catch callback 
+        #catch callback
         @pointer.once 'transitionend', =>
-          # just wait a little 
+          # just wait a little
           @utils.wait 300, =>
             #call click animation
             @clickAnimation()
@@ -262,7 +290,7 @@ class BookView extends JView
             indexFile = '/Web/index.html'
             @openFileWithPage indexFile
             # TODO !!! start typing
-            
+
         #navigate to aceIcon
         @pointer.$().offset
           top     : aceTop
@@ -278,12 +306,12 @@ class BookView extends JView
       @utils.wait 500, =>
 
         smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
-        
+
         @pointer.$().offset
           top   : smallInput.offset().top
           left  : smallInput.offset().left + (smallInput.width() / 2)
 
-  simulateNewStatusUpdate:-> 
+  simulateNewStatusUpdate:->
     smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
     largeInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.largeInput.$()
     # focus to dummy input to open large textarea for status update
@@ -294,7 +322,7 @@ class BookView extends JView
       ###waitSec = 300
       for i in [0, textToWrite.length] by 1
         # take a little break on each letter to seem like typing
-        log 'letterIndex' , i 
+        log 'letterIndex' , i
         waitSec += (i * 100)
         currentText = textToWrite.slice 0, i
         log 'currentText', currentText
@@ -303,7 +331,7 @@ class BookView extends JView
       ###
       largeInput.val(textToWrite)
       @pushSubmitButton()
-  
+
   pushSubmitButton:->
     # catch transition end to finish tutorial
     @pointer.once 'transitionend', =>
@@ -314,13 +342,11 @@ class BookView extends JView
         @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
         @utils.wait 500, =>
           @pointer.destroy()
-      
+
     # find offset of submit button
     submitButtonOffset = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().offset()
-    # navigate there
-    @pointer.$().offset
-        top     : submitButtonOffset.top
-        left    : submitButtonOffset.left 
+    # navigate submit button
+    @pointer.$().offset submitButtonOffset 
   
   clickFolderOnFileTree:->
     @mainView.sidebar.animateLeftNavOut()
@@ -464,15 +490,6 @@ class BookView extends JView
     # find save menu item
     # move cursor to save menu item
     # click animation
-
-    
-    
-    
-    
-
-
-        
-
 
     
 
