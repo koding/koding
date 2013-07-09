@@ -71,8 +71,9 @@ __bookPages = [
                    </p>
                 """
     section   : 2
-    parent    : ""
+    parent    : 5
     showHow   : no
+    routeURL  : 'Develop'
   ,
 
     cssClass  : "develop enviroments"
