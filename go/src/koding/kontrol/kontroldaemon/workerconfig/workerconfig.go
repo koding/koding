@@ -23,6 +23,7 @@ type WorkerResponse struct {
 	Name    string `json:"name"`
 	Uuid    string `json:"uuid"`
 	Command string `json:"command"`
+	Log     string `json:"log"`
 }
 
 type MemData struct {
@@ -76,11 +77,12 @@ type Worker struct {
 	} `json:"monitor"`
 }
 
-func NewWorkerResponse(name, uuid, command string) *WorkerResponse {
+func NewWorkerResponse(name, uuid, command, log string) *WorkerResponse {
 	return &WorkerResponse{
 		Name:    name,
 		Uuid:    uuid,
 		Command: command,
+		Log:     log,
 	}
 }
 
@@ -134,7 +136,7 @@ func (w *WorkerConfig) Kill(uuid, mode string) (WorkerResponse, error) {
 	if mode == "force" {
 		command = "killForce"
 	}
-	response := *NewWorkerResponse(worker.Name, worker.Uuid, command)
+	response := *NewWorkerResponse(worker.Name, worker.Uuid, command, "you got a kill message")
 
 	// mark as waiting until we got a message
 	worker.Status = Waiting
@@ -159,7 +161,7 @@ func (w *WorkerConfig) Start(uuid string) (WorkerResponse, error) {
 		command = "started.before"
 	}
 
-	response := *NewWorkerResponse(worker.Name, worker.Uuid, command)
+	response := *NewWorkerResponse(worker.Name, worker.Uuid, command, "you got a start message")
 	return response, nil
 }
 

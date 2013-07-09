@@ -302,11 +302,12 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			}
 		}
 
-		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		log.Println(startLog)
 		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
 
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add", startLog)
 		return response, nil
 	case "one", "version":
 		/* one mode will try to start a worker that has a different version
@@ -349,21 +350,23 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		}
 
 		if !otherWorkers {
-			log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+			startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+			log.Println(startLog)
 			worker.Status = workerconfig.Started
 			kontrolDB.AddWorker(worker)
-			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
+			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add", startLog)
 			return response, nil
 		}
 
-		log.Printf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "added.before")
+		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "added.before", denyLog)
 		return response, nil // contains first.start or added.before
 	case "many":
-		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		log.Println(startLog)
 		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "first.start")
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "first.start", startLog)
 		return response, nil //
 	default:
 		return workerconfig.WorkerResponse{}, errors.New("no option specified for add action. aborting add handler...")
