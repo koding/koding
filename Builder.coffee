@@ -158,7 +158,9 @@ module.exports = class Builder
             drop_debugger: no
 
           uglifiedSourceMap = UglifyJS.SourceMap(orig: jsSourceMap)
-          stream = UglifyJS.OutputStream source_map: uglifiedSourceMap
+          stream = UglifyJS.OutputStream
+            semicolons: false
+            source_map: uglifiedSourceMap
           ast.print stream
           file.content = stream.toString()
           sourceMapJSON = uglifiedSourceMap.toString()
