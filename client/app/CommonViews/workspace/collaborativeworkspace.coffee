@@ -150,7 +150,7 @@ class CollaborativeWorkspace extends Workspace
       title                     : "Join New Session"
       content                   : ""
       overlay                   : yes
-      cssClass                  : "manage-session-modal"
+      cssClass                  : "workspace-modal"
       width                     : 500
       tabs                      :
         forms                   :
@@ -187,7 +187,7 @@ class CollaborativeWorkspace extends Workspace
       title                     : "Share Your Session"
       content                   : ""
       overlay                   : yes
-      cssClass                  : "manage-session-modal"
+      cssClass                  : "workspace-modal"
       width                     : 500
       tabs                      :
         forms                   :
