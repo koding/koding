@@ -316,7 +316,7 @@ module.exports = class CActivity extends jraphical.Capsule
       # join query
       query = query.join('\n')
       graph = new Graph({config:KONFIG['neo4j']})
-      graph.fetchFromNeo4j(query, options, callback)
+      graph.runQuery(query, options, callback)
 
 
   @getCurrentGroup: (client, callback)->
@@ -389,7 +389,7 @@ module.exports = class CActivity extends jraphical.Capsule
       console.log "query =============================="
 
       graph = new Graph({config:KONFIG['neo4j']})
-      graph.fetchFromNeo4j(query, options, callback)
+      graph.runQuery(query, options, callback)
 
 
   @fetchFolloweeContents: secure (client, options, callback)->
@@ -433,7 +433,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
       query = query.join('\n')
       graph = new Graph({config:KONFIG['neo4j']})
-      graph.fetchFromNeo4j(query, options, callback)
+      graph.runQuery(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

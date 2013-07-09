@@ -42,9 +42,6 @@ module.exports = class Graph
       }
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
-  fetchFromNeo4j:(query, options, callback)->
-    return @runQuery(query, options, callback)
-
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
     generatedObjects = []
@@ -133,7 +130,8 @@ module.exports = class Graph
       limit 20
     """
     @runQuery(query, requestOptions, callback)
-
+    console.timeEnd "fetchAll"
+    
   runQuery:(query, options, callback)->
     {startDate, client} = options
     if options.group?
@@ -161,8 +159,6 @@ module.exports = class Graph
                   tempRes[i].replies.push reply
               fin()
         , =>
-          console.log "fetchAll finished"
-          # console.timeEnd "fetchAll"
 
           if groupName? and groupName is "koding"
             @removePrivateContent client, groupId, tempRes, callback
