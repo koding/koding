@@ -24,13 +24,6 @@ class StartTabMainView extends JView
 
     @loader = new KDLoaderView size : width : 16
 
-    refreshApps = ->
-      @removeAppIcons()
-      @showLoader()
-      @appsController.refreshApps (err, apps)=>
-        @hideLoader()
-        @refreshButton.hideLoader()
-
     @refreshButton = new KDButtonViewWithMenu
       cssClass    : "editor-button refresh-apps-button"
       title       : "Refresh Apps"
@@ -38,14 +31,13 @@ class StartTabMainView extends JView
       iconClass   : "refresh"
       loader      :
         diameter  : 16
+      callback    : @bound "refreshApps"
       menu        :
         "Restore shortcuts":
           cssClass: ""
           callback: =>
             KD.getSingleton('kodingAppsController').putDefaultShortcutsBack()
-            do refreshApps.bind this
-
-      callback    : refreshApps.bind this
+            @refreshApps()
 
     @addAnAppButton = new KDButtonView
       cssClass    : "editor-button new-app-button"
@@ -61,6 +53,13 @@ class StartTabMainView extends JView
 
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
+
+  refreshApps: ->
+    @removeAppIcons()
+    @showLoader()
+    @appsController.refreshApps (err, apps)=>
+      @hideLoader()
+      @refreshButton.hideLoader()
 
   showLoader:->
 
