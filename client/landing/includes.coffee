@@ -255,6 +255,7 @@ module.exports = [
   "app/MainApp/book/embedded/tableofcontents.coffee",
   "app/MainApp/book/embedded/updatewidget.coffee",
   "app/MainApp/book/embedded/topics.coffee",
+  "app/MainApp/book/embedded/startbutton.coffee",
   "app/MainApp/book/embedded/developbutton.coffee",
   "app/MainApp/book/bookdata.coffee",
   "app/MainApp/book/bookview.coffee",

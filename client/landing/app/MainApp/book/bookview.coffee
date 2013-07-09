@@ -231,6 +231,11 @@ class BookView extends JView
       if steps[0] is 'changeIndexFile'
         @changeIndexFile()
 
+    if @page.data.section is 10 and @page.data.parent is 5
+      if steps[0] is 'showAceSettings'
+        @showAceSettings()
+        
+
   navigateToStatusUpdateInput:->
     @pointer.once 'transitionend', =>
       @utils.wait 1000, =>
@@ -338,21 +343,15 @@ class BookView extends JView
         @pointer.$().offset vmMenuOffset
 
   showRecentFilesMenu:->
-    @pointer.once 'transitionend', =>
-      @utils.wait 6000, =>
-        @unsetClass 'moveUp'
-
-    # show recent files menu
-    @setClass 'moveUp'
-
     # find recent files menu
     offsetTo = @mainView.mainTabView.activePane.mainView.recentFilesWrapper.$().offset()
-    log offsetTo
+    offsetTo.top-=30
+    # show recent files menu
+    @setClass 'moveUp'
     # move cursor
     @utils.wait 700, =>
       @pointer.$().offset offsetTo
 
-    log offsetTo
 
   showNewVMMenu:->
     @pointer.once 'transitionend', =>
@@ -400,20 +399,55 @@ class BookView extends JView
 
   changeIndexFile:->
     # find Web Folder on left
-    #KD.singletons.vmController.start()
     #expandNavigationPanel
     # move cursor to Web folder
-    # dbl-click animation
-    # find index.html file offset
-    # move cursor to index.html
-    # dbl-click animation
-    # find 'Hello World'
-    # continue to next step
-    # find ace menu
-    # move cursor to ace menu
-    # find save menu item
-    # move cursor to save menu item
+    user = KD.whoami().profile
+    userVmName = "[koding~#{user.nickname}~0]/home/#{user.nickname}"
+    @utils.wait 500, =>
+      @defaultVm = KD.singletons.finderController.treeController.nodes[userVmName]
+      @defaultVm.setClass('selected')
+      # find file tree's menu position
+      vmOffset = @defaultVm.$(".icon").offset()
+      @mainView.sidebar.animateLeftNavOut()
+      # move cursor to file tree menu
+      @utils.wait 500, =>
+        @pointer.$().offset
+          top     : vmOffset.top
+          left    : vmOffset.left
+
+  showAceSettings:->
+
+    @pointer.once 'transitionend', =>
+      # click animation
+        @clickAnimation()
+      # click ace app
+        @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().click()
+      @openAceMenu()
+      
+
+    # find ace icon on active pane
+    offsetTo = @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().offset()
+    # navigate to ace icon
+    @pointer.$().offset offsetTo
+
+
+  openAceMenu:->
+
+    @pointer.once 'transitionend', =>
+      @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').click()
+    # find ace settings menu icon
+    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').offset()
+    # navigate settings icon
+    @pointer.$().offset offsetTo
+
     # click animation
+    # click ace settings
+
+    
+    
+
+
+      
 
   clickAnimation:->
     @pointer.setClass 'clickPulse'
