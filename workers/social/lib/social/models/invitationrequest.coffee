@@ -20,14 +20,11 @@ module.exports = class JInvitationRequest extends Model
       email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
-      static          : ['create'] #,'__importKodingenUsers']
+      static          : ['create', 'count'] #,'__importKodingenUsers']
       instance        : [
-        'sendInvitation'
-        'deleteInvitation'
-        'approve'
-        'declineInvitation'
-        'acceptInvitationByInvitee'
-        'ignoreInvitationByInvitee'
+        'sendInvitation', 'deleteInvitation'
+        'approve', 'declineInvitation'
+        'acceptInvitationByInvitee', 'ignoreInvitationByInvitee'
       ]
     schema            :
       email           :
@@ -48,28 +45,17 @@ module.exports = class JInvitationRequest extends Model
       status          :
         type          : String
         enum          : ['Invalid status', [
-          'pending'
-          'sent'
-          'declined'
-          'approved'
-          'ignored'
-          'accepted'
+          'pending', 'sent', 'declined', 'approved', 'ignored', 'accepted'
         ]]
         default       : 'pending'
       invitationType  :
         type          : String
         enum          : ['invalid invitation type',[
-          'invitation'
-          'basic approval'
+          'invitation', 'basic approval'
         ]]
         default       : 'invitation'
 
-  @resolvedStatuses = [
-    'declined'
-    'approved'
-    'ignored'
-    'accepted'
-  ]
+  @resolvedStatuses = ['declined', 'approved', 'ignored', 'accepted']
 
   @create =({email}, callback)->
     invite = new @ {email}
@@ -352,3 +338,10 @@ module.exports = class JInvitationRequest extends Model
         JMailNotification.create data, (err)->
           if err then callback new KodingError "Could not send"
           else callback null
+
+  @count$ = permit 'send invitations',
+    success:({context:{group}}, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = if Array.isArray group then $in: group else group
+      @count selector, callback

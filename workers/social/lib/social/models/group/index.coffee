@@ -948,12 +948,11 @@ module.exports = class JGroup extends Module
 
   sendSomeInvitations: permit 'send invitations',
     success: (client, count, callback)->
-      @fetchInvitationRequests {}, {
-        targetOptions :
-          selector    : { status    : 'pending' }
-          options     : { limit     : count }
-        sort          : { timestamp : 1 }
-      }, (err, requests)->
+      selector = group: @slug, status: 'pending'
+      options = limit: count, sort: requestedAt: -1
+
+      JInvitationRequest = require '../invitationrequest'
+      JInvitationRequest.some selector, options, (err, requests)->
         if err then callback err
         else
           queue = requests.map (request)->->
@@ -1423,29 +1422,52 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
+  # fetchOrSearchInvitationRequests: permit 'send invitations',
+  #   success: (client, status, timestamp, requestLimit, search, callback)->
+  #     status   = $in: status                if Array.isArray status
+  #     selector = timestamp: $lt: timestamp  if timestamp
+
+  #     options  =
+  #       targetOptions :
+  #         selector    : { status }
+  #         limit       : requestLimit
+  #         sort        : { requestedAt: -1 }
+  #       options       :
+  #         sort        : { timestamp: -1 }
+
+  #     if search
+  #       search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
+  #       seed = new RegExp search, 'i'
+  #       options.targetOptions.selector.$or = [
+  #         { email             : seed }
+  #         { 'koding.username' : seed }
+  #         { 'koding.fullName' : seed }
+  #       ]
+
+  #     @fetchInvitationRequests selector, options, callback
+
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
-      status   = $in: status                if Array.isArray status
-      selector = timestamp: $lt: timestamp  if timestamp
+      status   = $in: status  if Array.isArray status
+
+      selector           = {status, group: @slug}
+      selector.timestamp = $lt: timestamp  if timestamp
 
       options  =
-        targetOptions :
-          selector    : { status }
-          limit       : requestLimit
-          sort        : { requestedAt: -1 }
-        options       :
-          sort        : { timestamp: -1 }
+        limit : requestLimit
+        sort  : { requestedAt: -1 }
 
       if search
         search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
         seed = new RegExp search, 'i'
-        options.targetOptions.selector.$or = [
+        selector.$or = [
           { email             : seed }
           { 'koding.username' : seed }
           { 'koding.fullName' : seed }
         ]
 
-      @fetchInvitationRequests selector, options, callback
+      JInvitationRequest = require '../invitationrequest'
+      JInvitationRequest.some selector, options, callback
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
