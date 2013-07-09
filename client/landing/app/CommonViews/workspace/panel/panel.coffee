@@ -30,9 +30,10 @@ class Panel extends JView
       partial   : """<span class="title">#{title}</span>"""
 
   createHeaderButtons: ->
-    for buttonOptions in @getOptions().buttons
+    @getOptions().buttons.forEach (buttonOptions) =>
       buttonView = new KDButtonView
         title    : buttonOptions.title
+        cssClass : buttonOptions.cssClass
         callback : =>
           buttonOptions.callback @, @getDelegate()
 
