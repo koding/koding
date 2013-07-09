@@ -13,6 +13,9 @@ module.exports = class JProxyRule extends jraphical.Module
       instance      : []
       static        : ['fetchRulesByDomain', 'fetchRuleByDomainAndMatch']
 
+    indexes         :
+      name          : 'unique'
+
     schema          :
       
       action        :
@@ -21,7 +24,7 @@ module.exports = class JProxyRule extends jraphical.Module
       enabled       :
         type        : Boolean
         default     : yes
-      match         : 
+      name          : 
         type        : String
         required    : yes
 
