@@ -41,11 +41,13 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
       else KONFIG.broker.webHostname
   else
     (koding.getClient().collection 'jKontrolWorkers')
-      .findOne { serviceUniqueName, status: 0 }, { hostname: 1 },
-        (err, worker) ->
-          console.log {arguments}
-          return callback err  if err?
-          callback null, worker?.hostname ? null
+      .findOne {
+        serviceUniqueName
+        hostname:///^#{ serviceGenericName }///
+        status: 0
+      }, { hostname: 1 }, (err, worker) ->
+        return callback err  if err?
+        callback null, worker?.hostname ? null
 
 module.exports = (req, res) ->
   {params:{service}, query} = req
@@ -54,7 +56,7 @@ module.exports = (req, res) ->
 
   genericServices = allServices[service]
 
-  services = Object.keys(genericServices.services).map (k) ->
+  services = Object.keys(genericServices.services).map( (k) ->
     { hostname } = genericServices.services[k]
     unless hostname?
       console.warn """
@@ -63,6 +65,7 @@ module.exports = (req, res) ->
         #{require('util').inspect genericServices.services[k]}
         """
     return hostname
+  ).filter Boolean
 
   if query.all?
     res.send services.map (hostname) -> "#{ protocol }//#{ hostname }"
