@@ -189,7 +189,9 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
   subscribe: secure (client, data, callback)->
     {delegate} = client.connection
-    userCode      = "user_#{delegate._id}"
+    userCode   = "user_#{delegate._id}"
+
+    data.multiple ?= no
 
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
@@ -201,6 +203,10 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     , (err, subs)=>
       return callback err  if err
       if subs.length > 0
+
+        unless data.multiple
+          return callback "Already subscribed."
+
         subs = subs[0]
         subs.quantity ?= 1
         subs.quantity += 1
@@ -239,6 +245,8 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   subscribeGroup: (group, data, callback)->
     userCode = "group_#{group._id}"
 
+    data.multiple ?= no
+
     JRecurlySubscription.getSubscriptionsAll userCode,
       userCode: userCode
       planCode: @code
@@ -248,9 +256,12 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       ]
     , (err, subs)=>
       return callback err  if err
-      if subs.length > 0
-        subs = subs[0]
+      if subs.length > 0        
 
+        unless data.multiple
+          return callback "Already subscribed."
+
+        subs = subs[0]
         subs.quantity ?= 1
         subs.quantity += 1
 
