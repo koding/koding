@@ -35,13 +35,14 @@ app.starttab.styl
     abs()
 
     .new-app-button
-    .refresh-apps-button
       top                 4px
       line-height         10px
       padding-left        22px
       z-index             100
       abs()
 
+    .new-app-button
+    .refresh-apps-button
       span.icon
         padding           0px
         top               1px
@@ -51,8 +52,14 @@ app.starttab.styl
     .new-app-button
       left                5px
 
-    .refresh-apps-button
-      right               5px
+    .kdbuttonwithmenu-wrapper
+      &.refresh-apps-button
+        top               4px
+        right             5px
+        abs()
+      .refresh-apps-button
+        line-height       10px
+        padding-left      22px
 
 // .start-tab-app-container
 //   overflow-y      visible

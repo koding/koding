@@ -108,7 +108,7 @@ class GlobalNotification extends KDView
   stopTimer:->
     clearInterval @notificationInterval
     @$('.slider-wrapper').addClass 'done'
-    @timer.updatePartial 'The restart was canceled.'
+    @timer.updatePartial 'Always pass on what you have learned - Yoda'
     # @done = yes
 
   adjustTimer:(newDuration)->
