@@ -64,24 +64,24 @@
       margin-left         15px
       &.dismiss-button
         position          absolute
-        top               -45px
+        top               -50px
         right             -73px
-        background        #111
-        border-radius     50%
-        border            3px solid white
-        shadow            0 1px 3px 0 #000
-        color             white
-        width             20px
-        height            20px
-        line-height       20px
+        background        transparent url('../images/book/close_button.png') center center no-repeat
+        border            0
+        width             30px
+        height            30px
+        line-height       50px
         padding           0
-        text-align        center
-        font-weight       bold
-        font-size         0.7em
+        text-indent       -100px
+        overflow          hidden
+        color             transparent
+        text-decoration   none
+        text-align        left
+        shadow            0 0 0 0 #fff
         &:hover
         &:focus
-          color           white
-          background      #555
+          color             transparent
+          background-color  transparent
       &:hover
       &:focus
         color             rgba(0,0,0,.8)
@@ -90,10 +90,8 @@
       display             block
       width               20px
       height              20px
+      border              3px solid white
       background          rgba(255,146,0,1)
-      // bg                    image, url("../images/book/cursor_mac.png")
-      // bg                    position, center center
-      // bg                    repeat, no-repeat
       transition          left 2s, top 2s
       border-radius       50%
       shadow              0px 1px 3px 0px rgba(0,0,0,0.2)
@@ -114,10 +112,10 @@
       font-size             13px
       width                 100px
       border-bottom-color   #8F4907
-      line-height           18px
+      line-height           20px
       text-align            center
       margin                1em auto
-      padding               0.5em 1em
+      padding               0.6em 1em
       shadow                0 1px 3px 0 rgba(194,110,0,0.50)
     &:hover
     &:focus
@@ -232,6 +230,17 @@ section.page
           padding-left  0
     >article
       margin            20px 15px 0 360px
+      .tip
+        margin-top    7px
+        display       block
+        font-style    italic
+        color         #777
+        padding       7px 13px
+        background    #eee
+        rounded       4px
+        span
+          color       k-orange
+          font-weight 600
       p
         width           auto
     &.more-1
@@ -361,13 +370,18 @@ section.page
 
 // Click Animation for pointer
 .point
+  border-radius       50%
   &.clickPulse
-    border-radius       50%
-    vendor              animation, pulsate 1s ease-in-out
-
-@keyframes pulsate
+    vendor              animation, clickAnimate 1s ease-in-out
+    vendor              animation-fill-mode, forwards
+@keyframes clickAnimate
   0%
+    vendor              transform, scale(1)
     shadow              0 0 0 0 rgba(255,146,0,0)
+  15%
+    vendor              transform, scale(0.6)
+  25%
+    vendor              transform, scale(1)
   50%
     shadow              0 0 0 10px rgba(255,146,0,.8)
   100%

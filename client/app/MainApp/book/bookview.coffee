@@ -40,7 +40,7 @@ class BookView extends JView
 
     @pagerWrapper.addSubView new KDCustomHTMLView
       tagName : "a"
-      partial : "X"
+      partial : "Close Tutorial"
       cssClass: "dismiss-button"
       click   : => @emit "OverlayWillBeRemoved"
       tooltip :
@@ -238,11 +238,11 @@ class BookView extends JView
 
   navigateToStatusUpdateInput:->
     @pointer.once 'transitionend', =>
+      @clickAnimation()
       @utils.wait 1000, =>
-        @clickAnimation()
         @simulateNewStatusUpdate()
 
-  
+
     @utils.wait 500, =>
       smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
       @pointer.$().offset
@@ -263,12 +263,12 @@ class BookView extends JView
   pushSubmitButton:->
     # catch transition end to finish tutorial
     @pointer.once 'transitionend', =>
+      @clickAnimation()
       # wait a little again
       @utils.wait 500, =>
-        @clickAnimation()
         # trigger push
         @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
-        @utils.wait 500, =>
+        @utils.wait 1000, =>
           @pointer.destroy()
 
     # find offset of submit button
@@ -279,9 +279,9 @@ class BookView extends JView
   clickFolderOnFileTree:->
     @mainView.sidebar.animateLeftNavOut()
     @pointer.once 'transitionend', =>
+      # click animation
+      @clickAnimation()
       @utils.wait 1000, =>
-        # click animation
-        @clickAnimation()
         # open fileTree menu
         @defaultVm.$('.chevron').click()
         $('.jcontextmenu').offset(@defaultVm.$('.chevron').offset())
@@ -361,7 +361,7 @@ class BookView extends JView
       @mainView.sidebar.createNewVMButton.$().click()
 
     # move book to up to make button visible
-    if not @hasClass 'moveUp'  
+    if not @hasClass 'moveUp'
       @setClass 'moveUp'
     # if sidebar is closed opens it.
     @mainView.sidebar.animateLeftNavOut()
