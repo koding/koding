@@ -950,7 +950,7 @@ module.exports = class JGroup extends Module
   sendSomeInvitations: permit 'send invitations',
     success: (client, count, options, callback)->
       selector   = group: @slug, status: 'pending'
-      selOptions = limit: count, sort: requestedAt: -1
+      selOptions = limit: count, sort: requestedAt: 1
 
       JInvitationRequest = require '../invitationrequest'
       JInvitationRequest.some selector, selOptions, (err, requests)->
