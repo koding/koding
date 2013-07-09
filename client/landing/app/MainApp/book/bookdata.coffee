@@ -61,7 +61,7 @@ __bookPages = [
     content   : """<h2> Your default applications: </h2>
                    <p><strong>Ace</strong> is your perfect text editor on cloud! Use it to edit documents in your file tree! </p>
                    <p><strong>Terminal</strong> is a terminal for your Virtual Machine. You have full root access to the machine!
-                      <em>tip: your root password is your koding password. </em>
+                      <div class='tip'><span>tip:</span> your root password is your koding password. </div>
                    </p>
                 """
     section   : 2
