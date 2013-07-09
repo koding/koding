@@ -13,14 +13,18 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @isJoinedASession = @getOptions().sessionKey
     @openedFiles      = []
 
-    log "joined an old session again, creating new tabbed editor"
+    log "joined an old session again, creating new tabbed editor" if @isJoinedASession
 
     @createEditorTabs()
-    return @createEditorInstance()  unless @isJoinedASession
+    @createEditorInstance()  unless @isJoinedASession
 
     @workspaceRef.on "value", (snapshot) =>
-      tabs = snapshot.val() and snapshot.val().tabs # not same with {tabs} = snapshot.val()?
+      val  = snapshot.val()
+      return unless val
+
+      {tabs} = snapshot.val()
       return unless tabs
+
       for key, data of tabs
         if data.path and @openedFiles.indexOf(data.path) is -1
           file = FSHelper.createFileFromPath data.path
