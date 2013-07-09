@@ -6,8 +6,8 @@ __bookPages = [
     title     : "Welcome"
     content   : """
                 <p><h1>Welcome To Koding!</h1></p>
-                <p>Because this is your first time on Koding. We will assist you to understand basics of koding</p>
-                <p>Give us 2 min. and it will be done!</p>
+                <p>Because this is your first time in Koding, we would like to assist you</p>
+                <p>Give us just 2 min. and it will be done!</p>
                 """
     routeURL  : "/Activity"
     section   : 1
@@ -15,8 +15,8 @@ __bookPages = [
   ,
     title     : "Members"
     content   : """<p>Welcome to the club!</p>
-                   <p>Here you’ll find all of Koding’s members. Follow people you’re working with, you’re learning from, or maybe some that you just find interesting...</p>
-                   <p>Here’s your chance to connect and collaborate! Feel free to follow the whole Koding Team!</p>"""
+                   <p>Here you’ll find all of Koding’s members. Just type name and hit enter!</p>
+                   <p>This is a place where you can connect and collaborate! Feel free to follow the whole Koding Team!</p>"""
     routeURL  : "/Members"
     section   : 2
     parent    : 0
@@ -42,7 +42,7 @@ __bookPages = [
     parent    : 0
   ,
     title     : "Develop"
-    content   : """<p>That part is where the magic happens! Your file tree, your VM's, your applications and more is here!</p>
+    content   : """<p>That part is where the magic happens! Your file tree, your VM's, your applications and more...</p>
                 """
     routeURL  : "/Develop"
     section   : 5
@@ -77,8 +77,9 @@ __bookPages = [
 
     cssClass  : "develop enviroments"
     content   : """<p> <h1> Control Your VM! </h1></p>
-                   <p> You can change your VM to up or down, Re-Initialize also you can delete your VM.</p>
-                   <p> By just clicking, your enviroments menu on below menu </p>
+                   <p> You can change your VM to up or down </p> 
+                   <p> Re-Initialize your VM, you can also delete your VM and start new one</p>
+                   <p> Checkout menu for more features</p>
                 """
     section   : 3
     parent    : 5
@@ -89,7 +90,8 @@ __bookPages = [
   , 
     cssClass  : "develop enviroments more"
     content   : """<p> <h1> Open VM's Terminal </h1></p>
-                   <p> If you have more than 1 VM, you can open that VM's menu by clicking terminal icon on VM menu.</p>
+                   <p> If you have more than 1 VM, you can open that VM's 
+                   menu by clicking terminal icon on VM menu.</p>
                 """
     section   : 4
     parent    : 5
@@ -110,7 +112,8 @@ __bookPages = [
   ,
     cssClass  : "develop buy vm"
     content   : """<p> <h1>Need more VM's ?</h1></p>
-                   <p> You can buy more VM's there are more features with paid VM's like it is allways on UP State</p> 
+                   <p> You can buy more VM's there are more features with
+                    paid VM's.  Like it is allways on UP State ;) </p> 
                 """
     section   : 6
     parent    : 5 
@@ -137,8 +140,8 @@ __bookPages = [
     content   : """
                    <p>Now type</p> 
                    <strong>http://{{#(profile.nickname)}}.kd.io</strong> 
-                   </p> Yes you made it!! </p>
-                   <p>Now continue to learn more about development environment </p>
+                   </p> It's done!! No FTP no SSH no other stuff!! Just click and change </p>
+                   
                 """
     section    : 8
     parent     : 5
@@ -165,7 +168,9 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : """
-                <p>Dont’ forget about your settings in the bottom corner. Here you can change the syntax, font, margins, and a whole lot of other features.</p>
+                <p>Dont’ forget about your settings in the bottom corner. 
+                Here you can change the syntax, font, margins, and a whole 
+                lot of other features.</p>
                 """
     embed     : BookDevelopButton
     routeURL  : ""
