@@ -74,11 +74,8 @@ func runHelperFunctions() {
 			iter := kontrolDB.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
 			result := workerconfig.Worker{}
 			for iter.Next(&result) {
-				// If it's still death just remove it
-				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
-					log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
-					kontrolDB.DeleteWorker(result.Uuid)
-				}
+				log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
+				kontrolDB.DeleteWorker(result.Uuid)
 			}
 		}
 	}()

@@ -244,7 +244,12 @@ func (w *WorkerConfig) UpdateWorker(worker Worker) {
 }
 
 func (w *WorkerConfig) AddWorker(worker Worker) {
-	err := w.Collection.Insert(worker)
+	_, err := w.GetWorker(worker.Uuid)
+	if err == nil {
+		return // there is already a worker with the same uuid, don't insert it
+	}
+
+	err = w.Collection.Insert(worker)
 	if err != nil {
 		log.Println(err)
 	}
