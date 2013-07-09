@@ -158,8 +158,16 @@ __bookPages = [
     cssClass  : "develop more-4"
     content   : """
                 <p>There are some handy keybord bindings when working with Ace</p>
-                <strong>Push ⌘+S To Save File</strong>
-                <strong>Push super+⌘+S To Save File As</strong>
+                <p>
+                  <ul>
+                    <li>save file <span>Ctrl-S</span></li>
+                    <li>saveAs <span>Ctrl-Shift-S</span></li>
+                    <li>find text <span>Ctrl-F</span></li>
+                    <li>find and replace text <span>Ctrl-Shift-F</span></li>
+                    <li>compile application <span>Ctrl-Shift-C</span></li>
+                    <li>preview file Ctrl-Shift-P </li>                  
+                  </ul>
+                </p>
                 """
     embed     : BookDevelopButton
     routeURL  : ""
@@ -199,16 +207,7 @@ __bookPages = [
     section   : 12
     parent    : 5
   ,
-    cssClass  : "terminal more-1"
-    content   : """
-                <p>We said that we give you a VM that is really VM. So if you want to shutdown your VM, just click from Menu and it's ok.</p>
-                <p> Re-initializing your VM will reset all of your settings that you've done in root filesystem. This process will not remove any of your files under your home directory.</p>
-                <strong>From below, Click Personal VM ,see what you can do </strong>
-                """
-    routeURL  : ""
-    section   : 13
-    parent    : 5
-  ,
+    
     title     : "Apps"
     content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>
                    <p>In addition to applications for the database, there are add-ons, and extensions to get your projects personalized, polished, and published faster.</p>"""
