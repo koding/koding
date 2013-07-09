@@ -120,8 +120,10 @@ class ActivityListController extends KDListViewController
     @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
-
+    return
+    console.log "activityIds activityIds", activityIds, KD.remote.api.CActivity.checkIfLikedBefore
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
+      console.log "data>>>", @getListView().items
       for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
         if likeView
