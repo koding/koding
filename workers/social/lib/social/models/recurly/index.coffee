@@ -308,9 +308,9 @@ do ->
   path = require 'path'
 
   getProducts = (callback)->
-    root = path.join __dirname, "../../../../../../products.json"
-    products = JSON.parse(fs.readFileSync(root))
-    callback products
+    productsFile = path.join __dirname, "../../../../../../products.json"
+    productsList = JSON.parse(fs.readFileSync(productsFile))
+    callback productsList
 
   # Create products
   getProducts (products)->
