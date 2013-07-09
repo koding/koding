@@ -293,6 +293,23 @@ func main() {
 
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+
+	brokerDomain := kontrolhelper.CustomHostname()
+	//  but override if we pass a new domain trough commandline
+	if config.BrokerDomain != "" {
+		brokerDomain = config.BrokerDomain
+	}
+
+	if err := kontrolhelper.RegisterToKontrol(
+		"broker", // servicename
+		serviceUniqueName,
+		config.Uuid,
+		brokerDomain,
+		config.Current.Broker.Port,
+	); err != nil {
+		panic(err)
+	}
+
 	presenceQueue := amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
 
 	go func() {
@@ -301,16 +318,6 @@ func main() {
 		<-sigusr1Channel
 		consumeChannel.QueueDelete(presenceQueue, false, false, false)
 	}()
-
-	if err := kontrolhelper.RegisterToKontrol(
-		"broker", // servicename
-		serviceUniqueName,
-		config.Uuid,
-		kontrolhelper.CustomHostname(),
-		config.Current.Broker.Port,
-	); err != nil {
-		panic(err)
-	}
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
