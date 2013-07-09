@@ -14,7 +14,6 @@ module.exports = class JDomain extends jraphical.Module
   domainManager     = new DomainManager
   JAccount          = require './account'
   JVM               = require './vm'
-  JProxyRule        = require './proxy/rule'
   JProxyRestriction = require './proxy/restriction'
 
   @share()
