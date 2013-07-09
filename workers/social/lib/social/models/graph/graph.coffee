@@ -335,14 +335,12 @@ module.exports = class Graph
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
-      RETURN count(members)
+      RETURN count(members) as count
       """
     @db.query query, options, (err, results) ->
       if err then throw err
-      countKey = 'count(members)'
-      if results and results[0][countKey]
-        return callback null, results[0][countKey]
-      callback null, 0
+      count = if results and results[0]['count'] then results[0]['count'] else 0
+      callback null, count
 
   fetchMembers:(options, callback)->
     {skip, limit, sort, groupId} = options
