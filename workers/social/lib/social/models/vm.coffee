@@ -308,8 +308,7 @@ module.exports = class JVM extends Model
 
         selector =
           hostnameAlias : hostnameAlias
-          users         : { $elemMatch: id: user.getId(), owner: yes }
-
+          users         : $elemMatch: id: user.getId()
         JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm
           JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
