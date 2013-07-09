@@ -426,7 +426,7 @@ func logProxyStat(name, country string) {
 }
 
 func validate(ip, country, domain string) (bool, error) {
-	log.Println("validating", ip, country, domain)
+	// log.Println("validating", ip, country, domain)
 	restriction, err := proxyDB.GetRestrictionByDomain(domain)
 	if err != nil {
 		// log.Printf("no restriction found for %s\n", domain)
