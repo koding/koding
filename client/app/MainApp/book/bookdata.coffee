@@ -50,7 +50,7 @@ __bookPages = [
     showHow   : no
   ,
     cssClass  : "develop more-1"
-    content   : 
+    content   :
               """
               <p> <h1>What those folders are?</h1></p>
               <p> Applications folder is a place where your koding applications will stay. </p>
@@ -58,7 +58,7 @@ __bookPages = [
               <p> Other folders do what they intend to. You can create new folders by clicking right on your file tree </p>
               """
     section   : 1
-    parent    : 5  
+    parent    : 5
     showHow   : yes
     howToSteps: ['showFileTreeFolderAndFileMenu']
     menuItem  : "Develop"
@@ -66,7 +66,7 @@ __bookPages = [
     cssClass  : "develop more-1"
     content   : """<p> <h1> What those two applications do? </h1></p>
                    <p> <strong>Ace</strong> is your perfect text editor on cloud! </p>
-                   <p> <strong>Terminal</strong> is your real terminal! If you want to be root, then just type it! 
+                   <p> <strong>Terminal</strong> is your real terminal! If you want to be root, then just type it!
                       <pre><h2>hint</h2>: your root password is your koding password. </pre>
                    </p>
                 """
@@ -77,7 +77,7 @@ __bookPages = [
 
     cssClass  : "develop enviroments"
     content   : """<p> <h1> Control Your VM! </h1></p>
-                   <p> You can change your VM to up or down </p> 
+                   <p> You can change your VM to up or down </p>
                    <p> Re-Initialize your VM, you can also delete your VM and start new one</p>
                    <p> Checkout menu for more features</p>
                 """
@@ -87,10 +87,10 @@ __bookPages = [
     howToSteps: ['showVMMenu']
     menuItem  : "Develop"
 
-  , 
+  ,
     cssClass  : "develop enviroments more"
     content   : """<p> <h1> Open VM's Terminal </h1></p>
-                   <p> If you have more than 1 VM, you can open that VM's 
+                   <p> If you have more than 1 VM, you can open that VM's
                    menu by clicking terminal icon on VM menu.</p>
                 """
     section   : 4
@@ -101,10 +101,10 @@ __bookPages = [
   ,
     cssClass  : "develop more-1"
     content   : """<p> There is a shortcut to your recently opened files</p>
-                   <p> Just move your cursor to footer and it will appear .</p> 
+                   <p> Just move your cursor to footer and it will appear .</p>
                 """
     section   : 5
-    parent    : 5  
+    parent    : 5
     routeURL  : "/Develop"
     showHow   : yes
     howToSteps: ['showRecentFiles']
@@ -113,10 +113,10 @@ __bookPages = [
     cssClass  : "develop buy vm"
     content   : """<p> <h1>Need more VM's ?</h1></p>
                    <p> You can buy more VM's there are more features with
-                    paid VM's.  Like it is allways on UP State ;) </p> 
+                    paid VM's.  Like it is allways on UP State ;) </p>
                 """
     section   : 6
-    parent    : 5 
+    parent    : 5
     routeURL  : "/Develop"
     showHow   : yes
     howToSteps: ['showNewVMMenu']
@@ -124,13 +124,13 @@ __bookPages = [
   ,
     cssClass  : "develop more-1"
     content   : """<p> Let's change your homepage! <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a> </p>
-                   <p> Open your index.html file under Web folder on file tree.</p> 
+                   <p> Open your index.html file under Web folder on file tree.</p>
                    <p> change the content and save your file</p>
                    <p> Then save it with ⌘+S or clicking the save button to the right of your tabs </p>
 
                 """
     section   : 7
-    parent    : 5  
+    parent    : 5
     showHow   : yes
     howToSteps: ['changeIndexFile']
     menuItem  : "Develop"
@@ -138,10 +138,10 @@ __bookPages = [
   ,
     cssClass  : "develop more-1"
     content   : """
-                   <p>Now type</p> 
-                   <strong>http://{{#(profile.nickname)}}.kd.io</strong> 
+                   <p>Now type</p>
+                   <strong>http://{{#(profile.nickname)}}.kd.io</strong>
                    </p> It's done!! No FTP no SSH no other stuff!! Just click and change </p>
-                   
+
                 """
     section    : 8
     parent     : 5
@@ -176,14 +176,14 @@ __bookPages = [
   ,
     cssClass  : "develop more-3"
     content   : """
-                <p>Dont’ forget about your settings in the bottom corner. 
-                Here you can change the syntax, font, margins, and a whole 
+                <p>Dont’ forget about your settings in the bottom corner.
+                Here you can change the syntax, font, margins, and a whole
                 lot of other features.</p>
                 """
     embed     : BookDevelopButton
     routeURL  : ""
     section   : 10
-    parent    : 5  
+    parent    : 5
     showHow   : yes
     howToSteps: ['showAceSettings']
   ,
@@ -214,7 +214,7 @@ __bookPages = [
     routeURL  : "/Apps"
     section   : 6
     parent    : 0
-  , 
+  ,
     title     : "Groups"
     cssClass  : "groups-intro"
     content   : """<p>Join a group which you want to discuss, share code and find tutorials about specific topic!</p>
@@ -239,8 +239,8 @@ __bookPages = [
     routeURL  : "/Account"
     section   : 9
     parent    : 0
-  , 
-    
+  ,
+
     title     : "Etiquette"
     content   : """<p>Seems like a fancy word, huh? Don’t worry, we’re not going to preach. This is more of a Koding Mission Statement. Sure, Koding is built around cloud development, but its second pillar is community.</p>
                    <p>So what does that mean? That means that developers of all skill levels are going to grace your activity feed. Some need help, some will help others, some will guide the entire group, whatever your role is it’s important to remember one important word: help.</p>
