@@ -3,27 +3,24 @@ __bookPages = [
     embed     : BookTableOfContents
     section   : -1
   ,
-    title     : "Welcome"
+    title     : "Welcome to Koding!"
     content   : """
-                <p><h1>Welcome To Koding!</h1></p>
-                <p>Because this is your first time in Koding, we would like to assist you</p>
-                <p>Give us just 2 min. and it will be done!</p>
+                <p class="centered">It's probably your first time using Koding! Follow this quick tutorial to learn everything you can do with this amazing tool!
+                <a href='#' class='cta_button full_width'>Start tutorial!</a></p>
                 """
     routeURL  : "/Activity"
     section   : 1
     parent    : 0
   ,
     title     : "Members"
-    content   : """<p>Welcome to the club!</p>
-                   <p>Here you’ll find all of Koding’s members. Just type name and hit enter!</p>
-                   <p>This is a place where you can connect and collaborate! Feel free to follow the whole Koding Team!</p>"""
+    content   : """<h2>Welcome to the club!</h2>
+                   <p>Here you’ll find all of Koding’s members. To find another member, just enter a name in the search bar and hit enter! This is a place where you can connect and collaborate. Feel free to follow the whole Koding Team!</p>"""
     routeURL  : "/Members"
     section   : 2
     parent    : 0
   ,
     title     : "Activity"
-    content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! Community can be a great tool for development, and here’s the place to get started. In fact, let’s start with your first status update!</p>"
-    embed     : BookUpdateWidget
+    content   : "<p>Think of this as the town center of Koding. Ask questions, get answers, start a discussion...be social! The community is a great tool for development, and here is where you can get started. In fact, let’s start with your first status update! Just click the 'Show me how!' button at the top of this page!</p>"
     routeURL  : "/Activity"
     section   : 3
     parent    : 0
@@ -34,15 +31,14 @@ __bookPages = [
 
     title     : "Topics"
     embed     : BookTopics
-    content   : """<p>Wouldn’t it be great if you could listen to only what you cared about? Well, you can! Topics let you filter content to your preferences.</p>
-                   <p>Select your Topics and if someone shares any information about your topic, you will be informed.</p>
+    content   : """<p>Wouldn’t it be great if you could listen to only what you cared about? Well, you can! Topics let you filter content to your preferences. Select your Topics and if someone shares any information about your topic, you will be informed.</p>
                 """
     routeURL  : "/Topics"
     section   : 4
     parent    : 0
   ,
     title     : "Develop"
-    content   : """<p>That part is where the magic happens! Your file tree, your VM's, your applications and more...</p>
+    content   : """<p>This is where the magic happens! Your file tree, your Virtual Machines, your applications and more are located here in the Develop section</p>
                 """
     routeURL  : "/Develop"
     section   : 5
@@ -52,10 +48,8 @@ __bookPages = [
     cssClass  : "develop more-1"
     content   :
               """
-              <p> <h1>What those folders are?</h1></p>
-              <p> Applications folder is a place where your koding applications will stay. </p>
-              <p> Web Folder on file tree, is where your http://{{#(profile.nickname)}}.kd.io adress goes to. </p>
-              <p> Other folders do what they intend to. You can create new folders by clicking right on your file tree </p>
+              <h2>What are the folders in my Develop tab?</h2>
+              <p>The Applications folder is a place where your koding applications are located. The Web Folder is where your http://{{#(profile.nickname)}}.kd.io adress is accessable at. Other folders do what they intend to. You can create new folders by right-clicking on your file tree!</p>
               """
     section   : 1
     parent    : 5
@@ -64,10 +58,10 @@ __bookPages = [
     menuItem  : "Develop"
   ,
     cssClass  : "develop more-1"
-    content   : """<p> <h1> What those two applications do? </h1></p>
-                   <p> <strong>Ace</strong> is your perfect text editor on cloud! </p>
-                   <p> <strong>Terminal</strong> is your real terminal! If you want to be root, then just type it!
-                      <pre><h2>hint</h2>: your root password is your koding password. </pre>
+    content   : """<h2> Your default applications: </h2>
+                   <p><strong>Ace</strong> is your perfect text editor on cloud! Use it to edit documents in your file tree! </p>
+                   <p><strong>Terminal</strong> is a terminal for your Virtual Machine. You have full root access to the machine!
+                      <em>tip: your root password is your koding password. </em>
                    </p>
                 """
     section   : 2
@@ -76,10 +70,14 @@ __bookPages = [
   ,
 
     cssClass  : "develop enviroments"
-    content   : """<p> <h1> Control Your VM! </h1></p>
-                   <p> You can change your VM to up or down </p>
-                   <p> Re-Initialize your VM, you can also delete your VM and start new one</p>
-                   <p> Checkout menu for more features</p>
+    content   : """<h2>Control Your Virtual Machine!</h2>
+                   <p>It's easy to control your Virtual Machine(s)! Some basic actions you can perform are listed below:</p>
+                   <ul>
+                     <li>Turn your Virtual Machine on and off</li>
+                     <li>Re-Initialize your Virtual Machine</li>
+                     <li>Delete your Virtual Machine and start with a fresh one</li>
+                     <li>Checkout the Virtual Machine menu for more features</li>
+                   </ul>
                 """
     section   : 3
     parent    : 5
@@ -89,9 +87,9 @@ __bookPages = [
 
   ,
     cssClass  : "develop enviroments more"
-    content   : """<p> <h1> Open VM's Terminal </h1></p>
-                   <p> If you have more than 1 VM, you can open that VM's
-                   menu by clicking terminal icon on VM menu.</p>
+    content   : """<h2>Open Virtual Machines in your Terminal</h2>
+                   <p>If you have more than 1 Virtual Machine, you can open that Virtual Machine's
+                   menu by clicking terminal icon on Virtual Machine menu.</p>
                 """
     section   : 4
     parent    : 5
@@ -100,8 +98,7 @@ __bookPages = [
     menuItem  : "Develop"
   ,
     cssClass  : "develop more-1"
-    content   : """<p> There is a shortcut to your recently opened files</p>
-                   <p> Just move your cursor to footer and it will appear .</p>
+    content   : """<p>You can view your recently opened files by moving your cursor to the footer area. A new section will slide up displaying your recently opened files!</p>
                 """
     section   : 5
     parent    : 5
@@ -110,10 +107,9 @@ __bookPages = [
     howToSteps: ['showRecentFiles']
     menuItem  : "Develop"
   ,
-    cssClass  : "develop buy vm"
-    content   : """<p> <h1>Need more VM's ?</h1></p>
-                   <p> You can buy more VM's there are more features with
-                    paid VM's.  Like it is allways on UP State ;) </p>
+    cssClass  : "develop buy more-1"
+    content   : """<h2>Need more Virtual Machines?</h2>
+                   <p>It's easy to buy more Virtual Machines. Paid machines will never go down and will remain in an 'up' state 24/7</p>
                 """
     section   : 6
     parent    : 5
@@ -123,28 +119,19 @@ __bookPages = [
     menuItem  : "Develop"
   ,
     cssClass  : "develop more-1"
-    content   : """<p> Let's change your homepage! <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a> </p>
-                   <p> Open your index.html file under Web folder on file tree.</p>
-                   <p> change the content and save your file</p>
-                   <p> Then save it with ⌘+S or clicking the save button to the right of your tabs </p>
-
+    content   : """<p>It's easy to change your homepage! Currently: <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a>
+                  <ol>
+                    <li> Open your index.html file under Web folder on file tree.</li>
+                    <li> change the content and save your file</li>
+                    <li> Then save it with ⌘+S or clicking the save button to the right of your tabs </li>
+                    <li>It's done!! No FTP no SSH no other stuff!! Just click and change</li>
+                  </ol>
                 """
     section   : 7
     parent    : 5
     showHow   : yes
     howToSteps: ['changeIndexFile']
     menuItem  : "Develop"
-
-  ,
-    cssClass  : "develop more-1"
-    content   : """
-                   <p>Now type</p>
-                   <strong>http://{{#(profile.nickname)}}.kd.io</strong>
-                   </p> It's done!! No FTP no SSH no other stuff!! Just click and change </p>
-
-                """
-    section    : 8
-    parent     : 5
 
   ,
     cssClass  : "develop more-2"
@@ -158,16 +145,14 @@ __bookPages = [
     cssClass  : "develop more-4"
     content   : """
                 <p>There are some handy keybord bindings when working with Ace</p>
-                <p>
-                  <ul>
-                    <li>save file <span>Ctrl-S</span></li>
-                    <li>saveAs <span>Ctrl-Shift-S</span></li>
-                    <li>find text <span>Ctrl-F</span></li>
-                    <li>find and replace text <span>Ctrl-Shift-F</span></li>
-                    <li>compile application <span>Ctrl-Shift-C</span></li>
-                    <li>preview file Ctrl-Shift-P </li>                  
-                  </ul>
-                </p>
+                <ul>
+                  <li>save file <span>Ctrl-S</span></li>
+                  <li>saveAs <span>Ctrl-Shift-S</span></li>
+                  <li>find text <span>Ctrl-F</span></li>
+                  <li>find and replace text <span>Ctrl-Shift-F</span></li>
+                  <li>compile application <span>Ctrl-Shift-C</span></li>
+                  <li>preview file Ctrl-Shift-P </li>
+                </ul>
                 """
     embed     : BookDevelopButton
     routeURL  : ""
@@ -188,8 +173,7 @@ __bookPages = [
     howToSteps: ['showAceSettings']
   ,
     title     : "Terminal"
-    content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console.</p>
-                   <p>It's an Ubuntu VM that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Everything is possible. This VM is not a simulation, it is a real computer, and it's yours.</p>"""
+    content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console. It's an Ubuntu Virtual Machine that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Everything is possible. This Virtual Machine is not a simulation, it is a real computer, and it's yours.</p>"""
     routeURL  : "/Develop/Terminal"
     section   : 11
     parent    : 5
@@ -200,25 +184,23 @@ __bookPages = [
                 <code> ls -la / </code>
                 <p>You should see your file tree.. Now If you are okay with them lets get serious and be ROOT! </p>
                 <code> sudo su </code>
-                <p>Voila!! You are now root on your own VM</p>
+                <p>Voila!! You are now root on your own Virtual Machine</p>
                 <p>You can also install new packages. Search mySQL packages and install if you want! </p>
                 <code> apt-cache search mysql </code>
                 """
     section   : 12
     parent    : 5
   ,
-    
+
     title     : "Apps"
-    content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one click installs of incredibly useful applications provided by users and major web development tools.</p>
-                   <p>In addition to applications for the database, there are add-ons, and extensions to get your projects personalized, polished, and published faster.</p>"""
+    content   : """<p>What makes Koding so useful are the apps provided by its users. Here you can perform one-click installs of incredibly useful applications provided by users and major web development tools. In addition to applications for the database, there are add-ons, and extensions to get your projects personalized, polished, and published faster.</p>"""
     routeURL  : "/Apps"
     section   : 6
     parent    : 0
   ,
     title     : "Groups"
     cssClass  : "groups-intro"
-    content   : """<p>Join a group which you want to discuss, share code and find tutorials about specific topic!</p>
-                   <p>By changing group you are completely changing context. When you are on a group page, you only see updates, VM's and Members of that group.</p>
+    content   : """<p>Join a group which you want to discuss, share code and find tutorials about specific topic! By changing group you are completely changing context. When you are on a group page, you only see updates, Virtual Machines and Members of that group.</p>
                 """
     routeURL  : "/Groups"
     section   : 7
@@ -249,7 +231,7 @@ __bookPages = [
     parent    : 0
   ,
     title     : "Enjoy!"
-    content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
+    content   : """<span>book answerd illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
     section   : -1
 ]
