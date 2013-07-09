@@ -933,20 +933,6 @@ module.exports = class JAccount extends jraphical.Module
   #   else
   #     callback client
 
-  fetchFollowersFromNeo4j:(options={}, callback)->
-      # returns accounts that follow this account
-      query =
-        """
-        start  koding=node:koding(id='#{@getId()}')
-        MATCH koding-[:follower]->followers
-        where followers.name="JAccount
-        return followers
-        """
-
-      options['resultsKey'] = 'followers'
-      Graph          = require "../graph/graph"
-      graph = new Graph(config:KONFIG['neo4j'])
-      graph.fetchFromNeo4j(query, options, callback)
 
   @byRelevance$ = permit 'list members',
     success: (client, seed, options, callback)->
@@ -1002,33 +988,25 @@ module.exports = class JAccount extends jraphical.Module
     success: (client, callback) ->
       @fetchDomains callback
 
+  # fetchMyFollowingsFromGraph: secure (client, options, callback)->
+  #   @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback
+
+
+  {Member} = require "../graph"
+
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
-    @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback
+    userId = client.connection.delegate.getId()
+    options.currentUserId = userId
+    Member.fetchFollowingMembers options, (err, results)=>
+      if err then return callback err
+      else return callback null, results
 
   fetchMyFollowersFromGraph: secure (client, options, callback)->
-    @fetchFollowFromGraph "fetchFollowerMembers", client, options, callback
-
-  fetchFollowFromGraph: secure (followType, client, options, callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    userId = client.connection.delegate._id
+    userId = client.connection.delegate.getId()
     options.currentUserId = userId
-    graph[followType] options, (err, results)=>
+    Member.fetchFollowerMembers options, (err, results)=>
       if err then return callback err
-      else
-        tempRes = []
-        collectContents = race (i, res, fin)=>
-          objId = res.id
-          JAccount.one  { _id : objId }, (err, account)=>
-            if err
-              callback err
-              fin()
-            else
-              tempRes[i] =  account
-              fin()
-        , ->
-          callback null, tempRes
-        for res in results
-          collectContents res
+      else return callback null, results
 
   sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
     time = (new Date).toJSON()

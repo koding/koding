@@ -19,7 +19,7 @@ module.exports = class JGroup extends Module
 
   {throttle} = require 'underscore'
 
-  Graph       = require "../graph/graph"
+  # Graph       = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -1449,25 +1449,8 @@ module.exports = class JGroup extends Module
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
-      graph = new Graph({config:KONFIG['neo4j']})
       options.groupId = @getId()
-      JAccount = require '../account'
-      graph.fetchMembers options, (err, results)=>
-        if err then return callback err
-        else if results.length < 1 then return callback null, []
-        else
-          tempRes = []
-          collectContents = race (i, res, fin)=>
-            objId = res.id
-            JAccount.one  { _id : objId }, (err, account)=>
-              if err
-                callback err
-                fin()
-              else
-                tempRes[i] = account
-                fin()
-          , ->
-            callback null, tempRes
-          for res in results
-            collectContents res
-
+      {Member} = require '../graph'
+      Member.fetchMemberList options, (err, results)=>
+        console.log results
+        callback err, results

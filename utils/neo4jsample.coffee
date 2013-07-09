@@ -112,22 +112,82 @@ query = """
     """
 
 currentUserId = "51a3e4b1db49f04a74000003"
+
+console.time("hede")
+
+objectify =
+
+
+options =
+  limitCount: 10
+  skipCount: 0
+  groupId: '5196fcb2bc9bdb0000000027'
+  currentUserId: '51a3e4b1db49f04a74000003'
+  orderByQuery: 'members.`meta.modifiedAt`'
+  # orderByQuery2: 'members.`meta.modifiedAt`'
+  # orderByQuery3: 'members.`meta.modifiedAt`'
+  # orderByQuery4: 'members.`meta.modifiedAt`'
+  # orderByQuery5: 'members.`meta.modifiedAt`'
+  # orderByQuery6: 'members.`meta.modifiedAt`'
+  # orderByQuery7: 'members.`meta.modifiedAt`'
+  # orderByQuery8: 'members.`meta.modifiedAt`'
+  # orderByQuery9: 'members.`meta.modifiedAt`'
+
 query = """
-    start  group=node:koding("id:#{groupId}")
-    MATCH  group-[r:member]->members<-[:follower]-follower
-    where follower.id = "#{currentUserId}"
-    return members, r
-    order by r.createdAtEpoch, members.`counts.followers` DESC
-    skip #{skip}
-    limit #{limit}
+      start  group=node:koding(id={groupId})
+      MATCH  group-[r:member]->members-[:follower]->currentUser
+      return members, currentUser, r
+      order by {orderByQuery} DESC
     """
     # return members, count(members) as count, r
 console.log query
 
-db.query query, {}, (err, results) ->
-  if err then throw err;
+
+db.query query, options, (err, results)->
+  console.log err, results
+  incomingObjects = []
   for result in results
-    console.log result.members.data
+    a = []
+    a.push result.members.data
+    a.push result.currentUser.data
+    a.push result.r.data
+    incomingObjects.push a
+
+  incomingObjects = [].concat(incomingObjects)
+  generatedObjects = []
+  for incomingObject in incomingObjects
+    generatedObject = {}
+    for k of incomingObject
+      temp = generatedObject
+      parts = k.split "."
+      key = parts.pop()
+      while parts.length
+        part = parts.shift()
+        temp = temp[part] = temp[part] or {}
+      temp[key] = incomingObject[k]
+    generatedObjects.push generatedObject
+  console.log generatedObjects
+
+
+
+# START group=node:koding("id:5196fcb2bc9bdb0000000027"), user=node:koding("id:51a3e4b1db49f04a74000003")
+# MATCH group-[r:member]->members
+# WHERE members-[:follower]->user
+# RETURN members
+# ORDER BY members.`meta.modifiedAt` DESC
+# SKIP 0
+# LIMIT 20
+
+
+
+# START group=node:koding("id:5196fcb2bc9bdb0000000027")
+# MATCH group-[r:member]->members-[:follower]->currentUser
+# WHERE currentUser.id = "51a3e4b1db49f04a74000003"
+# RETURN members
+# ORDER BY members.`meta.modifiedAt` DESC
+# SKIP 0
+# LIMIT 20
+
 
   # koding = results.map (res) ->
   #   res['koding']

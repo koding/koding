@@ -1,5 +1,5 @@
 neo4j = require "neo4j"
-{race} = require 'sinkrow'
+
 {Base, ObjectId, race} = require 'bongo'
 
 module.exports = class Graph
@@ -138,6 +138,19 @@ module.exports = class Graph
     if facets and facets isnt "Everything"
       query += (" AND (content.name=\"#{facets}\")")
 
+# =======
+#     if facets and "Everything" not in facets
+#       facetQueryList = []
+#       for facet in facets
+#         if facet not in neo4jFacets
+#           console.log "Unknown facet: " + facets.join()
+#           continue
+
+#         facetQueryList.push("content.name=\"#{facet}\"")
+
+#       query += (" AND (" + facetQueryList.join(' OR ') + ")")
+# >>>>>>> Stashed changes
+
     if groupName isnt "koding"
       query += """
         and content.group! = "#{groupName}"
@@ -149,7 +162,6 @@ module.exports = class Graph
       order by content.`meta.createdAtEpoch` DESC
       limit 20
     """
-
     @db.query query, {}, (err, results)=>
       tempRes = []
       if err then callback err
@@ -203,202 +215,3 @@ module.exports = class Graph
           respond[type].push obj
 
         callback err, respond
-
-  fetchNewInstalledApps:(group, startDate, callback)->
-    console.time 'fetchNewInstalledApps'
-
-    {groupId} = group
-
-    query = """
-      START kd=node:koding("id:#{groupId}")
-      MATCH kd-[:member]->users<-[r:user]-apps
-      WHERE apps.name="JApp"
-      and r.createdAtEpoch < #{startDate}
-      return users, apps, r
-      order by r.createdAtEpoch DESC
-      limit 20
-      """
-
-    @db.query query, {}, (err, results) =>
-      console.timeEnd 'fetchNewInstalledApps'
-
-      if err then throw err
-      @generateInstalledApps [], results, callback
-
-  generateInstalledApps:(resultData, results, callback)->
-
-    if results? and results.length < 1 then return callback null, resultData
-    result = results.shift()
-    data = {}
-    objectify result.users.data, (objected)=>
-      data.user = objected
-      objectify result.r.data, (objected)=>
-        data.relationship = objected
-        objectify result.apps.data, (objected)=>
-          data.app = objected
-          resultData.push data
-          @generateInstalledApps resultData, results, callback
-
-  fetchNewMembers:(group, startDate, callback)->
-    console.time 'fetchNewMembers'
-
-    {groupId} = group
-
-    query = """
-      start  koding=node:koding("id:#{groupId}")
-      MATCH  koding-[r:member]->members
-      where  r.createdAtEpoch < #{startDate}
-      return members
-      order by r.createdAtEpoch DESC
-      limit 20
-      """
-    @db.query query, {}, (err, results) ->
-        if err then throw err
-        resultData = []
-        for result in results
-          data = result.members.data
-          resultData.push data
-
-        objectify resultData, (objected)->
-          callback err, objected
-
-          console.timeEnd 'fetchNewMembers'
-
-  fetchMemberFollows:(group, startDate, callback)->
-    {groupId} = group
-    #followers
-    query = """
-      start koding=node:koding("id:#{groupId}")
-      MATCH koding-[:member]->followees<-[r:follower]-follower
-      where follower<-[:member]-koding
-      and r.createdAtEpoch < #{startDate}
-      return r,followees, follower
-      order by r.createdAtEpoch DESC
-      limit 20
-    """
-    @fetchFollows query, callback
-
-  fetchTagFollows:(group, startDate, callback)->
-    #followers
-    {groupId, groupName} = group
-    query = """
-      start koding=node:koding("id:#{groupId}")
-      MATCH koding-[:member]->followees<-[r:follower]-follower
-      where follower.name="JTag"
-      and follower.group="#{groupName}"
-      and r.createdAtEpoch < #{startDate}
-      return r,followees, follower
-      order by r.createdAtEpoch DESC
-      limit 20
-      """
-    @fetchFollows query, callback
-
-  fetchFollows:(query, callback)->
-    console.time "fetchFollows"
-
-    @db.query query, {}, (err, results)=>
-      console.timeEnd "fetchFollows"
-
-      if err then throw err
-      @generateFollows [], results, callback
-
-  generateFollows:(resultData, results, callback)->
-
-    if results? and results.length < 1 then return callback null, resultData
-    result = results.shift()
-    data = {}
-    objectify result.follower.data, (objected)=>
-      data.follower = objected
-      objectify result.r.data, (objected)=>
-        data.relationship = objected
-        objectify result.followees.data, (objected)=>
-          data.followee = objected
-          resultData.push data
-          @generateFollows resultData, results, callback
-
-  getOrderByQuery:(orderBy)->
-    orderByQuery = ""
-    switch orderBy
-      when "counts.followers"
-        orderByQuery = "members.`counts.followers`"
-      when "counts.following"
-        orderByQuery = "members.`counts.following`"
-      when "meta.modifiedAt"
-        orderByQuery = "members.`meta.modifiedAt`"
-
-    return orderByQuery
-
-  fetchMembers:(options, callback)->
-    {skip, limit, sort, groupId} = options
-    skip = 0 unless skip
-    limit = 20 unless limit
-
-    orderBy = ""
-    if sort?
-      orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
-
-    query = """
-      START  group=node:koding("id:#{groupId}")
-      MATCH  group-[r:member]->members
-      return members
-      order by #{orderByQuery} DESC
-      skip #{skip}
-      limit #{limit}
-      """
-    @queryMembers query, {}, callback
-
-  fetchFollowingMembers:(options, callback)->
-    {skip, limit, sort, groupId, currentUserId} = options
-
-    skip = 0 unless skip
-    limit = 20 unless limit
-
-    orderBy = Object.keys(sort)[0]
-    orderByQuery = @getOrderByQuery orderBy
-
-    query = """
-        start  group=node:koding("id:#{groupId}")
-        MATCH  group-[r:member]->members-[:follower]->currentUser
-        where currentUser.id = "#{currentUserId}"
-        return members, r
-        order by #{orderByQuery} DESC
-        skip #{skip}
-        limit #{limit}
-        """
-    @queryMembers query, {}, callback
-
-
-  fetchFollowerMembers:(options, callback)->
-    {skip, limit, sort, groupId, currentUserId} = options
-
-    skip = 0 unless skip
-    limit = 20 unless limit
-    orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
-
-    query = """
-        start group=node:koding("id:#{groupId}")
-        MATCH group-[r:member]->members<-[:follower]-currentUser
-        where currentUser.id = "#{currentUserId}"
-        return members, r
-        order by #{orderByQuery} DESC
-        skip #{skip}
-        limit #{limit}
-        """
-    @queryMembers query, {}, callback
-
-  queryMembers:(query, options={}, callback)->
-    @db.query query, options, (err, results) ->
-        if err then throw err
-        resultData = []
-        for result in results
-          data = result.members.data
-          id = data.id
-          name = data.name
-          obj =  {id : id, name : name }
-          resultData.push obj
-
-        callback err, resultData

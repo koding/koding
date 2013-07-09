@@ -5,6 +5,7 @@ module.exports = class FetchAllActivityParallel
   async          = require "async"
   Graph          = require "./graph"
   GraphDecorator = require "./graphdecorator"
+  Bucket       = require "./bucket"
 
   constructor:(@requestOptions)->
     {client, startDate, neo4j, group, facets} = @requestOptions
@@ -42,23 +43,27 @@ module.exports = class FetchAllActivityParallel
         callback err, decoratedResponse
 
   fetchTagFollows: (callback)->
-    @graph.fetchTagFollows @group, @startDate, (err, rawResponse=[])->
+    Bucket.fetchTagFollows @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchMemberFollows: (callback)->
-    @graph.fetchMemberFollows @group, @startDate, (err, rawResponse=[])->
+    Bucket.fetchMemberFollows @group, @startDate, (err, rawResponse=[])->
       GraphDecorator.decorateFollows rawResponse, (decoratedResponse)->
         callback err, decoratedResponse
 
   fetchInstalls: (callback)->
-    @graph.fetchNewInstalledApps @group, @startDate, (err, rawResponse=[])->
+    Bucket.fetchNewInstalledApps @group, @startDate, (err, rawResponse=[])->
+      console.log "2"
       GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
+        console.log "3"
         callback err, decoratedResponse
 
   fetchNewMembers: (callback)->
-    @graph.fetchNewMembers @group, @startDate, (err, rawResponse=[])->
+    Bucket.fetchNewMembers @group, @startDate, (err, rawResponse=[])->
+      if err then return callback err
       GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
+        console.log "hede"
         callback err, decoratedResponse
 
   bucketNames:->

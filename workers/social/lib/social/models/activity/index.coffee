@@ -39,7 +39,7 @@ module.exports = class CActivity extends jraphical.Capsule
       'read activity'       : ['guest','member','moderator']
     sharedMethods     :
       static          : [
-        'fetchPublicContents', 'fetchFolloweeContents'
+        'fetchFolloweeContents'
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
@@ -276,47 +276,48 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
 
-  # this function fetchs content for public activity
-  @fetchPublicContents = secure (client, options, callback)->
-    @getCurrentGroup client, (err, group)=>
-      if err then return callback err
+  # # this function fetchs content for public activity
+  # @fetchPublicContents = secure (client, options, callback)->
+  #   @getCurrentGroup client, (err, group)=>
+  #     if err then return callback err
 
-      {facets, to, limit} = options
-      limit = 5 #bandage for now
+  #     {facets, to, limit} = options
+  #     limit = 5 #bandage for now
 
-      groupId = group._id
-      groupName = group.slug
+  #     groupId = group._id
+  #     groupName = group.slug
 
-      query = [
-        'START koding=node:koding(id="' + groupId + '")'
-        'MATCH koding-[:member]->members<-[:author]-items'
-        'WHERE items.group = "' + groupName + '"'
-      ]
+  #     query = [
+  #       'START koding=node:koding(id="' + groupId + '")'
+  #       'MATCH koding-[:member]->members<-[:author]-items'
+  #       'WHERE items.group = "' + groupName + '"'
+  #     ]
 
-      # build facet queries
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("items.name='#{facet}'")
-        query.push("AND (" + facetQueryList.join(' OR ') + ")")
+  #     # build facet queries
+  #     if facets and 'Everything' not in facets
+  #       facetQueryList = []
+  #       for facet in facets
+  #         return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
+  #         facetQueryList.push("items.name='#{facet}'")
+  #       query.push("AND (" + facetQueryList.join(' OR ') + ")")
 
-      # add timestamp
-      if to
-        timestamp = Math.floor(to / 1000)
-        query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
+  #     # add timestamp
+  #     if to
+  #       timestamp = Math.floor(to / 1000)
+  #       query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
 
-      # add return statement
-      query.push "return items"
-      # add sorting option
-      query.push "order by items.`meta.createdAtEpoch` DESC"
-      # add limit option
-      query.push "LIMIT #{limit}"
+  #     # add return statement
+  #     query.push "return items"
+  #     # add sorting option
+  #     query.push "order by items.`meta.createdAtEpoch` DESC"
+  #     # add limit option
+  #     query.push "LIMIT #{limit}"
 
-      # join query
-      query = query.join('\n')
-      graph = new Graph({config:KONFIG['neo4j']})
-      graph.fetchFromNeo4j(query, options, callback)
+  #     # join query
+  #     query = query.join('\n')
+  #     console.log query
+  #     graph = new Graph({config:KONFIG['neo4j']})
+  #     graph.fetchFromNeo4j(query, options, callback)
 
 
   @getCurrentGroup: (client, callback)->
@@ -340,8 +341,13 @@ module.exports = class CActivity extends jraphical.Capsule
       if err then return callback err
       userId = client.connection.delegate.getId()
 
+      options.userId = userId
+      options.groupName = group.slug
+      options.limit = 5 #bandage for now
       {facets, to, limit} = options
-      limit = 5 #bandage for now
+      option.facet = [facets]
+
+      limit = 5
 
       groupId = group._id
       groupName = group.slug
@@ -375,6 +381,8 @@ module.exports = class CActivity extends jraphical.Capsule
       query.push "LIMIT #{limit}"
 
       query = query.join('\n')
+      console.log "hebe query"
+      console.log query
       graph = new Graph({config:KONFIG['neo4j']})
       graph.fetchFromNeo4j(query, options, callback)
 
