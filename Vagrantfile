@@ -1,6 +1,6 @@
 version = `VBoxManage --version 2> /dev/null` rescue "0"
 if version < "4.2.14r86644" and ARGV[0] != "halt"
-  print "\e[31mVirtualBox not installed or outdated. \e[30m"
+  print "\e[31mVirtualBox not installed or outdated. \e[39m"
 
   install = false
   if `uname`.strip == "Darwin" and system "tty > /dev/null"
