@@ -5,11 +5,11 @@ __bookPages = [
   ,
     title     : "Welcome to Koding!"
     content   : """
-                <p class="centered">It's probably your first time using Koding! Follow this quick tutorial to learn everything you can do with this amazing tool!
-                <a href='#' class='cta_button full_width'>Start tutorial!</a></p>
+                <p class="centered">It's probably your first time using Koding! Follow this quick tutorial to learn everything you can do with this amazing tool!</p>
                 """
     routeURL  : "/Activity"
     section   : 1
+    embed     : StartTutorialButton
     parent    : 0
   ,
     title     : "Members"
@@ -172,6 +172,7 @@ __bookPages = [
     parent    : 5
     showHow   : yes
     howToSteps: ['showAceSettings']
+    menuItem  : 'Develop'
   ,
     title     : "Terminal"
     content   : """<p>Terminal is a very important aspect of development, that's why we have invested a lot of time to provide a fast, smooth and responsive console. It's an Ubuntu Virtual Machine that you can use to program Java,C++,Perl,Python,Ruby,Node,Erlang,Haskell and what not, out of the box. Everything is possible. This Virtual Machine is not a simulation, it is a real computer, and it's yours.</p>"""
