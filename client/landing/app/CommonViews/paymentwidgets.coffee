@@ -30,17 +30,18 @@ class PaymentWidget extends KDView
     @updateButtons()
 
   updateButtons:->
+    @buttonBilling.hide()
+    @buttonSubscribe.hide()
+    @widgetContent.hide()
     @loader.show()
     @checkBilling (needBilling)=>
       if needBilling
         @loader.hide()
         @buttonBilling.show()
       else
-        @buttonBilling.hide()
         @checkSubscription (status)=>
           @loader.hide()
           if status
-            @buttonSubscribe.hide()
             @widgetContent.show()
           else
             @buttonSubscribe.show()
