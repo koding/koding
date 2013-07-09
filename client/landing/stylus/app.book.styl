@@ -370,13 +370,18 @@ section.page
 
 // Click Animation for pointer
 .point
+  border-radius       50%
   &.clickPulse
-    border-radius       50%
-    vendor              animation, pulsate 1s ease-in-out
-
-@keyframes pulsate
+    vendor              animation, clickAnimate 1s ease-in-out
+    vendor              animation-fill-mode, forwards
+@keyframes clickAnimate
   0%
+    vendor              transform, scale(1)
     shadow              0 0 0 0 rgba(255,146,0,0)
+  15%
+    vendor              transform, scale(0.6)
+  25%
+    vendor              transform, scale(1)
   50%
     shadow              0 0 0 10px rgba(255,146,0,.8)
   100%
