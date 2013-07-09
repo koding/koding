@@ -166,29 +166,16 @@ module.exports = class JApp extends jraphical.Module
                     else callback null, approval_app
 
                 else
+                  approval_slug = "#{app.slug}-#{data.manifest.version}-waits-for-approve"
                   approval_app = new JApp
                     title       : data.title
                     body        : data.body
                     manifest    : data.manifest
                     originId    : delegate.getId()
+                    slug        : approval_slug
+                    slug_       : approval_slug
                     originType  : delegate.constructor.name
                     identifier  : "waits.for.approve:#{data.identifier}"
-
-                  approval_app.createSlug (err, slug)->
-                    if err
-                      callback err
-                    else
-                      approval_app.slug   = "waits-for-approve-#{data.manifest.version}-#{slug.slug}"
-                      approval_app.slug_  = "waits-for-approve-#{data.manifest.version}-#{slug.slug}"
-                      approval_app.save (err)->
-                        if err
-                          callback err
-                        else
-                          approval_app.addCreator delegate, (err)->
-                            if err
-                              callback err
-                            else
-                              callback null, app
 
                   approval_app.save (err)->
                     if err
