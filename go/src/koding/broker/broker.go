@@ -264,13 +264,6 @@ func main() {
 			})
 		}
 
-		go func() {
-			sigusr1Channel := make(chan os.Signal)
-			signal.Notify(sigusr1Channel, syscall.SIGUSR1)
-			<-sigusr1Channel
-			listener.Close()
-		}()
-
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
@@ -300,7 +293,14 @@ func main() {
 
 	hostname, _ := os.Hostname()
 	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
-	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+	presenceQueue := amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+
+	go func() {
+		sigusr1Channel := make(chan os.Signal)
+		signal.Notify(sigusr1Channel, syscall.SIGUSR1)
+		<-sigusr1Channel
+		consumeChannel.QueueDelete(presenceQueue, false, false, false)
+	}()
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
