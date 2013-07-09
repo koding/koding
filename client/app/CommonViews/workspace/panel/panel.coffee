@@ -16,7 +16,7 @@ class Panel extends JView
 
     @createHeader title     if title or buttonsLength
     @createHeaderButtons()  if buttonsLength
-    # @createHeaderHint()     if options.hint
+    @createHeaderHint()     if options.hint
 
     @createLayout()
 
@@ -40,12 +40,9 @@ class Panel extends JView
       @header.addSubView buttonView
 
   createHeaderHint: ->
-    @header.addSubView new KDButtonView
-      cssClass  : "hint"
-      iconOnly  : yes
-      iconClass : "exclamation"
-      tooltip   :
-        title   : @getOptions().hint
+    @header.addSubView new KDCustomHTMLView
+      cssClass  : "help"
+      click     : => @getDelegate().showHelpModal()
 
   createLayout: ->
     @container  = new KDView
