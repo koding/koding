@@ -994,15 +994,14 @@ module.exports = class JAccount extends jraphical.Module
     , (err, rels)->
       return callback err if err
 
-      JDomain.someData {_id: $in: (rel.targetId for rel in rels)}, {}, (err, cursor)->
+      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
         domainList = []
         unless err 
-          cursor.toArray (err, domains)->
-            domainList = domains.filter (domain)->
-              domainName = domain.domain
-              !(/^shared[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
+          domainList = domains.filter (domain)->
+            domainName = domain.domain
+            !(/^shared[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
 
-            callback null, domainList
+          callback null, domainList
 
         callback err, domainList
 
