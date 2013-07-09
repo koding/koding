@@ -367,7 +367,7 @@ module.exports = class CActivity extends jraphical.Capsule
         query.push 'WHERE', whereClause.join(' AND ')
 
       # add return statement
-      query.push "return content"
+      query.push "return distinct content"
 
       if options.sort.likesCount?
         query.push "order by content.`meta.likes` DESC"
@@ -380,6 +380,11 @@ module.exports = class CActivity extends jraphical.Capsule
       query.push "LIMIT #{limit}"
 
       query = query.join('\n')
+
+      console.log "======================="
+      console.log query
+      console.log "======================="
+
 
       graph = new Graph({config:KONFIG['neo4j']})
       graph.runQuery(query, options, callback)
@@ -418,13 +423,18 @@ module.exports = class CActivity extends jraphical.Capsule
         query.push "AND content.`meta.createdAtEpoch` < #{timestamp}"
 
       # add return statement
-      query.push "return content"
+      query.push "return distinct content"
       # add sorting option
       query.push "order by content.`meta.createdAtEpoch` DESC"
       # add limit option
       query.push "LIMIT #{limit}"
 
       query = query.join('\n')
+
+      console.log "======================="
+      console.log query
+      console.log "======================="
+
       graph = new Graph({config:KONFIG['neo4j']})
       graph.runQuery(query, options, callback)
 

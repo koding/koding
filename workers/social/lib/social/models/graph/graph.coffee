@@ -131,7 +131,7 @@ module.exports = class Graph
     """
     @runQuery(query, requestOptions, callback)
     console.timeEnd "fetchAll"
-    
+
   runQuery:(query, options, callback)->
     {startDate, client} = options
     if options.group?
@@ -172,7 +172,7 @@ module.exports = class Graph
             constructorName: obj.name
             instanceId: obj.id
           resultData.push obj
-
+        console.log "==========================", resultData
         objectify resultData, (objecteds)->
           for objected in objecteds
             tempRes.push objected
