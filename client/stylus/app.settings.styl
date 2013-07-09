@@ -482,18 +482,39 @@ positiveGreen = rgba(58,200,2,1)
       font-style          normal
 
 .billing-history
-  .kdlistitemview
-    border-bottom-color:  rgba(0,0,0,0.4)
-    border-top            1px solid rgba(255,255,255,0.1)
-  .labelish
-    line-height           35px
-    min-width             50px !important
-  .swappableish
-    strong
-      font-size           17px
-      font-weight         bold
-      padding-right       10px
-      text-shadow         0px 1px 1px #111
+  width                   100%
+  tr
+    border-bottom         1px solid rgba(0,0,0,0.4)
+    td
+      padding             10px 0 10px 20px
+      vertical-align      middle
+      strong
+        font-size         17px
+        font-weight       bold
+        // padding-right     10px
+        text-shadow       0px 1px 1px #111
+      &.ccard
+        size              auto,auto
+        // display           inline-block
+        vertical-align    middle
+        position          relative
+        padding-left      50px
+        .icon
+          abs()
+          sprite()
+          left            14px
+          bg(position,20px 20px)
+          size(30px,20px)
+          display         block
+          &.visa
+            bg(position,-40px -440px)
+          &.mastercard
+            bg(position,-70px -440px)
+          &.discover
+            bg(position,-40px -460px)
+          &.american-express
+            bg(position,-70px -460px)
+
 .your-subscriptions
   .kdlistitemview
     height                80px
