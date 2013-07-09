@@ -414,12 +414,13 @@ class PaymentController extends KDController
     else
       if type is 'group'
         group.makePayment
-          plan: plan.code
+          plan     : plan.code
+          multiple : yes
         , (err, result)->
           unless err
             vmController.createGroupVM type, plan.code
       else
-        plan.subscribe {}, (err, result)->
+        plan.subscribe {multiple: yes}, (err, result)->
           unless err
             vmController.createGroupVM type, plan.code
 
