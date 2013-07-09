@@ -21,9 +21,9 @@ incService = (serviceKey, amount) ->
     then genericServices[serviceUniqueName].amount += amount
     else genericServices[serviceUniqueName] = { amount, hostname }
 
-    if genericServices[serviceUniqueName] is 0
+    if genericServices[serviceUniqueName].amount is 0
       delete genericServices[serviceUniqueName]
-    else if genericServices[serviceUniqueName] < 0
+    else if genericServices[serviceUniqueName].amount < 0
       console.error 'Negative service count!'
 
 koding.connect ->
@@ -41,10 +41,13 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
       else KONFIG.broker.webHostname
   else
     (koding.getClient().collection 'jKontrolWorkers')
-      .findOne { serviceUniqueName }, { hostname: 1 },
-        (err, worker) ->
-          return callback err  if err?
-          callback null, worker?.hostname ? null
+      .findOne {
+        serviceUniqueName
+        hostname:///^#{ serviceGenericName }///
+        status: 0
+      }, { hostname: 1 }, (err, worker) ->
+        return callback err  if err?
+        callback null, worker?.hostname ? null
 
 module.exports = (req, res) ->
   {params:{service}, query} = req
@@ -53,8 +56,16 @@ module.exports = (req, res) ->
 
   genericServices = allServices[service]
 
-  services = Object.keys(genericServices.services).map (k) ->
-    genericServices.services[k].hostname ? k
+  services = Object.keys(genericServices.services).map( (k) ->
+    { hostname } = genericServices.services[k]
+    unless hostname?
+      console.warn """
+        Could not find that hostname:
+        #{k}
+        #{require('util').inspect genericServices.services[k]}
+        """
+    return hostname
+  ).filter Boolean
 
   if query.all?
     res.send services.map (hostname) -> "#{ protocol }//#{ hostname }"
