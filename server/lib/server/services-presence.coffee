@@ -42,11 +42,10 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
   else
     (koding.getClient().collection 'jKontrolWorkers')
       .findOne { serviceUniqueName, status: 0 }, { hostname: 1 },
-        (err, cursor) ->
+        (err, worker) ->
+          console.log {arguments}
           return callback err  if err?
-          cursor.nextObject (err, worker) ->
-            return callback err  if err?
-            callback null, worker?.hostname ? null
+          callback null, worker?.hostname ? null
 
 module.exports = (req, res) ->
   {params:{service}, query} = req
