@@ -312,32 +312,34 @@ do ->
     productsList = JSON.parse(fs.readFileSync(productsFile))
     callback productsList
 
-  # Create products
-  getProducts (products)->
-    stack = []
-    products.forEach (prod)->
-      stack.push (cb)->
-        payment.getPlanInfo {code: prod.code}, (err, plan)->
-          if not err and plan
-            payment.updatePlan 
-              code       : prod.code
-              title      : prod.title
-              feeMonthly : prod.price
-            , (err, plan)->
-              unless err
-                console.log "Updated product: #{prod.title}"
-              cb()
-          else
-            payment.addPlan
-              code       : prod.code
-              title      : prod.title
-              feeMonthly : prod.price
-            , (err, plan)->
-              unless err
-                console.log "Created product: #{prod.title}"
-              cb()
+  loadProducts = ->
+    getProducts (products)->
+      stack = []
+      products.forEach (prod)->
+        stack.push (cb)->
+          payment.getPlanInfo {code: prod.code}, (err, plan)->
+            if not err and plan
+              payment.updatePlan 
+                code       : prod.code
+                title      : prod.title
+                feeMonthly : prod.price
+              , (err, plan)->
+                unless err
+                  console.log "Updated product: #{prod.title}"
+                cb()
+            else
+              payment.addPlan
+                code       : prod.code
+                title      : prod.title
+                feeMonthly : prod.price
+              , (err, plan)->
+                unless err
+                  console.log "Created product: #{prod.title}"
+                cb()
 
-    async.parallel stack, (err, result)->
-      JRecurlyPlan.updateCache ->
-        JRecurlyPlan.all {}, ->
-          console.log "Updated product cache."
+      async.parallel stack, (err, result)->
+        JRecurlyPlan.updateCache ->
+          JRecurlyPlan.all {}, ->
+            console.log "Updated product cache."
+
+  loadProducts()
