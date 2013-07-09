@@ -164,21 +164,6 @@ class BookView extends JView
     else
       @showMeButton.show()
 
-
-  loadSectionRelatedElements:->
-    if @page.data.section is 6 and @page.data.parent is 0
-      KD.singletons.chatPanel.showPanel()
-
-    if @page.data.section is 8 and @page.data.parent is 4
-      @utils.wait 1500, =>
-        @setClass "more-terminal"
-    else
-      @unsetClass "more-terminal"
-
-    if @page.data.section is 1 and @page.data.parent is 4
-      @openFileWithPage '/Web/index.html'
-
-
   showMeButtonClicked:->
 
     @pointer or = new KDCustomHTMLView
@@ -252,13 +237,12 @@ class BookView extends JView
         @clickAnimation()
         @simulateNewStatusUpdate()
 
-    @mainView.once 'transitionend', =>
-      @utils.wait 500, =>
-
-        smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
-        @pointer.$().offset
-          top   : smallInput.offset().top
-          left  : smallInput.offset().left + (smallInput.width() / 2)
+  
+    @utils.wait 500, =>
+      smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
+      @pointer.$().offset
+        top   : smallInput.offset().top
+        left  : smallInput.offset().left + (smallInput.width() / 2)
 
   simulateNewStatusUpdate:->
     smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
@@ -378,7 +362,8 @@ class BookView extends JView
       @mainView.sidebar.createNewVMButton.$().click()
 
     # move book to up to make button visible
-    @setClass 'moveUp'
+    if not @hasClass 'moveUp'  
+      @setClass 'moveUp'
     # if sidebar is closed opens it.
     @mainView.sidebar.animateLeftNavOut()
 
