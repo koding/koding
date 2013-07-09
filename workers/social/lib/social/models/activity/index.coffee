@@ -43,7 +43,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
-        'fetchPublicActivityFeed'
+        'fetchPublicActivityFeed', 'fetchUsersActivityFeed'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -333,6 +333,63 @@ module.exports = class CActivity extends jraphical.Capsule
           if err then return callback {error: "Not allowed to open this group"}
           else callback null, group
 
+  # this is used for activities on profile page
+  @fetchUsersActivityFeed: secure (client, options, callback)->
+    @getCurrentGroup client, (err, group)=>
+      if err then return callback err
+      userId = client.connection.delegate.getId()
+
+      {facets, to, limit} = options
+      limit = 5 #bandage for now
+
+      groupId = group._id
+      groupName = group.slug
+
+      # TODO: userid is not this..
+      query = [
+        "start koding=node:koding(id='#{userId}')"
+        'MATCH koding<-[:author]-content'
+      ]
+
+      whereClause = []
+      # build facet queries
+      if facets and 'Everything' not in facets
+        facetQueryList = []
+        for facet in facets
+          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
+          facetQueryList.push("content.name='#{facet}'")
+        whereClause.push("(" + facetQueryList.join(' OR ') + ")")
+      # add timestamp
+
+      if to
+        timestamp = Math.floor(to / 1000)
+        whereClause.push "content.`meta.createdAtEpoch` < #{timestamp}"
+
+      if whereClause.length > 0
+        query.push 'WHERE', whereClause.join(' AND ')
+
+      # add return statement
+      query.push "return content"
+
+      if options.sort.likesCount?
+        query.push "order by content.`meta.likes` DESC"
+      else if options.sort.repliesCount?
+        query.push "order by content.repliesCount DESC"
+      else
+        query.push "order by content.`meta.createdAtEpoch` DESC"
+
+      # add limit option
+      query.push "LIMIT #{limit}"
+
+      query = query.join('\n')
+
+      console.log options
+      console.log "query =============================="
+      console.log query
+      console.log "query =============================="
+
+      graph = new Graph({config:KONFIG['neo4j']})
+      graph.fetchFromNeo4j(query, options, callback)
 
 
   @fetchFolloweeContents: secure (client, options, callback)->
@@ -344,13 +401,13 @@ module.exports = class CActivity extends jraphical.Capsule
       limit = 5 #bandage for now
 
       groupId = group._id
-      groupName = group.slug
+      options.groupName = group.slug
 
       query = [
         "start koding=node:koding(id='#{userId}')"
-        'MATCH koding<-[:follower]-myfollowees-[:author]-items'
+        'MATCH koding<-[:follower]-myfollowees-[:author]-content'
         'where myfollowees.name="JAccount"'
-        'AND items.group = "' + groupName + '"'
+        'AND content.group = "' + options.groupName + '"'
       ]
 
       # build facet queries
@@ -359,18 +416,18 @@ module.exports = class CActivity extends jraphical.Capsule
         facetQueryList = []
         for facet in facets
           return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("items.name='#{facet}'")
+          facetQueryList.push("content.name='#{facet}'")
         query.push("AND (" + facetQueryList.join(' OR ') + ")")
       # add timestamp
 
       if to
         timestamp = Math.floor(to / 1000)
-        query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
+        query.push "AND content.`meta.createdAtEpoch` < #{timestamp}"
 
       # add return statement
-      query.push "return myfollowees, items"
+      query.push "return content"
       # add sorting option
-      query.push "order by items.`meta.createdAtEpoch` DESC"
+      query.push "order by content.`meta.createdAtEpoch` DESC"
       # add limit option
       query.push "LIMIT #{limit}"
 
@@ -431,3 +488,5 @@ module.exports = class CActivity extends jraphical.Capsule
       fetch = new FetchAllActivityParallel requestOptions
       fetch.get (results)->
         callback null, results
+
+

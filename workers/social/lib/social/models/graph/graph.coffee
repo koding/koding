@@ -42,12 +42,21 @@ module.exports = class Graph
       }
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
-  fetchFromNeo4j:(query, params, callback)->
-    resultsKey = params.resultsKey or "items"
+  fetchFromNeo4j:(query, options, callback)->
+    console.log ">>>>> options >>>>", options
+    return @runQuery(query, options, callback)
+
+
+    # TODO: replies ???
     # gets ids from neo4j, fetches objects from mongo, returns in the same order
     @db.query query, params, (err, results)=>
       if err
+        console.log ">>> err", err
         return callback err
+
+      console.log "===== results ===="
+      console.log results
+      console.log "// ==== results ==="
 
       if results.length == 0
         callback null, []
@@ -55,8 +64,8 @@ module.exports = class Graph
       wantedOrder = []
       collections = {}
       for result in results
-        oid = result[resultsKey]._data.data.id
-        otype = result[resultsKey]._data.data.name
+        oid = result.items._data.data.id
+        otype = result.items._data.data.name
         wantedOrder.push({id: oid, collection: otype, idx: oid+'_'+otype})
         collections[otype] ||= []
         collections[otype].push(oid)
@@ -149,6 +158,12 @@ module.exports = class Graph
       order by content.`meta.createdAtEpoch` DESC
       limit 20
     """
+    @runQuery(query, requestOptions, callback)
+
+  runQuery:(query, options, callback)->
+    {startDate, client} = options
+    if options.group?
+      {groupName, groupId} = options.group
 
     @db.query query, {}, (err, results)=>
       tempRes = []
@@ -166,13 +181,22 @@ module.exports = class Graph
               tempRes[i].relationData =  relatedResult
               fin()
         , =>
-          console.timeEnd "fetchAll"
+          console.log "fetchAll finished"
+          # console.timeEnd "fetchAll"
 
-          if groupName == "koding"
+          if groupName? and groupName is "koding"
             @removePrivateContent client, groupId, tempRes, callback
           else
             callback null, tempRes
-        resultData = ( result.content.data for result in results)
+
+        resultData = []
+        for result in results
+          obj = result.content.data
+          obj.bongo_ = 
+            constructorName: obj.name
+            instanceId: obj.id
+          resultData.push obj
+
         objectify resultData, (objecteds)->
           for objected in objecteds
             tempRes.push objected
