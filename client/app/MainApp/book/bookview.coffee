@@ -47,23 +47,19 @@ class BookView extends JView
         title : "Press: Escape Key"
         gravity:"ne"
 
-
-    @pagerWrapper.addSubView new KDCustomHTMLView
-      tagName   : "a"
-      partial   : "Home"
-      click     : (pubInst, event)=> @fillPage 0
-      tooltip   :
-        title   : "Table of contents"
-        gravity : "sw"
-
     @showMeButton = new KDCustomHTMLView
       tagName   : "a"
       partial   : "Show me how!"
       cssClass  : "cta_button"
       click     : (pubInst, event)=> @showMeButtonClicked()
 
+
     @pagerWrapper.addSubView @showMeButton
 
+    @pagerWrapper.addSubView new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "Home"
+      click     : (pubInst, event)=> @fillPage 0
 
     @pageNav.addSubView new KDCustomHTMLView
       tagName   : "a"
@@ -82,17 +78,6 @@ class BookView extends JView
         gravity : "sw"
 
     @pagerWrapper.addSubView @pageNav
-
-    # @pagerWrapper.addSubView new KDCustomHTMLView
-    #   tagName   : "a"
-    #   partial   : "Show me how!"
-    #   click     : (pubInst, event)=> @showMeButtonClicked()
-
-
-    #@putOverlay
-    #  cssClass    : ""
-    #  isRemovable : no
-    #  animated    : yes
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
     @once "OverlayWillBeRemoved", => @unsetClass "in"
