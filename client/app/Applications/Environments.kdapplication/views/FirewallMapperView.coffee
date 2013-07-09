@@ -1,105 +1,53 @@
 class FirewallMapperView extends KDView
 
-  constructor:(options={}, data) ->
+  constructor:(options={}, data)->
     data or= {}
     super options, data
 
-    domain = data?.domain
-
-    @on "domainChanged", (domainListItem)->
+    @on "DomainChanged", (domainListItem)->
       @getData().domain = domainListItem.data
       @updateViewContent()
 
-    @addSubView new KDCustomHTMLView
-      partial: 'Select a domain to continue.'
-
   updateViewContent:->
-    domain = @getData().domain
+    {domain} = @getData()
 
     @destroySubViews()
 
-    @blockListItemClass = new KDListItemView
-    @blockListItemClass.on "click", (event)->
-      console.log "block list item clicked."
+    @filterListController = new FirewallFilterListController {}, {domain}
+    @ruleListController = new FirewallRuleListController {}, {domain}
 
-    @blockListController = new KDListViewController
-      itemClass   : @blockListItemClass
-      viewOptions :
-        cssClass  : 'block-list'
+    @ruleListView = new KDCustomHTMLView
+      partial  : "<h4>Rule List For #{domain.domain}</h4>"
+      cssClass : 'rule-list-view'
 
-    if domain and domain.blockList
-      @blockListController.instantiateListItems []
+    @fwRuleFormView = new FirewallFilterFormView
+      delegate : @filterListController.getListView()
+      , {domain}
 
-    @whiteListItemClass = new KDListItemView
-    @whiteListItemClass.on "click", (event)->
-      console.lig "white list item clicked"
+    @filterListView = new KDCustomHTMLView
+      partial  : "<h4>Your Filter List</h4>"
+      cssClass : 'filter-list-view'
 
-    @whiteListController = new KDListViewController
-      itemClass   : @whiteListItemClass
-      viewOptions :
-        cssClass  : 'white-list'
+    @filterListView.addSubView @fwRuleFormView
+    @filterListView.addSubView @filterListController.getView()
 
-    if domain and domain.whiteList
-      @whiteListController.instantiateListItems []
+    @ruleListView.addSubView @ruleListController.getView()
+    @ruleListView.addSubView new KDButtonView
+        title : "Update Rule Orders"
 
-    @addSubView (new FirewallRuleFormView {}, {domain:domain})
+    @filterListController.getListView().on "newRuleCreated", (ruleObj)=>
+      @ruleListController.emit "newRuleCreated"
 
+    @ruleListController.getListView().on "ruleDeleted", =>
+      @filterListController.refreshFilters()
 
-class FirewallRuleFormView extends KDView
+    @addSubView @ruleListView
+    @addSubView @filterListView
 
-  constructor:(options={}, data)->
-    super options, data
-
-    @ruleInput = new KDInputView
-      tooltip : 
-        title     : "You can enter IP, IP Range or a Country name."
-        placement : "bottom"
-
-    @ruleInput.unsetClass 'kdinput'
-
-    @blockListButton = new KDButtonView
-      title   : "+ Block List"
-      callback: =>
-        console.log 'block listing'
-        @updateDomainRules "blockList", "addToSet", @ruleInput.getValue()
-
-    @whiteListButton = new KDButtonView
-      title    : "+ White List"
-      callback : =>
-        console.log 'white listing' 
-        @updateDomainRules "whiteList", "addToSet", @ruleInput.getValue()
-
-
-  updateDomainRules:(field, op, value)->
-    fieldMethod = switch field
-      when "whiteList" then "updateWhiteList"
-      when "blockList" then "updateBlockList"
-    KD.remote.api.JDomain[fieldMethod] {domainName:@getData().domain.domain, op, value}, (err)=>
-      if err
-        new KDNotificationView
-          type  : "top"
-          title : "An error occured while updating the #{field}. Please try again."
-      else
-        @ruleInput.setValue ""
-        new KDNotificationView
-          type  : "top"
-          title : "The #{field} is updated."
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
-
-
-  pistachio:->
-    """
-    <div class="rule-form">
-      <div style="float: left;">
-        <label for="rule-input">Add a rule:</label>
-        {{> @ruleInput }}
-      </div>
-      <div style="float: left'">
-        {{> @blockListButton }}
-        {{> @whiteListButton }}
-      </div>
-    </div>
-    """
+  updateActionOrders:(domain)->
+    newRulesList = (item.getData() for item in @ruleListController.itemsOrdered)
+    domain.updateRuleOrders newRulesList, (err, response)->
+      return console.log err if err?
+      new KDNotificationView
+        title : "Order of your rule list has been successfully updated."
+        type  : "top"

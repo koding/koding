@@ -1,0 +1,32 @@
+@import "./client/Framework/themes/default/kdfn"
+@import "./client/stylus/appfn"
+
+.split-layout
+  .header
+    padding                 4px
+    height                  35px
+    border-bottom           1px solid #ddd
+    border-left             1px solid #ddd
+    gradient                rgba(255,255,255,1),rgba(240,240,240,1)
+    vendor                  transition, .3s margin ease
+    borderBox()
+    &.out
+      margin-top            -35px
+
+    button
+      margin-left           5px
+      font-size             12px
+      font-weight           normal
+      color                 #3a3a3a
+      fr()
+      &.left
+        margin-left         0
+        fl()
+      span.icon
+        sprite()
+        &.delete
+          bg                position,-120px -420px
+        &.refresh
+          bg                position,-120px -580px
+  .left-section
+    border-left             1px solid #e8e8e8

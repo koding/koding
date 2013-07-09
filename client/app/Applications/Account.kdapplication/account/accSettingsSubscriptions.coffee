@@ -30,10 +30,10 @@ class AccountSubscriptionsListController extends KDListViewController
                 sub.plan = plan
                 cb null, sub
 
-          async.parallel stack, (err, result)=>
-            result = [] if err
-            @instantiateListItems result
-            @hideLazyLoader()
+        async.parallel stack, (err, result)=>
+          result = [] if err
+          @instantiateListItems result
+          @hideLazyLoader()
 
   loadView:->
     super

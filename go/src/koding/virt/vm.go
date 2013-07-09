@@ -20,9 +20,11 @@ type VM struct {
 	WebHome       string         `bson:"webHome"`
 	Users         []*Permissions `bson:"users"`
 	LdapPassword  string         `bson:"ldapPassword"`
+	DiskSizeInMB  int            `bson:"diskSizeInMB"`
+	SnapshotVM    bson.ObjectId  `bson:"diskSnapshot"`
+	SnapshotName  string         `bson:"snapshotName"`
 	IP            net.IP         `bson:"ip"`
 	HostKite      string         `bson:"hostKite"`
-	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
 }
 
 type Permissions struct {
@@ -172,9 +174,8 @@ func (vm *VM) Unprepare() error {
 	var firstError error
 
 	// stop VM
-	out, err := vm.Shutdown()
-	if vm.GetState() != "STOPPED" {
-		panic(commandError("Could not shut down VM.", err, out))
+	if err := vm.Shutdown(); err != nil {
+		panic(err)
 	}
 
 	// backup dpkg database for statistical purposes
@@ -235,8 +236,18 @@ func (vm *VM) MountRBD(mountDir string) error {
 			return commandError("rbd info failed.", err, out)
 		}
 
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
-			return commandError("rbd create failed.", err, out)
+		if vm.DiskSizeInMB == 0 {
+			vm.DiskSizeInMB = 1200
+		}
+		if vm.SnapshotName == "" {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
+				return commandError("rbd create failed.", err, out)
+			}
+		}
+		if vm.SnapshotName != "" {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotVM.Hex(), "--snap", vm.SnapshotName, "--dest-pool", "vms", "--dest", vm.String()).CombinedOutput(); err != nil {
+				return commandError("rbd clone failed.", err, out)
+			}
 		}
 
 		makeFileSystem = true
@@ -303,6 +314,22 @@ func (vm *VM) UnmountRBD(mountDir string) error {
 	return firstError
 }
 
+func (vm *VM) ResizeRBD() error {
+	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", "vms", "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
+		return commandError("rbd resize failed.", err, out)
+	}
+
+	if out, err := exec.Command("/sbin/resize2fs", vm.RbdDevice()).CombinedOutput(); err != nil {
+		return commandError("resize2fs failed.", err, out)
+	}
+
+	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
+		return commandError("remount failed.", err, out)
+	}
+
+	return nil
+}
+
 const FIFREEZE = 0xC0045877
 const FITHAW = 0xC0045878
 
@@ -348,19 +375,6 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 		return commandError("Removing snapshot failed.", err, out)
 	}
 	return nil
-}
-
-func (vm *VM) CreateTemporaryVM() (*VM, error) {
-	temporaryVM := VM{
-		Id:         bson.NewObjectId(),
-		SnapshotOf: vm.SnapshotOf,
-	}
-
-	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotOf.Hex(), "--snap", vm.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
-		return nil, commandError("Cloning snapshot failed.", err, out)
-	}
-
-	return &temporaryVM, nil
 }
 
 func DestroyVM(id bson.ObjectId) error {

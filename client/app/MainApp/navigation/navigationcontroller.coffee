@@ -11,7 +11,9 @@ class NavigationController extends KDListViewController
       return navItem
 
   selectItemByName:(name)->
-    @selectItem item  if item = @getItemByName name
+    if item = @getItemByName name
+    then @selectItem item
+    else @deselectAllItems()
     return item
 
   removeItemByTitle:(name)->

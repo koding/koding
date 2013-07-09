@@ -76,6 +76,12 @@ module.exports =
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  followFeed    :
+    host        : 'localhost'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'
   graphFeederWorker:
     numberOfWorkers: 2
   presence      :
@@ -99,8 +105,9 @@ module.exports =
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
+        servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+      apiUri    : 'http://localhost:3020'
       # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -121,6 +128,10 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    useKontrold : no
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8008
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -155,9 +166,9 @@ module.exports =
     webPort       : 3020
   kontrold        :
     api           :
-      port        : 8000
+      port        : 8888
     proxy         :
-      port        : 8080
+      port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
       sslips      : '127.0.0.1'
@@ -189,9 +200,3 @@ module.exports =
   opsview       :
     push        : no
     host        : ''
-  followFeed    :
-    host        : 'localhost'
-    port        : 5672
-    componentUser: 'guest'
-    password    : 'guest'
-    vhost       : 'followfeed'

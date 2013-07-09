@@ -7,17 +7,25 @@ import (
 	"time"
 )
 
-func (vm *VM) Start() ([]byte, error) {
-	return exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput()
+func (vm *VM) Start() error {
+	if out, err := exec.Command("/usr/bin/lxc-start", "--name", vm.String(), "--daemon").CombinedOutput(); err != nil {
+		return commandError("lxc-start failed.", err, out)
+	}
+	return vm.WaitForState("RUNNING", time.Second)
 }
 
-func (vm *VM) Stop() ([]byte, error) {
-	return exec.Command("/usr/bin/lxc-stop", "--name", vm.String()).CombinedOutput()
+func (vm *VM) Stop() error {
+	if out, err := exec.Command("/usr/bin/lxc-stop", "--name", vm.String()).CombinedOutput(); err != nil {
+		return commandError("lxc-stop failed.", err, out)
+	}
+	return vm.WaitForState("STOPPED", time.Second)
 }
 
-func (vm *VM) Shutdown() ([]byte, error) {
+func (vm *VM) Shutdown() error {
 	if out, err := exec.Command("/usr/bin/lxc-shutdown", "--name", vm.String()).CombinedOutput(); err != nil {
-		return out, err
+		if vm.GetState() != "STOPPED" {
+			return commandError("lxc-shutdown failed.", err, out)
+		}
 	}
 	vm.WaitForState("STOPPED", 5*time.Second) // may time out, then vm is force stopped
 	return vm.Stop()
@@ -43,9 +51,9 @@ func (vm *VM) GetState() string {
 	return strings.TrimSpace(string(out)[6:])
 }
 
-func (vm *VM) WaitForState(state string, timeout time.Duration) ([]byte, error) {
-	if timeout != 0 {
-		return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput()
+func (vm *VM) WaitForState(state string, timeout time.Duration) error {
+	if out, err := exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state, "--timeout", strconv.Itoa(int(timeout.Seconds()))).CombinedOutput(); err != nil {
+		return commandError("lxc-wait failed.", err, out)
 	}
-		return exec.Command("/usr/bin/lxc-wait", "--name", vm.String(), "--state", state).CombinedOutput()
+	return nil
 }

@@ -23,37 +23,6 @@ processMonitor = (require 'processes-monitor').start
     middleware : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
 
-# Services (order is important here)
-services =
-  kite_webterm:
-    pattern: 'webterm'
-  worker_auth:
-    pattern: 'auth'
-  kite_applications:
-    pattern: 'kite-application'
-  kite_databases:
-    pattern: 'kite-database'
-  webserver:
-    pattern: 'web'
-  worker_social:
-    pattern: 'social'
-
-incService = (serviceKey, inc) ->
-  for key, value of services
-    if serviceKey.indexOf(value.pattern) > -1
-      value.count = if value.count then value.count += inc else 1
-      break
-
-# Presences
-koding = require './bongo'
-koding.connect ->
-  koding.monitorPresence
-    join: (serviceKey) ->
-      incService serviceKey, 1
-    leave: (serviceKey) ->
-      incService serviceKey, -1
-
-# TODO: DRY this
 _        = require 'underscore'
 async    = require 'async'
 {extend} = require 'underscore'
@@ -346,11 +315,15 @@ if uploads?.enableStreamingUploads
   #     """
 
 app.get "/-/presence/:service", (req, res) ->
-  {service} = req.params
   if services[service] and services[service].count > 0
     res.send 200
   else
     res.send 404
+
+
+
+app.get '/-/services/:service', require './services-presence'
+
 
 app.get "/-/status/:event/:kiteName",(req,res)->
   # req.params.data

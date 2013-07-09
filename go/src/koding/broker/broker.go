@@ -46,6 +46,7 @@ func main() {
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
 		session.Tag = socketId
+		clientVersion := 0
 
 		log.Debug("Client connected: " + socketId)
 		changeClientsGauge(1)
@@ -167,6 +168,9 @@ func main() {
 
 				action := message["action"]
 				switch action {
+				case "clientInfo":
+					clientVersion = message["version"].(int)
+
 				case "subscribe":
 					globalMapMutex.Lock()
 					defer globalMapMutex.Unlock()
@@ -260,13 +264,6 @@ func main() {
 			})
 		}
 
-		go func() {
-			sigusr1Channel := make(chan os.Signal)
-			signal.Notify(sigusr1Channel, syscall.SIGUSR1)
-			<-sigusr1Channel
-			listener.Close()
-		}()
-
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
@@ -294,18 +291,33 @@ func main() {
 		panic(err)
 	}
 
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+
+	brokerDomain := kontrolhelper.CustomHostname()
+	//  but override if we pass a new domain trough commandline
+	if config.BrokerDomain != "" {
+		brokerDomain = config.BrokerDomain
+	}
+
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
+		serviceUniqueName,
 		config.Uuid,
-		kontrolhelper.CustomHostname(),
+		brokerDomain,
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)
 	}
 
-	hostname, _ := os.Hostname()
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
-	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+	presenceQueue := amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+
+	go func() {
+		sigusr1Channel := make(chan os.Signal)
+		signal.Notify(sigusr1Channel, syscall.SIGUSR1)
+		<-sigusr1Channel
+		consumeChannel.QueueDelete(presenceQueue, false, false, false)
+	}()
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
