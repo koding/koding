@@ -436,3 +436,7 @@ class BookView extends JView
 
   clickAnimation:->
     log 'hey! im gonna do some fancy click animation right here!!!!'
+    @pointer.setClass 'clickPulse'
+
+    @utils.wait 1000, =>
+      @pointer.unsetClass 'clickPulse'
