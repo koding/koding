@@ -78,7 +78,7 @@ class PaymentWidget extends KDView
   subscribe:(callback)->
     KD.remote.api.JRecurlyPlan.getPlanWithCode @planCode, (err, plan)=>
       if not err and plan
-        plan.subscribe callback
+        plan.subscribe {}, callback
 
   askBillingInfo:(callback)->
     paymentController = KD.getSingleton('paymentController')
