@@ -392,7 +392,10 @@ module.exports = class JInvitation extends jraphical.Module
           invite.update {$set: status: "couldnt send email"}, (err)-> console.log err if err
           callback new KodingError "I got your request just couldn't send the email, I'll try again. Consider it done."
 
-  @sendEmailForInviteViaGroup =(client, invite, group, callback)->
+  @sendEmailForInviteViaGroup =(client, invite, group, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+
     JUser = require './user'
     {delegate} = client.connection
     {host, protocol} = @getHostAndProtocol
@@ -401,7 +404,7 @@ module.exports = class JInvitation extends jraphical.Module
     url += "/#{group.slug}"  unless group.slug is 'koding'
     url += "/Invitation/#{encodeURIComponent invite.code}"
 
-    options = {
+    details = {
       group    : group.title
       inviter  : delegate.getFullName()
       url
@@ -412,9 +415,10 @@ module.exports = class JInvitation extends jraphical.Module
     JUser.fetchUser client, (err, inviter)=>
       email = new JMail
         email   : invite.inviteeEmail
-        subject : @getSubjectForInviteViaGroup options
-        content : @getMessageForInviteViaGroup options
+        subject : @getSubjectForInviteViaGroup details
+        content : @getMessageForInviteViaGroup details
         replyto : inviter.email
+        bcc     : options.bcc
 
       email.save (err)->
         unless err
@@ -456,12 +460,15 @@ module.exports = class JInvitation extends jraphical.Module
                       @sendInviteEmail invite,client,customMessage,limit,callback
 
   # we may find better names for these two methods :) HK
-  @createViaGroup = secure (client, group, emails, callback=->)->
-    @createViaGroupWithoutNotification client, group, emails, (err, invite)=>
+  @createViaGroup = secure (client, group, emails, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    @createViaGroupWithoutNotification client, group, emails, options, (err, invite)=>
       return callback err  if err
-      @sendEmailForInviteViaGroup client, invite, group, callback
+      @sendEmailForInviteViaGroup client, invite, group, options, callback
 
-  @createViaGroupWithoutNotification = secure (client, group, emails, callback=->)->
+  @createViaGroupWithoutNotification = secure (client, group, emails, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+
     {delegate} = client.connection
     emails.forEach (email)=>
       selector =

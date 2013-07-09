@@ -31,7 +31,7 @@ module.exports = class JMail extends Model
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted', 'sending', 
+        enum         : ['Invalid status', ['queued', 'attempted', 'sending',
                                            'failed', 'unsubscribed']]
       force          :
         type         : Boolean
@@ -39,6 +39,7 @@ module.exports = class JMail extends Model
       subject        : String
       content        : String
       unsubscribeId  : String
+      bcc            : String
 
   save:(callback)->
     @unsubscribeId = getUniqueId()+''  unless @_id? or @force

@@ -843,11 +843,11 @@ module.exports = class JGroup extends Module
             else callback null
 
   inviteByEmail: permit 'send invitations',
-    success: (client, email, message, callback)->
+    success: (client, email, message, options, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
         cb = (user, account)=>
-          @inviteMember client, email, user, account, message, callback
+          @inviteMember client, email, user, account, message, options, callback
 
         if err or not user
           cb null, null
@@ -859,11 +859,11 @@ module.exports = class JGroup extends Module
               cb user, account
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, message, callback)->
+    success: (client, emails, message, options, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), message, (err)->
+        @inviteByEmail client, email.trim(), message, options, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
@@ -899,12 +899,13 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, user, account, message, callback)->
+  inviteMember: (client, email, user, account, message, options, callback)->
     JInvitationRequest = require '../invitationrequest'
 
+    [callback, options] = [options, callback]  unless callback
     [callback, message] = [message, callback]  unless callback
     [callback, account] = [account, callback]  unless callback
-    [callback, user]    = [user, callback]     unless callback
+    [callback, user]    = [user,    callback]  unless callback
 
     params =
       email  : email
@@ -932,7 +933,7 @@ module.exports = class JGroup extends Module
                 user.fetchOwnAccount (err, account)->
                   return console.warn err  if err # this is minor work, workflow should not stop cause of this
                   account.emit 'NewPendingInvitation'
-              invitationRequest.sendInvitation client, message, callback
+              invitationRequest.sendInvitation client, message, options, callback
 
   isMember: (account, callback)->
     selector =
@@ -947,16 +948,16 @@ module.exports = class JGroup extends Module
     success: (client, rest...)-> @fetchInvitationRequests rest...
 
   sendSomeInvitations: permit 'send invitations',
-    success: (client, count, callback)->
-      selector = group: @slug, status: 'pending'
-      options = limit: count, sort: requestedAt: -1
+    success: (client, count, options, callback)->
+      selector   = group: @slug, status: 'pending'
+      selOptions = limit: count, sort: requestedAt: -1
 
       JInvitationRequest = require '../invitationrequest'
-      JInvitationRequest.some selector, options, (err, requests)->
+      JInvitationRequest.some selector, selOptions, (err, requests)->
         if err then callback err
         else
           queue = requests.map (request)->->
-            request.approveInvitation client, (err)->
+            request.approveInvitation client, options, (err)->
               return callback err if err
               setTimeout queue.next.bind(queue), 50
           queue.push -> callback null

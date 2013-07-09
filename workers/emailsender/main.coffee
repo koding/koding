@@ -29,7 +29,7 @@ log = ->
 log "E-Mail Sender Worker has started with PID #{process.pid}"
 
 sendEmail = (emailContent)->
-  {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
+  {from, replyto, email, subject, content, unsubscribeId, force, bcc} = emailContent
 
   cb = ->
     to    = emailWorker.defaultRecepient or email
@@ -41,6 +41,7 @@ sendEmail = (emailContent)->
       HtmlBody  : template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
       TextBody  : template.textTemplate content, unsubscribeId, email
       ReplyTo   : replyto
+      Bcc       : bcc
     , (err, status)->
       dateAttempted = new Date()
       status        = 'attempted'
