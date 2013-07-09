@@ -166,9 +166,9 @@ module.exports =
     webPort       : 3020
   kontrold        :
     api           :
-      port        : 8000
+      port        : 8888
     proxy         :
-      port        : 8080
+      port        : 80
       portssl     : 8081
       ftpip       : '127.0.0.1'
       sslips      : '127.0.0.1'
