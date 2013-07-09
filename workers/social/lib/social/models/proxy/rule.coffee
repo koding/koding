@@ -13,6 +13,9 @@ module.exports = class JProxyRule extends jraphical.Module
       instance      : []
       static        : ['fetchRulesByDomain', 'fetchRuleByDomainAndMatch']
 
+    indexes         :
+      name          : 'unique'
+
     schema          :
       
       action        :
