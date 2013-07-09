@@ -136,7 +136,7 @@ module.exports = class Followable
       if err
         callback err
       else if count > 0
-        callback new KodingError('already following...'), count
+        callback null, count
       else
         @addFollower follower, respondWithCount : yes, (err, docs, count)=>
           if err
@@ -179,7 +179,7 @@ module.exports = class Followable
 
     if follower.type is 'unregistered'
       return callback new KodingError 'Access denied'
-    
+
     @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
         console.log err

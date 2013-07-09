@@ -75,60 +75,21 @@ class ContentDisplayControllerTopic extends KDViewController
     , topic
     topicView
 
-class TopicView extends KDView
+class TopicView extends JView
 
   constructor:(options, data)->
 
-    @followButton = new KDToggleButton
-      style           : if data.followee then "kdwhitebtn following-topic" else "kdwhitebtn"
-      title           : "Follow"
-      dataPath        : "followee"
-      defaultState    : if data.followee then "Following" else "Follow"
-      loader          :
-        color         : "#333333"
-        diameter      : 18
-        top           : 11
-      states          : [
-        title         : "Follow"
-        callback      : (callback)->
-          data.follow (err, response)=>
-
-            KD.showError err,
-              AccessDenied : 'You are not allowed to follow topics.'
-              KodingError  : 'Something went wrong while following.'
-
-            data.followee = yes
-            @hideLoader()
-            unless err
-              @setClass 'following-btn following-topic'
-              callback? null
-      ,
-        title         : "Following"
-        callback      : (callback)->
-          data.unfollow (err, response)=>
-            data.followee = no
-            @hideLoader()
-            unless err
-              @unsetClass 'following-btn following-topic'
-              callback? null
-      ]
+    @followButton = new FollowButton
+      errorMessages  :
+        KodingError  : 'Something went wrong while follow'
+        AccessDenied : 'You are not allowed to follow topics'
+      stateOptions   :
+        unfollow     :
+          cssClass   : 'following-topic'
+      dataType       : 'JTag'
     , data
 
     super
-    unless data.followee
-      KD.whoami().isFollowing? data.getId(), "JTag", (err, following) =>
-        data.followee = following
-        warn err  if KD.isLoggedIn()
-        if data.followee
-          @followButton.setClass 'following-btn following-topic'
-          @followButton.setState "Following"
-        else
-          @followButton.setState "Follow"
-          @followButton.unsetClass 'following-btn following-topic'
-
-  viewAppended:->
-    @setTemplate @pistachio()
-    @template.update()
 
   pistachio:->
     """

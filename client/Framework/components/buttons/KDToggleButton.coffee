@@ -24,7 +24,14 @@ class KDToggleButton extends KDButtonView
 
   decorateState:(name)->
     @setTitle @state.title
-    @setIconClass @state.iconClass if @state.iconClass?
+    @setIconClass @state.iconClass  if @state.iconClass?
+
+    if @state.cssClass? or @lastUsedCssClass?
+      @unsetClass @lastUsedCssClass  if @lastUsedCssClass?
+      @setClass @state.cssClass
+      @lastUsedCssClass = @state.cssClass
+    else
+      delete @lastUsedCssClass
 
   getState:-> @state
 
@@ -39,9 +46,12 @@ class KDToggleButton extends KDButtonView
 
   toggleState:(err)->
 
-    {states} = @getOptions()
+    {states}  = @getOptions()
     nextState = states[@stateIndex + 1] or states[0]
     unless err
       @setState nextState.title
     else
-      warn err.msg or "there was an error, couldn't switch to #{nextState} state!"
+      warn err.message or \
+        "There was an error, couldn't switch to #{nextState.title} state!"
+
+    @hideLoader?()
