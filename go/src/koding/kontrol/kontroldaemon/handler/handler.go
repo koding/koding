@@ -173,6 +173,10 @@ func ApiMessage(data []byte) {
 
 // DoWorkerCommand is used to handle messages coming from workers.
 func DoWorkerCommand(command string, worker workerconfig.Worker) error {
+	if worker.Uuid == "" {
+		fmt.Errorf("worker %s does have an empty uuid", worker.Name)
+	}
+
 	switch command {
 	case "add", "addWithProxy":
 		log.Printf("[%s (%d)] received: %s - %s ", worker.Name, worker.Version, command, worker.Message.Option)
