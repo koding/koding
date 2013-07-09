@@ -36,9 +36,11 @@ class PaymentWidget extends KDView
         @loader.hide()
         @buttonBilling.show()
       else
+        @buttonBilling.hide()
         @checkSubscription (status)=>
           @loader.hide()
           if status
+            @buttonSubscribe.hide()
             @widgetContent.show()
           else
             @buttonSubscribe.show()
@@ -86,7 +88,6 @@ class PaymentWidget extends KDView
 
   confirmSubscription:(callback)->
     KD.remote.api.JRecurlyPlan.getPlanWithCode @planCode, (err,plan)=>
-      console.log plan
 
       title = plan.title
       price = plan.feeMonthly / 100
