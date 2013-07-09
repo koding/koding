@@ -21,9 +21,9 @@ incService = (serviceKey, amount) ->
     then genericServices[serviceUniqueName].amount += amount
     else genericServices[serviceUniqueName] = { amount, hostname }
 
-    if genericServices[serviceUniqueName] is 0
+    if genericServices[serviceUniqueName].amount is 0
       delete genericServices[serviceUniqueName]
-    else if genericServices[serviceUniqueName] < 0
+    else if genericServices[serviceUniqueName].amount < 0
       console.error 'Negative service count!'
 
 koding.connect ->
