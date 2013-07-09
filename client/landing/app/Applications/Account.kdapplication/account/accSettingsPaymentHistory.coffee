@@ -50,14 +50,14 @@ class AccountPaymentHistoryList extends KDListView
 
   constructor:(options,data)->
     options = $.extend
-      tagName      : "ul"
+      tagName      : "table"
       itemClass : AccountPaymentHistoryListItem
     ,options
     super options,data
 
 class AccountPaymentHistoryListItem extends KDListItemView
   constructor:(options,data)->
-    options = tagName : "li"
+    options = tagName : "tr"
     super options,data
 
   viewAppended:->
@@ -77,12 +77,16 @@ class AccountPaymentHistoryListItem extends KDListItemView
     """
     cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
     """
-      <div class='labelish'>
+      <td>
         <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
-      </div>
-      <div class='swappableish swappable-wrapper posstatic'>
+      </td>
+      <td>
         <strong>$#{data.amount}</strong>
+      </td>
+      <td>
         <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
-        <cite class='ccard'>#{data.paidVia}</cite>
-      </div>
+      </td>
+      <td class='ccard'>
+        <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber.split("...")[1]}
+      </td>
     """
