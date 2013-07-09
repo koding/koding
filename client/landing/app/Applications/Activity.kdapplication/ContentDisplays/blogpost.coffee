@@ -48,7 +48,10 @@ class ContentDisplayBlogPost extends ActivityContentDisplay
     str = @utils.applyTextExpansions str, yes
 
   pistachio:->
-
+    {html, body} = @getData()
+    unless html
+      html = KD.utils.applyMarkdown body
+    @getData().html = html
     """
     {{> @header}}
     <h2 class="sub-header">{{> @back}}</h2>
