@@ -119,8 +119,7 @@ class ContentDisplayControllerMember extends KDViewController
       dataSource        : (selector, options, callback)=>
         options.originId = account.getId()
         options.facets   = facets
-        # XXX
-        KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, callback
+        KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
     return filter
 
   addActivityView:(account)->
@@ -139,7 +138,6 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
-        # xxx
         everything          : @createFilter("Everything", account, ['Everything'])
         statuses            : @createFilter("Status Updates", account, ['JStatusUpdate'])
         codesnips           : @createFilter("Code Snippets", account, ['JCodeSnip'])
