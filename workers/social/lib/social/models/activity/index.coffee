@@ -338,16 +338,14 @@ module.exports = class CActivity extends jraphical.Capsule
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       userId = client.connection.delegate.getId()
-
       {facets, to, limit} = options
       limit = 5 #bandage for now
 
       groupId = group._id
       groupName = group.slug
 
-      # TODO: userid is not this..
       query = [
-        "start koding=node:koding(id='#{userId}')"
+        "start koding=node:koding(id='#{options.originId}')"
         'MATCH koding<-[:author]-content'
       ]
 
@@ -382,11 +380,6 @@ module.exports = class CActivity extends jraphical.Capsule
       query.push "LIMIT #{limit}"
 
       query = query.join('\n')
-
-      console.log options
-      console.log "query =============================="
-      console.log query
-      console.log "query =============================="
 
       graph = new Graph({config:KONFIG['neo4j']})
       graph.runQuery(query, options, callback)

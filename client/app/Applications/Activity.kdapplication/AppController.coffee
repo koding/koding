@@ -297,7 +297,7 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  fetchTeasers:(options,callback)->
+  fetchActivitiesProfilePage:(options,callback)->
     {CStatusActivity} = KD.remote.api
     options.to = options.to or Date.now()
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
