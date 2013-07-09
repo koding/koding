@@ -27,20 +27,18 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
         @tabView.showPaneByIndex val.ActiveTabIndex
         return @workspaceRef.child("ActiveTabIndex").remove()
 
-      {tabs} = val
-      return unless tabs
-
-      for key, data of tabs
-        if data.path and @openedFiles.indexOf(data.path) is -1
-          file = FSHelper.createFileFromPath data.path
-          @createEditorInstance file, null, data.sessionKey
+      if val.tabs?
+        for key, data of val.tabs
+          if data.path and @openedFiles.indexOf(data.path) is -1
+            file = FSHelper.createFileFromPath data.path
+            @createEditorInstance file, null, data.sessionKey
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate      : @
-      addPlusHandle : no
+      delegate          : @
+      addPlusHandle     : no
 
     @tabView = new ApplicationTabView
       delegate           : @
@@ -78,15 +76,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @tabView.addPane pane
     @activeTabIndex = @tabView.panes.length
 
-    pane.on "KDTabPaneDestroy", =>
-      @workspaceRef.once "value", (snapshot) =>
-        {tabs} = snapshot.val()
-        return unless tabs
-        delete tabs[key] for key, value of tabs when value.sessionKey is editor.sessionKey
-        @workspaceRef.set { tabs }
-
-      @openedFiles.splice @openedFiles.indexOf(file.path), 1
-
     workspaceRefData =
       sessionKey : editor.sessionKey
 
@@ -95,6 +84,15 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       @openedFiles.push file.path
 
     @workspaceRef.child("tabs").push workspaceRefData  unless sessionKey
+
+    pane.on "KDTabPaneDestroy", =>
+      @workspaceRef.once "value", (snapshot) =>
+        {tabs} = snapshot.val()
+        return unless tabs
+        delete tabs[key] for key, value of tabs when value.sessionKey is editor.sessionKey
+        @workspaceRef.set { tabs }
+
+      @openedFiles.splice @openedFiles.indexOf(file.path), 1
 
     return yes # return something instead of workspaceRef.child
 
