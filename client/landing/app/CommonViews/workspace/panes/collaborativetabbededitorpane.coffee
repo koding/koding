@@ -12,6 +12,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @workspaceRef     = @workspace.firepadRef.child @sessionKey
     @isJoinedASession = @getOptions().sessionKey
     @openedFiles      = []
+    @activeTabIndex   = 0
 
     log "joined an old session again, creating new tabbed editor" if @isJoinedASession
 
@@ -22,7 +23,11 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
       val  = snapshot.val()
       return unless val
 
-      {tabs} = snapshot.val()
+      if val.ActiveTabIndex?
+        @tabView.showPaneByIndex val.ActiveTabIndex
+        return @workspaceRef.child("ActiveTabIndex").remove()
+
+      {tabs} = val
       return unless tabs
 
       for key, data of tabs
@@ -40,6 +45,15 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @tabView = new ApplicationTabView
       delegate           : @
       tabHandleContainer : @tabHandleContainer
+
+    @tabView.on "PaneAdded", (pane) =>
+      {tabHandle} = pane
+      tabHandle.on "click", =>
+        newIndex = @tabView.getPaneIndex @tabView.getActivePane()
+        return  if newIndex is @activeTabIndex
+
+        @workspaceRef.child("ActiveTabIndex").set newIndex
+        @activeTabIndex = newIndex
 
   createEditorInstance: (file, content, sessionKey) ->
     if file
@@ -62,6 +76,7 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     pane.addSubView editor
     @tabView.addPane pane
+    @activeTabIndex = @tabView.panes.length
 
     pane.on "KDTabPaneDestroy", =>
       @workspaceRef.once "value", (snapshot) =>
