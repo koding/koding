@@ -956,7 +956,7 @@ module.exports = class JGroup extends Module
       }, (err, requests)->
         if err then callback err
         else
-          queue = requests.map (request)->->
+          queue = requests.map (request) -> ->
             request.approveInvitation client, (err)->
               return callback err if err
               setTimeout queue.next.bind(queue), 50
