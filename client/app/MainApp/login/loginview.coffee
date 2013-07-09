@@ -174,7 +174,7 @@ class LoginView extends KDScrollView
       if pages.length is 0
         pages.push "table-of-contents"
         appStorage.setValue "readPages", pages
-        KD.getSingleton('mainController').emit "ShowInstructionsBook"
+        KD.getSingleton('mainController').emit "ShowInstructionsBook", 1
       
       
 
