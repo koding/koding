@@ -36,8 +36,8 @@ class StartTabMainView extends JView
         "Restore shortcuts":
           cssClass: ""
           callback: =>
-            KD.getSingleton('kodingAppsController').putDefaultShortcutsBack()
-            @refreshApps()
+            KD.getSingleton('kodingAppsController').putDefaultShortcutsBack =>
+              @refreshApps()
 
     @addAnAppButton = new KDButtonView
       cssClass    : "editor-button new-app-button"

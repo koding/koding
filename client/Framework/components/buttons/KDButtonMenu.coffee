@@ -39,8 +39,6 @@ class JButtonMenu extends JContextMenu
 
     @$(".chevron-ghost-wrapper").css ghostCss
 
-    log "bwit " + buttonWidth
-    log "mwit " + menuWidth
     @$().css
       top       : top
       left      : button.getX() + buttonWidth - menuWidth
