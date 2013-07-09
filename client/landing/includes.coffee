@@ -158,6 +158,7 @@ module.exports = [
   "app/CommonViews/linkviews/autocompleteprofiletextview.coffee",
   "app/CommonViews/splitview.coffee",
   "app/CommonViews/slidingsplit.coffee",
+  "app/CommonViews/paymentwidgets.coffee",
 
   "app/CommonViews/avatarviews/avatarview.coffee",
   "app/CommonViews/avatarviews/avatarstaticview.coffee",
