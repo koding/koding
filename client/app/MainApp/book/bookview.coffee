@@ -199,10 +199,9 @@ class BookView extends JView
 
 
   showMeButtonClicked:->
-    return if @page.showHow is no
-
+    
     @pointer or = new KDCustomHTMLView
-      partial : '  '
+      partial : ''
       cssClass : 'point'
 
     @pointer.bindTransitionEnd()
@@ -226,13 +225,10 @@ class BookView extends JView
       @utils.wait 600, =>
         @continueNextMove()
 
-    @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
-    selectedMenuItemX = @selectedMenuItem[0].$('.main-nav-icon').eq(0).offset().top
-    selectedMenuItemY = @selectedMenuItem[0].$('.main-nav-icon').eq(0).offset().left
+    @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem    
+    selectedMenuItemOffset = @selectedMenuItem[0].$().offset()
 
-    @pointer.$().offset
-      top: selectedMenuItemX
-      left: selectedMenuItemY
+    @pointer.$().offset selectedMenuItemOffset
 
   continueNextMove:->
     steps = @page.data.howToSteps
@@ -269,36 +265,9 @@ class BookView extends JView
       if steps[0] is 'changeIndexFile'
         @changeIndexFile()
 
-
-  clickAceIconInAppWindow:->
-    @mainView = @getDelegate()
-    #find aceIconPositon
-    @mainView.once 'transitionend',=>
-      # just wait a little
-      @utils.wait 500, =>
-        appIcons  = @mainView.mainTabView.activePane.options.view.appIcons
-        aceLeft   = appIcons.Ace.$('.kdloader').eq(0).offset().left
-        aceTop    = appIcons.Ace.$('.kdloader').eq(0).offset().top
-
-        #catch callback
-        @pointer.once 'transitionend', =>
-          # just wait a little
-          @utils.wait 300, =>
-            #call click animation
-            @clickAnimation()
-            #open page
-            indexFile = '/Web/index.html'
-            @openFileWithPage indexFile
-            # TODO !!! start typing
-
-        #navigate to aceIcon
-        @pointer.$().offset
-          top     : aceTop
-          left    : aceLeft
-
   navigateToStatusUpdateInput:->
     @pointer.once 'transitionend', =>
-      @utils.wait 2400, =>
+      @utils.wait 1000, =>
         @clickAnimation()
         @simulateNewStatusUpdate()
 
@@ -306,7 +275,6 @@ class BookView extends JView
       @utils.wait 500, =>
 
         smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
-
         @pointer.$().offset
           top   : smallInput.offset().top
           left  : smallInput.offset().left + (smallInput.width() / 2)
@@ -319,16 +287,6 @@ class BookView extends JView
     # start typing
     @utils.wait 1000, =>
       textToWrite = 'Hello World!!'
-      ###waitSec = 300
-      for i in [0, textToWrite.length] by 1
-        # take a little break on each letter to seem like typing
-        log 'letterIndex' , i
-        waitSec += (i * 100)
-        currentText = textToWrite.slice 0, i
-        log 'currentText', currentText
-        @utils.wait waitSec, =>
-          $('.status-update-input').eq(1).val(currentText)
-      ###
       largeInput.val(textToWrite)
       @pushSubmitButton()
 

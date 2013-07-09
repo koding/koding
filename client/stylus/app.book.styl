@@ -4,14 +4,16 @@
 #instruction-book
   abs()
   bottom                    15px
-  // margin-top                -222px
+  margin-top                -222px
   left                      -1609px
   size                      1509px, 425px
   z-index                   1000
   rounded                   4px
   shadow                    inset 0 5px 5px rgba(0,0,0,.35), 0 15px 40px rgba(0,0,0,.8)
   background                transparent url("../images/book/book.jpg") no-repeat 0 0
-  vendor                    transition, all .3s ease-in-out
+  vendor                    transition, left .3s ease-in-out
+  vendor                    transition, top .3s ease-in-out
+  vendor                    transition, bottom .3s ease-in-out
   overflow                  visible
   &.more-terminal
       bottom                40px
@@ -46,7 +48,7 @@
       background            linear-gradient(#F27500 0%, #FC7A00 100%)
 
   &.moveUp
-    left                    -1450px
+    bottom                  145px
   &.in
     left                    -700px
   .contents
@@ -115,10 +117,6 @@
       &:hover
       &:focus
         color             rgba(0,0,0,.8)
-      // &:first-child
-      //   fl()
-      // &:last-child
-      //   fr()
 
     .point
       position              relative
