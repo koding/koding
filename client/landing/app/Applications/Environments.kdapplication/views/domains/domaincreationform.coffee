@@ -128,7 +128,7 @@ class DomainCreationForm extends KDTabViewWithForms
       warn err  if err
       domainList = []
       for domain in userDomains
-        if not domain.regYears > 0 and domain.domain.indexOf("shared") is -1
+        if not domain.regYears > 0
           domainList.push {title:".#{domain.domain}", value:domain.domain}
       @forms["Domain Address"].inputs.domains.setSelectOptions domainList
 
