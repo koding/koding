@@ -129,66 +129,57 @@ module.exports = class Followable
 
     sourceId = @getId()
     targetId = follower.getId()
-    sourceType = this.constructor.name.toLowerCase()
-    sourceTypeStr = Inflector.pluralize sourceType.substring 1, sourceType.length
-    if sourceTypeStr is 'accounts'
-      sourceTypeStr = 'members'
-    permissionStr = "follow #{sourceTypeStr}"
 
-    JGroup.one {slug:client.context.group}, (err, group)=>
-      return callback err  if err?
-
-      follower.checkPermission group, permissionStr, (err, hasPermission)=>
-        return callback err  if err?
-
-        return callback new KodingError 'Access denied'  unless hasPermission
-
-        Relationship.count {
-          sourceId, targetId, as:'follower'
-        }, (err, count)=>
+    Relationship.count {
+      sourceId, targetId, as:'follower'
+    }, (err, count)=>
+      if err
+        callback err
+      else if count > 0
+        callback new KodingError('already following...'), count
+      else
+        @addFollower follower, respondWithCount : yes, (err, docs, count)=>
           if err
             callback err
-          else if count > 0
-            callback new KodingError('already following...'), count
           else
-            @addFollower follower, respondWithCount : yes, (err, docs, count)=>
+            Module::update.call @, $set: 'counts.followers': count, (err)->
+              if err then log err
+            action = "follow"
+            @emit 'FollowCountChanged',
+              followerCount   : @getAt 'counts.followers'
+              followingCount  : @getAt 'counts.following'
+              follower        : follower
+              action          : action
+
+            @constructor.emit 'FollowHappened',
+              followee  : this
+              follower  : follower
+
+            @emit 'FollowHappened',
+              origin    : this
+              actorType : 'follower'
+              follower  : ObjectRef(follower).data
+
+            follower.updateFollowingCount @, action
+
+            callback err, count
+
+            Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
               if err
                 callback err
               else
-                Module::update.call @, $set: 'counts.followers': count, (err)->
-                  if err then log err
-                action = "follow"
-                @emit 'FollowCountChanged',
-                  followerCount   : @getAt 'counts.followers'
-                  followingCount  : @getAt 'counts.following'
-                  follower        : follower
-                  action          : action
-
-                @constructor.emit 'FollowHappened',
-                  followee  : this
-                  follower  : follower
-
-                @emit 'FollowHappened',
-                  origin    : this
-                  actorType : 'follower'
-                  follower  : ObjectRef(follower).data
-
-                follower.updateFollowingCount @, action
-
-                callback err, count
-
-                Relationship.one {sourceId, targetId, as:'follower'}, (err, relationship)=>
-                  if err
-                    callback err
-                  else
-                    emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
-                    if emitActivity
-                      CBucket.addActivities relationship, @, follower, (err)->
-                        console.log "An Error occured: #{err}" if err
+                emitActivity = options.emitActivity ? @constructor.emitFollowingActivities ? no
+                if emitActivity
+                  CBucket.addActivities relationship, @, follower, (err)->
+                    console.log "An Error occured: #{err}" if err
 
   unfollow: secure (client,callback)->
     JAccount = require '../models/account'
     follower = client.connection.delegate
+
+    if follower.type is 'unregistered'
+      return callback new KodingError 'Access denied'
+    
     @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
         console.log err

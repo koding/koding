@@ -53,7 +53,6 @@ module.exports = class JGroup extends Module
       'assure collection'                 : ['moderator']
       'remove documents from collection'  : ['moderator']
       'view readme'                       : ['guest','member','moderator']
-      'follow members'                    : ['member', 'moderator']
     indexes         :
       slug          : 'unique'
     sharedEvents    :

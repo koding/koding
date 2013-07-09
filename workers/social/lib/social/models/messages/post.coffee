@@ -63,7 +63,6 @@ module.exports = class JPost extends jraphical.Message
       'delete own posts'  : ['member', 'moderator']
       'reply to posts'    : ['member', 'moderator']
       'like posts'        : ['member', 'moderator']
-      'follow posts'      : ['member', 'moderator']
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
