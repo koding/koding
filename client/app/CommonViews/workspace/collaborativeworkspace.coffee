@@ -145,31 +145,15 @@ class CollaborativeWorkspace extends Workspace
             appManager = KD.getSingleton("appManager")
             appManager.quit appManager.frontApp
 
-  showSessionModal: (callback = noop) ->
+  showJoinModal: (callback = noop) ->
     modal                       = new KDModalViewWithForms
-      title                     : "Manage Your Session"
+      title                     : "Join New Session"
       content                   : ""
       overlay                   : yes
       cssClass                  : "manage-session-modal"
       width                     : 500
       tabs                      :
         forms                   :
-          "Share This Session"  :
-            fields              :
-              Label             :
-                itemClass       : KDCustomHTMLView
-                tagName         : "p"
-                partial         : "Share the session ID with your friends to hang out together."
-              SessionKey        :
-                itemClass       : KDCustomHTMLView
-                partial         : @sessionKey
-                tagName         : "div"
-                cssClass        : "key"
-            buttons             :
-              "Ok"              :
-                title           : "Got It"
-                cssClass        : "modal-clean-green"
-                callback        : -> modal.destroy()
           "Join A Session"      :
             fields              :
               Label             :
@@ -195,16 +179,33 @@ class CollaborativeWorkspace extends Workspace
                 title           : "Close"
                 cssClass        : "modal-cancel"
                 callback        : -> modal.destroy()
-          "What is this?"       :
+
+    callback modal
+
+  showShareModal: (callback = noop) ->
+    modal                       = new KDModalViewWithForms
+      title                     : "Share Your Session"
+      content                   : ""
+      overlay                   : yes
+      cssClass                  : "manage-session-modal"
+      width                     : 500
+      tabs                      :
+        forms                   :
+          "Share This Session"  :
             fields              :
               Label             :
                 itemClass       : KDCustomHTMLView
                 tagName         : "p"
-                partial         : "You can share collaborating with your friends easily."
+                partial         : "Share the session ID with your friends to hang out together."
+              SessionKey        :
+                itemClass       : KDCustomHTMLView
+                partial         : @sessionKey
+                tagName         : "div"
+                cssClass        : "key"
             buttons             :
-              Close             :
-                title           : "Close"
-                cssClass        : "modal-cancel"
+              "Ok"              :
+                title           : "Got It"
+                cssClass        : "modal-clean-green"
                 callback        : -> modal.destroy()
 
     callback modal
