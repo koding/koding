@@ -56,6 +56,15 @@ class BookView extends JView
         title   : "Table of contents"
         gravity : "sw"
 
+    @showMeButton = new KDCustomHTMLView
+      tagName   : "a"
+      partial   : "Show me how!"
+      cssClass  : "cta_button"
+      click     : (pubInst, event)=> @showMeButtonClicked()
+
+    @pagerWrapper.addSubView @showMeButton
+
+
     @pageNav.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "◀"
@@ -64,20 +73,7 @@ class BookView extends JView
         title   : "Press: Left Arrow Key"
         gravity : "sw"
 
-
-      
-    
-    @showMeButton = new KDCustomHTMLView
-      tagName   : "a"
-      partial   : "Show ME HOW!"
-      click     : (pubInst, event)=> @showMeButtonClicked()
-      tooltip   :
-        title   : "help me right here!"
-
-    @pagerWrapper.addSubView @showMeButton
-
-      
-    @pagerWrapper.addSubView new KDCustomHTMLView
+    @pageNav.addSubView new KDCustomHTMLView
       tagName   : "a"
       partial   : "▶"
       click     : (pubInst, event)=> @fillNextPage()
@@ -180,7 +176,7 @@ class BookView extends JView
     # check if page has tutorial
     if @page.data.howToSteps.length < 1
       @showMeButton.hide()
-    else 
+    else
       @showMeButton.show()
 
 
@@ -199,7 +195,7 @@ class BookView extends JView
 
 
   showMeButtonClicked:->
-    
+
     @pointer or = new KDCustomHTMLView
       partial : ''
       cssClass : 'point'
@@ -208,11 +204,11 @@ class BookView extends JView
 
     @pagerWrapper.addSubView @pointer
     #!!! we should check here if has tutorial available for current topic
-    if @page.data.menuItem 
+    if @page.data.menuItem
       @navigateCursorToMenuItem(@page.data.menuItem)
-    else 
+    else
       @continueNextMove()
-    
+
   navigateCursorToMenuItem:(menuItem)->
 
     @pointer.once 'transitionend', =>
@@ -225,7 +221,7 @@ class BookView extends JView
       @utils.wait 600, =>
         @continueNextMove()
 
-    @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem    
+    @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
     selectedMenuItemOffset = @selectedMenuItem[0].$().offset()
 
     @pointer.$().offset selectedMenuItemOffset
@@ -304,8 +300,8 @@ class BookView extends JView
     # find offset of submit button
     submitButtonOffset = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().offset()
     # navigate submit button
-    @pointer.$().offset submitButtonOffset 
-  
+    @pointer.$().offset submitButtonOffset
+
   clickFolderOnFileTree:->
     @mainView.sidebar.animateLeftNavOut()
     @pointer.once 'transitionend', =>
@@ -328,20 +324,20 @@ class BookView extends JView
       # move cursor to file tree menu
       @pointer.$().offset
         top     : vmOffset.top
-        left    : vmOffset.left 
+        left    : vmOffset.left
 
   showVMMenu:->
     @mainView.sidebar.animateLeftNavOut()
     @pointer.once 'transitionend', =>
       # make click action
       @clickAnimation()
-      # open VM menu 
+      # open VM menu
       @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().click()
       # wait 3 sec.
       @utils.wait 2000, =>
         # remove pointer
         #@pointer.destroy()
-    
+
     # TODO !!! should remove that class on pageNext
     @setClass 'moveUp'
     @mainView.once 'transitionend', =>
@@ -350,19 +346,19 @@ class BookView extends JView
         vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].chevron.$().offset()
         # move cursor to VM's menu position
         @pointer.$().offset vmMenuOffset
-  
+
   showVMTerminal:->
     @mainView.sidebar.animateLeftNavOut()
     @pointer.once 'transitionend', =>
       # make click action
       @clickAnimation()
-      # open VM menu 
+      # open VM menu
       # wait 3 sec.
       @utils.wait 2000, =>
         @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().click()
         # remove pointer
         #@pointer.destroy()
-    
+
     # TODO !!! should remove that class on pageNext
     @setClass 'moveUp'
     @mainView.once 'transitionend', =>
@@ -371,7 +367,7 @@ class BookView extends JView
         vmMenuOffset = @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().offset()
         # move cursor to VM's menu position
         @pointer.$().offset vmMenuOffset
-      
+
   showRecentFilesMenu:->
     @pointer.once 'transitionend', =>
       @utils.wait 6000, =>
@@ -383,12 +379,12 @@ class BookView extends JView
     # find recent files menu
     offsetTo = @mainView.mainTabView.activePane.mainView.recentFilesWrapper.$().offset()
     log offsetTo
-    # move cursor 
+    # move cursor
     @utils.wait 700, =>
       @pointer.$().offset offsetTo
-    
+
     log offsetTo
-  
+
   showNewVMMenu:->
     @pointer.once 'transitionend', =>
     # click animation
@@ -396,7 +392,7 @@ class BookView extends JView
     # click menu
       @mainView.sidebar.createNewVMButton.$().click()
 
-    # move book to up to make button visible 
+    # move book to up to make button visible
     @setClass 'moveUp'
     # if sidebar is closed opens it.
     @mainView.sidebar.animateLeftNavOut()
@@ -415,7 +411,7 @@ class BookView extends JView
       KD.singletons.chatPanel.showPanel()
       @utils.wait 1000, =>
         @startNewConversation()
-     
+
     # find conversations panel icon position.
     offsetTo = @mainView.chatHandler.$().offset()
     # move cursor to conv. panel button position.
@@ -443,13 +439,13 @@ class BookView extends JView
     # dbl-click animation
     # find 'Hello World'
     # continue to next step
-    # find ace menu 
+    # find ace menu
     # move cursor to ace menu
     # find save menu item
     # move cursor to save menu item
     # click animation
 
-    
+
 
 
 
