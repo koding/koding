@@ -3,6 +3,7 @@ class BookPage extends JView
   constructor: (options = {},data) ->
     data.cssClass  or = ""
     data.content   or = ""
+    data.menuItem  or = ""
     # TODO : check do we really need that here?
     data.profile      = KD.whoami().profile
     data.routeURL  or = ""
