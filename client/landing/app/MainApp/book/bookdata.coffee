@@ -28,7 +28,8 @@ __bookPages = [
     section   : 3
     parent    : 0
     showHow   : yes
-    howToSteps: ['enterNewStatusUpdate']  
+    howToSteps: ['enterNewStatusUpdate']
+    menuItem  : "Activity"
   ,
 
     title     : "Topics"
@@ -60,6 +61,7 @@ __bookPages = [
     parent    : 5  
     showHow   : yes
     howToSteps: ['showFileTreeFolderAndFileMenu']
+    menuItem  : "Develop"
   ,
     cssClass  : "develop more-1"
     content   : """<p> <h1> What those two applications do? </h1></p>
@@ -69,7 +71,7 @@ __bookPages = [
                    </p>
                 """
     section   : 2
-    parent    : 5
+    parent    : ""
     showHow   : no
   ,
 
@@ -82,6 +84,8 @@ __bookPages = [
     parent    : 5
     showHow   : yes
     howToSteps: ['showVMMenu']
+    menuItem  : "Develop"
+
   , 
     cssClass  : "develop enviroments more"
     content   : """<p> <h1> Open VM's Terminal </h1></p>
@@ -91,6 +95,7 @@ __bookPages = [
     parent    : 5
     showHow   : yes
     howToSteps: ['openVMTerminal']
+    menuItem  : "Develop"
   ,
     cssClass  : "develop more-1"
     content   : """<p> There is a shortcut to your recently opened files</p>
@@ -101,6 +106,7 @@ __bookPages = [
     routeURL  : "/Develop"
     showHow   : yes
     howToSteps: ['showRecentFiles']
+    menuItem  : "Develop"
   ,
     cssClass  : "develop buy vm"
     content   : """<p> <h1>Need more VM's ?</h1></p>
@@ -110,7 +116,8 @@ __bookPages = [
     parent    : 5 
     routeURL  : "/Develop"
     showHow   : yes
-    howToSteps: ['showBuyVMMenu']
+    howToSteps: ['showNewVMMenu']
+    menuItem  : "Develop"
   ,
     cssClass  : "develop more-1"
     content   : """<p> Let's change your homepage! <a href= "#"> http://{{#(profile.nickname)}}.kd.io </a> </p>
@@ -123,6 +130,8 @@ __bookPages = [
     parent    : 5  
     showHow   : yes
     howToSteps: ['changeIndexFile']
+    menuItem  : "Develop"
+
   ,
     cssClass  : "develop more-1"
     content   : """
