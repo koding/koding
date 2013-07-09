@@ -25,7 +25,15 @@ class TopicsListItemView extends KDListItemView
     else
       @editButton = new KDCustomHTMLView tagName : 'span', cssClass : 'hidden'
 
-    @followButton = new FollowButton {cssClass: 'topic'}, data
+    @followButton = new FollowButton
+      cssClass       : 'topic'
+      errorMessages  :
+        KodingError  : 'Something went wrong while follow'
+        AccessDenied : 'You are not allowed to follow topics'
+      stateOptions   :
+        unfollow     :
+          cssClass   : 'following-btn'
+    , data
 
   titleReceivedClick:(event)-> @emit 'LinkClicked'
 
