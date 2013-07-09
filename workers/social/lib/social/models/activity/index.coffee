@@ -387,6 +387,7 @@ module.exports = class CActivity extends jraphical.Capsule
 
 
       graph = new Graph({config:KONFIG['neo4j']})
+      options.returnAsBongoObjects = true
       graph.runQuery(query, options, callback)
 
 
@@ -436,6 +437,7 @@ module.exports = class CActivity extends jraphical.Capsule
       console.log "======================="
 
       graph = new Graph({config:KONFIG['neo4j']})
+      options.returnAsBongoObjects = true
       graph.runQuery(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->

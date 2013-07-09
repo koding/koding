@@ -7,6 +7,14 @@ module.exports = class Graph
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
     @facets = facets
 
+  @reviveFromData: (data, className)->
+    data.bongo_ =
+      constructorName : className
+      instanceId : data.id
+    data._id = data.id
+    new Base.constructors[className] data
+
+
   fetchObjectsFromMongo:(collections, wantedOrder, callback)->
     sortThem=(err, objects)->
       if err
@@ -153,10 +161,17 @@ module.exports = class Graph
               tempRes[i].relationData =  relatedResult
               if relatedResult.reply?
                 for reply in relatedResult.reply
-                  reply.bongo_ = 
-                    constructorName: obj.name
-                    instanceId: obj.id
-                  tempRes[i].replies.push reply
+
+                  if options.returnAsBongoObjects?
+                    # this is needed for following feed and profile page feed
+                    # for the public feed we dont need it
+                    reply._id = obj.id
+                    reply.bongo_ = 
+                      constructorName: obj.name
+                      instanceId: obj.id
+                    tempRes[i].replies.push reply
+                  else
+                    tempRes[i].replies.push reply
               fin()
         , =>
 
@@ -168,11 +183,18 @@ module.exports = class Graph
         resultData = []
         for result in results
           obj = result.content.data
-          obj.bongo_ = 
-            constructorName: obj.name
-            instanceId: obj.id
-          resultData.push obj
-        console.log "==========================", resultData
+          if options.returnAsBongoObjects?
+            # this is needed for following feed and profile page feed
+            # for the public feed we dont need it
+            obj.bongo_ = 
+              constructorName: obj.name
+              instanceId: obj.id
+            obj._id = obj.id
+            console.log obj._id
+            resultData.push new Base.constructors[obj.name] obj
+          else
+            resultData.push obj
+
         objectify resultData, (objecteds)->
           for objected in objecteds
             tempRes.push objected

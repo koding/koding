@@ -67,9 +67,11 @@ class ActivityListController extends KDListViewController
 
   listActivities:(activities)->
     @hideLazyLoader()
+    console.log "returning because no activity"
     return  unless activities.length > 0
     activityIds = []
     for activity in activities when activity
+      console.log "adding item", activity
       @addItem activity
       activityIds.push activity._id
 
@@ -192,7 +194,9 @@ class ActivityListController extends KDListViewController
   fakeItems = []
 
   addItem:(activity, index, animation) ->
-    dataId = activity.getId?()
+    console.log "function addItem >>>>>", activity
+    dataId = activity.getId?() or activity._id
+    console.log "dataId", dataId
 
     if dataId?
       if @itemsIndexed[dataId]
