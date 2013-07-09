@@ -2,6 +2,7 @@ jraphical = require 'jraphical'
 JUser     = require '../user'
 payment   = require 'koding-payment'
 createId  = require 'hat'
+async     = require 'async'
 
 forceRefresh  = yes
 forceInterval = 0
@@ -154,7 +155,6 @@ module.exports = class JRecurlyPlan extends jraphical.Module
               plan.save ->
                 cb null, plan
 
-        async = require 'async'
         async.parallel stack, (err, results)->
           callback()
 
@@ -300,3 +300,44 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     userCode      = "group_#{group._id}"
     
     @getAccountBalance userCode, callback
+
+do ->
+  # Koding Recurly Products
+
+  fs   = require 'fs'
+  path = require 'path'
+
+  getProducts = (callback)->
+    root = path.join __dirname, "../../../../../../products.json"
+    products = JSON.parse(fs.readFileSync(root))
+    callback products
+
+  # Create products
+  getProducts (products)->
+    stack = []
+    products.forEach (prod)->
+      stack.push (cb)->
+        payment.getPlanInfo {code: prod.code}, (err, plan)->
+          if not err and plan
+            payment.updatePlan 
+              code       : prod.code
+              title      : prod.title
+              feeMonthly : prod.price
+            , (err, plan)->
+              unless err
+                console.log "Updated product: #{prod.title}"
+              cb()
+          else
+            payment.addPlan
+              code       : prod.code
+              title      : prod.title
+              feeMonthly : prod.price
+            , (err, plan)->
+              unless err
+                console.log "Created product: #{prod.title}"
+              cb()
+
+    async.parallel stack, (err, result)->
+      JRecurlyPlan.updateCache ->
+        JRecurlyPlan.all {}, ->
+          console.log "Updated product cache."
