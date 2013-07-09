@@ -33,6 +33,8 @@ class CollaborativeTerminalPane extends TerminalPane
 
         @terminal.terminal.inputHandler[eventName] eventInstance
 
+    @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
+
     log "i'm a host terminal and my session key is #{@sessionKey}"
 
   syncContent: (encoded) ->

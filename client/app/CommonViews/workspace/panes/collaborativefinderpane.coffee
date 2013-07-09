@@ -38,8 +38,6 @@ class CollaborativeFinderPane extends CollaborativePane
         treeController.openItem nodeView, (err, res) =>
           log "Host terminal done with client request", res
 
-    # event bindings
-
     @finderController.on "FileTreeInteractionDone", (files) =>
       @syncContent files
 
@@ -51,6 +49,8 @@ class CollaborativeFinderPane extends CollaborativePane
       return  warn "could not find an editor instance to set file content" unless editorPane
 
       editorPane.openFile file, content
+
+    @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
 
     log "i'm a host file tree and my session key is #{@sessionKey}"
 
