@@ -188,7 +188,7 @@ class MemberFollowToggleButton extends KDToggleButton
             @hideLoader()
 
             KD.showError err,
-              AccessDenied : 'Permission denied to follow members'
+              AccessDenied : 'You are not allowed to follow members'
               KodingError  : 'Something went wrong while follow'
 
             unless err
@@ -203,7 +203,7 @@ class MemberFollowToggleButton extends KDToggleButton
             @hideLoader()
 
             KD.showError err,
-              AccessDenied : 'Permission denied to unfollow members'
+              AccessDenied : 'You are not allowed to unfollow members'
               KodingError  : 'Something went wrong while unfollow'
 
             unless err
