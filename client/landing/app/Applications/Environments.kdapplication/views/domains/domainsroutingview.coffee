@@ -87,6 +87,11 @@ class DomainsRoutingView extends JView
     {hostnameAlias} = vm
     options         = {hostnameAlias}
 
+    if domain.hostnameAlias.length > 0
+      listItem.hideLoader()
+      return new KDNotificationView
+        title : "You cannot bind a domain to more than one vms."
+
     domain.bindVM options, (err)=>
       listItem.hideLoader()
       unless err
@@ -101,6 +106,8 @@ class DomainsRoutingView extends JView
     vm              = listItem.getData()
     {hostnameAlias} = vm
     options         = {hostnameAlias}
+
+    listItem.showLoader()
 
     domain.unbindVM options, (err)=>
       listItem.hideLoader()
