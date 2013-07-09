@@ -179,9 +179,11 @@ class GroupsInvitationView extends KDView
     subject = if @policy.approvalEnabled then 'Membership' else 'Invitation'
     @bulkApprove = @showModalForm
       title            : "Bulk Approve #{subject} Requests"
+      cssClass         : 'bulk-approve'
       callback         : ({count, bcc})=>
-        @getData().sendSomeInvitations count, {bcc},
-          @modalCallback.bind this, @bulkApprove, noop
+        @getData().sendSomeInvitations count, {bcc}, (err, emails)=>
+          log 'successfully approved/invited: ', emails
+          @modalCallback @bulkApprove, noop, err
       submitButtonLabel: if @policy.approvalEnabled then 'Approve' else 'Invite'
       content          : "<div class='modalformline'>Enter how many of the pending #{subject.toLowerCase()} requests you want to approve:</div>"
       fields           :
@@ -199,6 +201,11 @@ class GroupsInvitationView extends KDView
           label        : 'BCC'
           type         : 'text'
           placeholder  : '(optional)'
+        report           :
+          itemClass      : KDScrollView
+          cssClass       : 'report'
+
+    @bulkApprove.modalTabs.forms.invite.fields.report.hide()
 
   modalCallback:(modal, errCallback, err)->
     form = modal.modalTabs.forms.invite

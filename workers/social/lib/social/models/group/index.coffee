@@ -956,11 +956,16 @@ module.exports = class JGroup extends Module
       JInvitationRequest.some selector, selOptions, (err, requests)->
         if err then callback err
         else
+          errors = []
+          emails = []
           queue = requests.map (request)->->
             request.approveInvitation client, options, (err)->
-              return callback err if err
+              if err
+                errors.push "#{request.email} failed!"
+              else
+                emails.push request.email
               setTimeout queue.next.bind(queue), 50
-          queue.push -> callback null
+          queue.push -> callback (if errors.length > 0 then errors else null), emails
           daisy queue
 
   requestAccess: secure (client, formData, callback)->
