@@ -11,7 +11,7 @@ class PaymentWidget extends KDView
     @buttonSubscribe = new KDButtonView
       title    : "Subscribe"
       cssClass : "hidden"
-      callback : => @confirmSubscription ->
+      callback : => @confirmSubscription =>
                       @subscribe (err, sub)=>
                         @updateButtons()
 
