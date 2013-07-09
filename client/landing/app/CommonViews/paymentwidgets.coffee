@@ -53,9 +53,7 @@ class PaymentWidget extends KDView
       callback err or not account or not account.cardNumber
 
   checkSubscription:(callback)->
-    KD.remote.api.JRecurlySubscription.checkUserSubscription
-      planCode: @planCode
-    , (err, subs)=>
+    KD.remote.api.JRecurlySubscription.checkUserSubscription @planCode, (err, subs)=>
       subscribed = no
       subs.forEach (sub)=>
         if sub.status in ['canceled', 'active']
