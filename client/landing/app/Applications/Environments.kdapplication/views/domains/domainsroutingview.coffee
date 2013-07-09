@@ -147,7 +147,7 @@ class DomainsRoutingView extends JView
   pistachio:->
     """
     <header>
-    Click on any of your {{> @routingSelector}} to point and load balance to <a href='#{@getData().domain}' target='_blank'>{{ #(domain)}}</a>
+    Click on any of your {{> @routingSelector}} to point <a href='http://#{@getData().domain}' target='_blank'>{{ #(domain)}}</a>
     </header>
     {{> @disconnectedVMs}}
     {{> @disconnectedKites}}
