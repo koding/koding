@@ -108,4 +108,6 @@ class PaymentWidget extends KDView
           Yes         :
             title     : "Yes, subscribe"
             cssClass  : "modal-clean-green"
-            callback  : callback
+            callback  : =>
+              modal.destroy()
+              callback()
