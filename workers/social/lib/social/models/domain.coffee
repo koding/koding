@@ -35,6 +35,7 @@ module.exports = class JDomain extends jraphical.Module
                        'updateProxyRule', 'deleteProxyRule', 'setDomainCNameToProxyDomain',
                        'updateRuleOrders', 'fetchProxyRules', 'fetchProxyRulesWithMatches',
                        'fetchDNSRecords', 'createDNSRecord', 'deleteDNSRecord', 'updateDNSRecord'
+                       'remove'
                       ]
       static        : ['one', 'isDomainAvailable', 'registerDomain', 'createDomain']
 
@@ -373,3 +374,11 @@ module.exports = class JDomain extends jraphical.Module
 
         callback err, response
 
+  remove$: permit
+      advanced: [
+        { permission: 'delete own domains', validateWith: Validators.own }
+      ]
+      success: (client, callback)->
+        {delegate} = client.connection
+        @remove (err)=>
+          callback err
