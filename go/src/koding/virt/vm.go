@@ -101,7 +101,7 @@ func LowerdirFile(p string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + p
 }
 
-func (vm *VM) Prepare(users []User, reinitialize bool) {
+func (vm *VM) Prepare(reinitialize bool) {
 	vm.Unprepare()
 
 	// write LXC files

@@ -153,7 +153,7 @@ func main() {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		vos.VM.Prepare(getUsers(vos.VM), true)
+		vos.VM.Prepare(true)
 		if err := vos.VM.Start(); err != nil {
 			panic(err)
 		}
@@ -166,11 +166,43 @@ func main() {
 		return info, nil
 	})
 
-	registerVmMethod(k, "vm.rename", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "vm.renameUser", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
 		}
-		return true, vos.VM.ResizeRBD()
+
+		var params struct {
+			OldName string
+			NewName string
+		}
+		if args.Unmarshal(&params) != nil || params.OldName == "" || params.NewName == "" {
+			return nil, &kite.ArgumentError{Expected: "{ oldName: [string], newName: [string] }"}
+		}
+
+		rootVos, err := vos.VM.OS(&virt.RootUser)
+		if err != nil {
+			panic(err)
+		}
+
+		if err := rootVos.Rename("/home/"+params.OldName, "/home/"+params.NewName); err != nil {
+			return nil, err
+		}
+		if err := rootVos.Symlink(params.NewName, "/home/"+params.OldName); err != nil {
+			return nil, err
+		}
+
+		if target, err := rootVos.Readlink("/var/www"); err == nil && target == "/home/"+params.OldName+"/Web" {
+			if err := rootVos.Remove("/var/www"); err != nil {
+				panic(err)
+			}
+			if err := rootVos.Symlink("/home/"+params.NewName+"/Web", "/var/www"); err != nil {
+				panic(err)
+			}
+		}
+
+		ldapserver.ClearCache()
+
+		return true, nil
 	})
 
 	registerVmMethod(k, "vm.resizeDisk", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
@@ -342,7 +374,7 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
-			vm.Prepare(getUsers(vm), false)
+			vm.Prepare(false)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}
