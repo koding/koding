@@ -82,7 +82,12 @@ class GroupsInvitationView extends KDView
             label         : "Maximum uses"
             itemClass     : KDInputView
             name          : "maxUses"
-            placeholder   : "How many people can redeem this code?"
+            placeholder   : "How many times can this code be redeemed?"
+          memo            :
+            label         : "Memo"
+            itemClass     : KDInputView
+            name          : "memo"
+            placeholder   : "(optional)"
 
   getDefaultInvitationMessage:->
     """
