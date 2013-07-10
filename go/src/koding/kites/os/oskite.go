@@ -166,6 +166,13 @@ func main() {
 		return info, nil
 	})
 
+	registerVmMethod(k, "vm.rename", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
+			return nil, &kite.PermissionError{}
+		}
+		return true, vos.VM.ResizeRBD()
+	})
+
 	registerVmMethod(k, "vm.resizeDisk", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}

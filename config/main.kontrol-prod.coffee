@@ -146,7 +146,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    defaultRecepient : undefined
+    forcedRecipient : undefined
   emailSender   :
     run         : no
   guests        :

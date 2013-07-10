@@ -32,7 +32,7 @@ sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
 
   cb = ->
-    to    = emailWorker.defaultRecepient or email
+    to    = emailWorker.forcedRecipient or email
     from  = if from is 'hello@koding.com' then "Koding <#{from}>" else from
     Emailer.send
       From      : from
@@ -84,5 +84,5 @@ emailSenderCron = new CronJob emailWorker.cronInstant, emailSender
 log "Email Sender CronJob started with #{emailWorker.cronInstant}"
 emailSenderCron.start()
 
-if emailWorker.defaultRecepient
-  log "All e-mails will be send to #{emailWorker.defaultRecepient}"
+if emailWorker.forcedRecipient
+  log "All e-mails will be send to #{emailWorker.forcedRecipient}"
