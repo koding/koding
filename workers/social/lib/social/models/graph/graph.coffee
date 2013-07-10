@@ -12,8 +12,8 @@ module.exports = class Graph
       constructorName : className
       instanceId : data.id
     data._id = data.id
-    new Base.constructors[className] data
-
+    obj = new Base.constructors[className] data
+    return obj
 
   fetchObjectsFromMongo:(collections, wantedOrder, callback)->
     sortThem=(err, objects)->
@@ -158,21 +158,23 @@ module.exports = class Graph
               callback err
               fin()
             else
-              tempRes[i].relationData =  relatedResult
-              if relatedResult.reply?
+              if options.returnAsBongoObjects?
+                wantedOrder = []
+                collections = {}
                 for reply in relatedResult.reply
-
-                  if options.returnAsBongoObjects?
-                    # this is needed for following feed and profile page feed
-                    # for the public feed we dont need it
-                    reply._id = obj.id
-                    reply.bongo_ = 
-                      constructorName: obj.name
-                      instanceId: obj.id
+                  collections[obj.name] ||= []
+                  collections[obj.name].push(obj.id)
+                  wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
+                @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+                  for dbObj in dbObjects
+                    tempRes[i].replies.push dbObj
+                  fin()
+              else
+                tempRes[i].relationData =  relatedResult
+                if relatedResult.reply?
+                  for reply in relatedResult.reply
                     tempRes[i].replies.push reply
-                  else
-                    tempRes[i].replies.push reply
-              fin()
+                fin()
         , =>
 
           if groupName? and groupName is "koding"
@@ -181,24 +183,23 @@ module.exports = class Graph
             callback null, tempRes
 
         resultData = []
-        for result in results
-          obj = result.content.data
-          if options.returnAsBongoObjects?
-            # this is needed for following feed and profile page feed
-            # for the public feed we dont need it
-            obj.bongo_ = 
-              constructorName: obj.name
-              instanceId: obj.id
-            obj._id = obj.id
-            console.log obj._id
-            resultData.push new Base.constructors[obj.name] obj
-          else
-            resultData.push obj
+        if options.returnAsBongoObjects?
+          wantedOrder = []
+          collections = {}
+          for result in results
+            obj = result.content.data
+            collections[obj.name] ||= []
+            collections[obj.name].push(obj.id)
+            wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
+          @fetchObjectsFromMongo collections, wantedOrder, callback
+        else
+            for result in results
+              resultData.push result.content.data
 
-        objectify resultData, (objecteds)->
-          for objected in objecteds
-            tempRes.push objected
-            collectRelations objected
+            objectify resultData, (objecteds)->
+              for objected in objecteds
+                tempRes.push objected
+                collectRelations objected
 
   fetchRelatedItems:(itemId, callback)->
     query = """
