@@ -1456,8 +1456,8 @@ module.exports = class JGroup extends Module
     success: (client, status, timestamp, requestLimit, search, callback)->
       status   = $in: status  if Array.isArray status
 
-      selector           = {status, group: @slug}
-      selector.timestamp = $lt: timestamp  if timestamp
+      selector = {status, group: @slug}
+      selector.requestedAt = $lt: timestamp  if timestamp
 
       options  =
         limit : requestLimit
