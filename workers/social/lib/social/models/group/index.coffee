@@ -958,7 +958,7 @@ module.exports = class JGroup extends Module
         else
           errors = []
           emails = []
-          queue = requests.map (request)->->
+          queue = requests.map (request)-> ->
             request.approveInvitation client, options, (err)->
               if err
                 errors.push "#{request.email} failed!"

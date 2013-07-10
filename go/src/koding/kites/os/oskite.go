@@ -14,6 +14,7 @@ import (
 	"koding/tools/log"
 	"koding/tools/utils"
 	"koding/virt"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
@@ -27,7 +28,6 @@ import (
 type VMInfo struct {
 	vmId          bson.ObjectId
 	vmName        string
-	temporaryVM   *virt.VM
 	useCounter    int
 	timeout       *time.Timer
 	mutex         sync.Mutex
@@ -166,6 +166,13 @@ func main() {
 		return info, nil
 	})
 
+	registerVmMethod(k, "vm.rename", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+		if !vos.Permissions.Sudo {
+			return nil, &kite.PermissionError{}
+		}
+		return true, vos.VM.ResizeRBD()
+	})
+
 	registerVmMethod(k, "vm.resizeDisk", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		if !vos.Permissions.Sudo {
 			return nil, &kite.PermissionError{}
@@ -173,26 +180,26 @@ func main() {
 		return true, vos.VM.ResizeRBD()
 	})
 
-	registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		if !vos.Permissions.Sudo {
-			return nil, &kite.PermissionError{}
-		}
+	// registerVmMethod(k, "vm.createSnapshot", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	// 	if !vos.Permissions.Sudo {
+	// 		return nil, &kite.PermissionError{}
+	// 	}
 
-		snippet := virt.VM{
-			Id:         bson.NewObjectId(),
-			SnapshotOf: vos.VM.Id,
-		}
+	// 	snippet := virt.VM{
+	// 		Id:         bson.NewObjectId(),
+	// 		SnapshotOf: vos.VM.Id,
+	// 	}
 
-		if err := vos.VM.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
-			return nil, err
-		}
+	// 	if err := vos.VM.CreateConsistentSnapshot(snippet.Id.Hex()); err != nil {
+	// 		return nil, err
+	// 	}
 
-		if err := db.VMs.Insert(snippet); err != nil {
-			return nil, err
-		}
+	// 	if err := db.VMs.Insert(snippet); err != nil {
+	// 		return nil, err
+	// 	}
 
-		return snippet.Id.Hex(), nil
-	})
+	// 	return snippet.Id.Hex(), nil
+	// })
 
 	registerVmMethod(k, "spawn", true, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var command []string
@@ -247,82 +254,52 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		info, _ := channel.KiteData.(*VMInfo)
 		var vm *virt.VM
 
-		if info != nil && info.temporaryVM == nil {
-			if err := db.VMs.FindId(info.vmId).One(&vm); err != nil {
-				return nil, &VMNotFoundError{Name: channel.CorrelationName}
-			}
-
-			permissions := vm.GetPermissions(&user)
-			if vm.SnapshotOf == "" && permissions == nil {
-				return nil, &kite.PermissionError{}
-			}
-
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
+		query := bson.M{"hostnameAlias": channel.CorrelationName}
+		if bson.IsObjectIdHex(channel.CorrelationName) {
+			query = bson.M{"_id": bson.ObjectIdHex(channel.CorrelationName)}
+		}
+		if info != nil {
+			query = bson.M{"_id": info.vmId}
+		}
+		if err := db.VMs.Find(query).One(&vm); err != nil {
+			return nil, &VMNotFoundError{Name: channel.CorrelationName}
 		}
 
-		if info != nil && info.temporaryVM != nil {
-			vm = info.temporaryVM
+		permissions := vm.GetPermissions(&user)
+		if permissions == nil {
+			return nil, &kite.PermissionError{}
+		}
 
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
+		if vm.HostKite != k.ServiceUniqueName {
+			if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
+				time.Sleep(time.Second) // to avoid rapid cycle channel loop
+				return nil, &kite.WrongChannelError{}
+			}
+			vm.HostKite = k.ServiceUniqueName
 		}
 
 		if info == nil {
-			if bson.IsObjectIdHex(channel.CorrelationName) {
-				db.VMs.FindId(bson.ObjectIdHex(channel.CorrelationName)).One(&vm)
-			}
-			if vm == nil && channel.CorrelationName != "guest" {
-				if err := db.VMs.Find(bson.M{"hostnameAlias": channel.CorrelationName}).One(&vm); err != nil {
-					return nil, &VMNotFoundError{Name: channel.CorrelationName}
-				}
-			}
-
-			isTemporary := false
-			if channel.CorrelationName == "guest" || vm.SnapshotOf != "" {
-				var err error
-				vm, err = virt.CreateTemporaryVM(&user, vm)
-				if err != nil {
-					return nil, err
-				}
-				isTemporary = true
-			}
-
-			permissions := vm.GetPermissions(&user)
-			if permissions == nil {
-				return nil, &kite.PermissionError{}
-			}
-
-			if !isTemporary && vm.HostKite != k.ServiceUniqueName {
-				if err := db.VMs.Update(bson.M{"_id": vm.Id, "hostKite": nil}, bson.M{"$set": bson.M{"hostKite": k.ServiceUniqueName}}); err != nil {
-					time.Sleep(time.Second) // to avoid rapid cycle channel loop
-					return nil, &kite.WrongChannelError{}
-				}
-				vm.HostKite = k.ServiceUniqueName
-			}
-
 			infosMutex.Lock()
 			var found bool
 			info, found = infos[vm.Id]
 			if !found {
 				info = newInfo(vm)
-				if isTemporary {
-					info.temporaryVM = vm
-				}
 				infos[vm.Id] = info
 			}
-			channel.KiteData = info
 			infosMutex.Unlock()
+		}
 
-			info.mutex.Lock()
-			defer info.mutex.Unlock()
+		info.mutex.Lock()
+		defer info.mutex.Unlock()
 
+		if channel.KiteData == nil {
 			info.useCounter += 1
 			if info.timeout != nil {
 				info.timeout.Stop()
 				info.timeout = nil
 			}
 
+			channel.KiteData = info
 			channel.OnDisconnect(func() {
 				info.mutex.Lock()
 				defer info.mutex.Unlock()
@@ -344,10 +321,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 		if vm.IP == nil {
 			ipInt := db.NextCounterValue("vm_ip", int(binary.BigEndian.Uint32(firstContainerIP.To4())))
 			ip := net.IPv4(byte(ipInt>>24), byte(ipInt>>16), byte(ipInt>>8), byte(ipInt))
-			if info.temporaryVM == nil {
-				if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
-					panic(err)
-				}
+			if err := db.VMs.Update(bson.M{"_id": vm.Id, "ip": nil}, bson.M{"$set": bson.M{"ip": ip}}); err != nil {
+				panic(err)
 			}
 			vm.IP = ip
 		}
@@ -357,10 +332,8 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 
 		if vm.LdapPassword == "" {
 			ldapPassword := utils.RandomString()
-			if info.temporaryVM == nil {
-				if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
-					panic(err)
-				}
+			if err := db.VMs.Update(bson.M{"_id": vm.Id}, bson.M{"$set": bson.M{"ldapPassword": ldapPassword}}); err != nil {
+				panic(err)
 			}
 			vm.LdapPassword = ldapPassword
 		}
@@ -545,16 +518,8 @@ func (info *VMInfo) unprepareVM() {
 		log.Warn(err.Error())
 	}
 
-	if info.temporaryVM == nil {
-		if err := db.VMs.Update(bson.M{"_id": info.vmId}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil {
-			log.LogError(err, 0)
-		}
-	}
-
-	if info.temporaryVM != nil {
-		if err := virt.DestroyVM(info.vmId); err != nil {
-			log.Warn(err.Error())
-		}
+	if err := db.VMs.Update(bson.M{"_id": info.vmId}, bson.M{"$set": bson.M{"hostKite": nil}}); err != nil && err != mgo.ErrNotFound {
+		log.LogError(err, 0)
 	}
 
 	delete(infos, info.vmId)

@@ -4,10 +4,10 @@ module.exports = class Emailer
   email = require './config.email'
 
   @smtpTransport = nodemailer.createTransport "SMTP",
-    service: "SES"
+    service: "SendGrid"
     auth:
-      user: "AKIAJAC35KADH6ZUKSJA"
-      pass: "AuuZXaIiI1XacyWULnNbFQcUjZNkGq46OWMVK9o+2BEy"
+      user: "koding"
+      pass: "DEQl7_Dr"
 
   @send : (options,callback) ->
     {From,To,Subject,HtmlBody,TextBody,ReplyTo,Bcc} = options

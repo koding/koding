@@ -243,8 +243,7 @@ module.exports = class JInvitation extends jraphical.Module
     - take a look at http://wiki.koding.com for things you can do.
     - if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
 
-    Whole Koding Team welcomes you,
-    Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson
+    Koding Team welcomes you.
     """
 
   @getInviteSubject =({inviter})-> "#{inviter} has invited you to Koding!"

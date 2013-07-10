@@ -57,7 +57,7 @@ sendDailyEmail = (details, content)->
   else
     Emailer.send
       From      : 'Koding <hello@koding.com>'
-      To        : emailWorker.defaultRecepient or details.email
+      To        : emailWorker.forcedRecipient or details.email
       Subject   : template.dailyHeader details
       HtmlBody  : template.dailyMail details, content
     , (err, status)->
@@ -73,7 +73,7 @@ sendInstantEmail = (details)->
   else
     Emailer.send
       From      : 'Koding <hello@koding.com>'
-      To        : emailWorker.defaultRecepient or details.email
+      To        : emailWorker.forcedRecipient or details.email
       Subject   : template.commonHeader details
       HtmlBody  : flags[details.key].template details
       Bcc       : notification.bcc
@@ -283,4 +283,4 @@ dailyEmailsCron = new CronJob emailWorker.cronDaily, dailyEmails
 log "Daily Emails CronJob started with #{emailWorker.cronDaily}"
 dailyEmailsCron.start()
 
-log "All e-mail notifications will be send to #{emailWorker.defaultRecepient}" if emailWorker.defaultRecepient
+log "All e-mail notifications will be send to #{emailWorker.forcedRecipient}" if emailWorker.forcedRecipient
