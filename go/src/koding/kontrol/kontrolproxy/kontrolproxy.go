@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/sessions"
+	"github.com/hoisie/redis"
 	"github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
@@ -35,16 +36,25 @@ type Client struct {
 	Registered time.Time `json:"firstVist"`
 }
 
+// used by redis counter
+type interval struct {
+	name     string
+	duration int64
+}
+
 var templates = template.Must(template.ParseFiles(
 	"go/templates/proxy/securepage.html",
 	"go/templates/proxy/notfound.html",
 	"go/templates/proxy/notactiveVM.html",
+	"go/templates/proxy/quotaExceeded.html",
 	"client/maintenance.html",
 ))
 
 var proxyDB *proxyconfig.ProxyConfiguration
 var geoIP *libgeo.GeoIP
 var proxyName = kontrolhelper.CustomHostname()
+var redisClient redis.Client
+var redisIntervals = make([]interval, 4)
 var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
 var clients = make(map[string]Client)
 var clientsLock sync.RWMutex
@@ -56,6 +66,18 @@ func main() {
 	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
+	}
+
+	redisClient = redis.Client{
+		Addr: "127.0.0.1:6379", // for future reference
+	}
+
+	// used for counters
+	redisIntervals = []interval{
+		interval{"second", 1},
+		interval{"minute", 60},
+		interval{"hour", 3600},
+		interval{"day", 86400},
 	}
 
 	err = proxyDB.AddProxy(proxyName)
@@ -152,6 +174,8 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		req.Host = strings.TrimPrefix(req.Host, "www.")
 	}
 
+	go hitCounter(req.Host)
+
 	userIP, userCountry := getIPandCountry(req.RemoteAddr)
 	target, source, err := resolver.GetMemTarget(req.Host)
 	if err != nil {
@@ -165,19 +189,6 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	fmt.Printf("--\nmode '%s'\t: %s %s\n", target.Mode, userIP, userCountry)
 	fmt.Printf("proxy via %s\t: %s --> %s\n", source, req.Host, target.Url.String())
 
-	switch target.Mode {
-	case "maintenance":
-		return templateHandler("maintenance.html", nil, 200)
-	case "redirect":
-		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
-	case "vm":
-		err := utils.CheckServer(target.Url.Host)
-		if err != nil {
-			log.Printf("vm host %s is down: '%s'", req.Host, err)
-			return templateHandler("notactiveVM.html", req.Host, 404)
-		}
-	}
-
 	_, err = validate(userIP, userCountry, req.Host)
 	if err != nil {
 		if err == ErrSecurePage {
@@ -190,7 +201,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			}
 		} else {
 			log.Printf("error validating user: %s", err.Error())
-			return templateHandler("notfound.html", req.Host, 404)
+			return templateHandler("quotaExceeded.html", req.Host, 509)
 		}
 	}
 
@@ -198,6 +209,19 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 		go logDomainRequests(req.Host)
 		go logProxyStat(proxyName, userCountry)
 		go registerClient(userIP, target.Url.String())
+	}
+
+	switch target.Mode {
+	case "maintenance":
+		return templateHandler("maintenance.html", nil, 200)
+	case "redirect":
+		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
+	case "vm":
+		err := utils.CheckServer(target.Url.Host)
+		if err != nil {
+			log.Printf("vm host %s is down: '%s'", req.Host, err)
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
 	}
 
 	if isWebsocket(req) {
@@ -402,20 +426,30 @@ func logProxyStat(name, country string) {
 }
 
 func validate(ip, country, domain string) (bool, error) {
-	// restrictionId, err := proxyDB.GetDomainRestrictionId(u.Domain.Id)
-	// if err != nil {
-	// 	return true, nil //don't block if we don't get a rule (pre-caution))
-	// }
-
+	// log.Println("validating", ip, country, domain)
 	restriction, err := proxyDB.GetRestrictionByDomain(domain)
 	if err != nil {
+		// log.Printf("no restriction found for %s\n", domain)
 		return true, nil //don't block if we don't get a rule (pre-caution))
 	}
 
-	// restriction, err := proxyDB.GetRestrictionByID(restrictionId)
-	// if err != nil {
-	// 	return true, nil //don't block if we don't get a rule (pre-caution))
-	// }
-
 	return validator(restriction, ip, country, domain).AddRules().Check()
+}
+
+// increase request counters for the incoming host
+func hitCounter(host string) {
+	for _, item := range redisIntervals {
+		res, err := redisClient.Incr(host + ":" + item.name)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		if int(res) == 1 {
+			_, err := redisClient.Expire(host+":"+item.name, item.duration)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+	}
 }

@@ -413,8 +413,8 @@ module.exports = class JVM extends Model
       users = [
         { id: user.getId(), sudo: yes, owner: yes }
       ]
-      hostnameAlias = hostnameAliases[0]
-      groups       ?= []
+      [hostnameAlias]  = hostnameAliases
+      groups          ?= []
 
       vm = new JVM {
         hostnameAlias
@@ -432,7 +432,7 @@ module.exports = class JVM extends Model
           return console.warn "Failed to create VM for ", \
                                {users, groups, hostnameAlias}
 
-        JVM.createDomains account, hostnameAliases, hostnameAliases[0]
+        JVM.createDomains account, hostnameAliases, hostnameAlias
         target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
@@ -488,7 +488,7 @@ module.exports = class JVM extends Model
     JGroup.on 'MemberAdded', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
-        else if group.slug is 'koding'
+        else if group.slug in ['koding','guests']
           # Following is just here to register this name in the counters collection
           ((require 'koding-counter') {
             db          : JVM.getClient()
