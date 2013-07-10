@@ -619,7 +619,7 @@ __utils =
     if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
       group = KD.config.entryPoint.slug
     else
-      group = 'koding'
+      group = KD.defaultSlug
 
     KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err

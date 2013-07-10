@@ -149,7 +149,7 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
-      href        : "/#{if slug is 'koding' then '' else slug+'/'}Activity"
+      href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
       target      : slug
       icon        :
         cssClass  : 'new-page'
@@ -160,7 +160,7 @@ class PopupGroupListItem extends KDListItemView
 
     @adminLink = new CustomLinkView
       title       : ''
-      href        : "/#{if slug is 'koding' then '' else slug+'/'}Dashboard"
+      href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Dashboard"
       target      : slug
       cssClass    : 'fr'
       iconOnly    : yes

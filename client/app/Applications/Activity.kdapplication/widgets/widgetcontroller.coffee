@@ -154,7 +154,7 @@ class ActivityUpdateWidgetController extends KDViewController
       fakeTag       = $.extend {},fakeTag,
         title       : tag.title or tag.$suggest
         body        : tag.title or tag.$suggest
-        group       : tag.group or 'koding'
+        group       : tag.group or KD.defaultSlug
         counts      :
           followers : 0
           following : 0
@@ -173,7 +173,7 @@ class ActivityUpdateWidgetController extends KDViewController
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
-      group       : activity.group or 'koding'
+      group       : activity.group or KD.defaultSlug
       html        : KD.utils.applyMarkdown activity.body
       counts      :
         followers : 0

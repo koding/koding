@@ -8,7 +8,7 @@ class GroupsListItemView extends KDListItemView
     group = @getData()
     {title, slug, body} = group
 
-    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
+    slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}/"
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'
@@ -105,7 +105,7 @@ class GroupsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     group = @getData()
-    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
+    slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}/"
     KD.getSingleton('router').handleRoute slugLink, state:group
     event.stopPropagation()
     event.preventDefault()
@@ -175,7 +175,7 @@ class GroupsListItemView extends KDListItemView
 
     menu = {}
 
-    if data.slug isnt 'koding'
+    if data.slug isnt KD.defaultSlug
       menu['Leave Group'] =
         cssClass : 'leave-group'
         callback : =>

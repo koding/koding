@@ -454,17 +454,17 @@ module.exports = class JUser extends jraphical.Module
       then { message: "Errors were encountered during validation", errors }
       else null
     )
-    
+
   @changePasswordByUsername = (username, password, callback) ->
     salt = createSalt()
     hashedPassword = hashPassword password, salt
     @update { username }, {
       $set: { salt, password: hashedPassword }
     }, callback
-  
+
   @changeEmailByUsername = (username, email, callback) ->
     @update { username }, { $set: { email }}, callback
-  
+
   @changeUsernameByAccount = (account, username, clientId, callback)->
     account.changeUsername username, (err) =>
       return callback err  if err?
@@ -479,7 +479,7 @@ module.exports = class JUser extends jraphical.Module
             callback null, newToken
         else
           callback new KodingError "Session not found!"
-        
+
 
   @convert = secure (client, userFormData, callback) ->
     { connection, sessionToken : clientId } = client
