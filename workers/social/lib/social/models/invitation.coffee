@@ -57,6 +57,7 @@ module.exports = class JInvitation extends jraphical.Module
         enum        : ['invalid status type', ['sent','active','blocked','redeemed','couldnt send email']]
         default     : 'active' # 'unconfirmed'
       origin        : ObjectRef
+      memo          : String
     relationships   :
       invitedBy     :
         targetType  : JAccount
@@ -176,10 +177,11 @@ module.exports = class JInvitation extends jraphical.Module
   @createMultiuse = permit 'send invitations',
     success: (client, options, callback) ->
       {connection:{delegate}, context:{group}} = client
-      {code, maxUses} = options
+      {code, maxUses, memo} = options
       invite = new JInvitation {
         code
         group
+        memo
         maxUses   : if maxUses or maxUses is 0 then maxUses else 1
         type      : 'multiuse'
         origin    : ObjectRef(delegate)
@@ -215,9 +217,10 @@ module.exports = class JInvitation extends jraphical.Module
       @some selector, options, callback
 
   modifyMultiuse: permit 'send invitations',
-    success: ({context:{group}}, {maxUses}, callback)->
+    success: ({context:{group}}, {maxUses, memo}, callback)->
       setModifier = {}
       setModifier.maxUses = if maxUses < @uses then @uses else maxUses
+      setModifier.memo    = memo
       setModifier.group   = 'koding'  if group is 'koding' and not @group?
 
       @update $set: setModifier, callback
