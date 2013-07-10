@@ -170,9 +170,12 @@ class BookView extends JView
       partial : ''
       cssClass : 'point'
 
+
     @pointer.bindTransitionEnd()
 
-    @pagerWrapper.addSubView @pointer
+    @mainView.addSubView @pointer
+
+
     #!!! we should check here if has tutorial available for current topic
     if @page.data.menuItem
       @navigateCursorToMenuItem(@page.data.menuItem)
@@ -194,7 +197,9 @@ class BookView extends JView
     @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
     selectedMenuItemOffset = @selectedMenuItem[0].$().offset()
 
-    @pointer.$().offset selectedMenuItemOffset
+    @pointer.$().offset
+      top: selectedMenuItemOffset.top
+      left: selectedMenuItemOffset.left
 
   continueNextMove:->
     steps = @page.data.howToSteps
@@ -234,7 +239,7 @@ class BookView extends JView
     if @page.data.section is 10 and @page.data.parent is 5
       if steps[0] is 'showAceSettings'
         @showAceSettings()
-        
+
 
   navigateToStatusUpdateInput:->
     @pointer.once 'transitionend', =>
@@ -245,9 +250,7 @@ class BookView extends JView
 
     @utils.wait 500, =>
       smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
-      @pointer.$().offset
-        top   : smallInput.offset().top
-        left  : smallInput.offset().left + (smallInput.width() / 2)
+      @pointer.$().offset smallInput.offset()
 
   simulateNewStatusUpdate:->
     smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
@@ -423,7 +426,8 @@ class BookView extends JView
       # click ace app
         @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().click()
       @openAceMenu()
-      
+      @setClass 'aside'
+
 
     # find ace icon on active pane
     offsetTo = @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().offset()
@@ -439,15 +443,16 @@ class BookView extends JView
     offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').offset()
     # navigate settings icon
     @pointer.$().offset offsetTo
-
+    @utils.wait 3500, =>
+      @unsetClass 'aside'
     # click animation
     # click ace settings
 
-    
-    
 
 
-      
+
+
+
 
   clickAnimation:->
     @pointer.setClass 'clickPulse'
