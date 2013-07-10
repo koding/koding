@@ -397,12 +397,17 @@ module.exports = class JInvitation extends jraphical.Module
     {delegate} = client.connection
     {host, protocol} = @getHostAndProtocol
 
-    options =
+    url  = "#{protocol}//#{host}"
+    url += "/#{group.slug}"  unless group.slug is 'koding'
+    url += "/Invitation/#{encodeURIComponent invite.code}"
+
+    options = {
       group    : group.title
       inviter  : delegate.getFullName()
-      url      : "#{protocol}//#{host}/#{group.slug}/Invitation/#{encodeURIComponent invite.code}"
+      url
       isPublic : if group.privacy == 'public' then true else false
       message  : group.invitationMessage
+    }
 
     JUser.fetchUser client, (err, inviter)=>
       email = new JMail

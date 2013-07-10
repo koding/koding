@@ -170,14 +170,18 @@ module.exports = class JInvitationRequest extends Model
       else unless group?
         callback new KodingError "No group! #{@group}"
       else
-        @update $set:{ status: 'sent' }, (err)=>
-          return callback err if err
-          if @koding?.username
-            @sendInviteMailToKodingUser client, @koding, group, callback
-          else
-            JInvitation.one {inviteeEmail: @email}, (err, invite)->
-              return callback err if err
-              JInvitation.sendEmailForInviteViaGroup client, invite, group, callback
+        if @koding?.username
+          @sendInviteMailToKodingUser client, @koding, group, callback
+        else
+          JInvitation.one {inviteeEmail: @email}, (err, invite)=>
+            return callback err if err
+            group.fetchMembershipPolicy (err, policy)=>
+              if message = policy.communications.inviteApprovedMessage
+                group.invitationMessage = message
+
+              JInvitation.sendEmailForInviteViaGroup client, invite, group, (err)=>
+                return callback err if err
+                @update $set:{ status: 'sent' }, callback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection
