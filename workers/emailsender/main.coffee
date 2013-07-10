@@ -9,7 +9,7 @@ htmlify   = require 'koding-htmlify'
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
 
-{mq, mongo, email, emailWorker, uri} = \
+{mq, mongo, emailWorker, uri} = \
   require('koding-config-manager').load("main.#{argv.c}")
 
 mongo += '?auto_reconnect'
