@@ -56,7 +56,6 @@ class ActivityAppController extends AppController
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
-    console.log ">>>>> ==== loading view ===="
     @emit 'ready'
 
   resetAll:->
@@ -101,11 +100,7 @@ class ActivityAppController extends AppController
 
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
-
-      console.log "!!!!! resetting all !!!"
-
       @resetAll()
-
       @clearPopulateActivityBindings()
 
       if data.type in ["Public", "Followed"]
@@ -145,7 +140,6 @@ class ActivityAppController extends AppController
       #to-do add isExempt control.
       #@isExempt (exempt)=>
         #if exempt or @getFilter() isnt activityTypes
-      console.log ">>>> options.to ", options.to
       options =
         to     : options.to or Date.now()
         group  :
@@ -153,8 +147,6 @@ class ActivityAppController extends AppController
           id   : currentGroup.getId()
         limit  : 20
         facets : @getActivityFilter()
-
-      console.log ">>>> options.to is now set", options.to, new Date(options.to) 
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
@@ -168,9 +160,6 @@ class ActivityAppController extends AppController
         @fetchPublicActivities options
       else
         @once "followingFeedFetched_#{eventSuffix}", (activities)=>
-          console.log "-----"
-          console.log "activities", activities
-          console.log "-----"
           reset()
           @extractTeasersTimeStamps activities
           @listController.listActivities activities
@@ -232,7 +221,6 @@ class ActivityAppController extends AppController
       callback null, cache
 
   activitiesArrived:(activities)->
-    console.log "activity arrived", activity.bongo_.constructorName
     for activity in activities when activity.bongo_.constructorName in newActivitiesArrivedTypes
       @listController?.newActivityArrived activity
 
@@ -251,7 +239,6 @@ class ActivityAppController extends AppController
       @continueLoadingTeasers()
 
   createContentDisplay:(activity, callback=->)->
-    console.log "createContentDisplay", activity.bongo_.constructorName
     controller = switch activity.bongo_.constructorName
       when "JStatusUpdate" then @createStatusUpdateContentDisplay activity
       when "JCodeSnip"     then @createCodeSnippetContentDisplay activity
@@ -312,9 +299,6 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
-      console.log "------------------------------"
-      console.log activities
-      console.log "------------------------------"
       callback err, activities
 
   unhideNewItems: ->
