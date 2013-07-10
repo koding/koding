@@ -92,12 +92,16 @@ class Panel extends JView
 
   # LAYOUT CREATOR HELPERS #
   createSplitView: (type, views) ->
-    return  new SplitViewWithOlderSiblings {
+    splitView = new SplitViewWithOlderSiblings {
       resizable : yes
       sizes     : ["50%", "50%"]
       type
       views
     }
+    splitView.on "ResizeDidStop", =>
+      for pane in @splitView.panelPanes
+        pane.getSubViews().first.emit "PaneResized"
+    return  splitView
 
   createSingleLayout: ->
     view       = new KDView
@@ -113,6 +117,7 @@ class Panel extends JView
 
     @container.addSubView @splitView
     @panesContainer.push pane1, pane2
+    @splitView.panelPanes = [pane1, pane2]
 
   createTripleLayout: ->
     pane1           = new KDView
@@ -123,6 +128,7 @@ class Panel extends JView
 
     @container.addSubView @splitView
     @panesContainer.push pane1, pane2, pane3
+    @splitView.panelPanes = [pane1, pane2, pane3]
 
   createQuadrupleLayout: ->
     pane1             = new KDView
@@ -135,6 +141,7 @@ class Panel extends JView
 
     @container.addSubView @splitView
     @panesContainer.push pane1, pane2, pane3, pane4
+    @splitView.panelPanes = [pane1, pane2, pane3, pane4]
 
   showHintModal: ->
     options        = @getOptions()

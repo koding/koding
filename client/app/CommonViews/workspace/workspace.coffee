@@ -4,6 +4,8 @@ class Workspace extends JView
 
     super options, data
 
+    @listenWindowResize()
+
     @container = new KDView
       cssClass : "workspace"
 
@@ -17,6 +19,7 @@ class Workspace extends JView
 
     @container.addSubView newPanel
     @panels.push newPanel
+    @activePanel = newPanel
 
     callback()
 
@@ -27,7 +30,15 @@ class Workspace extends JView
 
   prev: ->
 
+  _windowDidResize: ->
+    return unless @activePanel
+    pane.emit "PaneResized" for pane in @activePanel.panes
+
   ready: -> @createPanel()
+
+  viewAppended: ->
+    super
+    @_windowDidResize()
 
   pistachio: ->
     """
