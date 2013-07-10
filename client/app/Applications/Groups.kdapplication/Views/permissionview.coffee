@@ -11,7 +11,7 @@ class GroupPermissionsView extends JView
     @loader           = new KDLoaderView
       cssClass        : 'loader'
     @loaderText       = new KDView
-      partial         : 'Loading Permissions…'
+      partial         : 'Loading Permissions...'
       cssClass        : ' loader-text'
 
     addPermissionsView = (newPermissions)=>

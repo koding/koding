@@ -6,7 +6,6 @@ module.exports = class JProxyFilter extends jraphical.Module
   {secure, ObjectId} = require 'bongo'
   {Relationship}     = jraphical
   {permit}           = require '../group/permissionset'
-  JProxyRule         = require './rule'
   JProxyRestriction  = require './restriction'
 
   @trait __dirname, '../../traits/protected'

@@ -164,16 +164,32 @@ func Err(text string, data ...interface{}) {
 	Log(ERR, text, data...)
 }
 
+func Errf(format string, data ...interface{}) {
+	Log(ERR, fmt.Sprintf(format, data...))
+}
+
 func Warn(text string, data ...interface{}) {
 	Log(WARN, text, data...)
+}
+
+func Warnf(format string, data ...interface{}) {
+	Log(WARN, fmt.Sprintf(format, data...))
 }
 
 func Info(text string, data ...interface{}) {
 	Log(INFO, text, data...)
 }
 
+func Infof(format string, data ...interface{}) {
+	Log(INFO, fmt.Sprintf(format, data...))
+}
+
 func Debug(text string, data ...interface{}) {
 	Log(DEBUG, text, data...)
+}
+
+func Debugf(format string, data ...interface{}) {
+	Log(DEBUG, fmt.Sprintf(format, data...))
 }
 
 func LogError(err interface{}, stackOffset int, additionalData ...interface{}) {

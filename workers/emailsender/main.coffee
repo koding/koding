@@ -9,7 +9,7 @@ htmlify   = require 'koding-htmlify'
 Emailer   = require '../social/lib/social/emailer'
 template  = require './templates'
 
-{mq, mongo, email, emailWorker, uri} = \
+{mq, mongo, emailWorker, uri} = \
   require('koding-config-manager').load("main.#{argv.c}")
 
 mongo += '?auto_reconnect'
@@ -32,7 +32,7 @@ sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
 
   cb = ->
-    to    = emailWorker.defaultRecepient or email
+    to    = emailWorker.forcedRecipient or email
     from  = if from is 'hello@koding.com' then "Koding <#{from}>" else from
     Emailer.send
       From      : from
@@ -58,7 +58,6 @@ sendEmail = (emailContent)->
         console.error err  if err
         return emailContent.update $set: {status: 'unsubscribed'}, (err)->
           console.error err  if err
-          cb()
       else
         cb()
   else
@@ -85,5 +84,5 @@ emailSenderCron = new CronJob emailWorker.cronInstant, emailSender
 log "Email Sender CronJob started with #{emailWorker.cronInstant}"
 emailSenderCron.start()
 
-if emailWorker.defaultRecepient
-  log "All e-mails will be send to #{emailWorker.defaultRecepient}"
+if emailWorker.forcedRecipient
+  log "All e-mails will be send to #{emailWorker.forcedRecipient}"

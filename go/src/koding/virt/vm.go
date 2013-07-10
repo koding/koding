@@ -21,9 +21,10 @@ type VM struct {
 	Users         []*Permissions `bson:"users"`
 	LdapPassword  string         `bson:"ldapPassword"`
 	DiskSizeInMB  int            `bson:"diskSizeInMB"`
+	SnapshotVM    bson.ObjectId  `bson:"diskSnapshot"`
+	SnapshotName  string         `bson:"snapshotName"`
 	IP            net.IP         `bson:"ip"`
 	HostKite      string         `bson:"hostKite"`
-	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
 }
 
 type Permissions struct {
@@ -100,7 +101,7 @@ func LowerdirFile(p string) string {
 	return "/var/lib/lxc/vmroot/rootfs/" + p
 }
 
-func (vm *VM) Prepare(users []User, reinitialize bool) {
+func (vm *VM) Prepare(reinitialize bool) {
 	vm.Unprepare()
 
 	// write LXC files
@@ -235,8 +236,18 @@ func (vm *VM) MountRBD(mountDir string) error {
 			return commandError("rbd info failed.", err, out)
 		}
 
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
-			return commandError("rbd create failed.", err, out)
+		if vm.DiskSizeInMB == 0 {
+			vm.DiskSizeInMB = 1200
+		}
+		if vm.SnapshotName == "" {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
+				return commandError("rbd create failed.", err, out)
+			}
+		}
+		if vm.SnapshotName != "" {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotVM.Hex(), "--snap", vm.SnapshotName, "--dest-pool", "vms", "--dest", vm.String()).CombinedOutput(); err != nil {
+				return commandError("rbd clone failed.", err, out)
+			}
 		}
 
 		makeFileSystem = true
@@ -364,25 +375,6 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 		return commandError("Removing snapshot failed.", err, out)
 	}
 	return nil
-}
-
-func CreateTemporaryVM(user *User, snapshot *VM) (*VM, error) {
-	temporaryVM := VM{
-		Id:            bson.NewObjectId(),
-		HostnameAlias: user.Name + "-vm",
-		WebHome:       user.Name,
-		Users:         []*Permissions{&Permissions{Id: user.ObjectId, Sudo: false}},
-	}
-
-	if snapshot == nil {
-		return &temporaryVM, nil
-	}
-
-	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+snapshot.SnapshotOf.Hex(), "--snap", snapshot.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
-		return nil, commandError("Cloning snapshot failed.", err, out)
-	}
-
-	return &temporaryVM, nil
 }
 
 func DestroyVM(id bson.ObjectId) error {

@@ -152,7 +152,7 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "Latest activity"
           direction         : -1
         'repliesCount':
-          title             : "Most activity"
+          title             : "Most commented"
           direction         : -1
         # and more
     }, (controller)=>

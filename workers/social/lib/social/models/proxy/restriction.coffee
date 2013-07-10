@@ -4,7 +4,6 @@ KodingError = require '../../error'
 
 module.exports = class JProxyRestriction extends jraphical.Module
 
-  JProxyRule = require './rule'
   {secure, ObjectId}  = require 'bongo'
 
   @share()

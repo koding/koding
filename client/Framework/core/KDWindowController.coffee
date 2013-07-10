@@ -102,6 +102,15 @@ class KDWindowController extends KDController
 
     window.addEventListener 'beforeunload', @bound "beforeUnload"
 
+    @utils.repeat 1000, do =>
+      cookie = $.cookie 'clientId'
+      =>
+        if KD.isLoggingIn then KD.isLoggingIn = no
+        else if cookie? and cookie isnt $.cookie 'clientId'
+          window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+          window.location.replace '/'
+        cookie = $.cookie 'clientId'
+
   addUnloadListener:(listener)-> @unloadListeners.push listener
 
   beforeUnload:(event)->
@@ -110,10 +119,10 @@ class KDWindowController extends KDController
 
     # all the listeners make their checks if it is safe or not to reload the page
     # they either return true or false if any of them returns false we intercept reload
-    if no in votes = (listener() for listener in @unloadListeners)
-      msg = "Please make sure that you saved all your work."
-      event.returnValue = msg
-      return msg
+
+    for listener in @unloadListeners
+      if listener() is off
+        return "Please make sure that you saved all your work."
 
   setDragInAction:(@dragInAction = no)->
     $('body')[if @dragInAction then "addClass" else "removeClass"] "dragInAction"
