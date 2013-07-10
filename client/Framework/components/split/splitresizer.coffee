@@ -2,13 +2,15 @@ class KDSplitResizer extends KDView
 
   constructor:(options = {}, data)->
 
-    options.draggable ?= yes
+    @isVertical = options.type.toLowerCase() is "vertical"
+
+    axis = if @isVertical then "x" else "y"
+
+    options.draggable ?= { axis }
 
     super options, data
 
     {@panel0, @panel1} = @getOptions()
-
-    @isVertical = @options.type.toLowerCase() is "vertical"
 
     @on "DragFinished", @dragFinished
     @on "DragInAction", @dragInAction
