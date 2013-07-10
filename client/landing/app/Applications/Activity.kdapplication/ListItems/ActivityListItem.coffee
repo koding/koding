@@ -30,16 +30,22 @@ class ActivityListItemView extends KDListItemView
     JApp      : AppFollowBucketItemView
 
   constructor:(options = {},data)->
-
-    options.type = "activity"
-
-    super options, data
-
-    {constructorName} = data.bongo_
-    @setClass getActivityChildCssClass()[constructorName]
-
-    @bindTransitionEnd()
-
+    try
+      console.log "1"
+      options.type = "activity"
+      console.log "1.1"
+      super options, data
+      console.log "1.2", data
+      {constructorName} = data.bongo_
+      console.log "2"
+      @setClass getActivityChildCssClass()[constructorName]
+      console.log "3"
+      @bindTransitionEnd()
+      console.log "4"
+    catch e
+      console.log ">>>>> ERROR >>>", e
+      console.error e
+    
   viewAppended:->
     @addChildView @getData()
 
