@@ -200,6 +200,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
+    KD.isLoggingIn = yes
     KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
       @loginForm.button.hideLoader()
 
