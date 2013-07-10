@@ -90,7 +90,7 @@ class DomainsRoutingView extends JView
     if domain.hostnameAlias.length > 0
       listItem.hideLoader()
       return new KDNotificationView
-        title : "You cannot bind a domain to more than one vms."
+        title : "A domain name can only be bound to one VM."
 
     domain.bindVM options, (err)=>
       listItem.hideLoader()
@@ -154,7 +154,7 @@ class DomainsRoutingView extends JView
   pistachio:->
     """
     <header>
-    Click on any of your {{> @routingSelector}} to point <a href='http://#{@getData().domain}' target='_blank'>{{ #(domain)}}</a>
+    Click on any of your {{> @routingSelector}} to point to <a href='http://#{@getData().domain}' target='_blank'>{{ #(domain)}}</a>
     </header>
     {{> @disconnectedVMs}}
     {{> @disconnectedKites}}
