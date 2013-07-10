@@ -999,8 +999,7 @@ module.exports = class JAccount extends jraphical.Module
         unless err 
           domainList = domains.filter (domain)->
             domainName = domain.domain
-            !(/^shared[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName) \
-            and !(/^vm[\-]?([0-9]+)?/.test domainName)
+            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
 
         callback err, domainList
 
