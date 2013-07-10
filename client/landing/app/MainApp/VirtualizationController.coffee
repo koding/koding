@@ -113,7 +113,7 @@ class VirtualizationController extends KDController
 
     {entryPoint}   = KD.config
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
-    currentGroup or= 'koding'
+    currentGroup or= KD.defaultSlug
 
     @fetchVMs (err, vms)=>
       if err or not vms
@@ -131,8 +131,8 @@ class VirtualizationController extends KDController
       vmName = @hasThisVM("shared-%d.#{currentGroup}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
-      # Check for personal VMs in Koding group
-      vmName = @hasThisVM("vm-%d.#{KD.nick()}.koding.kd.io", vms)
+      # Check for personal VMs in Koding or Guests group
+      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{KD.defaultSlug}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       callback @defaultVmName = vms.first
@@ -217,7 +217,7 @@ class VirtualizationController extends KDController
 
       # Check if there is at least one personal vm from koding group
       for vm in vms
-        if (vm.indexOf 'vm-') is 0 and (vm.indexOf 'koding.kd.io') > -1
+        if (vm.indexOf 'vm-') is 0 and (vm.indexOf "#{KD.defaultSlug}.kd.io") > -1
           return callback yes
 
       callback no
@@ -225,7 +225,7 @@ class VirtualizationController extends KDController
   createDefaultVM:->
     @hasDefaultVM (state)->
       return warn 'Default VM already exists.'  if state
-      KD.remote.cacheable 'koding', (err, group)->
+      KD.remote.cacheable KD.defaultSlug, (err, group)->
         if err or not group?.length
           return warn err
         koding = group.first

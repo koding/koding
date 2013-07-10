@@ -182,8 +182,8 @@ class LoginView extends KDScrollView
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
       else
-		
-		  
+
+
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
         new KDNotificationView
@@ -247,7 +247,7 @@ class LoginView extends KDScrollView
   doRequest:(formData)->
     {entryPoint} = KD.config
     slug = if entryPoint?.type is 'group' and entryPoint.slug\
-           then entryPoint.slug else 'koding'
+           then entryPoint.slug else KD.defaultSlug
     KD.remote.cacheable slug, (err, [group])=>
       group.requestAccess formData, (err)=>
         if err
@@ -371,7 +371,7 @@ class LoginView extends KDScrollView
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
-    if entryPoint and entryPoint.slug isnt 'koding'
+    if entryPoint and entryPoint.slug isnt KD.defaultSlug
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"

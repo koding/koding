@@ -43,17 +43,17 @@ class ResourcesController extends KDListViewController
       # vms.sort cmp
       stack   = []
       vms.forEach (hostname)=>
-        group = hostname.replace('.kd.io','').split('.').last or 'koding'
+        group = hostname.replace('.kd.io','').split('.').last or KD.defaultSlug
         stack.push (cb)->
           KD.remote.cacheable group, (err, res)->
             if err or not res
               warn "Fetching group info failed for '#{group}' Group."
               cb null
             else
-              group = res?.first or 'koding'
+              group = res?.first or KD.defaultSlug
               cb null,
                 vmName     : hostname
-                groupSlug  : group?.slug  or 'koding'
+                groupSlug  : group?.slug  or KD.defaultSlug
                 groupTitle : group?.title or 'Koding'
 
       async.parallel stack, (err, result)=>

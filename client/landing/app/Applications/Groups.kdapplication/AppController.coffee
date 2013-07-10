@@ -64,8 +64,11 @@ class GroupsAppController extends AppController
       isExclusive : yes
     @groupChannel.once 'setSecretNames', callback
 
-  changeGroup:(groupName='koding', callback=->)->
+  changeGroup:(groupName='', callback=->)->
+
+    groupName or= KD.defaultSlug
     return callback()  if @currentGroupName is groupName
+
     throw new Error 'Cannot change the group!'  if @currentGroupName?
     unless @currentGroupName is groupName
       KD.remote.cacheable groupName, (err, models)=>
@@ -751,7 +754,7 @@ class GroupsAppController extends AppController
   createContentDisplay:(group, callback)->
 
     unless KD.config.roles? and 'admin' in KD.config.roles
-      routeSlug = if group.slug is 'koding' then '/' else "/#{group.slug}/"
+      routeSlug = if group.slug is KD.defaultSlug then '/' else "/#{group.slug}/"
       return KD.getSingleton('router').handleRoute "#{routeSlug}Activity"
 
     @groupView = groupView = new GroupView

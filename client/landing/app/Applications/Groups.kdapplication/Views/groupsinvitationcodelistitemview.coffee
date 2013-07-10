@@ -103,7 +103,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
 
   getInvitationUrl:->
     {group, code} = @getData()
-    slug  = if group and group isnt 'koding' then "#{group}/" else ''
+    slug  = if group and group isnt KD.defaultSlug then "#{group}/" else ''
     "https://#{location.host}/#{slug}Invitation/#{code}"
 
   markDeleted:->

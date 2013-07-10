@@ -87,7 +87,7 @@ class NFinderController extends KDViewController
     if vmNames then @mountVms vmNames
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
-      groupSlug ?= 'koding'
+      groupSlug ?= KD.defaultSlug
       @appStorage.fetchValue "mountedVM", (vms)=>
         vms            or= {}
         vms[groupSlug] or= []
@@ -110,7 +110,7 @@ class NFinderController extends KDViewController
 
   updateMountState:(vmName, state)->
     groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
-    groupSlug ?= 'koding'
+    groupSlug ?= KD.defaultSlug
     @appStorage.fetchValue "mountedVM", (vms)=>
       vms or= {}
       vms[groupSlug] or= []
@@ -248,7 +248,7 @@ class VMMountStateWidget extends JView
     @warning.hide()
     @loader.show()
 
-    if KD.getSingleton("groupsController").getGroupSlug() is 'koding'
+    if KD.getSingleton("groupsController").getGroupSlug() is KD.defaultSlug
       @showMessage()
 
     # Not sure about it I guess only owners can create GroupVM?
