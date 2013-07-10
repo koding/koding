@@ -14,7 +14,7 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         log "user wants to join a session"
-        if snapshot.val() is null
+        unless snapshot.val()
           log "session is not active"
           @showNotActiveView()
           return false
@@ -80,7 +80,7 @@ class CollaborativeWorkspace extends Workspace
 
   amIHost: ->
     [sessionOwner] = @sessionKey.split ":"
-    return sessionOwner == KD.nick()
+    return sessionOwner is KD.nick()
 
   showNotActiveView: ->
     notValid = new KDView
