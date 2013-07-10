@@ -781,6 +781,8 @@ class KDView extends KDObject
 
   putOverlay:(options = {})->
 
+    # Will be deprecated soon, will use KDOverlayView
+
     {isRemovable, cssClass, parent, animated, color} = options
 
     isRemovable ?= yes
