@@ -1041,3 +1041,8 @@ module.exports = class JAccount extends jraphical.Module
       force   : yes
 
     email.save ->
+
+  @fetchMembersReputation: secure (client, options, callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchMembersReputation options, callback
+

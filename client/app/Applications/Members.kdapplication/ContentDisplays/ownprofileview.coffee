@@ -54,6 +54,14 @@ class OwnProfileView extends JView
         KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
     , memberData
 
+    ###
+    @reputation = new KDView
+    KD.remote.api.JAccount.fetchMembersReputation
+      memberId : memberData.getId()
+    , (err, likesCount)=>
+      @reputation.updatePartial "<cite/>#{likesCount} <span>Reputation</span>"
+    ###
+
     @aboutYou     = new PersonalFormAboutView {memberData}
     @skillTagView = new PersonalFormSkillTagView {memberData}
 

@@ -5,7 +5,7 @@ module.exports =
       'one', 'some', 'cursor', 'each', 'someWithRelationship'
       'someData', 'getAutoCompleteData', 'count'
       'byRelevance', 'fetchVersion','reserveNames'
-      'impersonate'
+      'impersonate', 'fetchMembersReputation'
     ]
   sharedInstanceMethods:->
     [

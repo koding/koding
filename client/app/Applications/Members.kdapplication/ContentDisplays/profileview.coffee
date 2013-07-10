@@ -68,6 +68,14 @@ class ProfileView extends JView
         KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
     , memberData
 
+    ###
+    @reputation = new KDView
+    KD.remote.api.JAccount.fetchMembersReputation
+      memberId : memberData.getId()
+    , (err, likesCount)=>
+      @reputation.updatePartial "<cite/>#{likesCount} <span>Reputation</span>"
+    ###
+
     @sendMessageLink = new MemberMailLink {}, memberData
 
     memberData.locationTags or= []
