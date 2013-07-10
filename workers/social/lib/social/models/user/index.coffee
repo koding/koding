@@ -335,7 +335,7 @@ module.exports = class JUser extends jraphical.Module
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
-      else if invite?.group isnt slug and group.privacy is 'private' and group.slug isnt 'koding'
+      else if invite? and invite.group isnt slug and group.privacy is 'private' and group.slug isnt 'koding'
         group.requestAccessFor account, callback
       else
         group.approveMember account, (err)->
@@ -362,7 +362,7 @@ module.exports = class JUser extends jraphical.Module
       counterName : 'guest'
       offset      : 0
     }).next (err, guestId) =>
-      return callback err  if err
+      return callback err  if err?
 
       username = "guest-#{guestId}"
 
@@ -372,8 +372,12 @@ module.exports = class JUser extends jraphical.Module
         password  : createId()
 
       @createUser options, (err, user, account) =>
+        return callback err  if err?
 
-        @configureNewAcccount account, user, createId(), callback
+        @addToGroup account, 'guests', null, null, (err) =>
+          return callback err  if err?
+
+          @configureNewAcccount account, user, createId(), callback
 
 
   @createUser = ({ username, email, password, firstName, lastName }, callback)->
@@ -454,17 +458,17 @@ module.exports = class JUser extends jraphical.Module
       then { message: "Errors were encountered during validation", errors }
       else null
     )
-    
+
   @changePasswordByUsername = (username, password, callback) ->
     salt = createSalt()
     hashedPassword = hashPassword password, salt
     @update { username }, {
       $set: { salt, password: hashedPassword }
     }, callback
-  
+
   @changeEmailByUsername = (username, email, callback) ->
     @update { username }, { $set: { email }}, callback
-  
+
   @changeUsernameByAccount = (account, username, clientId, callback)->
     account.changeUsername username, (err) =>
       return callback err  if err?
@@ -479,7 +483,7 @@ module.exports = class JUser extends jraphical.Module
             callback null, newToken
         else
           callback new KodingError "Session not found!"
-        
+
 
   @convert = secure (client, userFormData, callback) ->
     { connection, sessionToken : clientId } = client
