@@ -19,7 +19,7 @@ class CollaborativePanel extends Panel
   createHeaderButtons: ->
     super
     @header.addSubView new KDCustomHTMLView
-      cssClass  : "help users"
+      cssClass  : "users"
       click     : => @getDelegate().showUsers()
 
   createPane: (paneOptions, targetContainer) ->
