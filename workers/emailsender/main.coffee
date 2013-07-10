@@ -28,42 +28,33 @@ log = ->
 
 log "E-Mail Sender Worker has started with PID #{process.pid}"
 
-sendEmail = (emailContent)->
-  {from, replyto, email, subject, content, unsubscribeId, force, bcc} = emailContent
+sendEmail = (emailContent, callback)->
+  {from, replyto, email, subject, content, unsubscribeId, bcc} = emailContent
 
-  cb = ->
-    to    = emailWorker.defaultRecepient or email
-    from  = if from is 'hello@koding.com' then "Koding <#{from}>" else from
-    Emailer.send
-      From      : from
-      To        : to
-      Subject   : subject or "Notification"
-      HtmlBody  : template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
-      TextBody  : template.textTemplate content, unsubscribeId, email
-      ReplyTo   : replyto
-      Bcc       : bcc
-    , (err, status)->
-      dateAttempted = new Date()
-      status        = 'attempted'
-      unless err then log "An e-mail sent to #{to}"
-      else
-        log "An error occured: #{err}"
-        status = 'failed'
+  To       = emailWorker.defaultRecepient or email
+  From     = if from is 'hello@koding.com' then "Koding <#{from}>" else from
+  HtmlBody = template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
+  TextBody = template.textTemplate content, unsubscribeId, email
 
-      emailContent.update $set: {status, dateAttempted}, (err)->
-        console.error err if err
+  Emailer.send {
+    From
+    To
+    Subject   : subject or "Notification"
+    HtmlBody
+    TextBody
+    ReplyTo   : replyto
+    Bcc       : bcc
+  }, (err, status)->
+    dateAttempted = new Date()
+    status        = 'attempted'
+    unless err then log "An e-mail sent to #{to}"
+    else
+      log "An error occured: #{err}"
+      status = 'failed'
 
-  unless force
-    emailContent.isUnsubscribed (err, unsubscribed)->
-      if err or unsubscribed
-        console.error err  if err
-        return emailContent.update $set: {status: 'unsubscribed'}, (err)->
-          console.error err  if err
-          cb()
-      else
-        cb()
-  else
-    cb()
+    emailContent.update $set: {status, dateAttempted}, (err)->
+      console.error err if err
+      callback()
 
 emailSender = ->
   {JMail} = worker.models
@@ -77,8 +68,17 @@ emailSender = ->
                      {multi: yes}, (err)->
           unless err
             log "Sending #{emails.length} e-mail(s)..."
-            for email in emails
-              sendEmail email
+
+            Bongo.daisy queue = emails.map (email)->->
+              unless email.force
+                email.isUnsubscribed (err, unsubscribed)->
+                  if err or unsubscribed
+                    return email.update $set: {status: 'unsubscribed'}, (err)->
+                      queue.next()
+                  else
+                    sendEmail email, queue.next
+              else
+                sendEmail email, queue.next
           else
             log err
 
