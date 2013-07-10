@@ -2,5 +2,7 @@
   {"code": "plan_vm_loadbalancer_1", "title": "VM Loadbalancer - 2 VMs", "price": 1000},
   {"code": "plan_vm_loadbalancer_2", "title": "VM Loadbalancer - 4 VMs", "price": 2000},
 
-  {"code": "plan_test_product_1", "title": "Test Product", "price": 500}
+  {"code": "plan_test_product_1", "title": "Test Product 1", "price": 100},
+  {"code": "plan_test_product_2", "title": "Test Product 2", "price": 200},
+  {"code": "plan_test_product_3", "title": "Test Product 3", "price": 300}
 ]
