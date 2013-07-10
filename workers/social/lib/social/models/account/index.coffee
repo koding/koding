@@ -997,6 +997,9 @@ module.exports = class JAccount extends jraphical.Module
       JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
         domainList = []
         unless err 
+          # we don't allow users to work on domains such as 
+          # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
+          # so we are filtering them here.
           domainList = domains.filter (domain)->
             domainName = domain.domain
             !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
