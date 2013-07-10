@@ -354,3 +354,9 @@ module.exports = class JInvitationRequest extends Model
       selector ?= {}
       selector.group = if Array.isArray group then $in: group else group
       @count selector, callback
+
+  save:(callback)->
+    super
+    unless @koding?.username # JUnsubscribedMail is not for koding users
+      JUnsubscribedMail = require './unsubscribedmail'
+      JUnsubscribedMail.removeFromList @email
