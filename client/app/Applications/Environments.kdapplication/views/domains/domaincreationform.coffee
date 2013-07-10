@@ -190,7 +190,7 @@ class DomainCreationForm extends KDTabViewWithForms
             warn err
             notifyUser "An error occured. Please try again later."
           else
-            @showSuccess()
+            @showSuccess domain
             domain.setDomainCNameToProxyDomain()
 
     else if domainOptionValue is 'existing'
@@ -202,7 +202,7 @@ class DomainCreationForm extends KDTabViewWithForms
             return notifyUser "The domain #{domainName} already exists."
           return notifyUser "An error occured. Please try again later."
         else
-          @showSuccess()
+          @showSuccess domain
 
     else # create a subdomain
       subDomain = domainName.replace /\.{1,}(?=[^.]*$)/, ''
@@ -216,7 +216,7 @@ class DomainCreationForm extends KDTabViewWithForms
             return notifyUser "The domain #{domainName} already exists."
           return notifyUser "An error occured. Please try again later."
         else
-          @showSuccess()
+          @showSuccess domain
 
   createDomain:(params, callback)->
     KD.remote.api.JDomain.createDomain
@@ -249,7 +249,7 @@ class DomainCreationForm extends KDTabViewWithForms
       click   : (event)->
         domainName.setValue $(event.target).closest('li').text()
 
-  showSuccess:->
+  showSuccess:(domain)->
     @clearSuggestions()
     form            = @forms["Domain Address"]
     {domainName}    = form.inputs
@@ -260,7 +260,7 @@ class DomainCreationForm extends KDTabViewWithForms
     createButton.hide()
     cancel.hide()
 
-    @emit 'DomainSaved'
+    @emit 'DomainSaved', domain
 
     suggestionBox.addSubView @successNote = new KDCustomHTMLView
       tagName : 'p'
@@ -270,7 +270,7 @@ class DomainCreationForm extends KDTabViewWithForms
       # partial : "<b>Thank you!</b><br>Your domain #{domainName.getValue()} has been added to our database. Please go to your provider's website and add a CNAME record mapping to kontrol.in.koding.com."
 
       # change this part when registering is there.
-      partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs or set load balancing on the settings screen."
+      partial : "<b>Thank you!</b><br>Your subdomain <strong>#{domainName.getValue()}</strong> has been added to our database. You can dismiss this panel and point your new domain to one of your VMs on the settings screen."
       click   : => @reset()
 
 
