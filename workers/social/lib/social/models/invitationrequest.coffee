@@ -147,7 +147,9 @@ module.exports = class JInvitationRequest extends Model
               return callback err if err
               @sendRequestApprovedNotification client, group, account, callback
 
-  approveInvitation: (client, options, callback=->)->
+  approveInvitation: (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+
     JGroup      = require './group'
     JInvitation = require './invitation'
 
