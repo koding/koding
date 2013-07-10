@@ -10,6 +10,7 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef      = @firepadRef.child @sessionKey
 
     @createLoader()
+    @createUserList()
 
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
@@ -224,3 +225,34 @@ class CollaborativeWorkspace extends Workspace
                 callback        : -> modal.destroy()
 
     callback modal
+
+  createUserList: ->
+    @container.addSubView @userList = new KDView
+      cssClass : "user-list"
+
+    @userList.addSubView new KDView
+      cssClass  : "inner-header"
+      partial   : """<span class="title">Users</span>"""
+
+
+    @userList.addSubView @userListWrapper = new KDView
+      cssClass : "wrapper loading"
+
+    @userListWrapper.addSubView loader = new KDLoaderView size : width : 36
+
+    @userList.on "viewAppended", -> loader.show()
+
+  showUsers: ->
+    @userList.setClass "active"
+    @workspaceRef.once "value", (snapshot) =>
+      val   = snapshot.val()
+      return unless val
+
+      users = []
+      users.push userName for key, userName of val.users
+
+      KD.remote.api.JAccount.some { "profile.nickname": { "$in": users } }, {}, (err, res) =>
+        @userListWrapper.destroySubViews()
+
+
+  createUserView: ->
