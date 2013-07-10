@@ -1,3 +1,9 @@
+db.jDomains.find().forEach(function(domain){
+  if (typeof(domain.hostnameAlias) === 'string') {
+    db.jDomains.update({_id:domain._id}, {$set:{"hostnameAlias":[domain.hostnameAlias]}});
+  }
+});
+
 db.jVMs.find().forEach(function(vm) {
     var hostnameAlias, rel, vmUser;
 
