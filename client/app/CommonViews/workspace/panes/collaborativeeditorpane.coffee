@@ -1,6 +1,6 @@
 class CollaborativeEditorPane extends CollaborativePane
 
-  cdnRoot = "https://fatihacet.kd.io/cdn/codemirror/latest"
+  cdnRoot = "https://koding-cdn.s3.amazonaws.com/codemirror/latest"
 
   constructor: (options = {}, data) ->
 
@@ -60,9 +60,9 @@ class CollaborativeEditorPane extends CollaborativePane
   createEditor: ->
     @codeMirrorEditor = CodeMirror @container.getDomElement()[0],
       lineNumbers     : yes
-      mode            : "javascript"
       extraKeys       :
         "Cmd-S"       : @bound "save"
+        "Ctrl-S"      : @bound "save"
 
     @setEditorTheme()
     @setEditorMode()
@@ -81,7 +81,7 @@ class CollaborativeEditorPane extends CollaborativePane
 
     return  unless file
 
-    CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js" # TODO: fatihacet - it should be publicly available. should change the cdn url.
+    CodeMirror.modeURL = "#{cdnRoot}/mode/%N/%N.js"
     fileExtension      = file.getExtension()
     syntaxHandler      = __aceSettings.syntaxAssociations[fileExtension]
     modeName           = null

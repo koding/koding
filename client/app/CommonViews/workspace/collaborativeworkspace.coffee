@@ -9,10 +9,13 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey        = options.sessionKey or @createSessionKey()
     @workspaceRef      = @firepadRef.child @sessionKey
 
+    @createLoader()
+    @createUserList()
+
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         log "user wants to join a session"
-        if snapshot.val() is null
+        unless snapshot.val()
           log "session is not active"
           @showNotActiveView()
           return false
@@ -35,6 +38,8 @@ class CollaborativeWorkspace extends Workspace
         @createPanel()
         @workspaceRef.set "keys": @sessionData
         @workspaceRef.child("users").push KD.nick()
+
+      @loader.destroy()
 
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
@@ -76,7 +81,7 @@ class CollaborativeWorkspace extends Workspace
 
   amIHost: ->
     [sessionOwner] = @sessionKey.split ":"
-    return sessionOwner == KD.nick()
+    return sessionOwner is KD.nick()
 
   showNotActiveView: ->
     notValid = new KDView
@@ -102,6 +107,15 @@ class CollaborativeWorkspace extends Workspace
     options = @getOptions()
     delete options.sessionKey
     @addSubView new CollaborativeWorkspace options
+
+  createLoader: ->
+    @loader    = new KDView
+      cssClass : "workspace-loader"
+      partial  : """<span class="text">Loading...<span>"""
+
+    @loader.addSubView loaderView = new KDLoaderView size: width : 36
+    @container.addSubView @loader
+    @loader.on "viewAppended", -> loaderView.show()
 
   joinSession: (sessionKey) ->
     {parent}           = @
@@ -211,3 +225,34 @@ class CollaborativeWorkspace extends Workspace
                 callback        : -> modal.destroy()
 
     callback modal
+
+  createUserList: ->
+    @container.addSubView @userList = new KDView
+      cssClass : "user-list"
+
+    @userList.addSubView new KDView
+      cssClass  : "inner-header"
+      partial   : """<span class="title">Users</span>"""
+
+
+    @userList.addSubView @userListWrapper = new KDView
+      cssClass : "wrapper loading"
+
+    @userListWrapper.addSubView loader = new KDLoaderView size : width : 36
+
+    @userList.on "viewAppended", -> loader.show()
+
+  showUsers: ->
+    @userList.setClass "active"
+    @workspaceRef.once "value", (snapshot) =>
+      val   = snapshot.val()
+      return unless val
+
+      users = []
+      users.push userName for key, userName of val.users
+
+      KD.remote.api.JAccount.some { "profile.nickname": { "$in": users } }, {}, (err, res) =>
+        @userListWrapper.destroySubViews()
+
+
+  createUserView: ->
