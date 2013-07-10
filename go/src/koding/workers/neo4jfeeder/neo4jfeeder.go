@@ -15,6 +15,7 @@ import (
 var (
 	EXCHANGE_NAME     = "graphFeederExchange"
 	WORKER_QUEUE_NAME = "graphFeederWorkerQueue"
+	TIME_FORMAT       = "2006-01-02T15:04:05.000Z"
 )
 
 type Consumer struct {
@@ -201,27 +202,25 @@ func createNode(data map[string]interface{}) {
 	target := fmt.Sprintf("%s", targetNode["self"])
 
 	if _, ok := data["as"]; !ok {
-		fmt.Println("As value is not set on this relationship. Discarding this record", data)
+		fmt.Println("as value is not set on this relationship. Discarding this record", data)
 		return
 	}
 	as := fmt.Sprintf("%s", data["as"])
 
 	if _, ok := data["_id"]; !ok {
-		fmt.Println("Id value is not set on this relationship. Discarding this record", data)
+		fmt.Println("id value is not set on this relationship. Discarding this record", data)
 		return
 	}
 
 	createdAt := getCreatedAtDate(data)
-	relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format("2006-01-02T15:04:05.000Z"), createdAt.Unix())
+	relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format(TIME_FORMAT), createdAt.Unix())
 	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
-
 }
 
 func getCreatedAtDate(data map[string]interface{}) time.Time {
 
 	if _, ok := data["timestamp"]; ok {
-		format := "2006-01-02T15:04:05.000Z"
-		t, err := time.Parse(format, data["timestamp"].(string))
+		t, err := time.Parse(TIME_FORMAT, data["timestamp"].(string))
 		// if error doesnt exists, return createdAt
 		if err == nil {
 			return t.UTC()
@@ -235,7 +234,6 @@ func getCreatedAtDate(data map[string]interface{}) time.Time {
 
 	fmt.Print("Couldnt determine the createdAt time, returning Now() as creatdAt")
 	return time.Now().UTC()
-
 }
 
 func deleteNode(data map[string]interface{}) {
