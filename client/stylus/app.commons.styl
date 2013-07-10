@@ -1781,10 +1781,9 @@ div.introduction-tooltip
       width             60px
       height            24px
       line-height       7px
-    .help
+    .help, .users
       height            20px
       width             16px
-      float             right
       top               9px
       position          relative
       margin-right      10px
@@ -1792,6 +1791,11 @@ div.introduction-tooltip
       cursor            pointer
       bg                position, -142px -458px
       sprite()
+      fr()
+    .users
+      size              21px, 22px
+      bg                position, 1px -58px
+      fr()
   .placeholder
     font-size           18px
     font-weight         600
@@ -1841,13 +1845,50 @@ div.introduction-tooltip
     box-shadow          0 0 16px rgba(0, 0, 0, 0.2)
     margin-top          39px
     vendor              transition, right .3s linear
+    .title
+      font-size         16px
+    .host-badge
+      size              60px, 20px
+      top               10px
+      right             10px
+      color             #999
+      font-size         11px
+      abs()
+      .icon
+        size            14px, 14px
+        display         inline-block
+        bg              position, -42px -400px
+        sprite()
+    .kdloader
+      display           none
+    &.loading
+      text-align        center
+      .kdloader
+        margin          0 auto 10px auto
+        display         block
     &.active
       right             0 !important
       display           block
+    .close
+      size              20px, 20px
+      right             10px
+      top               10px
+      bg                position, -80px -240px
+      abs()
+      sprite()
+      pointer()
     .wrapper
-      padding           10px 0
-      &.loading
-        text-align      center
+      padding-top       10px
+    .user-view
+      margin            0 0 10px 10px
+      .avatarview
+        fl()
+      .user-name
+        width           auto
+        margin-left     10px
+        top             4px
+        font-size       12px
+        fl()
 .workspace-modal
   p
     padding             10px 20px
