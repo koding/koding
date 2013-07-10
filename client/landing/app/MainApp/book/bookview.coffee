@@ -197,10 +197,8 @@ class BookView extends JView
     @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
     selectedMenuItemOffset = @selectedMenuItem[0].$().offset()
 
-    @pointer.$().offset
-      top: selectedMenuItemOffset.top
-      left: selectedMenuItemOffset.left
-
+    @pointer.$().offset selectedMenuItemOffset
+      
   continueNextMove:->
     steps = @page.data.howToSteps
 
@@ -299,9 +297,7 @@ class BookView extends JView
       # find file tree's menu position
       vmOffset = @defaultVm.$(".chevron").offset()
       # move cursor to file tree menu
-      @pointer.$().offset
-        top     : vmOffset.top
-        left    : vmOffset.left
+      @pointer.$().offset vmOffset
 
   showVMMenu:->
     @mainView.sidebar.animateLeftNavOut()
@@ -347,12 +343,13 @@ class BookView extends JView
 
   showRecentFilesMenu:->
     # find recent files menu
-    offsetTo = @mainView.mainTabView.activePane.mainView.recentFilesWrapper.$().offset()
+    element = @mainView.mainTabView.activePane.mainView.$('.start-tab-recent-container')
+    offsetTo = element.offset()
     offsetTo.top-=30
     # show recent files menu
     @setClass 'moveUp'
     # move cursor
-    @utils.wait 700, =>
+    @utils.wait 1000, =>
       @pointer.$().offset offsetTo
 
 
@@ -401,31 +398,128 @@ class BookView extends JView
       KD.singletons.chatPanel.header.newConversationButton.$().click()
 
   changeIndexFile:->
-    # find Web Folder on left
-    #expandNavigationPanel
-    # move cursor to Web folder
-    user = KD.whoami().profile
-    userVmName = "[koding~#{user.nickname}~0]/home/#{user.nickname}"
+    @pointer.once 'transitionend', =>
+      @clickAnimation()
+      @defaultVm.setClass('selected')
+      @navigateToFolder()
+
+    user = KD.nick()
+    userVmName = "[koding~#{user}~0]/home/#{user}"
     @utils.wait 500, =>
       @defaultVm = KD.singletons.finderController.treeController.nodes[userVmName]
-      @defaultVm.setClass('selected')
       # find file tree's menu position
       vmOffset = @defaultVm.$(".icon").offset()
       @mainView.sidebar.animateLeftNavOut()
       # move cursor to file tree menu
       @utils.wait 500, =>
-        @pointer.$().offset
-          top     : vmOffset.top
-          left    : vmOffset.left
+        @pointer.$().offset vmOffset
+  navigateToFolder:->
+    @pointer.once 'transitionend', =>
+      # open Web folder
+      user = KD.nick()
+      @utils.wait 1200, =>
+        @clickAnimation()
+        KD.singletons.finderController.treeController.expandFolder(@webFolderItem)
+        @webFolderItem.setClass 'selected'
+        @findAndOpenIndexFile()
+
+    # find user Web folder location
+    user = KD.nick()
+    webFolder = "[koding~#{user}~0]/home/#{user}/Web"    
+    @webFolderItem = KD.singletons.finderController.treeController.nodes[webFolder]
+    offsetTo = @webFolderItem.$().offset()
+    # navigate to folder
+    @pointer.$().offset offsetTo
+
+
+  findAndOpenIndexFile:->
+    @pointer.once 'transitionend', =>
+      # open Ace and highlight 'hello world'
+      @utils.wait 2200, =>
+        @webFolderItem.unsetClass 'selected'
+        @indexFileItem.setClass 'selected'
+        @utils.wait 600, =>
+          @clickAnimation()
+          @openFileWithPage('/Web/index.html')
+          @utils.wait 800, =>
+            @simulateReplacingText()
+        
+
+    @utils.wait 3000, =>
+      # find index.html position
+      user = KD.nick()
+      indexFile = "[koding~#{user}~0]/home/#{user}/Web/index.html"
+      @indexFileItem = KD.singletons.finderController.treeController.nodes[indexFile]
+      # move cursor to index.html position
+      offsetTo = @indexFileItem.$().offset()
+      @pointer.$().offset offsetTo
+    
+
+  simulateReplacingText:->
+    @pointer.once 'transitionend', =>
+      # change content
+      @clickAnimation()
+      new KDNotificationView
+        title    : "change 'Hello World!' to 'KODING ROCKS!'"
+        duration : 3000
+      @utils.wait 4000, =>
+        @aceView.ace.editor.replace('<h1>KODING ROCKS!</h1>', {needle:'<h1>Hello World!</h1>'})
+        @saveAndOpenPreview()
+
+    # highlight
+    user = KD.nick()
+    aceViewName = "/home/#{user}/Web/index.html"
+    @aceView = KD.singletons.appManager.frontApp.mainView.aceViews[aceViewName]
+    # find 'Hello World!'
+    range = @aceView.ace.editor.find('<h1>')
+    # get cursor position to ace 
+    offsetTo = @pointer.$().offset()
+    offsetTo.left += 500
+    @pointer.$().offset offsetTo
+
+  saveAndOpenPreview:->
+
+    @pointer.once 'transitionend', =>
+      # click animation
+      @clickAnimation()
+      # open menu
+      @mainView.appSettingsMenuButton.$().click()
+      # find save menu item position
+      @utils.wait 2000, =>
+        # save ace view
+        @mainView.appSettingsMenuButton.data[0].callback()
+        @utils.wait 800, =>
+          @openPreview()
+
+    # find right up ace save menu position
+    offsetTo = @mainView.appSettingsMenuButton.$().offset()
+    @pointer.$().offset offsetTo
+    
+    
+
+  
+  openPreview:->
+    new KDNotificationView
+      title     : "Let's see what changed!"
+      duration  : 3000
+
+    @mainView.appSettingsMenuButton.$().click()
+    @utils.wait 2200, =>
+      @mainView.appSettingsMenuButton.data[8].callback()
+
+
+
+
 
   showAceSettings:->
 
     @pointer.once 'transitionend', =>
       # click animation
-        @clickAnimation()
+      @clickAnimation()
       # click ace app
-        @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().click()
-      @openAceMenu()
+      @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().click()
+      @utils.wait 800, =>      
+        @openAceMenu()
       @setClass 'aside'
 
 
@@ -440,16 +534,16 @@ class BookView extends JView
     @pointer.once 'transitionend', =>
       @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').click()
     # find ace settings menu icon
-    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').offset()
+    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').eq(1).offset()
+    log offsetTo
+    
     # navigate settings icon
     @pointer.$().offset offsetTo
     @utils.wait 3500, =>
       @unsetClass 'aside'
+      @pointer.destroy()
     # click animation
     # click ace settings
-
-
-
 
 
 
