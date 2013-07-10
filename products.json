@@ -1,4 +1,0 @@
-[
-  {"code": "plan_vm_loadbalancer_1", "title": "VM Loadbalancer - 2 VMs", "price": 1000},
-  {"code": "plan_vm_loadbalancer_2", "title": "VM Loadbalancer - 4 VMs", "price": 2000}
-]

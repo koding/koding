@@ -315,11 +315,12 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 do ->
   # Koding Recurly Products
 
-  fs   = require 'fs'
-  path = require 'path'
+  fs      = require 'fs'
+  path    = require 'path'
+  Watcher = require "koding-watcher"
 
   getProducts = (callback)->
-    productsFile = path.join __dirname, "../../../../../../products.json"
+    productsFile = path.join __dirname, "../../../../../../products/products.json"
     productsList = JSON.parse(fs.readFileSync(productsFile))
     callback productsList
 
@@ -353,4 +354,15 @@ do ->
           JRecurlyPlan.all {}, ->
             console.log "Updated product cache."
 
+
+  # Load products
   loadProducts()
+
+  # Update products if necessary
+  watchRoot = path.join __dirname, "../../../../../../products/"
+  watcher   = new Watcher
+    groups        :
+      recurly     :
+        folders   : [watchRoot]
+        onChange  : (change)->
+          loadProducts()
