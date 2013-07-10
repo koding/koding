@@ -358,11 +358,11 @@ do ->
   # Load products
   loadProducts()
 
-  # Update products if necessary
-  watchRoot = path.join __dirname, "../../../../../../products/"
-  watcher   = new Watcher
-    groups        :
-      recurly     :
-        folders   : [watchRoot]
-        onChange  : (change)->
-          loadProducts()
+  # # Update products if necessary
+  # watchRoot = path.join __dirname, "../../../../../../products/"
+  # watcher   = new Watcher
+  #   groups        :
+  #     recurly     :
+  #       folders   : [watchRoot]
+  #       onChange  : (change)->
+  #         loadProducts()
