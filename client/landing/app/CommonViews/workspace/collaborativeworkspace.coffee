@@ -65,6 +65,7 @@ class CollaborativeWorkspace extends Workspace
     @activePanel = newPanel
 
     callback()
+    @emit "PanelCreated"
 
   createSessionKey: ->
     nick = KD.nick()
