@@ -1,3 +1,71 @@
+class ActivitySharePopup extends JView
+
+  shortenUrl: (url, callback)->
+    accessToken = "821a27a900b401382c65e5e35a30246d2719e03f"
+    request = $.getJSON "https://api-ssl.bitly.com/v3/shorten?access_token=#{accessToken}&longUrl=#{encodeURIComponent url}", (data)=>
+      if data.status_code is 200
+        {data: {url}} = data
+      callback url, data
+
+    request.error -> callback url
+
+  constructor: (options={}, data)->
+    options.cssClass = "share-popup"
+    super
+
+    {url} = @getOptions()
+
+    @urlInput = new KDInputView
+      cssClass      : "share-input"
+      type          : "text"
+      placeholder   : "shortening..."
+      width         : 50
+
+    unless @getDelegate()._shorten
+      @shortenUrl url, (shorten, data)=>
+
+        url = if data then @getDelegate()._shorten = shorten else shorten
+
+        @urlInput.setValue shorten
+        @urlInput.$().select()
+    else
+      url = @getDelegate()._shorten
+      @urlInput.setValue url
+
+    @once "viewAppended", =>
+      @urlInput.$().select()
+
+    @twitterShareButton = new KDButtonView
+      cssClass  : "share-twitter"
+      iconOnly  : yes
+      iconClass : "twitter"
+      callback  : =>
+        tags = ("##{tag.slug}"  for tag in @getDelegate().getData().tags)
+        tags = _.unique(tags).join " "
+        shareText = "#{@getDelegate().getData().body} #{tags} - #{url}"
+        window.open(
+          "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
+          "twitter-share-dialog",
+          "width=500,height=350,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
+        )
+
+    @openNewTabButton = new CustomLinkView
+      title       : ""
+      href        : url
+      target      : url
+      icon        :
+        cssClass  : 'new-page'
+        placement : 'right'
+
+  pistachio: ->
+    """
+    {{> @urlInput}}
+    {{> @openNewTabButton}}
+    <div>
+      {{> @twitterShareButton}}
+    </div>
+    """
+
 class ActivityActionsView extends KDView
 
   constructor:->
@@ -21,48 +89,22 @@ class ActivityActionsView extends KDView
       # tooltip     :
       #   title     : "Coming Soon"
       click:(event)=>
-        shareUrl    = "http://kd.io/Activity/#{@getData().slug}"
-        contextMenu = new JContextMenu
-          menuWidth   : @getWidth()
+
+        shareUrl      = "https://koding.com/Activity/#{@getData().slug}"
+        contextMenu   = new JContextMenu
+          cssClass    : "activity-share-popup"
           delegate    : @
-          x           : @getX()
+          x           : @getX() - 15
           y           : @getY() + 15
           arrow       :
             placement : "top"
-            margin    : 75
+            margin    : 90
           lazyLoad    : yes
-        , customView  : new KDView partial: shareUrl
+        , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
-        KD.singletons.mainView.mainTabView.activePane.subViews[0].$().scroll =>
-          contextMenu.setY @getY() + 15
-
-        return
-        shareModal = new KDModalViewWithForms
-          title   : "You can share this link"
-          content : """<a href="#{shareUrl}" id="share-dialog-link" target="share-dialog-link" class="hidden"></a>"""
-          overlay : true
-          tabs          :
-            forms       :
-              share     :
-                fields  :
-                  share :
-                    type: "text"
-                    defaultValue: shareUrl
-                buttons :
-                  "Share on Twitter":
-                    callback: =>
-                      shareText = "#{@getData().body} - #{shareUrl}"
-                      window.open(
-                        "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
-                        "twitter-share-dialog",
-                        "width=500,height=350,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
-                      )
-                  "Open in new Tab":
-                    callback: =>
-                      shareModal.$("#share-dialog-link")[0].click()
-
-        shareModal.modalTabs.forms.share.inputs.share.$().select()
-
+        new KDOverlayView
+          parent      : KD.singletons.mainView.mainTabView.activePane
+          transparent : yes
 
     @likeView     = new LikeView {checkIfLikedBefore: no}, activity
     @loader       = new KDLoaderView size : width : 14
