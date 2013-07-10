@@ -70,6 +70,8 @@ class GroupPaymentHistoryListController extends KDListViewController
             currency   : 'USD'
             createdAt  : t.datetime
             paidVia    : t.card or ""
+            cardType   : t.cardType
+            cardNumber : t.cardNumber
             owner      : t.owner
             refundable : t.refundable
         if transactions.length is 0

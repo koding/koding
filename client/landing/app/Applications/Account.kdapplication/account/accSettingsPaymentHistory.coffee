@@ -29,6 +29,8 @@ class AccountPaymentHistoryListController extends KDListViewController
             currency   : 'USD'
             createdAt  : t.datetime
             paidVia    : t.card or ""
+            cardType   : t.cardType
+            cardNumber : t.cardNumber
             owner      : t.owner
             refundable : t.refundable
         if transactions.length is 0
@@ -59,14 +61,14 @@ class AccountPaymentHistoryList extends KDListView
 
   constructor:(options,data)->
     options = $.extend
-      tagName      : "ul"
+      tagName      : "table"
       itemClass : AccountPaymentHistoryListItem
     ,options
     super options,data
 
 class AccountPaymentHistoryListItem extends KDListItemView
   constructor:(options,data)->
-    options = tagName : "li"
+    options = tagName : "tr"
     super options,data
 
   viewAppended:->
@@ -86,12 +88,16 @@ class AccountPaymentHistoryListItem extends KDListItemView
     """
     cycleNotice = if data.billingCycle then "/#{data.billingCycle}" else ""
     """
-      <div class='labelish'>
-        <span class='invoice-date'>#{dateFormat data.createdAt}</span>
-      </div>
-      <div class='swappableish swappable-wrapper posstatic'>
-        <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
+      <td>
+        <span class='invoice-date'>#{dateFormat(data.createdAt, 'mmm dd, yyyy')}</span>
+      </td>
+      <td>
         <strong>$#{data.amount}</strong>
-        <cite>#{data.paidVia}</cite>
-      </div>
+      </td>
+      <td>
+        <span class='ttag #{data.status}'>#{data.status.toUpperCase()}</span>
+      </td>
+      <td class='ccard'>
+        <span class='icon #{data.cardType.toLowerCase().replace(' ', '-')}'></span>...#{data.cardNumber.split("...")[1]}
+      </td>
     """

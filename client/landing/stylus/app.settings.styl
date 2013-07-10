@@ -235,31 +235,18 @@ positiveGreen = rgba(58,200,2,1)
 .linked-accounts
   text-shadow         0 -1px 1px rgba(0,0,0,.6)
 
-.payment-methods,
-.your-subscriptions,
-.pending-invitations,
-.koding-keys
-.billing-history,
-.editor-settings,
-.repository-settings,
-.manage-mounts,
-.ssh-keys,
-.koding-keys,
-.database-settings
+.settings-list-wrapper
   text-shadow         0 -1px 1px rgba(0,0,0,.6)
-
-  a
+  >a
     font-weight         300
     color               linkColor1
     &:hover
       text-decoration   underline
-
   ul
     margin            0
     padding           0
     li
       list-style      none
-      // min-height      50px
       padding         9px 20px
       border-bottom   1px solid rgba(0,0,0,.2)
       borderBox()
@@ -458,7 +445,6 @@ positiveGreen = rgba(58,200,2,1)
   .labelish
     font-weight       bold
     font-size         12px
-    line-height       26px
 
   span.ttag
     // -webkit-font-smoothing          antialiased
@@ -469,11 +455,12 @@ positiveGreen = rgba(58,200,2,1)
     color             white
     text-transform    uppercase
     text-shadow       none
-    shadow(0 -1px 1px rgba(0,0,0,.7))
+    // shadow(0 -1px 1px rgba(0,0,0,.7))
     rounded(3px)
 
   span.ttag.paid
-    bg(color,positiveGreen)
+  span.ttag.success
+    bg(color,darkgreen)
   span.ttag.pending
     bg(color,darkorange)
   span.ttag.cancelled
@@ -484,6 +471,50 @@ positiveGreen = rgba(58,200,2,1)
     span,strong,cite
       padding-left        5px
       font-style          normal
+
+.billing-history
+  width                   100%
+  tr
+    border                none
+    overflow              visible
+    padding-right         100px
+    .action-link
+      position            static
+      opacity             1
+      display             block
+      margin-top          0
+      line-height         26px
+      margin-left         15px
+      &:hover
+      &:focus
+        color             white
+    td
+      padding             10px 0 10px 20px
+      vertical-align      middle
+      strong
+        font-size         17px
+        font-weight       bold
+        text-shadow       0px 1px 1px #111
+      &.ccard
+        size              auto,auto
+        vertical-align    middle
+        position          relative
+        padding-left      50px
+        .icon
+          abs()
+          sprite()
+          left            14px
+          bg(position,20px 20px)
+          size(30px,20px)
+          display         block
+          &.visa
+            bg(position,-40px -440px)
+          &.mastercard
+            bg(position,-70px -440px)
+          &.discover
+            bg(position,-40px -460px)
+          &.american-express
+            bg(position,-70px -460px)
 
 .your-subscriptions
   .no-item-found
