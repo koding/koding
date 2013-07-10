@@ -268,7 +268,7 @@ module.exports = class JVM extends Model
       {connection:{delegate}, context:{group}} = client
       JGroup = require './group'
 
-      slug = group ? 'koding'
+      slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
 
       JGroup.one {slug}, (err, group) =>
         return callback err  if err
@@ -523,6 +523,8 @@ module.exports = class JVM extends Model
     JGroup.on 'MemberRemoved', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
+        # Do we need to take care guests here? Like when guests ends up session
+        # Do we also need to remove their vms? ~ GG
         else if group.slug is 'koding'
           member.fetchVms (err, vms)->
             if err then handleError err

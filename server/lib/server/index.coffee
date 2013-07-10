@@ -368,7 +368,7 @@ error_500 =->
 app.get '/:name/:section?*', (req, res, next)->
   {JGroup, JName, JSession} = koding.models
   {name} = req.params
-  return res.redirect 302, req.url.substring 7  if name is 'koding'
+  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
     next()
