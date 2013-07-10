@@ -115,7 +115,7 @@ class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : @policy.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
+          defaultValue   : Encoder.htmlDecode @policy.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
           validate       :
             rules        :
               required   : yes
@@ -147,7 +147,7 @@ class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
+          defaultValue   : Encoder.htmlDecode @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
           validate       :
             rules        :
               required   : yes
