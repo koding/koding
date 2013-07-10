@@ -28,7 +28,7 @@ log = ->
 
 log "E-Mail Sender Worker has started with PID #{process.pid}"
 
-sendEmail = (emailContent, callback)->
+sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, bcc} = emailContent
 
   To       = emailWorker.defaultRecepient or email
@@ -47,18 +47,17 @@ sendEmail = (emailContent, callback)->
   }, (err, status)->
     dateAttempted = new Date()
     status        = 'attempted'
-    unless err then log "An e-mail sent to #{to}"
+    unless err then log "An e-mail sent to #{To}"
     else
       log "An error occured: #{err}"
       status = 'failed'
 
     emailContent.update $set: {status, dateAttempted}, (err)->
       console.error err if err
-      callback()
 
 emailSender = ->
   {JMail} = worker.models
-  JMail.some {status: "queued"}, {limit:300}, (err, emails)->
+  JMail.fetchWithUnsubscribedInfo {status: "queued"}, {limit:300}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
@@ -69,16 +68,7 @@ emailSender = ->
           unless err
             log "Sending #{emails.length} e-mail(s)..."
 
-            Bongo.daisy queue = emails.map (email)->->
-              unless email.force
-                email.isUnsubscribed (err, unsubscribed)->
-                  if err or unsubscribed
-                    return email.update $set: {status: 'unsubscribed'}, (err)->
-                      queue.next()
-                  else
-                    sendEmail email, queue.next
-              else
-                sendEmail email, queue.next
+            sendEmail email  for email in emails
           else
             log err
 

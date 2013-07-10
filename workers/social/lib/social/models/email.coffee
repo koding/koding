@@ -61,3 +61,26 @@ module.exports = class JMail extends Model
         unsubscribed = new JUnsubscribedMail {email}
         unsubscribed.save (err)->
           callback err, unless err then 'Successfully unsubscribed' else null
+
+  @fetchWithUnsubscribedInfo = (selector, options, callback)->
+    JUnsubscribedMail = require './unsubscribedmail'
+
+    JMail.some selector, options, (err, mails)->
+      return callback err  if err
+
+      emailsToCheck = (mail.email  for mail in mails when not mail.force)
+
+      JUnsubscribedMail.some email: $in: emailsToCheck, {}, (err, uMails)->
+        return callback err  if err
+
+        unsubscribedEmails = (uMail.email  for uMail in uMails)
+
+        cleanedMails = []
+        for mail in mails
+          unless mail.email in unsubscribedEmails
+            cleanedMails.push mail
+          else
+            mail.update $set: {status: 'unsubscribed'}, (err)->
+              callback err  if err
+
+        callback null, cleanedMails
