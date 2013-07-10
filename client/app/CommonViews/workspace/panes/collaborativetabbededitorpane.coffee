@@ -35,6 +35,13 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
+    @on "PaneResized", =>
+      @setHeight @parent.getHeight()
+      for pane in @tabView.panes
+        {codeMirrorEditor} = pane.subViews[0]
+        codeMirrorEditor.display.wrapper.style.height = "#{@parent.getHeight() - 22}px"
+        codeMirrorEditor.refresh()
+
   createEditorTabs: ->
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : @
