@@ -16,6 +16,12 @@ class CollaborativePanel extends Panel
 
     log "i've created new panes with these keys", @getOptions().sessionKeys
 
+  createHeaderButtons: ->
+    super
+    @header.addSubView new KDCustomHTMLView
+      cssClass  : "help users"
+      click     : => @getDelegate().showUsers()
+
   createPane: (paneOptions, targetContainer) ->
     PaneClass              = @getPaneClass paneOptions.type
     paneOptions.delegate   = @
