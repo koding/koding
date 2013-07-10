@@ -81,8 +81,8 @@ class NFinderController extends KDViewController
 
   loadVms:(vmNames, callback)->
 
-    if KD.isGuest()
-      vmNames ?= ['guest']
+    # if KD.isGuest()
+    #   vmNames ?= ['guest']
 
     if vmNames then @mountVms vmNames
     else

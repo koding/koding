@@ -99,8 +99,8 @@ class VirtualizationController extends KDController
   fetchVmName: (options, callback) ->
     if options.vmName?
     then @utils.defer -> callback null, options.vmName
-    else if KD.whoami().type is 'unregistered'
-    then @utils.defer -> callback null, 'guest'
+    # else if KD.whoami().type is 'unregistered'
+    # then @utils.defer -> callback null, 'guest'
     else
       @fetchDefaultVmName (defaultVmName) ->
         if defaultVmName?
@@ -155,7 +155,7 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   fetchVMs:(callback = noop)->
-    if KD.isGuest() then @vms = ['guest']
+    # if KD.isGuest() then @vms = ['guest']
     if @vms.length > 0
       return KD.utils.defer => callback null, @vms
 
@@ -164,7 +164,7 @@ class VirtualizationController extends KDController
       callback? err, vms
 
   fetchGroupVMs:(callback = noop)->
-    if KD.isGuest() then @groupVms = ['guest']
+    # if KD.isGuest() then @groupVms = ['guest']
     if @groupVms.length > 0
       return @utils.defer =>
         callback null, @groupVms
@@ -174,8 +174,7 @@ class VirtualizationController extends KDController
       callback? err, vms
 
   fetchVMDomains:(vmName, callback = noop)->
-    if KD.isGuest() then @vmDomains = guest: ['guest.kd.io']
-
+    # if KD.isGuest() then @vmDomains = guest: ['guest.kd.io']
     if domains = @vmDomains[vmName]
       return @utils.defer -> callback null, domains
 
@@ -205,10 +204,6 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   hasDefaultVM:(callback)->
-    # Guest is always has defaultVm
-    if KD.isGuest()
-      return callback yes
-
     # Default VM should be the personal vm in Koding group
     @fetchVMs (err, vms)->
       if err

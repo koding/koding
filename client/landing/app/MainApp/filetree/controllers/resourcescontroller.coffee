@@ -26,16 +26,6 @@ class ResourcesController extends KDListViewController
 
     @removeAllItems()
 
-    if KD.isGuest()
-      @instantiateListItems [
-        vmName     : 'guest'
-        groupSlug  : 'koding'
-        groupTitle : 'koding'
-      ]
-      @deselectAllItems()
-      finder.emit 'EnvironmentsTabShow'
-      return
-
     vmController = KD.getSingleton("vmController")
     vmController.resetVMData()
     vmController.fetchVMs (err, vms)=>
