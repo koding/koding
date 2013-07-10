@@ -58,7 +58,6 @@ sendEmail = (emailContent)->
         console.error err  if err
         return emailContent.update $set: {status: 'unsubscribed'}, (err)->
           console.error err  if err
-          cb()
       else
         cb()
   else
