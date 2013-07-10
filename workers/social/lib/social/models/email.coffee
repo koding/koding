@@ -81,6 +81,9 @@ module.exports = class JMail extends Model
             cleanedMails.push mail
           else
             mail.update $set: {status: 'unsubscribed'}, (err)->
-              callback err  if err
+              # it's not fatal enough to break the process
+              # also we don't wait for this to proceed with sending the emails
+              # doing a callback(err) here can have unexpected outcomes
+              console.log err  if err
 
         callback null, cleanedMails
