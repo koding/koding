@@ -61,7 +61,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           <div class='app-tip'>
             <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{Encoder.XSSEncode additionalinfo}
+            #{additionalinfo}
           <div>
           """
       click    : -> no
