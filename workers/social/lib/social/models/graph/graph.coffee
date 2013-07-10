@@ -57,18 +57,14 @@ module.exports = class Graph
 
     @db.query query, {}, (err, results)=>
       tempRes = []
-      console.log "results.length", results.length
       if err 
-        console.log "err 1 -", err
         callback err
       else if results.length is 0 then callback null, []
       else
         collectRelations = race (i, res, fin)=>
-          console.log "hellooooooooo", res, i
           res.replies = [] 
           @fetchRelatedItems res.getId(), (err, relatedResult)=>
             if err
-              console.log "err ::::", err if err
               callback err
               fin()
             else
@@ -76,13 +72,11 @@ module.exports = class Graph
                 collections = {}
                 if relatedResult.reply?
                   for obj in relatedResult.reply
-                    console.log "reply ::::::::::::", obj
                     collections[obj.name] ||= []
                     collections[obj.name].push(obj.id)
                     wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
                   @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
                     for dbObj in dbObjects
-                      console.log "db obj:::", dbObj.getId()
                       res.replies.push dbObj
                     tempRes.push res
                     fin()
