@@ -9,6 +9,8 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey        = options.sessionKey or @createSessionKey()
     @workspaceRef      = @firepadRef.child @sessionKey
 
+    @createLoader()
+
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         log "user wants to join a session"
@@ -35,6 +37,8 @@ class CollaborativeWorkspace extends Workspace
         @createPanel()
         @workspaceRef.set "keys": @sessionData
         @workspaceRef.child("users").push KD.nick()
+
+      @loader.destroy()
 
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
@@ -102,6 +106,15 @@ class CollaborativeWorkspace extends Workspace
     options = @getOptions()
     delete options.sessionKey
     @addSubView new CollaborativeWorkspace options
+
+  createLoader: ->
+    @loader    = new KDView
+      cssClass : "workspace-loader"
+      partial  : """<span class="text">Loading...<span>"""
+
+    @loader.addSubView loaderView = new KDLoaderView size: width : 36
+    @container.addSubView @loader
+    @loader.on "viewAppended", -> loaderView.show()
 
   joinSession: (sessionKey) ->
     {parent}           = @
