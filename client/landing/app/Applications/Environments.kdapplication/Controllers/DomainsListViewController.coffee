@@ -13,20 +13,17 @@ class DomainsListViewController extends KDListViewController
     @getListView().on "domainsListItemViewClicked", (item)=>
       @emit "domainItemClicked", item
 
-  loadItems:->
+  loadItems:(callback)->
     @showLazyLoader()
     KD.whoami().fetchDomains (err, domains) =>
-      if err
-        @instantiateListItems []
-        @hideLazyLoader()
-      unless err
-        @instantiateListItems domains
-        @hideLazyLoader()
+      @instantiateListItems domains or []
+      @hideLazyLoader()
+      callback?()
 
-  update:->
+  update:(callback)->
     @showLazyLoader()
     @removeAllItems()
-    @loadItems()
+    @loadItems callback
 
   appendNewDomain:(domainData)=>
     @addItem domainData
