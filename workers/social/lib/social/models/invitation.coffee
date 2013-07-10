@@ -28,9 +28,8 @@ module.exports = class JInvitation extends jraphical.Module
       code          : 'unique'
     sharedMethods   :
       instance      : ['modifyMultiuse']
-      static        : ['create','byCode','sendBetaInviteFromClient',
-                       'grantInvitesFromClient','markAsSent',
-                       'betaInviteCount', 'createViaGroup', 'suggestCode'
+      static        : ['create','byCode', 'grantInvitesFromClient',
+                       'createViaGroup', 'suggestCode',
                        'createMultiuse', 'countMultiuse', 'fetchOrSearchMultiuse' ]
     schema          :
       code          :
@@ -65,128 +64,6 @@ module.exports = class JInvitation extends jraphical.Module
       redeemer      :
         targetType  : JAccount
         as          : 'redeemer'
-
-  createBetaInvite = (options, callback)->
-    {inviterUsername, inviteeEmail, inviteType} = options
-    inviterUsername ?= "devrim"
-    inviteeEmail    ?= "pleaseChangeThisEmailWithYourOwn+"+Date.now()+"@koding.com"
-    inviteType      ?= "koding.com"
-
-    JAccount.one {'profile.nickname': inviterUsername}, (err, inviterAccount)->
-      code = crypto
-        .createHmac('sha1', 'kodingsecret')
-        .update(inviteeEmail+Date.now())
-        .digest('hex')
-
-      invite = new JInvitation
-        code          : code
-        inviteeEmail  : inviteeEmail
-        maxUses       : 1
-        origin        : ObjectRef(inviterAccount)
-        type          : inviteType
-
-      invite.save (err)->
-        if err
-          console.log err
-          callback err
-        else
-          callback null
-
-  # @markAsSent = secure (client,options,callback)->
-  #   account = client.connection.delegate
-  #   # unless 'super-admin' in account.globalFlags
-  #   unless account?.profile?.nickname is 'devrim'
-  #     return callback new KodingError "not authorized"
-  #   else
-  #     JInvitationRequest = require "./invitationrequest"
-  #     options.sort ?= 1
-  #     JInvitationRequest.some {sent:$ne:true}, {limit:options.howMany, sort:requestedAt:options.sort}, (err,arr)->
-  #       arr.forEach (invitationRequest)->
-  #         invitationRequest.update $set:sent:true,(err)->
-  #         callback null,"#{invitationRequest.email} is marked as sent."
-
-  @sendBetaInviteFromClient = secure (client, options, callback)->
-
-    unless client.connection.delegate?.can? 'send-invites'
-      return callback new KodingError "not authorized"
-    else
-      JInvitationRequest = require "./invitationrequest"
-      options.sort ?= 1
-      if options.batch?
-        JInvitationRequest.some {sent:$ne:true}, {limit:options.batch, sort:requestedAt:options.sort}, (err, emails)->
-
-          callback null, "Done." if emails.length == 0
-          counter = 0
-          daisy queue = emails.map (item) -> ->
-            continueLooping = ->
-              counter += 1
-              callback null, "Done." if emails.length == counter
-              setTimeout (-> queue.next()), 50
-
-            JInvitation.sendBetaInvite email:item.email,(err,res)->
-              if err
-                callback err,"#{item.email}:something went wrong sending the invite. not marked as sent."
-                continueLooping()
-              else
-                item.update $set:sent:yes, (err)->
-                  if err
-                    callback 'err',"#{item.email}something went wrong saving the item as sent."
-                  else
-                    callback null,"#{item.email} is sent and marked as sent."
-                    console.log "#{item.email} is sent and marked as sent."
-                  continueLooping()
-      else
-        JInvitation.sendBetaInvite options,callback
-
-  @betaInviteCount = secure (client, callback)->
-
-    {connection} = client
-    unless connection.delegate?.can? 'send-invites'
-      callback "You are not authorized to do this."
-      console.error "Not authorized request from", connection.delegate?.profile?.nickname
-    else
-      JInvitationRequest = require "./invitationrequest"
-      JInvitationRequest.count {sent:$ne:true}, (err, waitingInvite)->
-        if err then callback err
-        else callback "There are #{waitingInvite} people who is waiting for invite."
-
-
-  @sendBetaInvite = do ->
-    betaTestersHTML = null
-    (options,callback) ->
-
-      betaTestersHTML ?= fs.readFileSync nodePath.join(KONFIG.projectRoot, 'email/beta-testers-invite.txt'), 'utf-8'
-
-      Bitly = require 'bitly'
-      bitly = new Bitly KONFIG.bitly.username, KONFIG.bitly.apiKey
-      protocol = 'http://'
-      email   = options.email ? "devrim+#{Date.now()}@koding.com"
-
-      JInvitation.one {inviteeEmail: email}, (err, invite)=>
-        if err
-          console.log err
-        else if invite?
-          url = "#{KONFIG.uri.address}/Invitation/#{invite.code}"
-          personalizedMail = betaTestersHTML.replace '#{url}', url#shortenedUrl
-
-          emailerObj =
-            from     : @getInviteEmail()
-            email    : email
-            subject  : '[Koding] Here is your beta invite!'
-            content  : personalizedMail
-
-          email = new JMail emailerObj
-          email.save (err)->
-            unless err then callback null
-            else callback err
-
-        else
-          createBetaInvite inviteeEmail:email,(err)->
-            unless err
-              options.email = email
-              JInvitation.sendBetaInvite options,callback
-            else
-              console.log "[JInvitation.sendBetaInvite] something got messed up."
 
   @grantInvitesFromClient = secure (client, options, callback)->
 
