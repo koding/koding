@@ -67,12 +67,11 @@ KD.extend
 
   whoami:-> KD.getSingleton('mainController').userAccount
 
-  isGuest:-> KD.whoami().type is 'unregistered'
-
   logout:->
     mainController = KD.getSingleton('mainController')
     delete mainController?.userAccount
 
+  isGuest:-> not KD.isLoggedIn()
   isLoggedIn:-> KD.whoami().type isnt 'unregistered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
@@ -114,3 +113,7 @@ KD.extend
     new KDNotificationView {title, content, duration}
 
     warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+
+Object.defineProperty KD, "defaultSlug",
+  get:->
+    if KD.isGuest() then 'guests' else 'koding'
