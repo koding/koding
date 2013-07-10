@@ -28,9 +28,7 @@ class CollaborativeClientFinderPane extends Pane
         fileInstance.vmName = file.vmName
         fileInstances.push fileInstance
 
-      @fileTree = new CollaborativeClientTreeViewController
-        workspaceRef: @workspaceRef
-      , fileInstances
+      @fileTree = new CollaborativeClientTreeViewController { @workspaceRef }, fileInstances
 
       view = @fileTree.getView()
       @container.updatePartial ""
@@ -52,7 +50,6 @@ class CollaborativeClientTreeViewController extends JTreeViewController
     options.nodeParentIdPath  = "parentPath"
     options.contextMenu       = no
     options.loadFilesOnInit   = yes
-    options.useStorage        = yes
     options.treeItemClass     = NFinderItem
 
     super options, data

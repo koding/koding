@@ -68,10 +68,6 @@ class CollaborativeFinderPane extends CollaborativePane
 
 class CollaborativeFinderTreeController extends NFinderTreeController
 
-  constructor: (options = {}, data) ->
-
-    super options, data
-
   addNodes: (nodes) ->
     super nodes
     @syncInteraction()

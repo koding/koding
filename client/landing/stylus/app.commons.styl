@@ -1761,6 +1761,16 @@ div.introduction-tooltip
       right             -8px !important
 
 .workspace
+  .workspace-loader
+    size                60px, 60px
+    top                 50%
+    margin              -30px auto 0 auto
+    text-align          center
+    .text
+      top               40px
+      position          relative
+    .kdloader
+      top               -14px
   .kdheaderview
     padding             10px 10px 5px 10px
   .inner-header
@@ -1821,6 +1831,23 @@ div.introduction-tooltip
     .cupid-green
       font-size         14px
       padding           10px
+  .user-list
+    width               250px
+    position            absolute
+    right               -250px
+    z-index             10000
+    background          #FFF
+    height              auto
+    box-shadow          0 0 16px rgba(0, 0, 0, 0.2)
+    margin-top          39px
+    vendor              transition, right .3s linear
+    &.active
+      right             0 !important
+      display           block
+    .wrapper
+      padding           10px 0
+      &.loading
+        text-align      center
 .workspace-modal
   p
     padding             10px 20px
