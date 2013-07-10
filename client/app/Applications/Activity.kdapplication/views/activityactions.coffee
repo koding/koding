@@ -18,10 +18,51 @@ class ActivityActionsView extends KDView
 
     @shareLink    = new ActivityActionLink
       partial     : "Share"
-      tooltip     :
-        title     : "Coming Soon"
+      # tooltip     :
+      #   title     : "Coming Soon"
       click:(event)=>
-        event.preventDefault()
+        shareUrl    = "http://kd.io/Activity/#{@getData().slug}"
+        contextMenu = new JContextMenu
+          menuWidth   : @getWidth()
+          delegate    : @
+          x           : @getX()
+          y           : @getY() + 15
+          arrow       :
+            placement : "top"
+            margin    : 75
+          lazyLoad    : yes
+        , customView  : new KDView partial: shareUrl
+
+        KD.singletons.mainView.mainTabView.activePane.subViews[0].$().scroll =>
+          contextMenu.setY @getY() + 15
+
+        return
+        shareModal = new KDModalViewWithForms
+          title   : "You can share this link"
+          content : """<a href="#{shareUrl}" id="share-dialog-link" target="share-dialog-link" class="hidden"></a>"""
+          overlay : true
+          tabs          :
+            forms       :
+              share     :
+                fields  :
+                  share :
+                    type: "text"
+                    defaultValue: shareUrl
+                buttons :
+                  "Share on Twitter":
+                    callback: =>
+                      shareText = "#{@getData().body} - #{shareUrl}"
+                      window.open(
+                        "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
+                        "twitter-share-dialog",
+                        "width=500,height=350,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
+                      )
+                  "Open in new Tab":
+                    callback: =>
+                      shareModal.$("#share-dialog-link")[0].click()
+
+        shareModal.modalTabs.forms.share.inputs.share.$().select()
+
 
     @likeView     = new LikeView {checkIfLikedBefore: no}, activity
     @loader       = new KDLoaderView size : width : 14
