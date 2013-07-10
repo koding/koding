@@ -22,6 +22,7 @@ class Workspace extends JView
     @activePanel = newPanel
 
     callback()
+    @emit "PanelCreated"
 
   next: ->
     @lastCreatedPanelIndex++
