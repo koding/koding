@@ -62,6 +62,7 @@ class CollaborativeWorkspace extends Workspace
 
     @container.addSubView newPanel
     @panels.push newPanel
+    @activePanel = newPanel
 
     callback()
 
