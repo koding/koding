@@ -506,6 +506,7 @@ class BookView extends JView
     @mainView.appSettingsMenuButton.$().click()
     @utils.wait 2200, =>
       @mainView.appSettingsMenuButton.data[8].callback()
+      @pointer.destroy()
 
 
 
