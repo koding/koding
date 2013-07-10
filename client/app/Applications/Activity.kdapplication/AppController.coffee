@@ -312,6 +312,9 @@ class ActivityAppController extends AppController
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
+      console.log "------------------------------"
+      console.log activities
+      console.log "------------------------------"
       callback err, activities
 
   unhideNewItems: ->

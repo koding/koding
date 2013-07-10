@@ -50,6 +50,65 @@ module.exports = class Graph
       }
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
+  runQuery:(query, options, callback)->
+    {startDate, client} = options
+    if options.group?
+      {groupName, groupId} = options.group
+
+    @db.query query, {}, (err, results)=>
+      tempRes = []
+      console.log "results.length", results.length
+      if err 
+        console.log "err 1 -", err
+        callback err
+      else if results.length is 0 then callback null, []
+      else
+        collectRelations = race (i, res, fin)=>
+          console.log "hellooooooooo", res, i
+          res.replies = [] 
+          @fetchRelatedItems res.getId(), (err, relatedResult)=>
+            if err
+              console.log "err ::::", err if err
+              callback err
+              fin()
+            else
+                wantedOrder = []
+                collections = {}
+                if relatedResult.reply?
+                  for obj in relatedResult.reply
+                    console.log "reply ::::::::::::", obj
+                    collections[obj.name] ||= []
+                    collections[obj.name].push(obj.id)
+                    wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
+                  @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+                    for dbObj in dbObjects
+                      console.log "db obj:::", dbObj.getId()
+                      res.replies.push dbObj
+                    tempRes.push res
+                    fin()
+                else
+                  tempRes.push res
+                  fin()
+        , =>
+          if groupName? and groupName is "koding"
+            @removePrivateContent client, groupId, tempRes, callback
+          else
+            callback null, tempRes
+
+        resultData = []
+        wantedOrder = []
+        collections = {}
+        for result in results
+          obj = result.content.data
+          collections[obj.name] ||= []
+          collections[obj.name].push(obj.id)
+          wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
+        @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+          for dbObj in dbObjects
+            collectRelations dbObj
+          #callback err, dbObjects
+
+
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
     generatedObjects = []
@@ -137,14 +196,6 @@ module.exports = class Graph
       order by content.`meta.createdAtEpoch` DESC
       limit 20
     """
-    @runQuery(query, requestOptions, callback)
-    console.timeEnd "fetchAll"
-
-  runQuery:(query, options, callback)->
-    {startDate, client} = options
-    if options.group?
-      {groupName, groupId} = options.group
-
     @db.query query, {}, (err, results)=>
       tempRes = []
       if err then callback err
@@ -152,54 +203,27 @@ module.exports = class Graph
       else
         collectRelations = race (i, res, fin)=>
           id = res.id
-          tempRes[i].replies = [] 
+
           @fetchRelatedItems id, (err, relatedResult)=>
             if err
               callback err
               fin()
             else
-              if options.returnAsBongoObjects?
-                wantedOrder = []
-                collections = {}
-                for reply in relatedResult.reply
-                  collections[obj.name] ||= []
-                  collections[obj.name].push(obj.id)
-                  wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
-                @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
-                  for dbObj in dbObjects
-                    tempRes[i].replies.push dbObj
-                  fin()
-              else
-                tempRes[i].relationData =  relatedResult
-                if relatedResult.reply?
-                  for reply in relatedResult.reply
-                    tempRes[i].replies.push reply
-                fin()
+              tempRes[i].relationData =  relatedResult
+              fin()
         , =>
+          console.timeEnd "fetchAll"
 
-          if groupName? and groupName is "koding"
+          if groupName == "koding"
             @removePrivateContent client, groupId, tempRes, callback
           else
             callback null, tempRes
+        resultData = ( result.content.data for result in results)
+        objectify resultData, (objecteds)->
+          for objected in objecteds
+            tempRes.push objected
+            collectRelations objected
 
-        resultData = []
-        if options.returnAsBongoObjects?
-          wantedOrder = []
-          collections = {}
-          for result in results
-            obj = result.content.data
-            collections[obj.name] ||= []
-            collections[obj.name].push(obj.id)
-            wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
-          @fetchObjectsFromMongo collections, wantedOrder, callback
-        else
-            for result in results
-              resultData.push result.content.data
-
-            objectify resultData, (objecteds)->
-              for objected in objecteds
-                tempRes.push objected
-                collectRelations objected
 
   fetchRelatedItems:(itemId, callback)->
     query = """
