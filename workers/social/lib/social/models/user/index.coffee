@@ -82,6 +82,7 @@ module.exports = class JUser extends jraphical.Module
         type        : String
         validate    : require('../name').validateName
         set         : (value)-> value.toLowerCase()
+      oldUsername   : String
       uid           :
         type        : Number
         set         : Math.floor
@@ -90,7 +91,7 @@ module.exports = class JUser extends jraphical.Module
         email       : yes
       password      : String
       salt          : String
-      blockedUntil     : Date
+      blockedUntil  : Date
       status        :
         type        : String
         enum        : [
