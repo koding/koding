@@ -334,7 +334,7 @@ do ->
   loadProducts = ->
     getProducts (products)->
       stack = []
-      for code, prod of products
+      for own code, prod of products
         do ->
           stack.push (cb)->
             payment.getPlanInfo {code: code}, (err, plan)->
