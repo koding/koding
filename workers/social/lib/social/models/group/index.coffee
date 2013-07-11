@@ -1043,12 +1043,24 @@ module.exports = class JGroup extends Module
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
     queue = roles.map (role)=>=>
-      @addMember member, role, queue.fin.bind queue
+      # migrate kodingen stuff, we wanna save the relationship with an old
+      # timestamp, so it does not appear in the activity feed
+      if @slug is 'koding' and role is 'member' and member.data.silence
+        new Relationship(
+          targetId   : member.getId()
+          targetName : 'JAccount'
+          sourceId   : @getId()
+          sourceName : 'JGroup'
+          as         : 'member'
+          timestamp  : new Date 2013,0,1
+        ).save queue.fin.bind queue
+      else
+        @addMember member, role, queue.fin.bind queue
     dash queue, =>
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'MemberAdded', member
+      @emit 'MemberAdded', member  if 'member' in roles and not member.data.silence
 
   each:(selector, rest...)->
     selector.visibility = 'visible'

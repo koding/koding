@@ -352,7 +352,7 @@ module.exports = class JUser extends jraphical.Module
       else
         callback null
 
-  @createUser = ({ username, email, password, firstName, lastName }, callback)->
+  @createUser = ({ username, email, password, firstName, lastName, silence }, callback)->
     slug =
       slug            : username
       constructorName : 'JUser'
@@ -394,6 +394,7 @@ module.exports = class JUser extends jraphical.Module
                 lastName
                 hash
               }
+              silence : silence # won't be saved, just for further processing
             account.save (err)=>
               if err then callback err
               else user.addOwnAccount account, (err) ->
@@ -449,7 +450,7 @@ module.exports = class JUser extends jraphical.Module
                     callback createKodingError 'Could not restore your session!'
                   else
                     userData = {
-                      username, password, email, firstName, lastName
+                      username, password, email, firstName, lastName, silence
                     }
                     @createUser userData, (err, user, account) =>
                       return callback err  if err
