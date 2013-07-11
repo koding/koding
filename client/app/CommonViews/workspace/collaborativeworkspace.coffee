@@ -110,6 +110,7 @@ class CollaborativeWorkspace extends Workspace
       callback : @bound "startNewSession"
 
     @container.addSubView notValid
+    @loader.hide()
 
   startNewSession: ->
     @destroySubViews()
