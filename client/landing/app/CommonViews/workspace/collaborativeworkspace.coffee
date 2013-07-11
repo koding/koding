@@ -221,9 +221,13 @@ class CollaborativeWorkspace extends Workspace
           cssClass  : "modal-clean-green"
           callback  : -> modal.destroy()
 
-    modal.addSubView new KDView
-      partial       : @sessionKey
+    modal.addSubView input = new KDInputView
+      defaultValue  : @sessionKey
       cssClass      : "key"
+      attributes    :
+        readonly    : "readonly"
+
+    @utils.wait 300, -> input.$().focus().select()
 
     callback modal
 
