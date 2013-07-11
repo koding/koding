@@ -89,7 +89,7 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'checkPayment', 'makePayment', 'updatePayment', 'addPlan', 'setBillingInfo', 'getBillingInfo',
         'createVM', 'canCreateVM', 'vmUsage', 'getTransactions',
         'fetchBundle', 'updateBundle', 'saveInviteMessage'
       ]
@@ -1365,6 +1365,10 @@ module.exports = class JGroup extends Module
     , (err, plan)=>
       return callback err  if err
       plan.subscribeGroup @, data, callback
+
+  addPlan: secure (client, data, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.addGroupPlan @, data, callback
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
