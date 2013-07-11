@@ -82,6 +82,13 @@ module.exports = class JRecurlyPlan extends jraphical.Module
   @getGroupTransactions = (group, callback)->
     payment.getUserTransactions "group_#{group._id}", callback
 
+  @addGroupPlan = (group, data, callback)->
+    data.feeMonthly = data.price
+    data.feeInitial = 0
+    data.code       = "groupplan_#{group._id}_#{data.name}_0"
+
+    payment.addPlan data, callback
+
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
     selector = {}
@@ -358,11 +365,11 @@ do ->
   # Load products
   loadProducts()
 
-  # # Update products if necessary
-  # watchRoot = path.join __dirname, "../../../../../../products/"
-  # watcher   = new Watcher
-  #   groups        :
-  #     recurly     :
-  #       folders   : [watchRoot]
-  #       onChange  : (change)->
-  #         loadProducts()
+  # Update products if necessary
+  watchRoot = path.join __dirname, "../../../../../../products/"
+  watcher   = new Watcher
+    groups        :
+      recurly     :
+        folders   : [watchRoot]
+        onChange  : (change)->
+          loadProducts()
