@@ -26,18 +26,24 @@ class CollaborativeWorkspace extends Workspace
 
       keys = snapshot.val()?.keys
 
-      @workspaceRef.onDisconnect().remove()  if @amIHost()
-
       if keys # if we have keys this means we're about to join an old session
         log "it's an old session, impressed!"
         @sessionData  = keys
         @createPanel()
-        @workspaceRef.child("users").push KD.nick()
+        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef.set "online"
+        @userRef.onDisconnect().set "offline"
       else
         log "your awesome new session, saving keys now"
         @createPanel()
         @workspaceRef.set "keys": @sessionData
-        @workspaceRef.child("users").push KD.nick()
+        @userRef = @workspaceRef.child("users").child KD.nick()
+        @userRef.set "online"
+        @userRef.onDisconnect().set "offline"
+
+      if @amIHost()
+        @workspaceRef.onDisconnect().remove()
+        @userRef.onDisconnect().remove()
 
       @loader.destroy()
 
