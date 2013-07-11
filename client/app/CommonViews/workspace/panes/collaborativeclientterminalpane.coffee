@@ -20,6 +20,8 @@ class CollaborativeClientTerminalPane extends Pane
 
       @container.updatePartial JSON.parse(window.atob(encoded)).join "<br />"
 
+      @container.$().scrollTop @container.$()[0].scrollHeight
+
     @createElements()
     @blinkCursor()
 
