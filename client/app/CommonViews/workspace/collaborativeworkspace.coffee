@@ -206,30 +206,21 @@ class CollaborativeWorkspace extends Workspace
     callback modal
 
   showShareModal: (callback = noop) ->
-    modal                       = new KDModalViewWithForms
-      title                     : "Share Your Session"
-      content                   : ""
-      overlay                   : yes
-      cssClass                  : "workspace-modal"
-      width                     : 500
-      tabs                      :
-        forms                   :
-          "Share This Session"  :
-            fields              :
-              Label             :
-                itemClass       : KDCustomHTMLView
-                tagName         : "p"
-                partial         : "Share the session ID with your friends to hang out together."
-              SessionKey        :
-                itemClass       : KDCustomHTMLView
-                partial         : @sessionKey
-                tagName         : "div"
-                cssClass        : "key"
-            buttons             :
-              "Ok"              :
-                title           : "Got It"
-                cssClass        : "modal-clean-green"
-                callback        : -> modal.destroy()
+    modal           = new KDModalView
+      title         : "Share Your Session"
+      content       : @getOptions().shareModalContent or ""
+      overlay       : yes
+      cssClass      : "workspace-modal share-modal"
+      width         : 500
+      buttons       :
+        "Ok"        :
+          title     : "OK"
+          cssClass  : "modal-clean-green"
+          callback  : -> modal.destroy()
+
+    modal.addSubView new KDView
+      partial       : @sessionKey
+      cssClass      : "key"
 
     callback modal
 
