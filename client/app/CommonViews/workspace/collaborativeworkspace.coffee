@@ -50,6 +50,9 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
 
+    @workspaceRef.on "child_changed", (snapshot) =>
+      log "everything is something happened", "child_changed", snapshot.val(), snapshot.name()
+
     @workspaceRef.on "child_removed", (snapshot) =>
       log "possible disconnection occured"
 
@@ -139,7 +142,7 @@ class CollaborativeWorkspace extends Workspace
       title   = "Host disconnected"
       content = "It seems, host is disconnected from Firebase server. You cannot continue this session."
 
-    @disconnectedModal = new KDModalView
+    @disconnectedModal = new KDBlockingModalView
       title        : title
       content      : "<p>#{content}</p>"
       cssClass     : "host-disconnected-modal"
