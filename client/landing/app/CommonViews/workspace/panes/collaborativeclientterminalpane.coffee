@@ -25,6 +25,8 @@ class CollaborativeClientTerminalPane extends Pane
     @createElements()
     @blinkCursor()
 
+    @on "PaneResized", => @setHeight @parent.getHeight() - 37
+
   createElements: ->
     @container  = new KDView
       cssClass  : "console ubuntu-mono green-on-black pane"
