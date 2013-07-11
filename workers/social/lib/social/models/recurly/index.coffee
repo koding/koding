@@ -337,7 +337,7 @@ do ->
       for code, prod of products
         do ->
           stack.push (cb)->
-            payment.getPlanInfo {code: pcode}, (err, plan)->
+            payment.getPlanInfo {code: code}, (err, plan)->
               if not err and plan
                 payment.updatePlan 
                   code       : code
