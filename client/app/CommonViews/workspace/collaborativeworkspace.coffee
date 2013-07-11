@@ -9,8 +9,8 @@ class CollaborativeWorkspace extends Workspace
     @sessionKey        = options.sessionKey or @createSessionKey()
     @workspaceRef      = @firepadRef.child @sessionKey
 
+    @createUserListContainer()
     @createLoader()
-    @createUserList()
 
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
@@ -226,69 +226,20 @@ class CollaborativeWorkspace extends Workspace
 
     callback modal
 
-  # TODO: fatihacet - refactor user list logic as a reusable class.
-  createUserList: ->
-    @container.addSubView @userList = new KDView
-      cssClass : "user-list loading"
-
-    @userList.addSubView header = new KDView
-      cssClass : "inner-header"
-      partial  : """<span class="title">Users</span>"""
-
-    header.addSubView new KDCustomHTMLView
-      tagName   : "span"
-      cssClass  : "close"
-      click     : =>
-        @userList.unsetClass "active"
-        @utils.wait 500, => # TODO: fatihacet - should use transition end.
-          @userList.setClass "loading"
-          @userListWrapper.destroySubViews()
-          @userListVisible = no
-
-    @userList.addSubView @userListWrapper = new KDView
-      cssClass : "wrapper"
-
-    @userList.addSubView loader = new KDLoaderView size : width : 36
-
-    @userList.on "viewAppended", -> loader.show()
+  createUserListContainer: ->
+    @container.addSubView @userListContainer = new KDView
+      cssClass : "user-list"
+    @userListContainer.bindTransitionEnd()
 
   showUsers: ->
     return  if @userListVisible
 
+    @userListContainer.setClass "active"
+
+    @userListContainer.addSubView new CollaborativeWorkspaceUserList {
+      @workspaceRef
+      @sessionKey
+      container : @userListContainer
+      delegate  : @
+    }
     @userListVisible = yes
-    @userList.setClass "active"
-    @workspaceRef.once "value", (snapshot) =>
-      @userList.unsetClass "loading"
-      val   = snapshot.val()
-
-      users = []
-      users.push userName for key, userName of val.users
-
-      KD.remote.api.JAccount.some { "profile.nickname": { "$in": users } }, {}, (err, res) =>
-        @userListWrapper.destroySubViews()
-        @createUserView user for user in res
-
-  createUserView: (user) ->
-    userView      = new KDView
-      cssClass    : "user-view"
-
-    avatarOptions =
-      size        :
-        width     : 36
-        height    : 36
-
-    userView.addSubView new AvatarView avatarOptions, user
-    userView.addSubView new KDView
-      cssClass    : "user-name"
-      partial     :
-        """
-          <p>#{user.profile.firstName} #{user.profile.lastName}</p>
-          <p>#{user.profile.nickname}</p>
-        """
-
-    if user.profile.nickname is KD.nick()
-      userView.addSubView new KDView
-        cssClass : "host-badge"
-        partial  : """<span class="icon"></span> HOST"""
-
-    @userListWrapper.addSubView userView
