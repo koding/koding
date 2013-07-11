@@ -24,10 +24,8 @@ class GroupsInvitationCodeListItemView extends KDListItemView
       partial     : '<span class="icon"></span><span class="title"></span>'
       cssClass    : 'status hidden'
 
-  viewAppended: JView::viewAppended
-
   showEditModal:->
-    {maxUses} = @getData()
+    {maxUses, memo} = @getData()
     modal = new KDModalViewWithForms
       cssClass                : 'invitation-share-modal'
       title                   : 'Share Invitation Code'
@@ -56,13 +54,13 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                 loader        :
                   color       : '#444444'
                   diameter    : 12
-              Disable         :
-                itemClass     : KDButtonView
-                style         : 'modal-clean-red'
-                loader        :
-                  color       : '#ffffff'
-                  diameter    : 12
-                callback      : -> log 'deactivated'
+              # Disable         :
+              #   itemClass     : KDButtonView
+              #   style         : 'modal-clean-red'
+              #   loader        :
+              #     color       : '#ffffff'
+              #     diameter    : 12
+              #   callback      : -> log 'deactivated'
               Cancel          :
                 style         : 'modal-cancel'
                 callback      : -> modal.destroy()
@@ -76,6 +74,12 @@ class GroupsInvitationCodeListItemView extends KDListItemView
                     regExp    : /\d+/i
                   messages    :
                     regExp    : 'numbers only please'
+              memo            :
+                label         : "Memo"
+                itemClass     : KDInputView
+                name          : "memo"
+                defaultValue  : memo
+                placeholder   : "(optional)"
 
   showShareModal:->
     modal = new KDModalViewWithForms
@@ -113,14 +117,17 @@ class GroupsInvitationCodeListItemView extends KDListItemView
     @editButton.hide()
     @shareButton.hide()
 
+  viewAppended: JView::viewAppended
+
   pistachio:->
-    {code, maxUses, uses} = @getData()
+    {code, maxUses, uses, memo} = @getData()
+    codeSuffix = if memo then " (#{memo})" else ''
     """
     <section>
       <div class="buttons">{{> @shareButton}} {{> @editButton}}</div>
       {{> @statusText}}
       <div class="details">
-        <div class="code">#{code}</div>
+        <div class="code">#{code}#{codeSuffix}</div>
         <div class="usage">#{uses} of #{maxUses} used</div>
       </div>
     </section>

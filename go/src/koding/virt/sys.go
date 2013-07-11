@@ -31,7 +31,7 @@ func (vm *VM) MergePasswdFile() {
 		return // no file in upper, no need to merge
 	}
 
-	lowerUsers, err := ReadPasswd(LowerdirFile("/etc/passwd"))
+	lowerUsers, err := ReadPasswd(vm.LowerdirFile("/etc/passwd"))
 	if err != nil {
 		panic(err)
 	}
@@ -56,7 +56,7 @@ func (vm *VM) MergeGroupFile() {
 		return // no file in upper, no need to merge
 	}
 
-	lowerGroups, err := ReadGroup(LowerdirFile("/etc/group"))
+	lowerGroups, err := ReadGroup(vm.LowerdirFile("/etc/group"))
 	if err != nil {
 		panic(err)
 	}
