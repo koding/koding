@@ -4,10 +4,14 @@ class CollaborativeWorkspace extends Workspace
 
     super options, data
 
-    @sessionData       = []
-    @firepadRef        = new Firebase "https://hulogggg.firebaseIO.com/"
-    @sessionKey        = options.sessionKey or @createSessionKey()
-    @workspaceRef      = @firepadRef.child @sessionKey
+    @sessionData  = []
+    instances     = ["instance1", "instance2", "instance3", "instance4", "instance5"]
+    myInstance    = instances[KD.utils.getRandomNumber(5) - 1] # should use config
+    @firepadRef   = new Firebase "https://#{myInstance}.firebaseIO.com/"
+    @sessionKey   = options.sessionKey or @createSessionKey()
+    @workspaceRef = @firepadRef.child @sessionKey
+
+    log "joining to", myInstance
 
     @createUserListContainer()
     @createLoader()
