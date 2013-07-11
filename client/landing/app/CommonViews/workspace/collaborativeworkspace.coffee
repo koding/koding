@@ -177,39 +177,31 @@ class CollaborativeWorkspace extends Workspace
             appManager.quit appManager.frontApp
 
   showJoinModal: (callback = noop) ->
-    modal                       = new KDModalViewWithForms
-      title                     : "Join New Session"
-      content                   : ""
-      overlay                   : yes
-      cssClass                  : "workspace-modal"
-      width                     : 500
-      tabs                      :
-        forms                   :
-          "Join A Session"      :
-            fields              :
-              Label             :
-                itemClass       : KDCustomHTMLView
-                tagName         : "p"
-                partial         : "Paste the session ID that you want to join and start collaborating."
-              SessionInput      :
-                itemClass       : KDHitEnterInputView
-                type            : "text"
-                callback        : =>
-                  sessionKey = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
-                  @joinSession sessionKey
-                  modal.destroy()
-            buttons             :
-              Join              :
-                title           : "Join Session"
-                cssClass        : "modal-clean-green"
-                callback        : =>
-                  sessionKey = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
-                  @joinSession sessionKey
-                  modal.destroy()
-              Close             :
-                title           : "Close"
-                cssClass        : "modal-cancel"
-                callback        : -> modal.destroy()
+    modal                 = new KDModalView
+      title               : "Join New Session"
+      content             : @getOptions().joinModalContent or ""
+      overlay             : yes
+      cssClass            : "workspace-modal join-modal"
+      width               : 500
+      buttons             :
+        Join              :
+          title           : "Join Session"
+          cssClass        : "modal-clean-green"
+          callback        : =>
+            sessionKey    = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
+            @joinSession sessionKey
+            modal.destroy()
+        Close             :
+          title           : "Close"
+          cssClass        : "modal-cancel"
+          callback        : -> modal.destroy()
+
+    modal.addSubView sessionKeyInput = new KDHitEnterInputView
+      type        : "text"
+      placeholder : "Paste new session key and hit enter to join"
+      callback    : =>
+        @joinSession sessionKeyInput.getValue()
+        modal.destroy()
 
     callback modal
 
