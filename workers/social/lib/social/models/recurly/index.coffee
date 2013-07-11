@@ -327,34 +327,35 @@ do ->
   Watcher = require "koding-watcher"
 
   getProducts = (callback)->
-    productsFile = path.join __dirname, "../../../../../../products/products.json"
-    productsList = JSON.parse(fs.readFileSync(productsFile))
+    productsFile = path.join __dirname, "../../../../../../products/products.coffee"
+    productsList = require productsFile
     callback productsList
 
   loadProducts = ->
     getProducts (products)->
       stack = []
-      products.forEach (prod)->
-        stack.push (cb)->
-          payment.getPlanInfo {code: prod.code}, (err, plan)->
-            if not err and plan
-              payment.updatePlan 
-                code       : prod.code
-                title      : prod.title
-                feeMonthly : prod.price
-              , (err, plan)->
-                unless err
-                  console.log "Updated product: #{prod.title}"
-                cb()
-            else
-              payment.addPlan
-                code       : prod.code
-                title      : prod.title
-                feeMonthly : prod.price
-              , (err, plan)->
-                unless err
-                  console.log "Created product: #{prod.title}"
-                cb()
+      for code, prod of products
+        do ->
+          stack.push (cb)->
+            payment.getPlanInfo {code: pcode}, (err, plan)->
+              if not err and plan
+                payment.updatePlan 
+                  code       : code
+                  title      : prod.title
+                  feeMonthly : prod.price
+                , (err, plan)->
+                  unless err
+                    console.log "Updated product: #{prod.title}"
+                  cb()
+              else
+                payment.addPlan
+                  code       : code
+                  title      : prod.title
+                  feeMonthly : prod.price
+                , (err, plan)->
+                  unless err
+                    console.log "Created product: #{prod.title}"
+                  cb()
 
       async.parallel stack, (err, result)->
         JRecurlyPlan.updateCache ->
