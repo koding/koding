@@ -174,6 +174,7 @@ class BookView extends JView
 
     if @page.data.menuItem
       @navigateCursorToMenuItem(@page.data.menuItem)
+      @setClass 'aside'
     else
       @continueNextMove()
 
@@ -232,6 +233,9 @@ class BookView extends JView
     if @page.data.section is 10 and @page.data.parent is 5
       if steps[0] is 'showAceSettings'
         @showAceSettings()
+
+    if steps[0] is 'showAccountPage'
+      @destroyPointer()
 
   navigateToStatusUpdateInput:->
     @pointer.once 'transitionend', =>
@@ -534,6 +538,7 @@ class BookView extends JView
       @destroyPointer()
 
   destroyPointer:->
+    @unsetClass('aside')
     @utils.wait 500, =>
       @pointer.destroy()
 
