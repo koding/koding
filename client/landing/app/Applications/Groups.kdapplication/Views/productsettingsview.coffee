@@ -17,7 +17,7 @@ class GroupProductSettingsView extends JView
       cssClass   : "product-button"
       title      : "+"
       callback   : =>
-        group.addPlan
+        group.addProduct
           name  : __utils.slugify @name.getValue()
           price : @price.getValue()
           title : @name.getValue()
@@ -131,9 +131,23 @@ class GroupProductListItem extends KDListItemView
 
     @deleteButton = new KDButtonView
       title    : "-"
-      callback : ->
-        new KDNotificationView
-          title: "Coming soon!"
+      callback : =>
+        @confirmDelete =>
+
+  confirmDelete:(callback) ->
+
+    @deleteModal = new KDModalView
+      title        : "Warning"
+      content      : "<div class='modalformline'>Are you sure you want to delete this item?</div>"
+      height       : "auto"
+      overlay      : yes
+      buttons      :
+        Yes        :
+          loader   :
+            color  : "#ffffff"
+            diameter : 16
+          style    : "modal-clean-gray"
+          callback : callback
  
   viewAppended: JView::viewAppended
 
