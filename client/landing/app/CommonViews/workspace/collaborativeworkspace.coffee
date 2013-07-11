@@ -189,8 +189,7 @@ class CollaborativeWorkspace extends Workspace
           title           : "Join Session"
           cssClass        : "modal-clean-green"
           callback        : =>
-            sessionKey    = modal.modalTabs.forms["Join A Session"].inputs.SessionInput.getValue()
-            @joinSession sessionKey
+            @joinSession sessionKeyInput.getValue()
             modal.destroy()
         Close             :
           title           : "Close"
