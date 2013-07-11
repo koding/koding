@@ -154,6 +154,7 @@ class WebTermView extends KDView
     @terminal.updateSize true
     @terminal.scrollToBottom(no)
     @terminal.controlCodeReader.visualBell = @appStorage.getValue 'visualBell'
+    @terminal.setScrollbackLimit @appStorage.getValue 'scrollback'
 
   setKeyView: ->
     super
