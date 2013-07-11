@@ -207,7 +207,7 @@ class ActivityAppController extends AppController
       @lastTo   = to
       @lastFrom = from
     else
-      @reachedEndOfActivities = true
+      @reachedEndOfActivities = yes
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
