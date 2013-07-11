@@ -221,6 +221,8 @@ __bookPages = [
     content   : """<p class='centered'>Here is your control panel! Manage your personal settings, add your Facebook, Twitter, Github etc.. See payment history and more..</p>
                 """
     routeURL  : "/Account"
+    menuItem  : "Account"
+    howToSteps: ['showAccountPage']
     section   : 9
     parent    : 0
   ,
