@@ -405,11 +405,16 @@ module.exports = class Graph
     if timestamp?
         timeStampQuery = "AND groupOwnedNodes.requestedAt > \"#{timestamp}\""
 
+    if typeof status is "string" then status = [status]
+
+    # convert status array into string array
+    status   = "[\"" + status.join("\",\"") + "\"]"
+
     query = """
         START group=node:koding("id:#{groupId}")
         MATCH group-[r:owner]->groupOwnedNodes
         WHERE groupOwnedNodes.name = 'JInvitationRequest'
-        AND groupOwnedNodes.status = "#{status}"
+        AND groupOwnedNodes.status IN #{status}
         #{timeStampQuery}
         #{regexSearch}
         RETURN groupOwnedNodes

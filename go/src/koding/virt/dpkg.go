@@ -41,7 +41,7 @@ func (vm *VM) MergeDpkgDatabase() {
 		return // no file in upper, no need to merge
 	}
 
-	lowerPackages, err := ReadDpkgStatus(LowerdirFile("/var/lib/dpkg/status"))
+	lowerPackages, err := ReadDpkgStatus(vm.LowerdirFile("/var/lib/dpkg/status"))
 	if err != nil {
 		panic(err)
 	}
@@ -64,7 +64,7 @@ func (vm *VM) MergeDpkgDatabase() {
 			listFile := upperPkg.InfoFile("list")
 			list, err := ioutil.ReadFile(vm.OverlayFile(listFile))
 			if err != nil {
-				list, err = ioutil.ReadFile(LowerdirFile(listFile))
+				list, err = ioutil.ReadFile(vm.LowerdirFile(listFile))
 				if err != nil {
 					panic(err)
 				}
