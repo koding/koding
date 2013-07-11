@@ -14,6 +14,7 @@ class TerminalPane extends Pane
     @webterm.on "WebTermConnected", (@remote)=>
       {command} = @getProperties()
       @runCommand command if command
+      @webterm.terminal.setScrollbackLimit 50
 
   runCommand: (command) ->
     return unless command
