@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/virt/models"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
@@ -14,24 +15,8 @@ import (
 	"time"
 )
 
-type VM struct {
-	Id            bson.ObjectId  `bson:"_id"`
-	HostnameAlias string         `bson:"hostnameAlias"`
-	WebHome       string         `bson:"webHome"`
-	Users         []*Permissions `bson:"users"`
-	LdapPassword  string         `bson:"ldapPassword"`
-	DiskSizeInMB  int            `bson:"diskSizeInMB"`
-	SnapshotVM    bson.ObjectId  `bson:"diskSnapshot"`
-	SnapshotName  string         `bson:"snapshotName"`
-	IP            net.IP         `bson:"ip"`
-	HostKite      string         `bson:"hostKite"`
-	vmroot        string
-}
-
-type Permissions struct {
-	Id   bson.ObjectId `bson:"id"`
-	Sudo bool          `bson:"sudo"`
-}
+type VM models.VM
+type Permissions models.Permissions
 
 var templateDir string
 var Templates = template.New("lxc")
@@ -86,7 +71,7 @@ func (vm *VM) OverlayFile(p string) string {
 }
 
 func (vm *VM) LowerdirFile(p string) string {
-	return vm.vmroot + "rootfs/" + p
+	return vm.VMRoot + "rootfs/" + p
 }
 
 func (vm *VM) PtsDir() string {
@@ -96,7 +81,8 @@ func (vm *VM) PtsDir() string {
 func (vm *VM) GetPermissions(user *User) *Permissions {
 	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
-			return entry
+			p := Permissions(entry)
+			return &p
 		}
 	}
 	return nil
@@ -105,12 +91,12 @@ func (vm *VM) Prepare(reinitialize bool) {
 	vm.Unprepare()
 
 	var err error
-	vm.vmroot, err = os.Readlink("/var/lib/lxc/vmroot/")
+	vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
 	if err != nil {
-		vm.vmroot = "/var/lib/lxc/vmroot/"
+		vm.VMRoot = "/var/lib/lxc/vmroot/"
 	}
-	if vm.vmroot[0] != '/' {
-		vm.vmroot = "/var/lib/lxc/" + vm.vmroot
+	if vm.VMRoot[0] != '/' {
+		vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
 	}
 
 	// write LXC files
