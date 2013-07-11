@@ -24,6 +24,8 @@ module.exports = class JGroupBundle extends JBundle
       instance        : []
     permissions       :
       'manage payment methods'  : []
+      'make payments'           : []
+      'manage products'         : []
       'change bundle'           : []
       'request bundle change'   : ['member','moderator']
       'commission resources'    : ['member','moderator']
