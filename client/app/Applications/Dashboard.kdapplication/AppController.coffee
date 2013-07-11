@@ -58,6 +58,12 @@ class DashboardAppController extends AppController
           viewClass  : GroupPaymentSettingsView
           lazy       : yes
           callback   : @paymentViewAdded
+      ,
+        name         : 'Products'
+        viewOptions  :
+          viewClass  : GroupProductSettingsView
+          lazy       : yes
+          callback   : @productViewAdded
 
       # CURRENTLY DISABLED
 
@@ -90,6 +96,8 @@ class DashboardAppController extends AppController
   policyViewAdded:(pane, view)->
 
   paymentViewAdded:(pane, view)->
+
+  productViewAdded:(pane, view)->
 
   vocabularyViewAdded:(pane, view)->
     group = view.getData()
