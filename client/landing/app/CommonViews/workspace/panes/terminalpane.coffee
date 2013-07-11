@@ -6,11 +6,11 @@ class TerminalPane extends Pane
 
     super options, data
 
-    @terminal = new WebTermView
+    @webterm = new WebTermView
       delegate : @
       cssClass : "webterm"
 
-    @terminal.on "WebTermConnected", (@remote)=>
+    @webterm.on "WebTermConnected", (@remote)=>
       {command} = @getProperties()
       @runCommand command if command
 
@@ -26,5 +26,5 @@ class TerminalPane extends Pane
   pistachio: ->
     """
       {{> @header}}
-      {{> @terminal}}
+      {{> @webterm}}
     """

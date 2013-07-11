@@ -9,8 +9,8 @@ class CollaborativeTerminalPane extends TerminalPane
     @sessionKey   = @getOptions().sessionKey or @createSessionKey()
     @workspaceRef = workspace.firepadRef.child @sessionKey
 
-    @terminal.on "WebTerm.flushed", _.throttle =>
-      lines   = (line.innerHTML for line in @terminal.terminal.screenBuffer.lineDivs)
+    @webterm.on "WebTerm.flushed", _.throttle =>
+      lines   = (line.innerHTML for line in @webterm.terminal.screenBuffer.lineDivs)
       encoded =  JSON.stringify lines
       @syncContent window.btoa encoded
     , 500
@@ -31,7 +31,7 @@ class CollaborativeTerminalPane extends TerminalPane
 
         eventInstance[key] = value for key, value of keyEventFromClient
 
-        @terminal.terminal.inputHandler[eventName] eventInstance
+        @webterm.terminal.inputHandler[eventName] eventInstance
 
     @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
 
