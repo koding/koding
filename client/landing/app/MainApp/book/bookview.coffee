@@ -1,8 +1,3 @@
-###
-  todo
-    - develop fake button items and styling
-###
-
 class BookView extends JView
 
   @lastIndex = 0
@@ -80,7 +75,9 @@ class BookView extends JView
     @pagerWrapper.addSubView @pageNav
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
-    @once "OverlayWillBeRemoved", => @unsetClass "in"
+    @once "OverlayWillBeRemoved", =>
+      @destroyPointer()
+      @unsetClass "in"
     @once "OverlayRemoved", @destroy.bind @
 
     @setKeyView()
@@ -124,8 +121,8 @@ class BookView extends JView
         @fillPage index
 
   openFileWithPage:(file)->
-    user = KD.whoami().profile
-    fileName = "/home/#{user.nickname}#{file}"
+    user = KD.nick()
+    fileName = "/home/#{user}#{file}"
     KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))
 
   fillPrevPage:->
@@ -156,7 +153,7 @@ class BookView extends JView
         @setClass "in"
 
     # destroy @pointer
-    if @pointer then @pointer.destroy()
+    if @pointer then @destroyPointer()
 
     # check if page has tutorial
     if @page.data.howToSteps.length < 1
@@ -165,8 +162,8 @@ class BookView extends JView
       @showMeButton.show()
 
   showMeButtonClicked:->
-
-    @pointer or = new KDCustomHTMLView
+    @pointer?.destroy()
+    @pointer = new KDCustomHTMLView
       partial : ''
       cssClass : 'point'
 
@@ -175,8 +172,6 @@ class BookView extends JView
 
     @mainView.addSubView @pointer
 
-
-    #!!! we should check here if has tutorial available for current topic
     if @page.data.menuItem
       @navigateCursorToMenuItem(@page.data.menuItem)
     else
@@ -238,7 +233,6 @@ class BookView extends JView
       if steps[0] is 'showAceSettings'
         @showAceSettings()
 
-
   navigateToStatusUpdateInput:->
     @pointer.once 'transitionend', =>
       @clickAnimation()
@@ -270,7 +264,7 @@ class BookView extends JView
         # trigger push
         @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().submit()
         @utils.wait 1000, =>
-          @pointer.destroy()
+          @destroyPointer()
 
     # find offset of submit button
     submitButtonOffset = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.submitBtn.$().offset()
@@ -287,10 +281,10 @@ class BookView extends JView
         @defaultVm.$('.chevron').click()
         $('.jcontextmenu').offset(@defaultVm.$('.chevron').offset())
         # destroy pointer
-        @pointer.destroy()
+        @destroyPointer()
 
-    user = KD.whoami().profile
-    userVmName = "[koding~#{user.nickname}~0]/home/#{user.nickname}"
+    user = KD.nick()
+    userVmName = "[koding~#{user}~0]/home/#{user}"
     @utils.wait 500, =>
       @defaultVm = KD.singletons.finderController.treeController.nodes[userVmName]
       @defaultVm.setClass('selected')
@@ -301,6 +295,7 @@ class BookView extends JView
 
   showVMMenu:->
     @mainView.sidebar.animateLeftNavOut()
+
     @pointer.once 'transitionend', =>
       # make click action
       @clickAnimation()
@@ -309,7 +304,7 @@ class BookView extends JView
       # wait 3 sec.
       @utils.wait 2000, =>
         # remove pointer
-        #@pointer.destroy()
+        @destroyPointer()
 
     # TODO !!! should remove that class on pageNext
     @setClass 'moveUp'
@@ -330,9 +325,8 @@ class BookView extends JView
       @utils.wait 2000, =>
         @mainView.sidebar.resourcesController.itemsOrdered[0].buttonTerm.$().click()
         # remove pointer
-        #@pointer.destroy()
+        @destroyPointer()
 
-    # TODO !!! should remove that class on pageNext
     @setClass 'moveUp'
     @mainView.once 'transitionend', =>
       # find VM's menu position on footer
@@ -342,6 +336,10 @@ class BookView extends JView
         @pointer.$().offset vmMenuOffset
 
   showRecentFilesMenu:->
+    @pointer.once 'transitionend', =>
+      @utils.wait 500, =>
+        @destroyPointer()
+
     # find recent files menu
     element = @mainView.mainTabView.activePane.mainView.$('.start-tab-recent-container')
     offsetTo = element.offset()
@@ -352,17 +350,17 @@ class BookView extends JView
     @utils.wait 1000, =>
       @pointer.$().offset offsetTo
 
-
   showNewVMMenu:->
     @pointer.once 'transitionend', =>
-    # click animation
+      # click animation
       @clickAnimation()
-    # click menu
+      # click menu
       @mainView.sidebar.createNewVMButton.$().click()
+      @utils.wait 500, =>
+        @destroyPointer()
 
     # move book to up to make button visible
-    if not @hasClass 'moveUp'
-      @setClass 'moveUp'
+    if not @hasClass 'moveUp' then @setClass 'moveUp'
     # if sidebar is closed opens it.
     @mainView.sidebar.animateLeftNavOut()
 
@@ -387,15 +385,19 @@ class BookView extends JView
     @pointer.$().offset offsetTo
 
   startNewConversation:->
-    # find + button on panel
-    offsetTo = KD.singletons.chatPanel.header.newConversationButton.$().offset()
-    # navigate cursor
-    @pointer.$().offset offsetTo
-
     @pointer.once 'transitionend', =>
       # click animation
       @clickAnimation()
       KD.singletons.chatPanel.header.newConversationButton.$().click()
+      new KDNotificationView
+        title     : " Type your friends name"
+        duration  : 3000
+      @destroyPointer()
+
+    # find + button on panel
+    offsetTo = KD.singletons.chatPanel.header.newConversationButton.$().offset()
+    # navigate cursor
+    @pointer.$().offset offsetTo
 
   changeIndexFile:->
     @pointer.once 'transitionend', =>
@@ -413,6 +415,7 @@ class BookView extends JView
       # move cursor to file tree menu
       @utils.wait 500, =>
         @pointer.$().offset vmOffset
+
   navigateToFolder:->
     @pointer.once 'transitionend', =>
       # open Web folder
@@ -430,7 +433,6 @@ class BookView extends JView
     offsetTo = @webFolderItem.$().offset()
     # navigate to folder
     @pointer.$().offset offsetTo
-
 
   findAndOpenIndexFile:->
     @pointer.once 'transitionend', =>
@@ -454,7 +456,6 @@ class BookView extends JView
       offsetTo = @indexFileItem.$().offset()
       @pointer.$().offset offsetTo
     
-
   simulateReplacingText:->
     @pointer.once 'transitionend', =>
       # change content
@@ -478,7 +479,6 @@ class BookView extends JView
     @pointer.$().offset offsetTo
 
   saveAndOpenPreview:->
-
     @pointer.once 'transitionend', =>
       # click animation
       @clickAnimation()
@@ -495,9 +495,6 @@ class BookView extends JView
     offsetTo = @mainView.appSettingsMenuButton.$().offset()
     @pointer.$().offset offsetTo
     
-    
-
-  
   openPreview:->
     new KDNotificationView
       title     : "Let's see what changed!"
@@ -506,14 +503,9 @@ class BookView extends JView
     @mainView.appSettingsMenuButton.$().click()
     @utils.wait 2200, =>
       @mainView.appSettingsMenuButton.data[8].callback()
-      @pointer.destroy()
-
-
-
-
+      @destroyPointer()
 
   showAceSettings:->
-
     @pointer.once 'transitionend', =>
       # click animation
       @clickAnimation()
@@ -529,25 +521,21 @@ class BookView extends JView
     # navigate to ace icon
     @pointer.$().offset offsetTo
 
-
   openAceMenu:->
-
     @pointer.once 'transitionend', =>
       @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').click()
+
     # find ace settings menu icon
-    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').eq(1).offset()
-    log offsetTo
-    
+    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').eq(1).offset()    
     # navigate settings icon
     @pointer.$().offset offsetTo
     @utils.wait 3500, =>
       @unsetClass 'aside'
+      @destroyPointer()
+
+  destroyPointer:->
+    @utils.wait 500, =>
       @pointer.destroy()
-    # click animation
-    # click ace settings
-
-
-
 
   clickAnimation:->
     @pointer.setClass 'clickPulse'

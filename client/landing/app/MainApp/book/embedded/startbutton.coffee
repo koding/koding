@@ -8,8 +8,6 @@ class StartTutorialButton extends JView
       callback   : =>
         @getDelegate().fillPage 2
         
-    
-
   pistachio:->
     """
     {{> @button}}
