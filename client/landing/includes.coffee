@@ -736,6 +736,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
+  "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # OLD PAGES
