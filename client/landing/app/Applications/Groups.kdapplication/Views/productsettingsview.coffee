@@ -125,10 +125,15 @@ class GroupProductListItem extends KDListItemView
 
     @clientsButton = new KDButtonView
       title    : "View Buyers"
-      callback : =>
+      callback : ->
+        new KDNotificationView
+          title: "Coming soon!"
 
     @deleteButton = new KDButtonView
-      title: "-"
+      title    : "-"
+      callback : ->
+        new KDNotificationView
+          title: "Coming soon!"
  
   viewAppended: JView::viewAppended
 
