@@ -82,7 +82,12 @@ class GroupsInvitationView extends KDView
             label         : "Maximum uses"
             itemClass     : KDInputView
             name          : "maxUses"
-            placeholder   : "How many people can redeem this code?"
+            placeholder   : "How many times can this code be redeemed?"
+          memo            :
+            label         : "Memo"
+            itemClass     : KDInputView
+            name          : "memo"
+            placeholder   : "(optional)"
 
   getDefaultInvitationMessage:->
     """
@@ -115,7 +120,7 @@ class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : @policy.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
+          defaultValue   : Encoder.htmlDecode @policy.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
           validate       :
             rules        :
               required   : yes
@@ -128,8 +133,8 @@ class GroupsInvitationView extends KDView
     @inviteByEmail = @showModalForm
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
-      callback           : ({emails, message, saveMessage})=>
-        @getData().inviteByEmails emails, message, (err)=>
+      callback           : ({emails, message, saveMessage, bcc})=>
+        @getData().inviteByEmails emails, message, {bcc}, (err)=>
           @modalCallback @inviteByEmail, noop, err
           @saveInviteMessage 'invitationMessage', message  if saveMessage
       fields             :
@@ -147,7 +152,7 @@ class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
+          defaultValue   : Encoder.htmlDecode @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
           validate       :
             rules        :
               required   : yes
@@ -165,6 +170,10 @@ class GroupsInvitationView extends KDView
               title      : 'Remember this message'
               click      : (event)=>
                 @inviteByEmail.modalTabs.forms.invite.fields.saveMessage.subViews.first.subViews.first.getDomElement().click()
+        bcc            :
+          label        : 'BCC'
+          type         : 'text'
+          placeholder  : '(optional)'
         report           :
           itemClass      : KDScrollView
           cssClass       : 'report'
@@ -175,10 +184,12 @@ class GroupsInvitationView extends KDView
     subject = if @policy.approvalEnabled then 'Membership' else 'Invitation'
     @bulkApprove = @showModalForm
       title            : "Bulk Approve #{subject} Requests"
-      callback         : ({count})=>
-        @getData().sendSomeInvitations count,
-          @modalCallback.bind this, @bulkApprove, noop
-      submitButtonLabel: 'Approve'
+      cssClass         : 'bulk-approve'
+      callback         : ({count, bcc})=>
+        @getData().sendSomeInvitations count, {bcc}, (err, emails)=>
+          log 'successfully approved/invited: ', emails
+          @modalCallback @bulkApprove, noop, err
+      submitButtonLabel: if @policy.approvalEnabled then 'Approve' else 'Invite'
       content          : "<div class='modalformline'>Enter how many of the pending #{subject.toLowerCase()} requests you want to approve:</div>"
       fields           :
         count          :
@@ -191,6 +202,15 @@ class GroupsInvitationView extends KDView
               regExp   : /\d+/i
             messages   :
               regExp   : 'numbers only please'
+        bcc            :
+          label        : 'BCC'
+          type         : 'text'
+          placeholder  : '(optional)'
+        report           :
+          itemClass      : KDScrollView
+          cssClass       : 'report'
+
+    @bulkApprove.modalTabs.forms.invite.fields.report.hide()
 
   modalCallback:(modal, errCallback, err)->
     form = modal.modalTabs.forms.invite
