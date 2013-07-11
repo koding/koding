@@ -25,6 +25,7 @@ type VM struct {
 	SnapshotName  string         `bson:"snapshotName"`
 	IP            net.IP         `bson:"ip"`
 	HostKite      string         `bson:"hostKite"`
+	vmroot        string
 }
 
 type Permissions struct {
@@ -84,6 +85,10 @@ func (vm *VM) OverlayFile(p string) string {
 	return vm.File("overlay/" + p)
 }
 
+func (vm *VM) LowerdirFile(p string) string {
+	return vm.vmroot + "rootfs/" + p
+}
+
 func (vm *VM) PtsDir() string {
 	return vm.File("rootfs/dev/pts")
 }
@@ -96,13 +101,17 @@ func (vm *VM) GetPermissions(user *User) *Permissions {
 	}
 	return nil
 }
-
-func LowerdirFile(p string) string {
-	return "/var/lib/lxc/vmroot/rootfs/" + p
-}
-
 func (vm *VM) Prepare(reinitialize bool) {
 	vm.Unprepare()
+
+	var err error
+	vm.vmroot, err = os.Readlink("/var/lib/lxc/vmroot/")
+	if err != nil {
+		vm.vmroot = "/var/lib/lxc/vmroot/"
+	}
+	if vm.vmroot[0] != '/' {
+		vm.vmroot = "/var/lib/lxc/" + vm.vmroot
+	}
 
 	// write LXC files
 	prepareDir(vm.File(""), 0)
@@ -141,8 +150,8 @@ func (vm *VM) Prepare(reinitialize bool) {
 
 	// mount overlay
 	prepareDir(vm.File("rootfs"), RootIdOffset)
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		panic(commandError("mount overlay failed.", err, out))
 	}
 
