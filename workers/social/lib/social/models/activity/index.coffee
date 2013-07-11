@@ -370,9 +370,9 @@ module.exports = class CActivity extends jraphical.Capsule
       query.push "return distinct content"
 
       if options.sort.likesCount?
-        query.push "order by content.`meta.likes` DESC"
+        query.push "order by coalesce(content.`meta.likes`?, 0) DESC"
       else if options.sort.repliesCount?
-        query.push "order by content.repliesCount DESC"
+        query.push "order by coalesce(content.repliesCount?, 0) DESC"
       else
         query.push "order by content.`meta.createdAtEpoch` DESC"
 

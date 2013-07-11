@@ -34,7 +34,6 @@ class LikeView extends KDView
     @setTemplate @pistachio()
 
     if options.checkIfLikedBefore
-      console.log "dataaaaa", data
       data.checkIfLikedBefore (err, likedBefore)=>
         @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
         @_currentState = likedBefore

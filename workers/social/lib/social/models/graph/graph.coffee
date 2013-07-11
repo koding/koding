@@ -63,7 +63,7 @@ module.exports = class Graph
       else
         collectRelations = race (i, res, fin)=>
           res.replies = [] 
-          @fetchRelatedItems res.getId(), (err, relatedResult)=>
+          @fetchReplies res.getId(), (err, relatedResult)=>
             if err
               callback err
               fin()
@@ -218,6 +218,31 @@ module.exports = class Graph
             tempRes.push objected
             collectRelations objected
 
+  fetchReplies: (itemId, callback)->
+    query = """
+      start koding=node:koding("id:#{itemId}")
+      match koding-[r:reply]-all
+      return all, r
+      order by r.createdAtEpoch DESC
+      limit 2
+    """
+    @db.query query, {}, (err, results) ->
+      if err then throw err
+      resultData = []
+      for result in results
+        type = result.r.type
+        data = result.all.data
+        data.relationType = type
+        resultData.push data
+
+      objectify resultData, (objected)->
+        respond = {}
+        for obj in objected
+          type = obj.relationType
+          if not respond[type] then respond[type] = []
+          respond[type].push obj
+
+        callback err, respond
 
   fetchRelatedItems:(itemId, callback)->
     query = """
@@ -226,7 +251,6 @@ module.exports = class Graph
       return all, r
       order by r.createdAtEpoch DESC
     """
-
     @db.query query, {}, (err, results) ->
       if err then throw err
       resultData = []
