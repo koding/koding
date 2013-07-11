@@ -42,6 +42,7 @@ class PaymentWidget extends KDView
         @checkSubscription (status)=>
           @loader.hide()
           if status
+            @emit "subscribed"
             @widgetContent.show()
           else
             @buttonSubscribe.show()
