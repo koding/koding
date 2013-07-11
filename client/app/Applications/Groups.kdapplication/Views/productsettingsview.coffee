@@ -5,44 +5,54 @@ class GroupProductSettingsView extends JView
     @setClass "payment-settings-view"
     group = @getData()
     
-    @name = new KDInputView
+    @addName = new KDInputView
       cssClass   : "product-title"
       placeholder: "Product name"
       
-    @price = new KDInputView
+    @addPrice = new KDInputView
       cssClass   : "product-price"
       placeholder: "0.00"
 
-    @button = new KDButtonView
+    @addButton = new KDButtonView
       cssClass   : "product-button"
       title      : "+"
       callback   : =>
         group.addProduct
-          name  : __utils.slugify @name.getValue()
-          price : @price.getValue()
-          title : @name.getValue()
+          name  : __utils.slugify @addName.getValue()
+          price : @addPrice.getValue()
+          title : @addName.getValue()
         , (err,plan)=>
           if err
             new KDNotificationView
               title: "Unable to create plan: #{err}"
           else
-            @name.setValue ""
-            @price.setValue ""
+            @addName.setValue ""
+            @addPrice.setValue ""
             @controller.loadItems()
 
     @controller = new GroupProductListController
       group     : group
       itemClass : GroupProductListItem
+    @controller.loadItems()        
 
     @list = @controller.getListView()
+    @list.on "DeleteItem", (code)=>
+      group.deleteProduct {code}, =>
+        @controller.loadItems()
 
-    @controller.loadItems()
+    @reloadButton = new KDButtonView
+      cssClass   : "product-button"
+      title      : "R"
+      callback   : =>
+        @controller.loadItems()
 
   pistachio:->
     """
-    {{> this.button}}
-    {{> this.name}}
-    {{> this.price}}
+    {{> this.addButton}}
+    {{> this.addName}}
+    {{> this.addPrice}}
+    <br>
+    {{> this.reloadButton}}
     <br>
     {{> this.controller.getView()}}
     """
@@ -80,8 +90,6 @@ class GroupProductListController extends KDListViewController
 class GroupProductListItem extends KDListItemView
   constructor:(options,data)->
     super options, data
-
-    listView = @getDelegate()
 
     {code} = @getData()
 
@@ -133,10 +141,10 @@ class GroupProductListItem extends KDListItemView
       title    : "-"
       callback : =>
         @confirmDelete =>
+          @getDelegate().emit "DeleteItem", code
 
   confirmDelete:(callback) ->
-
-    @deleteModal = new KDModalView
+    deleteModal = new KDModalView
       title        : "Warning"
       content      : "<div class='modalformline'>Are you sure you want to delete this item?</div>"
       height       : "auto"
@@ -147,7 +155,9 @@ class GroupProductListItem extends KDListItemView
             color  : "#ffffff"
             diameter : 16
           style    : "modal-clean-gray"
-          callback : callback
+          callback : ->
+            deleteModal.destroy()
+            callback()
  
   viewAppended: JView::viewAppended
 
