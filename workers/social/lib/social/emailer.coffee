@@ -10,15 +10,16 @@ module.exports = class Emailer
       pass: "DEQl7_Dr"
 
   @send : (options,callback) ->
-    {From,To,Subject,HtmlBody,TextBody,ReplyTo} = options
+    {From,To,Subject,HtmlBody,TextBody,ReplyTo,Bcc} = options
     mailOptions =
       from    : From or email.defaultFromAddress
       to      : To
       subject : Subject
 
-    mailOptions.text      = TextBody  if TextBody
-    mailOptions.html      = HtmlBody  if HtmlBody
-    mailOptions.replyTo   = ReplyTo   if ReplyTo
+    mailOptions.text    = TextBody  if TextBody
+    mailOptions.html    = HtmlBody  if HtmlBody
+    mailOptions.replyTo = ReplyTo   if ReplyTo
+    mailOptions.bcc     = Bcc       if Bcc
 
     # console.log mailOptions
     setTimeout ->

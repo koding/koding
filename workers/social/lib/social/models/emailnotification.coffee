@@ -32,6 +32,7 @@ module.exports = class JMailNotification extends Model
       sender         : ObjectId
       contentId      : ObjectId
       activity       : Object
+      bcc            : String
       status         :
         type         : String
         default      : 'queued'
@@ -97,7 +98,7 @@ module.exports = class JMailNotification extends Model
 
   @create = (data, callback=->)->
 
-    {actor, receiver, event, contents} = data
+    {actor, receiver, event, contents, bcc} = data
 
     username = receiver.getAt 'profile.nickname'
     sender   = actor._id ? actor.id ? actor
@@ -137,7 +138,7 @@ module.exports = class JMailNotification extends Model
     JMailNotification.count selector, (err, count)->
       if not err and count is 0
         notification = new JMailNotification extend selector, {
-          eventFlag, activity, unsubscribeId: getUniqueId()+getUniqueId()+''
+          eventFlag, activity, unsubscribeId: getUniqueId()+getUniqueId()+'', bcc
         }
         # console.log "OK good to go."
         notification.save (err)->
