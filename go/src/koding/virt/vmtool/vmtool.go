@@ -80,7 +80,7 @@ var actions = map[string]func(){
 					Id: bson.NewObjectId(),
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
-				vm.Prepare(nil, false)
+				vm.Prepare(false)
 				done <- i
 			}(i)
 		}

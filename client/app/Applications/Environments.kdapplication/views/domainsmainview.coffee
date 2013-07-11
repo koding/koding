@@ -80,8 +80,16 @@ class DomainsMainView extends JView
       @actionArea.unsetClass 'in'
       @buttonsBar.unsetClass 'out'
 
-    creationForm.on 'DomainSaved', =>
+    creationForm.on 'DomainSaved', (domain)=>
       @domainsListViewController.update()
+      # fixme: this is to select just saved domain
+      # but somehow fails. will check later.
+      # @domainsListViewController.update =>
+      #   @domainsListViewController.itemsOrdered.forEach (listItem)=>
+      #     if listItem.getData().domain is domain.domain
+      #       KD.utils.wait 5000, =>
+      #         list = @domainsListViewController.getListView()
+      #         list.emit "domainsListItemViewClicked", this
 
     creationForm.on 'CloseClicked', =>
       @actionArea.unsetClass 'in'
