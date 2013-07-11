@@ -488,7 +488,7 @@ module.exports = class JVM extends Model
     JGroup.on 'MemberAdded', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
-        else if group.slug in ['koding','guests']
+        else if group.slug is 'guests'
           # Following is just here to register this name in the counters collection
           ((require 'koding-counter') {
             db          : JVM.getClient()
