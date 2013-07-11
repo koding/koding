@@ -89,6 +89,11 @@ module.exports = class JRecurlyPlan extends jraphical.Module
 
     payment.addPlan data, callback
 
+  @deleteGroupPlan = (group, data, callback)->
+    prefix = "groupplan_#{group._id}_"
+    if data.code.indexOf(prefix) > -1
+      payment.deletePlan data, callback
+
   @getPlans = secure (client, filter..., callback)->
     [prefix, category, item] = filter
     selector = {}
