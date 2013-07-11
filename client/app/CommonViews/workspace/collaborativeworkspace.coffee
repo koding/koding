@@ -131,7 +131,13 @@ class CollaborativeWorkspace extends Workspace
     options            = @getOptions()
     options.sessionKey = sessionKey
     @destroy()
-    parent.addSubView new CollaborativeWorkspace options
+
+    # TODO: fatihacet - temp fix to resize split view for users that joined a new session
+    workspace = new CollaborativeWorkspace options
+    workspace.on "PanelCreated", =>
+      workspace.activePanel.splitView.resizePanel "20%", 0
+    parent.addSubView workspace
+
     log "user joined a new session:", sessionKey
 
   showDisconnectedModal: ->
