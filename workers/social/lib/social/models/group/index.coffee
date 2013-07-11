@@ -1428,52 +1428,36 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
-  # fetchOrSearchInvitationRequests: permit 'send invitations',
-  #   success: (client, status, timestamp, requestLimit, search, callback)->
-  #     status   = $in: status                if Array.isArray status
-  #     selector = timestamp: $lt: timestamp  if timestamp
-
-  #     options  =
-  #       targetOptions :
-  #         selector    : { status }
-  #         limit       : requestLimit
-  #         sort        : { requestedAt: -1 }
-  #       options       :
-  #         sort        : { timestamp: -1 }
-
-  #     if search
-  #       search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
-  #       seed = new RegExp search, 'i'
-  #       options.targetOptions.selector.$or = [
-  #         { email             : seed }
-  #         { 'koding.username' : seed }
-  #         { 'koding.fullName' : seed }
-  #       ]
-
-  #     @fetchInvitationRequests selector, options, callback
-
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
-      status   = $in: status  if Array.isArray status
+      graph = new Graph({config:KONFIG['neo4j']})
+      options = {}
+      options.groupId      = @getId()
+      options.status       = status
+      options.search       = search
+      options.timestamp    = timestamp
+      options.requestLimit = requestLimit
+      
+      graph.fetchInvitations options, (err, results)=>
+        if err then return callback err
+        if results.length < 1 then return callback null, []
 
-      selector = {status, group: @slug}
-      selector.requestedAt = $lt: timestamp  if timestamp
+        JInvitationRequest = require '../invitationrequest'
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.groupOwnedNodes.data.id
+          JInvitationRequest.one  { _id : objId }, (err, invitationRequest)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] = invitationRequest
+              fin()
+        , ->
+          callback null, tempRes
 
-      options  =
-        limit : requestLimit
-        sort  : { requestedAt: -1 }
-
-      if search
-        search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
-        seed = new RegExp search, 'i'
-        selector.$or = [
-          { email             : seed }
-          { 'koding.username' : seed }
-          { 'koding.fullName' : seed }
-        ]
-
-      JInvitationRequest = require '../invitationrequest'
-      JInvitationRequest.some selector, options, callback
+        for res in results
+          collectContents res
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->

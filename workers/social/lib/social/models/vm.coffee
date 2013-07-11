@@ -67,7 +67,6 @@ module.exports = class JVM extends Model
 
   @createDomains = (account, domains, hostnameAlias)->
     JDomain = require './domain'
-    console.log "creating domains for ", account, domains, hostnameAlias
     domains.forEach (domain) ->
       domainObj = new JDomain
         domain        : domain
