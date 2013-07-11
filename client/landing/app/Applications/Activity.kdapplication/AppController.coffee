@@ -126,6 +126,7 @@ class ActivityAppController extends AppController
 
   populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
+    return  if @reachedEndOfActivities
 
     @listController.showLazyLoader no
 
@@ -201,9 +202,12 @@ class ActivityAppController extends AppController
 
   setLastTimestamps:(from, to)->
     # debugger
-    @lastTo   = to
-    @lastFrom = from
 
+    if from
+      @lastTo   = to
+      @lastFrom = from
+    else
+      @reachedEndOfActivities = yes
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
