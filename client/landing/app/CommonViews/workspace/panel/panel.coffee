@@ -20,10 +20,6 @@ class Panel extends JView
 
     @createLayout()
 
-    if @splitView
-      @getSingleton("mainView").once "transitionend", =>
-        @splitView._windowDidResize()
-
   createHeader: (title = "") ->
     @header     = new KDView
       cssClass  : "inner-header"
