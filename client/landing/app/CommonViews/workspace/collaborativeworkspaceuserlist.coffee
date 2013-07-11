@@ -122,6 +122,7 @@ class CollaborativeWorkspaceUserList extends JView
       dataSource          : (args, callback) =>
         {inputValue} = args
         blacklist    = (data.getId() for data in @userController.getSelectedItemData())
+        blacklist.push KD.whoami()._id
         KD.remote.api.JAccount.byRelevance inputValue, {blacklist}, (err, accounts) =>
           callback accounts
 
