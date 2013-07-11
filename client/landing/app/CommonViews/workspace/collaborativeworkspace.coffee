@@ -189,8 +189,7 @@ class CollaborativeWorkspace extends Workspace
           title           : "Join Session"
           cssClass        : "modal-clean-green"
           callback        : =>
-            @joinSession sessionKeyInput.getValue()
-            modal.destroy()
+            @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
         Close             :
           title           : "Close"
           cssClass        : "modal-cancel"
@@ -200,10 +199,14 @@ class CollaborativeWorkspace extends Workspace
       type        : "text"
       placeholder : "Paste new session key and hit enter to join"
       callback    : =>
-        @joinSession sessionKeyInput.getValue()
-        modal.destroy()
+        @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
 
     callback modal
+
+  handleJoinASessionFromModal: (sessionKey, modal) ->
+    return unless sessionKey
+    @joinSession sessionKey
+    modal.destroy()
 
   showShareModal: (callback = noop) ->
     modal           = new KDModalView
