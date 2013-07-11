@@ -13,6 +13,13 @@ class GroupProductSettingsView extends JView
       cssClass   : "product-price"
       placeholder: "0.00"
 
+    @addType = new KDSelectBox
+      defaultValue  : "single"
+      selectOptions : [
+        { title : "Single Payment"   , value : 'single'    }
+        { title : "Recurring Payment", value : 'recurring' }
+      ]
+
     @addButton = new KDButtonView
       cssClass   : "product-button"
       title      : "+"
@@ -21,6 +28,7 @@ class GroupProductSettingsView extends JView
           name  : __utils.slugify @addName.getValue()
           price : @addPrice.getValue()
           title : @addName.getValue()
+          type  : @addType.getValue()
         , (err,plan)=>
           if err
             new KDNotificationView
@@ -28,6 +36,7 @@ class GroupProductSettingsView extends JView
           else
             @addName.setValue ""
             @addPrice.setValue ""
+            @addType.setValue 'single'
             @controller.loadItems()
 
     @controller = new GroupProductListController
@@ -50,6 +59,7 @@ class GroupProductSettingsView extends JView
     """
     {{> this.addButton}}
     {{> this.addName}}
+    {{> this.addType}}
     {{> this.addPrice}}
     <br>
     {{> this.reloadButton}}
@@ -168,9 +178,14 @@ class GroupProductListItem extends KDListItemView
     title = plan.title
     price = plan.feeMonthly / 100
 
+    if plan.feeInterval is 9999
+      type = "Single Payment"
+    else
+      type = "Recurring Payment"
+
     """
     <div class="product-item">
-      #{title} $#{price.toFixed(2)}
+      #{title} $#{price.toFixed(2)} - #{type}
       {{> @embedButton}}
       {{> @deleteButton}}
       {{> @clientsButton}}

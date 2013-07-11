@@ -34,6 +34,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       desc         : String
       feeMonthly   : Number
       feeInitial   : Number
+      feeInterval  : Number
       product      :
         prefix     : String
         category   : String
@@ -86,6 +87,14 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     data.feeMonthly = data.price
     data.feeInitial = 0
     data.code       = "groupplan_#{group._id}_#{data.name}_0"
+
+    if data.type is 'recurring'
+      # Charge money every month
+      data.feeInterval = 1
+    else
+      # Charge money every 9999 months
+      # This is a hack, since Recurly sucks and non recurring payments.
+      data.feeInterval = 9999
 
     payment.addPlan data, callback
 
@@ -143,7 +152,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         Object.keys(mapAll).forEach (k)->
           # create or update
           stack.push (cb)->
-            {code, title, desc, feeMonthly, feeInitial} = mapAll[k]
+            {code, title, desc, feeMonthly, feeInitial, feeInterval} = mapAll[k]
             unless code.match /^([a-zA-Z0-9-]+_){3}[0-9]+$/
               cb()
             else
@@ -157,6 +166,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
               plan.desc = desc
               plan.feeMonthly = feeMonthly
               plan.feeInitial = feeInitial
+              plan.feeInterval = feeInterval
 
               [prefix, category, item, version] = code.split '_'
               version = +version
@@ -340,14 +350,19 @@ do ->
     getProducts (products)->
       stack = []
       for own code, prod of products
-        do ->
+        do (code, prod)->
           stack.push (cb)->
+            if prod.recurring
+              interval = 9999
+            else
+              interval = 1
             payment.getPlanInfo {code: code}, (err, plan)->
               if not err and plan
                 payment.updatePlan 
                   code       : code
                   title      : prod.title
                   feeMonthly : prod.price
+                  feeInterval: interval
                 , (err, plan)->
                   unless err
                     console.log "Updated product: #{prod.title}"
@@ -357,6 +372,7 @@ do ->
                   code       : code
                   title      : prod.title
                   feeMonthly : prod.price
+                  feeInterval: interval
                 , (err, plan)->
                   unless err
                     console.log "Created product: #{prod.title}"
