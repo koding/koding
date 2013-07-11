@@ -220,7 +220,7 @@ module.exports = class JAccount extends jraphical.Module
       @fetchUser (err, user) =>
         return callback err  if err
 
-        user.update { $set: { username } }, (err) =>
+        user.update { $set: { username, oldUsername } }, (err) =>
           if err then handleErr err, callback
           else
             if mustReauthenticate
@@ -1062,15 +1062,15 @@ module.exports = class JAccount extends jraphical.Module
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
-    , 
+    ,
       targetId : 1
     , (err, rels)->
       return callback err if err
 
       JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
         domainList = []
-        unless err 
-          # we don't allow users to work on domains such as 
+        unless err
+          # we don't allow users to work on domains such as
           # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
           # so we are filtering them here.
           domainList = domains.filter (domain)->
