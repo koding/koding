@@ -82,6 +82,7 @@ class GroupsAppController extends AppController
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
             KD.track "Groups", "ChangeGroup", groupName
+
   getUserArea:->
     @userArea ?
       if KD.config.entryPoint?.type is 'group'
