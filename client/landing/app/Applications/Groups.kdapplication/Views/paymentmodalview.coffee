@@ -58,7 +58,8 @@ class GroupPaymentHistoryListController extends KDListViewController
     transactions = []
     @group.getTransactions (err, trans) =>
       if err
-        @instantiateListItems []
+        console.log err
+        @addCustomItem "There are no transactions."
         @hideLazyLoader()
       unless err
         for t in trans
