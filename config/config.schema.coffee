@@ -172,7 +172,7 @@ config =
       cronInstant : 1
       cronDaily   : 1
       run         : 1
-      defaultRecepient : 1
+      forcedRecipient : 1
     emailSender   :
       run         : 1
     guests        :

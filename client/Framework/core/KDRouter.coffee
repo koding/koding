@@ -125,6 +125,8 @@ class KDRouter extends KDObject
     frag = frag.split '/'
     frag.shift() # first edge is garbage like '' or '#!'
 
+    frag = frag.filter Boolean
+
     path = "/#{frag.join '/'}"
 
     qs = @utils.stringifyQuery query

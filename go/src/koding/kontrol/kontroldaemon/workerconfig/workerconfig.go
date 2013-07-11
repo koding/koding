@@ -156,9 +156,9 @@ func (w *WorkerConfig) Start(uuid string) (WorkerResponse, error) {
 		log.Printf("starting worker: '%s' on '%s'", worker.Name, worker.Hostname)
 		worker.Status = Waiting
 		w.UpdateWorker(worker)
-		command = "started.now"
+		command = "start"
 	} else {
-		command = "started.before"
+		command = "noPermission"
 	}
 
 	response := *NewWorkerResponse(worker.Name, worker.Uuid, command, "you got a start message")

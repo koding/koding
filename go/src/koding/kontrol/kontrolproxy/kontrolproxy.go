@@ -225,7 +225,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	}
 
 	if isWebsocket(req) {
-		return websocketHandler(target.Url.String())
+		return websocketHandler(target.Url.Host)
 	}
 
 	return reverseProxyHandler(target.Url)
