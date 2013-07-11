@@ -89,7 +89,8 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'addPlan', 'setBillingInfo', 'getBillingInfo',
+        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage', 'getTransactions',
         'fetchBundle', 'updateBundle', 'saveInviteMessage'
       ]
@@ -1346,29 +1347,38 @@ module.exports = class JGroup extends Module
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
 
-  setBillingInfo: secure (client, data, callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.setGroupAccount @, data, (err, res)->
-      # unless err
-      #   # TODO: Give credits to existing users
-      callback err, res
+  setBillingInfo: permit 'manage payment methods',
+    success: (client, data, callback)->
+      JRecurlyPlan = require '../recurly'
+      JRecurlyPlan.setGroupAccount @, data, (err, res)->
+        # unless err
+        #   # TODO: Give credits to existing users
+        callback err, res
 
-  getBillingInfo: secure (client, callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.getGroupAccount @, callback
+  getBillingInfo: permit 'manage payment methods',
+    success: (client, callback)->
+      JRecurlyPlan = require '../recurly'
+      JRecurlyPlan.getGroupAccount @, callback
 
-  makePayment: secure (client, data, callback)->
-    data.plan ?= @payment.plan
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
-      return callback err  if err
-      plan.subscribeGroup @, data, callback
+  makePayment: permit 'make payment',
+    success: (client, data, callback)->
+      data.plan ?= @payment.plan
+      JRecurlyPlan = require '../recurly'
+      JRecurlyPlan.one
+        code: data.plan
+      , (err, plan)=>
+        return callback err  if err
+        plan.subscribeGroup @, data, callback
 
-  addPlan: secure (client, data, callback)->
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.addGroupPlan @, data, callback
+  addProduct: permit 'manage products',
+    success: (client, data, callback)->
+      JRecurlyPlan = require '../recurly'
+      JRecurlyPlan.addGroupPlan @, data, callback
+
+  deleteProduct: permit 'manage products',
+    success: (client, data, callback)->
+      JRecurlyPlan = require '../recurly'
+      JRecurlyPlan.deleteGroupPlan @, data, callback
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
