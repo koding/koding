@@ -10,6 +10,7 @@ type User struct {
 	ObjectId bson.ObjectId `bson:"_id"`
 	Uid      int           `bson:"uid"`
 	Name     string        `bson:"username"`
+	OldName  string        `bson:"oldUsername"`
 	Password string        `bson:"password"`
 	Salt     string        `bson:"salt"`
 	SshKeys  []struct {
