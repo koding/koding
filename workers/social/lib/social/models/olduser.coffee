@@ -223,8 +223,8 @@ module.exports = class JOldUser extends jraphical.Module
     Now, go, code, share and have fun!
     (Please take a look at http://wiki.koding.com for the things you can do)
 
-    Whole Koding Team welcomes you,
-    Devrim, Sinan, Chris, Aleksey, Gokmen, Arvid, Richard and Nelson (yeah we're just 8*)
+    And welcome to Koding!
+    Devrim - on behalf of whole Koding team
 
 
     notes:
