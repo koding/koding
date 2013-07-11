@@ -10,7 +10,7 @@ class CollaborativeWorkspaceUserList extends JView
 
     @header = new KDView
       cssClass : "inner-header"
-      partial  : """<span class="title">Users</span>"""
+      partial  : """<span class="title">Participants</span>"""
 
     @header.addSubView new KDCustomHTMLView
       tagName   : "span"
