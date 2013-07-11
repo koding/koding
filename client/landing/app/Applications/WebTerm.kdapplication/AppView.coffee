@@ -10,6 +10,7 @@ class WebTermView extends KDView
       @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
       @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
+      @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
 
     super
