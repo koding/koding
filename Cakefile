@@ -31,6 +31,8 @@ nodePath           = require 'path'
 portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
 
+require 'colors'
+
 addFlags = (options)->
   flags  = ""
   flags += " -a #{options.domain}" if options.domain
@@ -481,7 +483,8 @@ task 'run', (options)->
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
 
   if "vagrant" is options.configFile
-    exec './vagrant/init.sh', console.log.bind console
+    (spawn 'bash', ['./vagrant/init.sh'])
+      .stdout.on 'data', (it) -> console.log "#{it}".rainbow
 
   oldIndex = nodePath.join __dirname, "website/index.html"
   if fs.existsSync oldIndex
