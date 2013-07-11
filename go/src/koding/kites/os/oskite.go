@@ -386,6 +386,9 @@ func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
 		if err := rootVos.Symlink(user.Name, "/home/"+user.OldName); err != nil {
 			panic(err)
 		}
+		if err := rootVos.Chown("/home/"+user.OldName, user.Uid, user.Uid); err != nil {
+			panic(err)
+		}
 
 		if target, err := rootVos.Readlink("/var/www"); err == nil && target == "/home/"+user.OldName+"/Web" {
 			if err := rootVos.Remove("/var/www"); err != nil {
