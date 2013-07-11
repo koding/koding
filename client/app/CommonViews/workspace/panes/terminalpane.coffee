@@ -6,9 +6,10 @@ class TerminalPane extends Pane
 
     super options, data
 
-    @webterm = new WebTermView
-      delegate : @
-      cssClass : "webterm"
+    @webterm           = new WebTermView
+      delegate         : @
+      cssClass         : "webterm"
+      advancedSettings : no
 
     @webterm.on "WebTermConnected", (@remote)=>
       {command} = @getProperties()
