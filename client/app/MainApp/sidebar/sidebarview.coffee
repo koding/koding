@@ -125,7 +125,7 @@ class Sidebar extends JView
       icon      : yes
       iconOnly  : yes
       iconClass : "cog"
-      cssClass  : "clean-gray open-environment hidden"
+      cssClass  : "clean-gray open-environment"
       callback  :-> KD.getSingleton("appManager").open "Environments"
 
     @listenWindowResize()
