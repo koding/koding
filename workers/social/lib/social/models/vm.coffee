@@ -75,7 +75,7 @@ module.exports = class JVM extends Model
       , (err, domainObj)->
         unless domainObj
           domainObj = new JDomain
-            domain        : domain
+            domain : domain
         domainObj.hostnameAlias = [hostnameAlias]
         domainObj.proxy         = { mode: 'vm' }
         domainObj.regYears      = 0
@@ -88,22 +88,27 @@ module.exports = class JVM extends Model
                   console.log err  if err?
 
   @fixUserDomains = secure (client, callback)->
-    {delegate} = client.connection
+    JDomain = require './domain'
+    JUser   = require './user'
 
-    delegate.fetchUser (err, user)=>
+    JVM.all {}, (err, vms)=>
       return callback err  if err
-
-      JVM.all
-        users         : { $elemMatch: id: user.getId() }
-      , (err, vms)=>
-        return callback err  if err
-        return callback null, null  unless vms
-        vms.forEach (vm)=>
-          {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-          hostnameAliases = JVM.createAliases {
-            nickname, type, uid, groupSlug
-          }
-          @createDomains delegate, hostnameAliases, hostnameAliases[0]
+      return callback null, null  unless vms
+      vms.forEach (vm)=>
+        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
+        hostnameAliases = JVM.createAliases {
+          nickname, type, uid, groupSlug
+        }
+        vmUser = vm.users.filter (u)->
+          return u.owner is yes
+        if vmUser.length > 0
+          JUser.one
+            _id: vmUser[0].id
+          , (err, user)=>
+            if not err and user
+              user.fetchAccount 'koding', (err, account)=>
+                if not err and account
+                  @createDomains account, hostnameAliases, hostnameAliases[0]
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
