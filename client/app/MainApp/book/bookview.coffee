@@ -161,14 +161,7 @@ class BookView extends JView
 
   showMeButtonClicked:->
     @pointer?.destroy()
-    @pointer = new KDCustomHTMLView
-      partial : ''
-      cssClass : 'point'
-
-
-    @pointer.bindTransitionEnd()
-
-    @mainView.addSubView @pointer
+    @mainView.addSubView @pointer = new PointerView
 
     if @page.getData().menuItem
       @navigateCursorToMenuItem(@page.getData().menuItem)
