@@ -1,3 +1,26 @@
+class KDSplitComboView extends KDView
+
+  constructor: (options = {}, data) ->
+
+    options.cssClass or= "kdsplitcomboview"
+
+    super options, data
+
+    @addSubView @createSplitView options.direction, options.sizes, options.views
+
+  createSplitView: (type, sizes, viewsConfig) ->
+    views = []
+
+    for config, index in viewsConfig
+      if config.type is "split"
+        {options} = config
+        views.push @createSplitView options.direction, options.sizes, config.views
+      else
+        views.push config
+
+    new KDSplitView { type, sizes, views }
+
+
 # Example Usage
 #
 # new KDSplitComboView
@@ -37,26 +60,3 @@
 #       ]
 #      }
 #     ]
-
-
-class KDSplitComboView extends KDView
-
-  constructor: (options = {}, data) ->
-
-    options.cssClass or= "kdsplitcomboview"
-
-    super options, data
-
-    @addSubView @createSplitView options.direction, options.sizes, options.views
-
-  createSplitView: (type, sizes, viewsConfig) ->
-    views = []
-
-    for config, index in viewsConfig
-      if config.type is "split"
-        {options} = config
-        views.push @createSplitView options.direction, options.sizes, config.views
-      else
-        views.push config
-
-    new KDSplitView { type, sizes, views }
