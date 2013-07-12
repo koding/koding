@@ -94,7 +94,7 @@ class PaymentWidget extends KDView
       recurring = plan.feeInterval is 1
 
       if recurring
-        description = "(Montly payment)"
+        description = "(Monthly payment)"
       else
         description = "(Single payment)"
 
