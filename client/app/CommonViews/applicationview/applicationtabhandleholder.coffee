@@ -1,16 +1,17 @@
 class ApplicationTabHandleHolder extends KDView
   constructor: (options = {}, data) ->
 
-    options.cssClass ?= "application-tab-handle-holder"
-    options.bind      = "mouseenter mouseleave"
+    options.cssClass        = KD.utils.curryCssClass "application-tab-handle-holder", options.cssClass
+    options.bind            = "mouseenter mouseleave"
+    options.addPlusHandle  ?= yes
 
     super options, data
 
-    @on 'PlusHandleClicked', =>
-      @getDelegate().addNewTab()
+    if options.addPlusHandle
+      @on 'PlusHandleClicked', => @getDelegate().addNewTab()
 
   viewAppended: ->
-    @addPlusHandle()
+    @addPlusHandle()  if @getOptions().addPlusHandle
 
   addPlusHandle: ->
     @addSubView @plusHandle = new KDCustomHTMLView
@@ -22,4 +23,4 @@ class ApplicationTabHandleHolder extends KDView
 
   repositionPlusHandle: (handles) ->
     handlesLength = handles.length
-    @plusHandle.$().insertAfter handles[handlesLength - 1].$() if handlesLength
+    @plusHandle?.$().insertAfter handles[handlesLength - 1].$() if handlesLength
