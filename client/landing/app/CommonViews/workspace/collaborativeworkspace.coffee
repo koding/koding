@@ -214,29 +214,6 @@ class CollaborativeWorkspace extends Workspace
     @joinSession sessionKey
     modal.destroy()
 
-  showShareModal: (callback = noop) ->
-    modal           = new KDModalView
-      title         : "Share Your Session"
-      content       : @getOptions().shareModalContent or ""
-      overlay       : yes
-      cssClass      : "workspace-modal share-modal"
-      width         : 500
-      buttons       :
-        "Ok"        :
-          title     : "OK"
-          cssClass  : "modal-clean-green"
-          callback  : -> modal.destroy()
-
-    modal.addSubView input = new KDInputView
-      defaultValue  : @sessionKey
-      cssClass      : "key"
-      attributes    :
-        readonly    : "readonly"
-
-    @utils.wait 300, -> input.$().focus().select()
-
-    callback modal
-
   createUserListContainer: ->
     @container.addSubView @userListContainer = new KDView
       cssClass : "user-list"
