@@ -359,7 +359,7 @@ section.page
 
 
 
-.point
+#kdmaincontainer > .pointer
   abs()
   bottom              380px
   left                500px
@@ -369,19 +369,20 @@ section.page
   width               20px
   height              20px
   border              3px solid white
-  background          rgba(255,146,0,1)
-  background          linear-gradient(#FFAB23 0%, #F27500 100%)
-  transition          left 2s, top 2s
+  opacity             1
+  bg                  color, rgb(255,146,0)
+  gradient            #FFAB23, #F27500
+  vendor              transition, left 2s ease-in-out\,\
+                                  top 2s ease-in-out\,\
+                                  opacity .4s
   border-radius       50%
-  shadow              0px 1px 3px 0px rgba(0,0,0,0.2)
-
-
-// Click Animation for pointer
-.point
-  border-radius       50%
+  shadow              0px 1px 3px 0px rgba(0,0,0,.2)
   &.clickPulse
     vendor              animation, clickAnimate 1s ease-in-out
     vendor              animation-fill-mode, forwards
+  &.out
+    opacity           0
+
 @keyframes clickAnimate
   0%
     vendor              transform, scale(1)
