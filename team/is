@@ -64,15 +64,21 @@ def parseCalendar(devName):
         if current[0]:
             sys.exit("\n Yay %s is online at %s %s \\o/\n" % (fullName, \
                     city.strip(), current[1]))
-        if today == 4:
-            diff = "next Monday."
-        else:
-            diff = current[2]
-            if diff < timedelta(days=0):
-                diff = parseDay(cal[today+3], now, 1)[2]
-        print "\n%s is offline, sorry :/\nBut will be online in %s" % \
+
+        diff = current[2]
+        if diff < timedelta(days=0):
+            if cal[today+3] == "\n":
+                diff = "on Monday."
+            else:
+                diff = "in %s" % parseDay(cal[today+3], now, 1)[2]
+
+        print "\n%s is offline, sorry :/\nBut will be online %s" % \
               (fullName, diff)
-    print "".join(cal[7:-1])
+
+    for i, day in enumerate(cal):
+        if day == "\n":
+            print "".join(cal[i:-1])
+            break
 
 if len(sys.argv) < 3 or sys.argv[-1] != 'online':
     sys.exit( """
