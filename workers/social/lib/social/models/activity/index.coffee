@@ -381,11 +381,6 @@ module.exports = class CActivity extends jraphical.Capsule
 
       query = query.join('\n')
 
-      console.log "======================="
-      console.log query
-      console.log "======================="
-
-
       graph = new Graph({config:KONFIG['neo4j']})
       options.returnAsBongoObjects = true
       graph.runQuery(query, options, callback)
@@ -431,10 +426,6 @@ module.exports = class CActivity extends jraphical.Capsule
       query.push "LIMIT #{limit}"
 
       query = query.join('\n')
-
-      console.log "======================="
-      console.log query
-      console.log "======================="
 
       graph = new Graph({config:KONFIG['neo4j']})
       options.returnAsBongoObjects = true
