@@ -27,7 +27,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       ]
       instance     : [
         'getToken', 'subscribe',
-        'getType'
+        'getType', 'getSubscriptions'
       ]
     schema         :
       code         : String
@@ -335,11 +335,20 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     
     @getAccountBalance userCode, callback
 
-  getType:(callback)->
+  getType: (callback)->
     if @feeInterval is 1
       callback 'recurring'
     else
       callback 'single'
+
+  getSubscriptions: (callback)->
+    JRecurlySubscription.all
+      planCode: @code
+      $or      : [
+        {status: 'active'}
+        {status: 'canceled'}
+      ]
+    , callback
 
 do ->
   # Koding Recurly Products
