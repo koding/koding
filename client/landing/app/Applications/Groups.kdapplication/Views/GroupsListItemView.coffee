@@ -8,7 +8,7 @@ class GroupsListItemView extends KDListItemView
     group = @getData()
     {title, slug, body} = group
 
-    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
+    slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}"
 
     @titleLink = new KDCustomHTMLView
       tagName     : 'a'

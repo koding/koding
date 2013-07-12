@@ -64,7 +64,7 @@ class GroupsInvitationRequestsTabPaneView extends GroupsInvitationTabPaneView
           warn err  if err
           return @controller.emit 'noItemsFound'
 
-        @timestamp = requests.last.timestamp_
+        @timestamp = requests.last.requestedAt
         @controller.instantiateListItems requests
         @emit 'teasersLoaded'  if requests.length is @requestLimit
 
@@ -72,7 +72,7 @@ class GroupsInvitationRequestsTabPaneView extends GroupsInvitationTabPaneView
     pane  ?= @parent
     status = @options.unresolvedStatuses
     status = $in: status  if Array.isArray status
-    @getData().countInvitationRequests {}, {status}, (err, count)->
+    KD.remote.api.JInvitationRequest.count {status}, (err, count)->
       pane.getHandle().updatePendingCount count  unless err
 
   setStatusesByResolvedSwitch:(@resolvedState)->
