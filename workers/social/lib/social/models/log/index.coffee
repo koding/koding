@@ -55,7 +55,7 @@ module.exports = class JLog extends Module
       return callback true
 
     # if first results' createdAt lt 5 min return false
-    resultTimestamp = results[TRY_LIMIT_FOR_BLOCKING-1].createdAt.getTime()+TIME_LIMIT_IN_MS
+    resultTimestamp = results[TRY_LIMIT_FOR_BLOCKING - 1].createdAt.getTime() + TIME_LIMIT_IN_MS
     currentTimestamp = Date.now()
 
     if resultTimestamp > currentTimestamp
