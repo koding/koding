@@ -438,7 +438,6 @@ __utils =
     fallback = (rest...)=>
       timedOut = yes
       @updateLogTimer timerName, fallbackTimer
-      @logTimeoutToExternal timerName
 
       onTimeout rest...
 
@@ -459,9 +458,6 @@ __utils =
       title:"Sorry, your vm failed to turn on. An email has been sent to a sysadmin."
 
     KD.whoami().sendEmailVMTurnOnFailureToSysAdmin vmName, reason
-
-  logTimeoutToExternal: (timerName)->
-    KD.logToMixpanel timerName+".timeout"
 
   logTimer:(timerName, timerNumber, startTime)->
     log "logTimer name:#{timerName}"
