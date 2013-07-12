@@ -15,8 +15,6 @@ class AceAppController extends AppController
         router.openSection "Ace", name, query
     behavior      : "application"
     menu          : [
-      { title     : "Advanced Settings",   viewName  : "advancedSettings" }
-      { type      : "separator" }
       { title     : "Save",                eventName : "save" }
       { title     : "Save As",             eventName : "saveAs" }
       { type      : "separator" }
@@ -31,6 +29,8 @@ class AceAppController extends AppController
       { title     : "Reopen Latest Files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "Exit",                eventName : "exit" }
+      { type      : "separator" }
+      { title     : "Advanced Settings",   viewName  : "advancedSettings" }
     ]
     fileTypes     : [
       "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
