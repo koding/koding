@@ -229,7 +229,7 @@ module.exports = class JAccount extends jraphical.Module
             @update { $set: 'profile.nickname': username }, (err) =>
               if err then handleErr err
               else
-                @constructor.emit 'UsernameChanged', oldUsername, username
+                @constructor.emit 'UsernameChanged', {oldUsername, username}
                 freeOldUsername()
 
   changeUsername$: secure (client, options, callback) ->
