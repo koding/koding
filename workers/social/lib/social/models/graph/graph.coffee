@@ -1,3 +1,4 @@
+_ = require 'underscore'
 neo4j = require "neo4j"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
@@ -50,15 +51,27 @@ module.exports = class Graph
       }
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
+  # returns object ids from a result set as array
+  # returns dict {colections: {'users':[id1,id2,id3]},
+  #               wantedOrder: ['users_id1', 'users_id2']
+  #             }
+  # this is needed for fetchObjectsFromMongo()
+  getIdsFromAResultSet: (resultSet)->
+    collections = {}
+    wantedOrder = []
+    for obj in resultSet
+      console.log "-------", obj
+      collections[obj.name] ||= []
+      collections[obj.name].push obj.id
+      wantedOrder.push idx: obj.id+'_'+obj.name
+    collections: collections, wantedOrder: wantedOrder
+
   runQuery:(query, options, callback)->
     {startDate, client} = options
-    if options.group?
-      {groupName, groupId} = options.group
-
+    {groupName, groupId} = options.group if options.group?
     @db.query query, {}, (err, results)=>
       tempRes = []
-      if err 
-        callback err
+      if err then callback err
       else if results.length is 0 then callback null, []
       else
         collectRelations = race (i, res, fin)=>
@@ -68,16 +81,10 @@ module.exports = class Graph
               callback err
               fin()
             else
-                wantedOrder = []
-                collections = {}
                 if relatedResult.reply?
-                  for obj in relatedResult.reply
-                    collections[obj.name] ||= []
-                    collections[obj.name].push(obj.id)
-                    wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
+                  {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
                   @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
-                    for dbObj in dbObjects
-                      res.replies.push dbObj
+                    res.replies.push dbObj for dbObj in dbObjects
                     tempRes.push res
                     fin()
                 else
@@ -90,17 +97,10 @@ module.exports = class Graph
             callback null, tempRes
 
         resultData = []
-        wantedOrder = []
-        collections = {}
-        for result in results
-          obj = result.content.data
-          collections[obj.name] ||= []
-          collections[obj.name].push(obj.id)
-          wantedOrder.push({id: obj.id, collection: obj.name, idx: obj.id+'_'+obj.name})
+        {collections, wantedOrder} = @getIdsFromAResultSet _.map(results, (e)->e.content.data)
         @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
           for dbObj in dbObjects
             collectRelations dbObj
-          #callback err, dbObjects
 
 
   objectify = (incomingObjects, callback)->
