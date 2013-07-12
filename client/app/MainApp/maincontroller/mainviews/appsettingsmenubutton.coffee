@@ -5,6 +5,15 @@ class AppSettingsMenuButton extends KDButtonView
     view = mainTabView.activePane?.mainView
     return view
 
+  getCustomMenuView = (item)->
+    view = getVisibleView()
+    item.type = "customView"
+    customMenu = view["#{item.viewName}MenuView"]? item.viewName, item
+    if customMenu instanceof KDView
+      customView: customMenu
+    else
+      customMenu
+
   constructor: (options = {}, data) ->
 
     options.cssClass = "app-settings-menu"
@@ -12,29 +21,26 @@ class AppSettingsMenuButton extends KDButtonView
     options.callback = (event) =>
       menu = @getData()
       return unless menu
-      view = getVisibleView()
 
       @menuWidth = 172
 
-      if menu.length is 1 and menu[0].type == "customView"
+      if menu.length is 1 and menu[0].viewName?
         [item] = menu
-        item.viewName or= ""
-        menu = menuObject = customView: view["#{item.viewName}MenuView"]? item.viewName, item
+        menu = menuObject = getCustomMenuView item
         @menuWidth = item.width  if item.width
       else
         menuObject = {}
         menu.forEach (item, index) =>
-          item.closeMenuWhenClicked ?= yes
 
           item.callback = (contextmenu) =>
+            view = getVisibleView()
             view?.emit "#{item.eventName}MenuItemClicked", item.eventName, item, contextmenu, @offset
-            @contextMenu.destroy() if item.closeMenuWhenClicked
+            @contextMenu.destroy()
 
           key = item.title or @utils.uniqueId("menu-item")
 
-          if item.type is "customView"
-            item.viewName or= ""
-            menuObject[key] = children: customView: view["#{item.viewName}MenuView"]? item.viewName, item
+          if item.viewName?
+            menuObject[key] = children: getCustomMenuView item
           else
             menuObject[key] = item
 

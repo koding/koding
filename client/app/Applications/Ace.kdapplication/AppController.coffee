@@ -15,7 +15,7 @@ class AceAppController extends AppController
         router.openSection "Ace", name, query
     behavior      : "application"
     menu          : [
-      { title     : "Advanced Settings",   viewName  : "advancedSettings", type: "customView" }
+      { title     : "Advanced Settings",   viewName  : "advancedSettings" }
       { type      : "separator" }
       { title     : "Save",                eventName : "save" }
       { title     : "Save As",             eventName : "saveAs" }
@@ -27,7 +27,7 @@ class AceAppController extends AppController
       { type      : "separator" }
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
-      { title     : "Recently Opened",     eventName : "recents", closeMenuWhenClicked: no }
+      { title     : "Recently Opened",     viewName  : "recents"}
       { title     : "Reopen Latest Files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "Exit",                eventName : "exit" }
