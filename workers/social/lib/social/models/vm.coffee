@@ -97,24 +97,23 @@ module.exports = class JVM extends Model
     JDomain = require './domain'
     JUser   = require './user'
 
-    JVM.all {}, (err, vms)=>
+    JVM.each {}, {}, (err, vm)=>
       return callback err  if err
-      return callback null, null  unless vms
-      vms.forEach (vm)=>
-        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-        hostnameAliases = JVM.createAliases {
-          nickname, type, uid, groupSlug
-        }
-        vmUser = vm.users.filter (u)->
-          return u.owner is yes
-        if vmUser.length > 0
-          JUser.one
-            _id: vmUser[0].id
-          , (err, user)=>
-            if not err and user
-              user.fetchAccount 'koding', (err, account)=>
-                if not err and account
-                  @createDomains account, hostnameAliases, hostnameAliases[0]
+      return callback null, null  unless vm
+      {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
+      hostnameAliases = JVM.createAliases {
+        nickname, type, uid, groupSlug
+      }
+      vmUser = vm.users.filter (u)->
+        return u.owner is yes
+      if vmUser.length > 0
+        JUser.one
+          _id: vmUser[0].id
+        , (err, user)=>
+          if not err and user
+            user.fetchAccount 'koding', (err, account)=>
+              if not err and account
+                @createDomains account, hostnameAliases, hostnameAliases[0]
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
