@@ -39,6 +39,7 @@ module.exports = [
   "Framework/components/split/splitview.coffee",
   "Framework/components/split/splitresizer.coffee",
   "Framework/components/split/splitpanel.coffee",
+  "Framework/components/split/splitcomboview.coffee",
 
   # header
   "Framework/components/header/KDHeaderView.coffee",
@@ -217,6 +218,7 @@ module.exports = [
 
   "app/CommonViews/markdownmodal.coffee",
 
+  # FATIH
   "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
   "app/CommonViews/fatih/plugins/fatihlistitem.coffee",
   "app/CommonViews/fatih/plugins/fatihfilelistitem.coffee",
@@ -227,6 +229,7 @@ module.exports = [
   "app/CommonViews/fatih/fatihprefpane.coffee",
   "app/CommonViews/fatih/fatih.coffee",
 
+  # INTRODUCTION TOOLTIP
   "app/CommonViews/introductiontooltip/introductiontooltip.coffee",
   "app/CommonViews/introductiontooltip/introductiontooltipcontroller.coffee",
 
@@ -707,6 +710,37 @@ module.exports = [
 
   # Virtualization CONTROLLER
   "app/MainApp/VirtualizationController.coffee",
+
+
+  # WORKSPACE
+  "app/CommonViews/workspace/panes/pane.coffee",
+  "app/CommonViews/workspace/panes/editorpane.coffee",
+  "app/CommonViews/workspace/panes/previewpane.coffee",
+  "app/CommonViews/workspace/panes/terminalpane.coffee",
+  "app/CommonViews/workspace/panes/videopane.coffee",
+  "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspace.coffee",
+
+  # COLLABORATIVE WORKSPACE
+  # i know it's a CommonView and should include at the top but it have to
+  # wait for NFinderTreeController etc., so included at the bottom
+  "libs/firebase/firebase.all.js",
+  "libs/codemirror/lib/codemirror.js",
+  "libs/codemirror/addon/mode/loadmode.js",
+  "libs/codemirror/mode/javascript/javascript.js",
+  "libs/firebase/firepad.js",
+  "libs/firepad/firepad.css",
+  "libs/codemirror/lib/codemirror.css",
+  "app/CommonViews/workspace/panes/collaborativepane.coffee",
+  "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
+  "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panel/collaborativepanel.coffee",
+  "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
+  "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
