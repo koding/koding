@@ -154,7 +154,8 @@ class BookView extends JView
     if @pointer then @destroyPointer()
 
     # check if page has tutorial
-    if @page.getData().howToSteps.length < 1
+    if @page.getData().howToSteps.length < 1 and
+       KD.singletons.vmController.defaultVmName
       @showMeButton.hide()
     else
       @showMeButton.show()
@@ -164,7 +165,6 @@ class BookView extends JView
     @pointer = new KDCustomHTMLView
       partial : ''
       cssClass : 'point'
-
 
     @pointer.bindTransitionEnd()
 
@@ -288,7 +288,8 @@ class BookView extends JView
         @destroyPointer()
 
     user = KD.nick()
-    userVmName = "[koding~#{user}~0]/home/#{user}"
+    defaultVMName = KD.singletons.vmController.defaultVmName
+    userVmName = "[#{defaultVMName}]/home/#{user}"
     @utils.wait 500, =>
       @defaultVm = KD.getSingleton("finderController").treeController.nodes[userVmName]
       @defaultVm.setClass('selected')
@@ -410,7 +411,8 @@ class BookView extends JView
       @navigateToFolder()
 
     user = KD.nick()
-    userVmName = "[koding~#{user}~0]/home/#{user}"
+    defaultVmName = KD.singletons.vmController.defaultVmName
+    userVmName = "[#{defaultVmName}]/home/#{user}"
     @utils.wait 500, =>
       @defaultVm = KD.getSingleton("finderController").treeController.nodes[userVmName]
       # find file tree's menu position
@@ -432,7 +434,8 @@ class BookView extends JView
 
     # find user Web folder location
     user = KD.nick()
-    webFolder = "[koding~#{user}~0]/home/#{user}/Web"    
+    defaultVMName = KD.singletons.vmController.defaultVmName
+    webFolder = "[#{defaultVMName}]/home/#{user}/Web"    
     @webFolderItem = KD.getSingleton("finderController").treeController.nodes[webFolder]
     offsetTo = @webFolderItem.$().offset()
     # navigate to folder
@@ -454,7 +457,8 @@ class BookView extends JView
     @utils.wait 3000, =>
       # find index.html position
       user = KD.nick()
-      indexFile = "[koding~#{user}~0]/home/#{user}/Web/index.html"
+      defaultVMName = KD.singletons.vmController.defaultVmName
+      indexFile = "[#{defaultVMName}]/home/#{user}/Web/index.html"
       @indexFileItem = KD.getSingleton("finderController").treeController.nodes[indexFile]
       # move cursor to index.html position
       offsetTo = @indexFileItem.$().offset()
@@ -539,6 +543,7 @@ class BookView extends JView
 
   destroyPointer:->
     @unsetClass('aside')
+    @setKeyView()
     @utils.wait 500, =>
       @pointer.destroy()
 
