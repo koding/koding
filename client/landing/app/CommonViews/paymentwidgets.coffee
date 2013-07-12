@@ -89,12 +89,19 @@ class PaymentWidget extends KDView
   confirmSubscription:(callback)->
     KD.remote.api.JRecurlyPlan.getPlanWithCode @planCode, (err,plan)=>
 
-      title = plan.title
-      price = plan.feeMonthly / 100
+      title     = plan.title
+      price     = plan.feeMonthly / 100
+      recurring = plan.feeInterval is 1
 
-      content = """<div>Are you sure you want to subscribe to this plan?</div>
+      if recurring
+        description = "(Montly payment)"
+      else
+        description = "(Single payment)"
+
+      content = """<div>Are you sure you want to buy to this product?</div>
                   <br/>
-                  <div>#{title} - $#{price.toFixed(2)}</div>
+                  <div>#{title} - $#{price.toFixed(2)} #{description}</div>
+                  <br/>
                 """
     
       modal           = new KDModalView
