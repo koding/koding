@@ -143,9 +143,13 @@ class GroupProductListItem extends KDListItemView
 
     @clientsButton = new KDButtonView
       title    : "View Buyers"
-      callback : ->
-        new KDNotificationView
-          title: "Coming soon!"
+      callback : =>
+        plan = @getData()
+        plan.getSubscriptions (err, subs)->
+          if err
+            subs = []
+          new KDNotificationView
+            title: "This product has #{subs.length} buyer(s)."
 
     @deleteButton = new KDButtonView
       title    : "-"
