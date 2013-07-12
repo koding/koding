@@ -91,7 +91,7 @@ module.exports = class Graph
         @removePrivateContent client, groupId, tempRes, callback
       else
         callback null, tempRes
-    collectRelations
+    return collectRelations
 
   runQuery:(query, options, callback)->
     {startDate, client} = options
