@@ -24,25 +24,31 @@ class AppSettingsMenuButton extends KDButtonView
 
       @menuWidth = 172
 
-      if menu.length is 1 and menu[0].viewName?
-        [item] = menu
-        menu = menuObject = getCustomMenuView item
-        @menuWidth = item.width  if item.width
-      else
-        menuObject = {}
-        menu.forEach (item, index) =>
+      menuObject = {}
+      menu.forEach (item, index) =>
 
-          item.callback = (contextmenu) =>
-            view = getVisibleView()
-            view?.emit "#{item.eventName}MenuItemClicked", item.eventName, item, contextmenu, @offset
-            @contextMenu.destroy()
+        @menuWidth = item.width  if item.width > @menuWidth
 
-          key = item.title or @utils.uniqueId("menu-item")
+        item.callback = (contextmenu) =>
+          view = getVisibleView()
+          view?.emit "#{item.eventName}MenuItemClicked", item.eventName, item, contextmenu, @offset
+          @contextMenu.destroy()
 
-          if item.viewName?
-            menuObject[key] = children: getCustomMenuView item
+        key = item.title or @utils.uniqueId("menu-item")
+
+        item.isChild ?= yes
+        if item.viewName?
+          customView = getCustomMenuView item
+          if item.isChild is yes
+            customItem = children: customView
           else
-            menuObject[key] = item
+            key        = @utils.uniqueId "customView"
+            {customView} = customView
+            customItem = customView
+
+          menuObject[key] = customItem
+        else
+          menuObject[key] = item
 
       @createMenu event, menuObject
 
