@@ -1,4 +1,5 @@
 {Model} = require 'bongo'
+{Relationship} = require 'jraphical'
 
 module.exports = class JVM extends Model
 
@@ -81,8 +82,14 @@ module.exports = class JVM extends Model
         domainObj.save (err)->
           console.log err  if err?
           unless err
-            account.fetchDomain (err, dObj)->
-              if err or not dObj
+            Relationship.one
+              targetName: "JDomain",
+              targetId: domainObj._id,
+              sourceName: "JAccount",
+              sourceId: account._id,
+              as: "owner"
+            , (err, rel)->
+              if err or not rel
                 account.addDomain domainObj, (err)->
                   console.log err  if err?
 
