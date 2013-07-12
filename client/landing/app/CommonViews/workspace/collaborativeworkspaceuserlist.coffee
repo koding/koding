@@ -149,12 +149,27 @@ class CollaborativeWorkspaceUserList extends JView
         @reset()
 
   sendInvite: (account) ->
-    to         = account.profile.nickname
-    nickname   = KD.nick()
-    {profile}  = KD.whoami()
-    userName   = "#{profile.firstName} #{profile.lastName} (@#{nickname})"
-    subject    = "Collaborative IDE Session Invite"
-    body       = "My session key is: #{@getDelegate().sessionKey}"
+    to           = account.profile.nickname
+    nickname     = KD.nick()
+    {profile}    = KD.whoami()
+    fromFullName = "#{profile.firstName} #{profile.lastName}"
+    delegate     = @getDelegate()
+    appName      = delegate.getOptions().name
+    {sessionKey} = delegate
+    userName     = "#{profile.firstName} #{profile.lastName} (@#{nickname})"
+    subject      = "Join my #{appName} session"
+    body         =
+      """
+        Hey #{account.profile.firstName},
+
+        #{fromFullName} (@#{profile.nickname}) invited you to #{appName} session.
+
+        You can use this key #{sessionKey} to join #{fromFullName}'s #{appName} session or you can click the link below:
+
+        http://koding.com/Develop/#{appName}?sessionKey=#{sessionKey}
+
+        If you don't have #{appName} installed, you can install it from the App Catalog.
+      """
 
     return if to is nickname
 

@@ -19,8 +19,16 @@ class CollaborativePanel extends Panel
   createHeaderButtons: ->
     super
     @header.addSubView new KDCustomHTMLView
-      cssClass  : "users"
-      click     : => @getDelegate().showUsers()
+      cssClass : "users"
+      click    : => @getDelegate().showUsers()
+
+  createHeaderHint: ->
+    super
+    @header.addSubView new KDCustomHTMLView
+      cssClass : "session-key"
+      partial  : @getDelegate().sessionKey
+      tooltip  :
+        title  : "This is your session key, you can share this key with your friends to work together."
 
   createPane: (paneOptions, targetContainer) ->
     PaneClass              = @getPaneClass paneOptions.type
