@@ -255,15 +255,15 @@ class LoginView extends KDScrollView
         mainView.$().css "opacity", 1
 
         KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
-
-        new KDNotificationView
-          cssClass  : "login"
-          title     : "<span></span>Happy Coding!"
-          # content   : "Successfully logged in."
-          duration  : 2000
-        @loginForm.reset()
-        
-        @hide()
+        KD.getSingleton('groupsController').on 'GroupChanged', =>
+          new KDNotificationView
+            cssClass  : "login"
+            title     : "<span></span>Happy Coding!"
+            # content   : "Successfully logged in."
+            duration  : 2000
+          @loginForm.reset()
+          
+          @hide()
 
   doRequest:(formData)->
     {entryPoint} = KD.config
