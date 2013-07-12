@@ -186,9 +186,10 @@ class CollaborativeWorkspace extends Workspace
             appManager.quit appManager.frontApp
 
   showJoinModal: (callback = noop) ->
+    options        = @getOptions()
     modal          = new KDModalView
-      title        : @getOptions().joinModalTitle   or "Join New Session"
-      content      : @getOptions().joinModalContent or "This is your session key, you can share this key with your friends to work together."
+      title        : options.joinModalTitle   or "Join New Session"
+      content      : options.joinModalContent or "This is your session key, you can share this key with your friends to work together."
       overlay      : yes
       cssClass     : "workspace-modal join-modal"
       width        : 500

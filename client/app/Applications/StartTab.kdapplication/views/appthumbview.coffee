@@ -139,6 +139,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
                           compile your app, shared resources like stylesheets
                           or images in your app will be served from
                           #{resourceRoot} </p></div>"""
+      @experimentalView.destroy()
       @experimentalView = new KDView
     else
       @compile     = new KDView
@@ -164,6 +165,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
     @updateView.updatePartial updateText
     @updateView.setClass      updateClass
     @updateView.setTooltip    title : updateTooltip
+
+    @experimentalView.destroy()
     @experimentalView = new KDView
 
   appDeleteCall:(manifest)->
