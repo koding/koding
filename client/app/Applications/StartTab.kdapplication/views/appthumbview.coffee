@@ -1,5 +1,8 @@
 class StartTabAppThumbView extends KDCustomHTMLView
 
+  proxifyUrl = (url) ->
+    return "#{KD.config.mainUri}/-/imageProxy?url=#{encodeURIComponent url}"
+
   constructor:(options, data)->
 
     options.tagName    = 'figure'
@@ -22,9 +25,6 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
     if not authorNick
       authorNick = KD.whoami().profile.nickname
-
-    proxifyUrl=(url)->
-      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
 
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
@@ -90,7 +90,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
               callback   : => @appDeleteCall manifest
 
     @updateView  = new KDCustomHTMLView
-      cssClass   : "top-badge update"
+      cssClass   : "top-badge"
       click      : (e) =>
         e.preventDefault()
         e.stopPropagation()
@@ -98,7 +98,16 @@ class StartTabAppThumbView extends KDCustomHTMLView
         KD.getSingleton("appManager").open "Apps", =>
           KD.getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
 
-    if @getData().devMode
+    {experimental, devMode} = @getData()
+
+    if experimental
+      @experimentalView = new KDCustomHTMLView
+        cssClass   : "top-badge orange"
+        partial    : "Experimental"
+    else
+      @experimentalView = new KDView
+
+    if devMode
       @compile = new KDCustomHTMLView
         tagName  : "span"
         cssClass : "icon compile"
@@ -115,7 +124,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
       @devModeView = new KDCustomHTMLView
         partial  : "Dev Mode"
-        cssClass : "top-badge dev-mode"
+        cssClass : "top-badge gray"
         tooltip  :
           title  : "Dev-Mode enabled, click for help."
         click    : =>
@@ -130,6 +139,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
                           compile your app, shared resources like stylesheets
                           or images in your app will be served from
                           #{resourceRoot} </p></div>"""
+      @experimentalView.destroy()
+      @experimentalView = new KDView
     else
       @compile     = new KDView
       @devModeView = new KDView
@@ -142,18 +153,21 @@ class StartTabAppThumbView extends KDCustomHTMLView
     isUpdateAvailable = @appsController.isAppUpdateAvailable manifest.name, manifest.version
     return unless isUpdateAvailable
 
-    updateClass       = "available"
+    updateClass       = "green"
     updateText        = "Update Available"
     updateTooltip     = "An update available for this app. Click here to see."
 
     if manifest.forceUpdate is yes
-      updateClass     = "required"
+      updateClass     = "orange"
       updateText      = "Update Required"
       updateTooltip   = "You must update this app. Click here to see."
 
     @updateView.updatePartial updateText
     @updateView.setClass      updateClass
     @updateView.setTooltip    title : updateTooltip
+
+    @experimentalView.destroy()
+    @experimentalView = new KDView
 
   appDeleteCall:(manifest)->
     KD.track "Apps", "ApplicationDelete", manifest.name
@@ -201,6 +215,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     """
       {{> @devModeView}}
       {{> @updateView}}
+      {{> @experimentalView}}
       <div class='icon-container'>
         {{> @delete}}
         {{> @info}}

@@ -4,14 +4,18 @@ class CollaborativeWorkspace extends Workspace
 
     super options, data
 
-    @sessionData  = []
-    instances     = ["instance1", "instance2", "instance3", "instance4", "instance5"]
-    myInstance    = instances[KD.utils.getRandomNumber(5) - 1] # should use config
-    @firepadRef   = new Firebase "https://#{myInstance}.firebaseIO.com/"
-    @sessionKey   = options.sessionKey or @createSessionKey()
-    @workspaceRef = @firepadRef.child @sessionKey
+    @sessionData    = []
+    instances       = @getOptions().firebaseInstances
 
-    log "joining to", myInstance
+    return warn "CollaborativeWorkspace requires at least one Firebase instance." unless instances
+
+    currentInstance = instances
+    currentInstance = instances[KD.utils.getRandomNumber(instances.length) - 1] if Array.isArray instances
+    @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
+    @sessionKey     = options.sessionKey or @createSessionKey()
+    @workspaceRef   = @firepadRef.child @sessionKey
+
+    log "joining to", currentInstance
 
     @createUserListContainer()
     @createLoader()
@@ -182,28 +186,27 @@ class CollaborativeWorkspace extends Workspace
             appManager.quit appManager.frontApp
 
   showJoinModal: (callback = noop) ->
-    modal                 = new KDModalView
-      title               : "Join New Session"
-      content             : @getOptions().joinModalContent or ""
-      overlay             : yes
-      cssClass            : "workspace-modal join-modal"
-      width               : 500
-      buttons             :
-        Join              :
-          title           : "Join Session"
-          cssClass        : "modal-clean-green"
-          callback        : =>
-            @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
-        Close             :
-          title           : "Close"
-          cssClass        : "modal-cancel"
-          callback        : -> modal.destroy()
+    options        = @getOptions()
+    modal          = new KDModalView
+      title        : options.joinModalTitle   or "Join New Session"
+      content      : options.joinModalContent or "This is your session key, you can share this key with your friends to work together."
+      overlay      : yes
+      cssClass     : "workspace-modal join-modal"
+      width        : 500
+      buttons      :
+        Join       :
+          title    : "Join Session"
+          cssClass : "modal-clean-green"
+          callback : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
+        Close      :
+          title    : "Close"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
 
     modal.addSubView sessionKeyInput = new KDHitEnterInputView
-      type        : "text"
-      placeholder : "Paste new session key and hit enter to join"
-      callback    : =>
-        @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
+      type         : "text"
+      placeholder  : "Paste new session key and hit enter to join"
+      callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
 
     callback modal
 
@@ -211,29 +214,6 @@ class CollaborativeWorkspace extends Workspace
     return unless sessionKey
     @joinSession sessionKey
     modal.destroy()
-
-  showShareModal: (callback = noop) ->
-    modal           = new KDModalView
-      title         : "Share Your Session"
-      content       : @getOptions().shareModalContent or ""
-      overlay       : yes
-      cssClass      : "workspace-modal share-modal"
-      width         : 500
-      buttons       :
-        "Ok"        :
-          title     : "OK"
-          cssClass  : "modal-clean-green"
-          callback  : -> modal.destroy()
-
-    modal.addSubView input = new KDInputView
-      defaultValue  : @sessionKey
-      cssClass      : "key"
-      attributes    :
-        readonly    : "readonly"
-
-    @utils.wait 300, -> input.$().focus().select()
-
-    callback modal
 
   createUserListContainer: ->
     @container.addSubView @userListContainer = new KDView
