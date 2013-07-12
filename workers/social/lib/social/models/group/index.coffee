@@ -1035,10 +1035,7 @@ module.exports = class JGroup extends Module
 
         unless delegate instanceof JAccount
           return callback new KodingError 'Email address is missing'  unless formData?.email
-          cb formData.email, (err)=>
-            return callback err  if err
-            JInvitation = require '../invitation'
-            JInvitation.createViaGroupWithoutNotification account, this, [formData.email], callback
+          cb formData.email, callback
         else
           JUser.one username:delegate.profile.nickname, (err, user)=>
             return callback err if err
@@ -1437,7 +1434,7 @@ module.exports = class JGroup extends Module
       options.search       = search
       options.timestamp    = timestamp
       options.requestLimit = requestLimit
-      
+
       graph.fetchInvitations options, (err, results)=>
         if err then return callback err
         if results.length < 1 then return callback null, []
