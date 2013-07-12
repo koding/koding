@@ -1,28 +1,66 @@
-# Wrapper for pushing events to Mixpanel
-if mixpanel? && KD.config.logToExternal then do ->
+class KDMixpanel
 
-  # logs to Mixpanel X% of the time
-  #   log errors, timeouts 100% of the time, success 20% of the time
-  KD.logToMixpanel = (args, percent=100)->
-    if KD.utils.runXpercent percent
-      mixpanel.track args
-      log "Log #{percent}% of time: #{args}"
+  constructor:->
+    @trackPageView "/Topics"
+    @trackPageView "/Members"
+    @trackPageView "/Groups"
+    @trackPageView "/Develop"
+    @trackPageView "/Develop/Ace"
+    @trackPageView "/Develop/Terminal"
+    @trackPageView "/Apps"
+    @trackPageView "/Account"
+  
+  track:(eventName, properties, callback)->
+    mixpanel.track eventName,properties,(callback)
 
-  # send user info in Mixpanel for people tracking
-  KD.getSingleton('mainController').on "AccountChanged", (account) ->
-    return  if account instanceof KD.remote.api.JGuest
+  trackPageView:(pageURL)->
+    mixpanel.track_pageview pageURL
 
-    user    = KD.whoami?().profile or KD.whoami()
-    user_id = user.hash or user.nickname
-    mixpanel.identify user_id
-    mixpanel.people.set
-      "$username": user.nickname
-      "$name": user.firstName + " " + user.lastName
+  register:(options)->
+    mixpanel.register options
 
-  status = KD.getSingleton "status"
-  status.on "connected",    -> KD.logToMixpanel 5, "connected"
-  status.on "disconnected", -> KD.logToMixpanel 100, "disconnected"
-  status.on "reconnected",  -> KD.logToMixpanel 100, "reconnected"
-else
-  KD.utils.stopMixpanel()
-  KD.logToMixpanel = (args, percent=100)->
+  registerOnce:(options, dafaultValue)=>
+    mixpanel.register_once options, dafaultValue
+
+  getProperty:(name)=>
+    mixpanel.get_property name
+
+  incrementUserProperty:(property, incrementBy=1)=>
+    mixpanel.people.increment property, incrementBy
+
+  #identifies user on mixpanel, by default username on koding, should be unique
+  registerUser:->
+    user = KD.whoami()
+    username = user.profile.nickname
+    mixpanel.identify username
+    mixpanel.people.set 
+      "$username"   : username
+      "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
+      "$joinDate"   : user.meta.createdAt
+
+    mixpanel.name_tag "#{username}.kd.io"
+
+
+
+
+  setOnce:(eventName, options, callback )=>
+    mixpanel.people.set_once eventName, options, callback
+
+
+  userReadManual:(page)=>
+    @setOnce "Instructions Book",
+      "Read Date"   : Date.now()
+      "Pages"       : page
+
+  userLoggedIn:(account)=>
+    @track "UserLoggedIn" ,
+      "$username"   : account.profile.nickname
+      "$loginDate"  : Date.now()
+
+
+  userRegistered:(account)=>
+    @track "UserRegistered", 
+      "$username"   : account.profile.nickname
+      "$loginDate"  : Date.now()
+
+if KD.config.logToExternal then kdMixpanel = new KDMixpanel
