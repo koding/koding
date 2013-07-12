@@ -190,6 +190,16 @@ class AceAppView extends JView
 
     @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 
+  advancedSettingsMenuView: ->
+    pane = @tabView.getActivePane()
+    {aceView} = pane.getOptions()
+    settingsView = new KDView
+      cssClass: "editor-advanced-settings-menu"
+    settingsView.addSubView new AceSettingsView
+      delegate: aceView.ace
+
+    return settingsView
+
   pistachio: ->
     """
       {{> @tabHandleContainer}}
