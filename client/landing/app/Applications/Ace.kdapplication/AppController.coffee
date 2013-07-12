@@ -25,12 +25,12 @@ class AceAppController extends AppController
       { type      : "separator" }
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
+      { title     : "Advanced Settings",   viewName  : "advancedSettings" }
+      { type      : "separator" }
       { title     : "Recently Opened",     viewName  : "recents"}
       { title     : "Reopen Latest Files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "Exit",                eventName : "exit" }
-      { type      : "separator" }
-      { title     : "Advanced Settings",   viewName  : "advancedSettings" }
     ]
     fileTypes     : [
       "php", "pl", "py", "jsp", "asp", "aspx", "htm", "html", "phtml","shtml",
