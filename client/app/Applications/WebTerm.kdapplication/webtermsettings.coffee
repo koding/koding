@@ -42,3 +42,12 @@ __webtermSettings =
         {title:'Solarized Dark' , value:'solarized-dark'}
         {title:'Solarized Light' , value:'solarized-light'}
     ]
+
+  scrollback:
+    [
+        {title: 'Unlimited'     , value: Number.MAX_VALUE}
+        {title: '50'            , value: 50   }
+        {title: '100'           , value: 100  }
+        {title: '1000'          , value: 1000 }
+        {title: '10000'         , value: 10000}
+    ]

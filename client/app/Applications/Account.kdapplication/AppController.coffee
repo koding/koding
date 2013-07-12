@@ -10,7 +10,7 @@ class AccountAppController extends AppController
       path       : "/Account"
       order      : 70
       type       : "account"
-      role       : "member"
+      loggedIn   : yes
 
   constructor:(options={},data)->
 

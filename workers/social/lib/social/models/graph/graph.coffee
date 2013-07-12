@@ -125,8 +125,6 @@ module.exports = class Graph
   fetchAll:(requestOptions, callback)->
     {group:{groupName, groupId}, startDate, client} = requestOptions
 
-    console.time "fetchAll"
-
     # do not remove white-spaces
     query = """
       START koding=node:koding("id:#{groupId}")
@@ -166,8 +164,6 @@ module.exports = class Graph
               tempRes[i].relationData =  relatedResult
               fin()
         , =>
-          console.timeEnd "fetchAll"
-
           if groupName == "koding"
             @removePrivateContent client, groupId, tempRes, callback
           else
@@ -205,8 +201,6 @@ module.exports = class Graph
         callback err, respond
 
   fetchNewInstalledApps:(group, startDate, callback)->
-    console.time 'fetchNewInstalledApps'
-
     {groupId} = group
 
     query = """
@@ -220,8 +214,6 @@ module.exports = class Graph
       """
 
     @db.query query, {}, (err, results) =>
-      console.timeEnd 'fetchNewInstalledApps'
-
       if err then throw err
       @generateInstalledApps [], results, callback
 
@@ -240,8 +232,6 @@ module.exports = class Graph
           @generateInstalledApps resultData, results, callback
 
   fetchNewMembers:(group, startDate, callback)->
-    console.time 'fetchNewMembers'
-
     {groupId} = group
 
     query = """
@@ -261,8 +251,6 @@ module.exports = class Graph
 
         objectify resultData, (objected)->
           callback err, objected
-
-          console.timeEnd 'fetchNewMembers'
 
   fetchMemberFollows:(group, startDate, callback)->
     {groupId} = group
@@ -294,11 +282,7 @@ module.exports = class Graph
     @fetchFollows query, callback
 
   fetchFollows:(query, callback)->
-    console.time "fetchFollows"
-
     @db.query query, {}, (err, results)=>
-      console.timeEnd "fetchFollows"
-
       if err then throw err
       @generateFollows [], results, callback
 
@@ -359,13 +343,13 @@ module.exports = class Graph
     orderByQuery = @getOrderByQuery orderBy
 
     query = """
-        start  group=node:koding("id:#{groupId}")
+        START  group=node:koding("id:#{groupId}")
         MATCH  group-[r:member]->members-[:follower]->currentUser
-        where currentUser.id = "#{currentUserId}"
-        return members, r
-        order by #{orderByQuery} DESC
-        skip #{skip}
-        limit #{limit}
+        WHERE currentUser.id = "#{currentUserId}"
+        RETURN members, r
+        ORDER BY #{orderByQuery} DESC
+        SKIP #{skip}
+        LIMIT #{limit}
         """
     @queryMembers query, {}, callback
 
@@ -380,15 +364,49 @@ module.exports = class Graph
     orderByQuery = @getOrderByQuery orderBy
 
     query = """
-        start group=node:koding("id:#{groupId}")
+        START group=node:koding("id:#{groupId}")
         MATCH group-[r:member]->members<-[:follower]-currentUser
-        where currentUser.id = "#{currentUserId}"
-        return members, r
-        order by #{orderByQuery} DESC
-        skip #{skip}
-        limit #{limit}
+        WHERE currentUser.id = "#{currentUserId}"
+        RETURN members, r
+        ORDER BY #{orderByQuery} DESC
+        SKIP #{skip}
+        LIMIT #{limit}
         """
     @queryMembers query, {}, callback
+
+  fetchInvitations:(options, callback)->
+    {groupId, status, timestamp, requestLimit, search} = options
+
+    requestLimit = 10 unless requestLimit
+    regexSearch  = ""
+    timeStampQuery = ""
+
+    if search
+      # search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
+      search = search.replace(/[^\w\s@.+-]/).trim()
+      regexSearch = "AND groupOwnedNodes.email =~ \".*#{search}.*\""
+
+    if timestamp?
+        timeStampQuery = "AND groupOwnedNodes.requestedAt > \"#{timestamp}\""
+
+    if typeof status is "string" then status = [status]
+
+    # convert status array into string array
+    status   = "[\"" + status.join("\",\"") + "\"]"
+
+    query = """
+        START group=node:koding("id:#{groupId}")
+        MATCH group-[r:owner]->groupOwnedNodes
+        WHERE groupOwnedNodes.name = 'JInvitationRequest'
+        AND groupOwnedNodes.status IN #{status}
+        #{timeStampQuery}
+        #{regexSearch}
+        RETURN groupOwnedNodes
+        ORDER BY groupOwnedNodes.`meta.createdAtEpoch`
+        LIMIT #{requestLimit}
+        """
+
+    @db.query query, {}, callback
 
   queryMembers:(query, options={}, callback)->
     @db.query query, options, (err, results) ->
