@@ -733,7 +733,7 @@ class NFinderTreeController extends JTreeViewController
             details.destroy()
 
   refreshTopNode:->
-    KD.logToMixpanel "sharedHosting click on refresh success"
+    #KD.logToMixpanel "sharedHosting click on refresh success"
 
     {nickname} = KD.whoami().profile
     @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"

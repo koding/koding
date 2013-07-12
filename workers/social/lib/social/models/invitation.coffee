@@ -275,8 +275,8 @@ module.exports = class JInvitation extends jraphical.Module
     [callback, options] = [options, callback]  unless callback
     options ?= {}
 
-    JUser = require './user'
-    {delegate} = client.connection
+    JUser            = require './user'
+    {delegate}       = client.connection
     {host, protocol} = @getHostAndProtocol
 
     url  = "#{protocol}//#{host}"
@@ -355,8 +355,8 @@ module.exports = class JInvitation extends jraphical.Module
         group        : group.slug
 
       JInvitation.one selector, (err, existingInvite)=>
-        return callback err   if err
-        return callback null  if existingInvite
+        return callback err                   if err
+        return callback null, existingInvite  if existingInvite
 
         code = @generateInvitationCode email, group.slug
         invite = new JInvitation
@@ -366,7 +366,7 @@ module.exports = class JInvitation extends jraphical.Module
           origin       : ObjectRef(delegate)
           group        : group.slug
 
-        invite.save (err)=>
+        invite.save (err)->
           return callback err  if err
           if delegate instanceof JAccount
             invite.addInvitedBy delegate, (err)-> callback err, invite

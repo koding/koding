@@ -153,25 +153,25 @@ module.exports = class JInvitationRequest extends Model
     JGroup      = require './group'
     JInvitation = require './invitation'
 
+    kallback = (err)=>
+      return callback err  if err
+      @update $set:{ status: 'sent' }, callback
+
     JGroup.one { slug: @group }, (err, group)=>
       if err then callback err
       else unless group?
         callback new KodingError "No group! #{@group}"
       else
         if @koding?.username
-          @sendInviteMailToKodingUser client, @koding, group, options, (err)=>
-            return callback err if err
-            @update $set:{ status: 'sent' }, callback
+          @sendInviteMailToKodingUser client, @koding, group, options, kallback
         else
-          JInvitation.one {inviteeEmail: @email}, (err, invite)=>
-            return callback err if err
-            group.fetchMembershipPolicy (err, policy)=>
-              if message = policy.communications.inviteApprovedMessage
-                group.invitationMessage = message
+          group.fetchMembershipPolicy (err, policy)=>
+            return callback err  if err
 
-              JInvitation.sendEmailForInviteViaGroup client, invite, group, options, (err)=>
-                return callback err if err
-                @update $set:{ status: 'sent' }, callback
+            if message = policy.communications?.inviteApprovedMessage
+              group.invitationMessage = message
+
+            JInvitation.createViaGroup client, group, [@email], options, kallback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection

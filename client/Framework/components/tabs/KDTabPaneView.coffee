@@ -10,15 +10,8 @@ class KDTabPaneView extends KDView
 
     @name = options.name
 
-    @on "KDTabPaneActive",        @becameActive
-    @on "KDTabPaneInactive",      @becameInactive
-    @on "KDTabPaneDestroy",       @aboutToBeDestroyed
     @on "KDTabPaneActive",        @bound "setMainView"
     @on "KDTabPaneLazyViewAdded", @bound "fireLazyCallback"
-
-  becameActive: noop
-  becameInactive: noop
-  aboutToBeDestroyed: noop
 
   show:->
     @unsetClass "kdhiddentab"
