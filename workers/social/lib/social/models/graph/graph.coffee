@@ -60,41 +60,47 @@ module.exports = class Graph
     collections = {}
     wantedOrder = []
     for obj in resultSet
-      collections[obj.name] ||= []
+      collections[obj.name] or= []
       collections[obj.name].push obj.id
       wantedOrder.push idx: obj.id+'_'+obj.name
     collections: collections, wantedOrder: wantedOrder
 
+
+  attachReplies:(options, callback)->
+    tempRes = []
+    collectRelations = race (i, res, fin)=>
+      res.replies = [] 
+      @fetchReplies res.getId(), (err, relatedResult)=>
+        if err
+          callback err
+          fin()
+        else
+            if relatedResult.reply?
+              {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
+              @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+                res.replies.push obj for obj in dbObjects
+                tempRes.push res
+                fin()
+            else
+              tempRes.push res
+              fin()
+    , =>
+      {groupName, groupId} = options.group if options.group?
+
+      if groupName? and groupName is "koding"
+        @removePrivateContent client, groupId, tempRes, callback
+      else
+        callback null, tempRes
+    collectRelations
+
   runQuery:(query, options, callback)->
     {startDate, client} = options
-    {groupName, groupId} = options.group if options.group?
     @db.query query, {}, (err, results)=>
-      tempRes = []
-      if err then callback err
+      if err
+        callback err
       else if results.length is 0 then callback null, []
       else
-        collectRelations = race (i, res, fin)=>
-          res.replies = [] 
-          @fetchReplies res.getId(), (err, relatedResult)=>
-            if err
-              callback err
-              fin()
-            else
-                if relatedResult.reply?
-                  {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
-                  @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
-                    res.replies.push dbObj for dbObj in dbObjects
-                    tempRes.push res
-                    fin()
-                else
-                  tempRes.push res
-                  fin()
-        , =>
-          if groupName? and groupName is "koding"
-            @removePrivateContent client, groupId, tempRes, callback
-          else
-            callback null, tempRes
-
+        collectRelations = @attachReplies(options, callback)
         resultData = []
         {collections, wantedOrder} = @getIdsFromAResultSet _.map(results, (e)->e.content.data)
         @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
@@ -150,17 +156,6 @@ module.exports = class Graph
       for content in contents
         filteredContent.push content if content.group not in secretGroups
       return callback null, filteredContent
-
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JStatusUpdate"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
-  ]
 
   fetchAll:(requestOptions, callback)->
     {group:{groupName, groupId}, startDate, client} = requestOptions
@@ -226,7 +221,7 @@ module.exports = class Graph
       limit 2
     """
     @db.query query, {}, (err, results) ->
-      if err then throw err
+      if err then callback err
       resultData = []
       for result in results
         type = result.r.type
@@ -251,7 +246,7 @@ module.exports = class Graph
       order by r.createdAtEpoch DESC
     """
     @db.query query, {}, (err, results) ->
-      if err then throw err
+      if err then callback err
       resultData = []
       for result in results
         type = result.r.type
