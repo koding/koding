@@ -467,7 +467,7 @@ __utils =
     KD.whoami().sendEmailVMTurnOnFailureToSysAdmin vmName, reason
 
   logTimeoutToExternal: (timerName)->
-    KD.logToMixpanel timerName+".timeout"
+    #KD.logToMixpanel timerName+".timeout"
 
   logTimer:(timerName, timerNumber, startTime)->
     log "logTimer name:#{timerName}"

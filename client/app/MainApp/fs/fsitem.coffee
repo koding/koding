@@ -138,7 +138,7 @@ class FSItem extends KDObject
       ]
       video   : [
         "avi","mp4","h264","mov","mpg","ra","ram","mpg","mpeg","m4a"
-        "3gp","wmv","flv","swf","wma","rm","rpm","rv"
+        "3gp","wmv","flv","swf","wma","rm","rpm","rv","webm"
       ]
       sound   : ["aac","au","gsm","mid","midi","snd","wav","3g2","mp3","asx","asf"]
       app     : ["kdapp"]

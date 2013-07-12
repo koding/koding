@@ -23,7 +23,16 @@ class NavigationController extends KDListViewController
   instantiateListItems:(items)->
     {roles} = KD.config
 
-    newItems = for itemData in items
+    for itemData in items
+      # if not defined, do not check loggedIn state
+      if itemData.loggedIn?
+        # loggedIn:yes = do not show if not logged in
+        if itemData.loggedIn
+          continue  unless KD.isLoggedIn() # do not show if not logged in
+        # loggedIn:no = do not show if logged in
+        unless itemData.loggedIn
+          continue  if     KD.isLoggedIn()
+
       if itemData.role
         if itemData.role in roles
           @getListView().addItem itemData

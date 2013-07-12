@@ -139,6 +139,10 @@ func GetTarget(host string) (*Target, error) {
 		}
 	}
 
+	if domain.Proxy == nil {
+		return nil, fmt.Errorf("proxy field is empty for %s", host)
+	}
+
 	mode := domain.Proxy.Mode
 	persistence := domain.LoadBalancer.Persistence
 

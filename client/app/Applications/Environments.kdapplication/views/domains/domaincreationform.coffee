@@ -222,6 +222,7 @@ class DomainCreationForm extends KDTabViewWithForms
     KD.remote.api.JDomain.createDomain
         domain         : params.domainName
         regYears       : params.regYears
+        proxy          : { mode: 'vm' }
         hostnameAlias  : []
         loadBalancer   :
             mode       : "roundrobin"
