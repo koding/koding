@@ -29,43 +29,35 @@ log = ->
 log "E-Mail Sender Worker has started with PID #{process.pid}"
 
 sendEmail = (emailContent)->
-  {from, replyto, email, subject, content, unsubscribeId, force} = emailContent
+  {from, replyto, email, subject, content, unsubscribeId, bcc} = emailContent
 
-  cb = ->
-    to    = emailWorker.forcedRecipient or email
-    from  = if from is 'hello@koding.com' then "Koding <#{from}>" else from
-    Emailer.send
-      From      : from
-      To        : to
-      Subject   : subject or "Notification"
-      HtmlBody  : template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
-      TextBody  : template.textTemplate content, unsubscribeId, email
-      ReplyTo   : replyto
-    , (err, status)->
-      dateAttempted = new Date()
-      status        = 'attempted'
-      unless err then log "An e-mail sent to #{to}"
-      else
-        log "An error occured: #{err}"
-        status = 'failed'
+  To       = emailWorker.forcedRecepient or email
+  From     = if from is 'hello@koding.com' then "Koding <#{from}>" else from
+  HtmlBody = template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
+  TextBody = template.textTemplate content, unsubscribeId, email
 
-      emailContent.update $set: {status, dateAttempted}, (err)->
-        console.error err if err
+  Emailer.send {
+    From
+    To
+    Subject   : subject or "Notification"
+    HtmlBody
+    TextBody
+    ReplyTo   : replyto
+    Bcc       : bcc
+  }, (err, status)->
+    dateAttempted = new Date()
+    status        = 'attempted'
+    unless err then log "An e-mail sent to #{To}"
+    else
+      log "An error occured: #{err}"
+      status = 'failed'
 
-  unless force
-    emailContent.isUnsubscribed (err, unsubscribed)->
-      if err or unsubscribed
-        console.error err  if err
-        return emailContent.update $set: {status: 'unsubscribed'}, (err)->
-          console.error err  if err
-      else
-        cb()
-  else
-    cb()
+    emailContent.update $set: {status, dateAttempted}, (err)->
+      console.error err if err
 
 emailSender = ->
   {JMail} = worker.models
-  JMail.some {status: "queued"}, {limit:300}, (err, emails)->
+  JMail.fetchWithUnsubscribedInfo {status: "queued"}, {limit:300}, (err, emails)->
     if err
       log "Could not load email queue!"
     else
@@ -75,8 +67,8 @@ emailSender = ->
                      {multi: yes}, (err)->
           unless err
             log "Sending #{emails.length} e-mail(s)..."
-            for email in emails
-              sendEmail email
+
+            sendEmail email  for email in emails
           else
             log err
 

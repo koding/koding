@@ -31,7 +31,7 @@ module.exports = class JMail extends Model
       status         :
         type         : String
         default      : 'queued'
-        enum         : ['Invalid status', ['queued', 'attempted', 'sending', 
+        enum         : ['Invalid status', ['queued', 'attempted', 'sending',
                                            'failed', 'unsubscribed']]
       force          :
         type         : Boolean
@@ -39,6 +39,7 @@ module.exports = class JMail extends Model
       subject        : String
       content        : String
       unsubscribeId  : String
+      bcc            : String
 
   save:(callback)->
     @unsubscribeId = getUniqueId()+''  unless @_id? or @force
@@ -60,3 +61,29 @@ module.exports = class JMail extends Model
         unsubscribed = new JUnsubscribedMail {email}
         unsubscribed.save (err)->
           callback err, unless err then 'Successfully unsubscribed' else null
+
+  @fetchWithUnsubscribedInfo = (selector, options, callback)->
+    JUnsubscribedMail = require './unsubscribedmail'
+
+    JMail.some selector, options, (err, mails)->
+      return callback err  if err
+
+      emailsToCheck = (mail.email  for mail in mails when not mail.force)
+
+      JUnsubscribedMail.some email: $in: emailsToCheck, {}, (err, uMails)->
+        return callback err  if err
+
+        unsubscribedEmails = (uMail.email  for uMail in uMails)
+
+        cleanedMails = []
+        for mail in mails
+          unless mail.email in unsubscribedEmails
+            cleanedMails.push mail
+          else
+            mail.update $set: {status: 'unsubscribed'}, (err)->
+              # it's not fatal enough to break the process
+              # also we don't wait for this to proceed with sending the emails
+              # doing a callback(err) here can have unexpected outcomes
+              console.log err  if err
+
+        callback null, cleanedMails
