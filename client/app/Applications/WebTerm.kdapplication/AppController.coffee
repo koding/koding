@@ -14,6 +14,10 @@ class WebTermController extends AppController
           router.openSection "WebTerm", name, query
     multiple     : yes
     hiddenHandle : no
+    menu         : [
+      # Title is given but will not be used if this menu is alone.
+      {title: "Advanced Settings", type: "customView", viewName: "advancedSettings", width: 270}
+    ]
     behavior     : "application"
     preCondition :
       condition  : (options, cb)->

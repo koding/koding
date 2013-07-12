@@ -11,6 +11,8 @@ class AceView extends JView
 
   constructor:(options, file)->
 
+    options.advancedSettings ?= no
+
     super
 
     @listenWindowResize()
@@ -36,6 +38,9 @@ class AceView extends JView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
     @advancedSettings.disable()
+
+    unless options.advancedSettings
+      @advancedSettings.hide()
 
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
     @findAndReplaceView.hide()
