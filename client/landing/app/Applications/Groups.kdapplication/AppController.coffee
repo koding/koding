@@ -66,15 +66,22 @@ class GroupsAppController extends AppController
 
   changeGroup:(groupName='', callback=->)->
 
-    groupName or=
-      if KD.defaultSlug is 'guests'
-      then 'koding'
-      else KD.defaultSlug
-
+    groupName or= KD.defaultSlug
     return callback()  if @currentGroupName is groupName
 
-    throw new Error 'Cannot change the group!'  if @currentGroupName?
-    unless @currentGroupName is groupName
+    if @currentGroupName?
+      location.reload()
+      # modal = new KDModalView
+      #   title       : 'Change group'
+      #   content     : 'You have requested to change the group.'
+      #   overlay     : yes
+      #   buttons     :
+      #     "Yes, Change group":
+      #       style    : "modal-clean-red"
+      #       callback : (event)=>
+      #         location.reload()
+
+    else unless @currentGroupName is groupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
