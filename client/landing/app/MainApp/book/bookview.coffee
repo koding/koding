@@ -16,7 +16,7 @@ class BookView extends JView
     options.cssClass = "book"
     super options, data
 
-    @mainView = @getOptions().delegate
+    @mainView = @getDelegate()
 
     @currentIndex = 0
 
@@ -116,14 +116,12 @@ class BookView extends JView
     return page
 
   changePageFromRoute:(route)->
-    for index, page of __bookPages
-      if page.routeURL == route
-        @fillPage index
+    @fillPage index for index, page of __bookPages when page.routeURL is route
 
   openFileWithPage:(file)->
     user = KD.nick()
     fileName = "/home/#{user}#{file}"
-    KD.singletons.appManager.openFile(FSHelper.createFileFromPath(fileName))
+    KD.getSingleton("appManager").openFile(FSHelper.createFileFromPath(fileName))
 
   fillPrevPage:->
     return if @currentIndex - 1 < 0
@@ -156,7 +154,7 @@ class BookView extends JView
     if @pointer then @destroyPointer()
 
     # check if page has tutorial
-    if @page.data.howToSteps.length < 1
+    if @page.getData().howToSteps.length < 1
       @showMeButton.hide()
     else
       @showMeButton.show()
@@ -172,8 +170,8 @@ class BookView extends JView
 
     @mainView.addSubView @pointer
 
-    if @page.data.menuItem
-      @navigateCursorToMenuItem(@page.data.menuItem)
+    if @page.getData().menuItem
+      @navigateCursorToMenuItem(@page.getData().menuItem)
       @setClass 'aside'
     else
       @continueNextMove()
@@ -184,57 +182,59 @@ class BookView extends JView
       # open side bar
       @mainView.sidebar.animateLeftNavIn()
       # click menu item
-      @selectedMenuItem[0].$().click()
+      @selectedMenuItem.$().click()
       @clickAnimation()
       # head to next move
       @utils.wait 600, =>
         @continueNextMove()
 
-    @selectedMenuItem = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
-    selectedMenuItemOffset = @selectedMenuItem[0].$().offset()
+    filteredMenu = @mainView.sidebar.nav.items.filter (x) -> x.name is menuItem
+    @selectedMenuItem = filteredMenu[0]
+    selectedMenuItemOffset = @selectedMenuItem.$().offset()
 
     @pointer.$().offset selectedMenuItemOffset
       
   continueNextMove:->
-    steps = @page.data.howToSteps
+    steps = @page.getData().howToSteps
+    {section, parent} = @page.getData()
 
-    if @page.data.section is 3 and @page.data.parent is 0
+    if section is 3 and parent is 0
       if steps[0] is 'enterNewStatusUpdate'
         @navigateToStatusUpdateInput()
 
-    if @page.data.section is 1 and @page.data.parent is 5
+    if section is 1 and parent is 5
       if steps[0] is 'showFileTreeFolderAndFileMenu'
         @clickFolderOnFileTree('Develop')
 
-    if @page.data.section is 3 and @page.data.parent is 5
+    if section is 3 and parent is 5
       if steps[0] is 'showVMMenu'
         @showVMMenu()
 
-    if @page.data.section is 4 and @page.data.parent is 5
+    if section is 4 and parent is 5
       if steps[0] is 'openVMTerminal'
         @showVMTerminal()
 
-    if @page.data.section is 5 and @page.data.parent is 5
+    if section is 5 and parent is 5
       if steps[0] is 'showRecentFiles'
         @showRecentFilesMenu()
 
-    if @page.data.section is 6 and @page.data.parent is 5
+    if section is 6 and parent is 5
       if steps[0] is 'showNewVMMenu'
         @showNewVMMenu()
 
-    if @page.data.section is 8 and @page.data.parent is 0
+    if section is 8 and parent is 0
       if steps[0] is 'showConversationsPanel'
         @showConversationsPanel()
 
-    if @page.data.section is 7 and @page.data.parent is 5
+    if section is 7 and parent is 5
       if steps[0] is 'changeIndexFile'
         @changeIndexFile()
 
-    if @page.data.section is 10 and @page.data.parent is 5
+    if section is 10 and parent is 5
       if steps[0] is 'showAceSettings'
         @showAceSettings()
 
-    if steps[0] is 'showAccountPage'
+    if steps.first is 'showAccountPage'
       @destroyPointer()
 
   navigateToStatusUpdateInput:->
@@ -290,7 +290,7 @@ class BookView extends JView
     user = KD.nick()
     userVmName = "[koding~#{user}~0]/home/#{user}"
     @utils.wait 500, =>
-      @defaultVm = KD.singletons.finderController.treeController.nodes[userVmName]
+      @defaultVm = KD.getSingleton("finderController").treeController.nodes[userVmName]
       @defaultVm.setClass('selected')
       # find file tree's menu position
       vmOffset = @defaultVm.$(".chevron").offset()
@@ -379,7 +379,7 @@ class BookView extends JView
       # click animation
       @clickAnimation()
       # show conv. panel
-      KD.singletons.chatPanel.showPanel()
+      KD.getSingleton("chatPanel").showPanel()
       @utils.wait 1000, =>
         @startNewConversation()
 
@@ -392,14 +392,14 @@ class BookView extends JView
     @pointer.once 'transitionend', =>
       # click animation
       @clickAnimation()
-      KD.singletons.chatPanel.header.newConversationButton.$().click()
+      KD.getSingleton("chatPanel").header.newConversationButton.$().click()
       new KDNotificationView
         title     : " Type your friends name"
         duration  : 3000
       @destroyPointer()
 
     # find + button on panel
-    offsetTo = KD.singletons.chatPanel.header.newConversationButton.$().offset()
+    offsetTo = KD.getSingleton("chatPanel").header.newConversationButton.$().offset()
     # navigate cursor
     @pointer.$().offset offsetTo
 
@@ -412,7 +412,7 @@ class BookView extends JView
     user = KD.nick()
     userVmName = "[koding~#{user}~0]/home/#{user}"
     @utils.wait 500, =>
-      @defaultVm = KD.singletons.finderController.treeController.nodes[userVmName]
+      @defaultVm = KD.getSingleton("finderController").treeController.nodes[userVmName]
       # find file tree's menu position
       vmOffset = @defaultVm.$(".icon").offset()
       @mainView.sidebar.animateLeftNavOut()
@@ -426,14 +426,14 @@ class BookView extends JView
       user = KD.nick()
       @utils.wait 1200, =>
         @clickAnimation()
-        KD.singletons.finderController.treeController.expandFolder(@webFolderItem)
+        KD.getSingleton("finderController").treeController.expandFolder(@webFolderItem)
         @webFolderItem.setClass 'selected'
         @findAndOpenIndexFile()
 
     # find user Web folder location
     user = KD.nick()
     webFolder = "[koding~#{user}~0]/home/#{user}/Web"    
-    @webFolderItem = KD.singletons.finderController.treeController.nodes[webFolder]
+    @webFolderItem = KD.getSingleton("finderController").treeController.nodes[webFolder]
     offsetTo = @webFolderItem.$().offset()
     # navigate to folder
     @pointer.$().offset offsetTo
@@ -455,7 +455,7 @@ class BookView extends JView
       # find index.html position
       user = KD.nick()
       indexFile = "[koding~#{user}~0]/home/#{user}/Web/index.html"
-      @indexFileItem = KD.singletons.finderController.treeController.nodes[indexFile]
+      @indexFileItem = KD.getSingleton("finderController").treeController.nodes[indexFile]
       # move cursor to index.html position
       offsetTo = @indexFileItem.$().offset()
       @pointer.$().offset offsetTo
@@ -474,7 +474,7 @@ class BookView extends JView
     # highlight
     user = KD.nick()
     aceViewName = "/home/#{user}/Web/index.html"
-    @aceView = KD.singletons.appManager.frontApp.mainView.aceViews[aceViewName]
+    @aceView = KD.getSingleton("appManager").frontApp.mainView.aceViews[aceViewName]
     # find 'Hello World!'
     range = @aceView.ace.editor.find('<h1>')
     # get cursor position to ace 
