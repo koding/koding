@@ -186,28 +186,26 @@ class CollaborativeWorkspace extends Workspace
             appManager.quit appManager.frontApp
 
   showJoinModal: (callback = noop) ->
-    modal                 = new KDModalView
-      title               : "Join New Session"
-      content             : @getOptions().joinModalContent or ""
-      overlay             : yes
-      cssClass            : "workspace-modal join-modal"
-      width               : 500
-      buttons             :
-        Join              :
-          title           : "Join Session"
-          cssClass        : "modal-clean-green"
-          callback        : =>
-            @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
-        Close             :
-          title           : "Close"
-          cssClass        : "modal-cancel"
-          callback        : -> modal.destroy()
+    modal          = new KDModalView
+      title        : @getOptions().joinModalTitle   or "Join New Session"
+      content      : @getOptions().joinModalContent or "This is your session key, you can share this key with your friends to work together."
+      overlay      : yes
+      cssClass     : "workspace-modal join-modal"
+      width        : 500
+      buttons      :
+        Join       :
+          title    : "Join Session"
+          cssClass : "modal-clean-green"
+          callback : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
+        Close      :
+          title    : "Close"
+          cssClass : "modal-cancel"
+          callback : -> modal.destroy()
 
     modal.addSubView sessionKeyInput = new KDHitEnterInputView
-      type        : "text"
-      placeholder : "Paste new session key and hit enter to join"
-      callback    : =>
-        @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
+      type         : "text"
+      placeholder  : "Paste new session key and hit enter to join"
+      callback     : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
 
     callback modal
 
