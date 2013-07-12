@@ -60,7 +60,6 @@ module.exports = class Graph
     collections = {}
     wantedOrder = []
     for obj in resultSet
-      console.log "-------", obj
       collections[obj.name] ||= []
       collections[obj.name].push obj.id
       wantedOrder.push idx: obj.id+'_'+obj.name
