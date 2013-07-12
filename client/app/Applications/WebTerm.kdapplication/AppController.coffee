@@ -15,8 +15,7 @@ class WebTermController extends AppController
     multiple     : yes
     hiddenHandle : no
     menu         : [
-      # Title is given but will not be used if this menu is alone.
-      {title: "Advanced Settings", type: "customView", viewName: "advancedSettings", width: 270}
+      {title: "Advanced Settings", viewName: "advancedSettings", width: 270, isChild: no}
     ]
     behavior     : "application"
     preCondition :
