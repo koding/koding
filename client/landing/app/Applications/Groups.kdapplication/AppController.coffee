@@ -66,7 +66,11 @@ class GroupsAppController extends AppController
 
   changeGroup:(groupName='', callback=->)->
 
-    groupName or= KD.defaultSlug
+    groupName or=
+      if KD.defaultSlug is 'guests'
+      then 'koding'
+      else KD.defaultSlug
+
     return callback()  if @currentGroupName is groupName
 
     throw new Error 'Cannot change the group!'  if @currentGroupName?
