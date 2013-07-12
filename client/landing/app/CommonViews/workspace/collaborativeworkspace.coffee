@@ -4,14 +4,18 @@ class CollaborativeWorkspace extends Workspace
 
     super options, data
 
-    @sessionData  = []
-    instances     = ["instance1", "instance2", "instance3", "instance4", "instance5"]
-    myInstance    = instances[KD.utils.getRandomNumber(5) - 1] # should use config
-    @firepadRef   = new Firebase "https://#{myInstance}.firebaseIO.com/"
-    @sessionKey   = options.sessionKey or @createSessionKey()
-    @workspaceRef = @firepadRef.child @sessionKey
+    @sessionData    = []
+    instances       = @getOptions().firebaseInstances
 
-    log "joining to", myInstance
+    return warn "CollaborativeWorkspace requires at least one Firebase instance." unless instances
+
+    currentInstance = instances
+    currentInstance = instances[KD.utils.getRandomNumber(instances.length) - 1] if Array.isArray instances
+    @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
+    @sessionKey     = options.sessionKey or @createSessionKey()
+    @workspaceRef   = @firepadRef.child @sessionKey
+
+    log "joining to", currentInstance
 
     @createUserListContainer()
     @createLoader()

@@ -19,6 +19,8 @@ class DemosAppController extends AppController
       version            : "0.1"
       joinModalContent   : "<p>Here is the join modal</p>"
       shareModalContent  : "<p>Here is the share modal</p>"
+      firebaseInstances  : "teamwork-local"
+      # firebaseInstances  : ["kd-prod-1", "kd-prod-2", "kd-prod-3", "kd-prod-4", "kd-prod-5"]
       panels             : [
         {
           title          : "Collaborative IDE"
