@@ -193,7 +193,7 @@ class BookView extends JView
     selectedMenuItemOffset = @selectedMenuItem.$().offset()
 
     @pointer.$().offset selectedMenuItemOffset
-      
+
   continueNextMove:->
     steps = @page.getData().howToSteps
     {section, parent} = @page.getData()
@@ -249,15 +249,18 @@ class BookView extends JView
       @pointer.$().offset smallInput.offset()
 
   simulateNewStatusUpdate:->
-    smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput.$()
-    largeInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.largeInput.$()
+    smallInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.smallInput
+    largeInput = @mainView.mainTabView.activePane.mainView.widgetController.updateWidget.largeInput
     # focus to dummy input to open large textarea for status update
-    smallInput.focus()
+    smallInput.setFocus()
     # start typing
-    @utils.wait 1000, =>
-      textToWrite = 'Hello World!!'
-      largeInput.val(textToWrite)
-      @pushSubmitButton()
+    textToWrite = 'Hello World!!'
+    counter = 0
+    repeater = @utils.repeat 121, =>
+      largeInput.setValue textToWrite.slice 0, counter++
+      if counter is textToWrite.length
+        KD.utils.killRepeat repeater
+        @pushSubmitButton()
 
   pushSubmitButton:->
     # catch transition end to finish tutorial
@@ -432,7 +435,7 @@ class BookView extends JView
 
     # find user Web folder location
     user = KD.nick()
-    webFolder = "[koding~#{user}~0]/home/#{user}/Web"    
+    webFolder = "[koding~#{user}~0]/home/#{user}/Web"
     @webFolderItem = KD.getSingleton("finderController").treeController.nodes[webFolder]
     offsetTo = @webFolderItem.$().offset()
     # navigate to folder
@@ -449,7 +452,7 @@ class BookView extends JView
           @openFileWithPage('/Web/index.html')
           @utils.wait 800, =>
             @simulateReplacingText()
-        
+
 
     @utils.wait 3000, =>
       # find index.html position
@@ -459,7 +462,7 @@ class BookView extends JView
       # move cursor to index.html position
       offsetTo = @indexFileItem.$().offset()
       @pointer.$().offset offsetTo
-    
+
   simulateReplacingText:->
     @pointer.once 'transitionend', =>
       # change content
@@ -477,7 +480,7 @@ class BookView extends JView
     @aceView = KD.getSingleton("appManager").frontApp.mainView.aceViews[aceViewName]
     # find 'Hello World!'
     range = @aceView.ace.editor.find('<h1>')
-    # get cursor position to ace 
+    # get cursor position to ace
     offsetTo = @pointer.$().offset()
     offsetTo.left += 500
     @pointer.$().offset offsetTo
@@ -498,7 +501,7 @@ class BookView extends JView
     # find right up ace save menu position
     offsetTo = @mainView.appSettingsMenuButton.$().offset()
     @pointer.$().offset offsetTo
-    
+
   openPreview:->
     new KDNotificationView
       title     : "Let's see what changed!"
@@ -515,7 +518,7 @@ class BookView extends JView
       @clickAnimation()
       # click ace app
       @mainView.mainTabView.activePane.mainView.appIcons.Ace.$().click()
-      @utils.wait 800, =>      
+      @utils.wait 800, =>
         @openAceMenu()
       @setClass 'aside'
 
@@ -530,7 +533,7 @@ class BookView extends JView
       @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').click()
 
     # find ace settings menu icon
-    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').eq(1).offset()    
+    offsetTo = @mainView.mainTabView.activePane.subViews[0].$('.editor-advanced-settings-menu').eq(1).offset()
     # navigate settings icon
     @pointer.$().offset offsetTo
     @utils.wait 3500, =>
