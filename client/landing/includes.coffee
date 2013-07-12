@@ -39,6 +39,7 @@ module.exports = [
   "Framework/components/split/splitview.coffee",
   "Framework/components/split/splitresizer.coffee",
   "Framework/components/split/splitpanel.coffee",
+  "Framework/components/split/splitcomboview.coffee",
 
   # header
   "Framework/components/header/KDHeaderView.coffee",
