@@ -2,7 +2,7 @@ class GroupsInvitationTabView extends KDTabView
 
   constructor:(options={}, data)->
     options.cssClass             or= 'invitations-tabs'
-    options.maxHandleWidth       or= 170
+    options.maxHandleWidth       or= 300
     options.hideHandleCloseIcons  ?= yes
 
     super options, data

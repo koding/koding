@@ -982,25 +982,36 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  fetchDomains: (callback) ->
+  fetchUserDomains: (callback) ->
     JDomain = require '../domain'
 
     Relationship.some
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
+    , 
+      targetId : 1
     , (err, rels)->
       return callback err if err
 
-      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
-        callback err, domains
+      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
+        domainList = []
+        unless err 
+          # we don't allow users to work on domains such as 
+          # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
+          # so we are filtering them here.
+          domainList = domains.filter (domain)->
+            domainName = domain.domain
+            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
+
+        callback err, domainList
 
   fetchDomains$: permit
     advanced: [
       { permission: 'list own domains', validateWith: Validators.own }
     ]
     success: (client, callback) ->
-      @fetchDomains callback
+      @fetchUserDomains callback
 
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
     @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback

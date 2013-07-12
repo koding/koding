@@ -83,50 +83,6 @@ class GroupAdminModal extends KDModalViewWithForms
                               modal.destroy()
                           else
                             modal.destroy()
-          "Send Beta Invites" :
-            buttons           :
-              "Send Invites"  :
-                title         : "Send Invites"
-                style         : "modal-clean-gray"
-                loader        :
-                  color       : "#444444"
-                  diameter    : 12
-                callback      : =>
-                  {inputs, buttons} = @modalTabs.forms["Send Beta Invites"]
-                  inputs.statusInfo.updatePartial 'Working on it...'
-                  KD.remote.api.JInvitation.sendBetaInviteFromClient
-                    batch     : +inputs.Count.getValue()
-                  , (err, res)->
-                    buttons['Send Invites'].hideLoader()
-                    inputs.statusInfo.updatePartial res
-                    console.log res, err
-            fields            :
-              Information     :
-                label         : "Current state"
-                type          : "hidden"
-                nextElement   :
-                  currentState:
-                    itemClass : KDView
-                    partial   : 'Loading...'
-                    cssClass  : 'information-line'
-              Count           :
-                label         : "# of Invites"
-                type          : "text"
-                defaultValue  : 10
-                placeholder   : "how many users do you want to Invite?"
-                validate      :
-                  rules       :
-                    regExp    : /\d+/i
-                  messages    :
-                    regExp    : "numbers only please"
-              Status          :
-                label         : "Server response"
-                type          : "hidden"
-                nextElement   :
-                  statusInfo  :
-                    itemClass : KDView
-                    partial   : '...'
-                    cssClass  : 'information-line'
 
           "Migrate Kodingen Users" :
             buttons           :
@@ -275,11 +231,6 @@ class GroupAdminModal extends KDModalViewWithForms
         @hideConnectedFields()
 
     fields.Username.addSubView userRequestLineEdit = @userController.getView()
-
-  initInviteTab:->
-    inviteForm = @modalTabs.forms["Send Beta Invites"]
-    KD.remote.api.JInvitation.betaInviteCount (res)->
-      inviteForm.inputs.currentState.updatePartial res
 
   initMigrateTab:->
     migrateForm = @modalTabs.forms["Migrate Kodingen Users"]
