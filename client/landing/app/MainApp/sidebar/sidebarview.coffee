@@ -38,10 +38,11 @@ class Sidebar extends JView
       items     : []
 
     navAdditions = [
-      { type  : 'separator',      order : 65}
-      { title : 'Invite Friends', order : 66,  type : 'account', role : 'member' }
-      { title : 'Logout',         order : 100, path : '/Logout', type : 'account', role : 'member' }
-      { title : 'Login',          order : 101, path : '/Login',  type : 'account', role : 'guest' }
+      { type  : 'separator',      order : 65 }
+      { title : 'Invite Friends', order : 66,  type : 'account',   role : 'member' }
+      { title : 'Logout',         order : 100, path : '/Logout',   type : 'account', loggedIn : yes }
+      { title : 'Login',          order : 101, path : '/Login',    type : 'account', loggedIn : no  }
+      { title : 'Register',       order : 102, path : '/Register', type : 'account', loggedIn : no  }
     ]
 
     KD.registerNavItem navItem for navItem in navAdditions
@@ -125,7 +126,7 @@ class Sidebar extends JView
       icon      : yes
       iconOnly  : yes
       iconClass : "cog"
-      cssClass  : "clean-gray open-environment hidden"
+      cssClass  : "clean-gray open-environment"
       callback  :-> KD.getSingleton("appManager").open "Environments"
 
     @listenWindowResize()
