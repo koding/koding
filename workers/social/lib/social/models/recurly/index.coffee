@@ -26,7 +26,8 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         'getUserBalance', 'getGroupBalance'
       ]
       instance     : [
-        'getToken', 'subscribe'
+        'getToken', 'subscribe',
+        'getType'
       ]
     schema         :
       code         : String
@@ -333,6 +334,12 @@ module.exports = class JRecurlyPlan extends jraphical.Module
     userCode      = "group_#{group._id}"
     
     @getAccountBalance userCode, callback
+
+  getType:(callback)->
+    if @feeInterval is 1
+      callback 'recurring'
+    else
+      callback 'single'
 
 do ->
   # Koding Recurly Products
