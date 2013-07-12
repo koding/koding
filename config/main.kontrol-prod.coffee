@@ -12,7 +12,7 @@ module.exports =
     key         : 'AKIAJSUVKX6PD254UGAA'
     secret      : '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'
   uri           :
-    address     : "koding.com"
+    address     : "https://koding.com"
   userSitesDomain: 'kd.io'
   containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
@@ -110,6 +110,7 @@ module.exports =
       version   : version
       mainUri   : "http://koding.com"
       broker    :
+        servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       # Is this correct?
@@ -130,6 +131,10 @@ module.exports =
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
+    useKontrold : yes
+    webProtocol : 'https:'
+    webHostname : null
+    webPort     : null
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -141,7 +146,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    defaultRecepient : undefined
+    forcedRecipient : undefined
   emailSender   :
     run         : no
   guests        :

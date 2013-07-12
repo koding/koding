@@ -68,7 +68,6 @@ module.exports = class JVM extends Model
 
   @createDomains = (account, domains, hostnameAlias)->
     JDomain = require './domain'
-    console.log "creating domains for ", account, domains, hostnameAlias
     domains.forEach (domain) ->
       JDomain.one
         domain: domain
@@ -481,33 +480,34 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
-    JGroup.on 'GroupCreated', ({group, creator})->
-      group.fetchBundle (err, bundle)->
-        console.log err, bundle
-        if err then handleError err
-        else if bundle and bundle.sharedVM
-          creator.fetchUser (err, user)->
-            if err then handleError err
-            else
-              # Following is just here to register this name in the counters collection
-              ((require 'koding-counter') {
-                db          : JVM.getClient()
-                counterName : "#{group.slug}~"
-                offset      : 0
-              }).next ->
-
-              addVm {
-                user
-                account     : creator
-                sudo        : yes
-                type        : 'group'
-                target      : group
-                planCode    : 'free'
-                planOwner   : "group_#{group._id}"
-                groupSlug   : group.slug
-                webHome     : group.slug
-                groups      : wrapGroup group
-              }
+    # Do not give free group VMs
+    # JGroup.on 'GroupCreated', ({group, creator})->
+    #   group.fetchBundle (err, bundle)->
+    #     console.log err, bundle
+    #     if err then handleError err
+    #     else if bundle and bundle.sharedVM
+    #       creator.fetchUser (err, user)->
+    #         if err then handleError err
+    #         else
+    #           # Following is just here to register this name in the counters collection
+    #           ((require 'koding-counter') {
+    #             db          : JVM.getClient()
+    #             counterName : "#{group.slug}~"
+    #             offset      : 0
+    #           }).next ->
+    #
+    #           addVm {
+    #             user
+    #             account     : creator
+    #             sudo        : yes
+    #             type        : 'group'
+    #             target      : group
+    #             planCode    : 'free'
+    #             planOwner   : "group_#{group._id}"
+    #             groupSlug   : group.slug
+    #             webHome     : group.slug
+    #             groups      : wrapGroup group
+    #           }
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->

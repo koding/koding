@@ -58,7 +58,15 @@ func Startup() {
 		log.Fatalf("proxyconfig mongodb connect: %s", err)
 	}
 
-	// cleanup death workers at intervals
+	runHelperFunctions()
+
+	log.Println("kontrold handler is initialized")
+}
+
+// runHelperFunctions contains several indepenendent helper functions that do
+// certain tasks.
+func runHelperFunctions() {
+	// cleanup death workers from the the DB at certain intervals
 	ticker := time.NewTicker(time.Minute * 20)
 	go func() {
 		for _ = range ticker.C {
@@ -66,16 +74,13 @@ func Startup() {
 			iter := kontrolDB.Collection.Find(bson.M{"status": int(workerconfig.Dead)}).Iter()
 			result := workerconfig.Worker{}
 			for iter.Next(&result) {
-				// If it's still death just remove it
-				if result.Timestamp.Add(time.Minute * 2).Before(time.Now().UTC()) {
-					log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
-					kontrolDB.DeleteWorker(result.Uuid)
-				}
+				log.Printf("removing death worker '%s - %s - %d'", result.Name, result.Hostname, result.Version)
+				kontrolDB.DeleteWorker(result.Uuid)
 			}
 		}
 	}()
 
-	// update workers
+	// update workers status
 	tickerWorker := time.NewTicker(time.Second * 1)
 	go func() {
 		for _ = range tickerWorker.C {
@@ -86,10 +91,37 @@ func Startup() {
 		}
 	}()
 
-	log.Println("kontrold handler plugin is initialized")
+	// cleanup death deployments at intervals
+	tickerDeployment := time.NewTicker(time.Hour * 12)
+	go func() {
+		for _ = range tickerDeployment.C {
+			log.Println("starting to remove unused deployments")
+			infos := clientDB.GetClients()
+			for _, info := range infos {
+				version, _ := strconv.Atoi(info.BuildNumber)
+
+				iter := kontrolDB.Collection.Find(bson.M{"version": version}).Iter()
+				worker := workerconfig.Worker{}
+				foundWorker := false
+
+				for iter.Next(&worker) {
+					foundWorker = true
+				}
+
+				// remove deployment if no workers are available
+				if !foundWorker {
+					log.Printf("removing deployment with build number %s\n", info.BuildNumber)
+					err := clientDB.DeleteClient(info.BuildNumber)
+					if err != nil {
+						log.Println(err)
+					}
+				}
+			}
+		}
+	}()
 }
 
-func HandleClientMessage(data amqp.Delivery) {
+func ClientMessage(data amqp.Delivery) {
 	if data.RoutingKey == "kontrol-client" {
 		var info clientconfig.ServerInfo
 		err := json.Unmarshal(data.Body, &info)
@@ -101,7 +133,7 @@ func HandleClientMessage(data amqp.Delivery) {
 	}
 }
 
-func HandleWorkerMessage(data []byte) {
+func WorkerMessage(data []byte) {
 	var msg IncomingMessage
 	err := json.Unmarshal(data, &msg)
 	if err != nil {
@@ -123,7 +155,7 @@ func HandleWorkerMessage(data []byte) {
 	}
 }
 
-func HandleApiMessage(data []byte) {
+func ApiMessage(data []byte) {
 	var req workerconfig.ApiRequest
 	err := json.Unmarshal(data, &req)
 	if err != nil {
@@ -136,7 +168,12 @@ func HandleApiMessage(data []byte) {
 	}
 }
 
+// DoWorkerCommand is used to handle messages coming from workers.
 func DoWorkerCommand(command string, worker workerconfig.Worker) error {
+	if worker.Uuid == "" {
+		fmt.Errorf("worker %s does have an empty uuid", worker.Name)
+	}
+
 	switch command {
 	case "add", "addWithProxy":
 		log.Printf("[%s (%d)] received: %s - %s ", worker.Name, worker.Version, command, worker.Message.Option)
@@ -195,6 +232,8 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 	return nil
 }
 
+// DoApiRequest is used to make actions on workers. You can kill, delete or
+// start any worker with this api.
 func DoApiRequest(command, uuid string) error {
 	log.Printf("[%s] received: %s", uuid, command)
 	switch command {
@@ -263,11 +302,12 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 			}
 		}
 
-		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		log.Println(startLog)
 		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
 
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 		return response, nil
 	case "one", "version":
 		/* one mode will try to start a worker that has a different version
@@ -310,21 +350,23 @@ func handleAdd(worker workerconfig.Worker) (workerconfig.WorkerResponse, error) 
 		}
 
 		if !otherWorkers {
-			log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+			startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+			log.Println(startLog)
 			worker.Status = workerconfig.Started
 			kontrolDB.AddWorker(worker)
-			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "add")
+			response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 			return response, nil
 		}
 
-		log.Printf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "added.before")
-		return response, nil // contains first.start or added.before
+		denyLog := fmt.Sprintf("[%s (%d)] denied at '%s'. reason: %s", worker.Name, worker.Version, worker.Hostname, reason)
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "noPermission", denyLog)
+		return response, nil // contains start or noPermission
 	case "many":
-		log.Printf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		startLog := fmt.Sprintf("[%s (%d)] starting at '%s'", worker.Name, worker.Version, worker.Hostname)
+		log.Println(startLog)
 		worker.Status = workerconfig.Started
 		kontrolDB.AddWorker(worker)
-		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "first.start")
+		response := *workerconfig.NewWorkerResponse(worker.Name, worker.Uuid, "start", startLog)
 		return response, nil //
 	default:
 		return workerconfig.WorkerResponse{}, errors.New("no option specified for add action. aborting add handler...")

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -17,7 +19,7 @@ type filter struct {
 	name     string
 	action   string
 	match    string
-	validate func() bool
+	validate func() (bool, string)
 }
 
 type Validator struct {
@@ -39,7 +41,7 @@ func validator(rules proxyconfig.Restriction, ip, country, domain string) *Valid
 	return validator
 }
 
-func (v *Validator) addFilter(ruletype, name, action, match string, validateFn func() bool) {
+func (v *Validator) addFilter(ruletype, name, action, match string, validateFn func() (bool, string)) {
 	v.filters = append(v.filters,
 		filter{
 			ruletype: ruletype,
@@ -50,38 +52,73 @@ func (v *Validator) addFilter(ruletype, name, action, match string, validateFn f
 		})
 }
 
+func (v *Validator) CheckIP(regex string) (bool, string) {
+	if regex == "all" {
+		return true, "all" // assume allowed for all
+	}
+
+	re, err := regexp.Compile(regex)
+	if err != nil {
+		return false, "regex compile failed" // dont block anyone if regex compile get wrong
+	}
+
+	return re.MatchString(v.ip), "matched string"
+}
+
+func (v *Validator) CheckCountry(country string) (bool, string) {
+	if country == "all" {
+		return true, "all" // assume allowed for all
+	}
+
+	if country == v.country {
+		return true, "country matched"
+	}
+	return false, "country did not matched"
+}
+
+func (v *Validator) CheckRequest(requestLimit, requestType string) (bool, string) {
+	interval := strings.TrimPrefix(requestType, "request.")
+	count, err := redisClient.Get(v.domain + ":" + interval)
+	if err != nil {
+		return false, "redis get failed" // if something goes wrong don't block anyone
+	}
+
+	filterCount, err := strconv.Atoi(requestLimit)
+	countS, err := strconv.Atoi(string(count))
+
+	if err != nil {
+		return false, "requestLimit is not valid number" // if something goes wrong don't block anyone
+	}
+
+	if countS > filterCount {
+		return true, string(count)
+	}
+
+	return false, string(count)
+}
+
 func (v *Validator) AddRules() *Validator {
 	for _, rule := range v.rules.RuleList {
 		if !rule.Enabled {
 			continue
 		}
 
-		filter, err := proxyDB.GetFilterByField("match", rule.Match)
+		filter, err := proxyDB.GetFilterByField("name", rule.Name)
 		if err != nil {
 			continue // if not found just continue with next rule
 		}
 
-		f := func() bool {
-			if filter.Match == "all" {
-				return true // assume allowed for all
-			}
-
+		f := func() (bool, string) {
 			switch filter.Type {
 			case "ip":
-				re, err := regexp.Compile(filter.Match)
-				if err != nil {
-					return false // dont block anyone if regex compile get wrong
-				}
-
-				return re.MatchString(v.ip)
+				return v.CheckIP(filter.Match)
 			case "country":
-				if filter.Match == v.country {
-					return true
-				}
-				return false
+				return v.CheckCountry(filter.Match)
+			case "request.second", "request.minute", "request.hour", "request.day":
+				return v.CheckRequest(filter.Match, filter.Type)
 			}
 
-			return false
+			return false, "no filter matched"
 		}
 		v.addFilter(filter.Type, filter.Name, rule.Action, filter.Match, f)
 	}
@@ -93,9 +130,10 @@ func (v *Validator) Check() (bool, error) {
 	for _, filter := range v.filters {
 		switch filter.action {
 		case "deny":
-			if filter.validate() {
-				reason := fmt.Sprintf("%s (%s - %s) - filter name: %s", filter.action, filter.ruletype, filter.match, filter.name)
-				go logDomainDenied(
+			ok, data := filter.validate()
+			if ok {
+				reason := fmt.Sprintf("%s enanbled for filter %s. (rule: %s, got: %s)", filter.action, filter.name, filter.match, data)
+				go domainDenied(
 					v.domain,
 					v.ip,
 					v.country,
@@ -106,13 +144,15 @@ func (v *Validator) Check() (bool, error) {
 				return true, nil
 			}
 		case "allow":
-			if filter.validate() {
+			ok, _ := filter.validate()
+			if ok {
 				return true, nil
 			} else {
 				return false, ErrNotValidated
 			}
 		case "securepage":
-			if filter.validate() {
+			ok, _ := filter.validate()
+			if ok {
 				return false, ErrSecurePage
 			} else {
 				return true, nil
@@ -123,4 +163,16 @@ func (v *Validator) Check() (bool, error) {
 	// user is validated because none of the rules applied to him
 	fmt.Println("user is validated")
 	return true, nil
+}
+
+func domainDenied(domain, ip, country, reason string) {
+	// log why the domain is denied with the reason itself
+	if domain == "" {
+		return
+	}
+
+	err := proxyDB.AddDomainDenied(domain, ip, country, reason)
+	if err != nil {
+		fmt.Printf("could not add domain statistisitcs for %s\n", err.Error())
+	}
 }

@@ -20,14 +20,11 @@ module.exports = class JInvitationRequest extends Model
       email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
-      static          : ['create'] #,'__importKodingenUsers']
+      static          : ['create', 'count'] #,'__importKodingenUsers']
       instance        : [
-        'sendInvitation'
-        'deleteInvitation'
-        'approve'
-        'declineInvitation'
-        'acceptInvitationByInvitee'
-        'ignoreInvitationByInvitee'
+        'sendInvitation', 'deleteInvitation'
+        'approve', 'declineInvitation'
+        'acceptInvitationByInvitee', 'ignoreInvitationByInvitee'
       ]
     schema            :
       email           :
@@ -48,28 +45,17 @@ module.exports = class JInvitationRequest extends Model
       status          :
         type          : String
         enum          : ['Invalid status', [
-          'pending'
-          'sent'
-          'declined'
-          'approved'
-          'ignored'
-          'accepted'
+          'pending', 'sent', 'declined', 'approved', 'ignored', 'accepted'
         ]]
         default       : 'pending'
       invitationType  :
         type          : String
         enum          : ['invalid invitation type',[
-          'invitation'
-          'basic approval'
+          'invitation', 'basic approval'
         ]]
         default       : 'invitation'
 
-  @resolvedStatuses = [
-    'declined'
-    'approved'
-    'ignored'
-    'accepted'
-  ]
+  @resolvedStatuses = ['declined', 'approved', 'ignored', 'accepted']
 
   @create =({email}, callback)->
     invite = new @ {email}
@@ -161,7 +147,9 @@ module.exports = class JInvitationRequest extends Model
               return callback err if err
               @sendRequestApprovedNotification client, group, account, callback
 
-  approveInvitation: (client, callback=->)->
+  approveInvitation: (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+
     JGroup      = require './group'
     JInvitation = require './invitation'
 
@@ -170,14 +158,20 @@ module.exports = class JInvitationRequest extends Model
       else unless group?
         callback new KodingError "No group! #{@group}"
       else
-        @update $set:{ status: 'sent' }, (err)=>
-          return callback err if err
-          if @koding?.username
-            @sendInviteMailToKodingUser client, @koding, group, callback
-          else
-            JInvitation.one {inviteeEmail: @email}, (err, invite)->
-              return callback err if err
-              JInvitation.sendEmailForInviteViaGroup client, invite, group, callback
+        if @koding?.username
+          @sendInviteMailToKodingUser client, @koding, group, options, (err)=>
+            return callback err if err
+            @update $set:{ status: 'sent' }, callback
+        else
+          JInvitation.one {inviteeEmail: @email}, (err, invite)=>
+            return callback err if err
+            group.fetchMembershipPolicy (err, policy)=>
+              if message = policy.communications.inviteApprovedMessage
+                group.invitationMessage = message
+
+              JInvitation.sendEmailForInviteViaGroup client, invite, group, options, (err)=>
+                return callback err if err
+                @update $set:{ status: 'sent' }, callback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection
@@ -212,7 +206,9 @@ module.exports = class JInvitationRequest extends Model
           if err then callback err
           else callback null
 
-  sendInvitation:(client, message, callback=noop)->
+  sendInvitation:(client, message, options, callback=->)->
+    [callback, options] = [options, callback]  unless callback
+
     JUser       = require './user'
     JGroup      = require './group'
     JInvitation = require './invitation'
@@ -226,18 +222,21 @@ module.exports = class JInvitationRequest extends Model
           if err then callback err
           else if not user
             # send invite to non koding user
-            JInvitation.createViaGroup client, group, [@email], callback
+            JInvitation.createViaGroup client, group, [@email], options, callback
           else
             @update $set:{'koding.username':user.username}, (err)=>
               if err then callback err
               else
                 # send invite to existing koding user
-                @sendInviteMailToKodingUser client, user, group, message, callback
+                @sendInviteMailToKodingUser client, user, group, message, options, callback
 
   sendInvitation$: permit 'send invitations',
-    success: (client, callback)-> @sendInvitation client, callback
+    success: (client, message, options, callback)-> @sendInvitation client, message, options, callback
 
-  sendInviteMailToKodingUser:(client, user, group, message, callback)->
+  sendInviteMailToKodingUser:(client, user, group, message, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+
     JAccount          = require './account'
     JMailNotification = require './emailnotification'
 
@@ -259,6 +258,8 @@ module.exports = class JInvitationRequest extends Model
                 invite     : ObjectRef(@).data
                 admin      : ObjectRef(client).data
                 message    : message
+
+            data.bcc = options.bcc  if options.bcc
 
             receiver.sendNotification 'GroupInvited',
               actionType : 'groupInvited'
@@ -348,3 +349,16 @@ module.exports = class JInvitationRequest extends Model
         JMailNotification.create data, (err)->
           if err then callback new KodingError "Could not send"
           else callback null
+
+  @count$ = permit 'send invitations',
+    success:({context:{group}}, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = if Array.isArray group then $in: group else group
+      @count selector, callback
+
+  save:(callback)->
+    super
+    unless @koding?.username # JUnsubscribedMail is not for koding users
+      JUnsubscribedMail = require './unsubscribedmail'
+      JUnsubscribedMail.removeFromList @email
