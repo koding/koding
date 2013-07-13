@@ -75,8 +75,8 @@ class BookView extends JView
     @pagerWrapper.addSubView @pageNav
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
-    @once "OverlayWillBeRemoved", ->
-      @destroyPointer()
+    @once "OverlayWillBeRemoved", =>
+      if @pointer then @destroyPointer()
       @unsetClass "in"
       @utils.wait 1000, =>
         $spanElement = KD.singletons.mainView.sidebar.footerMenu.items[0].$('span')
@@ -547,10 +547,10 @@ class BookView extends JView
       @unsetClass 'aside'
       @destroyPointer()
 
-  destroyPointer:->
+  destroyPointer:()=>
     @unsetClass('aside')
     @setKeyView()
-    @utils.wait 500, =>
+    @utils.wait 500, ->
       @pointer.destroy()
 
   clickAnimation:->
