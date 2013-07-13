@@ -5,7 +5,7 @@ class WebTerm.ScreenBuffer
     @lineDivOffset = 0
     @scrollbackLimit = 1000
     @linesToUpdate = []
-    @lastScreenClearLineCount = 0
+    @lastScreenClearLineCount = 1
     @scrollingRegion = [0, @terminal.sizeY - 1]
   
   toLineIndex: (y) ->
@@ -15,6 +15,7 @@ class WebTerm.ScreenBuffer
     @lineContents[index] ? new ContentArray
   
   setLineContent: (index, content) ->
+    return if content.elements.length == 0 && @lineContents.length <= index && index < @terminal.sizeY
     while @lineContents.length < index
       @lineContents.push new ContentArray
     @lineContents[index] = content

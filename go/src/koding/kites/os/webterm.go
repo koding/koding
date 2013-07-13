@@ -8,7 +8,6 @@ import (
 	"koding/tools/pty"
 	"koding/tools/utils"
 	"koding/virt"
-	"os"
 	"strconv"
 	"strings"
 	"syscall"
@@ -32,20 +31,15 @@ type WebtermRemote struct {
 
 func registerWebtermMethods(k *kite.Kite) {
 	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		dir, err := os.Open("/var/run/screen/S-" + vos.User.Name)
-		if err != nil {
-			if os.IsNotExist(err) {
-				return make(map[string]string), nil
-			}
-			panic(err)
-		}
-		names, err := dir.Readdirnames(0)
-		if err != nil {
-			panic(err)
-		}
-		sessions := make(map[string]string)
+		// We need to use ls here, because /var/run/screen mount is only visible from inside of container. Errors are ignored.
+		out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
+		names := strings.Split(string(out), "\n")
+		sessions := make(map[string]string, len(names))
 		for _, name := range names {
 			segements := strings.SplitN(name, ".", 2)
+			if len(segements) != 2 {
+				continue
+			}
 			sessions[segements[0]] = segements[1]
 		}
 		return sessions, nil
@@ -90,7 +84,7 @@ func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args [
 	server.SetSize(float64(sizeX), float64(sizeY))
 
 	server.pty.Slave.Chown(user.Uid, -1)
-	cmd := vm.AttachCommand(user.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No)) // empty command is default shell
+	cmd := vm.AttachCommand(user.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), append([]string{"/usr/bin/screen"}, args...)...)
 
 	err := cmd.Start()
 	if err != nil {
