@@ -113,8 +113,9 @@ class GroupProductListItem extends KDListItemView
 
     codeWidget = """@content = new KDButtonView
                     cssClass   : "clean-gray test-input"
-                    title      : "Subscribed!"
+                    title      : "Subscribed! View Video"
                     callback   : ->
+                      console.log "Open video..."
 
                     @payment = new PaymentWidget
                       planCode        : '#{code}'
@@ -122,6 +123,7 @@ class GroupProductListItem extends KDListItemView
                       content         : @content
 
                     @payment.on "subscribed", ->
+                      console.log "User is subscribed."
                   """
 
     @embedButton = new KDButtonView
