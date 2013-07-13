@@ -5,16 +5,33 @@ argv = require('optimist').argv
 # -f eval coffeescript file
 fs = require 'fs'
 
-{Base, Model} = require 'bongo'
+Bongo    = require 'bongo'
+Broker   = require 'broker'
+{argv}   = require 'optimist'
+{extend} = require 'underscore'
+
 if argv.c
   KONFIG = require('koding-config-manager').load("main.#{argv.c}")  
 else
   KONFIG = require('koding-config-manager').load("main.vagrant")
-Model.setClient KONFIG.mongo
-JStatusUpdate = require './workers/social/lib/social/models/messages/statusupdate/index.coffee'
+
+{mongo, mq, projectRoot, webserver} = KONFIG
+
+mqOptions = extend {}, mq
+mqOptions.login = webserver.login  if webserver?.login?
+mqOptions.productName = 'koding-webserver'
+
+bongo = new Bongo {
+  mongo
+  root: projectRoot
+  models: 'workers/social/lib/social/models'
+  mq: new Broker mqOptions
+  resourceName: webserver.queueName
+}
+
 
 opts =
-  welcome: 'Welcome!'
+  welcome: 'Welcome to koding...'
   prompt: 'bongo> '
 
 nesh.config.load()
@@ -35,9 +52,10 @@ bongoPlugin =
       {repl} = context
       repl.context.md5 = (value) ->
         crypto.createHash('md5').update(value).digest 'hex'
-      repl.context.Base = Base
-      for i of Base.constructors
-        repl.context[i] = Base.constructors[i]
+
+      repl.context.bongo = bongo
+      for i of bongo.models
+        repl.context[i] = bongo.models[i]
       next()
 
 nesh.loadPlugin bongoPlugin, (err) ->
