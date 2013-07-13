@@ -27,7 +27,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
       ]
       instance     : [
         'getToken', 'subscribe',
-        'getType', 'getSubscriptions'
+        'getType', 'getSubscriptions', 'getOwnerGroup'
       ]
     schema         :
       code         : String
@@ -349,6 +349,15 @@ module.exports = class JRecurlyPlan extends jraphical.Module
         {status: 'canceled'}
       ]
     , callback
+
+  getOwnerGroup: (callback)->
+    if @product.prefix isnt 'groupplan'
+      callback null, 'koding'
+    else
+      JGroup = require '../group'
+      JGroup.one { _id: @product.category }, (err, group)->
+        return callback err  if err
+        callback null, group.slug
 
 do ->
   # Koding Recurly Products
