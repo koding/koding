@@ -28,27 +28,11 @@ class KDMixpanel
         "$username"   : user.profile.firstName
         "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
         "$joinDate"   : user.meta.createdAt
+
       mixpanel.name_tag "#{user.profile.nickname}.kd.io"
 
 
   setOnce:(property, value, callback )->
     mixpanel.people.set_once property, value, callback
-
-
-  userReadManual:(page)->
-    @setOnce "Instructions Book",
-      "Read Date"   : Date.now()
-      "Pages"       : page
-
-  userLoggedIn:(account)->
-    @track "UserLoggedIn" ,
-      "$username"   : account.profile.nickname
-      "$loginDate"  : Date.now()
-
-
-  userRegistered:(account)->
-    @track "UserRegistered",
-      "$username"   : account.profile.nickname
-      "$loginDate"  : Date.now()
 
 if KD.config.logToExternal then kdMixpanel = new KDMixpanel

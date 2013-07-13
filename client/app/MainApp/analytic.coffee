@@ -1,4 +1,3 @@
-# to-do log to mixpanel after subscription is upgraded
 KD.track = (rest...)->
   logToGoogle rest...
   logToMixpanel rest...
@@ -14,9 +13,10 @@ logToGoogle = (rest...)->
   _gaq.push(trackArray);
 
 logToMixpanel = (rest...)->
+
   if rest.first is "Connected to backend"
     # identify user on mixpanel
-    kdMixpanel.registerUser()
+    kdMixpanel.registerUser
     # create event for "userLoggedIn"
 
   if rest.first is "userSignedUp"
@@ -24,46 +24,44 @@ logToMixpanel = (rest...)->
     kdMixpanel.track "$signup", KD.whoami().profile
   
   if rest.first is "userOpenedAce"
-    group = rest[1]
-    options =
-      title     : group.title
-      privacy   : group.privacy
-      visibility: group.visibility
-      $user     : KD.nick()
+    group        = rest[1]
+    options      =
+      title      : group.title
+      privacy    : group.privacy
+      visibility : group.visibility
+      $user      : KD.nick()
     # set first opening
     kdMixpanel.setOnce 'First Time Ace Opened', Date.now()
     # track ace openings
     kdMixpanel.track "Ace Opened", options
 
-
   if rest.first is "userOpenedTerminal"
-    group = rest[1]
-    options =
+    group        = rest[1]
+    options      =
       $group     : group.title
-      privacy   : group.privacy
-      visibility: group.visibility
-      $user     : KD.nick()
+      privacy    : group.privacy
+      visibility : group.visibility
+      $user      : KD.nick()
     # set first opening
     kdMixpanel.setOnce 'First Time Terminal Opened', Date.now()
     # track ace openings
     kdMixpanel.track "Terminal Opened", options
 
   if rest.first is "Apps" and rest[1] is "Install"
-    options = 
+    options       = 
       $user       : KD.nick()
       title       : rest[2]
       error       : rest[3]?
     kdMixpanel.track "Application Installed", options
-
   
   if rest.first is "User Clicked Buy VM"
-    options = 
+    options       = 
       $user       : KD.nick()
     kdMixpanel.track rest.first, options
   
   if rest.first is "Read Tutorial Book"
     # create event for "userReadTutorialBook"
-    options = 
+    options       = 
       $user       : KD.nick()
     kdMixpanel.track rest.first, options
 
@@ -80,15 +78,14 @@ logToMixpanel = (rest...)->
       when "DiscussionSubmitted" then activity = "Discussion Started"
       else activity is rest[1]
 
-    options =
+    options         =
       $group        : group.title
       privacy       : group.privacy
       visibility    : group.visibility
       $user         : KD.nick()
-      $activity      : activity
+      $activity     : activity
     
     kdMixpanel.track eventName, options
-
   
 
   if rest[1] is "GroupJoinRequest"
@@ -103,24 +100,8 @@ logToMixpanel = (rest...)->
 
   
   if rest[1] is "InvitationSentToFriend"
-    options =
+    options       =
       $user       : KD.nick()
       $recipient  : rest[2]
 
     kdMixpanel.track "Invitation Send", options
-
-###
-
-  if rest.first is "trackpage"
-    # mixpanel.track_page
-
-
-  if rest.first is "userDevelopmentActivity"
-    # create event for "userDevelopmentActivity"
-    # add extra parameter for what has done
-      # create new file
-      # clone repository
-      # created app
-      # published app
-###
-
