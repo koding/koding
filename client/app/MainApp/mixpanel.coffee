@@ -65,5 +65,10 @@ class KDMixpanel
       "$loginDate"  : Date.now()
 
 
+KD.logToMixpanel = (args, percent=100)->
+    if KD.utils.runXpercent percent
+      mixpanel.track args
+      log "Log #{percent}% of time: #{args}"
+
 if mixpanel? && KD.config.logToExternal then do ->
   KD.mixpanel = new KDMixpanel
