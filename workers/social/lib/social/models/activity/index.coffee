@@ -43,11 +43,8 @@ module.exports = class CActivity extends jraphical.Capsule
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
-<<<<<<< HEAD
-        'fetchPublicActivityFeed', 'fetchUsersActivityFeed'
-=======
-        'fetchPublicActivityFeed','fetchLastActivityTimestamp'
->>>>>>> 5842d6cca0550e750e11e39eb597447ecc4388d1
+        'fetchPublicActivityFeed', 'fetchUsersActivityFeed',
+        'fetchLastActivityTimestamp'
       ]
       instance        : ['fetchTeaser']
     schema            :
