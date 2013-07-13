@@ -34,6 +34,29 @@ class NotificationController extends KDObject
         @emit notification.event, notification.contents
         @prepareNotification notification
 
+    @on 'UserBlocked', ({blockedDate}) ->
+      new KDModalView
+        title         : "Permission denied. You've been banned."
+        overlay       : yes
+        content       :
+          """
+          <div class="modalformline">
+          You have been blocked until <strong>#{blockedDate}</strong>.
+          </div>
+          """
+        buttons       :
+          "Ok"        :
+            style     : "modal-clean-gray"
+            callback  : (event) ->
+              $.cookie 'clientId', erase: yes
+              modal.destroy()
+
+      # If not clicked on "Ok", kick him out after 10 seconds
+      @utils.wait 10000, =>
+        $.cookie 'clientId', erase: yes
+      
+
+
   prepareNotification: (notification)->
 
     # NOTIFICATION SAMPLES

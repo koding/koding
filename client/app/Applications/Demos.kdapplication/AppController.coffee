@@ -15,24 +15,24 @@ class DemosAppController extends AppController
 
   loadView:(mainView)->
     options =
-      title              : "Kodelicious"
+      name               : "Teamwork"
       version            : "0.1"
-      joinModalContent   : "<p>Here is the join modal</p>"
-      shareModalContent  : "<p>Here is the share modal</p>"
+      joinModalTitle     : "Join a coding session"
+      joinModalContent   : "<p>Paste the session key that you received and start coding together.</p>"
+      shareSessionKeyInfo: "<p>This is your session key, you can share this key with your friends to work together.</p>"
+      firebaseInstances  : "teamwork-local"
+      # firebaseInstances  : ["kd-prod-1", "kd-prod-2", "kd-prod-3", "kd-prod-4", "kd-prod-5"]
       panels             : [
         {
-          title          : "Collaborative IDE"
-          hint           : "<p>This is the Collaborative IDE that you ever dreamed. Use it wisely.</p>"
+          title          : "Teamwork"
+          hint           : "<p>This is a collaborative coding environment where you can team up with others and work on the same code.</p>"
           buttons        : [
             {
               title      : "Join"
               cssClass   : "cupid-green join-button"
               callback   : (panel, workspace) => workspace.showJoinModal()
             }
-            {
-              title      : "Share"
-              callback   : (panel, workspace) => workspace.showShareModal()
-            }
+
           ]
           panes: [
             {
