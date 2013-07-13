@@ -1,20 +1,5 @@
 class WebTermView extends KDView
 
-  constructor: (options = {}, data)->
-
-    options.advancedSettings ?= yes
-
-    @appStorage = new AppStorage 'WebTerm', '1.0'
-    @appStorage.fetchStorage =>
-      @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
-      @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
-      @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
-      @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
-      @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
-      @updateSettings()
-
-    super
-
   viewAppended: ->
     @container = new KDView
       cssClass : "console ubuntu-mono black-on-white"
@@ -58,6 +43,7 @@ class WebTermView extends KDView
 
     @terminal = new WebTerm.Terminal @container.$()
 
+    @options.advancedSettings ?= yes
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
         style         : 'editor-advanced-settings-menu'
@@ -70,7 +56,6 @@ class WebTermView extends KDView
         click         : (pubInst, event)-> @contextMenu event
         menu          : @getAdvancedSettingsMenuItems.bind @
       @addSubView @advancedSettings
-    @updateSettings()
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
@@ -120,26 +105,34 @@ class WebTermView extends KDView
 
     @bindEvent 'contextmenu'
 
-    KD.getSingleton("vmController").run
-      kiteName : 'os',
-      method   : 'webterm.createSession',
-      vmName   : @getOption('delegate').getOption('vmName')
-      withArgs :
-        remote : @terminal.clientInterface
-        name   : "none"
-        sizeX  : @terminal.sizeX
-        sizeY  : @terminal.sizeY
-    , (err, remote) =>
-      if err
-        # We don't create any error popup not to be annoying. User can handle the error.
-        error err
-      else
-        @terminal.eventHandler = (data)=>
-          @emit "WebTermEvent", data
-        @terminal.server = remote
-        remote.setSize @terminal.sizeX, @terminal.sizeY # might have changed in the meantime
-        @setKeyView()
-        @emit "WebTermConnected", remote
+    @appStorage = new AppStorage 'WebTerm', '1.0'
+    @appStorage.fetchStorage =>
+      @appStorage.setValue 'font', 'ubuntu-mono' if not @appStorage.getValue('font')?
+      @appStorage.setValue 'fontSize', 14 if not @appStorage.getValue('fontSize')?
+      @appStorage.setValue 'theme', 'green-on-black' if not @appStorage.getValue('theme')?
+      @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
+      @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
+      @updateSettings()
+      
+      KD.getSingleton("vmController").run
+        kiteName : 'os',
+        method   : 'webterm.createSession',
+        vmName   : @getOption('delegate').getOption('vmName')
+        withArgs :
+          remote : @terminal.clientInterface
+          name   : "none"
+          sizeX  : @terminal.sizeX
+          sizeY  : @terminal.sizeY
+      , (err, remote) =>
+        if err
+          # We don't create any error popup not to be annoying. User can handle the error.
+          error err
+        else
+          @terminal.eventHandler = (data)=>
+            @emit "WebTermEvent", data
+          @terminal.server = remote
+          @setKeyView()
+          @emit "WebTermConnected", remote
 
   destroy: ->
     super
