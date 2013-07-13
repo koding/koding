@@ -547,10 +547,10 @@ class BookView extends JView
       @unsetClass 'aside'
       @destroyPointer()
 
-  destroyPointer:()=>
+  destroyPointer:()->
     @unsetClass('aside')
     @setKeyView()
-    @utils.wait 500, ->
+    @utils.wait 500, =>
       @pointer.destroy()
 
   clickAnimation:->
