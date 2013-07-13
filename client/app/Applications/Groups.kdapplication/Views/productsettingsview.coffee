@@ -109,6 +109,13 @@ class GroupProductListItem extends KDListItemView
                      console.log "User is subscribed to the plan."
                  """
 
+    codeGet    = """
+                 KD.remote.api.JRecurlyPlan.getPlanWithCode '#{code}', (err, plan)->
+                   if not err and plan
+                    plan.getSubscriptions (err, subs)->
+                      console.log "Subscribers:", subs
+                 """
+
     codeWidget = """@content = new KDButtonView
                     cssClass   : "clean-gray test-input"
                     title      : "Subscribed! View Video"
@@ -137,6 +144,7 @@ class GroupProductListItem extends KDListItemView
       hideHandleCloseIcons : yes
       paneData             : [
         { name : "Check Subscription", partial: "<pre>#{codeCheck}</pre>" }
+        { name : "Get Subscribers",    partial: "<pre>#{codeGet}</pre>" }
         { name : "Subscribe Widget",   partial: "<pre>#{codeWidget}</pre>" }
       ]
 
