@@ -30,8 +30,6 @@ type Message struct {
 
 func main() {
 	startConsuming()
-	//looooop forever
-	select {}
 }
 
 //here, mapping of decoded json
@@ -81,36 +79,36 @@ func startConsuming() {
 
 	fmt.Println("Neo4J Feeder worker started")
 
-	go func() {
-		for msg := range relationshipEvent {
-			body := fmt.Sprintf("%s", msg.Body)
+	for msg := range relationshipEvent {
+		body := fmt.Sprintf("%s", msg.Body)
 
-			message, err := jsonDecode(body)
-			if err != nil {
-				fmt.Println("Wrong message format", err, body)
+		message, err := jsonDecode(body)
+		if err != nil {
+			fmt.Println("Wrong message format", err, body)
 
-				continue
-			}
-
-			if len(message.Payload) < 1 {
-				fmt.Println("Wrong message format; payload should be an Array", message)
-
-				continue
-			}
-			data := message.Payload[0]
-
-			fmt.Println(message.Event)
-			if message.Event == "RelationshipSaved" {
-				createNode(data)
-			} else if message.Event == "RelationshipRemoved" {
-				deleteRelationship(data)
-			} else if message.Event == "updateInstance" {
-				updateNode(data)
-			} else if message.Event == "RemovedFromCollection" {
-				deleteNode(data)
-			}
+			continue
 		}
-	}()
+
+		if len(message.Payload) < 1 {
+			fmt.Println("Wrong message format; payload should be an Array", message)
+
+			continue
+		}
+		data := message.Payload[0]
+
+		fmt.Println(message.Event)
+		if message.Event == "RelationshipSaved" {
+			createNode(data)
+		} else if message.Event == "RelationshipRemoved" {
+			deleteRelationship(data)
+		} else if message.Event == "updateInstance" {
+			updateNode(data)
+		} else if message.Event == "RemovedFromCollection" {
+			deleteNode(data)
+		} else {
+			fmt.Println(message.Event)
+		}
+	}
 }
 
 func checkIfEligible(sourceName, targetName string) bool {
