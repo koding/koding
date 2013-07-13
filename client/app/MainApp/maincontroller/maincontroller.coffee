@@ -261,6 +261,8 @@ class MainController extends KDController
         # we will get the lastest part of val as time case
         timeCase = val.charAt(val.length-1)
         switch timeCase.toUpperCase()
+          when "S"
+            totalTimestamp = 1000 # millisecond
           when "H"
             totalTimestamp = hour
           when "D"
