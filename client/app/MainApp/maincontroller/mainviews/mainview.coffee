@@ -48,8 +48,9 @@ class MainView extends KDView
     about.setY offset
     about.bindTransitionEnd()
 
-  addBook:-> @addSubView new BookView 
-    delegate : @
+  addBook:-> 
+    @addSubView new BookView 
+      delegate : this
     
 
   _windowDidResize:->
