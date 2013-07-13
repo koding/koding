@@ -75,9 +75,15 @@ class BookView extends JView
     @pagerWrapper.addSubView @pageNav
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
-    @once "OverlayWillBeRemoved", =>
+    @once "OverlayWillBeRemoved", ->
       @destroyPointer()
       @unsetClass "in"
+      @utils.wait 1000, =>
+        $spanElement = KD.singletons.mainView.sidebar.footerMenu.items[0].$('span')
+        $spanElement.addClass('opacity-up')
+        @utils.wait 3000, =>
+          $spanElement.removeClass('opacity-up')
+
     @once "OverlayRemoved", @destroy.bind @
 
     @setKeyView()

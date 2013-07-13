@@ -6,7 +6,7 @@ class StartTutorialButton extends JView
       title      : "Start tutorial"
       cssClass   : "cta_button full_width"
       callback   : =>
-        welcomePageIndex = 2
+        welcomePageIndex = 10
         @getDelegate().fillPage welcomePageIndex
         
   pistachio:->
