@@ -57,6 +57,9 @@ class WebTermView extends KDView
 
     @terminal = new WebTerm.Terminal @container.$()
 
+    #log to external
+    KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()   
+
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
         style         : 'editor-advanced-settings-menu'

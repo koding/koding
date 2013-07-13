@@ -1,17 +1,7 @@
 class KDMixpanel
-
-  constructor:->
-    @trackPageView "/Topics"
-    @trackPageView "/Members"
-    @trackPageView "/Groups"
-    @trackPageView "/Develop"
-    @trackPageView "/Develop/Ace"
-    @trackPageView "/Develop/Terminal"
-    @trackPageView "/Apps"
-    @trackPageView "/Account"
   
   track:(eventName, properties, callback)->
-    mixpanel.track eventName,properties,(callback)
+    mixpanel.track eventName, properties, (callback)
 
   trackPageView:(pageURL)->
     mixpanel.track_pageview pageURL
@@ -19,47 +9,45 @@ class KDMixpanel
   register:(options)->
     mixpanel.register options
 
-  registerOnce:(options, dafaultValue)=>
+  registerOnce:(options, dafaultValue)->
     mixpanel.register_once options, dafaultValue
 
-  getProperty:(name)=>
+  getProperty:(name)->
     mixpanel.get_property name
 
-  incrementUserProperty:(property, incrementBy=1)=>
+  incrementUserProperty:(property, incrementBy=1)->
     mixpanel.people.increment property, incrementBy
 
   #identifies user on mixpanel, by default username on koding, should be unique
   registerUser:->
     user = KD.whoami()
-    username = user.profile.nickname
-    mixpanel.identify username
-    mixpanel.people.set 
-      "$username"   : username
-      "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
-      "$joinDate"   : user.meta.createdAt
-
-    mixpanel.name_tag "#{username}.kd.io"
-
-
+    # coundnt get JGuest so looking from nick
+    unless KD.nick() is "Guest"
+      mixpanel.identify user.profile.firstName
+      mixpanel.people.set
+        "$username"   : user.profile.firstName
+        "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
+        "$joinDate"   : user.meta.createdAt
+      mixpanel.name_tag "#{user.profile.nickname}.kd.io"
 
 
-  setOnce:(eventName, options, callback )=>
-    mixpanel.people.set_once eventName, options, callback
+  setOnce:(property, value, callback )->
+    mixpanel.people.set_once property, value, callback
 
 
-  userReadManual:(page)=>
+  userReadManual:(page)->
     @setOnce "Instructions Book",
       "Read Date"   : Date.now()
       "Pages"       : page
 
-  userLoggedIn:(account)=>
+  userLoggedIn:(account)->
     @track "UserLoggedIn" ,
       "$username"   : account.profile.nickname
       "$loginDate"  : Date.now()
 
 
-  userRegistered:(account)=>
-    @track "UserRegistered", 
+  userRegistered:(account)->
+    @track "UserRegistered",
       "$username"   : account.profile.nickname
       "$loginDate"  : Date.now()
 

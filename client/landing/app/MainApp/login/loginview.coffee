@@ -198,6 +198,9 @@ class LoginView extends KDScrollView
           # , 1000
         , 1000
 
+        # log to external / TODO: sending account optional if non of track tools use, just delete it
+        KD.track "userSignedUp", account
+
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
     KD.isLoggingIn = yes
