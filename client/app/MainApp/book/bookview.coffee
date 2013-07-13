@@ -63,6 +63,7 @@ class BookView extends JView
 
     @setKeyView()
     cachePage(0)
+    KD.track "Read Tutorial Book", KD.nick()
 
   pistachio:->
 

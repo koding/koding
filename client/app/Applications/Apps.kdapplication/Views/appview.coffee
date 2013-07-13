@@ -130,7 +130,7 @@ class AppView extends KDView
           callback : (item)=>
             {version} = item.data
             appsController.installApp app, version, (err)=>
-              KD.track "Apps", "Install", app.title unless err
+              KD.track "Apps", "Install", app.title, null unless err
               if err then warn err
 
       @installButton = new KDButtonViewWithMenu
