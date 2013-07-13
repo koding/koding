@@ -154,12 +154,14 @@ class BookView extends JView
     if @pointer then @destroyPointer()
 
     # check if page has tutorial
-    if @page.getData().howToSteps.length < 1 or
-       KD.getSingleton("vmController").defaultVmName
+    if @page.getData().howToSteps.length < 1
       @showMeButton.hide()
-    else
-      @showMeButton.show()
-      debugger
+    else 
+      if @page.getData().menuItem is "Develop" and 
+        KD.getSingleton("vmController").defaultVmName is null
+          @showMeButton.hide()
+      else
+        @showMeButton.show()
 
   showMeButtonClicked:->
     @pointer?.destroy()
