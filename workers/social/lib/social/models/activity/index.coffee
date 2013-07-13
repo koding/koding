@@ -43,7 +43,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'one','some','someData','each','cursor','teasers'
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
-        'fetchPublicActivityFeed'
+        'fetchPublicActivityFeed','fetchLastActivityTimestamp'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -76,6 +76,14 @@ module.exports = class CActivity extends jraphical.Capsule
     grouped = groupBy activities, 'group'
     for own groupName, items of grouped
       JGroup.broadcast groupName, 'feed-new', items
+
+  @fetchLastActivityTimestamp = (callback) ->
+    selector  = {}
+    fields    = createdAt: 1
+    options   = limit:1, sort: createdAt: -1
+    @each selector, fields, options, (err, item)->
+      return callback err  if err
+      callback null, +item.createdAt  if item?
 
   # @__migrate =(callback)->
   #   @all {snapshot: $exists: no}, (err, activities)->
