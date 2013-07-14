@@ -1,6 +1,6 @@
 version = `VBoxManage --version 2> /dev/null` rescue "0"
-if version < "4.2.14r86644" and ARGV[0] != "halt"
-  print "\e[31mVirtualBox not installed or outdated. \e[30m"
+if version < "4.2.16r86992" and ARGV[0] != "halt"
+  print "\e[31mVirtualBox not installed or outdated. \e[39m"
 
   install = false
   if `uname`.strip == "Darwin" and system "tty > /dev/null"
@@ -15,21 +15,12 @@ if version < "4.2.14r86644" and ARGV[0] != "halt"
   end
 
   system "vagrant halt" or exit! 1
-  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.14/VirtualBox-4.2.14-86644-OSX.dmg" or exit! 1
+  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.16/VirtualBox-4.2.16-86992-OSX.dmg" or exit! 1
   system "hdiutil attach /tmp/VirtualBox.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time
   system "hdiutil detach /Volumes/VirtualBox" or exit! 1
   puts "", "VirtualBox successfully installed.", ""
-end
-
-# Since Richard introduced Virtualbox 4.2.14 vagrant doesn't work
-# https://github.com/mitchellh/vagrant/issues/1847
-# This is a fix for this until this is addressed in vagrant / VirtualBox
-version = `VBoxManage --version 2> /dev/null` rescue "0"
-if not File.exists? File.expand_path "~/.vagrant.d/boxes/koding-13/virtualbox/box.mf" and version == "4.2.14r86644\n"
-  puts "", "\e[0;31mSeems like you updated to a virtualbox version with a vagrant bug :'( autofixing now!\e[0;0m", ""
-  system "/usr/bin/openssl sha1 ~/.vagrant.d/boxes/koding-13/virtualbox/*.vmdk ~/.vagrant.d/boxes/koding-13/virtualbox/*.ovf > ~/.vagrant.d/boxes/koding-13/virtualbox/box.mf"
 end
 
 if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"

@@ -167,6 +167,18 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
+  showInstructionsBookIfFirstLogin:->
+    appStorage = new AppStorage "instruction-book", "1.0"
+    appStorage.fetchValue "readPages", (pages) ->
+      pages or= []
+      if pages.length is 0
+        pages.push "table-of-contents"
+        appStorage.setValue "readPages", pages
+        KD.getSingleton('mainController').emit "ShowInstructionsBook", 1
+      
+      
+
+
   doRegister:(formData)->
     {kodingenUser} = formData
     formData.agree = 'on'
@@ -188,6 +200,15 @@ class LoginView extends KDScrollView
           title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
+          @showInstructionsBookIfFirstLogin()
+
+          #send information to mixpanel 
+        KD.track 'UserLogin', 'UserRegistered',
+          vendor    : 'mixpanel'
+          extra     : 
+            '$username'  : account.profile.nickname
+            '$loginDate' : Date.now()
+
         KD.getSingleton('router').clear()
         setTimeout =>
           @hide()
@@ -200,6 +221,7 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
+    KD.isLoggingIn = yes
     KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
       @loginForm.button.hideLoader()
 
@@ -240,7 +262,7 @@ class LoginView extends KDScrollView
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
-
+        
         @hide()
 
   doRequest:(formData)->
