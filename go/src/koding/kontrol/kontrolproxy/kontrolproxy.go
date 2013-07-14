@@ -197,7 +197,7 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 			session.Options = &sessions.Options{MaxAge: 20} //seconds
 			_, ok := session.Values["securePage"]
 			if !ok {
-				return sessionHandler("securePage", req.Host)
+				return sessionHandler("securePage", userIP)
 			}
 		} else {
 			log.Printf("error validating user: %s", err.Error())
@@ -258,7 +258,7 @@ func sessionHandler(val, userIP string) http.Handler {
 		session.Save(r, w)
 		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
 		if err != nil {
-			log.Println("template securepage could not be executed")
+			log.Println("template securepage could not be executed", err)
 			return
 		}
 	})

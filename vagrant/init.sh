@@ -1,6 +1,10 @@
-CMD="mongo localhost/koding --quiet --eval=\"print(db.jGroups.count())\""
+#!/bin/bash
 
-COUNT=$($CMD)
+SCRIPT=/tmp/mongocmd.sh
+
+echo "mongo localhost/koding --quiet --eval=\"print(db.jGroups.count({slug:'guests'}))\"" > $SCRIPT
+
+COUNT=$(bash $SCRIPT)
 
 DIR=$(cd "$(dirname "$0")"; pwd)
 

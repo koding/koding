@@ -37,7 +37,7 @@ class KDMixpanel
     user = KD.whoami()
     username = user.profile.nickname
     mixpanel.identify username
-    mixpanel.people.set 
+    mixpanel.people.set
       "$username"   : username
       "name"        : "#{user.profile.firstName} #{user.profile.lastName}"
       "$joinDate"   : user.meta.createdAt
@@ -60,10 +60,12 @@ class KDMixpanel
 
 
   userRegistered:(account)=>
-    @track "UserRegistered", 
+    @track "UserRegistered",
       "$username"   : account.profile.nickname
       "$loginDate"  : Date.now()
 
+
+KD.logToMixpanel = ->
 
 if mixpanel? && KD.config.logToExternal then do ->
   KD.mixpanel = new KDMixpanel
