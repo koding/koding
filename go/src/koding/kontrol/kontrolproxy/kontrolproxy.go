@@ -68,7 +68,10 @@ func main() {
 		log.Println(err)
 	}
 
-	logs.Info("kontrol proxy started")
+	res := "kontrol proxy started"
+	log.Println(res)
+	logs.Info(res)
+
 	proxyDB, err = proxyconfig.Connect()
 	if err != nil {
 		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
@@ -140,16 +143,16 @@ func main() {
 
 	// HTTP Handling for VM port forwardings
 	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
-	// for i := 1024; i <= 10000; i++ {
-	// 	go func(i int) {
-	// 		port := strconv.Itoa(i)
-	// 		err := http.ListenAndServe(":"+port, reverseProxy)
-	// 		if err != nil {
-	// 			logs.Alert(err.Error())
-	// 			log.Println(err)
-	// 		}
-	// 	}(i)
-	// }
+	for i := 1024; i <= 10000; i++ {
+		go func(i int) {
+			port := strconv.Itoa(i)
+			err := http.ListenAndServe(":"+port, reverseProxy)
+			if err != nil {
+				logs.Alert(err.Error())
+				log.Println(err)
+			}
+		}(i)
+	}
 
 	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
