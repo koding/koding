@@ -64,7 +64,7 @@ func registerWebtermMethods(k *kite.Kite) {
 func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, session string, sizeX, sizeY int) *WebtermServer {
 	newSession := false
 	if session == "" {
-		session = utils.SimpleRandomString()
+		session = utils.RandomString()
 		newSession = true
 	}
 
