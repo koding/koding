@@ -16,7 +16,10 @@ import (
 )
 
 type WebtermServer struct {
+	Session          string `json:"session"`
 	remote           WebtermRemote
+	vm               *virt.VM
+	user             *virt.User
 	pty              *pty.PTY
 	currentSecond    int64
 	messageCounter   int
@@ -33,58 +36,53 @@ func registerWebtermMethods(k *kite.Kite) {
 	registerVmMethod(k, "webterm.getSessions", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		// We need to use ls here, because /var/run/screen mount is only visible from inside of container. Errors are ignored.
 		out, _ := vos.VM.AttachCommand(vos.User.Uid, "", "ls", "/var/run/screen/S-"+vos.User.Name).Output()
-		names := strings.Split(string(out), "\n")
-		sessions := make(map[string]string, len(names))
-		for _, name := range names {
+		names := strings.Split(string(out[:len(out)-1]), "\n")
+		sessions := make([]string, len(names))
+		for i, name := range names {
 			segements := strings.SplitN(name, ".", 2)
-			if len(segements) != 2 {
-				continue
-			}
-			sessions[segements[0]] = segements[1]
+			sessions[i] = segements[1]
 		}
 		return sessions, nil
 	})
 
-	registerVmMethod(k, "webterm.createSession", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
+	registerVmMethod(k, "webterm.connect", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Remote       WebtermRemote
-			Name         string
+			Session      string
 			SizeX, SizeY int
 		}
-		if args.Unmarshal(&params) != nil || params.Name == "" || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], name: [string], sizeX: [integer], sizeY: [integer] }"}
+		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer] }"}
 		}
 
-		server := newWebtermServer(vos.VM, vos.User, params.Remote, []string{"-S", params.Name}, params.SizeX, params.SizeY)
-		channel.OnDisconnect(func() { server.Close() })
-		return server, nil
-	})
-
-	registerVmMethod(k, "webterm.joinSession", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
-		var params struct {
-			Remote       WebtermRemote
-			SessionId    int
-			SizeX, SizeY int
-		}
-		if args.Unmarshal(&params) != nil || params.SessionId <= 0 || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], sessionId: [integer], sizeX: [integer], sizeY: [integer] }"}
-		}
-
-		server := newWebtermServer(vos.VM, vos.User, params.Remote, []string{"-x", strconv.Itoa(int(params.SessionId))}, params.SizeX, params.SizeY)
+		server := newWebtermServer(vos.VM, vos.User, params.Remote, params.Session, params.SizeX, params.SizeY)
 		channel.OnDisconnect(func() { server.Close() })
 		return server, nil
 	})
 }
 
-func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, args []string, sizeX, sizeY int) *WebtermServer {
+func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, session string, sizeX, sizeY int) *WebtermServer {
+	newSession := false
+	if session == "" {
+		session = utils.SimpleRandomString()
+		newSession = true
+	}
+
 	server := &WebtermServer{
-		remote: remote,
-		pty:    pty.New(vm.PtsDir()),
+		Session: session,
+		remote:  remote,
+		vm:      vm,
+		user:    user,
+		pty:     pty.New(vm.PtsDir()),
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
 
+	args := []string{"/usr/bin/screen", "-S", session}
+	if !newSession {
+		args = append(args, "-x")
+	}
 	server.pty.Slave.Chown(user.Uid, -1)
-	cmd := vm.AttachCommand(user.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), append([]string{"/usr/bin/screen"}, args...)...)
+	cmd := vm.AttachCommand(user.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), args...)
 
 	err := cmd.Start()
 	if err != nil {
@@ -153,5 +151,12 @@ func (server *WebtermServer) SetSize(x, y float64) {
 
 func (server *WebtermServer) Close() error {
 	server.pty.Signal(syscall.SIGHUP)
+	return nil
+}
+
+func (server *WebtermServer) Terminate() error {
+	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", server.Session, "-X", "autodetach", "off").Run()
+	server.pty.Signal(syscall.SIGHUP)
+	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", server.Session, "-X", "autodetach", "on").Run()
 	return nil
 }

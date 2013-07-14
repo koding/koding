@@ -2,6 +2,7 @@ package utils
 
 import (
 	cryptorand "crypto/rand"
+	"encoding/base32"
 	"encoding/base64"
 	"encoding/binary"
 	"net"
@@ -15,6 +16,12 @@ func RandomString() string {
 	r := make([]byte, 128/8)
 	cryptorand.Read(r)
 	return base64.StdEncoding.EncodeToString(r)
+}
+
+func SimpleRandomString() string {
+	r := make([]byte, 32/8)
+	cryptorand.Read(r)
+	return base32.StdEncoding.EncodeToString(r)
 }
 
 func NewIntPool(offset int, alreadyTaken []int) (<-chan int, chan<- int) {
