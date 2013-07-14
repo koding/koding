@@ -116,7 +116,7 @@ class WebTermView extends KDView
       
       KD.getSingleton("vmController").run
         kiteName : 'os',
-        method   : 'webterm.createSession',
+        method   : 'webterm.connect',
         vmName   : @getOption('delegate').getOption('vmName')
         withArgs :
           remote : @terminal.clientInterface
@@ -136,7 +136,7 @@ class WebTermView extends KDView
 
   destroy: ->
     super
-    @terminal.server?.close()
+    @terminal.server?.terminate()
 
   updateSettings: ->
     @container.unsetClass font.value for font in __webtermSettings.fonts
