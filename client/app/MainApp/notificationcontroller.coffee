@@ -116,8 +116,6 @@ class NotificationController extends KDObject
           when "groupInvited"
             "#{actorName} has invited you to <a href='#'>#{subjectObj.title}</a>."
           when "groupJoined"
-            if subjectObj.title is "koding"
-              @emit "NewMember", actorAccount
             "#{actorName} has joined <a href='#'>#{subjectObj.title}</a>."
           else
             if actorType is "follower"
