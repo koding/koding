@@ -1,0 +1,68 @@
+#!/usr/bin/env coffee
+nesh = require('nesh')
+argv = require('optimist').argv
+# -c config file
+# -f eval coffeescript file
+fs = require 'fs'
+
+Bongo    = require 'bongo'
+Broker   = require 'broker'
+{argv}   = require 'optimist'
+{extend} = require 'underscore'
+
+if argv.c
+  KONFIG = require('koding-config-manager').load("main.#{argv.c}")  
+else
+  KONFIG = require('koding-config-manager').load("main.vagrant")
+
+{mongo, mq, projectRoot, webserver} = KONFIG
+
+mqOptions = extend {}, mq
+mqOptions.login = webserver.login  if webserver?.login?
+mqOptions.productName = 'koding-webserver'
+
+bongo = new Bongo {
+  mongo
+  root: projectRoot
+  models: 'workers/social/lib/social/models'
+  mq: new Broker mqOptions
+  resourceName: webserver.queueName
+}
+
+
+opts =
+  welcome: 'Welcome to koding...'
+  prompt: 'bongo> '
+
+nesh.config.load()
+nesh.loadLanguage('coffee')
+
+bongoPlugin =
+    name: "bongoplugin"
+    description: "Some description here"
+    setup: (context, next) ->
+        {defaults} = context
+        next()
+
+    preStart: (context, next) ->
+      {options} = context
+      next()
+
+    postStart: (context, next)->
+      {repl} = context
+      repl.context.md5 = (value) ->
+        crypto.createHash('md5').update(value).digest 'hex'
+
+      repl.context.bongo = bongo
+      for i of bongo.models
+        repl.context[i] = bongo.models[i]
+      next()
+
+nesh.loadPlugin bongoPlugin, (err) ->
+  nesh.log.error err if err
+  if argv.f
+    opts.evalData = nesh.compile fs.readFileSync argv.f, 'utf-8'
+  nesh.start opts, (err)->
+      if (err)
+          nesh.log.error(err)
+
