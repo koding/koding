@@ -187,7 +187,7 @@ module.exports = class JGroup extends Module
         actorType  : 'member'
         subject    : ObjectRef(this).data
         member     : ObjectRef(member).data
-      @broadcast 'GroupJoined',
+      @broadcast 'MemberJoinedGroup',
         member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
@@ -455,13 +455,12 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         if err then console.error err
         unless group then console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
-          unless event is "GroupJoined"
-            @oldBroadcast.call this, "koding", event, message
+          @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',
