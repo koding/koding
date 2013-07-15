@@ -114,6 +114,7 @@ module.exports = class JVM extends Model
             if not err and user
               user.fetchAccount 'koding', (err, account)=>
                 if not err and account
+                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
                   @createDomains account, hostnameAliases, hostnameAliases[0]
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
