@@ -129,6 +129,15 @@ class Sidebar extends JView
       cssClass  : "clean-gray open-environment"
       callback  :-> KD.getSingleton("appManager").open "Environments"
 
+    @environmentsRefreshButton = new KDButtonView
+      title     : "Refresh"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "refresh"
+      cssClass  : "clean-gray refresh-environment"
+      callback  : =>
+        @resourcesController.reset()
+
     @listenWindowResize()
 
   resetAdminNavController:->
@@ -210,6 +219,7 @@ class Sidebar extends JView
         <div class='button-wrapper'>
           {{> @createNewVMButton}}
           {{> @environmentButton}}
+          {{> @environmentsRefreshButton}}
         </div>
       </div>
     </div>
