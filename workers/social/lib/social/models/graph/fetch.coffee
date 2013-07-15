@@ -54,16 +54,13 @@ module.exports = class FetchAllActivityParallel
 
   fetchInstalls: (callback)->
     Bucket.fetchNewInstalledApps @group, @startDate, (err, rawResponse=[])->
-      console.log "2"
       GraphDecorator.decorateInstalls rawResponse, (decoratedResponse)->
-        console.log "3"
         callback err, decoratedResponse
 
   fetchNewMembers: (callback)->
     Bucket.fetchNewMembers @group, @startDate, (err, rawResponse=[])->
       if err then return callback err
       GraphDecorator.decorateMembers rawResponse, (decoratedResponse)->
-        console.log "hede"
         callback err, decoratedResponse
 
   bucketNames:->

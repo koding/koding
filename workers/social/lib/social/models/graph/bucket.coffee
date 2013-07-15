@@ -14,40 +14,14 @@ module.exports = class Bucket extends Graph
     query = QueryRegistry.bucket.newMembers
     @queryMembers query, options, callback
 
-  # fetchNewMembers:(group, startDate, callback)->
-  #   console.time 'fetchNewMembers'
-
-  #   {groupId} = group
-
-  #   query = """
-  #     start  koding=node:koding("id:#{groupId}")
-  #     MATCH  koding-[r:member]->members
-  #     where  r.createdAtEpoch < #{startDate}
-  #     return members
-  #     order by r.createdAtEpoch DESC
-  #     limit 20
-  #     """
-  #   @db.query query, {}, (err, results) ->
-  #       if err then throw err
-  #       resultData = []
-  #       for result in results
-  #         data = result.members.data
-  #         resultData.push data
-
-  #       objectify resultData, (objected)->
-  #         callback err, objected
-
-  #         console.timeEnd 'fetchNewMembers'
 
   @queryMembers:(query, options={}, callback)->
     @fetch query, options, (err, results) =>
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
-      resultData = []
       @generateMembers [], results, (err, data)=>
         if err then return callback err
         @revive data, (revived)->
-          console.log revived
           callback null, revived
 
   @generateMembers:(resultData, results, callback)->
