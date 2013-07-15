@@ -56,7 +56,8 @@
     "validator"       : "0.2.0",
     "neo4j"           : "0.2.20",
     "ws"              : "0.4.25",
-    "xml2js"          : "0.2.6"
+    "xml2js"          : "0.2.6",
+    "nesh"            : "1.2.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},
