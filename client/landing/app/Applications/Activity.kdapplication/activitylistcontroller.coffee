@@ -37,7 +37,7 @@ class ActivityListController extends KDListViewController
     @resetList()
     @_state = 'public'
 
-    KD.getSingleton("groupsController").on "GroupJoined", (member) =>
+    KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
       @updateNewMemberBucket member.member
 
   resetList:->
