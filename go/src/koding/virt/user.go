@@ -3,21 +3,10 @@ package virt
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"labix.org/v2/mgo/bson"
+	"koding/virt/models"
 )
 
-type User struct {
-	ObjectId bson.ObjectId `bson:"_id"`
-	Uid      int           `bson:"uid"`
-	Name     string        `bson:"username"`
-	OldName  string        `bson:"oldUsername"`
-	Password string        `bson:"password"`
-	Salt     string        `bson:"salt"`
-	SshKeys  []struct {
-		Title string `bson:"title"`
-		Key   string `bson:"key"`
-	} `bson:"sshKeys"`
-}
+type User models.User
 
 const UserIdOffset = 1000000
 const RootIdOffset = 500000
