@@ -37,8 +37,8 @@ class ActivityListController extends KDListViewController
     @resetList()
     @_state = 'public'
 
-    KD.getSingleton("notificationController").on "NewMember", (member) =>
-      @updateNewMemberBucket member
+    KD.getSingleton("groupsController").on "GroupJoined", (member) =>
+      @updateNewMemberBucket member.member
 
   resetList:->
     @newActivityArrivedList = {}
@@ -169,9 +169,9 @@ class ActivityListController extends KDListViewController
         data = item.getData()
         if data.count > 3
           data.anchors.pop()
-        id = memberAccount.getId()
+        id = memberAccount.id
         data.anchors.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
-        data.createdAtTimestamps.push memberAccount.meta.createdAt
+        data.createdAtTimestamps.push (new Date).toJSON()
         data.count++
         item.slideOut =>
           @removeItem item, data
