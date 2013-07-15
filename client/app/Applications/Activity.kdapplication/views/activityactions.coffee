@@ -1,14 +1,5 @@
 class ActivitySharePopup extends JView
 
-  shortenUrl: (url, callback)->
-    accessToken = "821a27a900b401382c65e5e35a30246d2719e03f"
-    request = $.getJSON "https://api-ssl.bitly.com/v3/shorten?access_token=#{accessToken}&longUrl=#{encodeURIComponent url}", (data)=>
-      if data.status_code is 200
-        {data: {url}} = data
-      callback url, data
-
-    request.error -> callback url
-
   constructor: (options={}, data)->
     options.cssClass = "share-popup"
     super
@@ -22,7 +13,7 @@ class ActivitySharePopup extends JView
       width         : 50
 
     unless @getDelegate()._shorten
-      @shortenUrl url, (shorten, data)=>
+      KD.utils.shortenUrl url, (shorten, data)=>
 
         url = if data then @getDelegate()._shorten = shorten else shorten
 

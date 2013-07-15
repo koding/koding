@@ -726,6 +726,23 @@ __utils =
    uniqid = context.data 'data-id'
    zIndexContexts[uniqid] if isNaN zIndexContexts[uniqid] then 0 else zIndexContexts[uniqid]++
 
+  shortenUrl: (url, callback)->
+    request = $.ajax "https://www.googleapis.com/urlshortener/v1/url",
+      type        : "POST"
+      contentType : "application/json"
+      data        : JSON.stringify {longUrl: url}
+      dataType    : "json"
+
+    request.done (data)=>
+      if data.id
+        url = data.id
+
+      callback url, data
+
+    request.error ->
+      log "url shorten error, returing self."
+      callback url
+
   # deprecated ends
 
 ###
