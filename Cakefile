@@ -395,11 +395,6 @@ task 'cacheWorker',({configFile})->
             processes.kill "cacheWorker"
 
 
-task 'kontrolCli',({configFile}) ->
-  processes.fork
-    name : "kontrol"
-    cmd  : "./node_modules/kontrol -c #{configFile}"
-
 task 'kontrolClient',(options) ->
   {configFile} = options
   processes.spawn
@@ -414,15 +409,6 @@ task 'kontrolProxy',(options) ->
   processes.spawn
     name    : 'kontrolProxy'
     cmd     : "./go/bin/kontrolproxy -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolRabbit',(options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolRabbit'
-    cmd     : "./go/bin/kontrolrabbit -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -444,11 +430,6 @@ task 'kontrolApi',(options) ->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
-task 'kontrol',(options) ->
-  {configFile} = options
-  invoke 'kontrolDaemon'
-  invoke 'kontrolApi'
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."

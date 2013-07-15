@@ -12,6 +12,7 @@ module.exports = class JUser extends jraphical.Module
   JInvitation    = require '../invitation'
   JName          = require '../name'
   JGroup         = require '../group'
+  JLog           = require './log'
 
   createId       = require 'hat'
 
@@ -245,22 +246,32 @@ module.exports = class JUser extends jraphical.Module
   @login = secure ({connection}, credentials, callback)->
     {username, password, clientId} = credentials
     constructor = @
-    JUser.one {username}, (err, user)->
-      if err
-        callback createKodingError err.message
-      else unless user?
-        callback createKodingError 'Unknown username!'
-      else unless user.getAt('password') is hashPassword password, user.getAt('salt')
-        callback createKodingError 'Access denied!'
-      else
-        checkBlockedStatus user, (err)->
-          if err then return callback err
-          JSession.one {clientId}, (err, session)->
-            if err
-              callback err
-            else unless session
-              callback createKodingError 'Could not restore your session!'
-            else
+    JSession.one {clientId}, (err, session)->
+      if err then callback err
+      unless session then return callback createKodingError 'Could not restore your session!'
+
+      bruteForceControlData =
+        ip : session.clientIP
+        username : username
+      # todo add alert support(mail, log etc)
+      JLog.checkLoginBruteForce bruteForceControlData, (res)->
+        unless res then return callback createKodingError "Your login access is blocked for #{JLog.TIME_LIMIT_IN_MIN} minutes."
+        JUser.one {username}, (err, user)->
+          if err
+            JLog.log { type: "login", username: username, success: no }
+            , () ->
+              callback createKodingError err.message
+          else unless user?
+            JLog.log { type: "login", username: username, success: no }
+            , () ->
+              callback createKodingError "Unknown user name"
+          else unless user.getAt('password') is hashPassword password, user.getAt('salt')
+            JLog.log { type: "login", username: username, success: no }
+            , () ->
+              callback createKodingError 'Access denied!'
+          else
+            checkBlockedStatus user, (err)->
+              if err then return callback err
               replacementToken = createId()
               JGuest.recycle session.guestId
               session.update {
@@ -271,21 +282,18 @@ module.exports = class JUser extends jraphical.Module
                 $unset:
                   guestId       : 1
               }, (err)->
-                  if err
-                    callback err
-                  else user.fetchOwnAccount (err, account)->
-                    if err
-                      callback err
-                    else
-                      connection.delegate = account
-                      JAccount.emit "AccountAuthenticated", account
+                  if err then callback err
+                  user.fetchOwnAccount (err, account)->
+                    if err then return callback err
+                    connection.delegate = account
+                    JAccount.emit "AccountAuthenticated", account
 
-                      # This should be called after login and this
-                      # is not correct place to do it, FIXME GG
-                      # p.s. we could do that in workers
-                      account.updateCounts()
+                    # This should be called after login and this
+                    # is not correct place to do it, FIXME GG
+                    # p.s. we could do that in workers
+                    account.updateCounts()
 
-                      callback null, account, replacementToken
+                    callback null, account, replacementToken
 
   @logout = secure (client, callback)->
     if 'string' is typeof clientId

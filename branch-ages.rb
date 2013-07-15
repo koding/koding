@@ -4,7 +4,7 @@ system "git remote prune origin"
 branches = []
 `git branch --list --remote "origin/*"`.split.each do |branch|
   author = `git show --format=%an -s #{branch}`.strip
-  date = `git show --format=%at -s #{branch}`.strip.to_i
+  date = `git show --format=%ct -s #{branch}`.strip.to_i
   branches << [date, branch, author]
 end
 branches.sort!
