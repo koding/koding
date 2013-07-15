@@ -127,7 +127,7 @@ module.exports = class JUser extends jraphical.Module
         targetType      : JAccount
         as              : 'leasor'
       emailConfirmation :
-        targetType      : 'JEmailConfirmation'
+        targetType      : require '../emailconfirmation'
         as              : 'confirmation'
 
   sessions  = {}
@@ -438,7 +438,7 @@ module.exports = class JUser extends jraphical.Module
                 callback null, user, account
 
   @configureNewAcccount = (account, user, replacementToken, callback) ->
-    user.sendEmailConfirmation()
+    user.sendEmailConfirmation (err) -> console.error err  if err
     JUser.grantInitialInvitations user.username
     JUser.emit 'UserCreated', user
     createNewMemberActivity account
