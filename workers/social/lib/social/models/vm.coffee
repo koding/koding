@@ -70,14 +70,19 @@ module.exports = class JVM extends Model
   @createDomains = (account, domains, hostnameAlias)->
     JDomain = require './domain'
     domains.forEach (domain) ->
-      JDomain.one { domain }, (err, domainObj) ->
-        unless domainObj
-          domainObj = new JDomain
-            domain : domain
+      JDomain.assure { domain }, (err, domainObj) ->
+        console.log err  if err
+        domainObj.domain        = domain
         domainObj.hostnameAlias = [hostnameAlias]
         domainObj.proxy         = { mode: 'vm' }
         domainObj.regYears      = 0
-        domainObj.save (err)->
+
+        if domainObj.isNew()
+          method = domainObj.save 
+        else
+          method = domainObj.update
+
+        method (err)->
           console.log err  if err?
           Relationship.one
             targetName: "JDomain",
