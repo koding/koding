@@ -77,18 +77,16 @@ class ActivityActionsView extends KDView
 
     @shareLink    = new ActivityActionLink
       partial     : "Share"
-      # tooltip     :
-      #   title     : "Coming Soon"
-      click:(event)=>
 
+      click:(event)=>
         shareUrl      = "https://koding.com/Activity/#{@getData().slug}"
         contextMenu   = new JContextMenu
           cssClass    : "activity-share-popup"
           delegate    : @
           x           : @getX() - 15
-          y           : @getY() + 15
+          y           : @getY() - 42
           arrow       :
-            placement : "top"
+            placement : "bottom"
             margin    : 90
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
