@@ -4,6 +4,7 @@ class GroupGeneralSettingsView extends JView
     super
     @setClass "general-settings-view group-admin-modal"
     group = @getData()
+    delegate = @getDelegate()
 
     formOptions =
       callback:(formData)=>
@@ -32,6 +33,8 @@ class GroupGeneralSettingsView extends JView
             new KDNotificationView
               title: 'Group was updated!'
               duration: 1000
+
+            delegate.emit "groupSettingsUpdated", group
 
       buttons:
         Save                :
