@@ -734,13 +734,10 @@ __utils =
       dataType    : "json"
 
     request.done (data)=>
-      if data.id
-        url = data.id
+      callback data?.id or url, data
 
-      callback url, data
-
-    request.error ->
-      log "url shorten error, returing self."
+    request.error ({status, statusText, responseText})->
+      error "url shorten error, returing self as fallback.", status, statusText, responseText
       callback url
 
   # deprecated ends
