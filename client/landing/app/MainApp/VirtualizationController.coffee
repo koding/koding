@@ -186,7 +186,8 @@ class VirtualizationController extends KDController
         callback null, @vmDomains[vmName]
 
   resetVMData:->
-    @vms = @groupVms = []
+    @vms      = []
+    @groupVms = []
     @defaultVmName = null
     @vmDomains = {}
 
