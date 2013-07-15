@@ -12,7 +12,7 @@ module.exports = class JUser extends jraphical.Module
   JInvitation    = require '../invitation'
   JName          = require '../name'
   JGroup         = require '../group'
-  JLog           = require './log'
+  JLog           = require '../log'
 
   createId       = require 'hat'
 
