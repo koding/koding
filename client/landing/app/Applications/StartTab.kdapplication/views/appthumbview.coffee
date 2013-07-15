@@ -61,7 +61,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           <div class='app-tip'>
             <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{additionalinfo}
+            #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
           <div>
           """
       click    : -> no
@@ -242,7 +242,7 @@ class AppShortcutButton extends StartTabAppThumbView
     if data.type is 'comingsoon'
       data.disabled = yes
 
-    data.additionalinfo = "<cite>This is a shortcut for an internal Koding Application</cite>"
+    data.additionalinfo = "This is a shortcut for an internal Koding Application"
 
     super options, data
 
