@@ -77,7 +77,7 @@ module.exports = class JVM extends Model
         domainObj.proxy         = { mode: 'vm' }
         domainObj.regYears      = 0
 
-        if domainObj.isNew()
+        if domainObj.isNew
           method = domainObj.save 
         else
           method = domainObj.update
