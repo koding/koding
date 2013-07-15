@@ -79,17 +79,16 @@ module.exports = class JVM extends Model
         domainObj.regYears      = 0
         domainObj.save (err)->
           console.log err  if err?
-          unless err
-            Relationship.one
-              targetName: "JDomain",
-              targetId: domainObj._id,
-              sourceName: "JAccount",
-              sourceId: account._id,
-              as: "owner"
-            , (err, rel)->
-              if err or not rel
-                account.addDomain domainObj, (err)->
-                  console.log err  if err?
+          Relationship.one
+            targetName: "JDomain",
+            targetId: domainObj._id,
+            sourceName: "JAccount",
+            sourceId: account._id,
+            as: "owner"
+          , (err, rel)->
+            if err or not rel
+              account.addDomain domainObj, (err)->
+                console.log err  if err?
 
   @fixUserDomains = permit 'change bundle',
     success: (client, callback)->
