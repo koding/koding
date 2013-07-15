@@ -47,7 +47,7 @@ func (p *ProxyConfiguration) AddFilter(r *Filter) (Filter, error) {
 }
 
 func (p *ProxyConfiguration) DeleteFilterByField(key, value string) error {
-	err := p.Collection["filter"].Remove(bson.M{key: value})
+	err := p.Collection["filters"].Remove(bson.M{key: value})
 	if err != nil {
 		return err
 	}

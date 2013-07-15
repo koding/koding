@@ -27,12 +27,12 @@ func (vm *VM) OS(user *User) (*VOS, error) {
 
 func (vos *VOS) IsReadable(info os.FileInfo) bool {
 	sysinfo := info.Sys().(*syscall.Stat_t)
-	return info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0400 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
+	return info.Mode()&0004 != 0 || (info.Mode()&0040 != 0 && int(sysinfo.Gid) == vos.User.Uid) || int(sysinfo.Uid) == vos.User.Uid || vos.User.Uid == RootIdOffset
 }
 
 func (vos *VOS) IsWritable(info os.FileInfo) bool {
 	sysinfo := info.Sys().(*syscall.Stat_t)
-	return info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.User.Uid) || (info.Mode()&0200 != 0 && int(sysinfo.Uid) == vos.User.Uid) || vos.User.Uid == RootIdOffset
+	return info.Mode()&0002 != 0 || (info.Mode()&0020 != 0 && int(sysinfo.Gid) == vos.User.Uid) || int(sysinfo.Uid) == vos.User.Uid || vos.User.Uid == RootIdOffset
 }
 
 func (vos *VOS) resolve(name string, followLastSymlink bool) (string, error) {

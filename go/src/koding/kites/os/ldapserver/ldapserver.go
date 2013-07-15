@@ -20,9 +20,7 @@ var userByNameCache = make(map[string]*virt.User)
 func Listen() {
 	go func() {
 		for {
-			vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
-			userByUidCache = make(map[int]*virt.User, len(userByUidCache))
-			userByNameCache = make(map[string]*virt.User, len(userByNameCache))
+			ClearCache()
 			time.Sleep(10 * time.Second)
 		}
 	}()
@@ -44,6 +42,12 @@ func Listen() {
 		}
 		ln.Close()
 	}
+}
+
+func ClearCache() {
+	vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
+	userByUidCache = make(map[int]*virt.User, len(userByUidCache))
+	userByNameCache = make(map[string]*virt.User, len(userByNameCache))
 }
 
 func handleConnection(conn net.Conn) {

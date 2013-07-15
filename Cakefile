@@ -11,6 +11,7 @@ option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
+option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
 {spawn, exec} = require 'child_process'
 
@@ -30,8 +31,11 @@ nodePath           = require 'path'
 portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
 
+require 'colors'
+
 addFlags = (options)->
   flags  = ""
+  flags += " -a #{options.domain}" if options.domain
   flags += " -d" if options.debug
   flags += " -v" if options.verbose
   return flags
@@ -391,11 +395,6 @@ task 'cacheWorker',({configFile})->
             processes.kill "cacheWorker"
 
 
-task 'kontrolCli',({configFile}) ->
-  processes.fork
-    name : "kontrol"
-    cmd  : "./node_modules/kontrol -c #{configFile}"
-
 task 'kontrolClient',(options) ->
   {configFile} = options
   processes.spawn
@@ -410,15 +409,6 @@ task 'kontrolProxy',(options) ->
   processes.spawn
     name    : 'kontrolProxy'
     cmd     : "./go/bin/kontrolproxy -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolRabbit',(options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolRabbit'
-    cmd     : "./go/bin/kontrolrabbit -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -440,11 +430,6 @@ task 'kontrolApi',(options) ->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
-task 'kontrol',(options) ->
-  {configFile} = options
-  invoke 'kontrolDaemon'
-  invoke 'kontrolApi'
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
@@ -477,6 +462,10 @@ task 'run', (options)->
   {configFile} = options
   options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+  if "vagrant" is options.configFile
+    (spawn 'bash', ['./vagrant/init.sh'])
+      .stdout.on 'data', (it) -> console.log "#{it}".rainbow
 
   oldIndex = nodePath.join __dirname, "website/index.html"
   if fs.existsSync oldIndex

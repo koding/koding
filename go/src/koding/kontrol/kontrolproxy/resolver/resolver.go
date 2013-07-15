@@ -139,6 +139,10 @@ func GetTarget(host string) (*Target, error) {
 		}
 	}
 
+	if domain.Proxy == nil {
+		return nil, fmt.Errorf("proxy field is empty for %s", host)
+	}
+
 	mode := domain.Proxy.Mode
 	persistence := domain.LoadBalancer.Persistence
 
@@ -164,6 +168,7 @@ func GetTarget(host string) (*Target, error) {
 			N := float64(len(domain.HostnameAlias))
 			n := int(math.Mod(float64(index+1), N))
 			hostname = domain.HostnameAlias[n]
+
 			addOrUpdateIndex(host, n)
 		case "random":
 			randomIndex := rand.Intn(len(domain.HostnameAlias) - 1)

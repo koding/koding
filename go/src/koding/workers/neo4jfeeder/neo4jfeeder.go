@@ -9,11 +9,13 @@ import (
 	"koding/tools/amqputil"
 	"labix.org/v2/mgo/bson"
 	"strings"
+	"time"
 )
 
 var (
 	EXCHANGE_NAME     = "graphFeederExchange"
 	WORKER_QUEUE_NAME = "graphFeederWorkerQueue"
+	TIME_FORMAT       = "2006-01-02T15:04:05.000Z"
 )
 
 type Consumer struct {
@@ -28,8 +30,6 @@ type Message struct {
 
 func main() {
 	startConsuming()
-	//looooop forever
-	select {}
 }
 
 //here, mapping of decoded json
@@ -79,36 +79,36 @@ func startConsuming() {
 
 	fmt.Println("Neo4J Feeder worker started")
 
-	go func() {
-		for msg := range relationshipEvent {
-			body := fmt.Sprintf("%s", msg.Body)
+	for msg := range relationshipEvent {
+		body := fmt.Sprintf("%s", msg.Body)
 
-			message, err := jsonDecode(body)
-			if err != nil {
-				fmt.Println("Wrong message format", err, body)
+		message, err := jsonDecode(body)
+		if err != nil {
+			fmt.Println("Wrong message format", err, body)
 
-				continue
-			}
-
-			if len(message.Payload) < 1 {
-				fmt.Println("Wrong message format; payload should be an Array", message)
-
-				continue
-			}
-			data := message.Payload[0]
-
-			fmt.Println(message.Event)
-			if message.Event == "RelationshipSaved" {
-				createNode(data)
-			} else if message.Event == "RelationshipRemoved" {
-				deleteRelationship(data)
-			} else if message.Event == "updateInstance" {
-				updateNode(data)
-			} else if message.Event == "RemovedFromCollection" {
-				deleteNode(data)
-			}
+			continue
 		}
-	}()
+
+		if len(message.Payload) < 1 {
+			fmt.Println("Wrong message format; payload should be an Array", message)
+
+			continue
+		}
+		data := message.Payload[0]
+
+		fmt.Println(message.Event)
+		if message.Event == "RelationshipSaved" {
+			createNode(data)
+		} else if message.Event == "RelationshipRemoved" {
+			deleteRelationship(data)
+		} else if message.Event == "updateInstance" {
+			updateNode(data)
+		} else if message.Event == "RemovedFromCollection" {
+			deleteNode(data)
+		} else {
+			fmt.Println(message.Event)
+		}
+	}
 }
 
 func checkIfEligible(sourceName, targetName string) bool {
@@ -200,24 +200,38 @@ func createNode(data map[string]interface{}) {
 	target := fmt.Sprintf("%s", targetNode["self"])
 
 	if _, ok := data["as"]; !ok {
+		fmt.Println("as value is not set on this relationship. Discarding this record", data)
 		return
 	}
 	as := fmt.Sprintf("%s", data["as"])
 
 	if _, ok := data["_id"]; !ok {
+		fmt.Println("id value is not set on this relationship. Discarding this record", data)
 		return
 	}
-	id := fmt.Sprintf("%s", data["_id"])
 
-	if bson.IsObjectIdHex(id) {
-		createdAt := bson.ObjectIdHex(id).Time().UTC()
-		relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format("2006-01-02T15:04:05.000Z"), createdAt.Unix())
+	createdAt := getCreatedAtDate(data)
+	relationshipData := fmt.Sprintf(`{"createdAt" : "%s", "createdAtEpoch" : %d }`, createdAt.Format(TIME_FORMAT), createdAt.Unix())
+	neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
+}
 
-		neo4j.CreateRelationshipWithData(as, source, target, relationshipData)
-	} else {
-		fmt.Println("id is not in correct format")
+func getCreatedAtDate(data map[string]interface{}) time.Time {
+
+	if _, ok := data["timestamp"]; ok {
+		t, err := time.Parse(TIME_FORMAT, data["timestamp"].(string))
+		// if error doesnt exists, return createdAt
+		if err == nil {
+			return t.UTC()
+		}
 	}
 
+	id := fmt.Sprintf("%s", data["_id"])
+	if bson.IsObjectIdHex(id) {
+		return bson.ObjectIdHex(id).Time().UTC()
+	}
+
+	fmt.Print("Couldnt determine the createdAt time, returning Now() as creatdAt")
+	return time.Now().UTC()
 }
 
 func deleteNode(data map[string]interface{}) {

@@ -37,10 +37,9 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
     return members
 
   addToOverview:(member)->
+    return  if @overview.count > 3
+
     @overview.count++
-
-    return  if @overview.count > 5
-
     @overview.createdAt.unshift member.meta.createdAt
     @overview.ids.unshift member.id
 

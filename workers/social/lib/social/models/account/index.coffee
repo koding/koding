@@ -55,6 +55,7 @@ module.exports = class JAccount extends jraphical.Module
       ]
       instance      : [
         { name: 'updateInstance' }
+        { name: 'notification' }
       ]
     sharedMethods :
       static      : sharedStaticMethods()
@@ -586,12 +587,15 @@ module.exports = class JAccount extends jraphical.Module
   blockUser: secure (client, targetId, toDate, callback)->
     {delegate} = client.connection
     if delegate.can('flag', this) and targetId? and toDate?
-      JAccount.one _id : targetId, (err, account)->
+      JAccount.one _id : targetId, (err, account)=>
         if err then return callback err
+
         JUser = require '../user'
-        JUser.one {username: account.profile.nickname}, (err, user)->
+        JUser.one {username: account.profile.nickname}, (err, user)=>
+
           if err then return callback err
           blockedDate = new Date(Date.now() + toDate)
+          account.sendNotification 'UserBlocked', { blockedDate }
           user.block blockedDate, callback
     else
       callback new KodingError 'Access denied'
@@ -982,25 +986,36 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  fetchDomains: (callback) ->
+  fetchUserDomains: (callback) ->
     JDomain = require '../domain'
 
     Relationship.some
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
+    , 
+      targetId : 1
     , (err, rels)->
       return callback err if err
 
-      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
-        callback err, domains
+      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
+        domainList = []
+        unless err 
+          # we don't allow users to work on domains such as 
+          # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
+          # so we are filtering them here.
+          domainList = domains.filter (domain)->
+            domainName = domain.domain
+            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
+
+        callback err, domainList
 
   fetchDomains$: permit
     advanced: [
       { permission: 'list own domains', validateWith: Validators.own }
     ]
     success: (client, callback) ->
-      @fetchDomains callback
+      @fetchUserDomains callback
 
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
     @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback
@@ -1033,16 +1048,14 @@ module.exports = class JAccount extends jraphical.Module
   sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
     time = (new Date).toJSON()
     JMail = require '../email'
-    email = new JMail
-      from    : 'hello@koding.com'
-      email   : 'senthil@koding.com'
-      subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
-      content : "Reason: #{reason}"
-      force   : yes
-
-    email.save ->
-
-  @fetchMembersReputation: secure (client, options, callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    graph.fetchMembersReputation options, callback
-
+    JUser = require '../user'
+    JUser.one username:client.context.user, (err, user)->
+      emailAddr = if user then user.email else ''
+      email     = new JMail
+        from    : 'hello@koding.com'
+        email   : 'sysops@koding.com'
+        replyto : emailAddr
+        subject : "'#{vmName}' vm turn on failed for user '#{client.context.user}'"
+        content : "Reason: #{reason}"
+        force   : yes
+      email.save ->
