@@ -76,6 +76,7 @@ sendInstantEmail = (details)->
       To        : emailWorker.forcedRecipient or details.email
       Subject   : template.commonHeader details
       HtmlBody  : flags[details.key].template details
+      Bcc       : notification.bcc
     , (err, status)->
       log "An error occured: #{err}" if err
       notification.update $set: status: 'attempted', (err)->

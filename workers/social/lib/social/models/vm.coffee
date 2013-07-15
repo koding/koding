@@ -1,4 +1,5 @@
 {Model} = require 'bongo'
+{Relationship} = require 'jraphical'
 
 module.exports = class JVM extends Model
 
@@ -33,6 +34,7 @@ module.exports = class JVM extends Model
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
+                           'fixUserDomains'
                           ]
       instance          : []
     schema              :
@@ -68,16 +70,52 @@ module.exports = class JVM extends Model
   @createDomains = (account, domains, hostnameAlias)->
     JDomain = require './domain'
     domains.forEach (domain) ->
-      domainObj = new JDomain
-        domain        : domain
-        hostnameAlias : [hostnameAlias]
-        proxy         : { mode: 'vm' }
-        regYears      : 0
-      domainObj.save (err)->
-        console.log err  if err?
-        unless err
-          account.addDomain domainObj, (err)->
-            console.log err  if err?
+      JDomain.one { domain }, (err, domainObj) ->
+        unless domainObj
+          domainObj = new JDomain
+            domain : domain
+        domainObj.hostnameAlias = [hostnameAlias]
+        domainObj.proxy         = { mode: 'vm' }
+        domainObj.regYears      = 0
+        domainObj.save (err)->
+          console.log err  if err?
+          unless err
+            Relationship.one
+              targetName: "JDomain",
+              targetId: domainObj._id,
+              sourceName: "JAccount",
+              sourceId: account._id,
+              as: "owner"
+            , (err, rel)->
+              if err or not rel
+                account.addDomain domainObj, (err)->
+                  console.log err  if err?
+
+  @fixUserDomains = permit 'change bundle',
+    success: (client, callback)->
+      return callback new KodingError "You are not Koding admin."  if client.context.group isnt "koding"
+
+      JDomain = require './domain'
+      JUser   = require './user'
+
+      JVM.each {}, {}, (err, vm)=>
+        return callback err  if err
+        return callback null, null  unless vm
+        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
+        hostnameAliases = JVM.createAliases {
+          nickname, type, uid, groupSlug
+        }
+        vmUser = vm.users.filter (u)->
+          return u.owner is yes
+        if vmUser.length > 0
+          JUser.one
+            _id: vmUser[0].id
+          , (err, user)=>
+            if not err and user
+              user.fetchAccount 'koding', (err, account)=>
+                if not err and account
+                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
+                  @createDomains account, hostnameAliases, hostnameAliases[0]
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
