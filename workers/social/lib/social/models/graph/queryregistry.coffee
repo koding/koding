@@ -88,3 +88,18 @@ module.exports =
           ORDER BY items.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}
         """
+
+    invitation :
+      list     :(status, timestampQuery="", searchQuery="")->
+        """
+          START group=node:koding(id={groupId})
+          MATCH group-[r:owner]->groupOwnedNodes
+          WHERE groupOwnedNodes.name = 'JInvitationRequest'
+          AND groupOwnedNodes.status IN #{status}
+          #{timestampQuery}
+          #{searchQuery}
+          RETURN groupOwnedNodes
+          ORDER BY groupOwnedNodes.`meta.createdAtEpoch`
+          LIMIT {limitCount}
+        """
+

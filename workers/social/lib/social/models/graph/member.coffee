@@ -1,5 +1,3 @@
-neo4j = require "neo4j"
-
 {Graph} = require './index'
 QueryRegistry = require './queryregistry'
 

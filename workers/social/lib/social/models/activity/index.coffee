@@ -405,7 +405,7 @@ module.exports = class CActivity extends jraphical.Capsule
       options.groupName = group.slug
       options.limit = 5 #bandage for now
       {facets, to, limit} = options
-      option.facet = [facets]
+      options.facet = [facets]
 
       limit = 5
 

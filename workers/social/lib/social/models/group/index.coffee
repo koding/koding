@@ -1427,7 +1427,7 @@ module.exports = class JGroup extends Module
 
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
-      graph = new Graph({config:KONFIG['neo4j']})
+      {Invitation} = require "../graph"
       options = {}
       options.groupId      = @getId()
       options.status       = status
@@ -1435,26 +1435,7 @@ module.exports = class JGroup extends Module
       options.timestamp    = timestamp
       options.requestLimit = requestLimit
 
-      graph.fetchInvitations options, (err, results)=>
-        if err then return callback err
-        if results.length < 1 then return callback null, []
-
-        JInvitationRequest = require '../invitationrequest'
-        tempRes = []
-        collectContents = race (i, res, fin)=>
-          objId = res.groupOwnedNodes.data.id
-          JInvitationRequest.one  { _id : objId }, (err, invitationRequest)=>
-            if err
-              callback err
-              fin()
-            else
-              tempRes[i] = invitationRequest
-              fin()
-        , ->
-          callback null, tempRes
-
-        for res in results
-          collectContents res
+      Invitation.fetchInvitations options, callback
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
