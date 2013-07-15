@@ -82,8 +82,6 @@ class ActivityListController extends KDListViewController
       if objectTimestamp < @lastItemTimeStamp
         @lastItemTimeStamp = objectTimestamp
 
-    KD.logToMixpanel "populateActivity.success", 5
-
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
@@ -115,12 +113,9 @@ class ActivityListController extends KDListViewController
 
     @lastItemTimeStamp = cache.from
 
-    KD.logToMixpanel "populateActivity.cache.success", 5
-
     @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
-
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
       for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
@@ -190,8 +185,7 @@ class ActivityListController extends KDListViewController
   fakeItems = []
 
   addItem:(activity, index, animation) ->
-    dataId = activity.getId?()
-
+    dataId = activity.getId?() or activity._id
     if dataId?
       if @itemsIndexed[dataId]
         log "duplicate entry", activity.bongo_?.constructorName, dataId

@@ -85,7 +85,8 @@ class WebTerm.ScreenBuffer
       
     @linesToUpdate = []
 
-    @terminal.flushedCallback()
+    # flushedCallback doesnt have to be set.
+    @terminal.flushedCallback?()
 
   class ContentArray
     constructor: ->

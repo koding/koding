@@ -1474,6 +1474,24 @@ figure.code-container
   a.kdnotification-close:hover
     shadow            0 1px 0 rgba(0,0,0,.5)
 
+.inner-header
+  size                  auto,37px
+  color                 #282828
+  border                1px solid #e2e2e2
+  border-bottom-color   #dadada
+  gradient              #f9f9f9,#e7e7e7
+  border-width          0 1px 1px
+  .title
+    font-size           22px
+    font-weight         600
+    size                auto, 37px
+    line-height         37px
+    text-indent         10px
+    fl()
+  button
+    top                 7px
+    margin-right        10px
+    fr()
 
 .admin-kdmodal
 
@@ -1743,6 +1761,237 @@ div.introduction-tooltip
       border-bottom     8px solid transparent
       border-left       8px solid rgba(0, 0, 0, .4)
       right             -8px !important
+
+.workspace
+  .workspace-loader
+    size                60px, 60px
+    top                 50%
+    margin              -30px auto 0 auto
+    text-align          center
+    .text
+      top               40px
+      position          relative
+    .kdloader
+      top               -14px
+  .kdheaderview
+    padding             10px 10px 5px 10px
+  .inner-header
+    font-size           16px
+    font-weight         bold
+    background          #EEE
+    .join-button
+      width             60px
+      height            24px
+      line-height       7px
+    .help, .users
+      height            20px
+      width             16px
+      top               9px
+      position          relative
+      margin-right      10px
+      border-radius     100px
+      cursor            pointer
+      bg                position, -142px -458px
+      sprite()
+      fr()
+    .users
+      size              21px, 22px
+      bg                position, 1px -58px
+      fr()
+    .session-key
+      width             auto
+      padding           2px 4px
+      float             right
+      font-size         12px
+      font-weight       300
+      color             #999
+      margin            12px 8px 0 0
+  .placeholder
+    font-size           18px
+    font-weight         600
+    text-align          center
+    top                 30%
+  .client-webterm
+    .pane
+      size              100%, 100%
+      z-index           3000
+    .kdinput
+      z-index           2000
+      top               200px
+      left              200px
+      width             200px
+      height            0
+      abs()
+  .not-valid
+    height              150px
+    line-height         40px
+    font-weight         bold
+    font-size           26px
+    width               100%
+    text-align          center
+    top                 50%
+    margin-top          -75px
+    text-shadow         1px 1px 1px rgba(0, 0, 0, .3)
+    text-transform      uppercase
+    .description
+      font-size         13px
+      width             50%
+      height            50px
+      line-height       20px
+      left              50%
+      margin-left       -25%
+      color             #666
+      margin-top        10px
+      text-shadow       none
+    .cupid-green
+      font-size         14px
+      padding           10px
+  .user-list
+    width               250px
+    position            absolute
+    right               -250px
+    z-index             10000
+    background          #FFF
+    height              auto
+    box-shadow          0 0 16px rgba(0, 0, 0, .2)
+    margin-top          39px
+    vendor              transition, right .2s linear
+    .title
+      font-size         16px
+    .group
+      .header
+        margin          5px 10px
+        border-bottom   1px solid #ccc
+        color           #999
+        font-size       10px
+    .invite-bar
+      border            1px solid #63a62f
+      border-color      #63a62f #63a62f #5b992b #63a62f
+      color             #fff
+      font-size         11px
+      line-height       1
+      padding           4px 0 4px 0
+      text-align        center
+      text-shadow       0 -1px 0 #4c9021
+      gradient          #7fbf4d,#63a62f
+      shadow            inset 0 1px 0 0 #96ca6d
+      &:hover
+        cursor          pointer
+        gradient        #76b347,#5e9e2e
+        shadow          inset 0 1px 0 0 #8dbf67
+    .invite-view
+      p
+        padding         10px
+        text-align      justify
+        color           #999
+      .session-key
+        font-size       22px
+        text-align      center
+        margin-bottom   10px
+      .kdautocompletewrapper
+        margin          10px 0px 10px 10px
+        input
+          margin-bottom 10px
+          width         231px
+        .kdautocompletedlistitem
+          width         84px
+          margin        0 3px 3px 0
+          .avatar
+            top         2px
+            position: relative
+          .profile span
+            left        4px
+            position    relative
+      .cupid-green
+        width           60px
+        height          24px
+        line-height     9px
+        margin-bottom   10px
+        left            131px
+      .cancel-button
+        border          none
+        background      none
+        color           #AAA
+        font-size       12px
+        font-weight     normal
+        top             2px
+        left            131px
+    .host-badge
+      size              60px, 20px
+      top               10px
+      right             10px
+      color             #999
+      font-size         11px
+      abs()
+      .icon
+        size            14px, 14px
+        display         inline-block
+        bg              position, -42px -400px
+        sprite()
+    .kdloader
+      display           none
+    &.loading
+      text-align        center
+      .kdloader
+        margin          0 auto 10px auto
+        display         block
+    &.active
+      right             0 !important
+      display           block
+    .close
+      size              20px, 20px
+      right             10px
+      top               10px
+      bg                position, -80px -240px
+      abs()
+      sprite()
+      pointer()
+    .wrapper
+      padding-top       10px
+    .user-view
+      margin            0 0 10px 10px
+      .avatarview
+        fl()
+      .user-name
+        width           auto
+        margin-left     10px
+        top             4px
+        font-size       12px
+        fl()
+.workspace-modal
+  p
+    padding             10px 20px
+    line-height         15px
+  .modal-cancel:focus
+    border              none
+    box-shadow          none
+  &.join-modal .text
+    width               470px
+    margin              0 20px 13px
+  &.share-modal .key
+    font-size           24px
+    margin              0 17px 10px
+    font-weight         600
+    border              none
+    height              42px
+    box-shadow          none
+    &:focus
+      box-shadow        none
+      border            none
+    &:hover
+      box-shadow        none
+      border            none
+    &:active
+      box-shadow        none
+      border            none
+.host-disconnected-modal
+  p
+    padding             10px 20px
+  .kdmodal-buttons .clean-gray
+    margin-top          9px
+    right               15px
+  .modal-cancel
+    top                 -2px
 
 
 

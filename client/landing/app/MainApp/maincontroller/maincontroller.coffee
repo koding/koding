@@ -58,7 +58,6 @@ class MainController extends KDController
       @emit 'AppIsReady'
 
   accountChanged:(account, firstLoad = no)->
-
     @userAccount             = account
     connectedState.connected = yes
 
@@ -262,6 +261,8 @@ class MainController extends KDController
         # we will get the lastest part of val as time case
         timeCase = val.charAt(val.length-1)
         switch timeCase.toUpperCase()
+          when "S"
+            totalTimestamp = 1000 # millisecond
           when "H"
             totalTimestamp = hour
           when "D"
@@ -304,12 +305,10 @@ class MainController extends KDController
       unless connectedState.connected
         fail()
 
-        KD.logToMixpanel "Couldn't connect to backend"
+        #KD.logToMixpanel "Couldn't connect to backend"
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
-        KD.logToMixpanel "Connected to backend"
-
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

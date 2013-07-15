@@ -2,7 +2,7 @@ class GroupsInvitationTabView extends KDTabView
 
   constructor:(options={}, data)->
     options.cssClass             or= 'invitations-tabs'
-    options.maxHandleWidth       or= 170
+    options.maxHandleWidth       or= 300
     options.hideHandleCloseIcons  ?= yes
 
     super options, data
@@ -50,6 +50,10 @@ class GroupsInvitationTabView extends KDTabView
     bulkSubject = if @approvalEnabled then 'Approve' else 'Invite'
 
     @buttonContainer.addSubView @showResolvedView
+    @buttonContainer.addSubView @editInvitationMessageButtion = new KDButtonView
+      title    : "Edit Invitation Message"
+      cssClass : 'clean-gray'
+      callback : @getDelegate().showEditInviteMessageModal.bind @getDelegate()
     @buttonContainer.addSubView @bulkApproveButton = new KDButtonView
       title    : "Bulk #{bulkSubject}"
       cssClass : 'clean-gray'
@@ -72,6 +76,7 @@ class GroupsInvitationTabView extends KDTabView
       when 'Membership Requests'
         @bulkApproveButton.show()
       when 'Invitation Requests'
+        @editInvitationMessageButtion.show()
         @bulkApproveButton.show()
       when 'Invitations'
         @inviteByEmailButton.show()
