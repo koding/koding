@@ -63,8 +63,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @newAnswers = 0
 
     @actionLinks = new DiscussionActivityActionsView
-      delegate    : @opinionBox.opinionList
-      cssClass    : "comment-header"
+      delegate : @commentBox.commentList
+      cssClass : "comment-header"
     , data
 
     @tags = new ActivityChildViewTagGroup
