@@ -90,9 +90,8 @@ class DashboardAppView extends JView
         viewOptions.data = data
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
 
-        unless kodingOnly
-          navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
-        else if data.slug is 'koding'
+        # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
+        if not kodingOnly or data.slug is 'koding'
           navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
 
 

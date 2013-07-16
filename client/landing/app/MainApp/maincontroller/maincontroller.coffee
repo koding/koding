@@ -226,7 +226,7 @@ class MainController extends KDController
                   messages           :
                     required         : "Please enter a time period"
                     minLength        : "You must enter one pair"
-                    regExp           : "Entry one of [number][S|H|D|T|M|Y] eg. 1M"
+                    regExp           : "Entry should be in following format [number][S|H|D|T|M|Y] eg. 1M"
                 iconOptions          :
                   tooltip            :
                     placement        : "right"
