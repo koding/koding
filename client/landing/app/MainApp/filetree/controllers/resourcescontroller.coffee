@@ -28,7 +28,7 @@ class ResourcesController extends KDListViewController
 
     vmController = KD.getSingleton("vmController")
     vmController.resetVMData()
-    vmController.fetchVMs (err, vms)=>
+    vmController.fetchVMs yes, (err, vms)=>
       log "Found these vms:", err, vms
       return  unless vms
       # vms.sort cmp
