@@ -114,6 +114,9 @@ class EmbedBox extends KDView
       delete data.images[i]  if i isnt @imageIndex
     @imageIndex = 0
 
+    for own key, field of data when _.isString(field)
+      data[key] = field.replace(/&quot;/g, '"')
+
     return data
 
   getRichEmbedWhitelist:-> [] # add provider name here if we dont want to embed
