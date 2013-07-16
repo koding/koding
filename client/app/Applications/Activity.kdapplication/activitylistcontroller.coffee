@@ -22,7 +22,7 @@ class ActivityListController extends KDListViewController
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
-    options.showHeader         ?= yes
+    options.showHeader         ?= no
     options.noItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity."
@@ -47,7 +47,7 @@ class ActivityListController extends KDListViewController
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'feeder-header clearfix'
 
-    @activityHeader.hide() unless @getOptions().showHeader
+    @activityHeader.hide()  unless @getOptions().showHeader
 
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
@@ -224,3 +224,8 @@ class ActivityListController extends KDListViewController
     repeater = KD.utils.repeat 177, ->
       item = hiddenItems.shift()
       if item then item.show() else KD.utils.killRepeat repeater
+
+  instantiateListItems:(items)->
+    newItems = super
+    @checkIfLikedBefore (item.getId()  for item in items)
+    return newItems
