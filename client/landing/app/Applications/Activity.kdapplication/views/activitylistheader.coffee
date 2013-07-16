@@ -61,10 +61,7 @@ class ActivityListHeader extends JView
   _checkForUpdates: do (lastTs = null, lastCount = null) ->
     itFailed = ->
       console.warn 'seems like live updates stopped coming'
-      window._rollbar.push {
-        user    : KD.nick()
-        message : 'realtime failure detected'
-      }
+      KD.logToExternal 'realtime failure detected'
     ->
       KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
         itFailed()  if ts? and lastTs isnt ts and lastCount is __count
