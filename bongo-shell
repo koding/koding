@@ -21,14 +21,6 @@ mqOptions = extend {}, mq
 mqOptions.login = webserver.login  if webserver?.login?
 mqOptions.productName = 'koding-webserver'
 
-bongo = new Bongo {
-  mongo
-  root: projectRoot
-  models: 'workers/social/lib/social/models'
-  mq: new Broker mqOptions
-  resourceName: webserver.queueName
-}
-
 
 opts =
   welcome: 'Welcome to koding...'
@@ -37,12 +29,13 @@ opts =
 nesh.config.load()
 nesh.loadLanguage('coffee')
 
+
 bongoPlugin =
     name: "bongoplugin"
     description: "Some description here"
     setup: (context, next) ->
-        {defaults} = context
-        next()
+      {defaults} = context
+      next()
 
     preStart: (context, next) ->
       {options} = context
@@ -56,13 +49,42 @@ bongoPlugin =
       repl.context.bongo = bongo
       for i of bongo.models
         repl.context[i] = bongo.models[i]
+      console.log "Press enter to start"
       next()
 
-nesh.loadPlugin bongoPlugin, (err) ->
-  nesh.log.error err if err
-  if argv.f
-    opts.evalData = nesh.compile fs.readFileSync argv.f, 'utf-8'
-  nesh.start opts, (err)->
+startShell = ()->
+  nesh.loadPlugin bongoPlugin, (err) ->
+    nesh.log.error err if err
+    if argv.f
+      opts.evalData = nesh.compile fs.readFileSync argv.f, 'utf-8'
+    nesh.start opts, (err)->
       if (err)
-          nesh.log.error(err)
+        nesh.log.error(err)
+
+class BongoWithOnReady extends Bongo
+
+  constructor: (options)->
+    @on 'newModel', (m)->
+      console.log "loaded model", m
+
+    @on 'ready', ()->
+      console.log "Bongo is ready"
+
+    @on 'newInstance', ()->
+      # TODO: couldnt find a better solution then 
+      # adding timeout. Checked events but this is
+      # the only solution to make it work in node v.0.8
+      setTimeout ()->
+        startShell()
+      , 1000
+    super(options)
+
+bongo = new BongoWithOnReady {
+  mongo
+  root: projectRoot
+  models: 'workers/social/lib/social/models'
+  mq: new Broker mqOptions
+  resourceName: webserver.queueName
+}
+
 
