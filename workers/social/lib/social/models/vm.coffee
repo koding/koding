@@ -85,17 +85,22 @@ module.exports = class JVM extends Model
     domains.forEach (domain) ->
       JDomain.assure { domain }, (err, domainObj) ->
         console.log err  if err
-        domainObj.domain        = domain
-        domainObj.hostnameAlias = [hostnameAlias]
-        domainObj.proxy         = { mode: 'vm' }
-        domainObj.regYears      = 0
 
         if domainObj.isNew
+          domainObj.domain        = domain
+          domainObj.hostnameAlias = [hostnameAlias]
+          domainObj.proxy         = { mode: 'vm' }
+          domainObj.regYears      = 0
           domainObj.save (err)->
             console.log err  if err
             updateRelationship domainObj
         else
-          domainObj.update (err)->
+          fields =
+            domain        : domain
+            hostnameAlias : [hostnameAlias]
+            proxy         : { mode: 'vm' }
+            regYears      : 0
+          domainObj.update { $set: fields }, (err)->
             console.log err  if err
             updateRelationship domainObj
 
