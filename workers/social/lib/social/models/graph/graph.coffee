@@ -79,7 +79,7 @@ module.exports = class Graph
               {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
               @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
                 res.replies.push obj for obj in dbObjects
-                tempRes.push res
+                tempRes[i] = res
                 fin()
             else
               tempRes.push res

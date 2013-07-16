@@ -118,6 +118,7 @@ class ActivityListContainer extends JView
     @controller = new ActivityListController
       delegate          : @
       itemClass         : ActivityListItemView
+      showHeader        : yes
       # wrapper           : no
       # scrollView        : no
 
