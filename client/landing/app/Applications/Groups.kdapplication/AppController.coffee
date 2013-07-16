@@ -69,19 +69,13 @@ class GroupsAppController extends AppController
     groupName or= KD.defaultSlug
     return callback()  if @currentGroupName is groupName
 
-    if @currentGroupName?
-      location.reload()
-      # modal = new KDModalView
-      #   title       : 'Change group'
-      #   content     : 'You have requested to change the group.'
-      #   overlay     : yes
-      #   buttons     :
-      #     "Yes, Change group":
-      #       style    : "modal-clean-red"
-      #       callback : (event)=>
-      #         location.reload()
+    oldGroupName        = @currentGroupName
+    @currentGroupName   = groupName
 
-    else unless @currentGroupName is groupName
+    if oldGroupName?
+      location.reload()
+
+    else unless groupName is oldGroupName
       KD.remote.cacheable groupName, (err, models)=>
         if err then callback err
         else if models?
@@ -98,9 +92,10 @@ class GroupsAppController extends AppController
             KD.track "Groups", "ChangeGroup", groupName
 
   getUserArea:->
-    @userArea ?
+    @userArea ? group:
       if KD.config.entryPoint?.type is 'group'
-      then {group: KD.config.entryPoint.slug}
+      then KD.config.entryPoint.slug
+      else (KD.getSingleton 'groupsController').currentGroupName
 
   setUserArea:(userArea)->
     @userArea = userArea

@@ -28,8 +28,6 @@ class KodingRouter extends KDRouter
     @addRoutes getRoutes.call this
 
     @on 'AlreadyHere', -> log "You're already here!"
-    @on 'Params', ({params, query})=>
-      #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name      
 
   listen:->
     super
@@ -56,10 +54,10 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
-  
+
 
     super route, options
-  
+
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment

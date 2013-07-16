@@ -155,18 +155,22 @@ class VirtualizationController extends KDController
     group.createVM {type, planCode}, vmCreateCallback
 
   fetchVMs: do (waiting = []) ->
-    (force, callback = noop)->
+    (force, callback)->
       [callback, force] = [force, callback]  unless callback?
 
-      return  if not force and waiting.push callback > 1
-      # if KD.isGuest() then @vms = ['guest']
-      if @vms.length then @utils.defer => callback null, @vms
+      return  unless callback?
+
+      if @vms.length then return @utils.defer => callback null, @vms
+
+      return  if not force and (waiting.push callback) > 1
 
       KD.remote.api.JVM.fetchVms (err, vms)=>
         @vms = vms  unless err
         if force
         then callback err, vms
-        else cb err, vms  for cb in waiting
+        else
+          cb err, vms  for cb in waiting
+          waiting = []
 
 
   fetchGroupVMs:(callback = noop)->
