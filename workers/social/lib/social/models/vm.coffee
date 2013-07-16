@@ -86,10 +86,9 @@ module.exports = class JVM extends Model
       JDomain.assure { domain }, (err, domainObj) ->
         console.log err  if err
 
-        if domainObj.domain.indexOf("vm-") is -1
-          hostnameAliases = []
-        else
-          hostnameAliases = [hostnameAlias]
+        hostnameAliases = []
+        if domainObj.domain.indexOf("vm-") isnt -1
+          hostnameAliases.push hostnameAlias
 
         if domainObj.isNew
           domainObj.hostnameAlias = hostnameAliases
@@ -129,8 +128,6 @@ module.exports = class JVM extends Model
           JUser.one
             _id: vmUser[0].id
           , (err, user)=>
-            if err
-              cosole.log "ERR:", err
             if not err and user
               user.fetchAccount 'koding', (err, account)=>
                 console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
