@@ -104,6 +104,17 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @experimentalView = new KDCustomHTMLView
         cssClass   : "top-badge orange"
         partial    : "Experimental"
+        click      : (e) =>
+          e.stopPropagation()
+          new KDModalView
+            overlay  : yes
+            width    : 500
+            title    : "Experimental App"
+            content  : """
+              <div class='modalformline'>
+                <p>This is an experimental app, you can spot bugs or the app may break the ux and could force you to reload or it can even DAMAGE your files. If you're 100% sure, go ahead and use this app!</p>
+              </div>
+            """
     else
       @experimentalView = new KDView
 
