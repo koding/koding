@@ -92,10 +92,8 @@ class DashboardAppView extends JView
       navItems = []
       for {name, hiddenHandle, viewOptions}, i in tabData
         viewOptions.data = data
-        if name is 'Settings'
-          viewOptions.options = 
-            delegate : this
-        hiddenHandle = hiddenHandle and data.privacy is 'public'
+        viewOptions.options = delegate : this  if name is 'Settings'
+        hiddenHandle = hiddenHandle? and data.privacy is 'public'
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
         navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
 
