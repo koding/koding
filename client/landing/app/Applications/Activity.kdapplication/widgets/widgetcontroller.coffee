@@ -112,6 +112,9 @@ class ActivityUpdateWidgetController extends KDViewController
 
 
   widgetSubmit:(data,constructorName,callback)->
+    for own key, field of data when _.isString(field)
+      data[key] = field.replace(/&quot;/g, '"')
+
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
     if data.activity
