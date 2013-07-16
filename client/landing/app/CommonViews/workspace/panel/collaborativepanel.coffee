@@ -5,14 +5,14 @@ class CollaborativePanel extends Panel
     super options, data
 
     workspace      = @getDelegate()
-    panesLength    = @getOptions().panes.length
+    # panesLength    = @getOptions().panes.length
     createadPanes  = []
 
     @on "NewPaneCreated", (pane) =>
       createadPanes.push pane
 
-      if createadPanes.length is panesLength
-        @getDelegate().emit "AllPanesAddedToPanel", @, createadPanes
+      # if createadPanes.length is panesLength
+      #   @getDelegate().emit "AllPanesAddedToPanel", @, createadPanes
 
     log "i've created new panes with these keys", @getOptions().sessionKeys
 
@@ -45,12 +45,13 @@ class CollaborativePanel extends Panel
       else if paneOptions.type is "finder"
         PaneClass = CollaborativeClientFinderPane
 
-    return warn "Unknown pane class #{paneOptions.type}"  unless PaneClass
+    return warn "Unknown pane class: #{paneOptions.type}"  unless PaneClass
     pane = new PaneClass paneOptions
 
-    targetContainer.addSubView pane
+    # targetContainer.addSubView pane
     @panes.push pane
     @emit "NewPaneCreated", pane
+    return  pane
 
   amIHost: (sessionKey) ->
     return  no unless sessionKey
