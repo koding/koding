@@ -112,7 +112,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
             title    : "Experimental App"
             content  : """
               <div class='modalformline'>
-                <p>This is an experimental app. This means you can spot a bug and even break the app. In this case, feel free to contact with the app developer.</p>
+                <p>This is an experimental app, you can spot bugs or the app may break the ux and could force you to reload or it can even DAMAGE your files. If you're 100% sure, go ahead and use this app!</p>
               </div>
             """
     else
