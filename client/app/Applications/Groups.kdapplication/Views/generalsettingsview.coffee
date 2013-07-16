@@ -17,18 +17,10 @@ class GroupGeneralSettingsView extends JView
           if err
             saveButton.hideLoader()
             return new KDNotificationView { title: err.message, duration: 1000 }
+
           group.setReadme readme, (err)=>
             saveButton.hideLoader()
             return new KDNotificationView { title: err.message, duration: 1000 }  if err
-            if formData.privacy isnt group.privacy
-              group.privacy = formData.privacy
-              for navTitle in ['Membership policy', 'Invitations']
-                # fix this
-                navController = @parent.parent.parent.navController
-                if formData.privacy is 'private'
-                  navController.getItemByName(navTitle).unsetClass 'hidden'
-                else
-                  navController.getItemByName(navTitle).setClass 'hidden'
 
             new KDNotificationView
               title: 'Group was updated!'
