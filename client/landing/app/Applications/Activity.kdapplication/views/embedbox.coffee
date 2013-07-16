@@ -140,7 +140,6 @@ class EmbedBox extends KDView
         when 'object' then containerClass = EmbedBoxObjectView
         else               containerClass = EmbedBoxLinkView
 
-      @embedContainer.destroy()
       @embedLinks.hide()
       @embedContainer = new containerClass embedOptions, data
       @embedContainer.show()
@@ -255,6 +254,7 @@ class EmbedBox extends KDView
       if embed.url is url or embedUrl.indexOf(url_,embedUrl.length-url_.length) >= 0
         return @embedExistingData @cache[i], options, callback
 
+    @embedContainer.destroy()  if @embedContainer
     @embedLoader.show()
     @$('div.link-embed').addClass 'loading'
     @fetchEmbed url, options, (data, embedlyOptions)=>
