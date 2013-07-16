@@ -42,38 +42,36 @@ class Panel extends JView
       click     : => @showHintModal()
 
   createLayout: ->
-    @container  = new KDView
-      cssClass  : "panel-container"
+    {pane, layout} = @getOptions()
+    @container     = new KDView
+      cssClass     : "panel-container"
 
-    panesLength = @getOptions().panes.length
+    if pane
+      @container.addSubView @createPane pane
+    else if layout
+      @container.addSubView new WorkspaceLayout
+        delegate      : @
+        layoutOptions : layout
+    else
+      warn "no layout config or pane passed to create a panel"
 
-    return  unless panesLength
+  # createPanes: ->
+  #   for paneOptions, index in @getOptions().panes
+  #     @createPane paneOptions, @getPaneContainerByIndex index
 
-    panelTypeByPaneLength  =
-      "1"                  : "SingleLayout"
-      "2"                  : "DoubleLayout"
-      "3"                  : "TripleLayout"
-      "4"                  : "QuadrupleLayout"
-    methodName             = "create#{panelTypeByPaneLength[panesLength]}"
-
-    do @[methodName]
-
-  createPanes: ->
-    for paneOptions, index in @getOptions().panes
-      @createPane paneOptions, @getPaneContainerByIndex index
-
-  createPane: (paneOptions, targetContainer) ->
+  createPane: (paneOptions) ->
     PaneClass            = @getPaneClass paneOptions.type
     paneOptions.delegate = @
     pane                 = new PaneClass paneOptions
 
-    targetContainer.addSubView pane
+    # targetContainer.addSubView pane
     @panes.push pane
     @emit "NewPaneCreated", pane
+    return  pane
 
   # GETTERS #
-  getPaneContainerByIndex: (index) ->
-    return  @panesContainer[index]
+  # getPaneContainerByIndex: (index) ->
+  #   return  @panesContainer[index]
 
   getPaneClass: (paneType) ->
     paneTypesToPaneClass =
@@ -86,58 +84,57 @@ class Panel extends JView
 
     return  paneTypesToPaneClass[paneType]
 
-  # LAYOUT CREATOR HELPERS #
-  createSplitView: (type, views) ->
-    splitView = new SplitViewWithOlderSiblings {
-      resizable : yes
-      sizes     : ["50%", "50%"]
-      type
-      views
-    }
-    splitView.on "ResizeDidStop", =>
-      for pane in @splitView.panelPanes
-        pane.getSubViews().first.emit "PaneResized"
-    return  splitView
+  # createSplitView: (type, views) ->
+  #   splitView = new SplitViewWithOlderSiblings {
+  #     resizable : yes
+  #     sizes     : ["50%", "50%"]
+  #     type
+  #     views
+  #   }
+  #   splitView.on "ResizeDidStop", =>
+  #     for pane in @splitView.panelPanes
+  #       pane.getSubViews().first.emit "PaneResized"
+  #   return  splitView
 
-  createSingleLayout: ->
-    view       = new KDView
-      cssClass : "panel-container"
+  # createSingleLayout: ->
+  #   view       = new KDView
+  #     cssClass : "panel-container"
 
-    @container.addSubView view
-    @panesContainer.push view
+  #   @container.addSubView view
+  #   @panesContainer.push view
 
-  createDoubleLayout: ->
-    pane1      = new KDView
-    pane2      = new KDView
-    @splitView = @createSplitView "vertical", [pane1, pane2]
+  # createDoubleLayout: ->
+  #   pane1      = new KDView
+  #   pane2      = new KDView
+  #   @splitView = @createSplitView "vertical", [pane1, pane2]
 
-    @container.addSubView @splitView
-    @panesContainer.push pane1, pane2
-    @splitView.panelPanes = [pane1, pane2]
+  #   @container.addSubView @splitView
+  #   @panesContainer.push pane1, pane2
+  #   @splitView.panelPanes = [pane1, pane2]
 
-  createTripleLayout: ->
-    pane1           = new KDView
-    pane2           = new KDView
-    pane3           = new KDView
-    rightInnerSplit = @createSplitView "horizontal", [pane2, pane3]
-    @splitView      = @createSplitView "vertical", [pane1, rightInnerSplit]
+  # createTripleLayout: ->
+  #   pane1           = new KDView
+  #   pane2           = new KDView
+  #   pane3           = new KDView
+  #   rightInnerSplit = @createSplitView "horizontal", [pane2, pane3]
+  #   @splitView      = @createSplitView "vertical", [pane1, rightInnerSplit]
 
-    @container.addSubView @splitView
-    @panesContainer.push pane1, pane2, pane3
-    @splitView.panelPanes = [pane1, pane2, pane3]
+  #   @container.addSubView @splitView
+  #   @panesContainer.push pane1, pane2, pane3
+  #   @splitView.panelPanes = [pane1, pane2, pane3]
 
-  createQuadrupleLayout: ->
-    pane1             = new KDView
-    pane2             = new KDView
-    pane3             = new KDView
-    pane4             = new KDView
-    leftInnerSplit    = @createSplitView "horizontal", [pane1, pane2]
-    rightInnerSplit   = @createSplitView "horizontal", [pane3, pane4]
-    @splitView        = @createSplitView "vertical",   [leftInnerSplit, rightInnerSplit]
+  # createQuadrupleLayout: ->
+  #   pane1             = new KDView
+  #   pane2             = new KDView
+  #   pane3             = new KDView
+  #   pane4             = new KDView
+  #   leftInnerSplit    = @createSplitView "horizontal", [pane1, pane2]
+  #   rightInnerSplit   = @createSplitView "horizontal", [pane3, pane4]
+  #   @splitView        = @createSplitView "vertical",   [leftInnerSplit, rightInnerSplit]
 
-    @container.addSubView @splitView
-    @panesContainer.push pane1, pane2, pane3, pane4
-    @splitView.panelPanes = [pane1, pane2, pane3, pane4]
+  #   @container.addSubView @splitView
+  #   @panesContainer.push pane1, pane2, pane3, pane4
+  #   @splitView.panelPanes = [pane1, pane2, pane3, pane4]
 
   showHintModal: ->
     options        = @getOptions()
@@ -155,7 +152,7 @@ class Panel extends JView
   viewAppended: ->
     super
     @getDelegate().emit "NewPanelAdded", @
-    @createPanes()
+    # @createPanes()
 
   pistachio: ->
     """
