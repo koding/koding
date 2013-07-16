@@ -391,6 +391,35 @@ module.exports = class JAccount extends jraphical.Module
 
   @fetchVersion =(callback)-> callback null, KONFIG.version
 
+  @fetchBlockedUsers = secure ({connection:{delegate}}, options, callback) ->
+    unless delegate.can 'list-blocked-users'
+      callback new KodingError 'Access denied!'
+
+    options  = {}
+    selector =
+      blockedUntil :
+        $gte       : new Date()
+
+    JUser = require '../user'
+    JUser.some selector, options, (err, blockedUsers)->
+      if err then return callback err
+      if blockedUsers.length is 0 then callback null, []
+
+      accountUsers = []
+      collectAccounts = race (i, user, fin) ->
+        JAccount.one  { 'profile.nickname' : user.username }, (err, accountUser)=>
+          if err
+            callback err
+            fin()
+          else
+            accountUser.blockedUntil = user.blockedUntil
+            accountUsers[i] = accountUser
+            fin()
+      , -> callback null, accountUsers
+
+      for user in blockedUsers
+        collectAccounts user
+
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
     ### TODO:
@@ -624,7 +653,7 @@ module.exports = class JAccount extends jraphical.Module
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
            'administer url aliases', 'migrate-kodingen-users', \
            'administer accounts', 'grant-invites', 'send-invites', \
-           'migrate-koding-users'
+           'migrate-koding-users', 'list-blocked-users'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->

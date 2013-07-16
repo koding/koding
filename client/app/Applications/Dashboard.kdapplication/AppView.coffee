@@ -86,10 +86,15 @@ class DashboardAppView extends JView
     data = @getData()
     KD.getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
       navItems = []
-      for {name, hiddenHandle, viewOptions}, i in tabData
+      for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
         viewOptions.data = data
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
-        navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
+
+        unless kodingOnly
+          navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
+        else if data.slug is 'koding'
+          navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
+
 
       @navController.instantiateListItems navItems
       @navController.selectItem @navController.itemsOrdered.first
