@@ -79,7 +79,6 @@ class NotificationController extends KDObject
       # If not clicked on "Ok", kick him out after 10 seconds
       @utils.wait 10000, =>
         $.cookie 'clientId', erase: yes
-      
 
   prepareNotification: (notification)->
 
