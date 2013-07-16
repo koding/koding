@@ -160,12 +160,13 @@ class VirtualizationController extends KDController
 
       return  if not force and waiting.push callback > 1
       # if KD.isGuest() then @vms = ['guest']
+      if @vms.length then @utils.defer => callback null, @vms
 
       KD.remote.api.JVM.fetchVms (err, vms)=>
         @vms = vms  unless err
         if force
         then callback err, vms
-        else cb err, vms  for vm in waiting
+        else cb err, vms  for cb in waiting
 
 
   fetchGroupVMs:(callback = noop)->
