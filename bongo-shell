@@ -68,11 +68,12 @@ class BongoWithOnReady extends Bongo
       console.log "loaded model", m
 
     @on 'ready', ()->
-      console.log "------ ------ ----- bongo is ready"
-      #startShell()
+      console.log "Bongo is ready"
 
     @on 'newInstance', ()->
-      console.log "new instance starting shell"
+      # TODO: couldnt find a better solution then 
+      # adding timeout. Checked events but this is
+      # the only solution to make it work in node v.0.8
       setTimeout ()->
         startShell()
       , 1000
