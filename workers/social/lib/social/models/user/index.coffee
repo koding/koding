@@ -492,7 +492,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err?
             callback null, newToken
         else
-          callback new KodingError "Session not found!"
+          callback createKodingError "Session not found!"
 
 
   @convert = secure (client, userFormData, callback) ->

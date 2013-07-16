@@ -54,8 +54,7 @@ class ResourcesController extends KDListViewController
         finder.emit 'EnvironmentsTabShow'
 
   instantiateListItems:(items)->
-    items = [item for item in items when item][0]
-    super items
+    super items.filter Boolean
 
 class ResourcesView extends KDListView
 
