@@ -87,7 +87,6 @@ module.exports = class JVM extends Model
         console.log err  if err
 
         if domainObj.isNew
-          domainObj.domain        = domain
           domainObj.hostnameAlias = [hostnameAlias]
           domainObj.proxy         = { mode: 'vm' }
           domainObj.regYears      = 0
@@ -96,7 +95,6 @@ module.exports = class JVM extends Model
             updateRelationship domainObj
         else
           fields =
-            domain        : domain
             hostnameAlias : [hostnameAlias]
             proxy         : { mode: 'vm' }
             regYears      : 0
