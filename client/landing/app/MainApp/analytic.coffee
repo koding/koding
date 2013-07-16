@@ -3,14 +3,13 @@ KD.track = (rest...)->
   logToMixpanel rest...
 
 logToGoogle = (rest...)->
-  category = rest.first
-  action  =  rest.first
+  category = action = rest.first
   # there is nothing to do with the value now
   # value = rest[2]
 
   trackArray = ['_trackEvent', category, action]
   # log to google analytic
-  _gaq.push(trackArray);
+  _gaq.push trackArray;
 
 logToMixpanel = (rest...)->
 
