@@ -11,7 +11,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
         event.preventDefault()
         @emit "DiscussionActivityLinkClicked"
 
-    @commentCountLink  = new ActivityActionLink
+    @commentLink  = new ActivityActionLink
       partial     : "Comment"
       click       : (event)=>
         event.preventDefault()
@@ -73,7 +73,7 @@ class DiscussionActivityActionsView extends ActivityActionsView
     """
       {{> @loader}}
       {{> @opinionCountLink}} {{> @opinionCount}} #{if @getData()?.opinionCount > 0 then " ·" else "" }
-      {{> @commentCountLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else " ·" }
+      {{> @commentLink}} {{> @commentCount}} #{if @getData()?.repliesCount > 0 then " ·" else " ·" }
       <span class='optional'>
       {{> @shareLink}} ·
       </span>
