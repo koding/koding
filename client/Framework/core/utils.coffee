@@ -726,6 +726,32 @@ __utils =
    uniqid = context.data 'data-id'
    zIndexContexts[uniqid] if isNaN zIndexContexts[uniqid] then 0 else zIndexContexts[uniqid]++
 
+  getAppIcon:(appManifest)->
+    {authorNick, name, version, icns} = appManifest
+
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
+
+    if appManifest.devMode
+      resourceRoot = "https://fatihacet.kd.i/.applications/#{__utils.slugify name}/"
+
+    image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
+    thumb  = "#{KD.apiUri}/images/#{image}.png"
+
+    for size in [64, 128, 160, 256, 512]
+      if icns and icns[String size]
+        thumb = "#{resourceRoot}/#{icns[String size]}"
+        break
+
+    img = new KDCustomHTMLView
+      tagName     : "img"
+      bind        : "error"
+      error       : ->
+        @getElement().setAttribute "src", "/images/default.app.thumb.png"
+      attributes  :
+        src       : thumb
+
+    return img
+
   # deprecated ends
 
 ###
