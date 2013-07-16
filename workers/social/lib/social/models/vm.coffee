@@ -86,18 +86,25 @@ module.exports = class JVM extends Model
       JDomain.assure { domain }, (err, domainObj) ->
         console.log err  if err
 
+        if domainObj.domain.indexOf("vm-") is -1
+          hostnameAliases = []
+        else
+          hostnameAliases = [hostnameAlias]
+
         if domainObj.isNew
-          domainObj.hostnameAlias = [hostnameAlias]
+          domainObj.hostnameAlias = hostnameAliases
           domainObj.proxy         = { mode: 'vm' }
           domainObj.regYears      = 0
+          domainObj.loadBalancer  = { persistance: 'disabled' }
           domainObj.save (err)->
             console.log err  if err
             updateRelationship domainObj
         else
           fields =
-            hostnameAlias : [hostnameAlias]
+            hostnameAlias : hostnameAliases
             proxy         : { mode: 'vm' }
             regYears      : 0
+            loadBalancer  : { persistance: 'disabled' }
           domainObj.update { $set: fields }, (err)->
             console.log err  if err
             updateRelationship domainObj
@@ -122,8 +129,11 @@ module.exports = class JVM extends Model
           JUser.one
             _id: vmUser[0].id
           , (err, user)=>
+            if err
+              cosole.log "ERR:", err
             if not err and user
               user.fetchAccount 'koding', (err, account)=>
+                console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
                 if not err and account
                   @ensureDomainSettings {account, vm, type, nickname, groupSlug}
                   @createDomains account, hostnameAliases, hostnameAliases[0]
@@ -162,14 +172,14 @@ module.exports = class JVM extends Model
   @parseAlias = (alias)->
     # group-vm alias
     if /^shared-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+).kd.io$/
+      result = alias.match /(.*)\.([a-z0-9-]+).kd.io$/
       if result
         [rest..., prefix, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
         return {groupSlug, prefix, uid, type:'group', alias}
     # personal-vm alias
     else if /^vm-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+)\.(\w+).kd.io$/
+      result = alias.match /(.*)\.([a-z0-9-]+)\.([a-z0-9-]+).kd.io$/
       if result
         [rest..., prefix, nickname, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
