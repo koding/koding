@@ -33,12 +33,10 @@ class GroupsBlockedUserView extends JView
   fetchSomeMembers:(selector={})->
     @listController.showLazyLoader no
     options =
-      limit : 20
-      sort  : { timestamp: -1 }
-    # return
-    #
+      limit : 10
+
     {JAccount} = KD.remote.api
-    JAccount.fetchBlockedUsers {}, (err, blockedUsers) => @populateBlockedUsers err, blockedUsers
+    JAccount.fetchBlockedUsers options, (err, blockedUsers) => @populateBlockedUsers err, blockedUsers
 
   populateBlockedUsers:(err, users)->
     return warn err if err
@@ -54,10 +52,9 @@ class GroupsBlockedUserView extends JView
           userRolesHash[userRole.targetId].push userRole.as
 
         list = @listController.getListView()
-        list.getOptions().userRoles ?= []
-        list.getOptions().userRoles = _.extend(
-          list.getOptions().userRoles, userRolesHash
-        )
+        listOptions = list.getOptions()
+        listOptions.userRoles ?= []
+        listOptions.userRoles = _.extend listOptions.userRoles, userRolesHash
 
         @listController.instantiateListItems users
         @timestamp = new Date users.last.timestamp_
@@ -65,7 +62,7 @@ class GroupsBlockedUserView extends JView
 
   refresh:->
     @listController.removeAllItems()
-    @timestamp = new Date 0
+    @timestamp = new Date()
     @fetchRoles()
     @fetchSomeMembers()
 

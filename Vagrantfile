@@ -77,7 +77,6 @@ Vagrant.configure("2") do |config|
     default.vm.network :forwarded_port, :guest => 15672, :host => 15672 # rabbitmq api
     default.vm.network :forwarded_port, :guest => 8000, :host => 8000 # rockmongo
     default.vm.network :forwarded_port, :guest => 7474, :host => 7474 # neo4j
-    default.vm.network :forwarded_port, :guest => 6379, :host => 6379 # neo4j
     default.vm.hostname = "vagrant"
 
     default.vm.synced_folder ".", "/opt/koding"

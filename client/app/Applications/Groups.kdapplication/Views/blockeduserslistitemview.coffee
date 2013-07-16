@@ -33,7 +33,7 @@ class GroupsBlockedUserListItemView extends KDListItemView
             @hide()
 
     list.on "EditMemberRolesViewShown", (listItem)=>
-      if listItem isnt @
+      if listItem isnt this
         @hideEditMemberRolesView()
 
   blockUser:(accountId, duration, callback)->

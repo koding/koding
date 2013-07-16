@@ -395,30 +395,33 @@ module.exports = class JAccount extends jraphical.Module
     unless delegate.can 'list-blocked-users'
       callback new KodingError 'Access denied!'
 
-    options  = {}
-    selector =
-      blockedUntil :
-        $gte       : new Date()
+    selector = blockedUntil: $gte: new Date()
+
+    options.limit = Math.min options.limit ? 20, 20
+    options.skip ?= 0
+
+    fields = { username:1, blockedUntil:1 }
 
     JUser = require '../user'
-    JUser.some selector, options, (err, blockedUsers)->
-      if err then return callback err
-      if blockedUsers.length is 0 then callback null, []
+    JUser.someData selector, fields, options, (err, cursor) ->
+      return callback err  if err?
+      cursor.toArray (err, users) ->
+        return callback err       if err?
+        return callback null, []  if users.length is 0
 
-      accountUsers = []
-      collectAccounts = race (i, user, fin) ->
-        JAccount.one  { 'profile.nickname' : user.username }, (err, accountUser)=>
+        users.sort (a, b) -> a.username < b.username
+
+        acctSelector = 'profile.nickname': $in: users.map (u) -> u.username
+
+        JAccount.some acctSelector, {}, (err, accounts)=>
           if err
             callback err
-            fin()
           else
-            accountUser.blockedUntil = user.blockedUntil
-            accountUsers[i] = accountUser
-            fin()
-      , -> callback null, accountUsers
+            accounts.sort (a, b) -> a.profile.nickname < b.profile.nickname
+            for user, i in users
+              accounts[i].blockedUntil = users[i].blockedUntil
+            callback null, accounts
 
-      for user in blockedUsers
-        collectAccounts user
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -1022,15 +1025,15 @@ module.exports = class JAccount extends jraphical.Module
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
-    , 
+    ,
       targetId : 1
     , (err, rels)->
       return callback err if err
 
       JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
         domainList = []
-        unless err 
-          # we don't allow users to work on domains such as 
+        unless err
+          # we don't allow users to work on domains such as
           # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
           # so we are filtering them here.
           domainList = domains.filter (domain)->
