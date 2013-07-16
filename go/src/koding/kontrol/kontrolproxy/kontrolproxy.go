@@ -20,6 +20,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -63,6 +64,9 @@ var logs *syslog.Writer
 
 func main() {
 	var err error
+	n := runtime.GOMAXPROCS(runtime.NumCPU())
+	log.Println("using %d cpus", n)
+
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
 	if err != nil {
 		log.Println(err)
