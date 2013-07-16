@@ -259,9 +259,9 @@ getScripts =->
 
   <script>
     require.config({baseUrl: "/js", waitSeconds:15});
-    require(["order!/js/highlightjs/highlight.pack.js"]);
+    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
   </script>
-  <script src="/js/kd.#{KONFIG.version}.js"></script>
+
 
   <script type="text/javascript">
     var _gaq = _gaq || [];
