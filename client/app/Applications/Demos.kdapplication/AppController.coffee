@@ -34,20 +34,24 @@ class DemosAppController extends AppController
             }
 
           ]
-          panes: [
-            {
-              type  : "finder"
-            }
-            {
-              type  : "tabbedEditor"
-            }
-            {
-              type  : "terminal"
-            }
-          ]
+          # pane: { type: "editor" }
+          layout: {
+            direction           : "vertical"
+            sizes               : [ "20%", null ]
+            views               : [
+              { type: "finder" }
+              {
+                type: "split"
+                options:
+                  direction: "horizontal"
+                  sizes: ["50%", null]
+                views: [
+                  { type: "tabbedEditor" }
+                  { type: "terminal" }
+                ]
+              }
+            ]
+          }
         }
       ]
-    kolab = new CollaborativeWorkspace options
-    kolab.on "PanelCreated", =>
-      kolab.activePanel.splitView.resizePanel "20%", 0
-    mainView.addSubView kolab
+    mainView.addSubView new CollaborativeWorkspace options
