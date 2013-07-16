@@ -176,6 +176,7 @@ class MainController extends KDController
                                 <div class='modalformline'>
                                   This will block user from logging in to Koding(with all sub-groups).<br><br>
                                   You can specify a duration to block user.
+                                  Entry format: [number][S|H|D|T|M|Y] eg. 1M
                                 </div>
                                 """
       overlay                 : yes
@@ -221,11 +222,11 @@ class MainController extends KDController
                   rules              :
                     required         : yes
                     minLength        : 2
-                    regExp           : /\d[A-Za-z]+/i
+                    regExp           : /\d[SHDTMY]+/i
                   messages           :
                     required         : "Please enter a time period"
                     minLength        : "You must enter one pair"
-                    regExp           : "You must enter at least a number and a character e.g : 1y 1h"
+                    regExp           : "Entry one of [number][S|H|D|T|M|Y] eg. 1M"
                 iconOptions          :
                   tooltip            :
                     placement        : "right"
