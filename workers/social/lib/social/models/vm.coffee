@@ -68,25 +68,39 @@ module.exports = class JVM extends Model
         default         : no
 
   @createDomains = (account, domains, hostnameAlias)->
+   
+    updateRelationship = (domainObj)->
+      Relationship.one
+        targetName: "JDomain",
+        targetId: domainObj._id,
+        sourceName: "JAccount",
+        sourceId: account._id,
+        as: "owner"
+      , (err, rel)->
+        if err or not rel
+          account.addDomain domainObj, (err)->
+            console.log err  if err?
+
     JDomain = require './domain'
     domains.forEach (domain) ->
       JDomain.assure { domain }, (err, domainObj) ->
-        domainObj.hostnameAlias = [hostnameAlias]
-        domainObj.proxy         = { mode: 'vm' }
-        domainObj.regYears      = 0
-        domainObj.save (err)->
-          console.log err  if err?
-          unless err
-            Relationship.one
-              targetName: "JDomain",
-              targetId: domainObj._id,
-              sourceName: "JAccount",
-              sourceId: account._id,
-              as: "owner"
-            , (err, rel)->
-              if err or not rel
-                account.addDomain domainObj, (err)->
-                  console.log err  if err?
+        console.log err  if err
+
+        if domainObj.isNew
+          domainObj.hostnameAlias = [hostnameAlias]
+          domainObj.proxy         = { mode: 'vm' }
+          domainObj.regYears      = 0
+          domainObj.save (err)->
+            console.log err  if err
+            updateRelationship domainObj
+        else
+          fields =
+            hostnameAlias : [hostnameAlias]
+            proxy         : { mode: 'vm' }
+            regYears      : 0
+          domainObj.update { $set: fields }, (err)->
+            console.log err  if err
+            updateRelationship domainObj
 
   @fixUserDomains = permit 'change bundle',
     success: (client, callback)->

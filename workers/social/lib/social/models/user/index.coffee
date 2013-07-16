@@ -571,6 +571,7 @@ module.exports = class JUser extends jraphical.Module
                         else if silence
                           JUser.grantInitialInvitations user.username
                           createNewMemberActivity account
+                          JUser.emit 'UserCreated', user
                           callback null, account
                         else
                           replacementToken = createId()
