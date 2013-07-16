@@ -389,7 +389,7 @@ module.exports = class JUser extends jraphical.Module
           @configureNewAcccount account, user, createId(), callback
 
 
-  @createUser = ({ username, email, password, firstName, lastName }, callback)->
+  @createUser = ({ username, email, password, firstName, lastName, silence }, callback)->
     slug =
       slug            : username
       constructorName : 'JUser'
@@ -431,6 +431,7 @@ module.exports = class JUser extends jraphical.Module
                 lastName
                 hash
               }
+              silence : silence # won't be saved, just for further processing
             account.save (err)=>
               if err then callback err
               else user.addOwnAccount account, (err) ->

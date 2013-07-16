@@ -234,7 +234,7 @@ module.exports = class Graph
       match koding-[r:reply]-all
       return all, r
       order by r.createdAtEpoch DESC
-      limit 2
+      limit 3
     """
     @fetchRelateds query, callback
 
