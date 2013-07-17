@@ -68,7 +68,7 @@ module.exports = class JVM extends Model
         default         : no
 
   @createDomains = (account, domains, hostnameAlias)->
-   
+
     updateRelationship = (domainObj)->
       Relationship.one
         targetName: "JDomain",
@@ -309,7 +309,7 @@ module.exports = class JVM extends Model
     account.fetchUser (err, user) ->
       return callback err  if err
 
-      selector.users = { $elemMatch: id: user.getId() }
+      selector.users = $elemMatch: id: user.getId()
 
       JVM.someData selector, { hostnameAlias: 1 }, options, (err, cursor)->
         return callback err  if err

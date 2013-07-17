@@ -38,9 +38,10 @@ module.exports = class JSession extends Model
   do ->
     JAccount  = require './account'
 
-    JAccount.on 'UsernameChanged', ({oldUsername}) ->
-      JSession.remove username: oldUsername, (err) ->
-        console.error err  if err?
+    JAccount.on 'UsernameChanged', ({ oldUsername, mustReauthenticate }) ->
+      if mustReauthenticate
+        JSession.remove username: oldUsername, (err) ->
+          console.error err  if err?
 
   @cycleSession =(clientId, callback=(->)) ->
     @remove {clientId}, (err) =>

@@ -223,13 +223,13 @@ module.exports = class JAccount extends jraphical.Module
         user.update { $set: { username, oldUsername } }, (err) =>
           if err then handleErr err, callback
           else
-            if mustReauthenticate
-              @sendNotification 'UsernameChanged', { username, oldUsername }
-
             @update { $set: 'profile.nickname': username }, (err) =>
               if err then handleErr err
               else
-                @constructor.emit 'UsernameChanged', {oldUsername, username}
+                change = { oldUsername, username, mustReauthenticate }
+                @sendNotification 'UsernameChanged', change
+                if mustReauthenticate
+                  @constructor.emit 'UsernameChanged', change
                 freeOldUsername()
 
   changeUsername$: secure (client, options, callback) ->

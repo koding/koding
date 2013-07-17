@@ -1,5 +1,11 @@
 module.exports = new class
 
+  createKodingError = (message) ->
+    message:
+      if 'string' is typeof err
+      then err
+      else err.message
+
   required = (field) =>
     @::[field] = (userData, callback) ->
       callback(
