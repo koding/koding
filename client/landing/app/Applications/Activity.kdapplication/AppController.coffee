@@ -151,7 +151,67 @@ class ActivityAppController extends AppController
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      if @getFeedFilter() is "Public"
+      group = KD.getSingleton('groupsController').getCurrentGroup().slug
+      {roles} = KD.config
+
+      @on "StartFetchingFakeActivityComment", (activityId, commentId)=>
+        return if commentId > 2
+        timeoutValue = parseInt(Math.random()*100000,10)
+        setTimeout =>
+            eventName = "activity_#{activityId}_C#{commentId}_fetch"
+            @off "#{eventName}_succcess"
+
+            # if fetching comments fails, then shut down the event
+            @once "#{eventName}_fail", ()=>
+              @off "activity_#{activityId}_fetch_success"
+
+            # if fetching success, add them to activity feed
+            @once eventName, (activities)=>
+              @listActivities activities, callback, true
+              @emit "StartFetchingFakeActivityComment", activityId, commentId+1
+            @getFakes(activityId, commentId)
+
+          , timeoutValue
+
+      @on "StartFetchingFakeActivity", (activityId=0)=>
+        return if activityId > 7
+        @isLoading = true
+        timeoutValue = parseInt(Math.random()*10000,10)
+
+        eventName = "activity_#{activityId}_fetch"
+        @off "#{eventName}_succcess"
+
+        setTimeout =>
+            @once "#{eventName}_fail", ()=>
+              @off "#{eventName}_succcess"
+              @emit "StartFetchingFakeActivity", activityId+1
+
+            @once "#{eventName}_success", (activities)=>
+              @listActivities activities, (sanitizedCache)=>
+                callback sanitizedCache
+                @emit "StartFetchingFakeActivityComment", activityId, 1
+
+              @emit "StartFetchingFakeActivity", activityId+1
+            #fetch fake activity
+            @getFakes(activityId)
+
+          , timeoutValue
+
+
+      if group == "koding" and  "guest" in roles
+        # this is a hack, find a better way to hide inner navigation
+        $('.common-inner-nav').hide()
+        eventName = "activity_fetch"
+        @once "#{eventName}_fail", ()->
+          console.log "ERR : static main page activities will not work"
+
+        @once "#{eventName}_success", (activities)=>
+          activities.overview.reverse()  if activities.overview
+          @listActivities activities, callback
+          @emit "StartFetchingFakeActivity", 1
+        @getFakes()
+
+      else if @getFeedFilter() is "Public"
         @once "publicFeedFetched_#{eventSuffix}", (cache)=>
           reset()
           @extractCacheTimeStamps cache
@@ -173,6 +233,28 @@ class ActivityAppController extends AppController
     if isReady
     then fetch()
     else groupsController.once 'groupChanged', fetch
+
+  listActivities:(activities, callback, update=false)->
+    @sanitizeCache activities, (err, sanitizedCache)=>
+      @extractCacheTimeStamps sanitizedCache
+      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, update
+      callback sanitizedCache
+
+  getFakes:(activityId=0, commentId=0, likeId=0)->
+    activityName = "activity"
+    activityName += "_#{activityId}" unless activityId is 0
+    activityName += "_C#{commentId}" unless commentId is 0
+    activityName += "_L#{commentId}" unless likeId is 0
+
+    $.ajax({
+      type: "GET"
+      url: "js/activity/#{activityName}.json"
+      dataType: "json"
+      cache: "false"
+    }).done (json) =>
+      @emit "#{activityName}_fetch_success", json
+    .fail ()=>
+      @emit "#{activityName}_fetch_fail"
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
