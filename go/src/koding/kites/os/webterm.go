@@ -45,6 +45,7 @@ func registerWebtermMethods(k *kite.Kite) {
 		return sessions, nil
 	})
 
+	// this method is special cased in oskite.go to allow foreign access
 	registerVmMethod(k, "webterm.connect", false, func(args *dnode.Partial, channel *kite.Channel, vos *virt.VOS) (interface{}, error) {
 		var params struct {
 			Remote       WebtermRemote
