@@ -178,7 +178,7 @@ class ActivityAppController extends AppController
     {CStatusActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
-      cache.overview.reverse()  if cache.overview
+      cache.overview.reverse()  if cache?.overview and not err
 
       return @emit "activitiesCouldntBeFetched", err  if err
 
