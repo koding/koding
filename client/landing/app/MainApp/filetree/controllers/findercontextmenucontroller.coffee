@@ -229,11 +229,20 @@ class NFinderContextMenuController extends KDController
       'Upload file...'            :
         disabled                  : yes
         action                    : 'upload'
+      'Show Dot Files'            :
+        action                    : 'showDotFiles'
+      'Hide Dot Files'            :
+        action                    : 'showDotFiles'
 
     if fileView.expanded
       delete items.Expand
     else
       delete items.Collapse
+
+    if fileData.hideDotFiles
+      delete items['Show Dot Files']
+    else
+      delete items['Hide Dot Files']
 
     return items
 
