@@ -1,6 +1,6 @@
 class FeedController extends KDViewController
-  constructor:(options={})->
 
+  constructor:(options={})->
 
     options.autoPopulate   ?= no
     options.useHeaderNav   ?= no
@@ -13,11 +13,12 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      itemClass     : options.itemClass
-      filters       : options.filter
-      listCssClass  : options.listCssClass or ""
-      delegate      : @
-      onboarding    : options.onboarding
+      itemClass           : options.itemClass
+      filters             : options.filter
+      listControllerClass : options.listControllerClass
+      listCssClass        : options.listCssClass or ""
+      delegate            : @
+      onboarding          : options.onboarding
 
     unless options.useHeaderNav
       facetsController    = options.facetsController or FeederFacetsController
@@ -47,7 +48,6 @@ class FeedController extends KDViewController
         view.addSubView @resultsController.getView()
         view.addSubView @facetsController.getView()
 
-
     super options, null
 
     options             = @getOptions()
@@ -73,7 +73,6 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-
     if filter
       unless @filters[filter]?
         filter = (Object.keys @filters).first

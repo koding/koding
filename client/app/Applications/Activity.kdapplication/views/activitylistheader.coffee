@@ -1,5 +1,8 @@
 class ActivityListHeader extends JView
 
+  __count = 0
+
+
   constructor:->
 
     super
@@ -20,7 +23,8 @@ class ActivityListHeader extends JView
       title        : "Live Updates: "
       size         : "tiny"
       callback     : (state) =>
-        @appStorage.setValue 'liveUpdates', state, =>
+        @_togglePollForUpdates state
+        @appStorage.setValue 'liveUpdates', state, ->
         @updateShowNewItemsLink()
         KD.getSingleton('activityController').flags = liveUpdates : state
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
@@ -54,10 +58,24 @@ class ActivityListHeader extends JView
       KD.getSingleton('activityController').flags = liveUpdates : state
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
+  _checkForUpdates: do (lastTs = null, lastCount = null) ->
+    itFailed = ->
+      console.warn 'seems like live updates stopped coming'
+      KD.logToExternal 'realtime failure detected'
+    ->
+      KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
+        itFailed()  if ts? and lastTs isnt ts and lastCount is __count
+        lastTs = ts; lastCount = __count
+
+  _togglePollForUpdates: do (i = null) -> (state) ->
+    if state then i = setInterval (@bound '_checkForUpdates'), 60 * 1000 # 1 minute
+    else clearInterval i
+
   pistachio:(newCount)->
     "<div class='header-wrapper'><span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
+    __count++
     @_newItemsCount++
     @updateShowNewItemsLink()
 
