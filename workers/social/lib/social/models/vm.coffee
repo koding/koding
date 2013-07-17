@@ -34,7 +34,6 @@ module.exports = class JVM extends Model
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
-                           'fixUserDomains'
                           ]
       instance          : []
     schema              :
@@ -89,9 +88,7 @@ module.exports = class JVM extends Model
       JDomain.assure { domain }, (err, domainObj) ->
         console.log err  if err
 
-        hostnameAliases = []
-        if domainObj.domain.indexOf("vm-") isnt -1
-          hostnameAliases.push hostnameAlias
+        hostnameAliases = [hostnameAlias]
 
         if domainObj.isNew
           domainObj.hostnameAlias = hostnameAliases
@@ -110,33 +107,6 @@ module.exports = class JVM extends Model
           domainObj.update { $set: fields }, (err)->
             console.log err  if err
             updateRelationship domainObj
-
-  @fixUserDomains = permit 'change bundle',
-    success: (client, callback)->
-      return callback new KodingError "You are not Koding admin."  if client.context.group isnt "koding"
-
-      JDomain = require './domain'
-      JUser   = require './user'
-
-      JVM.each {}, {}, (err, vm)=>
-        return callback err  if err
-        return callback null, null  unless vm
-        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-        hostnameAliases = JVM.createAliases {
-          nickname, type, uid, groupSlug
-        }
-        vmUser = vm.users.filter (u)->
-          return u.owner is yes
-        if vmUser.length > 0
-          JUser.one
-            _id: vmUser[0].id
-          , (err, user)=>
-            if not err and user
-              user.fetchAccount 'koding', (err, account)=>
-                console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
-                if not err and account
-                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
-                  @createDomains account, hostnameAliases, hostnameAliases[0]
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
@@ -476,6 +446,7 @@ module.exports = class JVM extends Model
       users = [
         { id: user.getId(), sudo: yes, owner: yes }
       ]
+
       hostnameAlias = hostnameAliases[0]
       groups       ?= []
 
