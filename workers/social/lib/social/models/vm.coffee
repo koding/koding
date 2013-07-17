@@ -277,6 +277,7 @@ module.exports = class JVM extends Model
           planCode      : vm.planCode
           planOwner     : vm.planOwner
           hostnameAlias : vm.hostnameAlias
+          type          : vm.vmType
 
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback

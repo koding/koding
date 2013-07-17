@@ -1401,7 +1401,7 @@ module.exports = class JGroup extends Module
           @getUserExpenses client, data, (err, expenses)->
             return callback no  if err
 
-            # Are expenses lower than allocation?
+            # TODO: Expense should be <= (Balance - Price)
             callback (expenses < bundle.allocation)
 
   getUserExpenses: secure (client, data, callback)->
