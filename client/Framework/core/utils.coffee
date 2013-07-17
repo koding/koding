@@ -731,6 +731,7 @@ __utils =
       type        : "POST"
       contentType : "application/json"
       data        : JSON.stringify {longUrl: url}
+      timeout     : 4000
       dataType    : "json"
 
     request.done (data)=>

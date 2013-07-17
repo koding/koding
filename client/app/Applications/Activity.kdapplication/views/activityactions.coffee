@@ -10,6 +10,8 @@ class ActivitySharePopup extends JView
       cssClass      : "share-input"
       type          : "text"
       placeholder   : "shortening..."
+      attributes    :
+        readonly    : yes
       width         : 50
 
     unless @getDelegate()._shorten
