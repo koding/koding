@@ -1,0 +1,1366 @@
+{
+    "activities": {
+        "1452": {
+            "_id": 1452,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-03T15:25:50.000Z",
+            "modifedAt": "2013-07-03T15:25:50.000Z",
+            "snapshot": "{\"_id\":1452,\"meta\":{\"modifiedAt\":\"2013-07-03T15:21:35.406Z\",\"likes\":0,\"createdAtEpoch\":1372864895,\"createdAt\":\"2013-07-03T15:21:35.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51d4418756a77fd90a000262\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51d4417fe03caa2f0a0003d9\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d4417fe03caa2f0a0003d9"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "2470": {
+            "_id": 2470,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:41:35.000Z",
+            "modifedAt": "2013-07-05T21:41:35.000Z",
+            "snapshot": "{\"_id\":2470,\"meta\":{\"modifiedAt\":\"2013-07-05T21:40:40.094Z\",\"likes\":0,\"createdAtEpoch\":1373060440,\"createdAt\":\"2013-07-05T21:40:40.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"50eac114bab57f0d1100027c\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d73d5873d886557f000402\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d73d5873d886557f000402"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "3574": {
+            "_id": 3574,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T10:57:02.000Z",
+            "modifiedAt": "2013-07-05T10:57:02.207Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6a67e58a9e30b460002a1"
+            ],
+            "snapshot": "{\"_id\":\"51d6a67e58a9e30b460002a1\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"i-always-get-this-error-on-httpkodingcom-blocked-a-frame-with-origin-httpsplayervimeocom-from-accessing-a-frame-with-origin-httpskodingcom-protocols-domains-and-ports-must-match-httpswfobjectv22js1-blocked-a-frame-with-origin-httpsplayervimeocom-from-acces\",\"link\":{\"link_url\":\"https://koding.com/\",\"link_embed\":{\"url\":\"https://koding.com/\",\"type\":\"html\",\"title\":\"Koding\",\"safe\":\"true\",\"provider_url\":\"https://koding.com\",\"provider_name\":\"Koding\",\"provider_display\":\"koding.com\",\"original_title\":\"Koding\",\"original_description\":\"Koding is your new development computer in your browser.\",\"images\":\"\",\"description\":\"Koding is your new development computer in your browser.\"}},\"slug_\":\"i-always-get-this-error-on-httpkodingcom-blocked-a-frame-with-origin-httpsplayervimeocom-from-accessing-a-frame-with-origin-httpskodingcom-protocols-domains-and-ports-must-match-httpswfobjectv22js1-blocked-a-frame-with-origin-httpsplayervimeocom-from-acces\",\"originId\":\"505862573b74222431003c58\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T10:57:02.207Z\",\"likes\":0,\"createdAtEpoch\":1373021822,\"createdAt\":\"2013-07-05T10:57:02.000Z\"},\"body\":\"I always get this error on http://koding.com: Blocked a frame with origin \\\"https://player.vimeo.com\\\" from accessing a frame with origin \\\"https://koding.com\\\". Protocols, domains, and ports must match. http://swfobject.v2.2.js:1\\nBlocked a frame with origin \\\"https://player.vimeo.com\\\" from accessing a frame with origin \\\"https://koding.com\\\". Protocols, domains, and ports must match. http://swfobject.v2.2.js:1\\nWebSocket connection to 'wss://broker-814.koding.com/subscribe/956/gti0okvi/websocket' failed: WebSocket is closed before the connection is established. http://sockjs-0.3-patched.js:1201\\nkd remote connected main.coffee:27\\nUnhandleable message; dropping it on the floor. \\n  So I can't open Koding in modern browsers (Opera, Chrome), only in w3m :(\\n\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            },
+            "originId": "505862573b74222431003c58",
+            "originType": "JAccount"
+        },
+        "4982": {
+            "_id": 4982,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T16:33:30.000Z",
+            "modifedAt": "2013-07-04T16:33:30.000Z",
+            "snapshot": "{\"_id\":4982,\"meta\":{\"modifiedAt\":\"2013-07-04T16:32:31.223Z\",\"likes\":0,\"createdAtEpoch\":1372955551,\"createdAt\":\"2013-07-04T16:32:31.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"504f86556f43ba24300017c3\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51d5a39f2e38f6a30b00006f\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d5a39f2e38f6a30b00006f"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "5697": {
+            "modifiedAt": "2013-07-05T22:36:06.000Z",
+            "createdAt": "2013-07-05T22:36:06.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 5697,
+            "snapshot": "{\"_id\":5697,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T22:36:06.636Z\",\"likes\":0,\"createdAtEpoch\":1373063766,\"createdAt\":\"2013-07-05T22:36:06.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d74a56d48c6d9e260002af\"}}",
+            "ids": [
+                "51d74a56d48c6d9e260002af"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "6977": {
+            "_id": 6977,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T21:22:31.000Z",
+            "modifiedAt": "2013-07-05T21:22:31.796Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d73917e05882cc23000269"
+            ],
+            "snapshot": "{\"_id\":\"51d73917e05882cc23000269\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"when-packaging-an-app-that-someone-else-wrote-do-i-put-my-name-in-the-manifest-file-or-do-i-put-the-original-authors-httpwwwymacsorg\",\"link\":{\"link_embed\":{\"images\":{\"0\":{\"width\":250,\"url\":\"http://www.ymacs.org/img/ymacs-small.png\",\"size\":23863,\"height\":178}},\"url\":\"http://www.ymacs.org\",\"type\":\"html\",\"title\":\"\",\"safe\":\"true\",\"provider_url\":\"http://www.ymacs.org\",\"provider_name\":\"Ymacs\",\"provider_display\":\"www.ymacs.org\",\"original_title\":\"\",\"original_description\":\"\",\"description\":\"\"},\"link_url\":\"http://www.ymacs.org\"},\"slug_\":\"when-packaging-an-app-that-someone-else-wrote-do-i-put-my-name-in-the-manifest-file-or-do-i-put-the-original-authors-httpwwwymacsorg\",\"originId\":\"504f7a16691e845c30002151\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T21:22:31.796Z\",\"likes\":0,\"createdAtEpoch\":1373059351,\"createdAt\":\"2013-07-05T21:22:31.000Z\"},\"body\":\"When packaging an app that someone else wrote, do I put my name in the manifest file, or do I put the original author's?\\n\\nhttp://www.ymacs.org\",\"attachments\":[],\"repliesCount\":1,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":1},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"4f14fa4d519ab4c62e000052\",\"body\":\"you should put your name on it, and you may keep the credits in the description and of course in the source files.\",\"meta\":{\"modifiedAt\":\"2013-07-05T21:34:30.565Z\",\"likes\":0,\"createdAtEpoch\":1373060070,\"createdAt\":\"2013-07-05T21:34:30.000Z\"},\"_id\":\"51d73be6b4fecd1702000257\",\"name\":\"JComment\",\"id\":\"51d73be6b4fecd1702000257\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":54,\"following\":0,\"followers\":5},\"title\":\"Koding App\",\"slug\":\"koding-app\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1356297474,\"createdAt\":\"2012-12-23T21:17:54.000Z\"},\"_id\":\"50d7750219b62e855000008e\",\"name\":\"JTag\",\"id\":\"50d7750219b62e855000008e\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 1,
+                "likesCount": 0,
+                "followerCount": 1
+            },
+            "originId": "504f7a16691e845c30002151",
+            "originType": "JAccount"
+        },
+        "9814": {
+            "_id": 9814,
+            "type": "CDiscussionActivity",
+            "createdAt": "2013-07-05T13:32:34.000Z",
+            "modifiedAt": "2013-07-05T13:32:34.383Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6caf2e33416200f0002bf"
+            ],
+            "snapshot": "{\"_id\":\"51d6caf2e33416200f0002bf\",\"bongo_\":{\"constructorName\":\"JDiscussion\"},\"slug\":\"chrome-and-koding\",\"title\":\"Chrome and koding\",\"slug_\":\"chrome-and-koding\",\"originId\":\"51d68d39dc02c492040002fa\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T13:32:34.383Z\",\"likes\":0,\"createdAtEpoch\":1373031154,\"createdAt\":\"2013-07-05T13:32:34.000Z\"},\"body\":\"How many people have lags with Chrome? I don't have some problems with firefox. Any ideas where problem?\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":2,\"counts\":{\"following\":0,\"followers\":2},\"tags\":[{\"counts\":{\"tagged\":0,\"post\":2,\"developer\":2,\"following\":0,\"followers\":21},\"title\":\"chrome\",\"slug_\":\"chrome\",\"slug\":\"chrome\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1344441216,\"createdAt\":\"2012-08-08T15:53:36.000Z\"},\"_id\":\"50228b80df4e5f1d48000b15\",\"name\":\"JTag\",\"id\":\"50228b80df4e5f1d48000b15\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}],\"opinions\":[{\"title\":\"Lags in chrome are caused by the video player.. turn flash off and it will be the fastest browser again\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"Lags in chrome are caused by the video player.. turn flash off and it will be the fastest browser again\",\"meta\":{\"modifiedAt\":\"2013-07-05T14:22:45.553Z\",\"likes\":0,\"createdAtEpoch\":1373034165,\"createdAt\":\"2013-07-05T14:22:45.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d6d6b5e33416200f000696\",\"name\":\"JOpinion\",\"id\":\"51d6d6b5e33416200f000696\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"I don't agree with DonKnGH26 personally.\\n\\nI experience what you are referring to, and made a small observational post the other day with similar results. As time goes on, tab selection seems to lag in Chrome, but not so with FireFox.\\n\\nThey're working on it, but it's been an ongoing problem. :)\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"509f22133de3bbc77b002677\",\"body\":\"I don't agree with DonKnGH26 personally.\\n\\nI experience what you are referring to, and made a small observational post the other day with similar results. As time goes on, tab selection seems to lag in Chrome, but not so with FireFox.\\n\\nThey're working on it, but it's been an ongoing problem. :)\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:04:40.392Z\",\"likes\":0,\"createdAtEpoch\":1373036680,\"createdAt\":\"2013-07-05T15:04:40.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d6e0880f58f06611000581\",\"name\":\"JOpinion\",\"id\":\"51d6e0880f58f06611000581\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}}]}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "51d68d39dc02c492040002fa",
+            "originType": "JAccount"
+        },
+        "12728": {
+            "_id": 12728,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T13:29:46.000Z",
+            "modifiedAt": "2013-07-05T13:29:46.056Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6ca4a8151fa280e000500"
+            ],
+            "snapshot": "{\"_id\":\"51d6ca4a8151fa280e000500\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"looks-like-apps-are-back-httpgrabbyocau\",\"link\":{\"link_embed\":{\"images\":{\"0\":{\"width\":521,\"url\":\"http://new.tinygrab.com/84493514cdc7054b939bf7460d5924396d9a4516b0.png\",\"size\":126255,\"height\":771}},\"url\":\"http://grab.by/ocAU\",\"type\":\"html\",\"title\":\"TinyGrab - Simple. Screenshot. Sharing.\",\"safe\":\"true\",\"provider_url\":\"http://grab.by\",\"provider_name\":\"Grab\",\"provider_display\":\"grab.by\",\"original_title\":\"TinyGrab - Simple. Screenshot. Sharing.\",\"original_description\":\"Picture shared with TinyGrab\",\"description\":\"Picture shared with TinyGrab\"},\"link_url\":\"http://grab.by/ocAU\"},\"slug_\":\"looks-like-apps-are-back-httpgrabbyocau\",\"originId\":\"500ecfdebb78a20b35000074\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T13:29:46.056Z\",\"likes\":1,\"createdAtEpoch\":1373030986,\"createdAt\":\"2013-07-05T13:29:46.000Z\"},\"body\":\"Looks like apps are back: http://grab.by/ocAU\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0},\"tags\":[{\"counts\":{\"tagged\":0,\"post\":54,\"following\":0,\"followers\":5},\"title\":\"Koding App\",\"slug\":\"koding-app\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1356297474,\"createdAt\":\"2012-12-23T21:17:54.000Z\"},\"_id\":\"50d7750219b62e855000008e\",\"name\":\"JTag\",\"id\":\"50d7750219b62e855000008e\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":2,\"following\":0,\"followers\":0},\"title\":\"install\",\"slug\":\"install\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1359451103,\"createdAt\":\"2013-01-29T09:18:23.000Z\"},\"_id\":\"510793df1713affd4a0001f2\",\"name\":\"JTag\",\"id\":\"510793df1713affd4a0001f2\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 1,
+                "followerCount": 0
+            },
+            "originId": "500ecfdebb78a20b35000074",
+            "originType": "JAccount"
+        },
+        "12744": {
+            "_id": 12744,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T11:20:44.000Z",
+            "modifiedAt": "2013-07-05T11:20:44.845Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6ac0cecb59ea9640004c0"
+            ],
+            "snapshot": "{\"_id\":\"51d6ac0cecb59ea9640004c0\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"what-it-the-best-way-to-avoid-sql-injections-from-your-website\",\"slug_\":\"what-it-the-best-way-to-avoid-sql-injections-from-your-website\",\"originId\":\"509a4c953a49ea0b44001c94\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T11:20:44.845Z\",\"likes\":0,\"createdAtEpoch\":1373023244,\"createdAt\":\"2013-07-05T11:20:44.000Z\"},\"body\":\"What it the best way to avoid sql injections from your website?\",\"attachments\":[],\"repliesCount\":4,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":3},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"509a4c953a49ea0b44001c94\",\"body\":\"php\",\"meta\":{\"modifiedAt\":\"2013-07-05T14:01:03.912Z\",\"likes\":0,\"createdAtEpoch\":1373032863,\"createdAt\":\"2013-07-05T14:01:03.000Z\"},\"_id\":\"51d6d19fe08875090d0009a5\",\"name\":\"JComment\",\"id\":\"51d6d19fe08875090d0009a5\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"5154cd8c092e5ca30e00004a\",\"body\":\"I recommend you to filter all POST and GET requests with mysql_real_escape_string() function. This func filters and validates values for mysql database. This questions needs some explanations.\",\"meta\":{\"modifiedAt\":\"2013-07-05T14:31:58.081Z\",\"likes\":0,\"createdAtEpoch\":1373034718,\"createdAt\":\"2013-07-05T14:31:58.000Z\"},\"_id\":\"51d6d8de15d000d369000a3a\",\"name\":\"JComment\",\"id\":\"51d6d8de15d000d369000a3a\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"Ergin that is OLD. The best way is to use prepared statements in PDO. Well it is easy too\",\"meta\":{\"modifiedAt\":\"2013-07-05T18:06:38.632Z\",\"likes\":0,\"createdAtEpoch\":1373047598,\"createdAt\":\"2013-07-05T18:06:38.000Z\"},\"_id\":\"51d70b2e4101a73f18000576\",\"name\":\"JComment\",\"id\":\"51d70b2e4101a73f18000576\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 4,
+                "likesCount": 0,
+                "followerCount": 3
+            },
+            "originId": "509a4c953a49ea0b44001c94",
+            "originType": "JAccount"
+        },
+        "12876": {
+            "_id": 12876,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:10:51.000Z",
+            "modifedAt": "2013-07-05T21:10:51.000Z",
+            "snapshot": "{\"_id\":12876,\"meta\":{\"modifiedAt\":\"2012-09-19T10:09:54.709Z\",\"likes\":0,\"createdAtEpoch\":1347385878,\"createdAt\":\"2012-09-11T17:51:18.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51ce194dce5e067d6500027b\",\"constructorName\":\"JApp\"},{\"id\":\"50eac114bab57f0d1100027c\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"504f7a16691e845c30002151\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "504f7a16691e845c30002151"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "13948": {
+            "_id": 13948,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T12:22:45.000Z",
+            "modifiedAt": "2013-07-05T12:22:45.027Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6ba95325660390d000061"
+            ],
+            "snapshot": "{\"_id\":\"51d6ba95325660390d000061\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"all-previous-files-are-gone\",\"slug_\":\"all-previous-files-are-gone\",\"originId\":\"505807f4994a92bd03003cf7\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T12:22:45.027Z\",\"likes\":0,\"createdAtEpoch\":1373026965,\"createdAt\":\"2013-07-05T12:22:45.000Z\"},\"body\":\"all previous files are gone?\",\"attachments\":[],\"repliesCount\":1,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":1},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"51092c81b65133f01d00021f\",\"body\":\"http://old.koding.com still accessible ;)\",\"meta\":{\"modifiedAt\":\"2013-07-05T12:26:29.856Z\",\"likes\":1,\"createdAtEpoch\":1373027189,\"createdAt\":\"2013-07-05T12:26:29.000Z\"},\"_id\":\"51d6bb75f8cfb1ba6a00006e\",\"name\":\"JComment\",\"id\":\"51d6bb75f8cfb1ba6a00006e\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 1,
+                "likesCount": 0,
+                "followerCount": 1
+            },
+            "originId": "505807f4994a92bd03003cf7",
+            "originType": "JAccount"
+        },
+        "14462": {
+            "modifiedAt": "2013-07-05T22:08:22.000Z",
+            "createdAt": "2013-07-05T22:08:22.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 14462,
+            "snapshot": "{\"_id\":14462,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T22:08:22.517Z\",\"likes\":0,\"createdAtEpoch\":1373062102,\"createdAt\":\"2013-07-05T22:08:22.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d743d6110b8e1126000116\"}}",
+            "ids": [
+                "51d743d6110b8e1126000116"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "15260": {
+            "modifiedAt": "2013-07-05T21:42:14.000Z",
+            "createdAt": "2013-07-05T21:42:14.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 15260,
+            "snapshot": "{\"_id\":15260,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:42:14.062Z\",\"likes\":0,\"createdAtEpoch\":1373060534,\"createdAt\":\"2013-07-05T21:42:14.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d73db6cbca181a0200023e\"}}",
+            "ids": [
+                "51d73db6cbca181a0200023e"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "16157": {
+            "_id": 16157,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T15:38:44.000Z",
+            "modifiedAt": "2013-07-05T15:38:44.769Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6e8844955839f110006aa"
+            ],
+            "snapshot": "{\"_id\":\"51d6e8844955839f110006aa\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"loading-the-terminal-seems-to-take-forever-is-it-possibly-caused-by-my-rather-slow-internet-connection\",\"slug_\":\"loading-the-terminal-seems-to-take-forever-is-it-possibly-caused-by-my-rather-slow-internet-connection\",\"originId\":\"51529935470ce5eb5100001a\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:38:44.769Z\",\"likes\":0,\"createdAtEpoch\":1373038724,\"createdAt\":\"2013-07-05T15:38:44.000Z\"},\"body\":\"Loading the terminal seems to take forever, is it possibly caused by my (rather slow) internet connection?\",\"attachments\":[],\"repliesCount\":2,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":2},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"Maybe.. Browser? Connection? Ping? Shared VM?\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:39:55.018Z\",\"likes\":0,\"createdAtEpoch\":1373038795,\"createdAt\":\"2013-07-05T15:39:55.000Z\"},\"_id\":\"51d6e8cb6e471ee772000135\",\"name\":\"JComment\",\"id\":\"51d6e8cb6e471ee772000135\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"50323bec836ef318490026d6\",\"body\":\"it seems like you deleted your VM?\",\"meta\":{\"modifiedAt\":\"2013-07-05T16:35:53.636Z\",\"likes\":0,\"createdAtEpoch\":1373042153,\"createdAt\":\"2013-07-05T16:35:53.000Z\"},\"_id\":\"51d6f5e933da153b71000415\",\"name\":\"JComment\",\"id\":\"51d6f5e933da153b71000415\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":83,\"developer\":3,\"following\":0,\"followers\":370},\"title\":\"terminal\",\"slug_\":\"terminal\",\"slug\":\"terminal\",\"group\":\"koding\",\"body\":\"A terminal emulator, terminal application, term, or tty for short, is a program that emulates a video terminal within some other display architecture.\",\"meta\":{\"createdAtEpoch\":1340168075,\"createdAt\":\"2012-06-20T04:54:35.000Z\"},\"_id\":\"4fe1578b96410cdf78000679\",\"name\":\"JTag\",\"id\":\"4fe1578b96410cdf78000679\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 2,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "51529935470ce5eb5100001a",
+            "originType": "JAccount"
+        },
+        "17536": {
+            "_id": 17536,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T20:42:40.000Z",
+            "modifedAt": "2013-07-05T20:42:40.000Z",
+            "snapshot": "{\"_id\":17536,\"meta\":{\"modifiedAt\":\"2013-07-05T20:31:27.610Z\",\"likes\":0,\"createdAtEpoch\":1373056287,\"createdAt\":\"2013-07-05T20:31:27.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51cd416d6b4b9c426c0003d3\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d72d1f953952db77000753\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d72d1f953952db77000753"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "19578": {
+            "_id": 19578,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T17:57:53.000Z",
+            "modifiedAt": "2013-07-05T17:57:53.696Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d709214101a73f18000520"
+            ],
+            "snapshot": "{\"_id\":\"51d709214101a73f18000520\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"have-you-all-noticed-that-when-making-a-php-file-your-html-must-come-before-the-php-part-that-is-kind-of-funny\",\"title\":\"\",\"slug_\":\"have-you-all-noticed-that-when-making-a-php-file-your-html-must-come-before-the-php-part-that-is-kind-of-funny\",\"originId\":\"51d5cc68fefb6a8411000091\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T17:57:53.696Z\",\"likes\":0,\"createdAtEpoch\":1373047073,\"createdAt\":\"2013-07-05T17:57:53.000Z\"},\"body\":\"Have you all noticed that when making a PHP file your html must come before the php part? That is kind of funny\\nClarification:  The HTML part of the code has to be written or placed above the PHP code for the page to render the HTML.\",\"attachments\":[],\"repliesCount\":7,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":4},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"Stefan here you do, I tried posting the forum after it doesn't show up. I found it kind of funny.\",\"meta\":{\"modifiedAt\":\"2013-07-05T18:27:52.441Z\",\"likes\":0,\"createdAtEpoch\":1373048872,\"createdAt\":\"2013-07-05T18:27:52.000Z\"},\"_id\":\"51d7102890659e211e000001\",\"name\":\"JComment\",\"id\":\"51d7102890659e211e000001\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"5023c21da07340c54a00113e\",\"body\":\"no, you can whatever order you want, this :\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:35:00.001Z\",\"likes\":0,\"createdAtEpoch\":1373056500,\"createdAt\":\"2013-07-05T20:35:00.000Z\"},\"_id\":\"51d72df40e366b58210002a2\",\"name\":\"JComment\",\"id\":\"51d72df40e366b58210002a2\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"5023c21da07340c54a00113e\",\"body\":\"HTML PHP, PHP HTML, HTML PHP HTML, PHP HTML PHP will all work\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:35:31.339Z\",\"likes\":0,\"createdAtEpoch\":1373056531,\"createdAt\":\"2013-07-05T20:35:31.000Z\"},\"_id\":\"51d72e13dcce35d41d0003e9\",\"name\":\"JComment\",\"id\":\"51d72e13dcce35d41d0003e9\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 7,
+                "likesCount": 0,
+                "followerCount": 4
+            },
+            "originId": "51d5cc68fefb6a8411000091",
+            "originType": "JAccount"
+        },
+        "19632": {
+            "modifiedAt": "2013-07-05T20:31:27.000Z",
+            "createdAt": "2013-07-05T20:31:27.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 19632,
+            "snapshot": "{\"_id\":19632,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T20:31:27.610Z\",\"likes\":0,\"createdAtEpoch\":1373056287,\"createdAt\":\"2013-07-05T20:31:27.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d72d1f953952db77000753\"}}",
+            "ids": [
+                "51d72d1f953952db77000753"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "20249": {
+            "_id": 20249,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T15:27:30.000Z",
+            "modifiedAt": "2013-07-05T15:27:30.259Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6e5e24955839f11000668"
+            ],
+            "snapshot": "{\"_id\":\"51d6e5e24955839f11000668\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"just-a-small-question-under-where-it-says-ram-usage-it-only-shows-me-nan-i-would-actually-like-to-know-my-ram-usage-is-there-any-way-to-fix-this-thanks-in-advance\",\"slug_\":\"just-a-small-question-under-where-it-says-ram-usage-it-only-shows-me-nan-i-would-actually-like-to-know-my-ram-usage-is-there-any-way-to-fix-this-thanks-in-advance\",\"originId\":\"500fe46a9d328dc234000e6b\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:27:30.259Z\",\"likes\":0,\"createdAtEpoch\":1373038050,\"createdAt\":\"2013-07-05T15:27:30.000Z\"},\"body\":\"Just a small question. Under where it says RAM usage, it only shows me \\\"NaN%\\\". I would actually like to know my RAM usage. Is there any way to fix this?\\nThanks in Advance!\",\"attachments\":[],\"repliesCount\":4,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":3},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"500fe46a9d328dc234000e6b\",\"body\":\"Gatta love Google! Thanks!\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:29:55.583Z\",\"likes\":0,\"createdAtEpoch\":1373038195,\"createdAt\":\"2013-07-05T15:29:55.000Z\"},\"_id\":\"51d6e6731316c5ce160000c2\",\"name\":\"JComment\",\"id\":\"51d6e6731316c5ce160000c2\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"51c9123fac611fb4720000d6\",\"body\":\"Yesterday I asked the same, and I was told it will be fixed today\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:29:55.210Z\",\"likes\":1,\"createdAtEpoch\":1373038195,\"createdAt\":\"2013-07-05T15:29:55.000Z\"},\"_id\":\"51d6e67333da153b710002a3\",\"name\":\"JComment\",\"id\":\"51d6e67333da153b710002a3\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"500fe46a9d328dc234000e6b\",\"body\":\"As you can tell, I'm pretty new to this VM thing that Koding is offering. \",\"meta\":{\"modifiedAt\":\"2013-07-05T15:31:33.719Z\",\"likes\":0,\"createdAtEpoch\":1373038293,\"createdAt\":\"2013-07-05T15:31:33.000Z\"},\"_id\":\"51d6e6d50f58f066110006c7\",\"name\":\"JComment\",\"id\":\"51d6e6d50f58f066110006c7\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":9,\"following\":0,\"followers\":0},\"title\":\"VM\",\"slug\":\"vm-1\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-06-27T03:33:13.687Z\",\"likes\":0,\"createdAtEpoch\":1372303993,\"createdAt\":\"2013-06-27T03:33:13.000Z\"},\"_id\":\"51cbb279a32db364660002d6\",\"name\":\"JTag\",\"id\":\"51cbb279a32db364660002d6\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":1,\"following\":0,\"followers\":0},\"title\":\"NaN%\",\"slug\":\"nan\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:27:30.382Z\",\"likes\":0,\"createdAtEpoch\":1373038050,\"createdAt\":\"2013-07-05T15:27:30.000Z\"},\"_id\":\"51d6e5e24955839f11000673\",\"name\":\"JTag\",\"id\":\"51d6e5e24955839f11000673\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":1,\"following\":0,\"followers\":0},\"title\":\"RAM Usage\",\"slug\":\"ram-usage\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:27:30.386Z\",\"likes\":0,\"createdAtEpoch\":1373038050,\"createdAt\":\"2013-07-05T15:27:30.000Z\"},\"_id\":\"51d6e5e24955839f11000675\",\"name\":\"JTag\",\"id\":\"51d6e5e24955839f11000675\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":1,\"following\":0,\"followers\":0},\"title\":\"RAM\",\"slug\":\"ram\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:27:30.373Z\",\"likes\":0,\"createdAtEpoch\":1373038050,\"createdAt\":\"2013-07-05T15:27:30.000Z\"},\"_id\":\"51d6e5e24955839f11000671\",\"name\":\"JTag\",\"id\":\"51d6e5e24955839f11000671\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 4,
+                "likesCount": 0,
+                "followerCount": 3
+            },
+            "originId": "500fe46a9d328dc234000e6b",
+            "originType": "JAccount"
+        },
+        "22584": {
+            "_id": 22584,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:53:00.000Z",
+            "modifedAt": "2013-07-05T21:53:00.000Z",
+            "snapshot": "{\"_id\":22584,\"meta\":{\"modifiedAt\":\"2012-09-19T10:08:11.782Z\",\"likes\":0,\"createdAtEpoch\":1345644630,\"createdAt\":\"2012-08-22T14:10:30.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51cd416d6b4b9c426c0003d3\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"5034e856c2ad0297220004fc\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "5034e856c2ad0297220004fc"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "27014": {
+            "_id": 27014,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T02:39:30.000Z",
+            "modifedAt": "2013-07-04T02:39:30.000Z",
+            "snapshot": "{\"_id\":27014,\"meta\":{\"modifiedAt\":\"2013-05-19T09:17:40.432Z\",\"likes\":0,\"createdAtEpoch\":1368955060,\"createdAt\":\"2013-05-19T09:17:40.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4fd59efbc2b03809550001fd\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"519898b40aedc2813d000004\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "519898b40aedc2813d000004"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "27142": {
+            "_id": 27142,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T22:01:55.000Z",
+            "modifedAt": "2013-07-05T22:01:55.000Z",
+            "snapshot": "{\"_id\":27142,\"meta\":{\"modifiedAt\":\"2012-09-19T10:09:09.471Z\",\"likes\":0,\"createdAtEpoch\":1346736703,\"createdAt\":\"2012-09-04T05:31:43.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JTag\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"50238d54a6ac3e140300100d\",\"constructorName\":\"JTag\"},{\"id\":\"5012f3b7d3694867170003eb\",\"constructorName\":\"JTag\"},{\"id\":\"4fa27af7cb98c666410004a5\",\"constructorName\":\"JTag\"},{\"id\":\"4fa27b09cb98c666410004b2\",\"constructorName\":\"JTag\"},{\"id\":\"4fa2b50e711afcef710000a0\",\"constructorName\":\"JTag\"},{\"id\":\"4fa2b50e711afcef7100009f\",\"constructorName\":\"JTag\"},{\"id\":\"4fa130e270a3d6527f0003d3\",\"constructorName\":\"JTag\"},{\"id\":\"4fa0c79670a3d6527f0001b1\",\"constructorName\":\"JTag\"},{\"id\":\"4fa2fd81968584b718000275\",\"constructorName\":\"JTag\"},{\"id\":\"4f6b4c31fffc330a170000d6\",\"constructorName\":\"JTag\"},{\"id\":\"4fa0c79670a3d6527f0001b2\",\"constructorName\":\"JTag\"},{\"id\":\"4f74bc9dcb8452bc2200022f\",\"constructorName\":\"JTag\"},{\"id\":\"4fa1486d70a3d6527f0005bd\",\"constructorName\":\"JTag\"}],\"anchor\":{\"id\":\"5045923f8e10713a1c001b80\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "5045923f8e10713a1c001b80"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "27450": {
+            "modifiedAt": "2013-07-05T22:41:27.000Z",
+            "createdAt": "2013-07-05T22:41:27.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 27450,
+            "snapshot": "{\"_id\":27450,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T22:41:27.759Z\",\"likes\":0,\"createdAtEpoch\":1373064087,\"createdAt\":\"2013-07-05T22:41:27.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d74b972dda9279020003ef\"}}",
+            "ids": [
+                "51d74b972dda9279020003ef"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "28081": {
+            "_id": 28081,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T20:33:05.000Z",
+            "modifiedAt": "2013-07-05T20:33:05.979Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d72d810ebfddcd22000151"
+            ],
+            "snapshot": "{\"_id\":\"51d72d810ebfddcd22000151\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"i-keep-seeing-a-vm-is-not-active-page-when-trying-to-visit-my-site-httpkasimahmickdio-ive-turned-my-vm-off-and-back-on-again-but-nothings-changing-also-i-dont-see-the-environment-settings-that-the-page-mentions-anywhere-is-something-wrong-with-koding-atm\",\"slug_\":\"i-keep-seeing-a-vm-is-not-active-page-when-trying-to-visit-my-site-httpkasimahmickdio-ive-turned-my-vm-off-and-back-on-again-but-nothings-changing-also-i-dont-see-the-environment-settings-that-the-page-mentions-anywhere-is-something-wrong-with-koding-atm\",\"originId\":\"514a2f9511e805b139000067\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:33:05.979Z\",\"likes\":0,\"createdAtEpoch\":1373056385,\"createdAt\":\"2013-07-05T20:33:05.000Z\"},\"body\":\"I keep seeing a \\\"Vm is not active\\\" page when trying to visit my site: http://kasimahmic.kd.io/ I've turned my VM off and back on again but nothing's changing. Also, I don't see the \\\"Environment Settings\\\" that the page mentions anywhere. Is something wrong with Koding atm?\",\"attachments\":[],\"repliesCount\":1,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":1},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"Your environment settings are where you turn your VM on and off and do the other stuff with it. Probably the server your VM is on is down? \",\"meta\":{\"modifiedAt\":\"2013-07-05T20:58:56.137Z\",\"likes\":0,\"createdAtEpoch\":1373057936,\"createdAt\":\"2013-07-05T20:58:56.000Z\"},\"_id\":\"51d73390e05882cc23000185\",\"name\":\"JComment\",\"id\":\"51d73390e05882cc23000185\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 1,
+                "likesCount": 0,
+                "followerCount": 1
+            },
+            "originId": "514a2f9511e805b139000067",
+            "originType": "JAccount"
+        },
+        "28968": {
+            "_id": 28968,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T14:33:00.000Z",
+            "modifiedAt": "2013-07-05T14:33:00.899Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6d91c424a19720e000779"
+            ],
+            "snapshot": "{\"_id\":\"51d6d91c424a19720e000779\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"why-i-still-have-access-to-a-shared-vm-but-no-access-to-my-own-ive-deleted-the-shared-hours-ago\",\"slug_\":\"why-i-still-have-access-to-a-shared-vm-but-no-access-to-my-own-ive-deleted-the-shared-hours-ago\",\"originId\":\"505862573b74222431003c58\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T14:33:00.899Z\",\"likes\":0,\"createdAtEpoch\":1373034780,\"createdAt\":\"2013-07-05T14:33:00.000Z\"},\"body\":\"Why I still have access to a shared VM, but no access to my own? (I've deleted the shared hours ago!)\",\"attachments\":[],\"repliesCount\":5,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":3},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"51c9123fac611fb4720000d6\",\"body\":\"print\",\"meta\":{\"modifiedAt\":\"2013-07-05T14:42:46.428Z\",\"likes\":0,\"createdAtEpoch\":1373035366,\"createdAt\":\"2013-07-05T14:42:46.000Z\"},\"_id\":\"51d6db66f8cfb1ba6a000a40\",\"name\":\"JComment\",\"id\":\"51d6db66f8cfb1ba6a000a40\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"51d6a2663e63097f440000f1\",\"body\":\"i think, thats users configs refreshes once-twice a day. wait 4 tommorow and look.\",\"meta\":{\"modifiedAt\":\"2013-07-05T14:50:23.818Z\",\"likes\":0,\"createdAtEpoch\":1373035823,\"createdAt\":\"2013-07-05T14:50:23.000Z\"},\"_id\":\"51d6dd2f4955839f110004a5\",\"name\":\"JComment\",\"id\":\"51d6dd2f4955839f110004a5\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"@still OK, I'll try it tomorrow\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:06:56.789Z\",\"likes\":0,\"createdAtEpoch\":1373036816,\"createdAt\":\"2013-07-05T15:06:56.000Z\"},\"_id\":\"51d6e110b693209e1300029c\",\"name\":\"JComment\",\"id\":\"51d6e110b693209e1300029c\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 5,
+                "likesCount": 0,
+                "followerCount": 3
+            },
+            "originId": "505862573b74222431003c58",
+            "originType": "JAccount"
+        },
+        "30980": {
+            "_id": 30980,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:54:58.000Z",
+            "modifedAt": "2013-07-05T21:54:58.000Z",
+            "snapshot": "{\"_id\":30980,\"meta\":{\"modifiedAt\":\"2013-07-05T21:45:48.000Z\",\"likes\":0,\"createdAtEpoch\":1373060748,\"createdAt\":\"2013-07-05T21:45:48.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"50eac114bab57f0d1100027c\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d73e8ccbca181a02000274\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d73e8ccbca181a02000274"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "32516": {
+            "modifiedAt": "2013-07-05T20:41:04.000Z",
+            "createdAt": "2013-07-05T20:41:04.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 32516,
+            "snapshot": "{\"_id\":32516,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T20:41:04.622Z\",\"likes\":0,\"createdAtEpoch\":1373056864,\"createdAt\":\"2013-07-05T20:41:04.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d72f600e366b58210002e8\"}}",
+            "ids": [
+                "51d72f600e366b58210002e8"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "33331": {
+            "_id": 33331,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T16:33:24.000Z",
+            "modifedAt": "2013-07-04T16:33:24.000Z",
+            "snapshot": "{\"_id\":33331,\"meta\":{\"modifiedAt\":\"2012-09-19T10:09:55.794Z\",\"likes\":0,\"createdAtEpoch\":1347389013,\"createdAt\":\"2012-09-11T18:43:33.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51d5a39f2e38f6a30b00006f\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"504f86556f43ba24300017c3\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "504f86556f43ba24300017c3"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "33568": {
+            "modifiedAt": "2013-07-05T21:03:46.000Z",
+            "createdAt": "2013-07-05T21:03:46.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 33568,
+            "snapshot": "{\"_id\":33568,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:03:46.916Z\",\"likes\":0,\"createdAtEpoch\":1373058226,\"createdAt\":\"2013-07-05T21:03:46.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d734b204f5b38120000392\"}}",
+            "ids": [
+                "51d734b204f5b38120000392"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "34100": {
+            "modifiedAt": "2013-07-05T21:07:34.000Z",
+            "createdAt": "2013-07-05T21:07:34.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 34100,
+            "snapshot": "{\"_id\":34100,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:07:34.092Z\",\"likes\":0,\"createdAtEpoch\":1373058454,\"createdAt\":\"2013-07-05T21:07:34.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d73596cbca181a0200018b\"}}",
+            "ids": [
+                "51d73596cbca181a0200018b"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "34260": {
+            "_id": 34260,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T02:29:21.000Z",
+            "modifedAt": "2013-07-04T02:29:21.000Z",
+            "snapshot": "{\"_id\":34260,\"meta\":{\"modifiedAt\":\"2013-06-25T03:04:15.131Z\",\"likes\":0,\"createdAtEpoch\":1372129455,\"createdAt\":\"2013-06-25T03:04:15.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4fa3e5bb60b6742a650007ef\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51c908afac611fb472000087\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51c908afac611fb472000087"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "36963": {
+            "modifiedAt": "2013-07-05T20:53:02.000Z",
+            "createdAt": "2013-07-05T20:53:02.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 36963,
+            "snapshot": "{\"_id\":36963,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T20:53:02.441Z\",\"likes\":0,\"createdAtEpoch\":1373057582,\"createdAt\":\"2013-07-05T20:53:02.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d7322eb4fecd1702000082\"}}",
+            "ids": [
+                "51d7322eb4fecd1702000082"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "38344": {
+            "_id": 38344,
+            "type": "CCodeSnipActivity",
+            "createdAt": "2013-07-05T19:13:55.000Z",
+            "modifiedAt": "2013-07-05T19:13:55.542Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d71af395324f441e00033e"
+            ],
+            "snapshot": "{\"_id\":\"51d71af395324f441e00033e\",\"bongo_\":{\"constructorName\":\"JCodeSnip\"},\"slug\":\"php-comments\",\"title\":\"PHP Comments\",\"slug_\":\"php-comments\",\"originId\":\"51d5cc68fefb6a8411000091\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:13:55.542Z\",\"likes\":0,\"createdAtEpoch\":1373051635,\"createdAt\":\"2013-07-05T19:13:55.000Z\"},\"body\":\"For some reason this isn't working....  Am I doing something wrong?\",\"attachments\":{\"0\":{\"type\":\"JCodeAttachment\",\"syntax\":\"javascript\",\"content\":\"$db = new PDO('mysql:host=localhost;dbname=comments;charset=utf8', 'root@localhost', 'notmypassword');\\n$name=$_POST['name'];\\n$comment=$_POST['comment'];\\n$submit=$_POST['post'];\\nif($_POST['name'] && $_POST['comment']  && $submit){\\n$STH = $db->prepare(\\\"INSERT INTO `comments` (`name`, `comment`) VALUES (:name, :comment)\\\");\\n$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);\\n$STH->bindParam(':name', $name,PDO::PARAM_STR); \\n$STH->bindParam(':comment', $comment,PDO::PARAM_STR); \\n$STH->execute(); \"}},\"repliesCount\":2,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":2},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"51c9123fac611fb4720000d6\",\"body\":\"Try   if( ($name) && ($comment) && ($submit) ){\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:22:41.423Z\",\"likes\":0,\"createdAtEpoch\":1373055761,\"createdAt\":\"2013-07-05T20:22:41.000Z\"},\"_id\":\"51d72b110ebfddcd220000e3\",\"name\":\"JComment\",\"id\":\"51d72b110ebfddcd220000e3\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"It doesn't work.\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:29:42.001Z\",\"likes\":0,\"createdAtEpoch\":1373056182,\"createdAt\":\"2013-07-05T20:29:42.000Z\"},\"_id\":\"51d72cb60ebfddcd22000105\",\"name\":\"JComment\",\"id\":\"51d72cb60ebfddcd22000105\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":1,\"developer\":37,\"following\":0,\"followers\":8},\"title\":\"PHP + MySQL\",\"slug\":\"php-+-mysql\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1364670640,\"createdAt\":\"2013-03-30T19:10:40.000Z\"},\"_id\":\"515738b0ed04a74c0a000056\",\"name\":\"JTag\",\"id\":\"515738b0ed04a74c0a000056\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":197,\"developer\":922,\"following\":0,\"followers\":5322},\"title\":\"PHP\",\"slug_\":\"php-2\",\"slug\":\"php-2\",\"group\":\"koding\",\"body\":\"PHP is a general-purpose server-side scripting language originally designed for Web development to produce dynamic Web pages. It is one of the first developed server-side scripting languages to be embedded into an HTML source document rather than calling an external file to process data.\",\"meta\":{\"createdAtEpoch\":1333050525,\"createdAt\":\"2012-03-29T19:48:45.000Z\"},\"_id\":\"4f74bc9dcb8452bc2200022f\",\"name\":\"JTag\",\"id\":\"4f74bc9dcb8452bc2200022f\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":2,\"developer\":3,\"following\":0,\"followers\":3},\"title\":\"PDO\",\"slug_\":\"pdo\",\"slug\":\"pdo\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1344771821,\"createdAt\":\"2012-08-12T11:43:41.000Z\"},\"_id\":\"502796ed994eb18148001bbf\",\"name\":\"JTag\",\"id\":\"502796ed994eb18148001bbf\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 2,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "51d5cc68fefb6a8411000091",
+            "originType": "JAccount"
+        },
+        "39450": {
+            "_id": 39450,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T22:48:55.000Z",
+            "modifedAt": "2013-07-05T22:48:55.000Z",
+            "snapshot": "{\"_id\":39450,\"meta\":{\"modifiedAt\":\"2013-07-05T22:41:52.688Z\",\"likes\":0,\"createdAtEpoch\":1373064112,\"createdAt\":\"2013-07-05T22:41:52.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51cfdf74bbbbcc216e000021\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d74bb05731e98804000259\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d74bb05731e98804000259"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "42161": {
+            "_id": 42161,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T22:35:53.000Z",
+            "modifedAt": "2013-07-05T22:35:53.000Z",
+            "snapshot": "{\"_id\":42161,\"meta\":{\"modifiedAt\":\"2012-09-19T10:10:21.440Z\",\"likes\":0,\"createdAtEpoch\":1347906836,\"createdAt\":\"2012-09-17T18:33:56.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51c0f6d08c1292c1720000d7\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"50576d1438c973c02f002d3d\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "50576d1438c973c02f002d3d"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "46754": {
+            "_id": 46754,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T05:44:02.000Z",
+            "modifedAt": "2013-07-04T05:44:02.000Z",
+            "snapshot": "{\"_id\":46754,\"meta\":{\"modifiedAt\":\"2013-05-11T15:02:32.909Z\",\"likes\":0,\"createdAtEpoch\":1368284552,\"createdAt\":\"2013-05-11T15:02:32.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"5034f36ca427bb73220005c0\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"518e5d8860c170470f000026\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "518e5d8860c170470f000026"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "47030": {
+            "_id": 47030,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:52:13.000Z",
+            "modifedAt": "2013-07-05T21:52:13.000Z",
+            "snapshot": "{\"_id\":47030,\"meta\":{\"modifiedAt\":\"2013-07-05T21:42:14.062Z\",\"likes\":0,\"createdAtEpoch\":1373060534,\"createdAt\":\"2013-07-05T21:42:14.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51d09564f3b789c50c000207\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d73db6cbca181a0200023e\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d73db6cbca181a0200023e"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "48549": {
+            "_id": 48549,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T11:31:50.000Z",
+            "modifiedAt": "2013-07-05T11:31:50.335Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6aea6541392d80a00003e"
+            ],
+            "snapshot": "{\"_id\":\"51d6aea6541392d80a00003e\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"how-do-i-attach-my-vm-to-filetree\",\"slug_\":\"how-do-i-attach-my-vm-to-filetree\",\"originId\":\"50558e82ded2bd842d003944\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T11:31:50.335Z\",\"likes\":0,\"createdAtEpoch\":1373023910,\"createdAt\":\"2013-07-05T11:31:50.000Z\"},\"body\":\"How do I attach my VM to filetree?\\n\",\"attachments\":[],\"repliesCount\":2,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":2},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"Develop->right corner->your enviroments->%your vm-name%-> show in filetree\",\"meta\":{\"modifiedAt\":\"2013-07-05T11:57:25.399Z\",\"likes\":0,\"createdAtEpoch\":1373025445,\"createdAt\":\"2013-07-05T11:57:25.000Z\"},\"_id\":\"51d6b4a5796efbd90b000133\",\"name\":\"JComment\",\"id\":\"51d6b4a5796efbd90b000133\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"5076a31a1c45d48059001d74\",\"body\":\"Правой кнопкой, там будет тумблер\",\"meta\":{\"modifiedAt\":\"2013-07-05T12:16:13.879Z\",\"likes\":0,\"createdAtEpoch\":1373026573,\"createdAt\":\"2013-07-05T12:16:13.000Z\"},\"_id\":\"51d6b90dd85ddba20c000263\",\"name\":\"JComment\",\"id\":\"51d6b90dd85ddba20c000263\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 2,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "50558e82ded2bd842d003944",
+            "originType": "JAccount"
+        },
+        "51370": {
+            "_id": 51370,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T16:15:49.000Z",
+            "modifedAt": "2013-07-05T16:15:49.000Z",
+            "snapshot": "{\"_id\":51370,\"meta\":{\"modifiedAt\":\"2012-09-19T10:09:02.496Z\",\"likes\":0,\"createdAtEpoch\":1346580891,\"createdAt\":\"2012-09-02T10:14:51.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"5044e801bc697a161d00137a\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"5043319b264aaba71d0010f9\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "5043319b264aaba71d0010f9"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "52000": {
+            "modifiedAt": "2013-07-05T22:39:45.000Z",
+            "createdAt": "2013-07-05T22:39:45.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 52000,
+            "snapshot": "{\"_id\":52000,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T22:39:45.402Z\",\"likes\":0,\"createdAtEpoch\":1373063985,\"createdAt\":\"2013-07-05T22:39:45.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d74b3173d886557f00060d\"}}",
+            "ids": [
+                "51d74b3173d886557f00060d"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "52763": {
+            "modifiedAt": "2013-07-05T22:41:52.000Z",
+            "createdAt": "2013-07-05T22:41:52.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 52763,
+            "snapshot": "{\"_id\":52763,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T22:41:52.688Z\",\"likes\":0,\"createdAtEpoch\":1373064112,\"createdAt\":\"2013-07-05T22:41:52.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d74bb05731e98804000259\"}}",
+            "ids": [
+                "51d74bb05731e98804000259"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "55305": {
+            "_id": 55305,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T22:10:04.000Z",
+            "modifedAt": "2013-07-05T22:10:04.000Z",
+            "snapshot": "{\"_id\":55305,\"meta\":{\"modifiedAt\":\"2013-07-05T20:41:04.622Z\",\"likes\":0,\"createdAtEpoch\":1373056864,\"createdAt\":\"2013-07-05T20:41:04.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JTag\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4fa2b4d9711afcef7100008d\",\"constructorName\":\"JTag\"},{\"id\":\"4fa2b4d9711afcef7100008d\",\"constructorName\":\"JTag\"}],\"anchor\":{\"id\":\"51d72f600e366b58210002e8\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d72f600e366b58210002e8"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "57731": {
+            "_id": 57731,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T22:00:54.000Z",
+            "modifedAt": "2013-07-05T22:00:54.000Z",
+            "snapshot": "{\"_id\":57731,\"meta\":{\"modifiedAt\":\"2013-07-05T21:57:55.522Z\",\"likes\":0,\"createdAtEpoch\":1373061475,\"createdAt\":\"2013-07-05T21:57:55.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JTag\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4fa0c7dd70a3d6527f0001e1\",\"constructorName\":\"JTag\"},{\"id\":\"4fa2fd81968584b718000275\",\"constructorName\":\"JTag\"},{\"id\":\"4fa2b4d9711afcef7100008e\",\"constructorName\":\"JTag\"},{\"id\":\"4f6b4c31fffc330a170000d6\",\"constructorName\":\"JTag\"},{\"id\":\"4f74bc9dcb8452bc2200022f\",\"constructorName\":\"JTag\"}],\"anchor\":{\"id\":\"51d74163c895030103000294\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d74163c895030103000294"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "59293": {
+            "_id": 59293,
+            "type": "CDiscussionActivity",
+            "createdAt": "2013-07-05T15:56:53.000Z",
+            "modifiedAt": "2013-07-05T15:56:53.573Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6ecc510eef27c710003a5"
+            ],
+            "snapshot": "{\"_id\":\"51d6ecc510eef27c710003a5\",\"bongo_\":{\"constructorName\":\"JDiscussion\"},\"slug\":\"best-browser\",\"title\":\"Best Browser\",\"slug_\":\"best-browser\",\"originId\":\"505862573b74222431003c58\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:56:53.573Z\",\"likes\":1,\"createdAtEpoch\":1373039813,\"createdAt\":\"2013-07-05T15:56:53.000Z\"},\"body\":\"Let's discuss a little bit about the best browser for Koding...\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":6,\"counts\":{\"following\":0,\"followers\":5},\"opinions\":[{\"title\":\"i forget to say that i use firefox 23.0 p:\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"50a0b8f0e17d50c97b005961\",\"body\":\"i forget to say that i use firefox 23.0 p:\",\"meta\":{\"modifiedAt\":\"2013-07-05T16:31:13.814Z\",\"likes\":0,\"createdAtEpoch\":1373041873,\"createdAt\":\"2013-07-05T16:31:13.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d6f4d1e33416200f000c23\",\"name\":\"JOpinion\",\"id\":\"51d6f4d1e33416200f000c23\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"Firefox is the BEST (using Nightly UX 25.0 with cutting edge Australis UI)\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"5023c21da07340c54a00113e\",\"body\":\"Firefox is the BEST (using Nightly UX 25.0 with cutting edge Australis UI)\",\"meta\":{\"modifiedAt\":\"2013-07-05T17:27:00.439Z\",\"likes\":0,\"createdAtEpoch\":1373045220,\"createdAt\":\"2013-07-05T17:27:00.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d701e4b736f6ba180002a3\",\"name\":\"JOpinion\",\"id\":\"51d701e4b736f6ba180002a3\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"I'm using Chrome at the office, but at home I usually access via Opera. Though I prefer Opera myself, Koding seems to run smoother in Chrome. I suppose because of the Webkit optimization Stefan mentioned above.\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"50f25437b26e02f3450000e6\",\"body\":\"I'm using Chrome at the office, but at home I usually access via Opera. Though I prefer Opera myself, Koding seems to run smoother in Chrome. I suppose because of the Webkit optimization Stefan mentioned above.\",\"meta\":{\"modifiedAt\":\"2013-07-05T18:18:29.130Z\",\"likes\":0,\"createdAtEpoch\":1373048309,\"createdAt\":\"2013-07-05T18:18:29.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d70df5d78beb667a0001b7\",\"name\":\"JOpinion\",\"id\":\"51d70df5d78beb667a0001b7\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}}]}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 1,
+                "followerCount": 5
+            },
+            "originId": "505862573b74222431003c58",
+            "originType": "JAccount"
+        },
+        "60619": {
+            "_id": 60619,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T15:07:53.000Z",
+            "modifiedAt": "2013-07-05T15:07:53.604Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6e149424a19720e0008d0"
+            ],
+            "snapshot": "{\"_id\":\"51d6e149424a19720e0008d0\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"what-ports-are-open-on-the-vm-that-we-can-use\",\"slug_\":\"what-ports-are-open-on-the-vm-that-we-can-use\",\"originId\":\"500fe46a9d328dc234000e6b\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:07:53.604Z\",\"likes\":0,\"createdAtEpoch\":1373036873,\"createdAt\":\"2013-07-05T15:07:53.000Z\"},\"body\":\"What ports are open on the vm that we can use?\",\"attachments\":[],\"repliesCount\":17,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":5},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"509f22133de3bbc77b002677\",\"body\":\"@youreevil I don't believe it is port 80-1000. We have ports 80, 443 forwarded, but then i think all below 1000 are reserved. So truly open ports are like 1000 -> 10,000. Something like that. @kiwigeraint can confirm :).\",\"meta\":{\"modifiedAt\":\"2013-07-05T16:18:41.184Z\",\"likes\":0,\"createdAtEpoch\":1373041121,\"createdAt\":\"2013-07-05T16:18:41.000Z\"},\"_id\":\"51d6f1e15e1d33a717000178\",\"name\":\"JComment\",\"id\":\"51d6f1e15e1d33a717000178\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"501a23675487738958000497\",\"body\":\"Ports between 1024 - 10,000 are available.\",\"meta\":{\"modifiedAt\":\"2013-07-05T18:59:16.540Z\",\"likes\":1,\"createdAtEpoch\":1373050756,\"createdAt\":\"2013-07-05T18:59:16.000Z\"},\"_id\":\"51d7178423fef2911a00045a\",\"name\":\"JComment\",\"id\":\"51d7178423fef2911a00045a\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"509f22133de3bbc77b002677\",\"body\":\"Hmm, i swore i tested and 1000 was open. Perhaps i was wrong :)\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:01:15.671Z\",\"likes\":0,\"createdAtEpoch\":1373050875,\"createdAt\":\"2013-07-05T19:01:15.000Z\"},\"_id\":\"51d717fb90659e211e000145\",\"name\":\"JComment\",\"id\":\"51d717fb90659e211e000145\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":4,\"following\":0,\"followers\":1},\"title\":\"port\",\"slug_\":\"port\",\"slug\":\"port\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1343913085,\"createdAt\":\"2012-08-02T13:11:25.000Z\"},\"_id\":\"501a7c7dded0f39b3400000b\",\"name\":\"JTag\",\"id\":\"501a7c7dded0f39b3400000b\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":9,\"following\":0,\"followers\":0},\"title\":\"VM\",\"slug\":\"vm-1\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-06-27T03:33:13.687Z\",\"likes\":0,\"createdAtEpoch\":1372303993,\"createdAt\":\"2013-06-27T03:33:13.000Z\"},\"_id\":\"51cbb279a32db364660002d6\",\"name\":\"JTag\",\"id\":\"51cbb279a32db364660002d6\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":10,\"developer\":7,\"following\":0,\"followers\":44},\"title\":\"Minecraft\",\"slug_\":\"minecraft\",\"slug\":\"minecraft\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1343861954,\"createdAt\":\"2012-08-01T22:59:14.000Z\"},\"_id\":\"5019b4c2e59506181b000d52\",\"name\":\"JTag\",\"id\":\"5019b4c2e59506181b000d52\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":1,\"following\":0,\"followers\":0},\"title\":\"open\",\"slug\":\"open\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:07:53.829Z\",\"likes\":0,\"createdAtEpoch\":1373036873,\"createdAt\":\"2013-07-05T15:07:53.000Z\"},\"_id\":\"51d6e149424a19720e0008dc\",\"name\":\"JTag\",\"id\":\"51d6e149424a19720e0008dc\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 17,
+                "likesCount": 0,
+                "followerCount": 5
+            },
+            "originId": "500fe46a9d328dc234000e6b",
+            "originType": "JAccount"
+        },
+        "64690": {
+            "modifiedAt": "2013-07-05T21:55:33.000Z",
+            "createdAt": "2013-07-05T21:55:33.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 64690,
+            "snapshot": "{\"_id\":64690,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:55:33.102Z\",\"likes\":0,\"createdAtEpoch\":1373061333,\"createdAt\":\"2013-07-05T21:55:33.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d740d5110b8e11260000dd\"}}",
+            "ids": [
+                "51d740d5110b8e11260000dd"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "64941": {
+            "_id": 64941,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T02:38:25.000Z",
+            "modifedAt": "2013-07-04T02:38:25.000Z",
+            "snapshot": "{\"_id\":64941,\"meta\":{\"modifiedAt\":\"2012-09-19T09:59:06.817Z\",\"likes\":0,\"createdAtEpoch\":1336141243,\"createdAt\":\"2012-05-04T14:20:43.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51c908afac611fb472000087\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"4fa3e5bb60b6742a650007ef\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "4fa3e5bb60b6742a650007ef"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "68603": {
+            "_id": 68603,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T19:34:19.000Z",
+            "modifiedAt": "2013-07-05T19:34:19.739Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d71fbb90659e211e000265"
+            ],
+            "snapshot": "{\"_id\":\"51d71fbb90659e211e000265\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"arrgh-i-am-getting-the-error-2002-hy00-connection-for-controluser-as-defined-in-your-configuration-failed-when-using-the-mysql-installer-any-ideas-on-how-to-fix-this\",\"slug_\":\"arrgh-i-am-getting-the-error-2002-hy00-connection-for-controluser-as-defined-in-your-configuration-failed-when-using-the-mysql-installer-any-ideas-on-how-to-fix-this\",\"originId\":\"5021f4d8836ef318490006cc\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:34:19.739Z\",\"likes\":0,\"createdAtEpoch\":1373052859,\"createdAt\":\"2013-07-05T19:34:19.000Z\"},\"body\":\"Arrgh I am getting the error 2002 (hy00) Connection for controluser as defined in your configuration failed. when using the MySQL installer. Any ideas on how to fix this?\",\"attachments\":[],\"repliesCount\":9,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":2},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"5021f4d8836ef318490006cc\",\"body\":\"i stuck a -a on the end of your suggestion and got a bit further but now initram-fs tools is broken. sigh\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:46:34.458Z\",\"likes\":0,\"createdAtEpoch\":1373053594,\"createdAt\":\"2013-07-05T19:46:34.000Z\"},\"_id\":\"51d7229ad68e32e67a000427\",\"name\":\"JComment\",\"id\":\"51d7229ad68e32e67a000427\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"Wait did you reconfigure phpmyadmin?\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:10:28.789Z\",\"likes\":0,\"createdAtEpoch\":1373055028,\"createdAt\":\"2013-07-05T20:10:28.000Z\"},\"_id\":\"51d72834d68e32e67a00050c\",\"name\":\"JComment\",\"id\":\"51d72834d68e32e67a00050c\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"What DB do you want to use? I can give you the exact package system for that. Once you install your database of choice do\\nsudo dpkg-reconfigure phpmyadmin\",\"meta\":{\"modifiedAt\":\"2013-07-05T20:12:23.171Z\",\"likes\":0,\"createdAtEpoch\":1373055143,\"createdAt\":\"2013-07-05T20:12:23.000Z\"},\"_id\":\"51d728a704f5b381200001a9\",\"name\":\"JComment\",\"id\":\"51d728a704f5b381200001a9\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":124,\"developer\":460,\"following\":0,\"followers\":3466},\"title\":\"MySQL\",\"slug_\":\"mysql\",\"slug\":\"mysql\",\"group\":\"koding\",\"body\":\"MySQL officially,  is the world's most used open source relational database management system (RDBMS) as of 2008 that runs as a server providing multi-user access to a number of databases.\",\"meta\":{\"createdAtEpoch\":1336081793,\"createdAt\":\"2012-05-03T21:49:53.000Z\"},\"_id\":\"4fa2fd81968584b718000275\",\"name\":\"JTag\",\"id\":\"4fa2fd81968584b718000275\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 9,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "5021f4d8836ef318490006cc",
+            "originType": "JAccount"
+        },
+        "70633": {
+            "modifiedAt": "2013-07-05T21:11:35.000Z",
+            "createdAt": "2013-07-05T21:11:35.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 70633,
+            "snapshot": "{\"_id\":70633,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:11:35.022Z\",\"likes\":0,\"createdAtEpoch\":1373058695,\"createdAt\":\"2013-07-05T21:11:35.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d7368732864cfe240000d1\"}}",
+            "ids": [
+                "51d7368732864cfe240000d1"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "70994": {
+            "modifiedAt": "2013-07-05T20:45:28.000Z",
+            "createdAt": "2013-07-05T20:45:28.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 70994,
+            "snapshot": "{\"_id\":70994,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T20:45:28.347Z\",\"likes\":0,\"createdAtEpoch\":1373057128,\"createdAt\":\"2013-07-05T20:45:28.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d73068dcce35d41d00042b\"}}",
+            "ids": [
+                "51d73068dcce35d41d00042b"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "72645": {
+            "modifiedAt": "2013-07-05T21:57:55.000Z",
+            "createdAt": "2013-07-05T21:57:55.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 72645,
+            "snapshot": "{\"_id\":72645,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:57:55.522Z\",\"likes\":0,\"createdAtEpoch\":1373061475,\"createdAt\":\"2013-07-05T21:57:55.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d74163c895030103000294\"}}",
+            "ids": [
+                "51d74163c895030103000294"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "73911": {
+            "_id": 73911,
+            "type": "CDiscussionActivity",
+            "createdAt": "2013-07-05T19:02:39.000Z",
+            "modifiedAt": "2013-07-05T19:02:39.916Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d7184fb736f6ba180006f4"
+            ],
+            "snapshot": "{\"_id\":\"51d7184fb736f6ba180006f4\",\"bongo_\":{\"constructorName\":\"JDiscussion\"},\"slug\":\"reasonible-disk-space-on-a-vm\",\"title\":\"Reasonible disk space on a VM\",\"slug_\":\"reasonible-disk-space-on-a-vm\",\"originId\":\"4f1f26170017f25c50000062\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:02:39.916Z\",\"likes\":0,\"createdAtEpoch\":1373050959,\"createdAt\":\"2013-07-05T19:02:39.000Z\"},\"body\":\"Is 1.2G enough space for a VM? I ran out of space today and I don't really have anything on the VM but Google Appengine SDK and a few small projects. TO me maybe including the Ubuntu install in the quota may make 1.2G insufficient for any decent amount of dev...\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":3,\"counts\":{\"following\":0,\"followers\":3},\"tags\":[{\"counts\":{\"tagged\":0,\"post\":40,\"developer\":3,\"following\":0,\"followers\":1656},\"title\":\"Koding\",\"slug_\":\"koding\",\"slug\":\"koding\",\"group\":\"koding\",\"body\":\"Koding (previously known as \\\"Kodingen\\\") is an Online Development Environment owned by Koding, Inc. which allows software developers to program and collaborate online in the browser without the needs of downloading the software development kits in multiple programming languages, including Python, Java, Perl, Node.js, Ruby, C, C++ and Go.\",\"meta\":{\"createdAtEpoch\":1339817523,\"createdAt\":\"2012-06-16T03:32:03.000Z\"},\"_id\":\"4fdbfe33645075bb350001a9\",\"name\":\"JTag\",\"id\":\"4fdbfe33645075bb350001a9\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}],\"opinions\":[{\"title\":\"Not really. If you are a hardcore developer you will want to have a lot of stuff installed, and that takes space. Some developers have 10-100 GB of software installed. But in the future you can buy more space, I think. \",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"51d5cc68fefb6a8411000091\",\"body\":\"Not really. If you are a hardcore developer you will want to have a lot of stuff installed, and that takes space. Some developers have 10-100 GB of software installed. But in the future you can buy more space, I think. \",\"meta\":{\"modifiedAt\":\"2013-07-05T19:05:42.443Z\",\"likes\":0,\"createdAtEpoch\":1373051142,\"createdAt\":\"2013-07-05T19:05:42.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d719064101a73f18000769\",\"name\":\"JOpinion\",\"id\":\"51d719064101a73f18000769\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"You will be able to. I think 1.2GB is reasonable, especially for free instances. This stuff costs money afterall hah.\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"509f22133de3bbc77b002677\",\"body\":\"You will be able to. I think 1.2GB is reasonable, especially for free instances. This stuff costs money afterall hah.\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:30:19.967Z\",\"likes\":0,\"createdAtEpoch\":1373052619,\"createdAt\":\"2013-07-05T19:30:19.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d71ecb95324f441e0003cd\",\"name\":\"JOpinion\",\"id\":\"51d71ecb95324f441e0003cd\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"the 1.2 GB excludes the ubuntu installation - only your modifications count to that quota ;) and yes - buying more disc space will be possible soon\",\"repliesCount\":0,\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"50323bec836ef318490026d6\",\"body\":\"the 1.2 GB excludes the ubuntu installation - only your modifications count to that quota ;) and yes - buying more disc space will be possible soon\",\"meta\":{\"modifiedAt\":\"2013-07-05T21:45:04.358Z\",\"likes\":0,\"createdAtEpoch\":1373060704,\"createdAt\":\"2013-07-05T21:45:04.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51d73e600ebfddcd22000464\",\"name\":\"JOpinion\",\"id\":\"51d73e600ebfddcd22000464\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}}]}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 3
+            },
+            "originId": "4f1f26170017f25c50000062",
+            "originType": "JAccount"
+        },
+        "74272": {
+            "modifiedAt": "2013-07-05T21:45:48.000Z",
+            "createdAt": "2013-07-05T21:45:48.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 74272,
+            "snapshot": "{\"_id\":74272,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:45:48.000Z\",\"likes\":0,\"createdAtEpoch\":1373060748,\"createdAt\":\"2013-07-05T21:45:48.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d73e8ccbca181a02000274\"}}",
+            "ids": [
+                "51d73e8ccbca181a02000274"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "74857": {
+            "modifiedAt": "2013-07-05T21:40:40.000Z",
+            "createdAt": "2013-07-05T21:40:40.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 74857,
+            "snapshot": "{\"_id\":74857,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:40:40.094Z\",\"likes\":0,\"createdAtEpoch\":1373060440,\"createdAt\":\"2013-07-05T21:40:40.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d73d5873d886557f000402\"}}",
+            "ids": [
+                "51d73d5873d886557f000402"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "76110": {
+            "_id": 76110,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:57:52.000Z",
+            "modifedAt": "2013-07-05T21:57:52.000Z",
+            "snapshot": "{\"_id\":76110,\"meta\":{\"modifiedAt\":\"2013-01-24T10:01:52.273Z\",\"likes\":0,\"createdAtEpoch\":1359021712,\"createdAt\":\"2013-01-24T10:01:52.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51c0f6d08c1292c1720000d7\",\"constructorName\":\"JApp\"},{\"id\":\"51ce20b7ccb412b76c000039\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51010690ba51fc8730000182\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51010690ba51fc8730000182"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "76479": {
+            "_id": 76479,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T08:52:08.000Z",
+            "modifedAt": "2013-07-04T08:52:08.000Z",
+            "snapshot": "{\"_id\":76479,\"meta\":{\"modifiedAt\":\"2013-06-27T10:19:02.748Z\",\"likes\":0,\"createdAtEpoch\":1372328342,\"createdAt\":\"2013-06-27T10:19:02.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51cae3d61ed663dd760002d4\",\"constructorName\":\"JAccount\"},{\"id\":\"51cc122e1551d92b7a000178\",\"constructorName\":\"JAccount\"},{\"id\":\"51c2efb6fb738b6220000137\",\"constructorName\":\"JAccount\"},{\"id\":\"51c813228ecc5b6602000392\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51cc1196f7a305297b0000ca\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51cc1196f7a305297b0000ca"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "76906": {
+            "_id": 76906,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-03T11:47:45.000Z",
+            "modifedAt": "2013-07-03T11:47:45.000Z",
+            "snapshot": "{\"_id\":76906,\"meta\":{\"modifiedAt\":\"2013-06-14T14:46:54.455Z\",\"likes\":0,\"createdAtEpoch\":1371221214,\"createdAt\":\"2013-06-14T14:46:54.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4f14f99e519ab4c62e00001b\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51bb2cdeedbd1ac412000092\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51bb2cdeedbd1ac412000092"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "77352": {
+            "_id": 77352,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T15:54:33.000Z",
+            "modifedAt": "2013-07-05T15:54:33.000Z",
+            "snapshot": "{\"_id\":77352,\"meta\":{\"modifiedAt\":\"2013-03-02T16:10:32.555Z\",\"likes\":0,\"createdAtEpoch\":1362240632,\"createdAt\":\"2013-03-02T16:10:32.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"513d63d5b788488968000020\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"513224784722c1f435000479\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "513224784722c1f435000479"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "78365": {
+            "_id": 78365,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T20:37:57.000Z",
+            "modifedAt": "2013-07-05T20:37:57.000Z",
+            "snapshot": "{\"_id\":78365,\"meta\":{\"modifiedAt\":\"2013-01-03T17:30:57.142Z\",\"likes\":0,\"createdAtEpoch\":1357234257,\"createdAt\":\"2013-01-03T17:30:57.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51ce194dce5e067d6500027b\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"50e5c05134fd571d38000160\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "50e5c05134fd571d38000160"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "78487": {
+            "modifiedAt": "2013-07-05T20:56:02.000Z",
+            "createdAt": "2013-07-05T20:56:02.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 78487,
+            "snapshot": "{\"_id\":78487,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T20:56:02.145Z\",\"likes\":0,\"createdAtEpoch\":1373057762,\"createdAt\":\"2013-07-05T20:56:02.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d732e20e366b58210003b3\"}}",
+            "ids": [
+                "51d732e20e366b58210003b3"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "78531": {
+            "modifiedAt": "2013-07-05T22:25:51.000Z",
+            "createdAt": "2013-07-05T22:25:51.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 78531,
+            "snapshot": "{\"_id\":78531,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T22:25:51.352Z\",\"likes\":0,\"createdAtEpoch\":1373063151,\"createdAt\":\"2013-07-05T22:25:51.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d747ef0e366b5821000661\"}}",
+            "ids": [
+                "51d747ef0e366b5821000661"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "80428": {
+            "modifiedAt": "2013-07-05T21:35:36.000Z",
+            "createdAt": "2013-07-05T21:35:36.000Z",
+            "type": "CNewMemberBucketActivity",
+            "_id": 80428,
+            "snapshot": "{\"_id\":80428,\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CNewMemberBucket\",\"subscribable\":false},\"meta\":{\"modifiedAt\":\"2013-07-05T21:35:36.073Z\",\"likes\":0,\"createdAtEpoch\":1373060136,\"createdAt\":\"2013-07-05T21:35:36.000Z\"},\"group\":[],\"anchor\":{\"bongo_\":{\"constructorName\":\"ObjectRef\"},\"constructorName\":\"JAccount\",\"id\":\"51d73c285731e988040000b9\"}}",
+            "ids": [
+                "51d73c285731e988040000b9"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "81099": {
+            "_id": 81099,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T19:40:11.000Z",
+            "modifedAt": "2013-07-05T19:40:11.000Z",
+            "snapshot": "{\"_id\":81099,\"meta\":{\"modifiedAt\":\"2013-07-04T19:26:32.096Z\",\"likes\":0,\"createdAtEpoch\":1372965992,\"createdAt\":\"2013-07-04T19:26:32.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4f14f99e519ab4c62e00001b\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51d5cc68fefb6a8411000091\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d5cc68fefb6a8411000091"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "81642": {
+            "_id": 81642,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T21:00:12.000Z",
+            "modifedAt": "2013-07-05T21:00:12.000Z",
+            "snapshot": "{\"_id\":81642,\"meta\":{\"modifiedAt\":\"2013-07-05T20:53:02.441Z\",\"likes\":0,\"createdAtEpoch\":1373057582,\"createdAt\":\"2013-07-05T20:53:02.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"50eac114bab57f0d1100027c\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d7322eb4fecd1702000082\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d7322eb4fecd1702000082"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "82217": {
+            "_id": 82217,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T02:59:10.000Z",
+            "modifedAt": "2013-07-04T02:59:10.000Z",
+            "snapshot": "{\"_id\":82217,\"meta\":{\"modifiedAt\":\"2012-09-19T09:59:07.759Z\",\"likes\":0,\"createdAtEpoch\":1336337511,\"createdAt\":\"2012-05-06T20:51:51.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4fd59efbc2b03809550001fd\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"4fa6e467b87347c17500056f\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "4fa6e467b87347c17500056f"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "83278": {
+            "_id": 83278,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T22:30:16.000Z",
+            "modifedAt": "2013-07-05T22:30:16.000Z",
+            "snapshot": "{\"_id\":83278,\"meta\":{\"modifiedAt\":\"2013-07-05T20:41:04.622Z\",\"likes\":0,\"createdAtEpoch\":1373056864,\"createdAt\":\"2013-07-05T20:41:04.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51c0f6d08c1292c1720000d7\",\"constructorName\":\"JApp\"},{\"id\":\"51818b6d3dbd0c3629000002\",\"constructorName\":\"JApp\"},{\"id\":\"50eac114bab57f0d1100027c\",\"constructorName\":\"JApp\"},{\"id\":\"51cfdf74bbbbcc216e000021\",\"constructorName\":\"JApp\"},{\"id\":\"51ce20b7ccb412b76c000039\",\"constructorName\":\"JApp\"},{\"id\":\"51cd416d6b4b9c426c0003d3\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"51d72f600e366b58210002e8\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51d72f600e366b58210002e8"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "84997": {
+            "_id": 84997,
+            "type": "CInstallerBucketActivity",
+            "createdAt": "2013-07-05T20:47:14.000Z",
+            "modifedAt": "2013-07-05T20:47:14.000Z",
+            "snapshot": "{\"_id\":84997,\"meta\":{\"modifiedAt\":\"2012-09-19T10:09:53.625Z\",\"likes\":0,\"createdAtEpoch\":1347365561,\"createdAt\":\"2012-09-11T12:12:41.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JApp\",\"bongo_\":{\"constructorName\":\"CInstallerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51d09564f3b789c50c000207\",\"constructorName\":\"JApp\"}],\"anchor\":{\"id\":\"504f2ab942d950f02e00149c\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "504f2ab942d950f02e00149c"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "86434": {
+            "_id": 86434,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T15:32:20.000Z",
+            "modifiedAt": "2013-07-05T15:32:20.578Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6e70408aaf0207300014e"
+            ],
+            "snapshot": "{\"_id\":\"51d6e70408aaf0207300014e\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"can-i-get-root-password-for-vm\",\"slug_\":\"can-i-get-root-password-for-vm\",\"originId\":\"5046d0871fb5dd501c0024db\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:32:20.578Z\",\"likes\":0,\"createdAtEpoch\":1373038340,\"createdAt\":\"2013-07-05T15:32:20.000Z\"},\"body\":\"Can I get root password for VM?\",\"attachments\":[],\"repliesCount\":6,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":2},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"5046d0871fb5dd501c0024db\",\"body\":\"Ok, I changed root password\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:36:56.894Z\",\"likes\":0,\"createdAtEpoch\":1373038616,\"createdAt\":\"2013-07-05T15:36:56.000Z\"},\"_id\":\"51d6e8185e1d33a717000026\",\"name\":\"JComment\",\"id\":\"51d6e8185e1d33a717000026\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"@hotsnr doesn't work!\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:37:47.113Z\",\"likes\":0,\"createdAtEpoch\":1373038667,\"createdAt\":\"2013-07-05T15:37:47.000Z\"},\"_id\":\"51d6e84b19cb78e1710003d3\",\"name\":\"JComment\",\"id\":\"51d6e84b19cb78e1710003d3\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"@hotsnr We ALL tried it!\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:39:08.343Z\",\"likes\":0,\"createdAtEpoch\":1373038748,\"createdAt\":\"2013-07-05T15:39:08.000Z\"},\"_id\":\"51d6e89c33da153b7100030b\",\"name\":\"JComment\",\"id\":\"51d6e89c33da153b7100030b\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 6,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "5046d0871fb5dd501c0024db",
+            "originType": "JAccount"
+        },
+        "90463": {
+            "_id": 90463,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-05T12:01:11.000Z",
+            "modifedAt": "2013-07-05T12:01:11.000Z",
+            "snapshot": "{\"_id\":90463,\"meta\":{\"modifiedAt\":\"2012-09-19T10:03:35.073Z\",\"likes\":0,\"createdAtEpoch\":1344252595,\"createdAt\":\"2012-08-06T11:29:55.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"51d6b347862e6e84680000f8\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"501faab38327f33e1b0003ba\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "501faab38327f33e1b0003ba"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "92475": {
+            "_id": 92475,
+            "type": "CFollowerBucketActivity",
+            "createdAt": "2013-07-04T08:20:46.000Z",
+            "modifedAt": "2013-07-04T08:20:46.000Z",
+            "snapshot": "{\"_id\":92475,\"meta\":{\"modifiedAt\":\"2013-06-27T10:21:34.537Z\",\"likes\":0,\"createdAtEpoch\":1372328494,\"createdAt\":\"2013-06-27T10:21:34.000Z\"},\"groupedBy\":\"target\",\"sourceName\":\"JAccount\",\"bongo_\":{\"constructorName\":\"CFollowerBucket\",\"subscribable\":false},\"event\":\"ItemWasAdded\",\"group\":[{\"id\":\"4fd634f03ccf207513000c53\",\"constructorName\":\"JAccount\"},{\"id\":\"51cae3d61ed663dd760002d4\",\"constructorName\":\"JAccount\"},{\"id\":\"51c813228ecc5b6602000392\",\"constructorName\":\"JAccount\"}],\"anchor\":{\"id\":\"51cc122e1551d92b7a000178\",\"constructorName\":\"JAccount\"}}",
+            "snapshotIds": [
+                "51cc122e1551d92b7a000178"
+            ],
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            }
+        },
+        "92815": {
+            "_id": 92815,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T18:54:46.000Z",
+            "modifiedAt": "2013-07-05T18:54:46.751Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d71676dcce35d41d00019b"
+            ],
+            "snapshot": "{\"_id\":\"51d71676dcce35d41d00019b\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"i-was-doing-some-java-coding-and-i-ran-into-this-error-run-exception-in-thread-main-javalangruntimeexception-uncompilable-source-code-cannot-find-symbol-symbol-class-calender-location-class-clock-at-clockmainclockjava6-java-result-1-build-successful-total-\",\"slug_\":\"i-was-doing-some-java-coding-and-i-ran-into-this-error-run-exception-in-thread-main-javalangruntimeexception-uncompilable-source-code-cannot-find-symbol-symbol-class-calender-location-class-clock-at-clockmainclockjava6-java-result-1-build-successful-total-\",\"originId\":\"50f9c81400dcd58a090001c0\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T18:54:46.751Z\",\"likes\":0,\"createdAtEpoch\":1373050486,\"createdAt\":\"2013-07-05T18:54:46.000Z\"},\"body\":\"I was doing some Java coding and I ran into this error. \\n\\nrun:\\nException in thread \\\"main\\\" java.lang.RuntimeException: Uncompilable source code - cannot find symbol\\n  symbol:   class Calender\\n  location: class Clock\\n\\tat Clock.main(Clock.java:6)\\nJava Result: 1\\nBUILD SUCCESSFUL (total time: 7 seconds)\\n\\nAny suggestions?\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            },
+            "originId": "50f9c81400dcd58a090001c0",
+            "originType": "JAccount"
+        },
+        "97342": {
+            "_id": 97342,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T15:03:10.000Z",
+            "modifiedAt": "2013-07-05T15:03:10.575Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6e02e424a19720e0008a3"
+            ],
+            "snapshot": "{\"_id\":\"51d6e02e424a19720e0008a3\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"hope-ssh-is-coming-soon-d-got-my-keys-loaded-up-and-im-read-to-ssh-in-when-ready\",\"slug_\":\"hope-ssh-is-coming-soon-d-got-my-keys-loaded-up-and-im-read-to-ssh-in-when-ready\",\"originId\":\"4f1f26170017f25c50000062\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:03:10.575Z\",\"likes\":0,\"createdAtEpoch\":1373036590,\"createdAt\":\"2013-07-05T15:03:10.000Z\"},\"body\":\"Hope ssh is coming soon :D Got my keys loaded up and I'm read to ssh in when ready!\",\"attachments\":[],\"repliesCount\":2,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":2},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"505862573b74222431003c58\",\"body\":\"you can use it right now! sudo apt-get install corkscrew\",\"meta\":{\"modifiedAt\":\"2013-07-05T15:05:43.792Z\",\"likes\":0,\"createdAtEpoch\":1373036743,\"createdAt\":\"2013-07-05T15:05:43.000Z\"},\"_id\":\"51d6e0c7e08875090d000d11\",\"name\":\"JComment\",\"id\":\"51d6e0c7e08875090d000d11\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"4f1f26170017f25c50000062\",\"body\":\"Yeah I was messing with that the other day, I'd rather it be native these hacks are getting old\",\"meta\":{\"modifiedAt\":\"2013-07-05T16:14:38.852Z\",\"likes\":0,\"createdAtEpoch\":1373040878,\"createdAt\":\"2013-07-05T16:14:38.000Z\"},\"_id\":\"51d6f0eeb736f6ba18000097\",\"name\":\"JComment\",\"id\":\"51d6f0eeb736f6ba18000097\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 2,
+                "likesCount": 0,
+                "followerCount": 2
+            },
+            "originId": "4f1f26170017f25c50000062",
+            "originType": "JAccount"
+        }
+    },
+    "overview": [
+        {
+            "createdAt": [
+                "2013-07-05T19:40:11.000Z"
+            ],
+            "ids": [
+                81099
+            ],
+            "type": "CFollowerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T20:33:05.000Z"
+            ],
+            "ids": [
+                28081
+            ],
+            "type": "JStatusUpdate",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T20:37:57.000Z"
+            ],
+            "ids": [
+                78365
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T20:42:40.000Z"
+            ],
+            "ids": [
+                17536
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T20:47:14.000Z"
+            ],
+            "ids": [
+                84997
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:00:12.000Z"
+            ],
+            "ids": [
+                81642
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:10:51.000Z",
+                "2013-07-05T21:07:40.000Z"
+            ],
+            "ids": [
+                12876
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:22:31.000Z"
+            ],
+            "ids": [
+                6977
+            ],
+            "type": "JStatusUpdate",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:41:35.000Z"
+            ],
+            "ids": [
+                2470
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:52:13.000Z"
+            ],
+            "ids": [
+                47030
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:53:00.000Z"
+            ],
+            "ids": [
+                22584
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:54:58.000Z"
+            ],
+            "ids": [
+                30980
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T21:57:52.000Z",
+                "2013-07-05T21:52:35.000Z"
+            ],
+            "ids": [
+                76110
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:00:54.000Z",
+                "2013-07-05T22:00:46.000Z",
+                "2013-07-05T22:00:43.000Z",
+                "2013-07-05T22:00:43.000Z",
+                "2013-07-05T22:00:41.000Z"
+            ],
+            "ids": [
+                57731
+            ],
+            "type": "CFollowerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:01:55.000Z",
+                "2013-07-05T22:01:48.000Z",
+                "2013-07-05T22:01:02.000Z",
+                "2013-07-05T22:01:01.000Z",
+                "2013-07-05T22:01:00.000Z",
+                "2013-07-05T22:00:58.000Z",
+                "2013-07-05T22:00:57.000Z",
+                "2013-07-05T22:00:55.000Z",
+                "2013-07-05T22:00:50.000Z",
+                "2013-07-05T22:00:49.000Z",
+                "2013-07-05T22:00:47.000Z",
+                "2013-07-05T22:00:46.000Z",
+                "2013-07-05T22:00:41.000Z"
+            ],
+            "ids": [
+                27142
+            ],
+            "type": "CFollowerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:10:04.000Z",
+                "2013-07-05T22:09:58.000Z"
+            ],
+            "ids": [
+                55305
+            ],
+            "type": "CFollowerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:30:16.000Z",
+                "2013-07-05T22:28:53.000Z",
+                "2013-07-05T22:13:46.000Z",
+                "2013-07-05T21:55:44.000Z",
+                "2013-07-05T21:46:40.000Z",
+                "2013-07-05T21:07:27.000Z"
+            ],
+            "ids": [
+                83278
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:35:53.000Z"
+            ],
+            "ids": [
+                42161
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:36:06.000Z",
+                "2013-07-05T22:39:45.000Z",
+                "2013-07-05T22:41:27.000Z",
+                "2013-07-05T22:41:52.000Z"
+            ],
+            "ids": [
+                5697,
+                52000,
+                27450,
+                52763
+            ],
+            "type": "CNewMemberBucketActivity",
+            "count": 21
+        },
+        {
+            "createdAt": [
+                "2013-07-05T22:48:55.000Z"
+            ],
+            "ids": [
+                39450
+            ],
+            "type": "CInstallerBucketActivity",
+            "count": 1
+        }
+    ],
+    "_id": "1",
+    "isFull": true,
+    "from": "2013-07-05T19:40:11.000Z",
+    "to": "2013-07-05T22:48:55.000Z",
+    "newMemberBucketIndex": 18
+}

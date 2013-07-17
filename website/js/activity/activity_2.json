@@ -1,0 +1,38 @@
+{
+    "activities": {
+        "28914": {
+            "_id": 28914,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-05T10:31:14.000Z",
+            "modifiedAt": "2013-07-05T10:31:14.498Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d6a072cf9b009804000846"
+            ],
+            "snapshot": "{\"_id\":\"51d6a072cf9b009804000846\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"webcam-based-gesture-recognition-httprevealjsherokuappcom-enough-said-d\",\"link\":{\"link_embed\":{\"images\":{\"0\":{\"width\":160,\"url\":\"http://revealjs.herokuapp.com/badge.jpg\",\"size\":6013,\"height\":92}},\"url\":\"http://revealjs.herokuapp.com/\",\"type\":\"html\",\"title\":\"Webcam-based gesture recognition with reveal.js\",\"safe\":\"true\",\"provider_url\":\"http://revealjs.herokuapp.com\",\"provider_name\":\"Herokuapp\",\"provider_display\":\"revealjs.herokuapp.com\",\"original_title\":\"Webcam-based gesture recognition with reveal.js\",\"original_description\":\"This is what I got when I combined webcam-based gesture recognition with Hakim El Hattab's reveal.js. It took me a while to write and fine tune the detection algorithms. Even then, the algorithms are only about 80% accurate. You get the gist of it though: A flick of the hand in mid-air changes the slide.\",\"description\":\"This is what I got when I combined webcam-based gesture recognition with Hakim El Hattab's reveal.js. It took me a while to write and fine tune the detection algorithms. Even then, the algorithms are only about 80% accurate. You get the gist of it though: A flick of the hand in mid-air changes the slide.\"},\"link_url\":\"http://revealjs.herokuapp.com/\"},\"slug_\":\"webcam-based-gesture-recognition-httprevealjsherokuappcom-enough-said-d\",\"originId\":\"4fdc66660fa33473350006a1\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-05T10:31:14.498Z\",\"likes\":1,\"createdAtEpoch\":1373020274,\"createdAt\":\"2013-07-05T10:31:14.000Z\"},\"body\":\"Webcam-based gesture recognition http://revealjs.herokuapp.com/ ! Enough said! :D\",\"attachments\":[],\"repliesCount\":1,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":1},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"4fd7acfe445fc65e2600180c\",\"body\":\"I found it much easier to control by moving the webcam.\",\"meta\":{\"modifiedAt\":\"2013-07-05T19:45:20.901Z\",\"likes\":0,\"createdAtEpoch\":1373053520,\"createdAt\":\"2013-07-05T19:45:20.000Z\"},\"_id\":\"51d7225090659e211e0002c3\",\"name\":\"JComment\",\"id\":\"51d7225090659e211e0002c3\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "sorts": {
+                "repliesCount": 1,
+                "likesCount": 1,
+                "followerCount": 1
+            },
+            "originId": "4fdc66660fa33473350006a1",
+            "originType": "JAccount"
+        }
+    },
+    "overview": [
+        {
+            "createdAt": [
+                "2013-07-05T10:31:14.000Z"
+            ],
+            "ids": [
+                28914
+            ],
+            "type": "JStatusUpdate",
+            "count": 1
+        }
+    ],
+    "_id": "1",
+    "isFull": true,
+    "from": "2013-07-05T03:45:08.000Z",
+    "to": "2013-07-05T21:22:31.000Z"
+}

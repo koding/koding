@@ -1,0 +1,38 @@
+{
+    "activities": {
+        "18720": {
+            "_id": 18720,
+            "type": "CCodeSnipActivity",
+            "createdAt": "2013-06-30T01:07:48.000Z",
+            "modifiedAt": "2013-06-30T01:07:48.583Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51cf84e4bd9f1e8c2a00000f"
+            ],
+            "snapshot": "{\"_id\":\"51cf84e4bd9f1e8c2a00000f\",\"bongo_\":{\"constructorName\":\"JCodeSnip\"},\"slug\":\"just-your-stand-awesome-check-class-as-written-in-php\",\"title\":\"Just your standard awesome check class as written in PHP :-)\",\"slug_\":\"just-your-stand-awesome-check-class-as-written-in-php\",\"originId\":\"4f1f26170017f25c50000062\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-06-30T01:07:48.583Z\",\"likes\":3,\"createdAtEpoch\":1372554468,\"createdAt\":\"2013-06-30T01:07:48.000Z\"},\"body\":\"\",\"attachments\":{\"0\":{\"type\":\"JCodeAttachment\",\"syntax\":\"php\",\"content\":\"<?php\\n\\nclass CheckAwesome\\n{\\n    public function check($thing)\\n    {\\n        if($thing === 'Koding') return true;\\n        else { return 'dunno'; }\\n    }\\n}\"}},\"repliesCount\":3,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":3},\"replies\":[{\"originType\":\"JAccount\",\"originId\":\"4f14f99e519ab4c62e00001b\",\"body\":\"+ 8: else if ($user === 'marc') return true; :)\",\"meta\":{\"modifiedAt\":\"2013-06-30T02:20:43.327Z\",\"likes\":1,\"createdAtEpoch\":1372558843,\"createdAt\":\"2013-06-30T02:20:43.000Z\"},\"_id\":\"51cf95fbf1b4ee132700012f\",\"name\":\"JComment\",\"id\":\"51cf95fbf1b4ee132700012f\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"5128623236d56e2a6d000005\",\"body\":\"Is there any good and very simple tutorial on classes and objects of php?\",\"meta\":{\"modifiedAt\":\"2013-06-30T03:12:38.840Z\",\"likes\":0,\"createdAtEpoch\":1372561958,\"createdAt\":\"2013-06-30T03:12:38.000Z\"},\"_id\":\"51cfa226bd9f1e8c2a000124\",\"name\":\"JComment\",\"id\":\"51cfa226bd9f1e8c2a000124\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}},{\"originType\":\"JAccount\",\"originId\":\"4f1f26170017f25c50000062\",\"body\":\"I don't really know of any I just kind of read other peoples code and used the php manual. If you want to learn about design patterns which I highly recommend check out \\\"php 5 objects, patterns, and practice\\\". Its a really good book and might help you a lot.\",\"meta\":{\"modifiedAt\":\"2013-06-30T17:41:04.330Z\",\"likes\":0,\"createdAtEpoch\":1372614064,\"createdAt\":\"2013-06-30T17:41:04.000Z\"},\"_id\":\"51d06db0d5509b750500012b\",\"name\":\"JComment\",\"id\":\"51d06db0d5509b750500012b\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}],\"tags\":[{\"counts\":{\"tagged\":0,\"post\":77,\"developer\":27,\"following\":0,\"followers\":28},\"title\":\"php\",\"slug\":\"php\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1355423590,\"createdAt\":\"2012-12-13T18:33:10.000Z\"},\"_id\":\"50ca1f6671b02621370001a3\",\"name\":\"JTag\",\"id\":\"50ca1f6671b02621370001a3\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
+            "sorts": {
+                "repliesCount": 3,
+                "likesCount": 3,
+                "followerCount": 3
+            },
+            "originId": "4f1f26170017f25c50000062",
+            "originType": "JAccount"
+        }
+    },
+    "overview": [
+        {
+            "createdAt": [
+                "2013-06-30T01:07:48.000Z"
+            ],
+            "ids": [
+                18720
+            ],
+            "type": "JCodeSnip",
+            "count": 1
+        }
+    ],
+    "_id": "1",
+    "isFull": true,
+    "from": "2013-06-18T10:41:46.000Z",
+    "to": "2013-07-05T19:13:55.000Z"
+}

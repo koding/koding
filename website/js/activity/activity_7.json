@@ -1,0 +1,38 @@
+{
+    "activities": {
+        "58731": {
+            "_id": 58731,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-04T23:59:52.000Z",
+            "modifiedAt": "2013-07-04T23:59:52.909Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51d60c78d07c9faa14000168"
+            ],
+            "snapshot": "{\"_id\":\"51d60c78d07c9faa14000168\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"slug_\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"originId\":\"5196fcb0bc9bdb0000000012\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-04T23:59:52.909Z\",\"likes\":0,\"createdAtEpoch\":1372982392,\"createdAt\":\"2013-07-04T23:59:52.000Z\"},\"body\":\"commentli felan Thursday, July 4th, 2013, 4:59:52 PM\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
+            "sorts": {
+                "repliesCount": 1,
+                "likesCount": 1,
+                "followerCount": 1
+            },
+            "originId": "5196fcb0bc9bdb0000000012",
+            "originType": "JAccount"
+        }
+    },
+    "overview": [
+        {
+            "createdAt": [
+                "2013-07-04T23:59:46.000Z"
+            ],
+            "ids": [
+                58731
+            ],
+            "type": "JStatusUpdate",
+            "count": 1
+        }
+    ],
+    "_id": "1",
+    "isFull": true,
+    "from": "2013-07-04T23:59:46.000Z",
+    "to": "2013-07-04T23:59:46.000Z"
+}

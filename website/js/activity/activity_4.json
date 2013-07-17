@@ -1,0 +1,38 @@
+{
+    "activities": {
+        "95223": {
+            "_id": 95223,
+            "type": "CDiscussionActivity",
+            "createdAt": "2013-05-07T23:15:59.000Z",
+            "modifiedAt": "2013-05-07T23:15:59.883Z",
+            "group": "koding",
+            "snapshotIds": [
+                "51898b2f6e40f26c1e000002"
+            ],
+            "snapshot": "{\"_id\":\"51898b2f6e40f26c1e000002\",\"bongo_\":{\"constructorName\":\"JDiscussion\"},\"slug\":\"question-527\",\"title\":\"Question\",\"slug_\":\"question-527\",\"originId\":\"5111b049eda9616c2b000100\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-05-07T23:15:59.883Z\",\"likes\":0,\"createdAtEpoch\":1367968559,\"createdAt\":\"2013-05-07T23:15:59.000Z\"},\"body\":\"Is there any way to deploy a Java web application (.war) ? I'm not sure if there is a way to make it via Tomcat.\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
+            "sorts": {
+                "repliesCount": 0,
+                "likesCount": 0,
+                "followerCount": 0
+            },
+            "originId": "5111b049eda9616c2b000100",
+            "originType": "JAccount"
+        }
+    },
+    "overview": [
+        {
+            "createdAt": [
+                "2013-07-04T23:59:34.000Z"
+            ],
+            "ids": [
+                95223
+            ],
+            "type": "JDiscussion",
+            "count": 1
+        }
+    ],
+    "_id": "1",
+    "isFull": true,
+    "from": "2013-07-04T23:59:34.000Z",
+    "to": "2013-07-04T23:59:34.000Z"
+}
