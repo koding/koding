@@ -247,6 +247,7 @@ class KodingAppsController extends KDController
   # #
 
   putAppResources:(appInstance)->
+    return  unless appInstance
 
     manifest = appInstance.getOptions()
     {devMode, forceUpdate, name, options, version, thirdParty} = manifest
