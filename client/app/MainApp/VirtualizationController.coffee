@@ -367,16 +367,23 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
-      # Check user quota and show this button only when necessary
-      groupObj = KD.getSingleton("groupsController").getCurrentGroup()
-      groupObj.checkUserBalance {}, (status)->
-        if status
-          modal.modalTabs.forms["Create VM"].buttons.expensed.show()
-
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
       form = modal.modalTabs.forms["Create VM"]
+
+      # Check user quota and show this button only when necessary
+      groupObj = KD.getSingleton("groupsController").getCurrentGroup()
+      groupObj.checkUserBalance {}, (limit, balance)=>
+
+        index      = (parseInt form.inputs.selector.getValue(), 10) or 0
+        monthlyFee = @paymentPlans[index].feeMonthly
+
+        console.log "Group Limit:", limit
+        console.log "User Balance:", balance
+
+        if limit >= balance + monthlyFee
+          modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
       hideLoaders = ->
         {group, user, expensed} = form.buttons

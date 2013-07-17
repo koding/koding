@@ -90,7 +90,7 @@ module.exports = class JGroup extends Module
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
-        'checkUserBalance', 'makeExpense', 'getUserExpenses',
+        'checkUserBalance', 'makeExpense', 'getUserExpenses', 'getAllExpenses',
         'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage', 'getTransactions',
         'fetchBundle', 'updateBundle', 'saveInviteMessage'
@@ -1393,16 +1393,29 @@ module.exports = class JGroup extends Module
   checkUserBalance: secure (client, data, callback)->
     @fetchBundle (err, bundle)=>
       if err or not bundle
-        callback no
+        callback 0, 0
       else
         if bundle.allocation is 0
-          callback no
+          callback 0, 0
         else
           @getUserExpenses client, data, (err, expenses)->
-            return callback no  if err
+            return callback(0, 0)  if err
 
-            # TODO: Expense should be <= (Balance - Price)
-            callback (expenses < bundle.allocation)
+            callback bundle.allocation, expenses 
+
+  getAllExpenses: secure (client, data, callback)->
+    JVM   = require '../vm'
+    JUser = require '../user'
+    JUser.fetchUser client, (err, user)=>
+      return callback err  if err
+      JVM.some
+        planOwner: "group_#{@_id}"
+        vmType   : 'expensed'
+      , {planCode: 1, users: 1}, (err, vms)->
+        return callback err  if err
+
+        # TODO: Get VM price from JRecurlyPlan
+        callback null, vms
 
   getUserExpenses: secure (client, data, callback)->
     JVM   = require '../vm'
@@ -1419,13 +1432,18 @@ module.exports = class JGroup extends Module
         # TODO: Get VM price from JRecurlyPlan
         callback null, (vms.length * 500)
 
-
   makeExpense: secure (client, data, callback)->
-    @checkUserBalance client, data, (status)=>
-      if status
-        @chargeGroup client, data, callback
-      else
-        callback new KodingError "You don't have enough balance"
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      @checkUserBalance client, data, (limit, balance)=>
+        console.log limit, balance, plan.feeMonthly
+        if limit >= balance + plan.feeMonthly
+          @chargeGroup client, data, callback
+        else
+          callback new KodingError "You don't have enough balance"
 
   makePayment: permit "make payments",
    (client, data, callback)->
