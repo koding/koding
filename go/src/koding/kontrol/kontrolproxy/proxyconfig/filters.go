@@ -2,21 +2,13 @@ package proxyconfig
 
 import (
 	"fmt"
+	"koding/kontrol/kontrolproxy/models"
 	"labix.org/v2/mgo/bson"
 	"time"
 )
 
-type Filter struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	Type       string        `bson:"type", json:"type"`
-	Name       string        `bson:"name", json:"name" `
-	Match      string        `bson:"match", json:"match"`
-	CreatedAt  time.Time     `bson:"createdAt", json:"createdAt"`
-	ModifiedAt time.Time     `bson:"modifiedAt", json:"modifiedAt"`
-}
-
-func NewFilter(filtertype, name, match string) *Filter {
-	return &Filter{
+func NewFilter(filtertype, name, match string) *models.Filter {
+	return &models.Filter{
 		Id:         bson.NewObjectId(),
 		Type:       filtertype,
 		Name:       name,
@@ -30,7 +22,7 @@ func NewFilter(filtertype, name, match string) *Filter {
 // available it updates the old document with the new arguments (except
 // domainname). If not available it adds a new document with the given
 // arguments.
-func (p *ProxyConfiguration) AddFilter(r *Filter) (Filter, error) {
+func (p *ProxyConfiguration) AddFilter(r *models.Filter) (models.Filter, error) {
 	// generate name automatically if name is empty
 	if r.Name == "" {
 		r.Name = r.Type + "_" + r.Match
@@ -40,7 +32,7 @@ func (p *ProxyConfiguration) AddFilter(r *Filter) (Filter, error) {
 	_, err := p.Collection["filters"].Upsert(bson.M{"match": r.Match}, filter)
 	if err != nil {
 		fmt.Println("AddFilter error", err)
-		return Filter{}, fmt.Errorf("filter %s exists already", r.Match)
+		return models.Filter{}, fmt.Errorf("filter %s exists already", r.Match)
 	}
 
 	return filter, nil
@@ -54,19 +46,19 @@ func (p *ProxyConfiguration) DeleteFilterByField(key, value string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) GetFilterByField(key, value string) (Filter, error) {
-	filter := Filter{}
+func (p *ProxyConfiguration) GetFilterByField(key, value string) (models.Filter, error) {
+	filter := models.Filter{}
 	err := p.Collection["filters"].Find(bson.M{key: value}).One(&filter)
 	if err != nil {
-		return Filter{}, err
+		return models.Filter{}, err
 	}
 
 	return filter, nil
 }
 
-func (p *ProxyConfiguration) GetFilters() []Filter {
-	filter := Filter{}
-	filters := make([]Filter, 0)
+func (p *ProxyConfiguration) GetFilters() []models.Filter {
+	filter := models.Filter{}
+	filters := make([]models.Filter, 0)
 	iter := p.Collection["filters"].Find(nil).Iter()
 	for iter.Next(&filter) {
 		filters = append(filters, filter)
@@ -74,11 +66,11 @@ func (p *ProxyConfiguration) GetFilters() []Filter {
 	return filters
 }
 
-func (p *ProxyConfiguration) GetFilterByID(id bson.ObjectId) (Filter, error) {
-	filter := Filter{}
+func (p *ProxyConfiguration) GetFilterByID(id bson.ObjectId) (models.Filter, error) {
+	filter := models.Filter{}
 	err := p.Collection["filters"].FindId(id).One(&filter)
 	if err != nil {
-		return Filter{}, err
+		return models.Filter{}, err
 	}
 	return filter, nil
 }

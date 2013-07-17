@@ -107,21 +107,22 @@ module.exports = class JInvitation extends jraphical.Module
 
   @getInviteFooter =->
     """
-    ------------------
     If you're curious, here is a bit about Koding, http://techcrunch.com/2012/07/24/koding-launch/
 
     In very short, Koding lets you code, share and have fun.
 
-    notes:
-    - of course you can mail us back if you like... (hello@koding.com)
-    - this is still beta, expect bugs, please don’t be surprised if you spot one.
-    - if you already have an account, you can forward this to a friend.
-    - no matter how you signed up, you will not receive any mailings, newsletters and other crap.
-    - if you’ve never signed up (sometimes people type emails wrong, and it happens to be yours), please let us know.
-    - take a look at http://wiki.koding.com for things you can do.
-    - if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
+    And welcome to Koding!
+    Devrim - on behalf of whole Koding team
 
-    Koding Team welcomes you.
+
+    notes:
+    - of course you can mail me back if you like... (just hit reply)
+    - this is still beta, expect bugs, please don't be surprised if you spot one.
+    - if you already have an account, you can forward this to a friend.
+    - no matter how you signed up, you will not receive any newsletters or other crap.
+    - if you never signed up (sometimes people type their emails wrong, and it happens to be yours), please let us know.
+    - take a look at http://wiki.koding.com for things you can do.
+    - if you fall in love with this project, please let us know http://blog.koding.com/2012/06/we-want-to-date-not-hire/
     """
 
   @getInviteSubject =({inviter})-> "#{inviter} has invited you to Koding!"
@@ -137,8 +138,6 @@ module.exports = class JInvitation extends jraphical.Module
     #{url}
 
     If you reply to this email, it will go back to your friend who invited you.
-
-    Enjoy! :)
 
     #{@getInviteFooter()}
     """

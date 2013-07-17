@@ -217,14 +217,14 @@ module.exports = class JOldUser extends jraphical.Module
     Annnnd, here is your new account, we hope you will like what you see.
 
     Your username: #{nickname} (you've registered this to Kodingen)
-    
+
     Click below to set your new password,
 
     #{url}
 
 
     Now, go, code, share and have fun!
-    
+
 
     Welcome to Koding!
     Devrim - on behalf of Koding Team
@@ -232,13 +232,13 @@ module.exports = class JOldUser extends jraphical.Module
 
     notes:
     - of course you can mail me back if you like, just hit reply.
-    - this is still beta, expect bugs, please don’t be surprised if you spot one.
+    - this is still beta, expect bugs, please don't be surprised if you spot one.
     - no matter how you signed up, you will not receive newsletters and other crap.
-    - if you’ve never signed up (sometimes people type their emails wrong, and it happens to be yours), please let us know.
+    - if you've never signed up (sometimes people type their emails wrong, and it happens to be yours), please let us know.
     - if you want to change your username, just send yourself an invite from the platform, and register a new account.
     - please take a look at http://wiki.koding.com for the things you can do
     - IMPORTANT: We did NOT migrate your files or databases at Kodingen just yet, we will provide an app for that soon, or you can do it yourself (ftp, ftps, curl, wget etc.)
 
-    *if you fall in love with this project, please let us know - http://blog.koding.com/2012/06/we-want-to-date-not-hire/
+    *if you fall in love with this project, please let us know http://blog.koding.com/2012/06/we-want-to-date-not-hire/
 
     """
