@@ -65,7 +65,7 @@ var logs *syslog.Writer
 func main() {
 	var err error
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	log.Println("using %d cpus for goroutines", runtime.NumCPU())
+	log.Printf("using %d cpus for goroutines\n", runtime.NumCPU())
 
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
 	if err != nil {
