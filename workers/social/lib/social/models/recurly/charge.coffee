@@ -3,7 +3,7 @@ JUser = require '../user'
 payment = require 'koding-payment'
 
 forceRefresh  = yes
-forceInterval = 60 * 5
+forceInterval = 60 * 3
 
 module.exports = class JRecurlyCharge extends jraphical.Module
 

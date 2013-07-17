@@ -5,7 +5,7 @@ createId  = require 'hat'
 async     = require 'async'
 
 forceRefresh  = yes
-forceInterval = 0
+forceInterval = 60 * 3
 
 module.exports = class JRecurlyPlan extends jraphical.Module
 
