@@ -90,7 +90,7 @@ module.exports = class JGroup extends Module
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
-        'checkUserBalance', 'makeExpense',
+        'checkUserBalance', 'makeExpense', 'getUserExpenses',
         'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage', 'getTransactions',
         'fetchBundle', 'updateBundle', 'saveInviteMessage'
@@ -1393,6 +1393,10 @@ module.exports = class JGroup extends Module
   checkUserBalance: secure (client, data, callback)->
     # TODO: Find user balance here
     callback yes
+
+  getUserExpenses: secure (client, data, callback)->
+    # TODO: Get user expenses here
+    callback null, []
 
   makeExpense: secure (client, data, callback)->
     @checkUserBalance client, data, (status)=>
