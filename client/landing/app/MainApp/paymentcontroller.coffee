@@ -256,6 +256,13 @@ class PaymentController extends KDController
           else
             onSuccess result
             cb yes
+      else if type is 'expensed'
+        group.setBillingInfo newData, (err, result)->
+          if err
+            onError err
+          else
+            onSuccess result
+            cb yes
       else
         KD.remote.api.JRecurlyPlan.setUserAccount newData, (err, result)->
           if err
@@ -265,15 +272,19 @@ class PaymentController extends KDController
             cb yes
 
   getBillingInfo: (type, group, cb)->
-    if type is 'group'
-      group.getBillingInfo cb
+    if type in ['group', 'expensed']
+      group.getBillingInfo (e,a)->
+        cb e, a
     else
       KD.remote.api.JRecurlyPlan.getUserAccount cb
 
   createPaymentConfirmationModal: (options, cb)->
     {type, group, plan, needBilling, balance, amount, subscription} = options
 
-    content = @paymentWarning balance, amount, subscription
+    content = @paymentWarning balance, amount, subscription, type
+
+    if needBilling and 'admin' not in KD.config.roles
+      content = "Group admins have no defined a payment for this group."
 
     modal           = new KDModalView
       title         : "Confirm VM Creation"
@@ -282,7 +293,7 @@ class PaymentController extends KDController
       overlay       : yes
       buttons       :
         No          :
-          title     : "Cancel"
+          title     : "Close"
           cssClass  : "modal-clean-gray"
           callback  : =>
             modal.destroy()
@@ -315,7 +326,8 @@ class PaymentController extends KDController
       cb()
 
     if needBilling
-      modal.buttons.Billing.show()
+      if 'admin' in KD.config.roles
+        modal.buttons.Billing.show()
     else
       if subscription.status is 'canceled' and amount > 0
         modal.buttons.ReActivate.show()
@@ -326,25 +338,41 @@ class PaymentController extends KDController
 
     formatMoney = (amount)-> (amount / 100).toFixed 2
 
-    (balance, amount, subscription)->
+    (balance, amount, subscription, type)->
       content = ""
 
       chargeAmount = Math.max amount - balance, 0
 
-      if subscription.status is "canceled" and amount > 0
-        content += "<p>You have a canceled subscription for #{subscription.quantity} x VM(s).
-                    To add a new VM, you should re-activate your subscription.</p>"
-        if balance > 0
-          content += "<p>You also have $#{formatMoney balance} credited to your account.</p>"
-      else if amount is 0
-        content += "<p>You are already subscribed for an extra VM.</p>"
-      else if balance > 0
-        content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
+      if type is 'user'
+        if subscription.status is "canceled" and amount > 0
+          content += "<p>You have a canceled subscription for #{subscription.quantity} x VM(s).
+                      To add a new VM, you should re-activate your subscription.</p>"
+          if balance > 0
+            content += "<p>You also have $#{formatMoney balance} credited to your account.</p>"
+        else if amount is 0
+          content += "<p>You are already subscribed for an extra VM.</p>"
+        else if balance > 0
+          content += "<p>You have $#{formatMoney balance} credited to your account.</p>"
 
-      if chargeAmount > 0
-        content += "<p>You will be charged $#{formatMoney chargeAmount}.</p>"
+        if chargeAmount > 0
+          content += "<p>You will be charged $#{formatMoney chargeAmount}.</p>"
+        else
+          content += "<p>You won't be charged for this VM.</p>"
       else
-        content += "<p>You won't be charged for this VM.</p>"
+        if subscription.status is "canceled" and amount > 0
+          content += "<p>Your group has a canceled subscription for #{subscription.quantity} x VM(s).
+                      To add a new VM, you should re-activate its subscription.</p>"
+          if balance > 0
+            content += "<p>Your group also has $#{formatMoney balance} credited to its account.</p>"
+        else if amount is 0
+          content += "<p>Your group is already subscribed for an extra VM.</p>"
+        else if balance > 0
+          content += "<p>Your group has $#{formatMoney balance} credited to its account.</p>"
+
+        if chargeAmount > 0
+          content += "<p>Your group will be charged $#{formatMoney chargeAmount}.</p>"
+        else
+          content += "<p>Your group won't be charged for this VM.</p>"
 
       content += "<p>Do you want to continue?</p>"
 
@@ -414,8 +442,15 @@ class PaymentController extends KDController
     else
       if type is 'group'
         group.makePayment
-          plan     : plan.code
-          multiple : yes
+          plan       : plan.code
+          multiple   : yes
+        , (err, result)->
+          unless err
+            vmController.createGroupVM type, plan.code
+      else if type is 'expensed'
+        group.makePayment
+          plan       : plan.code
+          multiple   : yes
         , (err, result)->
           unless err
             vmController.createGroupVM type, plan.code

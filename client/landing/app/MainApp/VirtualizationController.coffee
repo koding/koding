@@ -307,6 +307,16 @@ class VirtualizationController extends KDController
                   callback          : ->
                     form = modal.modalTabs.forms["Create VM"]
                     form.inputs.type.setValue "user"
+                expensed            :
+                  title             : "Create a <b>Personal</b> VM, Charge Group"
+                  style             : "modal-clean-gray hidden"
+                  type              : "submit"
+                  loader            :
+                    color           : "#ffffff"
+                    diameter        : 12
+                  callback          : ->
+                    form = modal.modalTabs.forms["Create VM"]
+                    form.inputs.type.setValue "expensed"
                 group               :
                   title             : "Create a <b>Shared</b> VM"
                   style             : "modal-clean-gray hidden"
@@ -357,14 +367,20 @@ class VirtualizationController extends KDController
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
 
+      # TODO: Expensed
+      expensed = yes
+      if expensed
+        modal.modalTabs.forms["Create VM"].buttons.expensed.show()
+
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
 
       form = modal.modalTabs.forms["Create VM"]
 
       hideLoaders = ->
-        {group, user} = form.buttons
+        {group, user, expensed} = form.buttons
         user.hideLoader()
+        expensed.hideLoader()
         group.hideLoader()
 
       vmController.on "PaymentModalDestroyed", hideLoaders
