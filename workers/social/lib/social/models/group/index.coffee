@@ -1398,12 +1398,27 @@ module.exports = class JGroup extends Module
         if bundle.allocation is 0
           callback no
         else
-          callback yes
-          # TODO: Find user balance here
+          @getUserExpenses client, data, (err, expenses)->
+            return callback no  if err
+
+            # Are expenses lower than allocation?
+            callback (expenses < bundle.allocation)
 
   getUserExpenses: secure (client, data, callback)->
-    # TODO: Get user expenses here
-    callback null, []
+    JVM   = require '../vm'
+    JUser = require '../user'
+    JUser.fetchUser client, (err, user)=>
+      return callback err  if err
+      JVM.some
+        planOwner: "group_#{@_id}"
+        vmType   : 'expensed'
+        users    : { $elemMatch: id: user.getId(), owner: yes }
+      , {planCode: 1}, (err, vms)->
+        return callback err  if err
+
+        # TODO: Get VM price from JRecurlyPlan
+        callback null, (vms.length * 500)
+
 
   makeExpense: secure (client, data, callback)->
     @checkUserBalance client, data, (status)=>
