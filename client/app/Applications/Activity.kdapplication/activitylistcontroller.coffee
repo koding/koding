@@ -87,7 +87,7 @@ class ActivityListController extends KDListViewController
 
     @emit "teasersLoaded"
 
-  listActivitiesFromCache:(cache)->
+  listActivitiesFromCache:(cache, index, animation, update)->
     @hideLazyLoader()
     return  unless cache.overview?.length > 0
     activityIds = []
@@ -108,9 +108,20 @@ class ActivityListController extends KDListViewController
       else
         activity = cache.activities[overviewItem.ids.first]
         if activity?.teaser
-          activity.teaser.createdAtTimestamps = overviewItem.createdAt
-          @addItem activity.teaser
-          activityIds.push activity.teaser._id
+          if update
+            #todo add update support for comments and likes
+            activity.teaser.emit "update", activity.teaser
+          else
+            activity.teaser.createdAtTimestamps = overviewItem.createdAt
+            # view = @addItem activity.teaser, index, animation
+            # if view then view.slideIn()
+
+            view = @addHiddenItem activity.teaser, index, animation
+            # @utils.defer ->
+            view.slideIn ->
+              hiddenItems.splice hiddenItems.indexOf(view), 1
+
+            activityIds.push activity.teaser._id
 
     @checkIfLikedBefore activityIds
 
@@ -188,7 +199,7 @@ class ActivityListController extends KDListViewController
         log "duplicate entry", activity.bongo_?.constructorName, dataId
       else
         @itemsIndexed[dataId] = activity
-        super(activity, index, animation)
+        @getListView().addItem activity, index, animation
 
   ownActivityArrived:(activity)->
 
