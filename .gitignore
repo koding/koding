@@ -8,7 +8,6 @@
 .cake_task_cache
 .DS_Store
 .idea/*
-.project
 .pyc
 .rabbitvhost
 .revision
