@@ -61,7 +61,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
           <div class='app-tip'>
             <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
             <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{Encoder.XSSEncode additionalinfo}
+            #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
           <div>
           """
       click    : -> no
@@ -104,6 +104,17 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @experimentalView = new KDCustomHTMLView
         cssClass   : "top-badge orange"
         partial    : "Experimental"
+        click      : (e) =>
+          e.stopPropagation()
+          new KDModalView
+            overlay  : yes
+            width    : 500
+            title    : "Experimental App"
+            content  : """
+              <div class='modalformline'>
+                <p>This is an experimental app, you can spot bugs or the app may break the ux and could force you to reload or it can even DAMAGE your files. If you're 100% sure, go ahead and use this app!</p>
+              </div>
+            """
     else
       @experimentalView = new KDView
 
@@ -257,7 +268,7 @@ class AppShortcutButton extends StartTabAppThumbView
     if data.type is 'comingsoon'
       data.disabled = yes
 
-    data.additionalinfo = "<cite>This is a shortcut for an internal Koding Application</cite>"
+    data.additionalinfo = "This is a shortcut for an internal Koding Application"
 
     super options, data
 
