@@ -147,6 +147,7 @@ class MembersAppController extends AppController
     @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
+      listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
       limitPerPage          : 8

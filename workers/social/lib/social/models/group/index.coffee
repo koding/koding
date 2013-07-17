@@ -187,6 +187,8 @@ module.exports = class JGroup extends Module
         actorType  : 'member'
         subject    : ObjectRef(this).data
         member     : ObjectRef(member).data
+      @broadcast 'MemberJoinedGroup',
+        member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -293,9 +295,14 @@ module.exports = class JGroup extends Module
       # remove permissions for guest which made sense for public but not for private
       if group.privacy is 'private'
         toBeRemoved = ['read activity', 'read tags', 'list members']
-        for perm, i in permissionSet.permissions when perm.role is 'guest'
-          for permission, j in perm.permissions when permission in toBeRemoved
-            permissionSet.permissions[i].permissions.splice j, 1
+        for perm, i in permissionSet.permission by -1 when perm.role is 'guest'
+          for permission, j in perm.permissions by -1 when permission in toBeRemoved
+            perm.permissions.splice j, 1
+            if perm.permissions.length <= 0
+              permissionSet.permissions.splice i, 1
+              perm = null
+              break
+          permissionSet.permissions[i] = perm  if perm
 
       queue = [
         -> group.useSlug group.slug, (err, slug)->
@@ -441,13 +448,14 @@ module.exports = class JGroup extends Module
           event       : 'feed-new'
         }
 
-  broadcast:(message)-> @constructor.broadcast @slug, message
+  broadcast:(message, event)->
+    @constructor.broadcast @slug, message, event
 
   # this is a temporary feature to display all activities
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         if err then console.error err
         unless group then console.error "unknown group #{groupSlug}"
@@ -1045,12 +1053,24 @@ module.exports = class JGroup extends Module
     [callback, roles] = [roles, callback]  unless callback
     roles ?= ['member']
     queue = roles.map (role)=>=>
-      @addMember member, role, queue.fin.bind queue
+      # migrate kodingen stuff, we wanna save the relationship with an old
+      # timestamp, so it does not appear in the activity feed
+      if @slug is 'koding' and role is 'member' and member.data.silence
+        new Relationship(
+          targetId   : member.getId()
+          targetName : 'JAccount'
+          sourceId   : @getId()
+          sourceName : 'JGroup'
+          as         : 'member'
+          timestamp  : new Date 2013,0,1
+        ).save queue.fin.bind queue
+      else
+        @addMember member, role, queue.fin.bind queue
     dash queue, =>
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'MemberAdded', member
+      @emit 'MemberAdded', member  if 'member' in roles and not member.data.silence
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
