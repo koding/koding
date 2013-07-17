@@ -232,7 +232,14 @@ class ActivityAppController extends AppController
 
     if isReady
     then fetch()
-    else groupsController.once 'groupChanged', fetch
+    else
+      groupsController.once 'groupChanged', fetch
+      #todo add fetching real activity support
+      #todo disable check if liked before function for fake activities
+      #todo add new comment support
+      KD.getSingleton('mainController').on "AccountChanged", (account)=>
+        $('.common-inner-nav').show()
+        fetch()
 
   listActivities:(activities, callback, update=false)->
     @sanitizeCache activities, (err, sanitizedCache)=>
