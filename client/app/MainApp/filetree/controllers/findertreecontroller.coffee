@@ -119,7 +119,8 @@ class NFinderTreeController extends JTreeViewController
       callback? null, nodeView
       return
 
-    folder = nodeView.getData()
+    folder       = nodeView.getData()
+    hideDotFiles = unless @hideDotFiles then yes else no
 
     failCallback = (err)=>
       unless silence
@@ -134,6 +135,8 @@ class NFinderTreeController extends JTreeViewController
       unless err
         nodeView.expand()
         if files
+          if hideDotFiles
+            files = files.filter (file) -> file.name?[0] isnt '.'
           @addNodes files
         callback? null, nodeView
         @emit "folder.expanded", nodeView.getData()
@@ -472,6 +475,12 @@ class NFinderTreeController extends JTreeViewController
       webTermView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
 
+  showDotFiles:(nodeView, contextMenuItem)->
+    data = contextMenuItem.getData()
+    @hideDotFiles = unless @hideDotFiles then yes else no
+    nodeView.data.hideDotFiles = @hideDotFiles
+    @refreshFolder nodeView
+
   ###
   CONTEXT MENU OPERATIONS
   ###
@@ -505,7 +514,8 @@ class NFinderTreeController extends JTreeViewController
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
-  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
+  cmOpenFileWithApp  : (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
+  cmShowDotFiles     : (nodeView, contextMenuItem)-> @showDotFiles nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
