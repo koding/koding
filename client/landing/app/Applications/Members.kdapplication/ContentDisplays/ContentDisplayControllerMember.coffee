@@ -1,5 +1,17 @@
 class ContentDisplayControllerMember extends KDViewController
 
+  neo4jFacets = [
+    "JLink"
+    "JBlogPost"
+    "JTutorial"
+    "JStatusUpdate"
+    "JComment"
+    "JOpinion"
+    "JDiscussion"
+    "JCodeSnip"
+    "JCodeShare"
+  ]
+
   constructor:(options={}, data)->
 
     {@revivedContentDisplay} = KD.getSingleton("contentDisplayController")
@@ -107,11 +119,10 @@ class ContentDisplayControllerMember extends KDViewController
       dataSource        : (selector, options, callback)=>
         options.originId = account.getId()
         options.facets   = facets
-        KD.getSingleton("appManager").tell 'Activity', 'fetchTeasers', options, callback
+        KD.getSingleton("appManager").tell 'Activity', 'fetchActivitiesProfilePage', options, callback
     return filter
 
   addActivityView:(account)->
-
     @getView().$('div.lazy').remove()
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
@@ -126,23 +137,21 @@ class ContentDisplayControllerMember extends KDViewController
           title             : "<p class=\"bigtwipsy\">This is the personal feed of a single Koding user.</p>"
           placement         : "above"
       filter                :
-        everything          : @createFilter("Everything", account,
-          [ 'CStatusActivity', 'CCodeSnipActivity', 'CFolloweeBucketActivity', 'CNewMemberBucket'
-          'CDiscussionActivity',"CTutorialActivity", "CBlogPostActivity" ])
-        statuses            : @createFilter("Status Updates", account, ['CStatusActivity'])
-        codesnips           : @createFilter("Code Snippets", account, ['CCodeSnipActivity'])
-        blogposts           : @createFilter("Blog Posts", account, ['CBlogPostActivity'])
-        discussions         : @createFilter("Discussions", account, ['CDiscussionActivity'])
-        tutorials           : @createFilter("Tutorials", account, ['CTutorialActivity'])
+        everything          : @createFilter("Everything", account, ['Everything'])
+        statuses            : @createFilter("Status Updates", account, ['JStatusUpdate'])
+        codesnips           : @createFilter("Code Snippets", account, ['JCodeSnip'])
+        blogposts           : @createFilter("Blog Posts", account, ['JBlogPost'])
+        discussions         : @createFilter("Discussions", account, ['JDiscussion'])
+        tutorials           : @createFilter("Tutorials", account, ['JTutorial'])
       sort                  :
+        'likesCount'  :
+          title             : "Most popular"
+          direction         : -1
         'modifiedAt'        :
           title             : "Latest activity"
           direction         : -1
-        'sorts.likesCount'  :
-          title             : "Most popular"
-          direction         : -1
-        'sorts.repliesCount':
-          title             : "Most activity"
+        'repliesCount':
+          title             : "Most commented"
           direction         : -1
         # and more
     }, (controller)=>
