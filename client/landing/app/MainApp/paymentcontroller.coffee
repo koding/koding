@@ -463,7 +463,12 @@ class PaymentController extends KDController
           unless err
             vmController.createGroupVM type, plan.code
 
-  createDeleteConfirmationModal: (subscription, cb)->
+  createDeleteConfirmationModal: (subscription, type, cb)->
+
+    pauseWarning = ""
+    if type isnt "expensed"
+      pauseWarning = """<p>You can 'pause' your plan instead, and continue using it
+                        until #{dateFormat subscription.renew }.</p>"""
 
     if subscription.status is 'canceled'
       content = """<p>Removing this VM will <b>destroy</b> all the data in
@@ -476,8 +481,7 @@ class PaymentController extends KDController
                    this VM including all other users in filesystem. <b>Please
                    be careful this process cannot be undone.</b></p>
 
-                   <p>You can 'pause' your plan instead, and continue using it
-                   until #{dateFormat subscription.renew }.</p>
+                   #{pauseWarning}
 
                    <p>What do you want to do?</p>"""
 
@@ -507,7 +511,7 @@ class PaymentController extends KDController
             modal.destroy()
             cb yes
 
-    if subscription.status isnt 'canceled'
+    if subscription.status isnt 'canceled' and type isnt "expensed"
       modal.buttons.Pause.show()
 
   deleteVM: (vmInfo, callback)->
@@ -516,7 +520,10 @@ class PaymentController extends KDController
     if vmInfo.planOwner.indexOf("user_") > -1
       type = "user"
     else
-      type = "group"
+      if vmInfo.type is "expensed"
+        type = "expensed"
+      else
+        type = "group"
 
     @getSubscriptionInfo group, type, vmInfo.planCode, (subscription)=>
-      @createDeleteConfirmationModal subscription, callback
+      @createDeleteConfirmationModal subscription, type, callback
