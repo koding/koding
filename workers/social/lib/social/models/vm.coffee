@@ -48,6 +48,9 @@ module.exports = class JVM extends Model
       webHome           : String
       planOwner         : String
       planCode          : String
+      vmType            : 
+        type            : String
+        default         : 'user'
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -118,7 +121,7 @@ module.exports = class JVM extends Model
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
-    if type is 'user'
+    if type in ['user', 'expensed']
       requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
       if groupSlug is 'koding'
         requiredDomains.push "#{nickname}.#{domain}"
@@ -129,7 +132,7 @@ module.exports = class JVM extends Model
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
-    if type is 'user'
+    if type in ['user', 'expensed']
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
       if groupSlug is 'koding'
@@ -182,6 +185,10 @@ module.exports = class JVM extends Model
           planOwner   = "user_#{account._id}"
           counterName = "#{groupSlug}~#{user.username}~"
           webHome     = user.username
+        else if type is 'expensed'
+          planOwner   = "group_#{group._id}"
+          counterName = "#{groupSlug}~#{user.username}~"
+          webHome     = user.username
 
         nameFactory = (require 'koding-counter') {
           db     : JVM.getClient()
@@ -208,6 +215,7 @@ module.exports = class JVM extends Model
             groups
             users
             usage
+            vmType: type
           }
 
           vm.save (err) =>
@@ -459,6 +467,7 @@ module.exports = class JVM extends Model
         webHome
         groups
         users
+        vmType: type
       }
 
       vm.save (err)->
@@ -552,9 +561,10 @@ module.exports = class JVM extends Model
               group.fetchVms (err, vms)->
                 if err then handleError err
                 else vms.forEach (vm)->
-                  vm.update {
-                    $addToSet: users: { id: user.getId(), sudo: hasPermission }
-                  }, handleError
+                  if vm.type is 'group'
+                    vm.update {
+                      $addToSet: users: { id: user.getId(), sudo: hasPermission }
+                    }, handleError
 
     JGroup.on 'MemberRemoved', ({group, member})->
       member.fetchUser (err, user)->

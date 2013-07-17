@@ -1366,16 +1366,23 @@ module.exports = class JGroup extends Module
     success: (client, callback)->
       JRecurlyPlan = require '../recurly'
       JRecurlyPlan.getGroupAccount @, callback
-
-  makePayment: permit 'make payment',
-    success: (client, data, callback)->
-      data.plan ?= @payment.plan
+    failure: (client, callback)->
       JRecurlyPlan = require '../recurly'
-      JRecurlyPlan.one
-        code: data.plan
-      , (err, plan)=>
-        return callback err  if err
-        plan.subscribeGroup @, data, callback
+      JRecurlyPlan.getGroupAccount @, (err, account)->
+        if err or not account
+          callback null, {}
+        else
+          callback null, {cardNumber: 'defined-but-hidden'}
+
+  makePayment: secure (client, data, callback)->
+    # TODO: Check limits here  
+    data.plan ?= @payment.plan
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.one
+      code: data.plan
+    , (err, plan)=>
+      return callback err  if err
+      plan.subscribeGroup @, data, callback
 
   addProduct: permit 'manage products',
     success: (client, data, callback)->
@@ -1408,7 +1415,7 @@ module.exports = class JGroup extends Module
   canCreateVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type in ['user', 'group']
+    if data.type in ['user', 'group', 'expensed']
       @fetchBundle (err, bundle)=>
         if err or not bundle
           if @slug == 'koding'
@@ -1430,7 +1437,7 @@ module.exports = class JGroup extends Module
   createVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type in ['user', 'group']
+    if data.type in ['user', 'group', 'expensed']
       @fetchBundle (err, bundle)=>
         if err or not bundle
           if @slug == 'koding'

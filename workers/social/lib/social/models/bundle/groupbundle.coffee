@@ -52,7 +52,7 @@ module.exports = class JGroupBundle extends JBundle
 
     if type is 'user'
       planOwner = "user_#{account._id}"
-    else if type is 'group'
+    else if type in ['group', 'expensed']
       planOwner = "group_#{group._id}"
 
     JRecurlySubscription.getSubscriptionsAll planOwner,
@@ -91,7 +91,7 @@ module.exports = class JGroupBundle extends JBundle
 
     if type is 'user'
       planOwner = "user_#{account._id}"
-    else if type is 'group'
+    else if type in ['group', 'expensed']
       planOwner = "group_#{group._id}"
 
     @canCreateVM account, group, data, (err, status)=>
