@@ -283,7 +283,7 @@ class PaymentController extends KDController
 
     content = @paymentWarning balance, amount, subscription, type
 
-    if needBilling and 'admin' not in KD.config.roles
+    if type is 'expensed' and needBilling and 'admin' not in KD.config.roles
       content = "Group admins have no defined a payment for this group."
 
     modal           = new KDModalView
@@ -326,7 +326,9 @@ class PaymentController extends KDController
       cb()
 
     if needBilling
-      if 'admin' in KD.config.roles
+      if type isnt 'expensed'
+        modal.buttons.Billing.show()
+      else if 'admin' in KD.config.roles
         modal.buttons.Billing.show()
     else
       if subscription.status is 'canceled' and amount > 0
@@ -448,11 +450,13 @@ class PaymentController extends KDController
           unless err
             vmController.createGroupVM type, plan.code
       else if type is 'expensed'
-        group.makePayment
+        group.makeExpense
           plan       : plan.code
           multiple   : yes
         , (err, result)->
-          unless err
+          if err
+            console.log err
+          else
             vmController.createGroupVM type, plan.code
       else
         plan.subscribe {multiple: yes}, (err, result)->
