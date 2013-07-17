@@ -1391,8 +1391,15 @@ module.exports = class JGroup extends Module
           callback null, {cardNumber: 'defined-but-hidden'}
 
   checkUserBalance: secure (client, data, callback)->
-    # TODO: Find user balance here
-    callback yes
+    @fetchBundle (err, bundle)=>
+      if err or not bundle
+        callback no
+      else
+        if bundle.allocation is 0
+          callback no
+        else
+          callback yes
+          # TODO: Find user balance here
 
   getUserExpenses: secure (client, data, callback)->
     # TODO: Get user expenses here
