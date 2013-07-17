@@ -12,7 +12,7 @@ import (
 const MaxInt = int(^uint(0) >> 1)
 
 func RandomString() string {
-	r := make([]byte, 128/8)
+	r := make([]byte, 144/8)
 	cryptorand.Read(r)
 	return base64.URLEncoding.EncodeToString(r)
 }
