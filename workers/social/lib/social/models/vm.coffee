@@ -27,8 +27,6 @@ module.exports = class JVM extends Model
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
-      'list all vms'    : ['member','moderator']
-      'list default vm' : ['member','moderator']
     sharedMethods       :
       static            : [
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
@@ -278,8 +276,7 @@ module.exports = class JVM extends Model
   #           return acc
   #       , @getUsageTemplate()
 
-  # @calculateUsage$ = permit 'list all vms',
-  #   success: (client, groupSlug, callback)->
+  # @calculateUsage$ = secure (client, groupSlug, callback)->
   #     {delegate} = client.connection
   #     @calculateUsage delegate, groupSlug, callback
 
@@ -318,8 +315,7 @@ module.exports = class JVM extends Model
           return callback err  if err
           callback null, arr.map (vm)-> vm.hostnameAlias
 
-  @fetchVmsByContext = permit 'list all vms',
-    success: (client, options, callback) ->
+  @fetchVmsByContext = secure (client, options, callback) ->
       {connection:{delegate}, context:{group}} = client
       JGroup = require './group'
 
@@ -331,8 +327,7 @@ module.exports = class JVM extends Model
         selector = groups: { $elemMatch: id: group.getId() }
         @fetchAccountVmsBySelector delegate, selector, options, callback
 
-  @fetchVms = permit 'list all vms',
-    success: (client, options, callback) ->
+  @fetchVms = secure (client, options, callback) ->
       {delegate} = client.connection
       @fetchAccountVmsBySelector delegate, {}, options, callback
 
@@ -354,8 +349,7 @@ module.exports = class JVM extends Model
 
   # Public(shared) static method to fetch domains
   # which points to given hostnameAlias
-  @fetchDomains$ = permit 'list all vms',
-    success:(client, hostnameAlias, callback)->
+  @fetchDomains$ = secure (client, hostnameAlias, callback)->
       {delegate} = client.connection
 
       delegate.fetchUser (err, user) ->
