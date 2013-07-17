@@ -86,9 +86,7 @@ module.exports = class JVM extends Model
       JDomain.assure { domain }, (err, domainObj) ->
         console.log err  if err
 
-        hostnameAliases = []
-        if domainObj.domain.indexOf("vm-") isnt -1
-          hostnameAliases.push hostnameAlias
+        hostnameAliases = [hostnameAlias]
 
         if domainObj.isNew
           domainObj.hostnameAlias = hostnameAliases
@@ -110,7 +108,9 @@ module.exports = class JVM extends Model
 
   @fixUserDomains = permit 'change bundle',
     success: (client, callback)->
-      return callback new KodingError "You are not Koding admin."  if client.context.group isnt "koding"
+
+      unless client.context.group is "koding"
+        return callback new KodingError "You are not Koding admin."
 
       JDomain = require './domain'
       JUser   = require './user'
@@ -468,6 +468,7 @@ module.exports = class JVM extends Model
       users = [
         { id: user.getId(), sudo: yes, owner: yes }
       ]
+
       [hostnameAlias]  = hostnameAliases
       groups          ?= []
 
