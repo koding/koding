@@ -90,12 +90,16 @@ class DashboardAppView extends JView
     data = @getData()
     KD.getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
       navItems = []
-      for {name, hiddenHandle, viewOptions}, i in tabData
+      for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
         viewOptions.data = data
         viewOptions.options = delegate : this  if name is 'Settings'
         hiddenHandle = hiddenHandle? and data.privacy is 'public'
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
-        navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
+
+        # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
+        if not kodingOnly or data.slug is 'koding'
+          navItems.push {title: name, type: if hiddenHandle then 'hidden' else null}
+
 
       @navController.replaceAllItems navItems
       @navController.selectItem @navController.itemsOrdered.first
