@@ -27,6 +27,8 @@
 /go/build
 /go/pkg
 /kd-server.js
+/neo4k/.cache
+/neo4k/bin
 /node_modules/*
 /npm-debug.log
 /saltstack
