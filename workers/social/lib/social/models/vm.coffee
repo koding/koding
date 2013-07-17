@@ -34,7 +34,6 @@ module.exports = class JVM extends Model
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
-                           'fixUserDomains'
                           ]
       instance          : []
     schema              :
@@ -68,53 +67,43 @@ module.exports = class JVM extends Model
         default         : no
 
   @createDomains = (account, domains, hostnameAlias)->
+
+    updateRelationship = (domainObj)->
+      Relationship.one
+        targetName: "JDomain",
+        targetId: domainObj._id,
+        sourceName: "JAccount",
+        sourceId: account._id,
+        as: "owner"
+      , (err, rel)->
+        if err or not rel
+          account.addDomain domainObj, (err)->
+            console.log err  if err?
+
     JDomain = require './domain'
     domains.forEach (domain) ->
-      JDomain.one { domain }, (err, domainObj) ->
-        unless domainObj
-          domainObj = new JDomain
-            domain : domain
-        domainObj.hostnameAlias = [hostnameAlias]
-        domainObj.proxy         = { mode: 'vm' }
-        domainObj.regYears      = 0
-        domainObj.save (err)->
-          console.log err  if err?
-          unless err
-            Relationship.one
-              targetName: "JDomain",
-              targetId: domainObj._id,
-              sourceName: "JAccount",
-              sourceId: account._id,
-              as: "owner"
-            , (err, rel)->
-              if err or not rel
-                account.addDomain domainObj, (err)->
-                  console.log err  if err?
+      JDomain.assure { domain }, (err, domainObj) ->
+        console.log err  if err
 
-  @fixUserDomains = permit 'change bundle',
-    success: (client, callback)->
-      return callback new KodingError "You are not Koding admin."  if client.context.group isnt "koding"
+        hostnameAliases = [hostnameAlias]
 
-      JDomain = require './domain'
-      JUser   = require './user'
-
-      JVM.each {}, {}, (err, vm)=>
-        return callback err  if err
-        return callback null, null  unless vm
-        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-        hostnameAliases = JVM.createAliases {
-          nickname, type, uid, groupSlug
-        }
-        vmUser = vm.users.filter (u)->
-          return u.owner is yes
-        if vmUser.length > 0
-          JUser.one
-            _id: vmUser[0].id
-          , (err, user)=>
-            if not err and user
-              user.fetchAccount 'koding', (err, account)=>
-                if not err and account
-                  @createDomains account, hostnameAliases, hostnameAliases[0]
+        if domainObj.isNew
+          domainObj.hostnameAlias = hostnameAliases
+          domainObj.proxy         = { mode: 'vm' }
+          domainObj.regYears      = 0
+          domainObj.loadBalancer  = { persistance: 'disabled' }
+          domainObj.save (err)->
+            console.log err  if err
+            updateRelationship domainObj
+        else
+          fields =
+            hostnameAlias : hostnameAliases
+            proxy         : { mode: 'vm' }
+            regYears      : 0
+            loadBalancer  : { persistance: 'disabled' }
+          domainObj.update { $set: fields }, (err)->
+            console.log err  if err
+            updateRelationship domainObj
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
@@ -150,14 +139,14 @@ module.exports = class JVM extends Model
   @parseAlias = (alias)->
     # group-vm alias
     if /^shared-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+).kd.io$/
+      result = alias.match /(.*)\.([a-z0-9-]+)\.kd\.io$/
       if result
         [rest..., prefix, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
         return {groupSlug, prefix, uid, type:'group', alias}
     # personal-vm alias
     else if /^vm-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+)\.(\w+).kd.io$/
+      result = alias.match /(.*)\.([a-z0-9-]+)\.([a-z0-9-]+)\.kd\.io$/
       if result
         [rest..., prefix, nickname, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
@@ -449,6 +438,7 @@ module.exports = class JVM extends Model
       users = [
         { id: user.getId(), sudo: yes, owner: yes }
       ]
+
       hostnameAlias = hostnameAliases[0]
       groups       ?= []
 

@@ -2,34 +2,14 @@ package proxyconfig
 
 import (
 	"fmt"
+	"koding/kontrol/kontrolproxy/models"
 	"labix.org/v2/mgo/bson"
 	"strconv"
 	"time"
 )
 
-type DomainDenied struct {
-	IP       string
-	Country  string
-	Reason   string
-	DeniedAt time.Time
-}
-
-type DomainStat struct {
-	Id           bson.ObjectId  `bson:"_id" json:"-"`
-	Domainname   string         `bson:"domainname" json:"domainname"`
-	RequestsHour map[string]int `bson:"requesthour", json:"requesthour"`
-	Denied       []DomainDenied
-}
-
-type ProxyStat struct {
-	Id           bson.ObjectId  `bson:"_id" json:"-"`
-	Proxyname    string         `bson:"proxyname" json:"proxyname"`
-	Country      map[string]int `bson:"country", json:"country"`
-	RequestsHour map[string]int `bson:"requesthour", json:"requesthour"`
-}
-
-func NewDomainDenied(ip, country, reason string) *DomainDenied {
-	return &DomainDenied{
+func NewDomainDenied(ip, country, reason string) *models.DomainDenied {
+	return &models.DomainDenied{
 		IP:       ip,
 		Country:  country,
 		Reason:   reason,
@@ -37,17 +17,17 @@ func NewDomainDenied(ip, country, reason string) *DomainDenied {
 	}
 }
 
-func NewDomainStat(name string) *DomainStat {
-	return &DomainStat{
+func NewDomainStat(name string) *models.DomainStat {
+	return &models.DomainStat{
 		Id:           bson.NewObjectId(),
 		Domainname:   name,
 		RequestsHour: make(map[string]int),
-		Denied:       make([]DomainDenied, 0),
+		Denied:       make([]models.DomainDenied, 0),
 	}
 }
 
-func NewProxyStat(name string) *ProxyStat {
-	return &ProxyStat{
+func NewProxyStat(name string) *models.ProxyStat {
+	return &models.ProxyStat{
 		Id:           bson.NewObjectId(),
 		Proxyname:    name,
 		Country:      make(map[string]int),
@@ -108,8 +88,8 @@ func (p *ProxyConfiguration) DeleteDomainStat(domainname string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) GetDomainStat(domainname string) (DomainStat, error) {
-	domainstat := DomainStat{}
+func (p *ProxyConfiguration) GetDomainStat(domainname string) (models.DomainStat, error) {
+	domainstat := models.DomainStat{}
 	err := p.Collection["domainstats"].Find(bson.M{"domainname": domainname}).One(&domainstat)
 	if err != nil {
 		if err.Error() == "not found" {
@@ -121,9 +101,9 @@ func (p *ProxyConfiguration) GetDomainStat(domainname string) (DomainStat, error
 	return domainstat, nil
 }
 
-func (p *ProxyConfiguration) GetDomainStats() []DomainStat {
-	domainstat := DomainStat{}
-	domainstats := make([]DomainStat, 0)
+func (p *ProxyConfiguration) GetDomainStats() []models.DomainStat {
+	domainstat := models.DomainStat{}
+	domainstats := make([]models.DomainStat, 0)
 	iter := p.Collection["domainstats"].Find(nil).Iter()
 	for iter.Next(&domainstat) {
 		domainstats = append(domainstats, domainstat)
@@ -174,8 +154,8 @@ func (p *ProxyConfiguration) DeleteProxyStat(proxyname string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) GetProxyStat(proxyname string) (ProxyStat, error) {
-	proxystat := ProxyStat{}
+func (p *ProxyConfiguration) GetProxyStat(proxyname string) (models.ProxyStat, error) {
+	proxystat := models.ProxyStat{}
 	err := p.Collection["proxystats"].Find(bson.M{"proxyname": proxyname}).One(&proxystat)
 	if err != nil {
 		if err.Error() == "not found" {
@@ -187,9 +167,9 @@ func (p *ProxyConfiguration) GetProxyStat(proxyname string) (ProxyStat, error) {
 	return proxystat, nil
 }
 
-func (p *ProxyConfiguration) GetProxyStats() []ProxyStat {
-	proxystat := ProxyStat{}
-	proxystats := make([]ProxyStat, 0)
+func (p *ProxyConfiguration) GetProxyStats() []models.ProxyStat {
+	proxystat := models.ProxyStat{}
+	proxystats := make([]models.ProxyStat, 0)
 	iter := p.Collection["proxystats"].Find(nil).Iter()
 	for iter.Next(&proxystat) {
 		proxystats = append(proxystats, proxystat)

@@ -8,7 +8,6 @@
 .cake_task_cache
 .DS_Store
 .idea/*
-.project
 .pyc
 .rabbitvhost
 .revision
@@ -27,6 +26,8 @@
 /go/build
 /go/pkg
 /kd-server.js
+/neo4k/.cache
+/neo4k/bin
 /node_modules/*
 /npm-debug.log
 /saltstack

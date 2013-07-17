@@ -1,3 +1,4 @@
+_ = require 'underscore'
 neo4j = require "neo4j"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
@@ -6,6 +7,14 @@ module.exports = class Graph
   constructor:({config, facets})->
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
     @facets = facets
+
+  @reviveFromData: (data, className)->
+    data.bongo_ =
+      constructorName : className
+      instanceId : data.id
+    data._id = data.id
+    obj = new Base.constructors[className] data
+    return obj
 
   fetchObjectsFromMongo:(collections, wantedOrder, callback)->
     sortThem=(err, objects)->
@@ -42,25 +51,62 @@ module.exports = class Graph
       }
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
-  fetchFromNeo4j:(query, params, callback)->
-    resultsKey = params.resultsKey or "items"
-    # gets ids from neo4j, fetches objects from mongo, returns in the same order
-    @db.query query, params, (err, results)=>
+  # returns object ids from a result set as array
+  # returns dict {colections: {'users':[id1,id2,id3]},
+  #               wantedOrder: ['users_id1', 'users_id2']
+  #             }
+  # this is needed for fetchObjectsFromMongo()
+  getIdsFromAResultSet: (resultSet)->
+    collections = {}
+    wantedOrder = []
+    for obj in resultSet
+      collections[obj.name] or= []
+      collections[obj.name].push obj.id
+      wantedOrder.push idx: obj.id+'_'+obj.name
+    collections: collections, wantedOrder: wantedOrder
+
+
+  attachReplies:(options, callback)->
+    tempRes = []
+    collectRelations = race (i, res, fin)=>
+      res.replies = [] 
+      @fetchReplies res.getId(), (err, relatedResult)=>
+        if err
+          callback err
+          fin()
+        else
+            if relatedResult.reply?
+              {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
+              @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+                res.replies.push obj for obj in dbObjects
+                tempRes[i] = res
+                fin()
+            else
+              tempRes.push res
+              fin()
+    , =>
+      {groupName, groupId} = options.group if options.group?
+
+      if groupName? and groupName is "koding"
+        @removePrivateContent client, groupId, tempRes, callback
+      else
+        callback null, tempRes
+    return collectRelations
+
+  runQuery:(query, options, callback)->
+    {startDate, client} = options
+    @db.query query, {}, (err, results)=>
       if err
-        return callback err
+        callback err
+      else if results.length is 0 then callback null, []
+      else
+        collectRelations = @attachReplies(options, callback)
+        resultData = []
+        {collections, wantedOrder} = @getIdsFromAResultSet _.map(results, (e)->e.content.data)
+        @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+          for dbObj in dbObjects
+            collectRelations dbObj
 
-      if results.length == 0
-        callback null, []
-
-      wantedOrder = []
-      collections = {}
-      for result in results
-        oid = result[resultsKey]._data.data.id
-        otype = result[resultsKey]._data.data.name
-        wantedOrder.push({id: oid, collection: otype, idx: oid+'_'+otype})
-        collections[otype] ||= []
-        collections[otype].push(oid)
-      @fetchObjectsFromMongo(collections, wantedOrder, callback)
 
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
@@ -111,17 +157,6 @@ module.exports = class Graph
         filteredContent.push content if content.group not in secretGroups
       return callback null, filteredContent
 
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JStatusUpdate"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
-  ]
-
   fetchAll:(requestOptions, callback)->
     {group:{groupName, groupId}, startDate, client} = requestOptions
 
@@ -147,7 +182,6 @@ module.exports = class Graph
       order by content.`meta.createdAtEpoch` DESC
       limit 20
     """
-
     @db.query query, {}, (err, results)=>
       tempRes = []
       if err then callback err
@@ -174,16 +208,9 @@ module.exports = class Graph
             tempRes.push objected
             collectRelations objected
 
-  fetchRelatedItems:(itemId, callback)->
-    query = """
-      start koding=node:koding("id:#{itemId}")
-      match koding-[r]-all
-      return all, r
-      order by r.createdAtEpoch DESC
-    """
-
+  fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
-      if err then throw err
+      if err then callback err
       resultData = []
       for result in results
         type = result.r.type
@@ -199,6 +226,26 @@ module.exports = class Graph
           respond[type].push obj
 
         callback err, respond
+
+
+  fetchReplies: (itemId, callback)->
+    query = """
+      start koding=node:koding("id:#{itemId}")
+      match koding-[r:reply]-all
+      return all, r
+      order by r.createdAtEpoch DESC
+      limit 3
+    """
+    @fetchRelateds query, callback
+
+  fetchRelatedItems:(itemId, callback)->
+    query = """
+      start koding=node:koding("id:#{itemId}")
+      match koding-[r]-all
+      return all, r
+      order by r.createdAtEpoch DESC
+    """
+    @fetchRelateds query, callback
 
   fetchNewInstalledApps:(group, startDate, callback)->
     {groupId} = group

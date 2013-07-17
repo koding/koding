@@ -104,7 +104,7 @@ module.exports =
     runtimeOptions:
       userSitesDomain: 'kd.io'
       useNeo4j: yes
-      logToExternal : no
+      logToExternal : yes
       resourceName: socialQueueName
       suppressLogs: no
       version   : version

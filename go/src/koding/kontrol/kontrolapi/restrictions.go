@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/models"
 	"net/http"
 	"strconv"
 )
@@ -121,7 +121,7 @@ func CreateRuleByName(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var rule proxyconfig.Rule
+	var rule models.Rule
 	switch req.Method {
 	case "POST":
 		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "add")

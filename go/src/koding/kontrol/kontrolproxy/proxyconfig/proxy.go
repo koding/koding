@@ -2,16 +2,12 @@ package proxyconfig
 
 import (
 	"fmt"
+	"koding/kontrol/kontrolproxy/models"
 	"labix.org/v2/mgo/bson"
 )
 
-type Proxy struct {
-	Id   bson.ObjectId `bson:"_id" json:"-"`
-	Name string        `bson:"name" json:"name"`
-}
-
-func NewProxy(name string) *Proxy {
-	return &Proxy{
+func NewProxy(name string) *models.Proxy {
+	return &models.Proxy{
 		Id:   bson.NewObjectId(),
 		Name: name,
 	}
@@ -34,8 +30,8 @@ func (p *ProxyConfiguration) DeleteProxy(proxyname string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) GetProxy(proxyname string) (Proxy, error) {
-	proxy := Proxy{}
+func (p *ProxyConfiguration) GetProxy(proxyname string) (models.Proxy, error) {
+	proxy := models.Proxy{}
 	err := p.Collection["proxies"].Find(bson.M{"name": proxyname}).One(&proxy)
 	if err != nil {
 		return proxy, fmt.Errorf("no proxy with name %s exist.", proxyname)
@@ -44,9 +40,9 @@ func (p *ProxyConfiguration) GetProxy(proxyname string) (Proxy, error) {
 	return proxy, nil
 }
 
-func (p *ProxyConfiguration) GetProxies() []Proxy {
-	proxy := Proxy{}
-	proxies := make([]Proxy, 0)
+func (p *ProxyConfiguration) GetProxies() []models.Proxy {
+	proxy := models.Proxy{}
+	proxies := make([]models.Proxy, 0)
 	iter := p.Collection["proxies"].Find(nil).Iter()
 	for iter.Next(&proxy) {
 		proxies = append(proxies, proxy)

@@ -56,7 +56,6 @@ class ActivityAppController extends AppController
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
-
     @emit 'ready'
 
   resetAll:->
@@ -101,9 +100,7 @@ class ActivityAppController extends AppController
 
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
-
       @resetAll()
-
       @clearPopulateActivityBindings()
 
       if data.type in ["Public", "Followed"]
@@ -144,7 +141,6 @@ class ActivityAppController extends AppController
       #to-do add isExempt control.
       #@isExempt (exempt)=>
         #if exempt or @getFilter() isnt activityTypes
-
       options =
         to     : options.to or Date.now()
         group  :
@@ -301,14 +297,13 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  fetchTeasers:(options,callback)->
-    KD.remote.api.CActivity.fetchFacets options, (err, data) =>
-      if err then callback err
-      else
-        data = clearQuotes data
-        KD.remote.reviveFromSnapshots data, (err, instances)->
-          if err then callback err
-          else callback null, instances
+  fetchActivitiesProfilePage:(options,callback)->
+    {CStatusActivity} = KD.remote.api
+    options.to = options.to or Date.now()
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
+      return @emit "activitiesCouldntBeFetched", err  if err
+      callback err, activities
 
   unhideNewItems: ->
     @listController?.activityHeader.updateShowNewItemsLink yes
