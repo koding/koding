@@ -379,11 +379,19 @@ class VirtualizationController extends KDController
         index      = (parseInt form.inputs.selector.getValue(), 10) or 0
         monthlyFee = @paymentPlans[index].feeMonthly
 
-        console.log "Group Limit:", limit
-        console.log "User Balance:", balance
+        if limit > 0
+          credits = (limit / 100).toFixed(2)
 
-        if limit >= balance + monthlyFee
-          modal.modalTabs.forms["Create VM"].buttons.expensed.show()
+          creditsMessage = "<p>This group gives you $#{credits} credits.</p>"
+          if balance > 0
+            spent = (balance / 100).toFixed(2)
+            creditsMessage += "<p>You've spent $#{spent}.</p>"
+
+          form.fields.desc.setPartial creditsMessage
+          form.fields.desc.show()
+
+          if limit >= balance + monthlyFee
+            modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
       hideLoaders = ->
         {group, user, expensed} = form.buttons
