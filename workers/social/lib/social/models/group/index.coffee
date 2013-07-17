@@ -90,6 +90,7 @@ module.exports = class JGroup extends Module
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'checkUserBalance', 'makeExpense',
         'addProduct', 'deleteProduct',
         'createVM', 'canCreateVM', 'vmUsage', 'getTransactions',
         'fetchBundle', 'updateBundle', 'saveInviteMessage'
@@ -1374,8 +1375,22 @@ module.exports = class JGroup extends Module
         else
           callback null, {cardNumber: 'defined-but-hidden'}
 
-  makePayment: secure (client, data, callback)->
-    # TODO: Check limits here  
+  checkUserBalance: secure (client, data, callback)->
+    # TODO: Find user balance here
+    callback no
+
+  makeExpense: secure (client, data, callback)->
+    @checkUserBalance client, data, (status)=>
+      if status
+        @chargeGroup client, data, callback
+      else
+        callback new KodingError "You don't have enough balance"
+
+  makePayment: permit "make payments",
+   (client, data, callback)->
+      @chargeGroup client, data, call
+
+  chargeGroup: secure (client, data, callback)->
     data.plan ?= @payment.plan
     JRecurlyPlan = require '../recurly'
     JRecurlyPlan.one
