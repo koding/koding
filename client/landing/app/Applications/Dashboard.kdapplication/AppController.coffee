@@ -64,7 +64,13 @@ class DashboardAppController extends AppController
           viewClass  : GroupProductSettingsView
           lazy       : yes
           callback   : @productViewAdded
-
+      ,
+        name         : 'Blocked Users'
+        hiddenHandle : data.privacy is 'public'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : GroupsBlockedUserView
+          lazy       : yes
       # CURRENTLY DISABLED
 
       # ,

@@ -3,6 +3,56 @@ __bookPages = [
     embed     : BookTableOfContents
     section   : -1
   ,
+    title     : "A Story"
+    content   : "Once upon a time, there were developers just like you<br/>Despite the sea between them, development had ensued"
+    routeURL  : ""
+    section   : 11
+    parent    : 0
+  ,
+    cssClass  : "a-story more-1"
+    content   : "Over time they noticed, that ‘how it’s done’ was slow<br/>“With 1,000 miles between us, problems start to show!”"
+    routeURL  : ""
+    section   : 11
+    parent    : 1
+  ,
+    cssClass  : "a-story more-2"
+    content   : "“Several different services for just a hello world?<br/>And each a different cost!” Their heads began to swirl."
+    routeURL  : ""
+    section   : 11
+    parent    : 2
+  ,
+    cssClass  : "a-story more-3"
+    content   : "They made up their minds, “It’s time to leave the crowd</br>all of these environments should reside in the cloud!”"
+    routeURL  : ""
+    section   : 11
+    parent    : 3
+  ,
+    cssClass  : "a-story more-4"
+    content   : "“Then simplify the process, from several steps to one<br/>A terminal in a browser? That would help a ton!”"
+    routeURL  : ""
+    section   : 11
+    parent    : 4
+  ,
+    cssClass  : "a-story more-5"
+    content   : "Build it on a community, we'll teach and learn together<br/>Of course we'll charge nothing for it."
+    routeURL  : ""
+    section   : 11
+    parent    : 5
+  ,
+    cssClass  : "a-story more-6"
+    content   : "“This sounds amazing!” They each began to sing,<br/>“Let’s package it together and call it Koding!”"
+    routeURL  : ""
+    section   : 11
+    parent    : 5
+  ,
+    title     : "Foreword"
+    content   : """<p>Koding is your new development computer in your browser.</p>
+                   <p>As an experienced developer you will find awesome tools to set up shop here.</p>
+                   <p>If you are new to programming, writing your first "Hello World" application literally is 5 minutes away from you.</p><p> Welcome home - This is going to be fun!</p>"""
+    routeURL  : ""
+    section   : 11
+    parent    : 0
+  ,
     title     : "Welcome to Koding!"
     content   : """
                 <p class="centered">It's probably your first time using Koding! Follow this quick tutorial to learn everything you can do with this amazing tool!</p>
@@ -10,13 +60,6 @@ __bookPages = [
     routeURL  : "/Activity"
     section   : 1
     embed     : StartTutorialButton
-    parent    : 0
-  ,
-    title     : "Members"
-    content   : """<h2>Welcome to the club!</h2>
-                   <p>Here you’ll find all of Koding’s members. To find another member, just enter a name in the search bar and hit enter! This is a place where you can connect and collaborate. Feel free to follow the whole Koding Team!</p>"""
-    routeURL  : "/Members"
-    section   : 2
     parent    : 0
   ,
     title     : "Activity"
@@ -27,6 +70,13 @@ __bookPages = [
     showHow   : yes
     howToSteps: ['enterNewStatusUpdate']
     menuItem  : "Activity"
+  ,
+    title     : "Members"
+    content   : """<h2>Welcome to the club!</h2>
+                   <p>Here you’ll find all of Koding’s members. To find another member, just enter a name in the search bar and hit enter! This is a place where you can connect and collaborate. Feel free to follow the whole Koding Team!</p>"""
+    routeURL  : "/Members"
+    section   : 2
+    parent    : 0
   ,
 
     title     : "Topics"
@@ -231,11 +281,10 @@ __bookPages = [
     content   : """<p>Seems like a fancy word, huh? Don’t worry, we’re not going to preach. This is more of a Koding Mission Statement. Sure, Koding is built around cloud development, but its second pillar is community.</p>
                    <p>So what does that mean? That means that developers of all skill levels are going to grace your activity feed. Some need help, some will help others, some will guide the entire group, whatever your role is it’s important to remember one important word: help.</p>
                    <p>Help by providing insight and not insult to people asking basic questions. Help by researching your question to see if it has had already been given an answer. And lastly, help us make this service the best it can be!</p>"""
-    section   : 10
-    parent    : 0
+    section   : -1
   ,
     title     : "Enjoy!"
-    content   : """<span>book answerd illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
+    content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
     section   : -1
 ]
