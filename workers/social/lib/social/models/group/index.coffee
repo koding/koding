@@ -1377,7 +1377,7 @@ module.exports = class JGroup extends Module
 
   checkUserBalance: secure (client, data, callback)->
     # TODO: Find user balance here
-    callback no
+    callback yes
 
   makeExpense: secure (client, data, callback)->
     @checkUserBalance client, data, (status)=>
