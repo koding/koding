@@ -41,7 +41,7 @@ class CollaborativePanel extends Panel
 
     if isJoinedASession
       if paneOptions.type is "terminal"
-        PaneClass = CollaborativeClientTerminalPane
+        PaneClass = SharableClientTerminalPane
       else if paneOptions.type is "finder"
         PaneClass = CollaborativeClientFinderPane
 
@@ -53,7 +53,7 @@ class CollaborativePanel extends Panel
     @emit "NewPaneCreated", pane
 
 CollaborativePanel::EditorPaneClass        = CollaborativeEditorPane
-CollaborativePanel::TerminalPaneClass      = CollaborativeTerminalPane
+CollaborativePanel::TerminalPaneClass      = SharableTerminalPane
 CollaborativePanel::FinderPaneClass        = CollaborativeFinderPane
 CollaborativePanel::TabbedEditorPaneClass  = CollaborativeTabbedEditorPane
 CollaborativePanel::VideoPaneClass         = VideoPane
