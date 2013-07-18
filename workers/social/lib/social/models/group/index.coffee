@@ -453,10 +453,15 @@ module.exports = class JGroup extends Module
   @broadcast = (groupSlug, event, message)->
     if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
-        if err then console.error err
-        unless group then console.error "unknown group #{groupSlug}"
+        console.error err  if err
+        unless group
+          # console.trace()
+          # At some point this error happens with groupSlug as 'undefined'
+          # Tried to trace but failed, maybe its important ~ GG
+          console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           @oldBroadcast.call this, "koding", event, message
+
     @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',
