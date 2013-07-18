@@ -112,21 +112,18 @@ module.exports = class JVM extends Model
       JDomain = require './domain'
       JUser   = require './user'
 
-      JVM.each {}, {}, (err, vm)=>
+      JVM.each {}, {}, (err, vm) =>
         return callback err  if err
         return callback null, null  unless vm
         {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
         hostnameAliases = JVM.createAliases {
           nickname, type, uid, groupSlug
         }
-        vmUser = vm.users.filter (u)->
-          return u.owner is yes
-        if vmUser.length > 0
-          JUser.one
-            _id: vmUser[0].id
-          , (err, user)=>
+        [vmUser] = vm.users.filter (u) -> u.owner is yes
+        if vmUser?
+          JUser.one { _id: vmUser.id }, (err, user) =>
             if not err and user
-              user.fetchAccount 'koding', (err, account)=>
+              user.fetchAccount 'koding', (err, account) =>
                 console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
                 if not err and account
                   @ensureDomainSettings {account, vm, type, nickname, groupSlug}
