@@ -78,7 +78,7 @@ func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, sessio
 	}
 	server.SetSize(float64(sizeX), float64(sizeY))
 
-	args := []string{"/usr/bin/screen", "-e~~", "-S", session}
+	args := []string{"/usr/bin/screen", "-e~~", "-S", "koding." + session}
 	if !newSession {
 		args = append(args, "-x")
 	}
@@ -157,6 +157,6 @@ func (server *WebtermServer) Close() error {
 
 func (server *WebtermServer) Terminate() error {
 	server.Close()
-	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", server.Session, "-X", "quit").Run()
+	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", "koding."+server.Session, "-X", "quit").Run()
 	return nil
 }
