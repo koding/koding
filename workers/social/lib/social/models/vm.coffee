@@ -433,8 +433,9 @@ module.exports = class JVM extends Model
 
   do ->
 
-    JGroup  = require './group'
-    JUser   = require './user'
+    JAccount  = require './account'
+    JGroup    = require './group'
+    JUser     = require './user'
 
     addVm = ({ account, target, user, sudo, groups, groupSlug
                type, planCode, planOwner, webHome })->
@@ -487,34 +488,34 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
-    # Do not give free group VMs
-    # JGroup.on 'GroupCreated', ({group, creator})->
-    #   group.fetchBundle (err, bundle)->
-    #     console.log err, bundle
-    #     if err then handleError err
-    #     else if bundle and bundle.sharedVM
-    #       creator.fetchUser (err, user)->
-    #         if err then handleError err
-    #         else
-    #           # Following is just here to register this name in the counters collection
-    #           ((require 'koding-counter') {
-    #             db          : JVM.getClient()
-    #             counterName : "#{group.slug}~"
-    #             offset      : 0
-    #           }).next ->
-    #
-    #           addVm {
-    #             user
-    #             account     : creator
-    #             sudo        : yes
-    #             type        : 'group'
-    #             target      : group
-    #             planCode    : 'free'
-    #             planOwner   : "group_#{group._id}"
-    #             groupSlug   : group.slug
-    #             webHome     : group.slug
-    #             groups      : wrapGroup group
-    #           }
+    JAccount.on 'UsernameChanged', ({ oldUsername, username })->
+      return  unless oldUsername or username
+
+      hostnameAlias = "vm-0.#{oldUsername}.guests.kd.io"
+      newHostNameAlias = "vm-0.#{username}.koding.kd.io"
+
+      console.log "Started to migrate #{oldUsername} to #{username} ..."
+
+      JVM.one {hostnameAlias}, (err, vm)=>
+        return console.error err  if err or not vm
+        console.log "Old vm found, passing..."
+        JAccount.one {'profile.nickname':username}, (err, account)=>
+          return console.error err  if err or not account
+          console.log "New account found, passing..."
+          vm.update {$set: {hostnameAlias: newHostNameAlias}}, (err)=>
+            return console.error err  if err
+            console.log "VM hostnameAlias updated, passing..."
+            nameFactory = (require 'koding-counter')
+              db          : JVM.getClient()
+              offset      : 0
+              counterName : "koding~#{username}~"
+            nameFactory.next (err, uid)=>
+              return console.error err  if err
+              console.log "Counter created with #{uid}, passing..."
+              JVM.ensureDomainSettings {
+                type:'user', nickname:username, groupSlug:'koding'
+                account, vm
+              }
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
