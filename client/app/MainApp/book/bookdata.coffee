@@ -49,9 +49,9 @@ __bookPages = [
     content   : """<p>Koding is your new development computer in your browser.</p>
                    <p>As an experienced developer you will find awesome tools to set up shop here.</p>
                    <p>If you are new to programming, writing your first "Hello World" application literally is 5 minutes away from you.</p><p> Welcome home - This is going to be fun!</p>"""
-    routeURL  : ""               
+    routeURL  : ""
     section   : 11
-    parent    : 0  
+    parent    : 0
   ,
     title     : "Welcome to Koding!"
     content   : """
@@ -76,7 +76,7 @@ __bookPages = [
                    <p>Here you’ll find all of Koding’s members. To find another member, just enter a name in the search bar and hit enter! This is a place where you can connect and collaborate. Feel free to follow the whole Koding Team!</p>"""
     routeURL  : "/Members"
     section   : 2
-    parent    : 0  
+    parent    : 0
   ,
 
     title     : "Topics"
@@ -281,10 +281,10 @@ __bookPages = [
     content   : """<p>Seems like a fancy word, huh? Don’t worry, we’re not going to preach. This is more of a Koding Mission Statement. Sure, Koding is built around cloud development, but its second pillar is community.</p>
                    <p>So what does that mean? That means that developers of all skill levels are going to grace your activity feed. Some need help, some will help others, some will guide the entire group, whatever your role is it’s important to remember one important word: help.</p>
                    <p>Help by providing insight and not insult to people asking basic questions. Help by researching your question to see if it has had already been given an answer. And lastly, help us make this service the best it can be!</p>"""
-    section   : -1               
+    section   : -1
   ,
     title     : "Enjoy!"
-    content   : """<span>book answerd illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
+    content   : """<span>book and illustrations by <a href='http://twitter.com/petorial' target='_blank'>@petorial</a></span>
                    <p>That's it, we hope that you enjoy what we built.</p>"""
     section   : -1
 ]

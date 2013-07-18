@@ -32,7 +32,6 @@ module.exports = class JVM extends Model
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
-                           'fixUserDomains'
                           ]
       instance          : []
     schema              :

@@ -235,7 +235,7 @@ class KodingAppsController extends KDController
         @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
         KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           @notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
-          @installApp app[0], "latest", =>
+          @installApp app[0], app[0].versions.last, =>
             @refreshApps()
             callback?()
             @emit "AnAppHasBeenUpdated"
@@ -247,6 +247,7 @@ class KodingAppsController extends KDController
   # #
 
   putAppResources:(appInstance)->
+    return  unless appInstance
 
     manifest = appInstance.getOptions()
     {devMode, forceUpdate, name, options, version, thirdParty} = manifest

@@ -140,7 +140,7 @@ class KodingRouter extends KDRouter
       new KDNotificationView title: err?.message or 'An unknown error has occured.'
       @handleNotFound route
 
-    if name
+    if name and not slug
       KD.remote.cacheable name, (err, models)=>
         if models?
         then onSuccess models
