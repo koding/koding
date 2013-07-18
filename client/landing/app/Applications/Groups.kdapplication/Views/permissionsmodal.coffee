@@ -170,8 +170,6 @@ class PermissionsModal extends KDFormViewWithFields
       itemClass     : KDView
       partial       : readableText current
       cssClass      : 'text header-item role-'+__utils.slugify(current)
-      tooltip       :
-        showOnlyWhenOverflowing : yes
         title       : readableText current
         placement   : 'top'
         direction   : 'center'
@@ -208,7 +206,6 @@ class PermissionsModal extends KDFormViewWithFields
             offset      :
               top       : 3
               left      : 0
-            showOnlyWhenOverflowing : yes
           nextElementFlat :
             cascadeFormElements set, roles, module, permission
     permissionOptions
