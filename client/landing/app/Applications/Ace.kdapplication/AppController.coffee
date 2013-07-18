@@ -25,9 +25,11 @@ class AceAppController extends AppController
       { type      : "separator" }
       { title     : "Preview",             eventName : "preview" }
       { type      : "separator" }
-      { title     : "Advanced Settings",   viewName  : "advancedSettings" }
+      { title     : "Advanced Settings",   id        : "advancedSettings" }
+      { title     : "customViewAdvancedSettings", parentId: "advancedSettings"}
       { type      : "separator" }
-      { title     : "Recently Opened",     viewName  : "recents"}
+      { title     : "Recently Opened",     id        : "recents"}
+      { title     : "customViewRecents",   parentId  : "recents"}
       { title     : "Reopen Latest Files", eventName : "reopen" }
       { type      : "separator" }
       { title     : "Exit",                eventName : "exit" }

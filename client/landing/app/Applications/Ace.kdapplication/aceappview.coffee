@@ -174,7 +174,7 @@ class AceAppView extends JView
 
     @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
 
-  advancedSettingsMenuView: ->
+  getAdvancedSettingsMenuView: ->
     pane = @tabView.getActivePane()
     {aceView} = pane.getOptions()
     settingsView = new KDView
@@ -184,7 +184,7 @@ class AceAppView extends JView
 
     return settingsView
 
-  recentsMenuView: ->
+  getRecentsMenuView: ->
     items = @createSessionListItems()
     unless Object.keys(items).length
       return new KDView
