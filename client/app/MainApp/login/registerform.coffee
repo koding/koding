@@ -177,12 +177,6 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Please enter your invitation code."
 
-    @entryPoint = new LoginInputView
-      inputOptions    :
-        name          : 'entryPoint'
-        type          : 'hidden'
-        defaultValue  : KD.config.entryPoint?.slug
-
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
         @passwordConfirm.input.setValue ''
@@ -282,5 +276,4 @@ class RegisterInlineForm extends LoginViewInlineForm
     </section>
     <div>{{> @button}}</div>
     {{> @disabledNotice}}
-    {{> @entryPoint}}
     """

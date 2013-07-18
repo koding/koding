@@ -323,8 +323,6 @@ module.exports = class JUser extends jraphical.Module
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
-      else if invite?.group isnt slug and group.privacy is 'private' and group.slug isnt 'koding'
-        group.requestAccessFor account, callback
       else
         group.approveMember account, (err)->
           return callback err  if err
@@ -336,10 +334,10 @@ module.exports = class JUser extends jraphical.Module
               if invite and not err then cb invite
               else callback err
 
-  @addToGroups = (account, invite, entryPoint, email, callback)->
+  @addToGroups = (account, invite, email, callback)->
     @addToGroup account, 'koding', email, invite, (err)=>
       if err then callback err
-      else if (slug = invite.group or entryPoint) and slug isnt 'koding'
+      else if invite.group and invite.group isnt 'koding'
         @addToGroup account, slug, email, invite, callback
       else
         callback null
@@ -395,7 +393,7 @@ module.exports = class JUser extends jraphical.Module
   @register = secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
-     agree, inviteCode, clientId, entryPoint} = userFormData
+     agree, inviteCode, clientId} = userFormData
 
     @usernameAvailable username, (err, r)=>
       isAvailable = yes
@@ -429,7 +427,7 @@ module.exports = class JUser extends jraphical.Module
                 return callback err  if err
                 @removeUnsubscription userData, (err)=>
                   return callback err  if err
-                  @addToGroups account, invite, entryPoint, email, (err) ->
+                  @addToGroups account, invite, email, (err) ->
                     return callback err  if err
 
                     replacementToken = createId()
