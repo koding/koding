@@ -44,7 +44,8 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               group.fetchMembersFromGraph options, callback
-              JAccount.count selector, (err, count)=>
+
+              group.countMembers (err, count) =>
                 @setCurrentViewNumber 'all', count
 
         followed            :

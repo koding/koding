@@ -58,7 +58,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass : "split sublink"
       partial  : "<a href='#'>See all groups...</a>"
       click    : =>
-        KD.getSingleton("appManager").open "Groups"
+        KD.getSingleton('router').handleRoute '/Groups'
         @hide()
 
     backToKodingView = new KDView
