@@ -14,7 +14,7 @@ class WebTermController extends AppController
           router.openSection "WebTerm", name, query
     multiple     : yes
     hiddenHandle : no
-    menu         : 
+    menu         :
       width      : 250
       items      : [
         {title: "customViewAdvancedSettings"}
