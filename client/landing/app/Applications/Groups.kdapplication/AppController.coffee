@@ -68,7 +68,7 @@ class GroupsAppController extends AppController
 
   changeGroup:(groupName='', callback=->)->
 
-    groupName or= KD.defaultSlug
+    groupName or= 'koding' # KD.defaultSlug
     return callback()  if @currentGroupName is groupName
 
     oldGroupName        = @currentGroupName
