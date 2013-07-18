@@ -156,8 +156,7 @@ func (server *WebtermServer) Close() error {
 }
 
 func (server *WebtermServer) Terminate() error {
-	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", server.Session, "-X", "autodetach", "off").Run()
-	server.pty.Signal(syscall.SIGHUP)
-	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", server.Session, "-X", "autodetach", "on").Run()
+	server.Close()
+	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", server.Session, "-X", "quit").Run()
 	return nil
 }
