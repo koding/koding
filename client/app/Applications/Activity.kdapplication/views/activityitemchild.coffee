@@ -142,6 +142,13 @@ class ActivityItemChild extends KDView
             color    : "#ffffff"
             diameter : 16
           callback   : =>
+
+            if data.fake
+              @emit 'ActivityIsDeleted'
+              modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              return
+
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
@@ -149,7 +156,7 @@ class ActivityItemChild extends KDView
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
+                title    : "Error, please try again later!"
 
   click: KD.utils.showMoreClickHandler
 
