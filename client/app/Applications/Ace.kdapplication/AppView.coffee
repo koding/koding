@@ -9,11 +9,11 @@
 
 class AceView extends JView
 
-  constructor:(options, file)->
+  constructor:(options = {}, file)->
 
     options.advancedSettings ?= yes
 
-    super
+    super options, file
 
     @listenWindowResize()
 

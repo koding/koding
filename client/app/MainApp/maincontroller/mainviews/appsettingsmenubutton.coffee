@@ -8,11 +8,7 @@ class AppSettingsMenuButton extends KDButtonView
   getCustomMenuView = (item)->
     view = getVisibleView()
     item.type = "customView"
-    customMenu = view["#{item.viewName}MenuView"]? item.viewName, item
-    if customMenu instanceof KDView
-      customView: customMenu
-    else
-      customMenu
+    customMenu = view["get#{item.title.replace(/^customView/, '')}MenuView"]? item.viewName, item
 
   constructor: (options = {}, data) ->
 
@@ -20,37 +16,27 @@ class AppSettingsMenuButton extends KDButtonView
     options.iconOnly = yes
     options.callback = (event) =>
       menu = @getData()
-      return unless menu
+      return unless menu.items
 
-      @menuWidth = 172
+      @menuWidth = menu.width or 172
 
-      menuObject = {}
-      menu.forEach (item, index) =>
+      menu.items.forEach (item, index) =>
 
-        @menuWidth = item.width  if item.width > @menuWidth
-
+        item.children or= []
         item.callback = (contextmenu) =>
           view = getVisibleView()
           view?.emit "#{item.eventName}MenuItemClicked", item.eventName, item, contextmenu, @offset
           @contextMenu.destroy()
 
-        key = item.title or @utils.uniqueId("menu-item")
-
-        item.isChild ?= yes
-        if item.viewName?
+        if (item.title?.indexOf "customView") is 0
           customView = getCustomMenuView item
-          if item.isChild is yes
-            customItem = children: customView
+          console.log customView
+          if customView instanceof KDView
+            item.view = customView
           else
-            key        = @utils.uniqueId "customView"
-            {customView} = customView
-            customItem = customView
+            menu.items = menu.items.concat JContextMenuTreeViewController.convertToArray customView, item.parentId
 
-          menuObject[key] = customItem
-        else
-          menuObject[key] = item
-
-      @createMenu event, menuObject
+      @createMenu event, menu.items
 
     super options, data
 
