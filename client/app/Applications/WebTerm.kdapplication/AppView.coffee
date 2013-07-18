@@ -70,7 +70,8 @@ class WebTermView extends KDView
         vmName   : @getOption('delegate').getOption('vmName')
         withArgs :
           remote : @terminal.clientInterface
-          name   : "none"
+          joinUser : @getOption('delegate').getOption('joinUser')
+          session  : @getOption('delegate').getOption('session')
           sizeX  : @terminal.sizeX
           sizeY  : @terminal.sizeY
       , (err, remote) =>
@@ -83,6 +84,7 @@ class WebTermView extends KDView
           @terminal.server = remote
           @setKeyView()
           @emit "WebTermConnected", remote
+          console.log remote.session
 
   destroy: ->
     super
