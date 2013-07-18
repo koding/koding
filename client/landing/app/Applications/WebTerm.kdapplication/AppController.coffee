@@ -26,7 +26,7 @@ class WebTermController extends AppController
 
   constructor:(options = {}, data)->
     vmName          = options.params?.vmName or (KD.getSingleton 'vmController').defaultVmName
-    options.view    = new WebTermAppView {vmName}
+    options.view    = new WebTermAppView {vmName, joinUser: options.params?.joinUser, session: options.params?.session}
     options.appInfo =
       title         : "Terminal on #{vmName}"
       cssClass      : "webterm"
