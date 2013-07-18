@@ -30,7 +30,9 @@ module.exports = class JTag extends jraphical.Module
       #{if @group is 'koding' then '' else "#{@group}/"}Topics/\#{slug}
       """
     permissions     :
-      'read tags'             : ['guest', 'member', 'moderator']
+      'read tags'             :
+        public                : ['guest', 'member', 'moderator']
+        private               : ['member', 'moderator']
       'create tags'           : ['member', 'moderator']
       'freetag content'       : ['member', 'moderator']
       'browse content by tag' : ['member', 'moderator']
