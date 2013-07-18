@@ -170,12 +170,8 @@ class PermissionsModal extends KDFormViewWithFields
       itemClass     : KDView
       partial       : readableText current
       cssClass      : 'text header-item role-'+__utils.slugify(current)
+      attributes    :
         title       : readableText current
-        placement   : 'top'
-        direction   : 'center'
-        offset      :
-          top       : 5
-          left      : 0
     if current and remainder.length > 0
       cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
     return cascadeData
@@ -199,13 +195,8 @@ class PermissionsModal extends KDFormViewWithFields
           itemClass     : KDView
           partial       : readableText permission
           cssClass      : 'text'
-          tooltip       :
+          attributes    :
             title       : readableText permission
-            direction   : 'center'
-            placement   : 'left'
-            offset      :
-              top       : 3
-              left      : 0
           nextElementFlat :
             cascadeFormElements set, roles, module, permission
     permissionOptions
