@@ -15,9 +15,9 @@ class PermissionsModal extends KDFormViewWithFields
       "Add Role"          :
         style             : "modal-clean-gray"
         cssClass          : 'add-role'
-        loader      :
-          color     : "#444444"
-          diameter  : 12
+        loader            :
+          color           : "#444444"
+          diameter        : 12
         callback          : =>
 
           KD.getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
@@ -27,23 +27,23 @@ class PermissionsModal extends KDFormViewWithFields
             overlay       : yes
             height        : 'auto'
             buttons       :
+              "Add Role"   :
+                style      : "add-role-button modal-clean-gray"
+                cssClass   : 'add-role-button'
+                loader     :
+                  color    : "#444444"
+                  diameter : 12
 
-              "Add Role"        :
-                style     : "add-role-button modal-clean-gray"
-                cssClass  : 'add-role-button'
-                loader      :
-                  color     : "#444444"
-                  diameter  : 12
-
-                callback  : =>
-                  name    = @inputRoleName.getValue()
-                  nameSlug= @utils.slugify name
-                  copy    = @inputCopyPermissions.getValue()
+                callback   : =>
+                  name     = @inputRoleName.getValue()
+                  nameSlug = @utils.slugify name
+                  copy     = @inputCopyPermissions.getValue()
 
                   group.addCustomRole
-                    title : nameSlug
+                    title           : nameSlug
                     isConfigureable : yes
                   , (err,role)=>
+
                     log err if err
                     # TODO add copied permissions here
 
