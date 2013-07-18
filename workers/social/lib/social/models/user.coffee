@@ -320,22 +320,6 @@ module.exports = class JUser extends jraphical.Module
       else
         callback createKodingError 'Invitation code is required!'
 
-  @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
-    if kodingenUser isnt 'on'
-      callback null
-    else
-      require('https').get
-        hostname  : 'kodingen.com'
-        path      : "/bridge_.php?username=#{encodeURIComponent username}&password=#{encodeURIComponent password}"
-      , (res)->
-        data = ''
-        res.setEncoding 'utf-8'
-        res.on 'data', (chunk)-> data += chunk
-        res.on 'error', (err)-> callback err, r
-        res.on 'end', ->
-          data = JSON.parse data.substr(1, data.length - 2)
-          if data.error then callback yes else callback null
-
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
@@ -358,7 +342,7 @@ module.exports = class JUser extends jraphical.Module
       else
         callback null
 
-  @createUser = ({ username, email, password, firstName, lastName, silence }, callback)->
+  @createUser = ({ username, email, password, firstName, lastName }, callback)->
     slug =
       slug            : username
       constructorName : 'JUser'
@@ -400,7 +384,6 @@ module.exports = class JUser extends jraphical.Module
                 lastName
                 hash
               }
-              silence : silence # won't be saved, just for further processing
             account.save (err)=>
               if err then callback err
               else user.addOwnAccount account, (err) ->
@@ -410,23 +393,10 @@ module.exports = class JUser extends jraphical.Module
   @register = secure (client, userFormData, callback)->
     {connection} = client
     {username, email, password, passwordConfirm, firstName, lastName,
-     agree, inviteCode, kodingenUser, clientId} = userFormData
-
-    # The silence option provides silence registers,
-    # means no welcome e-mail for new users.
-    # We're using it for migrating Kodingen users to Koding
-    silence  = no
-    if client.connection?.delegate?.can? 'migrate-kodingen-users'
-      {silence} = userFormData
+     agree, inviteCode, clientId} = userFormData
 
     @usernameAvailable username, (err, r)=>
       isAvailable = yes
-
-      # r =
-      #   forbidden    : yes/no
-      #   kodingenUser : yes/no
-      #   kodingUser   : yes/no
-
       if err
         callback err
       else if r.forbidden
@@ -435,58 +405,48 @@ module.exports = class JUser extends jraphical.Module
         callback createKodingError 'That username is taken!'
       else
         @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
-          if err
-            callback createKodingError err.message
-          else
-            if passwordConfirm isnt password
-              return callback createKodingError 'Passwords must be the same'
-            else if agree isnt 'on'
-              return callback createKodingError 'You have to agree to the TOS'
-            else if not username? or not email?
-              return callback createKodingError 'Username and email are required fields'
+          return callback createKodingError err.message  if err
 
-            @verifyKodingenPassword {username, password, kodingenUser}, (err) =>
-              if err
-                return callback createKodingError 'Wrong password'
-              else
-                JSession.one {clientId: client.sessionToken}, (err, session) =>
-                  if err
-                    callback err
-                  else unless session
-                    callback createKodingError 'Could not restore your session!'
-                  else
-                    userData = {
-                      username, password, email, firstName, lastName, silence
-                    }
-                    @createUser userData, (err, user, account) =>
+          if passwordConfirm isnt password
+            return callback createKodingError 'Passwords must be the same'
+          else if agree isnt 'on'
+            return callback createKodingError 'You have to agree to the TOS'
+          else if not username? or not email?
+            return callback createKodingError 'Username and email are required fields'
+
+          JSession.one {clientId: client.sessionToken}, (err, session) =>
+            if err
+              callback err
+            else unless session
+              callback createKodingError 'Could not restore your session!'
+            else
+              userData = {
+                username, password, email, firstName, lastName
+              }
+              @createUser userData, (err, user, account) =>
+                return callback err  if err
+                @removeUnsubscription userData, (err)=>
+                  return callback err  if err
+                  @addToGroups account, invite, email, (err) ->
+                    return callback err  if err
+
+                    replacementToken = createId()
+                    session.update {
+                      $set:
+                        username      : user.username
+                        lastLoginDate : new Date
+                        clientId      : replacementToken
+                      $unset          :
+                        guestId       : 1
+                    }, (err, docs) ->
                       return callback err  if err
-                      @removeUnsubscription userData, (err)=>
-                        return callback err  if err
-                        @addToGroups account, invite, email, (err) ->
-                          if err then callback err
-                          else if silence
-                            JUser.grantInitialInvitations user.username
-                            createNewMemberActivity account
-                            JUser.emit 'UserCreated', user
-                            callback null, account
-                          else
-                            replacementToken = createId()
-                            session.update {
-                              $set:
-                                username      : user.username
-                                lastLoginDate : new Date
-                                clientId      : replacementToken
-                              $unset          :
-                                guestId       : 1
-                            }, (err, docs) ->
-                              if err then callback err
-                              else
-                                user.sendEmailConfirmation()
-                                JUser.grantInitialInvitations user.username
-                                JUser.emit 'UserCreated', user
-                                createNewMemberActivity account
-                                JAccount.emit "AccountAuthenticated", account
-                                callback null, account, replacementToken
+
+                      user.sendEmailConfirmation()
+                      JUser.grantInitialInvitations user.username
+                      JUser.emit 'UserCreated', user
+                      createNewMemberActivity account
+                      JAccount.emit "AccountAuthenticated", account
+                      callback null, account, replacementToken
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require './unsubscribedmail'
@@ -542,7 +502,6 @@ module.exports = class JUser extends jraphical.Module
     username += ''
     r =
       kodingUser   : no
-      kodingenUser : no
       forbidden    : yes
 
     @count {username}, (err, count)=>
@@ -551,15 +510,7 @@ module.exports = class JUser extends jraphical.Module
       else
         r.kodingUser = if count is 1 then yes else no
         r.forbidden = if username in @bannedUserList then yes else no
-        require('https').get
-          hostname  : 'kodingen.com'
-          path      : "/bridge.php?username=#{username}"
-        , (res)->
-          res.setEncoding 'utf-8'
-          res.on 'data', (chunk)->
-            r.kodingenUser = if !+chunk then no else yes
-            callback null, r
-          res.on 'error', (err)-> callback err, r
+        callback null, r
 
   fetchContextualAccount:(context, rest..., callback)->
     Relationship.one {
