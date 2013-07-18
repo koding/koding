@@ -22,10 +22,15 @@ class AppSettingsMenuButton extends KDButtonView
 
       menu.items.forEach (item, index) =>
 
-        item.children or= []
+        # if item has parent then add "children" to the parents.
+        if item.parentId
+          parents = _.filter menu.items, (menuItem)-> menuItem.id is item.parentId
+          parents.forEach (parentItem) -> parentItem.children or= []
+
         item.callback = (contextmenu) =>
           view = getVisibleView()
           view?.emit "#{item.eventName}MenuItemClicked", item.eventName, item, contextmenu, @offset
+          return unless item.eventName
           @contextMenu.destroy()
 
         if (item.title?.indexOf "customView") is 0
@@ -33,7 +38,10 @@ class AppSettingsMenuButton extends KDButtonView
           if customView instanceof KDView
             item.view = customView
           else
-            menu.items = menu.items.concat JContextMenuTreeViewController.convertToArray customView, item.parentId
+            childItems = JContextMenuTreeViewController.convertToArray customView, item.parentId
+            # escaping the items appended before
+            menuWithoutChilds = _.filter menu.items, (menuItem) -> menuItem.parentId isnt item.parentId
+            menu.items = menuWithoutChilds.concat childItems
 
       @createMenu event, menu.items
 
