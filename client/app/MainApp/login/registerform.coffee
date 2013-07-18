@@ -188,7 +188,7 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "inviteCode"
         forceCase     : "lowercase"
         placeholder   : "your code..."
-        # defaultValue  : "111"
+        defaultValue  : "newkoding"
         validate      :
           container   : this
           event       : "blur"
