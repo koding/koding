@@ -258,6 +258,29 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &VMNotFoundError{Name: channel.CorrelationName}
 		}
 
+		if method == "webterm.connect" {
+			var params struct {
+				JoinUser string
+				Session  string
+			}
+			args.Unmarshal(&params)
+			if params.JoinUser != "" {
+				if len(params.Session) != utils.RandomStringLength {
+					return nil, errors.New("Invalid session identifier.")
+				}
+				if vm.GetState() != "RUNNING" {
+					return nil, errors.New("VM not running.")
+				}
+				if err := db.Users.Find(bson.M{"username": params.JoinUser}).One(&user); err != nil {
+					panic(err)
+				}
+				if user.Uid < virt.UserIdOffset {
+					panic("User with too low uid.")
+				}
+				return callback(args, channel, &virt.VOS{VM: vm, User: &user})
+			}
+		}
+
 		permissions := vm.GetPermissions(&user)
 		if permissions == nil {
 			return nil, &kite.PermissionError{}

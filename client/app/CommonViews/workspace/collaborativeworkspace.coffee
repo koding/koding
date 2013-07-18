@@ -20,6 +20,11 @@ class CollaborativeWorkspace extends Workspace
     @createUserListContainer()
     @createLoader()
 
+    if @getOptions().enableChat
+      @container.addSubView @chatView = new ChatPane
+        delegate: @
+      @chatView.hide()
+
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
         log "user wants to join a session"
@@ -54,6 +59,7 @@ class CollaborativeWorkspace extends Workspace
         @userRef.onDisconnect().remove()
 
       @loader.destroy()
+      @chatView?.show()
 
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()

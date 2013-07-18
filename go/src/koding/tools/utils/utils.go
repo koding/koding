@@ -11,10 +11,12 @@ import (
 
 const MaxInt = int(^uint(0) >> 1)
 
+const RandomStringLength = 24 // 144 bit base64 encoded
+
 func RandomString() string {
-	r := make([]byte, 128/8)
+	r := make([]byte, RandomStringLength*6/8)
 	cryptorand.Read(r)
-	return base64.StdEncoding.EncodeToString(r)
+	return base64.URLEncoding.EncodeToString(r)
 }
 
 func NewIntPool(offset int, alreadyTaken []int) (<-chan int, chan<- int) {
