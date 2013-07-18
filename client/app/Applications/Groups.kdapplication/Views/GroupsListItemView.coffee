@@ -175,7 +175,7 @@ class GroupsListItemView extends KDListItemView
 
     menu = {}
 
-    if data.slug isnt KD.defaultSlug
+    if data.slug isnt 'koding' # KD.defaultSlug
       menu['Leave Group'] =
         cssClass : 'leave-group'
         callback : =>
