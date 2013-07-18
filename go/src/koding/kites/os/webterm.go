@@ -20,6 +20,7 @@ type WebtermServer struct {
 	remote           WebtermRemote
 	vm               *virt.VM
 	user             *virt.User
+	isForeignSession bool
 	pty              *pty.PTY
 	currentSecond    int64
 	messageCounter   int
@@ -57,6 +58,7 @@ func registerWebtermMethods(k *kite.Kite) {
 		}
 
 		server := newWebtermServer(vos.VM, vos.User, params.Remote, params.Session, params.SizeX, params.SizeY)
+		server.isForeignSession = (vos.User.Name != channel.Username)
 		channel.OnDisconnect(func() { server.Close() })
 		return server, nil
 	})
@@ -157,6 +159,8 @@ func (server *WebtermServer) Close() error {
 
 func (server *WebtermServer) Terminate() error {
 	server.Close()
-	server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", "koding."+server.Session, "-X", "quit").Run()
+	if !server.isForeignSession {
+		server.vm.AttachCommand(server.user.Uid, "", "/usr/bin/screen", "-S", "koding."+server.Session, "-X", "quit").Run()
+	}
 	return nil
 }
