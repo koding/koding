@@ -30,7 +30,6 @@ class AppSettingsMenuButton extends KDButtonView
 
         if (item.title?.indexOf "customView") is 0
           customView = getCustomMenuView item
-          console.log customView
           if customView instanceof KDView
             item.view = customView
           else
