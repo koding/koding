@@ -1991,7 +1991,39 @@ div.introduction-tooltip
   .modal-cancel
     top                 -2px
 
-
+.workspace-chat
+  abs()
+  size                  240px, 24px
+  z-index               9999
+  bottom                0px
+  right                 0px
+  vendor                transition, height .2s ease-in
+  &.active
+    height              320px
+  .dock
+    font-size           14px
+    font-weight         600
+    color               #FFF
+    height              24px
+    line-height         24px
+    text-indent         5px
+    border-radius       3px 0 0 0
+    background          linear-gradient(top, #ffa615 0%,#c56121 84.7%)
+    pointer()
+    text-shadow         1px 0px 1px rgba(0,0,0,0.3)
+  .wrapper
+    height              296px
+    background          #FFF
+    &.active
+      display           block
+  .messages
+    height              257px
+    margin              5px
+    overflow-y          auto
+    width               auto
+  .kdinput
+    margin              5px
+    width               230px
 
 // /*
 //   Animation tests
