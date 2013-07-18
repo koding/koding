@@ -8,14 +8,14 @@ class CollaborativeEditorPane extends CollaborativePane
 
     log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}"
 
+    @panel      = @getDelegate()
+    @workspace  = @panel.getDelegate()
     @sessionKey = @getOptions().sessionKey or @createSessionKey()
-
-    @container = new KDView
+    @amIHost    = @workspace.amIHost()
+    @container  = new KDView
 
     @container.on "viewAppended", =>
       @createEditor()
-      @panel      = @getDelegate()
-      @workspace  = @panel.getDelegate()
       @ref        = @workspace.firepadRef.child @sessionKey
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
@@ -28,21 +28,19 @@ class CollaborativeEditorPane extends CollaborativePane
       @ref.on "value", (snapshot) =>
         return @save()  if snapshot.val().WaitingSaveRequest is yes
 
-      @ref.onDisconnect().remove()  if @workspace.amIHost()
+      @ref.onDisconnect().remove()  if @amIHost
 
   openFile: (file, content) ->
     @setData file
-    amIHost     = @panel.amIHost @sessionKey
     isLocalFile = file.path.indexOf("localfile") is 0
-    content     = "" if amIHost and isLocalFile
-    @firepad.setText content  if amIHost
+    content     = "" if @amIHost and isLocalFile
+    @firepad.setText content  if @amIHost
 
   save: ->
     file        = @getData()
-    amIHost     = @panel.amIHost @sessionKey
     isValidFile = file instanceof FSFile and file.path.indexOf("localfile") is -1
 
-    if amIHost
+    if @amIHost
       return warn "no file instance handle save as" unless isValidFile
 
       log "host is saving a file"
