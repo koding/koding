@@ -41,10 +41,10 @@ class ResourcesController extends KDListViewController
               warn "Fetching group info failed for '#{group}' Group."
               cb null
             else
-              group = res?.first or KD.defaultSlug
+              group = res?.first or 'koding' # KD.defaultSlug
               cb null,
                 vmName     : hostname
-                groupSlug  : group?.slug  or KD.defaultSlug
+                groupSlug  : group?.slug  or 'koding' # KD.defaultSlug
                 groupTitle : group?.title or 'Koding'
 
       async.parallel stack, (err, result)=>
