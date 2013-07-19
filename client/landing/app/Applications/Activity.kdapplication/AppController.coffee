@@ -123,7 +123,7 @@ class ActivityAppController extends AppController
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-  startFetchingFaturedActivityComment:(activityId, commentId, callback)=>
+  fetchFeaturedActivityComment:(activityId, commentId, callback)=>
     return if commentId > 2
     timeoutValue = KD.utils.getRandomNumber 100000
     KD.utils.wait timeoutValue, =>
@@ -137,7 +137,7 @@ class ActivityAppController extends AppController
       # if fetching success, add them to activity feed
       @once eventName, (activities)=>
         @listActivities activities, callback, true
-        @emit "StartFetchingFeaturedActivityComment", activityId, commentId+1, callback
+        @emit "FetchFeaturedActivityComment", activityId, commentId+1, callback
       @getFeatureds(activityId, commentId)
 
   startFetchingFeaturedActivity:(activityId=0, callback)=>
@@ -156,18 +156,18 @@ class ActivityAppController extends AppController
       @once "#{eventName}_success", (activities)=>
         @listActivities activities, (sanitizedCache)=>
           callback sanitizedCache
-          @emit "StartFetchingFeaturedActivityComment", activityId, 1, callback
+          @emit "FetchFeaturedActivityComment", activityId, 1, callback
 
         @emit "StartFetchingFeaturedActivity", activityId+1, callback
       #fetch featured activity
       @getFeatureds(activityId)
 
   listFeaturedActivities:(callback)->
-    @on "StartFetchingFeaturedActivityComment", @bound "startFetchingFaturedActivityComment"
+    @on "FetchFeaturedActivityComment", @bound "fetchFeaturedActivityComment"
     @on "StartFetchingFeaturedActivity", @bound "startFetchingFeaturedActivity"
 
     # this is a hack, find a better way to hide inner navigation
-    @getView().innerNav.hide().hide()
+    @getView().innerNav.hide()
     eventName = "activity_fetch"
     @once "#{eventName}_fail", ()->
       console.log "ERR : static main page activities will not work"
@@ -238,13 +238,11 @@ class ActivityAppController extends AppController
     then fetch()
     else
       groupsController.once 'groupChanged', fetch
-      #todo add fetching real activity support
-      #todo disable check if liked before function for featured activities
-      #todo add new comment support
       KD.getSingleton('mainController').on "AccountChanged", (account)=>
         @getView().innerNav.show()
         @listController.activityHeader.headerTitle.show()
-        fetch()
+        #todo after logging in refresh the activity feed?
+        refresh()
 
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
@@ -258,15 +256,10 @@ class ActivityAppController extends AppController
     activityName += "_C#{commentId}" unless commentId is 0
     activityName += "_L#{commentId}" unless likeId is 0
 
-    $.ajax({
-      type: "GET"
-      url: "js/activity/#{activityName}.json"
-      dataType: "json"
-      cache: "false"
-    }).done (json) =>
-      @emit "#{activityName}_fetch_success", json
-    .fail ()=>
-      @emit "#{activityName}_fetch_fail"
+    $.ajax
+      url     : "js/activity/#{activityName}.json"
+      success : (json) => @emit "#{activityName}_fetch_success", json
+      failure : =>  @emit "#{activityName}_fetch_fail"
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
