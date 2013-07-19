@@ -3,18 +3,15 @@ class AceAppView extends JView
 
     super options, data
 
-    @aceViews   = {}
-    @timestamp  = Date.now()
-    @appManager = KD.getSingleton "appManager"
-
-    @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate: @
-
-    @tabView = new ApplicationTabView
-      delegate             : @
-      tabHandleContainer   : @tabHandleContainer
-      saveSession          : yes
-      sessionName          : "AceTabHistory"
+    @aceViews            = {}
+    @timestamp           = Date.now()
+    @appManager          = KD.getSingleton "appManager"
+    @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
+    @tabView             = new AceApplicationTabView
+      delegate           : @
+      tabHandleContainer : @tabHandleContainer
+      saveSession        : yes
+      sessionName        : "AceTabHistory"
 
     @on "SessionDataCreated", (@sessionData) =>
 
@@ -119,7 +116,7 @@ class AceAppView extends JView
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
-    aceView = new AceView {}, file
+    aceView = new AceView delegate: @, file
     aceView.on 'KDObjectWillBeDestroyed', => @removeOpenDocument aceView
     @aceViews[file.path] = aceView
     @setViewListeners aceView
@@ -195,3 +192,42 @@ class AceAppView extends JView
       {{> @tabHandleContainer}}
       {{> @tabView}}
     """
+
+class AceApplicationTabView extends ApplicationTabView
+
+  handleTabCloseAction: (pane) ->
+    {ace} = pane.getOptions().aceView
+    file  = ace.getData()
+
+    return @removePane pane  unless ace.isContentChanged()
+    modal = new KDModalView
+      cssClass      : "modal-with-text"
+      title         : "Do you want to save your changes?"
+      content       : "<p>Your changes will be lost if you don't save them.</p>"
+      overlay       : yes
+      buttons       :
+        "SaveClose" :
+          cssClass  : "modal-clean-gray"
+          title     : "Save and Close"
+          callback  : =>
+            if file.path.indexOf("localfile:") is 0
+              file.once "fs.saveAs.finished", => @removePane pane
+              ace.requestSaveAs()
+              modal.destroy()
+            else
+              ace.requestSave()
+              @closePaneAndModal pane, modal
+        "DontSave"  :
+          cssClass  : "modal-clean-gray"
+          title     : "Don't Save"
+          callback  : =>
+            @closePaneAndModal pane, modal
+        "Cancel"    :
+          cssClass  : "modal-cancel"
+          title     : "Cancel"
+          callback  : =>
+            modal.destroy()
+
+  closePaneAndModal: (pane, modal) ->
+    @removePane pane
+    modal.destroy()
