@@ -93,8 +93,8 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    widgetController.on "FakeActivityHasArrived", (activity)->
-      controller.fakeActivityArrived activity
+    widgetController.on "FeaturedActivityHasArrived", (activity)->
+      controller.featuredActivityArrived activity
 
     widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
@@ -120,6 +120,61 @@ class ActivityAppController extends AppController
     @off "followingFeedFetched_#{eventSuffix}"
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
+
+  startFetchingFaturedActivityComment:(activityId, commentId, callback)=>
+    return if commentId > 2
+    timeoutValue = KD.utils.getRandomNumber 100000
+    KD.utils.wait timeoutValue, =>
+      eventName = "activity_#{activityId}_C#{commentId}_fetch"
+      @off "#{eventName}_success"
+
+      # if fetching comments fails, then shut down the event
+      @once "#{eventName}_fail", ()=>
+        @off "activity_#{activityId}_fetch_success"
+
+      # if fetching success, add them to activity feed
+      @once eventName, (activities)=>
+        @listActivities activities, callback, true
+        @emit "StartFetchingFeaturedActivityComment", activityId, commentId+1, callback
+      @getFeatureds(activityId, commentId)
+
+  startFetchingFeaturedActivity:(activityId=0, callback)=>
+    return if activityId > 7
+    @isLoading = true
+    timeoutValue = KD.utils.getRandomNumber 10000
+
+    eventName = "activity_#{activityId}_fetch"
+    @off "#{eventName}_success"
+
+    KD.utils.wait timeoutValue, =>
+      @once "#{eventName}_fail", ()=>
+        @off "#{eventName}_success"
+        @emit "StartFetchingFeaturedActivity", activityId+1, callback
+
+      @once "#{eventName}_success", (activities)=>
+        @listActivities activities, (sanitizedCache)=>
+          callback sanitizedCache
+          @emit "StartFetchingFeaturedActivityComment", activityId, 1, callback
+
+        @emit "StartFetchingFeaturedActivity", activityId+1, callback
+      #fetch featured activity
+      @getFeatureds(activityId)
+
+  listFeaturedActivities:(callback)->
+    @on "StartFetchingFeaturedActivityComment", @bound "startFetchingFaturedActivityComment"
+    @on "StartFetchingFeaturedActivity", @bound "startFetchingFeaturedActivity"
+
+    # this is a hack, find a better way to hide inner navigation
+    @getView().innerNav.hide().hide()
+    eventName = "activity_fetch"
+    @once "#{eventName}_fail", ()->
+      console.log "ERR : static main page activities will not work"
+
+    @once "#{eventName}_success", (activities)=>
+      activities.overview.reverse()  if activities.overview
+      @listActivities activities, callback
+      @emit "StartFetchingFeaturedActivity", 1, callback
+    @getFeatureds()
 
   populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
@@ -154,62 +209,9 @@ class ActivityAppController extends AppController
       group = KD.getSingleton('groupsController').getCurrentGroup().slug
       {roles} = KD.config
 
-      @on "StartFetchingFakeActivityComment", (activityId, commentId)=>
-        return if commentId > 2
-        timeoutValue = parseInt(Math.random()*100000,10)
-        setTimeout =>
-            eventName = "activity_#{activityId}_C#{commentId}_fetch"
-            @off "#{eventName}_succcess"
-
-            # if fetching comments fails, then shut down the event
-            @once "#{eventName}_fail", ()=>
-              @off "activity_#{activityId}_fetch_success"
-
-            # if fetching success, add them to activity feed
-            @once eventName, (activities)=>
-              @listActivities activities, callback, true
-              @emit "StartFetchingFakeActivityComment", activityId, commentId+1
-            @getFakes(activityId, commentId)
-
-          , timeoutValue
-
-      @on "StartFetchingFakeActivity", (activityId=0)=>
-        return if activityId > 7
-        @isLoading = true
-        timeoutValue = parseInt(Math.random()*10000,10)
-
-        eventName = "activity_#{activityId}_fetch"
-        @off "#{eventName}_succcess"
-
-        setTimeout =>
-            @once "#{eventName}_fail", ()=>
-              @off "#{eventName}_succcess"
-              @emit "StartFetchingFakeActivity", activityId+1
-
-            @once "#{eventName}_success", (activities)=>
-              @listActivities activities, (sanitizedCache)=>
-                callback sanitizedCache
-                @emit "StartFetchingFakeActivityComment", activityId, 1
-
-              @emit "StartFetchingFakeActivity", activityId+1
-            #fetch fake activity
-            @getFakes(activityId)
-
-          , timeoutValue
-
-
-      if group == "koding" and  "guest" in roles
-        # this is a hack, find a better way to hide inner navigation
-        $('.common-inner-nav').hide()
-        eventName = "activity_fetch"
-        @once "#{eventName}_fail", ()->
-          console.log "ERR : static main page activities will not work"
-
-        @once "#{eventName}_success", (activities)=>
-          activities.overview.reverse()  if activities.overview
-          @listActivities activities, callback
-          @emit "StartFetchingFakeActivity", 1
-        @getFakes()
+      if "koding" is group and  "guest" in roles
+        @listFeaturedActivities callback
+        @listController.activityHeader.headerTitle.hide()
 
       else if @getFeedFilter() is "Public"
         @once "publicFeedFetched_#{eventSuffix}", (cache)=>
@@ -235,19 +237,20 @@ class ActivityAppController extends AppController
     else
       groupsController.once 'groupChanged', fetch
       #todo add fetching real activity support
-      #todo disable check if liked before function for fake activities
+      #todo disable check if liked before function for featured activities
       #todo add new comment support
       KD.getSingleton('mainController').on "AccountChanged", (account)=>
-        $('.common-inner-nav').show()
+        @getView().innerNav.show()
+        @listController.activityHeader.headerTitle.show()
         fetch()
 
-  listActivities:(activities, callback, update=false)->
+  listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
       @extractCacheTimeStamps sanitizedCache
-      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, update
+      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
       callback sanitizedCache
 
-  getFakes:(activityId=0, commentId=0, likeId=0)->
+  getFeatureds:(activityId=0, commentId=0, likeId=0)->
     activityName = "activity"
     activityName += "_#{activityId}" unless activityId is 0
     activityName += "_C#{commentId}" unless commentId is 0

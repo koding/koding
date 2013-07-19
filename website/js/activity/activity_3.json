@@ -1,38 +1,38 @@
 {
     "activities": {
-        "38323": {
-            "_id": 38323,
-            "type": "CDiscussionActivity",
-            "createdAt": "2013-06-05T21:57:56.000Z",
-            "modifiedAt": "2013-06-05T21:57:56.614Z",
+        "58731": {
+            "_id": 58731,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-04T23:59:52.000Z",
+            "modifiedAt": "2013-07-04T23:59:52.909Z",
             "group": "koding",
             "snapshotIds": [
-                "51afb4642b3fc98e2f000002"
+                "51d60c78d07c9faa14000168"
             ],
-            "snapshot": "{\"_id\":\"51afb4642b3fc98e2f000002\",\"bongo_\":{\"constructorName\":\"JDiscussion\"},\"slug\":\"backbone-nested-models\",\"title\":\"Backbone - nested models\",\"slug_\":\"backbone-nested-models\",\"originId\":\"50ef44be5152a79d2c00002a\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-06-05T21:57:56.614Z\",\"likes\":0,\"createdAtEpoch\":1370469476,\"createdAt\":\"2013-06-05T21:57:56.000Z\"},\"body\":\"Question - how did you tackle backbone nested models / collections?\\n\\nI started by overriding the parse method of my parent model and creating an additional collection, but this introduced tight coupling / some funky things happening when trying to use get / set on inner model attributes.\\n\\nEventually i found http://backbonerelational.org/ and realised this solved my problem, however (and slightly due to my OCD kicking in) i'd love to be able to use \\\"vanilla\\\" backbone to solve this.\\n\\nI would love to hear how other people have tackled this.\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":3,\"counts\":{\"following\":0,\"followers\":3},\"tags\":[{\"counts\":{\"tagged\":0,\"post\":1,\"developer\":16,\"following\":0,\"followers\":5},\"title\":\"Backbone.js\",\"slug\":\"backbone.js\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1357669234,\"createdAt\":\"2013-01-08T18:20:34.000Z\"},\"_id\":\"50ec6372cc7ed6e55f000bc0\",\"name\":\"JTag\",\"id\":\"50ec6372cc7ed6e55f000bc0\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":162,\"developer\":810,\"following\":0,\"followers\":5865},\"title\":\"JavaScript\",\"slug_\":\"javascript-2\",\"slug\":\"javascript\",\"group\":\"koding\",\"body\":\"JavaScript (sometimes abbreviated JS) is a prototype-based scripting language that is dynamic, weakly typed and has first-class functions. It is a multi-paradigm language, supporting object-oriented, imperative, and functional programming styles.\",\"meta\":{\"createdAtEpoch\":1335969901,\"createdAt\":\"2012-05-02T14:45:01.000Z\"},\"_id\":\"4fa1486d70a3d6527f0005bd\",\"name\":\"JTag\",\"id\":\"4fa1486d70a3d6527f0005bd\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}],\"opinions\":[{\"title\":\"This doesn't answer your question exactly, but I believe that this is not an uncommon issue, and IMO it has a bit to do with the weird naming conventions.\\n\\nThanks for that link though, and if you haven't, check out [Spine](https://github.com/search?q=spine&nwo=skopp%2FRails-SpineJS-Blog&search_target=global&ref=cmdform) - I find it much more satisfying\",\"repliesCount\":0,\"group\":\"koding\",\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"5034f36ca427bb73220005c0\",\"body\":\"This doesn't answer your question exactly, but I believe that this is not an uncommon issue, and IMO it has a bit to do with the weird naming conventions.\\n\\nThanks for that link though, and if you haven't, check out [Spine](https://github.com/search?q=spine&nwo=skopp%2FRails-SpineJS-Blog&search_target=global&ref=cmdform) - I find it much more satisfying\",\"meta\":{\"modifiedAt\":\"2013-06-05T22:41:19.161Z\",\"likes\":0,\"createdAtEpoch\":1370472079,\"createdAt\":\"2013-06-05T22:41:19.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51afbe8f051ec2867000000b\",\"name\":\"JOpinion\",\"id\":\"51afbe8f051ec2867000000b\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"\",\"repliesCount\":0,\"group\":\"koding\",\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"50ef44be5152a79d2c00002a\",\"body\":\"@skopp - i'm currently trying out different frameworks so i'll add Spine to the list, thanks!\",\"meta\":{\"modifiedAt\":\"2013-06-06T09:30:17.386Z\",\"likes\":0,\"createdAtEpoch\":1370511017,\"createdAt\":\"2013-06-06T09:30:17.000Z\"},\"counts\":{\"following\":0,\"followers\":0},\"_id\":\"51b056a9dbc1c9e967000005\",\"name\":\"JOpinion\",\"id\":\"51b056a9dbc1c9e967000005\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}},{\"title\":\"Hey, @seanxe, take a look here: http://snowmonkey.parentleafarm.com/blog/2013/02/creating-a-deeply-nested-model-with-backbone-js -- I did a tutorial on exactly this thing. It deals with models with nested models/collections going four+ levels deep. The follow-up starts to address creating nested Views with Marionette in order to mirror the view structure to the model structure (to a point).\\nLet me know what you think!\",\"repliesCount\":2,\"group\":\"koding\",\"attachments\":\"\",\"originType\":\"JAccount\",\"originId\":\"50a68f69e89112cd4000073d\",\"body\":\"Hey, @seanxe, take a look here: http://snowmonkey.parentleafarm.com/blog/2013/02/creating-a-deeply-nested-model-with-backbone-js -- I did a tutorial on exactly this thing. It deals with models with nested models/collections going four+ levels deep. The follow-up starts to address creating nested Views with Marionette in order to mirror the view structure to the model structure (to a point).\\nLet me know what you think!\",\"meta\":{\"modifiedAt\":\"2013-06-06T16:53:23.972Z\",\"likes\":1,\"createdAtEpoch\":1370537603,\"createdAt\":\"2013-06-06T16:53:23.000Z\"},\"counts\":{\"following\":0,\"followers\":2},\"_id\":\"51b0be838fb0245108000014\",\"name\":\"JOpinion\",\"id\":\"51b0be838fb0245108000014\",\"relationType\":\"opinion\",\"bongo_\":{\"constructorName\":\"JOpinion\"}}]}",
+            "snapshot": "{\"_id\":\"51d60c78d07c9faa14000168\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"slug_\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"originId\":\"5196fcb0bc9bdb0000000012\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-04T23:59:52.909Z\",\"likes\":0,\"createdAtEpoch\":1372982392,\"createdAt\":\"2013-07-04T23:59:52.000Z\"},\"body\":\"commentli felan Thursday, July 4th, 2013, 4:59:52 PM\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
             "sorts": {
-                "repliesCount": 0,
-                "likesCount": 0,
-                "followerCount": 3
+                "repliesCount": 1,
+                "likesCount": 1,
+                "followerCount": 1
             },
-            "originId": "50ef44be5152a79d2c00002a",
+            "originId": "5196fcb0bc9bdb0000000012",
             "originType": "JAccount"
         }
     },
     "overview": [
         {
             "createdAt": [
-                "2013-07-05T10:31:14.000Z"
+                "2013-07-04T23:59:46.000Z"
             ],
             "ids": [
-                38323
+                58731
             ],
-            "type": "JDiscussion",
+            "type": "JStatusUpdate",
             "count": 1
         }
     ],
     "_id": "1",
     "isFull": true,
-    "from": "2013-07-05T03:45:08.000Z",
-    "to": "2013-07-05T21:22:31.000Z"
+    "from": "2013-07-04T23:59:46.000Z",
+    "to": "2013-07-04T23:59:46.000Z"
 }
