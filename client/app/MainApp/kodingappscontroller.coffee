@@ -610,13 +610,13 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName    : "applications"
-        method      : "downloadApp"
-        withArgs    :
-          owner     : manifest.authorNick
-          appName   : manifest.name
-          appPath   : @getAppPath manifest
-          version   : manifest.version
+        kiteName     : "os"
+        method       : "app.download"
+        withArgs     :
+          owner      : manifest.authorNick
+          identifier : manifest.identifier
+          appPath    : @getAppPath manifest
+          version    : manifest.version
       , (err, res)=>
         if err
           warn err
