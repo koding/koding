@@ -133,7 +133,6 @@ class AceView extends JView
             name   = @inputFileName.getValue()
 
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              # @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
 
@@ -145,6 +144,17 @@ class AceView extends JView
             file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
             @ace.emit "AceDidSaveAs", name, parent.path
+            oldCursorPosition = @ace.editor.getCursorPosition()
+            file.on "fs.saveAs.finished", =>
+              {tabView} = @getDelegate()
+              @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+              @utils.defer =>
+                newIndex = tabView.panes.indexOf tabView.getActivePane()
+                tabView.removePane tabView.getPaneByIndex newIndex - 1
+                {ace} = tabView.getActivePane().getOptions().aceView
+                ace.on "ace.ready", =>
+                  ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
+
         Cancel      :
           style     : "modal-cancel"
           callback  : =>
