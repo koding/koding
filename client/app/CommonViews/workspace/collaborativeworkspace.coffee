@@ -64,6 +64,9 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
 
+    @workspaceRef.child("users").on "child_added", (snapshot) =>
+      @fetchUsers()
+
     @workspaceRef.on "child_changed", (snapshot) =>
       log "everything is something happened", "child_changed", snapshot.val(), snapshot.name()
 
@@ -79,6 +82,22 @@ class CollaborativeWorkspace extends Workspace
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
       @sessionData.push paneSessionKeys
+
+    @fetchUsers()
+
+  fetchUsers: ->
+    @workspaceRef.once "value", (snapshot) =>
+      val = snapshot.val()
+      return  unless val
+
+      usernames = []
+      @users    = []
+
+      usernames.push username for username, status of val.users unless @users[username]
+
+      KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
+        @users[user.profile.nickname] = user for user in jAccounts
+        @emit "WorkspaceUsersFetched"
 
   createPanel: (callback = noop) ->
     panelOptions             = @getOptions().panels[@lastCreatedPanelIndex]
