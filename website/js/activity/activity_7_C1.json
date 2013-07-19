@@ -1,33 +1,34 @@
 {
     "activities": {
-        "58731": {
-            "_id": 58731,
-            "type": "CStatusActivity",
-            "createdAt": "2013-07-04T23:59:52.000Z",
-            "modifiedAt": "2013-07-04T23:59:52.909Z",
+        "56309": {
+            "_id": 56309,
+            "type": "CCodeSnipActivity",
+            "createdAt": "2013-07-18T15:25:36.000Z",
+            "modifiedAt": "2013-07-18T15:25:36.423Z",
             "group": "koding",
             "snapshotIds": [
-                "51d60c78d07c9faa14000168"
+                "51e808f0580be67825000895"
             ],
-            "snapshot": "{\"_id\":\"51d60c78d07c9faa14000168\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"slug_\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"originId\":\"5196fcb0bc9bdb0000000012\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-04T23:59:52.909Z\",\"likes\":0,\"createdAtEpoch\":1372982392,\"createdAt\":\"2013-07-04T23:59:52.000Z\"},\"body\":\"commentli felan Thursday, July 4th, 2013, 4:59:52 PM\",\"attachments\":[],\"repliesCount\":1,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":1},\"replies\":[{\"originType\":\"JAccount\",\"body\":\"hede\",\"originId\":\"5196fcb0bc9bdb0000000012\",\"meta\":{\"modifiedAt\":\"2013-07-05T00:35:18.162Z\",\"likes\":0,\"createdAtEpoch\":1372984518,\"createdAt\":\"2013-07-05T00:35:18.000Z\"},\"_id\":\"51d614c69e186c7522000002\",\"name\":\"JComment\",\"id\":\"51d614c69e186c7522000002\",\"relationType\":\"reply\",\"bongo_\":{\"constructorName\":\"JComment\"}}]}",
+            "snapshot": "{\"_id\":\"51e808f0580be67825000895\",\"bongo_\":{\"constructorName\":\"JCodeSnip\"},\"slug\":\"hello-kodingcom-3\",\"title\":\"Hello Koding.com\",\"slug_\":\"hello-kodingcom-3\",\"originId\":\"51e72bb55bab87277b000556\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-18T15:25:36.423Z\",\"likes\":2,\"createdAtEpoch\":1374161136,\"createdAt\":\"2013-07-18T15:25:36.000Z\"},\"body\":\"A simple js function (output text to screen)\",\"attachments\":{\"0\":{\"type\":\"JCodeAttachment\",\"syntax\":\"javascript\",\"content\":\"var myGreeting = function (greeting, koding) {\\r\\n      return {\\r\\n        greeting: greeting,\\r\\n        koding: koding\\r\\n    };\\r\\n  \\r\\n};\\r\\n\\r\\nvar helloKoding = myGreeting(\\\"Hello\\\", \\\"Koding\\\");\\r\\n\\r\\ndocument.getElementById(\\\"greeting\\\").innerHTML = \\r\\n    JSON.stringify(helloKoding.greeting + \\\" \\\" + helloKoding.koding);\"}},\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0},\"tags\":[{\"counts\":{\"tagged\":0,\"post\":2,\"developer\":3,\"following\":0,\"followers\":0},\"title\":\"javascript\",\"slug\":\"javascript-3\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-06-14T12:52:28.814Z\",\"likes\":0,\"createdAtEpoch\":1371214348,\"createdAt\":\"2013-06-14T12:52:28.000Z\"},\"_id\":\"51bb120cbb0272a1010000a9\",\"name\":\"JTag\",\"id\":\"51bb120cbb0272a1010000a9\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
             "sorts": {
-                "repliesCount": 1,
-                "likesCount": 0,
-                "followerCount": 1
+                "repliesCount": 0,
+                "likesCount": 2,
+                "followerCount": 0
             },
-            "originId": "5196fcb0bc9bdb0000000012",
+            "originId": "51e72bb55bab87277b000556",
             "originType": "JAccount"
         }
+
     },
     "overview": [
         {
             "createdAt": [
-                "2013-07-04T23:59:46.000Z"
+                "2013-07-18T15:25:36.000Z"
             ],
             "ids": [
-                58731
+                56309
             ],
-            "type": "JStatusUpdate",
+            "type": "JCodeSnip",
             "count": 1
         }
     ],
