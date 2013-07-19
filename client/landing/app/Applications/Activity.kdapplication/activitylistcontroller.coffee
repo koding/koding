@@ -87,7 +87,7 @@ class ActivityListController extends KDListViewController
 
     @emit "teasersLoaded"
 
-  listActivitiesFromCache:(cache, index, animation, update)->
+  listActivitiesFromCache:(cache, index, animation, isFeaturedContent)->
     @hideLazyLoader()
     return  unless cache.overview?.length > 0
     activityIds = []
@@ -108,22 +108,12 @@ class ActivityListController extends KDListViewController
       else
         activity = cache.activities[overviewItem.ids.first]
         if activity?.teaser
-          if update
-            #todo add update support for comments and likes
-            activity.teaser.emit "update", activity.teaser
-          else
-            activity.teaser.createdAtTimestamps = overviewItem.createdAt
-            # view = @addItem activity.teaser, index, animation
-            # if view then view.slideIn()
+          activity.teaser.createdAtTimestamps = overviewItem.createdAt
+          view = @addHiddenItem activity.teaser, index, animation
+          @slideInAndRemoveFromHiddenItems view
+          activityIds.push activity.teaser._id
 
-            view = @addHiddenItem activity.teaser, index, animation
-            # @utils.defer ->
-            view.slideIn ->
-              hiddenItems.splice hiddenItems.indexOf(view), 1
-
-            activityIds.push activity.teaser._id
-
-    @checkIfLikedBefore activityIds
+    @checkIfLikedBefore activityIds  unless isFeaturedContent
 
     @lastItemTimeStamp = cache.from
 
@@ -199,7 +189,7 @@ class ActivityListController extends KDListViewController
         log "duplicate entry", activity.bongo_?.constructorName, dataId
       else
         @itemsIndexed[dataId] = activity
-        @getListView().addItem activity, index, animation
+        super(activity, index, animation)
 
   ownActivityArrived:(activity)->
 
@@ -211,8 +201,7 @@ class ActivityListController extends KDListViewController
     else
       view = @addHiddenItem activity, 0
       @utils.defer ->
-        view.slideIn ->
-          hiddenItems.splice hiddenItems.indexOf(view), 1
+        @slideInAndRemoveFromHiddenItems view
 
   fakeActivityArrived:(activity)->
 
@@ -237,3 +226,7 @@ class ActivityListController extends KDListViewController
     newItems = super
     @checkIfLikedBefore (item.getId()  for item in items)
     return newItems
+
+  slideInAndRemoveFromHiddenItems:(view)->
+    view.slideIn ->
+      hiddenItems.splice hiddenItems.indexOf(view), 1

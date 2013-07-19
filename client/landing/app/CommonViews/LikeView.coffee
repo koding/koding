@@ -33,6 +33,14 @@ class LikeView extends KDView
 
     @setTemplate @pistachio()
 
+    group = KD.getSingleton('groupsController').getCurrentGroup().slug
+    {roles} = KD.config
+
+    # this special case is here becuase i couldnt find a place
+    # to pass this option as "no" from
+    if "koding" is group and  "guest" in roles
+      options.checkIfLikedBefore = no
+
     if options.checkIfLikedBefore
       data.checkIfLikedBefore (err, likedBefore)=>
         @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
