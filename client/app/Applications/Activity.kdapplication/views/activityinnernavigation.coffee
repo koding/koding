@@ -8,7 +8,7 @@ class ActivityInnerNavigation extends CommonInnerNavigation
     , @filterMenuData
 
     @addSubView filterController.getView()
-    filterController.selectItem filterController.getItemsOrdered()[0]
+    filterController.selectItem filterController.getItemsOrdered().first
 
     showMeFilterController = @setListController
       type : "showme"

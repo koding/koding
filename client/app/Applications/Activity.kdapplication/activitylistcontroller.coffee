@@ -110,7 +110,7 @@ class ActivityListController extends KDListViewController
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
           view = @addHiddenItem activity.teaser, index, animation
-          @slideInAndRemoveFromHiddenItems view
+          view.slideIn -> removeFromHiddenItems view
           activityIds.push activity.teaser._id
 
     @checkIfLikedBefore activityIds  unless isFeaturedContent
@@ -201,7 +201,11 @@ class ActivityListController extends KDListViewController
     else
       view = @addHiddenItem activity, 0
       @utils.defer ->
-        @slideInAndRemoveFromHiddenItems view
+        view.slideIn -> removeFromHiddenItems view
+
+  removeFromHiddenItems = (view)->
+    hiddenItems.splice hiddenItems.indexOf(view), 1
+
 
   fakeActivityArrived:(activity)->
 
@@ -226,7 +230,3 @@ class ActivityListController extends KDListViewController
     newItems = super
     @checkIfLikedBefore (item.getId()  for item in items)
     return newItems
-
-  slideInAndRemoveFromHiddenItems:(view)->
-    view.slideIn ->
-      hiddenItems.splice hiddenItems.indexOf(view), 1
