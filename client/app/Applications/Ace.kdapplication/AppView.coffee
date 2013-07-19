@@ -33,7 +33,7 @@ class AceView extends JView
       iconOnly      : yes
       iconClass     : "cog"
       type          : "contextmenu"
-      delegate      : @
+      delegate      : this
       itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
@@ -158,20 +158,22 @@ class AceView extends JView
               @ace.notify "Please select a folder to save!", "error"
               return
 
-            parent = node.getData()
-            file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
-            @ace.emit "AceDidSaveAs", name, parent.path
-            oldCursorPosition = @ace.editor.getCursorPosition()
-            file.on "fs.saveAs.finished", =>
-              {tabView} = @getDelegate()
-              @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
-              @utils.defer =>
-                newIndex = tabView.getPaneIndex tabView.getActivePane()
-                tabView.removePane tabView.getPaneByIndex newIndex - 1
-                {ace} = tabView.getActivePane().getOptions().aceView
-                ace.on "ace.ready", =>
-                  ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
+            @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
+              parent = node.getData()
+              file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
+              @ace.emit "AceDidSaveAs", name, parent.path
+              oldCursorPosition = @ace.editor.getCursorPosition()
+              file.on "fs.saveAs.finished", =>
+                {tabView} = @getDelegate()
+                return  if tabView.willClose
+                @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+                @utils.defer =>
+                  newIndex = tabView.getPaneIndex tabView.getActivePane()
+                  tabView.removePane_ tabView.getPaneByIndex newIndex - 1
+                  {ace} = tabView.getActivePane().getOptions().aceView
+                  ace.on "ace.ready", =>
+                    ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
 
         Cancel      :
           style     : "modal-cancel"
