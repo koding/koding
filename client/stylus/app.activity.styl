@@ -484,40 +484,61 @@ h1.kdheaderview.notification-header
         noTextDeco()
 
 .activity-share-popup
-  width                 150px
+  min-width             233px
   clear                 both
+  .kdlistview-activity-share
+    padding             5px
+    overflow            visible
+    padding             5px
+    border              1px solid rgba(0,0,0,0.275)
+    z-index             9001
+    border-color        rgba(0,0,0,0.1) rgba(0,0,0,0.15) rgba(0,0,0,0.2)
+    rounded             5px
+    bg                  color, white
+    shadow              0 10px 20px 5px rgba(0,0,0,0.1)
+    borderBox()
+    rel()
   .share-popup
-    position            relative
-    padding             0 5px 0 5px
     .share-input
-      width             134px
-      font-size         12px
+      size              160px, 30px
+      padding-top       5px
+      padding-bottom    4px
       line-height       21px
-      height            21px
-      float             left
-      margin-right      5px
+      font-size         13px
+      margin-right      7px
       padding-right     20px
-    .share-twitter
+      display           inline-block
+      borderBox()
+
+    .icon-link
       width             21px
       height            21px
-      float             left
-      margin-right      5px
-      padding           0
-      .icon.twitter
+      display           inline-block
+      vertical-align    top
+      margin-top        6px
+
+    .share-twitter
+      .icon.tw
+        display         block
         width           19px
         height          19px
-        top             0
-        left            -1px
-        bg              position,-71px -343px
+        opacity         .7
+        vendor          transition, opacity .2s ease
+        sprite()
+        bg              position, -71px -343px
       &:hover
-        .icon.twitter
-          opacity       0.8
+        .icon.tw
+          opacity       1
+
     .custom-link-view
-      position          absolute
-      top               1px
-      left              119px
+      margin-right      4px
       .icon.new-page
-        bg              position,-180px -520px
+        opacity         .4
+        bg              position, -180px -280px
+      &:hover
+        .icon.new-page
+          opacity       1
+          bg            position, -180px -260px
 
 button.kdbutton.dark
   span.icon
