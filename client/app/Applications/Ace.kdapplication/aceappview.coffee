@@ -8,7 +8,7 @@ class AceAppView extends JView
     @appManager = KD.getSingleton "appManager"
 
     @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate: @
+      delegate: this
 
     @tabView = new ApplicationTabView
       delegate             : @
