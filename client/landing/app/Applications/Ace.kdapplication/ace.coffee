@@ -69,19 +69,19 @@ class Ace extends KDView
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
 
-    return  unless @getOption("enableShortcuts")
 
-    @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
+    if @getOptions().enableShortcuts
+      @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
 
-    @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
+      @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
 
-    @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
+      @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
 
-    @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
+      @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
 
-    @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
+      @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
 
-    @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
+      @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
     KD.getSingleton('windowController').on "keydown", (e) =>
       {findAndReplaceView} = @getDelegate()
