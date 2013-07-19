@@ -31,6 +31,8 @@ class Ace extends KDView
           if contents
             @setContents contents
             @lastSavedContents = contents
+          @editor.on "change", =>
+            if @isContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
           @editor.gotoLine 0
           @focus()
           @show()
@@ -62,6 +64,7 @@ class Ace extends KDView
       unless err
         @notify "Successfully saved!", "success"
         @lastSavedContents = @lastContentsSentForSave
+        @emit "FileContentSynced"
         unless @askedForSave
           log "this file has changed, put a modal and block editing @fatihacet!"
         @askedForSave = no
@@ -69,6 +72,9 @@ class Ace extends KDView
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
 
+    file.on "fs.saveAs.finished", =>
+      @emit "FileContentSynced"
+      @emit "FileHasBeenSavedAs", file
 
     if @getOptions().enableShortcuts
       @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
@@ -106,24 +112,24 @@ class Ace extends KDView
         mac   : macKey
       exec    : => callback?()
 
+  isContentChanged: ->
+    return @getContents() isnt @lastSavedContents
+
   ###
   FS REQUESTS
   ###
 
   requestSave:->
-
     contents = @getContents()
-    return @notify "Nothing to save!" unless contents isnt @lastSavedContents
+    return @notify "Nothing to save!" unless @isContentChanged()
     @askedForSave = yes
     @emit "ace.requests.save", contents
 
   requestSaveAs:->
-
     contents = @getContents()
     @emit "ace.requests.saveAs", contents
 
   fetchContents:(callback)->
-
     file = @getData()
     unless /localfile:/.test file.path
       @notify "Loading...", null, null, 10000
