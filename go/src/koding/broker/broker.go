@@ -292,19 +292,15 @@ func main() {
 	}
 
 	hostname, _ := os.Hostname()
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
-
-	brokerDomain := kontrolhelper.CustomHostname()
-	//  but override if we pass a new domain trough commandline
-	if config.BrokerDomain != "" {
-		brokerDomain = config.BrokerDomain
-	}
+	serviceGenericName := strings.Replace(hostname, ".", "_", -1)
+	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid())
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
+		serviceGenericName,
 		serviceUniqueName,
 		config.Uuid,
-		brokerDomain,
+		hostname,
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)
