@@ -104,13 +104,13 @@ module.exports =
     runtimeOptions:
       userSitesDomain: 'kd.io'
       useNeo4j: yes
-      logToExternal : no
+      logToExternal : yes
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
       mainUri   : "http://koding.com"
       broker    :
-        servicesEndpoint: "https://server-#{version}.x.koding.com/-/services/broker"
+        servicesEndpoint: "/-/services/broker"
         sockJS   : "https://broker-#{version}.koding.com/subscribe"
       apiUri    : 'https://www.koding.com'
       # Is this correct?
@@ -146,7 +146,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    defaultRecepient : undefined
+    forcedRecipient : undefined
   emailSender   :
     run         : no
   guests        :

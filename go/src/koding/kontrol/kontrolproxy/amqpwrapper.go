@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontrolhelper"
+	"os"
 )
 
 type AmqpStream struct {
@@ -12,7 +13,7 @@ type AmqpStream struct {
 }
 
 func setupAmqp() *AmqpStream {
-	appId := kontrolhelper.CustomHostname()
+	appId, _ := os.Hostname()
 	connection := kontrolhelper.CreateAmqpConnection()
 	channel := kontrolhelper.CreateChannel(connection)
 	stream := kontrolhelper.CreateStream(channel, "topic", "infoExchange", "proxy-handler-"+appId, "output.proxy."+appId, true, false)
@@ -25,7 +26,7 @@ func setupAmqp() *AmqpStream {
 }
 
 func (a *AmqpStream) Publish(exchange, routingKey string, data []byte) {
-	appId := kontrolhelper.CustomHostname()
+	appId, _ := os.Hostname()
 	msg := amqp.Publishing{
 		Headers:         amqp.Table{},
 		ContentType:     "text/plain",

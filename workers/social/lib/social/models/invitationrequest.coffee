@@ -20,14 +20,11 @@ module.exports = class JInvitationRequest extends Model
       email           : 'sparse'
       status          : 'sparse'
     sharedMethods     :
-      static          : ['create'] #,'__importKodingenUsers']
+      static          : ['create', 'count']
       instance        : [
-        'sendInvitation'
-        'deleteInvitation'
-        'approve'
-        'declineInvitation'
-        'acceptInvitationByInvitee'
-        'ignoreInvitationByInvitee'
+        'sendInvitation', 'deleteInvitation'
+        'approve', 'declineInvitation'
+        'acceptInvitationByInvitee', 'ignoreInvitationByInvitee'
       ]
     schema            :
       email           :
@@ -37,10 +34,6 @@ module.exports = class JInvitationRequest extends Model
       koding          :
         username      : String
         fullName      : String
-      kodingen        :
-        isMember      : Boolean
-        username      : String
-        registeredAt  : Date
       requestedAt     :
         type          : Date
         default       : -> new Date
@@ -48,28 +41,17 @@ module.exports = class JInvitationRequest extends Model
       status          :
         type          : String
         enum          : ['Invalid status', [
-          'pending'
-          'sent'
-          'declined'
-          'approved'
-          'ignored'
-          'accepted'
+          'pending', 'sent', 'declined', 'approved', 'ignored', 'accepted'
         ]]
         default       : 'pending'
       invitationType  :
         type          : String
         enum          : ['invalid invitation type',[
-          'invitation'
-          'basic approval'
+          'invitation', 'basic approval'
         ]]
         default       : 'invitation'
 
-  @resolvedStatuses = [
-    'declined'
-    'approved'
-    'ignored'
-    'accepted'
-  ]
+  @resolvedStatuses = ['declined', 'approved', 'ignored', 'accepted']
 
   @create =({email}, callback)->
     invite = new @ {email}
@@ -78,37 +60,6 @@ module.exports = class JInvitationRequest extends Model
         callback err
       else
         callback null, email
-
-  @__importKodingenUsers =do->
-    pathToKodingenCSV = 'kodingen/wp_users.csv'
-    (callback)->
-      queue = []
-      errors = []
-      eterations = 0
-      csv = csvParser().fromPath pathToKodingenCSV, escape: '\\'
-      csv.on 'data', (datum)->
-        if datum[0] isnt 'ID'
-          deleted = datum.pop()+''
-          spam    = datum.pop()+''
-          if '1' in [deleted, spam]
-            reason = {deleted, spam}
-            csv.emit 'error', "this datum is invalid because #{JSON.stringify reason}"
-          else
-            queue.push ->
-              [__id, username, __hashedPassword, __nicename, email, __url, registeredAt] = datum
-              inviteRequest = new JInvitationRequest {
-                email
-                kodingen    : {
-                  isMember  : yes
-                  username
-                  registeredAt: Date.parse registeredAt
-                }
-              }
-              inviteRequest.save queue.next.bind queue
-      csv.on 'end', (count)->
-        callback "Finished parsing #{count} records, of which #{queue.length} were valid."
-        daisy queue
-      csv.on 'error', (err)-> errors.push err
 
   declineInvitation: permit 'send invitations',
     success: (client, callback=->)->
@@ -161,9 +112,15 @@ module.exports = class JInvitationRequest extends Model
               return callback err if err
               @sendRequestApprovedNotification client, group, account, callback
 
-  approveInvitation: (client, callback=->)->
+  approveInvitation: (client, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+
     JGroup      = require './group'
     JInvitation = require './invitation'
+
+    kallback = (err)=>
+      return callback err  if err
+      @update $set:{ status: 'sent' }, callback
 
     JGroup.one { slug: @group }, (err, group)=>
       if err then callback err
@@ -171,17 +128,15 @@ module.exports = class JInvitationRequest extends Model
         callback new KodingError "No group! #{@group}"
       else
         if @koding?.username
-          @sendInviteMailToKodingUser client, @koding, group, callback
+          @sendInviteMailToKodingUser client, @koding, group, options, kallback
         else
-          JInvitation.one {inviteeEmail: @email}, (err, invite)=>
-            return callback err if err
-            group.fetchMembershipPolicy (err, policy)=>
-              if message = policy.communications.inviteApprovedMessage
-                group.invitationMessage = message
+          group.fetchMembershipPolicy (err, policy)=>
+            return callback err  if err
 
-              JInvitation.sendEmailForInviteViaGroup client, invite, group, (err)=>
-                return callback err if err
-                @update $set:{ status: 'sent' }, callback
+            if message = policy.communications?.inviteApprovedMessage
+              group.invitationMessage = message
+
+            JInvitation.createViaGroup client, group, [@email], options, kallback
 
   fetchDataForAcceptOrIgnore: (client, callback)->
     {delegate} = client.connection
@@ -216,7 +171,9 @@ module.exports = class JInvitationRequest extends Model
           if err then callback err
           else callback null
 
-  sendInvitation:(client, message, callback=noop)->
+  sendInvitation:(client, message, options, callback=->)->
+    [callback, options] = [options, callback]  unless callback
+
     JUser       = require './user'
     JGroup      = require './group'
     JInvitation = require './invitation'
@@ -230,18 +187,21 @@ module.exports = class JInvitationRequest extends Model
           if err then callback err
           else if not user
             # send invite to non koding user
-            JInvitation.createViaGroup client, group, [@email], callback
+            JInvitation.createViaGroup client, group, [@email], options, callback
           else
             @update $set:{'koding.username':user.username}, (err)=>
               if err then callback err
               else
                 # send invite to existing koding user
-                @sendInviteMailToKodingUser client, user, group, message, callback
+                @sendInviteMailToKodingUser client, user, group, message, options, callback
 
   sendInvitation$: permit 'send invitations',
-    success: (client, callback)-> @sendInvitation client, callback
+    success: (client, message, options, callback)-> @sendInvitation client, message, options, callback
 
-  sendInviteMailToKodingUser:(client, user, group, message, callback)->
+  sendInviteMailToKodingUser:(client, user, group, message, options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+
     JAccount          = require './account'
     JMailNotification = require './emailnotification'
 
@@ -263,6 +223,8 @@ module.exports = class JInvitationRequest extends Model
                 invite     : ObjectRef(@).data
                 admin      : ObjectRef(client).data
                 message    : message
+
+            data.bcc = options.bcc  if options.bcc
 
             receiver.sendNotification 'GroupInvited',
               actionType : 'groupInvited'
@@ -352,3 +314,16 @@ module.exports = class JInvitationRequest extends Model
         JMailNotification.create data, (err)->
           if err then callback new KodingError "Could not send"
           else callback null
+
+  @count$ = permit 'send invitations',
+    success:({context:{group}}, selector, callback)->
+      [callback, selector] = [selector, callback]  unless callback
+      selector ?= {}
+      selector.group = if Array.isArray group then $in: group else group
+      @count selector, callback
+
+  save:(callback)->
+    super
+    unless @koding?.username # JUnsubscribedMail is not for koding users
+      JUnsubscribedMail = require './unsubscribedmail'
+      JUnsubscribedMail.removeFromList @email

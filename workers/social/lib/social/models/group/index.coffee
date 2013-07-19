@@ -44,7 +44,9 @@ module.exports = class JGroup extends Module
     permissions     :
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
-      'list members'                      : ['guest','member','moderator']
+      'list members'                      :
+        public                            : ['guest','member','moderator']
+        private                           : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -187,6 +189,8 @@ module.exports = class JGroup extends Module
         actorType  : 'member'
         subject    : ObjectRef(this).data
         member     : ObjectRef(member).data
+      @broadcast 'MemberJoinedGroup',
+        member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -287,15 +291,8 @@ module.exports = class JGroup extends Module
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
-      permissionSet         = new JPermissionSet
-      defaultPermissionSet  = new JPermissionSet
-
-      # remove permissions for guest which made sense for public but not for private
-      if group.privacy is 'private'
-        toBeRemoved = ['read activity', 'read tags', 'list members']
-        for perm, i in permissionSet.permissions when perm.role is 'guest'
-          for permission, j in perm.permissions when permission in toBeRemoved
-            permissionSet.permissions[i].permissions.splice j, 1
+      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
+      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
         -> group.useSlug group.slug, (err, slug)->
@@ -441,13 +438,14 @@ module.exports = class JGroup extends Module
           event       : 'feed-new'
         }
 
-  broadcast:(message)-> @constructor.broadcast @slug, message
+  broadcast:(message, event)->
+    @constructor.broadcast @slug, message, event
 
   # this is a temporary feature to display all activities
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         if err then console.error err
         unless group then console.error "unknown group #{groupSlug}"
@@ -843,11 +841,11 @@ module.exports = class JGroup extends Module
             else callback null
 
   inviteByEmail: permit 'send invitations',
-    success: (client, email, message, callback)->
+    success: (client, email, message, options, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
         cb = (user, account)=>
-          @inviteMember client, email, user, account, message, callback
+          @inviteMember client, email, user, account, message, options, callback
 
         if err or not user
           cb null, null
@@ -859,11 +857,11 @@ module.exports = class JGroup extends Module
               cb user, account
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, message, callback)->
+    success: (client, emails, message, options, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), message, (err)->
+        @inviteByEmail client, email.trim(), message, options, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
@@ -899,12 +897,13 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, user, account, message, callback)->
+  inviteMember: (client, email, user, account, message, options, callback)->
     JInvitationRequest = require '../invitationrequest'
 
+    [callback, options] = [options, callback]  unless callback
     [callback, message] = [message, callback]  unless callback
     [callback, account] = [account, callback]  unless callback
-    [callback, user]    = [user, callback]     unless callback
+    [callback, user]    = [user,    callback]  unless callback
 
     params =
       email  : email
@@ -932,7 +931,7 @@ module.exports = class JGroup extends Module
                 user.fetchOwnAccount (err, account)->
                   return console.warn err  if err # this is minor work, workflow should not stop cause of this
                   account.emit 'NewPendingInvitation'
-              invitationRequest.sendInvitation client, message, callback
+              invitationRequest.sendInvitation client, message, options, callback
 
   isMember: (account, callback)->
     selector =
@@ -947,20 +946,24 @@ module.exports = class JGroup extends Module
     success: (client, rest...)-> @fetchInvitationRequests rest...
 
   sendSomeInvitations: permit 'send invitations',
-    success: (client, count, callback)->
-      @fetchInvitationRequests {}, {
-        targetOptions :
-          selector    : { status    : 'pending' }
-          options     : { limit     : count }
-        sort          : { timestamp : 1 }
-      }, (err, requests)->
+    success: (client, count, options, callback)->
+      selector   = group: @slug, status: 'pending'
+      selOptions = limit: count, sort: requestedAt: 1
+
+      JInvitationRequest = require '../invitationrequest'
+      JInvitationRequest.some selector, selOptions, (err, requests)->
         if err then callback err
         else
-          queue = requests.map (request)->->
-            request.approveInvitation client, (err)->
-              return callback err if err
+          errors = []
+          emails = []
+          queue = requests.map (request)-> ->
+            request.approveInvitation client, options, (err)->
+              if err
+                errors.push "#{request.email} failed!"
+              else
+                emails.push request.email
               setTimeout queue.next.bind(queue), 50
-          queue.push -> callback null
+          queue.push -> callback (if errors.length > 0 then errors else null), emails
           daisy queue
 
   requestAccess: secure (client, formData, callback)->
@@ -1030,10 +1033,7 @@ module.exports = class JGroup extends Module
 
         unless delegate instanceof JAccount
           return callback new KodingError 'Email address is missing'  unless formData?.email
-          cb formData.email, (err)=>
-            return callback err  if err
-            JInvitation = require '../invitation'
-            JInvitation.createViaGroupWithoutNotification account, this, [formData.email], callback
+          cb formData.email, callback
         else
           JUser.one username:delegate.profile.nickname, (err, user)=>
             return callback err if err
@@ -1044,11 +1044,12 @@ module.exports = class JGroup extends Module
     roles ?= ['member']
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
+
     dash queue, =>
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'MemberAdded', member
+      @emit 'MemberAdded', member  if 'member' in roles
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1423,29 +1424,40 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
+  countMembers: (callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
+
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
-      status   = $in: status                if Array.isArray status
-      selector = timestamp: $lt: timestamp  if timestamp
+      graph = new Graph({config:KONFIG['neo4j']})
+      options = {}
+      options.groupId      = @getId()
+      options.status       = status
+      options.search       = search
+      options.timestamp    = timestamp
+      options.requestLimit = requestLimit
 
-      options  =
-        targetOptions :
-          selector    : { status }
-          limit       : requestLimit
-          sort        : { requestedAt: -1 }
-        options       :
-          sort        : { timestamp: -1 }
+      graph.fetchInvitations options, (err, results)=>
+        if err then return callback err
+        if results.length < 1 then return callback null, []
 
-      if search
-        search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
-        seed = new RegExp search, 'i'
-        options.targetOptions.selector.$or = [
-          { email             : seed }
-          { 'koding.username' : seed }
-          { 'koding.fullName' : seed }
-        ]
+        JInvitationRequest = require '../invitationrequest'
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.groupOwnedNodes.data.id
+          JInvitationRequest.one  { _id : objId }, (err, invitationRequest)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] = invitationRequest
+              fin()
+        , ->
+          callback null, tempRes
 
-      @fetchInvitationRequests selector, options, callback
+        for res in results
+          collectContents res
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
@@ -1470,4 +1482,3 @@ module.exports = class JGroup extends Module
             callback null, tempRes
           for res in results
             collectContents res
-

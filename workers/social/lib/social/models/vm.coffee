@@ -1,4 +1,5 @@
 {Model} = require 'bongo'
+{Relationship} = require 'jraphical'
 
 module.exports = class JVM extends Model
 
@@ -66,19 +67,30 @@ module.exports = class JVM extends Model
         default         : no
 
   @createDomains = (account, domains, hostnameAlias)->
+
+    updateRelationship = (domainObj)->
+      Relationship.one
+        targetName: "JDomain",
+        targetId: domainObj._id,
+        sourceName: "JAccount",
+        sourceId: account._id,
+        as: "owner"
+      , (err, rel)->
+        if err or not rel
+          account.addDomain domainObj, (err)->
+            console.log err  if err?
+
     JDomain = require './domain'
-    console.log "creating domains for ", account, domains, hostnameAlias
     domains.forEach (domain) ->
       domainObj = new JDomain
         domain        : domain
         hostnameAlias : [hostnameAlias]
         proxy         : { mode: 'vm' }
         regYears      : 0
+        loadBalancer  : { persistance: 'disabled' }
       domainObj.save (err)->
-        console.log err  if err?
-        unless err
-          account.addDomain domainObj, (err)->
-            console.log err  if err?
+        return console.log err  if err
+        updateRelationship domainObj
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
@@ -114,14 +126,14 @@ module.exports = class JVM extends Model
   @parseAlias = (alias)->
     # group-vm alias
     if /^shared-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+).kd.io$/
+      result = alias.match /(.*)\.([a-z0-9-]+)\.kd\.io$/
       if result
         [rest..., prefix, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
         return {groupSlug, prefix, uid, type:'group', alias}
     # personal-vm alias
     else if /^vm-[0-9]/.test alias
-      result = alias.match /(.*)\.(\w+)\.(\w+).kd.io$/
+      result = alias.match /(.*)\.([a-z0-9-]+)\.([a-z0-9-]+)\.kd\.io$/
       if result
         [rest..., prefix, nickname, groupSlug] = result
         uid = parseInt(prefix.split(/-/)[1], 10)
@@ -308,7 +320,7 @@ module.exports = class JVM extends Model
 
         selector =
           hostnameAlias : hostnameAlias
-          users         : { $elemMatch: id: user.getId(), owner: yes }
+          users         : { $elemMatch: id: user.getId() }
 
         JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm
@@ -413,6 +425,7 @@ module.exports = class JVM extends Model
       users = [
         { id: user.getId(), sudo: yes, owner: yes }
       ]
+
       hostnameAlias = hostnameAliases[0]
       groups       ?= []
 

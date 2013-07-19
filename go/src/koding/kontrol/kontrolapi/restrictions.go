@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/models"
 	"net/http"
 	"strconv"
 )
@@ -65,11 +65,11 @@ func DeleteRestriction(writer http.ResponseWriter, req *http.Request) {
 	return
 }
 
-func CreateRuleByMatch(writer http.ResponseWriter, req *http.Request) {
+func CreateRuleByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	match := vars["match"]
-	fmt.Printf("POST\t/restrictions/%s/%s\n", domain, match)
+	name := vars["name"]
+	fmt.Printf("POST\t/restrictions/%s/%s\n", domain, name)
 
 	var msg RulePostMessage
 	var ruleEnabled bool
@@ -121,16 +121,16 @@ func CreateRuleByMatch(writer http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var rule proxyconfig.Rule
+	var rule models.Rule
 	switch req.Method {
 	case "POST":
-		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, match, ruleIndex, "add")
+		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "add")
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return
 		}
 	case "PUT":
-		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, match, ruleIndex, "update")
+		rule, err = proxyDB.AddOrUpdateRule(ruleEnabled, domain, ruleAction, name, ruleIndex, "update")
 		if err != nil {
 			http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 			return
@@ -147,12 +147,12 @@ func CreateRuleByMatch(writer http.ResponseWriter, req *http.Request) {
 
 }
 
-func DeleteRuleByMatch(writer http.ResponseWriter, req *http.Request) {
+func DeleteRuleByName(writer http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	domain := vars["domain"]
-	match := vars["name"]
-	fmt.Printf("DELETE\t/restrictions/%s/%s\n", domain, match)
-	err := proxyDB.DeleteRuleByMatch(domain, match)
+	name := vars["name"]
+	fmt.Printf("DELETE\t/restrictions/%s/%s\n", domain, name)
+	err := proxyDB.DeleteRuleByName(domain, name)
 	if err != nil {
 		http.Error(writer, fmt.Sprintf("{\"err\":\"%s\"}\n", err), http.StatusBadRequest)
 		return

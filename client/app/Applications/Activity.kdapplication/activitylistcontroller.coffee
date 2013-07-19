@@ -22,7 +22,7 @@ class ActivityListController extends KDListViewController
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
-    options.showHeader         ?= yes
+    options.showHeader         ?= no
     options.noItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity."
@@ -37,6 +37,9 @@ class ActivityListController extends KDListViewController
     @resetList()
     @_state = 'public'
 
+    KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
+      @updateNewMemberBucket member.member
+
   resetList:->
     @newActivityArrivedList = {}
     @lastItemTimeStamp = null
@@ -47,7 +50,7 @@ class ActivityListController extends KDListViewController
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'feeder-header clearfix'
 
-    @activityHeader.hide() unless @getOptions().showHeader
+    @activityHeader.hide()  unless @getOptions().showHeader
 
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
@@ -82,8 +85,6 @@ class ActivityListController extends KDListViewController
       if objectTimestamp < @lastItemTimeStamp
         @lastItemTimeStamp = objectTimestamp
 
-    KD.logToMixpanel "populateActivity.success", 5
-
     @emit "teasersLoaded"
 
   listActivitiesFromCache:(cache)->
@@ -115,12 +116,9 @@ class ActivityListController extends KDListViewController
 
     @lastItemTimeStamp = cache.from
 
-    KD.logToMixpanel "populateActivity.cache.success", 5
-
     @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
-
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
       for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
@@ -165,33 +163,26 @@ class ActivityListController extends KDListViewController
         view = @addHiddenItem activity, 0
         @activityHeader?.newActivityArrived()
 
-  updateNewMemberBucket:(activity)->
-
-    return unless activity.snapshot?
-
-    activityCreatedAt = activity.createdAt or (new Date()).toString()
-    activity.snapshot = activity.snapshot.replace /&quot;/g, '"'
-    KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
-      for item in @itemsOrdered
-        if item.getData() instanceof NewMemberBucketData
-          data = item.getData()
-          if data.count > 3
-            data.anchors.pop()
-          data.anchors.unshift bucket.anchor
-          data.createdAtTimestamps.push activityCreatedAt
-          data.count++
-          item.slideOut =>
-            @removeItem item, data
-            newItem = @addHiddenItem data, 0
-            @utils.wait 500, -> newItem.slideIn()
-          break
-
+  updateNewMemberBucket:(memberAccount)=>
+    for item in @itemsOrdered
+      if item.getData() instanceof NewMemberBucketData
+        data = item.getData()
+        if data.count > 3
+          data.anchors.pop()
+        id = memberAccount.id
+        data.anchors.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
+        data.createdAtTimestamps.push (new Date).toJSON()
+        data.count++
+        item.slideOut =>
+          @removeItem item, data
+          newItem = @addHiddenItem data, 0
+          @utils.wait 500, -> newItem.slideIn()
+        break
 
   fakeItems = []
 
   addItem:(activity, index, animation) ->
-    dataId = activity.getId?()
-
+    dataId = activity.getId?() or activity._id
     if dataId?
       if @itemsIndexed[dataId]
         log "duplicate entry", activity.bongo_?.constructorName, dataId
@@ -230,3 +221,8 @@ class ActivityListController extends KDListViewController
     repeater = KD.utils.repeat 177, ->
       item = hiddenItems.shift()
       if item then item.show() else KD.utils.killRepeat repeater
+
+  instantiateListItems:(items)->
+    newItems = super
+    @checkIfLikedBefore (item.getId()  for item in items)
+    return newItems

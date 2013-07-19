@@ -44,7 +44,8 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               group.fetchMembersFromGraph options, callback
-              JAccount.count selector, (err, count)=>
+
+              group.countMembers (err, count) =>
                 @setCurrentViewNumber 'all', count
 
         followed            :
@@ -142,6 +143,7 @@ class MembersAppController extends AppController
     @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
+      listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
       limitPerPage          : 8

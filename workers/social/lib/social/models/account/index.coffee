@@ -55,6 +55,7 @@ module.exports = class JAccount extends jraphical.Module
       ]
       instance      : [
         { name: 'updateInstance' }
+        { name: 'notification' }
       ]
     sharedMethods :
       static      : sharedStaticMethods()
@@ -390,6 +391,38 @@ module.exports = class JAccount extends jraphical.Module
 
   @fetchVersion =(callback)-> callback null, KONFIG.version
 
+  @fetchBlockedUsers = secure ({connection:{delegate}}, options, callback) ->
+    unless delegate.can 'list-blocked-users'
+      callback new KodingError 'Access denied!'
+
+    selector = blockedUntil: $gte: new Date()
+
+    options.limit = Math.min options.limit ? 20, 20
+    options.skip ?= 0
+
+    fields = { username:1, blockedUntil:1 }
+
+    JUser = require '../user'
+    JUser.someData selector, fields, options, (err, cursor) ->
+      return callback err  if err?
+      cursor.toArray (err, users) ->
+        return callback err       if err?
+        return callback null, []  if users.length is 0
+
+        users.sort (a, b) -> a.username < b.username
+
+        acctSelector = 'profile.nickname': $in: users.map (u) -> u.username
+
+        JAccount.some acctSelector, {}, (err, accounts)=>
+          if err
+            callback err
+          else
+            accounts.sort (a, b) -> a.profile.nickname < b.profile.nickname
+            for user, i in users
+              accounts[i].blockedUntil = users[i].blockedUntil
+            callback null, accounts
+
+
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
     ### TODO:
@@ -586,12 +619,15 @@ module.exports = class JAccount extends jraphical.Module
   blockUser: secure (client, targetId, toDate, callback)->
     {delegate} = client.connection
     if delegate.can('flag', this) and targetId? and toDate?
-      JAccount.one _id : targetId, (err, account)->
+      JAccount.one _id : targetId, (err, account)=>
         if err then return callback err
+
         JUser = require '../user'
-        JUser.one {username: account.profile.nickname}, (err, user)->
+        JUser.one {username: account.profile.nickname}, (err, user)=>
+
           if err then return callback err
           blockedDate = new Date(Date.now() + toDate)
+          account.sendNotification 'UserBlocked', { blockedDate }
           user.block blockedDate, callback
     else
       callback new KodingError 'Access denied'
@@ -618,9 +654,8 @@ module.exports = class JAccount extends jraphical.Module
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
-           'administer url aliases', 'migrate-kodingen-users', \
-           'administer accounts', 'grant-invites', 'send-invites', \
-           'migrate-koding-users'
+           'administer url aliases', 'administer accounts', 'grant-invites', \
+           'send-invites', 'migrate-koding-users', 'list-blocked-users'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->
@@ -982,25 +1017,36 @@ module.exports = class JAccount extends jraphical.Module
     client.context.group = 'koding'
     oldAddTags.call this, client, tags, options, callback
 
-  fetchDomains: (callback) ->
+  fetchUserDomains: (callback) ->
     JDomain = require '../domain'
 
     Relationship.some
       targetName: "JDomain"
       sourceId  : @getId()
       sourceName: "JAccount"
+    ,
+      targetId : 1
     , (err, rels)->
       return callback err if err
 
-      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, (err, domains)->
-        callback err, domains
+      JDomain.some {_id: $in: (rel.targetId for rel in rels)}, {}, (err, domains)->
+        domainList = []
+        unless err
+          # we don't allow users to work on domains such as
+          # shared-x/vm-x.groupSlug.kd.io or x.koding.kd.io
+          # so we are filtering them here.
+          domainList = domains.filter (domain)->
+            domainName = domain.domain
+            !(/^shared|vm[\-]?([0-9]+)?/.test domainName) and !(/(.*)\.koding\.kd\.io$/.test domainName)
+
+        callback err, domainList
 
   fetchDomains$: permit
     advanced: [
       { permission: 'list own domains', validateWith: Validators.own }
     ]
     success: (client, callback) ->
-      @fetchDomains callback
+      @fetchUserDomains callback
 
   fetchMyFollowingsFromGraph: secure (client, options, callback)->
     @fetchFollowFromGraph "fetchFollowingMembers", client, options, callback

@@ -57,7 +57,7 @@ sendDailyEmail = (details, content)->
   else
     Emailer.send
       From      : 'Koding <hello@koding.com>'
-      To        : emailWorker.defaultRecepient or details.email
+      To        : emailWorker.forcedRecipient or details.email
       Subject   : template.dailyHeader details
       HtmlBody  : template.dailyMail details, content
     , (err, status)->
@@ -73,9 +73,10 @@ sendInstantEmail = (details)->
   else
     Emailer.send
       From      : 'Koding <hello@koding.com>'
-      To        : emailWorker.defaultRecepient or details.email
+      To        : emailWorker.forcedRecipient or details.email
       Subject   : template.commonHeader details
       HtmlBody  : flags[details.key].template details
+      Bcc       : notification.bcc
     , (err, status)->
       log "An error occured: #{err}" if err
       notification.update $set: status: 'attempted', (err)->
@@ -101,8 +102,9 @@ fetchContent = (content, callback)->
 
 fetchSubjectContentLink = (content, type, callback)->
 
-  contentTypeLinkMap = (link)->
-    pre = "<a href='#{uri.address}/Activity/#{link}' #{template.linkStyle}>"
+  contentTypeLinkMap = (link, group)->
+    prefix = if group is 'koding' then '' else "/#{group}"
+    pre    = "<a href='#{uri.address}#{prefix}/Activity/#{link}' #{template.linkStyle}>"
 
     JReview           : "#{pre}review</a>"
     JComment          : "#{pre}comment</a>"
@@ -120,7 +122,7 @@ fetchSubjectContentLink = (content, type, callback)->
   else if type is 'JGroup'
     callback null, "<a href='https://koding.com/#{content.slug}' #{template.linkStyle}>#{content.title}</a>"
   else if content.slug
-    callback null, contentTypeLinkMap(content.slug)[type]
+    callback null, contentTypeLinkMap(content.slug, content.group)[type]
   else
     {constructorName} = content.bongo_
     constructor = Base.constructors[constructorName]
@@ -282,4 +284,4 @@ dailyEmailsCron = new CronJob emailWorker.cronDaily, dailyEmails
 log "Daily Emails CronJob started with #{emailWorker.cronDaily}"
 dailyEmailsCron.start()
 
-log "All e-mail notifications will be send to #{emailWorker.defaultRecepient}" if emailWorker.defaultRecepient
+log "All e-mail notifications will be send to #{emailWorker.forcedRecipient}" if emailWorker.forcedRecipient

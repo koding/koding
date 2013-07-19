@@ -2,9 +2,9 @@ package responder
 
 import (
 	"koding/dns/types"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	proxyModels "koding/kontrol/kontrolproxy/models"
 	"koding/tools/db"
-	"koding/virt"
+	"koding/virt/models"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"net"
@@ -27,8 +27,8 @@ func Respond(query types.DNSquery, config map[string]interface{}) types.DNSrespo
 	switch {
 	case query.Qtype == types.A:
 		ancount := 1
-		var vm virt.VM
-		var domain proxyconfig.Domain
+		var vm models.VM
+		var domain proxyModels.Domain
 		// Lookup the hostnameAlias for the given domain
 		if err := db.Domains.Find(bson.M{"domain": query.Qname}).One(&domain); err == nil {
 			// Lookup the IP for the given Hostname
