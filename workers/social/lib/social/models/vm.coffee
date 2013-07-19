@@ -29,7 +29,7 @@ module.exports = class JVM extends Model
       'delete vms'      : ['member','moderator']
     sharedMethods       :
       static            : [
-                           'fetchVms','fetchVmsByContext', 'fetchVMInfo'
+                           'fetchVms','fetchVmsByContext', 'fetchVmInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
                           ]
@@ -263,7 +263,7 @@ module.exports = class JVM extends Model
   #     {delegate} = client.connection
   #     @calculateUsage delegate, groupSlug, callback
 
-  @fetchVMInfo = secure (client, hostnameAlias, callback)->
+  @fetchVmInfo = secure (client, hostnameAlias, callback)->
     {delegate} = client.connection
 
     delegate.fetchUser (err, user) ->
@@ -485,11 +485,17 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
-    JAccount.on 'UsernameChanged', ({ oldUsername, username })->
-      return  unless oldUsername or username
+    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
+      return  unless oldUsername and username
 
-      hostnameAlias = "vm-0.#{oldUsername}.guests.kd.io"
-      newHostNameAlias = "vm-0.#{username}.koding.kd.io"
+      if isRegistration
+        oldGroup  = 'guests'
+        group     = 'koding'
+      else
+        oldGroup = group = 'koding'
+
+      hostnameAlias = "vm-0.#{oldUsername}.#{oldGroup}.kd.io"
+      newHostNameAlias = "vm-0.#{username}.#{group}.kd.io"
 
       console.log "Started to migrate #{oldUsername} to #{username} ..."
 

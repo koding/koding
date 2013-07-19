@@ -479,15 +479,17 @@ module.exports = class JUser extends jraphical.Module
   @changeEmailByUsername = (username, email, callback) ->
     @update { username }, { $set: { email }}, callback
 
-  @changeUsernameByAccount = (account, username, clientId, callback)->
-    account.changeUsername username, (err) =>
-      return callback err  if err?
+  @changeUsernameByAccount = (options, callback)->
+    { account, username, clientId, isRegistration } = options
+    account.changeUsername { username, isRegistration }, (err) =>
+      return callback err   if err?
       return callback null  unless clientId?
       newToken = createId()
       JSession.one { clientId }, (err, session) =>
         if err?
           return callback createKodingError "Could not update your session"
-        else if session?
+
+        if session?
           session.update { $set: { clientId: newToken, username }}, (err) ->
             return callback err  if err?
             callback null, newToken
@@ -512,8 +514,8 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err?
         @changeEmailByUsername oldUsername, email, (err) =>
           return callback err  if err?
-          @changeUsernameByAccount account, username, clientId,
-            (err, newToken) =>
+          options = { account, username, clientId, isRegistration: yes }
+          @changeUsernameByAccount options, (err, newToken) =>
               return callback err  if err?
               @addToGroups account, null, entryPoint, email, (err) ->
                 return callback err  if err?

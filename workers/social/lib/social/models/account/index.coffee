@@ -173,15 +173,18 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JProxyFilter'
 
+  chris:->
+    @sendNotification 'Test', {foo:42}
+
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-  changeUsername: (options, callback) ->
+  changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
       username = options
     else
-      { username, mustReauthenticate } = options
+      { username, mustReauthenticate, isRegistration } = options
 
     oldUsername = @profile.nickname
 
@@ -226,17 +229,26 @@ module.exports = class JAccount extends jraphical.Module
             @update { $set: 'profile.nickname': username }, (err) =>
               if err then handleErr err
               else
-                change = { oldUsername, username, mustReauthenticate }
+                change = {
+                  oldUsername, username, mustReauthenticate, isRegistration
+                }
+                console.log { @chris }
                 @sendNotification 'UsernameChanged', change  if mustReauthenticate
                 @constructor.emit 'UsernameChanged', change
                 freeOldUsername()
 
   changeUsername$: secure (client, options, callback) ->
 
+    console.log { arguments }
+
     {delegate} = client.connection
 
     unless delegate.equals this
     then return callback new KodingError 'Access denied'
+
+    options = username: options  if 'string' is typeof options
+
+    options.mustReauthenticate = yes
 
     @changeUsername options, callback
 

@@ -27,5 +27,5 @@ module.exports =
       'getInvitationRequestByGroup', 'fetchMyPermissions',
       'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
       'fetchMyFollowersFromGraph', 'fetchDomains', 'sendEmailVMTurnOnFailureToSysAdmin',
-      'blockUser', 'fetchDomains', 'changeUsername'
+      'blockUser', 'fetchDomains', 'changeUsername','chris'
     ]

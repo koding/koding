@@ -104,10 +104,8 @@ class KDWindowController extends KDController
 
     @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
       if cookie? and cookie isnt $.cookie 'clientId'
-        if KD.isLoggingIn then KD.isLoggingIn = no
-        else
-          window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-          window.location.replace '/'
+        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+        window.location.replace '/'
       cookie = $.cookie 'clientId'
 
   addUnloadListener:(listener)-> @unloadListeners.push listener

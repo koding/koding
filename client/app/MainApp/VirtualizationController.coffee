@@ -65,7 +65,7 @@ class VirtualizationController extends KDController
         cb null
 
     (vm, callback=noop)->
-      KD.remote.api.JVM.fetchVMInfo vm, (err, vmInfo)=>
+      KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
         if vmInfo
           if vmInfo.planCode is 'free'
             @askForApprove 'vm.remove', (state)->
