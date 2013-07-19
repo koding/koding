@@ -48,7 +48,10 @@ class MainView extends KDView
     about.setY offset
     about.bindTransitionEnd()
 
-  addBook:-> @addSubView new BookView
+  addBook:-> 
+    @addSubView new BookView 
+      delegate : this
+    
 
   _windowDidResize:->
 
@@ -127,7 +130,9 @@ class MainView extends KDView
       appManager  = KD.getSingleton "appManager"
       appManifest = appManager.getFrontAppManifest()
       menu = appManifest?.menu or KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
-      if menu?.length
+      if Array.isArray menu
+        menu = items: menu
+      if menu?.items?.length
         @appSettingsMenuButton.setData menu
         @appSettingsMenuButton.show()
       else

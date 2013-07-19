@@ -56,7 +56,10 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
+
+
     super route, options
+
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
@@ -139,7 +142,7 @@ class KodingRouter extends KDRouter
       new KDNotificationView title: err?.message or 'An unknown error has occured.'
       @handleNotFound route
 
-    if name
+    if name and not slug
       KD.remote.cacheable name, (err, models)=>
         if models?
         then onSuccess models
@@ -383,7 +386,7 @@ class KodingRouter extends KDRouter
               run <code>$ kd register renew</code> on command line interface.</p>
               """
               showModal title, content
-              
+
       # top level names
       '/:name':do->
         open =(routeInfo, model)->

@@ -19,7 +19,7 @@ app.login-signup.styl
   gradient           rgba(0, 0, 0, .8), rgba(0, 0, 0, 0)
   top                -100%
   text-align         center
-  transition         top .3s ease-in-out
+  vendor             transition, top .3s ease-in-out
   abs()
   borderBox()
   &.shown
@@ -337,10 +337,6 @@ app.login-signup.styl
         .validation-icon
           bg              position, -80px -500px
           opacity         .5
-      &.kodingen
-        .validation-icon
-          bg              position, -480px -40px!important
-          opacity         1
 
   p
     size              78%, 0

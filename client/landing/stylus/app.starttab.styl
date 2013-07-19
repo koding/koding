@@ -35,24 +35,33 @@ app.starttab.styl
     abs()
 
     .new-app-button
-    .refresh-apps-button
       top                 4px
       line-height         10px
       padding-left        22px
       z-index             100
       abs()
 
+    .new-app-button
+    .refresh-apps-button
       span.icon
         padding           0px
         top               1px
         left              6px
+        z-index           1
         abs()
 
     .new-app-button
       left                5px
 
-    .refresh-apps-button
-      right               5px
+    .kdbuttonwithmenu-wrapper
+      &.refresh-apps-button
+        top               4px
+        right             5px
+        z-index           1
+        abs()
+      .refresh-apps-button
+        line-height       10px
+        padding-left      22px
 
 // .start-tab-app-container
 //   overflow-y      visible
@@ -90,16 +99,15 @@ app.starttab.styl
     padding               0 3px 1px 3px
     color                 #fff
 
-  .dev-mode
-    background-color      rgba(114, 114, 114, 0.25)
-    border                1px solid rgba(186, 196, 186, 0.98)
+    &.gray
+      background-color      rgba(114, 114, 114, 0.25)
+      border                1px solid rgba(186, 196, 186, 0.98)
 
-  .update
-    &.available
+    &.green
       border              1px solid #63a62f
       border-color        #63a62f #63a62f #5b992b #63a62f
       gradient            #7fbf4d, #63a62f
-    &.required
+    &.orange
       border              1px solid #f76f14
       bg                  color, #ff9200
 

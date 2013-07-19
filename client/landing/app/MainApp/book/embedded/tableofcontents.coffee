@@ -2,10 +2,10 @@ class BookTableOfContents extends JView
 
   pistachio:->
 
-    tmpl = ""
+    tmpl = "<ul class='contents'>"
     for page, nr in __bookPages
-      if page.title and page.anchor isnt no
-        tmpl += "<a href='#'>#{page.title}</a><span>#{nr+1}</span><br>"
+      if page.parent == 0 and page.section > 0
+        tmpl += "<li><a href='#'>#{page.title}</a><span>#{nr+1}</span></li>"
 
     return tmpl
 

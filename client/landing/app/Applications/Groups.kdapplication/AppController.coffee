@@ -62,6 +62,8 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
+    @groupChannel.on "MemberJoinedGroup", (member)=>
+      @emit "MemberJoinedGroup", member
     @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='koding', callback=->)->
@@ -82,6 +84,7 @@ class GroupsAppController extends AppController
             @emit 'GroupChanged', groupName, group
             @openGroupChannel group, => @emit 'GroupChannelReady'
             KD.track "Groups", "ChangeGroup", groupName
+
   getUserArea:->
     @userArea ?
       if KD.config.entryPoint?.type is 'group'

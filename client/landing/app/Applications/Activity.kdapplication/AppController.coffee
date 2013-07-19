@@ -52,11 +52,12 @@ class ActivityAppController extends AppController
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
 
+    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
-
     @emit 'ready'
 
   resetAll:->
@@ -101,9 +102,7 @@ class ActivityAppController extends AppController
 
     appView.innerNav.on "NavItemReceivedClick", (data)=>
       KD.track "Activity", data.type + "FilterClicked"
-
       @resetAll()
-
       @clearPopulateActivityBindings()
 
       if data.type in ["Public", "Followed"]
@@ -126,6 +125,7 @@ class ActivityAppController extends AppController
 
   populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
+    return  if @reachedEndOfActivities
 
     @listController.showLazyLoader no
 
@@ -143,7 +143,6 @@ class ActivityAppController extends AppController
       #to-do add isExempt control.
       #@isExempt (exempt)=>
         #if exempt or @getFilter() isnt activityTypes
-
       options =
         to     : options.to or Date.now()
         group  :
@@ -181,9 +180,9 @@ class ActivityAppController extends AppController
     {CStatusActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
-      cache.overview.reverse()  if cache.overview
-
       return @emit "activitiesCouldntBeFetched", err  if err
+
+      cache.overview.reverse()  if cache.overview
 
       @sanitizeCache cache, (err, sanitizedCache)=>
         if err
@@ -201,9 +200,12 @@ class ActivityAppController extends AppController
 
   setLastTimestamps:(from, to)->
     # debugger
-    @lastTo   = to
-    @lastFrom = from
 
+    if from
+      @lastTo   = to
+      @lastFrom = from
+    else
+      @reachedEndOfActivities = yes
 
   # Store first & last cache activity timestamp.
   extractCacheTimeStamps: (cache)->
@@ -297,14 +299,13 @@ class ActivityAppController extends AppController
         else
           callback null, null
 
-  fetchTeasers:(options,callback)->
-    KD.remote.api.CActivity.fetchFacets options, (err, data) =>
-      if err then callback err
-      else
-        data = clearQuotes data
-        KD.remote.reviveFromSnapshots data, (err, instances)->
-          if err then callback err
-          else callback null, instances
+  fetchActivitiesProfilePage:(options,callback)->
+    {CStatusActivity} = KD.remote.api
+    options.to = options.to or Date.now()
+    eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
+      return @emit "activitiesCouldntBeFetched", err  if err
+      callback err, activities
 
   unhideNewItems: ->
     @listController?.activityHeader.updateShowNewItemsLink yes
@@ -326,11 +327,11 @@ class ActivityAppController extends AppController
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
-        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
+#        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
         onTimeout : @recover.bind this
 
   recover:->
-    KD.logToMixpanel "activity feed render failed; recovering"
+    #KD.logToMixpanel "activity feed render failed; recovering"
 
     @isLoading = no
 
