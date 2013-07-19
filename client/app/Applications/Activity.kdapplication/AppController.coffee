@@ -123,60 +123,60 @@ class ActivityAppController extends AppController
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-  fetchFeaturedActivityComment:(activityId, commentId, callback)=>
+  featuredActivityCommentRequested:(activityId, commentId, callback)=>
     return if commentId > 2
     timeoutValue = KD.utils.getRandomNumber 100000
     KD.utils.wait timeoutValue, =>
       eventName = "activity_#{activityId}_C#{commentId}_fetch"
-      @off "#{eventName}_success"
+      @off "#{eventName}_succeeded"
 
       # if fetching comments fails, then shut down the event
-      @once "#{eventName}_fail", ()=>
-        @off "activity_#{activityId}_fetch_success"
+      @once "#{eventName}_failed", ()=>
+        @off "activity_#{activityId}_fetch_succeeded"
 
       # if fetching success, add them to activity feed
       @once eventName, (activities)=>
         @listActivities activities, callback, true
-        @emit "FetchFeaturedActivityComment", activityId, commentId+1, callback
-      @getFeatureds(activityId, commentId)
+        @emit "FeaturedActivityCommentRequested", activityId, commentId+1, callback
+      @fetchFeatureds(activityId, commentId)
 
-  startFetchingFeaturedActivity:(activityId=0, callback)=>
+  featuredActivityRequested:(activityId=0, callback)=>
     return if activityId > 7
     @isLoading = true
     timeoutValue = KD.utils.getRandomNumber 10000
 
     eventName = "activity_#{activityId}_fetch"
-    @off "#{eventName}_success"
+    @off "#{eventName}_succeeded"
 
     KD.utils.wait timeoutValue, =>
-      @once "#{eventName}_fail", ()=>
-        @off "#{eventName}_success"
-        @emit "StartFetchingFeaturedActivity", activityId+1, callback
+      @once "#{eventName}_failed", ()=>
+        @off "#{eventName}_succeeded"
+        @emit "FeaturedActivityRequested", activityId+1, callback
 
-      @once "#{eventName}_success", (activities)=>
+      @once "#{eventName}_succeeded", (activities)=>
         @listActivities activities, (sanitizedCache)=>
           callback sanitizedCache
-          @emit "FetchFeaturedActivityComment", activityId, 1, callback
+          @emit "FeaturedActivityCommentRequested", activityId, 1, callback
 
-        @emit "StartFetchingFeaturedActivity", activityId+1, callback
+        @emit "FeaturedActivityRequested", activityId+1, callback
       #fetch featured activity
-      @getFeatureds(activityId)
+      @fetchFeatureds(activityId)
 
   listFeaturedActivities:(callback)->
-    @on "FetchFeaturedActivityComment", @bound "fetchFeaturedActivityComment"
-    @on "StartFetchingFeaturedActivity", @bound "startFetchingFeaturedActivity"
+    @on "FeaturedActivityCommentRequested", @bound "featuredActivityCommentRequested"
+    @on "FeaturedActivityRequested", @bound "featuredActivityRequested"
 
     # this is a hack, find a better way to hide inner navigation
     @getView().innerNav.hide()
     eventName = "activity_fetch"
-    @once "#{eventName}_fail", ()->
+    @once "#{eventName}_failed", ()->
       console.log "ERR : static main page activities will not work"
 
-    @once "#{eventName}_success", (activities)=>
+    @once "#{eventName}_succeeded", (activities)=>
       activities.overview.reverse()  if activities.overview
       @listActivities activities, callback
-      @emit "StartFetchingFeaturedActivity", 1, callback
-    @getFeatureds()
+      @emit "FeaturedActivityRequested", 1, callback
+    @fetchFeatureds()
 
   populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
@@ -250,7 +250,7 @@ class ActivityAppController extends AppController
       @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
       callback sanitizedCache
 
-  getFeatureds:(activityId=0, commentId=0, likeId=0)->
+  fetchFeatureds:(activityId=0, commentId=0, likeId=0)->
     activityName = "activity"
     activityName += "_#{activityId}" unless activityId is 0
     activityName += "_C#{commentId}" unless commentId is 0
@@ -258,8 +258,8 @@ class ActivityAppController extends AppController
 
     $.ajax
       url     : "js/activity/#{activityName}.json"
-      success : (json) => @emit "#{activityName}_fetch_success", json
-      failure : =>  @emit "#{activityName}_fetch_fail"
+      success : (json) => @emit "#{activityName}_fetch_succeeded", json
+      failure : =>  @emit "#{activityName}_fetch_failed"
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
