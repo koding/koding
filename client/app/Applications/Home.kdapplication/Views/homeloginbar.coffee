@@ -17,22 +17,37 @@ class HomeLoginBar extends JView
       @utils.stopDOMEvent event
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
-    @register     = new CustomLinkView
+    # links on the right
+
+    @redeem     = new CustomLinkView
       tagName     : "a"
-      cssClass    : "register"
-      title       : "Have an invite code? Register!"
+      cssClass    : "redeem"
+      title       : "Have an invite code? Redeem!"
       icon        : {}
       attributes  :
-        href      : "/Register"
+        href      : "/Redeem"
       click       : (event)=>
-        handler.call @register, event
-        KD.track "Login", "Register"
+        handler.call @redeem, event
+        KD.track "Login", "Redeem", @group.slug
+
+    @login        = new CustomLinkView
+      tagName     : "a"
+      title       : "Already a user? Sign In!"
+      icon        : {}
+      cssClass    : "login"
+      attributes  :
+        href      : "/Login"
+      click       : (event)=>
+        handler.call @login, event
+        KD.track "Login", "AlreadyUser", @group.slug
+
+    # green buttons
 
     @request      = new CustomLinkView
       tagName     : "a"
-      cssClass    : "join green button"
       title       : "Request an Invite"
       icon        : {}
+      cssClass    : "join green button"
       attributes  :
         href      : "/Join"
       click       : (event)=>
@@ -47,18 +62,6 @@ class HomeLoginBar extends JView
                 @requested.show()
         else
           KD.getSingleton('router').handleRoute "/Join", {entryPoint}
-
-    @login        = new CustomLinkView
-      tagName     : "a"
-      title       : "Already a user? Sign In!"
-      icon        : {}
-      cssClass    : "login"
-      attributes  :
-        href      : "/Login"
-      click       : (event)=>
-        KD.track "Login", "AlreadyUser", @group.slug
-        @utils.stopDOMEvent event
-        KD.getSingleton('router').handleRoute "/Login"
 
     @access       = new CustomLinkView
       tagName     : "a"
@@ -77,17 +80,29 @@ class HomeLoginBar extends JView
               @requested.show()
               @listenToApproval()
 
-    @join         = new CustomLinkView
-      tagName     : "a"
-      title       : "Join Group"
-      icon        : {}
-      cssClass    : "join green hidden button"
-      attributes  :
-        href      : "#"
-      click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug
-        @utils.stopDOMEvent event
-        requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
+    if entryPoint?.slug
+      @join         = new CustomLinkView
+        tagName     : "a"
+        title       : "Join Group"
+        icon        : {}
+        cssClass    : "join green hidden button"
+        attributes  :
+          href      : "#"
+        click       : (event)=>
+          @utils.stopDOMEvent event
+          requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
+          KD.track "Login", "GroupJoinRequest", @group.slug
+    else
+      @join         = new CustomLinkView
+        tagName     : "a"
+        title       : "Join Koding"
+        icon        : {}
+        cssClass    : "join green hidden button"
+        attributes  :
+          href      : "/Register"
+        click       : (event)=>
+          handler.call @join, event
+          KD.track "Login", "Register", @group.slug
 
     @requested    = new CustomLinkView
       tagName     : "a"
@@ -211,13 +226,13 @@ class HomeLoginBar extends JView
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()
         @login.hide()
-        @register.hide()
 
       KD.remote.cacheable entryPoint.slug, (err, models)=>
         if err then callback err
         else if models?
           [@group] = models
           if @group.privacy is "public"
+            @redeem.hide()
             @request.hide()
             @access.hide()
             @join.show()
@@ -266,7 +281,7 @@ class HomeLoginBar extends JView
     <ul>
       <li>{{> @request}}{{> @access}}{{> @join}}{{> @invited}}{{> @requested}}</li>
       <li>
-        {{> @register}}
+        {{> @redeem}}
         {{> @login}}
       </li>
     </ul>
