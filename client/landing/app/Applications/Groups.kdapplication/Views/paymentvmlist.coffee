@@ -35,7 +35,7 @@ class GroupVMsModal extends KDModalViewWithForms
 
     @dbController = new GroupVMsListController
       group     : group
-      itemClass : KDListItemView
+      itemClass : GroupVMsListItem
 
     dbList = @dbController.getListView()
 
@@ -55,32 +55,18 @@ class GroupVMsListController extends KDListViewController
     @customItem?.destroy()
     @showLazyLoader no
 
-    transactions = []
-    @group.getTransactions (err, trans) =>
-      if err
-        console.log err
-        @addCustomItem "There are no transactions."
+    items = []
+    @group.getAllExpenses {}, (err, vms) =>
+      if err or vms.length is 0
+        @addCustomItem "There are no user VMs."
         @hideLazyLoader()
-      unless err
-        for t in trans
-          if t.amount + t.tax is 0
-            continue
-          transactions.push
-            status     : t.status
-            amount     : ((t.amount + t.tax) / 100).toFixed(2)
-            currency   : 'USD'
-            createdAt  : t.datetime
-            paidVia    : t.card or ""
-            cardType   : t.cardType
-            cardNumber : t.cardNumber
-            owner      : t.owner
-            refundable : t.refundable
-        if transactions.length is 0
-          @addCustomItem "There are no transactions."
-        else
-          @instantiateListItems transactions
+      else
+        for v in vms
+          items.push
+            name : v.hostnameAlias
+        @instantiateListItems items
         @hideLazyLoader()
-        callback?()
+      callback?()
 
   addCustomItem:(message)->
     @removeAllItems()
@@ -88,3 +74,16 @@ class GroupVMsListController extends KDListViewController
     @scrollView.addSubView @customItem = new KDCustomHTMLView
       cssClass : "no-item-found"
       partial  : message
+
+
+class GroupVMsListItem extends KDListItemView
+  constructor:(options,data)->
+    super options,data
+
+  viewAppended:->
+    super
+
+  partial:(data)->
+    """
+      #{data.name}
+    """
