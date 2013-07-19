@@ -7,7 +7,7 @@ class WebTermAppView extends JView
     @listenWindowResize()
 
     @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate: @
+      delegate: this
 
     @tabView = new ApplicationTabView
       delegate           : @
@@ -70,11 +70,11 @@ class WebTermAppView extends JView
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()
     webTermView.once 'WebTermConnected', (remote)=>
-      
+
       if query.command
         command = decodeURIComponent query.command
         @showApprovalModal remote, command
-      
+
       if query.fullscreen
         KD.getSingleton("mainView").enableFullscreen()
         if window.parent?.postMessage

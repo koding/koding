@@ -12,8 +12,7 @@ class SharableClientTerminalPane extends TerminalPane
   createWebTermView: ->
     log "joining #{@getOptions().joinUser}'s terminal"
 
-    @webterm           = new WebTermView {
+    @webterm           = new WebTermView
       cssClass         : "webterm"
       advancedSettings : no
-      delegate         : @
-    }
+      delegate         : this

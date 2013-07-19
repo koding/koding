@@ -22,7 +22,7 @@ class CollaborativeWorkspace extends Workspace
 
     if @getOptions().enableChat
       @container.addSubView @chatView = new ChatPane
-        delegate: @
+        delegate: this
       @chatView.hide()
 
     @workspaceRef.once "value", (snapshot) =>
