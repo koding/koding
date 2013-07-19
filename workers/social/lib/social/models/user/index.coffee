@@ -323,7 +323,7 @@ module.exports = class JUser extends jraphical.Module
           else
             callback null, yes, invite
       else
-        callback createKodingError 'Invitation code is required!'
+        callback null, yes
 
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
