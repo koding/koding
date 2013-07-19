@@ -56,6 +56,16 @@ class WebTermAppView extends JView
           callback: ->
             modal.destroy()
 
+  getAdvancedSettingsMenuView: ->
+    pane = @tabView.getActivePane()
+    {webTermView} = pane.getOptions()
+    settingsView = new KDView
+      cssClass: "editor-advanced-settings-menu"
+    settingsView.addSubView new WebtermSettingsView
+      delegate: webTermView
+
+    return settingsView
+
   handleQuery:(query)->
     pane = @tabView.getActivePane()
     {webTermView} = pane.getOptions()

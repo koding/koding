@@ -6,7 +6,7 @@ class JContextMenuTreeViewController extends JTreeViewController
 
   uId = 0
   getUId = -> ++uId
-  convertToArray = (items, pId = null)->
+  convertToArray = @convertToArray = (items, pId = null)->
     results = []
 
     for title, options of items
