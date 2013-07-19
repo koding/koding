@@ -176,7 +176,6 @@ func DoWorkerCommand(command string, worker workerconfig.Worker) error {
 
 	switch command {
 	case "add", "addWithProxy":
-		log.Printf("[%s (%d)] received: %s - %s ", worker.Name, worker.Version, command, worker.Message.Option)
 		// This is a large and complex process, handle it seperately.
 		// "res" will be send to the worker, it contains the permission result
 		res, err := handleAdd(worker)
