@@ -147,7 +147,8 @@ class NFinderController extends KDViewController
     if fetchContent and vmItem
       @treeController.expandFolder vmItem, (err)=>
         if err?.name is 'VMNotFoundError'
-          @unmountVm vmName
+          return @unmountVm vmName
+        @treeController.selectNode vmItem
       , yes
 
   unmountVm:(vmName)->

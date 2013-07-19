@@ -160,7 +160,7 @@ __bookPages = [
   ,
     cssClass  : "develop buy more-1"
     content   : """<h2>Need more Virtual Machines?</h2>
-                   <p>It's easy to buy more Virtual Machines. Paid machines will never go down and will remain in an 'up' state 24/7</p>
+                   <p>It's easy to buy more Virtual Machines. If you need more space, just buy new one!</p>
                 """
     section   : 6
     parent    : 5
