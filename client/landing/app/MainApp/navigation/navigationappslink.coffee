@@ -37,7 +37,7 @@ class NavigationAppsLink extends JView
       @setCounter yes
 
   getUpdateRequiredAppsCount: ->
-    return @setCounter() if @appsController.publishedApps
+    return @setCounter()  if Object.keys(@appsController.publishedApps).length
     @appsController.on "UserAppModelsFetched", => @setCounter()
 
   setCounter: (useTheForce = no) ->
