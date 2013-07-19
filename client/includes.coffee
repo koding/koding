@@ -21,6 +21,7 @@ module.exports = [
   # core
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
+  "Framework/core/KDOverlayView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
   "Framework/core/KDScrollView.coffee",
@@ -426,6 +427,7 @@ module.exports = [
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
   "app/Applications/Ace.kdapplication/AppView.coffee",
+  "app/Applications/Ace.kdapplication/aceapplicationtabview.coffee",
   "app/Applications/Ace.kdapplication/aceappview.coffee",
   "app/Applications/Ace.kdapplication/ace.coffee",
   "app/Applications/Ace.kdapplication/acesettingsview.coffee",

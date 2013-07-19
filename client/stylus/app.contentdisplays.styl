@@ -62,6 +62,20 @@ app.contentdisplays.styl
     vendor                transition, width .3s ease-in-out
     borderBox()
     fl()
+
+    .presence
+      position            absolute
+      padding             0 4px 2px 4px
+      left                53px
+      top                 110px
+      border-radius       10px
+      font-size           10px
+      color               white
+      &.online
+        background        green
+      &.offline
+        background        gray
+
     >cite
       color               #999
       display             block

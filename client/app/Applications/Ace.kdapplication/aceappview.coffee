@@ -3,18 +3,15 @@ class AceAppView extends JView
 
     super options, data
 
-    @aceViews   = {}
-    @timestamp  = Date.now()
-    @appManager = KD.getSingleton "appManager"
-
-    @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate: @
-
-    @tabView = new ApplicationTabView
-      delegate             : @
-      tabHandleContainer   : @tabHandleContainer
-      saveSession          : yes
-      sessionName          : "AceTabHistory"
+    @aceViews            = {}
+    @timestamp           = Date.now()
+    @appManager          = KD.getSingleton "appManager"
+    @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
+    @tabView             = new AceApplicationTabView
+      delegate           : @
+      tabHandleContainer : @tabHandleContainer
+      saveSession        : yes
+      sessionName        : "AceTabHistory"
 
     @on "SessionDataCreated", (@sessionData) =>
 
@@ -58,20 +55,6 @@ class AceAppView extends JView
     # 10px being the application page's padding
     @tabView.setHeight @getHeight() - @tabHandleContainer.getHeight() - 10
 
-  createOpenRecentsMenu: (eventName, item, contextmenu, offset) ->
-    items = @createSessionListItems()
-    return unless Object.keys(items).length
-    contextMenu = new JContextMenu
-      cssClass    : "recent-files-menu"
-      delegate    : @
-      x           : offset.left - 400
-      y           : offset.top  + 180
-      menuWidth   : 250
-      arrow       :
-        placement : "right"
-        margin    : -5
-    , items
-
   createSessionData: (openPanes, data = {}) ->
     paths     = []
     recordKey = "#{@id}-#{@timestamp}"
@@ -100,6 +83,7 @@ class AceAppView extends JView
       sessionItems = sessionData[sessionId]
       sessionItems.forEach (path, i) =>
         filePath = path.replace("/home/#{nickname}", "~")
+        filePath = filePath.replace /^\[[^\[\]]*]/, ''
         items[filePath] = callback: => @emit "SessionItemClicked", [path]
         itemCount++
 
@@ -119,7 +103,7 @@ class AceAppView extends JView
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
-    aceView = new AceView {}, file
+    aceView = new AceView delegate: @, file
     aceView.on 'KDObjectWillBeDestroyed', => @removeOpenDocument aceView
     @aceViews[file.path] = aceView
     @setViewListeners aceView
@@ -179,9 +163,6 @@ class AceAppView extends JView
 
     @on "previewMenuItemClicked", => @getActiveAceView().preview()
 
-    @on "recentsMenuItemClicked", (eventName, item, contextmenu, offset) =>
-      @createOpenRecentsMenu eventName, item, contextmenu, offset
-
     @on "reopenMenuItemClicked", => @reopenLastSession()
 
     @on "findMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView()
@@ -189,6 +170,23 @@ class AceAppView extends JView
     @on "findAndReplaceMenuItemClicked", => @getActiveAceView().ace.showFindReplaceView yes
 
     @on "exitMenuItemClicked", => @appManager.quit @appManager.frontApp
+
+  getAdvancedSettingsMenuView: ->
+    pane = @tabView.getActivePane()
+    {aceView} = pane.getOptions()
+    settingsView = new KDView
+      cssClass: "editor-advanced-settings-menu"
+    settingsView.addSubView new AceSettingsView
+      delegate: aceView.ace
+
+    return settingsView
+
+  getRecentsMenuView: ->
+    items = @createSessionListItems()
+    unless Object.keys(items).length
+      return new KDView
+        partial: "<cite>No recently opened file exists.</cite>"
+    return items
 
   pistachio: ->
     """

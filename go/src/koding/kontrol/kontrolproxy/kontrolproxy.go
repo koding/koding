@@ -1,5 +1,3 @@
-// Kontrolproxy
-
 package main
 
 import (
@@ -13,7 +11,6 @@ import (
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
-	"koding/tools/fastproxy"
 	"log"
 	"log/syslog"
 	"net"
@@ -146,32 +143,8 @@ func startProxy() {
 		EnableFirewall: true,
 	}
 
-	startFTP()
 	startHTTPS(reverseProxy)
 	startHTTP(reverseProxy)
-}
-
-// startFTP is used to reverse proxy FTP connections on port 21
-func startFTP() {
-	logs.Info("ftp mode is enabled. serving at :21...")
-	go fastproxy.ListenFTP(&net.TCPAddr{IP: nil, Port: 21}, net.ParseIP(config.Current.Kontrold.Proxy.FTPIP), nil, func(req *fastproxy.FTPRequest) {
-		userName := req.User
-		vmName := req.User
-		if userParts := strings.SplitN(userName, "@", 2); len(userParts) == 2 {
-			userName = userParts[0]
-			vmName = userParts[1]
-		}
-
-		vm, err := proxyDB.GetVM(vmName)
-		if err != nil {
-			req.Respond("530 No Koding VM with name '" + vmName + "' found.\r\n")
-			return
-		}
-
-		if err = req.Relay(&net.TCPAddr{IP: vm.IP, Port: 21}, userName); err != nil {
-			req.Respond("530 The Koding VM '" + vmName + "' did not respond.")
-		}
-	})
 }
 
 // startHTTPS is used to reverse proxy incoming request to the port 443 but for

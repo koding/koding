@@ -206,7 +206,7 @@ class KDAutoCompleteController extends KDViewController
     {itemDataPath,customCompare,isCaseSensitive} = @getOptions()
     suggested = JsPath.getAt data, itemDataPath
     for selectedData in @getSelectedItemData()
-      if compare?
+      if customCompare?
         alreadySelected = customCompare data, selectedData
         return yes if alreadySelected
       else
@@ -273,14 +273,14 @@ class KDAutoCompleteController extends KDViewController
       itemValue = item.getOptions().userInput
       data = JsPath itemDataPath, itemValue
 
-    return no if @isItemAlreadySelected data
+    return no  if @isItemAlreadySelected data
 
     path = @getCollectionPath()
 
     itemName  = "#{name}-#{@selectedItemCounter++}"
     if form
-      collection = form.getCustomData path
-      collection = [] unless collection?
+      collection   = form.getCustomData path
+      collection or= []
       form.addCustomData path, collection
       id = itemValue.getId?()
       collection.push(
