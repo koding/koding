@@ -857,11 +857,8 @@ class KDView extends KDObject
     o.delegate  or= @
     o.events    or= ['mouseenter','mouseleave','mousemove']
     o.viewCssClass or= null
-    o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
-    isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth
-    if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
-      @tooltip ?= new KDTooltip o, {}
+    @tooltip ?= new KDTooltip o, {}
 
   getTooltip:-> @tooltip
 

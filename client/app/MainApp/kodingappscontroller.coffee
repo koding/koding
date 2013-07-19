@@ -258,13 +258,26 @@ class KodingAppsController extends KDController
       @showUpdateRequiredModal manifest
       return callback()
 
+    appView = appInstance.getView()
+    appView.addSubView loader = new KDLoaderView
+      loaderOptions :
+        color       : "#ff9200"
+        speed       : 2
+        range       : 0.7
+        density     : 60
+      cssClass      : "app-loading"
+      size          :
+        width       : 128
+
+    appView.once "viewAppended", -> loader.show()
+
     putStyleSheets manifest
 
     @getAppScript manifest, (err, appScript)=>
       return warn err  if err
 
-      appView = appInstance.getView()
-      id      = appView.getId()
+      loader.destroy()
+      id = appView.getId()
 
       try
         # security please!

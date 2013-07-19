@@ -327,17 +327,16 @@ class FormGeneratorItemView extends KDListItemView
     @type = new KDView
       cssClass    : 'type'
       partial     : switch type
-        when 'text' then 'Text Field'
-        when 'select' then 'Select Box'
+        when 'text'     then 'Text Field'
+        when 'select'   then 'Select Box'
         when 'checkbox' then 'On-Off Switch'
-        when 'radio' then 'Radio Buttons'
+        when 'radio'    then 'Radio Buttons'
         when 'textarea' then 'Textarea'
         else 'Other'
       tooltip     :
         title     : type
         placement : 'top'
         direction : 'center'
-        showOnlyWhenOverflowing : yes
 
     @title = new KDView
       cssClass    : 'title'
@@ -346,7 +345,6 @@ class FormGeneratorItemView extends KDListItemView
         title     : title
         placement : 'top'
         direction : 'center'
-        showOnlyWhenOverflowing : yes
 
     @key = new KDView
       cssClass    : 'key'
@@ -355,7 +353,6 @@ class FormGeneratorItemView extends KDListItemView
         title     : key
         placement : 'top'
         direction : 'center'
-        showOnlyWhenOverflowing : yes
 
     switch type
       when 'text', 'textarea'
@@ -366,7 +363,6 @@ class FormGeneratorItemView extends KDListItemView
             title     : defaultValue
             placement : 'top'
             direction : 'center'
-            showOnlyWhenOverflowing : yes
 
       when 'select'
         @defaultValue   = new KDSelectBox
