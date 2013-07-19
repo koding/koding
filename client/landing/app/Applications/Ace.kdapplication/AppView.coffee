@@ -66,6 +66,15 @@ class AceView extends JView
       else
         @getData().emit "file.requests.save", contents
 
+    @ace.on "FileContentChanged", =>
+      @getActiveTabHandle().setClass "modified"
+
+    @ace.on "FileContentSynced", =>
+      @getActiveTabHandle().unsetClass "modified"
+
+  getActiveTabHandle: ->
+    return  @getDelegate().tabView.getActivePane().tabHandle
+
   preview: ->
     {vmName, path} = @getData()
     KD.getSingleton("appManager").open "Viewer", params: {path, vmName}
