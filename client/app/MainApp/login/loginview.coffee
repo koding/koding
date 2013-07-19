@@ -386,6 +386,16 @@ class LoginView extends KDScrollView
       @emit "LoginViewAnimated", name
       @setClass name
 
+      switch name
+        when "join"
+          @requestForm.email.input.setFocus()
+        when "register"
+          @registerForm.invitationCode.input.setFocus()
+        when "login"
+          @loginForm.username.input.setFocus()
+        when "recover"
+          @recoverForm.usernameOrEmail.input.setFocus()
+
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
     if entryPoint and entryPoint.slug isnt 'koding'
