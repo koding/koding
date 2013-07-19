@@ -1,24 +1,26 @@
 {
     "_id": "1",
     "activities": {
-        "39781": {
-            "_id": 39781,
-            "createdAt": "2013-06-25T00:39:52.000Z",
+        "25447": {
+            "_id": 25447,
+            "type": "CStatusActivity",
+            "createdAt": "2013-07-18T22:25:21.000Z",
+            "modifiedAt": "2013-07-18T22:25:21.169Z",
             "group": "koding",
-            "modifiedAt": "2013-06-25T00:39:52.429Z",
-            "originId": "4f1f26170017f25c50000062",
-            "originType": "JAccount",
-            "snapshot": "{\"_id\":\"51c8e6d8c5a51297650004bb\",\"bongo_\":{\"constructorName\":\"JTutorial\"},\"slug\":\"installing-mysql-on-your-brandy-new-vm\",\"link\":\"\",\"title\":\"Installing MySQL on your brandy new VM\",\"slug_\":\"installing-mysql-on-your-brandy-new-vm\",\"originId\":\"4f1f26170017f25c50000062\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-06-25T00:39:52.429Z\",\"likes\":6,\"createdAtEpoch\":1372120792,\"createdAt\":\"2013-06-25T00:39:52.000Z\"},\"body\":\"The systems are Ubuntu 13.04 so it is pretty straight forward:\\n\\n    sudo apt-get update\\n    sudo apt-get upgrade\\n    sudo apt-get install mysql-server mysql-client\\nThats it! You should be good to go now.\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":1},\"tags\":[{\"counts\":{\"tagged\":0,\"post\":2,\"developer\":19,\"following\":0,\"followers\":695},\"title\":\"ubuntu\",\"slug_\":\"ubuntu\",\"slug\":\"ubuntu\",\"group\":\"koding\",\"meta\":{\"createdAtEpoch\":1336085124,\"createdAt\":\"2012-05-03T22:45:24.000Z\"},\"_id\":\"4fa30a84968584b718000319\",\"name\":\"JTag\",\"id\":\"4fa30a84968584b718000319\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}},{\"counts\":{\"tagged\":0,\"post\":124,\"developer\":460,\"following\":0,\"followers\":3466},\"title\":\"MySQL\",\"slug_\":\"mysql\",\"slug\":\"mysql\",\"group\":\"koding\",\"body\":\"MySQL officially,  is the world's most used open source relational database management system (RDBMS) as of 2008 that runs as a server providing multi-user access to a number of databases.\",\"meta\":{\"createdAtEpoch\":1336081793,\"createdAt\":\"2012-05-03T21:49:53.000Z\"},\"_id\":\"4fa2fd81968584b718000275\",\"name\":\"JTag\",\"id\":\"4fa2fd81968584b718000275\",\"relationType\":\"tag\",\"bongo_\":{\"constructorName\":\"JTag\"}}]}",
             "snapshotIds": [
-                "51c8e6d8c5a51297650004bb"
+                "51e86b51a92d56a41400022e"
             ],
+            "snapshot": "{\"_id\":\"51e86b51a92d56a41400022e\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"just-installed-sass-and-compass-on-my-vm-love-this-koding\",\"slug_\":\"just-installed-sass-and-compass-on-my-vm-love-this-koding\",\"originId\":\"51e814d4aa32c51b25000930\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-18T22:25:21.169Z\",\"likes\":4,\"createdAtEpoch\":1374186321,\"createdAt\":\"2013-07-18T22:25:21.000Z\"},\"body\":\"Just installed SASS and Compass on my VM. Love this @koding\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
             "sorts": {
-                "followerCount": 1,
-                "likesCount": 6,
-                "repliesCount": 0
+                "repliesCount": 0,
+                "likesCount": 4,
+                "followerCount": 0
             },
-            "type": "CTutorialActivity"
+            "originId": "51e814d4aa32c51b25000930",
+            "originType": "JAccount"
         }
+
+
     },
     "from": "2013-06-15T16:12:16.000Z",
     "isFull": true,
@@ -26,12 +28,12 @@
         {
             "count": 1,
             "createdAt": [
-                "2013-06-25T00:39:52.000Z"
+                "2013-07-18T22:25:21.000Z"
             ],
             "ids": [
-                39781
+                25447
             ],
-            "type": "JTutorial"
+            "type": "JStatusUpdate"
         }
     ],
     "to": "2013-06-30T11:51:12.000Z"

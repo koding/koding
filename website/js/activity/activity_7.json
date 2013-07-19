@@ -1,31 +1,31 @@
 {
     "activities": {
-        "58731": {
-            "_id": 58731,
+        "10413": {
+            "_id": 10413,
             "type": "CStatusActivity",
-            "createdAt": "2013-07-04T23:59:52.000Z",
-            "modifiedAt": "2013-07-04T23:59:52.909Z",
+            "createdAt": "2013-07-18T13:32:06.000Z",
+            "modifiedAt": "2013-07-18T13:32:06.315Z",
             "group": "koding",
             "snapshotIds": [
-                "51d60c78d07c9faa14000168"
+                "51e7ee56f8e44948200006f5"
             ],
-            "snapshot": "{\"_id\":\"51d60c78d07c9faa14000168\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"slug_\":\"gijewayinewuwekevibic-thursday-july-4th-2013-45952-pm\",\"originId\":\"5196fcb0bc9bdb0000000012\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-04T23:59:52.909Z\",\"likes\":0,\"createdAtEpoch\":1372982392,\"createdAt\":\"2013-07-04T23:59:52.000Z\"},\"body\":\"commentli felan Thursday, July 4th, 2013, 4:59:52 PM\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
+            "snapshot": "{\"_id\":\"51e7ee56f8e44948200006f5\",\"bongo_\":{\"constructorName\":\"JStatusUpdate\"},\"slug\":\"amazed-very-nice-job-guys\",\"slug_\":\"amazed-very-nice-job-guys\",\"originId\":\"51e7e865485045691d000e8d\",\"originType\":\"JAccount\",\"group\":\"koding\",\"meta\":{\"modifiedAt\":\"2013-07-18T13:32:06.315Z\",\"likes\":3,\"createdAtEpoch\":1374154326,\"createdAt\":\"2013-07-18T13:32:06.000Z\"},\"body\":\"Amazed!  Very nice job guys.\",\"attachments\":[],\"repliesCount\":0,\"opinionCount\":0,\"counts\":{\"following\":0,\"followers\":0}}",
             "sorts": {
-                "repliesCount": 1,
-                "likesCount": 1,
-                "followerCount": 1
+                "repliesCount": 0,
+                "likesCount": 4,
+                "followerCount": 0
             },
-            "originId": "5196fcb0bc9bdb0000000012",
+            "originId": "51e7e865485045691d000e8d",
             "originType": "JAccount"
         }
     },
     "overview": [
         {
             "createdAt": [
-                "2013-07-04T23:59:46.000Z"
+                "2013-07-18T13:32:06.000Z"
             ],
             "ids": [
-                58731
+                10413
             ],
             "type": "JStatusUpdate",
             "count": 1
