@@ -44,7 +44,11 @@ class MainTabView extends KDTabView
     options     = appInstance.getOptions()
 
     if $(event.target).hasClass "close-tab"
-      @appManager.quit appInstance
+      {quitOptions} = pane.mainView
+      if quitOptions
+        @warnClosingMultipleTabs appInstance, quitOptions
+      else
+        @appManager.quit appInstance
       return no
     else
       @appManager.showInstance appInstance
@@ -130,3 +134,25 @@ class MainTabView extends KDTabView
     for handle in @handles
       unless handle.getOptions().hidden
         @visibleHandles.push handle
+
+  warnClosingMultipleTabs: (appInstance, quitOptions) ->
+    title   = quitOptions.title   or "Do you want to close multiple tabs?"
+    content = quitOptions.message or "Please make sure that you saved all your work."
+
+    modal   = new KDModalView
+      cssClass      : "modal-with-text"
+      title         : "#{title}"
+      content       : "<p>#{content}</p>"
+      overlay       : yes
+      buttons       :
+        "Close"     :
+          cssClass  : "modal-clean-gray"
+          title     : "Close"
+          callback  : =>
+            @appManager.quit appInstance
+            modal.destroy()
+        "Cancel"    :
+          cssClass  : "modal-cancel"
+          title     : "Cancel"
+          callback  : =>
+            modal.destroy()

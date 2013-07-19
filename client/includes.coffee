@@ -427,6 +427,7 @@ module.exports = [
   # new ace
   "app/Applications/Ace.kdapplication/AppController.coffee",
   "app/Applications/Ace.kdapplication/AppView.coffee",
+  "app/Applications/Ace.kdapplication/aceapplicationtabview.coffee",
   "app/Applications/Ace.kdapplication/aceappview.coffee",
   "app/Applications/Ace.kdapplication/ace.coffee",
   "app/Applications/Ace.kdapplication/acesettingsview.coffee",
