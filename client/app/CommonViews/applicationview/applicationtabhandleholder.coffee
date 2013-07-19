@@ -1,4 +1,5 @@
 class ApplicationTabHandleHolder extends KDView
+
   constructor: (options = {}, data) ->
 
     options.cssClass        = KD.utils.curryCssClass "application-tab-handle-holder", options.cssClass

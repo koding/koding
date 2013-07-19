@@ -43,3 +43,13 @@ class ApplicationTabView extends KDTabView
 
   restoreSession: ->
     @getDelegate().emit "SessionDataCreated", @sessionData
+
+  handleClicked: (index, event) ->
+    pane = @getPaneByIndex index
+    if $(event.target).hasClass "close-tab"
+      @handleTabCloseAction pane
+      return no
+    @showPane pane
+
+  handleTabCloseAction: (pane) -> # override this method to prevent tab closing
+    @removePane pane
