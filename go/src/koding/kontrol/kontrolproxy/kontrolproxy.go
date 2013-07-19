@@ -9,7 +9,6 @@ import (
 	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
-	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
@@ -63,8 +62,7 @@ var (
 	// used to extract the Country information via the IP
 	geoIP *libgeo.GeoIP
 
-	// A wrapper around os.Hostname()),
-	proxyName = kontrolhelper.CustomHostname()
+	proxyName, _ = os.Hostname()
 
 	// redis client, connects once
 	redisClient = redis.Client{
