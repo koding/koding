@@ -29,6 +29,7 @@ class NotificationController extends KDObject
       isExclusive : yes
 
     @notificationChannel.on 'message', (notification)=>
+      console.log 'notification arrived'
       @emit "NotificationHasArrived", notification
       if notification.contents
         @emit notification.event, notification.contents
