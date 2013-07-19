@@ -695,8 +695,10 @@ class GroupsAppController extends AppController
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
 
   updateMembershipPolicy:(group, policy, formData, membershipPolicyView, callback)->
-    group.modifyMembershipPolicy formData, ->
-      policy.emit 'MembershipPolicyChangeSaved'
+    group.modifyMembershipPolicy formData, (err)->
+      policy.emit 'MembershipPolicyChangeSaved'  unless err
+      KD.showError err
+      new KDNotificationView {title:"Membership policy has been updated."}
 
   editPermissions:(group)->
     group.getData().fetchPermissions (err, permissionSet)->
