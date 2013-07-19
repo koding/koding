@@ -51,7 +51,8 @@ class KDToggleButton extends KDButtonView
     unless err
       @setState nextState.title
     else
-      warn err.message or \
-        "There was an error, couldn't switch to #{nextState.title} state!"
+      unless err.name is 'AccessDenied'
+        warn err.message or \
+          "There was an error, couldn't switch to #{nextState.title} state!"
 
     @hideLoader?()
