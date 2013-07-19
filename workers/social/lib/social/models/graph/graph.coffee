@@ -79,7 +79,7 @@ module.exports = class Graph
               {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
               @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
                 res.replies.push obj for obj in dbObjects
-                tempRes.push res
+                tempRes[i] = res
                 fin()
             else
               tempRes.push res
@@ -467,3 +467,15 @@ module.exports = class Graph
           resultData.push obj
 
         callback err, resultData
+
+  fetchRelationshipCount:(options, callback)->
+    {groupId, relName} = options
+    query = """
+      START group=node:koding("id:#{groupId}")
+      match group-[:#{relName}]->items
+      return count(items) as count
+    """
+
+    @db.query query, {}, (err, results) ->
+      if err then callback err, null
+      else callback null, results[0].count

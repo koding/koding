@@ -102,8 +102,9 @@ fetchContent = (content, callback)->
 
 fetchSubjectContentLink = (content, type, callback)->
 
-  contentTypeLinkMap = (link)->
-    pre = "<a href='#{uri.address}/Activity/#{link}' #{template.linkStyle}>"
+  contentTypeLinkMap = (link, group)->
+    prefix = if group is 'koding' then '' else "/#{group}"
+    pre    = "<a href='#{uri.address}#{prefix}/Activity/#{link}' #{template.linkStyle}>"
 
     JReview           : "#{pre}review</a>"
     JComment          : "#{pre}comment</a>"
@@ -121,7 +122,7 @@ fetchSubjectContentLink = (content, type, callback)->
   else if type is 'JGroup'
     callback null, "<a href='https://koding.com/#{content.slug}' #{template.linkStyle}>#{content.title}</a>"
   else if content.slug
-    callback null, contentTypeLinkMap(content.slug)[type]
+    callback null, contentTypeLinkMap(content.slug, content.group)[type]
   else
     {constructorName} = content.bongo_
     constructor = Base.constructors[constructorName]

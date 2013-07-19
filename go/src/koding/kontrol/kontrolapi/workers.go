@@ -17,16 +17,17 @@ import (
 )
 
 type ApiWorker struct {
-	Name              string    `json:"name"`
-	ServiceUniqueName string    `json:"serviceUniqueName"`
-	Uuid              string    `json:"uuid"`
-	Hostname          string    `json:"hostname"`
-	Version           int       `json:"version"`
-	Timestamp         time.Time `json:"timestamp"`
-	Pid               int       `json:"pid"`
-	State             string    `json:"state"`
-	Uptime            int       `json:"uptime"`
-	Port              int       `json:"port"`
+	Name               string    `json:"name"`
+	ServiceGenericName string    `json:"serviceGenericName"`
+	ServiceUniqueName  string    `json:"serviceUniqueName"`
+	Uuid               string    `json:"uuid"`
+	Hostname           string    `json:"hostname"`
+	Version            int       `json:"version"`
+	Timestamp          time.Time `json:"timestamp"`
+	Pid                int       `json:"pid"`
+	State              string    `json:"state"`
+	Uptime             int       `json:"uptime"`
+	Port               int       `json:"port"`
 }
 
 type Workers []ApiWorker
@@ -128,6 +129,7 @@ func queryResult(query bson.M, latestVersion bool) Workers {
 	for iter.Next(&worker) {
 		apiWorker := &ApiWorker{
 			worker.Name,
+			worker.ServiceGenericName,
 			worker.ServiceUniqueName,
 			worker.Uuid,
 			worker.Hostname,

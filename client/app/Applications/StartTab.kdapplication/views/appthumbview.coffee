@@ -77,8 +77,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete App"
-          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
+          title          : "Delete #{Encoder.XSSEncode name}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode name}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -88,6 +88,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 color    : "#ffffff"
                 diameter : 16
               callback   : => @appDeleteCall manifest
+            cancel       :
+              style      : "modal-cancel"
+              callback   : =>
+                @deleteModal.destroy()
 
     @updateView  = new KDCustomHTMLView
       cssClass   : "top-badge"
@@ -104,6 +108,17 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @experimentalView = new KDCustomHTMLView
         cssClass   : "top-badge orange"
         partial    : "Experimental"
+        click      : (e) =>
+          e.stopPropagation()
+          new KDModalView
+            overlay  : yes
+            width    : 500
+            title    : "Experimental App"
+            content  : """
+              <div class='modalformline'>
+                <p>This is an experimental app, you can spot bugs or the app may break the ux and could force you to reload or it can even DAMAGE your files. If you're 100% sure, go ahead and use this app!</p>
+              </div>
+            """
     else
       @experimentalView = new KDView
 

@@ -52,10 +52,12 @@ class ActivityAppController extends AppController
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
 
+    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
-      @ready @bound "populateActivity"
+      @ready @bound "refresh"
     @emit 'ready'
 
   resetAll:->
@@ -178,9 +180,9 @@ class ActivityAppController extends AppController
     {CStatusActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
-      cache.overview.reverse()  if cache.overview
-
       return @emit "activitiesCouldntBeFetched", err  if err
+
+      cache.overview.reverse()  if cache.overview
 
       @sanitizeCache cache, (err, sanitizedCache)=>
         if err
