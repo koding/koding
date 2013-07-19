@@ -68,13 +68,14 @@ class OwnProfileView extends JView
     {nickname}   = account.profile
     userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
+    onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
     <div class="profileleft">
       <span>
         {{> @avatar}}
       </span>
       {cite{ @putNick #(profile.nickname)}}
-      {div{#(onlineStatus)}}
+      <div class="presence #{onlineStatus}">#{onlineStatus}</div>
     </div>
 
     <section>
