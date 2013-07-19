@@ -20,6 +20,7 @@ class WebTermAppView extends JView
       webTermView.on 'viewAppended', -> webTermView.terminal.setFocused yes
       webTermView.once 'viewAppended', => @emit "ready"
       webTermView.terminal?.setFocused yes
+      KD.utils.defer -> webTermView.setKeyView()
 
       webTermView.on "WebTerm.terminated", (server) =>
         if not pane.isDestroyed and @tabView.getActivePane() is pane
