@@ -6,7 +6,7 @@ class SharableTerminalPane extends TerminalPane
 
     @panel      = @getDelegate()
     @workspace  = @panel.getDelegate()
-    @sessionKey = "dummy-#{KD.utils.getRandomNumber 100}"
+    @sessionKey = "dummy-#{KD.utils.getRandomNumber 100}" # dummy key, real key will be set when webterm connected
 
   onWebTermConnected: ->
     super

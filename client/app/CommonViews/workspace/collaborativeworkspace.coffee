@@ -14,6 +14,7 @@ class CollaborativeWorkspace extends Workspace
     @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
     @sessionKey     = options.sessionKey or @createSessionKey()
     @workspaceRef   = @firepadRef.child @sessionKey
+    @users          = {}
 
     log "joining to", currentInstance
 
@@ -91,8 +92,6 @@ class CollaborativeWorkspace extends Workspace
       return  unless val
 
       usernames = []
-      @users    = []
-
       usernames.push username for username, status of val.users unless @users[username]
 
       KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
