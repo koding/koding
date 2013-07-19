@@ -20,7 +20,6 @@ class LoginView extends KDScrollView
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
-    learnMoreHandler  = handler.bind null, '/Join'
     loginHandler      = handler.bind null, '/Login'
     registerHandler   = handler.bind null, '/Register'
     joinHandler       = handler.bind null, '/Join'
@@ -41,11 +40,6 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Recover password"
       click       : recoverHandler
-
-    @goToRequestLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an invite"
-      click       : joinHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
@@ -84,12 +78,6 @@ class LoginView extends KDScrollView
         formData.clientId = $.cookie('clientId')
         @doReset formData
         KD.track "Login", "ResetButtonClicked"
-
-    @requestForm = new RequestInlineForm
-      cssClass : "login-form"
-      callback : (formData)=>
-        @doRequest formData
-        KD.track "Login", "RequestButtonClicked"
 
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
@@ -132,13 +120,8 @@ class LoginView extends KDScrollView
       <div class="login-form-holder rsf">
         {{> @resetForm}}
       </div>
-      <div class="login-form-holder rqf">
-        <h3 class="kdview kdheaderview "><span>REQUEST AN INVITE:</span></h3>
-        {{> @requestForm}}
-      </div>
     </div>
     <div class="login-footer">
-      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
       <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
@@ -266,24 +249,6 @@ class LoginView extends KDScrollView
         @loginForm.reset()
 
         @hide()
-
-  doRequest:(formData)->
-    {entryPoint} = KD.config
-    slug = if entryPoint?.type is 'group' and entryPoint.slug\
-           then entryPoint.slug else KD.defaultSlug
-    KD.remote.cacheable slug, (err, [group])=>
-      group.requestAccess formData, (err)=>
-        if err
-          warn err
-          new KDNotificationView
-            title     : 'Something went wrong, please try again!'
-            duration  : 2000
-        else
-          @requestForm.reset()
-          @requestForm.email.hide()
-          @requestForm.button.hide()
-          @$('.flex-wrapper').addClass 'expanded'
-        @requestForm.button.hideLoader()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message

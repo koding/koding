@@ -337,7 +337,6 @@ module.exports = [
   "app/MainApp/login/registerform.coffee",
   "app/MainApp/login/recoverform.coffee",
   "app/MainApp/login/resetform.coffee",
-  "app/MainApp/login/requestform.coffee",
 
   # BOTTOM PANEL
   # "app/MainApp/bottompanels/bottompanelcontroller.coffee",
