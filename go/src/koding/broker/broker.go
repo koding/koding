@@ -291,8 +291,11 @@ func main() {
 		panic(err)
 	}
 
-	hostname, _ := os.Hostname()
-	serviceGenericName := strings.Replace(hostname, ".", "_", -1)
+	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
+	// returns config.BrokerDomain back
+	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
+
+	serviceGenericName := strings.Replace(brokerHostname, ".", "_", -1)
 	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + serviceGenericName
 
 	if err := kontrolhelper.RegisterToKontrol(
@@ -300,7 +303,7 @@ func main() {
 		serviceGenericName,
 		serviceUniqueName,
 		config.Uuid,
-		hostname,
+		brokerHostname,
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)

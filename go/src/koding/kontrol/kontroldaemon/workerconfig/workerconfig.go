@@ -2,11 +2,11 @@ package workerconfig
 
 import (
 	"fmt"
-	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"os"
 	"time"
 )
 
@@ -105,8 +105,10 @@ func Connect() (*WorkerConfig, error) {
 
 	col := database.C("jKontrolWorkers")
 
+	hostname, _ := os.Hostname()
+
 	wk := &WorkerConfig{
-		Hostname:   kontrolhelper.CustomHostname(),
+		Hostname:   hostname,
 		Session:    session,
 		Collection: col,
 	}

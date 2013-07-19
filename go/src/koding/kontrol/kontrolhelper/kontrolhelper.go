@@ -86,7 +86,11 @@ func CreateStream(channel *amqp.Channel, kind, exchange, queue, key string, dura
 	return stream
 }
 
-func CustomHostname() string {
+func CustomHostname(host string) string {
+	if host != "" {
+		return host
+	}
+
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Println(err)
