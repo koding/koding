@@ -1994,7 +1994,7 @@ div.introduction-tooltip
 .workspace-chat
   abs()
   size                  240px, 24px
-  z-index               9999
+  z-index               10000
   bottom                0px
   right                 0px
   vendor                transition, height .2s ease-in
@@ -2011,6 +2011,19 @@ div.introduction-tooltip
     background          linear-gradient(top, #ffa615 0%,#c56121 84.7%)
     pointer()
     text-shadow         1px 0px 1px rgba(0,0,0,0.3)
+  .toggle
+    font-size           18px
+    right               9px
+    top                 0
+    width               16px
+    abs()
+    &.active
+      top               -2px
+      right             5px
+      &:before
+        content         "-"
+    &:before
+      content           "+"
   .wrapper
     height              296px
     background          #FFF
@@ -2024,6 +2037,18 @@ div.introduction-tooltip
   .kdinput
     margin              5px
     width               230px
+  .chat-item
+    height              auto
+    margin-bottom       3px
+    .avatarview
+      float             left
+      margin-right      6px
+    .username
+      font-weight       600
+      margin-bottom     3px
+    .items-container
+      width             190px
+      font-size         12px
 
 // /*
 //   Animation tests
