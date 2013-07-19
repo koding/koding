@@ -28,7 +28,9 @@ class Ace extends KDView
           @editor = ace.edit "editor#{@getId()}"
           @prepareEditor()
           @utils.defer => @emit "ace.ready"
-          @setContents contents if contents
+          if contents
+            @setContents contents
+            @lastSavedContents = contents
           @editor.gotoLine 0
           @focus()
           @show()
