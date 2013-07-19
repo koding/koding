@@ -158,7 +158,7 @@ class AceView extends JView
               {tabView} = @getDelegate()
               @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
               @utils.defer =>
-                newIndex = tabView.panes.indexOf tabView.getActivePane()
+                newIndex = tabView.getPaneIndex tabView.getActivePane()
                 tabView.removePane tabView.getPaneByIndex newIndex - 1
                 {ace} = tabView.getActivePane().getOptions().aceView
                 ace.on "ace.ready", =>
