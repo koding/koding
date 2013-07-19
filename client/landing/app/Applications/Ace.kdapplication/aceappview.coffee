@@ -3,18 +3,15 @@ class AceAppView extends JView
 
     super options, data
 
-    @aceViews   = {}
-    @timestamp  = Date.now()
-    @appManager = KD.getSingleton "appManager"
-
-    @tabHandleContainer = new ApplicationTabHandleHolder
-      delegate: this
-
-    @tabView = new ApplicationTabView
-      delegate             : @
-      tabHandleContainer   : @tabHandleContainer
-      saveSession          : yes
-      sessionName          : "AceTabHistory"
+    @aceViews            = {}
+    @timestamp           = Date.now()
+    @appManager          = KD.getSingleton "appManager"
+    @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
+    @tabView             = new AceApplicationTabView
+      delegate           : @
+      tabHandleContainer : @tabHandleContainer
+      saveSession        : yes
+      sessionName        : "AceTabHistory"
 
     @on "SessionDataCreated", (@sessionData) =>
 
@@ -106,7 +103,7 @@ class AceAppView extends JView
 
   addNewTab: (file) ->
     file = file or FSHelper.createFileFromPath 'localfile:/Untitled.txt'
-    aceView = new AceView {}, file
+    aceView = new AceView delegate: this, file
     aceView.on 'KDObjectWillBeDestroyed', => @removeOpenDocument aceView
     @aceViews[file.path] = aceView
     @setViewListeners aceView
