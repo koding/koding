@@ -131,7 +131,7 @@ module.exports =
     port        : 443
     certFile    : "/opt/ssl_certs/wildcard.koding.com.cert"
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
-    useKontrold : no
+    useKontrold : yes
     webProtocol : 'https:'
     webHostname : null
     webPort     : null
