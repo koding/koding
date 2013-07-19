@@ -1,10 +1,13 @@
 class AceApplicationTabView extends ApplicationTabView
 
+  removePane_: KDTabView::removePane
+
   removePane: (pane) ->
     {ace} = pane.getOptions().aceView
     file  = ace.getData()
 
-    return @removePane pane  unless ace.isContentChanged()
+    return @removePane_ pane  unless ace.isContentChanged()
+
     modal = new KDModalView
       cssClass      : "modal-with-text"
       title         : "Do you want to save your changes?"
@@ -16,7 +19,7 @@ class AceApplicationTabView extends ApplicationTabView
           title     : "Save and Close"
           callback  : =>
             if file.path.indexOf("localfile:") is 0
-              file.once "fs.saveAs.finished", => @removePane pane
+              file.once "fs.saveAs.finished", => @removePane_ pane
               ace.requestSaveAs()
               modal.destroy()
             else
@@ -34,5 +37,5 @@ class AceApplicationTabView extends ApplicationTabView
             modal.destroy()
 
   closePaneAndModal: (pane, modal) ->
-    @removePane pane
+    @removePane_ pane
     modal.destroy()
