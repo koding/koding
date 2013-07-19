@@ -1,12 +1,8 @@
-###
-  todo:
-###
-
 class RegisterInlineForm extends LoginViewInlineForm
 
-  constructor:->
+  constructor:(options={},data)->
+    super options, data
 
-    super
     @firstName = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
@@ -174,21 +170,6 @@ class RegisterInlineForm extends LoginViewInlineForm
                       </p>
                       """
 
-    @invitationCode = new LoginInputView
-      cssClass        : "half-size"
-      inputOptions    :
-        name          : "inviteCode"
-        forceCase     : "lowercase"
-        placeholder   : "your code..."
-        defaultValue  : "newkoding"
-        validate      :
-          container   : this
-          event       : "blur"
-          rules       :
-            required  : yes
-          messages    :
-            required  : "Please enter your invitation code."
-
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
         @passwordConfirm.input.setValue ''
@@ -202,13 +183,11 @@ class RegisterInlineForm extends LoginViewInlineForm
   usernameCheckTimer = null
 
   reset:->
-
     inputs = KDFormView.findChildInputs @
     input.clearValidationFeedback() for input in inputs
     super
 
   usernameCheck:(input, event)->
-
     return if event?.which is 9
 
     clearTimeout usernameCheckTimer
@@ -234,7 +213,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       ,800
 
   userAvatarFeedback:(input)->
-
     if input.valid
       @avatar.setData
         profile     :
@@ -249,42 +227,14 @@ class RegisterInlineForm extends LoginViewInlineForm
 
   hideUserAvatar:-> @avatar.hide()
 
-  viewAppended:->
-
-    super
-
-    KD.getSingleton('mainController').on 'InvitationReceived', (invite)=>
-      @$('.invitation-field').addClass('hidden')
-      @$('.invited-by').removeClass('hidden')
-      {origin} = invite
-      @invitationCode.input.setValue invite.code
-      @email.input.setValue invite.inviteeEmail
-      if origin.constructorName is 'JAccount'# instanceof KD.remote.api.JAccount
-        KD.remote.cacheable [origin], (err, [account])=>
-          @addSubView new AvatarStaticView({size: width : 30, height : 30}, account), '.invited-by .wrapper'
-          @addSubView new ProfileTextView({}, account), '.invited-by .wrapper'
-      else
-        @$('.invited-by').addClass('hidden')
-
   pistachio:->
-
     """
-    <div class='invitation-field main-part clearfix'>
-      <span class='icon'></span>
-      Invitation code:
-      {{> @invitationCode}}
-    </div>
     <section class='main-part'>
       <div>{{> @firstName}}{{> @lastName}}</div>
       <div>{{> @email}}{{> @avatar}}</div>
       <div>{{> @username}}</div>
       <div>{{> @password}}</div>
       <div>{{> @passwordConfirm}}</div>
-      <div class='invitation-field invited-by hidden'>
-        <span class='icon'></span>
-        Invited by:
-        <span class='wrapper'></span>
-      </div>
     </section>
     <div>{{> @button}}</div>
     {{> @disabledNotice}}
