@@ -85,7 +85,7 @@ Vagrant.configure("2") do |config|
     default.vm.provider "virtualbox" do |v|
       v.name = "koding_#{Time.new.to_i}"
       v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-      v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
+      v.customize ["modifyvm", :id, "--memory", "1224", "--cpus", "2"]
     end
 
     if provision
@@ -101,19 +101,4 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  if ENV.has_key? "SECONDARY"
-    config.vm.define :secondary do |secondary|
-
-      secondary.vm.box = "koding-13"
-      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-13.box"
-      secondary.vm.hostname = "secondary"
-      secondary.vm.synced_folder ".", "/opt/koding"
-
-      secondary.vm.provider "virtualbox" do |v|
-        v.name = "second_#{Time.new.to_i}"
-        v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-        v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
-      end
-    end
-  end
 end

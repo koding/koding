@@ -34,7 +34,6 @@ module.exports = class JVM extends Model
                            'fetchVms','fetchVmsByContext', 'fetchVMInfo'
                            'fetchDomains', 'removeByHostname', 'someData'
                            'count', #'calculateUsage'
-                           'fixUserDomains'
                           ]
       instance          : []
     schema              :
@@ -83,57 +82,15 @@ module.exports = class JVM extends Model
 
     JDomain = require './domain'
     domains.forEach (domain) ->
-      JDomain.assure { domain }, (err, domainObj) ->
-        console.log err  if err
-
-        hostnameAliases = []
-        if domainObj.domain.indexOf("vm-") isnt -1
-          hostnameAliases.push hostnameAlias
-
-        if domainObj.isNew
-          domainObj.hostnameAlias = hostnameAliases
-          domainObj.proxy         = { mode: 'vm' }
-          domainObj.regYears      = 0
-          domainObj.loadBalancer  = { persistance: 'disabled' }
-          domainObj.save (err)->
-            console.log err  if err
-            updateRelationship domainObj
-        else
-          fields =
-            hostnameAlias : hostnameAliases
-            proxy         : { mode: 'vm' }
-            regYears      : 0
-            loadBalancer  : { persistance: 'disabled' }
-          domainObj.update { $set: fields }, (err)->
-            console.log err  if err
-            updateRelationship domainObj
-
-  @fixUserDomains = permit 'change bundle',
-    success: (client, callback)->
-      return callback new KodingError "You are not Koding admin."  if client.context.group isnt "koding"
-
-      JDomain = require './domain'
-      JUser   = require './user'
-
-      JVM.each {}, {}, (err, vm)=>
-        return callback err  if err
-        return callback null, null  unless vm
-        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
-        hostnameAliases = JVM.createAliases {
-          nickname, type, uid, groupSlug
-        }
-        vmUser = vm.users.filter (u)->
-          return u.owner is yes
-        if vmUser.length > 0
-          JUser.one
-            _id: vmUser[0].id
-          , (err, user)=>
-            if not err and user
-              user.fetchAccount 'koding', (err, account)=>
-                console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
-                if not err and account
-                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
-                  @createDomains account, hostnameAliases, hostnameAliases[0]
+      domainObj = new JDomain
+        domain        : domain
+        hostnameAlias : [hostnameAlias]
+        proxy         : { mode: 'vm' }
+        regYears      : 0
+        loadBalancer  : { persistance: 'disabled' }
+      domainObj.save (err)->
+        return console.log err  if err
+        updateRelationship domainObj
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
@@ -363,7 +320,7 @@ module.exports = class JVM extends Model
 
         selector =
           hostnameAlias : hostnameAlias
-          users         : { $elemMatch: id: user.getId(), owner: yes }
+          users         : { $elemMatch: id: user.getId() }
 
         JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm
@@ -468,6 +425,7 @@ module.exports = class JVM extends Model
       users = [
         { id: user.getId(), sudo: yes, owner: yes }
       ]
+
       hostnameAlias = hostnameAliases[0]
       groups       ?= []
 
