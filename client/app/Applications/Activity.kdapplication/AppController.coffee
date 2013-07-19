@@ -50,9 +50,10 @@ class ActivityAppController extends AppController
     # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
-    @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
+    @status.on "reconnected", (conn)=>
+      if conn?.reason is "internetDownForLongTime" then @refresh()
 
-    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+    @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>

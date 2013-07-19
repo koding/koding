@@ -1113,8 +1113,8 @@ module.exports = class JGroup extends Module
 
     [callback, options] = [options, callback] unless callback
 
-    if @slug is 'koding'
-      return callback new KodingError 'Leaving Koding group is not supported yet'
+    if @slug in ['koding', 'guests']
+      return callback new KodingError "It's not allowed to leave this group"
 
     @fetchMyRoles client, (err, roles)=>
       return callback err if err
