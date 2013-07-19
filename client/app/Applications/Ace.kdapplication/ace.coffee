@@ -65,8 +65,9 @@ class Ace extends KDView
         @notify "Successfully saved!", "success"
         @lastSavedContents = @lastContentsSentForSave
         @emit "FileContentSynced"
-        unless @askedForSave
-          log "this file has changed, put a modal and block editing @fatihacet!"
+        # unless @askedForSave
+          # log "this file has changed, put a modal and block editing @fatihacet!"
+          # fatihacet - this case works buggy.
         @askedForSave = no
 
     file.on "fs.save.started", =>
