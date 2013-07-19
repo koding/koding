@@ -293,7 +293,7 @@ func main() {
 
 	hostname, _ := os.Hostname()
 	serviceGenericName := strings.Replace(hostname, ".", "_", -1)
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid())
+	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + serviceGenericName
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
