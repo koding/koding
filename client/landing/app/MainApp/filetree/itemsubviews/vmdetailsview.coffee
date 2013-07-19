@@ -8,7 +8,7 @@ class NVMDetailsView extends JView
     super options, data
 
     @labelRAM = new KDLabelView
-      title : '0%'
+      title : '0 MB / 0 MB'
 
     @labelRX = new KDLabelView
       title : '0 byte'
@@ -37,9 +37,13 @@ class NVMDetailsView extends JView
       return warn err
 
     if info.state is "RUNNING"
-      # Memory
-      mem = ((info.memoryUsage * 100) / info.totalMemoryLimit).toFixed(2)
-      @labelRAM.updateTitle "#{mem}%"
+      memUsageInPercentage = ((info.memoryUsage * 100) / info.totalMemoryLimit).toFixed(2)
+
+      #convert bytes into mb
+      memUsageInMB = (info.memoryUsage / 1024 / 1024).toFixed(2)
+      totalMemoryLimitInMB = info.totalMemoryLimit / 1024 / 1024
+
+      @labelRAM.updateTitle "#{memUsageInMB} MB (#{memUsageInPercentage}%) of #{totalMemoryLimitInMB} MB"
       # RX
       @kcRun cmdRX, (err, out)=>
         bytes = (parseInt(out) / 1024).toFixed(2)
