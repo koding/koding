@@ -54,6 +54,14 @@ class ActivityAppController extends AppController
 
     @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
 
+    @docTitle = document.title
+    windowController = KD.getSingleton "windowController"
+    windowController.addVisibilityListener (hidden)=>
+      if hidden
+        @listController.activityHeader.showNewItemsInTitle = yes
+      else
+        @listController.activityHeader.hideDocumentTitleCount()
+
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller

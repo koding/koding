@@ -24,6 +24,7 @@ class KDWindowController extends KDController
     @scrollingEnabled      = yes
     @layers                = []
     @unloadListeners       = []
+    @visibilityListeners   = []
 
     @bindEvents()
     @setWindowProperties()
@@ -111,7 +112,29 @@ class KDWindowController extends KDController
           window.location.replace '/'
         cookie = $.cookie 'clientId'
 
+    # Finding vendor prefixes
+    getVisibilityProperty = ->
+      prefixes = ["webkit", "moz", "o"]
+      return "hidden" if `"hidden" in document`
+      return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
+      return null
+
+    isHidden = -> Boolean document[getVisibilityProperty()]
+
+    getVisibilityEventName = ->
+      return "#{getVisibilityProperty().replace(/[Hh]idden/, '')}visibilitychange"
+
+    document.addEventListener getVisibilityEventName(), (event)=>
+      @visibilityChange event, isHidden()
+
   addUnloadListener:(listener)-> @unloadListeners.push listener
+
+  addVisibilityListener: (listener)-> @visibilityListeners.push listener
+
+  visibilityChange: (event, state)->
+
+    return unless event
+    listener state, event for listener in @visibilityListeners
 
   beforeUnload:(event)->
 
