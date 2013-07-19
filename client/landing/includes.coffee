@@ -743,6 +743,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeclientfinderpane.coffee",
   "app/CommonViews/workspace/panes/collaborativeeditorpane.coffee",
+  "app/CommonViews/workspace/panes/chatitem.coffee",
   "app/CommonViews/workspace/panes/chatpane.coffee",
   "app/CommonViews/workspace/panel/collaborativepanel.coffee",
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
