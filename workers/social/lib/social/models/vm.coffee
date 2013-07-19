@@ -85,28 +85,15 @@ module.exports = class JVM extends Model
 
     JDomain = require './domain'
     domains.forEach (domain) ->
-      JDomain.assure { domain }, (err, domainObj) ->
-        console.log err  if err
-
-        hostnameAliases = [hostnameAlias]
-
-        if domainObj.isNew
-          domainObj.hostnameAlias = hostnameAliases
-          domainObj.proxy         = { mode: 'vm' }
-          domainObj.regYears      = 0
-          domainObj.loadBalancer  = { persistance: 'disabled' }
-          domainObj.save (err)->
-            console.log err  if err
-            updateRelationship domainObj
-        else
-          fields =
-            hostnameAlias : hostnameAliases
-            proxy         : { mode: 'vm' }
-            regYears      : 0
-            loadBalancer  : { persistance: 'disabled' }
-          domainObj.update { $set: fields }, (err)->
-            console.log err  if err
-            updateRelationship domainObj
+      domainObj = new JDomain
+        domain        : domain
+        hostnameAlias : [hostnameAlias]
+        proxy         : { mode: 'vm' }
+        regYears      : 0
+        loadBalancer  : { persistance: 'disabled' }
+      domainObj.save (err)->
+        return console.log err  if err
+        updateRelationship domainObj
 
   @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
     domain = 'kd.io'
@@ -342,7 +329,7 @@ module.exports = class JVM extends Model
 
         selector =
           hostnameAlias : hostnameAlias
-          users         : { $elemMatch: id: user.getId(), owner: yes }
+          users         : { $elemMatch: id: user.getId() }
 
         JVM.one selector, {hostnameAlias:1}, (err, vm)->
           return callback err, []  if err or not vm

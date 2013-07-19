@@ -2,7 +2,8 @@ class WebTermView extends KDView
 
   constructor: (options = {}, data)->
 
-    options.advancedSettings ?= yes
+    # we save it for popup views.
+    options.advancedSettings ?= no
 
     @appStorage = new AppStorage 'WebTerm', '1.0'
     @appStorage.fetchStorage =>

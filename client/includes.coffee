@@ -21,6 +21,7 @@ module.exports = [
   # core
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
+  "Framework/core/KDOverlayView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
   "Framework/core/KDScrollView.coffee",

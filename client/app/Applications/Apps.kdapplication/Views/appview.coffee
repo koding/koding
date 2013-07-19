@@ -85,8 +85,8 @@ class AppView extends KDView
         style    : "kdwhitebtn"
         callback : =>
           modal = new KDModalView
-            title          : "Delete App"
-            content        : "<div class='modalformline'>Are you sure you want to delete this application?</div>"
+            title          : "Delete #{Encoder.XSSEncode app.manifest.name}"
+            content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode app.manifest.name}</strong> application?</div>"
             height         : "auto"
             overlay        : yes
             buttons        :
@@ -110,6 +110,10 @@ class AppView extends KDView
                         cssClass : "error editor"
                         title    : "Error, please try again later!"
                       warn err
+              cancel       :
+                style      : "modal-cancel"
+                callback   : =>
+                  modal.destroy()
 
     else
       @approveButton = new KDView
