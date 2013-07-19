@@ -58,6 +58,14 @@ class GroupPaymentSettingsView extends JView
           cssClass          : "billing-link"
           click             : =>
             new GroupSubscriptionsModal {group}
+        expensedVMs         :
+          label             : "User VMs"
+          tagName           : "a"
+          partial           : "Show User VMs"
+          itemClass         : KDCustomHTMLView
+          cssClass          : "billing-link"
+          click             : =>
+            new GroupVMsModal {group}
         sharedVM            :
           label             : "Shared VM"
           itemClass         : KDOnOffSwitch
@@ -112,6 +120,9 @@ class GroupPaymentSettingsView extends JView
     @getBillingInfo group
 
     group.fetchBundle (err, bundle)=>
+      if err or not bundle
+        return
+        
       if bundle.allocation
         @settingsForm.inputs.allocation.setValue bundle.allocation
 
