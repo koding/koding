@@ -191,10 +191,11 @@ class GroupsListItemView extends KDListItemView
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
-                  @leaveGroup data, =>
-                    @memberBadge.hide()
-                    @settingsButton.hide()
-                    @unsetClass 'group-owner'
+                  @leaveGroup data, (err)=>
+                    unless err
+                      @memberBadge.hide()
+                      @settingsButton.hide()
+                      @unsetClass 'group-owner'
                     modal.buttons.Leave.hideLoader()
                     modal.destroy()
               Cancel       :
