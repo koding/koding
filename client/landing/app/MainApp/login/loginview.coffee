@@ -184,16 +184,19 @@ class LoginView extends KDScrollView
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
       @registerForm.button.hideLoader()
+
       if err
+
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
-      else
 
+      else
 
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
+
         new KDNotificationView
           cssClass  : "login"
           title     : '<span></span>Good to go, Enjoy!'
@@ -201,14 +204,15 @@ class LoginView extends KDScrollView
           duration  : 2000
           @showInstructionsBookIfFirstLogin()
 
-          #send information to mixpanel
+        # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
-          vendor    : 'mixpanel'
-          extra     :
+          vendor         : 'mixpanel'
+          extra          :
             '$username'  : account.profile.nickname
             '$loginDate' : Date.now()
 
         KD.getSingleton('router').clear()
+
         setTimeout =>
           @hide()
           @registerForm.reset()
