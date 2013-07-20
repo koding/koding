@@ -483,6 +483,63 @@ h1.kdheaderview.notification-header
         rounded         3px
         noTextDeco()
 
+.activity-share-popup
+  min-width             233px
+  clear                 both
+  .kdlistview-activity-share
+    padding             5px
+    overflow            visible
+    padding             5px
+    border              1px solid rgba(0,0,0,0.275)
+    z-index             9001
+    border-color        rgba(0,0,0,0.1) rgba(0,0,0,0.15) rgba(0,0,0,0.2)
+    rounded             5px
+    bg                  color, white
+    shadow              0 10px 20px 5px rgba(0,0,0,0.1)
+    borderBox()
+    rel()
+  .share-popup
+    .share-input
+      size              160px, 30px
+      padding-top       5px
+      padding-bottom    4px
+      line-height       21px
+      font-size         13px
+      margin-right      7px
+      padding-right     20px
+      display           inline-block
+      borderBox()
+
+    .icon-link
+      width             21px
+      height            21px
+      display           inline-block
+      vertical-align    top
+      margin-top        6px
+
+    .share-twitter
+      .icon.tw
+        display         block
+        width           19px
+        height          19px
+        opacity         .7
+        vendor          transition, opacity .2s ease
+        sprite()
+        bg              position, -71px -343px
+      &:hover
+        .icon.tw
+          opacity       1
+
+    .custom-link-view
+      margin-right      4px
+      .icon.new-page
+        opacity         .4
+        bg              position, -180px -280px
+      &:hover
+        .icon.new-page
+          opacity       1
+          bg            position, -180px -260px
+
 button.kdbutton.dark
   span.icon
     sprite()

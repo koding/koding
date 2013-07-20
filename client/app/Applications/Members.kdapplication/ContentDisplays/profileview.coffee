@@ -103,6 +103,7 @@ class ProfileView extends JView
     {nickname}   = account.profile
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
     name         = KD.utils.getFullnameFromAccount account
+    onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
     <div class="profileleft">
       <span>
@@ -110,7 +111,7 @@ class ProfileView extends JView
       </span>
       {{> @followButton}}
       {cite{ @putNick #(profile.nickname)}}
-      {div{#(onlineStatus)}}
+      <div class="presence #{onlineStatus}">#{onlineStatus}</div>
     </div>
 
       {{> @trollSwitch}}

@@ -100,7 +100,7 @@ KD.extend
     err.name or= 'KodingError'
 
     content    = ''
-    errMessage = messages[err.name]
+    errMessage = message or messages[err.name]
     if errMessage?
       if 'string' is typeof errMessage
         title = errMessage
