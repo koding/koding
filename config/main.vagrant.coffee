@@ -200,3 +200,5 @@ module.exports =
   opsview       :
     push        : no
     host        : ''
+    bin         : null
+    conf        : null
