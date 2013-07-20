@@ -58,7 +58,7 @@ class ActivityAppController extends AppController
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
-      @ready @bound "populateActivity"
+      @ready @bound "refresh"
     @emit 'ready'
 
   resetAll:->
