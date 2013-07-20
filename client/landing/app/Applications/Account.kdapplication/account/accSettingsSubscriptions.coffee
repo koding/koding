@@ -126,7 +126,7 @@ class AccountSubscriptionsListItem extends KDListItemView
   viewAppended: JView::viewAppended
 
   pistachio:->
-    {quantity,plan,status,renew,expires} = @getData()
+    {quantity,plan,status,renew,expires,amount} = @getData()
 
     statusNotice = ""
     if status in ['active', 'modified']
@@ -141,7 +141,7 @@ class AccountSubscriptionsListItem extends KDListItemView
       else if status is 'canceled'
         dateNotice = "Plan will be available till #{dateFormat expires}"
 
-    amount = (plan.feeMonthly / 100).toFixed 2
+    amount = (amount / 100).toFixed 2
 
     """
     <div class='payment-details'>
