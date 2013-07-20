@@ -126,7 +126,9 @@ class ActivityTutorialWidget extends KDFormView
       if test then url else "http://"+url
 
   submit:->
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "TutorialSubmitted"
+      @reset()
 
     if @embedBox.hasValidContent
       @addCustomData "link",
@@ -134,7 +136,6 @@ class ActivityTutorialWidget extends KDFormView
         link_embed : @embedBox.getDataForSubmit()
 
     super
-    KD.track "Activity", "TutorialSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
