@@ -177,6 +177,8 @@ module.exports =
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+    bin   : '/usr/local/nagios/bin/send_nsca'
+    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq1.in.koding.com'
     port        : 5672
