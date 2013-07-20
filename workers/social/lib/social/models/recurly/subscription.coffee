@@ -30,6 +30,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       datetime     : String
       expires      : String
       renew        : String
+      amount       : Number
       lastUpdate   : Number
 
   @getUserSubscriptions = secure (client, callback)->
@@ -96,7 +97,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
         Object.keys(mapAll).forEach (k)->
           # create or update
           stack.push (cb)->
-            {uuid, plan, quantity, status, datetime, expires, renew} = mapAll[k]
+            {uuid, plan, quantity, status, datetime, expires, renew, amount} = mapAll[k]
             JRecurlySubscription.one
               uuid: k
             , (err, sub)->
@@ -111,6 +112,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
               sub.datetime = datetime
               sub.expires  = expires
               sub.renew    = renew
+              sub.amount   = amount
 
               sub.lastUpdate = (new Date()).getTime()
 
@@ -134,6 +136,7 @@ module.exports = class JRecurlySubscription extends jraphical.Module
       @planCode = sub.plan
       @quantity = sub.quantity
       @renew    = sub.renew
+      @amount   = sub.amount
       @save =>
         callback no, @
 

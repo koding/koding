@@ -253,6 +253,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             datetime : result.datetime
             expires  : result.expires
             renew    : result.renew
+            amount   : result.amount
           sub.save ->
             callback no, sub
 
@@ -307,6 +308,7 @@ module.exports = class JRecurlyPlan extends jraphical.Module
             datetime : result.datetime
             expires  : result.expires
             renew    : result.renew
+            amount   : result.amount
           sub.save ->
             callback no, sub
 
