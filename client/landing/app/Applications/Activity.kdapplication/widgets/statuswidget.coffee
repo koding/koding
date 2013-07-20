@@ -241,10 +241,11 @@ class ActivityStatusUpdateWidget extends KDFormView
     @addCustomData "link_url", @embedBox.url or ""
     @addCustomData "link_embed", @embedBox.getDataForSubmit() or {}
 
-    @once 'FormValidationPassed', => @reset yes
+    @once 'FormValidationPassed', =>
+      KD.track "Activity", "StatusUpdateSubmitted"
+      @reset yes
 
     super
-    KD.track "Activity", "StatusUpdateSubmitted"
     @submitBtn.disable()
     @utils.wait 5000, => @submitBtn.enable()
 
