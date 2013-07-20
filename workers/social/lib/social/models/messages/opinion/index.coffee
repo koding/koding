@@ -29,6 +29,12 @@ module.exports = class JOpinion extends JPost
     sharedEvents    :
       instance      : [
         { name: 'OpinionIsDeleted' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
       static          : ['create','one','updateAllSlugs',"fetchRelated"]

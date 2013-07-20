@@ -24,8 +24,12 @@ module.exports = class JStatusUpdate extends JPost
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
-      static          : []
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     sharedMethods     :
       static          : ['create','one','fetchDataFromEmbedly','updateAllSlugs']
       instance        : [
