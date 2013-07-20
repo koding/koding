@@ -2,7 +2,7 @@
 
 koding = require './bongo'
 
-opsview = require 'koding-nsca-wrapper'
+opsview = require 'koding-opsview-wrapper'
 
 parseServiceKey = require 'koding-service-key-parser'
 
@@ -58,7 +58,7 @@ module.exports = (req, res) ->
   protocol = KONFIG.broker.webProtocol ? 'https:'
 
   genericServices = allServices[service]
-  
+
   { services: s } = genericServices
 
   services =
