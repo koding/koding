@@ -496,6 +496,12 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError "Session not found!"
 
+  @removeFromGuestsGroup = (account, callback) ->
+    JGroup.one { slug: 'guests' }, (err, guestsGroup) ->
+      return callback err  if err?
+      unless guestsGroup?
+        return callback createKodingError "Guests group not found!"
+      guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
     { connection, sessionToken : clientId } = client
@@ -516,8 +522,10 @@ module.exports = class JUser extends jraphical.Module
           return callback err  if err?
           options = { account, username, clientId, isRegistration: yes }
           @changeUsernameByAccount options, (err, newToken) =>
+            return callback err  if err?
+            @addToGroups account, null, entryPoint, email, (err) =>
               return callback err  if err?
-              @addToGroups account, null, entryPoint, email, (err) ->
+              @removeFromGuestsGroup account, (err) ->
                 return callback err  if err?
                 account.update $set: {
                   'profile.firstName' : firstName
