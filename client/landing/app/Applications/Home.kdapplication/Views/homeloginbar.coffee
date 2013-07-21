@@ -1,7 +1,7 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    KD.requireMembership {callback, tryAgain: yes}
+    KD.requireMembership {callback, tryAgain: yes, groupName: KD.config.entryPoint?.slug}
 
   constructor:(options = {}, data)->
 
@@ -27,8 +27,9 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Redeem"
       click       : (event)=>
-        handler.call @redeem, event
-        KD.track "Login", "Redeem", @group.slug
+        requiresLogin =>
+          handler.call @redeem, event
+          KD.track "Login", "Redeem", @group.slug
 
     @login        = new CustomLinkView
       tagName     : "a"
@@ -53,15 +54,11 @@ class HomeLoginBar extends JView
       click       : (event)=>
         KD.track "Login", "RequestInvite"
         @utils.stopDOMEvent event
-        {entryPoint} = KD.config
-        if entryPoint
-          requiresLogin =>
-            @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
-              unless err
-                @request.hide()
-                @requested.show()
-        else
-          KD.getSingleton('router').handleRoute "/Join", {entryPoint}
+        requiresLogin =>
+          @appManager.tell 'Groups', "showRequestAccessModal", @group, @policy, (err)=>
+            unless err
+              @request.hide()
+              @requested.show()
 
     @access       = new CustomLinkView
       tagName     : "a"

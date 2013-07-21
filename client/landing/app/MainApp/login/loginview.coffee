@@ -65,12 +65,17 @@ class LoginView extends KDScrollView
         @doRegister formData
         KD.track "Login", "RegisterButtonClicked"
 
+    @redeemForm = new RedeemInlineForm
+      cssClass : "login-form"
+      callback : (formData)=>
+        @doRedeem formData
+        KD.track "Login", "RedeemButtonClicked"
+
     @recoverForm = new RecoverInlineForm
       cssClass : "login-form"
       callback : (formData)=>
         @doRecover formData
         KD.track "Login", "RecoverButtonClicked"
-
 
     @resetForm = new ResetInlineForm
       cssClass : "login-form"
@@ -113,6 +118,9 @@ class LoginView extends KDScrollView
       </div>
       <div class="login-form-holder rf">
         {{> @registerForm}}
+      </div>
+      <div class="login-form-holder rdf">
+        {{> @redeemForm}}
       </div>
       <div class="login-form-holder rcf">
         {{> @recoverForm}}
@@ -250,6 +258,13 @@ class LoginView extends KDScrollView
 
         @hide()
 
+  doRedeem:(formData)->
+    return # not implemented yet
+    # groupsController = KD.getSingleton 'groupsController'
+    # group            = groupsController.getCurrentGroup()
+
+    # group.redeem formData, (err)->
+
   showHeadBanner:(message, callback)->
     @headBannerMsg = message
     @headBanner.updatePartial @headBannerMsg
@@ -288,8 +303,6 @@ class LoginView extends KDScrollView
     @setY -KD.getSingleton('windowController').winHeight
 
     cb = =>
-      @requestForm.email.show()
-      @requestForm.button.show()
       @$('.flex-wrapper').removeClass 'expanded'
 
       @emit "LoginViewHidden"
@@ -361,7 +374,9 @@ class LoginView extends KDScrollView
         when "join"
           @requestForm.email.input.setFocus()
         when "register"
-          @registerForm.invitationCode.input.setFocus()
+          @registerForm.firstName.input.setFocus()
+        when "redeem"
+          @redeemForm.inviteCode.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"

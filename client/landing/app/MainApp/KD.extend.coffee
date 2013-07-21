@@ -26,7 +26,8 @@ KD.extend
 
       # if it's not a silent operation redirect
       unless silence
-        KD.getSingleton('router').handleRoute "/Login", KD.config.entryPoint
+        KD.getSingleton('router').handleRoute "/Login",
+          entryPoint : KD.config.entryPoint
 
       # if there is callback and we want to try again
       if callback? and tryAgain
@@ -39,29 +40,27 @@ KD.extend
                 KD.lastFuncCall?()
                 KD.lastFuncCall = null
         KD.lastFuncCall = callback
-    else
-      if groupName
-        @joinGroup_ groupName, (res)=>
-          if res
-
-            callback?()
-          else @notify_ "Joining to #{groupName} group failed", "error"
-      else callback?()
+    else if groupName
+      @joinGroup_ groupName, (res)=>
+        if res then callback?()
+        else @notify_ "Joining to #{groupName} group failed", "error"
+    else callback?()
 
   joinGroup_:(groupName, callback)->
-    unless groupName then return callback true
-    user = @whoami()
-    user.fetchGroups (err, groups)=>
-      if err or !groups then return callback false
+    return callback yes  unless groupName
+
+    @whoami().fetchGroups (err, groups)=>
+      return callback no  if err or not groups
+      for group in groups
+        if groupName is group.group.slug
+          return callback yes
+
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        if err then return @notify_ err.message, "error"
-        for group in groups
-          if groupName is group.group.slug
-            return callback true
+        return @notify_ err.message, "error"  if err
         currentGroup.join (err)=>
-          if err then return callback false
+          return callback no  if err
           @notify_ "You have joined to #{groupName} group!", "success"
-          return callback true
+          return callback yes
 
   nick:-> KD.whoami().profile.nickname
 
