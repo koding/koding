@@ -36,7 +36,6 @@ class DashboardAppController extends AppController
           callback   : @membersViewAdded
       ,
         name         : 'Invitations'
-        hiddenHandle : data.privacy is 'public'
         viewOptions  :
           viewClass  : GroupsInvitationView
           lazy       : yes

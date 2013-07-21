@@ -17,7 +17,7 @@ class GroupsInvitationTabView extends KDTabView
       label    : showResolvedLabelView
       callback : (@resolvedState)=> @setResolvedStateInView()
 
-    @approvalEnabled = @getDelegate().policy.approvalEnabled
+    @approvalEnabled = @getDelegate().policy?.approvalEnabled
     @resolvedState = no
 
     @on 'PaneAdded', (pane)=> pane.options.view.updatePendingCount pane
@@ -42,9 +42,10 @@ class GroupsInvitationTabView extends KDTabView
     view.refresh()
 
   createTabs:->
+    defaultTab = if @getData().privacy is 'public' then 1 else 0
     for tab, i in @getTabs()
       tab.view = new tab.viewOptions.viewClass {delegate: this}, @getData()
-      @addPane new KDTabPaneView(tab), i is 0
+      @addPane new KDTabPaneView(tab), i is defaultTab
 
   addHeaderButtons:->
     bulkSubject = if @approvalEnabled then 'Approve' else 'Invite'
@@ -84,17 +85,19 @@ class GroupsInvitationTabView extends KDTabView
         @createInvitationCodeButton.show()
 
   getTabs:-> [
-    name        : "#{if @approvalEnabled then 'Membership' else 'Invitation'} Requests"
-    viewOptions :
-      viewClass : GroupsMembershipRequestsTabPaneView
+    name         : "#{if @approvalEnabled then 'Membership' else 'Invitation'} Requests"
+    hiddenHandle : @getData().privacy is 'public'
+    viewOptions  :
+      viewClass  : GroupsMembershipRequestsTabPaneView
   ,
-    name        : 'Invitations'
-    viewOptions :
-      viewClass : GroupsSentInvitationsTabPaneView
+    name         : 'Invitations'
+    viewOptions  :
+      viewClass  : GroupsSentInvitationsTabPaneView
   ,
-    name        : 'Invitation Codes'
-    viewOptions :
-      viewClass : GroupsInvitationCodesTabPaneView
+    name         : 'Invitation Codes'
+    hiddenHandle : @getData().privacy is 'public'
+    viewOptions  :
+      viewClass  : GroupsInvitationCodesTabPaneView
   ]
 
   _windowDidResize:->
