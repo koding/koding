@@ -24,6 +24,7 @@ class GroupCreationModal extends KDModalView
         title          : "Next"
         style          : "modal-clean-gray"
         type           : "button"
+        disabled       : yes
         callback       : @bound "next"
       back             :
         title          : "back"
@@ -34,6 +35,8 @@ class GroupCreationModal extends KDModalView
     super options, data
 
     @plans = []
+
+    @on 'ready', @buttons.next.enable.bind @buttons.next
 
   charge:(plan, callback)-> plan.subscribe { pin: '0000' }, callback
 
