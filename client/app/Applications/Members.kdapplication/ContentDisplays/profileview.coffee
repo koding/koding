@@ -96,13 +96,18 @@ class ProfileView extends JView
   click: KD.utils.showMoreClickHandler
 
   putNick:(nick)-> "@#{nick}"
+  putPresence:(state)->
+    """
+      <div class="presence #{state or 'offline'}">
+        #{state or 'offline'}
+      </div>
+    """
 
   pistachio:->
     account      = @getData()
     userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     {nickname}   = account.profile
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
-    onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
     <div class="profileleft">
       <span>
@@ -110,7 +115,7 @@ class ProfileView extends JView
       </span>
       {{> @followButton}}
       {cite{ @putNick #(profile.nickname)}}
-      <div class="presence #{onlineStatus}">#{onlineStatus}</div>
+      {div{ @putPresence #(onlineStatus)}}
     </div>
 
       {{> @trollSwitch}}
