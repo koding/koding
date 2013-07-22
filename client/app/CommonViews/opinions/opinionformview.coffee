@@ -8,6 +8,7 @@ class OpinionFormView extends KDFormView
 
     super
 
+    typeLabel = options.typeLabel or 'discussion'
     {profile} = KD.whoami()
 
     @submitOpinionBtn = new KDButtonView
@@ -33,7 +34,7 @@ class OpinionFormView extends KDFormView
       name         : "body"
       title        : "your Opinion"
       type         : "textarea"
-      placeholder  : "What do you want to contribute to the discussion?"
+      placeholder  : "What do you want to contribute to the #{typeLabel}?"
       validate     :
         rules      :
           required : yes
