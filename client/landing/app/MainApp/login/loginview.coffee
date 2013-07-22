@@ -197,36 +197,27 @@ class LoginView extends KDScrollView
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
-        # Reset VM Data and re-initialize
-        vmController = KD.getSingleton 'vmController'
-        vmController.resetVMData()
-        vmController.run
-          kiteName : 'os'
-          method   : 'vm.reinitialize'
-        , (err)=>
-          warn err  if err
+        new KDNotificationView
+          cssClass  : "login"
+          title     : '<span></span>Good to go, Enjoy!'
+          # content   : 'Successfully registered!'
+          duration  : 2000
+          @showInstructionsBookIfFirstLogin()
 
-          new KDNotificationView
-            cssClass  : "login"
-            title     : '<span></span>Good to go, Enjoy!'
-            # content   : 'Successfully registered!'
-            duration  : 2000
-            @showInstructionsBookIfFirstLogin()
+        # send information to mixpanel
+        KD.track 'UserLogin', 'UserRegistered',
+          vendor         : 'mixpanel'
+          extra          :
+            '$username'  : account.profile.nickname
+            '$loginDate' : Date.now()
 
-          # send information to mixpanel
-          KD.track 'UserLogin', 'UserRegistered',
-            vendor         : 'mixpanel'
-            extra          :
-              '$username'  : account.profile.nickname
-              '$loginDate' : Date.now()
+        KD.getSingleton('router').clear()
 
-          KD.getSingleton('router').clear()
-
-          setTimeout =>
-            @hide()
-            @registerForm.reset()
-            @registerForm.button.hideLoader()
-          , 1000
+        setTimeout =>
+          @hide()
+          @registerForm.reset()
+          @registerForm.button.hideLoader()
+        , 1000
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
