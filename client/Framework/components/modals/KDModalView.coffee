@@ -2,20 +2,20 @@ class KDModalView extends KDView
 
   constructor:(options = {}, data)->
 
-    options.overlay      or= no            # a Boolean
-    options.overlayClick or= yes           # a Boolean
+    options.overlay       ?= no            # a Boolean
+    options.overlayClick  ?= yes           # a Boolean
     options.height       or= "auto"        # a Number for pixel value or a String e.g. "100px" or "20%" or "auto"
-    options.width        or= 400           # a Number for pixel value or a String e.g. "100px" or "20%"
+    options.width         ?= 400           # a Number for pixel value or a String e.g. "100px" or "20%"
     options.position     or= {}            # an Object holding top and left values
     options.title        or= null          # a String of text or HTML
     options.content      or= null          # a String of text or HTML
     options.cssClass     or= ""            # a String
     options.buttons      or= null          # an Object of button options
-    options.fx           or= no            # a Boolean
+    options.fx            ?= no            # a Boolean
     options.view         or= null          # a KDView instance
     options.draggable    or= handle : ".kdmodal-title"
     # TO BE IMPLEMENTED
-    options.resizable    or= no            # a Boolean
+    options.resizable     ?= no            # a Boolean
 
     options.helpContent  or= null
     options.helpTitle    or= "Need help?"
