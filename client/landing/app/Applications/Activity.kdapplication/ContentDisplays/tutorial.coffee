@@ -63,6 +63,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
         language      : "markdown"
         autoUpdate    : yes
         showInitially : no
+      typeLabel       : 'tutorial'
       cssClass        : "opinion-container"
       callback        : (data)=>
         @getData().reply data, (err, opinion) =>
