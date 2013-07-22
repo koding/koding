@@ -168,7 +168,6 @@ class ActivityAppController extends AppController
     @on "FeaturedActivityCommentRequested", @bound "featuredActivityCommentRequested"
     @on "FeaturedActivityRequested", @bound "featuredActivityRequested"
 
-    # this is a hack, find a better way to hide inner navigation
     @getView().innerNav.hide()
     eventName = "activity_fetch"
     @once "#{eventName}_failed", ()->
