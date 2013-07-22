@@ -234,15 +234,17 @@ class ActivityAppController extends AppController
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
+    KD.getSingleton('mainController').on "AccountChanged", (account)=>
+      @getView().innerNav.show()
+      @listController.activityHeader.headerTitle.show()
+      @isLoading = false
+      @refresh()
+
     if isReady
     then fetch()
     else
       groupsController.once 'groupChanged', fetch
-      KD.getSingleton('mainController').on "AccountChanged", (account)=>
-        @getView().innerNav.show()
-        @listController.activityHeader.headerTitle.show()
-        #todo after logging in refresh the activity feed?
-        refresh()
+
 
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
@@ -255,6 +257,10 @@ class ActivityAppController extends AppController
     activityName += "_#{activityId}" unless activityId is 0
     activityName += "_C#{commentId}" unless commentId is 0
     activityName += "_L#{commentId}" unless likeId is 0
+
+    if KD.isLoggedIn()
+      @emit "#{activityName}_fetch_failed"
+      return
 
     $.ajax
       url     : "js/activity/#{activityName}.json"
