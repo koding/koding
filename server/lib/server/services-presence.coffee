@@ -81,7 +81,8 @@ module.exports = do (failing = no) -> (req, res) ->
       failing = yes
       nsca.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
     # Fail-over to the value hard-coded into the config.
-    res.send "\"#{ KONFIG.client.runtimeOptions.broker.sockJS }\""
+    { webHostname, webPort } = KONFIG.broker
+    res.send "\"#{ protocol }//#{ webHostname }#{ if webHostname.port then ":#{webHostname.port}" else "" }\""
 
   else
     failing = no

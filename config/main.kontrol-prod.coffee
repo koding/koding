@@ -133,7 +133,7 @@ module.exports =
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     useKontrold : yes
     webProtocol : 'https:'
-    webHostname : null
+    webHostname : "broker-#{version}.koding.com"
     webPort     : null
   kites:
     disconnectTimeout: 3e3
