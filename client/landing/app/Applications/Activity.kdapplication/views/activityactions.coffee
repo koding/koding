@@ -38,7 +38,6 @@ class ActivitySharePopup extends JView
         KD.utils.stopDOMEvent event
         {tags} = @getDelegate().getData()
         if tags
-          console.log tags
           hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
           hashTags  = _.unique(hashTags).join " "
           hashTags += " "
