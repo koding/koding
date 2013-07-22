@@ -296,7 +296,7 @@ func main() {
 	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
 
 	serviceGenericName := strings.Replace(brokerHostname, ".", "_", -1)
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + serviceGenericName
+	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + serviceGenericName
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
