@@ -56,10 +56,12 @@ class ActivityAppController extends AppController
 
     @docTitle = document.title
     windowController = KD.getSingleton "windowController"
-    windowController.addVisibilityListener (hidden)=>
-      if hidden
+    windowController.addFocusListener (blurred)=>
+      if blurred
         @listController.activityHeader.showNewItemsInTitle = yes
+        @listController.activityHeader.updateShowNewItemsTitle()
       else
+        @listController.activityHeader.showNewItemsInTitle = no
         @listController.activityHeader.hideDocumentTitleCount()
 
   loadView:->

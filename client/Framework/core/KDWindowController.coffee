@@ -14,6 +14,18 @@ class KDWindowController extends KDController
   addListener     = (eventName, listener, capturePhase=yes)->
     document.body.addEventListener eventName, listener, capturePhase
 
+  # Finding vendor prefixes for visibility
+  getVisibilityProperty = ->
+    prefixes = ["webkit", "moz", "o"]
+    return "hidden" if `"hidden" in document`
+    return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
+    return null
+
+  isFocused = -> Boolean document[getVisibilityProperty()]
+
+  getVisibilityEventName = ->
+    return "#{getVisibilityProperty().replace(/[Hh]idden/, '')}visibilitychange"
+
   constructor:(options,data)->
 
     @windowResizeListeners = {}
@@ -24,7 +36,7 @@ class KDWindowController extends KDController
     @scrollingEnabled      = yes
     @layers                = []
     @unloadListeners       = []
-    @visibilityListeners   = []
+    @focusListeners        = []
 
     @bindEvents()
     @setWindowProperties()
@@ -112,29 +124,17 @@ class KDWindowController extends KDController
           window.location.replace '/'
         cookie = $.cookie 'clientId'
 
-    # Finding vendor prefixes
-    getVisibilityProperty = ->
-      prefixes = ["webkit", "moz", "o"]
-      return "hidden" if `"hidden" in document`
-      return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
-      return null
-
-    isHidden = -> Boolean document[getVisibilityProperty()]
-
-    getVisibilityEventName = ->
-      return "#{getVisibilityProperty().replace(/[Hh]idden/, '')}visibilitychange"
-
     document.addEventListener getVisibilityEventName(), (event)=>
-      @visibilityChange event, isHidden()
+      @focusChange event, isFocused()
 
   addUnloadListener:(listener)-> @unloadListeners.push listener
 
-  addVisibilityListener: (listener)-> @visibilityListeners.push listener
+  addFocusListener: (listener)-> @focusListeners.push listener
 
-  visibilityChange: (event, state)->
+  focusChange: (event, state)->
 
     return unless event
-    listener state, event for listener in @visibilityListeners
+    listener state, event for listener in @focusListeners
 
   beforeUnload:(event)->
 
