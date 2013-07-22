@@ -130,6 +130,10 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       @editDiscussionLink.unsetClass "hidden"
       @deleteDiscussionLink.unsetClass "hidden"
 
+    activity.on 'CommentIsAdded', (reply) =>
+      activity.repliesCount = reply.repliesCount
+      @commentBox.setData activity
+
     activity.on 'ReplyIsAdded',(reply)=>
       if data.bongo_.constructorName is "JDiscussion"
 
