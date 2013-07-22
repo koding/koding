@@ -45,7 +45,9 @@ class ActivitySharePopup extends JView
         else
           hashTags = ''
 
-        shareText = "#{@getDelegate().getData().body} #{hashTags}- #{url}"
+        {title, body} = @getDelegate().getData()
+        itemText  = @utils.shortenText title or body, maxLength: 100, minLength: 100
+        shareText = "#{itemText} #{hashTags}- #{url}"
         window.open(
           "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
           "twitter-share-dialog",
