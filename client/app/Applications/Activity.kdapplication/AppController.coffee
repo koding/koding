@@ -123,7 +123,7 @@ class ActivityAppController extends AppController
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-  featuredActivityCommentRequested:(activityId, commentId, callback)=>
+  featuredActivityCommentRequested:({activityId, commentId}, callback)=>
     return if commentId > 2
     timeoutValue = KD.utils.getRandomNumber 100000
     KD.utils.wait timeoutValue, =>
@@ -137,11 +137,13 @@ class ActivityAppController extends AppController
       # if fetching success, add them to activity feed
       @once eventName, (activities)=>
         @listActivities activities, callback, true
-        @emit "FeaturedActivityCommentRequested", activityId, commentId+1, callback
+        @emit "FeaturedActivityCommentRequested", {activityId:activityId, commentId:commentId+1}, callback
       @fetchFeatureds(activityId, commentId)
 
-  featuredActivityRequested:(activityId=0, callback)=>
+  featuredActivityRequested:({activityId}, callback)=>
+    unless activityId? then activityId = 0
     return if activityId > 7
+
     @isLoading = true
     timeoutValue = KD.utils.getRandomNumber 10000
 
@@ -151,14 +153,14 @@ class ActivityAppController extends AppController
     KD.utils.wait timeoutValue, =>
       @once "#{eventName}_failed", ()=>
         @off "#{eventName}_succeeded"
-        @emit "FeaturedActivityRequested", activityId+1, callback
+        @emit "FeaturedActivityRequested", {activityId:activityId+1}, callback
 
       @once "#{eventName}_succeeded", (activities)=>
         @listActivities activities, (sanitizedCache)=>
           callback sanitizedCache
-          @emit "FeaturedActivityCommentRequested", activityId, 1, callback
+          @emit "FeaturedActivityCommentRequested", {activityId:activityId, commentId:1}, callback
 
-        @emit "FeaturedActivityRequested", activityId+1, callback
+        @emit "FeaturedActivityRequested", {activityId:activityId+1}, callback
       #fetch featured activity
       @fetchFeatureds(activityId)
 
@@ -175,7 +177,7 @@ class ActivityAppController extends AppController
     @once "#{eventName}_succeeded", (activities)=>
       activities.overview.reverse()  if activities.overview
       @listActivities activities, callback
-      @emit "FeaturedActivityRequested", 1, callback
+      @emit "FeaturedActivityRequested", {activityId:1}, callback
     @fetchFeatureds()
 
   populateActivity:(options = {}, callback=noop)->
