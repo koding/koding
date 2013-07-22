@@ -77,8 +77,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete App"
-          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
+          title          : "Delete #{Encoder.XSSEncode name}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode name}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -88,6 +88,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 color    : "#ffffff"
                 diameter : 16
               callback   : => @appDeleteCall manifest
+            cancel       :
+              style      : "modal-cancel"
+              callback   : =>
+                @deleteModal.destroy()
 
     @updateView  = new KDCustomHTMLView
       cssClass   : "top-badge"

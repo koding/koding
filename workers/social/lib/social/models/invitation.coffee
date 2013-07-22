@@ -50,7 +50,7 @@ module.exports = class JInvitation extends jraphical.Module
         default     : 0
       type          :
         type        : String
-        enum        : ['invalid invitation type', ['personal','multiuse','launchrock','koding.com','kodingen.com']]
+        enum        : ['invalid invitation type', ['personal','multiuse','launchrock','koding.com']]
         default     : 'personal'
       status        :
         type        : String

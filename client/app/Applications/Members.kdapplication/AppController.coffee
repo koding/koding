@@ -44,13 +44,9 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               group.fetchMembersFromGraph options, callback
-              if group.slug isnt 'koding'
-                group.fetchMemberCountFromGraph options, (err, count)=>
-                  unless err
-                    @setCurrentViewNumber 'all', count
-              else
-                JAccount.count selector, (err, count)=>
-                  @setCurrentViewNumber 'all', count
+
+              group.countMembers (err, count) =>
+                @setCurrentViewNumber 'all', count
 
         followed            :
           loggedInOnly      : yes

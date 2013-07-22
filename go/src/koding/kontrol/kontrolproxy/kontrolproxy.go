@@ -4,15 +4,13 @@ import (
 	"fmt"
 	"github.com/gorilla/sessions"
 	"github.com/hoisie/redis"
-	"github.com/nranchev/go-libGeoIP"
+	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
-	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/kontrol/kontrolproxy/resolver"
 	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
-	"koding/tools/fastproxy"
 	"log"
 	"log/syslog"
 	"net"
@@ -31,8 +29,18 @@ func init() {
 	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
-type Proxy struct{}
+// Proxy is implementing the http.Handler interface (via ServeHTTP). This is
+// used as the main handler for our HTTP and HTTPS listeners.
+type Proxy struct {
+	// EnableFirewall is used to activate the internal validator that uses the
+	// restrictions and filter collections to validate the incoming requests
+	// accoding to ip, country, requests and so on..
+	EnableFirewall bool
+}
 
+// Client is used to register incoming request with an 1 hour cache. After that
+// it get removed. This is used to gather unique (in our case one IP per one
+// hour) statical information.
 type Client struct {
 	Target     string    `json:"target"`
 	Registered time.Time `json:"firstVist"`
@@ -44,29 +52,61 @@ type interval struct {
 	duration int64
 }
 
-var templates = template.Must(template.ParseFiles(
-	"go/templates/proxy/securepage.html",
-	"go/templates/proxy/notfound.html",
-	"go/templates/proxy/notactiveVM.html",
-	"go/templates/proxy/quotaExceeded.html",
-	"client/maintenance.html",
-))
+var (
+	// mongoDB connection wrapper
+	proxyDB *proxyconfig.ProxyConfiguration
 
-var proxyDB *proxyconfig.ProxyConfiguration
-var geoIP *libgeo.GeoIP
-var proxyName = kontrolhelper.CustomHostname()
-var redisClient redis.Client
-var redisIntervals = make([]interval, 4)
-var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var clients = make(map[string]Client)
-var clientsLock sync.RWMutex
-var logs *syslog.Writer
+	// used to extract the Country information via the IP
+	geoIP *libgeo.GeoIP
+
+	proxyName, _ = os.Hostname()
+
+	// redis client, connects once
+	redisClient = redis.Client{
+		Addr: "127.0.0.1:6379", // for future reference
+	}
+
+	// used for request limiter, counting every hit
+	redisIntervals = []interval{
+		interval{"second", 1},
+		interval{"minute", 60},
+		interval{"hour", 3600},
+		interval{"day", 86400},
+	}
+
+	// cookie handling is used for features like securePage
+	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
+
+	// clients and clientsLock are used together with the Client struct
+	clients     = make(map[string]Client)
+	clientsLock sync.RWMutex
+
+	// used for all our logs, currently it uses our local syslog server
+	logs *syslog.Writer
+
+	// used for various kinds of use cases like validator, 404 pages,
+	// maintenance,...
+	templates = template.Must(template.ParseFiles(
+		"go/templates/proxy/securepage.html",
+		"go/templates/proxy/notfound.html",
+		"go/templates/proxy/notactiveVM.html",
+		"go/templates/proxy/quotaExceeded.html",
+		"client/maintenance.html",
+	))
+)
 
 func main() {
-	var err error
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	log.Printf("using %d cpus for goroutines\n", runtime.NumCPU())
+	log.Printf("I'm using %d cpus for goroutines\n", runtime.NumCPU())
 
+	configureProxy()
+	startProxy()
+}
+
+// configureProxy is used to setup all necessary configuration procedures, like
+// mongodb connection, syslog enabling and so on..
+func configureProxy() {
+	var err error
 	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
 	if err != nil {
 		log.Println(err)
@@ -83,18 +123,6 @@ func main() {
 		log.Fatalln(res)
 	}
 
-	redisClient = redis.Client{
-		Addr: "127.0.0.1:6379", // for future reference
-	}
-
-	// used for counters
-	redisIntervals = []interval{
-		interval{"second", 1},
-		interval{"minute", 60},
-		interval{"hour", 3600},
-		interval{"day", 86400},
-	}
-
 	err = proxyDB.AddProxy(proxyName)
 	if err != nil {
 		logs.Warning(err.Error())
@@ -107,30 +135,22 @@ func main() {
 		res := fmt.Sprintf("load GeoIP.dat: %s\n", err.Error())
 		logs.Warning(res)
 	}
+}
 
-	reverseProxy := &Proxy{}
+// startProxy is used to fire off all our ftp, https and http proxies
+func startProxy() {
+	reverseProxy := &Proxy{
+		EnableFirewall: true,
+	}
 
-	// FTP handling
-	logs.Info("ftp mode is enabled. serving at :21...")
-	go fastproxy.ListenFTP(&net.TCPAddr{IP: nil, Port: 21}, net.ParseIP(config.Current.Kontrold.Proxy.FTPIP), nil, func(req *fastproxy.FTPRequest) {
-		userName := req.User
-		vmName := req.User
-		if userParts := strings.SplitN(userName, "@", 2); len(userParts) == 2 {
-			userName = userParts[0]
-			vmName = userParts[1]
-		}
+	startHTTPS(reverseProxy)
+	startHTTP(reverseProxy)
+}
 
-		vm, err := proxyDB.GetVM(vmName)
-		if err != nil {
-			req.Respond("530 No Koding VM with name '" + vmName + "' found.\r\n")
-			return
-		}
-
-		if err = req.Relay(&net.TCPAddr{IP: vm.IP, Port: 21}, userName); err != nil {
-			req.Respond("530 The Koding VM '" + vmName + "' did not respond.")
-		}
-	})
-
+// startHTTPS is used to reverse proxy incoming request to the port 443 but for
+// the IP's defined in the Kontrold.Proxy.SSLIPS string. Each  IP is created in
+// a seperate goroutine, thus the functions is nonblocking.
+func startHTTPS(reverseProxy *Proxy) {
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
 	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
@@ -144,7 +164,12 @@ func main() {
 			}
 		}(sslip)
 	}
+}
 
+// startHTTP is used to reverse proxy incoming requests on the port 80 and
+// 1024-10000. The listener that listens on port 80 is not started on a
+// seperate go routine, and thus is blocking.
+func startHTTP(reverseProxy *Proxy) {
 	// HTTP Handling for VM port forwardings
 	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
 	for i := 1024; i <= 10000; i++ {
@@ -161,13 +186,14 @@ func main() {
 	// HTTP handling (port 80, main)
 	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
 	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
-	err = http.ListenAndServe(":"+port, reverseProxy)
+	err := http.ListenAndServe(":"+port, reverseProxy)
 	if err != nil {
 		logs.Alert(err.Error())
 		log.Panic(err)
 	}
 }
 
+// ServeHTTP is needed to satisfy the http.Handler interface.
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
 		http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
@@ -185,7 +211,7 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// handler returns the appropriate Handler for the given Request,
+// getHandler returns the appropriate Handler for the given Request,
 // or nil if none found.
 func (p *Proxy) getHandler(req *http.Request) http.Handler {
 	// remove www from the hostname (i.e. www.foo.com -> foo.com)
@@ -207,19 +233,21 @@ func (p *Proxy) getHandler(req *http.Request) http.Handler {
 
 	logs.Debug(fmt.Sprintf("mode '%s' [%s,%s] via %s : %s --> %s\n", target.Mode, userIP, userCountry, source, req.Host, target.Url.String()))
 
-	_, err = validate(userIP, userCountry, req.Host)
-	if err != nil {
-		if err == ErrSecurePage {
-			sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
-			session, _ := store.Get(req, sessionName)
-			session.Options = &sessions.Options{MaxAge: 20} //seconds
-			_, ok := session.Values["securePage"]
-			if !ok {
-				return sessionHandler("securePage", userIP)
+	if p.EnableFirewall {
+		_, err = validate(userIP, userCountry, req.Host)
+		if err != nil {
+			if err == ErrSecurePage {
+				sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
+				session, _ := store.Get(req, sessionName)
+				session.Options = &sessions.Options{MaxAge: 20} //seconds
+				_, ok := session.Values["securePage"]
+				if !ok {
+					return sessionHandler("securePage", userIP)
+				}
+			} else {
+				logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
+				return templateHandler("quotaExceeded.html", req.Host, 509)
 			}
-		} else {
-			logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
-			return templateHandler("quotaExceeded.html", req.Host, 509)
 		}
 	}
 
@@ -411,18 +439,25 @@ func isWebsocket(req *http.Request) bool {
 	return true
 }
 
-func getIPandCountry(addr string) (string, string) {
-	var ip, country string
+func getIPandCountry(addr string) (ip, country string) {
 	ip, _, err := net.SplitHostPort(addr)
-	if err == nil {
-		if geoIP != nil {
-			loc := geoIP.GetLocationByIP(ip)
-			if loc != nil {
-				country = loc.CountryName
-			}
-		}
+	if err != nil {
+		return
 	}
-	return ip, country
+
+	// return when geoIp is not initialized?
+	if geoIP == nil {
+		return
+	}
+
+	// return when location was not found
+	loc := geoIP.GetLocationByIP(ip)
+	if loc == nil {
+		return
+	}
+
+	country = loc.CountryName
+	return
 }
 
 func logDomainRequests(domain string) {

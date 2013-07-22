@@ -28,7 +28,11 @@ class Ace extends KDView
           @editor = ace.edit "editor#{@getId()}"
           @prepareEditor()
           @utils.defer => @emit "ace.ready"
-          @setContents contents if contents
+          if contents
+            @setContents contents
+            @lastSavedContents = contents
+          @editor.on "change", =>
+            if @isContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
           @editor.gotoLine 0
           @focus()
           @show()
@@ -60,26 +64,31 @@ class Ace extends KDView
       unless err
         @notify "Successfully saved!", "success"
         @lastSavedContents = @lastContentsSentForSave
-        unless @askedForSave
-          log "this file has changed, put a modal and block editing @fatihacet!"
+        @emit "FileContentSynced"
+        # unless @askedForSave
+          # log "this file has changed, put a modal and block editing @fatihacet!"
+          # fatihacet - this case works buggy.
         @askedForSave = no
 
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
 
-    return  unless @getOption("enableShortcuts")
+    file.on "fs.saveAs.finished", =>
+      @emit "FileContentSynced"
+      @emit "FileHasBeenSavedAs", file
 
-    @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
+    if @getOptions().enableShortcuts
+      @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
 
-    @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
+      @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
 
-    @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
+      @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
 
-    @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
+      @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
 
-    @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
+      @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
 
-    @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
+      @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
     KD.getSingleton('windowController').on "keydown", (e) =>
       {findAndReplaceView} = @getDelegate()
@@ -104,24 +113,24 @@ class Ace extends KDView
         mac   : macKey
       exec    : => callback?()
 
+  isContentChanged: ->
+    return @getContents() isnt @lastSavedContents
+
   ###
   FS REQUESTS
   ###
 
   requestSave:->
-
     contents = @getContents()
-    return @notify "Nothing to save!" unless contents isnt @lastSavedContents
+    return @notify "Nothing to save!" unless @isContentChanged()
     @askedForSave = yes
     @emit "ace.requests.save", contents
 
   requestSaveAs:->
-
     contents = @getContents()
     @emit "ace.requests.saveAs", contents
 
   fetchContents:(callback)->
-
     file = @getData()
     unless /localfile:/.test file.path
       @notify "Loading...", null, null, 10000

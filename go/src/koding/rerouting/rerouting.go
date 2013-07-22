@@ -83,12 +83,13 @@ func startRouting() {
 
 	log.Println("routing started...")
 	for msg := range authStream {
-		log.Printf("got %dB message data: [%v]-[%s] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.RoutingKey,
-			msg.Body,
-		)
+		// used for debug
+		// log.Printf("got %dB message data: [%v]-[%s] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.RoutingKey,
+		// 	msg.Body,
+		// )
 
 		switch msg.RoutingKey {
 		case "auth.join":
@@ -108,7 +109,7 @@ func startRouting() {
 			join.ConsumerTag = generateUniqueConsumerTag(join.BindingKey)
 			authPairs[join.RoutingKey] = join
 
-			log.Printf("Auth pairs: %+v\n", authPairs) // this is just for debug
+			// log.Printf("Auth pairs: %+v\n", authPairs) // this is just for debug
 
 			declareExchange(c, join.BindingExchange)
 
@@ -191,8 +192,9 @@ func consumeAndRepublish(
 	consumerTag string,
 	done chan error,
 ) {
-	log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
-		bindingExchange, bindingKey, routingKey, consumerTag)
+	// used fo debug
+	// log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
+	// 	bindingExchange, bindingKey, routingKey, consumerTag)
 
 	if len(suffix) > 0 {
 		routingKey += suffix
@@ -221,11 +223,12 @@ func consumeAndRepublish(
 	}
 
 	for msg := range messages {
-		log.Printf("messages stream got %dB message data: [%v] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.Body,
-		)
+		// used for debug
+		// log.Printf("messages stream got %dB message data: [%v] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.Body,
+		// )
 
 		publishTo(publishingExchange, routingKey, msg.Body)
 	}
@@ -242,7 +245,8 @@ func publishTo(exchange, routingKey string, data []byte) {
 		Priority:        0, // 0-9
 	}
 
-	log.Println("publishing data ", string(data), routingKey)
+	// used for debug
+	// log.Println("publishing data ", string(data), routingKey)
 	err := producer.channel.Publish(exchange, routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)

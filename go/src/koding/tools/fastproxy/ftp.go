@@ -88,9 +88,13 @@ func (req *FTPRequest) Relay(addr *net.TCPAddr, user string) error {
 	for {
 		line, readErr := targetReader.ReadSlice('\n')
 		if bytes.HasPrefix(line, []byte("227")) {
-			start := bytes.IndexByte(line, '(') + 1
+			start := bytes.IndexByte(line, '(')
 			end := bytes.IndexByte(line, ')')
-			parts := bytes.Split(line[start:end], []byte{','})
+			if start == -1 || end == -1 || start > end {
+				req.source.Write([]byte("501 Syntax error in parameters or arguments."))
+				break
+			}
+			parts := bytes.Split(line[(start+1):end], []byte{','})
 			passiveAddress := &net.TCPAddr{IP: net.IPv4(parseByte(parts[0]), parseByte(parts[1]), parseByte(parts[2]), parseByte(parts[3])), Port: int(parseByte(parts[4]))<<8 + int(parseByte(parts[5]))}
 			targetConn, err := net.DialTCP("tcp", nil, passiveAddress)
 			if err != nil {

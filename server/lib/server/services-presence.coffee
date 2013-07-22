@@ -2,6 +2,8 @@
 
 koding = require './bongo'
 
+nsca = require 'koding-nsca-wrapper'
+
 parseServiceKey = require 'koding-service-key-parser'
 
 allServices = {}
@@ -27,6 +29,7 @@ incService = (serviceKey, amount) ->
       console.error 'Negative service count!'
 
 koding.connect ->
+  nsca.sendStatus 'Services presence', 0, 'Service started'
   koding.monitorPresence
     join: (serviceKey) ->
       incService serviceKey, 1
@@ -43,11 +46,11 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
     (koding.getClient().collection 'jKontrolWorkers')
       .findOne {
         serviceUniqueName
-        hostname:///^#{ serviceGenericName }///
-        status: 0
+        hostname  : ///^#{ serviceGenericName }///
+        status    : 0
       }, { hostname: 1 }, (err, worker) ->
-        return callback err  if err?
-        callback null, worker?.hostname ? null
+          return callback err  if err?
+          callback null, worker?.hostname ? null
 
 module.exports = (req, res) ->
   {params:{service}, query} = req
@@ -67,9 +70,17 @@ module.exports = (req, res) ->
     return hostname
   ).filter Boolean
 
+  res.set "Content-Type", "text/json"
+
   if query.all?
     res.send services.map (hostname) -> "#{ protocol }//#{ hostname }"
+
+  else unless services.length
+    # FAILURE! send an alert to opsview.
+    nsca.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
+    # Fail-over to the value hard-coded into the config.
+    res.send "\"#{ KONFIG.client.runtimeOptions.broker.sockJS }\""
+
   else
     i = genericServices.seq++ % services.length
-    res.set "Content-Type", "text/json"
     res.send "\"#{ protocol }//#{ services[i] }\""

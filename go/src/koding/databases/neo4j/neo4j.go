@@ -133,14 +133,23 @@ func DeleteRelationship(sourceId, targetId, relationship string) bool {
 		return false
 	}
 
-	//check there might be another relations
-	if relationships[0]["end"] == targetInfo[0]["self"] {
-		toBeDeletedRelationURL := fmt.Sprintf("%s", relationships[0]["self"])
-		deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "")
-		log.Println(deletionResponse)
-	} else {
+	foundNode := false
+
+	for _, relation := range relationships {
+		if relation["end"] == targetInfo[0]["self"] {
+			toBeDeletedRelationURL := fmt.Sprintf("%s", relation["self"])
+			deletionResponse := sendRequest("DELETE", toBeDeletedRelationURL, "")
+			log.Println(deletionResponse)
+			foundNode = true
+
+			break
+		}
+	}
+
+	if !foundNode {
 		log.Println("not found!", relationships[0]["self"])
 	}
+
 	return true
 }
 
