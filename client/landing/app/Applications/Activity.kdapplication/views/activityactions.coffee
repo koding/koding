@@ -1,5 +1,76 @@
+class ActivitySharePopup extends JView
+
+  constructor: (options={}, data)->
+
+    options.cssClass = "share-popup"
+
+    super options, data
+
+    {url} = @getOptions()
+
+    @urlInput = new KDInputView
+      cssClass    : "share-input"
+      type        : "text"
+      placeholder : "shortening..."
+      attributes  :
+        readonly  : yes
+      width       : 50
+
+    unless @getDelegate()._shorten
+      KD.utils.shortenUrl url, (shorten, data)=>
+
+        url = if data then @getDelegate()._shorten = shorten else shorten
+
+        @urlInput.setValue shorten
+        @urlInput.$().select()
+    else
+      url = @getDelegate()._shorten
+      @urlInput.setValue url
+
+    @once "viewAppended", =>
+      @urlInput.$().select()
+
+    @twitterShareLink = new KDCustomHTMLView
+      tagName   : 'a'
+      cssClass  : "share-twitter icon-link"
+      partial   : "<span class='icon tw'></span>"
+      click     : (event)=>
+        KD.utils.stopDOMEvent event
+        {tags} = @getDelegate().getData()
+        if tags
+          console.log tags
+          hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
+          hashTags  = _.unique(hashTags).join " "
+          hashTags += " "
+        else
+          hashTags = ''
+
+        shareText = "#{@getDelegate().getData().body} #{hashTags}- #{url}"
+        window.open(
+          "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
+          "twitter-share-dialog",
+          "width=500,height=350,left=#{Math.floor (screen.width/2) - (500/2)},top=#{Math.floor (screen.height/2) - (350/2)}"
+        )
+
+    @openNewTabButton = new CustomLinkView
+      cssClass    : "icon-link"
+      title       : ""
+      href        : url
+      target      : url
+      icon        :
+        cssClass  : 'new-page'
+        placement : 'right'
+
+  pistachio: ->
+    """
+    {{> @urlInput}}
+    {{> @openNewTabButton}}
+    {{> @twitterShareLink}}
+    """
+
 class ActivityActionsView extends KDView
 
+  contextMenu = null
   constructor:->
     super
 
@@ -17,11 +88,24 @@ class ActivityActionsView extends KDView
     , activity
 
     @shareLink    = new ActivityActionLink
-      partial     : "Share"
-      tooltip     :
-        title     : "Coming Soon"
-      click:(event)=>
-        event.preventDefault()
+      partial         : "Share"
+      click           :(event)=>
+        shareUrl      = "https://koding.com/Activity/#{@getData().slug}"
+        contextMenu   = new JContextMenu
+          cssClass    : "activity-share-popup"
+          type        : "activity-share"
+          delegate    : this
+          x           : @getX() - 35
+          y           : @getY() - 50
+          arrow       :
+            placement : "bottom"
+            margin    : 110
+          lazyLoad    : yes
+        , customView  : new ActivitySharePopup delegate: this, url: shareUrl
+
+        new KDOverlayView
+          parent      : KD.singletons.mainView.mainTabView.activePane
+          transparent : yes
 
     @likeView     = new LikeView {checkIfLikedBefore: no}, activity
     @loader       = new KDLoaderView size : width : 14

@@ -414,6 +414,12 @@ class BookView extends JView
     @pointer.once 'transitionend', =>
       @clickAnimation()
       @defaultVm.setClass('selected')
+      # check if web folder exists
+
+      nodes = KD.singletons.finderController.treeController.data
+      fsFile = nodes.filter (x) -> x.name is "Web"
+      if not fsFile then return 
+
       @navigateToFolder()
 
     user = KD.nick()
