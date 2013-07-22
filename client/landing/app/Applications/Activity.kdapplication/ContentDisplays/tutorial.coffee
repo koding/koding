@@ -109,34 +109,34 @@ class ContentDisplayTutorial extends ActivityContentDisplay
        KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
       @editDiscussionLink.on "click", =>
-          if @editDiscussionForm?
-            @editDiscussionForm?.destroy()
-            delete @editDiscussionForm
-            @$(".tutorial-body .data").show()
-            @utils.defer =>
-              @embedBox.show()
-          else
-            @editDiscussionForm = new TutorialFormView
-              title         : "edit-tutorial"
-              cssClass      : "edit-tutorial-form"
-              delegate      : @
-              callback      : (data)=>
-                @getData().modify data, (err, tutorial) =>
-                  callback? err, opinion
-                  @editDiscussionForm.reset()
-                  if err
-                    new KDNotificationView
-                      title : "Your changes weren't saved."
-                      type  : "mini"
-                  else
-                    @editDiscussionForm.setClass "hidden"
-                    @$(".tutorial-body .data").show()
-                    @utils.defer => @embedBox.show()  if @embedBox.hasValidContent
-            , data
+        if @editDiscussionForm?
+          @editDiscussionForm?.destroy()
+          delete @editDiscussionForm
+          @$(".tutorial-body .data").show()
+          @utils.defer =>
+            @embedBox.show()
+        else
+          @editDiscussionForm = new TutorialFormView
+            title         : "edit-tutorial"
+            cssClass      : "edit-tutorial-form"
+            delegate      : @
+            callback      : (data)=>
+              @getData().modify data, (err, tutorial) =>
+                callback? err, opinion
+                @editDiscussionForm.reset()
+                if err
+                  new KDNotificationView
+                    title : "Your changes weren't saved."
+                    type  : "mini"
+                else
+                  @editDiscussionForm.setClass "hidden"
+                  @$(".tutorial-body .data").show()
+                  @utils.defer => @embedBox.show()  if @embedBox.hasValidContent
+          , data
 
-            @addSubView @editDiscussionForm, "p.tutorial-body", yes
-            @$(".tutorial-body .data").hide()
-            @embedBox.hide()
+          @addSubView @editDiscussionForm, "p.tutorial-body", yes
+          @$(".tutorial-body .data").hide()
+          @embedBox.hide()
 
       @deleteDiscussionLink.on "click", =>
         @confirmDeleteTutorial data
