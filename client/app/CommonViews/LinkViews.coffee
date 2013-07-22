@@ -20,8 +20,8 @@ class KDAccount extends Bongo.EventEmitter
 class FollowedModalView extends KDModalView
 
   titleMap = ->
-    account : "members"
-    tag     : "topics"
+    account : "Members"
+    tag     : "Topics"
 
   listControllerMap = ->
     account : MembersListViewController
