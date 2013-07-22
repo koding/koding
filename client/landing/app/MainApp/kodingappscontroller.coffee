@@ -502,7 +502,7 @@ class KodingAppsController extends KDController
                   color           : "#444444"
                   diameter        : 12
                 callback          : =>
-                  unless newAppModal.modalTabs.forms.form.inputs.name.validate()
+                  unless newAppModal.modalTabs.forms.form.inputs.name.validate().valid                  
                     newAppModal.modalTabs.forms.form.buttons.Create.hideLoader()
                     return
                   name        = newAppModal.modalTabs.forms.form.inputs.name.getValue()
