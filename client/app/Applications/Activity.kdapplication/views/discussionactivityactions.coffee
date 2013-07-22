@@ -36,9 +36,10 @@ class DiscussionActivityActionsView extends ActivityActionsView
         @emit "DiscussionActivityCommentLinkClicked"
     , activity
 
-    @opinionCount.on "countChanged", (count) =>
-      if count > 0 then @opinionCountLink.show()
-      else @opinionCountLink.hide()
+    for view in [@opinionCount, @commentCount]
+      view.on "countChanged", (count)->
+        if count > 0 then view.show()
+        else view.hide()
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
