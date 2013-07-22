@@ -206,12 +206,11 @@ class DomainCreationForm extends KDTabViewWithForms
 
     else # create a subdomain
       # replace the dots at the end if there are any
-      subDomain = domainName.replace /\.{1,}(?=[^.]*$)/, ''
       subDomainPattern = /^[a-zA-Z0-9][a-zA-Z0-9.-]+[a-zA-Z0-9]$/
-      unless subDomainPattern.test subDomain
+      unless subDomainPattern.test domainName
         createButton.hideLoader()
-        return notifyUser "#{subDomain} is an invalid subdomain."
-      domainName = "#{subDomain}.#{domains.getValue()}"
+        return notifyUser "#{domainName} is an invalid subdomain."
+      domainName = "#{domainName}.#{domains.getValue()}"
 
       @createDomain {domainName, regYears:0}, (err, domain)=>
         createButton.hideLoader()
