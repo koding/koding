@@ -346,5 +346,5 @@ class ActivityAppController extends AppController
 
     @isLoading = no
 
-    @status.reconnect()
+    @status.disconnect()
     @refresh()
