@@ -324,10 +324,10 @@ if uploads?.enableStreamingUploads
   #     """
 
 app.get "/-/presence/:service", (req, res) ->
-  if services[service] and services[service].count > 0
-    res.send 200
-  else
-    res.send 404
+  # if services[service] and services[service].count > 0
+  res.send 200
+  # else
+    # res.send 404
 
 
 

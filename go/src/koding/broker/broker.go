@@ -109,7 +109,7 @@ func main() {
 
 		subscribe := func(routingKeyPrefix string) {
 			if subscriptions[routingKeyPrefix] {
-				log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 				return
 			}
 			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
@@ -296,7 +296,7 @@ func main() {
 	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
 
 	serviceGenericName := strings.Replace(brokerHostname, ".", "_", -1)
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + serviceGenericName
+	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + serviceGenericName
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
