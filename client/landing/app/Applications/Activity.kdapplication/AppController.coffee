@@ -71,9 +71,10 @@ class ActivityAppController extends AppController
     @emit 'ready'
 
   resetAll:->
-    @lastTo    = null
-    @lastFrom  = Date.now()
-    @isLoading = no
+    @lastTo                 = null
+    @lastFrom               = Date.now()
+    @isLoading              = no
+    @reachedEndOfActivities = no
     @listController.resetList()
     @listController.removeAllItems()
 
