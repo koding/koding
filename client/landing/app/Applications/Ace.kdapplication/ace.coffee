@@ -90,11 +90,6 @@ class Ace extends KDView
 
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
-    KD.getSingleton('windowController').on "keydown", (e) =>
-      {findAndReplaceView} = @getDelegate()
-      findAndReplaceView.close() if e.keyCode is 27 and findAndReplaceView
-
-
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()
     selectedText         = @editor.session.getTextRange @editor.getSelectionRange()

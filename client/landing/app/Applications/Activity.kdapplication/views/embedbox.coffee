@@ -81,6 +81,7 @@ class EmbedBox extends KDView
     @embedLinks.clearLinks()
     @hasValidContent = no
     @hide()
+    @emit "EmbedIsHidden"
 
   # these resets only concern the currently displayed embed
   resetEmbed:->
@@ -142,6 +143,7 @@ class EmbedBox extends KDView
       @embedContainer = new containerClass embedOptions, data
       @embedContainer.show()
       @addSubView @embedContainer
+      @emit "EmbedIsShown"
       @show()
 
     # embedly uses the https://developers.google.com/safe-browsing/ API
