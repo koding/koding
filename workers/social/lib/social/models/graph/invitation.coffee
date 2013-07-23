@@ -14,7 +14,6 @@ module.exports = class Invitation extends Graph
     timeStampQuery = ""
 
     if search
-      # search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
       search = search.replace(/[^\w\s@.+-]/).trim()
       regexSearch = "AND groupOwnedNodes.email =~ \".*#{search}.*\""
 
@@ -41,23 +40,6 @@ module.exports = class Invitation extends Graph
           console.log "revived"
           console.log revived
           callback null, revived
-
-#      JInvitationRequest = require '../invitationrequest'
-#      tempRes = []
-#      collectContents = race (i, res, fin)=>
-#        objId = res.groupOwnedNodes.data.id
-#        JInvitationRequest.one  { _id : objId }, (err, invitationRequest)=>
-#          if err
-#            callback err
-#            fin()
-#          else
-#            tempRes[i] = invitationRequest
-#            fin()
-#      , ->
-#        callback null, tempRes
-#
-#      for res in results
-#        collectContents res
 
   @generateInvitations:(resultData, results, callback)=>
     console.log "generate inviations arguments"

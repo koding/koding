@@ -1,72 +1,51 @@
-neo4j = require "neo4j"
-
 {Graph} = require './index'
 QueryRegistry = require './queryregistry'
 {race} = require "bongo"
+module.exports = class Member extends Graph
 
-module.exports = class Activity extends Graph
+  @fetchAll:(requestOptions, callback)->
+    {group:{groupName, groupId}, startDate, client, facet} = requestOptions
 
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
-  ]
-
-  # build facet queries
-  @generateFacets:(facets)->
-    facetQuery = ""
-    if facets and 'Everything' not in facets
-      facetQueryList = []
-      for facet in facets
-        return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-        facetQueryList.push("content.name='#{facet}'")
-      facetQuery = "AND (" + facetQueryList.join(' OR ') + ")"
-
-    return facetQuery
-
-  @generateTimeQuery:(to)->
-    timeQuery = ""
-    if to
-      timestamp = Math.floor(to / 1000)
-      timeQuery = "AND content.`meta.createdAtEpoch` < #{timestamp}"
-    return timeQuery
-
-  # generate options
-  @generateOptions:(options)->
-    {limit, userId, group:{groupName}} = options
     options =
-      limitCount: limit or 10
-      groupName : groupName
-      userId    : "#{userId}"
+      groupId : groupId
+      to  : startDate
+      limitCount : 20
 
+    facetQuery = groupFilter = ""
 
-  @fetchFolloweeContents:(options, callback)->
-    requestOptions = @generateOptions options
-    facet = @generateFacets options.facet
-    timeQuery = @generateTimeQuery options.to
-    query = QueryRegistry.activity.following facet, timeQuery
-    @fetch query, requestOptions, (err, results) =>
-      console.log "arguments"
-      console.log arguments
+    if facet and facet isnt "Everything"
+      options.facet = facet
+      facetQuery += "AND content.name = {facet}"
+
+    if groupName isnt "koding"
+      options.groupName = groupName
+      groupFilter = "AND content.group! = {groupName}"
+
+    query = QueryRegistry.activity.public facetQuery, groupFilter
+
+    console.log query
+    console.log options
+    @fetch query, options, (err, results) =>
+      console.log "err, results"
+      console.log err, results
+
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
       resultData = (result.content.data for result in results)
       @objectify resultData, (objecteds)=>
-        console.log "objected"
-        console.log objecteds
-        @getRelatedContent objecteds, options, callback
-
-
+        @getRelatedContent objecteds, requestOptions, callback
 
   @getRelatedContent:(results, options, callback)->
     tempRes = []
     {group:{groupName, groupId}, client} = options
+    console.log "options"
+    console.log options
+
+
+    console.log "results"
+    console.log results
+
+
 
     collectRelations = race (i, res, fin)=>
       id = res.id
@@ -80,20 +59,9 @@ module.exports = class Activity extends Graph
           fin()
     , =>
       if groupName == "koding"
-        @removePrivateContent client, groupId, tempRes, (err, cleanContent)=>
-          if err then return callback err
-          console.log "clean content"
-          console.log cleanContent
-
-          @revive cleanContent, (revived)=>
-            console.log "revived1"
-            console.log revived
-            callback null, revived
+        @removePrivateContent client, groupId, tempRes, callback
       else
-        @revive tempRes, (revived)=>
-          console.log "revived2"
-          console.log revived
-          callback null, revived
+        callback null, tempRes
 
     for result in results
       tempRes.push result
@@ -168,59 +136,3 @@ module.exports = class Activity extends Graph
       console.log "filteredContent"
       console.log filteredContent
       return callback null, filteredContent
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    ############################################################
-
-  @fetchTagFollows:(group, to, callback)->
-    {groupId, groupName} = group
-    options =
-      groupId   : groupId
-      groupName : groupName
-      to        : to
-
-    query = QueryRegistry.bucket.newTagFollows
-    @fetchFollows query, options, callback
-
-  @fetchFollows:(query, options, callback)->
-    @fetch query, options, (err, results)=>
-      if err then throw err
-      @generateFollows [], results, callback
-
-  @generateFollows:(resultData, results, callback)->
-    if results? and results.length < 1 then return callback null, resultData
-    result = results.shift()
-    data = {}
-    @objectify result.follower.data, (objected)=>
-      data.follower = objected
-      @objectify result.r.data, (objected)=>
-        data.relationship = objected
-        @objectify result.followees.data, (objected)=>
-          data.followee = objected
-          resultData.push data
-          @generateFollows resultData, results, callback

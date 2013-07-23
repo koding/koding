@@ -285,52 +285,6 @@ module.exports = class CActivity extends jraphical.Capsule
 
           callback null, activities
 
-
-
-  # # this function fetchs content for public activity
-  # @fetchPublicContents = secure (client, options, callback)->
-  #   @getCurrentGroup client, (err, group)=>
-  #     if err then return callback err
-
-  #     {facets, to, limit} = options
-  #     limit = 5 #bandage for now
-
-  #     groupId = group._id
-  #     groupName = group.slug
-
-  #     query = [
-  #       'START koding=node:koding(id="' + groupId + '")'
-  #       'MATCH koding-[:member]->members<-[:author]-items'
-  #       'WHERE items.group = "' + groupName + '"'
-  #     ]
-
-  #     # build facet queries
-  #     if facets and 'Everything' not in facets
-  #       facetQueryList = []
-  #       for facet in facets
-  #         return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-  #         facetQueryList.push("items.name='#{facet}'")
-  #       query.push("AND (" + facetQueryList.join(' OR ') + ")")
-
-  #     # add timestamp
-  #     if to
-  #       timestamp = Math.floor(to / 1000)
-  #       query.push "AND items.`meta.createdAtEpoch` < #{timestamp}"
-
-  #     # add return statement
-  #     query.push "return items"
-  #     # add sorting option
-  #     query.push "order by items.`meta.createdAtEpoch` DESC"
-  #     # add limit option
-  #     query.push "LIMIT #{limit}"
-
-  #     # join query
-  #     query = query.join('\n')
-  #     console.log query
-  #     graph = new Graph({config:KONFIG['neo4j']})
-  #     graph.fetchFromNeo4j(query, options, callback)
-
-
   @getCurrentGroup: (client, callback)->
     {delegate} = client.connection
     if not delegate
@@ -401,52 +355,26 @@ module.exports = class CActivity extends jraphical.Capsule
   @fetchFolloweeContents: secure (client, options, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
-      userId = client.connection.delegate.getId()
+      {Activity} = require "../graph"
 
-      options.userId = userId
-      options.groupName = group.slug
-      options.limit = 5 #bandage for now
+
+
       {facets, to, limit} = options
-      options.facet = [facets]
+      requestOptions =
+        userId : client.connection.delegate.getId()
+        group :
+          groupName : group.slug
+          groupId : group._id
+        limit : 5 #limit #bandage for now
+        facet : [facets]
+        to : to
+        client : client
 
-      limit = 5
-
-      groupId = group._id
-      options.groupName = group.slug
-
-      query = [
-        "start koding=node:koding(id='#{userId}')"
-        'MATCH koding<-[:follower]-myfollowees-[:author]-content'
-        'where myfollowees.name="JAccount"'
-        'AND content.group = "' + options.groupName + '"'
-      ]
-
-      # build facet queries
-      facets = [facets]
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("content.name='#{facet}'")
-        query.push("AND (" + facetQueryList.join(' OR ') + ")")
-      # add timestamp
-
-      if to
-        timestamp = Math.floor(to / 1000)
-        query.push "AND content.`meta.createdAtEpoch` < #{timestamp}"
-
-      # add return statement
-      query.push "return distinct content"
-      # add sorting option
-      query.push "order by content.`meta.createdAtEpoch` DESC"
-      # add limit option
-      query.push "LIMIT #{limit}"
-
-      query = query.join('\n')
-
-      graph = new Graph({config:KONFIG['neo4j']})
-      options.returnAsBongoObjects = true
-      graph.runQuery(query, options, callback)
+      Activity.fetchFolloweeContents requestOptions, callback
+#
+#      graph = new Graph({config:KONFIG['neo4j']})
+#      options.returnAsBongoObjects = true
+#      graph.runQuery(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update

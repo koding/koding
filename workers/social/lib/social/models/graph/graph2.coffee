@@ -17,8 +17,9 @@ module.exports = class Graph
       return callback
     data  = []
     for result in results
-      continue unless result[0]
-      result = result[0]
+      if Array.isArray result
+        continue unless result[0]
+        result = result[0]
       result.bongo_ =
         constructorName : result.name
         instanceId : result.id

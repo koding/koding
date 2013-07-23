@@ -72,20 +72,27 @@ module.exports =
           LIMIT 20
         """
     activity :
-      public :
+      public :(facetQuery="",groupFilter="")->
         """
-
+          START group=node:koding(id={groupId})
+          MATCH group-[:member]->members<-[:author]-content
+          WHERE content.`meta.createdAtEpoch` < {to}
+          #{facetQuery}
+          #{groupFilter}
+          RETURN content
+          ORDER BY content.`meta.createdAtEpoch` DESC
+          LIMIT {limitCount}
         """
       following:(facet="", timeQuery="")->
         """
           START member=node:koding(id={userId})
-          MATCH member<-[:follower]-myfollowees-[:author]-items
+          MATCH member<-[:follower]-myfollowees-[:author]-content
           WHERE myfollowees.name="JAccount"
-          AND items.group = {groupName}
+          AND content.group = {groupName}
           #{facet}
           #{timeQuery}
-          RETURN myfollowees, items
-          ORDER BY items.`meta.createdAtEpoch` DESC
+          RETURN distinct content
+          ORDER BY content.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}
         """
 
