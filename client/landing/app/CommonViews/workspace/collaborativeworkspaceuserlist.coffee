@@ -192,12 +192,12 @@ class CollaborativeWorkspaceUserList extends JView
   close: ->
     container = @container
     container.unsetClass "active"
-    container.once "transitionend", -> container.destroySubViews()
-    @getDelegate().userListVisible = no
+    container.once "transitionend", =>
+      container.destroySubViews()
+      delete @getDelegate().userList
 
   reset: ->
     @container.destroySubViews()
-    @getDelegate().userListVisible = no
     @getDelegate().showUsers()
 
   viewAppended: ->

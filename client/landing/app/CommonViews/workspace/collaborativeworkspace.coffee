@@ -242,17 +242,16 @@ class CollaborativeWorkspace extends Workspace
   createUserListContainer: ->
     @container.addSubView @userListContainer = new KDView
       cssClass : "user-list"
+
     @userListContainer.bindTransitionEnd()
 
   showUsers: ->
-    return  if @userListVisible
-
+    return  if @userList
     @userListContainer.setClass "active"
 
-    @userListContainer.addSubView new CollaborativeWorkspaceUserList {
+    @userListContainer.addSubView @userList = new CollaborativeWorkspaceUserList {
       @workspaceRef
       @sessionKey
       container : @userListContainer
       delegate  : @
     }
-    @userListVisible = yes
