@@ -28,7 +28,6 @@ followMQ.on 'ready', ->
   JUser.on 'UserCreated',  (user) ->
     console.log 'a user is created'
     followMQ.exchange user.username, USER_EXCHANGE_OPTIONS, (exchange) ->
-      console.log {exchange}
       # don't leak a channel; gotta love this driver!
       exchange.close()
 
