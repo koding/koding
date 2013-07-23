@@ -62,6 +62,8 @@ class GroupsAppController extends AppController
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
+    @groupChannel.on "MemberJoinedGroup", (member)=>
+      @emit "MemberJoinedGroup", member
     @groupChannel.once 'setSecretNames', callback
 
   changeGroup:(groupName='koding', callback=->)->

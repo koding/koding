@@ -3,6 +3,7 @@ package resolver
 import (
 	"errors"
 	"fmt"
+	"koding/kontrol/kontrolproxy/models"
 	"koding/kontrol/kontrolproxy/proxyconfig"
 	"koding/kontrol/kontrolproxy/utils"
 	"labix.org/v2/mgo"
@@ -105,7 +106,7 @@ func GetMemTarget(host string) (*Target, string, error) {
 // y.koding.com -> "http://localhost/maintenance", mode:maintenance
 func GetTarget(host string) (*Target, error) {
 	var target *url.URL
-	var domain proxyconfig.Domain
+	var domain models.Domain
 	var hostname string
 	var err error
 	var port string
@@ -221,7 +222,7 @@ func GetTarget(host string) (*Target, error) {
 			index := getIndex(host) // gives 0 if not available
 			hostname, n = roundRobin(keyData.Host, index, 0)
 			addOrUpdateIndex(host, n)
-			if hostname == "" {
+			if hostname == "" { // means all servers are death, show maintenance page
 				return NewTarget(nil, "maintenance", persistence), nil
 			}
 		case "random":

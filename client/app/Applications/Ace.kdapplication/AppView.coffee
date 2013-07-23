@@ -9,9 +9,11 @@
 
 class AceView extends JView
 
-  constructor:(options, file)->
+  constructor:(options = {}, file)->
 
-    super
+    options.advancedSettings ?= yes
+
+    super options, file
 
     @listenWindowResize()
 
@@ -31,11 +33,14 @@ class AceView extends JView
       iconOnly      : yes
       iconClass     : "cog"
       type          : "contextmenu"
-      delegate      : @
+      delegate      : this
       itemClass     : AceSettingsView
       click         : (pubInst, event)-> @contextMenu event
       menu          : @getAdvancedSettingsMenuItems.bind @
     @advancedSettings.disable()
+
+    unless options.advancedSettings
+      @advancedSettings.hide()
 
     @findAndReplaceView = new AceFindAndReplaceView delegate: @
     @findAndReplaceView.hide()
@@ -65,6 +70,19 @@ class AceView extends JView
         @openSaveDialog()
       else
         @getData().emit "file.requests.save", contents
+
+    @ace.on "FileContentChanged", =>
+      @getActiveTabHandle().setClass "modified"
+      @getDelegate().quitOptions =
+        message : "You have unsaved changes. You will lose them if you close this tab."
+        title   : "Do you want to close this tab?"
+
+    @ace.on "FileContentSynced", =>
+      @getActiveTabHandle().unsetClass "modified"
+      delete @getDelegate().quitOptions
+
+  getActiveTabHandle: ->
+    return  @getDelegate().tabView.getActivePane().tabHandle
 
   preview: ->
     {vmName, path} = @getData()
@@ -133,7 +151,6 @@ class AceView extends JView
             name   = @inputFileName.getValue()
 
             if name is '' or /^([a-zA-Z]:\\)?[^\x00-\x1F"<>\|:\*\?/]+$/.test(name) is false
-              # @_message 'Wrong file name', "Please type valid file name"
               @ace.notify "Please type valid file name!", "error"
               return
 
@@ -141,10 +158,23 @@ class AceView extends JView
               @ace.notify "Please select a folder to save!", "error"
               return
 
-            parent = node.getData()
-            file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
             saveDialog.hide()
-            @ace.emit "AceDidSaveAs", name, parent.path
+            @utils.wait 300, => # temp fix to be sure overlay has removed with fade out animation
+              parent = node.getData()
+              file.emit "file.requests.saveAs", @ace.getContents(), name, parent.path
+              @ace.emit "AceDidSaveAs", name, parent.path
+              oldCursorPosition = @ace.editor.getCursorPosition()
+              file.on "fs.saveAs.finished", =>
+                {tabView} = @getDelegate()
+                return  if tabView.willClose
+                @getDelegate().openFile FSHelper.createFileFromPath "#{parent.path}/#{name}", yes
+                @utils.defer =>
+                  newIndex = tabView.getPaneIndex tabView.getActivePane()
+                  tabView.removePane_ tabView.getPaneByIndex newIndex - 1
+                  {ace} = tabView.getActivePane().getOptions().aceView
+                  ace.on "ace.ready", =>
+                    ace.editor.moveCursorTo oldCursorPosition.row, oldCursorPosition.column
+
         Cancel      :
           style     : "modal-cancel"
           callback  : =>

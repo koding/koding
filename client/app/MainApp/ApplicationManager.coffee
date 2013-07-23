@@ -49,10 +49,11 @@ class ApplicationManager extends KDObject
 
     createOrShow = (appOptions, appParams, callback = noop)->
 
-      name = appOptions?.name
-      return warn "No such application!"  unless name
-
       appManager  = KD.getSingleton "appManager"
+      name        = appOptions?.name
+
+      return appManager.handleAppNotFound()  unless name
+
       appInstance = appManager.get name
       cb          = -> appManager.show appOptions, callback
       if appInstance then do cb
@@ -357,15 +358,13 @@ class ApplicationManager extends KDObject
       type      : "mini"
       duration  : 2500
 
-
-
-
-
-
-
-
-
-
+  handleAppNotFound: ->
+    KD.getSingleton("router").handleRoute "/Develop"
+    new KDNotificationView
+      title    : "You don't have this app installed!"
+      type     : "mini"
+      cssClass : "error"
+      duration : 5000
 
   # deprecate these
 

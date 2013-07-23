@@ -6,17 +6,20 @@ class TerminalPane extends Pane
 
     super options, data
 
+    @createWebTermView()
+    @webterm.on "WebTermConnected", (@remote) => @onWebTermConnected()
+
+    @on "PaneResized", @bound "forceResize"
+
+  createWebTermView: ->
     @webterm           = new WebTermView
       delegate         : @
       cssClass         : "webterm"
       advancedSettings : no
 
-    @webterm.on "WebTermConnected", (@remote)=>
-      {command} = @getProperties()
-      @runCommand command if command
-      @webterm.terminal.setScrollbackLimit 50
-
-    @on "PaneResized", @bound "forceResize"
+  onWebTermConnected: ->
+    {command} = @getProperties()
+    @runCommand command if command
 
   runCommand: (command) ->
     return unless command

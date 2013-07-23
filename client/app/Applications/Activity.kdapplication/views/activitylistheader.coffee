@@ -10,6 +10,8 @@ class ActivityListHeader extends JView
     @appStorage = new AppStorage 'Activity', '1.0'
     @_newItemsCount = 0
 
+    @showNewItemsInTitle = no
+
     @showNewItemsLink = new KDCustomHTMLView
       cssClass    : "new-updates"
       partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
@@ -61,10 +63,7 @@ class ActivityListHeader extends JView
   _checkForUpdates: do (lastTs = null, lastCount = null) ->
     itFailed = ->
       console.warn 'seems like live updates stopped coming'
-      window._rollbar.push {
-        user    : KD.nick()
-        message : 'realtime failure detected'
-      }
+      KD.logToExternal 'realtime failure detected'
     ->
       KD.remote.api.CActivity.fetchLastActivityTimestamp (err, ts) =>
         itFailed()  if ts? and lastTs isnt ts and lastCount is __count
@@ -81,6 +80,7 @@ class ActivityListHeader extends JView
     __count++
     @_newItemsCount++
     @updateShowNewItemsLink()
+    @updateShowNewItemsTitle()  if @showNewItemsInTitle
 
   decorateLiveUpdateButton:->
     if KD.isLoggedIn() then @liveUpdateButton.show()
@@ -97,6 +97,15 @@ class ActivityListHeader extends JView
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
+
+  updateShowNewItemsTitle: ->
+    if @_newItemsCount > 0
+      document.title = "(#{@_newItemsCount}) Activity"
+    else
+      @hideDocumentTitleCount()
+
+  hideDocumentTitleCount: ->
+    document.title = "Activity"
 
   getNewItemsCount: ->
     return @_newItemsCount

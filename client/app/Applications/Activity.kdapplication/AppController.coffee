@@ -52,10 +52,22 @@ class ActivityAppController extends AppController
     @status = KD.getSingleton "status"
     @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
 
+    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+
+    @docTitle = document.title
+    windowController = KD.getSingleton "windowController"
+    windowController.addFocusListener (blurred)=>
+      if blurred
+        @listController.activityHeader.showNewItemsInTitle = yes
+        @listController.activityHeader.updateShowNewItemsTitle()
+      else
+        @listController.activityHeader.showNewItemsInTitle = no
+        @listController.activityHeader.hideDocumentTitleCount()
+
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
-      @ready @bound "populateActivity"
+      @ready @bound "refresh"
     @emit 'ready'
 
   resetAll:->
@@ -178,9 +190,9 @@ class ActivityAppController extends AppController
     {CStatusActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchPublicActivityFeed options, (err, cache)=>
-      cache.overview.reverse()  if cache.overview
-
       return @emit "activitiesCouldntBeFetched", err  if err
+
+      cache.overview.reverse()  if cache.overview
 
       @sanitizeCache cache, (err, sanitizedCache)=>
         if err

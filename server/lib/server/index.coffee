@@ -65,6 +65,15 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
+app.use (req, res, next) ->
+  {JSession} = koding.models
+  {clientId} = req.cookies
+  clientIPAddress = req.connection.remoteAddress
+  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
+  JSession.updateClientIP clientId, clientIPAddress, (err)->
+    if err then console.log err
+    next()
+
 app.get "/-/cache/latest", (req, res)->
   {JActivityCache} = koding.models
   startTime = Date.now()
@@ -89,7 +98,7 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
-    req.pipe(request(req.query.url)).pipe(res)
+    request(req.query.url).pipe(res)
   else
     res.send 404
 
@@ -315,10 +324,10 @@ if uploads?.enableStreamingUploads
   #     """
 
 app.get "/-/presence/:service", (req, res) ->
-  if services[service] and services[service].count > 0
-    res.send 200
-  else
-    res.send 404
+  # if services[service] and services[service].count > 0
+  res.send 200
+  # else
+    # res.send 404
 
 
 

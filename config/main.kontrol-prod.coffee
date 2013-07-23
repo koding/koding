@@ -104,7 +104,7 @@ module.exports =
     runtimeOptions:
       userSitesDomain: 'kd.io'
       useNeo4j: yes
-      logToExternal : no
+      logToExternal : yes
       resourceName: socialQueueName
       suppressLogs: no
       version   : version
@@ -133,7 +133,7 @@ module.exports =
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     useKontrold : yes
     webProtocol : 'https:'
-    webHostname : null
+    webHostname : "broker-#{version}.koding.com"
     webPort     : null
   kites:
     disconnectTimeout: 3e3

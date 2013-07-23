@@ -101,7 +101,7 @@ module.exports =
     runtimeOptions:
       userSitesDomain: 'localhost'
       useNeo4j: yes
-      logToExternal: yes  # rollbar, mixpanel etc.
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :

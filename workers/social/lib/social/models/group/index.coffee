@@ -44,7 +44,9 @@ module.exports = class JGroup extends Module
     permissions     :
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
-      'list members'                      : ['guest','member','moderator']
+      'list members'                      :
+        public                            : ['guest','member','moderator']
+        private                           : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -187,6 +189,8 @@ module.exports = class JGroup extends Module
         actorType  : 'member'
         subject    : ObjectRef(this).data
         member     : ObjectRef(member).data
+      @broadcast 'MemberJoinedGroup',
+        member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -287,15 +291,8 @@ module.exports = class JGroup extends Module
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
-      permissionSet         = new JPermissionSet
-      defaultPermissionSet  = new JPermissionSet
-
-      # remove permissions for guest which made sense for public but not for private
-      if group.privacy is 'private'
-        toBeRemoved = ['read activity', 'read tags', 'list members']
-        for perm, i in permissionSet.permissions when perm.role is 'guest'
-          for permission, j in perm.permissions when permission in toBeRemoved
-            permissionSet.permissions[i].permissions.splice j, 1
+      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
+      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
 
       queue = [
         -> group.useSlug group.slug, (err, slug)->
@@ -441,13 +438,14 @@ module.exports = class JGroup extends Module
           event       : 'feed-new'
         }
 
-  broadcast:(message)-> @constructor.broadcast @slug, message
+  broadcast:(message, event)->
+    @constructor.broadcast @slug, message, event
 
   # this is a temporary feature to display all activities
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         if err then console.error err
         unless group then console.error "unknown group #{groupSlug}"
@@ -1046,11 +1044,12 @@ module.exports = class JGroup extends Module
     roles ?= ['member']
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
+
     dash queue, =>
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'MemberAdded', member
+      @emit 'MemberAdded', member  if 'member' in roles
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1424,6 +1423,10 @@ module.exports = class JGroup extends Module
           bundle.createVM delegate, @, data, callback
     else
       callback new KodingError "No such VM type: #{data.type}"
+
+  countMembers: (callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
 
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
