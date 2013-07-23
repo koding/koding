@@ -201,11 +201,11 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       active    : yes
     , {subscription: 1}, (err, items)->
       if err
-        return callback new KodingError "Unable to querey user balance. Please try again later."
+        return callback new KodingError "Unable to query user balance: #{err}"
       items.forEach (item)->
         stack.push (cb)->
           payment.getSubscriptionInfo "group_#{group._id}",
-            uuid: item
+            uuid: item.subscription
           , (err, subscription)->
             return cb err  if err
             cb null, subscription
@@ -215,6 +215,8 @@ module.exports = class JRecurlyPayment extends jraphical.Module
       async = require 'async'
       async.parallel stack, (err, results)->
         if err
-          return callback new KodingError "Unable to querey user balance. Please try again later."
-        # TODO: Calculate expenses
-        callback null, 0
+          return callback new KodingError "Unable to query user balance: #{err}"
+        results.forEach (sub)->
+          if sub.status is 'active'
+            expenses += parseInt sub.amount, 10
+        callback null, expenses
