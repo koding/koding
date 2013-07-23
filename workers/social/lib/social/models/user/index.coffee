@@ -302,7 +302,7 @@ module.exports = class JUser extends jraphical.Module
       {sessionToken} = client
       delete client.connection.delegate
       delete client.sessionToken
-    JSession.cycleSession sessionToken, callback
+    JSession.remove { clientId: sessionToken }, callback
 
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
     JRegistrationPreferences = require '../registrationpreferences'
