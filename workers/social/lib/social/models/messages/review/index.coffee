@@ -29,8 +29,12 @@ module.exports = class JReview extends Reply
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
-      static       : []
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     schema         :
       isLowQuality : Boolean
       body         :

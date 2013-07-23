@@ -20,6 +20,15 @@ module.exports = class JComment extends jraphical.Reply
     sharedMethods  :
       static       : ['fetchRelated']
       instance     : ['delete','like','fetchLikedByes','checkIfLikedBefore']
+    sharedEvents  :
+      instance    : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static    : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     schema         :
       isLowQuality : Boolean
       body         :

@@ -37,8 +37,12 @@ module.exports = class JCodeSnip extends JPost
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
-      static      : []
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     schema        : schema
     # TODO: copying and pasting this for now...  We need an abstract interface "commentable" or something like that)
     relationships : JPost.relationships
