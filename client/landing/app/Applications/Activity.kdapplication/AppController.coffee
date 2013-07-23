@@ -339,7 +339,7 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
 #        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        onTimeout : @recover.bind this
+        onTimeout : @bound 'recover'
 
   recover:->
     #KD.logToMixpanel "activity feed render failed; recovering"
