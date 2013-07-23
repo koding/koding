@@ -109,7 +109,7 @@ func main() {
 
 		subscribe := func(routingKeyPrefix string) {
 			if subscriptions[routingKeyPrefix] {
-				log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 				return
 			}
 			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {

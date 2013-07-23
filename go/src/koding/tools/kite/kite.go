@@ -98,7 +98,7 @@ func (k *Kite) Run() {
 				}
 
 				if _, found := routeMap[channel.RoutingKey]; found {
-					log.Warn("Duplicate auth.join for same routing key.")
+					// log.Warn("Duplicate auth.join for same routing key.")
 					continue
 				}
 				route := make(chan []byte, 1024)
