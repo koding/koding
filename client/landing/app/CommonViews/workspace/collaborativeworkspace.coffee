@@ -31,10 +31,9 @@ class CollaborativeWorkspace extends Workspace
           @showNotActiveView()
           return false
 
+      isOldSession = keys = snapshot.val()?.keys
 
-      keys = snapshot.val()?.keys
-
-      if keys # if we have keys this means we're about to join an old session
+      if isOldSession
         @sessionData  = keys
         @createPanel()
         @userRef = @workspaceRef.child("users").child KD.nick()
@@ -114,10 +113,7 @@ class CollaborativeWorkspace extends Workspace
 
     notValid.addSubView new KDView
       cssClass : "description"
-      partial  : """
-        If there is nothing wrong with our servers, this usually means,
-        the person who is hosting this session is disconnected or closed the session.
-      """
+      partial  : "This usually means, the person who is hosting this session is disconnected or closed the session."
 
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
