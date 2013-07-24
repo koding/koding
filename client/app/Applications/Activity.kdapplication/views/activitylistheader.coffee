@@ -20,7 +20,8 @@ class ActivityListHeader extends JView
 
 
     @headerTitle = new KDCustomHTMLView
-      partial     : "<span>Latest Activity</span>"
+      partial     : "Latest Activity"
+      tagName: "span"
 
     @showNewItemsLink.hide()
 
@@ -78,7 +79,7 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    "<div class='header-wrapper'>{{> @headerTitle}}{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
+    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     __count++

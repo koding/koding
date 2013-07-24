@@ -249,8 +249,10 @@ class ActivityAppController extends AppController
     KD.getSingleton('mainController').on "AccountChanged", (account)=>
       @getView().innerNav.show()
       @listController.activityHeader.headerTitle.show()
-      @isLoading = false
-      @refresh()
+      @resetAll()
+      @clearPopulateActivityBindings()
+      fetch()
+
 
     if isReady
     then fetch()
