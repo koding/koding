@@ -27,7 +27,6 @@ class JButtonMenu extends JContextMenu
     menuHeight    = @getHeight()
     menuWidth     = @getWidth()
 
-
     ghostCss = if top + menuHeight > mainHeight
       top = button.getY() - menuHeight
       @setClass "top-menu"
