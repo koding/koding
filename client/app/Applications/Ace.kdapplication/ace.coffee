@@ -36,6 +36,8 @@ class Ace extends KDView
           @editor.gotoLine 0
           @focus()
           @show()
+          # log to external
+          KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
 
   prepareEditor:->
 

@@ -85,7 +85,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug
+        KD.track "Login", "GroupJoinRequest", @group.slug, @group
         @utils.stopDOMEvent event
         requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
