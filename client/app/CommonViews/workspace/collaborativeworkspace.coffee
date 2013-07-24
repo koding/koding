@@ -14,6 +14,7 @@ class CollaborativeWorkspace extends Workspace
     @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
     @sessionKey     = options.sessionKey or @createSessionKey()
     @workspaceRef   = @firepadRef.child @sessionKey
+    @historyRef     = @workspaceRef.child "history"
     @users          = {}
 
     @createUserListContainer()
@@ -234,4 +235,13 @@ class CollaborativeWorkspace extends Workspace
       @sessionKey
       container : @userListContainer
       delegate  : @
+    }
+
+  setHistory: (message = "") ->
+    user    = KD.nick()
+    message = message.replace "$0", user
+
+    @historyRef.child(Date.now()).set {
+      message
+      user
     }
