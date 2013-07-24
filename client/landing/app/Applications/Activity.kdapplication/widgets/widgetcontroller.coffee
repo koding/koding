@@ -134,7 +134,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
         KD.showError err,
           AccessDenied :
-            title      : 'Permission denied to create activities'
+            title      : 'You are not allowed to create activities'
             content    : 'This activity will only be visible to you'
             duration   : 5000
           KodingError  : 'Something went wrong while creating activity'
