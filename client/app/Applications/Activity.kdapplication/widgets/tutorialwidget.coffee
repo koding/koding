@@ -31,15 +31,15 @@ class ActivityTutorialWidget extends KDFormView
           required  : "Tutorial title is required!"
 
     @inputTutorialEmbedShowLink = new KDOnOffSwitch
-      cssClass:"show-tutorial-embed"
-      defaultState:off
-      callback:(state)=>
+      cssClass      : "show-tutorial-embed"
+      defaultState  : off
+      callback      : (state)=>
         if state
           if @embedBox.hasValidContent
             @embedBox.show()
             @embedBox.$().animate {top: "0px"}, 300
         else
-          @embedBox.$().animate {top : "-400px"}, 300, @embedBox.hide.bind this
+          @embedBox.$().animate {top : "-400px"}, 300, => @embedBox.hide()
 
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
