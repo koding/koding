@@ -6,8 +6,6 @@ class CollaborativeEditorPane extends CollaborativePane
 
     super options, data
 
-    log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}"
-
     @panel      = @getDelegate()
     @workspace  = @panel.getDelegate()
     @sessionKey = @getOptions().sessionKey or @createSessionKey()
@@ -43,7 +41,6 @@ class CollaborativeEditorPane extends CollaborativePane
     if @amIHost
       return warn "no file instance handle save as" unless isValidFile
 
-      log "host is saving a file"
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
         new KDNotificationView
@@ -52,7 +49,6 @@ class CollaborativeEditorPane extends CollaborativePane
           title    : "File has been saved"
           duration : 4000
     else
-      log "client wants to save a file"
       @ref.child("WaitingSaveRequest").set yes
 
   createEditor: ->

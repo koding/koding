@@ -14,8 +14,6 @@ class CollaborativePanel extends Panel
       if createadPanes.length is panesLength
         @getDelegate().emit "AllPanesAddedToPanel", @, createadPanes
 
-    log "i've created new panes with these keys", @getOptions().sessionKeys
-
   createHeaderButtons: ->
     super
     @header.addSubView new KDCustomHTMLView
@@ -35,9 +33,6 @@ class CollaborativePanel extends Panel
     paneOptions.delegate   = @
     paneOptions.sessionKey = @getOptions().sessionKeys[@panes.length]  if @getOptions().sessionKeys
     isJoinedASession       = !!paneOptions.sessionKey and not @getDelegate().amIHost()
-
-    if isJoinedASession then log "#{KD.nick()} is joined a session"
-    else log "#{KD.nick()} created a session"
 
     if isJoinedASession
       if paneOptions.type is "terminal"
