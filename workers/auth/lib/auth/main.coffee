@@ -3,6 +3,8 @@
 koding = require './bongo'
 koding.connect()
 
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+
 AuthWorker = require './authworker'
 
 {librato, authWorker} = require('koding-config-manager').load("main.#{argv.c}")
@@ -13,5 +15,8 @@ processMonitor = (require 'processes-monitor').start
   interval : 30000
   librato: librato
 
-authWorker = new AuthWorker koding
+authWorker = new AuthWorker koding, {
+  authExchange    : KONFIG.authWorker.authExchange
+  authAllExchange : KONFIG.authWorker.authAllExchange
+}
 authWorker.connect()
