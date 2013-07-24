@@ -106,16 +106,17 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      if data.isLowQuality or (KD.checkFlag 'exempt', account)
-        menu =
-          'Unmark User as Troll' :
-            callback             : ->
-              mainController.unmarkUserAsTroll data
-      else
-        menu =
-          'Mark User as Troll' :
-            callback           : ->
-              mainController.markUserAsTroll data
+      KD.remote.cacheable data.originType, data.originId, (err, account)=>
+        if data.isLowQuality or (KD.checkFlag 'exempt', account)
+          menu =
+            'Unmark User as Troll' :
+              callback             : ->
+                mainController.unmarkUserAsTroll data
+        else
+          menu =
+            'Mark User as Troll' :
+              callback           : ->
+                mainController.markUserAsTroll data
 
       menu['Delete Post'] =
         callback : =>

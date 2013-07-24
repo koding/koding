@@ -209,7 +209,6 @@ class ActivityAppController extends AppController
   fetchFollowingActivities:(options = {})->
     {CActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
-    console.log "options......", options
     CActivity.fetchFolloweeContents options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err

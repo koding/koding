@@ -4,10 +4,6 @@ QueryRegistry = require './queryregistry'
 module.exports = class Member extends Graph
 
   @fetchAll:(requestOptions, callback)->
-    throw "EEEEEEE" if not requestOptions.withExempt?
-    console.log "requestOptions =========================="
-    console.log requestOptions
-    console.log "// requestOptions ======================="
     {group:{groupName, groupId}, startDate, client, facet} = requestOptions
 
     options =
@@ -37,15 +33,6 @@ module.exports = class Member extends Graph
   @getRelatedContent:(results, options, callback)->
     tempRes = []
     {group:{groupName, groupId}, client} = options
-    console.log "options"
-    console.log options
-
-
-    console.log "results"
-    console.log results
-
-
-
     collectRelations = race (i, res, fin)=>
       id = res.id
 

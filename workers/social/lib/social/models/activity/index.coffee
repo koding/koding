@@ -77,7 +77,6 @@ module.exports = class CActivity extends jraphical.Capsule
   # this is for revival test...
   # TODO: dont forget to remove it
   @testRevive: (options, callback)->
-
     query = 'start koding=node:koding(id=\'5196fcb0bc9bdb0000000011\')
     MATCH koding<-[:follower]-myfollowees-[:author]-content
     where myfollowees.name="JAccount"
@@ -91,12 +90,8 @@ module.exports = class CActivity extends jraphical.Capsule
       Graph   = require "../graph/graph"
       graph = new Graph({config:KONFIG['neo4j']})
       graph.db.query query, {}, (err, results) ->
-        console.log "err:::::", err
         resultData = (result.content.data for result in results)
         graph.objectify resultData, (objecteds)=>
-          console.log "the results ============="
-          console.log objecteds
-          console.log "// the results =========="
           graph.revive objecteds, (revived)->
             callback null, revived
     catch e 

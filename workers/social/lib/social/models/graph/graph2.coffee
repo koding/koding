@@ -10,12 +10,7 @@ module.exports = class Graph
     return @db
 
   @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
-    console.log "hulooooooggggggg"
-    console.log "with exempt", requestOptions.withExempt
-    console.log "hulooooooggggggg"
-
     if not requestOptions.withExempt
-      console.log "!!!!!------111111"
       {delegate} = requestOptions.client.connection
       JAccount = require '../account/index'
       JAccount.getExemptUserIds (err, ids)=>
@@ -25,7 +20,6 @@ module.exports = class Graph
           ids.splice(index, 1)
 
         trollIds = ('"' + id + '"' for id in ids).join(',')
-        console.log "!!!!!!------- 22222"
         callback null, " AND NOT(members.id in ["+trollIds+"])  "       
     else
       callback null, ""
