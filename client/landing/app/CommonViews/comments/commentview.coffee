@@ -66,7 +66,6 @@ class CommentView extends KDView
 
   resetDecoration:->
     post = @getData()
-    console.log "22222", post.repliesCount
     if post.repliesCount is 0
       @decorateNoCommentState()
     else
