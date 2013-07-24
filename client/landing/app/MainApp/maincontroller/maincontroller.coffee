@@ -305,11 +305,11 @@ class MainController extends KDController
     checkConnectionState = ->
       unless connectedState.connected
         fail()
-
-        #KD.logToMixpanel "Couldn't connect to backend"
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
+        KD.track "Connected to backend"
+
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
