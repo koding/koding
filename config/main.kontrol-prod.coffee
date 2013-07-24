@@ -2,6 +2,7 @@ fs = require 'fs'
 nodePath = require 'path'
 deepFreeze = require 'koding-deep-freeze'
 
+
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
