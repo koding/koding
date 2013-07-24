@@ -10,6 +10,10 @@ module.exports = class Graph
     return @db
 
   @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
+    console.log "hulooooooggggggg"
+    console.log "with exempt", requestOptions.withExempt
+    console.log "hulooooooggggggg"
+
     if not requestOptions.withExempt
       console.log "!!!!!------111111"
       {delegate} = requestOptions.client.connection

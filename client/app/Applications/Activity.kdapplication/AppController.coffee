@@ -162,6 +162,11 @@ class ActivityAppController extends AppController
         limit  : 20
         facets : @getActivityFilter()
 
+      if KD.getSingleton('activityController').flags?.showExempt?
+        options.withExempt = KD.getSingleton('activityController').flags.showExempt
+      else
+        options.withExempt = false
+
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
       if @getFeedFilter() is "Public"
@@ -204,6 +209,7 @@ class ActivityAppController extends AppController
   fetchFollowingActivities:(options = {})->
     {CActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
+    console.log "options......", options
     CActivity.fetchFolloweeContents options, (err, activities) =>
       if err
       then @emit "activitiesCouldntBeFetched", err

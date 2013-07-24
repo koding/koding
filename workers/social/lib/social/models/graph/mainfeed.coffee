@@ -4,6 +4,10 @@ QueryRegistry = require './queryregistry'
 module.exports = class Member extends Graph
 
   @fetchAll:(requestOptions, callback)->
+    throw "EEEEEEE" if not requestOptions.withExempt?
+    console.log "requestOptions =========================="
+    console.log requestOptions
+    console.log "// requestOptions ======================="
     {group:{groupName, groupId}, startDate, client, facet} = requestOptions
 
     options =

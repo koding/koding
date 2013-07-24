@@ -8,6 +8,7 @@ module.exports = class FetchAllActivityParallel
   Bucket       = require "./bucket"
 
   constructor:(@requestOptions)->
+    console.log "?????????", @requestOptions
     {client, startDate, neo4j, group, facets} = @requestOptions
 
     @client               = client

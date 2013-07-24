@@ -393,9 +393,6 @@ module.exports = class CActivity extends jraphical.Capsule
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {Activity} = require "../graph"
-
-
-
       {facets, to, limit} = options
       requestOptions =
         userId : client.connection.delegate.getId()
@@ -403,15 +400,12 @@ module.exports = class CActivity extends jraphical.Capsule
           groupName : group.slug
           groupId : group._id
         limit : 5 #limit #bandage for now
+        withExempt: options.withExempt
         facet : [facets]
         to : to
         client : client
 
       Activity.fetchFolloweeContents requestOptions, callback
-#
-#      graph = new Graph({config:KONFIG['neo4j']})
-#      options.returnAsBongoObjects = true
-#      graph.runQuery(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
@@ -457,6 +451,7 @@ module.exports = class CActivity extends jraphical.Capsule
         client    : client
         startDate : to
         neo4j     : neo4jConfig
+        withExempt: options.withExempt
         group     :
           groupName : group.slug
           groupId   : group._id
