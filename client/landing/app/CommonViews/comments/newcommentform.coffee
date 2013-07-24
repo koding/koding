@@ -42,6 +42,9 @@ class NewCommentForm extends KDView
 
   attachListeners:->
     @commentInput.on "blur", @bound "commentInputReceivedBlur"
+    @commentInput.on "focus", =>
+      @parent.unsetClass "commented"
+      @parent.setClass   "active-comment"
 
   commentPosted:->
     @commentInput.setValue ""
