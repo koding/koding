@@ -741,6 +741,18 @@ __utils =
       error "url shorten error, returing self as fallback.", status, statusText, responseText
       callback url
 
+  formatBytesToHumanReadable: (bytes) ->
+    thresh    = 1024
+    units     = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+    unitIndex = -1
+    return "#{bytes} B"  if bytes < thresh
+    loop
+      bytes /= thresh
+      ++unitIndex
+      break unless bytes >= thresh
+
+    return "#{bytes.toFixed 2} #{units[unitIndex]}"
+
   # deprecated ends
 
 ###
