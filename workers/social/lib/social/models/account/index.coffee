@@ -173,9 +173,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'owner'
         targetType  : 'JProxyFilter'
 
-  chris:->
-    @sendNotification 'Test', {foo:42}
-
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
