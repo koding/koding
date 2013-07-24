@@ -102,9 +102,7 @@ class CollaborativeWorkspaceUserList extends JView
   createInviteView: ->
     @inviteView   = new KDView
       cssClass    : "invite-view hidden"
-      partial     : """
-        <p>You can share your session key with your friends or type a name to send an invite to your session.</p>
-      """
+      partial     : "<p>You can share your session key with your friends or type a name to send an invite to your session.</p>"
 
     @inviteView.addSubView new KDView
       cssClass    : "session-key"
