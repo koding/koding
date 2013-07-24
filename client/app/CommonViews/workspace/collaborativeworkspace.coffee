@@ -53,12 +53,17 @@ class CollaborativeWorkspace extends Workspace
       @loader.destroy()
       @chatView?.show()
 
-    @workspaceRef.on "child_added", (snapshot) =>
+      initialMessage   = "$0 started a #{@getOptions().name} session. Session key is, #{@sessionKey}"
+      if isOldSession
+        initialMessage = "$0 joined."
+
+      @setHistory initialMessage
 
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
-    @workspaceRef.on "child_changed", (snapshot) =>
+    @workspaceRef.child("users").on "child_changed", (snapshot) =>
+      @setHistory "#{snapshot.name()} is disconnected."
 
     @workspaceRef.on "child_removed", (snapshot) =>
       @showDisconnectedModal()  unless @disconnectedModal
