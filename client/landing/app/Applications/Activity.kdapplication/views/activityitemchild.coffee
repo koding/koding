@@ -106,7 +106,7 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      if data.isLowQuality
+      if data.isLowQuality or (KD.checkFlag 'exempt', account)
         menu =
           'Unmark User as Troll' :
             callback             : ->
