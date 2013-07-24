@@ -14,11 +14,17 @@ class CollaborativeWorkspace extends Workspace
     @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
     @sessionKey     = options.sessionKey or @createSessionKey()
     @workspaceRef   = @firepadRef.child @sessionKey
+    @users          = {}
 
     log "joining to", currentInstance
 
     @createUserListContainer()
     @createLoader()
+
+    if @getOptions().enableChat
+      @container.addSubView @chatView = new ChatPane
+        delegate: this
+      @chatView.hide()
 
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
@@ -54,9 +60,13 @@ class CollaborativeWorkspace extends Workspace
         @userRef.onDisconnect().remove()
 
       @loader.destroy()
+      @chatView?.show()
 
     @workspaceRef.on "child_added", (snapshot) =>
       log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
+
+    @workspaceRef.child("users").on "child_added", (snapshot) =>
+      @fetchUsers()
 
     @workspaceRef.on "child_changed", (snapshot) =>
       log "everything is something happened", "child_changed", snapshot.val(), snapshot.name()
@@ -73,6 +83,20 @@ class CollaborativeWorkspace extends Workspace
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
       @sessionData.push paneSessionKeys
+
+    @fetchUsers()
+
+  fetchUsers: ->
+    @workspaceRef.once "value", (snapshot) =>
+      val = snapshot.val()
+      return  unless val
+
+      usernames = []
+      usernames.push username for username, status of val.users unless @users[username]
+
+      KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
+        @users[user.profile.nickname] = user for user in jAccounts
+        @emit "WorkspaceUsersFetched"
 
   createPanel: (callback = noop) ->
     panelOptions             = @getOptions().panels[@lastCreatedPanelIndex]

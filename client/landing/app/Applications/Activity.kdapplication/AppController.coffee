@@ -54,6 +54,16 @@ class ActivityAppController extends AppController
 
     @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
 
+    @docTitle = document.title
+    windowController = KD.getSingleton "windowController"
+    windowController.addFocusListener (blurred)=>
+      if blurred
+        @listController.activityHeader.showNewItemsInTitle = yes
+        @listController.activityHeader.updateShowNewItemsTitle()
+      else
+        @listController.activityHeader.showNewItemsInTitle = no
+        @listController.activityHeader.hideDocumentTitleCount()
+
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
@@ -61,9 +71,10 @@ class ActivityAppController extends AppController
     @emit 'ready'
 
   resetAll:->
-    @lastTo    = null
-    @lastFrom  = Date.now()
-    @isLoading = no
+    @lastTo                 = null
+    @lastFrom               = Date.now()
+    @isLoading              = no
+    @reachedEndOfActivities = no
     @listController.resetList()
     @listController.removeAllItems()
 
@@ -420,12 +431,12 @@ class ActivityAppController extends AppController
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
 #        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        onTimeout : @recover.bind this
+        onTimeout : @bound 'recover'
 
   recover:->
     #KD.logToMixpanel "activity feed render failed; recovering"
 
     @isLoading = no
 
-    @status.reconnect()
+    @status.disconnect()
     @refresh()
