@@ -28,6 +28,7 @@ type JoinMsg struct {
 	RoutingKey         string  `json:"routingKey"`
 	ConsumerTag        string
 	Suffix             string `json:"suffix"`
+	Channel            *amqp.Channel
 }
 
 type LeaveMsg struct {
@@ -142,9 +143,14 @@ func startRouting() {
 				continue // do not close our main for clause 'authStream'
 			}
 
-			err = c.channel.Cancel(msg.ConsumerTag, false)
+			err = msg.Channel.Cancel(msg.ConsumerTag, false)
 			if err != nil {
 				log.Fatalf("basic.cancel: %s", err)
+			}
+
+			err = msg.Channel.Close()
+			if err != nil {
+				log.Fatalf("channel.close: %s", err)
 			}
 
 			decrementExchangeCounter(leave.RoutingKey)
@@ -205,7 +211,12 @@ func consumeAndRepublish(
 		done <- err
 		return
 	}
-	defer channel.Close()
+
+	// we need to extract join because GO doesn't assignments in form
+	// authPairs[routingKey].Channel = channel
+	join := authPairs[routingKey]
+	join.Channel = channel
+	authPairs[routingKey] = join
 
 	uniqueQueueName := generateUniqueQueueName()
 
