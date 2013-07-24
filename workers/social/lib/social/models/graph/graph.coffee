@@ -99,8 +99,38 @@ module.exports = class Graph
           for dbObj in dbObjects
             collectRelations dbObj
 
+  revive:(results, callback)->
+    if results.length < 1
+      return callback
+    data  = []
+    for result in results
+      if Array.isArray result
+        continue unless result[0]
+        result = result[0]
+      result.bongo_ =
+        constructorName : result.name
+        instanceId : result.id
+      obj = new Base.constructors[result.name] result
+      data.push obj
+    callback data
 
-  objectify = (incomingObjects, callback)->
+  revive2:(results)->
+    if results.length < 1
+      return callback
+    data  = []
+    for result in results
+      if Array.isArray result
+        continue unless result[0]
+        result = result[0]
+      result.bongo_ =
+        constructorName : result.name
+        instanceId : result.id
+      obj = new Base.constructors[result.name] result
+      data.push obj
+    data
+
+
+  objectify: (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
     generatedObjects = []
     for incomingObject in incomingObjects

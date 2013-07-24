@@ -45,6 +45,76 @@ module.exports = class Activity extends Graph
       groupName : groupName
       userId    : "#{userId}"
 
+  @getCurrentGroup: (client, callback)->
+    {delegate} = client.connection
+    if not delegate
+      callback callback {error: "Request not valid"}
+    else
+      groupName = client.context.group
+      JGroup = require '../group'
+      JGroup.one slug : groupName, (err, group)=>
+        if err then return callback err
+        unless group then return callback {error: "Group not found"}
+        group.canReadActivity client, (err, res)->
+          if err then return callback {error: "Not allowed to open this group"}
+          else callback null, group
+
+  # this is used for activities on profile page
+  @fetchUsersActivityFeed: (options, callback)->
+    {facets, to, limit, client} = options
+
+    @getCurrentGroup client, (err, group)=>
+      if err then return callback err
+      userId = client.connection.delegate.getId()
+
+      limit = 5 #bandage for now
+
+      groupId = group._id
+      groupName = group.slug
+
+      query = [
+        "start koding=node:koding(id='#{options.originId}')"
+        'MATCH koding<-[:author]-content'
+      ]
+
+      whereClause = []
+      # build facet queries
+      if facets and 'Everything' not in facets
+        facetQueryList = []
+        for facet in facets
+          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
+          facetQueryList.push("content.name='#{facet}'")
+        whereClause.push("(" + facetQueryList.join(' OR ') + ")")
+      # add timestamp
+
+      if to
+        timestamp = Math.floor(to / 1000)
+        whereClause.push "content.`meta.createdAtEpoch` < #{timestamp}"
+
+      if whereClause.length > 0
+        query.push 'WHERE', whereClause.join(' AND ')
+
+      # add return statement
+      query.push "return distinct content"
+
+      if options.sort.likesCount?
+        query.push "order by coalesce(content.`meta.likes`?, 0) DESC"
+      else if options.sort.repliesCount?
+        query.push "order by coalesce(content.repliesCount?, 0) DESC"
+      else
+        query.push "order by content.`meta.createdAtEpoch` DESC"
+
+      # add limit option
+      query.push "LIMIT #{limit}"
+
+      query = query.join('\n')
+
+      @fetch query, options, (err, results) =>
+        if err then return callback err
+        if results? and results.length < 1 then return callback null, []
+        resultData = (result.content.data for result in results)
+        @objectify resultData, (objecteds)=>
+          @getRelatedContent objecteds, options, callback
 
   @fetchFolloweeContents:(options, callback)->
     requestOptions = @generateOptions options
@@ -52,14 +122,10 @@ module.exports = class Activity extends Graph
     timeQuery = @generateTimeQuery options.to
     query = QueryRegistry.activity.following facet, timeQuery
     @fetch query, requestOptions, (err, results) =>
-      console.log "arguments"
-      console.log arguments
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
       resultData = (result.content.data for result in results)
       @objectify resultData, (objecteds)=>
-        console.log "objected"
-        console.log objecteds
         @getRelatedContent objecteds, options, callback
 
 
@@ -69,35 +135,48 @@ module.exports = class Activity extends Graph
     {group:{groupName, groupId}, client} = options
 
     collectRelations = race (i, res, fin)=>
-      id = res.id
-
+      id = res.getId()
       @fetchRelatedItems id, (err, relatedResult)=>
+        clientRelations = reply: 'replies', tag: 'tags', opinion: 'opinions'
         if err
+          console.log ">>>>>", err
           return callback err
           fin()
         else
           tempRes[i].relationData =  relatedResult
+          tempRes[i].replies = []
+          tempRes[i].tags = []
+          tempRes[i].opinions = []
+          # this works different on following feed and profile page
+          for k of relatedResult
+            console.log "!!!!!!1---------------------------------------", k
+            clientRelName = clientRelations[k]
+            if clientRelName?
+              for bongoObj in relatedResult[k]
+                tempRes[i][clientRelName].push bongoObj
+          tempRes[i].repliesCount = tempRes[i].replies?.length or 0
           fin()
     , =>
       if groupName == "koding"
         @removePrivateContent client, groupId, tempRes, (err, cleanContent)=>
-          if err then return callback err
-          console.log "clean content"
-          console.log cleanContent
-
-          @revive cleanContent, (revived)=>
-            console.log "revived1"
-            console.log revived
+          if err 
+            console.log ">>>>", err
+            return callback err
+          revive cleanContent, (revived)=>
             callback null, revived
       else
-        @revive tempRes, (revived)=>
-          console.log "revived2"
-          console.log revived
-          callback null, revived
+        # revive tempRes, (revived)=>
+        #   console.log "------XXXXXXXXXX------------------------------------"
+        #   for obj in revived
+        #     console.log obj.data.replies
+        #     obj.replies = obj.data.replies
+        #   console.log "------------ XXXXXXXXXX --------------------------//"
+        callback null, tempRes
 
-    for result in results
-      tempRes.push result
-      collectRelations result
+    @revive results, (reviveds)->
+      for result in reviveds
+        tempRes.push result
+        collectRelations result
 
   @fetchRelatedItems: (itemId, callback)->
     query = """
@@ -105,28 +184,31 @@ module.exports = class Activity extends Graph
       match koding-[r]-all
       return all, r
       order by r.createdAtEpoch DESC
+      limit 4
       """
     @fetchRelateds query, callback
 
-  @fetchRelateds:(query, callback)->
+  @fetchRelateds:(query, callback)=>
     @fetch query, {}, (err, results) =>
-      console.log arguments
-      if err then callback err
+      if err
+        console.log "errror errror...", err 
+        return callback err
       resultData = []
       for result in results
         type = result.r.type
         data = result.all.data
+        console.log ">>>>>>>!!!!!!!!!", type
         data.relationType = type
         resultData.push data
 
-      @objectify resultData, (objected)->
+      @objectify resultData, (objected)=>
         respond = {}
-        for obj in objected
-          type = obj.relationType
-          if not respond[type] then respond[type] = []
-          respond[type].push obj
-
-        callback err, respond
+        @revive objected, (objects)->
+          for obj in objects
+            type = obj.data.relationType
+            if not respond[type] then respond[type] = []
+            respond[type].push obj
+          callback err, respond
 
 
   @getSecretGroups:(client, callback)->
@@ -153,20 +235,13 @@ module.exports = class Activity extends Graph
 
   # we may need to add public group's read permission checking
   @removePrivateContent:(client, groupId, contents, callback)->
-    console.log "contents"
-    console.log contents
-
     if contents.length < 1 then return callback null, contents
     @getSecretGroups client, (err, secretGroups)=>
-      console.log "secretGroups"
-      console.log err, secretGroups
       if err then return callback err
       if secretGroups.length < 1 then return callback null, contents
       filteredContent = []
       for content in contents
         filteredContent.push content if content.group not in secretGroups
-      console.log "filteredContent"
-      console.log filteredContent
       return callback null, filteredContent
 
 

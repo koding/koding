@@ -46,7 +46,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
         'fetchPublicActivityFeed', 'fetchUsersActivityFeed',
-        'fetchLastActivityTimestamp'
+        'fetchLastActivityTimestamp', 'testRevive'
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -73,6 +73,36 @@ module.exports = class CActivity extends jraphical.Capsule
       originType      : String
       originId        : ObjectId
       group           : String
+
+  # this is for revival test...
+  # TODO: dont forget to remove it
+  @testRevive: (options, callback)->
+
+    query = 'start koding=node:koding(id=\'5196fcb0bc9bdb0000000011\')
+    MATCH koding<-[:follower]-myfollowees-[:author]-content
+    where myfollowees.name="JAccount"
+    AND content.group = "koding"
+    AND (content.name=\'JStatusUpdate\')
+    return distinct content
+    order by content.`meta.createdAtEpoch` DESC
+    LIMIT 1'
+    ret = []
+    try
+      Graph   = require "../graph/graph"
+      graph = new Graph({config:KONFIG['neo4j']})
+      graph.db.query query, {}, (err, results) ->
+        console.log "err:::::", err
+        resultData = (result.content.data for result in results)
+        graph.objectify resultData, (objecteds)=>
+          console.log "the results ============="
+          console.log objecteds
+          console.log "// the results =========="
+          graph.revive objecteds, (revived)->
+            callback null, revived
+    catch e 
+      console.log ">>>>", e 
+
+    #callback null, "foo"
 
   @on 'feed-new', (activities)->
     JGroup = require '../group'
@@ -303,6 +333,13 @@ module.exports = class CActivity extends jraphical.Capsule
   @fetchUsersActivityFeed: secure (client, options, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
+      {Activity} = require "../graph"
+      options.client = client
+      options.group = group
+
+      Activity.fetchUsersActivityFeed options, callback
+
+      return   
       userId = client.connection.delegate.getId()
       {facets, to, limit} = options
       limit = 5 #bandage for now
