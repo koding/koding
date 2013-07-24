@@ -105,7 +105,7 @@ module.exports =
           content.`meta.createdAtEpoch` < {to}
           #{options.facetQuery}
           return distinct content
-          order by {orderBy} DESC
+          order by #{options.orderBy} DESC
           LIMIT {limitCount}
         """
 

@@ -1,5 +1,4 @@
 neo4j = require "neo4j"
-
 {Graph} = require './index'
 QueryRegistry = require './queryregistry'
 {race} = require "bongo"
@@ -75,15 +74,15 @@ module.exports = class Activity extends Graph
     facetQuery = @generateFacets facets
 
     if options.sort.likesCount?
-      options.orderBy = "coalesce(content.`meta.likes`?, 0)"
+      orderBy = "coalesce(content.`meta.likes`?, 0)"
     else if options.sort.repliesCount?
-      options.orderBy = "coalesce(content.repliesCount?, 0)"
+      orderBy = "coalesce(content.repliesCount?, 0)"
     else
-      options.orderBy = "content.`meta.createdAtEpoch`"
+      orderBy = "content.`meta.createdAtEpoch`"
 
     options.userId = options.originId
     options.limitCount = options.limit
-    query = QueryRegistry.activity.profilePage {facetQuery}
+    query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
     @fetchWithRelatedContent query, options, callback
 
   # this is following feed
