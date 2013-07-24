@@ -503,6 +503,8 @@ class NFinderTreeController extends JTreeViewController
   cmCloneRepo:     (nodeView, contextMenuItem)-> @cloneRepo nodeView
   cmPublish:       (nodeView, contextMenuItem)-> @publishApp nodeView
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
+  cmDropboxChooser:(nodeView, contextMenuItem)-> @chooseFromDropbox nodeView
+  cmDropboxSaver:  (nodeView, contextMenuItem)-> @saveToDropbox nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
   cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
@@ -744,3 +746,82 @@ class NFinderTreeController extends JTreeViewController
         nodeView
         apps
       }
+
+  chooseFromDropbox: (nodeView) ->
+    fileItemViews     = []
+    filePath          = FSHelper.plainPath nodeView.getData().path
+    modal             = null
+    kallback          = ->
+      file            = fileItemViews[0]
+      if file
+        file.emit "FileNeedsToBeDownloadad", filePath
+        file.on   "FileDownloadDone", ->
+          fileItemViews.shift()
+          if fileItemViews.length
+            kallback()
+          else
+            modal.destroy()
+            new KDNotificationView
+              title    : "Your download has been completed"
+              type     : "mini"
+              cssClass : "success"
+              duration : 4000
+
+    Dropbox.choose
+      linkType         : "direct"
+      multiselect      : true
+      success          : (files) ->
+        modal          = new KDModalView
+          overlay      : yes
+          title        : "Download from Dropbox"
+          buttons      :
+            Start      :
+              title    : "Start"
+              cssClass : "modal-clean-green"
+              callback : -> kallback()
+            Cancel     :
+              title    : "Cancel"
+              cssClass : "modal-cancel"
+              callback : -> modal.destroy()
+
+        for file in files
+          fileItemView = modal.addSubView new DropboxDownloadItemView {}, file
+          fileItemViews.push fileItemView
+
+  saveToDropbox: (nodeView) ->
+    notification   = null
+    kiteController = KD.getSingleton "kiteController"
+    plainPath      = FSHelper.plainPath nodeView.getData().path
+    tmpFileName    = "tmp#{Date.now()}"
+    isFolder       = nodeView.getData().type is "folder"
+    kallback       = ->
+      fileName     = FSHelper.getFileNameFromPath plainPath
+      if isFolder
+        fileName   = "#{fileName}.zip"
+      options      =
+        files : [
+          {
+            filename: fileName
+            url     : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
+          }
+        ]
+        success: ->
+          notification.notificationSetTitle "Your file has been uploaded"
+          notification.notificationSetTimer 4000
+          notification.setClass "success"
+
+      Dropbox.save options
+
+    if isFolder
+      notification = new KDNotificationView
+        title      : "Zipping your folder"
+        type       : "mini"
+        duration   : 120000
+
+      kiteController.run "mkdir -p Web ; zip -r /home/#{KD.nick()}/Web/#{tmpFileName}.zip #{plainPath}", (err, res) =>
+        return  warn err if err
+        kallback()
+    else
+      kiteController.run "cp #{plainPath} /home/#{KD.nick()}/Web/#{tmpFileName}", (err, res) =>
+        return  warn err if err
+        kallback()
