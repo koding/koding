@@ -3,6 +3,7 @@ class KDMixpanel
   createEvent:(rest...) =>
     eventName = rest.first
     eventData = rest[1]
+    $user   = KD.nick()
 
     if eventName is "Login" or (eventName is "Groups" and eventData is "ChangeGroup")
       # identify user on mixpanel
@@ -13,33 +14,28 @@ class KDMixpanel
 
     else if eventName is "User Opened Ace"
       {title, privacy, visibility} = eventData
-      $user   = KD.nick()
-
+      
       options = {title, privacy, visibility, $user}
       @setOnce 'First Time Ace Opened', Date.now()
       @track eventName, options
 
     else if eventName is "User Opened Terminal"
       {title, privacy, visibility} = eventData
-      $user   = KD.nick()
-
+      
       options = {title, privacy, visibility, $user}
       @setOnce 'First Time Terminal Opened', Date.now()
       @track eventName, options
 
     else if eventName is "Apps" and eventData is "Install"
-      $user      = KD.nick()
+      
       appTitle   = rest[2]
-
       options    = {$user, appTitle}
       @track "Application Installed", options
     
     else if eventName is "User Clicked Buy VM"
-      $user = KD.nick()
       @track eventName, $user
     
     else if eventName is "Read Tutorial Book"
-      $user = KD.nick()
       @track eventName, $user
 
     else if eventName is "Activity"
@@ -54,7 +50,6 @@ class KDMixpanel
         else activity is eventData
 
       group     = KD.getSingleton('groupsController').getCurrentGroup()
-      $user     = KD.nick()
       $activity = activity
 
       {title, privacy, visibility} = group
@@ -75,14 +70,13 @@ class KDMixpanel
     else
       if eventData is "GroupJoinRequest"
         group = rest[3]
-        $user = KD.nick()
         {title, privacy, visibility} = group
         options = {title, privacy, visibility, $user}
         @track "Group Join Request", options
       
       else if eventData is "InvitationSentToFriend"
         options       =
-          $user       : KD.nick()
+          $user       : $user
           $recipient  : rest[2]
 
         @track "Invitation Send", options
