@@ -5,12 +5,9 @@ Broker      = require 'broker'
 {extend}    = require 'underscore'
 
 {mongo, mq, projectRoot, guestCleanerWorker} = require('koding-config-manager').load("main.#{argv.c}")
-
 mongo += '?auto_reconnect'
-
 mqOptions = extend {}, mq
 mqOptions.login = guestCleanerWorker.login if guestCleanerWorker?.login?
-
 module.exports = new Bongo {
   mongo
   root: projectRoot

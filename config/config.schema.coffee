@@ -97,18 +97,19 @@ config =
       username  : 1
       apiKey    : 1
     authWorker    :
-      login           : 1
-      queueName       : 1
-      authExchange    : 1
-      authAllExchange : 1
-      numberOfWorkers : 1
-      watch           : 1
-    guestCleanerWorker:
+      authExchange: 1
+      authAllExchange: 1
       login           : 1
       queueName       : 1
       numberOfWorkers : 1
       watch           : 1
-      cronSchedule    : 1
+    guestCleanerWorker    :
+      login               : 1
+      queueName           : 1
+      numberOfWorkers     : 1
+      watch               : 1
+      cronSchedule        : 1
+      usageLimitInMinutes : 1
     social        :
       login       : 1
       numberOfWorkers: 1
@@ -136,7 +137,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
-        authExchange   : 1
+        authExchange : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -162,8 +163,6 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
-      authExchange: 1
-      authAllExchange: 1
       ip          : 1
       port        : 1
       certFile    : 1
@@ -172,6 +171,8 @@ config =
       webProtocol : 1
       webHostname : 1
       webPort     : 1
+      authExchange: 1
+      authAllExchange: 1
     kites:
       disconnectTimeout: 1
       vhost       : 1

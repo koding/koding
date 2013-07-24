@@ -44,17 +44,19 @@ module.exports = class GuestCleanerWorker
     console.log "Cleaning started"
     {JAccount, JSession} = @bongo.models
 
-    usageLimitInMunites = @options.usageLimitInMunites or 60
-    filterDate = new Date(Date.now()-(1000*60*usageLimitInMunites))
+    usageLimitInMinutes = @options.usageLimitInMinutes or 60
+    filterDate = new Date(Date.now()-(1000*60*usageLimitInMinutes))
 
     selector =
       "meta.createdAt" : $lte : filterDate
       type : "unregistered"
 
-    # todo change one to each
-    JAccount.one selector, {}, (err, account)=>
+    JAccount.each selector, {}, (err, account)=>
       if err then return console.error err
       unless account then return console.log "Empty result"
+
+      # delete user cookie
+      account.sendNotification "GuestTimePeriodHasEnded", account
 
       daisy queue = [
         =>

@@ -85,8 +85,8 @@ module.exports =
     queueName            : socialQueueName+'guestcleaner'
     numberOfWorkers      : 2
     watch                : yes
-    cronSchedule         : '*/10 * * * * *'
-    usageLimitInMunites  : 60
+    cronSchedule         : '* * * * * *'
+    usageLimitInMinutes  : 60
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
