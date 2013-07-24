@@ -3,7 +3,7 @@ package mongo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/grsmv/inflect"
+	"github.com/chuckpreslar/inflect"
 	"koding/tools/mapping"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -65,12 +65,10 @@ func getCollectionName(name string) string {
 
 	//pluralize name
 	name = inflect.Pluralize(name)
-
 	//split name into string array
 	splittedName := strings.Split(name, "")
 	//uppercase first character and assign back
 	splittedName[0] = strings.ToLower(splittedName[0])
-	splittedName[1] = strings.ToUpper(splittedName[1])
 
 	//merge string array
 	name = strings.Join(splittedName, "")

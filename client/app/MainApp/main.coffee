@@ -1,6 +1,3 @@
-#Broker.channel_auth_endpoint = KD.config.apiUri+'/1.0/channel/auth';
-#Broker.channel_auth_endpoint = 'http://localhost:8008/auth'
-
 do ->
   status           = new Status
   mainController   = new MainController
