@@ -63,7 +63,7 @@ class WebTermView extends KDView
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
-      
+
       KD.getSingleton("vmController").run
         kiteName : 'os',
         method   : 'webterm.connect',
@@ -84,7 +84,7 @@ class WebTermView extends KDView
           @terminal.server = remote
           @setKeyView()
           @emit "WebTermConnected", remote
-          console.log remote.session
+          log "Remote session:", remote.session
 
   destroy: ->
     super
