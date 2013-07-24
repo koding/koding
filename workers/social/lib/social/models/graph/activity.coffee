@@ -24,8 +24,8 @@ module.exports = class Activity extends Graph
     if facets and 'Everything' not in facets
       facetQueryList = []
       for facet in facets
-        return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-        facetQueryList.push("content.name='#{facet}'")
+        return callback new KodingError "Unknown facet: #{facets.join()}" if facet not in neo4jFacets
+        facetQueryList.push "content.name='#{facet}'" 
       facetQuery = "AND (" + facetQueryList.join(' OR ') + ")"
 
     return facetQuery
@@ -62,13 +62,10 @@ module.exports = class Activity extends Graph
   # this is used for activities on profile page
   @fetchUsersActivityFeed: (options, callback)->
     {facets, to, limit, client} = options
-
+    # TODO: move this to QueryRegistry
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       userId = client.connection.delegate.getId()
-
-      limit = 5 #bandage for now
-
       groupId = group._id
       groupName = group.slug
 
@@ -109,6 +106,10 @@ module.exports = class Activity extends Graph
 
       query = query.join('\n')
 
+      console.log "====== query ======"
+      console.log query
+      console.log "// ===== query ===="
+
       @fetch query, options, (err, results) =>
         if err then return callback err
         if results? and results.length < 1 then return callback null, []
@@ -117,6 +118,7 @@ module.exports = class Activity extends Graph
           @getRelatedContent objecteds, options, callback
 
   @fetchFolloweeContents:(options, callback)->
+    # this is following feed
     requestOptions = @generateOptions options
     facet = @generateFacets options.facet
     timeQuery = @generateTimeQuery options.to
@@ -127,8 +129,6 @@ module.exports = class Activity extends Graph
       resultData = (result.content.data for result in results)
       @objectify resultData, (objecteds)=>
         @getRelatedContent objecteds, options, callback
-
-
 
   @getRelatedContent:(results, options, callback)->
     tempRes = []
@@ -149,7 +149,6 @@ module.exports = class Activity extends Graph
           tempRes[i].opinions = []
           # this works different on following feed and profile page
           for k of relatedResult
-            console.log "!!!!!!1---------------------------------------", k
             clientRelName = clientRelations[k]
             if clientRelName?
               for bongoObj in relatedResult[k]
@@ -157,20 +156,13 @@ module.exports = class Activity extends Graph
           tempRes[i].repliesCount = tempRes[i].replies?.length or 0
           fin()
     , =>
-      if groupName == "koding"
+      if groupName == "koding" or not groupName
         @removePrivateContent client, groupId, tempRes, (err, cleanContent)=>
           if err 
             console.log ">>>>", err
             return callback err
-          revive cleanContent, (revived)=>
-            callback null, revived
+          callback null, cleanContent
       else
-        # revive tempRes, (revived)=>
-        #   console.log "------XXXXXXXXXX------------------------------------"
-        #   for obj in revived
-        #     console.log obj.data.replies
-        #     obj.replies = obj.data.replies
-        #   console.log "------------ XXXXXXXXXX --------------------------//"
         callback null, tempRes
 
     @revive results, (reviveds)->
@@ -179,12 +171,15 @@ module.exports = class Activity extends Graph
         collectRelations result
 
   @fetchRelatedItems: (itemId, callback)->
+    # IMPORTANT
+    # this gives "range error maximum recursion depth exceeded", 
+    # if we dont set the relation types  
+    # probably because there maybe self referencing objects
     query = """
       start koding=node:koding("id:#{itemId}")
-      match koding-[r]-all
+      match koding-[r:tag|reply|opinion]-all
       return all, r
       order by r.createdAtEpoch DESC
-      limit 4
       """
     @fetchRelateds query, callback
 
@@ -197,7 +192,6 @@ module.exports = class Activity extends Graph
       for result in results
         type = result.r.type
         data = result.all.data
-        console.log ">>>>>>>!!!!!!!!!", type
         data.relationType = type
         resultData.push data
 
@@ -209,7 +203,6 @@ module.exports = class Activity extends Graph
             if not respond[type] then respond[type] = []
             respond[type].push obj
           callback err, respond
-
 
   @getSecretGroups:(client, callback)->
     JGroup = require '../group'

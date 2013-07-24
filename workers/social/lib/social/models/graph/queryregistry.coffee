@@ -83,6 +83,7 @@ module.exports =
           ORDER BY content.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}
         """
+
       following:(facet="", timeQuery="")->
         """
           START member=node:koding(id={userId})
@@ -94,6 +95,17 @@ module.exports =
           RETURN distinct content
           ORDER BY content.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}
+        """
+      
+      profilePage: (options)->
+        """
+          start koding=node:koding(id='{userId}')
+          MATCH koding<-[:author]-content
+          WHERE
+          content.`meta.createdAtEpoch` < 1374664653
+          return distinct content
+          order by coalesce(content.`meta.likes`?, 0) DESC
+          LIMIT 8
         """
 
     invitation :
