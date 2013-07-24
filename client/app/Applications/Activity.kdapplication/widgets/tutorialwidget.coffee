@@ -79,7 +79,7 @@ class ActivityTutorialWidget extends KDFormView
         rules     :
           required: yes
         messages  :
-          required: "Tutorial body is required!"
+          required: "Tutorial content is required!"
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"

@@ -39,7 +39,7 @@ class ActivityStatusUpdateWidget extends KDFormView
           required  : yes
           maxLength : 3000
         messages    :
-          required  : "Please type a message..."
+          required  : "Please type a status message!"
       paste         : @bound 'requestEmbed'
       # # this will cause problems when clicking on a embedLinks url
       # # right after entering the url -> double request

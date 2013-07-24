@@ -39,7 +39,7 @@ class ActivityDiscussionWidget extends KDFormView
         rules     :
           required: yes
         messages  :
-          required: "discussion body is required!"
+          required: "Discussion content is required!"
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"
