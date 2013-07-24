@@ -103,6 +103,12 @@ config =
       authAllExchange : 1
       numberOfWorkers : 1
       watch           : 1
+    guestCleanerWorker:
+      login           : 1
+      queueName       : 1
+      numberOfWorkers : 1
+      watch           : 1
+      cronSchedule    : 1
     social        :
       login       : 1
       numberOfWorkers: 1

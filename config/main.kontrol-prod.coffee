@@ -80,6 +80,13 @@ module.exports =
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
     watch       : yes
+  guestCleanerWorker     :
+    login                : 'prod-guestcleanerworker'
+    queueName            : socialQueueName+'guestcleaner'
+    numberOfWorkers      : 2
+    watch                : yes
+    cronSchedule         : '*/10 * * * * *'
+    usageLimitInMunites  : 60
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
@@ -185,8 +192,6 @@ module.exports =
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
-    bin   : '/usr/local/nagios/bin/send_nsca'
-    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq1.in.koding.com'
     port        : 5672
