@@ -138,7 +138,7 @@ func main() {
 			})
 
 			for {
-				err := controlChannel.Publish("authAll", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+				err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err == nil {
 					break
 				}
@@ -149,7 +149,7 @@ func main() {
 			}
 		}()
 
-		err := controlChannel.Publish("authAll", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+		err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 		if err != nil {
 			panic(err)
 		}

@@ -31,15 +31,15 @@ class ActivityTutorialWidget extends KDFormView
           required  : "Tutorial title is required!"
 
     @inputTutorialEmbedShowLink = new KDOnOffSwitch
-      cssClass:"show-tutorial-embed"
-      defaultState:off
-      callback:(state)=>
+      cssClass      : "show-tutorial-embed"
+      defaultState  : off
+      callback      : (state)=>
         if state
           if @embedBox.hasValidContent
             @embedBox.show()
             @embedBox.$().animate {top: "0px"}, 300
         else
-          @embedBox.$().animate {top : "-400px"}, 300, @embedBox.hide.bind this
+          @embedBox.$().animate {top : "-400px"}, 300, => @embedBox.hide()
 
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
@@ -79,7 +79,7 @@ class ActivityTutorialWidget extends KDFormView
         rules     :
           required: yes
         messages  :
-          required: "Tutorial body is required!"
+          required: "Tutorial content is required!"
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"
@@ -126,7 +126,9 @@ class ActivityTutorialWidget extends KDFormView
       if test then url else "http://"+url
 
   submit:->
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "TutorialSubmitted"
+      @reset()
 
     if @embedBox.hasValidContent
       @addCustomData "link",
@@ -134,7 +136,6 @@ class ActivityTutorialWidget extends KDFormView
         link_embed : @embedBox.getDataForSubmit()
 
     super
-    KD.track "Activity", "TutorialSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 

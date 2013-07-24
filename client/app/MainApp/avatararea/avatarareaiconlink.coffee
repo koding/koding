@@ -3,10 +3,19 @@ class AvatarAreaIconLink extends KDCustomHTMLView
   constructor:(options,data)->
     options = $.extend
       tagName     : "a"
-      partial     : "<span class='count'><cite></cite><span class='arrow-wrap'><span class='arrow'></span></span></span><span class='icon'></span>"
+      partial     : """
+        <span class='count'>
+          <cite></cite>
+          <span class='arrow-wrap'>
+            <span class='arrow'></span>
+          </span>
+        </span>
+        <span class='icon'></span>
+      """
       attributes  :
         href      : "#"
-    ,options
+    , options
+
     super options,data
     @count = 0
 

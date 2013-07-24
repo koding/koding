@@ -115,9 +115,11 @@ class ActivityLinkWidget extends KDFormView
     @addCustomData "link_url", @link.getValue()
     @addCustomData "link_embed", @embedBox.getDataForSubmit()
 
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "LinkSubmitted"
+      @reset()
     super
-    KD.track "Activity", "LinkSubmitted"
+    
 
   reset:->
 

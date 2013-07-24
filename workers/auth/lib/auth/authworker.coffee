@@ -22,13 +22,15 @@ module.exports = class AuthWorker extends EventEmitter
     # instance options
     { @servicesPresenceExchange, @reroutingExchange
       @notificationExchange, @usersPresenceControlExchange
-      @presenceTimeoutAmount } = options
+      @presenceTimeoutAmount, @authExchange, @authAllExchange } = options
 
     # initialize defaults:
     @servicesPresenceExchange     ?= 'services-presence'
     @usersPresenceControlExchange ?= 'users-presence-control'
     @reroutingExchange            ?= 'routing-control'
     @notificationExchange         ?= 'notification'
+    @authExchange                 ?= 'auth'
+    @authAllExchange              ?= 'authAll'
     @presenceTimeoutAmount        ?= 1000 * 60 * 2 # 2 min
 
     # instance state
@@ -444,7 +446,7 @@ module.exports = class AuthWorker extends EventEmitter
       connection.exchange 'chat', NOTIFICATION_EXCHANGE_OPTIONS, (chatExchange) ->
         # *chirp chirp chirp chirp*
 
-      connection.exchange 'authAll', AUTH_EXCHANGE_OPTIONS, (authAllExchange) =>
+      connection.exchange @authAllExchange, AUTH_EXCHANGE_OPTIONS, (authAllExchange) =>
         connection.queue '', {exclusive:yes}, (authAllQueue) =>
           authAllQueue.bind authAllExchange, ''
           authAllQueue.on 'queueBindOk', =>
@@ -456,8 +458,8 @@ module.exports = class AuthWorker extends EventEmitter
                 when 'broker.clientDisconnected'
                   @cleanUpAfterDisconnect messageStr
 
-      connection.exchange 'auth', AUTH_EXCHANGE_OPTIONS, (authExchange) =>
-        connection.queue  'auth', (authQueue)=>
+      connection.exchange @authExchange, AUTH_EXCHANGE_OPTIONS, (authExchange) =>
+        connection.queue  @authExchange, (authQueue)=>
           authQueue.bind authExchange, ''
           authQueue.on 'queueBindOk', =>
             authQueue.subscribe (message, headers, deliveryInfo) =>
@@ -472,7 +474,7 @@ module.exports = class AuthWorker extends EventEmitter
                   @removeService messageData
                 when 'kite.who'
                   @handleKiteWho messageData
-                when "client.auth"
+                when "client.#{@authExchange}"
                   @join messageData, socketId
                 else
                   @rejectClient routingKey

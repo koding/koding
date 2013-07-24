@@ -218,12 +218,11 @@ class KDInputView extends KDView
     for result, errMsg of @validationResults
       if errMsg then allClear = no
 
-    if allClear
-      @emit "ValidationPassed"
-      @emit "ValidationResult", yes
-      @valid = yes
-    else
-      @emit "ValidationResult", no
+    @valid = if allClear then yes else no
+    @emit "ValidationPassed" if @valid
+    @emit "ValidationResult", @valid
+
+    return @valid
 
 
   createRuleChain:(ruleSet)->
