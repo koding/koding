@@ -22,6 +22,7 @@ class CollaborativeEditorPane extends CollaborativePane
         return @openFile file, content  if file
         if @firepad.isHistoryEmpty()
           @firepad.setText "" # fix for a firepad bug
+          @codeMirrorEditor.scrollTo 0, 0
 
       @ref.on "value", (snapshot) =>
         return @save()  if snapshot.val().WaitingSaveRequest is yes
@@ -33,6 +34,7 @@ class CollaborativeEditorPane extends CollaborativePane
     isLocalFile = file.path.indexOf("localfile") is 0
     content     = "" if @amIHost and isLocalFile
     @firepad.setText content  if @amIHost
+    @codeMirrorEditor.scrollTo 0, 0
 
   save: ->
     file        = @getData()
