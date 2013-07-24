@@ -33,7 +33,7 @@ class LikeView extends KDView
     @setTemplate @pistachio()
 
     # We need to getridoff this asap FIXME ~HK
-    if options.checkIfLikedBefore
+    if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
         @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
         @_currentState = likedBefore

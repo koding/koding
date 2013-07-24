@@ -224,6 +224,9 @@ class LoginView extends KDScrollView
           @registerForm.button.hideLoader()
         , 1000
 
+        # log to external / TODO: sending account optional if non of track tools use, just delete it
+        KD.track "userSignedUp", account
+
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
     KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
