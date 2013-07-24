@@ -82,9 +82,10 @@ class ActivityDiscussionWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:->
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "DiscussionSubmitted"
+      @reset()
     super
-    KD.track "Activity", "DiscussionSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
