@@ -13,6 +13,9 @@ class DomainsListViewController extends KDListViewController
     @getListView().on "domainsListItemViewClicked", (item)=>
       @emit "domainItemClicked", item
 
+    @getListView().on "domainRemoved", (item)=>
+      @removeItem item
+
   loadItems:(callback)->
     @showLazyLoader()
     KD.whoami().fetchDomains (err, domains) =>
