@@ -279,6 +279,7 @@ class AppShortcutButton extends StartTabAppThumbView
     @img.$().attr "src", "/images/#{data.icon}"
 
     @compile = new KDView
+    @delete  = new KDView  if data.type is 'koding-app'
 
   appDeleteCall:({name})->
     @showLoader()
