@@ -70,20 +70,25 @@ class OwnProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
   putNick:(nick)-> "@#{nick}"
+  putPresence:(state)->
+    """
+      <div class="presence #{state or 'offline'}">
+        #{state or 'offline'}
+      </div>
+    """
 
   pistachio:->
     account      = @getData()
     {nickname}   = account.profile
     userDomain   = "#{account.profile.nickname}.#{KD.config.userSitesDomain}"
     amountOfDays = Math.floor (new Date - new Date(account.meta.createdAt)) / (24*60*60*1000)
-    onlineStatus = if account.onlineStatus then 'online' else 'offline'
     """
     <div class="profileleft">
       <span>
         {{> @avatar}}
       </span>
       {cite{ @putNick #(profile.nickname)}}
-      <div class="presence #{onlineStatus}">#{onlineStatus}</div>
+      {div{ @putPresence #(onlineStatus)}}
     </div>
 
     <section>

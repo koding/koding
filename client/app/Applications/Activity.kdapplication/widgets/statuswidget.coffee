@@ -70,7 +70,10 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @embedBox = new EmbedBox embedOptions, data
 
-    @embedUnhideLink = new KDCustomHTMLView
+    @embedUnhideLinkWrapper = new KDView
+      cssClass    : 'unhide-embed'
+
+    @embedUnhideLinkWrapper.addSubView @embedUnhideLink = new KDCustomHTMLView
       cssClass    : 'unhide-embed-link'
       tagName     : 'a'
       partial     : 'Re-enable embedding URLs'
@@ -80,10 +83,18 @@ class ActivityStatusUpdateWidget extends KDFormView
         event.preventDefault()
         event.stopPropagation()
         @embedBox.show()
-        @embedUnhideLink.hide()
+        @requestEmbedLock = off
+        @embedUnhideLinkWrapper.hide()
+        @embedBox.refreshEmbed()
 
-    @embedUnhideLink.hide()
-    @embedBox.on "EmbedIsHidden", @embedUnhideLink.show.bind this
+    @embedUnhideLinkWrapper.hide()
+    @embedBox.on "EmbedIsHidden", =>
+      @requestEmbedLock = on
+      @embedUnhideLinkWrapper.show()
+
+    @embedBox.on "EmbedIsShown", =>
+      @requestEmbedLock = off
+      @embedUnhideLinkWrapper.hide()
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
@@ -231,7 +242,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       # when in edit mode, show the embed
       @embedBox.embedExistingData link.link_embed, {}, =>
         @embedBox.show()
-        @embedUnhideLink.hide()
+        @embedUnhideLinkWrapper.hide()
     else
       @embedBox.hide()
 
@@ -283,9 +294,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     <div class="large-input">
       {{> @largeInput}}
       {{> @inputLinkInfoBox}}
-      <div class="unhide-embed">
-      {{> @embedUnhideLink}}
-      </div>
+      {{> @embedUnhideLinkWrapper}}
     </div>
     <div class="formline">
     {{> @embedBox}}

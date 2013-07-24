@@ -20,12 +20,7 @@ class Status extends KDController
 
   resetLocals:-> delete @disconnectOptions
 
-  connect: ->
-    @remote.connect()
-
-  reconnect:(options={})->
-    @disconnect()
-    @connect()
+  connect: -> @remote.connect()
 
   disconnect: (options={}) ->
     if "boolean" is typeof options
