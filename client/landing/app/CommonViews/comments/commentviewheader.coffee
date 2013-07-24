@@ -14,6 +14,8 @@ class CommentViewHeader extends JView
     @newCount         = 0
     @onListCount      = if data.repliesCount > @maxCommentToShow then @maxCommentToShow else data.repliesCount
 
+    console.log "!1111111", data.repliesCount
+    console.log "data.replies:::", data.replies
     unless data.repliesCount? and data.repliesCount > @maxCommentToShow
       @onListCount = data.repliesCount
       @hide()

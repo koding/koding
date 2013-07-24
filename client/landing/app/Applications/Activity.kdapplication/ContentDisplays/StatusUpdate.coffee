@@ -74,6 +74,7 @@ class ContentDisplayStatusUpdate extends ActivityContentDisplay
 
     # temp for beta
     # take this bit to comment view
+    console.log "aloooooooooo", @getData().repliesCount
     if @getData().repliesCount? and @getData().repliesCount > 0
       commentController = @commentBox.commentController
       commentController.fetchAllComments 0, (err, comments)->
