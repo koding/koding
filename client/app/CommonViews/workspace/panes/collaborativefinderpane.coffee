@@ -27,8 +27,6 @@ class CollaborativeFinderPane extends CollaborativePane
     @finder = @finderController.getView()
 
     @workspaceRef.on "value", (snapshot) =>
-      log "everything is something happened in host filetree", snapshot.name(), snapshot.val()
-
       clientData = snapshot.val()?.ClientWantsToInteractWithRemoteFileTree
       if clientData
         path             = "[#{clientData.vmName}]#{clientData.path}"
@@ -36,7 +34,6 @@ class CollaborativeFinderPane extends CollaborativePane
         nodeView         = treeController.nodes[path]
 
         treeController.openItem nodeView, (err, res) =>
-          log "Host terminal done with client request", res
 
     @finderController.on "FileTreeInteractionDone", (files) =>
       @syncContent files
@@ -52,7 +49,6 @@ class CollaborativeFinderPane extends CollaborativePane
 
     @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
 
-    log "i'm a host file tree and my session key is #{@sessionKey}"
 
   syncContent: (files) ->
     @workspaceRef.set { files }
@@ -74,7 +70,6 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
   dblClick: (nodeView, e) ->
     super nodeView, e
-    log "host interacted with file tree waiting for response"
 
   getSnapshot: ->
     snapshot = []
@@ -87,8 +82,6 @@ class CollaborativeFinderTreeController extends NFinderTreeController
         type   : nodeData.type
         vmName : nodeData.vmName
         name   : nodeData.name
-
-    log "finder snapshot is", snapshot
 
     return snapshot
 

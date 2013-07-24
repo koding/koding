@@ -15,8 +15,6 @@ class CollaborativeClientFinderPane extends Pane
     {@sessionKey}      = @getOptions()
     @workspaceRef      = workspace.firepadRef.child @sessionKey
 
-    log "i am a client fake file tree and my session key is #{@sessionKey}"
-
     @workspaceRef.on "value", (snapshot) =>
       files = snapshot.val()?.files
       return  unless files
@@ -55,8 +53,6 @@ class CollaborativeClientTreeViewController extends JTreeViewController
     super options, data
 
   dblClick: (nodeView, event) ->
-    log "Client interacted with this", nodeView
-
     nodeData = nodeView.getData()
     @getOptions().workspaceRef.set "ClientWantsToInteractWithRemoteFileTree":
       path   : nodeData.path

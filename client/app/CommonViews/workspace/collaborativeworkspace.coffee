@@ -16,8 +16,6 @@ class CollaborativeWorkspace extends Workspace
     @workspaceRef   = @firepadRef.child @sessionKey
     @users          = {}
 
-    log "joining to", currentInstance
-
     @createUserListContainer()
     @createLoader()
 
@@ -28,27 +26,20 @@ class CollaborativeWorkspace extends Workspace
 
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
-        log "user wants to join a session"
         unless snapshot.val()
-          log "session is not active"
           @showNotActiveView()
           return false
 
-        log "session is valid, trying to recover"
-
-      log "everything is something happened", "value", snapshot.val(), snapshot.name()
 
       keys = snapshot.val()?.keys
 
       if keys # if we have keys this means we're about to join an old session
-        log "it's an old session, impressed!"
         @sessionData  = keys
         @createPanel()
         @userRef = @workspaceRef.child("users").child KD.nick()
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
       else
-        log "your awesome new session, saving keys now"
         @createPanel()
         @workspaceRef.set "keys": @sessionData
         @userRef = @workspaceRef.child("users").child KD.nick()
@@ -63,21 +54,14 @@ class CollaborativeWorkspace extends Workspace
       @chatView?.show()
 
     @workspaceRef.on "child_added", (snapshot) =>
-      log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
 
     @workspaceRef.child("users").on "child_added", (snapshot) =>
       @fetchUsers()
 
     @workspaceRef.on "child_changed", (snapshot) =>
-      log "everything is something happened", "child_changed", snapshot.val(), snapshot.name()
 
     @workspaceRef.on "child_removed", (snapshot) =>
-      log "possible disconnection occured"
-
       @showDisconnectedModal()  unless @disconnectedModal
-
-    @on "NewPanelAdded", (panel) ->
-      log "New panel created", panel
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
@@ -103,8 +87,6 @@ class CollaborativeWorkspace extends Workspace
     panelOptions.delegate    = @
     panelOptions.sessionKeys = @sessionData[@lastCreatedPanelIndex]  if @sessionData
     newPanel                 = new CollaborativePanel panelOptions
-
-    log "instantiated a panel with these session keys", panelOptions.sessionKeys
 
     @container.addSubView newPanel
     @panels.push newPanel
@@ -170,8 +152,6 @@ class CollaborativeWorkspace extends Workspace
     workspace.on "PanelCreated", =>
       workspace.activePanel.splitView.resizePanel "20%", 0
     parent.addSubView workspace
-
-    log "user joined a new session:", sessionKey
 
   showDisconnectedModal: ->
     if @amIHost()
