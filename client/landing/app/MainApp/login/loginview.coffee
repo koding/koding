@@ -181,6 +181,11 @@ class LoginView extends KDScrollView
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
+    # we need to close the group channel so we don't receive the cycleChannel event.
+    # getting the cycleChannel even for our own MemberAdded can cause a race condition
+    # that'll leak a guest account.
+    KD.getSingleton('groupsController').groupChannel.close()
+
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
       @registerForm.button.hideLoader()
@@ -202,7 +207,7 @@ class LoginView extends KDScrollView
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-          @showInstructionsBookIfFirstLogin()
+        @showInstructionsBookIfFirstLogin()
 
         # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
