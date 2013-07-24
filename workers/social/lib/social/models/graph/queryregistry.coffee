@@ -99,13 +99,14 @@ module.exports =
       
       profilePage: (options)->
         """
-          start koding=node:koding(id='{userId}')
+          start koding=node:koding(id={userId})
           MATCH koding<-[:author]-content
           WHERE
-          content.`meta.createdAtEpoch` < 1374664653
+          content.`meta.createdAtEpoch` < {to}
+          #{options.facetQuery}
           return distinct content
-          order by coalesce(content.`meta.likes`?, 0) DESC
-          LIMIT 8
+          order by {orderBy} DESC
+          LIMIT {limitCount}
         """
 
     invitation :
