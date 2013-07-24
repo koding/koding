@@ -47,7 +47,7 @@ class FollowButton extends KDToggleButton
     @hideLoader()
 
   mouseEnter:->
-    if @state.title is "Following"
+    if @getTitle() is "Following"
       @setTitle "Unfollow"
 
   mouseLeave:->
