@@ -130,6 +130,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
       @editDiscussionLink.unsetClass "hidden"
       @deleteDiscussionLink.unsetClass "hidden"
 
+    # bu daha derinde - SY
+    # quick fix - noli me judicare - MSA
     activity.on 'CommentIsAdded', (reply) =>
       activity.repliesCount = reply.repliesCount
       @commentBox.setData activity
