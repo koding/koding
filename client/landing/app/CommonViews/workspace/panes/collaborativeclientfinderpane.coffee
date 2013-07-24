@@ -26,7 +26,7 @@ class CollaborativeClientFinderPane extends Pane
         fileInstance.vmName = file.vmName
         fileInstances.push fileInstance
 
-      @fileTree = new CollaborativeClientTreeViewController { @workspaceRef }, fileInstances
+      @fileTree = new CollaborativeClientTreeViewController { @workspaceRef, workspace }, fileInstances
 
       view = @fileTree.getView()
       @container.updatePartial ""
@@ -58,3 +58,5 @@ class CollaborativeClientTreeViewController extends JTreeViewController
       path   : nodeData.path
       type   : nodeData.type
       vmName : nodeData.vmName
+
+    @getOptions().workspace.setHistory "$0 toggled #{nodeData.path}"

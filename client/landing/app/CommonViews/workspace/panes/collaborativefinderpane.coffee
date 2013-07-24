@@ -10,9 +10,9 @@ class CollaborativeFinderPane extends CollaborativePane
     super options, data
 
     panel             = @getDelegate()
-    workspace         = panel.getDelegate()
+    @workspace        = panel.getDelegate()
     @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = workspace.firepadRef.child @sessionKey
+    @workspaceRef     = @workspace.firepadRef.child @sessionKey
 
     @finderController = new NFinderController
       nodeIdPath          : "path"
@@ -21,6 +21,8 @@ class CollaborativeFinderPane extends CollaborativePane
       loadFilesOnInit     : yes
       useStorage          : yes
       treeControllerClass : CollaborativeFinderTreeController
+
+    @finderController.treeController.workspace = @workspace
 
     @finderController.reset()
 
@@ -32,8 +34,9 @@ class CollaborativeFinderPane extends CollaborativePane
         path             = "[#{clientData.vmName}]#{clientData.path}"
         {treeController} = @finderController
         nodeView         = treeController.nodes[path]
+        nodeView.user    = clientData.user
 
-        treeController.openItem nodeView, (err, res) =>
+        treeController.openItem nodeView
 
     @finderController.on "FileTreeInteractionDone", (files) =>
       @syncContent files
@@ -47,8 +50,7 @@ class CollaborativeFinderPane extends CollaborativePane
 
       editorPane.openFile file, content
 
-    @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
-
+    @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
   syncContent: (files) ->
     @workspaceRef.set { files }
@@ -70,6 +72,10 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
   dblClick: (nodeView, e) ->
     super nodeView, e
+    nodeData = nodeView.getData()
+    action   = if nodeData.type is "folder" then "toggled" else "opened"
+
+    @workspace.setHistory "$0 #{action} #{FSHelper.plainPath nodeData.path}"
 
   getSnapshot: ->
     snapshot = []
