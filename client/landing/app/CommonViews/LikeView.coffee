@@ -33,7 +33,10 @@ class LikeView extends KDView
 
     @setTemplate @pistachio()
 
-    if options.checkIfLikedBefore
+    group = KD.getSingleton('groupsController').getCurrentGroup().slug
+    {roles} = KD.config
+
+    if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
         @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
         @_currentState = likedBefore
