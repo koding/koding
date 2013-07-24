@@ -21,19 +21,14 @@ module.exports = class Member extends Graph
       options.groupName = groupName
       groupFilter = "AND content.group! = {groupName}"
 
-    query = QueryRegistry.activity.public facetQuery, groupFilter
-
-    console.log query
-    console.log options
-    @fetch query, options, (err, results) =>
-      console.log "err, results"
-      console.log err, results
-
-      if err then return callback err
-      if results? and results.length < 1 then return callback null, []
-      resultData = (result.content.data for result in results)
-      @objectify resultData, (objecteds)=>
-        @getRelatedContent objecteds, requestOptions, callback
+    @getExemptUsersClauseIfNeeded requestOptions, (err, exemptClause)=>
+      query = QueryRegistry.activity.public facetQuery, groupFilter, exemptClause
+      @fetch query, options, (err, results) =>
+        if err then return callback err
+        if results? and results.length < 1 then return callback null, []
+        resultData = (result.content.data for result in results)
+        @objectify resultData, (objecteds)=>
+          @getRelatedContent objecteds, requestOptions, callback
 
   @getRelatedContent:(results, options, callback)->
     tempRes = []

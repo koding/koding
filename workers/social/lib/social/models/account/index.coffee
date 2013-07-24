@@ -49,6 +49,7 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+      globalFlags        : 1
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
@@ -228,6 +229,13 @@ module.exports = class JAccount extends jraphical.Module
             if err then callback err
             else callback null, about
 
+  # returns troll users ids
+  @getExemptUserIds: (callback)->
+    JAccount.someData {"globalFlags":{$in:["exempt"]}}, {as:1}, (err, cursor)-> 
+      cursor.toArray (err, data)-> 
+        if err
+          return callback err, null
+        callback null, (i._id for i in data)
 
   @renderHomepage: require './render-homepage'
 
@@ -579,7 +587,8 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim","gokmen", "chris", "testdude", "blum", "neelance", "halk",
-                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas", "fkadev"]
+                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", 
+                  "cihangirsavas", "fkadev"]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
@@ -588,7 +597,6 @@ module.exports = class JAccount extends jraphical.Module
       @update {$addToSet: globalFlags: flag}, callback
       if flag is 'exempt'
         console.log 'is exempt'
-        @markAllContentAsLowQuality()
         @cleanCacheFromActivities()
       else
         console.log 'aint exempt'
@@ -602,7 +610,6 @@ module.exports = class JAccount extends jraphical.Module
       @update {$pullAll: globalFlags: [flag]}, callback
       if flag is 'exempt'
         console.log 'was exempt'
-        @unmarkAllContentAsLowQuality()
       else
         console.log 'aint exempt'
     else
@@ -832,25 +839,25 @@ module.exports = class JAccount extends jraphical.Module
     JUser = require '../user'
     JUser.one {username: @profile.nickname}, callback
 
-  markAllContentAsLowQuality:->
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.flagIsLowQuality ->
-              item.emit 'ContentMarkedAsLowQuality', null
-          else
-            item.emit 'ContentMarkedAsLowQuality', null
+  # markAllContentAsLowQuality:->
+  #   @fetchContents (err, contents)->
+  #     contents.forEach (item)->
+  #       item.update {$set: isLowQuality: yes}, ->
+  #         if item.bongo_.constructorName == 'JComment'
+  #           item.flagIsLowQuality ->
+  #             item.emit 'ContentMarkedAsLowQuality', null
+  #         else
+  #           item.emit 'ContentMarkedAsLowQuality', null
 
-  unmarkAllContentAsLowQuality:->
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.unflagIsLowQuality ->
-              item.emit 'ContentUnmarkedAsLowQuality', null
-          else
-            item.emit 'ContentUnmarkedAsLowQuality', null
+  # unmarkAllContentAsLowQuality:->
+  #   @fetchContents (err, contents)->
+  #     contents.forEach (item)->
+  #       item.update {$set: isLowQuality: no}, ->
+  #         if item.bongo_.constructorName == 'JComment'
+  #           item.unflagIsLowQuality ->
+  #             item.emit 'ContentUnmarkedAsLowQuality', null
+  #         else
+  #           item.emit 'ContentUnmarkedAsLowQuality', null
 
   cleanCacheFromActivities:->
     CActivity.emit 'UserMarkedAsTroll', @getId()

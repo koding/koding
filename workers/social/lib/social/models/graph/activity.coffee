@@ -87,11 +87,14 @@ module.exports = class Activity extends Graph
 
   # this is following feed
   @fetchFolloweeContents:(options, callback)->
-    requestOptions = @generateOptions options
-    facet = @generateFacets options.facet
-    timeQuery = @generateTimeQuery options.to
-    query = QueryRegistry.activity.following facet, timeQuery
-    @fetchWithRelatedContent query, options, callback
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      @getCurrentGroup options.client, (err, currentGroup)=>
+        requestOptions = @generateOptions options
+        requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
+        facet = @generateFacets options.facet
+        timeQuery = @generateTimeQuery options.to
+        query = QueryRegistry.activity.following facet, timeQuery, exemptClause
+        @fetchWithRelatedContent query, requestOptions, callback
 
   @getRelatedContent:(results, options, callback)->
     tempRes = []
@@ -115,7 +118,7 @@ module.exports = class Activity extends Graph
                 tempRes[i][clientRelName].push bongoObj
           fin()
     , =>
-      if groupName == "koding" or not groupName
+      if groupName == "koding" or not groupName?
         @removePrivateContent client, groupId, tempRes, (err, cleanContent)=>
           if err 
             console.log ">>>>", err
