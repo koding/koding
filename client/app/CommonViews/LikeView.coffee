@@ -93,7 +93,7 @@ class LikeView extends KDView
       @getData().like (err)=>
 
         KD.showError err,
-          AccessDenied : 'Permission denied to like activities'
+          AccessDenied : 'You are not allowed to like activities'
           KodingError  : 'Something went wrong while like'
 
         unless err
