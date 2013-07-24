@@ -21,7 +21,7 @@ module.exports = [
   # core
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
-  "Framework/core/KDOverlayView.coffee",
+  "Framework/core/KDOverlayView.coffee",  
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
   "Framework/core/KDScrollView.coffee",
@@ -543,6 +543,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaincreationform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
   "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
