@@ -205,7 +205,6 @@ class DomainCreationForm extends KDTabViewWithForms
           @showSuccess domain
 
     else # create a subdomain
-      # replace the dots at the end if there are any
       subDomainPattern = /^[a-zA-Z0-9][a-zA-Z0-9.-]+[a-zA-Z0-9]$/
       unless subDomainPattern.test domainName
         createButton.hideLoader()
