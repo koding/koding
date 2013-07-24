@@ -79,6 +79,8 @@ class NFinderContextMenuController extends KDController
         action                    : 'createFile'
       'New Folder'                :
         action                    : 'createFolder'
+      'Upload to Dropbox'         :
+        action                    : 'dropboxSaver'
       'Upload file...'            :
         disabled                  : yes
         action                    : 'upload'
@@ -144,6 +146,13 @@ class NFinderContextMenuController extends KDController
       Download                    :
         disabled                  : yes
         action                    : "download"
+        separator                 : yes
+      Dropbox                     :
+        children                  :
+          'Download from Dropbox' :
+            action                : 'dropboxChooser'
+          'Upload to Dropbox'     :
+            action                : 'dropboxSaver'
         separator                 : yes
       'Public URL...'             :
         separator                 : yes
