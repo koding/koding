@@ -218,6 +218,7 @@ module.exports = [
   "app/CommonViews/opinions/tutorialformview.coffee",
 
   "app/CommonViews/markdownmodal.coffee",
+  "app/CommonViews/dropboxdownloaditemview.coffee",
 
   # FATIH
   "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
