@@ -18,7 +18,6 @@ body.group
       .activity-content
         margin-top           0
 
-
 .content-area-pane.activity
   overflow                     hidden
   #content-page-activity
@@ -37,6 +36,9 @@ body.group
         fix()
       .activity-content
         margin                 0 0 0 138px
+      .update-widget-tabs
+        .kdtabpaneview
+          width                calc(100% \- 160px)
       &.loggedin
         .common-inner-nav
           top                  128px
@@ -482,6 +484,63 @@ h1.kdheaderview.notification-header
         line-height     10px
         rounded         3px
         noTextDeco()
+
+.activity-share-popup
+  min-width             233px
+  clear                 both
+  .kdlistview-activity-share
+    padding             5px
+    overflow            visible
+    padding             5px
+    border              1px solid rgba(0,0,0,0.275)
+    z-index             9001
+    border-color        rgba(0,0,0,0.1) rgba(0,0,0,0.15) rgba(0,0,0,0.2)
+    rounded             5px
+    bg                  color, white
+    shadow              0 10px 20px 5px rgba(0,0,0,0.1)
+    borderBox()
+    rel()
+  .share-popup
+    .share-input
+      size              160px, 30px
+      padding-top       5px
+      padding-bottom    4px
+      line-height       21px
+      font-size         13px
+      margin-right      7px
+      padding-right     20px
+      display           inline-block
+      borderBox()
+
+    .icon-link
+      width             21px
+      height            21px
+      display           inline-block
+      vertical-align    top
+      margin-top        6px
+
+    .share-twitter
+      .icon.tw
+        display         block
+        width           19px
+        height          19px
+        opacity         .7
+        vendor          transition, opacity .2s ease
+        sprite()
+        bg              position, -71px -343px
+      &:hover
+        .icon.tw
+          opacity       1
+
+    .custom-link-view
+      margin-right      4px
+      .icon.new-page
+        opacity         .4
+        bg              position, -180px -280px
+      &:hover
+        .icon.new-page
+          opacity       1
+          bg            position, -180px -260px
 
 button.kdbutton.dark
   span.icon
@@ -1332,10 +1391,10 @@ div.kdview.link-embed-box.condensed
 
   span.embed-loader
     abs()
-    left 50%
-    right 50%
-    top 40%
-    bottom 50%
+    left              50%
+    top               50%
+    margin-top        -15px
+    margin-left       -15px
 
   > div.embed-links-container
     // div.embed-link-list-head
@@ -1774,8 +1833,9 @@ form.link-widget
 
 form.status-widget
   div.formline
-    div.link-embed-box
+    .link-embed-box
       margin-left   153px
+      max-width     560px
 
 div.modal-fullscreen-text
 
