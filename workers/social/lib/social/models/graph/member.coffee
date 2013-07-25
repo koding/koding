@@ -47,55 +47,25 @@ module.exports = class Member extends Graph
     activity.getCurrentGroup options.client, (err, group)=>
       if err
         return callback err
-      # TODO: move to QueryRegistry
-      # TODO: remove trolls...
-      query = """
-        START  koding=node:koding("id:#{group.getId()}")
-        MATCH  koding-[r:member]->members
-        
-        WHERE  (
-          members.`profile.nickname` =~ '(?i)#{seed}'
-          or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
-          or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
-        )
-        """
-      query += " \n"
+
+      queryOptions = 
+        blacklistQuery: ""
+        skip: skip or 0
+        limit: limit or 10
+        seed: seed
+        firstNameRegExp: firstNameRegExp
+        lastNameRegexp: lastNameRegexp
+
+      options.groupId = group.getId()
 
       if blacklist? and blacklist.length
         blacklistIds = ("'#{id}'" for id in blacklist).join(',')
-        query += " AND NOT( members.id IN [#{ blacklistIds }] ) \n"
+        queryOptions.blacklistQuery = " AND NOT( members.id IN [#{ blacklistIds }] )"
 
-      query += " RETURN members \n"
-      query += " ORDER BY members.`profile.firstName` "
-
-      query += " SKIP #{skip} \n" if skip
-      query += " LIMIT #{limit} \n" if limit
-
-      console.log "-----------------------"
-      console.log query
-      console.log "// --------------------"
-
-      @fetch query, options, (err, results) =>
-        if err
-          return callback err
-        if results? and results.length < 1 then return callback null, []
-        resultData = (result.members.data for result in results)
-        @objectify resultData, (objecteds)=>
-          @revive objecteds, (objects)->
-            callback err, objects
-
-      
-      # @db.query query, {}, (err, results) =>
-      #   if err
-      #     console.log "ERR:", err
-      #     return callback err
-      #   else if results.length is 0 then callback null, []
-      #   else
-      #     objectify results[0].members.data, (objected)=>
-      #       console.log "objected ? !!!!", objected
-      #       {collections, wantedOrder} = @getIdsFromAResultSet [objected]
-      #       @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
-      #         callback err, dbObjects
+      @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+        queryOptions.exemptClause = exemptClause
+        query = QueryRegistry.member.search queryOptions
+        @queryMembers query, options, callback
 
   @fetchMemberList:(options, callback)->
     # {groupId, to} = options
@@ -103,9 +73,6 @@ module.exports = class Member extends Graph
     @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
       options = @generateOptions options
       query = QueryRegistry.member.list exemptClause
-      console.log "------ XXXX -----"
-      console.log query
-      console.log "------// XXXX ---"
       @queryMembers query, options, callback
 
   @queryMembers:(query, options={}, callback)=>

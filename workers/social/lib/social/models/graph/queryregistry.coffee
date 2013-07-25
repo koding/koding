@@ -32,6 +32,24 @@ module.exports =
           SKIP {skipCount}
           LIMIT {limitCount}
         """
+      search: (options)->
+        {seed, firstNameRegExp, lastNameRegexp, blacklistQuery, exemptClause} = options
+        """
+          START koding=node:koding(id={groupId})
+          MATCH koding-[r:member]->members
+
+          WHERE  (
+            members.`profile.nickname` =~ '(?i)#{seed}'
+            or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
+            or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
+          )
+           
+          #{blacklistQuery}
+          #{exemptClause}
+
+          RETURN members
+          ORDER BY members.`profile.firstName`  LIMIT 9
+        """ 
     bucket :
       newMembers :
         """
