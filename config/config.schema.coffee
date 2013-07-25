@@ -99,6 +99,8 @@ config =
     authWorker    :
       login           : 1
       queueName       : 1
+      authExchange    : 1
+      authAllExchange : 1
       numberOfWorkers : 1
       watch           : 1
     social        :
@@ -128,6 +130,7 @@ config =
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
       runtimeOptions:
+        authExchange   : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -153,6 +156,8 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
+      authExchange: 1
+      authAllExchange: 1
       ip          : 1
       port        : 1
       certFile    : 1
@@ -202,8 +207,9 @@ config =
       componentUser : 1
       password      : 1
       vhost         : 1
-    opsview	    :
-      push	    : 1
+    opsview	        :
+      push	        : 1
       host          : 1
-
+      bin           : 1
+      conf          : 1
 module.exports = config

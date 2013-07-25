@@ -32,6 +32,7 @@ type VMInfo struct {
 	timeout       *time.Timer
 	mutex         sync.Mutex
 	totalCpuUsage int
+	hostname      string
 
 	State               string `json:"state"`
 	CpuUsage            int    `json:"cpuUsage"`
@@ -258,6 +259,29 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			return nil, &VMNotFoundError{Name: channel.CorrelationName}
 		}
 
+		if method == "webterm.connect" {
+			var params struct {
+				JoinUser string
+				Session  string
+			}
+			args.Unmarshal(&params)
+			if params.JoinUser != "" {
+				if len(params.Session) != utils.RandomStringLength {
+					return nil, errors.New("Invalid session identifier.")
+				}
+				if vm.GetState() != "RUNNING" {
+					return nil, errors.New("VM not running.")
+				}
+				if err := db.Users.Find(bson.M{"username": params.JoinUser}).One(&user); err != nil {
+					panic(err)
+				}
+				if user.Uid < virt.UserIdOffset {
+					panic("User with too low uid.")
+				}
+				return callback(args, channel, &virt.VOS{VM: vm, User: &user})
+			}
+		}
+
 		permissions := vm.GetPermissions(&user)
 		if permissions == nil {
 			return nil, &kite.PermissionError{}
@@ -331,14 +355,19 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vm.LdapPassword = ldapPassword
 		}
 
+		isPrepared := true
 		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
+			isPrepared = false
+		}
+		if !isPrepared || info.hostname != vm.HostnameAlias {
 			vm.Prepare(false)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}
+			info.hostname = vm.HostnameAlias
 		}
 
 		vmWebDir := "/home/" + vm.WebHome + "/Web"

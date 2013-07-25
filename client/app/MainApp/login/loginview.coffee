@@ -172,39 +172,51 @@ class LoginView extends KDScrollView
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
+    # we need to close the group channel so we don't receive the cycleChannel event.
+    # getting the cycleChannel even for our own MemberAdded can cause a race condition
+    # that'll leak a guest account.
+    KD.getSingleton('groupsController').groupChannel.close()
+
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
       @registerForm.button.hideLoader()
+
       if err
+
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
-      else
 
+      else
 
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
+
         new KDNotificationView
           cssClass  : "login"
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-          @showInstructionsBookIfFirstLogin()
+        @showInstructionsBookIfFirstLogin()
 
-          #send information to mixpanel
+        # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
-          vendor    : 'mixpanel'
-          extra     :
+          vendor         : 'mixpanel'
+          extra          :
             '$username'  : account.profile.nickname
             '$loginDate' : Date.now()
 
         KD.getSingleton('router').clear()
+
         setTimeout =>
           @hide()
           @registerForm.reset()
           @registerForm.button.hideLoader()
         , 1000
+
+        # log to external / TODO: sending account optional if non of track tools use, just delete it
+        KD.track "userSignedUp", account
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()

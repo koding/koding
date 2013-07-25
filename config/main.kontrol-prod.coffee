@@ -7,6 +7,9 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-#{version}"
 
+authExchange    = "auth-#{version}"
+authAllExchange = "authAll-#{version}"
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -30,12 +33,12 @@ module.exports =
     read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
-  runNeo4jFeeder: yes
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding-staging'
+  runNeo4jFeeder: no
   runGoBroker   : no
-  runKontrol    : yes
-  runRerouting  : yes
-  runUserPresence: yes
+  runKontrol    : no
+  runRerouting  : no
+  runUserPresence: no
   runPersistence: yes
   compileGo     : no
   buildClient   : yes
@@ -71,6 +74,8 @@ module.exports =
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
+    authExchange: authExchange
+    authAllExchange: authAllExchange
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
@@ -102,6 +107,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      authExchange: authExchange
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -133,8 +139,10 @@ module.exports =
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     useKontrold : yes
     webProtocol : 'https:'
-    webHostname : null
+    webHostname : "broker-#{version}a.koding.com"
     webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -177,6 +185,8 @@ module.exports =
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+    bin   : '/usr/local/nagios/bin/send_nsca'
+    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq1.in.koding.com'
     port        : 5672

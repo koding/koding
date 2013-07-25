@@ -610,13 +610,13 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName    : "applications"
-        method      : "downloadApp"
-        withArgs    :
-          owner     : manifest.authorNick
-          appName   : manifest.name
-          appPath   : @getAppPath manifest
-          version   : manifest.version
+        kiteName     : "os"
+        method       : "app.download"
+        withArgs     :
+          owner      : manifest.authorNick
+          identifier : manifest.identifier
+          appPath    : @getAppPath manifest
+          version    : manifest.version
       , (err, res)=>
         if err
           warn err
@@ -775,21 +775,3 @@ class KodingAppsController extends KDController
       description : 'Koding Terminal'
       author      : 'Koding'
       path        : 'WebTerm'
-    # CodeMirror    :
-    #   name        : 'CodeMirror'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-codemirror.png'
-    #   description : 'Code Editor'
-    #   author      : 'Marijn Haverbeke'
-    # yMacs         :
-    #   name        : 'yMacs'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-ymacs.png'
-    #   description : 'Code Editor'
-    #   author      : 'Mihai Bazon'
-    # Pixlr         :
-    #   name        : 'Pixlr'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-pixlr.png'
-    #   description : 'Image Editor'
-    #   author      : 'Autodesk'

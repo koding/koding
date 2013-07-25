@@ -28,6 +28,7 @@ type JoinMsg struct {
 	RoutingKey         string  `json:"routingKey"`
 	ConsumerTag        string
 	Suffix             string `json:"suffix"`
+	Channel            *amqp.Channel
 }
 
 type LeaveMsg struct {
@@ -83,12 +84,13 @@ func startRouting() {
 
 	log.Println("routing started...")
 	for msg := range authStream {
-		log.Printf("got %dB message data: [%v]-[%s] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.RoutingKey,
-			msg.Body,
-		)
+		// used for debug
+		// log.Printf("got %dB message data: [%v]-[%s] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.RoutingKey,
+		// 	msg.Body,
+		// )
 
 		switch msg.RoutingKey {
 		case "auth.join":
@@ -108,7 +110,7 @@ func startRouting() {
 			join.ConsumerTag = generateUniqueConsumerTag(join.BindingKey)
 			authPairs[join.RoutingKey] = join
 
-			log.Printf("Auth pairs: %+v\n", authPairs) // this is just for debug
+			// log.Printf("Auth pairs: %+v\n", authPairs) // this is just for debug
 
 			declareExchange(c, join.BindingExchange)
 
@@ -141,9 +143,14 @@ func startRouting() {
 				continue // do not close our main for clause 'authStream'
 			}
 
-			err = c.channel.Cancel(msg.ConsumerTag, false)
+			err = msg.Channel.Cancel(msg.ConsumerTag, false)
 			if err != nil {
 				log.Fatalf("basic.cancel: %s", err)
+			}
+
+			err = msg.Channel.Close()
+			if err != nil {
+				log.Fatalf("channel.close: %s", err)
 			}
 
 			decrementExchangeCounter(leave.RoutingKey)
@@ -191,8 +198,9 @@ func consumeAndRepublish(
 	consumerTag string,
 	done chan error,
 ) {
-	log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
-		bindingExchange, bindingKey, routingKey, consumerTag)
+	// used fo debug
+	// log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
+	// 	bindingExchange, bindingKey, routingKey, consumerTag)
 
 	if len(suffix) > 0 {
 		routingKey += suffix
@@ -203,7 +211,12 @@ func consumeAndRepublish(
 		done <- err
 		return
 	}
-	defer channel.Close()
+
+	// we need to extract join because GO doesn't assignments in form
+	// authPairs[routingKey].Channel = channel
+	join := authPairs[routingKey]
+	join.Channel = channel
+	authPairs[routingKey] = join
 
 	uniqueQueueName := generateUniqueQueueName()
 
@@ -221,11 +234,12 @@ func consumeAndRepublish(
 	}
 
 	for msg := range messages {
-		log.Printf("messages stream got %dB message data: [%v] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.Body,
-		)
+		// used for debug
+		// log.Printf("messages stream got %dB message data: [%v] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.Body,
+		// )
 
 		publishTo(publishingExchange, routingKey, msg.Body)
 	}
@@ -242,7 +256,8 @@ func publishTo(exchange, routingKey string, data []byte) {
 		Priority:        0, // 0-9
 	}
 
-	log.Println("publishing data ", exchange, string(data), routingKey)
+	// used for debug
+	// log.Println("publishing data ", exchange, string(data), routingKey)
 	err := producer.channel.Publish(exchange, routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)

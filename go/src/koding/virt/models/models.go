@@ -12,6 +12,7 @@ type User struct {
 	OldName  string        `bson:"oldUsername"`
 	Password string        `bson:"password"`
 	Salt     string        `bson:"salt"`
+	Shell    string        `bson:"shell"`
 	SshKeys  []struct {
 		Title string `bson:"title"`
 		Key   string `bson:"key"`

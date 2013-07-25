@@ -64,6 +64,9 @@ module.exports = class JGroup extends Module
         { name: 'MemberRolesChanged' }
         { name: 'GroupDestroyed' }
         { name: 'broadcast' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+
       ]
       instance      : [
         { name: 'GroupCreated' }
@@ -71,6 +74,7 @@ module.exports = class JGroup extends Module
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods   :
       static        : [
@@ -452,7 +456,7 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
+    if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
         console.error err  if err
         unless group
@@ -461,8 +465,8 @@ module.exports = class JGroup extends Module
           # Tried to trace but failed, maybe its important ~ GG
           console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
-          @oldBroadcast.call this, "koding", event, message
-
+          unless event is "MemberJoinedGroup"
+            @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',

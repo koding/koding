@@ -86,9 +86,9 @@ class HomeLoginBar extends JView
         attributes  :
           href      : "#"
         click       : (event)=>
+          KD.track "Login", "GroupJoinRequest", @group.slug
           @utils.stopDOMEvent event
           requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
-          KD.track "Login", "GroupJoinRequest", @group.slug
     else
       @join         = new CustomLinkView
         tagName     : "a"
@@ -98,8 +98,8 @@ class HomeLoginBar extends JView
         attributes  :
           href      : "/Register"
         click       : (event)=>
-          handler.call @join, event
           KD.track "Login", "Register", @group.slug
+          handler.call @join, event
 
     @requested    = new CustomLinkView
       tagName     : "a"
