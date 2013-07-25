@@ -29,7 +29,7 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 		//get type of current value
 		typeOfKey := reflect.TypeOf(v).String()
 		//every v, will be a string at the end
-
+		fmt.Println(k, v)
 		switch typeOfKey {
 
 		//if we have an complex type, resolve it
@@ -84,7 +84,7 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 			// 64 => 64bit based
 			result[k] = v.(float64)
 		case "bool":
-			result[k] = strconv.FormatBool(v.(bool))
+			result[k] = v.(bool)
 		case "time.Time":
 			result[k] = v.(time.Time).UTC().Format("2006-01-02T15:04:05.000Z")
 		case "string":

@@ -107,6 +107,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      isExempt: # is a troll ?
+        type: Boolean
+        default: false
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
       onlineStatus          :
@@ -231,7 +234,7 @@ module.exports = class JAccount extends jraphical.Module
 
   # returns troll users ids
   @getExemptUserIds: (callback)->
-    JAccount.someData {"globalFlags":{$in:["exempt"]}}, {as:1}, (err, cursor)-> 
+    JAccount.someData {"isExempt":true}, {as:1}, (err, cursor)-> 
       cursor.toArray (err, data)-> 
         if err
           return callback err, null
@@ -239,8 +242,7 @@ module.exports = class JAccount extends jraphical.Module
 
   @renderHomepage: require './render-homepage'
 
-  fetchHomepageView:(callback)->
-
+  fetchHomepageView: (callback)->
     callback null, JAccount.renderHomepage
       profile       : @profile
       account       : this
@@ -596,9 +598,11 @@ module.exports = class JAccount extends jraphical.Module
     if delegate.can 'flag', this
       @update {$addToSet: globalFlags: flag}, callback
       if flag is 'exempt'
+        this.isExempt = true
         console.log 'is exempt'
         @cleanCacheFromActivities()
       else
+        this.isExempt = false
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
@@ -609,8 +613,10 @@ module.exports = class JAccount extends jraphical.Module
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
       if flag is 'exempt'
+        this.isExempt = true
         console.log 'was exempt'
       else
+        this.isExempt = true
         console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
