@@ -46,7 +46,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
         'fetchPublicActivityFeed', 'fetchUsersActivityFeed',
-        'fetchLastActivityTimestamp', 'testRevive'
+        'fetchLastActivityTimestamp',
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -235,18 +235,6 @@ module.exports = class CActivity extends jraphical.Capsule
       'CBlogPostActivity'
     ]
 
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
-  ]
-
   @fetchCount = permit 'read activity',
     success:(client, callback)-> @count callback
 
@@ -308,56 +296,6 @@ module.exports = class CActivity extends jraphical.Capsule
       options.group = group
 
       Activity.fetchUsersActivityFeed options, callback
-
-      return   
-      userId = client.connection.delegate.getId()
-      {facets, to, limit} = options
-      limit = 5 #bandage for now
-
-      groupId = group._id
-      groupName = group.slug
-
-      query = [
-        "start koding=node:koding(id='#{options.originId}')"
-        'MATCH koding<-[:author]-content'
-      ]
-
-      whereClause = []
-      # build facet queries
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("content.name='#{facet}'")
-        whereClause.push("(" + facetQueryList.join(' OR ') + ")")
-      # add timestamp
-
-      if to
-        timestamp = Math.floor(to / 1000)
-        whereClause.push "content.`meta.createdAtEpoch` < #{timestamp}"
-
-      if whereClause.length > 0
-        query.push 'WHERE', whereClause.join(' AND ')
-
-      # add return statement
-      query.push "return distinct content"
-
-      if options.sort.likesCount?
-        query.push "order by coalesce(content.`meta.likes`?, 0) DESC"
-      else if options.sort.repliesCount?
-        query.push "order by coalesce(content.repliesCount?, 0) DESC"
-      else
-        query.push "order by content.`meta.createdAtEpoch` DESC"
-
-      # add limit option
-      query.push "LIMIT #{limit}"
-
-      query = query.join('\n')
-
-      graph = new Graph({config:KONFIG['neo4j']})
-      options.returnAsBongoObjects = true
-      graph.runQuery(query, options, callback)
-
 
   @fetchFolloweeContents: secure (client, options, callback)->
     @getCurrentGroup client, (err, group)=>

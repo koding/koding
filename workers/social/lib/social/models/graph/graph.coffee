@@ -149,7 +149,7 @@ module.exports = class Graph
 
   fetchAll:(requestOptions, callback)->
     requestOptions.facet = @facets
-    mainFeed = require "./mainfeed"
+    mainFeed = require "./activity"
     mainFeed.fetchAll requestOptions, callback
 
   fetchReplies: (itemId, callback)->

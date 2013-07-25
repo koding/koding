@@ -87,7 +87,7 @@ class ActivityListController extends KDListViewController
 
     @emit "teasersLoaded"
 
-  listActivitiesFromCache:(cache)->
+  listActivitiesFromCache:(cache, index, animation, isFeaturedContent)->
     @hideLazyLoader()
     return  unless cache.overview?.length > 0
     activityIds = []
@@ -109,10 +109,11 @@ class ActivityListController extends KDListViewController
         activity = cache.activities[overviewItem.ids.first]
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
-          @addItem activity.teaser
+          view = @addHiddenItem activity.teaser, index, animation
+          view.slideIn -> removeFromHiddenItems view
           activityIds.push activity.teaser._id
 
-    @checkIfLikedBefore activityIds
+    @checkIfLikedBefore activityIds  unless isFeaturedContent
 
     @lastItemTimeStamp = cache.from
 
@@ -200,8 +201,11 @@ class ActivityListController extends KDListViewController
     else
       view = @addHiddenItem activity, 0
       @utils.defer ->
-        view.slideIn ->
-          hiddenItems.splice hiddenItems.indexOf(view), 1
+        view.slideIn -> removeFromHiddenItems view
+
+  removeFromHiddenItems = (view)->
+    hiddenItems.splice hiddenItems.indexOf(view), 1
+
 
   fakeActivityArrived:(activity)->
 
