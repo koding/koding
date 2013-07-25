@@ -178,6 +178,9 @@ module.exports = class JAccount extends jraphical.Module
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
   changeUsername: (options, callback = (->)) ->
+    if @type is 'unregistered'
+    then return callback new KodingError "Access denied!"
+
     if 'string' is typeof options
       username = options
     else
