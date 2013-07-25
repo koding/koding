@@ -52,9 +52,10 @@ func registerWebtermMethods(k *kite.Kite) {
 			Remote       WebtermRemote
 			Session      string
 			SizeX, SizeY int
+			NoScreen     bool
 		}
 		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
 		}
 
 		newSession := false
@@ -76,6 +77,9 @@ func registerWebtermMethods(k *kite.Kite) {
 		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S", "koding." + params.Session}
 		if !newSession {
 			cmdArgs = append(cmdArgs, "-x")
+		}
+		if params.NoScreen {
+			cmdArgs = nil
 		}
 		server.pty.Slave.Chown(vos.User.Uid, -1)
 		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
