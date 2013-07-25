@@ -99,7 +99,6 @@ module.exports = class Activity extends Graph
   @getRelatedContent:(results, options, callback)->
     tempRes = []
     {group:{groupName, groupId}, client} = options
-
     collectRelations = race (i, res, fin)=>
       @fetchRelatedItems res, (err, relatedResult)=>
         clientRelations = reply: 'replies', tag: 'tags', opinion: 'opinions'
@@ -166,7 +165,8 @@ module.exports = class Activity extends Graph
           data = result.all.data
           data.relationType = type
           resultData.push data
-        
+      if not resultData.length
+        return callback null, resultData
       @objectify resultData, (objected)=>
         respond = {}
         @revive objected, (objects)->
