@@ -74,6 +74,7 @@ class WebTermView extends KDView
           session  : @getOption('delegate').getOption('session')
           sizeX  : @terminal.sizeX
           sizeY  : @terminal.sizeY
+          noScreen: @getOption('delegate').getOption('noScreen')
       , (err, remote) =>
         if err
           # We don't create any error popup not to be annoying. User can handle the error.

@@ -488,6 +488,9 @@ module.exports = class JUser extends jraphical.Module
     if account.status is "registered"
       return callback createKodingError "This account is already registered."
 
+    if /^guest-/.test username
+      return callback createKodingError "Reserved username!"
+
     @validateAll userFormData, (err) =>
       return callback err  if err?
       @changePasswordByUsername oldUsername, password, (err) =>
