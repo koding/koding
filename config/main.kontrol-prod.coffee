@@ -2,7 +2,6 @@ fs = require 'fs'
 nodePath = require 'path'
 deepFreeze = require 'koding-deep-freeze'
 
-
 version = (fs.readFileSync nodePath.join(__dirname, '../VERSION'), 'utf-8').trim()
 projectRoot = nodePath.join __dirname, '..'
 
@@ -35,11 +34,11 @@ module.exports =
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
   mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding-staging'
-  runNeo4jFeeder: yes
+  runNeo4jFeeder: no
   runGoBroker   : no
-  runKontrol    : yes
-  runRerouting  : yes
-  runUserPresence: yes
+  runKontrol    : no
+  runRerouting  : no
+  runUserPresence: no
   runPersistence: yes
   compileGo     : no
   buildClient   : yes
