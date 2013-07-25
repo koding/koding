@@ -242,6 +242,7 @@ module.exports = [
   "app/MainApp/sidebar/sidebarresizehandle.coffee",
   "app/MainApp/sidebar/virtualizationcontrols.coffee",
   "app/MainApp/sidebar/footermenuitem.coffee",
+  "app/MainApp/sidebar/findersettingsbuttonview.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionitem.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionchilditem.coffee",
   "app/MainApp/sidebar/modals/introductiontooltip/introductionadminform.coffee",
