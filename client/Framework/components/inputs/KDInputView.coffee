@@ -355,7 +355,7 @@ class KDInputView extends KDView
 
   focus:->
 
-    @setKeyView @
+    @setKeyView()
     yes
 
   blur:->
