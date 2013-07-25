@@ -9,9 +9,12 @@ class ModalAppsListItemView extends KDListItemView
     @titleLink.on "click", =>
       @getDelegate().emit "CloseTopicsModal"
 
+    @img = KD.utils.getAppIcon @getData(), 'modal-app-icon'
+
   pistachio:->
     """
-    <div class="apptitle">
+    <div class="app-title">
+      {{> @img }}
       {{> @titleLink }}
     </div>
     <div class="stats">
