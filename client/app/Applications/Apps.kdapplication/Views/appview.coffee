@@ -207,11 +207,14 @@ class AppView extends KDView
       attributes  :
         src       : thumb
 
+    @updatedTimeAgo = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
+    timeAgoText = if @getData().versions?.length > 1 then "Updated" else "Released"
     """
     <div class="profileleft">
       <span>
@@ -224,7 +227,7 @@ class AppView extends KDView
         {{> @installButton}}
         {{> @runButton}}
         {{> @updateButton}}
-        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
+        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>#{timeAgoText} {{> @updatedTimeAgo}}</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>
           <div class="versionstats">{{#(meta.likes) || 0}}<p>Likes</p></div>
