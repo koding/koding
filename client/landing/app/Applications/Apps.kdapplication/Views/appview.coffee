@@ -125,42 +125,16 @@ class AppView extends KDView
       else
         @likeButton.setState "Like"
 
-    if app.versions?.length > 1 and KD.isLoggedIn()
-      menu = {}
-
-      for version,i in app.versions
-        menu["Install version #{version}"] =
-          version  : version
-          callback : (item)=>
-            {version} = item.data
-            appsController.installApp app, version, (err)=>
-              KD.track "Apps", "Install", app.title unless err
-              if err then warn err
-
-      @installButton = new KDButtonViewWithMenu
-        title     : "Install Now"
-        style     : "cupid-green"
-        loader    :
-          top     : 0
-          diameter: 30
-          color   : "#ffffff"
-        delegate  : @
-        menu      : menu
-        callback  : ->
-          appsController.installApp app, app.versions.last, (err)=>
-            @hideLoader()
-
-    else
-      @installButton = new KDButtonView
-        title     : "Install Now"
-        style     : "cupid-green"
-        loader    :
-          top     : 0
-          diameter: 30
-          color   : "#ffffff"
-        callback  : ->
-          appsController.installApp app, app.versions.last, (err)=>
-            @hideLoader()
+    @installButton = new KDButtonView
+      title     : "Install Now"
+      style     : "cupid-green"
+      loader    :
+        top     : 0
+        diameter: 30
+        color   : "#ffffff"
+      callback  : ->
+        appsController.installApp app, app.versions.last, (err)=>
+          @hideLoader()
 
     @runButton = new KDButtonView
       title     : "Run"
@@ -207,11 +181,14 @@ class AppView extends KDView
       attributes  :
         src       : thumb
 
+    @updatedTimeAgo = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
+    timeAgoText = if @getData().versions?.length > 1 then "Updated" else "Released"
     """
     <div class="profileleft">
       <span>
@@ -224,7 +201,7 @@ class AppView extends KDView
         {{> @installButton}}
         {{> @runButton}}
         {{> @updateButton}}
-        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
+        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>#{timeAgoText} {{> @updatedTimeAgo}}</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>
           <div class="versionstats">{{#(meta.likes) || 0}}<p>Likes</p></div>

@@ -108,6 +108,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       @experimentalView = new KDCustomHTMLView
         cssClass   : "top-badge orange"
         partial    : "Experimental"
+        tooltip    :
+          title    : "This is an experimental app, click for help."
         click      : (e) =>
           e.stopPropagation()
           new KDModalView
@@ -142,7 +144,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
         cssClass : "top-badge gray"
         tooltip  :
           title  : "Dev-Mode enabled, click for help."
-        click    : =>
+        click    : (e) ->
+          e.stopPropagation()
           new KDModalView
             overlay  : yes
             width    : 500
