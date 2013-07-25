@@ -191,7 +191,7 @@ class GroupsAppController extends AppController
           title             : "Invitation pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchPendingGroupInvitations options, (err, groups)->
+            KD.whoami().fetchGroupsWithPendingInvitations options, (err, groups)->
               callback err, groups
               callback err, null, (group.getId() for group in groups)
           dataEnd           :({resultsController}, ids)=>
@@ -202,7 +202,7 @@ class GroupsAppController extends AppController
           title             : "Request pending"
           loggedInOnly      : yes
           dataSource        : (selector, options, callback)=>
-            KD.whoami().fetchPendingGroupRequests options, (err, groups)->
+            KD.whoami().fetchGroupsWithPendingRequests options, (err, groups)->
               callback err, groups
               callback err, null, (group.getId() for group in groups)
           dataEnd           :({resultsController}, ids)=>
@@ -243,10 +243,10 @@ class GroupsAppController extends AppController
           return error err if err
           controller.forEachItemByIndex groups, callback
 
-    KD.whoami().fetchPendingGroupRequests groupIds:ids, (err, groups)=>
+    KD.whoami().fetchGroupsWithPendingRequests groupIds:ids, (err, groups)=>
       @markPendingRequestGroups controller, (group.getId() for group in groups)
 
-    KD.whoami().fetchPendingGroupInvitations groupIds:ids, (err, groups)=>
+    KD.whoami().fetchGroupsWithPendingInvitations groupIds:ids, (err, groups)=>
       @markPendingGroupInvitations controller, (group.getId() for group in groups)
 
   markPendingRequestGroups:(controller, ids)->
@@ -314,7 +314,6 @@ class GroupsAppController extends AppController
     modal = new KDModalView getErrorModalOptions err
     modal.on 'AccessIsRequested', =>
       KD.getSingleton('staticGroupController')?.emit 'AccessIsRequested', group
-      @requestAccess group, (err)-> modal.destroy()
 
   showRequestAccessModal:(group, policy, callback=->)->
 
@@ -463,12 +462,6 @@ class GroupsAppController extends AppController
         modalOptions.buttons[buttonTitle] = buttonOptions
 
       modal = new KDModalView modalOptions
-
-  resolvePendingRequests:(group, takeDestructiveAction, callback, modal)->
-    group.resolvePendingRequests takeDestructiveAction, (err)->
-      modal.destroy()
-      handleError err  if err?
-      callback err
 
   cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled

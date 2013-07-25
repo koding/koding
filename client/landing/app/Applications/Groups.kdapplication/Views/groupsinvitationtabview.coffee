@@ -38,7 +38,7 @@ class GroupsInvitationTabView extends KDTabView
 
   setResolvedStateInView:->
     view = @getActivePane().subViews.first
-    view.setStatusesByResolvedSwitch @resolvedState
+    view.setShowResolved @resolvedState
     view.refresh()
 
   createTabs:->

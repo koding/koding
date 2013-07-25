@@ -3,9 +3,9 @@ class GroupsInvitationTabPaneView extends KDView
   requestLimit: 10
 
   constructor:(options={}, data)->
-    super options, data
+    options.showResolved  ?= no
 
-    @setStatusesByResolvedSwitch @getDelegate().resolvedState ? no
+    super options, data
 
     @controller = new InvitationRequestListController
       delegate            : this
@@ -40,52 +40,39 @@ class GroupsInvitationTabPaneView extends KDView
     @fetchAndPopulate()
     @updatePendingCount @parent
 
-  setStatusesByResolvedSwitch:(@resolvedState)->
+  setShowResolved:(showResolved)-> @options.showResolved = showResolved
+
   updatePendingCount:(pane)->
-  fetchAndPopulate:->
-
-
-class GroupsInvitationRequestsTabPaneView extends GroupsInvitationTabPaneView
-
-  constructor:(options={}, data)->
-    options.itemClass          or= GroupsInvitationListItemView
-    options.resolvedStatuses   or= ['pending', 'approved', 'declined']
-    options.unresolvedStatuses or= 'pending'
-
-    super options, data
+    pane ?= @parent
+    @getData().countInvitationsFromGraph @options.type,\
+      {status: @options.unresolvedStatus}, (err, count)->
+        pane.getHandle().updatePendingCount count  unless err
 
   fetchAndPopulate:->
     @controller.showLazyLoader no
 
-    @getData().fetchOrSearchInvitationRequests @options.statuses, @timestamp,\
-      @requestLimit, @searchValue, (err, requests)=>
-        @controller.hideLazyLoader()
-        if err or requests.length is 0
-          warn err  if err
-          return @controller.emit 'noItemsFound'
+    options = {@timestamp, @requestLimit, search: @searchValue}
+    options.status = @options.unresolvedStatus  unless @options.showResolved
 
-        @timestamp = requests.last.requestedAt
-        @controller.instantiateListItems requests
-        @emit 'teasersLoaded'  if requests.length is @requestLimit
+    @getData().fetchInvitationsFromGraph @options.type, options, (err, results)=>
+      @controller.hideLazyLoader()
+      if err or results.length is 0
+        warn err  if err
+        return @controller.emit 'noItemsFound'
 
-  updatePendingCount:(pane)->
-    pane  ?= @parent
-    status = @options.unresolvedStatuses
-    status = $in: status  if Array.isArray status
-    KD.remote.api.JInvitationRequest.count {status}, (err, count)->
-      pane.getHandle().updatePendingCount count  unless err
-
-  setStatusesByResolvedSwitch:(@resolvedState)->
-    @options.statuses = if @resolvedState\
-                        then @options.resolvedStatuses\
-                        else @options.unresolvedStatuses
+      @timestamp = results.last[@options.timestampField]
+      @controller.instantiateListItems results
+      @emit 'teasersLoaded'  if results.length is @requestLimit
 
 
-class GroupsMembershipRequestsTabPaneView extends GroupsInvitationRequestsTabPaneView
+class GroupsMembershipRequestsTabPaneView extends GroupsInvitationTabPaneView
 
   constructor:(options={}, data)->
-    options.noItemFound     or= 'No requests found.'
-    options.noMoreItemFound or= 'No more requests found.'
+    options.noItemFound      = 'No requests found.'
+    options.noMoreItemFound  = 'No more requests found.'
+    options.unresolvedStatus = 'pending'
+    options.type             = 'InvitationRequest'
+    options.timestampField   = 'requestedAt'
 
     super options, data
 
@@ -94,13 +81,14 @@ class GroupsMembershipRequestsTabPaneView extends GroupsInvitationRequestsTabPan
       @parent.tabHandle.markDirty()
 
 
-class GroupsSentInvitationsTabPaneView extends GroupsInvitationRequestsTabPaneView
+class GroupsSentInvitationsTabPaneView extends GroupsInvitationTabPaneView
 
   constructor:(options={}, data)->
-    options.resolvedStatuses   or= ['sent', 'accepted', 'ignored']
-    options.unresolvedStatuses or= 'sent'
-    options.noItemFound        or= 'No sent invitations found.'
-    options.noMoreItemFound    or= 'No more sent invitations found.'
+    options.noItemFound      = 'No sent invitations found.'
+    options.noMoreItemFound  = 'No more sent invitations found.'
+    options.unresolvedStatus = 'sent'
+    options.type             = 'Invitation'
+    options.timestampField   = 'createdAt'
 
     super options, data
 
@@ -108,29 +96,11 @@ class GroupsSentInvitationsTabPaneView extends GroupsInvitationRequestsTabPaneVi
 class GroupsInvitationCodesTabPaneView extends GroupsInvitationTabPaneView
 
   constructor:(options={}, data)->
-    options.itemClass       or= GroupsInvitationCodeListItemView
-    options.noItemFound     or= 'No invitation codes found.'
-    options.noMoreItemFound or= 'No more invitation codes found.'
+    options.itemClass        = GroupsInvitationCodeListItemView
+    options.noItemFound      = 'No invitation codes found.'
+    options.noMoreItemFound  = 'No more invitation codes found.'
+    options.unresolvedStatus = 'active'
+    options.type             = 'InvitationCode'
+    options.timestampField   = 'createdAt'
 
     super options, data
-
-  fetchAndPopulate:->
-    @controller.showLazyLoader no
-
-    status = 'active'  unless @resolvedState
-
-    KD.remote.api.JInvitation.fetchOrSearchMultiuse status, @timestamp,\
-      @requestLimit, @searchValue, (err, codes)=>
-        @controller.hideLazyLoader()
-        if err or codes.length is 0
-          warn err  if err
-          return @controller.emit 'noItemsFound'
-
-        @timestamp = codes.last._id
-        @controller.instantiateListItems codes
-        @emit 'teasersLoaded'  if codes.length is @requestLimit
-
-  updatePendingCount:(pane)->
-    pane  ?= @parent
-    KD.remote.api.JInvitation.countMultiuse status:'active', (err, count)->
-      pane.getHandle().updatePendingCount count  unless err
