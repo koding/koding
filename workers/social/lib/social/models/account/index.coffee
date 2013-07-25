@@ -449,12 +449,12 @@ module.exports = class JAccount extends jraphical.Module
     names = seed.toString().split('/')[1].replace('^','').replace(/(\/i)|\//g, '').split ' '
     names.push names.first if names.length is 1
 
+    seed = seed.toString().replace(/(\/i)|\//g, '')
     options.client = client
-    options.seed = seed
+    options.seed = seed+ '.*'
     options.firstNameRegExp = '^'+names.slice(0, -1).join(' ') + '.*'
     options.lastNameRegexp = '^'+names.last + '.*'
 
-    #graph = new Graph config:KONFIG['neo4j']
     Member.searchMembers options, (err, data)->
       callback err, data
 
@@ -644,6 +644,7 @@ module.exports = class JAccount extends jraphical.Module
       else
         this.isExempt = true
         console.log 'aint exempt'
+      @update $set: {isExempt: (flag is 'exempt')}, ()->
     else
       callback new KodingError 'Access denied'
 
