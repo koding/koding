@@ -234,7 +234,7 @@ module.exports = class JAccount extends jraphical.Module
 
   # returns troll users ids
   @getExemptUserIds: (callback)->
-    JAccount.someData {"isExempt":true}, {as:1}, (err, cursor)-> 
+    JAccount.someData {isExempt:true}, {as:1}, (err, cursor)-> 
       cursor.toArray (err, data)-> 
         if err
           return callback err, null
@@ -629,6 +629,7 @@ module.exports = class JAccount extends jraphical.Module
       else
         this.isExempt = false
         console.log 'aint exempt'
+      @update $set: {isExempt: (flag is 'exempt')}, ()->
     else
       callback new KodingError 'Access denied'
 

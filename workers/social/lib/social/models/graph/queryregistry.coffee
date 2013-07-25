@@ -21,10 +21,12 @@ module.exports =
           SKIP {skipCount}
           LIMIT {limitCount}
         """
-      list      :
+      list      :(exemptClause)->
         """
           START group=node:koding(id={groupId})
           MATCH group-[r:member]->members
+          WHERE members.name="JAccount"
+          #{exemptClause}
           RETURN members
           ORDER BY {orderByQuery} DESC
           SKIP {skipCount}

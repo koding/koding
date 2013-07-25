@@ -18,9 +18,11 @@ module.exports = class Graph
           return callback err, null
         if (index = ids.indexOf(delegate.getId().toString())) > -1
           ids.splice(index, 1)
-
-        trollIds = ('"' + id + '"' for id in ids).join(',')
-        callback null, " AND NOT(members.id in ["+trollIds+"])  "       
+        if ids.length > 0
+          trollIds = ('"' + id + '"' for id in ids).join(',')
+          callback null, " AND NOT(members.id in ["+trollIds+"])  "
+        else
+          callback null, ""
     else
       callback null, ""
 

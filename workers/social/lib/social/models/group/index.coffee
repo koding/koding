@@ -1444,6 +1444,7 @@ module.exports = class JGroup extends Module
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
       options.groupId = @getId()
+      options.client = client
       {Member} = require '../graph'
       Member.fetchMemberList options, (err, results)=>
         callback err, results

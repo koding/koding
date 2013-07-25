@@ -47,7 +47,8 @@ module.exports = class Member extends Graph
     activity.getCurrentGroup options.client, (err, group)=>
       if err
         return callback err
-
+      # TODO: move to QueryRegistry
+      # TODO: remove trolls...
       query = """
         START  koding=node:koding("id:#{group.getId()}")
         MATCH  koding-[r:member]->members
@@ -70,9 +71,9 @@ module.exports = class Member extends Graph
       query += " SKIP #{skip} \n" if skip
       query += " LIMIT #{limit} \n" if limit
 
-      # console.log "-----------------------"
-      # console.log query
-      # console.log "// --------------------"
+      console.log "-----------------------"
+      console.log query
+      console.log "// --------------------"
 
       @fetch query, options, (err, results) =>
         if err
@@ -99,9 +100,13 @@ module.exports = class Member extends Graph
   @fetchMemberList:(options, callback)->
     # {groupId, to} = options
     # console.log "undefined request parameter" unless groupId and to
-    options = @generateOptions options
-    query = QueryRegistry.member.list
-    @queryMembers query, options, callback
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      options = @generateOptions options
+      query = QueryRegistry.member.list exemptClause
+      console.log "------ XXXX -----"
+      console.log query
+      console.log "------// XXXX ---"
+      @queryMembers query, options, callback
 
   @queryMembers:(query, options={}, callback)=>
     @fetch query, options, (err, results) =>
