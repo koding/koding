@@ -52,8 +52,7 @@ class CommentView extends KDView
     @commentList.emit "BackgroundActivityFinished"
 
   attachListeners:->
-
-    @commentList.on "DecorateActiveCommentView", @bound "decorateActiveCommentState"
+    @commentList.on "commentInputReceivedFocus", @bound "decorateActiveCommentState"
 
     @commentList.on "CommentLinkReceivedClick", (event) =>
       @commentForm.makeCommentFieldActive()

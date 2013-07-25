@@ -18,8 +18,6 @@ class NFinderTreeController extends JTreeViewController
     mainController.on "NewFileIsCreated", @bound "navigateToNewFile"
     mainController.on "SelectedFileChanged", @bound "highlightFile"
 
-    @hideDotFiles = @getOptions().hideDotFiles
-
   addNode:(nodeData, index)->
 
     o = @getOptions()
@@ -136,7 +134,6 @@ class NFinderTreeController extends JTreeViewController
       unless err
         nodeView.expand()
         if files
-          files = (files.filter (file) -> file.name?[0] isnt '.') if @hideDotFiles
           @addNodes files
         callback? null, nodeView
         @emit "folder.expanded", nodeView.getData()
@@ -508,7 +505,7 @@ class NFinderTreeController extends JTreeViewController
   cmCodeShare:     (nodeView, contextMenuItem)-> @createCodeShare nodeView
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
-  cmOpenFileWithApp  : (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
+  cmOpenFileWithApp: (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -735,12 +732,9 @@ class NFinderTreeController extends JTreeViewController
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
 
-  refreshTopNode:(node=null)->
-    #KD.logToMixpanel "sharedHosting click on refresh success"
-
+  refreshTopNode:->
     {nickname} = KD.whoami().profile
-    treeNode = if node then node else @nodes["/home/#{nickname}"]
-    @refreshFolder treeNode, => @emit "fs.retry.success"
+    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
     KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
