@@ -186,7 +186,7 @@ module.exports =
     push	: yes
     host	: 'opsview.in.koding.com'
   followFeed    :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : 'rabbitmq-staging.in.koding.com'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
