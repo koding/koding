@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -56,6 +57,9 @@ func registerWebtermMethods(k *kite.Kite) {
 		}
 		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
 			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+		}
+		if params.NoScreen && params.Session != "" {
+			return nil, errors.New("The 'noScreen' and 'session' parameters can not be used together.")
 		}
 
 		newSession := false

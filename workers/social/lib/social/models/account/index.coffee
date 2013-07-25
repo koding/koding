@@ -240,11 +240,9 @@ module.exports = class JAccount extends jraphical.Module
 
   changeUsername$: secure (client, options, callback) ->
 
-    console.log { arguments }
-
     {delegate} = client.connection
 
-    unless delegate.equals this
+    if @type is 'unregistered' or not delegate.equals this
     then return callback new KodingError 'Access denied'
 
     options = username: options  if 'string' is typeof options
