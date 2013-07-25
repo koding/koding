@@ -18,6 +18,8 @@ class NFinderTreeController extends JTreeViewController
     mainController.on "NewFileIsCreated", @bound "navigateToNewFile"
     mainController.on "SelectedFileChanged", @bound "highlightFile"
 
+    @hideDotFiles = @getOptions().hideDotFiles
+
   addNode:(nodeData, index)->
 
     o = @getOptions()
@@ -119,8 +121,7 @@ class NFinderTreeController extends JTreeViewController
       callback? null, nodeView
       return
 
-    folder       = nodeView.getData()
-    hideDotFiles = unless @hideDotFiles then yes else no
+    folder = nodeView.getData()
 
     failCallback = (err)=>
       unless silence
@@ -135,8 +136,7 @@ class NFinderTreeController extends JTreeViewController
       unless err
         nodeView.expand()
         if files
-          if hideDotFiles
-            files = files.filter (file) -> file.name?[0] isnt '.'
+          files = (files.filter (file) -> file.name?[0] isnt '.') if @hideDotFiles
           @addNodes files
         callback? null, nodeView
         @emit "folder.expanded", nodeView.getData()
@@ -475,12 +475,6 @@ class NFinderTreeController extends JTreeViewController
       webTermView.on "WebTermConnected", (server) =>
         server.input "cd #{path}\n"
 
-  showDotFiles:(nodeView, contextMenuItem)->
-    data = contextMenuItem.getData()
-    @hideDotFiles = unless @hideDotFiles then yes else no
-    nodeView.data.hideDotFiles = @hideDotFiles
-    @refreshFolder nodeView
-
   ###
   CONTEXT MENU OPERATIONS
   ###
@@ -515,7 +509,6 @@ class NFinderTreeController extends JTreeViewController
   cmOpenTerminal:  (nodeView, contextMenuItem)-> @openTerminalFromHere nodeView
   cmShowOpenWithModal: (nodeView, contextMenuItem)-> @showOpenWithModal nodeView
   cmOpenFileWithApp  : (nodeView, contextMenuItem)-> @openFileWithApp  nodeView, contextMenuItem
-  cmShowDotFiles     : (nodeView, contextMenuItem)-> @showDotFiles nodeView, contextMenuItem
 
   cmOpenFileWithCodeMirror:(nodeView, contextMenuItem)-> @appManager.notify()
 
@@ -742,11 +735,12 @@ class NFinderTreeController extends JTreeViewController
           details.on 'ReceivedClickElsewhere', ->
             details.destroy()
 
-  refreshTopNode:->
+  refreshTopNode:(node=null)->
     #KD.logToMixpanel "sharedHosting click on refresh success"
 
     {nickname} = KD.whoami().profile
-    @refreshFolder @nodes["/Users/#{nickname}"], => @emit "fs.retry.success"
+    treeNode = if node then node else @nodes["/home/#{nickname}"]
+    @refreshFolder treeNode, => @emit "fs.retry.success"
 
   showOpenWithModal: (nodeView) ->
     KD.getSingleton("kodingAppsController").fetchApps (err, apps) =>
