@@ -91,6 +91,7 @@ module.exports = class Activity extends Graph
       @getCurrentGroup options.client, (err, currentGroup)=>
         requestOptions = @generateOptions options
         requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
+        requestOptions.client = options.client
         facet = @generateFacets options.facet
         timeQuery = @generateTimeQuery options.to
         query = QueryRegistry.activity.following facet, timeQuery, exemptClause
