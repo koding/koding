@@ -17,7 +17,7 @@ module.exports = class GraphDecorator
     overviewObjects = []
 
     for datum in data
-      if klass = singleActivityDecorators[datum.name]
+      if klass = singleActivityDecorators[datum.data.name]
         {activity, overview} = (new klass(datum)).decorate()
       else
         console.log datum.name, "not implemented"

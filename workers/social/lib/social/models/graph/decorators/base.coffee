@@ -1,6 +1,6 @@
 module.exports = class BaseDecorator
-  constructor:(@datum)->
-
+  constructor:(@data)->
+    @datum = @data.data
   decorate:->
     response =
       activity  : @decorateActivity()
@@ -16,7 +16,7 @@ module.exports = class BaseDecorator
       modifiedAt  : @convertToISO @datum.meta.modifiedAt
       group       : @datum.group
       snapshotIds : [@datum._id]
-      snapshot    : JSON.stringify @decorateSnapshot()
+      snapshot    : JSON.stringify @data #@decorateSnapshot()
       sorts       :
         repliesCount  : @repliesCount()
         likesCount    : @likesCount()
@@ -106,7 +106,7 @@ module.exports = class BaseDecorator
     return @extractCountFromRelationData 'follower'
 
   extractCountFromRelationData:(name)->
-    return @datum.relationData[name]?.length or 0
+    return @datum[name]?.length or 0
 
   decorateOverview:->
     overview =

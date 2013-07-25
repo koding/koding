@@ -24,7 +24,7 @@ module.exports = class Activity extends Graph
       facetQueryList = []
       for facet in facets
         return callback new KodingError "Unknown facet: #{facets.join()}" if facet not in neo4jFacets
-        facetQueryList.push "content.name='#{facet}'" 
+        facetQueryList.push "content.name='#{facet}'"
       facetQuery = "AND (" + facetQueryList.join(' OR ') + ")"
 
     return facetQuery
@@ -58,81 +58,110 @@ module.exports = class Activity extends Graph
           if err then return callback {error: "Not allowed to open this group"}
           else callback null, group
 
-  @fetchWithRelatedContent: (query, options, callback)->
-    @fetch query, options, (err, results) =>
-      if err
-        console.log "err:", err 
-        return callback err
-      if results? and results.length < 1 then return callback null, []
-      resultData = (result.content.data for result in results)
-      @objectify resultData, (objecteds)=>
-        @getRelatedContent objecteds, options, callback
+
+
+  # this function gets request options to fetch public content on main page
+  # for all groups it is called when it has "Public" filter in it
+  # It can filter also with facets like: "Everything, Status Updates, Discussions"
+  @fetchAll:(requestOptions, callback)->
+    {group:{groupName, groupId}, startDate, client, facet} = requestOptions
+    queryOptions =
+      groupId : groupId
+      to  : startDate
+      limitCount : 20
+
+    facetQuery = groupFilter = ""
+
+    if facet and facet isnt "Everything"
+      queryOptions.facet = facet
+      facetQuery += "AND content.name = {facet}"
+
+    if groupName isnt "koding"
+      queryOptions.groupName = groupName
+      groupFilter = "AND content.group! = {groupName}"
+
+    query = QueryRegistry.activity.public facetQuery, groupFilter
+
+    @fetchWithRelatedContent query, queryOptions, requestOptions, callback
+
+
 
   # this is used for activities on profile page
-  @fetchUsersActivityFeed: (options, callback)->
-    {facets, to, limit, client} = options
+  @fetchUsersActivityFeed: (requestOptions, callback)->
+    requestOptions.group =
+      grouId : requestOptions.group.id
+      groupName : requestOptions.group.slug
+
+    {facets, to, limit, client} = requestOptions
     facetQuery = @generateFacets facets
 
-    if options.sort.likesCount?
+    if requestOptions.sort.likesCount?
       orderBy = "coalesce(content.`meta.likes`?, 0)"
-    else if options.sort.repliesCount?
+    else if requestOptions.sort.repliesCount?
       orderBy = "coalesce(content.repliesCount?, 0)"
     else
       orderBy = "content.`meta.createdAtEpoch`"
 
-    options.userId = options.originId
-    options.limitCount = options.limit
+    # todo check for options that are required for this query
+    queryOptions = requestOptions
+    queryOptions.userId = requestOptions.originId
+    queryOptions.limitCount = 3 #requestOptions.limit
     query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
-    @fetchWithRelatedContent query, options, callback
+    @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
-  # this is following feed
-  @fetchFolloweeContents:(options, callback)->
-    requestOptions = @generateOptions options
-    facet = @generateFacets options.facet
-    timeQuery = @generateTimeQuery options.to
+  # this is following feed on main page
+  @fetchFolloweeContents:(requestOptions, callback)->
+    queryOptions = @generateOptions requestOptions
+    facet = @generateFacets requestOptions.facet
+    timeQuery = @generateTimeQuery requestOptions .to
     query = QueryRegistry.activity.following facet, timeQuery
-    @fetchWithRelatedContent query, options, callback
+    @fetchWithRelatedContent query, queryOptions, requestOptions, callback
+
+  @fetchWithRelatedContent: (query, queryOptions, requestOptions, callback)->
+    @fetch query, queryOptions, (err, results) =>
+      if err then return callback err
+      if results? and results.length < 1 then return callback null, []
+      resultData = (result.content.data for result in results)
+      @objectify resultData, (objecteds)=>
+        @getRelatedContent objecteds, requestOptions, callback
 
   @getRelatedContent:(results, options, callback)->
     tempRes = []
     {group:{groupName, groupId}, client} = options
-
-    collectRelations = race (i, res, fin)=>
+    @collectRelations = race (i, res, fin)=>
       @fetchRelatedItems res, (err, relatedResult)=>
         clientRelations = reply: 'replies', tag: 'tags', opinion: 'opinions'
         if err
-          console.log ">>>>>", err
           return callback err
           fin()
         else
           # this works different on following feed and profile page
-          tempRes[i].relationData =  relatedResult
+#          tempRes[i].relationData =  relatedResult
           tempRes[i][v] = [] for k, v of clientRelations
           for k of relatedResult
             clientRelName = clientRelations[k]
             if clientRelName?
               for bongoObj in relatedResult[k]
                 tempRes[i][clientRelName].push bongoObj
+              tempRes[i][clientRelName].reverse()
           fin()
     , =>
-      if groupName == "koding" or not groupName
+      if groupName == "koding"
         @removePrivateContent client, groupId, tempRes, (err, cleanContent)=>
-          if err 
-            console.log ">>>>", err
-            return callback err
+          if err then return callback err
           callback null, cleanContent
       else
         callback null, tempRes
 
-    @revive results, (reviveds)->
-      for result in reviveds
-        tempRes.push result
-        collectRelations result
+    @revive results, (reviveds)=>
+      for revived in reviveds
+        tempRes.push revived
+        @collectRelations revived
 
   @fetchRelatedItems: (item, callback)->
     # IMPORTANT
-    # this gives "range error maximum recursion depth exceeded", 
-    # if we dont set the relation types  
+    # this gives "range error maximum recursion depth exceeded",
+    # if we dont set the relation types
     # probably because there maybe self referencing objects
     # to test just remove tag|reply|opinion part
     query = """
@@ -146,8 +175,12 @@ module.exports = class Activity extends Graph
   @fetchRelateds:(item, query, callback)=>
     @fetch query, {}, (err, results) =>
       if err
-        console.log "errror", err 
         return callback err
+
+      if results.length < 1
+        item.repliesCount = 0
+        return callback null, results
+
       relationTypes = ['tag', 'reply', 'opinion']
       counts = {}
       counts[k] = 0 for k in relationTypes
@@ -163,7 +196,7 @@ module.exports = class Activity extends Graph
           data = result.all.data
           data.relationType = type
           resultData.push data
-        
+
       @objectify resultData, (objected)=>
         respond = {}
         @revive objected, (objects)->
