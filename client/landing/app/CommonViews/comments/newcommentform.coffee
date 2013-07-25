@@ -50,7 +50,7 @@ class NewCommentForm extends KDView
     @resetCommentField()
 
   makeCommentFieldActive:->
-    @getDelegate().emit "DecorateActiveCommentView"
+    @getDelegate().emit "commentInputReceivedFocus"
     (KD.getSingleton "windowController").setKeyView @commentInput
 
   resetCommentField:->
