@@ -144,7 +144,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
         cssClass : "top-badge gray"
         tooltip  :
           title  : "Dev-Mode enabled, click for help."
-        click    : =>
+        click    : (e) ->
+          e.stopPropagation()
           new KDModalView
             overlay  : yes
             width    : 500
