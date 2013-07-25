@@ -1,67 +1,55 @@
 class FollowButton extends KDToggleButton
 
-  constructor:(options = {}, data)->
-
+  constructor:(options, data)->
     options.cssClass = @utils.curryCssClass "follow-btn", options.cssClass
-    options = $.extend
-      defaultState : if data.followee then "Unfollow" else "Follow"
-      dataPath     : "followee"
-      loader       :
-        color      : "#333333"
-        diameter   : 18
-        top        : 11
-      states       : [
-        title      : "Follow"
-        cssClass   : options.stateOptions?.follow?.cssClass
-        callback   : (cb)=>
-          @getData().follow (err, response)=>
-            KD.showError err, options.errorMessages
-            @getData().followee = response
-            cb? err
-      ,
-        title      : "Unfollow"
-        cssClass   : options.stateOptions?.unfollow?.cssClass
-        callback   : (cb)=>
-          @getData().unfollow (err, response)=>
-            KD.showError err, options.errorMessages
-            @getData().followee = response
-            cb? err
-      ]
-
-    , options
-
-    super options, data
-
-  viewAppended:->
+    options.title        or= "Follow"
+    options.dataPath     or= "followee"
+    options.defaultState or= "Follow"
+    options.bind           = "mouseenter mouseleave"
+    options.loader       or=
+      color                : "#333333"
+      diameter             : 18
+      top                  : 11
+    options.states       or= [
+      title    : "Follow"
+      callback : @createStateCallback "follow"
+    ,
+      title    : "Following"
+      callback : @createStateCallback "unfollow"
+    ]
     super
 
-    unless @getData().followee
-      {dataType} = @getOptions()
-      return  unless dataType
+  createStateCallback:(method)->
+    (callback)=>
+      unless @inProgress
+        @inProgress = yes
 
-      KD.whoami().isFollowing? @getData().getId(), dataType, \
-      (err, following) =>
-        @getData().followee = following
-        @setState "Unfollow"  if following
+        setTimeout =>
+          @inProgress = no
+        , 10000
 
-class MemberFollowToggleButton extends FollowButton
-
-  constructor:(options = {}, data)->
-
-    options = $.extend
-
-      errorMessages  :
-        KodingError  : 'Something went wrong while follow'
-        AccessDenied : 'You are not allowed to follow members'
-      stateOptions   :
-        unfollow     :
-          cssClass   : 'following-btn'
-      dataType       : 'JAccount'
-
-    , options
-
-    super options, data
+        @getData()[method] (err, response)=>
+          @inProgress = no
+          unless err
+            callback? null
+            @redecorateState()
 
   decorateState:(name)->
-    KD.track "Members", name, @getData().profile.nickname
-    super
+
+  redecorateState:->
+    @setTitle @state.title
+
+    if @state.title is 'Follow'
+      @unsetClass 'following-btn'
+    else
+      @setClass 'following-btn'
+
+    @hideLoader()
+
+  mouseEnter:->
+    if @getTitle() is "Following"
+      @setTitle "Unfollow"
+
+  mouseLeave:->
+    if @getTitle() is "Unfollow"
+      @setTitle "Following"

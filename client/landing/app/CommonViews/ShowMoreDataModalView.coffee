@@ -1,8 +1,8 @@
 class ShowMoreDataModalView extends KDModalView
 
   titleMap = ->
-    account : "members"
-    tag     : "topics"
+    account : "Members"
+    tag     : "Topics"
 
   listControllerMap = ->
     account : MembersListViewController

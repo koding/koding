@@ -110,6 +110,7 @@ class NFinderController extends KDViewController
       return vmItem  if vmItem.data.vmName is vmName
 
   updateMountState:(vmName, state)->
+    return  if KD.isGuest()
     groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
     groupSlug ?= KD.defaultSlug
     @appStorage.fetchValue "mountedVM", (vms)=>
