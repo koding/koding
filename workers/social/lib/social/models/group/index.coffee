@@ -396,14 +396,14 @@ module.exports = class JGroup extends Module
     {limit, blacklist, skip}  = options
 
     @some {
-      title   : seed
-      _id     :
-        $nin  : blacklist
-      visibility: 'visible'
+      title      : seed
+      _id        :
+        $nin     : blacklist
+      visibility : 'visible'
     },{
       skip
       limit
-      sort    : 'title' : 1
+      sort       : 'title' : 1
     }, callback
 
   # currently groups in a group show global groups, so it does not
@@ -1389,3 +1389,7 @@ module.exports = class JGroup extends Module
             callback null, tempRes
           for res in results
             collectContents res
+
+  @each$ = (selector, options, callback)->
+    selector.visibility = 'visible'
+    @each selector, options, callback
