@@ -141,10 +141,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'appStorage'
         targetType  : "JAppStorage"
 
-      limit:
-        as          : 'invite'
-        targetType  : "JLimit"
-
       tag:
         as          : 'skill'
         targetType  : "JTag"
@@ -172,6 +168,14 @@ module.exports = class JAccount extends jraphical.Module
       proxyFilter   :
         as          : 'owner'
         targetType  : 'JProxyFilter'
+
+      invitation    :
+        as          : 'owner'
+        targetType  : 'JInvitation'
+
+      invitationRequest :
+        as          : 'owner'
+        targetType  : 'JInvitationRequest'
 
   chris:->
     @sendNotification 'Test', {foo:42}
@@ -737,8 +741,8 @@ module.exports = class JAccount extends jraphical.Module
         # Users can delete their stuff but super-admins can delete all of them ಠ_ಠ
         @profile.nickname in dummyAdmins or target?.originId?.equals @getId()
       when 'flag', 'reset guests', 'reset groups', 'administer names', \
-           'administer url aliases', 'administer accounts', 'grant-invites', \
-           'send-invites', 'migrate-koding-users', 'list-blocked-users'
+           'administer url aliases', 'administer accounts', \
+           'migrate-koding-users', 'list-blocked-users'
         @profile.nickname in dummyAdmins
 
   fetchRoles: (group, callback)->
@@ -954,48 +958,28 @@ module.exports = class JAccount extends jraphical.Module
       routingKey: @profile.nickname
       event, contents
     }
-  getInvitiationRequestRelationships:(options, status, callback)->
-    JInvitationRequest = require '../invitationrequest'
 
-    @fetchUser (err, user)=>
-      return callback err if err
-
-      selector =
-        $or: [
-          {'koding.username': @profile.nickname,}
-          {email: user.email}
-        ]
-        status: status
-
-      JInvitationRequest.some selector, {}, (err, requests)->
-        return callback err if err
-        return callback null, [] unless requests
-
-        selector =
-          targetName : 'JInvitationRequest'
-          targetId   : $in:(request.getId() for request in requests)
-          sourceName : 'JGroup'
-
-        if options?.groupIds
-          selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
-          delete options.groupIds
-
-        Relationship.some selector, {}, callback
-
-  fetchPendingGroupRequests:(options, callback)->
-    JGroup = require '../group'
-
-    @getInvitiationRequestRelationships options, 'pending', (err, rels)->
-      return callback err if err
-      JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
-
-  fetchPendingGroupInvitations:(options, callback)->
+  fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
-    JGroup = require '../group'
+    options ?= {}
 
-    @getInvitiationRequestRelationships options, 'sent', (err, rels)->
-      return callback err if err
+    selector    = {}
+    if options.groupIds
+      selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
+      delete options.groupIds
+
+    relOptions = targetSelector: {status}
+
+    @["fetchInvitation#{method}s"] {}, relOptions, (err, rels)->
+      return callback err  if err
+      JGroup = require '../group'
       JGroup.some _id:$in:(rel.sourceId for rel in rels), options, callback
+
+  fetchGroupsWithPendingRequests:(options, callback)->
+    @fetchGroupsWithPending 'Request', 'pending', options, callback
+
+  fetchGroupsWithPendingInvitations:(options, callback)->
+    @fetchGroupsWithPending '', 'sent', options, callback
 
   getInvitationRequestByGroup: secure (client, groupData, status, callback)->
     return unless @equals client.connection.delegate
@@ -1021,35 +1005,29 @@ module.exports = class JAccount extends jraphical.Module
         group.fetchInvitationRequests {}, options, callback
 
   cancelRequest: secure (client, group, callback)->
-    @getInvitationRequestByGroup client, group, 'pending', (err, [request])->
-      return callback err if err or not request
+    options = targetSelector:status:'pending'
+    @fetchInvitationRequests {sourceId: group._id}, options, (err, [request])->
+      return callback err                                  if err
+      return callback 'could not find invitation request'  unless request
       request.remove callback
 
+  fetchInvitationBySourceId:(sourceId, callback)->
+    @fetchInvitations {sourceId}, targetSelector:status:'sent', (err, [invite])->
+      return callback err                                  if err
+      return callback 'could not find invitation request'  unless request
+      callback null, invite
+
   acceptInvitation: secure (client, group, callback)->
-    @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
-      return callback err if err or not request
-      request.acceptInvitationByInvitee client, callback
+    fetchInvitationBySourceId group._id, (err, invite)->
+      return callback err  if err
+      group.approveMember this, (err)->
+        return callback err  if err
+        invite.update $set:status:'accepted', callback
 
   ignoreInvitation: secure (client, group, callback)->
-    @getInvitationRequestByGroup client, group, 'sent', (err, [request])->
-      return callback err if err or not request
-      request.ignoreInvitationByInvitee client, callback
-  # koding.pre 'methodIsInvoked', (client, callback)=>
-  #   delegate = client?.connection?.delegate
-  #   id = delegate?.getId()
-  #   unless id
-  #     callback client
-  #   else if @isTainted id
-  #     JAccount.one _id: id, (err, account)=>
-  #       if err
-  #         console.log 'there was an error'
-  #       else
-  #         @untaint id
-  #         client.connection.delegate = account
-  #         console.log 'delegate is force-loaded from db'
-  #         callback client
-  #   else
-  #     callback client
+    fetchInvitationBySourceId group._id, (err, invite)->
+      return callback err  if err
+      invite.update $set:status:'ignored', callback
 
   fetchFollowersFromNeo4j:(options={}, callback)->
       # returns accounts that follow this account
@@ -1173,3 +1151,10 @@ module.exports = class JAccount extends jraphical.Module
         content : "Reason: #{reason}"
         force   : yes
       email.save ->
+
+  @byClient = secure (client, callback)->
+    {delegate} = client.connection
+    if delegate instanceof JAccount
+      @one _id: delegate.getId(), callback
+    else
+      callback 'client delegate is not an account'

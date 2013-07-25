@@ -416,12 +416,10 @@ module.exports = class JUser extends jraphical.Module
 
   @configureNewAcccount = (account, user, replacementToken, callback) ->
     user.sendEmailConfirmation (err) -> console.error err  if err
-    JUser.grantInitialInvitations user.username
     JUser.emit 'UserCreated', user
     createNewMemberActivity account
     JAccount.emit "AccountAuthenticated", account
     callback null, account, replacementToken
-
 
   @validateAll = (userFormData, callback) =>
 

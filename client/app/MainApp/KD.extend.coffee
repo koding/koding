@@ -57,6 +57,7 @@ KD.extend
 
       @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
         return @notify_ err.message, "error"  if err
+        return callback yes                   unless currentGroup.privacy is 'public'
         currentGroup.join (err)=>
           return callback no  if err
           @notify_ "You have joined to #{groupName} group!", "success"

@@ -227,7 +227,7 @@ class GroupsInvitationView extends KDView
           scrollView.setPartial "#{errLine}<br/>"
         return scrollView.scrollTo top:scrollView.getScrollHeight()
 
-    new KDNotificationView title:'Invitation sent!'
+    new KDNotificationView title:'Success!'
     modal.destroy()
 
   saveInviteMessage:(messageType, message, callback=noop)->

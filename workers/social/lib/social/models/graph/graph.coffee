@@ -69,7 +69,7 @@ module.exports = class Graph
   attachReplies:(options, callback)->
     tempRes = []
     collectRelations = race (i, res, fin)=>
-      res.replies = [] 
+      res.replies = []
       @fetchReplies res.getId(), (err, relatedResult)=>
         if err
           callback err
@@ -429,38 +429,68 @@ module.exports = class Graph
         """
     @queryMembers query, {}, callback
 
-  fetchInvitations:(options, callback)->
-    {groupId, status, timestamp, requestLimit, search} = options
-
-    requestLimit = 10 unless requestLimit
-    regexSearch  = ""
-    timeStampQuery = ""
+  getFetchOrCountInvitationsQuery:(method, options)->
+    {groupId, search, query, status, searchField} = options
+    model = 'JInvitation'
 
     if search
-      # search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
       search = search.replace(/[^\w\s@.+-]/).trim()
-      regexSearch = "AND groupOwnedNodes.email =~ \".*#{search}.*\""
+      regexSearch = "AND groupOwnedNodes.#{searchField} =~ \".*#{search}.*\""
 
-    if timestamp?
-        timeStampQuery = "AND groupOwnedNodes.requestedAt > \"#{timestamp}\""
+    if status
+      statusQuery = "AND groupOwnedNodes.status = '#{options.status}'"
 
-    if typeof status is "string" then status = [status]
+    query =
+      """
+      START group=node:koding("id:#{groupId}")
+      MATCH group-[r:owner]->groupOwnedNodes
+      WHERE groupOwnedNodes.name = '#{model}'
+      #{query ? ''}
+      #{statusQuery ? ''}
+      #{regexSearch ? ''}
+      """
 
-    # convert status array into string array
-    status   = "[\"" + status.join("\",\"") + "\"]"
+    if method is 'fetch'
+      {timestamp, requestLimit, timestampField} = options
 
-    query = """
-        START group=node:koding("id:#{groupId}")
-        MATCH group-[r:owner]->groupOwnedNodes
-        WHERE groupOwnedNodes.name = 'JInvitationRequest'
-        AND groupOwnedNodes.status IN #{status}
-        #{timeStampQuery}
-        #{regexSearch}
+      if timestamp?
+        timestampQuery = "AND groupOwnedNodes.#{timestampField} > \"#{timestamp}\""
+
+      query +=
+        """#{timestampQuery ? ''}
         RETURN groupOwnedNodes
         ORDER BY groupOwnedNodes.`meta.createdAtEpoch`
-        LIMIT #{requestLimit}
+        LIMIT #{requestLimit ? 10}
         """
+    else
+      query += "RETURN count(groupOwnedNodes)"
 
+    return query
+
+  fetchOrCountInvitationRequests:(method, options, callback)->
+    options.model          = 'JInvitationRequest'
+    options.timestampField = 'requestedAt'
+    options.searchField    = 'email'
+
+    query = @getFetchOrCountInvitationsQuery method, options
+    @db.query query, {}, callback
+
+  fetchOrCountInvitations:(method, options, callback)->
+    options.model          = 'JInvitation'
+    options.timestampField = 'createdAt'
+    options.searchField    = 'email'
+    options.query          = "AND groupOwnedNodes.type = 'admin'"
+
+    query = @getFetchOrCountInvitationsQuery method, options
+    @db.query query, {}, callback
+
+  fetchOrCountInvitationCodes:(method, options, callback)->
+    options.model          = 'JInvitation'
+    options.timestampField = 'createdAt'
+    options.searchField    = 'code'
+    options.query          = "AND groupOwnedNodes.type = 'multiuse'"
+
+    query = @getFetchOrCountInvitationsQuery method, options
     @db.query query, {}, callback
 
   queryMembers:(query, options={}, callback)->
