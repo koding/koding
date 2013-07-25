@@ -2,7 +2,6 @@ class ActivityQuestionWidget extends KDFormView
 
   submit:->
     super
-    KD.track "Activity", "QuestionSubmitted"
     @reset()
     no
 

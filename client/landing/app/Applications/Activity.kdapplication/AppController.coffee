@@ -68,6 +68,7 @@ class ActivityAppController extends AppController
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
       @ready @bound "populateActivity"
+
     @emit 'ready'
 
   resetAll:->
@@ -432,12 +433,9 @@ class ActivityAppController extends AppController
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
-#        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
-        onTimeout : @bound 'recover'
+        onTimeout : @recover.bind this
 
   recover:->
-    #KD.logToMixpanel "activity feed render failed; recovering"
-
     @isLoading = no
 
     @status.disconnect()

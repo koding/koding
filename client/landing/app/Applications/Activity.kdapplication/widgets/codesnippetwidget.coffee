@@ -121,10 +121,11 @@ class ActivityCodeSnippetWidget extends KDFormView
 
   submit:->
     @addCustomData "code", @ace.getContents()
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "CodeSnippetSubmitted"
+      @reset()
 
     super
-    KD.track "Activity", "CodeSnippetSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 
