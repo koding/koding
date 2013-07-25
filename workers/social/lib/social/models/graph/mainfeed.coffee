@@ -64,7 +64,6 @@ module.exports = class Member extends Graph
 
   @fetchRelateds:(query, callback)->
     @fetch query, {}, (err, results) =>
-      console.log arguments
       if err then callback err
       resultData = []
       for result in results
@@ -107,18 +106,11 @@ module.exports = class Member extends Graph
 
   # we may need to add public group's read permission checking
   @removePrivateContent:(client, groupId, contents, callback)->
-    console.log "contents"
-    console.log contents
-
     if contents.length < 1 then return callback null, contents
     @getSecretGroups client, (err, secretGroups)=>
-      console.log "secretGroups"
-      console.log err, secretGroups
       if err then return callback err
       if secretGroups.length < 1 then return callback null, contents
       filteredContent = []
       for content in contents
         filteredContent.push content if content.group not in secretGroups
-      console.log "filteredContent"
-      console.log filteredContent
       return callback null, filteredContent

@@ -170,7 +170,6 @@ module.exports = class Graph
       match group-[:#{relName}]->items
       return count(items) as count
     """
-
     @db.query query, {}, (err, results) ->
       if err then callback err, null
       else callback null, results[0].count

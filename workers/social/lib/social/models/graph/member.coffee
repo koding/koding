@@ -70,20 +70,17 @@ module.exports = class Member extends Graph
       query += " SKIP #{skip} \n" if skip
       query += " LIMIT #{limit} \n" if limit
 
-      console.log "-----------------------"
-      console.log query
-      console.log "// --------------------"
+      # console.log "-----------------------"
+      # console.log query
+      # console.log "// --------------------"
 
       @fetch query, options, (err, results) =>
         if err
-          console.log "err:", err 
           return callback err
         if results? and results.length < 1 then return callback null, []
         resultData = (result.members.data for result in results)
         @objectify resultData, (objecteds)=>
           @revive objecteds, (objects)->
-            console.log "----- ????", err
-            console.log objects
             callback err, objects
 
       
@@ -102,19 +99,11 @@ module.exports = class Member extends Graph
   @fetchMemberList:(options, callback)->
     # {groupId, to} = options
     # console.log "undefined request parameter" unless groupId and to
-    console.log options
     options = @generateOptions options
-
     query = QueryRegistry.member.list
     @queryMembers query, options, callback
 
   @queryMembers:(query, options={}, callback)=>
-
-    console.log "query members"
-    console.log query
-    console.log "options"
-    console.log options
-
     @fetch query, options, (err, results) =>
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
@@ -122,8 +111,6 @@ module.exports = class Member extends Graph
       @generateMembers [], results, (err, data)=>
         if err then callback err
         @revive data, (revived)->
-          console.log "revived"
-          console.log revived
           callback null, revived
 
   @generateMembers:(resultData, results, callback)=>
@@ -137,3 +124,13 @@ module.exports = class Member extends Graph
       @generateMembers resultData, results, callback
 
 
+  @fetchRelationshipCount:(options, callback)=>
+    {groupId, relName} = options
+    query = """
+      START group=node:koding("id:#{groupId}")
+      match group-[:#{relName}]->items
+      return count(items) as count
+    """
+    @fetch query, {}, (err, results) =>
+      if err then callback err, null
+      else callback null, results[0].count

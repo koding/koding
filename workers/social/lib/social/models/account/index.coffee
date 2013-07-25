@@ -456,9 +456,6 @@ module.exports = class JAccount extends jraphical.Module
 
     #graph = new Graph config:KONFIG['neo4j']
     Member.searchMembers options, (err, data)->
-      console.log "------------ // data -------------"
-      console.log data
-      console.log "------------- * data -------------"
       callback err, data
 
   # @findSuggestions = (client, seed, options, callback)->
