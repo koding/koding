@@ -14,19 +14,16 @@ class DropboxDownloadItemView extends JView
         src      : fileData.thumbnails["64x64"] or fileData.icon
 
     @fileName    = new KDCustomHTMLView
-      tagName    : "div"
       cssClass   : "file-name"
       partial    : fileData.name
 
     @fileSize    = new KDCustomHTMLView
-      tagName    : "div"
       cssClass   : "file-size"
       partial    : KD.utils.formatBytesToHumanReadable fileData.bytes
 
     @loader      = new KDLoaderView
       size       :
         width    : 24
-        height   : 24
 
     @success     = new KDCustomHTMLView
       cssClass   : "done"
