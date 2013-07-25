@@ -46,7 +46,7 @@ module.exports = class CActivity extends jraphical.Capsule
         'captureSortCounts','addGlobalListener','fetchFacets'
         'checkIfLikedBefore', 'count', 'fetchCount'
         'fetchPublicActivityFeed', 'fetchUsersActivityFeed',
-        'fetchLastActivityTimestamp', 'testRevive'
+        'fetchLastActivityTimestamp',
       ]
       instance        : ['fetchTeaser']
     schema            :
@@ -73,36 +73,6 @@ module.exports = class CActivity extends jraphical.Capsule
       originType      : String
       originId        : ObjectId
       group           : String
-
-  # this is for revival test...
-  # TODO: dont forget to remove it
-  @testRevive: (options, callback)->
-
-    query = 'start koding=node:koding(id=\'5196fcb0bc9bdb0000000011\')
-    MATCH koding<-[:follower]-myfollowees-[:author]-content
-    where myfollowees.name="JAccount"
-    AND content.group = "koding"
-    AND (content.name=\'JStatusUpdate\')
-    return distinct content
-    order by content.`meta.createdAtEpoch` DESC
-    LIMIT 1'
-    ret = []
-    try
-      Graph   = require "../graph/graph"
-      graph = new Graph({config:KONFIG['neo4j']})
-      graph.db.query query, {}, (err, results) ->
-        console.log "err:::::", err
-        resultData = (result.content.data for result in results)
-        graph.objectify resultData, (objecteds)=>
-          console.log "the results ============="
-          console.log objecteds
-          console.log "// the results =========="
-          graph.revive objecteds, (revived)->
-            callback null, revived
-    catch e 
-      console.log ">>>>", e 
-
-    #callback null, "foo"
 
   @on 'feed-new', (activities)->
     JGroup = require '../group'
@@ -265,18 +235,6 @@ module.exports = class CActivity extends jraphical.Capsule
       'CBlogPostActivity'
     ]
 
-  neo4jFacets = [
-    "JLink"
-    "JBlogPost"
-    "JTutorial"
-    "JStatusUpdate"
-    "JComment"
-    "JOpinion"
-    "JDiscussion"
-    "JCodeSnip"
-    "JCodeShare"
-  ]
-
   @fetchCount = permit 'read activity',
     success:(client, callback)-> @count callback
 
@@ -339,62 +297,10 @@ module.exports = class CActivity extends jraphical.Capsule
 
       Activity.fetchUsersActivityFeed options, callback
 
-      return   
-      userId = client.connection.delegate.getId()
-      {facets, to, limit} = options
-      limit = 5 #bandage for now
-
-      groupId = group._id
-      groupName = group.slug
-
-      query = [
-        "start koding=node:koding(id='#{options.originId}')"
-        'MATCH koding<-[:author]-content'
-      ]
-
-      whereClause = []
-      # build facet queries
-      if facets and 'Everything' not in facets
-        facetQueryList = []
-        for facet in facets
-          return callback new KodingError "Unknown facet: " + facets.join() if facet not in neo4jFacets
-          facetQueryList.push("content.name='#{facet}'")
-        whereClause.push("(" + facetQueryList.join(' OR ') + ")")
-      # add timestamp
-
-      if to
-        timestamp = Math.floor(to / 1000)
-        whereClause.push "content.`meta.createdAtEpoch` < #{timestamp}"
-
-      if whereClause.length > 0
-        query.push 'WHERE', whereClause.join(' AND ')
-
-      # add return statement
-      query.push "return distinct content"
-
-      if options.sort.likesCount?
-        query.push "order by coalesce(content.`meta.likes`?, 0) DESC"
-      else if options.sort.repliesCount?
-        query.push "order by coalesce(content.repliesCount?, 0) DESC"
-      else
-        query.push "order by content.`meta.createdAtEpoch` DESC"
-
-      # add limit option
-      query.push "LIMIT #{limit}"
-
-      query = query.join('\n')
-
-      graph = new Graph({config:KONFIG['neo4j']})
-      options.returnAsBongoObjects = true
-      graph.runQuery(query, options, callback)
-
-
   @fetchFolloweeContents: secure (client, options, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
       {Activity} = require "../graph"
-
-
 
       {facets, to, limit} = options
       requestOptions =
@@ -408,10 +314,6 @@ module.exports = class CActivity extends jraphical.Capsule
         client : client
 
       Activity.fetchFolloweeContents requestOptions, callback
-#
-#      graph = new Graph({config:KONFIG['neo4j']})
-#      options.returnAsBongoObjects = true
-#      graph.runQuery(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
