@@ -60,6 +60,8 @@ class AvatarView extends LinkView
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
 
+    @$().attr href: profile.nickname
+
   viewAppended:->
     super
     @render() if @getData()

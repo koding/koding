@@ -309,6 +309,7 @@ module.exports = class JApp extends jraphical.Module
                         title     : @getAt 'title'
                         body      : @getAt 'body'
                         manifest  : @getAt 'manifest'
+                        meta      : createdAt: new Date()
                         approved  : yes
                       $addToSet   :
                         versions  : @getAt 'manifest.version'
