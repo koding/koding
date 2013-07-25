@@ -41,6 +41,64 @@ module.exports = class Member extends Graph
     @queryMembers query, options, callback
 
 
+  @searchMembers:(options, callback)->
+    {groupId, seed, firstNameRegExp, lastNameRegexp, skip, limit, blacklist} = options
+    activity = require './activity'
+    activity.getCurrentGroup options.client, (err, group)=>
+      if err
+        return callback err
+
+      query = """
+        START  koding=node:koding("id:#{group.getId()}")
+        MATCH  koding-[r:member]->members
+        
+        WHERE  (
+          members.`profile.nickname` =~ '(?i)#{seed}'
+          or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
+          or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
+        )
+        """
+      query += " \n"
+
+      if blacklist? and blacklist.length
+        blacklistIds = ("'#{id}'" for id in blacklist).join(',')
+        query += " AND NOT( members.id IN [#{ blacklistIds }] ) \n"
+
+      query += " RETURN members \n"
+      query += " ORDER BY members.`profile.firstName` "
+
+      query += " SKIP #{skip} \n" if skip
+      query += " LIMIT #{limit} \n" if limit
+
+      console.log "-----------------------"
+      console.log query
+      console.log "// --------------------"
+
+      @fetch query, options, (err, results) =>
+        if err
+          console.log "err:", err 
+          return callback err
+        if results? and results.length < 1 then return callback null, []
+        resultData = (result.members.data for result in results)
+        @objectify resultData, (objecteds)=>
+          @revive objecteds, (objects)->
+            console.log "----- ????", err
+            console.log objects
+            callback err, objects
+
+      
+      # @db.query query, {}, (err, results) =>
+      #   if err
+      #     console.log "ERR:", err
+      #     return callback err
+      #   else if results.length is 0 then callback null, []
+      #   else
+      #     objectify results[0].members.data, (objected)=>
+      #       console.log "objected ? !!!!", objected
+      #       {collections, wantedOrder} = @getIdsFromAResultSet [objected]
+      #       @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+      #         callback err, dbObjects
+
   @fetchMemberList:(options, callback)->
     # {groupId, to} = options
     # console.log "undefined request parameter" unless groupId and to
