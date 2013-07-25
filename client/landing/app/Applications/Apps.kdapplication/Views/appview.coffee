@@ -125,42 +125,16 @@ class AppView extends KDView
       else
         @likeButton.setState "Like"
 
-    if app.versions?.length > 1 and KD.isLoggedIn()
-      menu = {}
-
-      for version,i in app.versions
-        menu["Install version #{version}"] =
-          version  : version
-          callback : (item)=>
-            {version} = item.data
-            appsController.installApp app, version, (err)=>
-              KD.track "Apps", "Install", app.title unless err
-              if err then warn err
-
-      @installButton = new KDButtonViewWithMenu
-        title     : "Install Now"
-        style     : "cupid-green"
-        loader    :
-          top     : 0
-          diameter: 30
-          color   : "#ffffff"
-        delegate  : @
-        menu      : menu
-        callback  : ->
-          appsController.installApp app, app.versions.last, (err)=>
-            @hideLoader()
-
-    else
-      @installButton = new KDButtonView
-        title     : "Install Now"
-        style     : "cupid-green"
-        loader    :
-          top     : 0
-          diameter: 30
-          color   : "#ffffff"
-        callback  : ->
-          appsController.installApp app, app.versions.last, (err)=>
-            @hideLoader()
+    @installButton = new KDButtonView
+      title     : "Install Now"
+      style     : "cupid-green"
+      loader    :
+        top     : 0
+        diameter: 30
+        color   : "#ffffff"
+      callback  : ->
+        appsController.installApp app, app.versions.last, (err)=>
+          @hideLoader()
 
     @runButton = new KDButtonView
       title     : "Run"
