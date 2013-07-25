@@ -48,7 +48,8 @@ module.exports =
           #{exemptClause}
 
           RETURN members
-          ORDER BY members.`profile.firstName`  LIMIT 9
+          ORDER BY members.`profile.firstName`  
+          LIMIT {limitCount}
         """ 
     bucket :
       newMembers :

@@ -51,7 +51,7 @@ module.exports = class Member extends Graph
       queryOptions = 
         blacklistQuery: ""
         skip: skip or 0
-        limit: limit or 10
+        limitCount: limit or 10
         seed: seed
         firstNameRegExp: firstNameRegExp
         lastNameRegexp: lastNameRegexp
