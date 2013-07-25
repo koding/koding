@@ -92,20 +92,19 @@ module.exports =
           AND content.group = {groupName}
           #{facet}
           #{timeQuery}
-          RETURN distinct content
+          RETURN DISTINCT content
           ORDER BY content.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}
         """
-      
+
       profilePage: (options)->
         """
-          start koding=node:koding(id={userId})
-          MATCH koding<-[:author]-content
-          WHERE
-          content.`meta.createdAtEpoch` < {to}
+          START member=node:koding(id={userId})
+          MATCH member<-[:author]-content
+          WHERE content.`meta.createdAtEpoch` < {to}
           #{options.facetQuery}
-          return distinct content
-          order by #{options.orderBy} DESC
+          RETURN DISTINCT content
+          ORDER BY #{options.orderBy} DESC
           LIMIT {limitCount}
         """
 
