@@ -18,8 +18,8 @@ class StartTabMainView extends JView
     @appsController.on "aNewAppCreated", =>
       @aNewAppCreated()
 
-    finder = KD.getSingleton("finderController")
-    finder.on 'recentfiles.updated', =>
+    @finderController = KD.getSingleton "finderController"
+    @finderController.on 'recentfiles.updated', =>
       @updateRecentFileViews()
 
     @loader = new KDLoaderView size : width : 16
@@ -175,10 +175,9 @@ class StartTabMainView extends JView
     @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
       recentFilePaths or= []
       @updateRecentFileViews()
-      KD.getSingleton('mainController').on "NoSuchFile", (file)=>
+      @finderController.on "NoSuchFile", (file)=>
         recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
-        @appStorage.setValue 'recentFiles', recentFilePaths, ->
-          log "Storage updated for recent files"
+        @appStorage.setValue 'recentFiles', recentFilePaths
 
   updateRecentFileViews:(recentFilePaths)->
 
