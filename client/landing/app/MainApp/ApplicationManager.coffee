@@ -88,10 +88,10 @@ class ApplicationManager extends KDObject
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller
 
-      if not appOptions? and not options.avoidRecursion?
+      if not appOptions?
         return @fetchManifests name, =>
           @open name, options, callback
-      
+
       appParams = options.params or {}
 
       if appOptions?.multiple
