@@ -792,36 +792,45 @@ class NFinderTreeController extends JTreeViewController
     notification   = null
     kiteController = KD.getSingleton "kiteController"
     plainPath      = FSHelper.plainPath nodeView.getData().path
-    tmpFileName    = "tmp#{Date.now()}"
     isFolder       = nodeView.getData().type is "folder"
+    timestamp      = Date.now()
+    tmpFileName    = if isFolder then "tmp#{timestamp}.zip" else "tmp#{timestamp}"
+    relativePath   = "/home/#{KD.nick()}/Web/#{tmpFileName}"
     kallback       = ->
       fileName     = FSHelper.getFileNameFromPath plainPath
-      if isFolder
-        fileName   = "#{fileName}.zip"
+      fileName     = "#{fileName}.zip"  if isFolder
       options      =
-        files : [
-          {
-            filename: fileName
-            url     : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
-          }
+        files      : [
+          filename : fileName
+          url      : "http://#{KD.getSingleton('vmController').defaultVmName}/#{tmpFileName}"
         ]
         success: ->
-          notification.notificationSetTitle "Your file has been uploaded"
+          notification.notificationSetTitle "Your file has been uploaded."
           notification.notificationSetTimer 4000
           notification.setClass "success"
+          kiteController.run "rm #{relativePath}"
+        error: ->
+          notification.notificationSetTitle "An error occured while uploading your file."
+          notification.notificationSetTimer 4000
+          notification.setClass "error"
 
       Dropbox.save options
 
     if isFolder
       notification = new KDNotificationView
-        title      : "Zipping your folder"
+        title      : "Zipping your folder..."
         type       : "mini"
         duration   : 120000
 
-      kiteController.run "mkdir -p Web ; zip -r /home/#{KD.nick()}/Web/#{tmpFileName}.zip #{plainPath}", (err, res) =>
+      kiteController.run "mkdir -p Web ; zip -r #{relativePath} #{plainPath}", (err, res) =>
         return  warn err if err
+        notification.notificationSetTitle "Uploading zipped file..."
         kallback()
     else
-      kiteController.run "cp #{plainPath} /home/#{KD.nick()}/Web/#{tmpFileName}", (err, res) =>
+      notification = new KDNotificationView
+        title      : "Uploading your file..."
+        type       : "mini"
+        duration   : 120000
+      kiteController.run "mkdir -p Web ; cp #{plainPath} #{relativePath}", (err, res) =>
         return  warn err if err
         kallback()
