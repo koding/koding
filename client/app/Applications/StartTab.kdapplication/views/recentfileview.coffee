@@ -39,14 +39,15 @@ class StartTabRecentFileItemView extends JView
     @loader.show()
     file.fetchContents (err, contents)=>
       @loader.hide()
-      if err
-        if /No such file or directory/.test err
-          KD.getSingleton('mainController').emit "NoSuchFile", file
-          new KDNotificationView
-            title     : "This file is deleted in server!"
-            type      : "mini"
-            container : @parent
-            cssClass  : "error"
+      if err?.name is "PathError"
+        KD.getSingleton("finderController").emit "NoSuchFile", file
+        new KDNotificationView
+          title     : "#{file.name} is not found."
+          type      : "mini"
+          duration  : 4000
+          cssClass  : "error"
+          container : @parent
+        @destroy()
       else
         file.contents = contents
         KD.getSingleton("appManager").openFile file
