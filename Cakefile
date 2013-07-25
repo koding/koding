@@ -187,7 +187,7 @@ task 'authWorker',({configFile}) ->
       restartTimeout : 1000
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "version"
+        startMode    : "many"
       verbose        : yes
 
   if config.watch is yes
