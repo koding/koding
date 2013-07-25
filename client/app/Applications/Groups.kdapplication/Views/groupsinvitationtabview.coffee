@@ -18,7 +18,7 @@ class GroupsInvitationTabView extends KDTabView
       callback : (@resolvedState)=> @setResolvedStateInView()
 
     @approvalEnabled = @getDelegate().policy?.approvalEnabled
-    @resolvedState = no
+    @showResolved    = no
 
     @on 'PaneAdded', (pane)=> pane.options.view.updatePendingCount pane
 
@@ -32,13 +32,13 @@ class GroupsInvitationTabView extends KDTabView
   paneDidShow:->
     @decorateHeaderButtons()
     {tabHandle, mainView} = @getActivePane()
-    @setResolvedStateInView()  if mainView.resolvedState isnt @resolvedState
+    @setResolvedStateInView()  if mainView.options.showResolved isnt @showResolved
     mainView.refresh()  if tabHandle.isDirty
     tabHandle.markDirty no
 
   setResolvedStateInView:->
     view = @getActivePane().subViews.first
-    view.setShowResolved @resolvedState
+    view.setShowResolved @showResolved
     view.refresh()
 
   createTabs:->

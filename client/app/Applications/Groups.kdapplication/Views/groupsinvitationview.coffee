@@ -16,7 +16,6 @@ class GroupsInvitationView extends KDView
         @saveInviteMessage 'inviteApprovedMessage', @getDefaultInvitationMessage()
 
     @on 'SearchInputChanged', (value)=>
-      console.log @tabView.getActivePane().mainView
       @tabView.getActivePane().mainView.emit 'SearchInputChanged', value
 
   showModalForm:(options)->

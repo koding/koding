@@ -753,7 +753,7 @@ module.exports = class JGroup extends Module
       queue.next()
 
     daisy queue = [
-      -> group.resolvePendingRequests client, yes, kallback
+      -> group.resolvePendingRequests client, kallback
       -> group.destroyMemebershipPolicy kallback
       -> callback null
     ]
@@ -810,33 +810,32 @@ module.exports = class JGroup extends Module
         else unless policy then callback new KodingError 'No membership policy!'
         else
           selector =
-            group             : @slug
-            status            : 'pending'
-            invitationType    : invitationType
-
+            group          : @slug
+            status         : 'pending'
           JInvitationRequest = require '../invitationrequest'
           JInvitationRequest.each selector, {}, (err, request)->
             if err then callback err
             else if request? then request.approve client
             else callback null
 
-  inviteByEmail: permit 'send invitations',
-    success: (client, email, message, options, callback)->
+  inviteByEmail: do->
+    fetchAccountByEmail = (email, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
-        cb = (account)=>
-          @inviteMember client, email, account, message, options, callback
+        return callback null, null  if err or not user
+        user.fetchOwnAccount (err, account)=>
+          return callback null, null  if err or not account
+          @isMember account, (err, isMember)->
+            if isMember
+              callback new KodingError "#{email} is already member of this group!"
+            else
+              callback null, account
 
-        if err or not user
-          cb null
-        else
-          user.fetchOwnAccount (err, account)=>
-            return cb null  if err or not account
-            @isMember account, (err, isMember)->
-              if isMember
-                callback new KodingError "#{email} is already member of this group!"
-              else
-                cb account
+    permit 'send invitations',
+      success: (client, email, message, options, callback)->
+        fetchAccountByEmail email, (err, account)=>
+          return callback err  if err
+          @inviteMember client, email, account, message, options, callback
 
   inviteByEmails: permit 'send invitations',
     success: (client, emails, message, options, callback)->
@@ -859,9 +858,9 @@ module.exports = class JGroup extends Module
 
   inviteMember: (client, email, account, message, options, callback)->
     JInvitation = require '../invitation'
-    JInvitation.create client, this, email, options, (err, invite)=>
+    JInvitation.create client, @slug, email, options, (err, invite)=>
       return callback err  if err
-      @addInvitation invite, (err)->
+      @addInvitation invite, (err)=>
         return callback err  if err
         invite.sendMail client, this, options, (err)->
           return callback err  if err
@@ -928,9 +927,11 @@ module.exports = class JGroup extends Module
           email  : user.email
           status : $not: $in: JInvitationRequest.resolvedStatuses
         }
+
         JInvitationRequest.one selector, (err, invitationRequest)=>
           return callback err, invitationRequest  if err or invitationRequest
-          selector.status = 'pending'
+          selector.status   = 'pending'
+          selector.username = user.username
 
           invitationRequest = new JInvitationRequest selector
           invitationRequest.save (err)=>
@@ -944,10 +945,7 @@ module.exports = class JGroup extends Module
                   this, account, user.email, invitationType
                 )
 
-              if account instanceof JAccount
-                account.addInvitationRequest invitationRequest, callback
-              else
-                callback null
+              account.addInvitationRequest invitationRequest, callback
 
   approveMember:(member, roles, callback)->
     [callback, roles] = [roles, callback]  unless callback
@@ -1344,8 +1342,10 @@ module.exports = class JGroup extends Module
 
   fetchOrCountInvitations: permit 'send invitations',
     success: (client, type, method, options, callback)->
-      options.groupId = @getId()
+      supportedTypes = ['Invitation', 'InvitationRequest', 'InvitationCode']
+      return callback 'unsupported type'  unless type in supportedTypes
 
+      options.groupId = @getId()
       graph = new Graph({config:KONFIG['neo4j']})
       graph["fetchOrCount#{type}s"] method, options, callback
 
@@ -1353,13 +1353,18 @@ module.exports = class JGroup extends Module
     success: (client, type, options, callback)->
       @fetchOrCountInvitations client, type, 'fetch', options, (err, results)=>
         return callback err  if err
-
         ids = (res.groupOwnedNodes.data.id  for res in results)
-        @constructor.some _id: $in: ids, {}, callback
+
+        require(
+          if type is 'InvitationRequest'
+          then model = '../invitationrequest'
+          else model = '../invitation'
+        ).some _id: $in: ids, {}, callback
 
   countInvitationsFromGraph: permit 'send invitations',
     success: (client, type, options, callback)->
-      @fetchOrCountInvitations client, type, 'count', options, callback
+      @fetchOrCountInvitations client, type, 'count', options, (err, result)=>
+        return callback err, result?[0]?.count
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->

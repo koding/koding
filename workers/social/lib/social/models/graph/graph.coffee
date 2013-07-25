@@ -429,9 +429,8 @@ module.exports = class Graph
         """
     @queryMembers query, {}, callback
 
-  getFetchOrCountInvitationsQuery:(method, options)->
-    {groupId, search, query, status, searchField} = options
-    model = 'JInvitation'
+  getFetchOrCountInvitationsQuery = (method, options)->
+    {groupId, search, query, status, searchField, model} = options
 
     if search
       search = search.replace(/[^\w\s@.+-]/).trim()
@@ -457,13 +456,14 @@ module.exports = class Graph
         timestampQuery = "AND groupOwnedNodes.#{timestampField} > \"#{timestamp}\""
 
       query +=
-        """#{timestampQuery ? ''}
+        """
+        #{timestampQuery ? ''}
         RETURN groupOwnedNodes
         ORDER BY groupOwnedNodes.`meta.createdAtEpoch`
         LIMIT #{requestLimit ? 10}
         """
     else
-      query += "RETURN count(groupOwnedNodes)"
+      query += "RETURN count(groupOwnedNodes) as count"
 
     return query
 
@@ -472,7 +472,7 @@ module.exports = class Graph
     options.timestampField = 'requestedAt'
     options.searchField    = 'email'
 
-    query = @getFetchOrCountInvitationsQuery method, options
+    query = getFetchOrCountInvitationsQuery method, options
     @db.query query, {}, callback
 
   fetchOrCountInvitations:(method, options, callback)->
@@ -481,7 +481,8 @@ module.exports = class Graph
     options.searchField    = 'email'
     options.query          = "AND groupOwnedNodes.type = 'admin'"
 
-    query = @getFetchOrCountInvitationsQuery method, options
+    query = getFetchOrCountInvitationsQuery method, options
+    console.log query
     @db.query query, {}, callback
 
   fetchOrCountInvitationCodes:(method, options, callback)->
@@ -490,7 +491,7 @@ module.exports = class Graph
     options.searchField    = 'code'
     options.query          = "AND groupOwnedNodes.type = 'multiuse'"
 
-    query = @getFetchOrCountInvitationsQuery method, options
+    query = getFetchOrCountInvitationsQuery method, options
     @db.query query, {}, callback
 
   queryMembers:(query, options={}, callback)->

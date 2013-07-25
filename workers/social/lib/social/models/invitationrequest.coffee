@@ -8,9 +8,6 @@ module.exports = class JInvitationRequest extends Model
   {permit}    = require './group/permissionset'
   KodingError = require '../error'
 
-  JAccount    = require './account'
-  JInvitation = require './invitation'
-
   @share()
 
   @set
@@ -19,7 +16,7 @@ module.exports = class JInvitationRequest extends Model
       status          : 'sparse'
     sharedMethods     :
       static          : ['create']
-      instance        : ['send', 'delete', 'approve', 'decline']
+      instance        : ['send', 'remove', 'approve', 'decline']
     schema            :
       requestedAt     :
         type          : Date
@@ -28,6 +25,7 @@ module.exports = class JInvitationRequest extends Model
         type          : Date
       group           : String
       username        : String
+      email           : String
       status          :
         type          : String
         enum          : ['Invalid status', [
@@ -42,10 +40,10 @@ module.exports = class JInvitationRequest extends Model
         default       : 'invitation'
     relationships   :
       requester     :
-        targetType  : JAccount
+        targetType  : 'JAccount'
         as          : 'requester'
       invitation    :
-        targetType  : JInvitation
+        targetType  : 'JInvitation'
         as          : 'owner'
 
   @resolvedStatuses = ['declined', 'approved']
@@ -54,9 +52,8 @@ module.exports = class JInvitationRequest extends Model
     success: (client, callback=->)->
       @update $set:{ status: 'declined' }, callback
 
-  delete: permit 'send invitations',
-    success: (client, callback=->)->
-      @removeInvitation => @remove callback
+  remove$: permit 'send invitations',
+    success: (client, callback=->)-> @remove callback
 
   approve: permit 'send invitations',
     success: (client, callback=->)->
@@ -112,6 +109,7 @@ module.exports = class JInvitationRequest extends Model
         JMailNotification.create data, callback
 
   sendRequestApprovedNotification:(client, group, receiver, callback)->
+    JAccount          = require './account'
     JMailNotification = require './emailnotification'
 
     JAccount.byClient client, (err, actor)=>

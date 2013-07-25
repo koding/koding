@@ -16,8 +16,6 @@ module.exports = class JInvitation extends jraphical.Module
 
   {ObjectRef, dash, daisy, secure} = require 'bongo'
 
-  JAccount    = require './account'
-  JLimit      = require './limit'
   KodingError = require '../error'
   JMail       = require './email'
 
@@ -27,13 +25,14 @@ module.exports = class JInvitation extends jraphical.Module
     indexes         :
       code          : 'unique'
     sharedMethods   :
-      instance      : ['modifyMultiuse']
+      instance      : ['modifyMultiuse', 'remove']
       static        : ['inviteFriend', 'byCode', 'suggestCode', 'createMultiuse']
     schema          :
       code          :
         type        : String
         required    : yes
       email         : String
+      username      : String
       group         :
         type        : String
         required    : yes
@@ -52,8 +51,10 @@ module.exports = class JInvitation extends jraphical.Module
         default     : 'admin'
       status        :
         type        : String
-        enum        : ['invalid status type', ['sent','active','blocked','redeemed','couldnt send email','accepted','ignored']]
-        default     : 'active' # 'unconfirmed'
+        enum        : ['invalid status type', [
+          'sent','active','blocked','redeemed','couldnt send email','accepted','ignored'
+        ]]
+        default     : 'active'
       origin        : ObjectRef
       memo          : String
       createdAt     :
@@ -61,11 +62,14 @@ module.exports = class JInvitation extends jraphical.Module
         default     : -> new Date
     relationships   :
       invitedBy     :
-        targetType  : JAccount
+        targetType  : 'JAccount'
         as          : 'inviter'
       redeemer      :
-        targetType  : JAccount
+        targetType  : 'JAccount'
         as          : 'redeemer'
+
+  remove$: permit 'send invitations',
+    success: (client, callback=->)-> @remove callback
 
   @byCode = (code, callback)-> @one {code}, callback
 
@@ -98,30 +102,29 @@ module.exports = class JInvitation extends jraphical.Module
   # send invites from group dashboard
 
   @create = permit 'send invitations',
-    success: (client, groupObj, email, options, callback)->
+    success: (client, group, email, options, callback)->
       [callback, options] = [options, callback]  unless callback
       {delegate} = client.connection
       type       = ''
-      group      = groupObj.slug
 
       selector = {email, group, type}
       JInvitation.one selector, (err, existingInvite)=>
         return callback err                   if err
         return callback null, existingInvite  if existingInvite
 
-        code = @generateInvitationCode 'admin', email, group
-        invite = new JInvitation {
-          code, email, group
-          origin: ObjectRef(delegate)
-        }
-        invite.save (err)->
+        JUser = require './user'
+        JUser.one {email}, (err, user)=>
           return callback err  if err
-          groupObj.addInvitation invite, (err)->
+
+          code = @generateInvitationCode 'admin', email, group
+          invite = new JInvitation {
+            code, email, group
+            origin: ObjectRef(delegate)
+          }
+          invite.username = user.username  if user
+          invite.save (err)->
             return callback err  if err
-            if delegate instanceof JAccount
-              invite.addInvitedBy delegate, (err)-> callback err, invite
-            else
-              callback null, invite
+            invite.addInvitedBy delegate, (err)-> callback err, invite
 
   sendMail: permit 'send invitations',
     success: (client, group, options, callback)->
@@ -152,7 +155,6 @@ module.exports = class JInvitation extends jraphical.Module
           replyto : inviter.email
           bcc     : options.bcc
         }
-
         email.save (err)=>
           @update {$set: status: if err then 'couldnt send email' else 'sent'}, callback
 
