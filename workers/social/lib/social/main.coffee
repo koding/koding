@@ -70,6 +70,7 @@ processMonitor = (require 'processes-monitor').start
   #      , 20000
 
 koding = new Bongo
+  verbose     : social.verbose
   root        : __dirname
   mongo       : mongo
   models      : './models'
