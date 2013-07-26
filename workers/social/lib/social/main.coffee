@@ -91,14 +91,6 @@ koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection
   callback delegate
 
-# koding.on 'auth', (exchange, sessionToken)->
-#   koding.fetchClient sessionToken, (client)->
-#     {delegate} = client.connection
-
-#     # if delegate instanceof koding.models.JAccount
-#     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
-
-#     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
   (require './init').init koding
 
