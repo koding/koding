@@ -62,3 +62,29 @@ class AppFollowBucketItemView extends FollowBucketItemView
     options.subItemLinkClass or= AppLinkView
     options.subItemCssClass or= 'profile'
     super
+
+class MemberBucketItemView extends KDView
+
+  constructor:(options, data)->
+    options.subItemLinkClass or= ProfileLinkView
+    options.subItemCssClass or= 'profile'
+
+    @group = new LinkGroup
+      group         : data.anchors
+      itemClass     : options.subItemLinkClass
+      separator     : ','
+
+    @action = "became a memeber"
+
+    super
+
+  pistachio:->
+    """
+    <span class='icon'></span>
+    {{> @group}}
+    <span class='action'>#{@action}</span>
+    """
+
+  viewAppended:->
+    @setTemplate @pistachio()
+    @template.update()
