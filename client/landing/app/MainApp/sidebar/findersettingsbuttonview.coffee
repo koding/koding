@@ -41,8 +41,7 @@ class HideDotFilesSwitch extends JView
 
   hideFiles:(state)->
     @appStorage.fetchStorage (storage)=>
-      unless storage
-        return KD.showError "An error occured. Please try again later."
+      return  unless storage
       @appStorage.setValue "hideDotFiles", state
       @emit "dotFileStateChanged", state
 
