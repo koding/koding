@@ -257,25 +257,24 @@ class LoginView extends KDScrollView
           new KDNotificationView
             cssClass  : "login"
             title     : "<span></span>Happy Coding!"
-            # content   : "Successfully logged in."
             duration  : 2000
           @loginForm.reset()
 
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
-          # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
 
         @hide()
 
-  doRedeem:(formData)->
-    return # not implemented yet
-    # groupsController = KD.getSingleton 'groupsController'
-    # group            = groupsController.getCurrentGroup()
+  doRedeem:({code})->
+    return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
 
-    # group.redeem formData, (err)->
+    KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
+      group.redeemInvitation code, (err)->
+        return KD.notify_ err.message or err  if err
+        KD.getSingleton('mainController').accountChanged KD.whoami()
 
   showHeadBanner:(message, callback)->
     @headBannerMsg = message

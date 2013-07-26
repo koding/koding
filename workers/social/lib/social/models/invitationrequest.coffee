@@ -112,23 +112,22 @@ module.exports = class JInvitationRequest extends Model
     JAccount          = require './account'
     JMailNotification = require './emailnotification'
 
-    JAccount.byClient client, (err, actor)=>
-      return callback err  if err
+    actor = client.connection.delegate
 
-      receiver.sendNotification 'GroupRequestApproved',
-        actionType   : 'groupRequestApproved'
-        actorType    : 'admin'
-        subject      : ObjectRef(group).data
-        admin        : ObjectRef(account).data
+    receiver.sendNotification 'GroupRequestApproved',
+      actionType   : 'groupRequestApproved'
+      actorType    : 'admin'
+      subject      : ObjectRef(group).data
+      admin        : ObjectRef(receiver).data
 
-      data = {
-        actor, receiver
-        event        : 'Approved'
-        contents     :
-          subject    : ObjectRef(group).data
-          actionType : 'approved'
-          actorType  : 'requester'
-          approved   : ObjectRef(this).data
-          requester  : ObjectRef(actor).data
-      }
-      JMailNotification.create data, callback
+    data = {
+      actor, receiver
+      event        : 'Approved'
+      contents     :
+        subject    : ObjectRef(group).data
+        actionType : 'approved'
+        actorType  : 'requester'
+        approved   : ObjectRef(this).data
+        requester  : ObjectRef(actor).data
+    }
+    JMailNotification.create data, callback

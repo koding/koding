@@ -95,7 +95,7 @@ module.exports = class JGroup extends Module
         'remove', 'bulkApprove', 'fetchNewestMembers', 'countMembers',
         'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
         'createVM', 'canCreateVM', 'vmUsage', 'fetchBundle', 'updateBundle',
-        'saveInviteMessage'
+        'saveInviteMessage', 'redeemInvitation'
       ]
     schema          :
       title         :
@@ -879,6 +879,18 @@ module.exports = class JGroup extends Module
     Relationship.count selector, (err, count)->
       if err then callback err
       else callback null, (if count is 0 then no else yes)
+
+  redeemInvitation: secure (client, code, callback)->
+    {delegate} = client.connection
+    @isMember delegate, (err, isMember)=>
+      return callback err  if err or isMember
+      selector = targetSelector:{code:'haha', status:$in:['active', 'sent']}
+      @fetchInvitations {}, selector, (err, [invite])=>
+        return callback err  if err
+        return callback new KodingError 'Invitation code is invalid!'  unless invite
+        @approveMember delegate, (err)->
+          return callback err  if err
+          invite.redeem client, callback
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->

@@ -227,7 +227,7 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.loginScreen.animateToForm 'login'
       '/:name?/Logout'    : ({params:{name}})->
         requireLogin  -> mainController.doLogout()
-      '/:name?/Redeem'  : ({params:{name}})->
+      '/:name?/Redeem'    : ({params:{name}})->
         requireLogin  -> mainController.loginScreen.animateToForm 'redeem'
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
@@ -266,11 +266,11 @@ class KodingRouter extends KDRouter
             mainController.loginScreen.headBannerShowRecovery recoveryToken
           @clear()
 
-      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})->
+      '/:name?/Invitation/:inviteToken': ({params:{inviteToken}})=>
         inviteToken = decodeURIComponent inviteToken
         if KD.isLoggedIn()
-          new KDNotificationView
-            title: 'Could not redeem invitation because you are already logged in.'
+          @handleRoute '/Redeem', entryPoint: KD.config.entryPoint
+          mainController.loginScreen.redeemForm.inviteCode.input.setValue inviteToken
         else KD.remote.api.JInvitation.byCode inviteToken, (err, invite)=>
           if err or !invite? or invite.status not in ['active','sent']
             if err then error err

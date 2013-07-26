@@ -1146,10 +1146,3 @@ module.exports = class JAccount extends jraphical.Module
         content : "Reason: #{reason}"
         force   : yes
       email.save ->
-
-  @byClient = secure (client, callback)->
-    {delegate} = client.connection
-    if delegate instanceof JAccount
-      @one _id: delegate.getId(), callback
-    else
-      callback 'client delegate is not an account'
