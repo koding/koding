@@ -18,7 +18,6 @@ class NFinderController extends KDViewController
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.useStorage        = options.useStorage         ?= no
     treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= no
-    treeOptions.hideDotFiles      = options.hideDotFiles       ?= no
     treeOptions.delegate          = this
 
     super options, data
@@ -36,15 +35,6 @@ class NFinderController extends KDViewController
       @treeController.on "folder.collapsed", ({path})=>
         # @unsetRecentFolder path
         @stopWatching path
-
-      @treeController.on "dotFileStateChanged", (state)=>
-        @treeController.hideDotFiles = state
-        {nickname} = KD.whoami().profile
-        @appStorage.fetchValue "mountedVM", (vms)=>
-          for group of vms
-            for vm in vms[group]
-              topNode = @treeController.nodes["[#{vm}]/home/#{nickname}"]
-              @treeController.refreshFolder topNode  if topNode
 
     @noVMFoundWidget = new VMMountStateWidget
     @cleanup()
