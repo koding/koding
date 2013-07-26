@@ -66,12 +66,6 @@ class Sidebar extends JView
       pistachio : "{{#(profile.nickname)}}.#{KD.config.userSitesDomain}"
     , account
 
-    # @generalSettingsButton = new FinderSettingsButtonView
-    # @generalSettingsButton.on "dotFileStateChanged", (state) =>
-    #   @finderController.treeController.emit "dotFileStateChanged", state
-
-    # @finderHeader.addSubView @generalSettingsButton
-
     # File Tree
     @finderController = new NFinderController
       useStorage        : yes
