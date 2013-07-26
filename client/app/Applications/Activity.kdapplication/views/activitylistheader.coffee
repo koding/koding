@@ -10,11 +10,18 @@ class ActivityListHeader extends JView
     @appStorage = new AppStorage 'Activity', '1.0'
     @_newItemsCount = 0
 
+    @showNewItemsInTitle = no
+
     @showNewItemsLink = new KDCustomHTMLView
       cssClass    : "new-updates"
       partial     : "<span>0</span> new items. <a href='#' title='Show new activities'>Update</a>"
       click       : =>
         @updateShowNewItemsLink yes
+
+
+    @headerTitle = new KDCustomHTMLView
+      partial     : "Latest Activity"
+      tagName: "span"
 
     @showNewItemsLink.hide()
 
@@ -72,12 +79,13 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    "<div class='header-wrapper'><span>Latest Activity</span>{{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
+    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     __count++
     @_newItemsCount++
     @updateShowNewItemsLink()
+    @updateShowNewItemsTitle()  if @showNewItemsInTitle
 
   decorateLiveUpdateButton:->
     if KD.isLoggedIn() then @liveUpdateButton.show()
@@ -94,6 +102,15 @@ class ActivityListHeader extends JView
         @showNewItemsLink.show()
     else
       @showNewItemsLink.hide()
+
+  updateShowNewItemsTitle: ->
+    if @_newItemsCount > 0
+      document.title = "(#{@_newItemsCount}) Activity"
+    else
+      @hideDocumentTitleCount()
+
+  hideDocumentTitleCount: ->
+    document.title = "Activity"
 
   getNewItemsCount: ->
     return @_newItemsCount

@@ -52,7 +52,7 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
           return callback err  if err?
           callback null, worker?.hostname ? null
 
-module.exports = (req, res) ->
+module.exports = do (failing = no) -> (req, res) ->
   {params:{service}, query} = req
 
   protocol = KONFIG.broker.webProtocol ? 'https:'
@@ -77,10 +77,14 @@ module.exports = (req, res) ->
 
   else unless services.length
     # FAILURE! send an alert to opsview.
-    nsca.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
+    unless failing
+      failing = yes
+      nsca.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
     # Fail-over to the value hard-coded into the config.
-    res.send "\"#{ KONFIG.client.runtimeOptions.broker.sockJS }\""
+    { webHostname, webPort } = KONFIG.broker
+    res.send "\"#{ protocol }//#{ webHostname }#{ if webHostname.port then ":#{webHostname.port}" else "" }\""
 
   else
+    failing = no
     i = genericServices.seq++ % services.length
     res.send "\"#{ protocol }//#{ services[i] }\""

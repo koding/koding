@@ -445,12 +445,13 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
+    if groupSlug isnt "koding"
       @one {slug : groupSlug }, (err, group)=>
         if err then console.error err
         unless group then console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
-          @oldBroadcast.call this, "koding", event, message
+          unless event is "MemberJoinedGroup"
+            @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',
@@ -1474,11 +1475,12 @@ module.exports = class JGroup extends Module
             JAccount.one  { _id : objId }, (err, account)=>
               if err
                 callback err
-                fin()
-              else
-                tempRes[i] = account
-                fin()
+                return fin()
+
+              tempRes[i] = account
+              fin()
           , ->
+            tempRes = tempRes.filter (res)-> res
             callback null, tempRes
           for res in results
             collectContents res
