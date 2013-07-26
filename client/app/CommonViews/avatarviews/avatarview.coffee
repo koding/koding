@@ -150,14 +150,14 @@ class AvatarTooltipView extends KDView
         warn err  if KD.isLoggedIn()
         if data.followee
           @followButton.setClass 'following-btn'
-          @followButton.setState "Unfollow"
+          @followButton.setState "Following"
         else
           @followButton.setState "Follow"
           @followButton.unsetClass 'following-btn'
     else
       if data.followee
         @followButton.setClass 'following-btn'
-        @followButton.setState "Unfollow"
+        @followButton.setState "Following"
     @followButton.setData data
     @followButton.render()
 

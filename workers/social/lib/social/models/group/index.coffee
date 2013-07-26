@@ -1394,11 +1394,12 @@ module.exports = class JGroup extends Module
             JAccount.one  { _id : objId }, (err, account)=>
               if err
                 callback err
-                fin()
-              else
-                tempRes[i] = account
-                fin()
+                return fin()
+
+              tempRes[i] = account
+              fin()
           , ->
+            tempRes = tempRes.filter (res)-> res
             callback null, tempRes
           for res in results
             collectContents res
