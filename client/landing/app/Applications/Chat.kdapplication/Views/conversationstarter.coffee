@@ -35,7 +35,7 @@ class ConversationStarter extends JView
       cssClass : "conversation-starter-popup"
 
     @recipientsWrapper = new KDView
-      cssClass : "completed-items"
+      cssClass : "completed-items hidden"
 
     @recipient = new KDAutoCompleteController
       name                : "recipient"
@@ -59,15 +59,16 @@ class ConversationStarter extends JView
 
     @recipient.on 'ItemListChanged', (newCount)=>
       if newCount > 0
-      then @startConversationButton.show()
-      else @startConversationButton.hide()
+        @recipientsWrapper.show()
+        @startConversationButton.show()
+      else
+        @startConversationButton.hide()
 
     @input = @recipient.getView()
     @input.setPlaceHolder "Start by typing user names..."
 
   viewAppended:->
     super
-
     @addSubView @input
     @addSubView @recipientsWrapper
     @addSubView @startConversationButton
