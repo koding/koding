@@ -14,7 +14,7 @@ class KDAutoComplete extends KDInputView
     @inputDefaultValue = value
     @setValue value
 
-  $input:->@$("input").eq(0)
+  $input:-> @$("input").eq(0)
   getValue:-> @$input().val()
   setValue:(value)-> @$input().val(value)
 
@@ -34,8 +34,7 @@ class KDAutoComplete extends KDInputView
 
   focus:(pubInst,event)->
     @setClass "focus"
-    (KD.getSingleton "windowController").setKeyView @
-    yes
+    super
 
   keyDown:(event)->
     (KD.getSingleton "windowController").setKeyView @
@@ -48,3 +47,14 @@ class KDAutoComplete extends KDInputView
     @dropdown.destroy() if @dropdown?
     @dropdownPrefix = ""
     @dropdown = null
+
+  setPlaceHolder:(value)->
+    @$input()[0].setAttribute "placeholder", value
+
+  setFocus:->
+    super
+    @$input().trigger "focus"
+
+  setBlur:->
+    super
+    @$input().trigger "blur"
