@@ -125,13 +125,14 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-
-    KD.getSingleton("appManager").tell section, method, options ? models,
-      (contentDisplay)=>
-        routeWithoutParams = route.split('?')[0]
-        @openRoutes[routeWithoutParams] = contentDisplay
-        @openRoutesById[contentDisplay.id] = routeWithoutParams
-        contentDisplay.emit 'handleQuery', query
+    groupName = if section is "Groups" then name else "koding"
+    KD.getSingleton('groupsController').changeGroup groupName, (err) =>
+      KD.getSingleton("appManager").tell section, method, options ? models,
+        (contentDisplay)=>
+          routeWithoutParams = route.split('?')[0]
+          @openRoutes[routeWithoutParams] = contentDisplay
+          @openRoutesById[contentDisplay.id] = routeWithoutParams
+          contentDisplay.emit 'handleQuery', query
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
@@ -159,6 +160,7 @@ class KodingRouter extends KDRouter
             selector = {}
             konstructor = KD.remote.api[constructorName]
             selector[usedAsPath] = aSlug.slug
+            selector.group = aSlug.group if aSlug.group
             konstructor?.one selector, (err, model)=>
               return onError err if err?
               if model
