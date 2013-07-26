@@ -159,9 +159,9 @@ catch e
           router.openSection options.name, name, query
         router.addRoute slug, handler
 
-      if KD.singletons.router
-      then do -> cb KD.getSingleton('router')
-      else KodingRouter.on 'RouterReady', do -> cb
+      if KD.getSingleton 'router'
+      then @utils.defer -> cb KD.getSingleton('router')
+      else KodingRouter.on 'RouterReady', cb
 
     if options.navItem?.order
       @registerNavItem options.navItem
