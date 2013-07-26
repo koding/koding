@@ -73,7 +73,7 @@ class KDModalView extends KDView
         <div class='kdmodal-shadow'>
           <div class='kdmodal-inner'>
             #{helpButton}
-             <span class='close-icon closeModal' title='Close [ESC]'></span>
+            <span class='close-icon closeModal' title='Close [ESC]'></span>
             <div class='kdmodal-title hidden'></div>
             <div class='kdmodal-content'></div>
           </div>

@@ -280,7 +280,6 @@ class KDTooltip extends KDView
 
     # fetch corrected placement and coordinated for positioning
     {coords,placement,direction} = @getCorrectPositionCoordinates o,{placement,direction}
-    # log coords
 
     # css classes for arrow positioning
     for placement_ in ['top','bottom','left','right']

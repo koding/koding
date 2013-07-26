@@ -26,10 +26,10 @@ class ProfileView extends JView
         , memberData
     , memberData
 
-    defaultState = if memberData.followee is yes then "Unfollow" else "Follow"
+    defaultState = if memberData.followee is yes then "Following" else "Follow"
 
     @followButton = new MemberFollowToggleButton
-      style           : "kdwhitebtn profilefollowbtn"
+      style : "kdwhitebtn profilefollowbtn"
     , memberData
 
     @skillTags = @putSkillTags()

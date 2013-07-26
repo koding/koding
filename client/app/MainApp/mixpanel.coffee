@@ -54,7 +54,7 @@ class KDMixpanel
 
       {title, privacy, visibility} = group
       options = {title, privacy, visibility, $user, $activity}
-        
+
       @track eventName, options
 
     else if eventName is "Groups" and eventData is "JoinedGroup"
@@ -73,7 +73,7 @@ class KDMixpanel
         {title, privacy, visibility} = group
         options = {title, privacy, visibility, $user}
         @track "Group Join Request", options
-      
+
       else if eventData is "InvitationSentToFriend"
         options       =
           $user       : $user
@@ -81,7 +81,7 @@ class KDMixpanel
 
         @track "Invitation Send", options
       else
-        log "Warning: Unknown mixpanel event set",rest
+        log "Warning: Unknown mixpanel event set", rest
 
   track:(eventName, properties, callback)->
     mixpanel.track eventName, properties, callback
