@@ -21,7 +21,7 @@ module.exports = [
   # core
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
-  "Framework/core/KDOverlayView.coffee",  
+  "Framework/core/KDOverlayView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
   "Framework/core/KDScrollView.coffee",
@@ -218,6 +218,7 @@ module.exports = [
   "app/CommonViews/opinions/tutorialformview.coffee",
 
   "app/CommonViews/markdownmodal.coffee",
+  "app/CommonViews/dropboxdownloaditemview.coffee",
 
   # FATIH
   "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
@@ -615,8 +616,8 @@ module.exports = [
   "app/Applications/Apps.kdapplication/Views/AppSubmission.coffee",
   "app/Applications/Apps.kdapplication/Views/appinfoview.coffee",
   "app/Applications/Apps.kdapplication/Views/appview.coffee",
-  "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
-  "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
+  # "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
+  # "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
   "app/Applications/Apps.kdapplication/Views/appdetailsview.coffee",
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",

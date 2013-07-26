@@ -8,10 +8,11 @@ class KDMixpanel
     if eventName is "Login" or (eventName is "Groups" and eventData is "ChangeGroup")
       # identify user on mixpanel
       @registerUser()
-
+    else if eventName is "Connected to backend"
+      @track eventName, KD.nick()
+      @registerUser()
     else if eventName is "New User Signed Up"
       @track eventName, KD.whoami().profile
-
     else if eventName is "User Opened Ace"
       {title, privacy, visibility} = eventData
       
@@ -19,12 +20,11 @@ class KDMixpanel
       @setOnce 'First Time Ace Opened', Date.now()
       @track eventName, options
 
-    else if eventName is "User Opened Terminal"
+    else if eventName is "userOpenedTerminal"
       {title, privacy, visibility} = eventData
-      
       options = {title, privacy, visibility, $user}
       @setOnce 'First Time Terminal Opened', Date.now()
-      @track eventName, options
+      @track "User Opened Terminal", options
 
     else if eventName is "Apps" and eventData is "Install"
       

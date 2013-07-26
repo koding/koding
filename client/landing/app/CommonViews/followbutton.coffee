@@ -53,3 +53,25 @@ class FollowButton extends KDToggleButton
   mouseLeave:->
     if @getTitle() is "Unfollow"
       @setTitle "Following"
+
+class MemberFollowToggleButton extends FollowButton
+
+  constructor:(options = {}, data)->
+
+    options = $.extend
+
+      errorMessages  :
+        KodingError  : 'Something went wrong while follow'
+        AccessDenied : 'You are not allowed to follow members'
+      stateOptions   :
+        unfollow     :
+          cssClass   : 'following-btn'
+      dataType       : 'JAccount'
+
+    , options
+
+    super options, data
+
+  decorateState:(name)->
+    KD.track "Members", name, @getData().profile.nickname
+    super
