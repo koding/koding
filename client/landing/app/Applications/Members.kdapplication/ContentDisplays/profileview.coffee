@@ -26,10 +26,10 @@ class ProfileView extends JView
         , memberData
     , memberData
 
-    defaultState = if memberData.followee is yes then "Unfollow" else "Follow"
+    defaultState = if memberData.followee is yes then "Following" else "Follow"
 
     @followButton = new MemberFollowToggleButton
-      style      : "kdwhitebtn profilefollowbtn"
+      style : "kdwhitebtn profilefollowbtn"
     , memberData
 
     @skillTags = @putSkillTags()
@@ -194,4 +194,8 @@ class ProfileView extends JView
       callback? err, message
 
   sendMessage:(messageDetails, callback)->
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed"
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback
