@@ -173,7 +173,7 @@ class KDInputViewWithPreview extends KDInputView
 
           @textContainer.addSubView @text
 
-          modal = new KDModalView
+          @modal = new KDModalView
             title       : "Please enter your content here."
             cssClass    : "modal-fullscreen"
             width       : window.innerWidth-100
@@ -192,34 +192,19 @@ class KDInputViewWithPreview extends KDInputView
                 callback:=>
                   @setValue @text.getValue()
                   @generatePreview()
-                  modal.destroy()
+                  @modal.destroy()
               Cancel    :
                 title   : "cancel"
                 style   : "modal-cancel"
-                callback: -> modal.destroy()
-
+                callback:=> @modal.destroy()
 
           @utils.defer =>
+            @setPaneSizes()
 
-            modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
-            modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
-            modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21+10
-            modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21+10
-            modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
-
-            contentWidth = modal.$(".kdmodal-content").width()-40
-            halfWidth  = contentWidth / 2
-
-            @text.on "PreviewHidden", =>
-              modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
-              # modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
-
-            @text.on "PreviewShown", =>
-              modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-              # modal.$(".input_preview").width halfWidth-5
-
-            modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-            modal.$(".input_preview").width halfWidth-5
+          $(window).on "resize", =>
+            # (do/dont) Set width as "half" if preview is on
+            willSetWidths = @previewOnOffSwitch.defaultValue is on
+            @setPaneSizes(willSetWidths)
 
       # @addSubView @fullScreenBtn
       @previewOnOffContainer.addSubView @fullScreenBtn
@@ -228,6 +213,39 @@ class KDInputViewWithPreview extends KDInputView
     @previewOnOffContainer.addSubView @previewOnOffSwitch
 
     @addSubView @previewOnOffContainer
+
+  setPaneSizes:(willSetWidths = yes)->
+    # selector performance ?
+    fullscreenData = @modal.$(".fullscreen-data")
+    inputPreview   = @modal.$(".input_preview")
+    kdmodalContent = @modal.$(".kdmodal-content")
+
+    # minus the margin, border pixels too..
+    kdmodalContent.height @modal.$(".kdmodal-inner").height() - @modal.$(".kdmodal-buttons").height() - @modal.$(".kdmodal-title").height()
+    
+    kdmodalContentHeight = kdmodalContent.height()
+
+    fullscreenData.height kdmodalContentHeight - 30 - 23 + 10
+    inputPreview.height kdmodalContentHeight - 0 - 21 + 10
+    inputPreview.css 
+      maxHeight :  kdmodalContentHeight - 0 - 21 + 10
+    @modal.$(".input_preview div.preview_content").css 
+      maxHeight :  kdmodalContentHeight - 0 - 21
+
+    contentWidth = kdmodalContent.width() - 40
+    halfWidth    = contentWidth / 2
+
+    @text.on "PreviewHidden", =>
+      fullscreenData.width contentWidth # -(@modal.$("div.preview_switch").width() + 20) - 10
+      # inputPreview.width (@modal.$("div.preview_switch").width() + 20)
+
+    @text.on "PreviewShown", =>
+      fullscreenData.width contentWidth - halfWidth - 5
+      # inputPreview.width halfWidth - 5
+
+    if willSetWidths
+      fullscreenData.width contentWidth - halfWidth - 5
+      inputPreview.width halfWidth - 5
 
   getEditScrollPercentage:->
       scrollPosition = @$().scrollTop()
