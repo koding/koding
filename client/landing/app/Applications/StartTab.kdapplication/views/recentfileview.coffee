@@ -33,23 +33,21 @@ class StartTabRecentFileItemView extends JView
 
   click:(event)->
 
-    path = @getData()
-
-    vmName = FSHelper.getVMNameFromPath path
-    path   = FSHelper.plainPath path
-    file   = FSHelper.createFile {path, vmName, type:'file'}
+    path   = @getData()
+    file   = FSHelper.createFileFromPath path
 
     @loader.show()
     file.fetchContents (err, contents)=>
       @loader.hide()
-      if err
-        if /No such file or directory/.test err
-          KD.getSingleton('mainController').emit "NoSuchFile", file
-          new KDNotificationView
-            title     : "This file is deleted in server!"
-            type      : "mini"
-            container : @parent
-            cssClass  : "error"
+      if err?.name is "PathError"
+        KD.getSingleton("finderController").emit "NoSuchFile", file
+        new KDNotificationView
+          title     : "#{file.name} is not found."
+          type      : "mini"
+          duration  : 4000
+          cssClass  : "error"
+          container : @parent
+        @destroy()
       else
         file.contents = contents
         KD.getSingleton("appManager").openFile file
