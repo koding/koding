@@ -14,11 +14,10 @@ class OpenWithModalItem extends JView
       delegate = @getDelegate()
       delegate.selectedApp.unsetClass "selected" if delegate.selectedApp
       @setClass "selected"
-      delegate.selectedApp = @
+      delegate.selectedApp = this
 
   pistachio: ->
-    data = @getData()
     """
       {{> @img }}
-      <div class="app-name">#{data.name}</div>
+      {div.app-name{ #(name)}}
     """
