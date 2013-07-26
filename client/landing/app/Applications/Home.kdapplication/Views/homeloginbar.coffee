@@ -1,7 +1,8 @@
 class HomeLoginBar extends JView
 
   requiresLogin = (callback)->
-    KD.requireMembership {callback, tryAgain: yes, groupName: KD.config.entryPoint?.slug}
+    if KD.isLoggedIn() then callback()
+    else KD.getSingleton('router').handleRoute '/Login', entryPoint: KD.config.entryPoint
 
   constructor:(options = {}, data)->
 
@@ -27,6 +28,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "/Redeem"
       click       : (event)=>
+        @utils.stopDOMEvent event
         requiresLogin =>
           handler.call @redeem, event
           KD.track "Login", "Redeem", @group.slug
@@ -246,16 +248,16 @@ class HomeLoginBar extends JView
 
               @group.on 'MemberAdded', @emit.bind this, 'MemberAdded'
 
-              KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
-                return console.warn err if err
-                return unless request
+              KD.whoami().fetchMyGroupInvitationStatus @group.getId(), (err, status)=>
+                return console.warn err  if err
+                return                   unless status
                 @access.hide()
                 @request.hide()
-                if request.status is 'sent'
-                  @invited.show()
-                else
+                if status is 'requested'
                   @listenToApproval()
                   @requested.show()
+                else if status is 'invited'
+                  @invited.show()
     else
       @hide()
 

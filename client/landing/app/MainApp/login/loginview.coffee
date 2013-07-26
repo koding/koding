@@ -268,12 +268,14 @@ class LoginView extends KDScrollView
 
         @hide()
 
-  doRedeem:({code})->
+  doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()
 
     KD.remote.cacheable KD.config.entryPoint.slug, (err, [group])=>
-      group.redeemInvitation code, (err)->
+      group.redeemInvitation inviteCode, (err)=>
+        @redeemForm.button.hideLoader()
         return KD.notify_ err.message or err  if err
+        KD.notify_ 'Success!'
         KD.getSingleton('mainController').accountChanged KD.whoami()
 
   showHeadBanner:(message, callback)->
