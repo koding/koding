@@ -18,8 +18,7 @@ class GroupsInvitationTabPaneView extends KDView
     @addSubView @listView
 
     @controller.on 'UpdatePendingCount', @updatePendingCount.bind this
-    @listView.on 'invitationStatusChanged', =>
-      @parent.tabHandle.markDirty()
+    @listView.on 'invitationStatusChanged', @parent.tabHandle.bound 'markDirty'
 
   addListeners:->
     @on 'teasersLoaded', =>
