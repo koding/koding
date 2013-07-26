@@ -38,8 +38,8 @@ class DiscussionActivityActionsView extends ActivityActionsView
 
     for view in [@opinionCount, @commentCount]
       view.on "countChanged", (count)->
-        if count > 0 then view.show()
-        else view.hide()
+        if count > 0 then @show()
+        else @hide()
 
     @on "DiscussionActivityLinkClicked", =>
       unless @parent instanceof ContentDisplayDiscussion
