@@ -434,18 +434,6 @@ module.exports = class Graph
         LIMIT #{limit}
         """
     @queryMembers query, {}, callback
-  
-  fetchMembersReputation:(options, callback)->
-    {memberId} = options
-    query = """
-      START member=node:koding("id:#{memberId}")
-      MATCH member-[:author]-items-[r:like]-likedItems
-      RETURN count(likedItems) as count
-    """
-    @db.query query, options, (err, results) ->
-      if err then throw err
-      count = if results and results[0]['count'] then results[0]['count'] else 0
-      callback null, count
 
   fetchInvitations:(options, callback)->
     {groupId, status, timestamp, requestLimit, search} = options
