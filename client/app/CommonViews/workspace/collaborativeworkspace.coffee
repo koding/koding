@@ -140,8 +140,8 @@ class CollaborativeWorkspace extends Workspace
       partial  : """<span class="text">Loading...<span>"""
 
     @loader.addSubView loaderView = new KDLoaderView size: width : 36
-    @container.addSubView @loader
     @loader.on "viewAppended", -> loaderView.show()
+    @container.addSubView @loader
 
   joinSession: (sessionKey) ->
     {parent}           = @
