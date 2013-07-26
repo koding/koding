@@ -133,7 +133,7 @@ class AppView extends KDView
         diameter: 30
         color   : "#ffffff"
       callback  : ->
-        appsController.installApp app, app.versions.last, (err)=>
+        appsController.installApp app, app.manifest.version, (err)=>
           @hideLoader()
 
     @runButton = new KDButtonView
