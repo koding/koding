@@ -16,7 +16,7 @@ module.exports =
     secret      : 'RkZRBOR8jtbAo+to2nbYWwPlZvzG9ZjyC8yhTh1q'
   uri           :
     address     : "https://koding.com"
-  userSitesDomain: 'kd.io'
+  userSitesDomain: 'staging.kd.io'
   containerSubnet: "10.128.2.0/9"
   projectRoot   : projectRoot
   version       : version
@@ -186,6 +186,8 @@ module.exports =
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+    bin   : '/usr/local/nagios/bin/send_nsca'
+    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq-staging.in.koding.com'
     port        : 5672
