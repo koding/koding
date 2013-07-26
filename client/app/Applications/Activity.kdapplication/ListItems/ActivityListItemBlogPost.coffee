@@ -13,7 +13,6 @@ class BlogPostActivityItemView extends ActivityItemChild
     super options,data
 
     @readThisLink = new CustomLinkView
-      #cssClass : 'read-this-link'
       title : @getData().title or 'Read this Blog Post'
       click : (event)=>
         event.stopPropagation()
