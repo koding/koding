@@ -728,6 +728,7 @@ class KodingAppsController extends KDController
     fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
+      experimental  : no
       authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
@@ -756,6 +757,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      screenshots   : []
       menu          : []
       fileTypes     : []
 
@@ -775,21 +777,3 @@ class KodingAppsController extends KDController
       description : 'Koding Terminal'
       author      : 'Koding'
       path        : 'WebTerm'
-    # CodeMirror    :
-    #   name        : 'CodeMirror'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-codemirror.png'
-    #   description : 'Code Editor'
-    #   author      : 'Marijn Haverbeke'
-    # yMacs         :
-    #   name        : 'yMacs'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-ymacs.png'
-    #   description : 'Code Editor'
-    #   author      : 'Mihai Bazon'
-    # Pixlr         :
-    #   name        : 'Pixlr'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-pixlr.png'
-    #   description : 'Image Editor'
-    #   author      : 'Autodesk'
