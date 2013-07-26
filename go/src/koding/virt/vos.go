@@ -237,7 +237,7 @@ func (vos *VOS) Remove(name string) error {
 }
 
 func (vos *VOS) RemoveAll(name string) error {
-	fi, err := vos.Stat(name)
+	fi, err := vos.LStat(name)
 	if err != nil {
 		return err
 	}

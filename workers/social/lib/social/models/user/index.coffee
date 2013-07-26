@@ -609,18 +609,20 @@ module.exports = class JUser extends jraphical.Module
         callback null, yes
 
   @usernameAvailable = (username, callback)->
+    JName = require '../name'
+
     username += ''
-    r =
+    res =
       kodingUser   : no
       forbidden    : yes
 
-    @count {username}, (err, count)=>
+    JName.count { name: username }, (err, count)=>
       if err or username.length < 4 or username.length > 25
-        callback err, r
+        callback err, res
       else
-        r.kodingUser = if count is 1 then yes else no
-        r.forbidden = if username in @bannedUserList then yes else no
-        callback null, r
+        res.kodingUser = if count is 1 then yes else no
+        res.forbidden = if username in @bannedUserList then yes else no
+        callback null, res
 
   fetchContextualAccount:(context, rest..., callback)->
     Relationship.one {

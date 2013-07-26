@@ -728,6 +728,7 @@ class KodingAppsController extends KDController
     fullName  = KD.utils.getFullnameFromAccount()
     raw =
       devMode       : yes
+      experimental  : no
       authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
@@ -756,6 +757,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      screenshots   : []
       menu          : []
       fileTypes     : []
 
