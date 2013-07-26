@@ -45,20 +45,14 @@ module.exports = class JStatusUpdate extends JPost
     Embedly = require "embedly"
     {apiKey} = KONFIG.embedly
     new Embedly key: apiKey, (err, api)->
-      if err
-        callback err
-        return
+      return callback err if err
 
       options = extend
         maxWidth: 150
       , options
 
       options.urls = urls
-      api.extract options, (err, objs)->
-        if err
-          callback err
-          return
-        callback null, objs
+      api.extract options, callback
 
   @create = secure (client, data, callback)->
     statusUpdate  =
