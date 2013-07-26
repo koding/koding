@@ -234,7 +234,7 @@ module.exports = class JAccount extends jraphical.Module
 
   # returns troll users ids
   @getExemptUserIds: (callback)->
-    JAccount.someData {isExempt:true}, {as:1}, (err, cursor)-> 
+    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)-> 
       cursor.toArray (err, data)-> 
         if err
           return callback err, null
@@ -617,19 +617,17 @@ module.exports = class JAccount extends jraphical.Module
                   "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", 
                   "cihangirsavas", "fkadev"]
 
-  flagAccount: secure (client, flag, callback)->
+  markUserAsExempt: secure (client, exempt, callback)->
     {delegate} = client.connection
+    if delegate.can 'flag', this
+      @update $set: {isExempt: exempt}, callback
+    else
+      callback new KodingError 'Access denied'
+
+  flagAccount: secure (client, flag, callback)->
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$addToSet: globalFlags: flag}, callback
-      if flag is 'exempt'
-        this.isExempt = true
-        console.log 'is exempt'
-        @cleanCacheFromActivities()
-      else
-        this.isExempt = false
-        console.log 'aint exempt'
-      @update $set: {isExempt: (flag is 'exempt')}, ()->
     else
       callback new KodingError 'Access denied'
 
@@ -638,13 +636,6 @@ module.exports = class JAccount extends jraphical.Module
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
-      if flag is 'exempt'
-        this.isExempt = true
-        console.log 'was exempt'
-      else
-        this.isExempt = true
-        console.log 'aint exempt'
-      @update $set: {isExempt: (flag is 'exempt')}, ()->
     else
       callback new KodingError 'Access denied'
 
@@ -892,8 +883,8 @@ module.exports = class JAccount extends jraphical.Module
   #         else
   #           item.emit 'ContentUnmarkedAsLowQuality', null
 
-  cleanCacheFromActivities:->
-    CActivity.emit 'UserMarkedAsTroll', @getId()
+  # cleanCacheFromActivities:->
+  #   CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->

@@ -9,6 +9,7 @@ module.exports = class Graph
     @db = new neo4j.GraphDatabase(read + ":" + port);
     return @db
 
+  # TODO: move it to a proper place eg. trait maybe..
   @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
     if not requestOptions.withExempt
       {delegate} = requestOptions.client.connection

@@ -21,7 +21,7 @@ module.exports =
           SKIP {skipCount}
           LIMIT {limitCount}
         """
-      list      :(exemptClause)->
+      list: (exemptClause)->
         """
           START group=node:koding(id={groupId})
           MATCH group-[r:member]->members
@@ -32,6 +32,15 @@ module.exports =
           SKIP {skipCount}
           LIMIT {limitCount}
         """
+      count: (exemptClause)->
+        """
+        START group=node:koding(id={groupId})
+        match group-[:member]->members
+        WHERE members.name="JAccount"
+        #{exemptClause}
+        return count(members) as count
+        """
+
       search: (options)->
         {seed, firstNameRegExp, lastNameRegexp, blacklistQuery, exemptClause} = options
         """

@@ -95,14 +95,9 @@ module.exports = class Member extends Graph
       resultData.push objected
       @generateMembers resultData, results, callback
 
-
-  @fetchRelationshipCount:(options, callback)=>
-    {groupId, relName} = options
-    query = """
-      START group=node:koding("id:#{groupId}")
-      match group-[:#{relName}]->items
-      return count(items) as count
-    """
-    @fetch query, {}, (err, results) =>
-      if err then callback err, null
-      else callback null, results[0].count
+  @fetchMemberCount:(options, callback)=>
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      query = QueryRegistry.member.count exemptClause
+      @fetch query, options, (err, results) =>
+        if err then return callback err
+        callback null, results[0].count

@@ -120,11 +120,13 @@ module.exports = class Activity extends Graph
         facet = @generateFacets options.facet
         timeQuery = @generateTimeQuery options.to
         query = QueryRegistry.activity.following facet, timeQuery, exemptClause
-        @fetchWithRelatedContent query, requestOptions, callback
+        @fetchWithRelatedContent query, requestOptions, requestOptions, callback
 
   @fetchWithRelatedContent: (query, queryOptions, requestOptions, callback)->
     @fetch query, queryOptions, (err, results) =>
-      if err then return callback err
+      if err
+        console.log "err:", err 
+        return callback err
       if results? and results.length < 1 then return callback null, []
       resultData = (result.content.data for result in results)
       @objectify resultData, (objecteds)=>
@@ -137,11 +139,11 @@ module.exports = class Activity extends Graph
       @fetchRelatedItems res, (err, relatedResult)=>
         clientRelations = reply: 'replies', tag: 'tags', opinion: 'opinions'
         if err
-          return callback err
+          console.log "errr", err
           fin()
+          return callback err
         else
           # this works different on following feed and profile page
-#          tempRes[i].relationData =  relatedResult
           tempRes[i][v] = [] for k, v of clientRelations
           for k of relatedResult
             clientRelName = clientRelations[k]
