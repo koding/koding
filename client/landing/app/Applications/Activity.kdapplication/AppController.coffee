@@ -206,7 +206,7 @@ class ActivityAppController extends AppController
       @isLoading = no
       @bindLazyLoad()
 
-    fetch = do =>=>
+    fetch = =>
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
@@ -255,11 +255,8 @@ class ActivityAppController extends AppController
       fetch()
 
 
-    if isReady
-    then fetch()
-    else
-      groupsController.once 'groupChanged', fetch
-
+    if isReady then fetch()
+    else groupsController.once 'GroupChanged', fetch
 
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
