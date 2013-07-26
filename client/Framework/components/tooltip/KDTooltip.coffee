@@ -18,7 +18,7 @@ class KDTooltip extends KDView
   constructor:(options,data)->
 
     options.bind   or= "mouseenter mouseleave"
-    options.sticky or= no
+    options.sticky ?= no
 
     super options, data
 
@@ -234,6 +234,7 @@ class KDTooltip extends KDView
         ['top','left']
         ['top','center']
         ['right','center']
+
         ['bottom','center']
         ['bottom','left']
         ['left','bottom']
@@ -279,6 +280,7 @@ class KDTooltip extends KDView
 
     # fetch corrected placement and coordinated for positioning
     {coords,placement,direction} = @getCorrectPositionCoordinates o,{placement,direction}
+    # log coords
 
     # css classes for arrow positioning
     for placement_ in ['top','bottom','left','right']
@@ -294,8 +296,8 @@ class KDTooltip extends KDView
         @unsetClass 'direction-'+direction_
 
     @$().css
-      left : coords.left+offset.left
-      top : coords.top+offset.top
+      left : coords.left + offset.left
+      top  : coords.top + offset.top
 
     @utils.wait 500, => @unsetClass 'animate-movement'
 
