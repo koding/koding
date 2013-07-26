@@ -41,22 +41,41 @@ module.exports = class Member extends Graph
     @queryMembers query, options, callback
 
 
+  @searchMembers:(options, callback)->
+    {groupId, seed, firstNameRegExp, lastNameRegexp, skip, limit, blacklist} = options
+    activity = require './activity'
+    activity.getCurrentGroup options.client, (err, group)=>
+      if err
+        return callback err
+
+      queryOptions = 
+        blacklistQuery: ""
+        skip: skip or 0
+        limitCount: limit or 10
+        seed: seed
+        firstNameRegExp: firstNameRegExp
+        lastNameRegexp: lastNameRegexp
+
+      options.groupId = group.getId()
+
+      if blacklist? and blacklist.length
+        blacklistIds = ("'#{id}'" for id in blacklist).join(',')
+        queryOptions.blacklistQuery = " AND NOT( members.id IN [#{ blacklistIds }] )"
+
+      @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+        queryOptions.exemptClause = exemptClause
+        query = QueryRegistry.member.search queryOptions
+        @queryMembers query, options, callback
+
   @fetchMemberList:(options, callback)->
     # {groupId, to} = options
     # console.log "undefined request parameter" unless groupId and to
-    console.log options
-    options = @generateOptions options
-
-    query = QueryRegistry.member.list
-    @queryMembers query, options, callback
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      options = @generateOptions options
+      query = QueryRegistry.member.list exemptClause
+      @queryMembers query, options, callback
 
   @queryMembers:(query, options={}, callback)=>
-
-    console.log "query members"
-    console.log query
-    console.log "options"
-    console.log options
-
     @fetch query, options, (err, results) =>
       if err then return callback err
       if results? and results.length < 1 then return callback null, []
@@ -64,8 +83,6 @@ module.exports = class Member extends Graph
       @generateMembers [], results, (err, data)=>
         if err then callback err
         @revive data, (revived)->
-          console.log "revived"
-          console.log revived
           callback null, revived
 
   @generateMembers:(resultData, results, callback)=>
@@ -78,4 +95,9 @@ module.exports = class Member extends Graph
       resultData.push objected
       @generateMembers resultData, results, callback
 
-
+  @fetchMemberCount:(options, callback)=>
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      query = QueryRegistry.member.count exemptClause
+      @fetch query, options, (err, results) =>
+        if err then return callback err
+        callback null, results[0].count

@@ -1425,9 +1425,9 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
-  countMembers: (callback)->
-    graph = new Graph({config:KONFIG['neo4j']})
-    graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
+  countMembers: secure (client, callback)->
+    {Member} = require "../graph"
+    Member.fetchMemberCount {groupId:@_id, client:client}, callback
 
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
@@ -1444,7 +1444,7 @@ module.exports = class JGroup extends Module
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
       options.groupId = @getId()
+      options.client = client
       {Member} = require '../graph'
       Member.fetchMemberList options, (err, results)=>
-        console.log results
         callback err, results

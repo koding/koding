@@ -21,15 +21,45 @@ module.exports =
           SKIP {skipCount}
           LIMIT {limitCount}
         """
-      list      :
+      list: (exemptClause)->
         """
           START group=node:koding(id={groupId})
           MATCH group-[r:member]->members
+          WHERE members.name="JAccount"
+          #{exemptClause}
           RETURN members
           ORDER BY {orderByQuery} DESC
           SKIP {skipCount}
           LIMIT {limitCount}
         """
+      count: (exemptClause)->
+        """
+        START group=node:koding(id={groupId})
+        match group-[:member]->members
+        WHERE members.name="JAccount"
+        #{exemptClause}
+        return count(members) as count
+        """
+
+      search: (options)->
+        {seed, firstNameRegExp, lastNameRegexp, blacklistQuery, exemptClause} = options
+        """
+          START koding=node:koding(id={groupId})
+          MATCH koding-[r:member]->members
+
+          WHERE  (
+            members.`profile.nickname` =~ '(?i)#{seed}'
+            or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
+            or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
+          )
+           
+          #{blacklistQuery}
+          #{exemptClause}
+
+          RETURN members
+          ORDER BY members.`profile.firstName`  
+          LIMIT {limitCount}
+        """ 
     bucket :
       newMembers :
         """
@@ -72,26 +102,28 @@ module.exports =
           LIMIT 20
         """
     activity :
-      public :(facetQuery="",groupFilter="")->
+      public :(facetQuery="",groupFilter="", exemptClause="")->
         """
           START group=node:koding(id={groupId})
           MATCH group-[:member]->members<-[:author]-content
           WHERE content.`meta.createdAtEpoch` < {to}
           #{facetQuery}
           #{groupFilter}
+          #{exemptClause}
           RETURN content
           ORDER BY content.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}
         """
 
-      following:(facet="", timeQuery="")->
+      following:(facet="", timeQuery="", exemptClause="")->
         """
           START member=node:koding(id={userId})
-          MATCH member<-[:follower]-myfollowees-[:author]-content
-          WHERE myfollowees.name="JAccount"
+          MATCH member<-[:follower]-members-[:author]-content
+          WHERE members.name="JAccount"
           AND content.group = {groupName}
           #{facet}
           #{timeQuery}
+          #{exemptClause}
           RETURN DISTINCT content
           ORDER BY content.`meta.createdAtEpoch` DESC
           LIMIT {limitCount}

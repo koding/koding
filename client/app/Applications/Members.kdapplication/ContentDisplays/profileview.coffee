@@ -5,6 +5,10 @@ class ProfileView extends JView
 
     memberData = @getData()
 
+    if memberData.isExempt
+      if not KD.checkFlag 'super-admin'
+        return KD.getSingleton('router').handleRoute "/Activity"
+
     @avatar = new AvatarStaticView
       size     :
         width  : 90

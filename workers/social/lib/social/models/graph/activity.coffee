@@ -80,9 +80,10 @@ module.exports = class Activity extends Graph
       queryOptions.groupName = groupName
       groupFilter = "AND content.group! = {groupName}"
 
-    query = QueryRegistry.activity.public facetQuery, groupFilter
-
-    @fetchWithRelatedContent query, queryOptions, requestOptions, callback
+    @getExemptUsersClauseIfNeeded requestOptions, (err, exemptClause)=>
+      query = QueryRegistry.activity.public facetQuery, groupFilter, exemptClause
+      queryOptions.client = client # we need this to remove private content
+      @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
 
 
@@ -109,17 +110,23 @@ module.exports = class Activity extends Graph
     query = QueryRegistry.activity.profilePage {facetQuery, orderBy}
     @fetchWithRelatedContent query, queryOptions, requestOptions, callback
 
-  # this is following feed on main page
-  @fetchFolloweeContents:(requestOptions, callback)->
-    queryOptions = @generateOptions requestOptions
-    facet = @generateFacets requestOptions.facet
-    timeQuery = @generateTimeQuery requestOptions .to
-    query = QueryRegistry.activity.following facet, timeQuery
-    @fetchWithRelatedContent query, queryOptions, requestOptions, callback
+  # this is following feed
+  @fetchFolloweeContents:(options, callback)->
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      @getCurrentGroup options.client, (err, currentGroup)=>
+        requestOptions = @generateOptions options
+        requestOptions.group = {groupName: currentGroup.slug, groupId: currentGroup._id}
+        requestOptions.client = options.client
+        facet = @generateFacets options.facet
+        timeQuery = @generateTimeQuery options.to
+        query = QueryRegistry.activity.following facet, timeQuery, exemptClause
+        @fetchWithRelatedContent query, requestOptions, requestOptions, callback
 
   @fetchWithRelatedContent: (query, queryOptions, requestOptions, callback)->
     @fetch query, queryOptions, (err, results) =>
-      if err then return callback err
+      if err
+        console.log "err:", err 
+        return callback err
       if results? and results.length < 1 then return callback null, []
       resultData = (result.content.data for result in results)
       @objectify resultData, (objecteds)=>
@@ -128,15 +135,15 @@ module.exports = class Activity extends Graph
   @getRelatedContent:(results, options, callback)->
     tempRes = []
     {group:{groupName, groupId}, client} = options
-    @collectRelations = race (i, res, fin)=>
+    collectRelations = race (i, res, fin)=>
       @fetchRelatedItems res, (err, relatedResult)=>
         clientRelations = reply: 'replies', tag: 'tags', opinion: 'opinions'
         if err
-          return callback err
+          console.log "errr", err
           fin()
+          return callback err
         else
           # this works different on following feed and profile page
-#          tempRes[i].relationData =  relatedResult
           tempRes[i][v] = [] for k, v of clientRelations
           for k of relatedResult
             clientRelName = clientRelations[k]
@@ -146,7 +153,7 @@ module.exports = class Activity extends Graph
               tempRes[i][clientRelName].reverse()
           fin()
     , =>
-      if groupName == "koding"
+      if groupName == "koding" or not groupName?
         @removePrivateContent client, groupId, tempRes, (err, cleanContent)=>
           if err then return callback err
           callback null, cleanContent
@@ -156,7 +163,7 @@ module.exports = class Activity extends Graph
     @revive results, (reviveds)=>
       for revived in reviveds
         tempRes.push revived
-        @collectRelations revived
+        collectRelations revived
 
   @fetchRelatedItems: (item, callback)->
     # IMPORTANT
@@ -196,6 +203,9 @@ module.exports = class Activity extends Graph
           data = result.all.data
           data.relationType = type
           resultData.push data
+
+        if not resultData.length
+          return callback null, resultData
 
       @objectify resultData, (objected)=>
         respond = {}

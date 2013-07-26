@@ -49,6 +49,7 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+      isExempt        : 1
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
@@ -106,6 +107,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      isExempt: # is a troll ?
+        type: Boolean
+        default: false
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
       onlineStatus          :
@@ -228,11 +232,17 @@ module.exports = class JAccount extends jraphical.Module
             if err then callback err
             else callback null, about
 
+  # returns troll users ids
+  @getExemptUserIds: (callback)->
+    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)-> 
+      cursor.toArray (err, data)-> 
+        if err
+          return callback err, null
+        callback null, (i._id for i in data)
 
   @renderHomepage: require './render-homepage'
 
-  fetchHomepageView:(callback)->
-
+  fetchHomepageView: (callback)->
     callback null, JAccount.renderHomepage
       profile       : @profile
       account       : this
@@ -424,7 +434,6 @@ module.exports = class JAccount extends jraphical.Module
 
 
   @findSuggestions = (client, seed, options, callback)->
-    {limit, blacklist, skip}  = options
     ### TODO:
     It is highly dependent to culture and there are even onces w/o the concept
     of first and last names. For now we assume last part of the seed is the lastname
@@ -435,21 +444,47 @@ module.exports = class JAccount extends jraphical.Module
     deciding ourselves which parts of the search are for first or last name.
     MongoDB 2.4 and bongo implementation of aggregate required to use $concat
     ###
-    names = seed.toString().split('/')[1].replace('^','').split ' '
+    {limit, blacklist, skip}  = options
+
+    names = seed.toString().split('/')[1].replace('^','').replace(/(\/i)|\//g, '').split ' '
     names.push names.first if names.length is 1
-    @some {
-      $or : [
-          ( 'profile.nickname'  : seed )
-          ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
-          ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
-        ],
-      _id     :
-        $nin  : blacklist
-    },{
-      skip
-      limit
-      sort    : 'profile.firstName' : 1
-    }, callback
+
+    seed = seed.toString().replace(/(\/i)|\//g, '')
+    options.client = client
+    options.seed = seed+ '.*'
+    options.firstNameRegExp = '^'+names.slice(0, -1).join(' ') + '.*'
+    options.lastNameRegexp = '^'+names.last + '.*'
+
+    Member.searchMembers options, (err, data)->
+      callback err, data
+
+  # @findSuggestions = (client, seed, options, callback)->
+  #   {limit, blacklist, skip}  = options
+  #   ### TODO:
+  #   It is highly dependent to culture and there are even onces w/o the concept
+  #   of first and last names. For now we assume last part of the seed is the lastname
+  #   and the whole except last part is the first name. Not ideal but covers more
+  #   than previous implementation. This implementation would fail if I type my
+  #   two firstnames only, it will assume second part is my lastname.
+  #   Ideal solution is to check the seed against firstName + ' ' + lastName instead of
+  #   deciding ourselves which parts of the search are for first or last name.
+  #   MongoDB 2.4 and bongo implementation of aggregate required to use $concat
+  #   ###
+  #   names = seed.toString().split('/')[1].replace('^','').split ' '
+  #   names.push names.first if names.length is 1
+  #   @some {
+  #     $or : [
+  #         ( 'profile.nickname'  : seed )
+  #         ( 'profile.firstName' : new RegExp '^'+names.slice(0, -1).join(' '), 'i' )
+  #         ( 'profile.lastName'  : new RegExp '^'+names.last, 'i' )
+  #       ],
+  #     _id     :
+  #       $nin  : blacklist
+  #   },{
+  #     skip
+  #     limit
+  #     sort    : 'profile.firstName' : 1
+  #   }, callback
 
   @getAutoCompleteData = (fieldString, queryString, callback)->
     query = {}
@@ -579,19 +614,20 @@ module.exports = class JAccount extends jraphical.Module
       @update ($set: 'counts.topics': count), ->
 
   dummyAdmins = [ "sinan", "devrim","gokmen", "chris", "testdude", "blum", "neelance", "halk",
-                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas", "fkadev"]
+                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", 
+                  "cihangirsavas", "fkadev"]
+
+  markUserAsExempt: secure (client, exempt, callback)->
+    {delegate} = client.connection
+    if delegate.can 'flag', this
+      @update $set: {isExempt: exempt}, callback
+    else
+      callback new KodingError 'Access denied'
 
   flagAccount: secure (client, flag, callback)->
-    {delegate} = client.connection
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$addToSet: globalFlags: flag}, callback
-      if flag is 'exempt'
-        console.log 'is exempt'
-        @markAllContentAsLowQuality()
-        @cleanCacheFromActivities()
-      else
-        console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
 
@@ -600,11 +636,6 @@ module.exports = class JAccount extends jraphical.Module
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
-      if flag is 'exempt'
-        console.log 'was exempt'
-        @unmarkAllContentAsLowQuality()
-      else
-        console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
 
@@ -832,28 +863,28 @@ module.exports = class JAccount extends jraphical.Module
     JUser = require '../user'
     JUser.one {username: @profile.nickname}, callback
 
-  markAllContentAsLowQuality:->
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: yes}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.flagIsLowQuality ->
-              item.emit 'ContentMarkedAsLowQuality', null
-          else
-            item.emit 'ContentMarkedAsLowQuality', null
+  # markAllContentAsLowQuality:->
+  #   @fetchContents (err, contents)->
+  #     contents.forEach (item)->
+  #       item.update {$set: isLowQuality: yes}, ->
+  #         if item.bongo_.constructorName == 'JComment'
+  #           item.flagIsLowQuality ->
+  #             item.emit 'ContentMarkedAsLowQuality', null
+  #         else
+  #           item.emit 'ContentMarkedAsLowQuality', null
 
-  unmarkAllContentAsLowQuality:->
-    @fetchContents (err, contents)->
-      contents.forEach (item)->
-        item.update {$set: isLowQuality: no}, ->
-          if item.bongo_.constructorName == 'JComment'
-            item.unflagIsLowQuality ->
-              item.emit 'ContentUnmarkedAsLowQuality', null
-          else
-            item.emit 'ContentUnmarkedAsLowQuality', null
+  # unmarkAllContentAsLowQuality:->
+  #   @fetchContents (err, contents)->
+  #     contents.forEach (item)->
+  #       item.update {$set: isLowQuality: no}, ->
+  #         if item.bongo_.constructorName == 'JComment'
+  #           item.unflagIsLowQuality ->
+  #             item.emit 'ContentUnmarkedAsLowQuality', null
+  #         else
+  #           item.emit 'ContentUnmarkedAsLowQuality', null
 
-  cleanCacheFromActivities:->
-    CActivity.emit 'UserMarkedAsTroll', @getId()
+  # cleanCacheFromActivities:->
+  #   CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}
   @taint =(id)->

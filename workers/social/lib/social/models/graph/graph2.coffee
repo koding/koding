@@ -9,6 +9,24 @@ module.exports = class Graph
     @db = new neo4j.GraphDatabase(read + ":" + port);
     return @db
 
+  # TODO: move it to a proper place eg. trait maybe..
+  @getExemptUsersClauseIfNeeded: (requestOptions, callback)->
+    if not requestOptions.withExempt
+      {delegate} = requestOptions.client.connection
+      JAccount = require '../account/index'
+      JAccount.getExemptUserIds (err, ids)=>
+        if err
+          return callback err, null
+        if (index = ids.indexOf(delegate.getId().toString())) > -1
+          ids.splice(index, 1)
+        if ids.length > 0
+          trollIds = ('"' + id + '"' for id in ids).join(',')
+          callback null, " AND NOT(members.id in ["+trollIds+"])  "
+        else
+          callback null, ""
+    else
+      callback null, ""
+
   @fetch:(query, params, callback)->
     @getDb().query query, params, callback
 

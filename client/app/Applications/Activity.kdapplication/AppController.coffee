@@ -219,6 +219,11 @@ class ActivityAppController extends AppController
         limit  : 20
         facets : @getActivityFilter()
 
+      if KD.getSingleton('activityController').flags?.showExempt?
+        options.withExempt = KD.getSingleton('activityController').flags.showExempt
+      else
+        options.withExempt = false
+
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
       group = KD.getSingleton('groupsController').getCurrentGroup().slug
