@@ -141,7 +141,7 @@ class EmbedBox extends KDView
         when 'object' then containerClass = EmbedBoxObjectView
         else               containerClass = EmbedBoxLinkView
 
-      @embedLinks.hide()
+      @embedContainer?.destroy()
       @embedContainer = new containerClass embedOptions, data
       @embedContainer.show()
       @addSubView @embedContainer
@@ -153,7 +153,7 @@ class EmbedBox extends KDView
     if data.safe? and (data.safe is yes or data.safe is 'true')
 
       # types should be covered, but if the embed call fails partly, default to link
-      type = data.object?.type or 'link'
+      type = data.type or 'link'
 
       populateData =
         link_embed   : data
@@ -232,7 +232,6 @@ class EmbedBox extends KDView
 
     # prepare embed.ly options
     embedlyOptions = $.extend {}, {
-      endpoint  : 'preview'
       maxWidth  : 530
       maxHeight : 200
       wmode     : 'transparent'
@@ -240,8 +239,7 @@ class EmbedBox extends KDView
     }, options
 
     # fetch embed.ly data from the server api
-    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (oembed)=>
-      oembed = JSON.parse Encoder.htmlDecode oembed
+    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
       callback oembed[0], embedlyOptions
 
   embedUrl:(url,options={},callback=noop)->

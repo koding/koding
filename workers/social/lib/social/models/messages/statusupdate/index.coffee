@@ -38,20 +38,27 @@ module.exports = class JStatusUpdate extends JPost
 
   @getActivityType =-> require './statusactivity'
 
-  @fetchDataFromEmbedly = (url, options, callback)->
-    {Api}      = require "embedly"
+  @fetchDataFromEmbedly = (urls, options, callback)->
 
-    embedly = new Api
-      user_agent : 'Mozilla/5.0 (compatible; koding/1.0; arvid@koding.com)'
-      key        : "e8d8b766e2864a129f9e53460d520115"
+    urls = [urls]  unless Array.isArray urls
 
-    embedOptions = extend {}, options, {url:url}
+    Embedly = require "embedly"
+    {apiKey} = KONFIG.embedly
+    new Embedly key: apiKey, (err, api)->
+      if err
+        callback err
+        return
 
-    embedly.preview(embedOptions).on "complete", (data)->
-      callback JSON.stringify data
-    .on "error", (data)->
-      callback JSON.stringify data
-    .start()
+      options = extend
+        maxWidth: 150
+      , options
+
+      options.urls = urls
+      api.extract options, (err, objs)->
+        if err
+          callback err
+          return
+        callback null, objs
 
   @create = secure (client, data, callback)->
     statusUpdate  =
