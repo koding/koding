@@ -299,16 +299,16 @@ module.exports = class JVM extends Model
           callback null, arr.map (vm)-> vm.hostnameAlias
 
   @fetchVmsByContext = secure (client, options, callback) ->
-      {connection:{delegate}, context:{group}} = client
-      JGroup = require './group'
+    {connection:{delegate}, context:{group}} = client
+    JGroup = require './group'
 
-      slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
+    slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
 
-      JGroup.one {slug}, (err, group) =>
-        return callback err  if err
+    JGroup.one {slug}, (err, group) =>
+      return callback err  if err
 
-        selector = groups: { $elemMatch: id: group.getId() }
-        @fetchAccountVmsBySelector delegate, selector, options, callback
+      selector = groups: { $elemMatch: id: group.getId() }
+      @fetchAccountVmsBySelector delegate, selector, options, callback
 
   @fetchVms = secure (client, options, callback) ->
       {delegate} = client.connection
@@ -562,7 +562,7 @@ module.exports = class JVM extends Model
             webHome   : user.username
             groups    : wrapGroup group
           }
-        else
+        else unless group is 'koding'
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else

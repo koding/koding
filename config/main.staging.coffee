@@ -87,6 +87,7 @@ module.exports =
     numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
+    verbose     : yes
   cacheWorker   :
     login       : 'prod-social'
     watch       : yes

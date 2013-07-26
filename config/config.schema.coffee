@@ -108,6 +108,7 @@ config =
       numberOfWorkers: 1
       watch       : 1
       queueName   : 1
+      verbose     : 1
     cacheWorker       :
       login           : 1
       watch           : 1
