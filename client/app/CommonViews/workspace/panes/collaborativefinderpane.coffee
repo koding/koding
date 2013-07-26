@@ -100,6 +100,5 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   openFile: (nodeView) ->
     return unless nodeView
     file = nodeView.getData()
-    log "host terminal is opening a file", file
     file.fetchContents (err, contents) =>
       @getDelegate().emit "OpenedAFile", file, contents

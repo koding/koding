@@ -4,8 +4,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
 
     super options, data
 
-    log "i am a CollaborativeTabbedEditorPane"
-
     @panel            = @getDelegate()
     @workspace        = @panel.getDelegate()
     @sessionKey       = @getOptions().sessionKey or @createSessionKey()
@@ -13,8 +11,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     @isJoinedASession = @getOptions().sessionKey
     @openedFiles      = []
     @activeTabIndex   = 0
-
-    log "joined an old session again, creating new tabbed editor" if @isJoinedASession
 
     @createEditorTabs()
     @createEditorInstance()  unless @isJoinedASession
@@ -68,7 +64,6 @@ class CollaborativeTabbedEditorPane extends CollaborativePane
     if file
       fileIndexInOpenedFiles = @openedFiles.indexOf(file.path)
       if fileIndexInOpenedFiles > -1
-        log "same file detected, setting tab acive"
         return  @tabView.showPaneByIndex fileIndexInOpenedFiles
     else
       file = FSHelper.createFileFromPath "localfile:/untitled.txt"
