@@ -10,7 +10,7 @@ class KDToggleButton extends KDButtonView
 
     super options, data
 
-    @setState options.defaultState
+    @setState options.defaultState, no
 
   getStateIndex:(name)->
 
@@ -22,18 +22,18 @@ class KDToggleButton extends KDButtonView
         if name is state.title
           return index
 
-  decorateState:(name)->
+  decorateState:(name, userEvent)->
     @setTitle @state.title
     @setIconClass @state.iconClass if @state.iconClass?
 
   getState:-> @state
 
-  setState:(name)->
+  setState:(name, userEvent = yes)->
 
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
-    @decorateState name
+    @decorateState name, userEvent
 
     @setCallback states[index].callback.bind @, @toggleState.bind @
 
@@ -45,3 +45,4 @@ class KDToggleButton extends KDButtonView
       @setState nextState.title
     else
       warn err.msg or "there was an error, couldn't switch to #{nextState} state!"
+    @hideLoader?()
