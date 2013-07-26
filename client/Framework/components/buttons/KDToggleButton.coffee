@@ -10,7 +10,7 @@ class KDToggleButton extends KDButtonView
 
     super options, data
 
-    @setState options.defaultState, no
+    @setState options.defaultState
 
   getStateIndex:(name)->
 
@@ -22,27 +22,37 @@ class KDToggleButton extends KDButtonView
         if name is state.title
           return index
 
-  decorateState:(name, userEvent)->
+  decorateState:(name)->
     @setTitle @state.title
-    @setIconClass @state.iconClass if @state.iconClass?
+    @setIconClass @state.iconClass  if @state.iconClass?
+
+    if @state.cssClass? or @lastUsedCssClass?
+      @unsetClass @lastUsedCssClass  if @lastUsedCssClass?
+      @setClass @state.cssClass
+      @lastUsedCssClass = @state.cssClass
+    else
+      delete @lastUsedCssClass
 
   getState:-> @state
 
-  setState:(name, userEvent = yes)->
+  setState:(name)->
 
     {states} = @getOptions()
     @stateIndex = index = @getStateIndex name
     @state      = states[index]
-    @decorateState name, userEvent
+    @decorateState name
 
     @setCallback states[index].callback.bind @, @toggleState.bind @
 
   toggleState:(err)->
 
-    {states} = @getOptions()
+    {states}  = @getOptions()
     nextState = states[@stateIndex + 1] or states[0]
     unless err
       @setState nextState.title
     else
-      warn err.msg or "there was an error, couldn't switch to #{nextState} state!"
+      unless err.name is 'AccessDenied'
+        warn err.message or \
+          "There was an error, couldn't switch to #{nextState.title} state!"
+
     @hideLoader?()
