@@ -95,6 +95,13 @@ class AceView extends JView
       @ace.notify "Trying to run old version..." if err
       KD.getSingleton('appManager').open manifest.name
 
+  toggleFullscreen: ->
+    mainView = KD.getSingleton "mainView"
+    unless mainView.isFullscreen()
+      mainView.enableFullscreen()
+    else
+      mainView.disableFullscreen()
+
   viewAppended:->
 
     super

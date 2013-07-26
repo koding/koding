@@ -113,6 +113,7 @@ class WebTermView extends KDView
     @textarea?.remove()
 
   keyDown: (event) ->
+    @listenFullscreen event
     @terminal.keyDown event
 
   keyPress: (event) ->
@@ -177,3 +178,13 @@ class WebTermView extends KDView
       type        : 'customView'
       view        : new WebtermSettingsView
         delegate  : @
+
+  listenFullscreen: (event)->
+    requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
+    if requestFullscreen
+      mainView = KD.getSingleton "mainView"
+      unless mainView.isFullscreen()
+        mainView.enableFullscreen()
+      else
+        mainView.disableFullscreen()
+      event.preventDefault()
