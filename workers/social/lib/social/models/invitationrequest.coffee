@@ -4,9 +4,10 @@ module.exports = class JInvitationRequest extends Model
 
   @trait __dirname, '../traits/grouprelated'
 
+  {Relationship}             = require 'jraphical'
   {ObjectRef, daisy, secure} = require 'bongo'
-  {permit}    = require './group/permissionset'
-  KodingError = require '../error'
+  {permit}                   = require './group/permissionset'
+  KodingError                = require '../error'
 
   @share()
 
@@ -28,9 +29,7 @@ module.exports = class JInvitationRequest extends Model
       email           : String
       status          :
         type          : String
-        enum          : ['Invalid status', [
-          'pending', 'sent', 'declined', 'approved'
-        ]]
+        enum          : ['Invalid status', ['pending', 'declined', 'approved']]
         default       : 'pending'
       invitationType  :
         type          : String
@@ -38,13 +37,6 @@ module.exports = class JInvitationRequest extends Model
           'invitation', 'basic approval'
         ]]
         default       : 'invitation'
-    relationships   :
-      requester     :
-        targetType  : 'JAccount'
-        as          : 'requester'
-      invitation    :
-        targetType  : 'JInvitation'
-        as          : 'owner'
 
   @resolvedStatuses = ['declined', 'approved']
 
@@ -57,25 +49,38 @@ module.exports = class JInvitationRequest extends Model
 
   approve: permit 'send invitations',
     success: (client, callback=->)->
-      if @invitationType is 'basic approval'
-        @approveApprovalRequest client, callback
-      else
-        @approveInvitationRequest client, callback
+      JGroup = require './group'
+      JUser  = require './user'
 
-  approveApprovalRequest: (client, callback=->)->
-    @update $set:{ status: 'approved' }, (err)=>
-      return callback err if err
-      @sendRequestApprovedNotification client, group, account, callback
-
-  approveInvitationRequest: (client, options, callback)->
-    [callback, options] = [options, callback]  unless callback
-    JGroup      = require './group'
-
-    @sendMail client, @koding, group, options, (err)=>
-      return callback err  if err
-      @addInvitation invite, (err)=>
+      Relationship.one targetId: @getId(), as: 'owner', (err, rel)=>
         return callback err  if err
-        @update $set:{ status: 'sent' }, callback
+        JGroup.one _id:rel.sourceId, (err, group)=>
+          return callback err  if err
+          JUser.one {@username}, (err, user)=>
+            return callback err  if err
+            user.fetchOwnAccount (err, requester)=>
+              return callback err  if err
+              @update $set:{ status: 'approved' }, (err)=>
+                return callback err  if err
+                if @invitationType is 'basic approval'
+                  @approveApprovalRequest client, requester, group, callback
+                else
+                  @approveInvitationRequest client, requester, group, callback
+
+  approveApprovalRequest: (client, account, group, callback)->
+    group.approveMember account, (err)=>
+      return callback err if err
+      @sendRequestApprovedNotification client, account, group, callback
+
+  approveInvitationRequest: (client, account, group, callback)->
+    account.fetchUser (err, user)=>
+      return callback err  if err
+      group.fetchMembershipPolicy (err, policy)=>
+        return callback err  if err
+        options = {message: policy.communications.inviteApprovedMessage}
+        group.inviteMember client, user.email, account, options, (err, invite)=>
+          return callback err  if err
+          @update $set:{ status: 'approved' }, callback
 
   sendRequestNotification:(group, actor, email, invitationType, callback=->)->
     JMailNotification = require './emailnotification'
@@ -108,7 +113,7 @@ module.exports = class JInvitationRequest extends Model
         }
         JMailNotification.create data, callback
 
-  sendRequestApprovedNotification:(client, group, receiver, callback)->
+  sendRequestApprovedNotification:(client, receiver, group, callback)->
     JAccount          = require './account'
     JMailNotification = require './emailnotification'
 

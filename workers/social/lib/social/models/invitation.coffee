@@ -105,7 +105,7 @@ module.exports = class JInvitation extends jraphical.Module
     success: (client, group, email, options, callback)->
       [callback, options] = [options, callback]  unless callback
       {delegate} = client.connection
-      type       = ''
+      type       = 'admin'
 
       selector = {email, group, type}
       JInvitation.one selector, (err, existingInvite)=>
@@ -144,7 +144,7 @@ module.exports = class JInvitation extends jraphical.Module
         inviter  : delegate.getFullName()
         url
         isPublic : if group.privacy == 'public' then yes else no
-        message  : group.invitationMessage
+        message  : options.message
       }
 
       JUser.fetchUser client, (err, inviter)=>
@@ -166,8 +166,7 @@ module.exports = class JInvitation extends jraphical.Module
   @getMessage  = ({inviter, group, isPublic, url, message})->
     if message
       message  = message.replace /#INVITER#/g, inviter
-      message  = message.replace /#URL#/g,     url
-      content  = message
+      content  = message.replace /#URL#/g,     url
     else
       subject  = "#{inviter} has invited you to the group #{group}"
       subject += ' on Koding'  if isPublic
@@ -184,7 +183,8 @@ module.exports = class JInvitation extends jraphical.Module
         Enjoy! :)
         """
 
-    content   += @getFooter()  if isPublic
+      content += @getFooter()  if isPublic
+    return content
 
 
   # multiuse invitations

@@ -832,17 +832,17 @@ module.exports = class JGroup extends Module
               callback null, account
 
     permit 'send invitations',
-      success: (client, email, message, options, callback)->
+      success: (client, email, options, callback)->
         fetchAccountByEmail email, (err, account)=>
           return callback err  if err
-          @inviteMember client, email, account, message, options, callback
+          @inviteMember client, email, account, options, callback
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, message, options, callback)->
+    success: (client, emails, options, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), message, options, (err)->
+        @inviteByEmail client, email.trim(), options, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
@@ -856,7 +856,7 @@ module.exports = class JGroup extends Module
         set["communications.#{messageType}"] = message
         policy.update $set: set, callback
 
-  inviteMember: (client, email, account, message, options, callback)->
+  inviteMember: (client, email, account, options, callback)->
     JInvitation = require '../invitation'
     JInvitation.create client, @slug, email, options, (err, invite)=>
       return callback err  if err
@@ -864,12 +864,14 @@ module.exports = class JGroup extends Module
         return callback err  if err
         invite.sendMail client, this, options, (err)->
           return callback err  if err
+          kallback = (err)-> callback err, invite
+
           JAccount = require '../account'
           if account instanceof JAccount
             account.emit 'NewPendingInvitation'
-            account.addInvitation invite, callback
+            account.addInvitation invite, kallback
           else
-            callback null
+            kallback null
 
   isMember: (account, callback)->
     selector =
@@ -884,7 +886,7 @@ module.exports = class JGroup extends Module
     {delegate} = client.connection
     @isMember delegate, (err, isMember)=>
       return callback err  if err or isMember
-      selector = targetSelector:{code:'haha', status:$in:['active', 'sent']}
+      selector = targetOptions: selector: {code, status:$in:['active', 'sent']}
       @fetchInvitations {}, selector, (err, [invite])=>
         return callback err  if err
         return callback new KodingError 'Invitation code is invalid!'  unless invite
@@ -894,24 +896,23 @@ module.exports = class JGroup extends Module
 
   bulkApprove: permit 'send invitations',
     success: (client, count, options, callback)->
-      selector   = group: @slug, status: 'pending'
-      selOptions = limit: count, sort: requestedAt: 1
-
-      JInvitationRequest = require '../invitationrequest'
-      JInvitationRequest.some selector, selOptions, (err, requests)->
-        if err then callback err
-        else
-          errors = []
-          emails = []
-          queue = requests.map (request)-> ->
-            request.approve client, options, (err)->
-              if err
-                errors.push "#{request.email} failed!"
-              else
-                emails.push request.email
-              setTimeout queue.next.bind(queue), 50
-          queue.push -> callback (if errors.length > 0 then errors else null), emails
-          daisy queue
+      selOptions =
+        targetOptions: {selector: status: 'pending'},
+        limit: count,
+        sort: requestedAt: 1
+      @fetchInvitationRequests {}, selOptions, (err, requests)->
+        return callback err  if err
+        errors = []
+        emails = []
+        queue = requests.map (request)-> ->
+          request.approve client, options, (err)->
+            if err
+              errors.push "#{request.email} failed!"
+            else
+              emails.push request.email
+            setTimeout queue.next.bind(queue), 50
+        queue.push -> callback (if errors.length > 0 then errors else null), emails
+        daisy queue
 
   requestAccess: secure (client, callback)->
     @requestAccessFor client, callback

@@ -24,7 +24,7 @@ module.exports =
       'setStaticPageAbout', 'addStaticBackground', 'setBackgroundImage',
       'fetchGroupsWithPendingInvitations', 'fetchGroupsWithPendingRequests',
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
-      'getInvitationRequestByGroup', 'fetchMyPermissions',
+      'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
       'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
       'fetchMyFollowersFromGraph', 'fetchDomains', 'sendEmailVMTurnOnFailureToSysAdmin',
       'blockUser', 'fetchDomains', 'changeUsername'

@@ -15,7 +15,7 @@ class GroupsInvitationTabView extends KDTabView
       title    : 'Show Resolved: '
     @showResolvedView.addSubView new KDOnOffSwitch
       label    : showResolvedLabelView
-      callback : (@resolvedState)=> @setResolvedStateInView()
+      callback : (@showResolved)=> @setResolvedStateInView()
 
     @approvalEnabled = @getDelegate().policy?.approvalEnabled
     @showResolved    = no

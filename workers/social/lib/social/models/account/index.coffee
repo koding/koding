@@ -963,7 +963,7 @@ module.exports = class JAccount extends jraphical.Module
       selector.sourceId = $in:(ObjectId groupId for groupId in options.groupIds)
       delete options.groupIds
 
-    relOptions = targetSelector: {status}
+    relOptions = targetOptions: selector: {status}
 
     @["fetchInvitation#{method}s"] {}, relOptions, (err, rels)->
       return callback err  if err
@@ -976,51 +976,47 @@ module.exports = class JAccount extends jraphical.Module
   fetchGroupsWithPendingInvitations:(options, callback)->
     @fetchGroupsWithPending '', 'sent', options, callback
 
-  getInvitationRequestByGroup: secure (client, groupData, status, callback)->
-    return unless @equals client.connection.delegate
+  fetchMyGroupInvitationStatus: secure (client, sourceId, callback)->
+    return  unless @equals client.connection.delegate
 
-    JInvitationRequest = require '../invitationrequest'
-    JGroup             = require '../group'
+    options = targetOptions: selector: status: 'pending'
+    @fetchInvitationRequests {sourceId}, options, (err, requests)=>
+      return callback err                if err
+      return callback null, 'requested'  if requests?[0]
 
-    JGroup.one _id:groupData._id, (err, group)=>
-      return callback err if err
-      @fetchUser (err, user)=>
-        return callback err if err
-        options =
-          targetOptions:
-            selector:
-              $or: [
-                {'koding.username': @profile.nickname}
-                {email: user.email}
-              ]
-              status: status
-          options:
-            sort: { timestamp: -1 }
-
-        group.fetchInvitationRequests {}, options, callback
+      options = targetOptions: selector: status: 'sent'
+      @fetchInvitations {sourceId}, options, (err, invites)=>
+        return callback err              if err
+        return callback null, 'invited'  if invites?[0]
+        return callback null, no
 
   cancelRequest: secure (client, group, callback)->
-    options = targetSelector:status:'pending'
+    options = targetOptions: selector: status: 'pending'
     @fetchInvitationRequests {sourceId: group._id}, options, (err, [request])->
       return callback err                                  if err
       return callback 'could not find invitation request'  unless request
       request.remove callback
 
-  fetchInvitationBySourceId:(sourceId, callback)->
-    @fetchInvitations {sourceId}, targetSelector:status:'sent', (err, [invite])->
-      return callback err                                  if err
-      return callback 'could not find invitation request'  unless request
-      callback null, invite
+  fetchInvitationByGroup:(group, callback)->
+    options = targetOptions: selector: {status: 'sent', group: group.slug}
+    @fetchInvitations {}, options, (err, [invite])->
+      return callback err                          if err
+      return callback 'could not find invitation'  unless invite
+
+      JGroup = require '../group'
+      JGroup.one _id: group._id, (err, groupObj)->
+        return callback err  if err
+        callback null, invite, groupObj
 
   acceptInvitation: secure (client, group, callback)->
-    fetchInvitationBySourceId group._id, (err, invite)->
+    @fetchInvitationByGroup group, (err, invite, groupObj)=>
       return callback err  if err
-      group.approveMember this, (err)->
+      groupObj.approveMember this, (err)->
         return callback err  if err
         invite.update $set:status:'accepted', callback
 
   ignoreInvitation: secure (client, group, callback)->
-    fetchInvitationBySourceId group._id, (err, invite)->
+    @fetchInvitationByGroup group, (err, invite)->
       return callback err  if err
       invite.update $set:status:'ignored', callback
 

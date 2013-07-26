@@ -133,7 +133,7 @@ class GroupsInvitationView extends KDView
       title              : 'Invite by Email'
       cssClass           : 'invite-by-email'
       callback           : ({emails, message, saveMessage, bcc})=>
-        @getData().inviteByEmails emails, message, {bcc}, (err)=>
+        @getData().inviteByEmails emails, {message, bcc}, (err)=>
           @modalCallback @inviteByEmail, noop, err
           @saveInviteMessage 'invitationMessage', message  if saveMessage
       fields             :
