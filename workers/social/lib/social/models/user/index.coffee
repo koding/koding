@@ -652,7 +652,7 @@ module.exports = class JUser extends jraphical.Module
         callback null, yes
 
   @usernameAvailable = (username, callback)->
-    JName = require './name'
+    JName = require '../name'
 
     username += ''
     res =
