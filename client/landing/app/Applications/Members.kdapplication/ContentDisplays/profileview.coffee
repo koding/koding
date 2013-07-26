@@ -194,4 +194,8 @@ class ProfileView extends JView
       callback? err, message
 
   sendMessage:(messageDetails, callback)->
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed"
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback
