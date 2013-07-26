@@ -18,7 +18,7 @@ class NFinderController extends KDViewController
     treeOptions.maxRecentFolders  = options.maxRecentFolders  or= 10
     treeOptions.useStorage        = options.useStorage         ?= no
     treeOptions.loadFilesOnInit   = options.loadFilesOnInit    ?= no
-    treeOptions.delegate          = this
+    treeOptions.delegate          = @
 
     super options, data
 
