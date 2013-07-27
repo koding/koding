@@ -2,7 +2,7 @@ class JTreeView extends KDListView
 
   constructor:(options = {},data)->
 
-    options.animated or= no
+    options.animated ?= no
     super options, data
     @setClass "jtreeview expanded"
 
