@@ -49,9 +49,7 @@ class MainView extends KDView
     about.bindTransitionEnd()
 
   addBook:->
-    @addSubView new BookView
-      delegate : this
-
+    @addSubView new BookView delegate : this
 
   _windowDidResize:->
 
