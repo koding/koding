@@ -13,22 +13,26 @@ app.home.styl
 // NEW TRY
 
 div#home-intro
-  size                    100%, 500px
+  size                    100%, 436px
   color                   white
   vendor                  transition, height .3s linear
   shadow                  inset 0 -5px 10px rgba(0,0,0,.1)
+  bg                      color, #000
+  bg                      image, url('../images/space.jpg')
+  bg                      size, cover
+  bg                      position, 0 -51px
   &.out
     height                0
 
   > div
     width                 62%
-    padding               60px
+    padding               30px 60px
     fl()
     borderBox()
 
   > aside
     width                 38%
-    padding               72px 50px 50px 0
+    padding               42px 50px 50px 0
     fl()
     borderBox()
 
@@ -64,8 +68,10 @@ div#home-intro
       margin-bottom       6px
       padding             0
       width               300px
+      overflow            visible
       > .input-wrapper
         size              100%, 100%
+        overflow          visible
       // &.gh
       //   margin-bottom     17px
       &.or
@@ -97,6 +103,14 @@ div#home-intro
         text-shadow     0 -1px 0 rgba(0, 0, 0, .8)
         color           white
         letter-spacing  1px
+        &:active
+          gradient      #c46325, #fca520
+          text-shadow   0 1px 0 rgba(0, 0, 0, .8)
+        &:active
+        &:focus
+          shadow        inset 0 1px 0 rgba(255, 255, 255, .5)\,\
+                        0 1px 1px rgba(0, 0, 0, .5)\,\
+                        0 0 9px 3px rgba(255,187,4,0.33)
 
       &.gh-gray
         gradient        #f1f1f1, #a8a8a8
@@ -105,6 +119,14 @@ div#home-intro
         font-weight     600
         text-shadow     0 1px 0 white
         color           #444
+        &:active
+          gradient      #a8a8a8, #f1f1f1
+          text-shadow   0 -1px 0 white
+        &:active
+        &:focus
+          shadow        inset 0 1px 0 white\,\
+                        0 1px 1px rgba(0, 0, 0, .5)\,\
+                        0 0 9px 3px rgba(255,255,255,0.3)
         .button-title
           margin-left   -15px
           line-height   41px
@@ -124,7 +146,49 @@ div#home-intro
       font-weight         300
       rounded             5px
       shadow              0 1px 1px rgba(0,0,0,.5)
+      outline             none
       borderBox()
+      &.half
+        width             calc(50%\-3px)
+        min-width         0
+        fl()
+        &:first-child
+          margin-right    6px
+
+      &:focus
+        shadow            0 1px 1px rgba(0,0,0,.5)\,\
+                          0 0 9px 3px rgba(255,187,4,0.44)
+
+  aside
+    ul
+      size                  100%, 200px
+      margin-top            0
+      li
+        size                auto, 100%
+        margin              0
+        border              1px solid rgba(255, 255, 255, .2)
+        padding             1px
+        shadow              0 3px 8px rgba(0, 0, 0, .5)
+        rel()
+        &:active
+          size              auto, 100%
+          margin            0
+          i
+            top             80px
+        i
+          display           block
+          size              40px, 40px
+          top               80px
+          left              50%
+          margin            0 0 0 -20px
+          sprite()
+          bg                position, -580px 0px
+          abs()
+        a
+          display           block
+          size              auto, 100%
+        img
+          size              auto, 100%
 
   ul
     size                  100%, 60px

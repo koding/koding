@@ -20,7 +20,7 @@ module.exports = ->
     <script>(function(){window.location.href='/unsupported.html'})();</script>
     <![endif]-->
 
-    <div class="kdview" id="kdmaincontainer">
+    <div class="kdview home" id="kdmaincontainer">
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <header class="kdview" id='main-header'>
         <a id="koding-logo" href="#" class='large'><span></span></a>
