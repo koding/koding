@@ -106,6 +106,8 @@ module.exports =
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
       authExchange: "auth-#{version}"
+      github         :
+        clientId     : "f8e440b796d953ea01e5"
       userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
@@ -211,3 +213,6 @@ module.exports =
     host        : ''
     bin         : null
     conf        : null
+  github        :
+    clientId    : "f8e440b796d953ea01e5"
+    clientSecret: "b72e2576926a5d67119d5b440107639c6499ed42"

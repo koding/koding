@@ -755,6 +755,20 @@ __utils =
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
 
+  openGithubPopUp:->
+    {clientId} = KD.config.github
+    url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
+    name       = "Login"
+    size       = "height=643,width=1143"
+    newWindow  = window.open url, name, size
+    newWindow.focus()
+
+  useForeignAuth: (provider)->
+    mainController = KD.getSingleton "mainController"
+
+    if provider then mainController.emit "ForeignAuthCompleted", provider
+    else mainController.emit "ForeignAuthFailed"
+
   # deprecated ends
 
 ###

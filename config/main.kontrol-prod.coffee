@@ -109,6 +109,8 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       authExchange: authExchange
+      github        :
+        clientId    : "5891e574253e65ddb7ea"
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -194,3 +196,6 @@ module.exports =
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : 'followfeed'
+  github        :
+    clientId    : "5891e574253e65ddb7ea"
+    clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"
