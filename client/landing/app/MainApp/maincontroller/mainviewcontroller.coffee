@@ -46,12 +46,15 @@ class MainViewController extends KDViewController
     (options)->
 
       {behavior, name} = options
-
-      isEntryPointSet = yes if name isnt "Home"
-
-      {contentPanel, mainTabView, sidebar} = @getView()
-
-      o = {isEntryPointSet, name}
+      isEntryPointSet  = yes if name isnt "Home"
+      mainView         = @getView()
+      {
+       contentPanel
+       mainTabView
+       sidebar
+       homeIntro
+      }                = mainView
+      o                = { isEntryPointSet, name }
 
       switch behavior
         when 'hideTabs'
@@ -67,3 +70,31 @@ class MainViewController extends KDViewController
       @emit "UILayoutNeedsToChange", o
 
       isEntryPointSet = yes
+
+      group = KD.getSingleton('groupsController').getCurrentGroup()
+
+      if name is 'Home' and group.slug is 'koding'
+      then @decorateHome()
+      else @clearHome()
+
+  decorateHome:->
+    mainView = @getView()
+    {homeIntro, logo, chatPanel, chatHandler} = mainView
+
+    chatHandler.hide()
+    chatPanel.hide()
+    mainView.setClass 'home'
+    logo.setClass 'large'
+    homeIntro.show()
+
+
+  clearHome:->
+    mainView = @getView()
+    {homeIntro, logo, chatPanel, chatHandler} = mainView
+
+    KD.utils.wait 300, ->
+      chatHandler.show()
+      chatPanel.show()
+    mainView.unsetClass 'home'
+    logo.unsetClass 'large'
+    homeIntro.hide()
