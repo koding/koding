@@ -228,8 +228,7 @@ module.exports = class JAccount extends jraphical.Module
             if err then callback err
             else callback null, about
 
-
-  @renderHomepage: require './render-homepage'
+  @renderHomepage: require '../../render/profile.coffee'
 
   fetchHomepageView:(callback)->
 

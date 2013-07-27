@@ -1,8 +1,7 @@
-{Module} = require 'jraphical'
+{Module}     = require 'jraphical'
 {difference} = require 'underscore'
 
 module.exports = class JGroup extends Module
-
 
   [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
@@ -11,15 +10,11 @@ module.exports = class JGroup extends Module
   {Inflector, ObjectId, ObjectRef, secure, daisy, race, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
-  {permit} = JPermissionSet
-
-  KodingError = require '../../error'
-
-  Validators = require './validators'
-
-  {throttle} = require 'underscore'
-
-  Graph       = require "../graph/graph"
+  {permit}       = JPermissionSet
+  KodingError    = require '../../error'
+  Validators     = require './validators'
+  {throttle}     = require 'underscore'
+  Graph          = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -254,7 +249,11 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderHomepage: require './render-homepage'
+  @renderHomepage  : require '../../render/grouphome'
+  @renderKodingHome: require '../../render/kodinghome'
+
+  @fetchKodingHome: (callback)->
+    callback null, JGroup.renderKodingHome()
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection

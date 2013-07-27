@@ -1,17 +1,15 @@
-
 module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
   # content ?= getDefaultuserContents()
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
-  staticPage ?= {}
-  {customize} = staticPage
+  staticPage  ?= {}
+  {customize}  = staticPage
   {locationTags,meta} = account
-  firstName ?= 'Koding'
-  lastName  ?= 'User'
-  nickname  ?= ''
-  about     ?= ''
-  title = "#{firstName} #{lastName}"
-  slug = nickname
-
+  firstName   ?= 'Koding'
+  lastName    ?= 'User'
+  nickname    ?= ''
+  about       ?= ''
+  title        = "#{firstName} #{lastName}"
+  slug         = nickname
   amountOfDays = Math.floor (new Date().getTime()-meta.createdAt)/(1000*60*60*24)
 
   """
