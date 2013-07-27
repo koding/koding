@@ -251,7 +251,7 @@ func (k *Kite) Run() {
 					log.LogError(err, 0)
 					continue
 				}
-				if err := publishChannel.Publish(config.Current.Broker.AuthExchange, "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
+				if err := publishChannel.Publish("auth", "kite.who", false, false, amqp.Publishing{Body: response}); err != nil {
 					log.LogError(err, 0)
 				}
 
