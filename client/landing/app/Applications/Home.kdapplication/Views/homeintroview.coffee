@@ -61,15 +61,15 @@ class HomeIntroView extends JView
       click    : ->
         w = 800
         h = 450
-        window.open(
-          "/timedude.html",
+        window.open "/timedude.html",
           "Koding and the Timedude!",
           "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
-        )
 
+  show:->
+    @unsetClass 'out'
 
-  newPopup:->
-    newWindow = window.open url, windowTitle, optionString
+  hide:->
+    @setClass 'out'
 
   pistachio:->
     """
