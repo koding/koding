@@ -20,7 +20,7 @@ class AvatarView extends LinkView
       options.tooltip or= {}
       options.tooltip.view         or= if options.detailed then @detailedAvatar else null
       options.tooltip.viewCssClass or= 'avatar-tooltip'
-      options.tooltip.animate      or= yes
+      options.tooltip.animate       ?= yes
       options.tooltip.placement    or= 'top'
       options.tooltip.direction    or= 'right'
 
