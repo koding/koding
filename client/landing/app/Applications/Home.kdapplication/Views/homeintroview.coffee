@@ -33,6 +33,15 @@ class HomeIntroView extends JView
           partial     : 'or'
           itemClass   : KDCustomHTMLView
           tagName     : 'span'
+        # firstname     :
+        #   name        : 'firstname'
+        #   placeholder : 'First name'
+        #   cssClass    : 'half'
+        #   nextElement     :
+        #     lastname      :
+        #       name        : 'lastname'
+        #       placeholder : 'Last name'
+        #       cssClass    : 'half'
         username      :
           name        : 'username'
           placeholder : 'Desired username'
@@ -72,17 +81,30 @@ class HomeIntroView extends JView
     @setClass 'out'
 
   pistachio:->
-    """
-    <div>
-    {{> @slogan}}
-    {{> @subSlogan}}
-    <ul>
-    <li>{{> @videoThumb}}</li>
-    </ul>
-    </div>
-    <aside>
-    {{> @form}}
-    {{> @toc}}
-    </aside>
-    """
+    if KD.isLoggedIn()
+      """
+      <div>
+      {{> @slogan}}
+      {{> @subSlogan}}
+      </div>
+      <aside>
+      <ul>
+      <li>{{> @videoThumb}}</li>
+      </ul>
+      </aside>
+      """
+    else
+      """
+      <div>
+      {{> @slogan}}
+      {{> @subSlogan}}
+      <ul>
+      <li>{{> @videoThumb}}</li>
+      </ul>
+      </div>
+      <aside>
+      {{> @form}}
+      {{> @toc}}
+      </aside>
+      """
 
