@@ -141,6 +141,7 @@ catch e
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
     options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
+    options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>
 
     options.route        or= {}           # <string> or <Object{slug: string, handler: function}>
 
