@@ -249,11 +249,9 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderHomepage  : require '../../render/grouphome'
-  @renderKodingHome: require '../../render/kodinghome'
-
-  @fetchKodingHome: (callback)->
-    callback null, JGroup.renderKodingHome()
+  @renderHomepage            : require '../../render/grouphome'
+  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
+  @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection

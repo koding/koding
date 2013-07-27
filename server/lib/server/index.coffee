@@ -412,20 +412,19 @@ app.get "/", (req, res)->
     res.send 'this is crawlable content'
   else
     isLoggedIn req, (loggedIn)->
+      {JGroup, JName} = koding.models
       if loggedIn
         # go to koding activity
-        # fixme: bad naming -> ./staticpages
         findUsernameFromSession req, res, (err, username)->
           console.log "username:", username
-
-        console.log "loggedIn"
-        activityPage = require './staticpages'
-        serve activityPage, res
+          JName.fetchModels username, (err, models)->
+            user = models.last
+            user.fetchAccount "koding", (err, account)->
+              activityPage = JGroup.renderKodingHomeLoggedIn {account}
+              serve activityPage, res
       else
         # go to koding home
-        console.log "loggedOut"
-        {JGroup} = koding.models
-        homePage = JGroup.renderKodingHome()
+        homePage = JGroup.renderKodingHomeLoggedOut()
         serve homePage, res
 
 
@@ -466,7 +465,6 @@ getAlias = do->
     if alias and rooted then "/#{alias}" else alias
 
 app.get '*', (req,res)->
-  console.log "here 1"
   {url}            = req
   queryIndex       = url.indexOf '?'
   [urlOnly, query] =\
