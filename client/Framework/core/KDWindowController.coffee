@@ -19,7 +19,7 @@ class KDWindowController extends KDController
     prefixes = ["webkit", "moz", "o"]
     return "hidden" if `"hidden" in document`
     return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
-    return null
+    return ""
 
   isFocused = -> Boolean document[getVisibilityProperty()]
 
