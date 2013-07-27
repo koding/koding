@@ -817,6 +817,8 @@ module.exports = class JUser extends jraphical.Module
       else
         if session.foreignAuth
           @update {username}, $set: foreignAuth: session.foreignAuth, callback
+        else
+          callback()
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->
