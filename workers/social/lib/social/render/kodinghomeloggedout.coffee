@@ -23,7 +23,7 @@ module.exports = ->
     <div class="kdview" id="kdmaincontainer">
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <header class="kdview" id='main-header'>
-        <a id="koding-logo" href="#"><span></span></a>
+        <a id="koding-logo" href="#" class='large'><span></span></a>
       </header>
       #{getHomeIntro()}
       <section class="kdview" id="main-panel-wrapper">
@@ -31,17 +31,15 @@ module.exports = ->
         <div class="kdview" id="content-panel">
           <div class="kdview kdscrollview kdtabview" id="main-tab-view">
             <div id='maintabpane-home' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
-              <div id="content-page-home" class="kdview content-page home kdscrollview">
-                <div class="kdview screenshots extra-wide" id="home-header">
-                  <div class="home-links kdview" id="home-login-bar">
-                    <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a>
-                    <a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a>
-                    <a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register an account</span></a>
-                    <a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
-                  </div>
-                  #{getCounters()}
+              <div id="content-page-home" class="kdview content-page home kdscrollview extra-wide">
+                <div class="home-links kdview" id="home-login-bar">
+                  <a class="custom-link-view browse orange" href="/Join"><span class="icon"></span><span class="title">Learn more...</span></a>
+                  <a class="custom-link-view join green" href="/Join"><span class="icon"></span><span class="title">Request an Invite</span></a>
+                  <a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register an account</span></a>
+                  <a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
                 </div>
-                <div class="kdview activity-content feeder-tabs">
+                #{getCounters()}
+                <div id='featured-activities-container' class="kdview activity-content feeder-tabs">
                   <div class="kdview listview-wrapper">
                     <div class="kdview feeder-header clearfix"><span>Featured Activity</span></div>
                     <div class="kdview kdscrollview">
