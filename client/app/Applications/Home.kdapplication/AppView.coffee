@@ -11,16 +11,6 @@ class HomeAppView extends KDView
   viewAppended:->
 
     account = KD.whoami()
-    # @addSubView @header = new WelcomeHeader
-    #   domId     : "home-welcome-header"
-    #   type      : "big"
-    #   title     : if KD.isLoggedIn() then\
-    #     "Hi #{account.profile.firstName}! Welcome to the Koding Public Beta." else\
-    #     "Welcome to the Koding Public Beta!<br>"
-    #   subtitle  : "Warning! when we say beta - <a href='#'>we mean it</a> :)"
-
-    @addSubView @slideShow = new HomeSlideShow
-      domId   : "home-slideshow"
 
     @addSubView @counterBar = new CounterGroupView
       domId    : "home-counter-bar"
@@ -69,55 +59,3 @@ class HomeAppView extends KDView
     else if 600  < w < 800   then "medium"
     else if 480  < w < 600   then "narrow"
     else "extra-narrow"
-
-  # OLD HOME PISTACHIO
-  # left here for reference - SY
-
-  # pistachio:->
-
-  #   """
-  #   <div class="kdview video-wrapper">
-  #     <iframe src="https://player.vimeo.com/video/45156018?color=ffb500" width="89.13%"
-  #     height="76.60%" frameborder="0" webkitallowfullscreen="" mozallowfullscreen=""
-  #     allowfullscreen="">
-  #     </iframe>
-  #   </div>
-  #   <div class="home-links">
-  #     <p class="bigLink">{{> @request}}</p>
-  #     <p class="bigLink">{{> @register}}</p>
-  #     <p class="bigLink">{{> @login}}</p>
-  #     <p class="bigLink">{{> @learn}}</p>
-  #   </div>
-  #   <section>
-  #     <hr id="home-reviews">
-  #     <div class="reviews">
-  #       <p>A new way for developers to work</p>
-  #       <span>We said.</span>
-  #       <p>Wow! Cool - good luck!</p>
-  #       <span>Someone we talked to the other day...</span>
-  #       <p>I don't get it... What is it, again?</p>
-  #       <span>Same dude.</span>
-  #       <p>Real software development in the browser...</p>
-  #       <span>Us again.</span>
-  #       <p>with a real VM and a real Terminal?</p>
-  #       <span>"and for free? You got to be kidding me..." he added. We gave him a beta invite.</span>
-  #     </div>
-  #     <hr />
-  #     <div id="home-screenshots" class="screenshots">
-  #       <div class="kdview">
-  #         {{> @leftArrow}}
-  #         {{> @rightArrow}}
-  #         {{> @slideShow}}
-  #       </div>
-  #     </div>
-  #     <hr />
-  #     <footer id="copy-footer" class="copy">
-  #       ©#{(new Date).getFullYear()} Koding, Inc. 358 Brannan Street, San Francisco, CA 94107
-  #     </footer>
-
-  #   </section>
-  #   """
-
-
-
-

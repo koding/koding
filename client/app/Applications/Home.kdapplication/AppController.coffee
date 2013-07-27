@@ -2,12 +2,15 @@ class HomeAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Home"
-    route        : "/:name?/Home"
+    route        : "/Home"          # slug removed intentionally
     hiddenHandle : yes
     behavior     : "hideTabs"
+    navItem      :
+      title      : "Home"
+      path       : "/Home"
+      order      : 9
 
   constructor:(options = {}, data)->
-    # options.view    = new HomeMainView
 
     {entryPoint} = KD.config
 
@@ -21,15 +24,3 @@ class HomeAppController extends AppController
       name          : "Home"
 
     super options,data
-
-  loadView:(mainView)->
-
-  createContentDisplayWithOptions:(options, callback)->
-    {model, route, query} = options
-
-    controller = KD.getSingleton 'contentDisplayController'
-    switch route
-      when 'About'
-        contentDisplay = new AboutView
-        controller.emit 'ContentDisplayWantsToBeShown', contentDisplay
-        callback contentDisplay
