@@ -1,8 +1,7 @@
 class KDInputViewWithPreview extends KDInputView
 
-  constructor:(options={},data)->
-
-    options.preview               ?= {}
+  constructor:(options = {}, data)->
+    options.preview               or= {}
     options.preview.autoUpdate    ?= yes
     options.preview.language      or= "markdown"
     options.preview.showInitially ?= yes
@@ -21,14 +20,14 @@ class KDInputViewWithPreview extends KDInputView
         @generatePreview()
       yes
 
-    super options,data
+    super options, data
 
     @setClass "kdinputwithpreview"
 
     @showPreview = options.preview.showInitially or no
 
     @previewOnOffLabel = new KDLabelView
-      cssClass      : "preview_switch_label"
+      cssClass      : "preview_switch_label unselectable"
       title         : "Preview"
       tooltip       :
         title       : "Show/hide the Text Preview Box"
@@ -58,167 +57,28 @@ class KDInputViewWithPreview extends KDInputView
       cssClass : "preview_switch"
 
     if @options.showHelperModal
-
-      @markdownLink = new KDCustomHTMLView
-        tagName     : 'a'
-        name        : "markdownLink"
-        value       : "markdown is enabled"
-        attributes  :
-          href      : '#'
-          value     : "markdown syntax is enabled"
-        cssClass    : 'markdown-link'
-        partial     : "What is Markdown?<span></span>"
-        tooltip     :
-          title     : "Show available Markdown formatting syntax"
-        click       : (event)=>
-          if $(event.target).is 'span'
-            link.hide()
-          else
-            markdownText = new KDMarkdownModalText
-            modal = new KDModalView
-              title       : "How to use the <em>Markdown</em> syntax."
-              cssClass    : "what-you-should-know-modal markdown-cheatsheet"
-              height      : "auto"
-              overlay     : yes
-              width       : 500
-              content     : markdownText.markdownText()
-              buttons     :
-                Close     :
-                  title   : 'Close'
-                  style   : 'modal-clean-gray'
-                  callback: -> modal.destroy()
-
+      @markdownLink = @getMarkdownLink()
       @previewOnOffContainer.addSubView @markdownLink
 
-    # if @options.openMaximized
-    #   log 'opening maximized'
-    #   @hide()
-    #   @textContainer = new KDView
-    #     cssClass:"modal-fullscreen-text"
-
-    #   @text = new KDInputViewWithPreview
-    #     type : "textarea"
-    #     cssClass : "fullscreen-data kdinput text"
-    #     allowMaximized : no
-    #     defaultValue : @getValue()
-
-    #   @textContainer.addSubView @text
-
-    #   modal = new KDModalView
-    #     title       : "Please enter your content here."
-    #     cssClass    : "modal-fullscreen"
-    #     width       : window.innerWidth-100
-    #     height      : window.innerHeight-100
-    #     # width       : $(window).width()-100
-    #     # height      : $(window).height()-100
-    #     view        : @textContainer
-    #     position:
-    #       top       : 35
-    #       left      : 35
-    #     overlay     : yes
-    #     buttons     :
-    #       Cancel    :
-    #         title   : "Discard changes"
-    #         style   : "modal-clean-gray"
-    #         callback:=>
-    #           modal.destroy()
-    #       Apply     :
-    #         title   : "Apply changes"
-    #         style   : "modal-clean-gray"
-    #         callback:=>
-    #           @setValue @text.getValue()
-    #           @generatePreview()
-    #           modal.destroy()
-
-
-    #   @utils.defer =>
-
-    #     modal.$(".kdmodal-content").height modal.$(".kdmodal-inner").height()-modal.$(".kdmodal-buttons").height()-modal.$(".kdmodal-title").height() # minus the margin, border pixels too..
-    #     modal.$(".fullscreen-data").height modal.$(".kdmodal-content").height()-30-23+10
-    #     modal.$(".input_preview").height   modal.$(".kdmodal-content").height()-0-21+10
-    #     modal.$(".input_preview").css maxHeight:  modal.$(".kdmodal-content").height()-0-21+10
-    #     modal.$(".input_preview div.preview_content").css maxHeight:  modal.$(".kdmodal-content").height()-0-21
-
-    #     contentWidth = modal.$(".kdmodal-content").width()-40
-    #     halfWidth  = contentWidth / 2
-
-    #     @text.on "PreviewHidden", =>
-    #       modal.$(".fullscreen-data").width contentWidth #-(modal.$("div.preview_switch").width()+20)-10
-    #       # modal.$(".input_preview").width (modal.$("div.preview_switch").width()+20)
-
-    #     @text.on "PreviewShown", =>
-    #       modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-    #       # modal.$(".input_preview").width halfWidth-5
-
-    #     modal.$(".fullscreen-data").width contentWidth-halfWidth-5
-    #     modal.$(".input_preview").width halfWidth-5
-
     if @options.allowMaximized
-      @fullScreenBtn = new KDButtonView
-        style           : "clean-gray small"
-        cssClass        : "fullscreen-button"
-        title           : "Fullscreen Edit"
-        icon            : no
-        tooltip         :
-          title         : "Open a Fullscreen Editor"
-        callback: =>
-          @textContainer = new KDView
-            cssClass:"modal-fullscreen-text"
-
-          @text = new KDInputViewWithPreview
-            type : "textarea"
-            cssClass : "fullscreen-data kdinput text"
-            allowMaximized : no
-            defaultValue : @getValue()
-
-          @textContainer.addSubView @text
-
-          @modal = new KDModalView
-            title       : "Please enter your content here."
-            cssClass    : "modal-fullscreen"
-            width       : window.innerWidth-100
-            height      : window.innerHeight-100
-            # width       : $(window).width()-100
-            # height      : $(window).height()-100
-            view        : @textContainer
-            position:
-              top       : 35
-              left      : 35
-            overlay     : yes
-            buttons     :
-              Apply     :
-                title   : "Apply changes"
-                style   : "modal-clean-gray"
-                callback:=>
-                  @setValue @text.getValue()
-                  @generatePreview()
-                  @modal.destroy()
-              Cancel    :
-                title   : "cancel"
-                style   : "modal-cancel"
-                callback:=> @modal.destroy()
-
-          @utils.defer =>
-            @setPaneSizes()
-
-          $(window).on "resize", =>
-            # (do/dont) Set width as "half" if preview is on
-            willSetWidths = @previewOnOffSwitch.defaultValue is on
-            @setPaneSizes(willSetWidths)
-
-      # @addSubView @fullScreenBtn
-      @previewOnOffContainer.addSubView @fullScreenBtn
+      @fullscreenEditButton = @getFullscreenEditButton()
+      @previewOnOffContainer.addSubView @fullscreenEditButton
 
     @previewOnOffContainer.addSubView @previewOnOffLabel
     @previewOnOffContainer.addSubView @previewOnOffSwitch
 
     @addSubView @previewOnOffContainer
 
-  setPaneSizes:(willSetWidths = yes)->
-    # selector performance ?
+    @listenWindowResize()
+
+  setPaneSizes:(opt_setWidths = yes)->
+    # For: "Uncaught TypeError: Cannot call method '$' of undefined"
+    return  unless @modal
+
+    # selector performance?
+    kdmodalContent = @modal.$(".kdmodal-content")
     fullscreenData = @modal.$(".fullscreen-data")
     inputPreview   = @modal.$(".input_preview")
-    kdmodalContent = @modal.$(".kdmodal-content")
 
     # minus the margin, border pixels too..
     kdmodalContent.height @modal.$(".kdmodal-inner").height() - @modal.$(".kdmodal-buttons").height() - @modal.$(".kdmodal-title").height()
@@ -227,29 +87,79 @@ class KDInputViewWithPreview extends KDInputView
 
     fullscreenData.height kdmodalContentHeight - 30 - 23 + 10
     inputPreview.height kdmodalContentHeight - 0 - 21 + 10
-    inputPreview.css 
-      maxHeight :  kdmodalContentHeight - 0 - 21 + 10
-    @modal.$(".input_preview div.preview_content").css 
-      maxHeight :  kdmodalContentHeight - 0 - 21
+    @modal.$(".input_preview div.preview_content").css "maxHeight",  kdmodalContentHeight - 0 - 21
 
     contentWidth = kdmodalContent.width() - 40
     halfWidth    = contentWidth / 2
 
     @text.on "PreviewHidden", =>
-      fullscreenData.width contentWidth # -(@modal.$("div.preview_switch").width() + 20) - 10
-      # inputPreview.width (@modal.$("div.preview_switch").width() + 20)
+      fullscreenData.width contentWidth
 
     @text.on "PreviewShown", =>
       fullscreenData.width contentWidth - halfWidth - 5
-      # inputPreview.width halfWidth - 5
 
-    if willSetWidths
+    if opt_setWidths
       fullscreenData.width contentWidth - halfWidth - 5
       inputPreview.width halfWidth - 5
 
+    # quick fix for "window.on resize"
+    @modal.$().height window.innerHeight - 55
+
+  getMarkdownLink:->
+    new KDCustomHTMLView
+      tagName     : "a"
+      cssClass    : "markdown-link unselectable"
+      partial     : "What is Markdown?"
+      tooltip     :
+        title     : "Show available Markdown formatting syntax"
+      click       : -> new MarkdownModal
+
+  getFullscreenEditButton:->
+    new KDButtonView
+      style           : "clean-gray small"
+      cssClass        : "fullscreen-button"
+      title           : "Fullscreen Edit"
+      icon            : no
+      tooltip         :
+        title         : "Open a Fullscreen Editor"
+      callback        : =>
+        @textContainer = new KDView
+          cssClass:"modal-fullscreen-text"
+
+        @text = new KDInputViewWithPreview
+          type           : "textarea"
+          cssClass       : "fullscreen-data kdinput text"
+          allowMaximized : no
+          defaultValue   : @getValue()
+
+        @textContainer.addSubView @text
+
+        @modal = new KDModalView
+          title        : "Please enter your content here."
+          cssClass     : "modal-fullscreen"
+          width        : window.innerWidth - 100
+          height       : window.innerHeight - 55
+          overlay      : yes
+          view         : @textContainer
+          buttons      :
+            Apply      :
+              title    : "Apply changes"
+              style    : "modal-clean-gray"
+              callback :=>
+                @setValue @text.getValue()
+                @generatePreview()
+                @modal.destroy()
+            Cancel     :
+              title    : "cancel"
+              style    : "modal-cancel"
+              callback :=> @modal.destroy()
+
+        @utils.defer =>
+          @setPaneSizes()
+
   getEditScrollPercentage:->
-      scrollPosition = @$().scrollTop()
-      scrollHeight = @$().height()
+      scrollPosition  = @$().scrollTop()
+      scrollHeight    = @$().height()
       scrollMaxheight = @getDomElement()[0].scrollHeight
 
       scrollPosition / (scrollMaxheight - scrollHeight) * 100
@@ -257,7 +167,7 @@ class KDInputViewWithPreview extends KDInputView
   setPreviewScrollPercentage:(percentage)->
     s = @$("div.preview_content")
     s.animate
-     scrollTop : ((s[0].scrollHeight - s.height())*percentage/100)
+     scrollTop : ((s[0].scrollHeight - s.height()) * percentage / 100)
     , 50, "linear"
 
   setDomElement:(cssClass="")->
@@ -304,3 +214,8 @@ class KDInputViewWithPreview extends KDInputView
         @$("div.preview_content span.data").html @utils.applyMarkdown @getValue()
         @$("div.preview_content span.data pre").each (i,element)=>
           hljs.highlightBlock element
+  
+  _windowDidResize:->
+    @utils.defer =>
+      opt_setWidths = @previewOnOffSwitch.defaultValue is on
+      @setPaneSizes(opt_setWidths)
