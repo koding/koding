@@ -123,6 +123,8 @@ module.exports =
       # Is this correct?
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-staging-#{version}a.in.koding.com:1337"
+      github    :
+        clientId: "f733c52d991ae9642365"
   mq            :
     host        : 'rabbitmq-staging.in.koding.com'
     port        : 5672
@@ -194,3 +196,6 @@ module.exports =
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : 'followfeed'
+  github        :
+    clientId    : "f733c52d991ae9642365"
+    clientSecret: "ab200fda4915f72ccd63cf7ae554865b225fb033"
