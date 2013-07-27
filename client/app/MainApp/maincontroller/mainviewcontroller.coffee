@@ -33,7 +33,11 @@ class MainViewController extends KDViewController
     cdController.emit "ContentDisplaysShouldBeHidden"
     @setViewState pane.getOptions()
 
-    navController.selectItemByName app.getOption('navItem').title
+    {title} = app.getOption('navItem')
+
+    return unless title
+
+    navController.selectItemByName title
 
   setViewState: do ->
 
