@@ -74,27 +74,27 @@ app.use (req, res, next) ->
     if err then console.log err
     next()
 
-app.get "/-/cache/latest", (req, res)->
-  {JActivityCache} = koding.models
-  startTime = Date.now()
-  JActivityCache.latest (err, cache)->
-    if err then console.warn err
-    # if you want to jump to previous cache - uncomment if needed
-    if cache and req.query?.previous?
-      timestamp = new Date(cache.from).getTime()
-      return res.redirect 301, "/-/cache/before/#{timestamp}"
-    # console.log "latest: #{Date.now() - startTime} msecs!"
-    return res.send if cache then cache.data else {}
+# app.get "/-/cache/latest", (req, res)->
+#   {JActivityCache} = koding.models
+#   startTime = Date.now()
+#   JActivityCache.latest (err, cache)->
+#     if err then console.warn err
+#     # if you want to jump to previous cache - uncomment if needed
+#     if cache and req.query?.previous?
+#       timestamp = new Date(cache.from).getTime()
+#       return res.redirect 301, "/-/cache/before/#{timestamp}"
+#     # console.log "latest: #{Date.now() - startTime} msecs!"
+#     return res.send if cache then cache.data else {}
 
-app.get "/-/cache/before/:timestamp", (req, res)->
-  {JActivityCache} = koding.models
-  JActivityCache.before req.params.timestamp, (err, cache)->
-    if err then console.warn err
-    # if you want to jump to previous cache - uncomment if needed
-    if cache and req.query?.previous?
-      timestamp = new Date(cache.from).getTime()
-      return res.redirect 301, "/-/cache/before/#{timestamp}"
-    res.send if cache then cache.data else {}
+# app.get "/-/cache/before/:timestamp", (req, res)->
+#   {JActivityCache} = koding.models
+#   JActivityCache.before req.params.timestamp, (err, cache)->
+#     if err then console.warn err
+#     # if you want to jump to previous cache - uncomment if needed
+#     if cache and req.query?.previous?
+#       timestamp = new Date(cache.from).getTime()
+#       return res.redirect 301, "/-/cache/before/#{timestamp}"
+#     res.send if cache then cache.data else {}
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
@@ -375,7 +375,7 @@ error_500 =->
   error_ 500, 'internal server error'
 
 app.get '/:name/:section?*', (req, res, next)->
-  {JGroup, JName, JSession} = koding.models
+  {JName} = koding.models
   {name} = req.params
   return res.redirect 302, req.url.substring 7  if name is 'koding'
   [firstLetter] = name
@@ -386,32 +386,22 @@ app.get '/:name/:section?*', (req, res, next)->
       if err then next err
       else unless models? then res.send 404, error_404()
       else
-        models[models.length-1].fetchHomepageView (err, view)->
+        models.last.fetchHomepageView (err, view)->
           if err then next err
           else if view? then res.send view
           else res.send 500, error_500()
 
-  # groupName = name
-  # JGroup.one { slug: groupName }, (err, group)->
-  #   if err or !group? then next err
-  #   else
-  #     group.fetchHomepageView (err, view)->
-  #       if err then next err
-  #       else res.send view
-
-# app.get '/:userName', (req, res, next)->
-#   {JAccount} = koding.models
-#   {userName} = req.params
-#   JAccount.one { 'profile.nickname': userName }, (err, account)->
-#     if err or !account? then next err
-#     else
-#       if account.profile.staticPage?.show is yes
-#         account.fetchHomepageView (err, view)->
-#           if err then next err
-#           else res.send view
-#       else
-#         res.header 'Location', '/Activity'
-#         res.send 302
+isLoggedIn = (req, callback)->
+  {clientId} = req.cookies
+  unless clientId then callback no
+  else
+    {JSession} = koding.models
+    JSession.one {clientId}, (err, session)->
+      if err or not session
+        callback no
+      else
+        {username} = session.data
+        callback !!username
 
 serve = (content, res)->
   res.header 'Content-type', 'text/html'
@@ -421,8 +411,23 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    defaultTemplate = require './staticpages'
-    serve defaultTemplate, res
+    isLoggedIn req, (loggedIn)->
+      if loggedIn
+        # go to koding activity
+        # fixme: bad naming -> ./staticpages
+        findUsernameFromSession req, res, (err, username)->
+          console.log "username:", username
+
+        console.log "loggedIn"
+        activityPage = require './staticpages'
+        serve activityPage, res
+      else
+        # go to koding home
+        console.log "loggedOut"
+        {JGroup} = koding.models
+        homePage = JGroup.renderKodingHome()
+        serve homePage, res
+
 
 ###
 app.get "/-/kd/register/:key", (req, res)->
@@ -461,13 +466,20 @@ getAlias = do->
     if alias and rooted then "/#{alias}" else alias
 
 app.get '*', (req,res)->
-  {url} = req
-  queryIndex = url.indexOf '?'
+  console.log "here 1"
+  {url}            = req
+  queryIndex       = url.indexOf '?'
   [urlOnly, query] =\
-    if ~queryIndex then [url.slice(0, queryIndex), url.slice(queryIndex)]
+    if ~queryIndex
+    then [url.slice(0, queryIndex), url.slice(queryIndex)]
     else [url, '']
-  alias = getAlias urlOnly
-  redirectTo = if alias then "#{alias}#{query}" else "/#!#{urlOnly}#{query}"
+
+  alias      = getAlias urlOnly
+  redirectTo =\
+    if alias
+    then "#{alias}#{query}"
+    else "/#!#{urlOnly}#{query}"
+
   res.header 'Location', redirectTo
   res.send 302
 
