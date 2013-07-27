@@ -69,7 +69,7 @@ module.exports = class Graph
   attachReplies:(options, callback)->
     tempRes = []
     collectRelations = race (i, res, fin)=>
-      res.replies = [] 
+      res.replies = []
       @fetchReplies res.getId(), (err, relatedResult)=>
         if err
           callback err
@@ -367,7 +367,7 @@ module.exports = class Graph
 
     if sort
       orderBy = Object.keys(sort)[0]
-      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
+      orderByQuery = @getOrderByQuery orderBy
     else
       orderByQuery = ''
 
@@ -375,7 +375,7 @@ module.exports = class Graph
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
       return members
-      #{orderByQuery}
+      ORDER BY #{orderByQuery} DESC
       skip #{skip}
       limit #{limit}
       """
@@ -390,7 +390,7 @@ module.exports = class Graph
 
     if sort
       orderBy = Object.keys(sort)[0]
-      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
+      orderByQuery = @getOrderByQuery orderBy
     else
       orderByQuery = ''
 
@@ -414,7 +414,7 @@ module.exports = class Graph
 
     if sort
       orderBy = Object.keys(sort)[0]
-      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
+      orderByQuery = @getOrderByQuery orderBy
     else
       orderByQuery = ''
 
