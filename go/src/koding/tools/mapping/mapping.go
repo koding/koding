@@ -46,6 +46,7 @@ func ConvertTo2DMap(start string, data map[string]interface{}) map[string]interf
 				result[tempKey] = mapValue
 			}
 		case "int", "int64", "unit64", "float64", "bool", "string":
+			result[k] = v
 		// if value is an array
 		case "[]interface {}":
 			// casting here
