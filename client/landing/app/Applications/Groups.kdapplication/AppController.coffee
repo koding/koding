@@ -162,7 +162,7 @@ class GroupsAppController extends AppController
                 callback err, items, rest...
                 # to trigger dataEnd
                 unless err
-                  ids = item.getId?() for item in items
+                  ids = (item.getId?() for item in items)
                   callback null, null, ids
             else
               JGroup.streamModels selector, options, callback
@@ -231,8 +231,6 @@ class GroupsAppController extends AppController
       @emit 'ready'
 
   markGroupRelationship:(controller, ids)->
-    # return unless KD.isLoggedIn()
-
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
