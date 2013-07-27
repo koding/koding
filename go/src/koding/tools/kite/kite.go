@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/streadway/amqp"
 	"koding/tools/amqputil"
-	"koding/tools/config"
 	"koding/tools/dnode"
 	"koding/tools/lifecycle"
 	"koding/tools/log"
