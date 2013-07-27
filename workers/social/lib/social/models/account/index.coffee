@@ -951,6 +951,7 @@ module.exports = class JAccount extends jraphical.Module
       routingKey: @profile.nickname
       event, contents
     }
+
   getInvitiationRequestRelationships:(options, status, callback)->
     JInvitationRequest = require '../invitationrequest'
 
@@ -959,7 +960,7 @@ module.exports = class JAccount extends jraphical.Module
 
       selector =
         $or: [
-          {'koding.username': @profile.nickname,}
+          {'koding.username': @profile.nickname}
           {email: user.email}
         ]
         status: status

@@ -13,6 +13,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
 	}
