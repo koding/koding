@@ -21,7 +21,7 @@ module.exports = [
   # core
   "Framework/core/KDObject.coffee",
   "Framework/core/KDView.coffee",
-  "Framework/core/KDOverlayView.coffee",  
+  "Framework/core/KDOverlayView.coffee",
   "Framework/core/JView.coffee",
   "Framework/core/KDCustomHTMLView.coffee",
   "Framework/core/KDScrollView.coffee",
@@ -669,6 +669,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/Views/grouphomeview.coffee",
   "app/Applications/Home.kdapplication/Views/homeloginbar.coffee",
   "app/Applications/Home.kdapplication/Views/homeslideshow.coffee",
+  "app/Applications/Home.kdapplication/Views/homeintroview.coffee",
   "app/Applications/Home.kdapplication/Views/welcomeheader.coffee",
   "app/Applications/Home.kdapplication/Views/FooterBarContents.coffee",
   "app/Applications/Home.kdapplication/Views/featuredviews.coffee",

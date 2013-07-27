@@ -48,10 +48,10 @@ class MainView extends KDView
     about.setY offset
     about.bindTransitionEnd()
 
-  addBook:-> 
-    @addSubView new BookView 
+  addBook:->
+    @addSubView new BookView
       delegate : this
-    
+
 
   _windowDidResize:->
 
@@ -59,6 +59,8 @@ class MainView extends KDView
     @panelWrapper.setHeight winHeight - 51
 
   createMainPanels:->
+
+    @addSubView @homeIntro = new HomeIntroView
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -113,7 +115,7 @@ class MainView extends KDView
     @mainTabHandleHolder = new MainTabHandleHolder
       domId    : "main-tab-handle-holder"
       cssClass : "kdtabhandlecontainer"
-      delegate : @
+      delegate : this
 
     @appSettingsMenuButton = new AppSettingsMenuButton
     @appSettingsMenuButton.hide()
@@ -121,7 +123,7 @@ class MainView extends KDView
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
       listenToFinder     : yes
-      delegate           : @
+      delegate           : this
       slidingPanes       : no
       tabHandleContainer : @mainTabHandleHolder
     ,null
@@ -147,7 +149,7 @@ class MainView extends KDView
 
   createSideBar:->
 
-    @sidebar             = new Sidebar domId : "sidebar", delegate : @
+    @sidebar             = new Sidebar domId : "sidebar", delegate : this
     mc                   = KD.getSingleton 'mainController'
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
