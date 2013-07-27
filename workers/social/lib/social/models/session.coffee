@@ -69,7 +69,6 @@ module.exports = class JSession extends Model
     clientId = createId()
     JUser.createTemporaryUser (err, resp) =>
       {account} = resp
-      console.log "createTemporaryUser", err, resp, account
       if err then @emit 'error', err
       else
         {nickname: username} = account.profile
