@@ -33,12 +33,12 @@ module.exports =
     read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding-staging'
-  runNeo4jFeeder: no
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  runNeo4jFeeder: yes
   runGoBroker   : no
-  runKontrol    : no
-  runRerouting  : no
-  runUserPresence: no
+  runKontrol    : yes
+  runRerouting  : yes
+  runUserPresence: yes
   runPersistence: yes
   compileGo     : no
   buildClient   : yes
