@@ -562,7 +562,7 @@ module.exports = class JVM extends Model
             webHome   : user.username
             groups    : wrapGroup group
           }
-        else unless group is 'koding'
+        else unless group.slug is 'koding'
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else
