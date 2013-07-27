@@ -211,19 +211,21 @@ class ActivityAppController extends AppController
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
-        #if exempt or @getFilter() isnt activityTypes
+      #if exempt or @getFilter() isnt activityTypes
+      groupObj = KD.getSingleton('groupsController').getCurrentGroup()
+
       options =
         to     : options.to or Date.now()
         group  :
-          slug : currentGroup.slug or "koding"
-          id   : currentGroup.getId()
+          slug : groupObj?.slug or "koding"
+          id   : groupObj.getId()
         limit  : 20
         facets : @getActivityFilter()
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      group = KD.getSingleton('groupsController').getCurrentGroup().slug
       {roles} = KD.config
+      group   = groupObj?.slug
 
       if "koding" is group and  "guest" in roles
         @listFeaturedActivities callback
