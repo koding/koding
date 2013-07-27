@@ -159,7 +159,7 @@ catch e
           router.openSection options.name, name, query
         router.addRoute slug, handler
 
-      if KD.getSingleton 'router'
+      if KD.singletons.router
       then @utils.defer -> cb KD.getSingleton('router')
       else KodingRouter.on 'RouterReady', cb
 
