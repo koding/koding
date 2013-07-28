@@ -179,6 +179,14 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
+  fetchOldKodingDownloadLink : secure (client,callback)->
+    crypto = require 'crypto'
+    {delegate}    = client.connection
+    user      = delegate.profile.nickname
+    userhash  = crypto.createHash('md5').update("#{user}+salty\n").digest("hex")
+    link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
+    callback null,link
+
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
       username = options

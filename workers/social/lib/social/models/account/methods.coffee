@@ -29,5 +29,5 @@ module.exports =
       'fetchMyFollowersFromGraph', 'blockUser',
       'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
       'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-      'unlinkOauth', 'changeUsername'
+      'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink'
     ]
