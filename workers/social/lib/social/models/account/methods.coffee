@@ -5,7 +5,7 @@ module.exports =
       'one', 'some', 'cursor', 'each', 'someWithRelationship'
       'someData', 'getAutoCompleteData', 'count'
       'byRelevance', 'fetchVersion','reserveNames'
-      'impersonate', 'fetchBlockedUsers', 'fetchOldKodingDownloadLink'
+      'impersonate', 'fetchBlockedUsers'
     ]
   sharedInstanceMethods:->
     [
@@ -29,5 +29,5 @@ module.exports =
       'fetchMyFollowersFromGraph', 'blockUser',
       'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
       'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
-      'unlinkOauth', 'changeUsername'
+      'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink'
     ]

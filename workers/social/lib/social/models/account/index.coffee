@@ -179,7 +179,7 @@ module.exports = class JAccount extends jraphical.Module
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
 
-  @fetchOldKodingDownloadLink : secure (client,callback)->
+  fetchOldKodingDownloadLink : secure (client,callback)->
     crypto = require 'crypto'
     {delegate}    = client.connection
     user      = delegate.profile.nickname
