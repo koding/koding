@@ -105,7 +105,7 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      authExchange: "auth-#{version}"
+      authExchange: authExchange
       github         :
         clientId     : "f8e440b796d953ea01e5"
       userSitesDomain: 'localhost'
