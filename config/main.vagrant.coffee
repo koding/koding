@@ -7,8 +7,8 @@ mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
-authExchange    = "auth-#{version}"
-authAllExchange = "authAll-#{version}"
+authExchange    = "auth"
+authAllExchange = "authAll"
 
 module.exports =
   aws           :
