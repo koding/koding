@@ -127,9 +127,8 @@ class ActivityListHeader extends JView
     message =
       """
       We successfuly saved your old files.<br/><br/>
-      Your old files are at <br/>
-      your <strong>#{vms.first} VM </strong> and in<br/>
-
+      Your old files are at your <br/>
+      <strong>#{vms.first} VM </strong> and in<br/>
       <strong>/home/#{KD.whoami().profile.nickname}/#{folderName} </strong> folder<br/>
       """
 
