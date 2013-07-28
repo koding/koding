@@ -91,12 +91,14 @@ class ActivityListHeader extends JView
         else
           @showProcessStartedMessageForDownload(vms)
           #prepare command
-          command = "wget #{url}"
+          fileName = url.split("/").last
+          folderName = "old.koding.com-backup-#{Date.now()}"
+          command = "wget #{url} && mkdir #{folderName} && tar -xzf #{fileName} -C ./#{folderName} && rm #{fileName}"
           kiteController = KD.getSingleton "kiteController"
           kiteController.run command, (err, res) =>
             if err then return @showDownloadFailedMessage(vms)
 
-            return @showDownloadFinishedMessage(vms)
+            return @showDownloadFinishedMessage(vms, folderName)
 
   showProcessStartedMessageForDownload:(vms)->
     message =
@@ -121,13 +123,14 @@ class ActivityListHeader extends JView
     @dislayDonloadLinkModal("Process Failed", message)
 
 
-  showDownloadFinishedMessage:(vms)->
+  showDownloadFinishedMessage:(vms, folderName)->
     message =
       """
       We successfuly saved your old files.<br/><br/>
-      Your old files are in <br/>
-      <strong>/home/#{KD.whoami().profile.nickname}/ </strong> folder in <br/>
-      your <strong>#{vms.first} VM </strong><br/>
+      Your old files are at <br/>
+      your <strong>#{vms.first} VM </strong> and in<br/>
+
+      <strong>/home/#{KD.whoami().profile.nickname}/#{folderName} </strong> folder<br/>
       """
 
     @dislayDonloadLinkModal("Process Finished", message)
@@ -136,7 +139,7 @@ class ActivityListHeader extends JView
     partial = ""
     if KD.isLoggedIn()
       @appStorage.fetchValue 'showOldKodingDataDownloadLink', (status)=>
-        if status and status isnt "false"
+        if not status? or status isnt "false"
           partial = "Download Old Koding.com Files"
           @downloadOldKodingFilesLink.updatePartial partial
     @downloadOldKodingFilesLink.updatePartial partial
