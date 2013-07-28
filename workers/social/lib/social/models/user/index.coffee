@@ -161,21 +161,13 @@ module.exports = class JUser extends jraphical.Module
         JUser.createTemporaryUser callback
 #        JGuest.obtain null, clientId, callback
       else
-        {username, guestId} = session
-        if guestId?
-          JGuest.one {guestId}, (err, guest)=>
-            if err
-              callback createKodingError err
-            else if guest?
-              callback null, guest
-            else
-              @logout clientId, callback
-        else if username?
-          JUser.one {username}, (err, user)->
+        {username} = session
+        if username?
+          JUser.one {username}, (err, user)=>
             if err
               callback createKodingError err
             else unless user?
-              callback createKodingError 'Unknown user!'
+              @logout clientId, callback
             else
               user.fetchAccount context, (err, account)->
                 if err

@@ -65,7 +65,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     JGuest = require './guest'
     {delegate} = client.connection
-    unless delegate instanceof JGuest
+    unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in.'
     else
       JUser.one {username}, (err, user)=>
@@ -76,7 +76,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     JGuest = require './guest'
     {delegate} = client.connection
-    unless delegate instanceof JGuest
+    unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in.'
     else
       JUser.count {email}, (err, num)=>
@@ -144,7 +144,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @resetPassword = secure (client, token, newPassword, callback)->
     JUser = require './user'
     {delegate} = client.connection
-    unless delegate instanceof JGuest
+    unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in!'
     else
       @one {token}, (err, certificate)->
