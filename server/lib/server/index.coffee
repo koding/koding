@@ -514,7 +514,6 @@ app.get "/", (req, res)->
       if loggedIn
         # go to koding activity
         findUsernameFromSession req, res, (err, username)->
-          console.log "username:", username
           JName.fetchModels username, (err, models)->
             user = models.last
             user.fetchAccount "koding", (err, account)->
