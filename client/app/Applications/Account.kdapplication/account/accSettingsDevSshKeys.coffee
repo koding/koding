@@ -8,7 +8,7 @@ class AccountSshKeyListController extends KDListViewController
       @newItem = no
       newKeys = @getItemsOrdered().map (item)-> item.getData()
       if newKeys.length is 0
-        @addCustomItem "You have no SSH keys."
+        @addCustomItem "<cite>You have no SSH keys.</cite>"
       else
         @customItem?.destroy()
       KD.remote.api.JUser.setSSHKeys newKeys, ->
