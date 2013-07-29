@@ -17,12 +17,16 @@ class HomeIntroView extends JView
     @subSlogan = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'slogan-continues'
+      click    : (event)->
+        if $(event.target).is 'a'
+          KD.utils.stopDOMEvent event
+          KD.getSingleton('router').handleRoute "/Develop"
       partial  : """
                 <span>Software development has finally evolved.</span>
                 <br>
-                <span>It is now social, in the browser,</span>
+                <span>It's now social, in the browser and free.</span>
                 <br>
-                <span>and free.</span>
+                <a href='/Develop'>Go ahead & try!</a>
                 """
 
     @github = new KDButtonView
@@ -52,6 +56,7 @@ class HomeIntroView extends JView
         window.open "/timedude.html",
           "Koding and the Timedude!",
           "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
+
 
     @counterBar = new CounterGroupView
       domId    : "home-counter-bar"
