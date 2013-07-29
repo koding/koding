@@ -14,6 +14,8 @@ class Sidebar extends JView
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
+      attributes :
+        title    : "View your public profile"
       size       :
         width    : 160
         height   : 76
