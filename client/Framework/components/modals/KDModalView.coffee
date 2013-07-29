@@ -149,7 +149,9 @@ class KDModalView extends KDView
   _windowDidResize:->
     @setPositions()
     {winHeight} = KD.getSingleton('windowController')
-    @$('.kdmodal-content').css 'max-height', winHeight - 120
+    @$('.kdmodal-content').css
+      maxHeight: winHeight - 120
+      overflow : "auto"
     @setY (winHeight - @getHeight()) / 2 unless @getOptions().position.top
 
   putOverlay:->
