@@ -49,8 +49,8 @@ class JContextMenuTreeViewController extends JTreeViewController
     o.type              or= "contextmenu"
     o.treeItemClass     or= JContextMenuItem
     o.listViewClass     or= JContextMenuTreeView
-    o.addListsCollapsed or= yes
-    o.putDepthInfo      or= yes
+    o.addListsCollapsed  ?= yes
+    o.putDepthInfo       ?= yes
     super o, data
     @expandedNodes        = []
 

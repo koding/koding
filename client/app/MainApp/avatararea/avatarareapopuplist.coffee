@@ -4,6 +4,6 @@ class PopupList extends KDListView
 
     options.tagName     or= "ul"
     options.cssClass    or= "avatararea-popup-list"
-    # options.lastToFirst or= no
+    # options.lastToFirst  ?= no
 
     super options,data

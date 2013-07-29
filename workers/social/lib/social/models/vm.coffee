@@ -299,16 +299,16 @@ module.exports = class JVM extends Model
           callback null, arr.map (vm)-> vm.hostnameAlias
 
   @fetchVmsByContext = secure (client, options, callback) ->
-      {connection:{delegate}, context:{group}} = client
-      JGroup = require './group'
+    {connection:{delegate}, context:{group}} = client
+    JGroup = require './group'
 
-      slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
+    slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
 
-      JGroup.one {slug}, (err, group) =>
-        return callback err  if err
+    JGroup.one {slug}, (err, group) =>
+      return callback err  if err
 
-        selector = groups: { $elemMatch: id: group.getId() }
-        @fetchAccountVmsBySelector delegate, selector, options, callback
+      selector = groups: { $elemMatch: id: group.getId() }
+      @fetchAccountVmsBySelector delegate, selector, options, callback
 
   @fetchVms = secure (client, options, callback) ->
       {delegate} = client.connection
@@ -346,9 +346,9 @@ module.exports = class JVM extends Model
           return callback err, []  if err or not vm
           JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
 
-  @removeRelatedDomains = (vm)->
+  @removeRelatedDomains = (vm, callback=->)->
     vmInfo = @parseAlias vm.hostnameAlias
-    return  unless vmInfo
+    return callback null  unless vmInfo
 
     # Create same aliases based on vm info
     aliasesToDelete = @createAliases vmInfo
@@ -365,6 +365,7 @@ module.exports = class JVM extends Model
 
     JDomain = require './domain'
     JDomain.remove selector, (err)->
+      callback err
       return console.error "Failed to delete domains:", err  if err
 
   remove: (callback)->
@@ -501,24 +502,36 @@ module.exports = class JVM extends Model
 
       JVM.one {hostnameAlias}, (err, vm)=>
         return console.error err  if err or not vm
-        console.log "Old vm found, passing..."
-        JAccount.one {'profile.nickname':username}, (err, account)=>
-          return console.error err  if err or not account
-          console.log "New account found, passing..."
-          vm.update {$set: {hostnameAlias: newHostNameAlias}}, (err)=>
-            return console.error err  if err
-            console.log "VM hostnameAlias updated, passing..."
-            nameFactory = (require 'koding-counter')
-              db          : JVM.getClient()
-              offset      : 0
-              counterName : "koding~#{username}~"
-            nameFactory.next (err, uid)=>
+        # Old vm found
+
+        # Removing old vm domains...
+        JVM.removeRelatedDomains vm, (err)=>
+          if err
+            console.error "Failed to remove old domains for #{hostnameAlias}"
+
+          JAccount.one {'profile.nickname':username}, (err, account)=>
+            return console.error err  if err or not account
+            # New account found
+
+            vm.update {$set: {hostnameAlias: newHostNameAlias}}, (err)=>
               return console.error err  if err
-              console.log "Counter created with #{uid}, passing..."
-              JVM.ensureDomainSettings {
-                type:'user', nickname:username, groupSlug:'koding'
-                account, vm
-              }
+              # VM hostnameAlias updated
+
+              nameFactory = (require 'koding-counter')
+                db          : JVM.getClient()
+                offset      : 0
+                counterName : "koding~#{username}~"
+              nameFactory.next (err, uid)=>
+                return console.error err  if err
+                # Counter created
+
+                JVM.ensureDomainSettings {
+                  type:'user', nickname:username, groupSlug:'koding'
+                  account, vm
+                }
+
+                console.log """Migration completed for
+                               #{hostnameAlias} to #{newHostNameAlias}"""
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
@@ -549,7 +562,7 @@ module.exports = class JVM extends Model
             webHome   : user.username
             groups    : wrapGroup group
           }
-        else
+        else unless group.slug is 'koding'
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else

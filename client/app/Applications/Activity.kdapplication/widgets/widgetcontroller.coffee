@@ -112,6 +112,9 @@ class ActivityUpdateWidgetController extends KDViewController
 
 
   widgetSubmit:(data,constructorName,callback)->
+    for own key, field of data when _.isString(field)
+      data[key] = field.replace(/&quot;/g, '"')
+
     # if troll clear the tag input
     data.meta?.tags = [] if KD.checkFlag 'exempt'
     if data.activity
@@ -134,7 +137,7 @@ class ActivityUpdateWidgetController extends KDViewController
 
         KD.showError err,
           AccessDenied :
-            title      : 'Permission denied to create activities'
+            title      : 'You are not allowed to create activities'
             content    : 'This activity will only be visible to you'
             duration   : 5000
           KodingError  : 'Something went wrong while creating activity'

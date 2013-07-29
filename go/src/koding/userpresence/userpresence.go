@@ -46,6 +46,8 @@ func startMonitoring(mainAmqpConn *amqp.Connection) {
 		panic(err)
 	}
 
+	queueName := resourceName + config.Current.Version
+
 	if err := channel.ExchangeDeclare(
 		resourceName, // the exchange name
 		"x-presence", // use the presence exchange plugin
@@ -59,18 +61,18 @@ func startMonitoring(mainAmqpConn *amqp.Connection) {
 	}
 
 	if _, err := channel.QueueDeclare(
-		resourceName, // the queue name
-		false,        // durable
-		true,         // autodelete
-		true,         // exclusive
-		false,        // no wait
-		nil,          // arguments
+		queueName, // the queue name
+		false,     // durable
+		true,      // autodelete
+		true,      // exclusive
+		false,     // no wait
+		nil,       // arguments
 	); err != nil {
 		panic(err)
 	}
 
 	if err := channel.QueueBind(
-		resourceName, // queue name
+		queueName,    // queue name
 		"",           // binding key (use an empty key to monitor messages)
 		resourceName, // exchange name
 		false,        // no wait
@@ -80,13 +82,13 @@ func startMonitoring(mainAmqpConn *amqp.Connection) {
 	}
 
 	deliveries, err := channel.Consume(
-		resourceName, // queue name
-		"",           // ctag
-		true,         // auto-ack
-		false,        // exlusive
-		false,        // no local
-		false,        // no wait
-		nil,          // arguments
+		queueName, // queue name
+		"",        // ctag
+		true,      // auto-ack
+		false,     // exlusive
+		false,     // no local
+		false,     // no wait
+		nil,       // arguments
 	)
 	if err != nil {
 		panic(err)

@@ -47,7 +47,7 @@ class ContentDisplayControllerTopic extends KDViewController
             selector = {targetName: 'JCodeSnip'}
             topic.fetchContentTeasers options, selector, (err, teasers)->
               callback err, teasers
-        # Discussions Disabled
+        # Discussions Disabled
         # discussions       :
         #   title           : 'Discussions'
         #   dataSource      : (selector, options, callback)->

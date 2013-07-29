@@ -115,6 +115,9 @@ class EmbedBox extends KDView
       delete data.images[i]  if i isnt @imageIndex
     @imageIndex = 0
 
+    for own key, field of data when _.isString(field)
+      data[key] = field.replace(/&quot;/g, '"')
+
     return data
 
   getRichEmbedWhitelist:-> [] # add provider name here if we dont want to embed
@@ -138,8 +141,7 @@ class EmbedBox extends KDView
         when 'object' then containerClass = EmbedBoxObjectView
         else               containerClass = EmbedBoxLinkView
 
-      @embedContainer.destroy()
-      @embedLinks.hide()
+      @embedContainer?.destroy()
       @embedContainer = new containerClass embedOptions, data
       @embedContainer.show()
       @addSubView @embedContainer
@@ -151,7 +153,7 @@ class EmbedBox extends KDView
     if data.safe? and (data.safe is yes or data.safe is 'true')
 
       # types should be covered, but if the embed call fails partly, default to link
-      type = data.object?.type or 'link'
+      type = data.type or 'link'
 
       populateData =
         link_embed   : data
@@ -230,7 +232,6 @@ class EmbedBox extends KDView
 
     # prepare embed.ly options
     embedlyOptions = $.extend {}, {
-      endpoint  : 'preview'
       maxWidth  : 530
       maxHeight : 200
       wmode     : 'transparent'
@@ -238,8 +239,7 @@ class EmbedBox extends KDView
     }, options
 
     # fetch embed.ly data from the server api
-    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (oembed)=>
-      oembed = JSON.parse Encoder.htmlDecode oembed
+    KD.remote.api.JStatusUpdate.fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
       callback oembed[0], embedlyOptions
 
   embedUrl:(url,options={},callback=noop)->
@@ -254,6 +254,7 @@ class EmbedBox extends KDView
       if embed.url is url or embedUrl.indexOf(url_,embedUrl.length-url_.length) >= 0
         return @embedExistingData @cache[i], options, callback
 
+    @embedContainer.destroy()  if @embedContainer
     @embedLoader.show()
     @$('div.link-embed').addClass 'loading'
     @fetchEmbed url, options, (data, embedlyOptions)=>

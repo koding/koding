@@ -24,6 +24,7 @@ services=(
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/neo4jfeeder
+  koding/workers/externals
   koding/dns
 )
 

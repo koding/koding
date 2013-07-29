@@ -24,12 +24,22 @@ module.exports = class JSession extends Model
       username      : String
       guestId       : Number
       terminalId    : String
+      oAuthCodes    :
+        github      : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
       lastAccess    :
         type        : Date
         get         : -> new Date
+      foreignAuth   :
+        github      :
+          token     : String
+          foreignId : String
+          username  : String
+          firstName : String
+          lastName  : String
+          email     : String
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }
@@ -57,7 +67,8 @@ module.exports = class JSession extends Model
   @createSession =(callback) ->
     JUser = require './user'
     clientId = createId()
-    JUser.createTemporaryUser (err, account) =>
+    JUser.createTemporaryUser (err, resp) =>
+      {account} = resp
       if err then @emit 'error', err
       else
         {nickname: username} = account.profile

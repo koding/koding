@@ -7,8 +7,8 @@ mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
-authExchange    = "auth-#{version}"
-authAllExchange = "authAll-#{version}"
+authExchange    = "auth"
+authAllExchange = "authAll"
 
 module.exports =
   aws           :
@@ -77,12 +77,13 @@ module.exports =
     numberOfWorkers      : 2
     watch                : yes
     cronSchedule         : '* * * * * *'
-    usageLimitInMinutes  : 60
+    usageLimitInMinutes  : 1
   social        :
     login       : 'prod-social'
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+    verbose     : no
   cacheWorker   :
     login       : 'prod-social'
     watch       : yes
@@ -111,7 +112,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
-      authExchange: "auth-#{version}"
+      authExchange: authExchange
+      github         :
+        clientId     : "f8e440b796d953ea01e5"
       userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
@@ -212,8 +215,13 @@ module.exports =
   #     return b
   recurly       :
     apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview       :
     push        : no
     host        : ''
     bin         : null
     conf        : null
+  github        :
+    clientId    : "f8e440b796d953ea01e5"
+    clientSecret: "b72e2576926a5d67119d5b440107639c6499ed42"

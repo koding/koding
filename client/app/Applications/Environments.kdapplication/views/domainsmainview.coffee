@@ -58,6 +58,7 @@ class DomainsMainView extends JView
       callback  : (elm, event) =>
         @actionArea.setClass 'in'
         @buttonsBar.setClass 'out'
+        @emit 'DomainNameShouldFocus'
 
     @buttonsBar.addSubView @refreshDomainsButton = new KDButtonView
       style       : "clean-gray"
@@ -90,6 +91,12 @@ class DomainsMainView extends JView
       #       KD.utils.wait 5000, =>
       #         list = @domainsListViewController.getListView()
       #         list.emit "domainsListItemViewClicked", this
+
+    @on 'DomainNameShouldFocus', ->
+      form         = creationForm.forms["Domain Address"]
+      {domainName} = form.inputs
+      domainName.setFocus()
+
 
     creationForm.on 'CloseClicked', =>
       @actionArea.unsetClass 'in'

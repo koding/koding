@@ -70,6 +70,7 @@ processMonitor = (require 'processes-monitor').start
   #      , 20000
 
 koding = new Bongo
+  verbose     : social.verbose
   root        : __dirname
   mongo       : mongo
   models      : './models'
@@ -90,14 +91,6 @@ koding.on 'authenticateUser', (client, callback)->
   {delegate} = client.connection
   callback delegate
 
-# koding.on 'auth', (exchange, sessionToken)->
-#   koding.fetchClient sessionToken, (client)->
-#     {delegate} = client.connection
-
-#     # if delegate instanceof koding.models.JAccount
-#     #   koding.models.JAccount.emit "AccountAuthenticated", delegate
-
-#     koding.handleResponse exchange, 'changeLoggedInState', [delegate]
 koding.connect ->
   (require './init').init koding
 

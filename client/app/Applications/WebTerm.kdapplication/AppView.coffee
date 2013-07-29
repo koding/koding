@@ -9,7 +9,7 @@ class WebTermView extends KDView
     @addSubView @container
 
     @terminal = new WebTerm.Terminal @container.$()
-
+    KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
     @options.advancedSettings ?= yes
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
@@ -74,6 +74,7 @@ class WebTermView extends KDView
           session  : @getOption('delegate').getOption('session')
           sizeX  : @terminal.sizeX
           sizeY  : @terminal.sizeY
+          noScreen: @getOption('delegate').getOption('noScreen')
       , (err, remote) =>
         if err
           # We don't create any error popup not to be annoying. User can handle the error.
@@ -113,6 +114,7 @@ class WebTermView extends KDView
     @textarea?.remove()
 
   keyDown: (event) ->
+    @listenFullscreen event
     @terminal.keyDown event
 
   keyPress: (event) ->
@@ -177,3 +179,10 @@ class WebTermView extends KDView
       type        : 'customView'
       view        : new WebtermSettingsView
         delegate  : @
+
+  listenFullscreen: (event)->
+    requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
+    if requestFullscreen
+      mainView = KD.getSingleton "mainView"
+      mainView.toggleFullscreen()
+      event.preventDefault()

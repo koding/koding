@@ -42,12 +42,16 @@ class AppDetailsView extends KDScrollView
       @parent.$('.profilearea').removeClass "cast-shadow"
 
   pistachio:->
+    if @getData().manifest.screenshots?.length
+      screenshots = """
+        <header><a href='#'>Screenshots</a></header>
+        <section class='screenshots'>{{> @slideShow}}</section>
+      """
+
     """
     <header><a href='#'>About {{#(title)}}</a></header>
     <section>{{ @utils.applyTextExpansions #(manifest.description)}}</section>
-    <header><a href='#'>Screenshots</a></header>
-    <section class='screenshots'>{{> @slideShow}}</section>
-    <header><a href='#'>Technical Stuff</a></header>
+    #{screenshots or ""}
     <section><p><p></section>
     <header><a href='#'>Reviews</a></header>
     <section>{{> @reviewView}}</section>
