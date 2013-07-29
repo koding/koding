@@ -740,7 +740,7 @@ __utils =
       callback data?.id or url, data
 
     request.error ({status, statusText, responseText})->
-      error "url shorten error, returing self as fallback.", status, statusText, responseText
+      error "URL shorten error, returning self as fallback.", status, statusText, responseText
       callback url
 
   formatBytesToHumanReadable: (bytes) ->
