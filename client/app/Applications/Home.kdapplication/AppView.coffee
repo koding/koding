@@ -18,19 +18,6 @@ class HomeAppView extends KDView
 
     account = KD.whoami()
 
-    @addSubView @counterBar = new CounterGroupView
-      domId    : "home-counter-bar"
-      tagName  : "section"
-    ,
-      "MEMBERS"          : count : 0
-      "RUNNING VMS"      : count : 0
-      # "Lines of Code"    : count : 0
-      "GROUPS"           : count : 0
-      "TOPICS"           : count : 0
-      "Thoughts shared"  : count : 0
-
-    @bindCounters()
-
     @addSubView @homeLoginBar = new HomeLoginBar
       domId    : "home-login-bar"
 
@@ -43,23 +30,3 @@ class HomeAppView extends KDView
     KD.getSingleton("contentPanel").on "transitionend", (event)=>
       event.stopPropagation()
       @_windowDidResize()  if $(event.target).is "#content-panel"
-
-  bindCounters:->
-    vms          = @counterBar.counters["RUNNING VMS"]
-    # loc          = @counterBar.counters["Lines of Code"]
-    members      = @counterBar.counters.MEMBERS
-    groups       = @counterBar.counters.GROUPS
-    topics       = @counterBar.counters.TOPICS
-    activities   = @counterBar.counters["Thoughts shared"]
-    vmController = KD.getSingleton("vmController")
-    {JAccount, JTag, JGroup, CActivity} = KD.remote.api
-
-    members.ready    => JAccount.count                 (err, count)=> members.update count    or 0
-    vms.ready        => vmController.fetchTotalVMCount (err, count)=> vms.update count        or 0
-    groups.ready     => JGroup.count                   (err, count)=> groups.update count     or 0
-    topics.ready     => JTag.fetchCount                (err, count)=> topics.update count     or 0
-    activities.ready => CActivity.fetchCount           (err, count)=> activities.update count or 0
-    # loc.ready        => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
-
-    KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
-      activities.increment newActivities.length

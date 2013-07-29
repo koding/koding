@@ -4,7 +4,6 @@ module.exports = ->
   getStyles    = require './styleblock'
   getScripts   = require './scriptblock'
   getSidebar   = require './sidebar'
-  getCounters  = require './counters'
 
   """
 
@@ -23,7 +22,10 @@ module.exports = ->
     <div class="kdview home" id="kdmaincontainer">
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <header class="kdview" id='main-header'>
-        <a id="koding-logo" href="#" class='large'><span></span></a>
+        <div class="kdview">
+          <a id="koding-logo" href="#" class='large'><span></span></a>
+          <a id="header-sign-in" class="custom-link-view login" href="/Login"><span class="title" data-paths="title">Already a user? Sign In.</span><span class="icon"></span></a>
+        </div>
       </header>
       #{getHomeIntro()}
       <section class="kdview" id="main-panel-wrapper">
@@ -38,7 +40,6 @@ module.exports = ->
                   <a class="custom-link-view register" href="/Register"><span class="icon"></span><span class="title">Register an account</span></a>
                   <a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title">Login</span></a>
                 </div>
-                #{getCounters()}
                 <div id='featured-activities-container' class="kdview activity-content feeder-tabs">
                   <div class="kdview listview-wrapper">
                     <div class="kdview feeder-header clearfix"><span>Featured Activity</span></div>

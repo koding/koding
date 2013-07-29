@@ -23,7 +23,10 @@ module.exports = ({account})->
     <div class="kdview" id="kdmaincontainer">
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <header class="kdview" id='main-header'>
-        <a class="" id="koding-logo" href="#"><span></span></a>
+        <div class="kdview">
+          <a id="koding-logo" href="#" class='large'><span></span></a>
+          <a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title" data-paths="title" id="el-62">Already a user? Sign In!</span></a>
+        </div>
       </header>
       #{getHomeIntro yes}
       <section class="kdview" id="main-panel-wrapper">
