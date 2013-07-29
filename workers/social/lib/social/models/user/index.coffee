@@ -154,7 +154,7 @@ module.exports = class JUser extends jraphical.Module
       callback err? or prefs?.isRegistrationEnabled or no
 
   @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)->
+    JSession.one {clientId}, (err, session)=>
       if err
         callback createKodingError err
       else unless session?
