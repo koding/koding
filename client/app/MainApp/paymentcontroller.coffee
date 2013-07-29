@@ -284,7 +284,7 @@ class PaymentController extends KDController
     content = @paymentWarning balance, amount, subscription, type
 
     if type is 'expensed' and needBilling and 'admin' not in KD.config.roles
-      content = "Group admins have not defined a payment for this group."
+      content = "Group admins have not defined a payment method for this group."
 
     modal           = new KDModalView
       title         : "Confirm VM Creation"
