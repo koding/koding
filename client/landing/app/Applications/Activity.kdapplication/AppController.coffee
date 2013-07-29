@@ -170,11 +170,7 @@ class ActivityAppController extends AppController
       {roles} = KD.config
       group   = groupObj?.slug
 
-      if "koding" is group and  "guest" in roles
-        @listFeaturedActivities callback
-        @listController.activityHeader.headerTitle.hide()
-
-      else if @getFeedFilter() is "Public"
+      if @getFeedFilter() is "Public"
         @once "publicFeedFetched_#{eventSuffix}", (cache)=>
           reset()
           @extractCacheTimeStamps cache
@@ -195,29 +191,13 @@ class ActivityAppController extends AppController
 
     if isReady
     then fetch()
-    else
-      groupsController.once 'GroupChanged', fetch
+    else groupsController.once 'GroupChanged', fetch
 
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>
       @extractCacheTimeStamps sanitizedCache
       @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
       callback sanitizedCache
-
-  fetchFeatureds:(activityId=0, commentId=0, likeId=0)->
-    activityName = "activity"
-    activityName += "_#{activityId}" unless activityId is 0
-    activityName += "_C#{commentId}" unless commentId is 0
-    activityName += "_L#{commentId}" unless likeId is 0
-
-    if KD.isLoggedIn()
-      @emit "#{activityName}_fetch_failed"
-      return
-
-    $.ajax
-      url     : "js/activity/#{activityName}.json"
-      success : (json) => @emit "#{activityName}_fetch_succeeded", json
-      failure : =>  @emit "#{activityName}_fetch_failed"
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
