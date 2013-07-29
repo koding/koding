@@ -62,6 +62,12 @@ class OwnProfileView extends JView
       @fetchAutoCompleteDataForTags inputValue,blacklist,callback
 
   putNick:(nick)-> "@#{nick}"
+  putPresence:(state)->
+    """
+      <div class="presence #{state or 'offline'}">
+        #{state or 'offline'}
+      </div>
+    """
 
   pistachio:->
     account      = @getData()
@@ -74,7 +80,7 @@ class OwnProfileView extends JView
         {{> @avatar}}
       </span>
       {cite{ @putNick #(profile.nickname)}}
-      {div{#(onlineStatus)}}
+      {div{ @putPresence #(onlineStatus)}}
     </div>
 
     <section>

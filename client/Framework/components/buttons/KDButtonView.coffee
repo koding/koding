@@ -55,6 +55,7 @@ class KDButtonView extends KDView
 
 
   setTitle:(title)->
+    @buttonTitle = title
     @$('.button-title').html title
 
   getTitle:-> @buttonTitle

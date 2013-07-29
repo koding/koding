@@ -15,9 +15,9 @@ class PermissionsModal extends KDFormViewWithFields
       "Add Role"          :
         style             : "modal-clean-gray"
         cssClass          : 'add-role'
-        loader      :
-          color     : "#444444"
-          diameter  : 12
+        loader            :
+          color           : "#444444"
+          diameter        : 12
         callback          : =>
 
           KD.getSingleton('contentPanel').addSubView addRoleDialog = new KDDialogView
@@ -27,23 +27,23 @@ class PermissionsModal extends KDFormViewWithFields
             overlay       : yes
             height        : 'auto'
             buttons       :
+              "Add Role"   :
+                style      : "add-role-button modal-clean-gray"
+                cssClass   : 'add-role-button'
+                loader     :
+                  color    : "#444444"
+                  diameter : 12
 
-              "Add Role"        :
-                style     : "add-role-button modal-clean-gray"
-                cssClass  : 'add-role-button'
-                loader      :
-                  color     : "#444444"
-                  diameter  : 12
-
-                callback  : =>
-                  name    = @inputRoleName.getValue()
-                  nameSlug= @utils.slugify name
-                  copy    = @inputCopyPermissions.getValue()
+                callback   : =>
+                  name     = @inputRoleName.getValue()
+                  nameSlug = @utils.slugify name
+                  copy     = @inputCopyPermissions.getValue()
 
                   group.addCustomRole
-                    title : nameSlug
+                    title           : nameSlug
                     isConfigureable : yes
                   , (err,role)=>
+
                     log err if err
                     # TODO add copied permissions here
 
@@ -170,14 +170,8 @@ class PermissionsModal extends KDFormViewWithFields
       itemClass     : KDView
       partial       : readableText current
       cssClass      : 'text header-item role-'+__utils.slugify(current)
-      tooltip       :
-        showOnlyWhenOverflowing : yes
+      attributes    :
         title       : readableText current
-        placement   : 'top'
-        direction   : 'center'
-        offset      :
-          top       : 5
-          left      : 0
     if current and remainder.length > 0
       cascadeData[current].nextElementFlat = cascadeHeaderElements remainder
     return cascadeData
@@ -201,14 +195,8 @@ class PermissionsModal extends KDFormViewWithFields
           itemClass     : KDView
           partial       : readableText permission
           cssClass      : 'text'
-          tooltip       :
+          attributes    :
             title       : readableText permission
-            direction   : 'center'
-            placement   : 'left'
-            offset      :
-              top       : 3
-              left      : 0
-            showOnlyWhenOverflowing : yes
           nextElementFlat :
             cascadeFormElements set, roles, module, permission
     permissionOptions

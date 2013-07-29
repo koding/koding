@@ -1,5 +1,5 @@
 class ContentDisplayControllerMember extends KDViewController
-  
+
   neo4jFacets = [
     "JLink"
     "JBlogPost"
@@ -123,7 +123,6 @@ class ContentDisplayControllerMember extends KDViewController
     return filter
 
   addActivityView:(account)->
-
     @getView().$('div.lazy').remove()
 
     KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {

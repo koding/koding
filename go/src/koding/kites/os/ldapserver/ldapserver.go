@@ -178,6 +178,10 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			return true
 		}
 
+		if user.Shell == "" {
+			user.Shell = "/bin/bash"
+		}
+
 		conn.Write(createSearchResultEntry(messageID, map[string]string{
 			"objectClass":   "posixAccount",
 			"cn":            user.Name,
@@ -186,7 +190,7 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			"uidNumber":     strconv.Itoa(user.Uid),
 			"gidNumber":     strconv.Itoa(user.Uid),
 			"homeDirectory": "/home/" + user.Name,
-			"loginShell":    "/bin/bash",
+			"loginShell":    user.Shell,
 			"sshPublicKey":  strings.Join(user.SshKeyList(), "\n"),
 		}).Bytes())
 		return true

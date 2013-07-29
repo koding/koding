@@ -7,6 +7,9 @@ mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
+authExchange    = "auth-#{version}"
+authAllExchange = "authAll-#{version}"
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -64,6 +67,8 @@ module.exports =
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
+    authExchange: authExchange
+    authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -99,9 +104,10 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      authExchange: "auth-#{version}"
       userSitesDomain: 'localhost'
       useNeo4j: yes
-      logToExternal: yes  # rollbar, mixpanel etc.
+      logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
@@ -132,6 +138,8 @@ module.exports =
     webProtocol : 'http:'
     webHostname : 'localhost'
     webPort     : 8008
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'

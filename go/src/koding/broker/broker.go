@@ -109,7 +109,7 @@ func main() {
 
 		subscribe := func(routingKeyPrefix string) {
 			if subscriptions[routingKeyPrefix] {
-				log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
 				return
 			}
 			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
@@ -138,7 +138,7 @@ func main() {
 			})
 
 			for {
-				err := controlChannel.Publish("authAll", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+				err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err == nil {
 					break
 				}
@@ -149,7 +149,7 @@ func main() {
 			}
 		}()
 
-		err := controlChannel.Publish("authAll", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+		err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 		if err != nil {
 			panic(err)
 		}
@@ -291,20 +291,19 @@ func main() {
 		panic(err)
 	}
 
-	hostname, _ := os.Hostname()
-	serviceUniqueName := "broker-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
+	// returns config.BrokerDomain back
+	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
 
-	brokerDomain := kontrolhelper.CustomHostname()
-	//  but override if we pass a new domain trough commandline
-	if config.BrokerDomain != "" {
-		brokerDomain = config.BrokerDomain
-	}
+	serviceGenericName := strings.Replace(brokerHostname, ".", "_", -1)
+	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + serviceGenericName
 
 	if err := kontrolhelper.RegisterToKontrol(
 		"broker", // servicename
+		serviceGenericName,
 		serviceUniqueName,
 		config.Uuid,
-		brokerDomain,
+		brokerHostname,
 		config.Current.Broker.Port,
 	); err != nil {
 		panic(err)

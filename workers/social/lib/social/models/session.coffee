@@ -20,6 +20,7 @@ module.exports = class JSession extends Model
       username      : 'descending'
     schema          :
       clientId      : String
+      clientIP      : String
       username      : String
       guestId       : Number
       terminalId    : String
@@ -71,3 +72,7 @@ module.exports = class JSession extends Model
         callback null, session
       else
         @createSession callback
+
+  @updateClientIP = (clientId, ipAddress, callback)->
+    JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->
+      callback err

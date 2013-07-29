@@ -40,19 +40,23 @@ module.exports = class JPermissionSet extends Module
 
   KodingError = require '../../error'
 
-  constructor:->
-    super
+  constructor:(data={}, options={})->
+    super data
     unless @isCustom
       # initialize the permission set with some sane defaults:
       {permissionDefaultsByModule} = require '../../traits/protected'
       permissionsByRole = {}
 
+      options.privacy ?= 'public'
       for own module, modulePerms of permissionDefaultsByModule
         for own perm, roles of modulePerms
+          if roles.public? or roles.private?
+            roles = roles[options.privacy] ?= []
           for role in roles
-            permissionsByRole[module] ?= {}
+            permissionsByRole[module]       ?= {}
             permissionsByRole[module][role] ?= []
             permissionsByRole[module][role].push perm
+
       @permissions = []
       for own module, moduleRoles of permissionsByRole
         for own role, modulePerms of moduleRoles

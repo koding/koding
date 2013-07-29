@@ -8,6 +8,7 @@ class OpinionFormView extends KDFormView
 
     super
 
+    typeLabel = options.typeLabel or 'discussion'
     {profile} = KD.whoami()
 
     @submitOpinionBtn = new KDButtonView
@@ -28,24 +29,24 @@ class OpinionFormView extends KDFormView
     @showMarkdownPreview = options.previewVisible
 
     @opinionBody = new KDInputViewWithPreview
-      preview         : @preview
-      cssClass        : "opinion-body"
-      name            : "body"
-      title           : "your Opinion"
-      type            : "textarea"
-      placeholder     : "What do you want to contribute to the discussion?"
-      validate      :
-        rules       :
-          required  : yes
-        messages    :
-          required  : "Please provide an opinion..."
+      preview      : @preview
+      cssClass     : "opinion-body"
+      name         : "body"
+      title        : "your Opinion"
+      type         : "textarea"
+      placeholder  : "What do you want to contribute to the #{typeLabel}?"
+      validate     :
+        rules      :
+          required : yes
+        messages   :
+          required : "Please provide an opinion..."
 
     @labelAddTags = new KDLabelView
-      title           : "Add Tags:"
+      title : "Add Tags:"
 
     @selectedItemWrapper = new KDCustomHTMLView
-      tagName         : "div"
-      cssClass        : "tags-selected-item-wrapper clearfix"
+      tagName  : "div"
+      cssClass : "tags-selected-item-wrapper clearfix"
 
     @heartBox = new HelpBox
       subtitle : "About Answers and Opinions"
@@ -58,7 +59,7 @@ class OpinionFormView extends KDFormView
           height         : "auto"
           overlay        : yes
           buttons        :
-            Okay       :
+            Okay         :
               style      : "modal-clean-gray"
               loader     :
                 color    : "#ffffff"
@@ -88,19 +89,19 @@ class OpinionFormView extends KDFormView
     super
 
   pistachio:->
-      """
-      <div class="opinion-box" id="opinion-form-box">
-        <div class="opinion-form">
-          {{> @opinionBody}}
+    """
+    <div class="opinion-box" id="opinion-form-box">
+      <div class="opinion-form">
+        {{> @opinionBody}}
+      </div>
+      <div class="opinion-buttons">
+        <div class="opinion-heart-box">
+          {{> @heartBox}}
         </div>
-        <div class="opinion-buttons">
-          <div class="opinion-heart-box">
-            {{> @heartBox}}
-          </div>
-          <div class="opinion-submit">
-            {{> @submitOpinionBtn}}
-            {{> @cancelOpinionBtn}}
-          </div>
+        <div class="opinion-submit">
+          {{> @submitOpinionBtn}}
+          {{> @cancelOpinionBtn}}
         </div>
       </div>
-      """
+    </div>
+    """

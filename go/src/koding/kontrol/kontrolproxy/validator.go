@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
-	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/models"
 	"regexp"
 	"strconv"
 	"strings"
@@ -24,13 +24,13 @@ type filter struct {
 
 type Validator struct {
 	filters []filter
-	rules   proxyconfig.Restriction
+	rules   models.Restriction
 	ip      string
 	country string
 	domain  string
 }
 
-func validator(rules proxyconfig.Restriction, ip, country, domain string) *Validator {
+func validator(rules models.Restriction, ip, country, domain string) *Validator {
 	validator := &Validator{
 		rules:   rules,
 		ip:      ip,

@@ -79,6 +79,7 @@ class KDInputViewWithPreview extends KDInputView
               title       : "How to use the <em>Markdown</em> syntax."
               cssClass    : "what-you-should-know-modal markdown-cheatsheet"
               height      : "auto"
+              overlay     : yes
               width       : 500
               content     : markdownText.markdownText()
               buttons     :

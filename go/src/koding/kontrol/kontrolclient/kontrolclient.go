@@ -8,6 +8,7 @@ import (
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/process"
 	"log"
+	"os"
 )
 
 func init() {
@@ -38,7 +39,7 @@ func gatherData() ([]byte, error) {
 	gitbranch := kontrolhelper.ReadFile("GIT_BRANCH")
 	gitcommit := kontrolhelper.ReadFile("GIT_COMMIT")
 
-	publicHostname := kontrolhelper.CustomHostname()
+	publicHostname, _ := os.Hostname()
 
 	localHostname, err := process.RunCmd("ec2metadata", "--local-hostname")
 	if err != nil {
@@ -142,7 +143,8 @@ func matchAction(action, cmd, hostname string, pid int) {
 		"stop":  stop,
 	}
 
-	if hostname != "" && hostname != kontrolhelper.CustomHostname() {
+	host, _ := os.Hostname()
+	if hostname != "" && hostname != host {
 		log.Println("command is for a different machine")
 		return
 	}

@@ -96,15 +96,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     messageOptions =
       url : "#{protocol}//#{host}/Recover/#{encodeURIComponent token}"
 
-    if delegate.can? 'migrate-kodingen-users'
-      {subject, textbody, expiresAt, firstName, lastName, nickname} = options
-      defaultSubject   = subject if subject
-      defaultTextBody  = textbody if textbody
-      defaultExpiresAt = expiresAt if expiresAt
-      messageOptions.lastName  = lastName if lastName
-      messageOptions.nickname  = nickname if nickname
-      messageOptions.firstName = firstName if firstName
-
     JUser.one {email}, (err, user)=>
       if err
         callback err
@@ -129,7 +120,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               subject   : defaultSubject()
               content   : defaultTextBody messageOptions
               force     : yes
-            
+
             email.save callback
 
   @validate = secure ({connection:{delegate}}, token, callback)->

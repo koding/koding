@@ -806,12 +806,13 @@ class ActivityCodeShareWidget extends KDFormView
     @removeCustomData "syntax"
 
     @once "FormValidationPassed", =>
+      KD.track "Activity", "CodeShareSubmitted"
       setTimeout =>
         @reset()
       ,8000
 
     super
-    KD.track "Activity", "CodeShareSubmitted"
+    
 
   reset:->
     @submitBtn.setTitle "Post your Code Share"

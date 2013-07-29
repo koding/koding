@@ -2,11 +2,11 @@ package workerconfig
 
 import (
 	"fmt"
-	"koding/kontrol/kontrolhelper"
 	"koding/tools/config"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"os"
 	"time"
 )
 
@@ -53,18 +53,19 @@ type ClientRequest struct {
 }
 
 type Worker struct {
-	Name              string       `json:"name"`
-	ServiceUniqueName string       `bson:"serviceUniqueName" json:"serviceUniqueName"`
-	Uuid              string       `json:"uuid"`
-	Hostname          string       `json:"hostname"`
-	Version           int          `json:"version"`
-	Timestamp         time.Time    `json:"timestamp"`
-	Pid               int          `json:"pid"`
-	Status            WorkerStatus `json:"status"`
-	Cmd               string       `json:"cmd"`
-	ProcessData       string       `json:"processData"`
-	Number            int          `json:"number"`
-	Message           struct {
+	Name               string       `json:"name"`
+	ServiceGenericName string       `bson:"serviceGenericName" json:"serviceGenericName"`
+	ServiceUniqueName  string       `bson:"serviceUniqueName" json:"serviceUniqueName"`
+	Uuid               string       `json:"uuid"`
+	Hostname           string       `json:"hostname"`
+	Version            int          `json:"version"`
+	Timestamp          time.Time    `json:"timestamp"`
+	Pid                int          `json:"pid"`
+	Status             WorkerStatus `json:"status"`
+	Cmd                string       `json:"cmd"`
+	ProcessData        string       `json:"processData"`
+	Number             int          `json:"number"`
+	Message            struct {
 		Command string `json:"command"`
 		Option  string `json:"option"`
 	} `json:"message"`
@@ -104,8 +105,10 @@ func Connect() (*WorkerConfig, error) {
 
 	col := database.C("jKontrolWorkers")
 
+	hostname, _ := os.Hostname()
+
 	wk := &WorkerConfig{
-		Hostname:   kontrolhelper.CustomHostname(),
+		Hostname:   hostname,
 		Session:    session,
 		Collection: col,
 	}

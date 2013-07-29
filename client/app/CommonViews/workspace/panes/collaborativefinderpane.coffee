@@ -10,9 +10,9 @@ class CollaborativeFinderPane extends CollaborativePane
     super options, data
 
     panel             = @getDelegate()
-    workspace         = panel.getDelegate()
+    @workspace        = panel.getDelegate()
     @sessionKey       = @getOptions().sessionKey or @createSessionKey()
-    @workspaceRef     = workspace.firepadRef.child @sessionKey
+    @workspaceRef     = @workspace.firepadRef.child @sessionKey
 
     @finderController = new NFinderController
       nodeIdPath          : "path"
@@ -22,21 +22,21 @@ class CollaborativeFinderPane extends CollaborativePane
       useStorage          : yes
       treeControllerClass : CollaborativeFinderTreeController
 
+    @finderController.treeController.workspace = @workspace
+
     @finderController.reset()
 
     @finder = @finderController.getView()
 
     @workspaceRef.on "value", (snapshot) =>
-      log "everything is something happened in host filetree", snapshot.name(), snapshot.val()
-
       clientData = snapshot.val()?.ClientWantsToInteractWithRemoteFileTree
       if clientData
         path             = "[#{clientData.vmName}]#{clientData.path}"
         {treeController} = @finderController
         nodeView         = treeController.nodes[path]
+        nodeView.user    = clientData.user
 
-        treeController.openItem nodeView, (err, res) =>
-          log "Host terminal done with client request", res
+        treeController.openItem nodeView
 
     @finderController.on "FileTreeInteractionDone", (files) =>
       @syncContent files
@@ -50,9 +50,7 @@ class CollaborativeFinderPane extends CollaborativePane
 
       editorPane.openFile file, content
 
-    @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
-
-    log "i'm a host file tree and my session key is #{@sessionKey}"
+    @workspaceRef.onDisconnect().remove()  if @workspace.amIHost()
 
   syncContent: (files) ->
     @workspaceRef.set { files }
@@ -74,7 +72,10 @@ class CollaborativeFinderTreeController extends NFinderTreeController
 
   dblClick: (nodeView, e) ->
     super nodeView, e
-    log "host interacted with file tree waiting for response"
+    nodeData = nodeView.getData()
+    action   = if nodeData.type is "folder" then "toggled" else "opened"
+
+    @workspace.setHistory "$0 #{action} #{FSHelper.plainPath nodeData.path}"
 
   getSnapshot: ->
     snapshot = []
@@ -88,8 +89,6 @@ class CollaborativeFinderTreeController extends NFinderTreeController
         vmName : nodeData.vmName
         name   : nodeData.name
 
-    log "finder snapshot is", snapshot
-
     return snapshot
 
   syncInteraction: ->
@@ -101,6 +100,5 @@ class CollaborativeFinderTreeController extends NFinderTreeController
   openFile: (nodeView) ->
     return unless nodeView
     file = nodeView.getData()
-    log "host terminal is opening a file", file
     file.fetchContents (err, contents) =>
       @getDelegate().emit "OpenedAFile", file, contents
