@@ -57,7 +57,7 @@ class AccountLinkedAccountsListItem extends KDListItemView
           title : message
 
       KD.whoami().unlinkOauth type, (err)=>
-        if err then notify "An error occurred: #{err.message}."
+        if err then KD.showError err
         else
           notify "Your '#{type}' account is now unlinked."
           @provider = null

@@ -100,7 +100,8 @@ KD.extend
     err.name or= 'KodingError'
 
     content    = ''
-    errMessage = message or messages[err.name]
+    errMessage = err.message or messages[err.name] or messages.KodingError
+
     if errMessage?
       if 'string' is typeof errMessage
         title = errMessage
@@ -108,7 +109,7 @@ KD.extend
         {title, content} = errMessage
 
     duration = errMessage.duration or 2500
-    title  or= err.message or 'Something went wrong'
+    title  or= err.message
 
     new KDNotificationView {title, content, duration}
 
