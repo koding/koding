@@ -1441,7 +1441,7 @@ module.exports = class JGroup extends Module
 
   makePayment: permit "make payments",
    (client, data, callback)->
-      @chargeGroup client, data, call
+      @chargeGroup client, data, callback
 
   chargeGroup: secure (client, data, callback)->
     data.plan ?= @payment.plan
