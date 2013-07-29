@@ -45,11 +45,9 @@ class ActivityListHeader extends JView
 
     KD.getSingleton('mainController').on 'AccountChanged', ()=>
       @decorateLiveUpdateButton()
-      @decorateDownloadOldFilesLink()
 
 
     @decorateLiveUpdateButton()
-    @decorateDownloadOldFilesLink()
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch

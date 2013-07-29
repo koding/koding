@@ -101,7 +101,7 @@ class MainView extends KDView
     loginLink = new CustomLinkView
       tagName     : 'a'
       domId       : 'header-sign-in'
-      title       : 'Already a user? Sign In.'
+      title       : 'Already a user? Sign in'
       icon        :
         placement : 'right'
       cssClass    : 'login'
