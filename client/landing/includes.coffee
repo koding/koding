@@ -752,6 +752,9 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
+  "app/Applications/Classroom.kdapplication/AppView.coffee",
+  "app/Applications/Classroom.kdapplication/AppController.coffee",
+
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
   # "app/MainApp/oldPages/pageRegister.coffee",
