@@ -207,7 +207,6 @@ class HomeLoginBar extends JView
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
       else @request.hide()
-      return
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()

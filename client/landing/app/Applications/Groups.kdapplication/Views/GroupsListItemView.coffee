@@ -105,7 +105,7 @@ class GroupsListItemView extends KDListItemView
 
   titleReceivedClick:(event)->
     group = @getData()
-    slugLink = if slug is 'koding' then '/' else "/#{slug}/"
+    slugLink = if slug is KD.defaultSlug then '/' else "/#{slug}/"
     KD.getSingleton('router').handleRoute slugLink, state:group
     event.stopPropagation()
     event.preventDefault()
@@ -175,7 +175,7 @@ class GroupsListItemView extends KDListItemView
 
     menu = {}
 
-    if data.slug isnt 'koding'
+    if data.slug isnt 'koding' # KD.defaultSlug
       menu['Leave Group'] =
         cssClass : 'leave-group'
         callback : =>
@@ -191,10 +191,11 @@ class GroupsListItemView extends KDListItemView
                   color    : "#ffffff"
                   diameter : 16
                 callback   : =>
-                  @leaveGroup data, =>
-                    @memberBadge.hide()
-                    @settingsButton.hide()
-                    @unsetClass 'group-owner'
+                  @leaveGroup data, (err)=>
+                    unless err
+                      @memberBadge.hide()
+                      @settingsButton.hide()
+                      @unsetClass 'group-owner'
                     modal.buttons.Leave.hideLoader()
                     modal.destroy()
               Cancel       :
@@ -309,14 +310,13 @@ class GroupItemMemberView extends KDListItemView
     super options, data
 
     account = @getData()
-    {firstName, lastName} = account.profile
     @avatar = new AvatarView
       size      :
         width   : @getOptions().childOptions?.avatarWidth or 40
         height  : @getOptions().childOptions?.avatarHeight or 40
       # detailed  : yes
       tooltip   :
-        title   : "#{firstName} #{lastName}"
+        title   : KD.utils.getFullnameFromAccount account
     , account
 
   viewAppended:JView::viewAppended
