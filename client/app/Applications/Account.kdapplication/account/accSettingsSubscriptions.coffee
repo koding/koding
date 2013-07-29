@@ -1,5 +1,10 @@
 class AccountSubscriptionsListController extends KDListViewController
   constructor:(options,data)->
+
+    options.noItemFoundWidget = new KDView
+      cssClass: "no-item-found"
+      partial : "<cite>You have no subscription.</cite>"
+
     super options,data
 
     @loadItems()
@@ -18,7 +23,6 @@ class AccountSubscriptionsListController extends KDListViewController
     KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs) =>
       if err or subs.length is 0
         @instantiateListItems []
-        @addCustomItem "<cite>You have no subscription.</cite>"
         @hideLazyLoader()
       else
         stack = []
