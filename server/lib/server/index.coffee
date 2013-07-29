@@ -484,18 +484,6 @@ app.get "/-/oauth/:provider/callback", (req,res)->
   #       if err then next err
   #       else res.send view
 
-isLoggedIn = (req, callback)->
-  {clientId} = req.cookies
-  unless clientId then callback no
-  else
-    {JSession} = koding.models
-    JSession.one {clientId}, (err, session)->
-      if err or not session
-        callback no
-      else
-        {username} = session.data
-        callback !!username
-
 renderLoginTemplate =(resp, res)->
   saveOauthToSession resp, ->
     {loginTemplate} = require './staticpages'
@@ -509,20 +497,19 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    isLoggedIn req, (loggedIn)->
-      {JGroup, JName} = koding.models
-      if loggedIn
-        # go to koding activity
-        findUsernameFromSession req, res, (err, username)->
-          JName.fetchModels username, (err, models)->
-            user = models.last
-            user.fetchAccount "koding", (err, account)->
-              activityPage = JGroup.renderKodingHomeLoggedIn {account}
-              serve activityPage, res
-      else
-        # go to koding home
-        homePage = JGroup.renderKodingHomeLoggedOut()
-        serve homePage, res
+    {JGroup, JName} = koding.models
+    findUsernameFromSession req, res, (err, username)->
+      JName.fetchModels username, (err, models)->
+        user = models.last
+        user.fetchAccount "koding", (err, account)->
+          if err or account.type is 'unregistered'
+            # go to koding home
+            homePage = JGroup.renderKodingHomeLoggedOut()
+            serve homePage, res
+          else
+            # go to koding activity
+            activityPage = JGroup.renderKodingHomeLoggedIn {account}
+            serve activityPage, res
 
 ###
 app.get "/-/kd/register/:key", (req, res)->

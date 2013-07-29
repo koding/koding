@@ -5,7 +5,7 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
   getSidebar      = require './sidebar'
-  account         = null if account.unregistered
+  account         = null if account.type is 'unregistered'
 
   """
 

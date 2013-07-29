@@ -24,7 +24,7 @@ module.exports = ({account})->
       <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
       <header class="kdview" id='main-header'>
         <div class="kdview">
-          <a id="koding-logo" href="#" class='large'><span></span></a>
+          <a id="koding-logo" href="#"><span></span></a>
           <a class="custom-link-view login" href="/Login"><span class="icon"></span><span class="title" data-paths="title" id="el-62">Already a user? Sign In!</span></a>
         </div>
       </header>

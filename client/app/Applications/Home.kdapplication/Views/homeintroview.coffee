@@ -31,6 +31,7 @@ class HomeIntroView extends JView
       type        : 'button'
       icon        : yes
       iconClass   : 'octocat'
+      callback    : -> KD.utils.openGithubPopUp()
 
     @signup = new KDButtonView
       title       : 'Sign up with email'
