@@ -95,11 +95,10 @@ class MainController extends KDController
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
-      @accountChanged account
+      location.reload()
 
     # fixme: make a old tv switch off animation and reload
     # $('body').addClass "turn-off"
-    return location.reload()
 
   attachListeners:->
 
