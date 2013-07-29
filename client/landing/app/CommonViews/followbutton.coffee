@@ -5,6 +5,7 @@ class FollowButton extends KDToggleButton
     options.title        or= "Follow"
     options.dataPath     or= "followee"
     options.defaultState or= "Follow"
+    options.bind           = "mouseenter mouseleave"
     options.loader       or=
       color                : "#333333"
       diameter             : 18
@@ -38,9 +39,39 @@ class FollowButton extends KDToggleButton
   redecorateState:->
     @setTitle @state.title
 
-    if @state is 'Follow'
+    if @state.title is 'Follow'
       @unsetClass 'following-btn'
     else
       @setClass 'following-btn'
 
     @hideLoader()
+
+  mouseEnter:->
+    if @getTitle() is "Following"
+      @setTitle "Unfollow"
+
+  mouseLeave:->
+    if @getTitle() is "Unfollow"
+      @setTitle "Following"
+
+class MemberFollowToggleButton extends FollowButton
+
+  constructor:(options = {}, data)->
+
+    options = $.extend
+
+      errorMessages  :
+        KodingError  : 'Something went wrong while follow'
+        AccessDenied : 'You are not allowed to follow members'
+      stateOptions   :
+        unfollow     :
+          cssClass   : 'following-btn'
+      dataType       : 'JAccount'
+
+    , options
+
+    super options, data
+
+  decorateState:(name)->
+    KD.track "Members", name, @getData().profile.nickname
+    super

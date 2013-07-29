@@ -235,7 +235,7 @@ class KodingAppsController extends KDController
         @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
         KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           @notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
-          @installApp app[0], "latest", =>
+          @installApp app[0], app[0].versions.last, =>
             @refreshApps()
             callback?()
             @emit "AnAppHasBeenUpdated"
@@ -247,6 +247,7 @@ class KodingAppsController extends KDController
   # #
 
   putAppResources:(appInstance)->
+    return  unless appInstance
 
     manifest = appInstance.getOptions()
     {devMode, forceUpdate, name, options, version, thirdParty} = manifest
@@ -257,13 +258,26 @@ class KodingAppsController extends KDController
       @showUpdateRequiredModal manifest
       return callback()
 
+    appView = appInstance.getView()
+    appView.addSubView loader = new KDLoaderView
+      loaderOptions :
+        color       : "#ff9200"
+        speed       : 2
+        range       : 0.7
+        density     : 60
+      cssClass      : "app-loading"
+      size          :
+        width       : 128
+
+    appView.once "viewAppended", -> loader.show()
+
     putStyleSheets manifest
 
     @getAppScript manifest, (err, appScript)=>
       return warn err  if err
 
-      appView = appInstance.getView()
-      id      = appView.getId()
+      loader.destroy()
+      id = appView.getId()
 
       try
         # security please!
@@ -596,13 +610,13 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName    : "applications"
-        method      : "downloadApp"
-        withArgs    :
-          owner     : manifest.authorNick
-          appName   : manifest.name
-          appPath   : @getAppPath manifest
-          version   : manifest.version
+        kiteName     : "os"
+        method       : "app.download"
+        withArgs     :
+          owner      : manifest.authorNick
+          identifier : manifest.identifier
+          appPath    : @getAppPath manifest
+          version    : manifest.version
       , (err, res)=>
         if err
           warn err
@@ -714,6 +728,7 @@ class KodingAppsController extends KDController
     fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
     raw =
       devMode       : yes
+      experimental  : no
       authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
@@ -742,6 +757,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      screenshots   : []
       menu          : []
       fileTypes     : []
 
@@ -761,21 +777,3 @@ class KodingAppsController extends KDController
       description : 'Koding Terminal'
       author      : 'Koding'
       path        : 'WebTerm'
-    # CodeMirror    :
-    #   name        : 'CodeMirror'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-codemirror.png'
-    #   description : 'Code Editor'
-    #   author      : 'Marijn Haverbeke'
-    # yMacs         :
-    #   name        : 'yMacs'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-ymacs.png'
-    #   description : 'Code Editor'
-    #   author      : 'Mihai Bazon'
-    # Pixlr         :
-    #   name        : 'Pixlr'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-pixlr.png'
-    #   description : 'Image Editor'
-    #   author      : 'Autodesk'

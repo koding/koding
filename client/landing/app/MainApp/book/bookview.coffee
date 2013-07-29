@@ -76,12 +76,19 @@ class BookView extends JView
 
     @once "OverlayAdded", => @$overlay.css zIndex : 999
     @once "OverlayWillBeRemoved", =>
-      @destroyPointer()
+      if @pointer then @destroyPointer()
       @unsetClass "in"
+      @utils.wait 1000, =>
+        $spanElement = KD.singletons.mainView.sidebar.footerMenu.items[0].$('span')
+        $spanElement.addClass('opacity-up')
+        @utils.wait 3000, =>
+          $spanElement.removeClass('opacity-up')
+
     @once "OverlayRemoved", @destroy.bind @
 
     @setKeyView()
     cachePage(0)
+    KD.track "Read Tutorial Book", KD.nick()
 
   pistachio:->
 
@@ -154,11 +161,14 @@ class BookView extends JView
     if @pointer then @destroyPointer()
 
     # check if page has tutorial
-    if @page.getData().howToSteps.length < 1 and
-       KD.singletons.vmController.defaultVmName
+    if @page.getData().howToSteps.length < 1
       @showMeButton.hide()
-    else
-      @showMeButton.show()
+    else 
+      if @page.getData().menuItem is "Develop" and 
+        KD.getSingleton("vmController").defaultVmName is null
+          @showMeButton.hide()
+      else
+        @showMeButton.show()
 
   showMeButtonClicked:->
     @pointer?.destroy()
@@ -405,6 +415,12 @@ class BookView extends JView
     @pointer.once 'transitionend', =>
       @clickAnimation()
       @defaultVm.setClass('selected')
+      # check if web folder exists
+
+      nodes = KD.singletons.finderController.treeController.data
+      fsFile = nodes.filter (x) -> x.name is "Web"
+      if not fsFile then return 
+
       @navigateToFolder()
 
     user = KD.nick()
@@ -538,7 +554,7 @@ class BookView extends JView
       @unsetClass 'aside'
       @destroyPointer()
 
-  destroyPointer:->
+  destroyPointer:()->
     @unsetClass('aside')
     @setKeyView()
     @utils.wait 500, =>

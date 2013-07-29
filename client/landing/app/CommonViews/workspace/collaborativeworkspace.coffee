@@ -14,35 +14,32 @@ class CollaborativeWorkspace extends Workspace
     @firepadRef     = new Firebase "https://#{currentInstance}.firebaseIO.com/"
     @sessionKey     = options.sessionKey or @createSessionKey()
     @workspaceRef   = @firepadRef.child @sessionKey
-
-    log "joining to", currentInstance
+    @historyRef     = @workspaceRef.child "history"
+    @users          = {}
 
     @createUserListContainer()
     @createLoader()
 
+    if @getOptions().enableChat
+      @container.addSubView @chatView = new ChatPane
+        delegate: this
+      @chatView.hide()
+
     @workspaceRef.once "value", (snapshot) =>
       if @getOptions().sessionKey
-        log "user wants to join a session"
         unless snapshot.val()
-          log "session is not active"
           @showNotActiveView()
           return false
 
-        log "session is valid, trying to recover"
+      isOldSession = keys = snapshot.val()?.keys
 
-      log "everything is something happened", "value", snapshot.val(), snapshot.name()
-
-      keys = snapshot.val()?.keys
-
-      if keys # if we have keys this means we're about to join an old session
-        log "it's an old session, impressed!"
+      if isOldSession
         @sessionData  = keys
         @createPanel()
         @userRef = @workspaceRef.child("users").child KD.nick()
         @userRef.set "online"
         @userRef.onDisconnect().set "offline"
       else
-        log "your awesome new session, saving keys now"
         @createPanel()
         @workspaceRef.set "keys": @sessionData
         @userRef = @workspaceRef.child("users").child KD.nick()
@@ -54,33 +51,47 @@ class CollaborativeWorkspace extends Workspace
         @userRef.onDisconnect().remove()
 
       @loader.destroy()
+      @chatView?.show()
 
-    @workspaceRef.on "child_added", (snapshot) =>
-      log "everything is something happened", "child_added", snapshot.val(), snapshot.name()
+      initialMessage   = "$0 started a #{@getOptions().name} session. Session key is, #{@sessionKey}"
+      if isOldSession
+        initialMessage = "$0 joined."
 
-    @workspaceRef.on "child_changed", (snapshot) =>
-      log "everything is something happened", "child_changed", snapshot.val(), snapshot.name()
+      @setHistory initialMessage
+
+    @workspaceRef.child("users").on "child_added", (snapshot) =>
+      @fetchUsers()
+
+    @workspaceRef.child("users").on "child_changed", (snapshot) =>
+      @setHistory "#{snapshot.name()} is disconnected."
 
     @workspaceRef.on "child_removed", (snapshot) =>
-      log "possible disconnection occured"
-
       @showDisconnectedModal()  unless @disconnectedModal
-
-    @on "NewPanelAdded", (panel) ->
-      log "New panel created", panel
 
     @on "AllPanesAddedToPanel", (panel, panes) ->
       paneSessionKeys = []
       paneSessionKeys.push pane.sessionKey for pane in panes
       @sessionData.push paneSessionKeys
 
+    @fetchUsers()
+
+  fetchUsers: ->
+    @workspaceRef.once "value", (snapshot) =>
+      val = snapshot.val()
+      return  unless val
+
+      usernames = []
+      usernames.push username for username, status of val.users unless @users[username]
+
+      KD.remote.api.JAccount.some { "profile.nickname": { "$in": usernames } }, {}, (err, jAccounts) =>
+        @users[user.profile.nickname] = user for user in jAccounts
+        @emit "WorkspaceUsersFetched"
+
   createPanel: (callback = noop) ->
     panelOptions             = @getOptions().panels[@lastCreatedPanelIndex]
     panelOptions.delegate    = @
     panelOptions.sessionKeys = @sessionData[@lastCreatedPanelIndex]  if @sessionData
     newPanel                 = new CollaborativePanel panelOptions
-
-    log "instantiated a panel with these session keys", panelOptions.sessionKeys
 
     @container.addSubView newPanel
     @panels.push newPanel
@@ -107,10 +118,7 @@ class CollaborativeWorkspace extends Workspace
 
     notValid.addSubView new KDView
       cssClass : "description"
-      partial  : """
-        If there is nothing wrong with our servers, this usually means,
-        the person who is hosting this session is disconnected or closed the session.
-      """
+      partial  : "This usually means, the person who is hosting this session is disconnected or closed the session."
 
     notValid.addSubView new KDButtonView
       cssClass : "cupid-green"
@@ -132,8 +140,8 @@ class CollaborativeWorkspace extends Workspace
       partial  : """<span class="text">Loading...<span>"""
 
     @loader.addSubView loaderView = new KDLoaderView size: width : 36
-    @container.addSubView @loader
     @loader.on "viewAppended", -> loaderView.show()
+    @container.addSubView @loader
 
   joinSession: (sessionKey) ->
     {parent}           = @
@@ -142,8 +150,6 @@ class CollaborativeWorkspace extends Workspace
     @destroy()
 
     parent.addSubView new CollaborativeWorkspace options
-
-    log "user joined a new session:", sessionKey
 
   showDisconnectedModal: ->
     if @amIHost()
@@ -214,17 +220,25 @@ class CollaborativeWorkspace extends Workspace
   createUserListContainer: ->
     @container.addSubView @userListContainer = new KDView
       cssClass : "user-list"
+
     @userListContainer.bindTransitionEnd()
 
   showUsers: ->
-    return  if @userListVisible
-
+    return  if @userList
     @userListContainer.setClass "active"
 
-    @userListContainer.addSubView new CollaborativeWorkspaceUserList {
+    @userListContainer.addSubView @userList = new CollaborativeWorkspaceUserList {
       @workspaceRef
       @sessionKey
       container : @userListContainer
       delegate  : @
     }
-    @userListVisible = yes
+
+  setHistory: (message = "") ->
+    user    = KD.nick()
+    message = message.replace "$0", user
+
+    @historyRef.child(Date.now()).set {
+      message
+      user
+    }

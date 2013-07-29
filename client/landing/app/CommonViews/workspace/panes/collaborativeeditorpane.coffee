@@ -6,16 +6,14 @@ class CollaborativeEditorPane extends CollaborativePane
 
     super options, data
 
-    log "i am a CollaborativeEditorPane and my session key is #{options.sessionKey}"
-
+    @panel      = @getDelegate()
+    @workspace  = @panel.getDelegate()
     @sessionKey = @getOptions().sessionKey or @createSessionKey()
-
-    @container = new KDView
+    @amIHost    = @workspace.amIHost()
+    @container  = new KDView
 
     @container.on "viewAppended", =>
       @createEditor()
-      @panel      = @getDelegate()
-      @workspace  = @panel.getDelegate()
       @ref        = @workspace.firepadRef.child @sessionKey
       @firepad    = Firepad.fromCodeMirror @ref, @codeMirrorEditor
 
@@ -24,28 +22,27 @@ class CollaborativeEditorPane extends CollaborativePane
         return @openFile file, content  if file
         if @firepad.isHistoryEmpty()
           @firepad.setText "" # fix for a firepad bug
+          @codeMirrorEditor.scrollTo 0, 0
 
       @ref.on "value", (snapshot) =>
         return @save()  if snapshot.val().WaitingSaveRequest is yes
 
-      @ref.onDisconnect().remove()  if @workspace.amIHost()
+      @ref.onDisconnect().remove()  if @amIHost
 
   openFile: (file, content) ->
     @setData file
-    amIHost     = @panel.amIHost @sessionKey
     isLocalFile = file.path.indexOf("localfile") is 0
-    content     = "" if amIHost and isLocalFile
-    @firepad.setText content  if amIHost
+    content     = "" if @amIHost and isLocalFile
+    @firepad.setText content  if @amIHost
+    @codeMirrorEditor.scrollTo 0, 0
 
   save: ->
     file        = @getData()
-    amIHost     = @panel.amIHost @sessionKey
     isValidFile = file instanceof FSFile and file.path.indexOf("localfile") is -1
 
-    if amIHost
+    if @amIHost
       return warn "no file instance handle save as" unless isValidFile
 
-      log "host is saving a file"
       @ref.child("WaitingSaveRequest").set no
       file.save @firepad.getText(), (err, res) =>
         new KDNotificationView
@@ -54,7 +51,6 @@ class CollaborativeEditorPane extends CollaborativePane
           title    : "File has been saved"
           duration : 4000
     else
-      log "client wants to save a file"
       @ref.child("WaitingSaveRequest").set yes
 
   createEditor: ->

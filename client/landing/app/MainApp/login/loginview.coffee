@@ -174,13 +174,9 @@ class LoginView extends KDScrollView
       if pages.length is 0
         pages.push "table-of-contents"
         appStorage.setValue "readPages", pages
-        KD.getSingleton('mainController').emit "ShowInstructionsBook", 1
-      
-      
-
+        KD.getSingleton('mainController').emit "FirstTimeLoginHappened", 1
 
   doRegister:(formData)->
-    {kodingenUser} = formData
     formData.agree = 'on'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
@@ -197,15 +193,15 @@ class LoginView extends KDScrollView
         KD.getSingleton('mainController').accountChanged account
         new KDNotificationView
           cssClass  : "login"
-          title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
+          title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
           @showInstructionsBookIfFirstLogin()
 
-          #send information to mixpanel 
+          #send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
           vendor    : 'mixpanel'
-          extra     : 
+          extra     :
             '$username'  : account.profile.nickname
             '$loginDate' : Date.now()
 
@@ -218,6 +214,9 @@ class LoginView extends KDScrollView
           #   KD.getSingleton('mainController').emit "ShowInstructionsBook"
           # , 1000
         , 1000
+
+        # log to external / TODO: sending account optional if non of track tools use, just delete it
+        KD.track "userSignedUp", account
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
@@ -262,7 +261,7 @@ class LoginView extends KDScrollView
           # content   : "Successfully logged in."
           duration  : 2000
         @loginForm.reset()
-        
+
         @hide()
 
   doRequest:(formData)->
@@ -389,6 +388,16 @@ class LoginView extends KDScrollView
       @unsetClass "join register recover login reset home"
       @emit "LoginViewAnimated", name
       @setClass name
+
+      switch name
+        when "join"
+          @requestForm.email.input.setFocus()
+        when "register"
+          @registerForm.invitationCode.input.setFocus()
+        when "login"
+          @loginForm.username.input.setFocus()
+        when "recover"
+          @recoverForm.usernameOrEmail.input.setFocus()
 
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config

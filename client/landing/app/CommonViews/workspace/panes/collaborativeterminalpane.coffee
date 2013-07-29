@@ -18,13 +18,9 @@ class CollaborativeTerminalPane extends TerminalPane
     @workspaceRef.on "value", (snapshot) =>
       return unless snapshot.val()
 
-      log "everything is something happened in host terminal", snapshot.name(), snapshot.val()
-
       {keyEventFromClient} = snapshot.val()
 
       if keyEventFromClient
-        log "host terminal received a key event from a client", keyEventFromClient
-
         eventInstance = new Event "ClientTerminalKeyEvent"
         eventName     = if keyEventFromClient.type is "keyup" then "keyDown" else "keyPress"
         eventInstance.initEvent keyEventFromClient.type, true, true
@@ -34,8 +30,6 @@ class CollaborativeTerminalPane extends TerminalPane
         @webterm.terminal.inputHandler[eventName] eventInstance
 
     @workspaceRef.onDisconnect().remove()  if workspace.amIHost()
-
-    log "i'm a host terminal and my session key is #{@sessionKey}"
 
   syncContent: (encoded) ->
     @workspaceRef.set "terminal": encoded

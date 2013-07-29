@@ -220,7 +220,7 @@ class VirtualizationController extends KDController
 
   showVMDetails: (vm)->
     vmName = vm.hostnameAlias
-    url    = "https://#{vm.hostnameAlias}"
+    url    = "http://#{vm.hostnameAlias}"
 
     content = """
                 <div class="item">
@@ -296,6 +296,7 @@ class VirtualizationController extends KDController
               callback              : (formData)=>
                 paymentController.confirmPayment formData.type, @paymentPlans[formData.host], ->
                   modal.destroy()
+                  KD.track "User Clicked Buy VM", KD.nick()
               buttons               :
                 user                :
                   title             : "Create a <b>Personal</b> VM"

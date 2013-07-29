@@ -49,10 +49,11 @@ class ApplicationManager extends KDObject
 
     createOrShow = (appOptions, appParams, callback = noop)->
 
-      name = appOptions?.name
-      return warn "No such application!"  unless name
-
       appManager  = KD.getSingleton "appManager"
+      name        = appOptions?.name
+
+      return appManager.handleAppNotFound()  unless name
+
       appInstance = appManager.get name
       cb          = -> appManager.show appOptions, callback
       if appInstance then do cb
@@ -87,19 +88,9 @@ class ApplicationManager extends KDObject
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller
 
-      # FIXME: SY
-      # There is a joint recursion here
-      # we call kodingappscontroller.runApp which calls
-      # appManager.open back, this method should be divided
-      # to some logical parts, and runApp should call the
-      # appropriate method rather than ::open.
-      if not appOptions? and not options.avoidRecursion?
+      if not appOptions?
         return @fetchManifests name, =>
-          options.avoidRecursion = yes
-          @on "AppCreated", (appInstance)->
-            kodingAppsController.putAppResources appInstance
           @open name, options, callback
-          delete options.avoidRecursion
 
       appParams = options.params or {}
 
@@ -193,6 +184,7 @@ class ApplicationManager extends KDObject
     @register appInstance = new AppClass appOptions  if AppClass
     @utils.defer =>
       @emit "AppCreated", appInstance
+      KD.getSingleton("kodingAppsController").putAppResources appInstance  if appOptions.thirdParty
       callback? appInstance
 
   show:(appOptions, callback)->
@@ -357,15 +349,13 @@ class ApplicationManager extends KDObject
       type      : "mini"
       duration  : 2500
 
-
-
-
-
-
-
-
-
-
+  handleAppNotFound: ->
+    KD.getSingleton("router").handleRoute "/Develop"
+    new KDNotificationView
+      title    : "You don't have this app installed!"
+      type     : "mini"
+      cssClass : "error"
+      duration : 5000
 
   # deprecate these
 

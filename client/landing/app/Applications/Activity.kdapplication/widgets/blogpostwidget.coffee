@@ -82,9 +82,10 @@ class ActivityBlogPostWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:->
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "BlogPostSubmitted"
+      @reset()
     super
-    KD.track "Activity", "BlogPostSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 

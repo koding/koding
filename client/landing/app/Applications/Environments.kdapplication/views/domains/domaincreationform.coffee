@@ -60,6 +60,10 @@ class DomainCreationForm extends KDTabViewWithForms
             cancel                    :
               style                   : "modal-cancel"
               callback                : => @emit 'DomainCreationCancelled'
+            another                   :
+              title                   : "add another domain"
+              style                   : "modal-cancel hidden"
+              callback                : => @addAnotherDomainClicked()
           fields                      :
             header                    :
               title                   : "Add a domain"
@@ -255,9 +259,10 @@ class DomainCreationForm extends KDTabViewWithForms
     form            = @forms["Domain Address"]
     {domainName}    = form.inputs
     {suggestionBox} = form.fields
-    {close, createButton, cancel} = form.buttons
+    {close, createButton, cancel, another} = form.buttons
 
     close.show()
+    another.show()
     createButton.hide()
     cancel.hide()
 
@@ -279,9 +284,10 @@ class DomainCreationForm extends KDTabViewWithForms
     form            = @forms["Domain Address"]
     {domainName}    = form.inputs
     {suggestionBox} = form.fields
-    {close, createButton, cancel} = form.buttons
+    {close, createButton, cancel, another} = form.buttons
 
     close.hide()
+    another.hide()
     createButton.show()
     cancel.show()
     @successNote.destroy()
@@ -289,6 +295,20 @@ class DomainCreationForm extends KDTabViewWithForms
     domainName.setValue ''
     @emit 'CloseClicked'
 
+  addAnotherDomainClicked:->
+    form            = @forms["Domain Address"]
+    {domainName}    = form.inputs
+    {suggestionBox} = form.fields
+    {close, createButton, cancel, another} = form.buttons
+
+    close.hide()
+    another.hide()
+    createButton.show()
+    cancel.show()
+    @successNote.destroy()
+    delete @successNote
+    domainName.setValue ''
+    domainName.setFocus()
 
   notifyUser = (msg)->
     new KDNotificationView

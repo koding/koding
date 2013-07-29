@@ -20,7 +20,7 @@ class HomeLoginBar extends JView
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
-      title       : "Have an invite code?"
+      title       : "Have an invite code? Register!"
       icon        : {}
       attributes  :
         href      : "/Register"
@@ -50,7 +50,7 @@ class HomeLoginBar extends JView
 
     @login        = new CustomLinkView
       tagName     : "a"
-      title       : "Already a user?"
+      title       : "Already a user? Sign In!"
       icon        : {}
       cssClass    : "login"
       attributes  :
@@ -85,7 +85,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug
+        KD.track "Login", "GroupJoinRequest", @group.slug, @group
         @utils.stopDOMEvent event
         requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
