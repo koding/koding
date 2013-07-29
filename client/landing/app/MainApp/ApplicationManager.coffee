@@ -88,10 +88,10 @@ class ApplicationManager extends KDObject
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller
 
-      if not appOptions? and not options.avoidRecursion?
+      if not appOptions?
         return @fetchManifests name, =>
           @open name, options, callback
-      
+
       appParams = options.params or {}
 
       if appOptions?.multiple
@@ -133,7 +133,7 @@ class ApplicationManager extends KDObject
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
         manifest.navItem      = title : "Develop"
-        manifest.thirdParty or= yes
+        manifest.thirdParty  ?= yes
 
         KD.registerAppClass KodingAppController, manifest
 
@@ -207,13 +207,13 @@ class ApplicationManager extends KDObject
 
     return if appOptions.background
 
-    if KD.isLoggedIn()
-      @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
-      @emit 'AnInstanceIsShown', appInstance, appView, appOptions
-      @setLastActiveIndex appInstance
-      @utils.defer -> callback? appInstance
-    else
-      KD.getSingleton('router').clear()
+    # if KD.isLoggedIn()
+    @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+    @emit 'AnInstanceIsShown', appInstance, appView, appOptions
+    @setLastActiveIndex appInstance
+    @utils.defer -> callback? appInstance
+    # else
+    #   KD.getSingleton('router').clear()
 
   quit:(appInstance, callback = noop)->
 

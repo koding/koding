@@ -53,14 +53,14 @@ class ActivityAppView extends KDScrollView
     @unsetClass "guest"
     {entryPoint, roles} = KD.config
     @setClass "guest" unless "member" in roles
-    if KD.isLoggedIn()
-      @setClass 'loggedin'
-      if entryPoint?.type is 'group' and 'member' not in roles
-      then @widget.hide()
-      else @widget.show()
-    else
-      @unsetClass 'loggedin'
-      @widget.hide()
+    # if KD.isLoggedIn()
+    @setClass 'loggedin'
+    if entryPoint?.type is 'group' and 'member' not in roles
+    then @widget.hide()
+    else @widget.show()
+    # else
+    #   @unsetClass 'loggedin'
+    #   @widget.hide()
     @_windowDidResize()
 
   # changePageToActivity:(event)->
@@ -96,7 +96,7 @@ class ActivityAppView extends KDScrollView
   _windowDidResize:->
     return unless @header
     headerHeight = @header.getHeight()
-    @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
+    @innerNav.setHeight @getHeight() - 77 # (if KD.isLoggedIn() then 77 else 0)
 
 
 

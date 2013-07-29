@@ -193,6 +193,12 @@ class MainView extends KDView
     @contentPanel.$().removeClass "fullscreen no-anim"
     $(window).resize()
 
+  isFullscreen: ->
+    @contentPanel.$().is ".fullscreen"
+
+  toggleFullscreen: ->
+    if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
+
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
 

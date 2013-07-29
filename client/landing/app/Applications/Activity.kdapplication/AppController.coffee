@@ -50,9 +50,10 @@ class ActivityAppController extends AppController
     # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
-    @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
+    @status.on "reconnected", (conn)=>
+      if conn?.reason is "internetDownForLongTime" then @refresh()
 
-    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+    @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
 
     @docTitle = document.title
     windowController = KD.getSingleton "windowController"
@@ -149,23 +150,31 @@ class ActivityAppController extends AppController
       @isLoading = no
       @bindLazyLoad()
 
-    fetch = do =>=>
+    fetch = =>
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
-        #if exempt or @getFilter() isnt activityTypes
+      #if exempt or @getFilter() isnt activityTypes
+      groupObj = KD.getSingleton('groupsController').getCurrentGroup()
 
       options =
         to     : options.to or Date.now()
         group  :
-          slug : currentGroup.slug or "koding"
-          id   : currentGroup.getId()
+          slug : groupObj?.slug or "koding"
+          id   : groupObj.getId()
         limit  : 20
         facets : @getActivityFilter()
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      if @getFeedFilter() is "Public"
+      {roles} = KD.config
+      group   = groupObj?.slug
+
+      if "koding" is group and  "guest" in roles
+        @listFeaturedActivities callback
+        @listController.activityHeader.headerTitle.hide()
+
+      else if @getFeedFilter() is "Public"
         @once "publicFeedFetched_#{eventSuffix}", (cache)=>
           reset()
           @extractCacheTimeStamps cache
@@ -187,7 +196,28 @@ class ActivityAppController extends AppController
     if isReady
     then fetch()
     else
-      groupsController.once 'groupChanged', fetch
+      groupsController.once 'GroupChanged', fetch
+
+  listActivities:(activities, callback)->
+    @sanitizeCache activities, (err, sanitizedCache)=>
+      @extractCacheTimeStamps sanitizedCache
+      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
+      callback sanitizedCache
+
+  fetchFeatureds:(activityId=0, commentId=0, likeId=0)->
+    activityName = "activity"
+    activityName += "_#{activityId}" unless activityId is 0
+    activityName += "_C#{commentId}" unless commentId is 0
+    activityName += "_L#{commentId}" unless likeId is 0
+
+    if KD.isLoggedIn()
+      @emit "#{activityName}_fetch_failed"
+      return
+
+    $.ajax
+      url     : "js/activity/#{activityName}.json"
+      success : (json) => @emit "#{activityName}_fetch_succeeded", json
+      failure : =>  @emit "#{activityName}_fetch_failed"
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
