@@ -37,7 +37,7 @@ class PaymentController extends KDController
       val.input.giveValidationFeedback no
 
     for e in err
-      if e.field == 'account.base'
+      if e.field in ['account.base', 'billing_info.base']
         val.input.showValidationError e.message
         if e.message.indexOf('card') > -1
           inputs.cardNumber.giveValidationFeedback yes
