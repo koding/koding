@@ -53,6 +53,47 @@ class StartTabMainView extends JView
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
 
+    @downloadFilesLink = new KDCustomHTMLView
+    userJoinDate       = KD.whoami().meta.createdAt
+    oldKodingDownDate  = 1374267600000
+
+    if userJoinDate < oldKodingDownDate
+      @appStorage = KD.getSingleton("appStorageController").storage "Finder", "1.0"
+
+      @appStorage.fetchStorage (err, storage) =>
+        return if @appStorage.getValue "HideOldKodingDownloadLink"
+
+        @downloadFilesLink.addSubView text = new KDCustomHTMLView
+          cssClass     : "download-files-link"
+          partial      : "Click here to get download link for your old Koding files"
+          click        : ->
+            KD.whoami().fetchOldKodingDownloadLink (err, url) ->
+              modal          = new KDModalView
+                cssClass     : "modal-with-text old-file-download-modal"
+                overlay      : yes
+                title        : "Your old Koding files"
+                content      : """
+                  <p>
+                    You can use the following link to download your files. Note that these files won't be available after Sep 1, 2013. You have to download before then.
+                    <a href="#{url}" class="download-link" target="_blank">#{url}</a>
+                  </p>
+                """
+                buttons      :
+                  Close      :
+                    title    : "Close"
+                    cssClass : "modal-cancel"
+                    callback : -> modal.destroy()
+
+        text.addSubView new KDCustomHTMLView
+          cssClass : "close-download-notification"
+          tagName  : "span"
+          tooltip  :
+            title  : "Don't show this again."
+          click    : (e) =>
+            e.stopPropagation()
+            @downloadFilesLink.destroy()
+            @appStorage.setValue "HideOldKodingDownloadLink", yes
+
   showLoader:->
 
     @loader.show()
@@ -101,6 +142,7 @@ class StartTabMainView extends JView
     """
     <div class='app-list-wrapper'>
       <div class='app-button-holder'>
+        {{> @downloadFilesLink}}
         {{> @addAnAppButton}}
         {{> @refreshButton}}
       </div>

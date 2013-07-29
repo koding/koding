@@ -20,7 +20,7 @@ class ChatConversationListController extends CommonChatController
     chatController = KD.getSingleton 'chatController'
     {JChatConversation} = KD.remote.api
     JChatConversation.fetchSome {}, (err, conversations)=>
-      warn err  unless err?.message is 'Access denied'
+      warn err  if err and err.message isnt 'Access denied'
       conversations ?= []
       for conversation in conversations
         chatController.addConversationToChatPanel \

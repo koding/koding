@@ -5,10 +5,10 @@ class AppSettingsMenuButton extends KDButtonView
     view = mainTabView.activePane?.mainView
     return view
 
-  getCustomMenuView = (item)->
+  getCustomMenuView = (item, obj)->
     view = getVisibleView()
     item.type = "customView"
-    customMenu = view["get#{item.title.replace(/^customView/, '')}MenuView"]? item.viewName, item
+    customMenu = view["get#{item.title.replace(/^customView/, '')}MenuView"]? item, obj
 
   constructor: (options = {}, data) ->
 
@@ -34,7 +34,7 @@ class AppSettingsMenuButton extends KDButtonView
           @contextMenu.destroy()
 
         if (item.title?.indexOf "customView") is 0
-          customView = getCustomMenuView item
+          customView = getCustomMenuView item, this
           if customView instanceof KDView
             item.view = customView
           else
@@ -50,6 +50,7 @@ class AppSettingsMenuButton extends KDButtonView
   createMenu: (event, menu) ->
     @offset = @$().offset()
     @contextMenu = new JContextMenu
+      cssClass    : "app-settings"
       delegate    : @
       x           : @offset.left - @menuWidth - 3
       y           : @offset.top - 6

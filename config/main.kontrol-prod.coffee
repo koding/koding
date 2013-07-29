@@ -33,12 +33,12 @@ module.exports =
     read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding-staging'
-  runNeo4jFeeder: no
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  runNeo4jFeeder: yes
   runGoBroker   : no
-  runKontrol    : no
-  runRerouting  : no
-  runUserPresence: no
+  runKontrol    : yes
+  runRerouting  : yes
+  runUserPresence: yes
   runPersistence: yes
   compileGo     : no
   buildClient   : yes
@@ -109,6 +109,8 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       authExchange: authExchange
+      github        :
+        clientId    : "5891e574253e65ddb7ea"
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -183,6 +185,8 @@ module.exports =
       vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
@@ -194,3 +198,6 @@ module.exports =
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : 'followfeed'
+  github        :
+    clientId    : "5891e574253e65ddb7ea"
+    clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"

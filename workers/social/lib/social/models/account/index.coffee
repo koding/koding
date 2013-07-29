@@ -62,6 +62,8 @@ module.exports = class JAccount extends jraphical.Module
       static      : sharedStaticMethods()
       instance    : sharedInstanceMethods()
     schema                  :
+      foreignAuth           :
+        github              : Boolean
       skillTags             : [String]
       locationTags          : [String]
       systemInfo            :
@@ -176,6 +178,14 @@ module.exports = class JAccount extends jraphical.Module
   constructor:->
     super
     @notifyOriginWhen 'PrivateMessageSent', 'FollowHappened'
+
+  fetchOldKodingDownloadLink : secure (client,callback)->
+    crypto = require 'crypto'
+    {delegate}    = client.connection
+    user      = delegate.profile.nickname
+    userhash  = crypto.createHash('md5').update("#{user}+salty\n").digest("hex")
+    link      = "http://old.koding.s3.amazonaws.com/koding.old/#{user}-#{userhash}.tgz"
+    callback null,link
 
   changeUsername: (options, callback = (->)) ->
     if 'string' is typeof options
@@ -1155,6 +1165,21 @@ module.exports = class JAccount extends jraphical.Module
         for res in results
           collectContents res
 
+  ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
+
+  fetchRelatedTagsFromGraph: secure (client, options, callback)->
+    @delegateToGraph client, "fetchRelatedTagsFromGraph", options, callback
+
+  fetchRelatedUsersFromGraph: secure (client, options, callback)->
+    @delegateToGraph client, "fetchRelatedUsersFromGraph", options, callback
+
+  delegateToGraph:(client, methodName, options, callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    options.userId = client.connection.delegate._id
+    graph[methodName] options, callback
+
+  ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
+
   sendEmailVMTurnOnFailureToSysAdmin: secure (client, vmName, reason)->
     time = (new Date).toJSON()
     JMail = require '../email'
@@ -1169,3 +1194,8 @@ module.exports = class JAccount extends jraphical.Module
         content : "Reason: #{reason}"
         force   : yes
       email.save ->
+
+  unlinkOauth: (provider, callback)->
+    @fetchUser (err, user)->
+      return callback err  if err
+      user.update $unset: foreignAuth: "", callback
