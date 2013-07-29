@@ -43,6 +43,15 @@ class HomeIntroView extends JView
       cssClass : 'toc'
       partial  : 'By signing up, you agree to our <a href="/toc.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
 
+    @videoThumb = new KDCustomHTMLView
+      tagName  : 'a'
+      partial  : "<i></i><img src='/images/timedude.jpg'/>"
+      click    : ->
+        w = 800
+        h = 450
+        window.open "/timedude.html",
+          "Koding and the Timedude!",
+          "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
 
     @counterBar = new CounterGroupView
       domId    : "home-counter-bar"
@@ -85,17 +94,17 @@ class HomeIntroView extends JView
     if KD.isLoggedIn()
       """
       <section>
-      <div>
-      {{> @slogan}}
-      {{> @subSlogan}}
-      </div>
-      <aside>
-      <ul>
-      <li>{{> @videoThumb}}</li>
-      </ul>
-      </aside>
-      {{> @counterBar}}
+        <div>
+          {{> @slogan}}
+          {{> @subSlogan}}
+        </div>
+        <aside>
+          <ul>
+            <li>{{> @videoThumb}}</li>
+          </ul>
+        </aside>
       </section>
+      {{> @counterBar}}
       """
     else
       """
