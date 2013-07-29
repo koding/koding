@@ -130,9 +130,9 @@ class AccountSubscriptionsListItem extends KDListItemView
 
     statusNotice = ""
     if status in ['active', 'modified']
-      statusNotice = "Subscription for #{quantity} VM(s) is active"
+      statusNotice = "Subscription for #{quantity} product(s) is active"
     else if status is 'canceled'
-      statusNotice = "Subscription for #{quantity} VM(s) will end soon"
+      statusNotice = "Subscription for #{quantity} product(s) will end soon"
 
     dateNotice = ""
     if plan.type isnt 'single'
