@@ -138,7 +138,7 @@ class KodingRouter extends KDRouter
 
     onSuccess = (models)=> @openContent name, section, models, route, query, passOptions
     onError   = (err)=>
-      new KDNotificationView title: err?.message or 'An unknown error has occured.'
+      KD.showError err
       @handleNotFound route
 
     if name and not slug
