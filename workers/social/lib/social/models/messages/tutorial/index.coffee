@@ -37,6 +37,15 @@ module.exports = class JTutorial extends JPost
     emitFollowingActivities: yes
     taggedContentRole : 'post'
     tagRole           : 'tag'
+    sharedEvents      :
+      instance        : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     sharedMethods     :
       static          : ['create','one']
       instance        : [

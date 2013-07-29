@@ -294,8 +294,8 @@ class KDTooltip extends KDView
         @unsetClass 'direction-'+direction_
 
     @$().css
-      left : coords.left+offset.left
-      top : coords.top+offset.top
+      left : coords.left + offset.left
+      top  : coords.top + offset.top
 
     @utils.wait 500, => @unsetClass 'animate-movement'
 

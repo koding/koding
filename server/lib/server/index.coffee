@@ -3,7 +3,7 @@ Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
 
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j, github} = KONFIG
 page = require './staticpages'
 
 webPort = argv.p ? webserver.port
@@ -23,6 +23,7 @@ processMonitor = (require 'processes-monitor').start
     middleware : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
 
+koding   = require './bongo'
 _        = require 'underscore'
 async    = require 'async'
 {extend} = require 'underscore'
@@ -32,6 +33,8 @@ request  = require 'request'
 fs       = require 'fs'
 hat      = require 'hat'
 nodePath = require 'path'
+http       = require "https"
+{JSession} = koding.models
 
 app      = express()
 
@@ -377,7 +380,7 @@ error_500 =->
 app.get '/:name/:section?*', (req, res, next)->
   {JGroup, JName, JSession} = koding.models
   {name} = req.params
-  return res.redirect 302, req.url.substring 7  if name is 'koding'
+  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
     next()
@@ -390,6 +393,88 @@ app.get '/:name/:section?*', (req, res, next)->
           if err then next err
           else if view? then res.send view
           else res.send 500, error_500()
+
+saveOauthToSession = (resp, callback)->
+  {provider, access_token, id, login, email, firstName, lastName, clientId} = resp
+  JSession.one {clientId}, (err, session)->
+    foreignAuth           = {}
+    foreignAuth[provider] =
+      token     : access_token
+      foreignId : String(id)
+      username  : login
+      email     : email
+      firstName : firstName
+      lastName  : lastName
+
+    JSession.update {clientId}, $set: {foreignAuth}, callback
+
+app.get "/-/oauth/:provider/callback", (req,res)->
+  {provider} = req.params
+  code = req.query.code
+  access_token = null
+
+  unless code
+    {loginFailureTemplate} = require './staticpages'
+    serve loginFailureTemplate, res
+    return
+
+  headers =
+    "Accept"     : "application/json"
+    "User-Agent" : "Koding"
+
+  authorizeUser = (authUserResp)->
+    rawResp = ""
+    authUserResp.on "data", (chunk) -> rawResp += chunk
+    authUserResp.on "end", ->
+      {access_token} = JSON.parse rawResp
+      if access_token
+        options =
+          host    : "api.github.com"
+          path    : "/user?access_token=#{access_token}"
+          method  : "GET"
+          headers : headers
+        request = http.request options, fetchUserInfo
+        request.end()
+
+  fetchUserInfo = (userInfoResp) ->
+    rawResp = ""
+    userInfoResp.on "data", (chunk) -> rawResp += chunk
+    userInfoResp.on "end", ->
+      {login, id, email, name} = JSON.parse rawResp
+      if name
+        [firstName, restOfNames...] = name.split ' '
+        lastName = restOfNames.join ' '
+
+      {clientId} = req.cookies
+      resp = {provider, firstName, lastName, login, id, email, access_token,
+              clientId}
+
+      if not email? or email is ""
+        options =
+          host    : "api.github.com"
+          path    : "/user/emails?access_token=#{access_token}"
+          method  : "GET"
+          headers : headers
+        request = http.request options, (newResp)-> fetchUserEmail newResp, resp
+        request.end()
+      else
+        renderLoginTemplate resp, res
+
+  fetchUserEmail = (userEmailResp, originalResp)->
+    rawResp = ""
+    userEmailResp.on "data", (chunk) -> rawResp += chunk
+    userEmailResp.on "end", ->
+      email = JSON.parse(rawResp)[0]
+      originalResp.email = email
+      renderLoginTemplate originalResp, res
+
+  options =
+    host   : "github.com"
+    path   : "/login/oauth/access_token?client_id=#{github.clientId}&client_secret=#{github.clientSecret}&code=#{code}"
+    method : "POST"
+    headers : headers
+  request = http.request options, authorizeUser
+  request.end()
 
   # groupName = name
   # JGroup.one { slug: groupName }, (err, group)->
@@ -413,6 +498,11 @@ app.get '/:name/:section?*', (req, res, next)->
 #         res.header 'Location', '/Activity'
 #         res.send 302
 
+renderLoginTemplate =(resp, res)->
+  saveOauthToSession resp, ->
+    {loginTemplate} = require './staticpages'
+    serve loginTemplate, res
+
 serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
@@ -421,7 +511,7 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    defaultTemplate = require './staticpages'
+    {defaultTemplate} = require './staticpages'
     serve defaultTemplate, res
 
 ###

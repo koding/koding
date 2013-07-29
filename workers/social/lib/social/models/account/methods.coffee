@@ -25,6 +25,9 @@ module.exports =
       'fetchPendingGroupInvitations', 'fetchPendingGroupRequests',
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'getInvitationRequestByGroup', 'fetchMyPermissions',
-      'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph', 'fetchMyFollowersFromGraph',
-      'fetchDomains', 'sendEmailVMTurnOnFailureToSysAdmin', 'blockUser'
+      'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
+      'fetchMyFollowersFromGraph', 'blockUser',
+      'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
+      'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
+      'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink'
     ]

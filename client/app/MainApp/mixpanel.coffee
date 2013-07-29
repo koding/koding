@@ -8,10 +8,11 @@ class KDMixpanel
     if eventName is "Login" or (eventName is "Groups" and eventData is "ChangeGroup")
       # identify user on mixpanel
       @registerUser()
-
+    else if eventName is "Connected to backend"
+      @track eventName, KD.nick()
+      @registerUser()
     else if eventName is "New User Signed Up"
       @track eventName, KD.whoami().profile
-
     else if eventName is "User Opened Ace"
       {title, privacy, visibility} = eventData
       
@@ -19,12 +20,11 @@ class KDMixpanel
       @setOnce 'First Time Ace Opened', Date.now()
       @track eventName, options
 
-    else if eventName is "User Opened Terminal"
+    else if eventName is "userOpenedTerminal"
       {title, privacy, visibility} = eventData
-      
       options = {title, privacy, visibility, $user}
       @setOnce 'First Time Terminal Opened', Date.now()
-      @track eventName, options
+      @track "User Opened Terminal", options
 
     else if eventName is "Apps" and eventData is "Install"
       
@@ -54,7 +54,7 @@ class KDMixpanel
 
       {title, privacy, visibility} = group
       options = {title, privacy, visibility, $user, $activity}
-        
+
       @track eventName, options
 
     else if eventName is "Groups" and eventData is "JoinedGroup"
@@ -73,7 +73,7 @@ class KDMixpanel
         {title, privacy, visibility} = group
         options = {title, privacy, visibility, $user}
         @track "Group Join Request", options
-      
+
       else if eventData is "InvitationSentToFriend"
         options       =
           $user       : $user
@@ -81,7 +81,7 @@ class KDMixpanel
 
         @track "Invitation Send", options
       else
-        log "Warning: Unknown mixpanel event set",rest
+        log "Warning: Unknown mixpanel event set", rest
 
   track:(eventName, properties, callback)->
     mixpanel.track eventName, properties, callback

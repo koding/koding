@@ -134,14 +134,19 @@ class ActivityUpdateWidgetController extends KDViewController
       data.group = KD.getSingleton('groupsController').getGroupSlug()
       KD.remote.api[constructorName].create data, (err, activity)=>
         callback? err, activity
+
+        KD.showError err,
+          AccessDenied :
+            title      : 'You are not allowed to create activities'
+            content    : 'This activity will only be visible to you'
+            duration   : 5000
+          KodingError  : 'Something went wrong while creating activity'
+
         unless err
           @utils.killWait updateTimeout
           @emit 'OwnActivityHasArrived', activity
         else
-          warn err
           @emit 'OwnActivityHasFailed', data
-          new KDNotificationView
-            title : "There was an error, try again later!"
 
   createFakeTags = (originalTags)->
 
@@ -152,7 +157,7 @@ class ActivityUpdateWidgetController extends KDViewController
       fakeTag       = $.extend {},fakeTag,
         title       : tag.title or tag.$suggest
         body        : tag.title or tag.$suggest
-        group       : tag.group or 'koding'
+        group       : tag.group or 'koding' # KD.defaultSlug
         counts      :
           followers : 0
           following : 0
@@ -171,7 +176,7 @@ class ActivityUpdateWidgetController extends KDViewController
       slug        : 'fakeActivity'
       title       : activity.title or activity.body
       body        : activity.body
-      group       : activity.group or 'koding'
+      group       : activity.group or 'koding' # KD.defaultSlug
       html        : KD.utils.applyMarkdown activity.body
       counts      :
         followers : 0
