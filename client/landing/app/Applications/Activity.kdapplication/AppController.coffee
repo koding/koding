@@ -50,20 +50,33 @@ class ActivityAppController extends AppController
     # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
-    @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
+    @status.on "reconnected", (conn)=>
+      if conn?.reason is "internetDownForLongTime" then @refresh()
 
-    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+    @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
+
+    @docTitle = document.title
+    windowController = KD.getSingleton "windowController"
+    windowController.addFocusListener (blurred)=>
+      if blurred
+        @listController.activityHeader.showNewItemsInTitle = yes
+        @listController.activityHeader.updateShowNewItemsTitle()
+      else
+        @listController.activityHeader.showNewItemsInTitle = no
+        @listController.activityHeader.hideDocumentTitleCount()
 
   loadView:->
     @getView().feedWrapper.ready (controller)=>
       @attachEvents @getView().feedWrapper.controller
-      @ready @bound "refresh"
+      @ready @bound "populateActivity"
+
     @emit 'ready'
 
   resetAll:->
-    @lastTo    = null
-    @lastFrom  = Date.now()
-    @isLoading = no
+    @lastTo                 = null
+    @lastFrom               = Date.now()
+    @isLoading              = no
+    @reachedEndOfActivities = no
     @listController.resetList()
     @listController.removeAllItems()
 
@@ -95,8 +108,8 @@ class ActivityAppController extends AppController
     @listController = controller
     @bindLazyLoad()
 
-    widgetController.on "FakeActivityHasArrived", (activity)->
-      controller.fakeActivityArrived activity
+    widgetController.on "FeaturedActivityHasArrived", (activity)->
+      controller.featuredActivityArrived activity
 
     widgetController.on "OwnActivityHasArrived", @ownActivityArrived.bind @
 
@@ -123,6 +136,62 @@ class ActivityAppController extends AppController
     @off "publicFeedFetched_#{eventSuffix}"
     # log "------------------ bindingsCleared", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
+  featuredActivityCommentRequested:({activityId, commentId}, callback)=>
+    return if commentId > 2
+    timeoutValue = KD.utils.getRandomNumber 100000
+    KD.utils.wait timeoutValue, =>
+      eventName = "activity_#{activityId}_C#{commentId}_fetch"
+      @off "#{eventName}_succeeded"
+
+      # if fetching comments fails, then shut down the event
+      @once "#{eventName}_failed", ()=>
+        @off "activity_#{activityId}_fetch_succeeded"
+
+      # if fetching success, add them to activity feed
+      @once eventName, (activities)=>
+        @listActivities activities, callback, true
+        @emit "FeaturedActivityCommentRequested", {activityId:activityId, commentId:commentId+1}, callback
+      @fetchFeatureds(activityId, commentId)
+
+  featuredActivityRequested:({activityId}, callback)=>
+    unless activityId? then activityId = 0
+    return if activityId > 7
+
+    @isLoading = true
+    timeoutValue = KD.utils.getRandomNumber 10000
+
+    eventName = "activity_#{activityId}_fetch"
+    @off "#{eventName}_succeeded"
+
+    KD.utils.wait timeoutValue, =>
+      @once "#{eventName}_failed", ()=>
+        @off "#{eventName}_succeeded"
+        @emit "FeaturedActivityRequested", {activityId:activityId+1}, callback
+
+      @once "#{eventName}_succeeded", (activities)=>
+        @listActivities activities, (sanitizedCache)=>
+          callback sanitizedCache
+          @emit "FeaturedActivityCommentRequested", {activityId:activityId, commentId:1}, callback
+
+        @emit "FeaturedActivityRequested", {activityId:activityId+1}, callback
+      #fetch featured activity
+      @fetchFeatureds(activityId)
+
+  listFeaturedActivities:(callback)->
+    @on "FeaturedActivityCommentRequested", @bound "featuredActivityCommentRequested"
+    @on "FeaturedActivityRequested", @bound "featuredActivityRequested"
+
+    @getView().innerNav.hide()
+    eventName = "activity_fetch"
+    @once "#{eventName}_failed", ()->
+      console.log "ERR : static main page activities will not work"
+
+    @once "#{eventName}_succeeded", (activities)=>
+      activities.overview.reverse()  if activities.overview
+      @listActivities activities, callback
+      @emit "FeaturedActivityRequested", {activityId:1}, callback
+    @fetchFeatureds()
+
   populateActivity:(options = {}, callback=noop)->
     return  if @isLoading
     return  if @reachedEndOfActivities
@@ -138,22 +207,31 @@ class ActivityAppController extends AppController
       @isLoading = no
       @bindLazyLoad()
 
-    fetch = do =>=>
+    fetch = =>
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
-        #if exempt or @getFilter() isnt activityTypes
+      #if exempt or @getFilter() isnt activityTypes
+      groupObj = KD.getSingleton('groupsController').getCurrentGroup()
+
       options =
         to     : options.to or Date.now()
         group  :
-          slug : currentGroup.slug or "koding"
-          id   : currentGroup.getId()
+          slug : groupObj?.slug or "koding"
+          id   : groupObj.getId()
         limit  : 20
         facets : @getActivityFilter()
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      if @getFeedFilter() is "Public"
+      {roles} = KD.config
+      group   = groupObj?.slug
+
+      if "koding" is group and  "guest" in roles
+        @listFeaturedActivities callback
+        @listController.activityHeader.headerTitle.hide()
+
+      else if @getFeedFilter() is "Public"
         @once "publicFeedFetched_#{eventSuffix}", (cache)=>
           reset()
           @extractCacheTimeStamps cache
@@ -172,9 +250,37 @@ class ActivityAppController extends AppController
 
       # log "------------------ populateActivity", dateFormat(@lastFrom, "mmmm dS HH:mm:ss"), @_e
 
-    if isReady
-    then fetch()
-    else groupsController.once 'groupChanged', fetch
+    KD.getSingleton('mainController').on "AccountChanged", (account)=>
+      @getView().innerNav.show()
+      @listController.activityHeader.headerTitle.show()
+      @resetAll()
+      @clearPopulateActivityBindings()
+      fetch()
+
+
+    if isReady then fetch()
+    else groupsController.once 'GroupChanged', fetch
+
+  listActivities:(activities, callback)->
+    @sanitizeCache activities, (err, sanitizedCache)=>
+      @extractCacheTimeStamps sanitizedCache
+      @listController.listActivitiesFromCache sanitizedCache, 0 , {type : "slideDown", duration : 100}, yes
+      callback sanitizedCache
+
+  fetchFeatureds:(activityId=0, commentId=0, likeId=0)->
+    activityName = "activity"
+    activityName += "_#{activityId}" unless activityId is 0
+    activityName += "_C#{commentId}" unless commentId is 0
+    activityName += "_L#{commentId}" unless likeId is 0
+
+    if KD.isLoggedIn()
+      @emit "#{activityName}_fetch_failed"
+      return
+
+    $.ajax
+      url     : "js/activity/#{activityName}.json"
+      success : (json) => @emit "#{activityName}_fetch_succeeded", json
+      failure : =>  @emit "#{activityName}_fetch_failed"
 
   fetchPublicActivities:(options = {})->
     {CStatusActivity} = KD.remote.api
@@ -327,13 +433,10 @@ class ActivityAppController extends AppController
     @populateActivity {},\
       KD.utils.getTimedOutCallbackOne
         name      : "populateActivity",
-#        onSuccess : -> KD.logToMixpanel "refresh activity feed success"
         onTimeout : @recover.bind this
 
   recover:->
-    #KD.logToMixpanel "activity feed render failed; recovering"
-
     @isLoading = no
 
-    @status.reconnect()
+    @status.disconnect()
     @refresh()

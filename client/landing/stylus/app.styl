@@ -269,6 +269,9 @@ body
     .application-page
       padding         0!important
       height          calc(100% \+ 10px)
+    .app-settings-menu
+      top             0
+      right           0
 // body.loggedIn
 //   #content-panel
 //     left              160px
@@ -970,6 +973,7 @@ span.main-nav-icon
     .kdlistview-navigation
       opacity         1
       vendor          transition, opacity .3s linear
+      margin-top      10px
       &.out
         opacity       0
 
@@ -1000,6 +1004,7 @@ span.main-nav-icon
           size            20px,20px
           sprite()
           blockMid()
+
     .count
       abs()
       top               -16px
@@ -1009,11 +1014,12 @@ span.main-nav-icon
       font-size         10px
       text-align        center
       line-height       12px
-      opacity           0
       z-index           2
-      vendor            transition, opacity .4s linear
+      display           none
+
       &.in
-        opacity         1
+        display         block
+
       cite
         font-style      normal
         text-shadow     0 -1px 0 rgb(173, 103, 0, 0.5)

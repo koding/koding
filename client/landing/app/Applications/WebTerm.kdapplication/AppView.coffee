@@ -9,7 +9,7 @@ class WebTermView extends KDView
     @addSubView @container
 
     @terminal = new WebTerm.Terminal @container.$()
-
+    KD.track "userOpenedTerminal", KD.getSingleton("groupsController").getCurrentGroup()
     @options.advancedSettings ?= yes
     if @options.advancedSettings
       @advancedSettings = new KDButtonViewWithMenu
@@ -63,7 +63,7 @@ class WebTermView extends KDView
       @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
       @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
       @updateSettings()
-      
+
       KD.getSingleton("vmController").run
         kiteName : 'os',
         method   : 'webterm.connect',
@@ -74,6 +74,7 @@ class WebTermView extends KDView
           session  : @getOption('delegate').getOption('session')
           sizeX  : @terminal.sizeX
           sizeY  : @terminal.sizeY
+          noScreen: @getOption('delegate').getOption('noScreen')
       , (err, remote) =>
         if err
           # We don't create any error popup not to be annoying. User can handle the error.
@@ -84,7 +85,7 @@ class WebTermView extends KDView
           @terminal.server = remote
           @setKeyView()
           @emit "WebTermConnected", remote
-          console.log remote.session
+          log "Remote session:", remote.session
 
   destroy: ->
     super

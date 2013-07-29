@@ -85,7 +85,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug
+        KD.track "Login", "GroupJoinRequest", @group.slug, @group
         @utils.stopDOMEvent event
         requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
@@ -207,7 +207,6 @@ class HomeLoginBar extends JView
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
       else @request.hide()
-      return
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()

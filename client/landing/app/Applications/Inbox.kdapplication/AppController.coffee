@@ -21,6 +21,9 @@ class InboxAppController extends AppController
 
     @selection = {}
 
+    @on 'MessageShouldBeSent', ({formOutput,callback})=>
+      @prepareMessage formOutput, callback
+
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback
 
@@ -133,6 +136,10 @@ class InboxAppController extends AppController
       newMessageBar.enableMessageActionButtons()
       @selectMessage data, item, paneView
 
+    # in constructor we already add another listener to use without views
+    # we have to remove all the listeners and bind a new one to send
+    # after view is loaded.
+    @off 'MessageShouldBeSent'
     @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback, newMessageBar
 
@@ -186,7 +193,10 @@ class InboxAppController extends AppController
     @selection = {}
 
   sendMessage:(messageDetails, callback)->
-    # log "I just send a new message: ", messageDetails
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed"
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)->
@@ -199,5 +209,5 @@ class InboxAppController extends AppController
         title     : if err then "There was an error sending your message - try again" else "Message Sent!"
         duration  : 1000
       message.mark 'read'
-      newMessageBar.emit 'RefreshButtonClicked'
+      newMessageBar?.emit 'RefreshButtonClicked'
       callback? err, message

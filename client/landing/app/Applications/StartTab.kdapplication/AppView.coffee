@@ -18,26 +18,25 @@ class StartTabMainView extends JView
     @appsController.on "aNewAppCreated", =>
       @aNewAppCreated()
 
-    finder = KD.getSingleton("finderController")
-    finder.on 'recentfiles.updated', =>
+    @finderController = KD.getSingleton "finderController"
+    @finderController.on 'recentfiles.updated', =>
       @updateRecentFileViews()
 
     @loader = new KDLoaderView size : width : 16
 
-    @refreshButton = new KDButtonViewWithMenu
+    @refreshButton = new KDButtonView
       cssClass    : "editor-button refresh-apps-button"
       title       : "Refresh Apps"
       icon        : yes
       iconClass   : "refresh"
       loader      :
         diameter  : 16
-      callback    : @bound "refreshApps"
-      menu        :
-        "Restore shortcuts":
-          cssClass: ""
-          callback: =>
-            KD.getSingleton('kodingAppsController').putDefaultShortcutsBack =>
-              @refreshApps()
+      callback    : =>
+        @removeAppIcons()
+        @showLoader()
+        @appsController.refreshApps (err, apps)=>
+          @hideLoader()
+          @refreshButton.hideLoader()
 
     @addAnAppButton = new KDButtonView
       cssClass    : "editor-button new-app-button"
@@ -53,13 +52,6 @@ class StartTabMainView extends JView
 
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
-
-  refreshApps: ->
-    @removeAppIcons()
-    @showLoader()
-    @appsController.refreshApps (err, apps)=>
-      @hideLoader()
-      @refreshButton.hideLoader()
 
   showLoader:->
 
@@ -183,10 +175,9 @@ class StartTabMainView extends JView
     @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
       recentFilePaths or= []
       @updateRecentFileViews()
-      KD.getSingleton('mainController').on "NoSuchFile", (file)=>
+      @finderController.on "NoSuchFile", (file)=>
         recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
-        @appStorage.setValue 'recentFiles', recentFilePaths, ->
-          log "Storage updated for recent files"
+        @appStorage.setValue 'recentFiles', recentFilePaths
 
   updateRecentFileViews:(recentFilePaths)->
 
