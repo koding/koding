@@ -183,8 +183,5 @@ class WebTermView extends KDView
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
     if requestFullscreen
       mainView = KD.getSingleton "mainView"
-      unless mainView.isFullscreen()
-        mainView.enableFullscreen()
-      else
-        mainView.disableFullscreen()
+      mainView.toggleFullscreen()
       event.preventDefault()

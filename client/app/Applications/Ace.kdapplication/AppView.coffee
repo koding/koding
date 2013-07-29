@@ -97,10 +97,7 @@ class AceView extends JView
 
   toggleFullscreen: ->
     mainView = KD.getSingleton "mainView"
-    unless mainView.isFullscreen()
-      mainView.enableFullscreen()
-    else
-      mainView.disableFullscreen()
+    mainView.toggleFullscreen()
 
   viewAppended:->
 

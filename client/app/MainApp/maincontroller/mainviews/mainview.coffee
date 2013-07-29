@@ -185,6 +185,9 @@ class MainView extends KDView
   isFullscreen: ->
     @contentPanel.$().is ".fullscreen"
 
+  toggleFullscreen: ->
+    if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
+
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
 
