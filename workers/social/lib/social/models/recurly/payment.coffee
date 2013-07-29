@@ -186,20 +186,29 @@ module.exports = class JRecurlyPayment extends jraphical.Module
 
   # List group's payments
   @getGroupPayments = (group, callback)->
-    # TBI
+    @getExpenses
+      buyer     : "group_#{group._id}"
+      active    : yes
+    , callback
 
   # List user's payments
   @getUserPayments = (account, callback)->
-    # TBI
+    @getExpenses
+      buyer     : "user_#{account._id}"
+      active    : yes
+    , callback
 
   # List a user's payments expensed to group
   @getUserExpenses = (group, account, callback)->
-    stack = []
-    JRecurlyPayment.some
+    @getExpenses
       buyer     : "group_#{group._id}"
       user      : "user_#{account._id}"
       active    : yes
-    , {subscription: 1}, (err, items)->
+    , callback
+
+  @getExpenses = (pattern, callback)->
+    stack = []
+    JRecurlyPayment.some pattern, {subscription: 1}, (err, items)->
       if err
         return callback new KodingError "Unable to query user balance: #{err}"
       items.forEach (item)->
@@ -211,6 +220,9 @@ module.exports = class JRecurlyPayment extends jraphical.Module
             cb null, subscription
 
       expenses = 0
+
+      # TODO: Make sure this calculation is enough.
+      # Not tested for expired/canceled subscriptions.
 
       async = require 'async'
       async.parallel stack, (err, results)->
