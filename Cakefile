@@ -449,18 +449,6 @@ task 'run', (options)->
   queue.push -> run options
   daisy queue
 
-task 'accounting', (options)->
-
-  {configFile} = options
-  options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
-  KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
-
-  processes.fork
-    name    : "accounting"
-    cmd     : __dirname + "/workers/accounting/index -c #{configFile}"
-    verbose: yes
-
-
 task 'buildClient', "Build the static web pages for webserver", (options)->
   (new (require('./Builder'))).buildClient options
 
