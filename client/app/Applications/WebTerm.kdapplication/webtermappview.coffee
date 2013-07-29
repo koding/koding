@@ -78,6 +78,10 @@ class WebTermAppView extends JView
         @showApprovalModal remote, command
 
       if query.fullscreen
+        windowController = KD.getSingleton("windowController")
+        windowController.unloadListeners = []
+        windowController.on "clientIdChanged", =>
+          window.parent.postMessage "clientIdChanged", "*"
         KD.getSingleton("mainView").enableFullscreen()
         if window.parent?.postMessage
           window.parent.postMessage "fullScreenTerminalReady", "*"

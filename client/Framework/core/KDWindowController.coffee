@@ -118,7 +118,8 @@ class KDWindowController extends KDController
     @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
       if cookie? and cookie isnt $.cookie 'clientId'
         window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-        window.location.replace '/'
+        @emit "clientIdChanged"
+        @utils.defer -> window.location.replace '/'
       cookie = $.cookie 'clientId'
 
     document.addEventListener getVisibilityEventName(), (event)=>
