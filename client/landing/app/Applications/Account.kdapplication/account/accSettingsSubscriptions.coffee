@@ -51,13 +51,6 @@ class AccountSubscriptionsListController extends KDListViewController
       callback  : =>
         @getListView().emit "reload"
 
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
-
 class AccountSubscriptionsList extends KDListView
   constructor:(options,data)->
     options = $.extend
