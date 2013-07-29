@@ -9,6 +9,10 @@ class NewMemberBucketData extends KDObject
 
     super
 
+# TODO: This implementation needs works before it's ready.
+#       I implemented a simpler version of this class in file:
+#       `../views//ActivityListItemFollow.coffee` S.A.
+#
 #class NewMemberBucketView extends JView
 
 #  constructor: (options = {}, data)->
