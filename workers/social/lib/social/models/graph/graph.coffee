@@ -347,6 +347,14 @@ module.exports = class Graph
           resultData.push data
           @generateFollows resultData, results, callback
 
+  generateOrderByQuery:(sort)->
+    orderByQuery = ''
+    if sort
+      orderBy = Object.keys(sort)[0]
+      orderByQuery = "ORDER BY #{@getOrderByQuery orderBy} DESC"
+
+    return orderByQuery
+
   getOrderByQuery:(orderBy)->
     orderByQuery = ""
     switch orderBy
@@ -365,17 +373,11 @@ module.exports = class Graph
     skip   ?= 0
     limit  ?= 20
 
-    if sort
-      orderBy = Object.keys(sort)[0]
-      orderByQuery = @getOrderByQuery orderBy
-    else
-      orderByQuery = ''
-
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
       return members
-      ORDER BY #{orderByQuery} DESC
+      #{@generateOrderByQuery sort}
       skip #{skip}
       limit #{limit}
       """
@@ -388,18 +390,12 @@ module.exports = class Graph
     skip   ?= 0
     limit  ?= 20
 
-    if sort
-      orderBy = Object.keys(sort)[0]
-      orderByQuery = @getOrderByQuery orderBy
-    else
-      orderByQuery = ''
-
     query = """
         START  group=node:koding("id:#{groupId}")
         MATCH  group-[r:member]->members-[:follower]->currentUser
         WHERE currentUser.id = "#{currentUserId}"
         RETURN members, r
-        ORDER BY #{orderByQuery} DESC
+        #{@generateOrderByQuery sort}
         SKIP #{skip}
         LIMIT #{limit}
         """
@@ -412,18 +408,12 @@ module.exports = class Graph
     skip   ?= 0
     limit  ?= 20
 
-    if sort
-      orderBy = Object.keys(sort)[0]
-      orderByQuery = @getOrderByQuery orderBy
-    else
-      orderByQuery = ''
-
     query = """
         START group=node:koding("id:#{groupId}")
         MATCH group-[r:member]->members<-[:follower]-currentUser
         WHERE currentUser.id = "#{currentUserId}"
         RETURN members, r
-        ORDER BY #{orderByQuery} DESC
+        #{@generateOrderByQuery sort}
         SKIP #{skip}
         LIMIT #{limit}
         """
