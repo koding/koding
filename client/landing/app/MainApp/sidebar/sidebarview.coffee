@@ -14,6 +14,8 @@ class Sidebar extends JView
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
+      attributes :
+        title    : "View your public profile"
       size       :
         width    : 160
         height   : 76
@@ -127,7 +129,11 @@ class Sidebar extends JView
       iconOnly  : yes
       iconClass : "cog"
       cssClass  : "clean-gray open-environment"
-      callback  :-> KD.getSingleton("appManager").open "Environments"
+      callback  :->
+        if KD.whoami().type is 'unregistered'
+          new KDNotificationView title: "This feature requires registration"
+        else
+          KD.getSingleton("appManager").open "Environments"
 
     @environmentsRefreshButton = new KDButtonView
       title     : "Refresh"

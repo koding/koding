@@ -39,7 +39,7 @@ class ActivityStatusUpdateWidget extends KDFormView
           required  : yes
           maxLength : 3000
         messages    :
-          required  : "Please type a message..."
+          required  : "Please type a status message!"
       paste         : @bound 'requestEmbed'
       # # this will cause problems when clicking on a embedLinks url
       # # right after entering the url -> double request
@@ -252,11 +252,11 @@ class ActivityStatusUpdateWidget extends KDFormView
     @addCustomData "link_url", @embedBox.url or ""
     @addCustomData "link_embed", @embedBox.getDataForSubmit() or {}
 
-    @once 'FormValidationPassed', => @reset yes
+    @once 'FormValidationPassed', =>
+      KD.track "Activity", "StatusUpdateSubmitted"
+      @reset yes
 
     super
-    #KD.track "Activity", "StatusUpdateSubmitted"
-    #KD.mixpanel.incrementUserProperty 'StatusUpdated',1
     @submitBtn.disable()
     @utils.wait 5000, => @submitBtn.enable()
 

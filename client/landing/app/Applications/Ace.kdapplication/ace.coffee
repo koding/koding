@@ -36,6 +36,8 @@ class Ace extends KDView
           @editor.gotoLine 0
           @focus()
           @show()
+          # log to external
+          KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
 
   prepareEditor:->
 
@@ -89,6 +91,8 @@ class Ace extends KDView
       @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
 
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
+
+      @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
 
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()

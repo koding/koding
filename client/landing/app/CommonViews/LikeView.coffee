@@ -33,7 +33,7 @@ class LikeView extends KDView
     @setTemplate @pistachio()
 
     # We need to getridoff this asap FIXME ~HK
-    if options.checkIfLikedBefore
+    if options.checkIfLikedBefore and KD.isLoggedIn()
       data.checkIfLikedBefore (err, likedBefore)=>
         @likeLink.updatePartial if likedBefore then "Unlike" else "Like"
         @_currentState = likedBefore
@@ -93,7 +93,7 @@ class LikeView extends KDView
       @getData().like (err)=>
 
         KD.showError err,
-          AccessDenied : 'Permission denied to like activities'
+          AccessDenied : 'You are not allowed to like activities'
           KodingError  : 'Something went wrong while like'
 
         unless err

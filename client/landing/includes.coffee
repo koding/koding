@@ -218,6 +218,7 @@ module.exports = [
   "app/CommonViews/opinions/tutorialformview.coffee",
 
   "app/CommonViews/markdownmodal.coffee",
+  "app/CommonViews/dropboxdownloaditemview.coffee",
 
   # FATIH
   "app/CommonViews/fatih/plugins/fatihpluginabstract.coffee",
@@ -543,6 +544,7 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/domains/domainsroutingview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domainsvmlistitemview.coffee",
   "app/Applications/Environments.kdapplication/views/domains/domaincreationform.coffee",
+  "app/Applications/Environments.kdapplication/views/domains/domaindeletionmodal.coffee",
   "app/Applications/Environments.kdapplication/views/DomainMapperView.coffee",
   "app/Applications/Environments.kdapplication/views/DomainRegisterModalFormView.coffee",
   "app/Applications/Environments.kdapplication/views/AccordionView.coffee",
@@ -613,8 +615,8 @@ module.exports = [
   "app/Applications/Apps.kdapplication/Views/AppSubmission.coffee",
   "app/Applications/Apps.kdapplication/Views/appinfoview.coffee",
   "app/Applications/Apps.kdapplication/Views/appview.coffee",
-  "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
-  "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
+  # "app/Applications/Apps.kdapplication/Views/appscreenshotlistitem.coffee",
+  # "app/Applications/Apps.kdapplication/Views/appscreenshotsview.coffee",
   "app/Applications/Apps.kdapplication/Views/appdetailsview.coffee",
 
   "app/Applications/Apps.kdapplication/ContentDisplays/controller.coffee",

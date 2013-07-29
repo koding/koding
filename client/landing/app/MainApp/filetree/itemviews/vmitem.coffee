@@ -31,7 +31,7 @@ class NVMItemView extends NFileItemView
     offset = @changePathButton.$().offset()
     finder = KD.getSingleton('finderController')
     currentPath = @getData().path
-    width = 30 + currentPath.length * 6
+    width = 30 + currentPath.length * 3
 
     contextMenu = new JContextMenu
       menuWidth   : width
@@ -67,28 +67,26 @@ class NVMItemView extends NFileItemView
 
     if err or not info
       @unsetClass 'online'
-      # @vmToggle.setDefaultValue no
       return warn err
 
     switch info.state
       when "RUNNING"
         @setClass 'online'
-        # @vmToggle.setDefaultValue yes
 
       when "STOPPED"
         @unsetClass 'online'
-        # @vmToggle.setDefaultValue no
 
   viewAppended:->
     super
     @vm.info @getData().vmName, @bound 'checkVMState'
 
   pistachio:->
+    path = FSHelper.plainPath @getData().path
 
     """
       {{> @icon}}
       {{> @loader}}
-      {span.title{ #(name)}}
+      {span.title[title="#{path}"]{ #(name)}}
       {{> @changePathButton}}
       {{> @vmInfo}}
       <span class='chevron'></span>

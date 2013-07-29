@@ -88,19 +88,9 @@ class ApplicationManager extends KDObject
       # we assume it should be a 3rd party app
       # that's why it should be run via kodingappscontroller
 
-      # FIXME: SY
-      # There is a joint recursion here
-      # we call kodingappscontroller.runApp which calls
-      # appManager.open back, this method should be divided
-      # to some logical parts, and runApp should call the
-      # appropriate method rather than ::open.
-      if not appOptions? and not options.avoidRecursion?
+      if not appOptions?
         return @fetchManifests name, =>
-          options.avoidRecursion = yes
-          @on "AppCreated", (appInstance)->
-            kodingAppsController.putAppResources appInstance
           @open name, options, callback
-          delete options.avoidRecursion
 
       appParams = options.params or {}
 
@@ -143,7 +133,7 @@ class ApplicationManager extends KDObject
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
         manifest.navItem      = title : "Develop"
-        manifest.thirdParty or= yes
+        manifest.thirdParty  ?= yes
 
         KD.registerAppClass KodingAppController, manifest
 
@@ -194,6 +184,7 @@ class ApplicationManager extends KDObject
     @register appInstance = new AppClass appOptions  if AppClass
     @utils.defer =>
       @emit "AppCreated", appInstance
+      KD.getSingleton("kodingAppsController").putAppResources appInstance  if appOptions.thirdParty
       callback? appInstance
 
   show:(appOptions, callback)->

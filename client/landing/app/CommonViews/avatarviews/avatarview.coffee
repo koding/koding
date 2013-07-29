@@ -20,7 +20,7 @@ class AvatarView extends LinkView
       options.tooltip or= {}
       options.tooltip.view         or= if options.detailed then @detailedAvatar else null
       options.tooltip.viewCssClass or= 'avatar-tooltip'
-      options.tooltip.animate      or= yes
+      options.tooltip.animate       ?= yes
       options.tooltip.placement    or= 'top'
       options.tooltip.direction    or= 'right'
 
@@ -54,6 +54,8 @@ class AvatarView extends LinkView
 
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
+
+    @$().attr href: profile.nickname
 
   viewAppended:->
     super
@@ -148,14 +150,14 @@ class AvatarTooltipView extends KDView
         warn err  if KD.isLoggedIn()
         if data.followee
           @followButton.setClass 'following-btn'
-          @followButton.setState "Unfollow"
+          @followButton.setState "Following"
         else
           @followButton.setState "Follow"
           @followButton.unsetClass 'following-btn'
     else
       if data.followee
         @followButton.setClass 'following-btn'
-        @followButton.setState "Unfollow"
+        @followButton.setState "Following"
     @followButton.setData data
     @followButton.render()
 

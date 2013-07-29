@@ -4,7 +4,8 @@ class FollowButton extends KDToggleButton
 
     options.cssClass = @utils.curryCssClass "follow-btn", options.cssClass
     options = $.extend
-      defaultState : if data.followee then "Unfollow" else "Follow"
+      defaultState : if data.followee then "Following" else "Follow"
+      bind         : 'mouseenter mouseleave'
       dataPath     : "followee"
       loader       :
         color      : "#333333"
@@ -19,7 +20,7 @@ class FollowButton extends KDToggleButton
             @getData().followee = response
             cb? err
       ,
-        title      : "Unfollow"
+        title      : "Following"
         cssClass   : options.stateOptions?.unfollow?.cssClass
         callback   : (cb)=>
           @getData().unfollow (err, response)=>
@@ -42,7 +43,15 @@ class FollowButton extends KDToggleButton
       KD.whoami().isFollowing? @getData().getId(), dataType, \
       (err, following) =>
         @getData().followee = following
-        @setState "Unfollow"  if following
+        @setState "Following", no  if following
+
+  mouseEnter:->
+    if @getTitle() is "Following"
+      @setTitle "Unfollow"
+
+  mouseLeave:->
+    if @getTitle() is "Unfollow"
+      @setTitle "Following"
 
 class MemberFollowToggleButton extends FollowButton
 
@@ -62,6 +71,8 @@ class MemberFollowToggleButton extends FollowButton
 
     super options, data
 
-  decorateState:(name)->
-    KD.track "Members", name, @getData().profile.nickname
+  decorateState:(name, userEvent)->
+    KD.track "Members", name, @getData().profile.nickname  if userEvent
+    # This gives: ~ GG
+    # Warning: Unknown mixpanel event set ["Members", "Follow", "gokmen"]
     super

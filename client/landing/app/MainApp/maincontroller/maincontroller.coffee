@@ -95,11 +95,10 @@ class MainController extends KDController
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
-      @accountChanged account
+      location.reload()
 
     # fixme: make a old tv switch off animation and reload
     # $('body').addClass "turn-off"
-    return location.reload()
 
   attachListeners:->
 
@@ -305,11 +304,11 @@ class MainController extends KDController
     checkConnectionState = ->
       unless connectedState.connected
         fail()
-
-        #KD.logToMixpanel "Couldn't connect to backend"
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
+        KD.track "Connected to backend"
+
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."

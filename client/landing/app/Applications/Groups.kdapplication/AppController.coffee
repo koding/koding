@@ -162,7 +162,7 @@ class GroupsAppController extends AppController
                 callback err, items, rest...
                 # to trigger dataEnd
                 unless err
-                  ids = item.getId?() for item in items
+                  ids = (item.getId?() for item in items)
                   callback null, null, ids
             else
               JGroup.streamModels selector, options, callback
@@ -231,8 +231,6 @@ class GroupsAppController extends AppController
       @emit 'ready'
 
   markGroupRelationship:(controller, ids)->
-    # return unless KD.isLoggedIn()
-
     fetchRoles =
       member: (view)-> view.markMemberGroup()
       admin : (view)-> view.markGroupAdmin()
@@ -348,9 +346,7 @@ class GroupsAppController extends AppController
             group.requestAccess (err)->
               modal.buttons.request.hideLoader()
               if err
-                warn err
-                new KDNotificationView title:
-                  if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
+                KD.showError err
                 return callback err
 
               new KDNotificationView title: success
@@ -359,15 +355,11 @@ class GroupsAppController extends AppController
 
   joinGroup:(group)->
     group.join (err, response)=>
-      if err
-        error err
-        new KDNotificationView
-          title : "An error occured, please try again"
-      else
-        KD.track "Groups", "JoinedGroup", group.slug
-        new KDNotificationView
-          title : "You've successfully joined the group!"
-        KD.getSingleton('mainController').emit 'JoinedGroup'
+      return KD.showError err  if err
+      KD.track "Groups", "JoinedGroup", group.slug
+      new KDNotificationView
+        title : "You've successfully joined the group!"
+      KD.getSingleton('mainController').emit 'JoinedGroup'
 
   acceptInvitation:(group, callback)->
     KD.whoami().acceptInvitation group, (err, res)=>

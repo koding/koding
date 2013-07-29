@@ -85,7 +85,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug
+        KD.track "Login", "GroupJoinRequest", @group.slug, @group
         @utils.stopDOMEvent event
         requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
@@ -187,12 +187,7 @@ class HomeLoginBar extends JView
     KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   handleBackendResponse:(err, successMsg)->
-    if err
-      warn err
-      return new KDNotificationView
-        title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-        duration : 2000
-
+    return KD.showError err  if err
     new KDNotificationView
       title    : successMsg
       duration : 2000
