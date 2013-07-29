@@ -161,8 +161,8 @@ catch e
         router.addRoute slug, handler
 
       if KD.singletons.router
-      then do -> cb KD.getSingleton('router')
-      else KodingRouter.on 'RouterReady', do -> cb
+      then @utils.defer -> cb KD.getSingleton('router')
+      else KodingRouter.on 'RouterReady', cb
 
     if options.navItem?.order
       @registerNavItem options.navItem

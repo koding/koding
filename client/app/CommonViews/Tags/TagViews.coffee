@@ -35,17 +35,17 @@ class SkillTagGroup extends TagGroup
     super options, data
 
     {@skillTags} = @getData() or []
-
+    name = KD.utils.getFullnameFromAccount @getData(), yes
     @noTags = new KDCustomHTMLView
       tagName   : "span"
       cssClass  : "noskilltags"
-      partial   : "#{@getData().profile.firstName} hasn't entered any skills yet."
+      partial   : "#{name} hasn't entered any skills yet."
 
     controller = new KDListViewController
       view            : new KDListView
         itemClass     : TagCloudListItemView
         cssClass      : "skilltag-cloud"
-        delegate        : @
+        delegate      : @
 
     controller.listView.on 'TagWasClicked', =>
       @emit 'TagWasClicked'

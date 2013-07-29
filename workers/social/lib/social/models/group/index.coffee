@@ -59,6 +59,9 @@ module.exports = class JGroup extends Module
         { name: 'MemberRolesChanged' }
         { name: 'GroupDestroyed' }
         { name: 'broadcast' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+
       ]
       instance      : [
         { name: 'GroupCreated' }
@@ -66,6 +69,7 @@ module.exports = class JGroup extends Module
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods   :
       static        : [
@@ -373,10 +377,16 @@ module.exports = class JGroup extends Module
     JAccount = require '../account'
     {delegate} = client.connection
 
-    unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+    @one {slug:"koding"}, (err, kodingGroup)=>
+      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
+        unless hasPermission
+          return callback new KodingError 'Access denied'
 
-    @create formData, delegate, callback
+        @create formData, delegate, callback
+
+    #unless delegate instanceof JAccount
+    #  return callback new KodingError 'Access denied'
+
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -442,10 +452,14 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
-        if err then console.error err
-        unless group then console.error "unknown group #{groupSlug}"
+        console.error err  if err
+        unless group
+          # console.trace()
+          # At some point this error happens with groupSlug as 'undefined'
+          # Tried to trace but failed, maybe its important ~ GG
+          console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           unless event is "MemberJoinedGroup"
             @oldBroadcast.call this, "koding", event, message
@@ -1100,8 +1114,8 @@ module.exports = class JGroup extends Module
 
     [callback, options] = [options, callback] unless callback
 
-    if @slug is 'koding'
-      return callback new KodingError 'Leaving Koding group is not supported yet'
+    if @slug in ['koding', 'guests']
+      return callback new KodingError "It's not allowed to leave this group"
 
     @fetchMyRoles client, (err, roles)=>
       return callback err if err
@@ -1472,11 +1486,12 @@ module.exports = class JGroup extends Module
             JAccount.one  { _id : objId }, (err, account)=>
               if err
                 callback err
-                fin()
-              else
-                tempRes[i] = account
-                fin()
+                return fin()
+
+              tempRes[i] = account
+              fin()
           , ->
+            tempRes = tempRes.filter (res)-> res
             callback null, tempRes
           for res in results
             collectContents res

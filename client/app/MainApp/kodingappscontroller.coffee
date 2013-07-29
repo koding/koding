@@ -53,7 +53,7 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
-    if KD.isLoggedIn() and not @appStorage?
+    if not @appStorage? # KD.isLoggedIn() and
       @appStorage = new AppStorage 'KodingApps', '1.0'
 
     if Object.keys(@constructor.manifests).length isnt 0
@@ -190,7 +190,7 @@ class KodingAppsController extends KDController
           callback err, script
 
   getPublishedApps: (callback) ->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     @fetchApps (err, apps) =>
       appNames = []
       appNames.push appName for appName, manifest of apps
@@ -555,7 +555,7 @@ class KodingAppsController extends KDController
   _createChangeLog:(name)->
     today = new Date().format('yyyy-mm-dd')
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
 
     """
      #{today} #{fullName} <@#{profile.nickname}>
@@ -725,9 +725,10 @@ class KodingAppsController extends KDController
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
     raw =
       devMode       : yes
+      experimental  : no
       authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
@@ -756,6 +757,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      screenshots   : []
       menu          : []
       fileTypes     : []
 
@@ -769,7 +771,7 @@ class KodingAppsController extends KDController
       description : 'Code Editor'
       author      : 'Mozilla'
     Terminal      :
-      name        : 'Terminal'
+      name        : 'WebTerm'
       type        : 'koding-app'
       icon        : 'icn-terminal.png'
       description : 'Koding Terminal'

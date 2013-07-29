@@ -4,7 +4,7 @@ class ActivityListController extends KDListViewController
 
     viewOptions = options.viewOptions or {}
     viewOptions.cssClass      or= 'activity-related'
-    viewOptions.comments      or= yes
+    viewOptions.comments       ?= yes
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes

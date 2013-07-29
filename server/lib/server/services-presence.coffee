@@ -2,7 +2,7 @@
 
 koding = require './bongo'
 
-nsca = require 'koding-nsca-wrapper'
+opsview = require 'koding-opsview-wrapper'
 
 parseServiceKey = require 'koding-service-key-parser'
 
@@ -29,7 +29,7 @@ incService = (serviceKey, amount) ->
       console.error 'Negative service count!'
 
 koding.connect ->
-  nsca.sendStatus 'Services presence', 0, 'Service started'
+  opsview.send 'Services presence', 0, 'Service started'
   koding.monitorPresence
     join: (serviceKey) ->
       incService serviceKey, 1
@@ -53,33 +53,36 @@ fetchHostname = (serviceGenericName, serviceUniqueName, callback) ->
           callback null, worker?.hostname ? null
 
 module.exports = do (failing = no) -> (req, res) ->
-  {params:{service}, query} = req
+  { params:{ service }, query } = req
 
   protocol = KONFIG.broker.webProtocol ? 'https:'
 
   genericServices = allServices[service]
 
-  services = Object.keys(genericServices.services).map( (k) ->
-    { hostname } = genericServices.services[k]
-    unless hostname?
-      console.warn """
-        Could not find that hostname:
-        #{k}
-        #{require('util').inspect genericServices.services[k]}
-        """
-    return hostname
-  ).filter Boolean
+  { services: s } = genericServices
+
+  services =
+    Object.keys(s).map( (k) ->
+      { hostname } = s[k]
+      unless hostname?
+        console.warn """
+          Could not find that hostname:
+          #{k}
+          #{require('util').inspect genericServices.services[k]}
+          """
+      return hostname
+    ).filter Boolean
 
   res.set "Content-Type", "text/json"
 
   if query.all?
     res.send services.map (hostname) -> "#{ protocol }//#{ hostname }"
 
-  else unless services.length
+  else if services.length is 0
     # FAILURE! send an alert to opsview.
     unless failing
       failing = yes
-      nsca.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
+      opsview.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
     # Fail-over to the value hard-coded into the config.
     { webHostname, webPort } = KONFIG.broker
     res.send "\"#{ protocol }//#{ webHostname }#{ if webHostname.port then ":#{webHostname.port}" else "" }\""

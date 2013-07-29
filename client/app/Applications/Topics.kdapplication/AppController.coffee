@@ -53,7 +53,6 @@ class TopicsAppController extends AppController
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex followees, ({followButton})->
                   followButton.setState 'Following'
-                  followButton.redecorateState()
           dataError         :->
             log "Seems something broken:", arguments
 
@@ -73,7 +72,6 @@ class TopicsAppController extends AppController
             {following} = resultsController.listControllers
             following.forEachItemByIndex ids, ({followButton})->
               followButton.setState 'Following'
-              followButton.redecorateState()
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>

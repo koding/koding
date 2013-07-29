@@ -1,7 +1,6 @@
 class KDModalView extends KDView
 
   constructor:(options = {}, data)->
-
     options.overlay       ?= no            # a Boolean
     options.overlayClick  ?= yes           # a Boolean
     options.height       or= "auto"        # a Number for pixel value or a String e.g. "100px" or "20%" or "auto"
@@ -27,7 +26,7 @@ class KDModalView extends KDView
     @setClass "fx"                                if options.fx
     @setTitle options.title                       if options.title
     @setContent options.content                   if options.content
-    @addSubView options.view, ".kdmodal-content"  if options.view
+    @addSubView options.view                      if options.view
 
     @on 'ModalCancelled', options.cancel          if options.cancel
 
@@ -60,20 +59,19 @@ class KDModalView extends KDView
     @listenWindowResize()
 
   setDomElement:(cssClass)->
-
     {helpContent, helpTitle} = @getOptions()
 
     if helpContent
       helpButton = "<span class='showHelp'>#{helpTitle}</span>"
     else
-      helpButton = ''
+      helpButton = ""
 
     @domElement = $ """
       <div class='kdmodal #{cssClass}'>
         <div class='kdmodal-shadow'>
           <div class='kdmodal-inner'>
             #{helpButton}
-            <span class='close-icon closeModal'></span>
+            <span class='close-icon closeModal' title='Close [ESC]'></span>
             <div class='kdmodal-title hidden'></div>
             <div class='kdmodal-content'></div>
           </div>
@@ -82,12 +80,10 @@ class KDModalView extends KDView
     """
 
   addSubView:(view, selector = ".kdmodal-content")->
-
     selector = null if @$(selector).length is 0
     super view, selector
 
   setButtons:(buttonDataSet)->
-
     @buttons or= {}
     @setClass "with-buttons"
     defaultFocusTitle = null
@@ -180,7 +176,6 @@ class KDModalView extends KDView
     @getDomElement().find(".kdmodal-content").html content
 
   display:->
-
     if @getOptions().fx
       @utils.defer =>
         @setClass "active"

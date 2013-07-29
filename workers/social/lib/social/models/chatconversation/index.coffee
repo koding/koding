@@ -45,7 +45,7 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     JAccount   = require '../account'
     unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     @one { publicName, participants: delegate.profile.nickname }, callback
 
@@ -55,7 +55,7 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     JAccount   = require '../account'
     unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     [callback, options] = [options, callback] unless callback
     {nickname} = delegate.profile
@@ -71,7 +71,7 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     JAccount   = require '../account'
     unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     {nickname} = delegate.profile
 
@@ -120,7 +120,7 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     JAccount   = require '../account'
     unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     {nickname} = delegate.profile
 
@@ -133,7 +133,7 @@ module.exports = class JChatConversation extends Module
     {delegate} = client.connection
     JAccount   = require '../account'
     unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
 
     {nickname} = delegate.profile
 
