@@ -4,11 +4,11 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     super
 
-    {profile} = KD.whoami()
+    name = KD.utils.getFullnameFromAccount KD.whoami(), yes
 
     @smallInput = new KDInputView
       cssClass      : "status-update-input warn-on-unsaved-data"
-      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{name}?"
       name          : 'dummy'
       style         : 'input-with-extras'
       focus         : @bound 'switchToLargeView'
@@ -30,7 +30,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     @largeInput = new KDInputView
       cssClass      : "status-update-input warn-on-unsaved-data"
       type          : "textarea"
-      placeholder   : "What's new #{Encoder.htmlDecode profile.firstName}?"
+      placeholder   : "What's new #{name}?"
       name          : 'body'
       style         : 'input-with-extras'
       autogrow      : yes
@@ -39,7 +39,7 @@ class ActivityStatusUpdateWidget extends KDFormView
           required  : yes
           maxLength : 3000
         messages    :
-          required  : "Please type a message..."
+          required  : "Please type a status message!"
       paste         : @bound 'requestEmbed'
       # # this will cause problems when clicking on a embedLinks url
       # # right after entering the url -> double request
@@ -70,7 +70,10 @@ class ActivityStatusUpdateWidget extends KDFormView
 
     @embedBox = new EmbedBox embedOptions, data
 
-    @embedUnhideLink = new KDCustomHTMLView
+    @embedUnhideLinkWrapper = new KDView
+      cssClass    : 'unhide-embed'
+
+    @embedUnhideLinkWrapper.addSubView @embedUnhideLink = new KDCustomHTMLView
       cssClass    : 'unhide-embed-link'
       tagName     : 'a'
       partial     : 'Re-enable embedding URLs'
@@ -80,10 +83,18 @@ class ActivityStatusUpdateWidget extends KDFormView
         event.preventDefault()
         event.stopPropagation()
         @embedBox.show()
-        @embedUnhideLink.hide()
+        @requestEmbedLock = off
+        @embedUnhideLinkWrapper.hide()
+        @embedBox.refreshEmbed()
 
-    @embedUnhideLink.hide()
-    @embedBox.on "EmbedIsHidden", @embedUnhideLink.show.bind this
+    @embedUnhideLinkWrapper.hide()
+    @embedBox.on "EmbedIsHidden", =>
+      @requestEmbedLock = on
+      @embedUnhideLinkWrapper.show()
+
+    @embedBox.on "EmbedIsShown", =>
+      @requestEmbedLock = off
+      @embedUnhideLinkWrapper.hide()
 
     @heartBox = new HelpBox
       subtitle : "About Status Updates"
@@ -231,7 +242,7 @@ class ActivityStatusUpdateWidget extends KDFormView
       # when in edit mode, show the embed
       @embedBox.embedExistingData link.link_embed, {}, =>
         @embedBox.show()
-        @embedUnhideLink.hide()
+        @embedUnhideLinkWrapper.hide()
     else
       @embedBox.hide()
 
@@ -241,11 +252,11 @@ class ActivityStatusUpdateWidget extends KDFormView
     @addCustomData "link_url", @embedBox.url or ""
     @addCustomData "link_embed", @embedBox.getDataForSubmit() or {}
 
-    @once 'FormValidationPassed', => @reset yes
+    @once 'FormValidationPassed', =>
+      KD.track "Activity", "StatusUpdateSubmitted"
+      @reset yes
 
     super
-    #KD.track "Activity", "StatusUpdateSubmitted"
-    #KD.mixpanel.incrementUserProperty 'StatusUpdated',1
     @submitBtn.disable()
     @utils.wait 5000, => @submitBtn.enable()
 
@@ -283,9 +294,7 @@ class ActivityStatusUpdateWidget extends KDFormView
     <div class="large-input">
       {{> @largeInput}}
       {{> @inputLinkInfoBox}}
-      <div class="unhide-embed">
-      {{> @embedUnhideLink}}
-      </div>
+      {{> @embedUnhideLinkWrapper}}
     </div>
     <div class="formline">
     {{> @embedBox}}

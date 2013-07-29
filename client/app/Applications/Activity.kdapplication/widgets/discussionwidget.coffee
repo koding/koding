@@ -39,7 +39,7 @@ class ActivityDiscussionWidget extends KDFormView
         rules     :
           required: yes
         messages  :
-          required: "discussion body is required!"
+          required: "Discussion content is required!"
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"
@@ -82,9 +82,10 @@ class ActivityDiscussionWidget extends KDFormView
     @tagAutoComplete = @tagController.getView()
 
   submit:->
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "DiscussionSubmitted"
+      @reset()
     super
-    KD.track "Activity", "DiscussionSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 

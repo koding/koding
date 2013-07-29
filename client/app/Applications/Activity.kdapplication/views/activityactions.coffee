@@ -38,14 +38,15 @@ class ActivitySharePopup extends JView
         KD.utils.stopDOMEvent event
         {tags} = @getDelegate().getData()
         if tags
-          console.log tags
           hashTags  = ("##{tag.slug}"  for tag in tags when tag?.slug)
           hashTags  = _.unique(hashTags).join " "
           hashTags += " "
         else
           hashTags = ''
 
-        shareText = "#{@getDelegate().getData().body} #{hashTags}- #{url}"
+        {title, body} = @getDelegate().getData()
+        itemText  = @utils.shortenText title or body, maxLength: 100, minLength: 100
+        shareText = "#{itemText} #{hashTags}- #{url}"
         window.open(
           "https://twitter.com/intent/tweet?text=#{encodeURIComponent shareText}&via=koding&source=koding",
           "twitter-share-dialog",
@@ -107,15 +108,15 @@ class ActivityActionsView extends KDView
           parent      : KD.singletons.mainView.mainTabView.activePane
           transparent : yes
 
-    @likeView     = new LikeView {checkIfLikedBefore: no}, activity
+    @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
 
-    unless KD.isLoggedIn()
-      @commentLink.setTooltip title: "Login required"
-      @likeView.likeLink.setTooltip title: "Login required"
-      KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
-        delete @likeView.likeLink.tooltip
-        delete @commentLink.tooltip
+    # unless KD.isLoggedIn()
+    #   @commentLink.setTooltip title: "Login required"
+    #   @likeView.likeLink.setTooltip title: "Login required"
+    #   KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
+    #     delete @likeView.likeLink.tooltip
+    #     delete @commentLink.tooltip
 
     @attachListeners()
 

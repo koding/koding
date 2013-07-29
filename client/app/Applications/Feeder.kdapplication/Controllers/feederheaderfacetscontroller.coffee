@@ -24,7 +24,7 @@ class FeederHeaderFacetsController extends KDViewController
           title   : item.title
           type    : type
           action  : facet
-        ) for own type, item of options["#{facet}s"] when not item.loggedInOnly or KD.isLoggedIn())
+        ) for own type, item of options["#{facet}s"] when not item.loggedInOnly)# or KD.isLoggedIn())
 
       @["#{facet}Controller"] = controller
 

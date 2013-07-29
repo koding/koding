@@ -53,7 +53,7 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
-    if KD.isLoggedIn() and not @appStorage?
+    if not @appStorage? # KD.isLoggedIn() and
       @appStorage = new AppStorage 'KodingApps', '1.0'
 
     if Object.keys(@constructor.manifests).length isnt 0
@@ -190,7 +190,7 @@ class KodingAppsController extends KDController
           callback err, script
 
   getPublishedApps: (callback) ->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     @fetchApps (err, apps) =>
       appNames = []
       appNames.push appName for appName, manifest of apps
@@ -555,7 +555,7 @@ class KodingAppsController extends KDController
   _createChangeLog:(name)->
     today = new Date().format('yyyy-mm-dd')
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
 
     """
      #{today} #{fullName} <@#{profile.nickname}>
@@ -610,13 +610,13 @@ class KodingAppsController extends KDController
         return
 
       @vmController.run
-        kiteName    : "applications"
-        method      : "downloadApp"
-        withArgs    :
-          owner     : manifest.authorNick
-          appName   : manifest.name
-          appPath   : @getAppPath manifest
-          version   : manifest.version
+        kiteName     : "os"
+        method       : "app.download"
+        withArgs     :
+          owner      : manifest.authorNick
+          identifier : manifest.identifier
+          appPath    : @getAppPath manifest
+          version    : manifest.version
       , (err, res)=>
         if err
           warn err
@@ -725,9 +725,10 @@ class KodingAppsController extends KDController
 
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
     raw =
       devMode       : yes
+      experimental  : no
       authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
@@ -756,6 +757,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      screenshots   : []
       menu          : []
       fileTypes     : []
 
@@ -769,27 +771,9 @@ class KodingAppsController extends KDController
       description : 'Code Editor'
       author      : 'Mozilla'
     Terminal      :
-      name        : 'Terminal'
+      name        : 'WebTerm'
       type        : 'koding-app'
       icon        : 'icn-terminal.png'
       description : 'Koding Terminal'
       author      : 'Koding'
       path        : 'WebTerm'
-    # CodeMirror    :
-    #   name        : 'CodeMirror'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-codemirror.png'
-    #   description : 'Code Editor'
-    #   author      : 'Marijn Haverbeke'
-    # yMacs         :
-    #   name        : 'yMacs'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-ymacs.png'
-    #   description : 'Code Editor'
-    #   author      : 'Mihai Bazon'
-    # Pixlr         :
-    #   name        : 'Pixlr'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-pixlr.png'
-    #   description : 'Image Editor'
-    #   author      : 'Autodesk'

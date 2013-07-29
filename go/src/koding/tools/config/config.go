@@ -13,6 +13,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
 	}
@@ -31,10 +32,12 @@ type Config struct {
 		Enabled bool
 	}
 	Broker struct {
-		IP       string
-		Port     int
-		CertFile string
-		KeyFile  string
+		IP              string
+		Port            int
+		CertFile        string
+		KeyFile         string
+		AuthExchange    string
+		AuthAllExchange string
 	}
 	Loggr struct {
 		Push   bool

@@ -82,7 +82,11 @@ class OpinionCommentListItemView extends KDListItemView
               if err then new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
+                title    : "Error, please try again later!"
+        cancel:
+          style      : "modal-cancel"
+          callback   : ->
+            modal.destroy()
 
   pistachio:->
     if @getData().getAt 'deletedAt'

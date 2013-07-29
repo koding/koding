@@ -7,6 +7,9 @@ projectRoot = nodePath.join __dirname, '..'
 
 socialQueueName = "koding-social-#{version}"
 
+authExchange    = "auth-#{version}"
+authAllExchange = "authAll-#{version}"
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -71,6 +74,8 @@ module.exports =
     username  : "kodingen"
     apiKey    : "R_677549f555489f455f7ff77496446ffa"
   authWorker    :
+    authExchange: authExchange
+    authAllExchange: authAllExchange
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
@@ -82,6 +87,7 @@ module.exports =
     numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
+    verbose     : no
   cacheWorker   :
     login       : 'prod-social'
     watch       : yes
@@ -102,6 +108,9 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
+      authExchange: authExchange
+      github        :
+        clientId    : "5891e574253e65ddb7ea"
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -133,8 +142,10 @@ module.exports =
     keyFile     : "/opt/ssl_certs/wildcard.koding.com.key"
     useKontrold : yes
     webProtocol : 'https:'
-    webHostname : null
+    webHostname : "broker-#{version}a.koding.com"
     webPort     : null
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -177,9 +188,14 @@ module.exports =
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+    bin   : '/usr/local/nagios/bin/send_nsca'
+    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : 'followfeed'
+  github        :
+    clientId    : "5891e574253e65ddb7ea"
+    clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"

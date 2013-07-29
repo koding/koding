@@ -32,6 +32,7 @@ type VMInfo struct {
 	timeout       *time.Timer
 	mutex         sync.Mutex
 	totalCpuUsage int
+	hostname      string
 
 	State               string `json:"state"`
 	CpuUsage            int    `json:"cpuUsage"`
@@ -354,14 +355,19 @@ func registerVmMethod(k *kite.Kite, method string, concurrent bool, callback fun
 			vm.LdapPassword = ldapPassword
 		}
 
+		isPrepared := true
 		if _, err := os.Stat(vm.File("rootfs/dev")); err != nil {
 			if !os.IsNotExist(err) {
 				panic(err)
 			}
+			isPrepared = false
+		}
+		if !isPrepared || info.hostname != vm.HostnameAlias {
 			vm.Prepare(false)
 			if err := vm.Start(); err != nil {
 				log.LogError(err, 0)
 			}
+			info.hostname = vm.HostnameAlias
 		}
 
 		vmWebDir := "/home/" + vm.WebHome + "/Web"
@@ -407,6 +413,9 @@ func createUserHome(user *virt.User, rootVos, userVos *virt.VOS) {
 			panic(err)
 		}
 		if err := rootVos.Symlink(user.Name, "/home/"+user.OldName); err != nil {
+			panic(err)
+		}
+		if err := rootVos.Chown("/home/"+user.OldName, user.Uid, user.Uid); err != nil {
 			panic(err)
 		}
 

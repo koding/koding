@@ -14,6 +14,18 @@ class KDWindowController extends KDController
   addListener     = (eventName, listener, capturePhase=yes)->
     document.body.addEventListener eventName, listener, capturePhase
 
+  # Finding vendor prefixes for visibility
+  getVisibilityProperty = ->
+    prefixes = ["webkit", "moz", "o"]
+    return "hidden" if `"hidden" in document`
+    return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
+    return ""
+
+  isFocused = -> Boolean document[getVisibilityProperty()]
+
+  getVisibilityEventName = ->
+    return "#{getVisibilityProperty().replace(/[Hh]idden/, '')}visibilitychange"
+
   constructor:(options,data)->
 
     @windowResizeListeners = {}
@@ -24,6 +36,7 @@ class KDWindowController extends KDController
     @scrollingEnabled      = yes
     @layers                = []
     @unloadListeners       = []
+    @focusListeners        = []
 
     @bindEvents()
     @setWindowProperties()
@@ -102,16 +115,23 @@ class KDWindowController extends KDController
 
     window.addEventListener 'beforeunload', @bound "beforeUnload"
 
-    @utils.repeat 1000, do =>
+    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
+      if cookie? and cookie isnt $.cookie 'clientId'
+        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+        window.location.replace '/'
       cookie = $.cookie 'clientId'
-      =>
-        if KD.isLoggingIn then KD.isLoggingIn = no
-        else if cookie? and cookie isnt $.cookie 'clientId'
-          window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-          window.location.replace '/'
-        cookie = $.cookie 'clientId'
+
+    document.addEventListener getVisibilityEventName(), (event)=>
+      @focusChange event, isFocused()
 
   addUnloadListener:(listener)-> @unloadListeners.push listener
+
+  addFocusListener: (listener)-> @focusListeners.push listener
+
+  focusChange: (event, state)->
+
+    return unless event
+    listener state, event for listener in @focusListeners
 
   beforeUnload:(event)->
 

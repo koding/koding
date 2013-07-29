@@ -187,7 +187,7 @@ task 'authWorker',({configFile}) ->
       restartTimeout : 1000
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "version"
+        startMode    : "many"
       verbose        : yes
 
   if config.watch is yes
@@ -750,8 +750,20 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     verbose : yes
     onExit : null
 
+task 'runExternals',(options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
 
-
+  processes.spawn
+    name              : 'externals'
+    cmd               : "./go/bin/externals -c #{configFile}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+    verbose           : yes
 
 
 

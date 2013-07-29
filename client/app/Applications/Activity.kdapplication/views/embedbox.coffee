@@ -81,6 +81,7 @@ class EmbedBox extends KDView
     @embedLinks.clearLinks()
     @hasValidContent = no
     @hide()
+    @emit "EmbedIsHidden"
 
   # these resets only concern the currently displayed embed
   resetEmbed:->
@@ -114,6 +115,9 @@ class EmbedBox extends KDView
       delete data.images[i]  if i isnt @imageIndex
     @imageIndex = 0
 
+    for own key, field of data when _.isString(field)
+      data[key] = field.replace(/&quot;/g, '"')
+
     return data
 
   getRichEmbedWhitelist:-> [] # add provider name here if we dont want to embed
@@ -137,11 +141,11 @@ class EmbedBox extends KDView
         when 'object' then containerClass = EmbedBoxObjectView
         else               containerClass = EmbedBoxLinkView
 
-      @embedContainer.destroy()
       @embedLinks.hide()
       @embedContainer = new containerClass embedOptions, data
       @embedContainer.show()
       @addSubView @embedContainer
+      @emit "EmbedIsShown"
       @show()
 
     # embedly uses the https://developers.google.com/safe-browsing/ API
@@ -252,6 +256,7 @@ class EmbedBox extends KDView
       if embed.url is url or embedUrl.indexOf(url_,embedUrl.length-url_.length) >= 0
         return @embedExistingData @cache[i], options, callback
 
+    @embedContainer.destroy()  if @embedContainer
     @embedLoader.show()
     @$('div.link-embed').addClass 'loading'
     @fetchEmbed url, options, (data, embedlyOptions)=>

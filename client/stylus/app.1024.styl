@@ -2,6 +2,13 @@
 @import "./client/stylus/appfn"
 
 @media only screen and (min-width: 1024px) and (max-width: 1200px)
+  .content-area-pane.activity
+    #content-page-activity
+      &.fixed
+        .update-widget-tabs
+          .kdtabpaneview
+            width                calc(100% \- 50px)
+
   .content-area-pane.home
     // min-width            850px
 

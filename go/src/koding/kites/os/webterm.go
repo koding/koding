@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"koding/tools/dnode"
 	"koding/tools/kite"
 	"koding/tools/log"
@@ -52,92 +53,95 @@ func registerWebtermMethods(k *kite.Kite) {
 			Remote       WebtermRemote
 			Session      string
 			SizeX, SizeY int
+			NoScreen     bool
 		}
 		if args.Unmarshal(&params) != nil || params.SizeX <= 0 || params.SizeY <= 0 {
-			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer] }"}
+			return nil, &kite.ArgumentError{Expected: "{ remote: [object], session: [string], sizeX: [integer], sizeY: [integer], noScreen: [boolean] }"}
+		}
+		if params.NoScreen && params.Session != "" {
+			return nil, errors.New("The 'noScreen' and 'session' parameters can not be used together.")
 		}
 
-		server := newWebtermServer(vos.VM, vos.User, params.Remote, params.Session, params.SizeX, params.SizeY)
-		server.isForeignSession = (vos.User.Name != channel.Username)
-		channel.OnDisconnect(func() { server.Close() })
-		return server, nil
-	})
-}
+		newSession := false
+		if params.Session == "" {
+			params.Session = utils.RandomString()
+			newSession = true
+		}
 
-func newWebtermServer(vm *virt.VM, user *virt.User, remote WebtermRemote, session string, sizeX, sizeY int) *WebtermServer {
-	newSession := false
-	if session == "" {
-		session = utils.RandomString()
-		newSession = true
-	}
+		server := &WebtermServer{
+			Session:          params.Session,
+			remote:           params.Remote,
+			vm:               vos.VM,
+			user:             vos.User,
+			isForeignSession: vos.User.Name != channel.Username,
+			pty:              pty.New(vos.VM.PtsDir()),
+		}
+		server.SetSize(float64(params.SizeX), float64(params.SizeY))
 
-	server := &WebtermServer{
-		Session: session,
-		remote:  remote,
-		vm:      vm,
-		user:    user,
-		pty:     pty.New(vm.PtsDir()),
-	}
-	server.SetSize(float64(sizeX), float64(sizeY))
+		cmdArgs := []string{"/usr/bin/screen", "-e^Bb", "-S", "koding." + params.Session}
+		if !newSession {
+			cmdArgs = append(cmdArgs, "-x")
+		}
+		if params.NoScreen {
+			cmdArgs = nil
+		}
+		server.pty.Slave.Chown(vos.User.Uid, -1)
+		cmd := vos.VM.AttachCommand(vos.User.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), cmdArgs...)
 
-	args := []string{"/usr/bin/screen", "-e~~", "-S", "koding." + session}
-	if !newSession {
-		args = append(args, "-x")
-	}
-	server.pty.Slave.Chown(user.Uid, -1)
-	cmd := vm.AttachCommand(user.Uid, "/dev/pts/"+strconv.Itoa(server.pty.No), args...)
+		err := cmd.Start()
+		if err != nil {
+			panic(err)
+		}
 
-	err := cmd.Start()
-	if err != nil {
-		panic(err)
-	}
+		go func() {
+			defer log.RecoverAndLog()
 
-	go func() {
-		defer log.RecoverAndLog()
+			cmd.Wait()
+			server.pty.Slave.Close()
+			server.pty.Master.Close()
+			server.remote.SessionEnded()
+		}()
 
-		cmd.Wait()
-		server.pty.Slave.Close()
-		server.pty.Master.Close()
-		server.remote.SessionEnded()
-	}()
+		go func() {
+			defer log.RecoverAndLog()
 
-	go func() {
-		defer log.RecoverAndLog()
+			buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+			for {
+				n, err := server.pty.Master.Read(buf)
+				for n < cap(buf)-1 {
+					r, _ := utf8.DecodeLastRune(buf[:n])
+					if r != utf8.RuneError {
+						break
+					}
+					server.pty.Master.Read(buf[n : n+1])
+					n++
+				}
 
-		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
-		for {
-			n, err := server.pty.Master.Read(buf)
-			for n < cap(buf)-1 {
-				r, _ := utf8.DecodeLastRune(buf[:n])
-				if r != utf8.RuneError {
+				s := time.Now().Unix()
+				if server.currentSecond != s {
+					server.currentSecond = s
+					server.messageCounter = 0
+					server.byteCounter = 0
+					server.lineFeeedCounter = 0
+				}
+				server.messageCounter += 1
+				server.byteCounter += n
+				server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
+				if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
+					time.Sleep(time.Second)
+				}
+
+				server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
+				if err != nil {
 					break
 				}
-				server.pty.Master.Read(buf[n : n+1])
-				n++
 			}
+		}()
 
-			s := time.Now().Unix()
-			if server.currentSecond != s {
-				server.currentSecond = s
-				server.messageCounter = 0
-				server.byteCounter = 0
-				server.lineFeeedCounter = 0
-			}
-			server.messageCounter += 1
-			server.byteCounter += n
-			server.lineFeeedCounter += bytes.Count(buf[:n], []byte{'\n'})
-			if server.messageCounter > 100 || server.byteCounter > 1<<18 || server.lineFeeedCounter > 300 {
-				time.Sleep(time.Second)
-			}
+		channel.OnDisconnect(func() { server.Close() })
 
-			server.remote.Output(string(utils.FilterInvalidUTF8(buf[:n])))
-			if err != nil {
-				break
-			}
-		}
-	}()
-
-	return server
+		return server, nil
+	})
 }
 
 func (server *WebtermServer) Input(data string) {

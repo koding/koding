@@ -20,6 +20,7 @@ class AceApplicationTabView extends ApplicationTabView
           callback  : =>
             if file.path.indexOf("localfile:") is 0
               file.once "fs.saveAs.finished", => @removePane_ pane
+              @willClose = yes
               ace.requestSaveAs()
               modal.destroy()
             else
