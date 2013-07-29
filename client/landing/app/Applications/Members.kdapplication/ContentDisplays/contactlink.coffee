@@ -13,11 +13,12 @@ class MemberMailLink extends KDCustomHTMLView
     @template.update()
 
   pistachio:->
-    "<cite/><span>Contact</span>{{#(profile.firstName)}}"
+    name = KD.utils.getFullnameFromAccount @getData(), yes
+    "<cite/><span>Contact</span>#{name}"
 
   click:(event)->
 
     event.preventDefault()
     {profile} = member = @getData()
-    
+
     KD.getSingleton("appManager").tell "Inbox", "createNewMessageModal", [member]

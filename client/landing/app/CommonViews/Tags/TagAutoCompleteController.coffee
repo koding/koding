@@ -1,7 +1,7 @@
 class TagAutoCompleteController extends KDAutoCompleteController
   constructor:(options, data)->
     options.nothingFoundItemClass or= SuggestNewTagItem
-    options.allowNewSuggestions or= yes
+    options.allowNewSuggestions    ?= yes
     super
 
 class TagAutoCompleteItemView extends KDAutoCompleteListItemView

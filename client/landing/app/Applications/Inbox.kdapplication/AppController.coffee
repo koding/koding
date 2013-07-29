@@ -193,7 +193,10 @@ class InboxAppController extends AppController
     @selection = {}
 
   sendMessage:(messageDetails, callback)->
-    # log "I just send a new message: ", messageDetails
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed"
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)->
