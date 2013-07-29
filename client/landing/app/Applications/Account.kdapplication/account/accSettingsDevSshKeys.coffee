@@ -30,7 +30,7 @@ class AccountSshKeyListController extends KDListViewController
       if keys.length > 0
         @instantiateListItems keys
       else
-        @addCustomItem "You have no SSH keys."
+        @addCustomItem "<cite>You have no SSH keys.</cite>"
       @hideLazyLoader()
 
   loadView:->
@@ -45,7 +45,7 @@ class AccountSshKeyListController extends KDListViewController
         unless @newItem
           @newItem = true
           @addItem {key: '', title: ''}, 0
-          @getListView().items.first.swapSwappable()
+          @getListView().items.first.swapSwappable hideDelete: yes
 
   addCustomItem:(message)->
     @removeAllItems()
@@ -70,10 +70,10 @@ class AccountSshKeyForm extends KDFormView
 
     @titleLabel = new KDLabelView
       for      : "sshtitle"
-      title    : "Label"
+      title    : "Title"
 
     @titleInput = new KDInputView
-      placeholder  : "Label your SSH key here..."
+      placeholder  : "your SSH key title"
       name         : "sshtitle"
       label        : @titleLabel
 
@@ -82,7 +82,7 @@ class AccountSshKeyForm extends KDFormView
       title    : "SSH Key"
 
     @keyTextarea = new KDInputView
-      placeholder  : "Paste your SSH key here..."
+      placeholder  : "your SSH key"
       type         : "textarea"
       name         : "sshkey"
       cssClass     : "light"
@@ -113,7 +113,7 @@ class AccountSshKeyForm extends KDFormView
       cssClass     : "cancel-link clean-gray button"
       click        : => @emit "FormCancelled"
 
-    formline2.addSubView deletebtn = new KDButtonView
+    formline2.addSubView @deletebtn = new KDButtonView
       style        : "clean-red deletebtn"
       title        : "Delete"
       callback     : => @emit "FormDeleted"
@@ -166,7 +166,11 @@ class AccountSshKeyListItem extends KDListItemView
     form.on "FormSaved", @bound "saveItem"
     form.on "FormDeleted", @bound "deleteItem"
 
-  swapSwappable:->
+  swapSwappable: (options)->
+    if options.hideDelete
+      @form.deletebtn.hide()
+    else
+      @form.deletebtn.show()
     @swappable.swapViews()
 
   cancelItem:->

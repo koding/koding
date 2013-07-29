@@ -19,6 +19,7 @@ class AccountPaymentMethodsListController extends KDListViewController
       accounts = []
       if err
         @instantiateListItems []
+        @addCustomItem "<cite>You have no payment method.</cite>"
         @hideLazyLoader()
       unless err
         if res.cardNumber
@@ -33,6 +34,13 @@ class AccountPaymentMethodsListController extends KDListViewController
             cardZip      : res.zip
         @instantiateListItems accounts
         @hideLazyLoader()
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
   loadView:->
     super
