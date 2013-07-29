@@ -108,15 +108,15 @@ class ActivityActionsView extends KDView
           parent      : KD.singletons.mainView.mainTabView.activePane
           transparent : yes
 
-    @likeView     = new LikeView {checkIfLikedBefore: no}, activity
+    @likeView     = new LikeView {}, activity
     @loader       = new KDLoaderView size : width : 14
 
-    unless KD.isLoggedIn()
-      @commentLink.setTooltip title: "Login required"
-      @likeView.likeLink.setTooltip title: "Login required"
-      KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
-        delete @likeView.likeLink.tooltip
-        delete @commentLink.tooltip
+    # unless KD.isLoggedIn()
+    #   @commentLink.setTooltip title: "Login required"
+    #   @likeView.likeLink.setTooltip title: "Login required"
+    #   KD.getSingleton("mainController").on "accountChanged.to.loggedIn", =>
+    #     delete @likeView.likeLink.tooltip
+    #     delete @commentLink.tooltip
 
     @attachListeners()
 
