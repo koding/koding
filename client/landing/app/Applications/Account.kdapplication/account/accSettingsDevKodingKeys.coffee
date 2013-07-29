@@ -1,6 +1,11 @@
 class AccountKodingKeyListController extends KDListViewController
 
   constructor:(options, data)->
+
+    options.noItemFoundWidget = new KDView
+      cssClass: "no-item-found"
+      partial : "<cite>You have no Koding key.</cite>"
+
     options.cssClass = "koding-keys"
     super options,data
 
@@ -12,18 +17,8 @@ class AccountKodingKeyListController extends KDListViewController
     KD.remote.api.JKodingKey.fetchAll {}, (err, keys) =>
       if err then warn err
       else
-        if keys.length > 0
-          @instantiateListItems keys
-        else
-          @addCustomItem "<cite>You have no Koding keys.</cite>"
+        @instantiateListItems keys
         @hideLazyLoader()
-
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
 
 class AccountKodingKeyList extends KDListView
 

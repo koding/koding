@@ -1,6 +1,11 @@
 class AccountPaymentHistoryListController extends KDListViewController
 
   constructor:(options,data)->
+
+    options.noItemFoundWidget = new KDView
+      cssClass: "no-item-found"
+      partial : "<cite>You have no payment history.</cite>"
+
     super options,data
 
     @list = @getListView()
@@ -17,7 +22,6 @@ class AccountPaymentHistoryListController extends KDListViewController
     KD.remote.api.JRecurlyPlan.getUserTransactions (err, trans) =>
       if err
         @instantiateListItems []
-        @addCustomItem "<cite>You have no payment history.</cite>"
         @hideLazyLoader()
       unless err
         for t in trans
@@ -44,13 +48,6 @@ class AccountPaymentHistoryListController extends KDListViewController
       iconClass : "refresh"
       callback  : =>
         @getListView().emit "Reload"
-
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
 
 class AccountPaymentHistoryList extends KDListView
 
