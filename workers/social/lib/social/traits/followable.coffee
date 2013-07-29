@@ -108,10 +108,15 @@ module.exports = class Followable
 
   follow: secure (client, options, callback)->
     JAccount = require '../models/account'
+    JGroup   = require '../models/group'
+    Inflector = require 'inflector'
 
     [callback, options] = [options, callback] unless callback
     options or= {}
     follower = client.connection.delegate
+
+    if follower.type is 'unregistered'
+      return callback new KodingError 'Access denied'
 
     unless follower instanceof JAccount
       return callback new KodingError 'Access denied'
@@ -131,7 +136,7 @@ module.exports = class Followable
       if err
         callback err
       else if count > 0
-        callback new KodingError('already following...'), count
+        callback null, count
       else
         @addFollower follower, respondWithCount : yes, (err, docs, count)=>
           if err
@@ -171,6 +176,10 @@ module.exports = class Followable
   unfollow: secure (client,callback)->
     JAccount = require '../models/account'
     follower = client.connection.delegate
+
+    if follower.type is 'unregistered'
+      return callback new KodingError 'Access denied'
+
     @removeFollower follower, respondWithCount : yes, (err, count)=>
       if err
         console.log err

@@ -133,7 +133,7 @@ module.exports = class JName extends Model
 
   @claimNames = secure (client, callback=->)->
     unless client.connection.delegate.can 'administer names'
-      callback new KodingError 'Access denied!'
+      callback new KodingError 'Access denied'
     else
       @claimAll [
         { konstructor: require('./user'),  usedAsPath: 'username' }

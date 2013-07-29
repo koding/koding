@@ -79,7 +79,8 @@ module.exports = class JGroupBundle extends JBundle
           arr.forEach (vm)->
             createdVMs += 1
 
-          firstVM = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
+          firstVM = group.slug in ['koding','guests'] and \
+                    createdVMs == 0 and planCode is 'free'
 
           callback null, paidVMs > createdVMs or firstVM
 

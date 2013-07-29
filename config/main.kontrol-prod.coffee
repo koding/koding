@@ -87,6 +87,7 @@ module.exports =
     numberOfWorkers: 4
     watch       : yes
     queueName   : socialQueueName
+    verbose     : no
   cacheWorker   :
     login       : 'prod-social'
     watch       : yes
@@ -108,6 +109,8 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       authExchange: authExchange
+      github        :
+        clientId    : "5891e574253e65ddb7ea"
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -182,12 +185,19 @@ module.exports =
       vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
+    bin   : '/usr/local/nagios/bin/send_nsca'
+    conf  : '/usr/local/nagios/etc/send_nsca.cfg'
   followFeed    :
     host        : 'rabbitmq1.in.koding.com'
     port        : 5672
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : 'followfeed'
+  github        :
+    clientId    : "5891e574253e65ddb7ea"
+    clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"

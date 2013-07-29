@@ -50,9 +50,10 @@ class ActivityAppController extends AppController
     # else @mainController.on 'AppIsReady', => @putListeners()
 
     @status = KD.getSingleton "status"
-    @status.on "reconnected", (conn)=> @refresh()  if conn?.reason is "internetDownForLongTime"
+    @status.on "reconnected", (conn)=>
+      if conn?.reason is "internetDownForLongTime" then @refresh()
 
-    @on "activitiesCouldntBeFetched", => @listController.hideLazyLoader()
+    @on "activitiesCouldntBeFetched", => @listController?.hideLazyLoader()
 
     @docTitle = document.title
     windowController = KD.getSingleton "windowController"
@@ -206,23 +207,25 @@ class ActivityAppController extends AppController
       @isLoading = no
       @bindLazyLoad()
 
-    fetch = do =>=>
+    fetch = =>
       #since it is not working, disabled it,
       #to-do add isExempt control.
       #@isExempt (exempt)=>
-        #if exempt or @getFilter() isnt activityTypes
+      #if exempt or @getFilter() isnt activityTypes
+      groupObj = KD.getSingleton('groupsController').getCurrentGroup()
+
       options =
         to     : options.to or Date.now()
         group  :
-          slug : currentGroup.slug or "koding"
-          id   : currentGroup.getId()
+          slug : groupObj?.slug or "koding"
+          id   : groupObj.getId()
         limit  : 20
         facets : @getActivityFilter()
 
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
-      group = KD.getSingleton('groupsController').getCurrentGroup().slug
       {roles} = KD.config
+      group   = groupObj?.slug
 
       if "koding" is group and  "guest" in roles
         @listFeaturedActivities callback
@@ -255,11 +258,8 @@ class ActivityAppController extends AppController
       fetch()
 
 
-    if isReady
-    then fetch()
-    else
-      groupsController.once 'groupChanged', fetch
-
+    if isReady then fetch()
+    else groupsController.once 'GroupChanged', fetch
 
   listActivities:(activities, callback)->
     @sanitizeCache activities, (err, sanitizedCache)=>

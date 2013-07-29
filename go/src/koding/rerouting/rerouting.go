@@ -257,7 +257,7 @@ func publishTo(exchange, routingKey string, data []byte) {
 	}
 
 	// used for debug
-	// log.Println("publishing data ", string(data), routingKey)
+	// log.Println("publishing data ", exchange, string(data), routingKey)
 	err := producer.channel.Publish(exchange, routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)
