@@ -187,6 +187,8 @@ module.exports =
       vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'

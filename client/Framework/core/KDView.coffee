@@ -848,14 +848,14 @@ class KDView extends KDObject
       left        : 0
     o.delayIn   or= 0
     o.delayOut  or= 0
-    o.html      or= yes
-    o.animate   or= no
+    o.html       ?= yes
+    o.animate    ?= no
     o.selector  or= null
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
-    o.sticky    or= no
+    o.sticky     ?= no
     o.delegate  or= @
     o.events    or= ['mouseenter','mouseleave','mousemove']
     o.viewCssClass or= null

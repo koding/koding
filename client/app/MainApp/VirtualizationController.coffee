@@ -157,12 +157,13 @@ class VirtualizationController extends KDController
   fetchVMs: do (waiting = []) ->
     (force, callback)->
       [callback, force] = [force, callback]  unless callback?
-
       return  unless callback?
 
-      if @vms.length then return @utils.defer => callback null, @vms
+      if @vms.length
+        return @utils.defer => callback null, @vms
 
-      return  if not force and (waiting.push callback) > 1
+      if not force and (waiting.push callback) > 1
+        return  callback null, []
 
       KD.remote.api.JVM.fetchVms (err, vms)=>
         @vms = vms  unless err
@@ -174,7 +175,6 @@ class VirtualizationController extends KDController
 
 
   fetchGroupVMs:(callback = noop)->
-    # if KD.isGuest() then @groupVms = ['guest']
     if @groupVms.length > 0
       return @utils.defer =>
         callback null, @groupVms
@@ -184,7 +184,6 @@ class VirtualizationController extends KDController
       callback? err, vms
 
   fetchVMDomains:(vmName, callback = noop)->
-    # if KD.isGuest() then @vmDomains = guest: ['guest.kd.io']
     if domains = @vmDomains[vmName]
       return @utils.defer -> callback null, domains
 

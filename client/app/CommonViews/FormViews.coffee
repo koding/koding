@@ -379,7 +379,7 @@ class PersonalFormSkillTagView extends AbstractPersonalFormView
 class SkillTagAutoCompleteController extends KDAutoCompleteController
   constructor:(options, data)->
     options.nothingFoundItemClass or= SuggestNewTagItem
-    options.allowNewSuggestions or= yes
+    options.allowNewSuggestions    ?= yes
     super
 
   putDefaultValues:(stringTags)->
