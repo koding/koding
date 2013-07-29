@@ -18,6 +18,7 @@ class AccountSubscriptionsListController extends KDListViewController
     KD.remote.api.JRecurlySubscription.getUserSubscriptions (err, subs) =>
       if err or subs.length is 0
         @instantiateListItems []
+        @addCustomItem "<cite>You have no subscription.</cite>"
         @hideLazyLoader()
       else
         stack = []
@@ -45,6 +46,13 @@ class AccountSubscriptionsListController extends KDListViewController
       iconClass : "refresh"
       callback  : =>
         @getListView().emit "reload"
+
+  addCustomItem:(message)->
+    @removeAllItems()
+    @customItem?.destroy()
+    @scrollView.addSubView @customItem = new KDCustomHTMLView
+      cssClass : "no-item-found"
+      partial  : message
 
 class AccountSubscriptionsList extends KDListView
   constructor:(options,data)->
