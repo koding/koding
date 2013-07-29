@@ -32,7 +32,7 @@ module.exports = class Slugifiable
     JAccount = require '../models/account'
     {delegate} = client.connection
     unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+      return callback new KodingError 'Access denied'
     unless slug.length then callback null, ''
     else
       JName = require '../models/name'
@@ -92,7 +92,7 @@ module.exports = class Slugifiable
               callback err
             else
               callback null, nextName
-    
+
   # @updateAllSlugsResourceIntensively = (options, callback)->
   #   [callback, options] = [options, callback] unless callback
   #   options ?= {}
@@ -103,7 +103,7 @@ module.exports = class Slugifiable
   #     console.log "namesArr in"
   #     names.toArray (err,namesArr)->
   #       contentTypeQueue = subclasses.map (subclass)->->
-  #         console.log "2"  
+  #         console.log "2"
   #         subclass.someData {},{title:1,_id:1},{limit:1000},(err,cursor)->
   #           console.log "3"
   #           if err
@@ -117,7 +117,7 @@ module.exports = class Slugifiable
   #                 console.log "4"
   #                 console.log "arr ->",arr,"namesArr -> ",namesArr
   #                 callback null #,arr,namesArr
-  #         
+  #
   #       dash contentTypeQueue, callback
 
   @updateSlugsByBatch =(batchSize, konstructors)->

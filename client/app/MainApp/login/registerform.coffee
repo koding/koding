@@ -10,7 +10,6 @@ class RegisterInlineForm extends LoginViewInlineForm
     @firstName = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
-        # defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
         validate      :
@@ -25,7 +24,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
-        # defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
           container   : this
@@ -168,7 +166,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "inviteCode"
         forceCase     : "lowercase"
         placeholder   : "your code..."
-        # defaultValue  : "111"
         validate      :
           container   : this
           event       : "blur"

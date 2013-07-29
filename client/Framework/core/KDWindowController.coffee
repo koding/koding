@@ -19,7 +19,7 @@ class KDWindowController extends KDController
     prefixes = ["webkit", "moz", "o"]
     return "hidden" if `"hidden" in document`
     return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
-    return null
+    return ""
 
   isFocused = -> Boolean document[getVisibilityProperty()]
 
@@ -115,14 +115,11 @@ class KDWindowController extends KDController
 
     window.addEventListener 'beforeunload', @bound "beforeUnload"
 
-    @utils.repeat 1000, do =>
+    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
+      if cookie? and cookie isnt $.cookie 'clientId'
+        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+        window.location.replace '/'
       cookie = $.cookie 'clientId'
-      =>
-        if KD.isLoggingIn then KD.isLoggingIn = no
-        else if cookie? and cookie isnt $.cookie 'clientId'
-          window.removeEventListener 'beforeunload', @bound 'beforeUnload'
-          window.location.replace '/'
-        cookie = $.cookie 'clientId'
 
     document.addEventListener getVisibilityEventName(), (event)=>
       @focusChange event, isFocused()

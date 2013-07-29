@@ -29,8 +29,12 @@ module.exports = class JReview extends Reply
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
-      static       : []
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     schema         :
       isLowQuality : Boolean
       body         :
@@ -71,7 +75,7 @@ module.exports = class JReview extends Reply
                       app.getAt('originId').equals delegate.getId()
                 app.removeReview rel, -> queue.fin()
               else
-                callback new KodingError 'Access denied!'
+                callback new KodingError 'Access denied'
       =>
         deleter = ObjectRef(delegate)
         @update

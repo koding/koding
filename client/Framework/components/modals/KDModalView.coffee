@@ -64,14 +64,14 @@ class KDModalView extends KDView
     if helpContent
       helpButton = "<span class='showHelp'>#{helpTitle}</span>"
     else
-      helpButton = ''
+      helpButton = ""
 
     @domElement = $ """
       <div class='kdmodal #{cssClass}'>
         <div class='kdmodal-shadow'>
           <div class='kdmodal-inner'>
             #{helpButton}
-            <span class='close-icon closeModal'></span>
+            <span class='close-icon closeModal' title='Close [ESC]'></span>
             <div class='kdmodal-title hidden'></div>
             <div class='kdmodal-content'></div>
           </div>
