@@ -83,22 +83,33 @@ class MainView extends KDView
 
   addHeader:->
 
+    {entryPoint} = KD.config
+
     @addSubView @header = new KDView
       tagName : "header"
       domId   : "main-header"
 
-    {entryPoint} = KD.config
-    @header.addSubView @logo = new KDCustomHTMLView
+    @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
-        # return if @userEnteredFromGroup()
-        event.stopPropagation()
-        event.preventDefault()
-
+        KD.utils.stopDOMEvent event
         KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+
+    loginLink = new CustomLinkView
+      tagName     : 'a'
+      domId       : 'header-sign-in'
+      title       : 'Already a user? Sign In.'
+      icon        :
+        placement : 'right'
+      cssClass    : 'login'
+      attributes  :
+        href      : '/Login'
+      click       : (event)->
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute "/Login"
 
     if entryPoint?.slug? and entryPoint.type is "group"
       KD.remote.cacheable entryPoint.slug, (err, models)=>
