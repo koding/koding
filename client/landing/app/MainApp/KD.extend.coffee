@@ -109,7 +109,7 @@ KD.extend
         {title, content} = errMessage
 
     duration = errMessage.duration or 2500
-    title  or= err.message or 'Something went wrong'
+    title  or= err.message
 
     new KDNotificationView {title, content, duration}
 
