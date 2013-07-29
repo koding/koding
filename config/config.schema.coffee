@@ -204,6 +204,8 @@ config =
         vhost       : 1
     recurly         :
       apiKey        : 1
+    embedly         :
+      apiKey        : 1
     followFeed      :
       host          : 1
       port          : 1

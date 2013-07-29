@@ -208,6 +208,8 @@ module.exports =
   #     return b
   recurly       :
     apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview       :
     push        : no
     host        : ''
