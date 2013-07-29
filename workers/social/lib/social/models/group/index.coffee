@@ -667,13 +667,15 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView:secure (client, callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
         else
+          account = client.connection.delegate
           callback null, JGroup.renderHomepage {
+            account
             @slug
             @title
             policy

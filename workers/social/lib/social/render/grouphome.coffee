@@ -1,6 +1,11 @@
-module.exports = ({slug, title, content, body, avatar, counts, policy, customize})->
+module.exports = ({account, slug, title, content, body, avatar, counts, policy, customize})->
 
   content ?= getDefaultGroupContents(title)
+
+  getStyles       = require './styleblock'
+  getScripts      = require './scriptblock'
+  getSidebar      = require './sidebar'
+  account         = null if account.unregistered
 
   """
 
@@ -15,61 +20,12 @@ module.exports = ({slug, title, content, body, avatar, counts, policy, customize
   <div class="kdview" id="kdmaincontainer">
     <div id="invite-recovery-notification-bar" class="invite-recovery-notification-bar hidden"></div>
     <header class="kdview" id='main-header'>
-      <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
+      <div class="kdview">
+        <a class="group" id="koding-logo" href="#"><span></span>#{title}</a>
+      </div>
     </header>
     <section class="kdview" id="main-panel-wrapper">
-      <div class="kdview" id="sidebar-panel">
-        <div class="kdview" id="sidebar">
-          <div id="main-nav">
-            <div class="avatar-placeholder">
-              <div id="avatar-area">
-                <div class="avatarview avatar-image-wrapper" style="width: 160px; height: 76px; background-image: url(//api.koding.com/images/defaultavatar/default.avatar.160.png);"></div>
-              </div>
-            </div>
-            <div class="kdview actions">
-              <a class="notifications" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-              <a class="messages" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-              <a class="group-switcher" href="#"><span class="count"><cite>0</cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
-            </div>
-            <div class="kdview status-leds"></div>
-            <div class="kdview kdlistview kdlistview-navigation">
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix selected">
-                <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title" href="#"><span class="main-nav-icon activity"></span>Activity</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title"><span class="main-nav-icon topics"></span>Topics</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title"><span class="main-nav-icon members"></span>Members</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title"><span class="main-nav-icon groups"></span>Groups</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title"><span class="main-nav-icon develop"></span>Develop</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-                <a class="title"><span class="main-nav-icon apps"></span>Apps</a>
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
-                <hr class="">
-              </div>
-              <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
-                <a class="title" href="#"><span class="main-nav-icon invite-friends"><span data-paths="quota usage">0</span></span>Invite Friends</a>
-              </div>
-            </div>
-            <div class="kdview kdlistview kdlistview-footer-menu">
-              <div class="kdview kdlistitemview kdlistitemview-default help"><span></span></div>
-              <div class="kdview kdlistitemview kdlistitemview-default about"><span></span></div>
-              <div class="kdview kdlistitemview kdlistitemview-default chat"><span></span></div>
-            </div>
-          </div>
-          <div id="finder-panel"></div>
-        </div>
-      </div>
+      #{getSidebar account}
       <div class="kdview" id="content-panel">
         <div class="kdview kdscrollview kdtabview" id="main-tab-view">
           <div id='maintabpane-activity' class="kdview content-area-pane activity content-area-new-tab-pane clearfix kdtabpaneview active">
