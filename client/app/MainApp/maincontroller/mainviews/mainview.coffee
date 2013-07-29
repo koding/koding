@@ -99,7 +99,6 @@ class MainView extends KDView
         KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
 
     loginLink = new CustomLinkView
-      tagName     : 'a'
       domId       : 'header-sign-in'
       title       : 'Already a user? Sign in'
       icon        :
