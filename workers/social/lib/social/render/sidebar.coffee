@@ -47,6 +47,7 @@ module.exports = (account)->
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
               <hr class="">
             </div>
+            #{getSmallNavigation({loggedIn})}
           </div>
           <div class="kdview kdlistview kdlistview-footer-menu">
             <div class="kdview kdlistitemview kdlistitemview-default help"><span></span></div>
@@ -60,3 +61,20 @@ module.exports = (account)->
     """
 
   return markup
+
+getSmallNavigation = ({loggedIn})->
+  if loggedIn
+    """
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+      <a class="title"><span class="main-nav-icon login"></span>Login</a>
+    </div>
+    """
+  else
+    """
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+      <a class="title"><span class="main-nav-icon account"></span>Account</a>
+    </div>
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
+      <a class="title"><span class="main-nav-icon logout"></span>Logout</a>
+    </div>
+    """

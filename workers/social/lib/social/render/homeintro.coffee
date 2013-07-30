@@ -9,9 +9,7 @@ module.exports = (loggedIn = no)->
         <h3 class="slogan-continues">
           <span>Software development has finally evolved.</span>
           <br>
-          <span>It is now social, in the browser,</span>
-          <br>
-          <span>and free.</span>
+          <span>It's now social, in the browser and free.</span>
         </h3>
       </div>
       <aside>
@@ -23,6 +21,7 @@ module.exports = (loggedIn = no)->
         </form>
       </aside>
     </section>
+    <a class='try' href="/Develop">Go ahead &amp; try!</a>
     #{getCounters()}
   </div>
   """
