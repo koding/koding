@@ -41,7 +41,6 @@ module.exports = class GuestCleanerWorker
       deleteEntry {ids: ids, modelName: modelName}
 
   clean:=>
-    console.log "Cleaning started"
     {JAccount, JSession} = @bongo.models
 
     usageLimitInMinutes = @options.usageLimitInMinutes or 60
@@ -53,7 +52,7 @@ module.exports = class GuestCleanerWorker
 
     JAccount.each selector, {}, (err, account)=>
       if err then return console.error err
-      unless account then return console.log "Empty result"
+      unless account then return
 
       # delete user cookie
       account.sendNotification "GuestTimePeriodHasEnded", account
