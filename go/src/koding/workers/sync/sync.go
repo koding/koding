@@ -2,11 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/siesta/neo4j"
+	"github.com/streadway/amqp"
 	"io/ioutil"
 	"koding/databases/mongo"
+	oldNeo "koding/databases/neo4j"
+	"koding/tools/amqputil"
 	"koding/tools/config"
 	"log"
 	"net/http"
@@ -14,85 +16,90 @@ import (
 	"strings"
 )
 
+type strToInf map[string]interface{}
+
 var GRAPH_URL = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
 
-type Relationship struct {
-	Id         bson.ObjectId `bson:"_id,omitempty"`
-	TargetId   bson.ObjectId `bson:"targetId,omitempty"`
-	TargetName string        `bson:"targetName"`
-	SourceId   bson.ObjectId `bson:"sourceId,omitempty"`
-	SourceName string        `bson:"sourceName"`
-	As         string
-	Data       bson.Binary
-}
-
-// get from mongo
-// check if available worker, start go routine
-// if no worker, wait till something returns
-
-var numberOfAvailableWorkers = 500
-
-func canStartWork() bool {
-	numberOfAvailableWorkers = numberOfAvailableWorkers - 1
-	if numberOfAvailableWorkers > 1 {
-		return true
-	}
-}
-
-func waitTillFree(doneWorking <-chan bool) {
-	<-doneWorking
-	numberOfAvailableWorkers = numberOfAvailableWorkers + 1
-}
-
 func main() {
+	amqpChannel := connectToRabbitMQ()
+
 	coll := mongo.GetCollection("relationships")
-	query := bson.M{
-		"targetName": bson.M{"$nin": notAllowedNames},
-		"sourceName": bson.M{"$nin": notAllowedNames},
+	query := strToInf{
+		"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
+		"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
 	}
-	iter := coll.Find(query).Skip(0).Limit(1000).Sort("-timestamp").Iter()
+	iter := coll.Find(query).Sort("-timestamp").Iter()
 
-	alertDone := make(chan bool)
-
-	var result Relationship
+	var result oldNeo.Relationship
 	for iter.Next(&result) {
-		if canStartWork() {
-			work(result)
-		} else {
-			waitTillFree(alertDone)
+		if relationshipNeedsToBeSynced(result) {
+			createRelationship(result, amqpChannel)
 		}
 	}
+
+	log.Println("Neo4j is now synced with Mongodb.")
 }
 
-func work(result Relationship, alertDone chan<- bool) {
-	sourceId, err := checkNodeExists(result.SourceId.Hex())
+func connectToRabbitMQ() *amqp.Channel {
+	conn := amqputil.CreateConnection("syncWorker")
+	amqpChannel, err := conn.Channel()
 	if err != nil {
-		log.Println("SourceNode", result.SourceName, result.SourceId, err)
-		alertDone <- true
+		panic(err)
+	}
+	return amqpChannel
+}
+
+func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
+	data := make([]strToInf, 1)
+	data[0] = strToInf{
+		"_id":        rel.Id,
+		"sourceId":   rel.SourceId,
+		"sourceName": rel.SourceName,
+		"targetId":   rel.TargetId,
+		"targetName": rel.TargetName,
+		"as":         rel.As,
+	}
+
+	eventData := strToInf{"event": "RelationshipSaved", "payload": data}
+
+	neoMessage, err := json.Marshal(eventData)
+	if err != nil {
+		log.Println("unmarshall error")
 		return
 	}
 
-	targetId, err := checkNodeExists(result.TargetId.Hex())
-	if err != nil {
-		log.Println("TargetNode", result.TargetName, result.TargetId, err)
-		alertDone <- true
-		return
+	amqpChannel.Publish(
+		"graphFeederExchange", // exchange name
+		"",    // key
+		false, // mandatory
+		false, // immediate
+		amqp.Publishing{
+			Body: neoMessage,
+		},
+	)
+}
+
+func relationshipNeedsToBeSynced(result oldNeo.Relationship) bool {
+	exists, sourceId := checkNodeExists(result.SourceId.Hex())
+	if exists != true {
+		log.Println("err: No SourceNode:", result.SourceName, result.As)
+		return true
 	}
 
-	exists, err := checkRelationshipExists(sourceId, targetId, result.As)
-	if err != nil {
-		log.Println("Relationship ERROR", err)
-		alertDone <- true
-		return
+	exists, targetId := checkNodeExists(result.TargetId.Hex())
+	if exists != true {
+		log.Println("err: No TargetNode:", result.TargetName, result.Id, result.As)
+		return true
 	}
 
-	if exists == true {
-		log.Println("Relationship:", result.Id.Hex(), "exists")
-	} else {
-		log.Println("Relationship:", result, "does not exist")
+	exists = checkRelationshipExists(sourceId, targetId, result.As)
+	if exists != true {
+		log.Printf("err: No '%v' relationship exists between %v and %v", result.SourceName, result.TargetName, result.As)
+		return true
 	}
 
-	alertDone <- true
+	// everything is fine
+	return false
 }
 
 func getAndParse(url string) ([]byte, error) {
@@ -110,73 +117,54 @@ func getAndParse(url string) ([]byte, error) {
 	return body, nil
 }
 
-func checkRelationshipExists(sourceId, targetId, relType string) (bool, error) {
+func checkRelationshipExists(sourceId, targetId, relType string) bool {
 	url := fmt.Sprintf("%v/db/data/node/%v/relationships/all/%v", GRAPH_URL, sourceId, relType)
 
 	body, err := getAndParse(url)
 	if err != nil {
-		return false, err
+		return false
 	}
 
 	relResponse := make([]neo4j.RelationshipResponse, 1)
 	err = json.Unmarshal(body, &relResponse)
 	if err != nil {
-		return false, err
+		return false
 	}
 
 	for _, rl := range relResponse {
 		id := strings.SplitAfter(rl.End, GRAPH_URL+"/db/data/node/")[1]
 		if targetId == id {
-			return true, nil
+			return true
 		}
 	}
 
-	return false, nil
+	return false
 }
 
-func checkNodeExists(id string) (string, error) {
+func checkNodeExists(id string) (bool, string) {
 	url := fmt.Sprintf("%v/db/data/index/node/koding/id/%v", GRAPH_URL, id)
 	body, err := getAndParse(url)
 	if err != nil {
-		return "", err
+		return false, ""
 	}
 
 	nodeResponse := make([]neo4j.NodeResponse, 1)
 	err = json.Unmarshal(body, &nodeResponse)
 	if err != nil {
-		return "", err
+		return false, ""
 	}
 
 	if len(nodeResponse) < 1 {
-		return "", errors.New("no node exists")
+		return false, ""
 	}
 
 	node := nodeResponse[0]
 	idd := strings.SplitAfter(node.Self, GRAPH_URL+"/db/data/node/")
 
-	return string(idd[1]), nil
-}
+	nodeId := string(idd[1])
+	if nodeId == "" {
+		return false, ""
+	}
 
-var notAllowedNames = []string{
-	"CStatusActivity",
-	"CFolloweeBucketActivity",
-	"CFollowerBucketActivity",
-	"CCodeSnipActivity",
-	"CDiscussionActivity",
-	"CReplieeBucketActivity",
-	"CReplierBucketActivity",
-	"CBlogPostActivity",
-	"CNewMemberBucketActivity",
-	"CTutorialActivity",
-	"CLikeeBucketActivity",
-	"CLikerBucketActivity",
-	"CInstalleeBucketActivity",
-	"CInstallerBucketActivity",
-	"CActivity",
-	"CRunnableActivity",
-	"JAppStorage",
-	"JFeed",
-	"JLimit",
-	"JVM",
-	"JInvitationRequest",
+	return true, nodeId
 }
