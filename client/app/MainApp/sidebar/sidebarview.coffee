@@ -294,7 +294,7 @@ class Sidebar extends JView
     id : "finder-bottom-controls"
     items : [
       {
-        title   : "your environments",   icon : "resources",
+        title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
       }
     ]
