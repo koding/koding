@@ -18,9 +18,6 @@ class HomeAppView extends KDView
 
     account = KD.whoami()
 
-    @addSubView @homeLoginBar = new HomeLoginBar
-      domId    : "home-login-bar"
-
     @addSubView @featuredActivities = new FeaturedActivitiesContainer
     # @addSubView @footer = new KDCustomHTMLView tagName : 'footer'
 
