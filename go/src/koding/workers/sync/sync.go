@@ -28,7 +28,7 @@ func main() {
 		"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
 		"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
 	}
-	iter := coll.Find(query).Sort("-timestamp").Iter()
+	iter := coll.Find(query).Batch(1000).Sort("-timestamp").Iter()
 
 	var result oldNeo.Relationship
 	for iter.Next(&result) {
