@@ -1,4 +1,4 @@
-class AccountKDListViewController extends KDListViewController
+class AccountListViewController extends KDListViewController
 
   constructor: (options, data)->
     options.noItemFoundWidget = new KDView

@@ -1,4 +1,4 @@
-class AccountPaymentHistoryListController extends AccountKDListViewController
+class AccountPaymentHistoryListController extends AccountListViewController
 
   constructor:(options,data)->
 
