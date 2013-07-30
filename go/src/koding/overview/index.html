@@ -45,19 +45,23 @@
 
 		<div class="row-fluid">
 			<div class="span5 offset1">
-				<h2>Status
-
-                  <h4>Current Version: <span class="label label-info">{{.Status.CurrentVersion}}</span></h4>
-                </h2>
+				<h2>Status</h2>
 
                 <!-- switch versions input -->
                 <form method="POST">
+
                   <div class="input-append">
                     <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
-                    <button class="btn">Switch Version</button>
+                    <button class="btn btn-success">Switch Version <i class="icon-random icon-white"></i></button>
                   </div>
                 </form>
 
+				<table class="table table-bordered">
+					<tr>
+						<td>Current Version <span class="badge badge-success">{{.Status.CurrentVersion}}</span></td>
+						<td>Latest Stable Build <span class="badge">{{.Jenkins.LastStableBuild.Number}}</span></td>
+					</tr>
+				</table>
 
 				<table class="table table-hover table-bordered">
 					<tbody>
@@ -85,27 +89,9 @@
 						</tr>
 					</tbody>
 				</table>
-				<table class="table table-hover table-bordered">
-					<thead>
-						<tr>
-							<td>Last Jenkins builds</td>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td><a target="_blank" href="{{.Jenkins.LastCompletedBuild.Url}}">Completed</a></td>
-							<td><span class="label">{{.Jenkins.LastCompletedBuild.Number}}</span></td>
-						</tr>
-						<tr>
-							<td><a target="_blank" href="{{.Jenkins.LastStableBuild.Url}}">Stable</a></td>
-							<td><span class="label label-success">{{.Jenkins.LastStableBuild.Number}}</span></td>
-						</tr>
-						<tr>
-							<td><a target="_blank" href="{{.Jenkins.LastFailedBuild.Url}}">Failed</a></td>
-							<td><span class="label label-important">{{.Jenkins.LastFailedBuild.Number}}</span></td>
-						</tr>
-					</tbody>
-				</table>
+
+
+
 				<h2>Workers</h2>
 				<table class="table table-bordered">
 					<tr>
@@ -141,9 +127,9 @@
 			<div class="span4">
 				<h2>Deployment
 				<div class="btn-group">
-					<a class="btn btn-success dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
+					<a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
 					<ul class="dropdown-menu">
-						<li><a href="?build=latest#">latest</a></li>
+						<li><a href="?build=current#">current version</a></li>
     					<li class="divider"></li>
 						{{range .Builds}} 
 						<li><a href="?build={{.}}">{{.}}</a></li>
@@ -192,7 +178,7 @@
 					</tr>
 				</table>
 
-				<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-success" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
+				<h4>RabbitMQ <a target="_blank" class="btn btn-mini btn-info" href="http://{{.Server.Config.Mq.Host}}:15672/">management login</a></h4>
 				<table class="table table-hover table-bordered table-condensed">
 					<tr>
 						<td>Host</td>

@@ -778,10 +778,10 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView:(account, callback)->
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView callback
+      else account.fetchHomepageView account, callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require '../emailconfirmation'
