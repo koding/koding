@@ -1,10 +1,7 @@
-class AccountSshKeyListController extends KDListViewController
+class AccountSshKeyListController extends AccountKDListViewController
   constructor:(options,data)->
 
-    options.noItemFoundWidget = new KDView
-      cssClass: "no-item-found"
-      partial : "<cite>You have no SSH key.</cite>"
-
+    options.noItemFoundText = "You have no SSH key."
     super options,data
 
     @loadItems()
@@ -28,7 +25,6 @@ class AccountSshKeyListController extends KDListViewController
 
   loadItems: ()->
     @removeAllItems()
-    @customItem?.destroy()
     @showLazyLoader no
 
     KD.remote.api.JUser.getSSHKeys (keys)=>
