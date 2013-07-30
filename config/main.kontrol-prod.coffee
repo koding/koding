@@ -84,7 +84,7 @@ module.exports =
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
+    numberOfWorkers: 7
     watch       : no
     queueName   : socialQueueName
     verbose     : no
@@ -126,9 +126,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : 'rabbitmq.in.koding.com'
     port        : 5672
-    apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
+    apiAddress  : "rabbitmq.in.koding.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
