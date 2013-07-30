@@ -45,7 +45,19 @@
 
 		<div class="row-fluid">
 			<div class="span5 offset1">
-				<h2>Status</h2>
+				<h2>Status
+
+                  <h4>Current Version: <span class="label label-info">{{.Status.CurrentVersion}}</span></h4>
+                </h2>
+
+                <!-- switch versions input -->
+                <form method="POST">
+                  <div class="input-append">
+                    <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
+                    <button class="btn">Switch Version</button>
+                  </div>
+                </form>
+
 
 				<table class="table table-hover table-bordered">
 					<tbody>
@@ -138,6 +150,7 @@
 						{{end}}
 					</ul>
                 </div><!-- /btn-group -->
+
 				</h2>
 				<table class="table table-hover table-bordered table-condensed">
 					<tr>

@@ -115,11 +115,7 @@ class GroupsMemberRolesEditView extends JView
           style      : "modal-cancel"
           callback   : (event)-> modal.destroy()
 
-  showErrorMessage:(err)->
-    warn err
-    new KDNotificationView 
-      title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-      duration : 2000
+  showErrorMessage:(err)-> KD.showError err
 
   pistachio:->
     """
