@@ -216,33 +216,3 @@ class MainView extends KDView
           title       : systemStatus.title
           content     : systemStatus.content
           type        : systemStatus.type
-
-# inactive code
-
-    # mainController = KD.getSingleton('mainController')
-    # mainController.popupController = new VideoPopupController
-
-    # mainController.monitorController = new MonitorController
-
-    # @videoButton = new KDButtonView
-    #   cssClass : "video-popup-button"
-    #   icon : yes
-    #   title : "Video"
-    #   callback :=>
-    #     unless @popupList.$().hasClass "hidden"
-    #       @videoButton.unsetClass "active"
-    #       @popupList.hide()
-    #     else
-    #       @videoButton.setClass "active"
-    #       @popupList.show()
-
-    # @videoButton.hide()
-
-    # @popupList = new VideoPopupList
-    #   cssClass      : "hidden"
-    #   type          : "videos"
-    #   itemClass     : VideoPopupListItem
-    #   delegate      : @
-    # , {}
-    # @contentPanel.addSubView @videoButton
-    # @contentPanel.addSubView @popupList

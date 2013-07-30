@@ -24,9 +24,6 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # @statusLEDs = new KDView
-    #   cssClass : 'status-leds'
-
     # Main Navigations
     @navController = new MainNavController
       view           : new NavigationList
