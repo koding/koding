@@ -7,6 +7,7 @@ import (
 	"github.com/streadway/amqp"
 	"io/ioutil"
 	"koding/databases/mongo"
+	oldNeo "koding/databases/neo4j"
 	"koding/tools/amqputil"
 	"koding/tools/config"
 	"labix.org/v2/mgo/bson"
@@ -34,8 +35,8 @@ func main() {
 
 	coll := mongo.GetCollection("relationships")
 	query := bson.M{
-		"targetName": bson.M{"$nin": notAllowedNames},
-		"sourceName": bson.M{"$nin": notAllowedNames},
+		"targetName": bson.M{"$nin": oldNeo.NotAllowedNames},
+		"sourceName": bson.M{"$nin": oldNeo.NotAllowedNames},
 	}
 	iter := coll.Find(query).Skip(0).Limit(1000).Sort("-timestamp").Iter()
 
@@ -180,25 +181,4 @@ func checkNodeExists(id string) (bool, string) {
 	}
 
 	return true, nodeId
-}
-
-var notAllowedNames = []string{
-	"CStatusActivity",
-	"CFolloweeBucketActivity",
-	"CFollowerBucketActivity",
-	"CCodeSnipActivity",
-	"CDiscussionActivity",
-	"CReplieeBucketActivity",
-	"CReplierBucketActivity",
-	"CBlogPostActivity",
-	"CNewMemberBucketActivity",
-	"CTutorialActivity",
-	"CLikeeBucketActivity",
-	"CLikerBucketActivity",
-	"CInstalleeBucketActivity",
-	"CInstallerBucketActivity",
-	"CActivity",
-	"CRunnableActivity",
-	"JAppStorage",
-	"JFeed",
 }

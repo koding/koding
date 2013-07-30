@@ -278,3 +278,24 @@ func jsonDecode(data string) (map[string]interface{}, error) {
 
 	return source, nil
 }
+
+var NotAllowedNames = []string{
+	"CStatusActivity",
+	"CFolloweeBucketActivity",
+	"CFollowerBucketActivity",
+	"CCodeSnipActivity",
+	"CDiscussionActivity",
+	"CReplieeBucketActivity",
+	"CReplierBucketActivity",
+	"CBlogPostActivity",
+	"CNewMemberBucketActivity",
+	"CTutorialActivity",
+	"CLikeeBucketActivity",
+	"CLikerBucketActivity",
+	"CInstalleeBucketActivity",
+	"CInstallerBucketActivity",
+	"CActivity",
+	"CRunnableActivity",
+	"JAppStorage",
+	"JFeed",
+}
