@@ -31,7 +31,7 @@ class InboxAppController extends AppController
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
 
-  createNewMessageModal:(to)->
+  createNewMessageModal:(users)->
     modal = new KDModalViewWithForms
       title                   : "Compose a message"
       content                 : ""
@@ -55,7 +55,7 @@ class InboxAppController extends AppController
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
-              Message         :
+              message         :
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
@@ -70,6 +70,7 @@ class InboxAppController extends AppController
                 style         : "modal-cancel"
                 callback      : -> modal.destroy()
 
+    {subject, message} = modal.modalTabs.forms.sendForm.inputs
     toField = modal.modalTabs.forms.sendForm.fields.to
 
     recipientsWrapper = new KDView
@@ -91,8 +92,21 @@ class InboxAppController extends AppController
 
     toField.addSubView recipient.getView()
     toField.addSubView recipientsWrapper
-    recipient.setDefaultValue to  if to
+    if users
+      recipient.setDefaultValue users
+      
+      if users.length is 1
+        toField.hide()
 
+        toName = KD.utils.getFullnameFromAccount users.first
+        myName = KD.utils.getFullnameFromAccount()
+
+        subject.setValue "Private message from #{myName}"
+        modal.setTitle "#{modal.getOption('title')} to <b>#{toName}</b>"
+
+      message.$().focus()
+    else
+      recipient.getView().$input().focus()
 
   loadView:(mainView)->
     mainView.createCommons()
@@ -195,7 +209,16 @@ class InboxAppController extends AppController
   sendMessage:(messageDetails, callback)->
     if KD.isGuest()
       return new KDNotificationView
-        title : "Sending private message for guests not allowed"
+        title : "Sending private message for guests not allowed."
+
+    {subject, body} = messageDetails
+    if subject.trim() is ''
+      return new KDNotificationView
+        title : "Please enter a subject."
+
+    if body.trim() is ''
+      return new KDNotificationView
+        title : "Please enter a message."
 
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
