@@ -95,6 +95,7 @@ isLoggedIn = (req, res, callback)->
         else callback yes, account
 
 saveOauthToSession = (resp, callback)->
+  {JSession} = koding.models
   {provider, access_token, id, login, email, firstName, lastName, clientId} = resp
   JSession.one {clientId}, (err, session)->
     foreignAuth           = {}

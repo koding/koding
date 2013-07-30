@@ -296,23 +296,6 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-app.get '/:name/:section?*', (req, res, next)->
-  {JName} = koding.models
-  {name} = req.params
-  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
-  [firstLetter] = name
-  if firstLetter.toUpperCase() is firstLetter
-    next()
-  else
-    JName.fetchModels name, (err, models)->
-      if err then next err
-      else unless models? then res.send 404, error_404()
-      else
-        models.last.fetchHomepageView (err, view)->
-          if err then next err
-          else if view? then res.send view
-          else res.send 500, error_500()
-
 app.get "/-/oauth/:provider/callback", (req,res)->
   {provider} = req.params
   code = req.query.code
@@ -381,6 +364,24 @@ app.get "/-/oauth/:provider/callback", (req,res)->
   request = http.request options, authorizeUser
   request.end()
 
+app.get '/:name/:section?*', (req, res, next)->
+  {JName} = koding.models
+  {name} = req.params
+  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
+  [firstLetter] = name
+  if firstLetter.toUpperCase() is firstLetter
+    next()
+  else
+    {JGroup} = koding.models
+    isLoggedIn req, res, (loggedIn, account)->
+      JName.fetchModels name, (err, models)->
+        if err then next err
+        else unless models? then res.send 404, error_404()
+        else
+          models.last.fetchHomepageView account, (err, view)->
+            if err then next err
+            else if view? then res.send view
+            else res.send 500, error_500()
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
