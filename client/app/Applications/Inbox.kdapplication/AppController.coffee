@@ -81,7 +81,8 @@ class InboxAppController extends AppController
                 callback      : -> modal.destroy()
 
     {subject, message} = modal.modalTabs.forms.sendForm.inputs
-    toField = modal.modalTabs.forms.sendForm.fields.to
+    toField            = modal.modalTabs.forms.sendForm.fields.to
+    subjectField       = modal.modalTabs.forms.sendForm.fields.subject
 
     recipientsWrapper = new KDView
       cssClass      : "completed-items"
@@ -112,6 +113,8 @@ class InboxAppController extends AppController
         myName = KD.utils.getFullnameFromAccount()
 
         subject.setValue "Private message from #{myName}"
+        subjectField.hide()
+
         modal.setTitle "#{modal.getOption('title')} to <b>#{toName}</b>"
 
       message.$().focus()
