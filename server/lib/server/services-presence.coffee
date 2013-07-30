@@ -82,7 +82,7 @@ module.exports = do (failing = no) -> (req, res) ->
     # FAILURE! send an alert to opsview.
     unless failing
       failing = yes
-      opsview.sendStatus 'Services presence', 2, 'Service loadbalancing failure detected!'
+      opsview.send 'Services presence', 2, 'Service loadbalancing failure detected!'
     # Fail-over to the value hard-coded into the config.
     { webHostname, webPort } = KONFIG.broker
     res.send "\"#{ protocol }//#{ webHostname }#{ if webHostname.port then ":#{webHostname.port}" else "" }\""
