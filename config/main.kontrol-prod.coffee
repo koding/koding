@@ -25,7 +25,7 @@ module.exports =
     port        : 3000
     clusterSize : 1
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -79,18 +79,18 @@ module.exports =
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
-    watch       : yes
+    watch       : no
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
     numberOfWorkers: 4
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName
     verbose     : no
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : no
   presence        :
