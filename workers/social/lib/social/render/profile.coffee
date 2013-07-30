@@ -3,7 +3,8 @@ module.exports = ({ account, renderedAccount, isLoggedIn, content})->
   getStyles       = require './styleblock'
   getScripts      = require './scriptblock'
 
-  {nickname, firstName, lastName, hash, about, handles, staticPage} = renderedAccount.profile
+  {profile, counts, skilltags} = renderedAccount
+  {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
   staticPage  ?= {}
   {customize}  = staticPage
   {locationTags, meta} = account
