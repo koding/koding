@@ -54,7 +54,7 @@ class StartTabMainView extends JView
       cssClass : 'file-container'
 
     @downloadFilesLink = new KDCustomHTMLView
-    userJoinDate       = KD.whoami().meta.createdAt
+    userJoinDate       = new Date(KD.whoami().meta.createdAt).getTime()
     oldKodingDownDate  = 1374267600000
 
     if userJoinDate < oldKodingDownDate
@@ -147,8 +147,8 @@ class StartTabMainView extends JView
         {{> @refreshButton}}
       </div>
       <header>
-        <h1 class="start-tab-header loaded hidden">To start from a new file, select an editor</h1>
-        <h2 class="loaded hidden">or open an existing file from your file tree</h2>
+        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
+        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
         <h2 class="loader">{{> @loader}} Loading applications...</h1>
       </header>
       {{> @appItemContainer}}
