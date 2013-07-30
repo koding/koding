@@ -725,6 +725,7 @@ module.exports = [
   "app/CommonViews/workspace/panes/terminalpane.coffee",
   "app/CommonViews/workspace/panes/videopane.coffee",
   "app/CommonViews/workspace/panel/panel.coffee",
+  "app/CommonViews/workspace/workspacelayout.coffee",
   "app/CommonViews/workspace/workspace.coffee",
 
   # COLLABORATIVE WORKSPACE
@@ -739,8 +740,6 @@ module.exports = [
   "libs/codemirror/lib/codemirror.css",
   "app/CommonViews/workspace/panes/collaborativepane.coffee",
   "app/CommonViews/workspace/panes/collaborativetabbededitorpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeterminalpane.coffee",
-  "app/CommonViews/workspace/panes/collaborativeclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableterminalpane.coffee",
   "app/CommonViews/workspace/panes/sharableclientterminalpane.coffee",
   "app/CommonViews/workspace/panes/collaborativefinderpane.coffee",

@@ -5,14 +5,13 @@ class CollaborativePanel extends Panel
     super options, data
 
     workspace      = @getDelegate()
-    panesLength    = @getOptions().panes.length
-    createadPanes  = []
+    panesLength    = @getPaneLengthFromLayoutConfig()
+    createdPanes   = []
 
     @on "NewPaneCreated", (pane) =>
-      createadPanes.push pane
-
-      if createadPanes.length is panesLength
-        @getDelegate().emit "AllPanesAddedToPanel", @, createadPanes
+      createdPanes.push pane
+      if createdPanes.length is panesLength
+        @getDelegate().emit "AllPanesAddedToPanel", @, createdPanes
 
   createHeaderButtons: ->
     super
@@ -40,12 +39,25 @@ class CollaborativePanel extends Panel
       else if paneOptions.type is "finder"
         PaneClass = CollaborativeClientFinderPane
 
-    return warn "Unknown pane class #{paneOptions.type}"  unless PaneClass
+    return warn "Unknown pane class: #{paneOptions.type}"  unless PaneClass
     pane = new PaneClass paneOptions
 
-    targetContainer.addSubView pane
     @panes.push pane
     @emit "NewPaneCreated", pane
+    return  pane
+
+  getPaneLengthFromLayoutConfig: ->
+    options = @getOptions()
+    length  = 0
+
+    if options.pane then return 1
+    else
+      for key, value of options.layout.views
+        if value.type is "split"
+          length += value.views.length
+        else length++
+
+      return length
 
 CollaborativePanel::EditorPaneClass        = CollaborativeEditorPane
 CollaborativePanel::TerminalPaneClass      = SharableTerminalPane
