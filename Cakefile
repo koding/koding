@@ -687,6 +687,13 @@ task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
+task 'resetEverything',(options)->
+  invoke 'deleteCache'
+  exec "vagrant halt -f", ->
+    exec "rm -rf #{__dirname}/go/{bin,pkg,bin-vagrant}", ->
+      exec "vagrant up", ->
+        console.log "Vagrant restarted, go binaries removed."
+
 task 'aws', (options) ->
   {configFile,type} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
