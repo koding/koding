@@ -32,10 +32,12 @@ func main() {
 
 	var result oldNeo.Relationship
 	for iter.Next(&result) {
-		if processRelationship(result) {
+		if relationshipNeedsToBeSynced(result) {
 			createRelationship(result, amqpChannel)
 		}
 	}
+
+	log.Println("Neo4j is now synced with Mongodb.")
 }
 
 func connectToRabbitMQ() *amqp.Channel {
@@ -62,7 +64,7 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 
 	neoMessage, err := json.Marshal(eventData)
 	if err != nil {
-		fmt.Println("unmarshall error")
+		log.Println("unmarshall error")
 		return
 	}
 
@@ -77,25 +79,22 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 	)
 }
 
-func processRelationship(result oldNeo.Relationship) bool {
-	exists := true
-	targetId, sourceId := "", ""
-
-	exists, sourceId = checkNodeExists(result.SourceId.Hex())
+func relationshipNeedsToBeSynced(result oldNeo.Relationship) bool {
+	exists, sourceId := checkNodeExists(result.SourceId.Hex())
 	if exists != true {
-		log.Println("SourceNode doesnt exists")
+		log.Println("err: No SourceNode:", result.SourceName, result.As)
 		return true
 	}
 
-	exists, targetId = checkNodeExists(result.TargetId.Hex())
+	exists, targetId := checkNodeExists(result.TargetId.Hex())
 	if exists != true {
-		log.Println("TargetNode doesnt exists")
+		log.Println("err: No TargetNode:", result.TargetName, result.Id, result.As)
 		return true
 	}
 
 	exists = checkRelationshipExists(sourceId, targetId, result.As)
 	if exists != true {
-		log.Println("Relationship ERROR")
+		log.Printf("err: No '%v' relationship exists between %v and %v", result.SourceName, result.TargetName, result.As)
 		return true
 	}
 
