@@ -10,12 +10,13 @@ import (
 	oldNeo "koding/databases/neo4j"
 	"koding/tools/amqputil"
 	"koding/tools/config"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+type strToInf map[string]interface{}
 
 var GRAPH_URL = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
 
@@ -23,9 +24,9 @@ func main() {
 	amqpChannel := connectToRabbitMQ()
 
 	coll := mongo.GetCollection("relationships")
-	query := bson.M{
-		"targetName": bson.M{"$nin": oldNeo.NotAllowedNames},
-		"sourceName": bson.M{"$nin": oldNeo.NotAllowedNames},
+	query := strToInf{
+		"targetName": strToInf{"$nin": oldNeo.NotAllowedNames},
+		"sourceName": strToInf{"$nin": oldNeo.NotAllowedNames},
 	}
 	iter := coll.Find(query).Skip(0).Limit(1000).Sort("-timestamp").Iter()
 
@@ -47,8 +48,8 @@ func connectToRabbitMQ() *amqp.Channel {
 }
 
 func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
-	data := make([]bson.M, 1)
-	data[0] = bson.M{
+	data := make([]strToInf, 1)
+	data[0] = strToInf{
 		"_id":        rel.Id,
 		"sourceId":   rel.SourceId,
 		"sourceName": rel.SourceName,
@@ -57,7 +58,7 @@ func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 		"as":         rel.As,
 	}
 
-	eventData := bson.M{"event": "RelationshipSaved", "payload": data}
+	eventData := strToInf{"event": "RelationshipSaved", "payload": data}
 
 	neoMessage, err := json.Marshal(eventData)
 	if err != nil {
