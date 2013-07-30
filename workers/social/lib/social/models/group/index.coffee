@@ -253,9 +253,10 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderHomepage            : require '../../render/grouphome'
-  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
+  @renderGroupHomeLoggedIn   : require '../../render/grouphomeloggedin'
+  @renderGroupHomeLoggedOut  : require '../../render/grouphomeloggedout'
   @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
+  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -667,15 +668,14 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  fetchHomepageView: (callback)->
+  fetchHomepageView: (account, callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
         else
-          # account = client.connection.delegate
-          callback null, JGroup.renderHomepage {
-            # account
+          options = {
+            account
             @slug
             @title
             policy
@@ -685,6 +685,10 @@ module.exports = class JGroup extends Module
             content : readme?.html ? readme?.content
             @customize
           }
+          if account.type is 'unregistered'
+            callback null, JGroup.renderGroupHomeLoggedOut options
+          else
+            callback null, JGroup.renderGroupHomeLoggedIn options
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
