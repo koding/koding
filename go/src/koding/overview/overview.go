@@ -2,9 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/tools/amqputil"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -85,8 +89,9 @@ type WorkerInfo struct {
 }
 
 type StatusInfo struct {
-	BuildNumber string
-	Koding      struct {
+	BuildNumber    string
+	CurrentVersion string
+	Koding         struct {
 		ServerHosts []string
 		BrokerHosts []string
 	}
@@ -117,15 +122,23 @@ func NewServerInfo() *ServerInfo {
 }
 
 var templates = template.Must(template.ParseFiles("index.html"))
+var proxyDB *proxyconfig.ProxyConfiguration
 
 const uptimeLayout = "03:04:00"
 
 func main() {
+	var err error
+	proxyDB, err = proxyconfig.Connect()
+	if err != nil {
+		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
+		log.Println(res)
+	}
+
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
 
 	fmt.Println("koding overview started")
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -135,6 +148,17 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	build := r.FormValue("build")
 	if build == "" {
 		build = "latest"
+	}
+
+	version := r.PostFormValue("switchVersion")
+	if version != "" {
+		log.Println("switching to version", version)
+		err := switchVersion(version)
+		if err != nil {
+			log.Println("error switching", err, version)
+		}
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
 
 	workers, status, err := workerInfo(build)
@@ -214,7 +238,6 @@ func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
 }
 
 func jenkinsInfo() *JenkinsInfo {
-	fmt.Println("getting jenkins info")
 	j := &JenkinsInfo{}
 	jenkinsApi := "http://salt-master.in.koding.com/job/build-koding/api/json"
 	resp, err := http.Get(jenkinsApi)
@@ -277,6 +300,9 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 		}
 		workers[i].Clock = d.String()
 	}
+
+	version, _ := currentVersion()
+	s.CurrentVersion = version
 
 	return workers, s, nil
 }
@@ -370,4 +396,75 @@ func domainInfo() (Domain, error) {
 	}
 
 	return d, nil
+}
+
+func currentVersion() (string, error) {
+	domain, err := proxyDB.GetDomain("koding.com") // will be changed to koding.com
+	if err != nil {
+		return "", err
+	}
+
+	if domain.Proxy == nil {
+		return "", errors.New("proxy field is empty for koding.com")
+	}
+
+	currentVersion := domain.Proxy.Key
+	if currentVersion == "" {
+		return "", errors.New("key does not exist for koding.com")
+	}
+
+	return currentVersion, nil
+}
+
+func switchVersion(newVersion string) error {
+	_, err := strconv.Atoi(newVersion)
+	if err != nil {
+		return err
+	}
+
+	domain, err := proxyDB.GetDomain("y.koding.com") // will be changed to koding.com
+	if err != nil {
+		return err
+	}
+
+	if domain.Proxy == nil {
+		return errors.New("proxy field is empty for koding.com")
+	}
+
+	oldVersion := domain.Proxy.Key
+	if oldVersion == "" {
+		return errors.New("key does not exist for koding.com")
+	}
+
+	conn := amqputil.CreateConnection("overview")
+	defer conn.Close()
+
+	channel := amqputil.CreateChannel(conn)
+	defer channel.Close()
+
+	destination := "auth-" + newVersion
+	routingKey := ""
+	source := "auth"
+
+	err = channel.ExchangeBind(destination, routingKey, source, true, nil)
+	if err != nil {
+		return err
+	}
+
+	oldDestination := "auth-" + oldVersion
+
+	err = channel.ExchangeUnbind(oldDestination, routingKey, source, true, nil)
+	if err != nil {
+		return err
+	}
+
+	domain.Proxy.Key = newVersion
+
+	err = proxyDB.UpdateDomain(&domain)
+	if err != nil {
+		log.Printf("could not update %+v\n", domain)
+		return err
+	}
+
+	return nil
 }
