@@ -1,4 +1,4 @@
-class AccountSubscriptionsListController extends AccountKDListViewController
+class AccountSubscriptionsListController extends AccountListViewController
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no subscription."

@@ -1,4 +1,4 @@
-class AccountKodingKeyListController extends AccountKDListViewController
+class AccountKodingKeyListController extends AccountListViewController
 
   constructor:(options, data)->
 

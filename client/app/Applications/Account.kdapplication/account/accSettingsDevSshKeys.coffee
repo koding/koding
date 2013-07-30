@@ -1,4 +1,4 @@
-class AccountSshKeyListController extends AccountKDListViewController
+class AccountSshKeyListController extends AccountListViewController
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no SSH key."
