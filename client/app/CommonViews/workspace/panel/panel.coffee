@@ -51,9 +51,15 @@ class Panel extends JView
       @container.addSubView newPane
       @getDelegate().emit "AllPanesAddedToPanel", @, [newPane]
     else if layout
-      @container.addSubView new WorkspaceLayout
+      @layoutContainer = new WorkspaceLayout
         delegate      : @
         layoutOptions : layout
+
+      @container.addSubView @layoutContainer
+
+      @layoutContainer.on "viewAppended", =>
+        @resizeLayoutContainer()
+
     else
       warn "no layout config or pane passed to create a panel"
 
@@ -93,6 +99,9 @@ class Panel extends JView
   viewAppended: ->
     super
     @getDelegate().emit "NewPanelAdded", @
+
+  resizeLayoutContainer: ->
+    @layoutContainer.setHeight @layoutContainer.getHeight() - @header.getHeight()  if @header
 
   pistachio: ->
     """
