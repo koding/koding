@@ -422,7 +422,7 @@ func switchVersion(newVersion string) error {
 		return err
 	}
 
-	domain, err := proxyDB.GetDomain("y.koding.com") // will be changed to koding.com
+	domain, err := proxyDB.GetDomain("koding.com") // will be changed to koding.com
 	if err != nil {
 		return err
 	}
