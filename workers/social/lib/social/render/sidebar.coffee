@@ -5,7 +5,7 @@ module.exports = (account)->
 
   if loggedIn
     {firstName, hash} = account.profile
-    bgImg       = "//gravatar.com/avatar/#{hash}?size=160&d=#{bgImg}"
+    bgImg = "//gravatar.com/avatar/#{hash}?size=160&d=#{bgImg}"
 
   markup =
     """
@@ -48,8 +48,10 @@ module.exports = (account)->
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix separator">
               <hr class="">
             </div>
-    """
+            """
+
   if loggedIn
+
     markup +=
             """
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
@@ -57,6 +59,7 @@ module.exports = (account)->
             </div>
             """
   else
+
     markup +=
           """
           <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix account">
