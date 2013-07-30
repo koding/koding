@@ -294,8 +294,8 @@ class MainController extends KDController
         overlay : yes
         buttons :
           "Refresh Now" :
-            style     : "modal-clean-red"
-            callback  : ->
+            style       : "modal-clean-red"
+            callback    : ->
               modal.destroy()
               location.reload yes
       # if location.hostname is "localhost"
@@ -304,7 +304,8 @@ class MainController extends KDController
     checkConnectionState = ->
       unless connectedState.connected
         fail()
-    ->
+
+    return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
         KD.track "Connected to backend"
@@ -312,4 +313,6 @@ class MainController extends KDController
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+          modal.buttons["Refresh Now"].destroy()
+
           @utils.wait 2500, -> modal?.destroy()
