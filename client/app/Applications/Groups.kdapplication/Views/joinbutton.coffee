@@ -4,9 +4,7 @@ class JoinButton extends KDToggleButton
 
     if @state is 'Join'
       @unsetClass 'joined'
-      # @unsetClass 'following-btn'
     else
       @setClass 'joined'
-      # @setClass 'following-btn'
 
     @hideLoader()

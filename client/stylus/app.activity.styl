@@ -118,6 +118,13 @@ h1.kdheaderview.notification-header
   margin            10px auto !important
 
 
+.download-old-koding-files
+  cursor           pointer
+  color            #ff9200
+  text-decoration  none
+  width            190px
+  left             5px
+
 .new-member
   .close-button
     abs()
@@ -644,6 +651,7 @@ button.kdbutton.dark
 
   .kdinput.text
     size                  100%,33px
+    max-width             100%
     font-size             13px
     border-color          rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
     padding               8px 10px 6px 10px
@@ -1393,6 +1401,7 @@ div.kdview.link-embed-box.condensed
     top               50%
     margin-top        -15px
     margin-left       -15px
+    z-index           1
 
   > div.embed-links-container
     // div.embed-link-list-head
@@ -1412,7 +1421,7 @@ div.kdview.link-embed-box.condensed
 
       &.layout-wrapper
         padding 5px 5px 2px 5px
-        margin 5px 5px 0
+        margin 5px 5px 5px
         border 1px solid #e8e8e8
         background-color #fff
         rounded 4px
@@ -1839,6 +1848,7 @@ div.modal-fullscreen-text
 
   textarea.fullscreen-data
     float           left
+    resize          none
 
   div.kdinputwithpreview.input_preview
     abs()

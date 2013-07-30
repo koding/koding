@@ -36,9 +36,3 @@ class ProfileLinkView extends LinkView
   pistachio:->
 
     super "{{#(profile.firstName)+' '+#(profile.lastName)}}"
-
-#  click:(event)->
-#    event.preventDefault()
-#    event.stopPropagation()
-#    @emit 'LinkClicked'
-#    return no

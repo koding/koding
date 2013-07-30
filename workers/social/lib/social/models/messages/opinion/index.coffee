@@ -29,6 +29,12 @@ module.exports = class JOpinion extends JPost
     sharedEvents    :
       instance      : [
         { name: 'OpinionIsDeleted' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
       static          : ['create','one','updateAllSlugs',"fetchRelated"]
@@ -80,7 +86,7 @@ module.exports = class JOpinion extends JPost
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'
     unless delegate.getId().equals originId
-      callback new KodingError 'Access denied!'
+      callback new KodingError 'Access denied'
     else
       id = @getId()
       {getDeleteHelper} = Relationship

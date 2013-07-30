@@ -61,10 +61,15 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         KD.getSingleton('router').handleRoute '/Groups'
         @hide()
 
+    groupsController = KD.getSingleton("groupsController")
+    groupsController.once 'GroupChanged', () =>
+      group =  groupsController.getCurrentGroup()
+      if group?.slug isnt "koding"
+        backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
+
     backToKodingView = new KDView
       height   : "auto"
       cssClass : "split sublink right"
-      partial  : "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
       click    : =>
         @hide()
 
@@ -149,7 +154,7 @@ class PopupGroupListItem extends KDListItemView
 
     @switchLink = new CustomLinkView
       title       : title
-      href        : "/#{if slug is 'koding' then '' else slug+'/'}Activity"
+      href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
       target      : slug
       icon        :
         cssClass  : 'new-page'
@@ -160,7 +165,7 @@ class PopupGroupListItem extends KDListItemView
 
     @adminLink = new CustomLinkView
       title       : ''
-      href        : "/#{if slug is 'koding' then '' else slug+'/'}Dashboard"
+      href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Dashboard"
       target      : slug
       cssClass    : 'fr'
       iconOnly    : yes

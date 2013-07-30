@@ -217,9 +217,11 @@ class EmbedBoxImageView extends KDView
       tagName     : 'img'
       bind        : 'error load'
       attributes  :
-        src       : 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw=='
+        src       : 'https://koding.com/images/small-loader.gif'
         'data-src': (@utils.proxifyUrl oembed.images?[0]?.url) or 'https://koding.com/images/small-loader.gif'
         title     : oembed.title or ''
+      load        : =>
+        @image.setDomAttributes src: @image.$().data "src"
       error       : =>
         unless @getDelegate().getOptions().hasConfig # do not hide for widgets
           @getDelegate().hide()

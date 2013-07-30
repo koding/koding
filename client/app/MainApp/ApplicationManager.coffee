@@ -133,7 +133,7 @@ class ApplicationManager extends KDObject
         manifest.route        = slug : "/Develop/#{encodeURIComponent name}"
         manifest.behavior   or= "application"
         manifest.navItem      = title : "Develop"
-        manifest.thirdParty or= yes
+        manifest.thirdParty  ?= yes
 
         KD.registerAppClass KodingAppController, manifest
 
@@ -207,13 +207,13 @@ class ApplicationManager extends KDObject
 
     return if appOptions.background
 
-    if KD.isLoggedIn()
-      @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
-      @emit 'AnInstanceIsShown', appInstance, appView, appOptions
-      @setLastActiveIndex appInstance
-      @utils.defer -> callback? appInstance
-    else
-      KD.getSingleton('router').clear()
+    # if KD.isLoggedIn()
+    @emit 'AppManagerWantsToShowAnApp', appInstance, appView, appOptions
+    @emit 'AnInstanceIsShown', appInstance, appView, appOptions
+    @setLastActiveIndex appInstance
+    @utils.defer -> callback? appInstance
+    # else
+    #   KD.getSingleton('router').clear()
 
   quit:(appInstance, callback = noop)->
 

@@ -69,7 +69,7 @@ module.exports = class Graph
   attachReplies:(options, callback)->
     tempRes = []
     collectRelations = race (i, res, fin)=>
-      res.replies = [] 
+      res.replies = []
       @fetchReplies res.getId(), (err, relatedResult)=>
         if err
           callback err
@@ -347,6 +347,14 @@ module.exports = class Graph
           resultData.push data
           @generateFollows resultData, results, callback
 
+  generateOrderByQuery:(sort)->
+    orderByQuery = ''
+    if sort
+      orderBy = Object.keys(sort)[0]
+      orderByQuery = "ORDER BY #{@getOrderByQuery orderBy} DESC"
+
+    return orderByQuery
+
   getOrderByQuery:(orderBy)->
     orderByQuery = ""
     switch orderBy
@@ -361,40 +369,33 @@ module.exports = class Graph
 
   fetchMembers:(options, callback)->
     {skip, limit, sort, groupId} = options
-    skip = 0 unless skip
-    limit = 20 unless limit
 
-    orderBy = ""
-    if sort?
-      orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
+    skip   ?= 0
+    limit  ?= 20
 
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
       return members
-      order by #{orderByQuery} DESC
+      #{@generateOrderByQuery sort}
       skip #{skip}
       limit #{limit}
       """
+
     @queryMembers query, {}, callback
 
   fetchFollowingMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
 
-    skip = 0 unless skip
-    limit = 20 unless limit
-
-    orderBy = Object.keys(sort)[0]
-    orderByQuery = @getOrderByQuery orderBy
+    skip   ?= 0
+    limit  ?= 20
 
     query = """
         START  group=node:koding("id:#{groupId}")
         MATCH  group-[r:member]->members-[:follower]->currentUser
         WHERE currentUser.id = "#{currentUserId}"
         RETURN members, r
-        ORDER BY #{orderByQuery} DESC
+        #{@generateOrderByQuery sort}
         SKIP #{skip}
         LIMIT #{limit}
         """
@@ -404,18 +405,15 @@ module.exports = class Graph
   fetchFollowerMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
 
-    skip = 0 unless skip
-    limit = 20 unless limit
-    orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
+    skip   ?= 0
+    limit  ?= 20
 
     query = """
         START group=node:koding("id:#{groupId}")
         MATCH group-[r:member]->members<-[:follower]-currentUser
         WHERE currentUser.id = "#{currentUserId}"
         RETURN members, r
-        ORDER BY #{orderByQuery} DESC
+        #{@generateOrderByQuery sort}
         SKIP #{skip}
         LIMIT #{limit}
         """
@@ -467,6 +465,50 @@ module.exports = class Graph
           resultData.push obj
 
         callback err, resultData
+
+  ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
+
+  fetchRelatedTagsFromGraph: (options, callback)->
+    {userId} = options
+
+    query = """
+      START follower=node:koding("id:#{userId}")
+      MATCH follower-[:related]->oauth-[r:github_followed_JTag]->followees
+      return followees.id as id
+    """
+
+    JTag = require "../tag"
+    @fetchItems query, JTag, callback
+
+  fetchRelatedUsersFromGraph: (options, callback)->
+    {userId} = options
+
+    query = """
+      START follower=node:koding("id:#{userId}")
+      MATCH follower-[:related]->oauth-[r:github_followed_JUser]->followees
+      return followees.id as id
+    """
+
+    JUser = require "../user"
+    @fetchItems query, JUser, callback
+
+  fetchItems:(query, modelName, callback)->
+    @db.query query, {}, (err, results)=>
+      if err then throw err
+      else
+        tempRes = []
+        collectContents = race (i, id, fin)=>
+          modelName.one  { _id : id }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res.id
 
   fetchRelationshipCount:(options, callback)->
     {groupId, relName} = options

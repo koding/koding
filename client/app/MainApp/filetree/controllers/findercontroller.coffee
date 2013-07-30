@@ -73,32 +73,36 @@ class NFinderController extends KDViewController
     else
       @loadVms()
 
-  loadVms:(vmNames, callback)->
-    mountVms = (vms)=>
-      unless Array.isArray vms
-        return callback? "vmNames should be an Array"
-      @cleanup()
-      @mountVm vm  for vm in vms
-      callback?()
+  mountVms: (vms) ->
+    unless Array.isArray vms
+      return callback? "vmNames should be an Array"
+    @cleanup()
+    @mountVm vm  for vm in vms
+    callback?()
 
-    if vmNames then mountVms vmNames
+  loadVms:(vmNames, callback)->
+
+    # if KD.isGuest()
+    #   vmNames ?= ['guest']
+
+    if vmNames then @mountVms vmNames
     else
       groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
-      groupSlug ?= 'koding'
+      groupSlug ?= KD.defaultSlug
       @appStorage.fetchValue "mountedVM", (vms)=>
         vms            or= {}
         vms[groupSlug] or= []
         if vms[groupSlug].length > 0
-          mountVms vms[groupSlug]
+          @mountVms vms[groupSlug]
         else
           KD.remote.api.JVM.fetchVmsByContext {}, (err, vms)=>
             return callback? err  if err
             if not vms or vms.length is 0
               KD.getSingleton('vmController').fetchDefaultVmName (vm)=>
-                if vm then mountVms [vm]
+                if vm then @mountVms [vm]
                 else @noVMFoundWidget.show()
             else
-              mountVms vms
+              @mountVms vms
 
   getVmNode:(vmName)->
     return null  unless vmName
@@ -106,8 +110,9 @@ class NFinderController extends KDViewController
       return vmItem  if vmItem.data.vmName is vmName
 
   updateMountState:(vmName, state)->
+    return  if KD.isGuest()
     groupSlug  = KD.getSingleton("groupsController").getGroupSlug()
-    groupSlug ?= 'koding'
+    groupSlug ?= KD.defaultSlug
     @appStorage.fetchValue "mountedVM", (vms)=>
       vms or= {}
       vms[groupSlug] or= []
@@ -119,7 +124,7 @@ class NFinderController extends KDViewController
       @appStorage.setValue "mountedVM", vms
 
   mountVm:(vm, fetchContent = yes)->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     return warn 'VM path required! e.g VMNAME[:PATH]'  unless vm
 
     [vmName, path] = vm.split ":"
@@ -148,7 +153,7 @@ class NFinderController extends KDViewController
       , yes
 
   unmountVm:(vmName)->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     return warn 'No such VM!'  unless vmItem = @getVmNode vmName
 
     @updateMountState vmName, no
@@ -246,7 +251,7 @@ class VMMountStateWidget extends JView
     @warning.hide()
     @loader.show()
 
-    if KD.getSingleton("groupsController").getGroupSlug() is 'koding'
+    if KD.getSingleton("groupsController").getGroupSlug() is KD.defaultSlug
       @showMessage()
 
     # Not sure about it I guess only owners can create GroupVM?

@@ -19,19 +19,6 @@ class LoginOptions extends KDView
       tagName   : "li"
       cssClass  : "github"
       partial   : "github"
+      click     : -> KD.utils.openGithubPopUp()
       tooltip   :
-        title   : "<p class='login-tip'>Sign in with GitHub <cite>coming soon...</cite></p>"
-
-    optionsHolder.addSubView new KDCustomHTMLView
-      tagName   : "li"
-      cssClass  : "facebook"
-      partial   : "facebook"
-      tooltip   :
-        title   : "<p class='login-tip'>Sign in with Facebook <cite>coming soon...</cite></p>"
-
-    optionsHolder.addSubView new KDCustomHTMLView
-      tagName   : "li"
-      cssClass  : "google"
-      partial   : "google"
-      tooltip   :
-        title   : "<p class='login-tip'>Sign in with Google <cite>coming soon...</cite></p>"
+        title   : "<p class='login-tip'>Sign in with GitHub</p>"

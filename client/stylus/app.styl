@@ -378,6 +378,7 @@ body
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
+    cursor              pointer
     // vendor transition,  background-size 0.15s ease-in-out
     h3
       abs()
@@ -627,6 +628,15 @@ span.main-nav-icon
     padding           0
     sprite()
     bg                  position, -137px -298px !important
+
+.app-settings
+  .enable-fullscreen-menu-item
+    padding           3px 10px
+    font              inherit
+    font-size         12px
+    span
+      width           87px
+      display         inline-block
 
 #main-tab-handle-holder
   abs()
@@ -973,6 +983,7 @@ span.main-nav-icon
     .kdlistview-navigation
       opacity         1
       vendor          transition, opacity .3s linear
+      margin-top      10px
       &.out
         opacity       0
 
