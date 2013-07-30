@@ -71,7 +71,7 @@ class ChatAppController extends AppController
           style      : "modal-clean-red"
           callback   : ->
             chatChannel?.close()?.off()
-            conversation.leave (err)=>
+            conversation.leave (err)->
               warn err  if err
               modal.destroy()
               callback?()
