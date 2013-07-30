@@ -9,6 +9,8 @@ class Pane extends JView
     @createHeader()
     @createButtons()  if hasButtons
 
+    @on "PaneResized", @bound "handlePaneResized"
+
   createHeader: ->
     options    = @getOptions()
     hasButtons = options.buttons?.length
@@ -25,3 +27,4 @@ class Pane extends JView
     for buttonOptions in @getOptions().buttons
       @header.addSubView new KDButtonView buttonOptions
 
+  handlePaneResized: ->
