@@ -50,18 +50,7 @@ class NFinderContextMenuController extends KDController
         action                    : 'openFile'
       'Open with...'              :
         separator                 : yes
-        children                  :
-          'Ace Editor'            :
-            action                : 'openFile'
-          'CodeMirror'            :
-            action                : 'openFileWithCodeMirror'
-          'Viewer'                :
-            separator             : yes
-            action                : 'previewFile'
-          'Search the App Store'  :
-            disabled              : yes
-          'Contribute an Editor'  :
-            disabled              : yes
+        children                  : @getOpenWithMenuItems fileView
       Delete                      :
         action                    : 'delete'
         separator                 : yes
@@ -84,14 +73,14 @@ class NFinderContextMenuController extends KDController
         separator                 : yes
         action                    : 'download'
         disabled                  : yes
-      'Copy Public URL'           :
-        children                  :
-          customView              : new  NCopyUrlView {}, fileData
+      'Public URL...'             :
         separator                 : yes
       'New File'                  :
         action                    : 'createFile'
       'New Folder'                :
         action                    : 'createFolder'
+      'Upload to Dropbox'         :
+        action                    : 'dropboxSaver'
       'Upload file...'            :
         disabled                  : yes
         action                    : 'upload'
@@ -103,6 +92,12 @@ class NFinderContextMenuController extends KDController
       delete items.Extract
     else
       delete items.Compress
+
+    unless FSHelper.isPublicPath fileData.path
+      delete items['Public URL...']
+    else
+      items['Public URL...'].children =
+        customView : new NCopyUrlView {}, fileData
 
     return items
 
@@ -146,14 +141,20 @@ class NFinderContextMenuController extends KDController
         disabled                  : yes
         action                    : 'upload'
       'Clone a repo here'         :
+        disabled                  : yes
         action                    : "cloneRepo"
       Download                    :
         disabled                  : yes
         action                    : "download"
         separator                 : yes
-      'Copy Public URL'           :
+      Dropbox                     :
         children                  :
-          customView              : new NCopyUrlView {}, fileData
+          'Download from Dropbox' :
+            action                : 'dropboxChooser'
+          'Upload to Dropbox'     :
+            action                : 'dropboxSaver'
+        separator                 : yes
+      'Public URL...'             :
         separator                 : yes
       Refresh                     :
         action                    : 'refresh'
@@ -168,6 +169,12 @@ class NFinderContextMenuController extends KDController
       delete items.Expand
     else
       delete items.Collapse
+
+    unless FSHelper.isPublicPath fileData.path
+      delete items['Public URL...']
+    else
+      items['Public URL...'].children =
+        customView : new NCopyUrlView {}, fileData
 
     {nickname} = KD.whoami().profile
 
@@ -347,20 +354,6 @@ class NFinderContextMenuController extends KDController
     items =
       'Open Files'                :
         action                    : 'openFile'
-      'Open with...'              :
-        separator                 : yes
-        children                  :
-          'Ace Editor'            :
-            action                : 'openFile'
-          'CodeMirror'            :
-            action                : 'openFileWithCodeMirror'
-          'Viewer'                :
-            separator             : yes
-            action                : 'previewFile'
-          'Search the App Store'  :
-            disabled              : yes
-          'Contribute an Editor'  :
-            disabled              : yes
       'Delete all'                :
         action                    : 'delete'
         separator                 : yes
@@ -382,6 +375,27 @@ class NFinderContextMenuController extends KDController
 
     return items
 
+  getOpenWithMenuItems: (fileView) ->
+    items            = {}
+    reWebHome        = ///
+      ^/home/#{KD.nick()}/Web/
+    ///
+    {path}           = fileView.getData()
+    plainPath        = FSHelper.plainPath path
+    fileExtension    = FSItem.getFileExtension path
+    appsController   = @getSingleton "kodingAppsController"
+    {extensionToApp} = appsController
+    possibleApps     = (extensionToApp[fileExtension] or extensionToApp.txt) or []
+    for appName in possibleApps
+      items[appName] = action: "openFileWithApp"
+
+    items["Viewer"]               = action   : "previewFile"  if plainPath.match reWebHome
+    items["separator"]            = type     : "separator"
+    items["Other Apps"]           = action   : "showOpenWithModal", separator : yes
+    items["Search the App Store"] = disabled : yes
+    items["Contribute an Editor"] = disabled : yes
+
+    return items
 
 # this is shorter but needs coffee script update
 

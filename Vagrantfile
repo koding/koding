@@ -1,10 +1,10 @@
 version = `VBoxManage --version 2> /dev/null` rescue "0"
-if version < "4.2.12r84980"
-  print "VirtualBox not installed or outdated. "
+if version < "4.2.16r86992" and ARGV[0] != "halt"
+  print "\e[31mVirtualBox not installed or outdated. \e[39m"
 
   install = false
-  if `uname`.strip == "Darwin"
-    print "Download and install VirtualBox automatically? (yN) "
+  if `uname`.strip == "Darwin" and system "tty > /dev/null"
+    print "Download and install VirtualBox automatically? This will halt running Vagrant machines. (yN) "
     install = ($stdin.gets.strip == "y")
   end
 
@@ -14,7 +14,8 @@ if version < "4.2.12r84980"
     exit! 1
   end
 
-  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.12/VirtualBox-4.2.12-84980-OSX.dmg" or exit! 1
+  system "vagrant halt" or exit! 1
+  system "wget -O /tmp/VirtualBox.dmg http://download.virtualbox.org/virtualbox/4.2.16/VirtualBox-4.2.16-86992-OSX.dmg" or exit! 1
   system "hdiutil attach /tmp/VirtualBox.dmg" or exit! 1
   system "sudo installer -pkg /Volumes/VirtualBox/VirtualBox.pkg  -target /" or exit! 1
   sleep 1 # somehow the installer stays active for some time
@@ -26,7 +27,7 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   print "Vagrant not installed or outdated. " unless $0 == "Vagrantfile"
 
   install = false
-  if `uname`.strip == "Darwin"
+  if `uname`.strip == "Darwin" and system "tty > /dev/null"
     print "Download and install Vagrant automatically? (yN) "
     install = ($stdin.gets.strip == "y")
   end
@@ -45,6 +46,12 @@ if $0 == "Vagrantfile" || Vagrant::VERSION < "1.2.2"
   puts "", "Vagrant successfully installed.", ""
   system "vagrant", *ARGV if $0 != "Vagrantfile"
   exit! 0
+end
+
+goVersion = `go version | cut -d " " -f 3` rescue "0"
+if goVersion < "go1.1"
+  puts "", "Your go version is outdated! Please install at least version 1.1", ""
+  exit! 1
 end
 
 provision = ENV.has_key? "PROVISION"
@@ -66,8 +73,8 @@ Vagrant.configure("2") do |config|
       default.vm.box = "raring-server-cloudimg-amd64-vagrant-disk1"
       default.vm.box_url = "http://cloud-images.ubuntu.com/vagrant/raring/current/raring-server-cloudimg-amd64-vagrant-disk1.box"
     else
-      default.vm.box = "koding-9"
-      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
+      default.vm.box = "koding-14"
+      default.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-14.box"
     end
 
     default.vm.network :forwarded_port, :guest =>  3021, :host =>  3021 # vmproxy
@@ -84,7 +91,7 @@ Vagrant.configure("2") do |config|
     default.vm.provider "virtualbox" do |v|
       v.name = "koding_#{Time.new.to_i}"
       v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-      v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
+      v.customize ["modifyvm", :id, "--memory", "1224", "--cpus", "2"]
     end
 
     if provision
@@ -100,19 +107,4 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  if ENV.has_key? "SECONDARY"
-    config.vm.define :secondary do |secondary|
-
-      secondary.vm.box = "koding-9"
-      secondary.vm.box_url = "http://salt-master.in.koding.com/downloads/koding-9.box"
-      secondary.vm.hostname = "secondary"
-      secondary.vm.synced_folder ".", "/opt/koding"
-
-      secondary.vm.provider "virtualbox" do |v|
-        v.name = "second_#{Time.new.to_i}"
-        v.customize ["setextradata", :id, "VBoxInternal2/SharedFoldersEnableSymlinksCreate/koding", "1"]
-        v.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2"]
-      end
-    end
-  end
 end

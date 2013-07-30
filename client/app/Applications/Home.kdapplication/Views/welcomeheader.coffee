@@ -10,7 +10,6 @@ class WelcomeHeader extends KDHeaderView
     # else if $(event.target).is "a"
     if $(event.target).is "a"
       $.ajax
-        # url       : KD.config.apiUri+'https://api.koding.com/1.0/logout'
         url       : "/beta.txt"
         success   : (response)=>
           modal = new KDModalView

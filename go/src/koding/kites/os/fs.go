@@ -33,6 +33,8 @@ type FileEntry struct {
 	Mode     os.FileMode `json:"mode"`
 	Time     time.Time   `json:"time"`
 	IsBroken bool        `json:"isBroken"`
+	Readable bool        `json:"readable"`
+	Writable bool        `json:"writable"`
 }
 
 func init() {
@@ -47,6 +49,9 @@ func init() {
 			if (ev.Mask & (inotify.IN_CREATE | inotify.IN_MOVED_TO | inotify.IN_ATTRIB)) != 0 {
 				info, err := os.Lstat(ev.Name)
 				if err != nil {
+					if os.IsNotExist(err) {
+						continue // skip this event, file is deleted and deletion event will follow
+					}
 					log.Warn("Watcher error", err)
 					continue
 				}
@@ -367,11 +372,13 @@ func (watch *Watch) Close() error {
 
 func makeFileEntry(vos *virt.VOS, dir string, fi os.FileInfo) FileEntry {
 	entry := FileEntry{
-		Name:  fi.Name(),
-		IsDir: fi.IsDir(),
-		Size:  fi.Size(),
-		Mode:  fi.Mode(),
-		Time:  fi.ModTime(),
+		Name:     fi.Name(),
+		IsDir:    fi.IsDir(),
+		Size:     fi.Size(),
+		Mode:     fi.Mode(),
+		Time:     fi.ModTime(),
+		Readable: vos.IsReadable(fi),
+		Writable: vos.IsWritable(fi),
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {

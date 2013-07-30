@@ -14,17 +14,24 @@ class NVMItemView extends NFileItemView
       delegate : @
       click    : @bound "createRootContextMenu"
 
-    vmName = if data.vmName is KD.nick() then "Koding" else data.vmName
     @vmInfo = new KDCustomHTMLView
       tagName  : 'span'
       cssClass : 'vm-info'
-      partial  : "on <strong>#{vmName}</strong> VM"
+      partial  : "on <strong>#{data.vmName}</strong> VM"
+
+    @vm.fetchVMDomains data.vmName, (err, domains)=>
+      if not err and domains.length > 0
+        @vmInfo.updatePartial """
+          on <a id="open-vm-page-#{data.vmName}"
+          href="http://#{domains.first}" target="_blank">
+          #{domains.first}</a> VM
+        """
 
   createRootContextMenu:->
     offset = @changePathButton.$().offset()
     finder = KD.getSingleton('finderController')
     currentPath = @getData().path
-    width = 30 + currentPath.length * 6
+    width = 30 + currentPath.length * 3
 
     contextMenu = new JContextMenu
       menuWidth   : width
@@ -60,28 +67,26 @@ class NVMItemView extends NFileItemView
 
     if err or not info
       @unsetClass 'online'
-      # @vmToggle.setDefaultValue no
       return warn err
 
     switch info.state
       when "RUNNING"
         @setClass 'online'
-        # @vmToggle.setDefaultValue yes
 
       when "STOPPED"
         @unsetClass 'online'
-        # @vmToggle.setDefaultValue no
 
   viewAppended:->
     super
     @vm.info @getData().vmName, @bound 'checkVMState'
 
   pistachio:->
+    path = FSHelper.plainPath @getData().path
 
     """
       {{> @icon}}
       {{> @loader}}
-      {span.title{ #(name)}}
+      {span.title[title="#{path}"]{ #(name)}}
       {{> @changePathButton}}
       {{> @vmInfo}}
       <span class='chevron'></span>

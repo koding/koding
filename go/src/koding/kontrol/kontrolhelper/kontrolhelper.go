@@ -86,7 +86,11 @@ func CreateStream(channel *amqp.Channel, kind, exchange, queue, key string, dura
 	return stream
 }
 
-func CustomHostname() string {
+func CustomHostname(host string) string {
+	if host != "" {
+		return host
+	}
+
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Println(err)
@@ -122,23 +126,24 @@ func CreateProducer(name string) (*Producer, error) {
 	return p, nil
 }
 
-func RegisterToKontrol(name, uuid string, port int) error {
+func RegisterToKontrol(name, serviceGenericName, serviceUniqueName, uuid, hostname string, port int) error {
 	connection := CreateAmqpConnection()
 	channel := CreateChannel(connection)
 
 	type workerMessage struct {
 		Command string
 		Option  string
-		Result  string
 	}
 
 	type workerMain struct {
-		Name     string
-		Uuid     string
-		Hostname string
-		Version  int
-		Message  workerMessage
-		Port     int
+		Name               string
+		ServiceGenericName string `json:"serviceGenericName"`
+		ServiceUniqueName  string `json:"serviceUniqueName"`
+		Uuid               string
+		Hostname           string
+		Version            int
+		Message            workerMessage
+		Port               int
 	}
 
 	version, err := strconv.Atoi(ReadVersion())
@@ -147,9 +152,11 @@ func RegisterToKontrol(name, uuid string, port int) error {
 	}
 
 	cmd := workerMain{
-		Name:     name,
-		Uuid:     uuid,
-		Hostname: CustomHostname(),
+		Name:               name,
+		ServiceGenericName: serviceGenericName,
+		ServiceUniqueName:  serviceUniqueName,
+		Uuid:               uuid,
+		Hostname:           hostname,
 		Message: workerMessage{
 			Command: "addWithProxy",
 			Option:  "many",

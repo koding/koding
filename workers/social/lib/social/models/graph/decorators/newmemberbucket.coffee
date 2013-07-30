@@ -21,8 +21,8 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
     for member in data
       id = member.id
       generatedMember = {}
-      generatedMember.modifiedAt = member.meta.cretadAt
-      generatedMember.createdAt  = member.meta.cretadAt
+      generatedMember.modifiedAt = member.meta.createdAt
+      generatedMember.createdAt  = member.meta.createdAt
       generatedMember.type       = @activityName
       generatedMember._id        = id
       snapshot = @generateSnapshot member
@@ -37,10 +37,9 @@ module.exports = class NewMemberBucketDecorator extends BucketActivityDecorator
     return members
 
   addToOverview:(member)->
+    return  if @overview.count > 3
+
     @overview.count++
-
-    return  if @overview.count > 5
-
     @overview.createdAt.unshift member.meta.createdAt
     @overview.ids.unshift member.id
 

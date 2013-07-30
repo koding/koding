@@ -27,14 +27,14 @@ class HomeAppView extends KDView
       tagName  : "section"
     ,
       "MEMBERS"          : count : 0
-      "Virtual Machines" : count : 0
-      "Lines of Code"    : count : 0
+      "RUNNING VMS"      : count : 0
+      # "Lines of Code"    : count : 0
       "GROUPS"           : count : 0
       "TOPICS"           : count : 0
       "Thoughts shared"  : count : 0
 
-    vms          = @counterBar.counters["Virtual Machines"]
-    loc          = @counterBar.counters["Lines of Code"]
+    vms          = @counterBar.counters["RUNNING VMS"]
+    # loc          = @counterBar.counters["Lines of Code"]
     members      = @counterBar.counters.MEMBERS
     groups       = @counterBar.counters.GROUPS
     topics       = @counterBar.counters.TOPICS
@@ -42,12 +42,12 @@ class HomeAppView extends KDView
     vmController = KD.getSingleton("vmController")
     {JAccount, JTag, JGroup, CActivity} = KD.remote.api
 
-    members.ready => JAccount.count "",         (err, count)=> members.update count    or 0
+    members.ready => JAccount.count             (err, count)=> members.update count    or 0
     vms.ready => vmController.fetchTotalVMCount (err, count)=> vms.update count        or 0
-    loc.ready => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
-    groups.ready => JGroup.count "",            (err, count)=> groups.update count     or 0
-    topics.ready => JTag.count "",              (err, count)=> topics.update count     or 0
-    activities.ready => CActivity.count "",     (err, count)=> activities.update count or 0
+    # loc.ready => vmController.fetchTotalLoC     (err, count)=> loc.update count        or 0
+    groups.ready => JGroup.count                (err, count)=> groups.update count     or 0
+    topics.ready => JTag.fetchCount             (err, count)=> topics.update count     or 0
+    activities.ready => CActivity.fetchCount    (err, count)=> activities.update count or 0
 
     KD.getSingleton("activityController").on "ActivitiesArrived", (newActivities=[])->
       activities.increment newActivities.length
@@ -58,8 +58,7 @@ class HomeAppView extends KDView
     @utils.wait 500, => @_windowDidResize()
     KD.getSingleton("contentPanel").on "transitionend", (event)=>
       event.stopPropagation()
-      if $(event.target).is "#content-panel"
-        @_windowDidResize()
+      @_windowDidResize()  if $(event.target).is "#content-panel"
 
   _windowDidResize:->
     @unsetClass "extra-wide wide medium narrow extra-narrow"

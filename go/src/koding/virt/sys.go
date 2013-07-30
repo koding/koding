@@ -23,9 +23,15 @@ type SysGroup struct {
 
 func (vm *VM) MergePasswdFile() {
 	passwdFile := vm.OverlayFile("/etc/passwd")
-	users, _ := ReadPasswd(passwdFile) // error ignored
+	users, err := ReadPasswd(passwdFile) // error ignored
+	if err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		return // no file in upper, no need to merge
+	}
 
-	lowerUsers, err := ReadPasswd(LowerdirFile("/etc/passwd"))
+	lowerUsers, err := ReadPasswd(vm.LowerdirFile("/etc/passwd"))
 	if err != nil {
 		panic(err)
 	}
@@ -42,9 +48,15 @@ func (vm *VM) MergePasswdFile() {
 
 func (vm *VM) MergeGroupFile() {
 	groupFile := vm.OverlayFile("/etc/group")
-	groups, _ := ReadGroup(groupFile) // error ignored
+	groups, err := ReadGroup(groupFile) // error ignored
+	if err != nil {
+		if !os.IsNotExist(err) {
+			panic(err)
+		}
+		return // no file in upper, no need to merge
+	}
 
-	lowerGroups, err := ReadGroup(LowerdirFile("/etc/group"))
+	lowerGroups, err := ReadGroup(vm.LowerdirFile("/etc/group"))
 	if err != nil {
 		panic(err)
 	}
@@ -66,7 +78,7 @@ func (vm *VM) MergeGroupFile() {
 func ReadPasswd(fileName string) (map[int]*SysUser, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
-		return make(map[int]*SysUser, 0), err
+		return nil, err
 	}
 	defer f.Close()
 	r := bufio.NewReader(f)
@@ -112,7 +124,7 @@ func WritePasswd(users map[int]*SysUser, fileName string) error {
 func ReadGroup(fileName string) (map[int]*SysGroup, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
-		return make(map[int]*SysGroup, 0), err
+		return nil, err
 	}
 	defer f.Close()
 	r := bufio.NewReader(f)

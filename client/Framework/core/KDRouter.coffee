@@ -18,7 +18,7 @@ class KDRouter extends KDObject
     @tree          = {} # this is the tree for quick lookups
     @routes        = {} # this is the flat namespace containing all routes
     @visitedRoutes = []
-    @addRoutes routes
+    @addRoutes routes  if routes
 
   listen:->
     # this handles the case that the url is an "old-style" hash fragment hack.
@@ -32,14 +32,13 @@ class KDRouter extends KDObject
 
   popState:(event)->
     revive event.state, (err, state)=>
-      if err?
-        new KDNotificationView title: 'An unknown error has occurred.'
-      else
-        @handleRoute "#{location.pathname}#{location.search}",
-          shouldPushState   : no
-          state             : state
+      return KD.showError err  if err
+      @handleRoute "#{location.pathname}#{location.search}",
+        shouldPushState   : no
+        state             : state
 
   clear:(route = '/', replaceState = yes)->
+    console.log {arguments}
     delete @userRoute # TODO: i hope deleting the userRoute here doesn't break anything... C.T.
     @handleRoute route, {replaceState}
 
@@ -59,7 +58,9 @@ class KDRouter extends KDObject
     window.removeEventListener 'popstate', @bound "popState"
     return yes
 
-  @handleNotFound =(route)-> log "The route #{route} was not found!"
+  @handleNotFound =(route)->
+    console.trace()
+    log "The route #{route} was not found!"
 
   getCurrentPath:-> @currentPath
 
@@ -74,6 +75,9 @@ class KDRouter extends KDObject
     "/#{route.slice(0, i).concat(route.slice i + 1).join '/'}"
 
   addRoute:(route, listener)->
+
+    # log "route added ---->", route
+
     @routes[route] = listener
     node = @tree
     route = route.split '/'
@@ -98,7 +102,7 @@ class KDRouter extends KDObject
 
   handleRoute:(userRoute, options={})->
 
-    userRoute = userRoute.slice 1  if userRoute.indexOf('!') is 0
+    userRoute = userRoute.slice 1  if (userRoute.indexOf '!') is 0
     @visitedRoutes.push userRoute
 
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
@@ -116,7 +120,9 @@ class KDRouter extends KDObject
     frag = frag.split '/'
     frag.shift() # first edge is garbage like '' or '#!'
 
-    path = frag.join '/'
+    frag = frag.filter Boolean
+
+    path = "/#{frag.join '/'}"
 
     qs = @utils.stringifyQuery query
     path += "?#{qs}"  if qs.length
@@ -129,7 +135,7 @@ class KDRouter extends KDObject
 
     if shouldPushState
       method = if replaceState then 'replaceState' else 'pushState'
-      history[method] objRef, path, "/#{path}"
+      history[method] objRef, path, path
 
     for edge in frag
       if node[edge]
@@ -154,5 +160,5 @@ class KDRouter extends KDObject
   handleQuery:(query)->
     query = @utils.stringifyQuery query  unless 'string' is typeof query
     return  unless query.length
-    nextRoute = "/#{@currentPath}?#{query}"
+    nextRoute = "#{@currentPath}?#{query}"
     @handleRoute nextRoute

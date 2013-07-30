@@ -23,6 +23,7 @@ func Connect() (*ProxyConfiguration, error) {
 	collections["services"] = database.C("jProxyServices")
 	collections["proxies"] = database.C("jProxies")
 	collections["domains"] = database.C("jDomains")
+	collections["vms"] = database.C("jVMs")
 	collections["filters"] = database.C("jProxyFilters")
 	collections["restrictions"] = database.C("jProxyRestrictions")
 	collections["domainstats"] = database.C("jDomainStats")

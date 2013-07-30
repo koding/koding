@@ -40,22 +40,22 @@ func (s PackageWithCountSlice) Swap(i, j int) {
 var actions = map[string]func(){
 	"start": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.Start()
-			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+			err := vm.Start()
+			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
 	"shutdown": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.Shutdown()
-			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+			err := vm.Shutdown()
+			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
 	"stop": func() {
 		for _, vm := range selectVMs(os.Args[2]) {
-			out, err := vm.Stop()
-			fmt.Printf("%v: %v\n%s", vm, err, string(out))
+			err := vm.Stop()
+			fmt.Printf("%v: %v\n%s", vm, err)
 		}
 	},
 
@@ -80,7 +80,7 @@ var actions = map[string]func(){
 					Id: bson.NewObjectId(),
 					IP: utils.IntToIP(<-ipPoolFetch),
 				}
-				vm.Prepare(nil, false)
+				vm.Prepare(false)
 				done <- i
 			}(i)
 		}
@@ -203,6 +203,19 @@ func selectVMs(selector string) []*virt.VM {
 		}
 		return vms
 	}
+
+	if strings.HasPrefix(selector, "vm-") {
+		_, err := os.Stat("/var/lib/lxc/" + selector)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				panic(err)
+			}
+			fmt.Println("No prepared VM with name: " + selector)
+			os.Exit(1)
+		}
+		return []*virt.VM{&virt.VM{Id: bson.ObjectIdHex(selector[3:])}}
+	}
+
 	fmt.Println("Invalid selector: " + selector)
 	os.Exit(1)
 	return nil

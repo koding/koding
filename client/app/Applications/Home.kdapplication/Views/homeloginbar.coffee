@@ -20,7 +20,7 @@ class HomeLoginBar extends JView
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
-      title       : "Have an invite code?"
+      title       : "Have an invite code? Register!"
       icon        : {}
       attributes  :
         href      : "/Register"
@@ -50,7 +50,7 @@ class HomeLoginBar extends JView
 
     @login        = new CustomLinkView
       tagName     : "a"
-      title       : "Already a user?"
+      title       : "Already a user? Sign In!"
       icon        : {}
       cssClass    : "login"
       attributes  :
@@ -75,6 +75,7 @@ class HomeLoginBar extends JView
             unless err
               @access.hide()
               @requested.show()
+              @listenToApproval()
 
     @join         = new CustomLinkView
       tagName     : "a"
@@ -84,7 +85,7 @@ class HomeLoginBar extends JView
       attributes  :
         href      : "#"
       click       : (event)=>
-        KD.track "Login", "GroupJoinRequest", @group.slug
+        KD.track "Login", "GroupJoinRequest", @group.slug, @group
         @utils.stopDOMEvent event
         requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
@@ -186,12 +187,7 @@ class HomeLoginBar extends JView
     KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   handleBackendResponse:(err, successMsg)->
-    if err
-      warn err
-      return new KDNotificationView
-        title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-        duration : 2000
-
+    return KD.showError err  if err
     new KDNotificationView
       title    : successMsg
       duration : 2000
@@ -206,7 +202,6 @@ class HomeLoginBar extends JView
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
       else @request.hide()
-      return
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()
@@ -232,6 +227,8 @@ class HomeLoginBar extends JView
 
               return  unless KD.isLoggedIn()
 
+              @group.on 'MemberAdded', @emit.bind this, 'MemberAdded'
+
               KD.whoami().getInvitationRequestByGroup @group, $in:['sent', 'pending'], (err, [request])=>
                 return console.warn err if err
                 return unless request
@@ -240,9 +237,18 @@ class HomeLoginBar extends JView
                 if request.status is 'sent'
                   @invited.show()
                 else
+                  @listenToApproval()
                   @requested.show()
     else
       @hide()
+
+  listenToApproval:->
+    @once 'MemberAdded', @listenToApprovalCallback ?= =>
+      @group.fetchMyRoles (err, roles)=>
+        return warn err  if err
+        if 'member' not in roles
+          return @once 'MemberAdded', @listenToApprovalCallback
+        KD.getSingleton('mainController').accountChanged KD.whoami()
 
   viewAppended:->
     super

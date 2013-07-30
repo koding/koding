@@ -19,7 +19,7 @@ type Service struct {
 	CookieNeeded         bool
 	StreamLimit          int
 	MaxReceivedPerSecond int
-	ErrorHandler         func(err interface{}, stackOffset int)
+	ErrorHandler         func(err interface{}, stackOffset int, additionalData ...interface{})
 
 	iFrameContent []byte
 	iFrameETag    string

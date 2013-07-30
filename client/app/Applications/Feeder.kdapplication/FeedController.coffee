@@ -1,6 +1,6 @@
 class FeedController extends KDViewController
-  constructor:(options={})->
 
+  constructor:(options={})->
 
     options.autoPopulate   ?= no
     options.useHeaderNav   ?= no
@@ -13,11 +13,12 @@ class FeedController extends KDViewController
 
     resultsController = options.resultsController or FeederResultsController
     @resultsController  = new resultsController
-      itemClass     : options.itemClass
-      filters       : options.filter
-      listCssClass  : options.listCssClass or ""
-      delegate      : @
-      onboarding    : options.onboarding
+      itemClass           : options.itemClass
+      filters             : options.filter
+      listControllerClass : options.listControllerClass
+      listCssClass        : options.listCssClass or ""
+      delegate            : @
+      onboarding          : options.onboarding
 
     unless options.useHeaderNav
       facetsController    = options.facetsController or FeederFacetsController
@@ -47,7 +48,6 @@ class FeedController extends KDViewController
         view.addSubView @resultsController.getView()
         view.addSubView @facetsController.getView()
 
-
     super options, null
 
     options             = @getOptions()
@@ -73,7 +73,6 @@ class FeedController extends KDViewController
     @facetsController.highlight filterName, sortName
 
   handleQuery:({filter, sort})->
-
     if filter
       unless @filters[filter]?
         filter = (Object.keys @filters).first
@@ -133,7 +132,6 @@ class FeedController extends KDViewController
   emitLoadStarted:(filter)->
     listController = @resultsController.listControllers[filter.name]
     listController.showLazyLoader no
-    @showNoItemFound listController, filter
     return listController
 
   emitLoadCompleted:(filter)->
@@ -143,14 +141,6 @@ class FeedController extends KDViewController
 
   emitCountChanged:(count, filter)->
     @resultsController.getDelegate().emit "FeederListViewItemCountChanged", count, filter
-
-  showNoItemFound:(controller, filter)->
-    {noItemFoundText} = filter
-    if @noItemFound? then @noItemFound.destroy()
-    controller.scrollView.addSubView @noItemFound = new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : noItemFoundText or @getOptions().noItemFoundText or "There is no activity."
-    @noItemFound.hide()
 
   # this is a temporary solution for a bug that
   # bongo returns correct result set in a wrong order
@@ -181,8 +171,6 @@ class FeedController extends KDViewController
         listController = @emitLoadCompleted filter
         if items?
           unless err
-            if items.length is 0 and listController.getItemCount() is 0
-              @noItemFound.show()
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
             @emitCountChanged listController.itemsOrdered.length, filter.name
@@ -191,8 +179,6 @@ class FeedController extends KDViewController
           else
             warn err
         else unless err
-          if listController.getItemCount() is 0
-            @noItemFound.show()
           filter.dataEnd? @, rest...
         else
           filter.dataError? @, err

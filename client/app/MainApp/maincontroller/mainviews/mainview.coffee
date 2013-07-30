@@ -48,7 +48,10 @@ class MainView extends KDView
     about.setY offset
     about.bindTransitionEnd()
 
-  addBook:-> @addSubView new BookView
+  addBook:-> 
+    @addSubView new BookView 
+      delegate : this
+    
 
   _windowDidResize:->
 
@@ -127,7 +130,9 @@ class MainView extends KDView
       appManager  = KD.getSingleton "appManager"
       appManifest = appManager.getFrontAppManifest()
       menu = appManifest?.menu or KD.getAppOptions(appManager.getFrontApp().getOptions().name)?.menu
-      if menu?.length
+      if Array.isArray menu
+        menu = items: menu
+      if menu?.items?.length
         @appSettingsMenuButton.setData menu
         @appSettingsMenuButton.show()
       else
@@ -169,6 +174,20 @@ class MainView extends KDView
           content    : systemStatus.content
           type       : systemStatus.type
 
+  enableFullscreen: ->
+    @contentPanel.$().addClass "fullscreen no-anim"
+    $(window).resize()
+
+  disableFullscreen: ->
+    @contentPanel.$().removeClass "fullscreen no-anim"
+    $(window).resize()
+
+  isFullscreen: ->
+    @contentPanel.$().is ".fullscreen"
+
+  toggleFullscreen: ->
+    if @isFullscreen() then @disableFullscreen() else @enableFullscreen()
+
   getSticky = =>
     KD.getSingleton('windowController')?.stickyNotification
 
@@ -187,7 +206,6 @@ class MainView extends KDView
           title       : systemStatus.title
           content     : systemStatus.content
           type        : systemStatus.type
-
 
 # inactive code
 

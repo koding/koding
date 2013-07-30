@@ -13,6 +13,7 @@ type Config struct {
 	ProjectRoot     string
 	UserSitesDomain string
 	ContainerSubnet string
+	Version         string
 	Client          struct {
 		StaticFilesBaseUrl string
 	}
@@ -31,10 +32,12 @@ type Config struct {
 		Enabled bool
 	}
 	Broker struct {
-		IP       string
-		Port     int
-		CertFile string
-		KeyFile  string
+		IP              string
+		Port            int
+		CertFile        string
+		KeyFile         string
+		AuthExchange    string
+		AuthAllExchange string
 	}
 	Loggr struct {
 		Push   bool
@@ -58,10 +61,8 @@ type Config struct {
 		Proxy struct {
 			Port    int
 			PortSSL int
+			FTPIP   string
 			SSLIPS  string
-		}
-		Mongo struct {
-			Host string
 		}
 		RabbitMq struct {
 			Host     string
@@ -85,15 +86,19 @@ var PillarProfile string
 var Profile string
 var Current Config
 var LogDebug bool
-var Verbose bool
 var Uuid string
+var Host string
+var BrokerDomain string
 
 func init() {
 	flag.StringVar(&FileProfile, "c", "", "Configuration profile from file")
+	flag.StringVar(&FileProfile, "config", "", "Alias for -c")
 	flag.StringVar(&PillarProfile, "p", "", "Configuration profile from saltstack pillar")
 	flag.BoolVar(&LogDebug, "d", false, "Log debug messages")
-	flag.BoolVar(&Verbose, "v", false, "Enable verbose mode")
 	flag.StringVar(&Uuid, "u", "", "Enable kontrol mode")
+	flag.StringVar(&Host, "h", "", "hostname to be resolved")
+	flag.StringVar(&BrokerDomain, "a", "", "send kontrol a custom domain istead of os.Hostname")
+	flag.StringVar(&BrokerDomain, "domain", "", "Alias for -a")
 
 	flag.Parse()
 	if flag.NArg() != 0 {

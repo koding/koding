@@ -1,10 +1,20 @@
+_ = require 'underscore'
 neo4j = require "neo4j"
 {race} = require 'sinkrow'
 {Base, ObjectId, race} = require 'bongo'
 
 module.exports = class Graph
-  constructor:({config})->
+  constructor:({config, facets})->
     @db = new neo4j.GraphDatabase(config.read + ":" + config.port);
+    @facets = facets
+
+  @reviveFromData: (data, className)->
+    data.bongo_ =
+      constructorName : className
+      instanceId : data.id
+    data._id = data.id
+    obj = new Base.constructors[className] data
+    return obj
 
   fetchObjectsFromMongo:(collections, wantedOrder, callback)->
     sortThem=(err, objects)->
@@ -41,25 +51,62 @@ module.exports = class Graph
       }
       collectObjects({klass:klass, selector:selector, modelName:modelName})
 
-  fetchFromNeo4j:(query, params, callback)->
-    resultsKey = params.resultsKey or "items"
-    # gets ids from neo4j, fetches objects from mongo, returns in the same order
-    @db.query query, params, (err, results)=>
+  # returns object ids from a result set as array
+  # returns dict {colections: {'users':[id1,id2,id3]},
+  #               wantedOrder: ['users_id1', 'users_id2']
+  #             }
+  # this is needed for fetchObjectsFromMongo()
+  getIdsFromAResultSet: (resultSet)->
+    collections = {}
+    wantedOrder = []
+    for obj in resultSet
+      collections[obj.name] or= []
+      collections[obj.name].push obj.id
+      wantedOrder.push idx: obj.id+'_'+obj.name
+    collections: collections, wantedOrder: wantedOrder
+
+
+  attachReplies:(options, callback)->
+    tempRes = []
+    collectRelations = race (i, res, fin)=>
+      res.replies = []
+      @fetchReplies res.getId(), (err, relatedResult)=>
+        if err
+          callback err
+          fin()
+        else
+            if relatedResult.reply?
+              {collections, wantedOrder} = @getIdsFromAResultSet relatedResult.reply
+              @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+                res.replies.push obj for obj in dbObjects
+                tempRes[i] = res
+                fin()
+            else
+              tempRes.push res
+              fin()
+    , =>
+      {groupName, groupId} = options.group if options.group?
+
+      if groupName? and groupName is "koding"
+        @removePrivateContent client, groupId, tempRes, callback
+      else
+        callback null, tempRes
+    return collectRelations
+
+  runQuery:(query, options, callback)->
+    {startDate, client} = options
+    @db.query query, {}, (err, results)=>
       if err
-        return callback err
+        callback err
+      else if results.length is 0 then callback null, []
+      else
+        collectRelations = @attachReplies(options, callback)
+        resultData = []
+        {collections, wantedOrder} = @getIdsFromAResultSet _.map(results, (e)->e.content.data)
+        @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+          for dbObj in dbObjects
+            collectRelations dbObj
 
-      if results.length == 0
-        callback null, []
-
-      wantedOrder = []
-      collections = {}
-      for result in results
-        oid = result[resultsKey]._data.data.id
-        otype = result[resultsKey]._data.data.name
-        wantedOrder.push({id: oid, collection: otype, idx: oid+'_'+otype})
-        collections[otype] ||= []
-        collections[otype].push(oid)
-      @fetchObjectsFromMongo(collections, wantedOrder, callback)
 
   objectify = (incomingObjects, callback)->
     incomingObjects = [].concat(incomingObjects)
@@ -77,45 +124,64 @@ module.exports = class Graph
       generatedObjects.push generatedObject
     callback generatedObjects
 
-  removePrivateContent:(groupId, contents, callback)->
-    query = """
-      start  kd=node:koding("id:#{groupId}")
-      MATCH  kd-[:member]->users-[r:owner]-groups
-      WHERE groups.name = "JGroup"
-       AND ( groups.privacy = "private"
-        OR  groups.visibility=  "hidden" )
-      RETURN groups
-      ORDER BY r.createdAtEpoch DESC
-    """
-
-    @db.query query, {}, (err, results)=>
+  getSecretGroups:(client, callback)->
+    JGroup = require '../group'
+    JGroup.some
+      $or : [
+        { privacy: "private" }
+        { visibility: "hidden" }
+      ]
+      slug:
+        $nin: ["koding"] # we need koding even if its private
+    , {}, (err, groups)=>
       if err then return callback err
-      secretGroups = (result.groups.data.slug for result in results)
+      else
+        if groups.length < 1 then callback null, []
+        secretGroups = []
+        checkUserCanReadActivity = race (i, {client, group}, fin)=>
+          group.canReadActivity client, (err, res)=>
+            secretGroups.push group.slug if err
+            fin()
+        , -> callback null, secretGroups
+        for group in groups
+          checkUserCanReadActivity {client: client, group: group}
+
+  # we may need to add public group's read permission checking
+  removePrivateContent:(client, groupId, contents, callback)->
+    if contents.length < 1 then return callback null, contents
+    @getSecretGroups client, (err, secretGroups)=>
+      if err then return callback err
+      if secretGroups.length < 1 then return callback null, contents
       filteredContent = []
       for content in contents
         filteredContent.push content if content.group not in secretGroups
-      callback null, filteredContent
+      return callback null, filteredContent
 
-  fetchAll:(group, startDate, callback)->
-    {groupName, groupId} = group
-    start = new Date().getTime()
+  fetchAll:(requestOptions, callback)->
+    {group:{groupName, groupId}, startDate, client} = requestOptions
+
     # do not remove white-spaces
     query = """
-        START koding=node:koding("id:#{groupId}")
-        MATCH koding-[:member]->members<-[:author]-content
-        WHERE content.`meta.createdAtEpoch` < #{startDate}
+      START koding=node:koding("id:#{groupId}")
+      MATCH koding-[:member]->members<-[:author]-content
+      WHERE content.`meta.createdAtEpoch` < #{startDate}
+    """
 
-      """
+    facets = @facets
+    if facets and facets isnt "Everything"
+      query += (" AND (content.name=\"#{facets}\")")
+
     if groupName isnt "koding"
       query += """
-          and content.group! = "#{groupName}"
-        """
-    query += """
-        return content
-        order by content.`meta.createdAtEpoch` DESC
-        limit 20
-      """
+        and content.group! = "#{groupName}"
 
+      """
+    query += """
+
+      return content
+      order by content.`meta.createdAtEpoch` DESC
+      limit 20
+    """
     @db.query query, {}, (err, results)=>
       tempRes = []
       if err then callback err
@@ -124,7 +190,7 @@ module.exports = class Graph
         collectRelations = race (i, res, fin)=>
           id = res.id
 
-          @fecthRelatedItems id, (err, relatedResult)=>
+          @fetchRelatedItems id, (err, relatedResult)=>
             if err
               callback err
               fin()
@@ -132,9 +198,8 @@ module.exports = class Graph
               tempRes[i].relationData =  relatedResult
               fin()
         , =>
-          console.log new Date().getTime() - start
           if groupName == "koding"
-            @removePrivateContent  groupId, tempRes, callback
+            @removePrivateContent client, groupId, tempRes, callback
           else
             callback null, tempRes
         resultData = ( result.content.data for result in results)
@@ -143,16 +208,9 @@ module.exports = class Graph
             tempRes.push objected
             collectRelations objected
 
-  fecthRelatedItems:(itemId, callback)->
-    query = """
-      start koding=node:koding("id:#{itemId}")
-      match koding-[r]-all
-      return all, r
-      order by koding.`meta.createdAtEpoch` DESC
-    """
-
+  fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
-      if err then throw err
+      if err then callback err
       resultData = []
       for result in results
         type = result.r.type
@@ -166,8 +224,28 @@ module.exports = class Graph
           type = obj.relationType
           if not respond[type] then respond[type] = []
           respond[type].push obj
+
         callback err, respond
 
+
+  fetchReplies: (itemId, callback)->
+    query = """
+      start koding=node:koding("id:#{itemId}")
+      match koding-[r:reply]-all
+      return all, r
+      order by r.createdAtEpoch DESC
+      limit 3
+    """
+    @fetchRelateds query, callback
+
+  fetchRelatedItems:(itemId, callback)->
+    query = """
+      start koding=node:koding("id:#{itemId}")
+      match koding-[r]-all
+      return all, r
+      order by r.createdAtEpoch DESC
+    """
+    @fetchRelateds query, callback
 
   fetchNewInstalledApps:(group, startDate, callback)->
     {groupId} = group
@@ -227,7 +305,7 @@ module.exports = class Graph
     query = """
       start koding=node:koding("id:#{groupId}")
       MATCH koding-[:member]->followees<-[r:follower]-follower
-      where follower.name="JAccount"
+      where follower<-[:member]-koding
       and r.createdAtEpoch < #{startDate}
       return r,followees, follower
       order by r.createdAtEpoch DESC
@@ -251,7 +329,6 @@ module.exports = class Graph
     @fetchFollows query, callback
 
   fetchFollows:(query, callback)->
-
     @db.query query, {}, (err, results)=>
       if err then throw err
       @generateFollows [], results, callback
@@ -270,6 +347,14 @@ module.exports = class Graph
           resultData.push data
           @generateFollows resultData, results, callback
 
+  generateOrderByQuery:(sort)->
+    orderByQuery = ''
+    if sort
+      orderBy = Object.keys(sort)[0]
+      orderByQuery = "ORDER BY #{@getOrderByQuery orderBy} DESC"
+
+    return orderByQuery
+
   getOrderByQuery:(orderBy)->
     orderByQuery = ""
     switch orderBy
@@ -284,42 +369,35 @@ module.exports = class Graph
 
   fetchMembers:(options, callback)->
     {skip, limit, sort, groupId} = options
-    skip = 0 unless skip
-    limit = 20 unless limit
 
-    orderBy = ""
-    if sort?
-      orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
+    skip   ?= 0
+    limit  ?= 20
 
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
       return members
-      order by #{orderByQuery} DESC
+      #{@generateOrderByQuery sort}
       skip #{skip}
       limit #{limit}
       """
+
     @queryMembers query, {}, callback
 
   fetchFollowingMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
 
-    skip = 0 unless skip
-    limit = 20 unless limit
-
-    orderBy = Object.keys(sort)[0]
-    orderByQuery = @getOrderByQuery orderBy
+    skip   ?= 0
+    limit  ?= 20
 
     query = """
-        start  group=node:koding("id:#{groupId}")
+        START  group=node:koding("id:#{groupId}")
         MATCH  group-[r:member]->members-[:follower]->currentUser
-        where currentUser.id = "#{currentUserId}"
-        return members, r
-        order by #{orderByQuery} DESC
-        skip #{skip}
-        limit #{limit}
+        WHERE currentUser.id = "#{currentUserId}"
+        RETURN members, r
+        #{@generateOrderByQuery sort}
+        SKIP #{skip}
+        LIMIT #{limit}
         """
     @queryMembers query, {}, callback
 
@@ -327,22 +405,53 @@ module.exports = class Graph
   fetchFollowerMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
 
-    skip = 0 unless skip
-    limit = 20 unless limit
-    orderBy = Object.keys(sort)[0]
-
-    orderByQuery = @getOrderByQuery orderBy
+    skip   ?= 0
+    limit  ?= 20
 
     query = """
-        start group=node:koding("id:#{groupId}")
+        START group=node:koding("id:#{groupId}")
         MATCH group-[r:member]->members<-[:follower]-currentUser
-        where currentUser.id = "#{currentUserId}"
-        return members, r
-        order by #{orderByQuery} DESC
-        skip #{skip}
-        limit #{limit}
+        WHERE currentUser.id = "#{currentUserId}"
+        RETURN members, r
+        #{@generateOrderByQuery sort}
+        SKIP #{skip}
+        LIMIT #{limit}
         """
     @queryMembers query, {}, callback
+
+  fetchInvitations:(options, callback)->
+    {groupId, status, timestamp, requestLimit, search} = options
+
+    requestLimit = 10 unless requestLimit
+    regexSearch  = ""
+    timeStampQuery = ""
+
+    if search
+      # search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
+      search = search.replace(/[^\w\s@.+-]/).trim()
+      regexSearch = "AND groupOwnedNodes.email =~ \".*#{search}.*\""
+
+    if timestamp?
+        timeStampQuery = "AND groupOwnedNodes.requestedAt > \"#{timestamp}\""
+
+    if typeof status is "string" then status = [status]
+
+    # convert status array into string array
+    status   = "[\"" + status.join("\",\"") + "\"]"
+
+    query = """
+        START group=node:koding("id:#{groupId}")
+        MATCH group-[r:owner]->groupOwnedNodes
+        WHERE groupOwnedNodes.name = 'JInvitationRequest'
+        AND groupOwnedNodes.status IN #{status}
+        #{timeStampQuery}
+        #{regexSearch}
+        RETURN groupOwnedNodes
+        ORDER BY groupOwnedNodes.`meta.createdAtEpoch`
+        LIMIT #{requestLimit}
+        """
+
+    @db.query query, {}, callback
 
   queryMembers:(query, options={}, callback)->
     @db.query query, options, (err, results) ->
@@ -356,3 +465,59 @@ module.exports = class Graph
           resultData.push obj
 
         callback err, resultData
+
+  ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
+
+  fetchRelatedTagsFromGraph: (options, callback)->
+    {userId} = options
+
+    query = """
+      START follower=node:koding("id:#{userId}")
+      MATCH follower-[:related]->oauth-[r:github_followed_JTag]->followees
+      return followees.id as id
+    """
+
+    JTag = require "../tag"
+    @fetchItems query, JTag, callback
+
+  fetchRelatedUsersFromGraph: (options, callback)->
+    {userId} = options
+
+    query = """
+      START follower=node:koding("id:#{userId}")
+      MATCH follower-[:related]->oauth-[r:github_followed_JUser]->followees
+      return followees.id as id
+    """
+
+    JUser = require "../user"
+    @fetchItems query, JUser, callback
+
+  fetchItems:(query, modelName, callback)->
+    @db.query query, {}, (err, results)=>
+      if err then throw err
+      else
+        tempRes = []
+        collectContents = race (i, id, fin)=>
+          modelName.one  { _id : id }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res.id
+
+  fetchRelationshipCount:(options, callback)->
+    {groupId, relName} = options
+    query = """
+      START group=node:koding("id:#{groupId}")
+      match group-[:#{relName}]->items
+      return count(items) as count
+    """
+
+    @db.query query, {}, (err, results) ->
+      if err then callback err, null
+      else callback null, results[0].count

@@ -24,10 +24,12 @@ class ActivityLinkWidget extends KDFormView
       title : "Description:"
       autogrow: yes
 
+    name = KD.utils.getFullnameFromAccount KD.whoami(), yes
+
     @description = new KDInputView
       label         : @labelDescription
       type          : "textarea"
-      placeholder   : "Please enter a description, #{Encoder.htmlDecode profile.firstName}."
+      placeholder   : "Please enter a description, #{name}."
       name          : 'body'
       style         : 'input-with-extras'
       autogrow      : yes
@@ -41,14 +43,10 @@ class ActivityLinkWidget extends KDFormView
     @labelLink = new KDLabelView
       title : "URL:"
 
-    embedOptions = $.extend {}, options, {
-      delegate:@
+    embedOptions = $.extend {}, options,
+      delegate    : this
       hasDropdown : yes
-      click:->
-        no
-    }
-
-    @embedBox = new EmbedBox embedOptions,data
+    @embedBox = new EmbedBox embedOptions, data
 
     @previousLink = ''
     @link = new KDInputView
@@ -60,21 +58,13 @@ class ActivityLinkWidget extends KDFormView
           maxLength : 140
         messages    :
           required  : "Link URL is required!"
-      blur:=>
+      blur          : =>
         unless @link.getValue() is @previousLink
           @previousLink = @link.getValue()
 
-          @embedBox.embedUrl @link.getValue(), {
-            maxWidth:525
-            }, (linkData)=>
-
+          @embedBox.embedUrl @link.getValue(), maxWidth:525, (linkData)=>
             @$("div.formline.link-title").show()
             @$("div.formline.link-description").show()
-            # @labelTitle.show()
-            # @labelDescription.show()
-            # @title.show()
-            # @description.show()
-
             @title.setValue linkData.title
             @description.setValue linkData.description
             @removeCustomData 'link_embed'
@@ -123,16 +113,15 @@ class ActivityLinkWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-
-
   submit:->
     @addCustomData "link_url", @link.getValue()
-    @addCustomData "link_embed", @embedBox.getEmbedData()
-    @addCustomData "link_embed_hidden_items", @embedBox.embedHiddenItems
+    @addCustomData "link_embed", @embedBox.getDataForSubmit()
 
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "LinkSubmitted"
+      @reset()
     super
-    KD.track "Activity", "LinkSubmitted"
+    
 
   reset:->
 
@@ -154,7 +143,7 @@ class ActivityLinkWidget extends KDFormView
 
     @submitBtn.setTitle "Edit link"
     @addCustomData "activity", activity
-    {title, body, tags, link_url, link_embed, link_embed_hidden_items} = activity
+    {title, body, tags, link_url, link_embed} = activity
 
     @$("div.formline.link-title").show()
     @$("div.formline.link-description").show()
@@ -168,11 +157,7 @@ class ActivityLinkWidget extends KDFormView
     @link.setValue Encoder.htmlDecode link_url
 
     # refresh the embed data when editing
-    @embedBox.embedUrl link_url, {
-      maxWidth:525
-    }
-    @embedBox.setEmbedHiddenItems link_embed_hidden_items
-
+    @embedBox.embedUrl link_url, maxWidth:525
 
   widgetShown:->
 

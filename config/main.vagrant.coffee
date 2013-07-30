@@ -7,6 +7,9 @@ mongo           = 'localhost:27017/koding'
 projectRoot     = nodePath.join __dirname, '..'
 socialQueueName = "koding-social-vagrant"
 
+authExchange    = "auth"
+authAllExchange = "authAll"
+
 module.exports =
   aws           :
     key         : 'AKIAJSUVKX6PD254UGAA'
@@ -64,6 +67,8 @@ module.exports =
   authWorker    :
     login       : 'prod-auth-worker'
     queueName   : socialQueueName+'auth'
+    authExchange: authExchange
+    authAllExchange: authAllExchange
     numberOfWorkers: 1
     watch       : yes
   social        :
@@ -71,11 +76,20 @@ module.exports =
     numberOfWorkers: 1
     watch       : yes
     queueName   : socialQueueName
+    verbose     : no
   cacheWorker   :
     login       : 'prod-social'
     watch       : yes
     queueName   : socialQueueName+'cache'
     run         : no
+  followFeed    :
+    host        : 'localhost'
+    port        : 5672
+    componentUser: 'guest'
+    password    : 'guest'
+    vhost       : 'followfeed'
+  graphFeederWorker:
+    numberOfWorkers: 2
   presence      :
     exchange    : 'services-presence'
   client        :
@@ -91,14 +105,18 @@ module.exports =
     useStaticFileServer: no
     staticFilesBaseUrl: 'http://localhost:3020'
     runtimeOptions:
+      authExchange: authExchange
+      github         :
+        clientId     : "f8e440b796d953ea01e5"
       userSitesDomain: 'localhost'
       useNeo4j: yes
       logToExternal: no  # rollbar, mixpanel etc.
       resourceName: socialQueueName
       suppressLogs: no
       broker    :
+        servicesEndpoint: 'http://localhost:3020/-/services/broker'
         sockJS  : 'http://localhost:8008/subscribe'
-      apiUri    : 'https://dev-api.koding.com'
+      apiUri    : 'http://localhost:3020'
       # Is this correct?
       version   : version
       mainUri   : 'http://localhost:3020'
@@ -119,6 +137,12 @@ module.exports =
     port        : 8008
     certFile    : ""
     keyFile     : ""
+    useKontrold : no
+    webProtocol : 'http:'
+    webHostname : 'localhost'
+    webPort     : 8008
+    authExchange: authExchange
+    authAllExchange: authAllExchange
   kites:
     disconnectTimeout: 3e3
     vhost       : 'kite'
@@ -130,7 +154,7 @@ module.exports =
     cronInstant : '*/10 * * * * *'
     cronDaily   : '0 10 0 * * *'
     run         : no
-    defaultRecepient : undefined
+    forcedRecipient : undefined
   emailSender     :
     run           : no
   guests          :
@@ -153,13 +177,12 @@ module.exports =
     webPort       : 3020
   kontrold        :
     api           :
-      port        : 8000
+      port        : 8888
     proxy         :
-      port        : 8080
+      port        : 80
       portssl     : 8081
+      ftpip       : '127.0.0.1'
       sslips      : '127.0.0.1'
-    mongo         :
-      host        : '127.0.0.1'
     rabbitmq      :
       host        : 'localhost'
       port        : '5672'
@@ -185,12 +208,13 @@ module.exports =
   #     return b
   recurly       :
     apiKey      : 'b646d53c27e34916b7715931788df6af' # koding-test.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview       :
     push        : no
     host        : ''
-  followFeed    :
-    host        : 'localhost'
-    port        : 5672
-    componentUser: 'guest'
-    password    : 'guest'
-    vhost       : 'followfeed'
+    bin         : null
+    conf        : null
+  github        :
+    clientId    : "f8e440b796d953ea01e5"
+    clientSecret: "b72e2576926a5d67119d5b440107639c6499ed42"

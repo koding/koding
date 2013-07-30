@@ -55,10 +55,10 @@ class AppView extends KDView
       ]
     , app
 
-    if KD.isLoggedIn()
-      KD.whoami().isFollowing? app.getId(), "JApp", (err, following) =>
-        app.followee = following
-        @followButton.setState "Unfollow"  if following
+    # if KD.isLoggedIn()
+    KD.whoami().isFollowing? app.getId(), "JApp", (err, following) =>
+      app.followee = following
+      @followButton.setState "Unfollow"  if following
 
     appsController = KD.getSingleton("kodingAppsController")
 
@@ -85,8 +85,8 @@ class AppView extends KDView
         style    : "kdwhitebtn"
         callback : =>
           modal = new KDModalView
-            title          : "Delete App"
-            content        : "<div class='modalformline'>Are you sure you want to delete this application?</div>"
+            title          : "Delete #{Encoder.XSSEncode app.manifest.name}"
+            content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode app.manifest.name}</strong> application?</div>"
             height         : "auto"
             overlay        : yes
             buttons        :
@@ -110,54 +110,32 @@ class AppView extends KDView
                         cssClass : "error editor"
                         title    : "Error, please try again later!"
                       warn err
+              cancel       :
+                style      : "modal-cancel"
+                callback   : =>
+                  modal.destroy()
 
     else
       @approveButton = new KDView
       @removeButton  = new KDView
 
-    if KD.isLoggedIn() then app.checkIfLikedBefore (err, likedBefore)=>
+    # if KD.isLoggedIn() then
+    app.checkIfLikedBefore (err, likedBefore)=>
       if likedBefore
         @likeButton.setState "Unlike"
       else
         @likeButton.setState "Like"
 
-    if app.versions?.length > 1 and KD.isLoggedIn()
-      menu = {}
-
-      for version,i in app.versions
-        menu["Install version #{version}"] =
-          version  : version
-          callback : (item)=>
-            {version} = item.data
-            version   = 'latest' if app.versions.last is item.data.version
-            appsController.installApp app, version, (err)=>
-              KD.track "Apps", "Install", app.title unless err
-              if err then warn err
-
-      @installButton = new KDButtonViewWithMenu
-        title     : "Install Now"
-        style     : "cupid-green"
-        loader    :
-          top     : 0
-          diameter: 30
-          color   : "#ffffff"
-        delegate  : @
-        menu      : menu
-        callback  : ->
-          appsController.installApp app, 'latest', (err)=>
-            @hideLoader()
-
-    else
-      @installButton = new KDButtonView
-        title     : "Install Now"
-        style     : "cupid-green"
-        loader    :
-          top     : 0
-          diameter: 30
-          color   : "#ffffff"
-        callback  : ->
-          appsController.installApp app, 'latest', (err)=>
-            @hideLoader()
+    @installButton = new KDButtonView
+      title     : "Install Now"
+      style     : "cupid-green"
+      loader    :
+        top     : 0
+        diameter: 30
+        color   : "#ffffff"
+      callback  : ->
+        appsController.installApp app, app.manifest.version, (err)=>
+          @hideLoader()
 
     @runButton = new KDButtonView
       title     : "Run"
@@ -180,7 +158,7 @@ class AppView extends KDView
 
     appsController.fetchApps (err, manifests) =>
       # user have the app, show just show open button
-      if app.title in Object.keys manifests
+      if manifests and app.title in Object.keys manifests
         @installButton.hide()
         @runButton.show()
 
@@ -204,11 +182,14 @@ class AppView extends KDView
       attributes  :
         src       : thumb
 
+    @updatedTimeAgo = new KDTimeAgoView {}, @getData().meta.createdAt
+
   viewAppended:->
     @setTemplate @pistachio()
     @template.update()
 
   pistachio:->
+    timeAgoText = if @getData().versions?.length > 1 then "Updated" else "Released"
     """
     <div class="profileleft">
       <span>
@@ -221,7 +202,7 @@ class AppView extends KDView
         {{> @installButton}}
         {{> @runButton}}
         {{> @updateButton}}
-        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>Updated: ---</p></div>
+        <div class="versionstats updateddate">Version {{ #(manifest.version) || "---" }}<p>#{timeAgoText} {{> @updatedTimeAgo}}</p></div>
         <div class="versionscorecard">
           <div class="versionstats">{{#(counts.installed) || 0}}<p>INSTALLS</p></div>
           <div class="versionstats">{{#(meta.likes) || 0}}<p>Likes</p></div>

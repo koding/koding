@@ -19,3 +19,9 @@ module.exports = class JUnsubscribedMail extends Model
   @isUnsubscribed = (email, callback)->
     @one {email}, (err, unsubscribed)->
       callback err, unsubscribed?
+
+  @removeFromList = (email, callback=->)->
+    @one {email}, (err, unsubscribed)->
+      return callback err                  if err
+      return unsubscribed.remove callback  if unsubscribed
+      callback null

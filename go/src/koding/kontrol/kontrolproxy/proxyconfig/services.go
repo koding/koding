@@ -2,71 +2,40 @@ package proxyconfig
 
 import (
 	"fmt"
+	"koding/kontrol/kontrolproxy/models"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 	"sort"
 	"strconv"
 )
 
-type KeyData struct {
-	// Versioning of hosts
-	Key string
-
-	// List of hosts to proxy
-	Host []string
-
-	// load-balancing, sticky or roundrobin
-	Mode string `json:"mode"`
-
-	// current index of hosts. Updated automatically in roundrobin
-	// change manually when using sticky mode
-	CurrentIndex int `json:"currentindex"`
-
-	// future usage...
-	HostData string
-
-	// future usage, proxy via mq
-	RabbitKey string
-}
-
-type KeyRoutingTable struct {
-	Keys map[string]KeyData `json:"keys"`
-}
-
-type Service struct {
-	Id       bson.ObjectId              `bson:"_id" json:"-"`
-	Username string                     `bson:"username", json:"username"`
-	Services map[string]KeyRoutingTable `bson:"services", json:"services"`
-}
-
-func NewKeyRoutingTable() *KeyRoutingTable {
-	return &KeyRoutingTable{
-		Keys: make(map[string]KeyData),
+func NewKeyRoutingTable() *models.KeyRoutingTable {
+	return &models.KeyRoutingTable{
+		Keys: make(map[string]models.KeyData),
 	}
 }
 
-func NewKeyData(key, mode, hostdata, rabbitkey string, host []string, currentindex int) *KeyData {
-	return &KeyData{
+func NewKeyData(key, persistence, mode, hostdata, rabbitkey string, host []string) *models.KeyData {
+	return &models.KeyData{
 		Key:          key,
 		Host:         host,
-		Mode:         mode,
+		LoadBalancer: models.LoadBalancer{persistence, mode},
 		HostData:     hostdata,
-		CurrentIndex: currentindex,
 		RabbitKey:    rabbitkey,
 	}
 }
 
-func NewService(username string) *Service {
-	return &Service{
+func NewService(username string) *models.Service {
+	return &models.Service{
 		Id:       bson.NewObjectId(),
 		Username: username,
-		Services: make(map[string]KeyRoutingTable),
+		Services: make(map[string]models.KeyRoutingTable),
 	}
 }
 
-func (p *ProxyConfiguration) GetServices() []Service {
-	service := Service{}
-	services := make([]Service, 0)
+func (p *ProxyConfiguration) GetServices() []models.Service {
+	service := models.Service{}
+	services := make([]models.Service, 0)
 	iter := p.Collection["services"].Find(nil).Iter()
 	for iter.Next(&service) {
 		services = append(services, service)
@@ -75,8 +44,8 @@ func (p *ProxyConfiguration) GetServices() []Service {
 	return services
 }
 
-func (p *ProxyConfiguration) GetService(username string) (Service, error) {
-	service := Service{}
+func (p *ProxyConfiguration) GetService(username string) (models.Service, error) {
+	service := models.Service{}
 	err := p.Collection["services"].Find(bson.M{"username": username}).One(&service)
 	if err != nil {
 		return service, err
@@ -85,15 +54,40 @@ func (p *ProxyConfiguration) GetService(username string) (Service, error) {
 	return service, nil
 }
 
-func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData, error) {
+func (p *ProxyConfiguration) GetLatestKey(username, servicename string) string {
 	service, err := p.GetService(username)
 	if err != nil {
-		return KeyData{}, err
+		return ""
 	}
 
 	keyRoutingTable, ok := service.Services[servicename]
 	if !ok {
-		return KeyData{}, fmt.Errorf("getting key is not possible, servicename %s does not exist", servicename)
+		return ""
+	}
+
+	lenKeys := len(keyRoutingTable.Keys)
+	listOfKeys := make([]int, lenKeys)
+	i := 0
+	for k, _ := range keyRoutingTable.Keys {
+		listOfKeys[i], _ = strconv.Atoi(k)
+		i++
+	}
+	sort.Ints(listOfKeys)
+
+	// give precedence to the largest key number
+	key := strconv.Itoa(listOfKeys[len(listOfKeys)-1])
+	return key
+}
+
+func (p *ProxyConfiguration) GetKey(username, servicename, key string) (models.KeyData, error) {
+	service, err := p.GetService(username)
+	if err != nil {
+		return models.KeyData{}, err
+	}
+
+	keyRoutingTable, ok := service.Services[servicename]
+	if !ok {
+		return models.KeyData{}, fmt.Errorf("getting key is not possible, servicename %s does not exist", servicename)
 	}
 
 	if key == "latest" {
@@ -113,14 +107,14 @@ func (p *ProxyConfiguration) GetKey(username, servicename, key string) (KeyData,
 
 	keyData, ok := keyRoutingTable.Keys[key]
 	if !ok {
-		return KeyData{}, fmt.Errorf("no key '%s' available for username '%s', service '%s'", key, username, servicename)
+		return models.KeyData{}, fmt.Errorf("no key '%s' available for username '%s', service '%s'", key, username, servicename)
 	}
 
 	return keyData, nil
 }
 
 // Update or add a key. service and username will be created if not available
-func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, hostdata, rabbitkey string, currentindex int) error {
+func (p *ProxyConfiguration) UpsertKey(username, persistence, mode, servicename, key, host, hostdata, rabbitkey string) error {
 	service, err := p.GetService(username)
 	if err != nil {
 		if err != mgo.ErrNotFound {
@@ -138,7 +132,7 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 	_, ok = keyRoutingTable.Keys[key] // empty routing table or not existing key
 	if !ok {
 		hosts := []string{host}
-		keyRoutingTable.Keys[key] = *NewKeyData(key, mode, hostdata, rabbitkey, hosts, 0)
+		keyRoutingTable.Keys[key] = *NewKeyData(key, persistence, mode, hostdata, rabbitkey, hosts)
 		service.Services[servicename] = keyRoutingTable
 		err = p.UpsertService(username, service)
 		if err != nil {
@@ -160,12 +154,8 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 		keyData.Host = append(keyData.Host, host)
 	}
 
-	if currentindex >= len(keyData.Host) && mode == "sticky" {
-		return fmt.Errorf("currentindex: %d can't be larger or equal to the lenght of host-list: %d", currentindex, len(keyData.Host))
-	}
-
-	keyData.Mode = mode
-	keyData.CurrentIndex = currentindex
+	keyData.LoadBalancer.Persistence = persistence
+	keyData.LoadBalancer.Mode = mode
 	keyData.HostData = hostdata
 	keyData.RabbitKey = rabbitkey
 
@@ -178,7 +168,7 @@ func (p *ProxyConfiguration) UpsertKey(username, mode, servicename, key, host, h
 	return nil
 }
 
-func (p *ProxyConfiguration) UpdateKeyData(username, servicename string, keyData KeyData) error {
+func (p *ProxyConfiguration) UpdateKeyData(username, servicename string, keyData models.KeyData) error {
 	service, err := p.GetService(username)
 	if err != nil {
 		return err
@@ -239,7 +229,7 @@ func (p *ProxyConfiguration) DeleteService(username, servicename string) error {
 	return nil
 }
 
-func (p *ProxyConfiguration) UpsertService(username string, service Service) error {
+func (p *ProxyConfiguration) UpsertService(username string, service models.Service) error {
 	_, err := p.Collection["services"].Upsert(bson.M{"username": username}, service)
 	if err != nil {
 		return err

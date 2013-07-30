@@ -8,8 +8,7 @@ class ActivityListItemView extends KDListItemView
     JLink               : LinkActivityItemView
     JTutorial           : TutorialActivityItemView
     JBlogPost           : BlogPostActivityItemView
-
-    NewMemberBucketData   : NewMemberBucketView
+    NewMemberBucketData : MemberBucketItemView
 
   getActivityChildCssClass = ->
 
@@ -37,6 +36,8 @@ class ActivityListItemView extends KDListItemView
 
     {constructorName} = data.bongo_
     @setClass getActivityChildCssClass()[constructorName]
+
+    @bindTransitionEnd()
 
   viewAppended:->
     @addChildView @getData()
@@ -70,9 +71,9 @@ class ActivityListItemView extends KDListItemView
       @addChildView teaser, => @slideIn()
 
   slideIn:(callback=noop)->
+    @once 'transitionend', callback.bind @
     @unsetClass 'hidden-item'
-    @utils.wait 601, callback.bind @
 
   slideOut:(callback=noop)->
+    @once 'transitionend', callback.bind @
     @setClass 'hidden-item'
-    @utils.wait 601, callback.bind @

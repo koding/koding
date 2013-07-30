@@ -114,6 +114,7 @@ module.exports = class JRecurlyCharge extends jraphical.Module
       else
         payment.addUserTransaction userCode,
           amount         : data.amount
+          desc           : data.desc
         , (err, charge)=>
           return callback err  if err
           pay = new JRecurlyCharge

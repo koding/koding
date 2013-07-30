@@ -14,7 +14,7 @@ class GroupsMemberPermissionsView extends JView
     @listWrapper    = @listController.getView()
 
     @listController.getListView().on 'ItemWasAdded', (view)=>
-      view.on 'RolesChanged', @bound 'memberRolesChange'
+      view.on 'RolesChanged', @memberRolesChange.bind this, view
 
     @listController.on 'LazyLoadThresholdReached', @bound 'continueLoadingTeasers'
 
@@ -73,8 +73,6 @@ class GroupsMemberPermissionsView extends JView
         @listController.instantiateListItems members
         @timestamp = new Date members.last.timestamp_
         @emit 'teasersLoaded' if members.length is 20
-    else
-      @listController.showNoItemWidget()
 
   refresh:->
     @listController.removeAllItems()
@@ -85,8 +83,9 @@ class GroupsMemberPermissionsView extends JView
   continueLoadingTeasers:->
     @fetchSomeMembers {timestamp: $lt: @timestamp.getTime()}
 
-  memberRolesChange:(member, roles)->
-    @getData().changeMemberRoles member.getId(), roles, (err)-> console.log {arguments}
+  memberRolesChange:(view, member, roles)->
+    @getData().changeMemberRoles member.getId(), roles, (err)=>
+      view.updateRoles roles  unless err
 
   pistachio:->
     """

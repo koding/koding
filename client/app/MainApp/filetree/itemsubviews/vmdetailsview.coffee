@@ -20,7 +20,7 @@ class NVMDetailsView extends JView
     # @vm.on 'StateChanged', @bound 'checkVMState'
 
   kcRun:(command, callback)->
-    kc = KD.getSingleton("kiteController")
+    kc = KD.getSingleton("vmController")
     kc.run
       kiteName : "os"
       method   : "exec"
@@ -44,7 +44,7 @@ class NVMDetailsView extends JView
 
     if info.state is "RUNNING"
       # Memory
-      mem = (info.memoryUsage / info.memoryLimit * 100).toFixed(2)
+      mem = ((info.memoryUsage * 100) / info.totalMemoryLimit).toFixed(2)
       @labelRAM.updateTitle "#{mem}%"
       # RX
       @kcRun cmdRX, (err, out)=>

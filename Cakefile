@@ -11,6 +11,7 @@ option '-n', '--name [NAME]', 'The name of the new VPN user'
 option '-e', '--email [EMail]', 'EMail address to send the new VPN config to'
 option '-t', '--type [TYPE]', 'AWS machine type'
 option '-v', '--version [VERSION]', 'Switch to a specific version'
+option '-a', '--domain [DOMAIN]', 'Pass a domain to the task (right now only broker supports it)'
 
 {spawn, exec} = require 'child_process'
 
@@ -30,8 +31,11 @@ nodePath           = require 'path'
 portchecker        = require 'portchecker'
 Watcher            = require "koding-watcher"
 
+require 'colors'
+
 addFlags = (options)->
   flags  = ""
+  flags += " -a #{options.domain}" if options.domain
   flags += " -d" if options.debug
   flags += " -v" if options.verbose
   return flags
@@ -66,8 +70,18 @@ compileGoBinaries = (configFile,callback)->
     callback null
 
 task 'populateNeo4j', ({configFile})->
+  invoke 'deleteNeo4j'
+
   migrator = "cd go && export GOPATH=`pwd` && go run src/koding/migrators/mongo/mongo2neo4j.go -c #{configFile}"
   processes.exec migrator
+
+task 'deleteNeo4j', ({configFile})->
+  console.log "This task is hardcoded to delete only Neo running in localhost:7474\n"
+
+  query = """
+    curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node:koding(\\"id:*\\") match kod-[r]-() delete kod, r"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=relationship(*) delete kod;"}' "http://localhost:7474/db/data/cypher" && curl -X POST -H "Content-Type: application/json" -d '{"query":"start kod=node(*) delete kod;"}' "http://localhost:7474/db/data/cypher"
+  """
+  processes.exec query
 
 task 'compileGo',({configFile})->
   compileGoBinaries configFile,->
@@ -173,7 +187,7 @@ task 'authWorker',({configFile}) ->
       restartTimeout : 1000
       kontrol        :
         enabled      : if KONFIG.runKontrol is yes then yes else no
-        startMode    : "one"
+        startMode    : "many"
       verbose        : yes
 
   if config.watch is yes
@@ -210,7 +224,7 @@ task 'emailWorker',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
+      startMode    : "one"
     verbose        : yes
 
   watcher = new Watcher
@@ -230,7 +244,7 @@ task 'emailSender',({configFile})->
     restartTimeout : 100
     kontrol        :
       enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "force" #this will kill all other workers on all other machines and start himself (exclusive mode)
+      startMode    : "one"
     verbose        : yes
 
   watcher = new Watcher
@@ -311,7 +325,6 @@ task 'persistence',(options)->
 
 
 task 'osKite',({configFile})->
-
   processes.spawn
     name  : 'osKite'
     cmd   : if configFile == "vagrant" then "vagrant ssh default -c 'cd /opt/koding; sudo killall -q -KILL os; sudo ./go/bin-vagrant/os -c #{configFile}'" else "./go/bin/os -c #{configFile}"
@@ -333,17 +346,20 @@ task 'proxy',({configFile})->
 task 'neo4jfeeder',({configFile})->
 
   config = require('koding-config-manager').load("main.#{configFile}")
+  feederConfig = config.graphFeederWorker
+  numberOfWorkers = if feederConfig.numberOfWorkers then feederConfig.numberOfWorkers else 1
 
-  processes.spawn
-    name    : 'neo4jfeeder'
-    cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
-    restart : yes
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-    kontrol        :
-      enabled      : if config.runKontrol is yes then yes else no
-      startMode    : "one"
+  for i in [1..numberOfWorkers]
+    processes.spawn
+      name    : if numberOfWorkers is 1 then "neo4jfeeder" else "neo4jfeeder-#{i}"
+      cmd     : "./go/bin/neo4jfeeder -c #{configFile}"
+      restart : yes
+      stdout  : process.stdout
+      stderr  : process.stderr
+      verbose : yes
+      kontrol        :
+        enabled      : if config.runKontrol is yes then yes else no
+        startMode    : "version"
 
 task 'libratoWorker',({configFile})->
 
@@ -379,11 +395,6 @@ task 'cacheWorker',({configFile})->
             processes.kill "cacheWorker"
 
 
-task 'kontrolCli',({configFile}) ->
-  processes.fork
-    name : "kontrol"
-    cmd  : "./node_modules/kontrol -c #{configFile}"
-
 task 'kontrolClient',(options) ->
   {configFile} = options
   processes.spawn
@@ -398,15 +409,6 @@ task 'kontrolProxy',(options) ->
   processes.spawn
     name    : 'kontrolProxy'
     cmd     : "./go/bin/kontrolproxy -c #{configFile}"
-    stdout  : process.stdout
-    stderr  : process.stderr
-    verbose : yes
-
-task 'kontrolRabbit',(options) ->
-  {configFile} = options
-  processes.spawn
-    name    : 'kontrolRabbit'
-    cmd     : "./go/bin/kontrolrabbit -c #{configFile}"
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
@@ -428,11 +430,6 @@ task 'kontrolApi',(options) ->
     stdout  : process.stdout
     stderr  : process.stderr
     verbose : yes
-
-task 'kontrol',(options) ->
-  {configFile} = options
-  invoke 'kontrolDaemon'
-  invoke 'kontrolApi'
 
 task 'checkConfig',({configFile})->
   console.log "[KONFIG CHECK] If you don't see any errors, you're fine."
@@ -460,22 +457,15 @@ run =({configFile})->
     invoke 'emailWorker'    if config.emailWorker?.run is yes
     invoke 'emailSender'    if config.emailSender?.run is yes
     invoke 'webserver'
-    invoke 'alertUserToRunNeo4jMigrator'
-
-task 'alertUserToRunNeo4jMigrator', (options)->
-  {configFile} = options
-  text =  "\n"
-  text += "RED ALERT: \n"
-  text += "Please run \"cake -c #{configFile} populateNeo4j\" if you haven't already.\n"
-  text += "Usually you need to run it only once when you initialize a new vagrant box\n"
-  text += "or you nuked your neo4j db.\n"
-
-  console.log text
 
 task 'run', (options)->
   {configFile} = options
   options.configFile = "vagrant" if configFile in ["",undefined,"undefined"]
   KONFIG = config = require('koding-config-manager').load("main.#{configFile}")
+
+  if "vagrant" is options.configFile
+    (spawn 'bash', ['./vagrant/init.sh'])
+      .stdout.on 'data', (it) -> console.log "#{it}".rainbow
 
   oldIndex = nodePath.join __dirname, "website/index.html"
   if fs.existsSync oldIndex
@@ -760,8 +750,20 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     verbose : yes
     onExit : null
 
+task 'runExternals',(options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
 
-
+  processes.spawn
+    name              : 'externals'
+    cmd               : "./go/bin/externals -c #{configFile}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+    verbose           : yes
 
 
 
@@ -825,7 +827,7 @@ task 'analyzeCss','',(options)->
     # log.debug arr
     arr = br.split "\n"
     css = {}
-    for own line in arr
+    for line in arr
       ln = line.split "{"
       ln1 = ln[1]?.substr 0,ln[1].length-1
       css[ln[0]] = ln1?.split ";"

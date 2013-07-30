@@ -24,10 +24,17 @@ class KodingAppsController extends KDController
     super
 
     @appManager     = KD.getSingleton "appManager"
-    @kiteController = KD.getSingleton "kiteController"
+    @vmController   = KD.getSingleton "vmController"
     mainController  = KD.getSingleton "mainController"
     @manifests      = KodingAppsController.manifests
+    @publishedApps  = {}
     @getPublishedApps()
+
+    @createExtensionToAppMap()
+    @fetchUserDefaultAppConfig()
+
+    @on "UpdateDefaultAppConfig", (extension, appName) =>
+      @updateDefaultAppConfig extension, appName
 
     mainController.on "accountChanged.to.loggedIn", @bound "getPublishedApps"
 
@@ -46,8 +53,8 @@ class KodingAppsController extends KDController
 
   fetchApps:(callback)->
 
-    if KD.isLoggedIn() and not @appStorage?
-      @appStorage = new AppStorage 'KodingApps', '1.0'
+    if not @appStorage? # KD.isLoggedIn() and
+      @appStorage = new AppStorage 'KodingApps', '1.0.1'
 
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
@@ -55,7 +62,7 @@ class KodingAppsController extends KDController
       @fetchAppsFromDb (err, apps)=>
         if err
           @fetchAppsFromFs (err, apps)=>
-            if err then callback()
+            if err then callback? err
             else callback null, apps
         else
           callback? err, apps
@@ -183,7 +190,7 @@ class KodingAppsController extends KDController
           callback err, script
 
   getPublishedApps: (callback) ->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
     @fetchApps (err, apps) =>
       appNames = []
       appNames.push appName for appName, manifest of apps
@@ -228,7 +235,7 @@ class KodingAppsController extends KDController
         @notification.notificationSetTitle "Updating #{appName}: Fetching new app details"
         KD.remote.api.JApp.someWithRelationship { "manifest.name": appName }, {}, (err, app) =>
           @notification.notificationSetTitle "Updating #{appName}: Updating app to latest version"
-          @installApp app[0], "latest", =>
+          @installApp app[0], app[0].versions.last, =>
             @refreshApps()
             callback?()
             @emit "AnAppHasBeenUpdated"
@@ -239,51 +246,47 @@ class KodingAppsController extends KDController
   # KITE INTERACTIONS
   # #
 
-  runApp:(manifest, callback)->
+  putAppResources:(appInstance)->
+    return  unless appInstance
 
-    unless manifest
-      warn "AppManager doesn't know what to run, no options passed!"
-      return
+    manifest = appInstance.getOptions()
+    {devMode, forceUpdate, name, options, version, thirdParty} = manifest
 
-    if @isAppUpdateAvailable(manifest.name, manifest.version) and not manifest.devMode and manifest.forceUpdate
+    return  unless thirdParty
+
+    if @isAppUpdateAvailable(name, version) and not devMode and forceUpdate
       @showUpdateRequiredModal manifest
-      return callback?()
+      return callback()
 
-    {options, name} = manifest
+    appView = appInstance.getView()
+    appView.addSubView loader = new KDLoaderView
+      loaderOptions :
+        color       : "#ff9200"
+        speed       : 2
+        range       : 0.7
+        density     : 60
+      cssClass      : "app-loading"
+      size          :
+        width       : 128
+
+    appView.once "viewAppended", -> loader.show()
 
     putStyleSheets manifest
 
     @getAppScript manifest, (err, appScript)=>
-      if err then warn err
-      else
-        if options and options.type is "tab"
-          @appManager.open manifest.name,
-            requestedFromAppsController : yes
-          , (appInstance)->
+      return warn err  if err
 
-            appView = appInstance.getView()
-            id      = appView.getId()
+      loader.destroy()
+      id = appView.getId()
 
-            try
-              # security please!
-              do (appView)->
-                eval "var appView = KD.instances[\"#{id}\"];\n\n" + appScript
-            catch error
-              # if not manifest.ignoreWarnings? # GG FIXME
-              showError error
-            callback?()
-            return appView
-        else
-          try
-            # security please!
-            do ->
-              eval appScript
-          catch error
-            showError error
-          callback?()
-          return null
+      try
+        # security please!
+        do (appView)->
+          eval "var appView = KD.instances[\"#{id}\"];\n\n" + appScript
+      catch error
+        # if not manifest.ignoreWarnings? # GG FIXME
+        showError error
 
-        callback?()
 
   publishApp:(path, callback)->
 
@@ -316,7 +319,7 @@ class KodingAppsController extends KDController
         method   : "app.publish"
         withArgs : {appPath}
 
-      @kiteController.run options, (err, res)=>
+      @vmController.run options, (err, res)=>
         if err
           warn err
           notification.destroy()
@@ -354,11 +357,11 @@ class KodingAppsController extends KDController
         title    : "Compiling #{name}..."
         type     : "mini"
 
-      @kiteController.run "kdc #{appPath}", (err, response)=>
+      @vmController.run "kdc #{appPath}", (err, response)=>
         if not err
           nickname    = KD.nick()
           publishPath = "/home/#{nickname}/Web/.applications"
-          @kiteController.run
+          @vmController.run
             kiteName    : "os"
             method      : "fs.createDirectory"
             withArgs    :
@@ -367,7 +370,7 @@ class KodingAppsController extends KDController
           , (err, response)=>
             loader.notificationSetTitle "Publishing app static files..."
             linkFile = "#{publishPath}/#{KD.utils.slugify name}"
-            @kiteController.run "rm #{linkFile}; ln -s #{appPath} #{linkFile}", (err, response)=>
+            @vmController.run "rm #{linkFile}; ln -s #{appPath} #{linkFile}", (err, response)=>
               loader.notificationSetTitle "Fetching compiled app..."
               @fetchCompiledAppSource app, (err, res)=>
                 if not err
@@ -431,7 +434,7 @@ class KodingAppsController extends KDController
     else
       compileOnServer @constructor.manifests[name]
 
-  installApp:(app, version='latest', callback)->
+  installApp:(app, version, callback)->
 
     # add group membership control when group based apps feature is implemented!
     KD.requireMembership
@@ -461,9 +464,9 @@ class KodingAppsController extends KDController
                       owner       : acc.profile.nickname
                       identifier  : app.manifest.identifier
                       appPath     : @getAppPath app.manifest
-                      version     : app.versions.last
+                      version     : version
 
-                  @kiteController.run options, (err, res)=>
+                  @vmController.run options, (err, res)=>
                     if err then warn err
                     else
                       app.install (err)=>
@@ -484,7 +487,14 @@ class KodingAppsController extends KDController
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      content                     : "<div class='modalformline'>Please select the application type you want to start with.</div>"
+      content                     : 
+        """ <div class='modalformline'><p>
+            Please select the application type you want to start with.
+            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder, 
+            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start 
+            reading <code>manifest.json</code>
+            </p></div>
+        """
       overlay                     : yes
       width                       : 400
       height                      : "auto"
@@ -552,7 +562,7 @@ class KodingAppsController extends KDController
   _createChangeLog:(name)->
     today = new Date().format('yyyy-mm-dd')
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
 
     """
      #{today} #{fullName} <@#{profile.nickname}>
@@ -578,7 +588,7 @@ class KodingAppsController extends KDController
 
     # Copy default app files (app Skeleton)
     stack.push (cb)=>
-      @kiteController.run
+      @vmController.run
         method    : "app.skeleton"
         withArgs  :
           type    : if isBlank then "blank" else "sample"
@@ -606,14 +616,14 @@ class KodingAppsController extends KDController
         callback new KDNotificationView type : "mini", title : "Please refresh your apps and try again!"
         return
 
-      @kiteController.run
-        kiteName    : "applications"
-        method      : "downloadApp"
-        withArgs    :
-          owner     : manifest.authorNick
-          appName   : manifest.name
-          appPath   : @getAppPath manifest
-          version   : manifest.version
+      @vmController.run
+        kiteName     : "os"
+        method       : "app.download"
+        withArgs     :
+          owner      : manifest.authorNick
+          identifier : manifest.identifier
+          appPath    : @getAppPath manifest
+          version    : manifest.version
       , (err, res)=>
         if err
           warn err
@@ -630,7 +640,7 @@ class KodingAppsController extends KDController
   escapeFilePath = FSHelper.escapeFilePath
 
   putStyleSheets = (manifest)->
-    {name, devMode} = manifest
+    {name, devMode, version, identifier} = manifest
     {stylesheets} = manifest.source if manifest.source
 
     return unless stylesheets
@@ -638,14 +648,14 @@ class KodingAppsController extends KDController
     $("head .app-#{__utils.slugify name}").remove()
     stylesheets.forEach (sheet)->
       if devMode
-        urlToStyle = "https://#{KD.whoami().profile.nickname}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
+        urlToStyle = "https://#{KD.nick()}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/#{__utils.stripTags sheet}?#{Date.now()}"
         $('head').append "<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{urlToStyle}'>"
       else
         if /(http)|(:\/\/)/.test sheet
           warn "external sheets cannot be used"
         else
           sheet = sheet.replace /(^\.\/)|(^\/+)/, ""
-          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.whoami().profile.nickname}/#{__utils.stripTags name}/latest/#{__utils.stripTags sheet}'>")
+          $('head').append("<link class='app-#{__utils.slugify name}' rel='stylesheet' href='#{KD.appsUri}/#{manifest.authorNick or KD.nick()}/#{__utils.stripTags identifier}/#{__utils.stripTags version}/#{__utils.stripTags sheet}'>")
 
   showError = (error)->
     new KDModalView
@@ -692,11 +702,40 @@ class KodingAppsController extends KDController
           style      : "modal-cancel"
           callback   : => modal.destroy()
 
+  createExtensionToAppMap: ->
+    @extensionToApp = map = {}
+    @fetchApps (err, res) =>
+      for key, app of res
+        fileTypes = app.fileTypes
+        if fileTypes
+          for type in fileTypes
+            map[type] = [] unless map[type]
+            map[type].push app.name
+
+      # Still there should be a more elagant way to add ace file types into map.
+      for type in KD.getAppOptions("Ace").fileTypes
+        map[type] = [] unless map[type]
+        map[type].push "Ace"
+
+  fetchUserDefaultAppConfig: ->
+    @appConfigStorage = new AppStorage "DefaultAppConfig", "1.0"
+    @appConfigStorage.fetchStorage (storage) =>
+      settings = @appConfigStorage.getValue "settings"
+      for extension, appName of settings
+        @appManager.defaultApps[extension] = appName
+
+  updateDefaultAppConfig: (extension, appName) ->
+    {defaultApps} = @appManager
+    defaultApps[extension] = appName
+    @appConfigStorage.setValue "settings", defaultApps
+
+
   defaultManifest = (type, name)->
     {profile} = KD.whoami()
-    fullName = Encoder.htmlDecode "#{profile.firstName} #{profile.lastName}"
+    fullName  = KD.utils.getFullnameFromAccount()
     raw =
       devMode       : yes
+      experimental  : no
       authorNick    : "#{KD.nick()}"
       multiple      : no
       background    : no
@@ -725,6 +764,7 @@ class KodingAppsController extends KDController
         type        : "tab"
       icns          :
         "128"       : "./resources/icon.128.png"
+      screenshots   : []
       menu          : []
       fileTypes     : []
 
@@ -744,21 +784,3 @@ class KodingAppsController extends KDController
       description : 'Koding Terminal'
       author      : 'Koding'
       path        : 'WebTerm'
-    # CodeMirror    :
-    #   name        : 'CodeMirror'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-codemirror.png'
-    #   description : 'Code Editor'
-    #   author      : 'Marijn Haverbeke'
-    # yMacs         :
-    #   name        : 'yMacs'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-ymacs.png'
-    #   description : 'Code Editor'
-    #   author      : 'Mihai Bazon'
-    # Pixlr         :
-    #   name        : 'Pixlr'
-    #   type        : 'comingsoon'
-    #   icon        : 'icn-pixlr.png'
-    #   description : 'Image Editor'
-    #   author      : 'Autodesk'

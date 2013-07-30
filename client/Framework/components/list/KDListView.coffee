@@ -58,6 +58,7 @@ class KDListView extends KDView
       item[0].destroy()
       return
     else
+      # fix it w/ indexOf
       for item,i in @items
         if itemInstance is item or itemData is item.getData()
           @emit 'ItemIsBeingDestroyed', { view : item, index : i }

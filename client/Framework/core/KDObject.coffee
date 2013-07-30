@@ -14,7 +14,7 @@ class KDObject extends KDEventEmitter
 
     super
 
-    @on 'error', (err)-> error err
+    @on 'error', error
     @once 'ready', => @readyState = READY
 
   bound: Bongo.bound

@@ -1,21 +1,24 @@
 package main
 
 import (
-	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/sessions"
-	"github.com/nranchev/go-libGeoIP"
-	"github.com/rcrowley/goagain"
+	"github.com/hoisie/redis"
+	libgeo "github.com/nranchev/go-libGeoIP"
 	"html/template"
 	"io"
-	"koding/kontrol/kontrolhelper"
 	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/kontrol/kontrolproxy/resolver"
+	"koding/kontrol/kontrolproxy/utils"
 	"koding/tools/config"
 	"log"
+	"log/syslog"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,405 +26,343 @@ import (
 )
 
 func init() {
-	log.SetPrefix("kontrol-proxy ")
+	log.SetPrefix(fmt.Sprintf("proxy [%5d] ", os.Getpid()))
 }
 
-type RabbitChannel struct {
-	ReplyTo string
-	Receive chan []byte
+// Proxy is implementing the http.Handler interface (via ServeHTTP). This is
+// used as the main handler for our HTTP and HTTPS listeners.
+type Proxy struct {
+	// EnableFirewall is used to activate the internal validator that uses the
+	// restrictions and filter collections to validate the incoming requests
+	// accoding to ip, country, requests and so on..
+	EnableFirewall bool
 }
 
-var proxyDB *proxyconfig.ProxyConfiguration
-var amqpStream *AmqpStream
-var connections = make(map[string]RabbitChannel)
-var geoIP *libgeo.GeoIP
-var hostname = kontrolhelper.CustomHostname()
-var store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
-var templates = template.Must(template.ParseFiles("go/templates/proxy/securepage.html", "client/maintenance.html"))
-var users = make(map[string]time.Time)
-var usersLock sync.RWMutex
+// Client is used to register incoming request with an 1 hour cache. After that
+// it get removed. This is used to gather unique (in our case one IP per one
+// hour) statical information.
+type Client struct {
+	Target     string    `json:"target"`
+	Registered time.Time `json:"firstVist"`
+}
 
-func main() {
-	log.Printf("kontrol proxy started ")
-	// open and read from DB
-	var err error
-	proxyDB, err = proxyconfig.Connect()
-	if err != nil {
-		log.Fatalf("proxyconfig mongodb connect: %s", err)
+// used by redis counter
+type interval struct {
+	name     string
+	duration int64
+}
+
+var (
+	// mongoDB connection wrapper
+	proxyDB *proxyconfig.ProxyConfiguration
+
+	// used to extract the Country information via the IP
+	geoIP *libgeo.GeoIP
+
+	proxyName, _ = os.Hostname()
+
+	// redis client, connects once
+	redisClient = redis.Client{
+		Addr: "127.0.0.1:6379", // for future reference
 	}
 
-	err = proxyDB.AddProxy(hostname)
+	// used for request limiter, counting every hit
+	redisIntervals = []interval{
+		interval{"second", 1},
+		interval{"minute", 60},
+		interval{"hour", 3600},
+		interval{"day", 86400},
+	}
+
+	// cookie handling is used for features like securePage
+	store = sessions.NewCookieStore([]byte("kontrolproxy-secret-key"))
+
+	// clients and clientsLock are used together with the Client struct
+	clients     = make(map[string]Client)
+	clientsLock sync.RWMutex
+
+	// used for all our logs, currently it uses our local syslog server
+	logs *syslog.Writer
+
+	// used for various kinds of use cases like validator, 404 pages,
+	// maintenance,...
+	templates = template.Must(template.ParseFiles(
+		"go/templates/proxy/securepage.html",
+		"go/templates/proxy/notfound.html",
+		"go/templates/proxy/notactiveVM.html",
+		"go/templates/proxy/quotaExceeded.html",
+		"client/maintenance.html",
+	))
+)
+
+func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	log.Printf("I'm using %d cpus for goroutines\n", runtime.NumCPU())
+
+	configureProxy()
+	startProxy()
+}
+
+// configureProxy is used to setup all necessary configuration procedures, like
+// mongodb connection, syslog enabling and so on..
+func configureProxy() {
+	var err error
+	logs, err = syslog.New(syslog.LOG_DEBUG|syslog.LOG_USER, "KONTROL_PROXY")
 	if err != nil {
 		log.Println(err)
+	}
+
+	res := "kontrol proxy started"
+	log.Println(res)
+	logs.Info(res)
+
+	proxyDB, err = proxyconfig.Connect()
+	if err != nil {
+		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
+		logs.Alert(res)
+		log.Fatalln(res)
+	}
+
+	err = proxyDB.AddProxy(proxyName)
+	if err != nil {
+		logs.Warning(err.Error())
 	}
 
 	// load GeoIP db into memory
 	dbFile := "GeoIP.dat"
 	geoIP, err = libgeo.Load(dbFile)
 	if err != nil {
-		log.Printf("load GeoIP.dat: %s\n", err.Error())
+		res := fmt.Sprintf("load GeoIP.dat: %s\n", err.Error())
+		logs.Warning(res)
+	}
+}
+
+// startProxy is used to fire off all our ftp, https and http proxies
+func startProxy() {
+	reverseProxy := &Proxy{
+		EnableFirewall: true,
 	}
 
-	// create amqpStream for rabbitmq proxyieng
-	// amqpStream = setupAmqp()
+	startHTTPS(reverseProxy)
+	startHTTP(reverseProxy)
+}
 
-	reverseProxy := &ReverseProxy{}
-
+// startHTTPS is used to reverse proxy incoming request to the port 443 but for
+// the IP's defined in the Kontrold.Proxy.SSLIPS string. Each  IP is created in
+// a seperate goroutine, thus the functions is nonblocking.
+func startHTTPS(reverseProxy *Proxy) {
 	// HTTPS handling
 	portssl := strconv.Itoa(config.Current.Kontrold.Proxy.PortSSL)
+	logs.Info(fmt.Sprintf("https mode is enabled. serving at :%s ...", portssl))
 	sslips := strings.Split(config.Current.Kontrold.Proxy.SSLIPS, ",")
-
-	var (
-		listener  net.Listener
-		ppid      int
-		listeners = make(map[string]net.Listener, 0)
-	)
-
 	for _, sslip := range sslips {
-		cert, err := tls.LoadX509KeyPair(sslip+"_cert.pem", sslip+"_key.pem")
-		if nil != err {
-			log.Printf("https mode is disabled. please add cert.pem and key.pem files. %s %s", err, sslip)
-			continue
-		}
-
-		addr := sslip + ":" + portssl
-		listener, _, err = goagain.GetEnvs(addr)
-		if err != nil {
-			laddr, err := net.ResolveTCPAddr("tcp", addr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-
-			listener, err = net.ListenTCP("tcp", laddr)
-			if nil != err {
-				log.Fatalln(err)
-			}
-		}
-
-		listeners[addr] = listener
-		listener = tls.NewListener(listener, &tls.Config{
-			NextProtos:   []string{"http/1.1"},
-			Certificates: []tls.Certificate{cert},
-		})
-
-		log.Printf("https mode is enabled. serving at :%s ...", portssl)
-		go http.Serve(listener, reverseProxy)
-
-	}
-
-	// HTTP handling
-	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
-	addr := "127.0.0.1:" + port
-	listener, ppid, err = goagain.GetEnvs(addr)
-	if err != nil {
-		log.Printf("normal mode is enabled. serving at :%s ...", port)
-		laddr, err := net.ResolveTCPAddr("tcp", ":"+port) // don't change this!
-		if nil != err {
-			log.Fatalln(err)
-		}
-
-		listener, err = net.ListenTCP("tcp", laddr)
-		if nil != err {
-			log.Fatalln(err)
-		}
-		go http.Serve(listener, reverseProxy)
-	} else {
-		go http.Serve(listener, reverseProxy) // resume listening
-
-		// Kill the parent, now that the child has started successfully.
-		if err := goagain.KillParent(ppid); nil != err {
-			log.Fatalln(err)
-		}
-
-	}
-	listeners[addr] = listener
-
-	// needed until all go routines are ready. otherwise the log below is printed earlier
-	time.Sleep(time.Second * 2)
-	log.Printf("started and waiting for signals on pid %d.\n\t* for a stop send SIGTERM.\n\t* for a new binary restart send SIGUSR2\n", os.Getpid())
-
-	// Block the main goroutine awaiting signals.
-	if err := goagain.AwaitSignals(listeners); nil != err {
-		log.Fatalln(err)
-	}
-
-	// Do whatever's necessary to ensure a graceful exit like waiting for
-	// goroutines to terminate or a channel to become closed.
-	// In this case, we'll simply stop listening and wait one second.
-	if err := listener.Close(); nil != err {
-		log.Fatalln(err)
-	}
-	log.Printf("stopped current listener with pid %d\n", os.Getpid())
-}
-
-/*************************************************
-*
-*  modified version of go's reverseProxy source code
-*  has support for dynamic target url, websockets and amqp
-*
-*  - arslan
-*************************************************/
-
-// ReverseProxy is an HTTP Handler that takes an incoming request and
-// sends it to another server, proxying the response back to the
-// client.
-type ReverseProxy struct {
-	// The transport used to perform proxy requests.
-	// If nil, http.DefaultTransport is used.
-	Transport http.RoundTripper
-}
-
-func singleJoiningSlash(a, b string) string {
-	aslash := strings.HasSuffix(a, "/")
-	bslash := strings.HasPrefix(b, "/")
-	switch {
-	case aslash && bslash:
-		return a + b[1:]
-	case !aslash && !bslash:
-		return a + "/" + b
-	}
-	return a + b
-}
-
-func copyHeader(dst, src http.Header) {
-	for k, vv := range src {
-		for _, v := range vv {
-			dst.Add(k, v)
-		}
-	}
-}
-
-// Hop-by-hop headers. These are removed when sent to the backend.
-// http://www.w3.org/Protocols/rfc2616/rfc2616-sec13.html
-var hopHeaders = []string{
-	"Connection",
-	"Keep-Alive",
-	"Proxy-Authenticate",
-	"Proxy-Authorization",
-	"Te", // canonicalized version of "TE"
-	"Trailers",
-	"Transfer-Encoding",
-	"Upgrade",
-}
-
-func (p *ReverseProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	// redirect http to https
-	if req.TLS == nil && (req.Host == "koding.com" || req.Host == "www.koding.com") {
-		http.Redirect(rw, req, "https://koding.com"+req.RequestURI, http.StatusMovedPermanently)
-		return
-	}
-
-	// Display error when someone hits the main page
-	if hostname == req.Host {
-		io.WriteString(rw, "Hello kontrol proxy :)")
-		return
-	}
-
-	outreq := new(http.Request)
-	*outreq = *req // includes shallow copies of maps, but okay
-
-	user, err := populateUser(outreq)
-	if err != nil {
-		log.Printf("\nWARNING: parsing incoming request %s: %s", outreq.Host, err.Error())
-		http.Error(rw, "error contacting backend server.", http.StatusInternalServerError)
-		return
-	}
-
-	target := user.Target
-
-	fmt.Printf("proxy via db\t: %s --> %s\n", user.Domain.Domain, target.Host)
-	if user.Redirect {
-		http.Redirect(rw, req, user.Target.String(), http.StatusTemporaryRedirect)
-		return
-	}
-
-	switch user.Domain.Proxy.Mode {
-	case "maintenance":
-		err := templates.ExecuteTemplate(rw, "maintenance.html", nil)
-		if err != nil {
-			http.Error(rw, err.Error(), http.StatusInternalServerError)
-		}
-		return
-	}
-
-	switch user.Domain.LoadBalancer.Mode {
-	case "sticky":
-		sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
-		session, _ := store.Get(req, sessionName)
-		targetURL, ok := session.Values["GOSESSIONID"]
-		if ok {
-			target, err = url.Parse(targetURL.(string))
+		go func(sslip string) {
+			err := http.ListenAndServeTLS(sslip+":"+portssl, sslip+"_cert.pem", sslip+"_key.pem", reverseProxy)
 			if err != nil {
-				io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-				return
+				logs.Alert(err.Error())
+				log.Println(err)
 			}
-		} else {
-			session.Values["GOSESSIONID"] = target.String()
-			session.Save(outreq, rw)
-		}
+		}(sslip)
+	}
+}
+
+// startHTTP is used to reverse proxy incoming requests on the port 80 and
+// 1024-10000. The listener that listens on port 80 is not started on a
+// seperate go routine, and thus is blocking.
+func startHTTP(reverseProxy *Proxy) {
+	// HTTP Handling for VM port forwardings
+	logs.Info("normal mode is enabled. serving ports between 1024-10000 for vms...")
+	for i := 1024; i <= 10000; i++ {
+		go func(i int) {
+			port := strconv.Itoa(i)
+			err := http.ListenAndServe(":"+port, reverseProxy)
+			if err != nil {
+				logs.Alert(err.Error())
+				log.Println(err)
+			}
+		}(i)
 	}
 
-	_, err = validate(user)
+	// HTTP handling (port 80, main)
+	port := strconv.Itoa(config.Current.Kontrold.Proxy.Port)
+	logs.Info(fmt.Sprintf("normal mode is enabled. serving at :%s ...", port))
+	err := http.ListenAndServe(":"+port, reverseProxy)
 	if err != nil {
-		if err == ErrSecurePage {
-			sessionName := fmt.Sprintf("kodingproxy-%s-%s", outreq.Host, user.IP)
-			// We're ignoring the error resulted from decoding an existing
-			// session: Get() always returns a session, even if empty.
-			session, _ := store.Get(req, sessionName)
-
-			// Timeout for secure page. After timeout secure page is showed
-			// again to the user
-			session.Options = &sessions.Options{MaxAge: 20} //seconds
-
-			_, ok := session.Values["securePage"]
-			if !ok {
-				session.Values["securePage"] = time.Now().String()
-				session.Save(req, rw)
-				err := templates.ExecuteTemplate(rw, "securepage.html", user)
-				if err != nil {
-					http.Error(rw, err.Error(), http.StatusInternalServerError)
-				}
-				return
-			}
-		} else {
-			log.Printf("error validating user %s: %s", user.IP, err.Error())
-			io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-			return
-		}
+		logs.Alert(err.Error())
+		log.Panic(err)
 	}
+}
 
-	// Smart handling incoming request path/query, example:
-	// incoming : foo.com/dir
-	// target	: bar.com/base
-	// proxy to : bar.com/base/dir
-	outreq.URL.Scheme = target.Scheme
-	outreq.URL.Host = target.Host
-	outreq.URL.Path = singleJoiningSlash(target.Path, outreq.URL.Path)
-
-	// incoming : foo.com/name=arslan
-	// target	: bar.com/q=example
-	// proxy to : bar.com/q=example&name=arslan
-	if target.RawQuery == "" || outreq.URL.RawQuery == "" {
-		outreq.URL.RawQuery = target.RawQuery + outreq.URL.RawQuery
-	} else {
-		outreq.URL.RawQuery = target.RawQuery + "&" + outreq.URL.RawQuery
-	}
-
-	outreq.Proto = "HTTP/1.1"
-	outreq.ProtoMajor = 1
-	outreq.ProtoMinor = 1
-	outreq.Close = false
-
-	go func() {
-		if !isUserRegistered(user.IP) {
-			go registerUser(user.IP)
-			go logDomainRequests(outreq.Host)
-			go logProxyStat(hostname, user.Country)
-		}
-	}()
-
-	// if connection is of type websocket, hijacking is used instead of http proxy
-	// https://groups.google.com/d/msg/golang-nuts/KBx9pDlvFOc/edt4iad96nwJ
-	if isWebsocket(outreq) {
-		rConn, err := net.Dial("tcp", outreq.URL.Host)
-		if err != nil {
-			http.Error(rw, "Error contacting backend server.", http.StatusInternalServerError)
-			log.Printf("Error dialing websocket backend %s: %v", outreq.URL.Host, err)
-			return
-		}
-
-		hj, ok := rw.(http.Hijacker)
-		if !ok {
-			http.Error(rw, "Not a hijacker?", http.StatusInternalServerError)
-			return
-		}
-
-		conn, _, err := hj.Hijack()
-		if err != nil {
-			log.Printf("Hijack error: %v", err)
-			return
-		}
-		defer conn.Close()
-		defer rConn.Close()
-
-		err = req.Write(rConn)
-		if err != nil {
-			log.Printf("Error copying request to target: %v", err)
-			return
-		}
-
-		go p.copyResponse(rConn, conn)
-		p.copyResponse(conn, rConn)
-
-	} else {
-		transport := p.Transport
-		if transport == nil {
-			transport = http.DefaultTransport
-		}
-
-		// Remove hop-by-hop headers to the backend.  Especially
-		// important is "Connection" because we want a persistent
-		// connection, regardless of what the client sent to us.  This
-		// is modifying the same underlying map from req (shallow
-		// copied above) so we only copy it if necessary.
-		copiedHeaders := false
-		for _, h := range hopHeaders {
-			if outreq.Header.Get(h) != "" {
-				if !copiedHeaders {
-					outreq.Header = make(http.Header)
-					copyHeader(outreq.Header, req.Header)
-					copiedHeaders = true
-				}
-				outreq.Header.Del(h)
-			}
-		}
-
-		if clientIP, _, err := net.SplitHostPort(req.RemoteAddr); err == nil {
-			// If we aren't the first proxy retain prior
-			// X-Forwarded-For information as a comma+space
-			// separated list and fold multiple headers into one.
-			if prior, ok := outreq.Header["X-Forwarded-For"]; ok {
-				clientIP = strings.Join(prior, ", ") + ", " + clientIP
-			}
-			outreq.Header.Set("X-Forwarded-For", clientIP)
-		}
-
-		res := new(http.Response)
-
-		if !hasPort(outreq.URL.Host) {
-			outreq.URL.Host = addPort(outreq.URL.Host, "80")
-		}
-
-		res, err = transport.RoundTrip(outreq)
-		if err != nil {
-			io.WriteString(rw, fmt.Sprint(err))
-			return
-		}
-		defer res.Body.Close()
-
-		// rabbitKey, err := lookupRabbitKey(user.Username, user.Servicename, user.Key)
-		// if err != nil {
-		// 	// add :80 if not available
-		// } else {
-		// 	fmt.Println("connection via rabbitmq")
-		// 	res, err = rabbitTransport(outreq, user, rabbitKey)
-		// 	if err != nil {
-		// 		log.Printf("rabbit proxy %s", err.Error())
-		// 		io.WriteString(rw, fmt.Sprintf("{\"err\":\"%s\"}\n", err.Error()))
-		// 		return
-		// 	}
-		// }
-
-		copyHeader(rw.Header(), res.Header)
-		rw.WriteHeader(res.StatusCode)
-		p.copyResponse(rw, res.Body)
+// ServeHTTP is needed to satisfy the http.Handler interface.
+func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.TLS == nil && (r.Host == "koding.com" || r.Host == "www.koding.com") {
+		http.Redirect(w, r, "https://koding.com"+r.RequestURI, http.StatusMovedPermanently)
 		return
 	}
 
+	// our main handler mux function goes and picks the correct handler
+	if h := p.getHandler(r); h != nil {
+		h.ServeHTTP(w, r)
+		return
+	}
+
+	logs.Alert("couldn't find any handler")
+	http.Error(w, "Not found.", http.StatusNotFound)
+	return
 }
 
-func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
-	io.Copy(dst, src)
+// getHandler returns the appropriate Handler for the given Request,
+// or nil if none found.
+func (p *Proxy) getHandler(req *http.Request) http.Handler {
+	// remove www from the hostname (i.e. www.foo.com -> foo.com)
+	if strings.HasPrefix(req.Host, "www.") {
+		req.Host = strings.TrimPrefix(req.Host, "www.")
+	}
+
+	go hitCounter(req.Host)
+
+	userIP, userCountry := getIPandCountry(req.RemoteAddr)
+	target, source, err := resolver.GetMemTarget(req.Host)
+	if err != nil {
+		if err == resolver.ErrGone {
+			return templateHandler("notfound.html", req.Host, 410)
+		}
+		logs.Info(fmt.Sprintf("resolver error %s", err))
+		return templateHandler("notfound.html", req.Host, 404)
+	}
+
+	logs.Debug(fmt.Sprintf("mode '%s' [%s,%s] via %s : %s --> %s\n", target.Mode, userIP, userCountry, source, req.Host, target.Url.String()))
+
+	if p.EnableFirewall {
+		_, err = validate(userIP, userCountry, req.Host)
+		if err != nil {
+			if err == ErrSecurePage {
+				sessionName := fmt.Sprintf("kodingproxy-%s-%s", req.Host, userIP)
+				session, _ := store.Get(req, sessionName)
+				session.Options = &sessions.Options{MaxAge: 20} //seconds
+				_, ok := session.Values["securePage"]
+				if !ok {
+					return sessionHandler("securePage", userIP)
+				}
+			} else {
+				logs.Info(fmt.Sprintf("error validating user: %s", err.Error()))
+				return templateHandler("quotaExceeded.html", req.Host, 509)
+			}
+		}
+	}
+
+	if _, ok := getClient(userIP); !ok {
+		go logDomainRequests(req.Host)
+		go logProxyStat(proxyName, userCountry)
+		go registerClient(userIP, target.Url.String())
+	}
+
+	switch target.Mode {
+	case "maintenance":
+		return templateHandler("maintenance.html", nil, 200)
+	case "redirect":
+		return http.RedirectHandler(target.Url.String()+req.RequestURI, http.StatusFound)
+	case "vm":
+		err := utils.CheckServer(target.Url.Host)
+		if err != nil {
+			logs.Info(fmt.Sprintf("vm host %s is down: '%s'", req.Host, err))
+			return templateHandler("notactiveVM.html", req.Host, 404)
+		}
+	}
+
+	if isWebsocket(req) {
+		return websocketHandler(target.Url.Host)
+	}
+
+	return reverseProxyHandler(target.Url)
+}
+
+// reverseProxyHandler is the main handler that is used for copy the response
+// back and forth to the request iniator. We use Go's main
+// httputil.ReverseProxy but can easily switch to any custom handler in the
+// future
+func reverseProxyHandler(target *url.URL) http.Handler {
+	return &httputil.ReverseProxy{
+		Director: func(req *http.Request) {
+			if !utils.HasPort(target.Host) {
+				req.URL.Host = utils.AddPort(target.Host, "80")
+			} else {
+				req.URL.Host = target.Host
+			}
+			req.URL.Scheme = target.Scheme
+		},
+	}
+}
+
+// sessionHandler is used currently for the securepage feature of our
+// validator/firewall. It is used to setup cookies to invalidate users visits.
+func sessionHandler(val, userIP string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionName := fmt.Sprintf("kodingproxy-%s-%s", r.Host, userIP)
+		session, _ := store.Get(r, sessionName)
+		session.Values[val] = time.Now().String()
+		session.Save(r, w)
+		err := templates.ExecuteTemplate(w, "securepage.html", r.Host)
+		if err != nil {
+			logs.Err(fmt.Sprintf("template securepage could not be executed %s", err))
+			return
+		}
+	})
+}
+
+// websocketHandler is used to reverseProxy websocket connection. It hijacks
+// the underlying http connection and copies forth and back the response
+func websocketHandler(target string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		d, err := net.Dial("tcp", target)
+		if err != nil {
+			http.Error(w, "Error contacting backend server.", 500)
+			logs.Notice(fmt.Sprintf("error dialing websocket backend %s: %v", target, err))
+			return
+		}
+		hj, ok := w.(http.Hijacker)
+		if !ok {
+			http.Error(w, "not a hijacker?", 500)
+			return
+		}
+		nc, _, err := hj.Hijack()
+		if err != nil {
+			logs.Notice(fmt.Sprintf("hijack error: %v", err))
+			return
+		}
+		defer nc.Close()
+		defer d.Close()
+
+		// write back the request of the client to the server.
+		err = r.Write(d)
+		if err != nil {
+			logs.Notice(fmt.Sprintf("error copying request to target: %v", err))
+			return
+		}
+
+		errc := make(chan error, 2)
+		cp := func(dst io.Writer, src io.Reader) {
+			_, err := io.Copy(dst, src)
+			errc <- err
+		}
+		go cp(d, nc)
+		go cp(nc, d)
+		<-errc
+	})
+}
+
+// templateHandler is used to show static complied html pages. The path
+// variable is used to pick the correct template, data is used inside the
+// template and code is set as the response code.
+func templateHandler(path string, data interface{}, code int) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(code)
+		err := templates.ExecuteTemplate(w, path, data)
+		if err != nil {
+			logs.Warning(fmt.Sprintf("template %s could not be executed", path))
+			return
+		}
+	})
 }
 
 /*************************************************
@@ -430,77 +371,136 @@ func (p *ReverseProxy) copyResponse(dst io.Writer, src io.Reader) {
 *
 *  - arslan
 *************************************************/
-func registerUser(ip string) {
-	usersLock.Lock()
-	defer usersLock.Unlock()
-	users[ip] = time.Now()
-	if len(users) == 1 {
+
+func resetClients() {
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	clients = make(map[string]Client)
+}
+
+func registerClient(ip, target string) {
+	clientsLock.Lock()
+	defer clientsLock.Unlock()
+	clients[ip] = Client{Target: target, Registered: time.Now()}
+	if len(clients) == 1 {
 		go cleaner()
 	}
 }
 
-// The goroutine basically does this: as long as there are users in the map, it
+func getClients() map[string]Client {
+	clientsLock.RLock()
+	defer clientsLock.RUnlock()
+	return clients
+}
+
+func getClient(ip string) (Client, bool) {
+	clientsLock.RLock()
+	defer clientsLock.RUnlock()
+	c, ok := clients[ip]
+	return c, ok
+}
+
+// The goroutine basically does this: as long as there are clients in the map, it
 // finds the one it should be deleted next, sleeps until it's time to delete it
-// (one hour - time since user registration) and deletes it.  If there are no
-// users, the goroutine exits and a new one is created the next time a user is
+// (one hour - time since client registration) and deletes it.  If there are no
+// clients, the goroutine exits and a new one is created the next time a user is
 // registered. The time.Sleep goes toward zero, thus it will not lock the
 // for iterator forever.
 func cleaner() {
-	usersLock.RLock()
-	for len(users) > 0 {
+	clientsLock.RLock()
+	for len(clients) > 0 {
 		var nextTime time.Time
-		var nextUser string
-		for u, t := range users {
-			if nextTime.IsZero() || t.Before(nextTime) {
-				nextTime = t
-				nextUser = u
+		var nextClient string
+		for ip, c := range clients {
+			if nextTime.IsZero() || c.Registered.Before(nextTime) {
+				nextTime = c.Registered
+				nextClient = ip
 			}
 		}
-		usersLock.RUnlock()
+		clientsLock.RUnlock()
 		// negative duration is no-op, means it will not panic
 		time.Sleep(time.Hour - time.Now().Sub(nextTime))
-		usersLock.Lock()
-		log.Println("deleting user from internal map", nextUser)
-		delete(users, nextUser)
-		usersLock.Unlock()
-		usersLock.RLock()
+		clientsLock.Lock()
+		logs.Info(fmt.Sprintf("deleting client from internal map", nextClient))
+		delete(clients, nextClient)
+		clientsLock.Unlock()
+		clientsLock.RLock()
 	}
-	usersLock.RUnlock()
+	clientsLock.RUnlock()
 }
 
-// Needed to avoid race condition between multiple go routines
-func isUserRegistered(ip string) bool {
-	usersLock.RLock()
-	defer usersLock.RUnlock()
-	_, ok := users[ip]
-	return ok
-}
-
-/*************************************************
-*
-*  util functions
-*
-*  - arslan
-*************************************************/
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func hasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-// Given a string of the form "host", "port", returns "host:port"
-func addPort(host, port string) string {
-	if ok := hasPort(host); ok {
-		return host
+// isWebsocket checks wether the incoming request is a part of websocket
+// handshake
+func isWebsocket(req *http.Request) bool {
+	if strings.ToLower(req.Header.Get("Upgrade")) != "websocket" ||
+		!strings.Contains(strings.ToLower(req.Header.Get("Connection")), "upgrade") {
+		return false
 	}
-
-	return host + ":" + port
+	return true
 }
 
-// Check if a server is alive or not
-func checkServer(host string) error {
-	c, err := net.Dial("tcp", host)
+func getIPandCountry(addr string) (ip, country string) {
+	ip, _, err := net.SplitHostPort(addr)
 	if err != nil {
-		return err
+		return
 	}
-	c.Close()
-	return nil
+
+	// return when geoIp is not initialized?
+	if geoIP == nil {
+		return
+	}
+
+	// return when location was not found
+	loc := geoIP.GetLocationByIP(ip)
+	if loc == nil {
+		return
+	}
+
+	country = loc.CountryName
+	return
+}
+
+func logDomainRequests(domain string) {
+	if domain == "" {
+		return
+	}
+
+	err := proxyDB.AddDomainRequests(domain)
+	if err != nil {
+		logs.Warning(fmt.Sprintf("could not add domain statistisitcs for %s\n", err.Error()))
+	}
+}
+
+func logProxyStat(name, country string) {
+	err := proxyDB.AddProxyStat(name, country)
+	if err != nil {
+		logs.Warning(fmt.Sprintf("could not add proxy statistisitcs for %s\n", err.Error()))
+	}
+}
+
+func validate(ip, country, domain string) (bool, error) {
+	restriction, err := proxyDB.GetRestrictionByDomain(domain)
+	if err != nil {
+		return true, nil //don't block if we don't get a rule (pre-caution))
+	}
+
+	return validator(restriction, ip, country, domain).AddRules().Check()
+}
+
+// increase request counters for the incoming host
+func hitCounter(host string) {
+	for _, item := range redisIntervals {
+		res, err := redisClient.Incr(host + ":" + item.name)
+		if err != nil {
+			logs.Warning(err.Error())
+			continue
+		}
+
+		if int(res) == 1 {
+			_, err := redisClient.Expire(host+":"+item.name, item.duration)
+			if err != nil {
+				logs.Warning(err.Error())
+			}
+		}
+	}
 }

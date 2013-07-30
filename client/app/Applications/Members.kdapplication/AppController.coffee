@@ -2,8 +2,12 @@ class MembersAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Members"
-    route        : "/Members"
+    route        : "/:name?/Members"
     hiddenHandle : yes
+    navItem      :
+      title      : "Members"
+      path       : "/Members"
+      order      : 30
 
   constructor:(options = {}, data)->
 
@@ -40,13 +44,14 @@ class MembersAppController extends AppController
             else
               group = KD.getSingleton('groupsController').getCurrentGroup()
               group.fetchMembersFromGraph options, callback
-              JAccount.count selector, (err, count)=>
+
+              group.countMembers (err, count) =>
                 @setCurrentViewNumber 'all', count
 
         followed            :
           loggedInOnly      : yes
           title             : "Followers <span class='member-numbers-followers'></span>"
-          noItemFoundText   : "There is no member who follows you."
+          noItemFoundText   : "No one is following you yet."
           dataSource        : (selector, options, callback)=>
             options.groupId or= KD.getSingleton('groupsController').getCurrentGroup().getId()
             KD.whoami().fetchMyFollowersFromGraph options, callback
@@ -138,6 +143,7 @@ class MembersAppController extends AppController
     @appManager.tell 'Feeder', 'createContentFeedController', {
       # domId                 : 'members-feeder-split-view'
       itemClass             : ActivityListItemView
+      listControllerClass   : ActivityListController
       listCssClass          : "activity-related"
       noItemFoundText       : "There is no liked activity."
       limitPerPage          : 8
@@ -229,7 +235,7 @@ class MembersAppController extends AppController
         controller.ready -> controller.handleQuery? query
       callback contentDisplay
 
-    switch route.split('/')[1]
+    switch route.split('/')[2]
       when 'Followers'
         @createFolloweeContentDisplay model, 'followers', kallback
       when 'Following'

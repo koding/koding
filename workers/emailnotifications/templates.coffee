@@ -2,6 +2,7 @@
 {argv}      = require 'optimist'
 {uri}       = require('koding-config-manager').load("main.#{argv.c}")
 dateFormat  = require 'dateformat'
+htmlify     = require 'koding-htmlify'
 
 flags =
   comment                 :
@@ -103,7 +104,6 @@ Templates =
     """
 
   singleEvent : (m)->
-
     action       = ''
     if m.sender.profile?
       sender     = link "#{uri.address}/#{m.sender.profile.nickname}", \
@@ -139,6 +139,13 @@ Templates =
           #   action = "#{action} own"
       when 'Invited'
         action  = 'has invited you to join the group'
+        if m.notification.activity.message # we want to customize the whole message
+          sender = htmlify m.notification.activity.message, linkStyle:Templates.linkStyle
+          sender = sender.replace /#INVITER#/g, "#{m.sender.profile.firstName} #{m.sender.profile.lastName}"
+          sender = sender.replace /#URL#/g, "<a href='#{uri.address}/#{m.realContent.slug}' #{Templates.linkStyle}>#{uri.address}/#{m.realContent.slug}</a>"
+          action        = ''
+          preview       = ''
+          m.contentLink = ''
       when 'ApprovalRequested'
         action  = 'has requested access to the group'
         preview = ''

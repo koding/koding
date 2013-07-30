@@ -10,7 +10,6 @@ class RegisterInlineForm extends LoginViewInlineForm
     @firstName = new LoginInputView
       cssClass        : "half-size"
       inputOptions    :
-        # defaultValue  : "xx"
         name          : "firstName"
         placeholder   : "Your first name"
         validate      :
@@ -25,7 +24,6 @@ class RegisterInlineForm extends LoginViewInlineForm
       cssClass        : "half-size"
       inputOptions    :
         name          : "lastName"
-        # defaultValue  : "xx"
         placeholder   : "Your last name"
         validate      :
           container   : this
@@ -107,8 +105,8 @@ class RegisterInlineForm extends LoginViewInlineForm
             title        : """
                             Only lowercase letters and numbers are allowed,
                             max 25 characters. Also keep in mind that the username you select will
-                            be a part of your kodingen domain, and can't be changed later.
-                            i.e. http://username.kodingen.com <h1></h1>
+                            be a part of your koding domain, and can't be changed later.
+                            i.e. http://username.kd.io <h1></h1>
                            """
 
     @password = new LoginInputView
@@ -125,9 +123,6 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Password is required."
             minLength : "Password should at least be 8 characters."
-        change        : (event)=>
-          if @kodingenUser
-            @passwordConfirm.input.setValue @password.input.getValue()
 
     @passwordConfirm = new LoginInputView
       cssClass        : "password-confirm"
@@ -145,11 +140,6 @@ class RegisterInlineForm extends LoginViewInlineForm
           messages    :
             required  : "Password confirmation required!"
             match     : "Password confirmation doesn't match!"
-        focus         : (event)=>
-          if @kodingenUser
-            @passwordConfirm.input.setValue @password.input.getValue()
-            @invitationCode.input.$().focus()
-
 
     @button = new KDButtonView
       title         : "REGISTER"
@@ -176,7 +166,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         name          : "inviteCode"
         forceCase     : "lowercase"
         placeholder   : "your code..."
-        # defaultValue  : "111"
         validate      :
           container   : this
           event       : "blur"
@@ -184,12 +173,6 @@ class RegisterInlineForm extends LoginViewInlineForm
             required  : yes
           messages    :
             required  : "Please enter your invitation code."
-
-    @entryPoint = new LoginInputView
-      inputOptions    :
-        name          : 'entryPoint'
-        type          : 'hidden'
-        defaultValue  : KD.config.entryPoint?.slug
 
     @on "SubmitFailed", (msg)=>
       if msg is "Wrong password"
@@ -222,67 +205,18 @@ class RegisterInlineForm extends LoginViewInlineForm
         @username.loader.show()
         KD.remote.api.JUser.usernameAvailable name, (err, response)=>
           @username.loader.hide()
-          {kodingUser, kodingenUser, forbidden} = response
+          {kodingUser, forbidden} = response
           if err
             if response?.kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-              @hideOldUserFeedback()
           else
             if forbidden
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
-              @hideOldUserFeedback()
-            else if kodingenUser and forbidden
-              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is forbidden to use!"
-              @hideOldUserFeedback()
-            else if kodingUser and kodingenUser
-              # log "contact support"
-              input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-              @hideOldUserFeedback()
             else if kodingUser
               input.setValidationResult "usernameCheck", "Sorry, \"#{name}\" is already taken!"
-              @hideOldUserFeedback()
-            else if kodingenUser
-              @showOldUserFeedback()
             else
-              @hideOldUserFeedback()
               input.setValidationResult "usernameCheck", null
       ,800
-    else
-      @hideOldUserFeedback()
-    return
-
-  showOldUserFeedback:->
-
-    @addCustomData "kodingenUser", "on"
-    @kodingenUser = yes
-    @parent?.setClass "taller"
-    @username.setClass "kodingen"
-    @password.input.$().attr "placeholder", "Type your kodingen password"
-
-    {validate} = @password.input.getOptions()
-    delete validate.rules.minLength
-    @password.input.setValidation validate
-    @passwordConfirm.input.setValidation validate
-
-    @passwordConfirm.setHeight 0
-    @$('p.kodingen-user-notification b').text "#{@username.input.getValue()}"
-    @$('p.kodingen-user-notification').height 54
-
-  hideOldUserFeedback:->
-
-    @removeCustomData "kodingenUser"
-    @kodingenUser = no
-    @parent?.unsetClass "taller"
-    @username.unsetClass "kodingen"
-    @password.input.$().attr "placeholder", "Create a password"
-
-    {validate} = @password.input.getOptions()
-    validate.rules.minLength = 8
-    @password.input.setValidation validate
-    @passwordConfirm.input.setValidation validate
-
-    @$('p.kodingen-user-notification').height 0
-    @passwordConfirm.setHeight 32
 
   userAvatarFeedback:(input)->
 
@@ -330,14 +264,7 @@ class RegisterInlineForm extends LoginViewInlineForm
       <div>{{> @email}}{{> @avatar}}</div>
       <div>{{> @username}}</div>
       <div>{{> @password}}</div>
-      <div>
-        {{> @passwordConfirm}}
-        <p class='kodingen-user-notification'>
-          <b>This</b> is a reserved Kodingen username, if you own this
-          account please type your Kodingen password above to unlock your old
-          username for the new Koding.
-        </p>
-      </div>
+      <div>{{> @passwordConfirm}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:
@@ -346,5 +273,4 @@ class RegisterInlineForm extends LoginViewInlineForm
     </section>
     <div>{{> @button}}</div>
     {{> @disabledNotice}}
-    {{> @entryPoint}}
     """

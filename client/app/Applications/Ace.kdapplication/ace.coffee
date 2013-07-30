@@ -12,7 +12,7 @@ class Ace extends KDView
 
     super options, file
     @lastSavedContents = ""
-    @appStorage = KD.getSingleton('mainController').getAppStorageSingleton 'Ace', '1.0'
+    @appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0'
 
   setDomElement:(cssClass)->
 
@@ -28,10 +28,16 @@ class Ace extends KDView
           @editor = ace.edit "editor#{@getId()}"
           @prepareEditor()
           @utils.defer => @emit "ace.ready"
-          @setContents contents if contents
+          if contents
+            @setContents contents
+            @lastSavedContents = contents
+          @editor.on "change", =>
+            if @isContentChanged() then @emit "FileContentChanged" else @emit "FileContentSynced"
           @editor.gotoLine 0
           @focus()
           @show()
+          # log to external
+          KD.track "User Opened Ace", KD.getSingleton("groupsController").getCurrentGroup()
 
   prepareEditor:->
 
@@ -39,15 +45,15 @@ class Ace extends KDView
     @setSyntax()
     @setEditorListeners()
     @appStorage.fetchStorage (storage)=>
-      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes
-      @setShowGutter          @appStorage.getValue('showGutter')          ? yes
-      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no
-      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no
-      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes
-      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no
-      @setSoftWrap            @appStorage.getValue('softWrap')            or 'off'
-      @setFontSize            @appStorage.getValue('fontSize')            ? 12
-      @setTabSize             @appStorage.getValue('tabSize')             ? 4
+      @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
+      @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
+      @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no     ,no
+      @setShowPrintMargin     @appStorage.getValue('showPrintMargin')     ? no     ,no
+      @setHighlightActiveLine @appStorage.getValue('highlightActiveLine') ? yes    ,no
+      @setShowInvisibles      @appStorage.getValue('showInvisibles')      ? no     ,no
+      @setSoftWrap            @appStorage.getValue('softWrap')            or 'off' ,no
+      @setFontSize            @appStorage.getValue('fontSize')            ? 12     ,no
+      @setTabSize             @appStorage.getValue('tabSize')             ? 4      ,no
 
   setEditorListeners:->
 
@@ -60,28 +66,33 @@ class Ace extends KDView
       unless err
         @notify "Successfully saved!", "success"
         @lastSavedContents = @lastContentsSentForSave
+        @emit "FileContentSynced"
+        # unless @askedForSave
+          # log "this file has changed, put a modal and block editing @fatihacet!"
+          # fatihacet - this case works buggy.
+        @askedForSave = no
 
     file.on "fs.save.started", =>
       @lastContentsSentForSave = @getContents()
 
-    return  unless @getOption("enableShortcuts")
+    file.on "fs.saveAs.finished", =>
+      @emit "FileContentSynced"
+      @emit "FileHasBeenSavedAs", file
 
-    @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
+    if @getOptions().enableShortcuts
+      @addKeyCombo "save", "Ctrl-S", @bound "requestSave"
 
-    @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
+      @addKeyCombo "saveAs", "Ctrl-Shift-S", @bound "requestSaveAs"
 
-    @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
+      @addKeyCombo "find", "Ctrl-F", => @showFindReplaceView no
 
-    @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
+      @addKeyCombo "replace", "Ctrl-Shift-F", => @showFindReplaceView yes
 
-    @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
+      @addKeyCombo "compileAndRun", "Ctrl-Shift-C", => @getDelegate().compileAndRun()
 
-    @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
+      @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
-    KD.getSingleton('windowController').on "keydown", (e) =>
-      {findAndReplaceView} = @getDelegate()
-      findAndReplaceView.close() if e.keyCode is 27 and findAndReplaceView
-
+      @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
 
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()
@@ -101,23 +112,24 @@ class Ace extends KDView
         mac   : macKey
       exec    : => callback?()
 
+  isContentChanged: ->
+    return @getContents() isnt @lastSavedContents
+
   ###
   FS REQUESTS
   ###
 
   requestSave:->
-
     contents = @getContents()
-    return @notify "Nothing to save!" unless contents isnt @lastSavedContents
+    return @notify "Nothing to save!" unless @isContentChanged()
+    @askedForSave = yes
     @emit "ace.requests.save", contents
 
   requestSaveAs:->
-
     contents = @getContents()
     @emit "ace.requests.saveAs", contents
 
   fetchContents:(callback)->
-
     file = @getData()
     unless /localfile:/.test file.path
       @notify "Loading...", null, null, 10000
@@ -185,13 +197,6 @@ class Ace extends KDView
 
   setContents:(contents)-> @editor.getSession().setValue contents
 
-  setTheme:(themeName)->
-    themeName or= @appStorage.getValue('theme') or 'merbivore_soft'
-    require ["ace/theme/#{themeName}"], (callback) =>
-      @editor.setTheme "ace/theme/#{themeName}"
-      @appStorage.setValue 'theme', themeName, =>
-        callback
-
   setSyntax:(mode)->
 
     file = @getData()
@@ -208,49 +213,65 @@ class Ace extends KDView
       @editor.getSession().setMode new Mode
       @syntaxMode = mode
 
-  setUseSoftTabs:(value)->
+  setTheme:(themeName, save = yes)->
+    themeName or= @appStorage.getValue('theme') or 'merbivore_soft'
+    require ["ace/theme/#{themeName}"], (callback) =>
+      @editor.setTheme "ace/theme/#{themeName}"
+      return  unless save
+      @appStorage.setValue 'theme', themeName, =>
+        callback
+
+  setUseSoftTabs:(value, save = yes)->
 
     @editor.getSession().setUseSoftTabs value
+    return  unless save
     @appStorage.setValue 'useSoftTabs', value
 
-  setShowGutter:(value)->
+  setShowGutter:(value, save = yes)->
 
     @editor.renderer.setShowGutter value
+    return  unless save
     @appStorage.setValue 'showGutter', value
 
-  setShowPrintMargin:(value)->
+  setShowPrintMargin:(value, save = yes)->
 
     @editor.setShowPrintMargin value
+    return  unless save
     @appStorage.setValue 'showPrintMargin', value
 
-  setHighlightActiveLine:(value)->
+  setHighlightActiveLine:(value, save = yes)->
 
     @editor.setHighlightActiveLine value
+    return  unless save
     @appStorage.setValue 'highlightActiveLine', value
 
   # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
 
-  setShowInvisibles:(value)->
+  setShowInvisibles:(value, save = yes)->
 
     @editor.setShowInvisibles value
+    return  unless save
     @appStorage.setValue 'showInvisibles', value
 
-  setFontSize:(value, store = yes)->
+  setFontSize:(value, save = yes)->
 
     @$("#editor#{@getId()}").css 'font-size', "#{value}px"
-    if store
-      @appStorage.setValue 'fontSize', value
+    return  unless save
+    @appStorage.setValue 'fontSize', value
 
-  setTabSize:(value)->
+  setTabSize:(value, save = yes)->
+
     @editor.getSession().setTabSize +value
+    return  unless save
     @appStorage.setValue 'tabSize', value
 
-  setUseWordWrap:(value)->
+  setUseWordWrap:(value, save = yes)->
 
     @editor.getSession().setUseWrapMode value
+    return  unless save
     @appStorage.setValue 'useWordWrap', value
 
-  setSoftWrap:(value)->
+  setSoftWrap:(value, save = yes)->
     softWrapValueMap =
       'off'  : [ null, 80 ]
       '40'   : [ 40,   40 ]
@@ -263,6 +284,7 @@ class Ace extends KDView
     @editor.renderer.setPrintMarginColumn margin
     @setUseWordWrap no if value is "off"
 
+    return  unless save
     @appStorage.setValue 'softWrap', value
 
   focus: -> @editor?.focus()

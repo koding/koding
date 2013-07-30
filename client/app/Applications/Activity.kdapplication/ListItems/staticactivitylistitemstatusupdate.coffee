@@ -14,7 +14,7 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
 
     @embedOptions = $.extend {}, options,
       hasDropdown : no
-      delegate : @
+      delegate    : this
 
     if data.link?
       @embedBox = new EmbedBox @embedOptions, data?.link
@@ -32,7 +32,6 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
         $(element).twipsy twOptions("External Link : <span>"+href+"</span>")
       element
 
-
   viewAppended:->
     return if @getData().constructor is KD.remote.api.CStatusActivity
     super()
@@ -40,32 +39,21 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
     @template.update()
 
     # load embed on next callstack
-
     @utils.defer =>
 
       # If there is embed data in the model, use that!
-      if @getData().link?.link_url? and not (@getData().link.link_url is "")
+      if @getData().link?.link_url? and @getData().link.link_url isnt ''
+        @embedBox.show()
+        @embedBox.$().fadeIn 200
 
-        if not ("embed" in @getData()?.link?.link_embed_hidden_items)
-          @embedBox.show()
-          @embedBox.$().fadeIn 200
-          firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        firstUrl = @getData().body.match(/(([a-zA-Z]+\:)?\/\/)+(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g)
+        @embedBox.embedLinks.setLinks firstUrl  if firstUrl?
 
-          if firstUrl?
-            @embedBox.embedLinks.setLinks firstUrl
-
-          @embedBox.embedExistingData @getData().link.link_embed, {
-            maxWidth: 700
-            maxHeight: 300
-          }, =>
-            @embedBox.setActiveLink @getData().link.link_url
-            unless @embedBox.hasValidContent
-              @embedBox.hide()
-          , @getData().link.link_cache
-
-          @embedBox.embedLinks.hide()
-        else
-          @embedBox.hide()
+        embedOptions = maxWidth: 700, maxHeight: 300
+        @embedBox.embedExistingData @getData().link.link_embed, embedOptions, =>
+          @embedBox.setActiveLink @getData().link.link_url
+          @embedBox.hide()  unless @embedBox.hasValidContent
+        @embedBox.embedLinks.hide()
       else
         @embedBox.hide()
 
@@ -75,25 +63,19 @@ class StaticStatusActivityItemView extends StaticActivityItemChild
     super
 
     {link} = @getData()
-
     if link?
       if @embedBox.constructor.name is "KDView"
         @embedBox = new EmbedBox @embedOptions, link
-      @embedBox.setEmbedHiddenItems link.link_embed_hidden_items
-      @embedBox.setEmbedImageIndex link.link_embed_image_index
 
       # render embedBox only when the embed changed, else there will be ugly
       # re-rendering (particularly of the image)
       unless @embedBox.getEmbedData() is link.link_embed
-        @embedBox.embedExistingData link.link_embed, {} ,=>
-          if "embed" in link.link_embed_hidden_items or not @embedBox.hasValidContent
-            @embedBox.hide()
-        , link.link_cache
-
+        @embedBox.embedExistingData link.link_embed, {}, =>
+          @embedBox.hide()  unless @embedBox.hasValidContent
       @embedBox.setActiveLink link.link_url
-
     else
       @embedBox = new KDView
+
     @attachTooltipAndEmbedInteractivity()
 
   applyTextExpansions:(str = "")->

@@ -4,14 +4,12 @@ class MainController extends KDController
 
   * EMITTED EVENTS
     - AppIsReady
-    - FrameworkIsReady
     - AccountChanged                [account, firstLoad]
     - pageLoaded.as.loggedIn        [account, connectedState, firstLoad]
     - pageLoaded.as.loggedOut       [account, connectedState, firstLoad]
     - accountChanged.to.loggedIn    [account, connectedState, firstLoad]
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
   ###
-
 
   connectedState =
     connected   : no
@@ -22,7 +20,18 @@ class MainController extends KDController
 
     super options, data
 
+    @appStorages = {}
+
+    @createSingletons()
+    @setFailTimer()
+    @attachListeners()
+
+    @introductionTooltipController = new IntroductionTooltipController
+
+  createSingletons:->
+
     KD.registerSingleton "mainController",            this
+    KD.registerSingleton "windowController",          new KDWindowController
     KD.registerSingleton "appManager",   appManager = new ApplicationManager
     KD.registerSingleton "kiteController",            new KiteController
     KD.registerSingleton "vmController",              new VirtualizationController
@@ -44,29 +53,11 @@ class MainController extends KDController
     @ready =>
       router.listen()
       KD.registerSingleton "activityController",   new ActivityController
+      KD.registerSingleton "appStorageController", new AppStorageController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
       @emit 'AppIsReady'
-      @emit 'FrameworkIsReady'
-
-    @setFailTimer()
-    @attachListeners()
-
-    @appStorages = {}
-
-    @introductionTooltipController = new IntroductionTooltipController
-
-  # FIXME GG
-  getAppStorageSingleton:(appName, version)->
-    if @appStorages[appName]?
-      storage = @appStorages[appName]
-    else
-      storage = @appStorages[appName] = new AppStorage appName, version
-
-    storage.fetchStorage()
-    return storage
 
   accountChanged:(account, firstLoad = no)->
-
     @userAccount             = account
     connectedState.connected = yes
 
@@ -104,11 +95,10 @@ class MainController extends KDController
     KD.logout()
     KD.remote.api.JUser.logout (err, account, replacementToken)=>
       $.cookie 'clientId', replacementToken if replacementToken
-      @accountChanged account
+      location.reload()
 
     # fixme: make a old tv switch off animation and reload
     # $('body').addClass "turn-off"
-    return location.reload()
 
   attachListeners:->
 
@@ -175,6 +165,118 @@ class MainController extends KDController
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
 
+  blockUser:(accountId, duration, callback)->
+    KD.whoami().blockUser accountId, duration, callback
+
+  openBlockUserModal:(data)->
+    @modal = modal = new KDModalViewWithForms
+      title                   : "Block User For a Time Period"
+      content                 : """
+                                <div class='modalformline'>
+                                  This will block user from logging in to Koding(with all sub-groups).<br><br>
+                                  You can specify a duration to block user.
+                                  Entry format: [number][S|H|D|T|M|Y] eg. 1M
+                                </div>
+                                """
+      overlay                 : yes
+      cssClass                : "modalformline"
+      width                   : 500
+      height                  : "auto"
+      tabs                    :
+        forms                 :
+          BlockUser           :
+            callback          : =>
+              blockingTime = calculateBlockingTime modal.modalTabs.forms.BlockUser.inputs.duration.getValue()
+              @blockUser data.originId, blockingTime, (err, res)->
+                if err
+                  warn err
+                  modal.modalTabs.forms.BlockUser.buttons.blockUser.hideLoader()
+                else
+                  modal.destroy()
+                  new KDNotificationView title : "User is blocked!"
+
+            buttons           :
+              blockUser       :
+                title         : "Block User"
+                style         : "modal-clean-gray"
+                type          : "submit"
+                loader        :
+                  color       : "#444444"
+                  diameter    : 12
+                callback      : -> @hideLoader()
+              cancel          :
+                title         : "Cancel"
+                style         : "modal-cancel"
+            fields            :
+              duration        :
+                label         : "Block User For"
+                itemClass     : KDInputView
+                name          : "duration"
+                placeholder   : "e.g. 1Y 1W 3D 2H..."
+                keyup         : ->
+                  changeButtonTitle @getValue()
+                change        : ->
+                  changeButtonTitle @getValue()
+                validate             :
+                  rules              :
+                    required         : yes
+                    minLength        : 2
+                    regExp           : /\d[SHDTMY]+/i
+                  messages           :
+                    required         : "Please enter a time period"
+                    minLength        : "You must enter one pair"
+                    regExp           : "Entry should be in following format [number][S|H|D|T|M|Y] eg. 1M"
+                iconOptions          :
+                  tooltip            :
+                    placement        : "right"
+                    offset           : 2
+                    title            : """
+                                       You can enter {#}H/D/W/M/Y,
+                                       Order is not sensitive.
+                                       """
+    form = modal.modalTabs.forms.BlockUser
+    form.on "FormValidationFailed", ->
+    form.buttons.blockUser.hideLoader()
+
+    changeButtonTitle = (value)->
+      blockingTime = calculateBlockingTime value
+      button = modal.modalTabs.forms.BlockUser.buttons.blockUser
+      if blockingTime > 0
+        date = new Date (Date.now() + blockingTime)
+        button.setTitle "Block User to: #{date.toUTCString()}"
+      else
+        button.setTitle "Block User"
+
+
+    calculateBlockingTime = (value)->
+
+      totalTimestamp = 0
+      unless value then return totalTimestamp
+      for val in value.split(" ")
+        # this is the first part of blocking time
+        # if val 2D then numericalValue will be 2
+        numericalValue = parseInt(val.slice(0, -1), 10) or 0
+        if numericalValue is 0 then continue
+        hour = numericalValue * 60 * 60 * 1000
+        # we will get the lastest part of val as time case
+        timeCase = val.charAt(val.length-1)
+        switch timeCase.toUpperCase()
+          when "S"
+            totalTimestamp = 1000 # millisecond
+          when "H"
+            totalTimestamp = hour
+          when "D"
+            totalTimestamp = hour * 24
+          when "W"
+            totalTimestamp = hour * 24 * 7
+          when "M"
+            totalTimestamp = hour * 24 * 30
+          when "Y"
+            totalTimestamp = hour * 24 * 365
+
+      return totalTimestamp
+
+
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
     then $('body').addClass 'super'
@@ -202,12 +304,10 @@ class MainController extends KDController
     checkConnectionState = ->
       unless connectedState.connected
         fail()
-
-        KD.logToMixpanel "Couldn't connect to backend"
     ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
-        KD.logToMixpanel "Connected to backend"
+        KD.track "Connected to backend"
 
         if modal
           modal.setTitle "Connection Established"

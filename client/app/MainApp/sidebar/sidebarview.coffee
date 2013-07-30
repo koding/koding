@@ -14,6 +14,8 @@ class Sidebar extends JView
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
+      attributes :
+        title    : "View your public profile"
       size       :
         width    : 160
         height   : 76
@@ -22,17 +24,30 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    @statusLEDs = new KDView
-      cssClass : 'status-leds'
+    # @statusLEDs = new KDView
+    #   cssClass : 'status-leds'
 
     # Main Navigations
-    @navController = new NavigationController
+    @navController = new MainNavController
       view           : new NavigationList
         type         : "navigation"
         itemClass    : NavigationLink
       wrapper        : no
       scrollView     : no
-    , navItems
+    ,
+      id        : "navigation"
+      title     : "navigation"
+      items     : []
+
+    navAdditions = [
+      { type  : 'separator',      order : 65}
+      { title : 'Invite Friends', order : 66,  type : 'account',    role : 'member' }
+      { title : 'Logout',         order : 100, path : '/Logout',    type : 'account', role : 'member' }
+      { title : 'Login',          order : 101, path : '/Login',     type : 'account', role : 'guest' }
+      { title : 'Register',       order : 102, path : '/Register',  type : 'account', role : 'guest' }
+    ]
+
+    KD.registerNavItem navItem for navItem in navAdditions
 
     @nav = @navController.getView()
 
@@ -105,7 +120,8 @@ class Sidebar extends JView
       icon      : yes
       iconClass : "plus-orange"
       cssClass  : "clean-gray create-vm"
-      callback  : KD.getSingleton('vmController').createNewVM
+      callback  : ->
+        KD.getSingleton('vmController').createNewVM()
 
     @environmentButton = new KDButtonView
       title     : "Environments"
@@ -113,17 +129,30 @@ class Sidebar extends JView
       iconOnly  : yes
       iconClass : "cog"
       cssClass  : "clean-gray open-environment"
-      callback  :-> KD.getSingleton("appManager").open "Environments"
+      callback  :->
+        if KD.whoami().type is 'unregistered'
+          new KDNotificationView title: "This feature requires registration"
+        else
+          KD.getSingleton("appManager").open "Environments"
+
+    @environmentsRefreshButton = new KDButtonView
+      title     : "Refresh"
+      icon      : yes
+      iconOnly  : yes
+      iconClass : "refresh"
+      cssClass  : "clean-gray refresh-environment"
+      callback  : =>
+        @resourcesController.reset()
 
     @listenWindowResize()
 
   resetAdminNavController:->
     @utils.wait 1000, =>
       @adminNavController.removeAllItems()
-      if KD.isLoggedIn()
-        KD.whoami().fetchRole? (err, role)=>
-          if role is "super-admin"
-            @adminNavController.instantiateListItems adminNavItems.items
+      # if KD.isLoggedIn()
+      KD.whoami().fetchRole? (err, role)=>
+        if role is "super-admin"
+          @adminNavController.instantiateListItems adminNavItems.items
 
   setListeners:->
 
@@ -179,7 +208,6 @@ class Sidebar extends JView
         </div>
       </div>
       {{> @avatarAreaIconMenu}}
-      {{> @statusLEDs}}
       {{> @nav}}
       {{> @footerMenu}}
     </div>
@@ -194,7 +222,11 @@ class Sidebar extends JView
         {{> @finderBottomControls}}
         {{> @finderBottomControlPin}}
         {{> @resourcesWidget}}
-        {{> @createNewVMButton}}
+        <div class='button-wrapper'>
+          {{> @createNewVMButton}}
+          {{> @environmentButton}}
+          {{> @environmentsRefreshButton}}
+        </div>
       </div>
     </div>
     """
@@ -261,46 +293,13 @@ class Sidebar extends JView
     h = @_resizeResourcesList()
     @$("#finder-holder").height @getHeight() - h - 50
 
-  navItems =
-    # temp until groups are implemented
-    do ->
-      id        : "navigation"
-      title     : "navigation"
-      items     : [
-        { title : "Home",           path : "/Activity" }
-        { title : "Activity",       path : "/Activity" }
-        { title : "Topics",         path : "/Topics" }
-        { title : "Members",        path : "/Members" }
-        { title : "Groups",         path : "/Groups" }
-        { title : "Develop",        path : "/Develop",  loggedIn: yes }
-        { title : "Apps",           path : "/Apps" }
-        { type  : "separator" }
-        { title : "Invite Friends", type : "account", loggedIn: yes }
-        { title : "Account",        path : "/Account", type : "account", loggedIn  : yes }
-        { title : "Logout",         path : "/Logout",  type : "account", loggedIn  : yes }
-        { title : "Login",          path : "/Login",   type : "account", loggedOut : yes }
-      ]
-
   bottomControlsItems =
     id : "finder-bottom-controls"
     items : [
-      # {
-      #   title   : "Launch Terminal", icon : "terminal",
-      #   appPath : "WebTerm", isWebTerm : yes
-      # }
-      # { title   : "Settings",           icon : "cog" }
-      # {
-      #   title   : "Keyboard Shortcuts", icon : "shortcuts",
-      #   action  : "showShortcuts"
-      # }
       {
-        title   : "your environments",   icon : "resources",
+        title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
       }
-      # {
-      #   title   : "Create a new VM",      icon : "plus",
-      #   action  : "createNewVM"
-      # }
     ]
 
   adminNavItems =

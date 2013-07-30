@@ -1,5 +1,15 @@
 class KodingRouter extends KDRouter
 
+  @registerStaticEmitter()
+
+  nicenames = {
+    StartTab  : 'Develop'
+  }
+
+  getSectionName =(model)->
+    sectionName = nicenames[model.bongo_.constructorName]
+    if sectionName? then " - #{sectionName}" else ''
+
   constructor:(@defaultRoute)->
 
     @openRoutes = {}
@@ -9,18 +19,15 @@ class KodingRouter extends KDRouter
     @ready = no
     KD.getSingleton('mainController').once 'AccountChanged', =>
       @ready = yes
-      @utils.defer =>
-        @emit 'ready'
-    super getRoutes.call this
+      @utils.defer => @emit 'ready'
 
-    @on 'AlreadyHere', ->
-      log "You're already here!"
-      # new KDNotificationView
-      #   title: "You're already here!"
-      #   type : 'mini'
+    super()
 
-    @on 'Params', ({params, query})=>
-      #@utils.defer => KD.getSingleton('groupsController').changeGroup params.name
+    KodingRouter.emit 'RouterReady', this
+
+    @addRoutes getRoutes.call this
+
+    @on 'AlreadyHere', -> log "You're already here!"
 
   listen:->
     super
@@ -38,6 +45,7 @@ class KodingRouter extends KDRouter
       console.warn "Contract warning: shared route #{route} is not implemented."
 
   handleRoute:(route, options={})->
+
     {entryPoint} = options
     if entryPoint?.slug? and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
@@ -46,28 +54,34 @@ class KodingRouter extends KDRouter
       if not ///^#{entrySlug}///.test(route) and entrySlug isnt '/koding'
         route =  entrySlug + route
 
+
+
     super route, options
+
 
   handleRoot =->
     # don't load the root content when we're just consuming a hash fragment
     unless location.hash.length
       KD.getSingleton("contentDisplayController").hideAllContentDisplays()
       {entryPoint} = KD.config
-      if KD.isLoggedIn()
-        @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
-      else
-        @handleRoute @getDefaultRoute(), {entryPoint}
+      # if KD.isLoggedIn()
+      @handleRoute @userRoute or @getDefaultRoute(), {replaceState: yes, entryPoint}
+      # else
+      #   @handleRoute @getDefaultRoute(), {entryPoint}
 
   cleanupRoute:(contentDisplay)->
     delete @openRoutes[@openRoutesById[contentDisplay.id]]
 
   openSection:(app, group, query)->
     return @once 'ready', @openSection.bind this, arguments...  unless @ready
+
     KD.getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
+        @setPageTitle nicenames[app] ? app
         appManager = KD.getSingleton "appManager"
-        appManager.open app
+        appManager.open app, (appInstance)=>
+          appInstance.setOption "initialRoute", @getCurrentPath()
         appManager.tell app, 'handleQuery', query
 
   handleNotFound:(route)->
@@ -90,7 +104,7 @@ class KodingRouter extends KDRouter
     {JAccount, JStatusUpdate, JGroup} = KD.remote.api
     @utils.shortenText(
       switch model.constructor
-        when JAccount       then "#{model.profile.firstName} #{model.profile.lastName}"
+        when JAccount       then  KD.utils.getFullnameFromAccount model
         when JStatusUpdate  then  model.body
         when JGroup         then  model.title
         else                      "#{model.title}#{getSectionName model}"
@@ -100,6 +114,8 @@ class KodingRouter extends KDRouter
     method   = 'createContentDisplay'
     [models] = models  if Array.isArray models
 
+    @setPageTitle @getContentTitle models
+
     # HK: with passOptions false an application only gets the information
     # 'hey open content' with this model. But some applications require
     # more information such as the route. Unfortunately we would need to
@@ -107,13 +123,14 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-
-    KD.getSingleton("appManager").tell section, method, options ? models,
-      (contentDisplay)=>
-        routeWithoutParams = route.split('?')[0]
-        @openRoutes[routeWithoutParams] = contentDisplay
-        @openRoutesById[contentDisplay.id] = routeWithoutParams
-        contentDisplay.emit 'handleQuery', query
+    groupName = if section is "Groups" then name else "koding"
+    KD.getSingleton('groupsController').changeGroup groupName, (err) =>
+      KD.getSingleton("appManager").tell section, method, options ? models,
+        (contentDisplay)=>
+          routeWithoutParams = route.split('?')[0]
+          @openRoutes[routeWithoutParams] = contentDisplay
+          @openRoutesById[contentDisplay.id] = routeWithoutParams
+          contentDisplay.emit 'handleQuery', query
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
@@ -121,16 +138,18 @@ class KodingRouter extends KDRouter
 
     onSuccess = (models)=> @openContent name, section, models, route, query, passOptions
     onError   = (err)=>
-      new KDNotificationView title: err?.message or 'An unknown error has occured.'
+      KD.showError err
       @handleNotFound route
 
-    if name
-      KD.remote.cacheable name or routeWithoutParams, (err, models)=>
+    if name and not slug
+      KD.remote.cacheable name, (err, models)=>
         if models?
         then onSuccess models
         else onError err
     else
-      KD.remote.api.JName.one {name: routeWithoutParams}, (err, jName)=>
+      # TEMP FIX: getting rid of the leading slash for the post slugs
+      slashlessSlug = routeWithoutParams.slice(1)
+      KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
         if err then onError err
         else if jName?
           models = []
@@ -139,6 +158,7 @@ class KodingRouter extends KDRouter
             selector = {}
             konstructor = KD.remote.api[constructorName]
             selector[usedAsPath] = aSlug.slug
+            selector.group = aSlug.group if aSlug.group
             konstructor?.one selector, (err, model)=>
               return onError err if err?
               if model
@@ -177,12 +197,11 @@ class KodingRouter extends KDRouter
       if entryPoint?.type is 'group' and entryPoint?.slug?
         route = "/#{KD.config.entryPoint?.slug}"
       else
-        route = '?'
+        route = '/'
     super route, replaceState
 
   getRoutes =->
     mainController = KD.getSingleton 'mainController'
-
     clear = @bound 'clear'
 
     requireLogin =(fn)->
@@ -196,7 +215,8 @@ class KodingRouter extends KDRouter
         else clear()
 
     createSectionHandler = (sec)=>
-      ({params:{name}, query})=> @openSection sec, name, query
+      ({params:{name, slug}, query})=>
+        @openSection slug or sec, name, query
 
     createContentHandler       = @bound 'createContentDisplayHandler'
     createStaticContentHandler = @bound 'createStaticContentDisplayHandler'
@@ -220,31 +240,15 @@ class KodingRouter extends KDRouter
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
-      # section
-      # TODO: nested groups are disabled.
-      '/:name?/Groups'                  : createSectionHandler 'Groups'
-      '/:name?/Activity'                : createSectionHandler 'Activity'
-      '/:name?/Members'                 : createSectionHandler 'Members'
-      '/:name?/Topics'                  : createSectionHandler 'Topics'
-      '/:name?/Develop'                 : createSectionHandler 'StartTab'
-      '/:name?/Apps'                    : createSectionHandler 'Apps'
-      '/:name?/Account'                 : createSectionHandler 'Account'
-      '/:name?/Demos'                   : createSectionHandler 'Demos'
-      '/:name?/Dashboard'               : createSectionHandler 'Dashboard'
-      '/:name?/Inbox'                   : createSectionHandler 'Inbox'
-      #'/:name?/Environments'            : createSectionHandler 'Environments'
-
-      # group dashboard
-      # '/:name?/Dashboard'               : (routeInfo, state, route)->
-      #   {name} = routeInfo.params
-      #   n = name ? 'koding'
-      #   KD.remote.cacheable n, (err, groups, nameObj)=>
-      #     @openContent name, 'Groups', groups, route
+      # apps
+      '/:name?/Develop/:slug'           : createSectionHandler 'Develop'
 
       # content
       '/:name?/Topics/:slug'            : createContentHandler 'Topics'
       '/:name?/Activity/:slug'          : createContentHandler 'Activity'
       '/:name?/Apps/:slug'              : createContentHandler 'Apps'
+
+      '/:name/Groups'                   : createSectionHandler 'Groups'
 
       '/:name/Followers'                : createContentHandler 'Members', yes
       '/:name/Following'                : createContentHandler 'Members', yes
@@ -357,6 +361,7 @@ class KodingRouter extends KDRouter
           KD.remote.api.JKodingKey.fetchByKey
             key: key
           , (err, kodingKey) =>
+            console.log "err", err, kodingKey
             unless kodingKey?.length
               KD.remote.api.JKodingKey.create {hostname, key}, (err, data)=>
                 if err or not data
@@ -381,6 +386,7 @@ class KodingRouter extends KDRouter
               run <code>$ kd register renew</code> on command line interface.</p>
               """
               showModal title, content
+
       # top level names
       '/:name':do->
         open =(routeInfo, model)->

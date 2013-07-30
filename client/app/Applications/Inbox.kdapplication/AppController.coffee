@@ -2,8 +2,11 @@ class InboxAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Inbox"
-    route        : "/Inbox"
+    route        : "/:name?/Inbox"
     hiddenHandle : yes
+    navItem      :
+      title      : "Inbox"
+      path       : "/Inbox"
 
   {race} = Bongo
 
@@ -18,12 +21,78 @@ class InboxAppController extends AppController
 
     @selection = {}
 
+    @on 'MessageShouldBeSent', ({formOutput,callback})=>
+      @prepareMessage formOutput, callback
+
   fetchMessages:(options, callback)->
     KD.whoami().fetchMail? options, callback
 
   fetchAutoCompleteForToField:(inputValue,blacklist,callback)->
     KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts)->
       callback accounts
+
+  createNewMessageModal:(to)->
+    modal = new KDModalViewWithForms
+      title                   : "Compose a message"
+      content                 : ""
+      cssClass                : "compose-message-modal"
+      height                  : "auto"
+      width                   : 500
+      overlay                 : yes
+      tabs                    :
+        navigable             : yes
+        callback              : (formOutput)=>
+          callback = modal.destroy.bind modal
+          @emit "MessageShouldBeSent", {formOutput,callback}
+        forms                 :
+          sendForm            :
+            fields            :
+              to              :
+                label         : "Send To:"
+                type          : "hidden"
+                name          : "dummy"
+              subject         :
+                label         : "Subject:"
+                placeholder   : 'Enter a subject'
+                name          : "subject"
+              Message         :
+                label         : "Message:"
+                type          : "textarea"
+                name          : "body"
+                placeholder   : 'Enter your message'
+            buttons           :
+              Send            :
+                title         : "Send"
+                style         : "modal-clean-gray"
+                type          : "submit"
+              Cancel          :
+                title         : "cancel"
+                style         : "modal-cancel"
+                callback      : -> modal.destroy()
+
+    toField = modal.modalTabs.forms.sendForm.fields.to
+
+    recipientsWrapper = new KDView
+      cssClass      : "completed-items"
+
+    recipient = new KDAutoCompleteController
+      name                : "recipient"
+      itemClass           : MemberAutoCompleteItemView
+      selectedItemClass   : MemberAutoCompletedItemView
+      outputWrapper       : recipientsWrapper
+      form                : modal.modalTabs.forms.sendForm
+      itemDataPath        : "profile.nickname"
+      listWrapperCssClass : "users"
+      submitValuesAsText  : yes
+      dataSource          : (args, callback)=>
+        {inputValue} = args
+        blacklist = (data.getId() for data in recipient.getSelectedItemData())
+        @fetchAutoCompleteForToField inputValue, blacklist, callback
+
+    toField.addSubView recipient.getView()
+    toField.addSubView recipientsWrapper
+    recipient.setDefaultValue to  if to
+
 
   loadView:(mainView)->
     mainView.createCommons()
@@ -67,35 +136,35 @@ class InboxAppController extends AppController
       newMessageBar.enableMessageActionButtons()
       @selectMessage data, item, paneView
 
-    newMessageBar.on "AutoCompleteNeedsMemberData", (event)=>
-      {callback,inputValue,blacklist} = event
-      @fetchAutoCompleteForToField inputValue,blacklist,callback
-
-    newMessageBar.on 'MessageShouldBeSent', ({formOutput,callback})=>
+    # in constructor we already add another listener to use without views
+    # we have to remove all the listeners and bind a new one to send
+    # after view is loaded.
+    @off 'MessageShouldBeSent'
+    @on 'MessageShouldBeSent', ({formOutput,callback})=>
       @prepareMessage formOutput, callback, newMessageBar
 
     newMessageBar.on 'MessageShouldBeDisowned', do =>
-        if not @selection
-          newMessageBar.disableMessageActionButtons()
+      if not @selection
+        newMessageBar.disableMessageActionButtons()
+        modal.destroy()
+        return
+      disownAll = (items, callback)->
+        disownItem = race (i, item, fin)->
+          item.data.disown (err)->
+            if err
+              fin err
+            else
+              fin()
+        , callback
+        disownItem item for own id, item of items
+      (modal) =>
+        disownAll @selection, =>
+          for own id, {item, paneView} of @selection
+            item.destroy()
+            paneView.destroy()
+            @deselectMessages()
           modal.destroy()
-          return
-        disownAll = (items, callback)->
-          disownItem = race (i, item, fin)->
-            item.data.disown (err)->
-              if err
-                fin err
-              else
-                fin()
-          , callback
-          disownItem item for own id, item of items
-        (modal) =>
-          disownAll @selection, =>
-            for own id, {item, paneView} of @selection
-              item.destroy()
-              paneView.destroy()
-              @deselectMessages()
-            modal.destroy()
-            newMessageBar.disableMessageActionButtons()
+          newMessageBar.disableMessageActionButtons()
 
     newMessageBar.on 'MessageShouldBeMarkedAsUnread', =>
       for own id, {item, data} of @selection
@@ -124,7 +193,10 @@ class InboxAppController extends AppController
     @selection = {}
 
   sendMessage:(messageDetails, callback)->
-    # log "I just send a new message: ", messageDetails
+    if KD.isGuest()
+      return new KDNotificationView
+        title : "Sending private message for guests not allowed"
+
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
   prepareMessage:(formOutput, callback, newMessageBar)->
@@ -137,5 +209,5 @@ class InboxAppController extends AppController
         title     : if err then "There was an error sending your message - try again" else "Message Sent!"
         duration  : 1000
       message.mark 'read'
-      newMessageBar.emit 'RefreshButtonClicked'
+      newMessageBar?.emit 'RefreshButtonClicked'
       callback? err, message

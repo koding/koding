@@ -29,10 +29,57 @@ class NotificationController extends KDObject
       isExclusive : yes
 
     @notificationChannel.on 'message', (notification)=>
+      console.log 'notification arrived'
       @emit "NotificationHasArrived", notification
       if notification.contents
         @emit notification.event, notification.contents
         @prepareNotification notification
+
+    @on 'UsernameChanged', ({username, oldUsername}) ->
+      # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
+      $.cookie 'clientId', erase: yes
+
+      new KDModalView
+        title         : "Your username was changed"
+        overlay       : yes
+        content       :
+          """
+          <div class="modalformline">
+          Your username has been changed to <strong>#{username}</strong>.
+          Your <em>old</em> username <strong>#{oldUsername}</strong> is
+          now available for registration by another Koding user.  You have
+          been logged out.  If you wish, you may close this box, and save
+          your work locally.
+          </div>
+          """
+        buttons       :
+          "Refresh":
+            style     : "modal-clean-red"
+            callback  : (event) -> location.replace '/Login'
+          "Close"     :
+            style     : "modal-clean-gray"
+            callback  : (event) -> modal.destroy()
+
+    @on 'UserBlocked', ({blockedDate}) ->
+      new KDModalView
+        title         : "Permission denied. You've been banned."
+        overlay       : yes
+        content       :
+          """
+          <div class="modalformline">
+          You have been blocked until <strong>#{blockedDate}</strong>.
+          </div>
+          """
+        buttons       :
+          "Ok"        :
+            style     : "modal-clean-gray"
+            callback  : (event) ->
+              $.cookie 'clientId', erase: yes
+              modal.destroy()
+
+      # If not clicked on "Ok", kick him out after 10 seconds
+      @utils.wait 10000, =>
+        $.cookie 'clientId', erase: yes
 
   prepareNotification: (notification)->
 
@@ -60,7 +107,7 @@ class NotificationController extends KDObject
     KD.remote.cacheable actor.constructorName, actor.id, (err, actorAccount)=>
       KD.remote.api[subject.constructorName].one _id: subject.id, (err, subjectObj)=>
 
-        actorName = "#{actorAccount.profile.firstName} #{actorAccount.profile.lastName}"
+        actorName = KD.utils.getFullnameFromAccount actorAccount
 
         options.title = switch actionType
           when "reply", "opinion"
@@ -75,7 +122,7 @@ class NotificationController extends KDObject
                 when "JPrivateMessage"
                   "#{actorName} also replied to your #{subjectMap()[subject.constructorName]}."
                 else
-                  originatorName   = "#{origin.profile.firstName} #{origin.profile.lastName}"
+                  originatorName   = KD.utils.getFullnameFromAccount origin
                   if actorName is originatorName
                     originatorName = "their own"
                     separator      = ""

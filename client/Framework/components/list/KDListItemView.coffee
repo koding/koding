@@ -45,4 +45,4 @@ class KDListItemView extends KDView
     @unsetClass "selected"
     @unsetClass "dimmed"
 
-  getItemDataId:-> @getData().getId?()
+  getItemDataId:-> @getData().getId?() or @getData().id or @getData()._id

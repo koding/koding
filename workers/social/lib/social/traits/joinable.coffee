@@ -16,7 +16,7 @@ module.exports = class Joinable
     @addMember delegate, as, (err)=>
       if err then callback err
       else
-        @emit 'MemberAdded', delegate
+        @emit 'MemberAdded', delegate  if as is 'member'
         @updateCounts()
         callback null
       # TODO: we used to do the below, but on second thought, it's not a very good idea:
@@ -48,7 +48,7 @@ module.exports = class Joinable
     as ?= 'member'
     {delegate} = client.connection
     @removeMember delegate, as, callback
-    @emit 'MemberRemoved', delegate
+    @emit 'MemberRemoved', delegate  if as is 'member'
       # if err then callback err
       # else delegate.removeGroup this, as, callback
 

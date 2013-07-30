@@ -44,7 +44,9 @@ module.exports = class JGroup extends Module
     permissions     :
       'grant permissions'                 : []
       'open group'                        : ['member','moderator']
-      'list members'                      : ['guest','member','moderator']
+      'list members'                      :
+        public                            : ['guest','member','moderator']
+        private                           : ['member','moderator']
       'create groups'                     : ['moderator']
       'edit groups'                       : ['moderator']
       'edit own groups'                   : ['member','moderator']
@@ -62,12 +64,17 @@ module.exports = class JGroup extends Module
         { name: 'MemberRolesChanged' }
         { name: 'GroupDestroyed' }
         { name: 'broadcast' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+
       ]
       instance      : [
         { name: 'GroupCreated' }
         { name: 'MemberAdded',      filter: -> null }
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods   :
       static        : [
@@ -88,8 +95,9 @@ module.exports = class JGroup extends Module
         'inviteByEmails', 'kickMember', 'transferOwnership', # 'inviteByUsername',
         'fetchRolesByClientId', 'fetchOrSearchInvitationRequests', 'fetchMembersFromGraph'
         'remove', 'sendSomeInvitations', 'fetchNewestMembers', 'countMembers',
-        'checkPayment', 'makePayment', 'updatePayment', 'createVM', 'vmUsage',
-        'fetchBundle', 'updateBundle'
+        'checkPayment', 'makePayment', 'updatePayment', 'setBillingInfo', 'getBillingInfo',
+        'createVM', 'canCreateVM', 'vmUsage',
+        'fetchBundle', 'updateBundle', 'saveInviteMessage'
       ]
     schema          :
       title         :
@@ -185,6 +193,8 @@ module.exports = class JGroup extends Module
         actorType  : 'member'
         subject    : ObjectRef(this).data
         member     : ObjectRef(member).data
+      @broadcast 'MemberJoinedGroup',
+        member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -285,8 +295,9 @@ module.exports = class JGroup extends Module
       JMembershipPolicy     = require './membershippolicy'
       JName                 = require '../name'
       group                 = new this groupData
-      permissionSet         = new JPermissionSet
-      defaultPermissionSet  = new JPermissionSet
+      permissionSet         = new JPermissionSet {}, {privacy: group.privacy}
+      defaultPermissionSet  = new JPermissionSet {}, {privacy: group.privacy}
+
       queue = [
         -> group.useSlug group.slug, (err, slug)->
           if err then callback err
@@ -369,10 +380,16 @@ module.exports = class JGroup extends Module
     JAccount = require '../account'
     {delegate} = client.connection
 
-    unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+    @one {slug:"koding"}, (err, kodingGroup)=>
+      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
+        unless hasPermission
+          return callback new KodingError 'Access denied'
 
-    @create formData, delegate, callback
+        @create formData, delegate, callback
+
+    #unless delegate instanceof JAccount
+    #  return callback new KodingError 'Access denied'
+
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -431,41 +448,52 @@ module.exports = class JGroup extends Module
           event       : 'feed-new'
         }
 
-  broadcast:(message)-> @constructor.broadcast @slug, message
+  broadcast:(message, event)->
+    @constructor.broadcast @slug, message, event
 
   # this is a temporary feature to display all activities
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
-        if err or not group then console.error "unknown group #{groupSlug}"
+        console.error err  if err
+        unless group
+          # console.trace()
+          # At some point this error happens with groupSlug as 'undefined'
+          # Tried to trace but failed, maybe its important ~ GG
+          console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
-          @oldBroadcast.call this, "koding", event, message
+          unless event is "MemberJoinedGroup"
+            @oldBroadcast.call this, "koding", event, message
     @oldBroadcast.call this, groupSlug, event, message
 
   changeMemberRoles: permit 'grant permissions',
-    success:(client, memberId, roles, callback)->
-      group = this
-      groupId = @getId()
+    success:(client, targetId, roles, callback)->
+      remove = []
+      sourceId = @getId()
       roles.push 'member'  unless 'member' in roles
-      oldRole =
-        targetId    : memberId
-        sourceId    : groupId
-      Relationship.remove oldRole, (err)->
-        if err then callback err
-        else
-          queue = roles.map (role)->->
-            (new Relationship
-              targetName  : 'JAccount'
-              targetId    : memberId
-              sourceName  : 'JGroup'
-              sourceId    : groupId
-              as          : role
-            ).save (err)->
-              callback err  if err
-              queue.fin()
-          dash queue, callback
+      Relationship.some {targetId, sourceId}, {}, (err, rels)->
+        return callback err  if err
+
+        for rel in rels
+          if rel.as in roles then roles.splice roles.indexOf(rel.as), 1
+          else remove.push rel._id
+
+        if remove.length > 0
+          Relationship.remove _id: $in: remove, (err)-> console.log 'removed'; callback err  if err
+
+        queue = roles.map (role)->->
+          (new Relationship
+            targetName  : 'JAccount'
+            targetId    : targetId
+            sourceName  : 'JGroup'
+            sourceId    : sourceId
+            as          : role
+          ).save (err)->
+            callback err  if err
+            queue.fin()
+        dash queue, callback
 
   addDefaultRoles:(callback)->
     group = this
@@ -570,11 +598,9 @@ module.exports = class JGroup extends Module
 
   fetchMembers$: permit 'list members',
     success:(client, rest...)->
-      console.time('fetch members')
       [selector, options, callback] = Module.limitEdges 100, rest
       # delete options.targetOptions
       @fetchMembers selector, options, ->
-        console.timeEnd('fetch members')
         callback arguments...
 
   fetchNewestMembers$: permit 'list members',
@@ -830,11 +856,11 @@ module.exports = class JGroup extends Module
             else callback null
 
   inviteByEmail: permit 'send invitations',
-    success: (client, email, callback)->
+    success: (client, email, message, options, callback)->
       JUser    = require '../user'
       JUser.one {email}, (err, user)=>
         cb = (user, account)=>
-          @inviteMember client, email, user, account, callback
+          @inviteMember client, email, user, account, message, options, callback
 
         if err or not user
           cb null, null
@@ -846,15 +872,23 @@ module.exports = class JGroup extends Module
               cb user, account
 
   inviteByEmails: permit 'send invitations',
-    success: (client, emails, callback)->
+    success: (client, emails, message, options, callback)->
       {uniq} = require 'underscore'
       errors = []
       queue = uniq(emails.split(/\n/)).map (email)=>=>
-        @inviteByEmail client, email.trim(), (err)->
+        @inviteByEmail client, email.trim(), message, options, (err)->
           errors.push err  if err
           queue.next()
       queue.push -> callback if errors.length > 0 then errors else null
       daisy queue
+
+  saveInviteMessage: permit 'send invitations',
+    success: (client, messageType, message, callback=->)->
+      @fetchMembershipPolicy (err, policy)=>
+        return callback err  if err
+        set = {}
+        set["communications.#{messageType}"] = message
+        policy.update $set: set, callback
 
   inviteByUsername: permit 'send invitations',
     success: (client, usernames, callback)->
@@ -878,11 +912,13 @@ module.exports = class JGroup extends Module
       queue.push -> callback null
       daisy queue
 
-  inviteMember: (client, email, user, account, callback)->
+  inviteMember: (client, email, user, account, message, options, callback)->
     JInvitationRequest = require '../invitationrequest'
 
+    [callback, options] = [options, callback]  unless callback
+    [callback, message] = [message, callback]  unless callback
     [callback, account] = [account, callback]  unless callback
-    [callback, user]    = [user, callback]     unless callback
+    [callback, user]    = [user,    callback]  unless callback
 
     params =
       email  : email
@@ -905,7 +941,12 @@ module.exports = class JGroup extends Module
           if err then callback err
           else @addInvitationRequest invitationRequest, (err)->
             if err then callback err
-            else invitationRequest.sendInvitation client, callback
+            else
+              if user
+                user.fetchOwnAccount (err, account)->
+                  return console.warn err  if err # this is minor work, workflow should not stop cause of this
+                  account.emit 'NewPendingInvitation'
+              invitationRequest.sendInvitation client, message, options, callback
 
   isMember: (account, callback)->
     selector =
@@ -920,19 +961,24 @@ module.exports = class JGroup extends Module
     success: (client, rest...)-> @fetchInvitationRequests rest...
 
   sendSomeInvitations: permit 'send invitations',
-    success: (client, count, callback)->
-      @fetchInvitationRequests {}, {
-        targetOptions :
-          selector    : { status  : 'pending' }
-          options     : { limit   : count }
-      }, (err, requests)->
+    success: (client, count, options, callback)->
+      selector   = group: @slug, status: 'pending'
+      selOptions = limit: count, sort: requestedAt: 1
+
+      JInvitationRequest = require '../invitationrequest'
+      JInvitationRequest.some selector, selOptions, (err, requests)->
         if err then callback err
         else
-          queue = requests.map (request)->->
-            request.approveInvitation client, (err)->
-              return callback err if err
+          errors = []
+          emails = []
+          queue = requests.map (request)-> ->
+            request.approveInvitation client, options, (err)->
+              if err
+                errors.push "#{request.email} failed!"
+              else
+                emails.push request.email
               setTimeout queue.next.bind(queue), 50
-          queue.push -> callback null
+          queue.push -> callback (if errors.length > 0 then errors else null), emails
           daisy queue
 
   requestAccess: secure (client, formData, callback)->
@@ -1002,10 +1048,7 @@ module.exports = class JGroup extends Module
 
         unless delegate instanceof JAccount
           return callback new KodingError 'Email address is missing'  unless formData?.email
-          cb formData.email, (err)=>
-            return callback err  if err
-            JInvitation = require '../invitation'
-            JInvitation.createViaGroupWithoutNotification account, this, [formData.email], callback
+          cb formData.email, callback
         else
           JUser.one username:delegate.profile.nickname, (err, user)=>
             return callback err if err
@@ -1016,11 +1059,12 @@ module.exports = class JGroup extends Module
     roles ?= ['member']
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
+
     dash queue, =>
       callback()
       @updateCounts()
       @cycleChannel()
-      @emit 'MemberAdded', member
+      @emit 'MemberAdded', member  if 'member' in roles
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1073,8 +1117,8 @@ module.exports = class JGroup extends Module
 
     [callback, options] = [options, callback] unless callback
 
-    if @slug is 'koding'
-      return callback new KodingError 'Leaving Koding group is not supported yet'
+    if @slug in ['koding', 'guests']
+      return callback new KodingError "It's not allowed to leave this group"
 
     @fetchMyRoles client, (err, roles)=>
       return callback err if err
@@ -1273,11 +1317,11 @@ module.exports = class JGroup extends Module
         #     return callback err if err
         #     queue.next()
 
-        => remove_.call this, (err)->
-          return callback err if err
+        => @constructor.emit 'GroupDestroyed', this, ->
           queue.next()
 
-        => @constructor.emit 'GroupDestroyed', this, ->
+        => remove_.call this, (err)->
+          return callback err if err
           queue.next()
 
         -> callback null
@@ -1316,9 +1360,17 @@ module.exports = class JGroup extends Module
         return callback err  if err?
         @addBundle bundle, ->
           callback null, bundle
- 
+
   fetchBundle$: permit 'commission resources',
     success: (client, rest...) -> @fetchBundle rest...
+
+  setBillingInfo: secure (client, data, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.setGroupAccount @, data, callback
+
+  getBillingInfo: secure (client, callback)->
+    JRecurlyPlan = require '../recurly'
+    JRecurlyPlan.getGroupAccount @, callback
 
   makePayment: secure (client, data, callback)->
     data.plan ?= @payment.plan
@@ -1328,17 +1380,6 @@ module.exports = class JGroup extends Module
     , (err, plan)=>
       return callback err  if err
       plan.subscribeGroup @, data, callback
-
-  updatePayment: secure (client, data, callback)->
-    data.plan ?= @payment.plan
-    JRecurlyPlan = require '../recurly'
-    JRecurlyPlan.one
-      code: data.plan
-    , (err, plan)=>
-      return callback err  if err
-      plan.subscribeGroup @, data, (err, subs)=>
-        return callback err  if err
-        callback no, subs
 
   checkPayment: (callback)->
     JRecurlySubscription = require '../recurly/subscription'
@@ -1354,10 +1395,10 @@ module.exports = class JGroup extends Module
       else
         bundle.checkUsage delegate, @, callback
 
-  createVM: secure (client, data, callback)->
+  canCreateVM: secure (client, data, callback)->
     {delegate} = client.connection
 
-    if data.type in ['user', 'group', 'expensed']
+    if data.type in ['user', 'group']
       @fetchBundle (err, bundle)=>
         if err or not bundle
           if @slug == 'koding'
@@ -1367,7 +1408,28 @@ module.exports = class JGroup extends Module
               allocation   : 0
               sharedVM     : yes
             , (err, bundle)=>
-              console.log err, bundle
+              return callback new KodingError "Unable to create default group bundle"  if err
+              bundle.canCreateVM delegate, @, data, callback
+          else
+            callback new KodingError "Unable to fetch group bundle"
+        else
+          bundle.canCreateVM delegate, @, data, callback
+    else
+      callback new KodingError "No such VM type: #{data.type}"
+
+  createVM: secure (client, data, callback)->
+    {delegate} = client.connection
+
+    if data.type in ['user', 'group']
+      @fetchBundle (err, bundle)=>
+        if err or not bundle
+          if @slug == 'koding'
+            @createBundle
+              overagePolicy: "not allowed"
+              paymentPlan  : ""
+              allocation   : 0
+              sharedVM     : yes
+            , (err, bundle)=>
               return callback new KodingError "Unable to create default group bundle"  if err
               bundle.createVM delegate, @, data, callback
           else
@@ -1377,29 +1439,40 @@ module.exports = class JGroup extends Module
     else
       callback new KodingError "No such VM type: #{data.type}"
 
+  countMembers: (callback)->
+    graph = new Graph({config:KONFIG['neo4j']})
+    graph.fetchRelationshipCount {groupId:@_id, relName:"member"}, callback
+
   fetchOrSearchInvitationRequests: permit 'send invitations',
     success: (client, status, timestamp, requestLimit, search, callback)->
-      status   = $in: status                if Array.isArray status
-      selector = timestamp: $lt: timestamp  if timestamp
+      graph = new Graph({config:KONFIG['neo4j']})
+      options = {}
+      options.groupId      = @getId()
+      options.status       = status
+      options.search       = search
+      options.timestamp    = timestamp
+      options.requestLimit = requestLimit
 
-      options  =
-        targetOptions :
-          selector    : { status }
-          limit       : requestLimit
-          sort        : { requestedAt: -1 }
-        options       :
-          sort        : { timestamp: -1 }
+      graph.fetchInvitations options, (err, results)=>
+        if err then return callback err
+        if results.length < 1 then return callback null, []
 
-      if search
-        search = search.replace(/[^\w\s@.+-]/).replace(/([+.]+)/g, "\\$1").trim()
-        seed = new RegExp search, 'i'
-        options.targetOptions.selector.$or = [
-          { email             : seed }
-          { 'koding.username' : seed }
-          { 'koding.fullName' : seed }
-        ]
+        JInvitationRequest = require '../invitationrequest'
+        tempRes = []
+        collectContents = race (i, res, fin)=>
+          objId = res.groupOwnedNodes.data.id
+          JInvitationRequest.one  { _id : objId }, (err, invitationRequest)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] = invitationRequest
+              fin()
+        , ->
+          callback null, tempRes
 
-      @fetchInvitationRequests selector, options, callback
+        for res in results
+          collectContents res
 
   fetchMembersFromGraph: permit 'list members',
     success:(client, options, callback)->
@@ -1408,6 +1481,7 @@ module.exports = class JGroup extends Module
       JAccount = require '../account'
       graph.fetchMembers options, (err, results)=>
         if err then return callback err
+        else if results.length < 1 then return callback null, []
         else
           tempRes = []
           collectContents = race (i, res, fin)=>
@@ -1415,12 +1489,12 @@ module.exports = class JGroup extends Module
             JAccount.one  { _id : objId }, (err, account)=>
               if err
                 callback err
-                fin()
-              else
-                tempRes[i] = account
-                fin()
+                return fin()
+
+              tempRes[i] = account
+              fin()
           , ->
+            tempRes = tempRes.filter (res)-> res
             callback null, tempRes
           for res in results
             collectContents res
-

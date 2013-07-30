@@ -22,7 +22,8 @@ class MainChatPanel extends JView
       if visible
         KD.getSingleton('windowController').addLayer @
         @once 'ReceivedClickElsewhere', (event)=>
-          unless $(event.target).closest('.main-chat-handler').length > 0
+          unless $(event.target).closest('.main-chat-handler').length > 0 or\
+                 $(event.target).closest('.kdlistitemview-default.chat').length > 0
             @hidePanel()
 
     # FIXME Later ~ GG

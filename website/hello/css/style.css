@@ -106,6 +106,14 @@ header a {
 .perl .hellobox {
 	background:#000 url('../img/hellodesert.jpg') no-repeat center top;
 }
+
+
+
+.wrap {
+	width: 660px;
+	margin: 0 auto;
+}
+
 @-webkit-keyframes shakey {
 	0% {
 		-webkit-transform:rotate3d(0,0,0,0deg)
@@ -165,6 +173,8 @@ h2 {
 	border-radius:4px;
 	padding:0;
 	margin:0;
+	margin: 2em 0;
+	line-height: 3em;
 	text-shadow:0 0 5px rgba(58,93,125,1);
 	transition:all .2s linear;
 	-o-transition:all .2s linear;
@@ -247,6 +257,31 @@ pre {
 .clearfix {
 	zoom: 1;
 }
+
+.wrap {
+  width: 600px;
+  margin: 0 auto;
+}
+
+dl {
+  color: rgba(255,255,255,0.5);
+}
+dl dt {
+  font-weight: 600;
+  line-height: 2em;
+  font-size: 1.4em;
+  color: #E8E6E2;
+}
+dl dd {
+  margin-left: 0;
+  font-size: 1.1em;
+  line-height: 1.4em;
+}
+
+a, a:link {
+  color: #ff9400;
+}
+
 /* ==|== media queries ====================================================== PLACEHOLDER Media Queries for Responsive Design. These override the primary ('mobile first') styles Modify as content requires. ========================================================================== */
 @media only screen and (min-width:480px) {
 	/* Style adjustments for viewports 480px and over go here */
@@ -273,6 +308,19 @@ pre {
 	.hellobox {
 		height:320px;
 		background-size:auto 330px;
+	}
+	.wrap {
+		box-sizing: border-box;
+		width: 100%;
+		padding: 0 1em;
+	}
+
+	dl dt {
+		font-size: 1.2em;
+	}
+
+	dl dd {
+		font-size: 1em;
 	}
 	nav ul li a {
 		font-size:1.2em;

@@ -11,17 +11,15 @@ class StartTabMainView extends JView
     @appIcons       = {}
     mainView        = KD.getSingleton('mainView')
 
-    @appStorage = KD.getSingleton('mainController') \
-                    .getAppStorageSingleton 'Finder', '1.0'
-
+    @appStorage = KD.getSingleton('appStorageController').storage 'Finder', '1.0'
     @appsController = KD.getSingleton("kodingAppsController")
     @appsController.on "AppsRefreshed", (apps)=>
       @decorateApps apps
     @appsController.on "aNewAppCreated", =>
       @aNewAppCreated()
 
-    finder = KD.getSingleton("finderController")
-    finder.on 'recentfiles.updated', =>
+    @finderController = KD.getSingleton "finderController"
+    @finderController.on 'recentfiles.updated', =>
       @updateRecentFileViews()
 
     @loader = new KDLoaderView size : width : 16
@@ -54,6 +52,47 @@ class StartTabMainView extends JView
 
     @recentFilesWrapper = new KDView
       cssClass : 'file-container'
+
+    @downloadFilesLink = new KDCustomHTMLView
+    userJoinDate       = new Date(KD.whoami().meta.createdAt).getTime()
+    oldKodingDownDate  = 1374267600000
+
+    if userJoinDate < oldKodingDownDate
+      @appStorage = KD.getSingleton("appStorageController").storage "Finder", "1.0"
+
+      @appStorage.fetchStorage (err, storage) =>
+        return if @appStorage.getValue "HideOldKodingDownloadLink"
+
+        @downloadFilesLink.addSubView text = new KDCustomHTMLView
+          cssClass     : "download-files-link"
+          partial      : "Click here to get download link for your old Koding files"
+          click        : ->
+            KD.whoami().fetchOldKodingDownloadLink (err, url) ->
+              modal          = new KDModalView
+                cssClass     : "modal-with-text old-file-download-modal"
+                overlay      : yes
+                title        : "Your old Koding files"
+                content      : """
+                  <p>
+                    You can use the following link to download your files. Note that these files won't be available after Sep 1, 2013. You have to download before then.
+                    <a href="#{url}" class="download-link" target="_blank">#{url}</a>
+                  </p>
+                """
+                buttons      :
+                  Close      :
+                    title    : "Close"
+                    cssClass : "modal-cancel"
+                    callback : -> modal.destroy()
+
+        text.addSubView new KDCustomHTMLView
+          cssClass : "close-download-notification"
+          tagName  : "span"
+          tooltip  :
+            title  : "Don't show this again."
+          click    : (e) =>
+            e.stopPropagation()
+            @downloadFilesLink.destroy()
+            @appStorage.setValue "HideOldKodingDownloadLink", yes
 
   showLoader:->
 
@@ -103,12 +142,13 @@ class StartTabMainView extends JView
     """
     <div class='app-list-wrapper'>
       <div class='app-button-holder'>
+        {{> @downloadFilesLink}}
         {{> @addAnAppButton}}
         {{> @refreshButton}}
       </div>
       <header>
-        <h1 class="start-tab-header loaded hidden">To start from a new file, select an editor</h1>
-        <h2 class="loaded hidden">or open an existing file from your file tree</h2>
+        <h1 class="start-tab-header loaded hidden">This is your Development Area</h1>
+        <h2 class="loaded hidden">You can install more apps on Apps section, or use the ones below that are already installed.</h2>
         <h2 class="loader">{{> @loader}} Loading applications...</h1>
       </header>
       {{> @appItemContainer}}
@@ -177,10 +217,9 @@ class StartTabMainView extends JView
     @appStorage.fetchValue 'recentFiles', (recentFilePaths)=>
       recentFilePaths or= []
       @updateRecentFileViews()
-      KD.getSingleton('mainController').on "NoSuchFile", (file)=>
+      @finderController.on "NoSuchFile", (file)=>
         recentFilePaths.splice recentFilePaths.indexOf(file.path), 1
-        @appStorage.setValue 'recentFiles', recentFilePaths, ->
-          log "Storage updated for recent files"
+        @appStorage.setValue 'recentFiles', recentFilePaths
 
   updateRecentFileViews:(recentFilePaths)->
 

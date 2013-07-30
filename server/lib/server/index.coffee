@@ -3,7 +3,7 @@ Object.defineProperty global, 'KONFIG', {
   value: require('koding-config-manager').load("main.#{argv.c}")
 }
 
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
+{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j, github} = KONFIG
 page = require './staticpages'
 
 webPort = argv.p ? webserver.port
@@ -23,37 +23,7 @@ processMonitor = (require 'processes-monitor').start
     middleware : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
 
-# Services (order is important here)
-services =
-  kite_webterm:
-    pattern: 'webterm'
-  worker_auth:
-    pattern: 'auth'
-  kite_applications:
-    pattern: 'kite-application'
-  kite_databases:
-    pattern: 'kite-database'
-  webserver:
-    pattern: 'web'
-  worker_social:
-    pattern: 'social'
-
-incService = (serviceKey, inc) ->
-  for key, value of services
-    if serviceKey.indexOf(value.pattern) > -1
-      value.count = if value.count then value.count += inc else 1
-      break
-
-# Presences
-koding = require './bongo'
-koding.connect ->
-  koding.monitorPresence
-    join: (serviceKey) ->
-      incService serviceKey, 1
-    leave: (serviceKey) ->
-      incService serviceKey, -1
-
-# TODO: DRY this
+koding   = require './bongo'
 _        = require 'underscore'
 async    = require 'async'
 {extend} = require 'underscore'
@@ -63,6 +33,8 @@ request  = require 'request'
 fs       = require 'fs'
 hat      = require 'hat'
 nodePath = require 'path'
+http       = require "https"
+{JSession} = koding.models
 
 app      = express()
 
@@ -96,6 +68,15 @@ koding = require './bongo'
 authenticationFailed = (res, err)->
   res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
+app.use (req, res, next) ->
+  {JSession} = koding.models
+  {clientId} = req.cookies
+  clientIPAddress = req.connection.remoteAddress
+  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: false }
+  JSession.updateClientIP clientId, clientIPAddress, (err)->
+    if err then console.log err
+    next()
+
 app.get "/-/cache/latest", (req, res)->
   {JActivityCache} = koding.models
   startTime = Date.now()
@@ -120,7 +101,7 @@ app.get "/-/cache/before/:timestamp", (req, res)->
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
-    req.pipe(request(req.query.url)).pipe(res)
+    request(req.query.url).pipe(res)
   else
     res.send 404
 
@@ -138,13 +119,12 @@ app.get "/-/kite/login", (req, res) ->
       message: "Not enough parameters."
   else
     {JKodingKey} = koding.models
-
     JKodingKey.fetchByUserKey
       username: username
       key     : key
     , (err, kodingKey)=>
       if err or not kodingKey
-        console.log "ERROR", err
+        console.log "ERROR - 0", err
         res.status 401
         res.send
           error: true
@@ -154,7 +134,7 @@ app.get "/-/kite/login", (req, res) ->
           when 'webserver'
             rabbitAPI.newProxyUser username, key, (err, data) =>
               if err?
-                console.log "ERROR", err
+                console.log "ERROR - 1", err
                 res.send 401, JSON.stringify {error: "unauthorized - error code 1"}
               else
                 postData =
@@ -184,13 +164,14 @@ app.get "/-/kite/login", (req, res) ->
                       password  : data.password
                       vhost     : "/"
                       publicUrl : body
+                      messageBusUrl : 'koding.com:6380'
 
                     res.header "Content-Type", "application/json"
                     res.send JSON.stringify creds
           when 'openservice'
             rabbitAPI.newUser key, name, (err, data) =>
               if err?
-                console.log "ERROR", err
+                console.log "ERROR - 3", err
                 res.send 401, JSON.stringify {error: "unauthorized - error code 2"}
               else
                 creds =
@@ -199,11 +180,88 @@ app.get "/-/kite/login", (req, res) ->
                   username  : data.username
                   password  : data.password
                   vhost     : mq.vhost
-                console.log creds
+                  messageBusUrl : 'koding.com:6380'
+
+                {JUserKite} = koding.models
+                JUserKite.fetchOrCreate
+                  kitename      : name
+                  latest_s3url  : "_"
+                  account_id    : kodingKey.owner
+                , (err, userkite)->
+                  if err
+                    console.log "error", err
+                    return res.send err
+                  userkite.newVersion (err)->
+                    res.send err
                 res.header "Content-Type", "application/json"
                 res.send 200, JSON.stringify creds
 
+# TODO: we have to move kd related functions to somewhere else...
+
 # gate for kd
+findUsernameFromKey = (req, res, callback) ->
+  fetchJAccountByKiteUserNameAndKey req, (err, account)->
+    if err
+      console.log "we have a problem houston", err
+      callback err, null
+    else if not account
+      console.log "couldnt find the account"
+      res.send 401
+      callback false, null
+    else
+      callback false, account.profile.nickname
+
+fetchJAccountByKiteUserNameAndKey = (req, callback)->
+  if req.fields
+    {username, key} = req.fields
+  else
+    {username, key} = req.body
+
+  {JKodingKey, JAccount} = koding.models
+  {ObjectId} = require "bongo"
+
+  JKodingKey.fetchByUserKey
+    username: username
+    key     : key
+  , (err, kodingKey)=>
+    console.log err, kodingKey.owner
+    #if err or not kodingKey
+    #  return callback(err, kodingKey)
+
+    JAccount.one
+      _id: ObjectId(kodingKey.owner)
+    , (err, account)->
+      if not account or err
+         callback("couldnt find account #{kodingKey.owner}", null)
+         return
+      console.log "account ====================="
+      console.log account
+      console.log "======== account"
+      req.account = account
+      callback(err, account)
+
+
+s3 = require('./s3') uploads.s3, findUsernameFromKey
+app.post "/-/kd/upload", s3..., (req, res)->
+  {JUserKite} = koding.models
+  for own key, file of req.files
+    console.log "--------------------------------->>>>>>>>>>", req.account
+    zipurl = "#{uploads.distribution}#{file.path}"
+    JUserKite.fetchOrCreate
+      kitename      : file.filename
+      latest_s3url  : zipurl
+      account_id    : req.account._id
+      hash: req.fields.hash
+    , (err, userkite)->
+      if err
+        console.log "error", err
+        return res.send err
+      userkite.newVersion (err)->
+        if not err
+          res.send {url:zipurl, version: userkite.latest_version, hash:req.fields.hash}
+        else
+          res.send err
+
 app.post "/-/kd/:command", express.bodyParser(), (req, res)->
   switch req.params.command
     when "register-check"
@@ -224,9 +282,20 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
+findUsernameFromSession = (req, res, callback) ->
+  {clientId} = req.cookies
+  koding.models.JSession.fetchSession clientId, (err, session)->
+    if err
+      console.error err
+      callback "", err
+    else unless session?
+      res.send 403, 'Access denied!'
+      callback false, ""
+    callback false, session.username
+
 if uploads?.enableStreamingUploads
 
-  s3 = require('./s3') uploads.s3
+  s3 = require('./s3') uploads.s3, findUsernameFromSession
 
   app.post '/Upload', s3..., (req, res)->
     res.send(for own key, file of req.files
@@ -258,11 +327,15 @@ if uploads?.enableStreamingUploads
   #     """
 
 app.get "/-/presence/:service", (req, res) ->
-  {service} = req.params
-  if services[service] and services[service].count > 0
-    res.send 200
-  else
-    res.send 404
+  # if services[service] and services[service].count > 0
+  res.send 200
+  # else
+    # res.send 404
+
+
+
+app.get '/-/services/:service', require './services-presence'
+
 
 app.get "/-/status/:event/:kiteName",(req,res)->
   # req.params.data
@@ -307,7 +380,7 @@ error_500 =->
 app.get '/:name/:section?*', (req, res, next)->
   {JGroup, JName, JSession} = koding.models
   {name} = req.params
-  return res.redirect 302, req.url.substring 7  if name is 'koding'
+  return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
     next()
@@ -320,6 +393,88 @@ app.get '/:name/:section?*', (req, res, next)->
           if err then next err
           else if view? then res.send view
           else res.send 500, error_500()
+
+saveOauthToSession = (resp, callback)->
+  {provider, access_token, id, login, email, firstName, lastName, clientId} = resp
+  JSession.one {clientId}, (err, session)->
+    foreignAuth           = {}
+    foreignAuth[provider] =
+      token     : access_token
+      foreignId : String(id)
+      username  : login
+      email     : email
+      firstName : firstName
+      lastName  : lastName
+
+    JSession.update {clientId}, $set: {foreignAuth}, callback
+
+app.get "/-/oauth/:provider/callback", (req,res)->
+  {provider} = req.params
+  code = req.query.code
+  access_token = null
+
+  unless code
+    {loginFailureTemplate} = require './staticpages'
+    serve loginFailureTemplate, res
+    return
+
+  headers =
+    "Accept"     : "application/json"
+    "User-Agent" : "Koding"
+
+  authorizeUser = (authUserResp)->
+    rawResp = ""
+    authUserResp.on "data", (chunk) -> rawResp += chunk
+    authUserResp.on "end", ->
+      {access_token} = JSON.parse rawResp
+      if access_token
+        options =
+          host    : "api.github.com"
+          path    : "/user?access_token=#{access_token}"
+          method  : "GET"
+          headers : headers
+        request = http.request options, fetchUserInfo
+        request.end()
+
+  fetchUserInfo = (userInfoResp) ->
+    rawResp = ""
+    userInfoResp.on "data", (chunk) -> rawResp += chunk
+    userInfoResp.on "end", ->
+      {login, id, email, name} = JSON.parse rawResp
+      if name
+        [firstName, restOfNames...] = name.split ' '
+        lastName = restOfNames.join ' '
+
+      {clientId} = req.cookies
+      resp = {provider, firstName, lastName, login, id, email, access_token,
+              clientId}
+
+      if not email? or email is ""
+        options =
+          host    : "api.github.com"
+          path    : "/user/emails?access_token=#{access_token}"
+          method  : "GET"
+          headers : headers
+        request = http.request options, (newResp)-> fetchUserEmail newResp, resp
+        request.end()
+      else
+        renderLoginTemplate resp, res
+
+  fetchUserEmail = (userEmailResp, originalResp)->
+    rawResp = ""
+    userEmailResp.on "data", (chunk) -> rawResp += chunk
+    userEmailResp.on "end", ->
+      email = JSON.parse(rawResp)[0]
+      originalResp.email = email
+      renderLoginTemplate originalResp, res
+
+  options =
+    host   : "github.com"
+    path   : "/login/oauth/access_token?client_id=#{github.clientId}&client_secret=#{github.clientSecret}&code=#{code}"
+    method : "POST"
+    headers : headers
+  request = http.request options, authorizeUser
+  request.end()
 
   # groupName = name
   # JGroup.one { slug: groupName }, (err, group)->
@@ -343,6 +498,11 @@ app.get '/:name/:section?*', (req, res, next)->
 #         res.header 'Location', '/Activity'
 #         res.send 302
 
+renderLoginTemplate =(resp, res)->
+  saveOauthToSession resp, ->
+    {loginTemplate} = require './staticpages'
+    serve loginTemplate, res
+
 serve = (content, res)->
   res.header 'Content-type', 'text/html'
   res.send content
@@ -351,7 +511,7 @@ app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    defaultTemplate = require './staticpages'
+    {defaultTemplate} = require './staticpages'
     serve defaultTemplate, res
 
 ###

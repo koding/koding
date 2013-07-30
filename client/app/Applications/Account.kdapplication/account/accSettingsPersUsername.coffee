@@ -84,6 +84,7 @@ class AccountEditUsername extends KDView
     # #
     @addSubView usernameForm = usernameForm = new KDFormView
       callback     : (formData)->
+        # KD.whoami().changeUsername formData.username
         new KDNotificationView
           type  : "mini"
           title : "Currently disabled!"

@@ -26,49 +26,40 @@ class MainViewController extends KDViewController
 
   mainTabPaneChanged:(mainView, pane)->
 
-    mainController  = KD.getSingleton 'mainController'
-    {navController} = mainController.sidebarController.getView()
-    {name}          = pane.getOptions()
-    {route}         = KD.getAppOptions name
-    router          = KD.getSingleton('router')
     cdController    = KD.getSingleton("contentDisplayController")
-
+    appManager      = KD.getSingleton('appManager')
+    app             = appManager.getFrontApp()
+    {navController} = KD.getSingleton('mainController').sidebarController.getView()
     cdController.emit "ContentDisplaysShouldBeHidden"
-
     @setViewState pane.getOptions()
 
-    # fixme: make a name/route map somewhere
-    # probably in KD so that we can use sitewide
-    navController.selectItemByName switch route.slice(1)
-      when 'Dashboard' then 'Group'
-      else route.slice(1)
+    navController.selectItemByName app.getOption('navItem').title
 
+  setViewState: do ->
 
+    isEntryPointSet = null
 
+    (options)->
 
-  isEntryPointSet = null
+      {behavior, name} = options
 
-  setViewState:(options)->
+      isEntryPointSet = yes if name isnt "Home"
 
-    {behavior, name} = options
+      {contentPanel, mainTabView, sidebar} = @getView()
 
-    isEntryPointSet = yes if name isnt "Home"
+      o = {isEntryPointSet, name}
 
-    {contentPanel, mainTabView, sidebar} = @getView()
+      switch behavior
+        when 'hideTabs'
+          o.hideTabs = yes
+          o.type     = 'social'
+        when 'application'
+          o.hideTabs = no
+          o.type     = 'develop'
+        else
+          o.hideTabs = no
+          o.type     = 'social'
 
-    o = {isEntryPointSet, name}
+      @emit "UILayoutNeedsToChange", o
 
-    switch behavior
-      when 'hideTabs'
-        o.hideTabs = yes
-        o.type     = 'social'
-      when 'application'
-        o.hideTabs = no
-        o.type     = 'develop'
-      else
-        o.hideTabs = no
-        o.type     = 'social'
-
-    @emit "UILayoutNeedsToChange", o
-
-    isEntryPointSet = yes
+      isEntryPointSet = yes

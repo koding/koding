@@ -63,10 +63,10 @@ func LimiterLoop() {
 				info.CpuShares = 1000
 			}
 
-			info.MemoryLimit = memoryLimit
+			info.PhysicalMemoryLimit = memoryLimit
 
 			ioutil.WriteFile("/sys/fs/cgroup/cpu/lxc/"+info.vmName+"/cpu.shares", []byte(strconv.Itoa(info.CpuShares)), 0644)
-			ioutil.WriteFile("/sys/fs/cgroup/memory/lxc/"+info.vmName+"/memory.limit_in_bytes", []byte(strconv.Itoa(info.MemoryLimit)), 0644)
+			ioutil.WriteFile("/sys/fs/cgroup/memory/lxc/"+info.vmName+"/memory.limit_in_bytes", []byte(strconv.Itoa(info.PhysicalMemoryLimit)), 0644)
 		}
 
 		infosMutex.Unlock()

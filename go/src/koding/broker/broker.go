@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/streadway/amqp"
 	"koding/kontrol/kontrolhelper"
 	"koding/tools/amqputil"
@@ -35,7 +36,8 @@ func main() {
 	defer publishConn.Close()
 
 	routeMap := make(map[string]([]*sockjs.Session))
-	var routeMapMutex sync.Mutex
+	socketSubscriptionsMap := make(map[string]*map[string]bool)
+	var globalMapMutex sync.Mutex
 
 	service := sockjs.NewService(config.Current.Client.StaticFilesBaseUrl+"/js/sock.js", 10*time.Minute, func(session *sockjs.Session) {
 		defer log.RecoverAndLog()
@@ -44,6 +46,7 @@ func main() {
 		rand.Read(r)
 		socketId := base64.StdEncoding.EncodeToString(r)
 		session.Tag = socketId
+		clientVersion := 0
 
 		log.Debug("Client connected: " + socketId)
 		changeClientsGauge(1)
@@ -58,31 +61,6 @@ func main() {
 				changeWebsocketClientsGauge(-1)
 			}
 		}()
-
-		addToRouteMap := func(routingKeyPrefix string) {
-			routeMapMutex.Lock()
-			defer routeMapMutex.Unlock()
-			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
-		}
-		removeFromRouteMap := func(routingKeyPrefix string) {
-			routeMapMutex.Lock()
-			defer routeMapMutex.Unlock()
-			routeSessions := routeMap[routingKeyPrefix]
-			for i, routeSession := range routeSessions {
-				if routeSession == session {
-					routeSessions[i] = routeSessions[len(routeSessions)-1]
-					routeSessions = routeSessions[:len(routeSessions)-1]
-					break
-				}
-			}
-			if len(routeSessions) == 0 {
-				delete(routeMap, routingKeyPrefix)
-				return
-			}
-			routeMap[routingKeyPrefix] = routeSessions
-		}
-
-		subscriptions := make(map[string]bool)
 
 		var controlChannel *amqp.Channel
 		var lastPayload string
@@ -101,24 +79,66 @@ func main() {
 				for amqpErr := range controlChannel.NotifyClose(make(chan *amqp.Error)) {
 					log.Warn("AMQP channel: "+amqpErr.Error(), "Last publish payload:", lastPayload)
 
-					sendToClient(session, map[string]interface{}{"routingKey": "broker.error", "code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
+					sendToClient(session, "broker.error", map[string]interface{}{"code": amqpErr.Code, "reason": amqpErr.Reason, "server": amqpErr.Server, "recover": amqpErr.Recover})
 				}
 			}()
 		}
 		resetControlChannel()
 		defer func() { controlChannel.Close() }()
 
-		err := controlChannel.Publish("authAll", "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
-		if err != nil {
-			panic(err)
+		subscriptions := make(map[string]bool)
+		globalMapMutex.Lock()
+		socketSubscriptionsMap[socketId] = &subscriptions
+		globalMapMutex.Unlock()
+
+		removeFromRouteMap := func(routingKeyPrefix string) {
+			routeSessions := routeMap[routingKeyPrefix]
+			for i, routeSession := range routeSessions {
+				if routeSession == session {
+					routeSessions[i] = routeSessions[len(routeSessions)-1]
+					routeSessions = routeSessions[:len(routeSessions)-1]
+					break
+				}
+			}
+			if len(routeSessions) == 0 {
+				delete(routeMap, routingKeyPrefix)
+				return
+			}
+			routeMap[routingKeyPrefix] = routeSessions
+		}
+
+		subscribe := func(routingKeyPrefix string) {
+			if subscriptions[routingKeyPrefix] {
+				// log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+				return
+			}
+			if len(subscriptions) > 0 && len(subscriptions)%1000 == 0 {
+				log.Warn("Client with more than "+strconv.Itoa(len(subscriptions))+" subscriptions.", session.Tag)
+			}
+			routeMap[routingKeyPrefix] = append(routeMap[routingKeyPrefix], session)
+			subscriptions[routingKeyPrefix] = true
+		}
+
+		unsubscribe := func(routingKeyPrefix string) {
+			removeFromRouteMap(routingKeyPrefix)
+			delete(subscriptions, routingKeyPrefix)
 		}
 
 		defer func() {
+			globalMapMutex.Lock()
 			for routingKeyPrefix := range subscriptions {
 				removeFromRouteMap(routingKeyPrefix)
 			}
+			globalMapMutex.Unlock()
+
+			time.AfterFunc(5*time.Minute, func() {
+				globalMapMutex.Lock()
+				delete(socketSubscriptionsMap, socketId)
+				globalMapMutex.Unlock()
+			})
+
 			for {
-				err := controlChannel.Publish("authAll", "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+				err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientDisconnected", false, false, amqp.Publishing{Body: []byte(socketId)})
 				if err == nil {
 					break
 				}
@@ -128,6 +148,13 @@ func main() {
 				resetControlChannel()
 			}
 		}()
+
+		err := controlChannel.Publish(config.Current.Broker.AuthAllExchange, "broker.clientConnected", false, false, amqp.Publishing{Body: []byte(socketId)})
+		if err != nil {
+			panic(err)
+		}
+
+		sendToClient(session, "broker.connected", socketId)
 
 		for data := range session.ReceiveChan {
 			if data == nil || session.Closed {
@@ -141,24 +168,34 @@ func main() {
 
 				action := message["action"]
 				switch action {
+				case "clientInfo":
+					clientVersion = message["version"].(int)
+
 				case "subscribe":
-					routingKeyPrefix := message["routingKeyPrefix"].(string)
-					if subscriptions[routingKeyPrefix] {
-						log.Warn("Duplicate subscription to same routing key.", session.Tag, routingKeyPrefix)
+					globalMapMutex.Lock()
+					defer globalMapMutex.Unlock()
+					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+						subscribe(routingKeyPrefix)
 					}
-					if len(subscriptions) >= 1000 {
-						session.Close()
-						log.Warn("Dropped session because of too many subscriptions.", session.Tag)
-						return
+					sendToClient(session, "broker.subscribed", message["routingKeyPrefix"])
+
+				case "resubscribe":
+					globalMapMutex.Lock()
+					defer globalMapMutex.Unlock()
+					oldSubscriptions, found := socketSubscriptionsMap[message["socketId"].(string)]
+					if found {
+						for routingKeyPrefix := range *oldSubscriptions {
+							subscribe(routingKeyPrefix)
+						}
 					}
-					addToRouteMap(routingKeyPrefix)
-					subscriptions[routingKeyPrefix] = true
-					sendToClient(session, map[string]string{"routingKey": "broker.subscribed", "payload": routingKeyPrefix})
+					sendToClient(session, "broker.resubscribed", found)
 
 				case "unsubscribe":
-					routingKeyPrefix := message["routingKeyPrefix"].(string)
-					removeFromRouteMap(routingKeyPrefix)
-					delete(subscriptions, routingKeyPrefix)
+					globalMapMutex.Lock()
+					defer globalMapMutex.Unlock()
+					for _, routingKeyPrefix := range strings.Split(message["routingKeyPrefix"].(string), " ") {
+						unsubscribe(routingKeyPrefix)
+					}
 
 				case "publish":
 					exchange := message["exchange"].(string)
@@ -175,14 +212,14 @@ func main() {
 							break
 						}
 						if amqpError, isAmqpError := err.(*amqp.Error); !isAmqpError || amqpError.Code != 504 {
-							panic(err)
+							log.Warn(fmt.Sprintf("payload: %v routing key: %v exchange: %v", message["payload"], message["routingKey"], message["exchange"]), err)
 						}
 						time.Sleep(time.Second / 4) // penalty for crashing the AMQP channel
 						resetControlChannel()
 					}
 
 				case "ping":
-					sendToClient(session, map[string]string{"routingKey": "broker.pong"})
+					sendToClient(session, "broker.pong", nil)
 
 				default:
 					log.Warn("Invalid action.", message, socketId)
@@ -227,13 +264,6 @@ func main() {
 			})
 		}
 
-		go func() {
-			sigusr1Channel := make(chan os.Signal)
-			signal.Notify(sigusr1Channel, syscall.SIGUSR1)
-			<-sigusr1Channel
-			listener.Close()
-		}()
-
 		lastErrorTime := time.Now()
 		for {
 			err := server.Serve(listener)
@@ -261,14 +291,36 @@ func main() {
 		panic(err)
 	}
 
-	if err := kontrolhelper.RegisterToKontrol("broker", config.Uuid, config.Current.Broker.Port); err != nil {
+	// returns os.Hostname() if config.BrokerDomain is empty, otherwise it just
+	// returns config.BrokerDomain back
+	brokerHostname := kontrolhelper.CustomHostname(config.BrokerDomain)
+
+	serviceGenericName := strings.Replace(brokerHostname, ".", "_", -1)
+	serviceUniqueName := "broker" /* + strconv.Itoa(os.Getpid()) */ + "|" + serviceGenericName
+
+	if err := kontrolhelper.RegisterToKontrol(
+		"broker", // servicename
+		serviceGenericName,
+		serviceUniqueName,
+		config.Uuid,
+		brokerHostname,
+		config.Current.Broker.Port,
+	); err != nil {
 		panic(err)
 	}
+
+	presenceQueue := amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "broker", "broker", serviceUniqueName, false)
+
+	go func() {
+		sigusr1Channel := make(chan os.Signal)
+		signal.Notify(sigusr1Channel, syscall.SIGUSR1)
+		<-sigusr1Channel
+		consumeChannel.QueueDelete(presenceQueue, false, false, false)
+	}()
 
 	for amqpMessage := range stream {
 		routingKey := amqpMessage.RoutingKey
 		payload := json.RawMessage(utils.FilterInvalidUTF8(amqpMessage.Body))
-		jsonMessage := map[string]interface{}{"routingKey": routingKey, "payload": &payload}
 
 		pos := strings.IndexRune(routingKey, '.') // skip first dot, since we want at least two components to always include the secret
 		for pos != -1 && pos < len(routingKey) {
@@ -278,19 +330,25 @@ func main() {
 				pos = len(routingKey)
 			}
 			prefix := routingKey[:pos]
-			routeMapMutex.Lock()
+			globalMapMutex.Lock()
 			for _, routeSession := range routeMap[prefix] {
-				sendToClient(routeSession, jsonMessage)
+				sendToClient(routeSession, routingKey, &payload)
 			}
-			routeMapMutex.Unlock()
+			globalMapMutex.Unlock()
 		}
 	}
 
 	time.Sleep(5 * time.Second) // give amqputil time to log connection error
 }
 
-func sendToClient(session *sockjs.Session, data interface{}) {
-	if !session.Send(data) {
+func sendToClient(session *sockjs.Session, routingKey string, payload interface{}) {
+	var message struct {
+		RoutingKey string      `json:"routingKey"`
+		Payload    interface{} `json:"payload"`
+	}
+	message.RoutingKey = routingKey
+	message.Payload = payload
+	if !session.Send(message) {
 		session.Close()
 		log.Warn("Dropped session because of broker to client buffer overflow.", session.Tag)
 	}

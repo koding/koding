@@ -96,6 +96,15 @@ func Init(service string) {
 	}()
 }
 
+func Send(event url.Values) {
+	select {
+	case sendChannel <- event:
+		// successful
+	default:
+		fmt.Println("logger error: sendChannel is full.")
+	}
+}
+
 func NewEvent(level int, text string, data ...interface{}) url.Values {
 	event := url.Values{
 		"source": {loggrSource},
@@ -129,16 +138,16 @@ func Log(level int, text string, data ...interface{}) {
 	logCounter += 1
 	if !config.LogDebug && MaxPerSecond > 0 && logCounter > MaxPerSecond {
 		if logCounter == MaxPerSecond+1 {
-			sendChannel <- NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond))
+			Send(NewEvent(ERR, fmt.Sprintf("Dropping log events because of more than %d in one second.", MaxPerSecond)))
 		}
 		return
 	}
 
-	sendChannel <- NewEvent(level, text, data...)
+	Send(NewEvent(level, text, data...))
 }
 
 func SendLogsAndExit(code int) {
-	sendChannel <- url.Values{"exit": {strconv.Itoa(code)}}
+	Send(url.Values{"exit": {strconv.Itoa(code)}})
 	time.Sleep(time.Hour) // wait for exit
 }
 
@@ -155,19 +164,35 @@ func Err(text string, data ...interface{}) {
 	Log(ERR, text, data...)
 }
 
+func Errf(format string, data ...interface{}) {
+	Log(ERR, fmt.Sprintf(format, data...))
+}
+
 func Warn(text string, data ...interface{}) {
 	Log(WARN, text, data...)
+}
+
+func Warnf(format string, data ...interface{}) {
+	Log(WARN, fmt.Sprintf(format, data...))
 }
 
 func Info(text string, data ...interface{}) {
 	Log(INFO, text, data...)
 }
 
+func Infof(format string, data ...interface{}) {
+	Log(INFO, fmt.Sprintf(format, data...))
+}
+
 func Debug(text string, data ...interface{}) {
 	Log(DEBUG, text, data...)
 }
 
-func LogError(err interface{}, stackOffset int) {
+func Debugf(format string, data ...interface{}) {
+	Log(DEBUG, fmt.Sprintf(format, data...))
+}
+
+func LogError(err interface{}, stackOffset int, additionalData ...interface{}) {
 	data := make([]interface{}, 0)
 	for i := 1 + stackOffset; ; i++ {
 		pc, file, line, ok := runtime.Caller(i)
@@ -180,6 +205,7 @@ func LogError(err interface{}, stackOffset int) {
 		}
 		data = append(data, fmt.Sprintf("at %s (%s:%d)", name, file, line))
 	}
+	data = append(data, additionalData...)
 	Log(ERR, fmt.Sprint(err), data...)
 }
 

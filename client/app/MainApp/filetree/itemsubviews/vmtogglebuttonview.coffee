@@ -18,6 +18,7 @@ class NVMToggleButtonView extends JView
 
     if err or not info
       @toggle.setDefaultValue no
+      KD.utils.notifyAndEmailVMTurnOnFailureToSysAdmin vm, err.message
       return warn err
 
     if info.state is "RUNNING"

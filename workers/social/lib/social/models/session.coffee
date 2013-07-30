@@ -12,7 +12,7 @@ module.exports = class JSession extends Model
 
   createId = require 'hat'
 
-  JGuest = require './guest'
+  # JUser    = require './guest'
 
   @set
     indexes         :
@@ -20,47 +20,79 @@ module.exports = class JSession extends Model
       username      : 'descending'
     schema          :
       clientId      : String
+      clientIP      : String
       username      : String
       guestId       : Number
       terminalId    : String
+      oAuthCodes    :
+        github      : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
       lastAccess    :
         type        : Date
         get         : -> new Date
+      foreignAuth   :
+        github      :
+          token     : String
+          foreignId : String
+          username  : String
+          firstName : String
+          lastName  : String
+          email     : String
     sharedEvents    :
       instance      : [
         { name: 'updateInstance' }
       ]
 
-  @cycleSession =(clientId, callback=->)->
-    @remove {clientId}, (err)=>
+  do ->
+    JAccount  = require './account'
+
+    JAccount.on 'UsernameChanged', ({ oldUsername, mustReauthenticate }) ->
+      if mustReauthenticate
+        JSession.remove username: oldUsername, (err) ->
+          console.error err  if err?
+
+  @cycleSession =(clientId, callback=(->)) ->
+    @remove {clientId}, (err) =>
       if err
         callback err
       else
-        @createSession (err, session, guest)->
+        @createSession (err, session, guest) ->
           if err
             callback err
           else
             callback null, guest, session.clientId
 
-  @createSession =(callback)->
+  @createSession =(callback) ->
+    JUser = require './user'
     clientId = createId()
-    JGuest.obtain null, clientId, (err, guest)=>
-      if err
-        @emit 'error', err
+    JUser.createTemporaryUser (err, resp) =>
+      {account} = resp
+      if err then @emit 'error', err
       else
-        {guestId} = guest
-        session = new JSession {
-          clientId
-          guestId
-        }
+        {nickname: username} = account.profile
+        session = new JSession { clientId, username }
         session.save (err)->
           if err
             callback err
           else
-            callback null, session, guest
+            callback null, session, account
+
+    # JGuest.obtain null, clientId, (err, guest) =>
+    #   if err
+    #     @emit 'error', err
+    #   else
+    #     {guestId} = guest
+    #     session = new JSession {
+    #       clientId
+    #       guestId
+    #     }
+    #     session.save (err)->
+    #       if err
+    #         callback err
+    #       else
+    #         callback null, session, guest
 
   @fetchSession =(clientId, callback)->
     selector = {clientId}
@@ -71,3 +103,7 @@ module.exports = class JSession extends Model
         callback null, session
       else
         @createSession callback
+
+  @updateClientIP = (clientId, ipAddress, callback)->
+    JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->
+      callback err

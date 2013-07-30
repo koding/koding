@@ -1,0 +1,164 @@
+// Copyright 2013 The go-github AUTHORS. All rights reserved.
+//
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package github
+
+import (
+	"fmt"
+	"net/url"
+	"strconv"
+	"time"
+)
+
+// UsersService handles communication with the user related
+// methods of the GitHub API.
+//
+// GitHub API docs: http://developer.github.com/v3/users/
+type UsersService struct {
+	client *Client
+}
+
+// User represents a GitHub user.
+type User struct {
+	Login       string     `json:"login,omitempty"`
+	ID          int        `json:"id,omitempty"`
+	URL         string     `json:"url,omitempty"`
+	AvatarURL   string     `json:"avatar_url,omitempty"`
+	GravatarID  string     `json:"gravatar_id,omitempty"`
+	Name        string     `json:"name,omitempty"`
+	Company     string     `json:"company,omitempty"`
+	Blog        string     `json:"blog,omitempty"`
+	Location    string     `json:"location,omitempty"`
+	Email       string     `json:"email,omitempty"`
+	Hireable    bool       `json:"hireable,omitempty"`
+	PublicRepos int        `json:"public_repos,omitempty"`
+	Followers   int        `json:"followers,omitempty"`
+	Following   int        `json:"following,omitempty"`
+	CreatedAt   *time.Time `json:"created_at,omitempty"`
+}
+
+// UserEmail represents user's email address
+type UserEmail string
+
+// Get fetches a user.  Passing the empty string will fetch the authenticated
+// user.
+//
+// GitHub API docs: http://developer.github.com/v3/users/#get-a-single-user
+func (s *UsersService) Get(user string) (*User, error) {
+	var u string
+	if user != "" {
+		u = fmt.Sprintf("users/%v", user)
+	} else {
+		u = "user"
+	}
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	uResp := new(User)
+	_, err = s.client.Do(req, uResp)
+	return uResp, err
+}
+
+// Edit the authenticated user.
+//
+// GitHub API docs: http://developer.github.com/v3/users/#update-the-authenticated-user
+func (s *UsersService) Edit(user *User) (*User, error) {
+	u := "user"
+	req, err := s.client.NewRequest("PATCH", u, user)
+	if err != nil {
+		return nil, err
+	}
+
+	uResp := new(User)
+	_, err = s.client.Do(req, uResp)
+	return uResp, err
+}
+
+// UserListOptions specifies optional parameters to the UsersService.List
+// method.
+type UserListOptions struct {
+	// ID of the last user seen
+	Since int
+}
+
+// ListAll lists all GitHub users.
+//
+// GitHub API docs: http://developer.github.com/v3/users/#get-all-users
+func (s *UsersService) ListAll(opt *UserListOptions) ([]User, error) {
+	u := "users"
+	if opt != nil {
+		params := url.Values{
+			"since": []string{strconv.Itoa(opt.Since)},
+		}
+		u += "?" + params.Encode()
+	}
+
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	users := new([]User)
+	_, err = s.client.Do(req, users)
+	return *users, err
+}
+
+func (s *UsersService) ListFollowing(username string) ([]User, error) {
+	url := "users/" + username + "/following"
+	req, err := s.client.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	users := new([]User)
+	_, err = s.client.Do(req, users)
+	return *users, err
+}
+
+// ListEmails lists all authenticated user email addresses
+//
+// GitHub API docs: http://developer.github.com/v3/users/emails/#list-email-addresses-for-a-user
+func (s *UsersService) ListEmails() ([]UserEmail, error) {
+	u := "user/emails"
+	req, err := s.client.NewRequest("GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	emails := new([]UserEmail)
+	_, err = s.client.Do(req, emails)
+	return *emails, err
+}
+
+// AddEmails adds email addresses of authenticated user
+//
+// GitHub API docs: http://developer.github.com/v3/users/emails/#add-email-addresses
+func (s *UsersService) AddEmails(emails []UserEmail) ([]UserEmail, error) {
+	u := "user/emails"
+	req, err := s.client.NewRequest("POST", u, emails)
+	if err != nil {
+		return nil, err
+	}
+
+	e := new([]UserEmail)
+	_, err = s.client.Do(req, e)
+	return *e, err
+}
+
+// DeleteEmails deletes email addresses from authenticated user
+//
+// GitHub API docs: http://developer.github.com/v3/users/emails/#delete-email-addresses
+func (s *UsersService) DeleteEmails(emails []UserEmail) error {
+	u := "user/emails"
+	req, err := s.client.NewRequest("DELETE", u, emails)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.client.Do(req, nil)
+	return err
+}

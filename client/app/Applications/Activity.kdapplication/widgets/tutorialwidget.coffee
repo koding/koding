@@ -31,28 +31,24 @@ class ActivityTutorialWidget extends KDFormView
           required  : "Tutorial title is required!"
 
     @inputTutorialEmbedShowLink = new KDOnOffSwitch
-      cssClass:"show-tutorial-embed"
-      defaultState:off
-      callback:(state)=>
+      cssClass      : "show-tutorial-embed"
+      defaultState  : off
+      callback      : (state)=>
         if state
           if @embedBox.hasValidContent
-            @embedBox.show() unless "embed" in @embedBox.getEmbedHiddenItems()
+            @embedBox.show()
             @embedBox.$().animate {top: "0px"}, 300
         else
-          @embedBox.$().animate {top : "-400px"}, 300, =>
-            @embedBox.hide()
+          @embedBox.$().animate {top : "-400px"}, 300, => @embedBox.hide()
 
     @inputTutorialEmbedLink = new KDInputView
       name          : "embed"
       label         : @labelEmbedLink
       cssClass      : "warn-on-unsaved-data tutorial-embed-link"
       placeholder   : "Please enter a URL to a video..."
-
-      keyup :=>
-        if @inputTutorialEmbedLink.getValue() is ""
-          @embedBox.resetEmbedAndHide()
-
-      paste :=>
+      keyup         : =>
+        @embedBox.resetEmbedAndHide()  if @inputTutorialEmbedLink.getValue() is ''
+      paste         : =>
           @utils.defer =>
             @inputTutorialEmbedLink.setValue @sanitizeUrls @inputTutorialEmbedLink.getValue()
 
@@ -60,18 +56,14 @@ class ActivityTutorialWidget extends KDFormView
 
             if /^((http(s)?\:)?\/\/)/.test url
               # parse this for URL
-              @embedBox.embedUrl url, {
-                maxWidth: 540
-                maxHeight: 200
-              }, =>
-                @embedBox.hide() if @inputTutorialEmbedShowLink.getValue() is off
+              embedOptions = maxWidth: 540, maxHeight: 200
+              @embedBox.embedUrl url, embedOptions, =>
+                @embedBox.hide()  if @inputTutorialEmbedShowLink.getValue() is off
 
     embedOptions = $.extend {}, options,
-      delegate  : @
+      delegate  : this
       hasConfig : yes
       forceType : "object"
-      click:->
-        no
 
     @embedBox = new EmbedBox embedOptions, data
 
@@ -87,7 +79,7 @@ class ActivityTutorialWidget extends KDFormView
         rules     :
           required: yes
         messages  :
-          required: "Tutorial body is required!"
+          required: "Tutorial content is required!"
 
     @cancelBtn = new KDButtonView
       title    : "Cancel"
@@ -128,44 +120,22 @@ class ActivityTutorialWidget extends KDFormView
 
     @tagAutoComplete = @tagController.getView()
 
-  click:(event)->
-    # if $(event.target).parents("div.link-embed-box").length > 0
-    #   #log "EMBED"
-    # else
-    #   #log "not EMBED"
-    #   @embedBox.$().animate {top : "-400px"}, 300, =>
-    #     @embedBox.hide()
   sanitizeUrls:(text)->
     text.replace /(([a-zA-Z]+\:)\/\/)?(\w+:\w+@)?([a-zA-Z\d.-]+\.[A-Za-z]{2,4})(:\d+)?(\/\S*)?/g, (url)=>
       test = /^([a-zA-Z]+\:\/\/)/.test url
-
-      if test is no
-
-        # here is a warning/popup that explains how and why
-        # we change the links in the edit
-
-        "http://"+url
-
-      else
-
-        # if a protocol of any sort is found, no change
-
-        url
+      if test then url else "http://"+url
 
   submit:->
-    @once "FormValidationPassed", => @reset()
+    @once "FormValidationPassed", =>
+      KD.track "Activity", "TutorialSubmitted"
+      @reset()
 
     if @embedBox.hasValidContent
-      @addCustomData "link", {
-        link_cache: @embedBox.getEmbedCache()
-        link_url : @embedBox.getEmbedURL()
-        link_embed : @embedBox.getEmbedDataForSubmit()
-        link_embed_hidden_items:@embedBox.getEmbedHiddenItems()
-        link_embed_image_index:@embedBox.getEmbedImageIndex()
-      }
+      @addCustomData "link",
+        link_url   : @embedBox.url
+        link_embed : @embedBox.getDataForSubmit()
 
     super
-    KD.track "Activity", "TutorialSubmitted"
     @submitBtn.disable()
     @utils.wait 8000, => @submitBtn.enable()
 

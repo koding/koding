@@ -2,8 +2,12 @@ class TopicsAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Topics"
-    route        : "/Topics"
+    route        : "/:name?/Topics"
     hiddenHandle : yes
+    navItem      :
+      title      : "Topics"
+      path       : "/Topics"
+      order      : 20
 
   constructor:(options = {}, data)->
 
@@ -49,7 +53,6 @@ class TopicsAppController extends AppController
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex followees, ({followButton})->
                   followButton.setState 'Following'
-                  followButton.redecorateState()
           dataError         :->
             log "Seems something broken:", arguments
 
@@ -69,7 +72,6 @@ class TopicsAppController extends AppController
             {following} = resultsController.listControllers
             following.forEachItemByIndex ids, ({followButton})->
               followButton.setState 'Following'
-              followButton.redecorateState()
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>

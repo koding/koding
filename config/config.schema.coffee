@@ -36,7 +36,7 @@ config =
       mongo             :
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]
-  main :
+  main            :
     haproxy       :
       webPort     : 1
     aws           :
@@ -99,6 +99,8 @@ config =
     authWorker    :
       login           : 1
       queueName       : 1
+      authExchange    : 1
+      authAllExchange : 1
       numberOfWorkers : 1
       watch           : 1
     social        :
@@ -106,11 +108,14 @@ config =
       numberOfWorkers: 1
       watch       : 1
       queueName   : 1
+      verbose     : 1
     cacheWorker       :
       login           : 1
       watch           : 1
       queueName       : 1
       run             : 1
+    graphFeederWorker :
+      numberOfWorkers : 1
     presence        :
       exchange      : 1
     client          :
@@ -125,7 +130,10 @@ config =
       index         : 1
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
-      runtimeOptions:
+      runtimeOptions  :
+        authExchange  : 1
+        github        :
+          clientId    : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -134,6 +142,7 @@ config =
         version       : 1
         mainUri       : 1
         broker        :
+          servicesEndpoint: 1
           sockJS      : 1
         apiUri        : 1
         appsUri       : 1
@@ -150,10 +159,16 @@ config =
       heartbeat   : 1
       vhost       : 1
     broker        :
+      authExchange: 1
+      authAllExchange: 1
       ip          : 1
       port        : 1
       certFile    : 1
       keyFile     : 1
+      useKontrold : 1
+      webProtocol : 1
+      webHostname : 1
+      webPort     : 1
     kites:
       disconnectTimeout: 1
       vhost       : 1
@@ -165,7 +180,7 @@ config =
       cronInstant : 1
       cronDaily   : 1
       run         : 1
-      defaultRecepient : 1
+      forcedRecipient : 1
     emailSender   :
       run         : 1
     guests        :
@@ -179,9 +194,8 @@ config =
       proxy         :
         port        : 1
         portssl     : 1
+        ftpip       : 1
         sslips      : 1
-      mongo         :
-        host        : 1
       rabbitmq      :
         host        : 1
         port        : 1
@@ -190,14 +204,20 @@ config =
         vhost       : 1
     recurly         :
       apiKey        : 1
+    embedly         :
+      apiKey        : 1
     followFeed      :
       host          : 1
       port          : 1
       componentUser : 1
       password      : 1
       vhost         : 1
-    opsview	    :
-      push	    : 1
+    opsview	        :
+      push	        : 1
       host          : 1
-
+      bin           : 1
+      conf          : 1
+    github          :
+      clientId      : 1
+      clientSecret  : 1
 module.exports = config

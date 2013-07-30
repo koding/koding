@@ -28,21 +28,19 @@ type JoinMsg struct {
 	RoutingKey         string  `json:"routingKey"`
 	ConsumerTag        string
 	Suffix             string `json:"suffix"`
+	Channel            *amqp.Channel
 }
 
 type LeaveMsg struct {
 	RoutingKey string `json:"routingKey"`
 }
 
-var authPairs map[string]JoinMsg
-var exchanges map[string]uint
+var authPairs = make(map[string]JoinMsg)
+var exchanges = make(map[string]uint)
 var producer *Producer
 
 func main() {
 	log.Println("routing worker started")
-
-	authPairs = make(map[string]JoinMsg)
-	exchanges = make(map[string]uint)
 
 	var err error
 	producer, err = createProducer()
@@ -86,12 +84,13 @@ func startRouting() {
 
 	log.Println("routing started...")
 	for msg := range authStream {
-		log.Printf("got %dB message data: [%v]-[%s] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.RoutingKey,
-			msg.Body,
-		)
+		// used for debug
+		// log.Printf("got %dB message data: [%v]-[%s] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.RoutingKey,
+		// 	msg.Body,
+		// )
 
 		switch msg.RoutingKey {
 		case "auth.join":
@@ -111,7 +110,7 @@ func startRouting() {
 			join.ConsumerTag = generateUniqueConsumerTag(join.BindingKey)
 			authPairs[join.RoutingKey] = join
 
-			log.Println("Auth pairs:", authPairs) // this is just for debug
+			// log.Printf("Auth pairs: %+v\n", authPairs) // this is just for debug
 
 			declareExchange(c, join.BindingExchange)
 
@@ -137,13 +136,24 @@ func startRouting() {
 				log.Print("bad json incoming msg: ", err)
 			}
 
-			// cancel consuming
-			err = c.channel.Cancel(authPairs[leave.RoutingKey].ConsumerTag, false)
+			// auth.leave could be received before auth.join, thus check it
+			msg, ok := authPairs[leave.RoutingKey]
+			if !ok {
+				log.Printf("no tag available for %s\n", leave.RoutingKey)
+				continue // do not close our main for clause 'authStream'
+			}
+
+			err = msg.Channel.Cancel(msg.ConsumerTag, false)
 			if err != nil {
 				log.Fatalf("basic.cancel: %s", err)
 			}
-			decrementExchangeCounter(leave)
 
+			err = msg.Channel.Close()
+			if err != nil {
+				log.Fatalf("channel.close: %s", err)
+			}
+
+			decrementExchangeCounter(leave.RoutingKey)
 		default:
 			log.Println("routing key is not defined: ", msg.RoutingKey)
 		}
@@ -172,12 +182,10 @@ func declareExchange(c *Consumer, exchange string) {
 	exchanges[exchange]++
 }
 
-func decrementExchangeCounter(leave LeaveMsg) {
-	exchange := authPairs[leave.RoutingKey].BindingExchange
-	// decrement exchange counter
+func decrementExchangeCounter(routingKey string) {
+	exchange := authPairs[routingKey].BindingExchange
 	exchanges[exchange]--
-	// delete authPairs map
-	delete(authPairs, leave.RoutingKey)
+	delete(authPairs, routingKey)
 }
 
 func consumeAndRepublish(
@@ -190,8 +198,9 @@ func consumeAndRepublish(
 	consumerTag string,
 	done chan error,
 ) {
-	log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
-		bindingExchange, bindingKey, routingKey, consumerTag)
+	// used fo debug
+	// log.Printf("Consume from:\n bindingExchange %s\n bindingKey %s\n routingKey %s\n consumerTag %s\n",
+	// 	bindingExchange, bindingKey, routingKey, consumerTag)
 
 	if len(suffix) > 0 {
 		routingKey += suffix
@@ -202,7 +211,12 @@ func consumeAndRepublish(
 		done <- err
 		return
 	}
-	defer channel.Close()
+
+	// we need to extract join because GO doesn't assignments in form
+	// authPairs[routingKey].Channel = channel
+	join := authPairs[routingKey]
+	join.Channel = channel
+	authPairs[routingKey] = join
 
 	uniqueQueueName := generateUniqueQueueName()
 
@@ -220,11 +234,12 @@ func consumeAndRepublish(
 	}
 
 	for msg := range messages {
-		log.Printf("messages stream got %dB message data: [%v] %s",
-			len(msg.Body),
-			msg.DeliveryTag,
-			msg.Body,
-		)
+		// used for debug
+		// log.Printf("messages stream got %dB message data: [%v] %s",
+		// 	len(msg.Body),
+		// 	msg.DeliveryTag,
+		// 	msg.Body,
+		// )
 
 		publishTo(publishingExchange, routingKey, msg.Body)
 	}
@@ -241,7 +256,8 @@ func publishTo(exchange, routingKey string, data []byte) {
 		Priority:        0, // 0-9
 	}
 
-	log.Println("publishing data ", string(data), routingKey)
+	// used for debug
+	// log.Println("publishing data ", exchange, string(data), routingKey)
 	err := producer.channel.Publish(exchange, routingKey, false, false, msg)
 	if err != nil {
 		log.Printf("error while publishing proxy message: %s", err)

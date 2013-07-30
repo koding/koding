@@ -65,7 +65,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     JGuest = require './guest'
     {delegate} = client.connection
-    unless delegate instanceof JGuest
+    unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in.'
     else
       JUser.one {username}, (err, user)=>
@@ -76,7 +76,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     JUser = require './user'
     JGuest = require './guest'
     {delegate} = client.connection
-    unless delegate instanceof JGuest
+    unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in.'
     else
       JUser.count {email}, (err, num)=>
@@ -95,15 +95,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     {host, protocol} = require '../config.email'
     messageOptions =
       url : "#{protocol}//#{host}/Recover/#{encodeURIComponent token}"
-
-    if delegate.can? 'migrate-kodingen-users'
-      {subject, textbody, expiresAt, firstName, lastName, nickname} = options
-      defaultSubject   = subject if subject
-      defaultTextBody  = textbody if textbody
-      defaultExpiresAt = expiresAt if expiresAt
-      messageOptions.lastName  = lastName if lastName
-      messageOptions.nickname  = nickname if nickname
-      messageOptions.firstName = firstName if firstName
 
     JUser.one {email}, (err, user)=>
       if err
@@ -129,7 +120,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               subject   : defaultSubject()
               content   : defaultTextBody messageOptions
               force     : yes
-            
+
             email.save callback
 
   @validate = secure ({connection:{delegate}}, token, callback)->
@@ -153,7 +144,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @resetPassword = secure (client, token, newPassword, callback)->
     JUser = require './user'
     {delegate} = client.connection
-    unless delegate instanceof JGuest
+    unless delegate.type is 'unregistered'
       callback new KodingError 'You are already logged in!'
     else
       @one {token}, (err, certificate)->

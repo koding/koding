@@ -1,7 +1,7 @@
 class WebtermSettingsView extends JView
 
-  constructor: ->
-    super
+  constructor: (options={}, data)->
+    super options, data
     @setClass "ace-settings-view webterm-settings-view"
     webtermView = @getDelegate()
 
@@ -32,10 +32,31 @@ class WebtermSettingsView extends JView
         webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'visualBell'
 
+    mainView        = KD.getSingleton "mainView"
+    @fullscreen     = new KDOnOffSwitch
+      callback      : (state) =>
+        if state
+          mainView.enableFullscreen()
+        else
+          mainView.disableFullscreen()
+        {menu} = @getOptions()
+        menu.contextMenu.destroy()
+        menu.click()
+      defaultValue  : mainView.isFullscreen()
+
+    @scrollback     = new KDSelectBox
+      selectOptions : __webtermSettings.scrollback
+      callback      : (value) =>
+        webtermView.appStorage.setValue 'scrollback', value
+        webtermView.updateSettings()
+      defaultValue  : webtermView.appStorage.getValue 'scrollback'
+
   pistachio:->
     """
     <p>Font                     {{> @font}}</p>
     <p>Font Size                {{> @fontSize}}</p>
     <p>Theme                    {{> @theme}}</p>
+    <p>Scrollback               {{> @scrollback}}</p>
     <p>Use Visual Bell          {{> @bell}}</p>
+    <p>Fullscreen               {{> @fullscreen}}</p>
     """

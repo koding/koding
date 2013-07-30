@@ -12,7 +12,7 @@ class FSFile extends FSItem
   fetchContents:(callback)->
 
     @emit "fs.job.started"
-    @kiteController.run
+    @vmController.run
       kiteName  : 'os'
       method    : 'fs.readFile'
       vmName    : @vmName
@@ -32,15 +32,19 @@ class FSFile extends FSItem
 
   saveAs:(contents, name, parentPath, callback)->
 
+    @vmName = FSHelper.getVMNameFromPath parentPath  if parentPath
     newPath = FSHelper.plainPath "#{parentPath}/#{name}"
     @emit "fs.saveAs.started"
 
-    FSHelper.ensureNonexistentPath "#{newPath}", @vmName, (err, response)=>
+    FSHelper.ensureNonexistentPath "#{newPath}", @vmName, (err, path)=>
       if err
-        callback? err, response
+        callback? err, path
         warn err
       else
-        newFile = FSHelper.createFileFromPath response
+        newFile = FSHelper.createFile
+          type   : 'file'
+          path   : path
+          vmName : @vmName
         newFile.save contents, (err, res)=>
           if err then warn err
           else
@@ -53,7 +57,7 @@ class FSFile extends FSItem
     # Convert to base64
     content = btoa KD.utils.utf8Encode contents
 
-    @kiteController.run
+    @vmController.run
       kiteName  : 'os'
       method    : 'fs.writeFile'
       vmName    : @vmName

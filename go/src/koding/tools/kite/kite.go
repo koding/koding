@@ -34,10 +34,17 @@ type Channel struct {
 	onDisconnect    []func()
 }
 
-func New(name string) *Kite {
+func New(name string, onePerHost bool) *Kite {
+	hostname, _ := os.Hostname()
+	serviceUniqueName := "kite-" + name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
+	if onePerHost {
+		serviceUniqueName = "kite-" + name + "|" + strings.Replace(hostname, ".", "_", -1)
+	}
+
 	return &Kite{
-		Name:     name,
-		Handlers: make(map[string]Handler),
+		Name:              name,
+		Handlers:          make(map[string]Handler),
+		ServiceUniqueName: serviceUniqueName,
 	}
 }
 
@@ -69,8 +76,6 @@ func (k *Kite) Run() {
 
 	consumeChannel := amqputil.CreateChannel(consumeConn)
 
-	hostname, _ := os.Hostname()
-	k.ServiceUniqueName = "kite-" + k.Name + "-" + strconv.Itoa(os.Getpid()) + "|" + strings.Replace(hostname, ".", "_", -1)
 	amqputil.JoinPresenceExchange(consumeChannel, "services-presence", "kite", "kite-"+k.Name, k.ServiceUniqueName, k.LoadBalancer != nil)
 
 	stream := amqputil.DeclareBindConsumeQueue(consumeChannel, "fanout", k.ServiceUniqueName, "", true)
@@ -93,7 +98,7 @@ func (k *Kite) Run() {
 				}
 
 				if _, found := routeMap[channel.RoutingKey]; found {
-					log.Warn("Duplicate auth.join for same routing key.")
+					// log.Warn("Duplicate auth.join for same routing key.")
 					continue
 				}
 				route := make(chan []byte, 1024)
@@ -117,6 +122,9 @@ func (k *Kite) Run() {
 
 						if method == "ping" {
 							d.Send("pong")
+							return
+						}
+						if method == "pong" {
 							return
 						}
 
@@ -146,6 +154,13 @@ func (k *Kite) Run() {
 						}
 
 						execHandler := func() {
+							defer func() {
+								if err := recover(); err != nil {
+									log.LogError(err, 1, channel.Username, channel.CorrelationName)
+									resultCallback(CreateErrorObject(&InternalKiteError{}), nil)
+								}
+							}()
+
 							result, err := handler.Callback(options.WithArgs, &channel)
 							if b, ok := result.([]byte); ok {
 								result = string(b)
@@ -153,7 +168,7 @@ func (k *Kite) Run() {
 
 							if err != nil {
 								if _, ok := err.(*WrongChannelError); ok {
-									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{}); err != nil {
+									if err := publishChannel.Publish("broker", channel.RoutingKey+".cycleChannel", false, false, amqp.Publishing{Body: []byte("null")}); err != nil {
 										log.LogError(err, 0)
 									}
 									return
@@ -167,10 +182,7 @@ func (k *Kite) Run() {
 						}
 
 						if handler.Concurrent {
-							go func() {
-								defer log.RecoverAndLog()
-								execHandler()
-							}()
+							go execHandler()
 							return
 						}
 
@@ -189,6 +201,7 @@ func (k *Kite) Run() {
 
 					d.Send("ready", k.ServiceUniqueName)
 
+					pingAlreadySent := false
 					for {
 						select {
 						case message, ok := <-route:
@@ -197,29 +210,20 @@ func (k *Kite) Run() {
 							}
 							log.Debug("Read", channel.RoutingKey, message)
 							d.ProcessMessage(message)
-						case <-time.After(24 * time.Hour):
-							timeoutChannel <- channel.RoutingKey
+							pingAlreadySent = false
+						case <-time.After(5 * time.Minute):
+							if pingAlreadySent {
+								timeoutChannel <- channel.RoutingKey
+								break
+							}
+							d.Send("ping")
+							pingAlreadySent = true
 						}
 					}
 				}()
 
 			case "auth.leave":
-				log.Debug("auth.leave", message)
-
-				var client struct {
-					RoutingKey string
-				}
-				err := json.Unmarshal(message.Body, &client)
-				if err != nil || client.RoutingKey == "" {
-					log.Err("Invalid auth.leave message.", message.Body)
-					continue
-				}
-
-				route, found := routeMap[client.RoutingKey]
-				if found {
-					close(route)
-					delete(routeMap, client.RoutingKey)
-				}
+				// ignored, session end is handled by ping/pong timeout
 
 			case "auth.who":
 				var client struct {
@@ -269,7 +273,6 @@ func (k *Kite) Run() {
 			if found {
 				close(route)
 				delete(routeMap, routingKey)
-				log.Warn("Dropped client because of fallback channel timeout.")
 			}
 		}
 	}

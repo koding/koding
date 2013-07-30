@@ -2,10 +2,12 @@ class ViewerAppController extends KDViewController
 
   KD.registerAppClass this,
     name         : "Viewer"
-    route        : "/Develop"
+    route        : "/:name?/Develop/Viewer"
     multiple     : yes
     openWith     : "forceNew"
     behavior     : "application"
+    navItem      :
+      title      : "Develop"
     preCondition :
 
       condition  : (options, cb)->
@@ -13,8 +15,7 @@ class ViewerAppController extends KDViewController
         return cb true  unless path
         path = FSHelper.plainPath path
         publicPath = path.replace \
-          ///.*\/(.*\.#{KD.config.userSitesDomain})\/(.*)///, 'http://$1/$2'
-
+          ////home/(.*)/Web/(.*)///, "http://$1.#{KD.config.userSitesDomain}/$2"
         cb publicPath isnt path, {path: publicPath}
 
       failure    : (options, cb)->

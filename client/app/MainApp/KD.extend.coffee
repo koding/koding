@@ -1,5 +1,6 @@
 # this class will register itself just before application starts loading, right after framework is ready
 KD.extend
+
   impersonate : (username)->
     KD.remote.api.JAccount.impersonate username, (err)->
       if err then new KDNotificationView title: err.message
@@ -62,22 +63,6 @@ KD.extend
           @notify_ "You have joined to #{groupName} group!", "success"
           return callback true
 
-  jsonhTest:->
-    method    = 'fetchQuestionTeasers'
-    testData  = {
-      foo: 10
-      bar: 11
-    }
-
-    start = Date.now()
-    $.ajax "/#{method}.jsonh",
-      data     : testData
-      dataType : 'jsonp'
-      success : (data)->
-        inflated = JSONH.unpack data
-        KD.log 'success', inflated
-        KD.log Date.now()-start
-
   nick:-> KD.whoami().profile.nickname
 
   whoami:-> KD.getSingleton('mainController').userAccount
@@ -86,7 +71,8 @@ KD.extend
     mainController = KD.getSingleton('mainController')
     delete mainController?.userAccount
 
-  isLoggedIn:-> KD.whoami() instanceof KD.remote.api.JAccount
+  isGuest:-> not KD.isLoggedIn()
+  isLoggedIn:-> KD.whoami().type isnt 'unregistered'
 
   isMine:(account)-> KD.whoami().profile.nickname is account.profile.nickname
 
@@ -99,3 +85,36 @@ KD.extend
           if flag in account.globalFlags
             return yes
     no
+
+  showError:(err, messages)->
+    return  unless err
+
+    messages or=
+      AccessDenied : 'Permission denied'
+      KodingError  : 'Something went wrong'
+
+    if 'string' is typeof err
+      message = err
+      err     = {message}
+
+    err.name or= 'KodingError'
+
+    content    = ''
+    errMessage = err.message or messages[err.name] or messages.KodingError
+
+    if errMessage?
+      if 'string' is typeof errMessage
+        title = errMessage
+      else if errMessage.title? and errMessage.content?
+        {title, content} = errMessage
+
+    duration = errMessage.duration or 2500
+    title  or= err.message
+
+    new KDNotificationView {title, content, duration}
+
+    warn "KodingError:", err.message  unless err.name is 'AccessDenied'
+
+Object.defineProperty KD, "defaultSlug",
+  get:->
+    if KD.isGuest() then 'guests' else 'koding'

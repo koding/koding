@@ -5,7 +5,7 @@ module.exports =
       'one', 'some', 'cursor', 'each', 'someWithRelationship'
       'someData', 'getAutoCompleteData', 'count'
       'byRelevance', 'fetchVersion','reserveNames'
-      'impersonate'
+      'impersonate', 'fetchBlockedUsers'
     ]
   sharedInstanceMethods:->
     [
@@ -25,5 +25,9 @@ module.exports =
       'fetchPendingGroupInvitations', 'fetchPendingGroupRequests',
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'getInvitationRequestByGroup', 'fetchMyPermissions',
-      'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph', 'fetchMyFollowersFromGraph'
+      'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
+      'fetchMyFollowersFromGraph', 'blockUser',
+      'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
+      'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
+      'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink'
     ]

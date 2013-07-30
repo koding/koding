@@ -20,7 +20,7 @@ s3CreatePath =(username, filename, extension)->
     .digest 'hex'
   "/users/#{username}/#{hash}.#{extension}"
 
-module.exports = (config)->
+module.exports = (config, usernameFinder)->
 
   {awsAccessKeyId, awsSecretAccessKey, bucket} = config
 
@@ -34,9 +34,11 @@ module.exports = (config)->
 
     (req, res, next) ->
       form = new IncomingForm
+
       form.on 'field', (name, value)->
         if /-size$/.test(name)
           req.sizes[name.split('-').slice(0,-1).join('-')] = value
+
       form.onPart = (part)->
         return IncomingForm::onPart.call this, part  unless part.mime?
         parts = []
@@ -46,23 +48,23 @@ module.exports = (config)->
           filename  : part.filename
           extension : mime.extension part.mime
         part.pipe file.stream
-      form.parse req
-      next()
+      form.parse req, (err, fields, files) ->
+        req.fields = fields
+        next()
 
     (req, res, next) ->
-      {clientId} = req.cookies
-      koding.models.JSession.fetchSession clientId, (err, session)->
-        if err
+      usernameFinder req, res, (err, username) ->
+        if err 
           next(err)
-        else unless session?
+        else if not username
           req.files.forEach (file)-> file.destroy
-          res.send 403, 'Access denied!'
+          next()
         else
           count = 0
           totalFiles = Object.keys(req.files).length
           for own name, file of req.files
             file.path = s3CreatePath(
-              session.username
+              username
               file.filename
               file.extension
             )

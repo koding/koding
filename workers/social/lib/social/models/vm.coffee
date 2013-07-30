@@ -1,32 +1,37 @@
 {Model} = require 'bongo'
+{Relationship} = require 'jraphical'
 
 module.exports = class JVM extends Model
 
   {permit} = require './group/permissionset'
   {secure} = require 'bongo'
+  {uniq}   = require 'underscore'
 
   KodingError = require '../error'
 
   JRecurlySubscription = require './recurly/subscription'
-
+  JPermissionSet       = require './group/permissionset'
   @share()
 
   @trait __dirname, '../traits/protected'
 
   @bound = require 'koding-bound'
 
+  handleError = (err)-> console.error err  if err
+
   @set
     softDelete          : yes
+    indexes             :
+      hostnameAlias     : 'unique'
     permissions         :
       'sudoer'          : []
       'create vms'      : ['member','moderator']
       'delete vms'      : ['member','moderator']
-      'list all vms'    : ['member','moderator']
-      'list default vm' : ['member','moderator']
     sharedMethods       :
       static            : [
-                           'fetchVms','fetchVmsByContext','calculateUsage'
-                           'removeByName', 'someData'
+                           'fetchVms','fetchVmsByContext', 'fetchVmInfo'
+                           'fetchDomains', 'removeByHostname', 'someData'
+                           'count', #'calculateUsage'
                           ]
       instance          : []
     schema              :
@@ -36,12 +41,10 @@ module.exports = class JVM extends Model
       ldapPassword      :
         type            : String
         default         : -> null
-      name              : String
-      hostnameAlias     : [String]
+      hostnameAlias     : String
+      webHome           : String
       planOwner         : String
       planCode          : String
-      expensedUser      : String
-      expensed          : Boolean
       users             : Array
       groups            : Array
       usage             : # TODO: usage seems like the wrong term for this.
@@ -61,26 +64,78 @@ module.exports = class JVM extends Model
         type            : Boolean
         default         : no
 
-  @createDomains = (domains) ->
+  @createDomains = (account, domains, hostnameAlias)->
+
+    updateRelationship = (domainObj)->
+      Relationship.one
+        targetName: "JDomain",
+        targetId: domainObj._id,
+        sourceName: "JAccount",
+        sourceId: account._id,
+        as: "owner"
+      , (err, rel)->
+        if err or not rel
+          account.addDomain domainObj, (err)->
+            console.log err  if err?
+
     JDomain = require './domain'
     domains.forEach (domain) ->
-      (new JDomain
+      domainObj = new JDomain
         domain        : domain
-        hostnameAlias : [domain]
+        hostnameAlias : [hostnameAlias]
         proxy         : { mode: 'vm' }
         regYears      : 0
-      ).save (err)-> console.log err  if err?
+        loadBalancer  : { persistance: 'disabled' }
+      domainObj.save (err)->
+        return console.log err  if err
+        updateRelationship domainObj
+
+  @fixUserDomains = permit 'change bundle',
+    success: (client, callback)->
+
+      unless client.context.group is "koding"
+        return callback new KodingError "You are not Koding admin."
+
+      JDomain = require './domain'
+      JUser   = require './user'
+
+      JVM.each {}, {}, (err, vm) =>
+        return callback err  if err
+        return callback null, null  unless vm
+        {nickname, groupSlug, uid, type} = @parseAlias vm.hostnameAlias
+        hostnameAliases = JVM.createAliases {
+          nickname, type, uid, groupSlug
+        }
+        [vmUser] = vm.users.filter (u) -> u.owner is yes
+        if vmUser?
+          JUser.one { _id: vmUser.id }, (err, user) =>
+            if not err and user
+              user.fetchAccount 'koding', (err, account) =>
+                console.log "WORKING ON VM FOR #{nickname} - #{hostnameAliases[0]}"
+                if not err and account
+                  @ensureDomainSettings {account, vm, type, nickname, groupSlug}
+                  @createDomains account, hostnameAliases, hostnameAliases[0]
+
+  @ensureDomainSettings = ({account, vm, type, nickname, groupSlug})->
+    domain = 'kd.io'
+    if type is 'user'
+      requiredDomains = ["#{nickname}.#{groupSlug}.#{domain}"]
+      if groupSlug is 'koding'
+        requiredDomains.push "#{nickname}.#{domain}"
+    else
+      requiredDomains = ["#{groupSlug}.#{domain}", "shared.#{groupSlug}.#{domain}"]
+    @createDomains account, requiredDomains, vm.hostnameAlias
 
   @createAliases = ({nickname, type, uid, groupSlug})->
     domain       = 'kd.io'
     aliases      = []
-    if type is 'user' or type is 'expensed'
-      aliases = ["vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"]
+    if type is 'user'
       if uid is 0
         aliases.push "#{nickname}.#{groupSlug}.#{domain}"
       if groupSlug is 'koding'
         aliases.push "#{nickname}.#{domain}"  if uid is 0
         aliases.push "vm-#{uid}.#{nickname}.#{domain}"
+      aliases.push "vm-#{uid}.#{nickname}.#{groupSlug}.#{domain}"
 
     else if type is 'group'
       if uid is 0
@@ -90,61 +145,83 @@ module.exports = class JVM extends Model
       else
         aliases = ["shared-#{uid}.#{groupSlug}.#{domain}"]
 
-    return aliases
+    return aliases.reverse()
+
+  @parseAlias = (alias)->
+    # group-vm alias
+    if /^shared-[0-9]/.test alias
+      result = alias.match /(.*)\.([a-z0-9-]+)\.kd\.io$/
+      if result
+        [rest..., prefix, groupSlug] = result
+        uid = parseInt(prefix.split(/-/)[1], 10)
+        return {groupSlug, prefix, uid, type:'group', alias}
+    # personal-vm alias
+    else if /^vm-[0-9]/.test alias
+      result = alias.match /(.*)\.([a-z0-9-]+)\.([a-z0-9-]+)\.kd\.io$/
+      if result
+        [rest..., prefix, nickname, groupSlug] = result
+        uid = parseInt(prefix.split(/-/)[1], 10)
+        return {groupSlug, prefix, nickname, uid, type:'user', alias}
+    return null
 
   # TODO: this needs to be rethought in terms of bundles, as per the
   # discussion between Devrim, Chris T. and Badahir  C.T.
-  @createVm = ({account, type, groupSlug, usage, planCode, expensed}, callback)->
+  @createVm = ({account, type, groupSlug, usage, planCode}, callback)->
     JGroup = require './group'
     JGroup.one {slug: groupSlug}, (err, group)=>
       return callback err  if err
       account.fetchUser (err, user)=>
         return callback err  if err
-        if type is 'user' or type is 'expensed'
-          name = "#{groupSlug}~#{user.username}~"
-        else
-          name = "#{groupSlug}~"
+
+        # We are keeping this names just for counter
+        planOwner   = "group_#{group._id}"
+        counterName = "#{groupSlug}~"
+        webHome     = groupSlug
+
+        if type is 'user'
+          planOwner   = "user_#{account._id}"
+          counterName = "#{groupSlug}~#{user.username}~"
+          webHome     = user.username
 
         nameFactory = (require 'koding-counter') {
-          db          : JVM.getClient()
-          counterName : name
-          offset      : 0
+          db     : JVM.getClient()
+          offset : 0
+          counterName
         }
-
-        if type is 'group' or type is 'expensed'
-          planOwner = "group_#{group._id}"
-        else
-          planOwner = "user_#{account._id}"
-
-        expensedUser = ""
-        if expensed
-          expensedUser = "user_#{account._id}"
 
         nameFactory.next (err, uid)=>
           return callback err  if err
 
-          hostnameAlias = JVM.createAliases {
-            nickname : user.username
-            type, uid, groupSlug
+          nickname = user.username
+          hostnameAliases = JVM.createAliases {
+            nickname, type, uid, groupSlug
           }
-
-          JVM.createDomains hostnameAlias
+          users         = [{ id: user.getId(), sudo: yes, owner: yes }]
+          groups        = [{ id: group.getId() }]
+          hostnameAlias = hostnameAliases[0]
 
           vm = new JVM {
-            name        : "#{name}#{uid}"
-            planCode    : planCode
-            planOwner   : planOwner
-            users       : [{ id: user.getId(), sudo: yes, owner: yes }]
-            groups      : [{ id: group.getId() }]
-            expensed    : expensed
-            expensedUser: expensedUser
             hostnameAlias
+            planOwner
+            planCode
+            webHome
+            groups
+            users
             usage
           }
+
           vm.save (err) =>
-            return callback err  if err
+
+            if err
+              console.error err
+              return console.warn "Failed to create VM for ", \
+                                   {users, groups, hostnameAlias}
+
+            JVM.createDomains account, hostnameAliases, hostnameAliases[0]
+
             group.addVm vm, (err)=>
               return callback err  if err
+              JVM.ensureDomainSettings {account, vm, type, nickname, groupSlug}
               if type is 'group'
                 @addVmUsers vm, group, ->
                   callback null, vm
@@ -165,27 +242,43 @@ module.exports = class JVM extends Model
                   $addToSet: users: { id: user.getId(), sudo: hasPermission }
                 }, callback
 
-  @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
+  # @getUsageTemplate = -> { cpu: 0, ram: 0, disk: 0 }
 
-  @calculateUsage = (account, groupSlug, callback)->
-    nickname =
-      if 'string' is typeof account then account
-      else account.profile.nickname
+  # @calculateUsage = (account, groupSlug, callback)->
+  #   nickname =
+  #     if 'string' is typeof account then account
+  #     else account.profile.nickname
 
-    @all { name: ///$#{groupSlug}~#{nickname}~/// }, (err, vms) =>
-      return callback err  if err?
-      callback null, vms
-        .map((vm) -> vm.usage)
-        .reduce (acc, usage) ->
-          for own field, val of usage
-            acc[field] += val
-            return acc
-        , @getUsageTemplate()
+  #   @all { name: ///$#{groupSlug}~#{nickname}~/// }, (err, vms) =>
+  #     return callback err  if err?
+  #     callback null, vms
+  #       .map((vm) -> vm.usage)
+  #       .reduce (acc, usage) ->
+  #         for own field, val of usage
+  #           acc[field] += val
+  #           return acc
+  #       , @getUsageTemplate()
 
-  @calculateUsage$ = permit 'list all vms',
-    success: (client, groupSlug, callback)->
-      {delegate} = client.connection
-      @calculateUsage delegate, groupSlug, callback
+  # @calculateUsage$ = secure (client, groupSlug, callback)->
+  #     {delegate} = client.connection
+  #     @calculateUsage delegate, groupSlug, callback
+
+  @fetchVmInfo = secure (client, hostnameAlias, callback)->
+    {delegate} = client.connection
+
+    delegate.fetchUser (err, user) ->
+      return callback err  if err
+
+      JVM.one
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId() }
+      , (err, vm)->
+        return callback err  if err
+        return callback null, null  unless vm
+        callback null,
+          planCode      : vm.planCode
+          planOwner     : vm.planOwner
+          hostnameAlias : vm.hostnameAlias
 
   @fetchAccountVmsBySelector = (account, selector, options, callback) ->
     [callback, options] = [options, callback]  unless callback
@@ -196,30 +289,28 @@ module.exports = class JVM extends Model
     account.fetchUser (err, user) ->
       return callback err  if err
 
-      selector.users = { $elemMatch: id: user.getId() }
+      selector.users = $elemMatch: id: user.getId()
 
-      JVM.someData selector, { name: 1 }, options, (err, cursor)->
+      JVM.someData selector, { hostnameAlias: 1 }, options, (err, cursor)->
         return callback err  if err
 
         cursor.toArray (err, arr)->
           return callback err  if err
-          callback null, arr.map (vm)-> vm.name
+          callback null, arr.map (vm)-> vm.hostnameAlias
 
-  @fetchVmsByContext = permit 'list all vms',
-    success: (client, options, callback) ->
-      {connection:{delegate}, context:{group}} = client
-      JGroup = require './group'
+  @fetchVmsByContext = secure (client, options, callback) ->
+    {connection:{delegate}, context:{group}} = client
+    JGroup = require './group'
 
-      slug = group ? 'koding'
+    slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
 
-      JGroup.one {slug}, (err, group) =>
-        return callback err  if err
+    JGroup.one {slug}, (err, group) =>
+      return callback err  if err
 
-        selector = groups: { $elemMatch: id: group.getId() }
-        @fetchAccountVmsBySelector delegate, selector, options, callback
+      selector = groups: { $elemMatch: id: group.getId() }
+      @fetchAccountVmsBySelector delegate, selector, options, callback
 
-  @fetchVms = permit 'list all vms',
-    success: (client, options, callback) ->
+  @fetchVms = secure (client, options, callback) ->
       {delegate} = client.connection
       @fetchAccountVmsBySelector delegate, {}, options, callback
 
@@ -229,70 +320,155 @@ module.exports = class JVM extends Model
     #     return callback err  if err
     #     callback null, [vm]
 
-  @removeByName = permit 'delete vms',
-    success:(client, vmName, callback)->
+  # Private static method to fetch domains
+  @fetchDomains = (selector, callback)->
+    JDomain = require './domain'
+    JDomain.someData selector, {domain:1}, \
+    (err, cursor)->
+      return callback err, []  if err
+      cursor.toArray (err, arr)->
+        return callback err, []  if err
+        callback null, arr.map (vm)-> vm.domain
+
+  # Public(shared) static method to fetch domains
+  # which points to given hostnameAlias
+  @fetchDomains$ = secure (client, hostnameAlias, callback)->
       {delegate} = client.connection
 
       delegate.fetchUser (err, user) ->
         return callback err  if err
 
         selector =
-          name   : vmName
-          users  : { $elemMatch: id: user.getId(), owner: yes }
+          hostnameAlias : hostnameAlias
+          users         : { $elemMatch: id: user.getId() }
 
-        JVM.one selector, (err, vm)->
-          return callback err  if err
-          return callback new KodingError 'No such VM'  unless vm
-          if vm.planCode isnt 'free'
-            JRecurlySubscription.getSubscriptionsAll vm.planOwner,
-              userCode : vm.planOwner
-              planCode : vm.planCode
-              status   : 'active'
-            , (err, subs)->
-              if err
-                return callback new KodingError 'Unable to update payment (1)'
-              subs.forEach (sub)->
-                if sub.quantity > 1
-                  sub.update sub.quantity - 1, (err, sub)->
-                    if err
-                      return callback new KodingError 'Unable to update payment (2)'
-                    vm.remove callback
-                else
-                  sub.terminate (err, sub)->
-                    if err
-                      return callback new KodingError 'Unable to update payment (3)'
-                    else
-                      vm.remove callback
-          else
+        JVM.one selector, {hostnameAlias:1}, (err, vm)->
+          return callback err, []  if err or not vm
+          JVM.fetchDomains {hostnameAlias: vm.hostnameAlias}, callback
+
+  @removeRelatedDomains = (vm, callback=->)->
+    vmInfo = @parseAlias vm.hostnameAlias
+    return callback null  unless vmInfo
+
+    # Create same aliases based on vm info
+    aliasesToDelete = @createAliases vmInfo
+
+    # If calculated uid is greater than 0 we also try to add
+    # aliases which has uid 0
+    if vmInfo.uid > 0
+      vmInfo.uid = 0
+      aliasesToDelete = uniq aliasesToDelete.concat @createAliases vmInfo
+
+    selector =
+      hostnameAlias : vm.hostnameAlias
+      domain        : { $in : aliasesToDelete }
+
+    JDomain = require './domain'
+    JDomain.remove selector, (err)->
+      callback err
+      return console.error "Failed to delete domains:", err  if err
+
+  remove: (callback)->
+    JVM.removeRelatedDomains this
+    super callback
+
+  @deleteVM = (vm, callback)->
+    if vm.planCode is 'free'
+      vm.remove callback
+    else
+      JRecurlySubscription.getSubscriptionsAll vm.planOwner,
+        userCode : vm.planOwner
+        planCode : vm.planCode
+        $or      : [
+          {status: 'active'}
+          {status: 'canceled'}
+        ]
+      , (err, subs)->
+        if err
+          return callback new KodingError 'Unable to update subscription.'
+        subs.forEach (sub)->
+          if sub.status is 'canceled'
             vm.remove callback
+          else if sub.quantity > 1
+            sub.update sub.quantity - 1, (err, sub)->
+              if err
+                return callback new KodingError 'Unable to update subscription.'
+              vm.remove callback
+          else
+            sub.terminate (err, newSub)->
+              if err
+                return callback new KodingError 'Unable to terminate payment'
+              else
+                vm.remove callback
+
+  @removeByHostname = secure (client, hostnameAlias, callback)->
+    {delegate} = client.connection
+
+    delegate.fetchUser (err, user)=>
+      return callback err  if err
+
+      selector =
+        hostnameAlias : hostnameAlias
+        users         : { $elemMatch: id: user.getId(), owner: yes }
+
+      JVM.one selector, (err, vm)=>
+        return callback err  if err
+        return callback new KodingError 'No such VM'  unless vm
+
+        if vm.planOwner.indexOf("user_") > -1
+          @deleteVM vm, callback
+        else
+          groupID = vm.planOwner.split('_')[1]
+
+          JGroup = require './group'
+          JGroup.one {_id: groupID}, (err, group)=>
+            return callback err  if err
+            JPermissionSet.checkPermission client, "delete vms", group,
+            (err, hasPermission)=>
+              return callback err  if err
+              if hasPermission
+                @deleteVM vm, callback
 
   do ->
 
-    handleError = (err)-> console.error err  if err
+    JAccount  = require './account'
+    JGroup    = require './group'
+    JUser     = require './user'
 
-    JGroup  = require './group'
-    JUser   = require './user'
-
-    addVm = ({ target, user, name, sudo, groups, groupSlug
-               type, planCode, planOwner })->
+    addVm = ({ account, target, user, sudo, groups, groupSlug
+               type, planCode, planOwner, webHome })->
 
       uid = 0
-      hostnameAlias = JVM.createAliases {
+      hostnameAliases = JVM.createAliases {
         nickname : user.username
         type, uid, groupSlug
       }
 
+      users = [
+        { id: user.getId(), sudo: yes, owner: yes }
+      ]
+
+      [hostnameAlias]  = hostnameAliases
+      groups          ?= []
+
       vm = new JVM {
-        name      : name
-        planCode  : planCode
-        planOwner : planOwner
-        users     : [
-          { id: user.getId(), sudo: yes, owner: yes }
-        ]
-        groups: groups ? []
         hostnameAlias
+        planOwner
+        planCode
+        webHome
+        groups
+        users
       }
-      vm.save (err)-> target.addVm vm, handleError
+
+      vm.save (err)->
+
+        handleError err
+        if err
+          return console.warn "Failed to create VM for ", \
+                               {users, groups, hostnameAlias}
+
+        JVM.createDomains account, hostnameAliases, hostnameAlias
+        target.addVm vm, handleError
 
     wrapGroup =(group)-> [ { id: group.getId() } ]
 
@@ -310,32 +486,52 @@ module.exports = class JVM extends Model
         if err then handleError err
         else user.update { $set: { uid } }, handleError
 
-    JGroup.on 'GroupCreated', ({group, creator})->
-      group.fetchBundle (err, bundle)->
-        console.log err, bundle
-        if err then handleError err
-        else if bundle and bundle.sharedVM
-          creator.fetchUser (err, user)->
-            if err then handleError err
-            else
-              # Following is just here to register this name in the counters collection
-              ((require 'koding-counter') {
-                db          : JVM.getClient()
-                counterName : "#{group.slug}~"
-                offset      : 0
-              }).next ->
+    JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
+      return  unless oldUsername and username
 
-              addVm {
-                user
-                type     : 'group'
-                target   : group
-                planCode : 'free'
-                planOwner: "group_#{group._id}"
-                sudo     : yes
-                name     : "#{group.slug}~0"
-                groupSlug: group.slug
-                groups   : wrapGroup group
-              }
+      if isRegistration
+        oldGroup  = 'guests'
+        group     = 'koding'
+      else
+        oldGroup = group = 'koding'
+
+      hostnameAlias = "vm-0.#{oldUsername}.#{oldGroup}.kd.io"
+      newHostNameAlias = "vm-0.#{username}.#{group}.kd.io"
+
+      console.log "Started to migrate #{oldUsername} to #{username} ..."
+
+      JVM.one {hostnameAlias}, (err, vm)=>
+        return console.error err  if err or not vm
+        # Old vm found
+
+        # Removing old vm domains...
+        JVM.removeRelatedDomains vm, (err)=>
+          if err
+            console.error "Failed to remove old domains for #{hostnameAlias}"
+
+          JAccount.one {'profile.nickname':username}, (err, account)=>
+            return console.error err  if err or not account
+            # New account found
+
+            vm.update {$set: {hostnameAlias: newHostNameAlias}}, (err)=>
+              return console.error err  if err
+              # VM hostnameAlias updated
+
+              nameFactory = (require 'koding-counter')
+                db          : JVM.getClient()
+                offset      : 0
+                counterName : "koding~#{username}~"
+              nameFactory.next (err, uid)=>
+                return console.error err  if err
+                # Counter created
+
+                JVM.ensureDomainSettings {
+                  type:'user', nickname:username, groupSlug:'koding'
+                  account, vm
+                }
+
+                console.log """Migration completed for
+                               #{hostnameAlias} to #{newHostNameAlias}"""
 
     JGroup.on 'GroupDestroyed', (group)->
       group.fetchVms (err, vms)->
@@ -345,7 +541,7 @@ module.exports = class JVM extends Model
     JGroup.on 'MemberAdded', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
-        else if group.slug is 'koding'
+        else if group.slug is 'guests'
           # Following is just here to register this name in the counters collection
           ((require 'koding-counter') {
             db          : JVM.getClient()
@@ -356,16 +552,17 @@ module.exports = class JVM extends Model
           # TODO: this special case for koding should be generalized for any group.
           addVm {
             user
+            account   : member
+            sudo      : yes
             type      : 'user'
             target    : member
             planCode  : 'free'
             planOwner : "user_#{member._id}"
-            sudo      : yes
-            name      : "koding~#{member.profile.nickname}~0"
             groupSlug : group.slug
+            webHome   : user.username
             groups    : wrapGroup group
           }
-        else
+        else unless group.slug is 'koding'
           member.checkPermission group, 'sudoer', (err, hasPermission)->
             if err then handleError err
             else
@@ -379,6 +576,8 @@ module.exports = class JVM extends Model
     JGroup.on 'MemberRemoved', ({group, member})->
       member.fetchUser (err, user)->
         if err then handleError err
+        # Do we need to take care guests here? Like when guests ends up session
+        # Do we also need to remove their vms? ~ GG
         else if group.slug is 'koding'
           member.fetchVms (err, vms)->
             if err then handleError err

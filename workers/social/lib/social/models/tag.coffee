@@ -30,7 +30,9 @@ module.exports = class JTag extends jraphical.Module
       #{if @group is 'koding' then '' else "#{@group}/"}Topics/\#{slug}
       """
     permissions     :
-      'read tags'             : ['member', 'moderator']
+      'read tags'             :
+        public                : ['guest', 'member', 'moderator']
+        private               : ['member', 'moderator']
       'create tags'           : ['member', 'moderator']
       'freetag content'       : ['member', 'moderator']
       'browse content by tag' : ['member', 'moderator']
@@ -54,7 +56,7 @@ module.exports = class JTag extends jraphical.Module
         'delete'
         ]
       static        : [
-        'one','on','some','create', 'count' #,'updateAllSlugs'
+        'one','on','some','create', 'count', 'fetchCount' #,'updateAllSlugs'
         'someWithRelationship','byRelevance'#,'markFollowing'
         'cursor','cursorWithRelationship','fetchMyFollowees','each'
         'fetchSkillTags', 'byRelevanceForSkills'
@@ -120,7 +122,7 @@ module.exports = class JTag extends jraphical.Module
           else
             @update $set: formData, callback
       else
-        callback new KodingError "Access denied"
+        callback new KodingError 'Access denied'
 
   fetchContentTeasers:(options, selector, callback)->
     [callback, selector] = [selector, callback] unless callback
@@ -223,7 +225,7 @@ module.exports = class JTag extends jraphical.Module
         if err
           callback err
         else unless role is 'super-admin'
-          callback new KodingError 'Access denied!'
+          callback new KodingError 'Access denied'
         else
           tagId = @getId()
           @fetchContents (err, contents)=>
@@ -273,6 +275,10 @@ module.exports = class JTag extends jraphical.Module
     success:(client, selector, options, callback)->
       selector.group = makeGroupSelector client.context.group
       @some selector, options, callback
+
+  # fix: having read activity permission here may lead to obscurity - SY
+  @fetchCount = permit 'read activity',
+    success:(client, callback)-> @count callback
 
   @count$ = permit 'read tags',
     success:(client, selector, callback)->

@@ -14,7 +14,7 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
 
     @embedOptions = $.extend {}, options,
       hasDropdown : no
-      delegate : @
+      delegate    : this
 
     @actionLinks = new TutorialActivityActionsView
       delegate : @commentBox.opinionList
@@ -22,13 +22,13 @@ class SelectableTutorialActivityItemView extends ActivityItemChild
     , data
 
     @previewImage = new KDCustomHTMLView
-      tagName : "img"
-      cssClass : "tutorial-preview-image"
-      attributes:
-        src: data.link?.link_embed.images[0].url or ""
-        title:"Show the Tutorial"
-        alt:"Show the tutorial"
-        "data-paths":"preview"
+      tagName    : "img"
+      cssClass   : "tutorial-preview-image"
+      attributes :
+        src      : data.link?.link_embed.images[0].url or ""
+        title    : "Show the Tutorial"
+        alt      : "Show the tutorial"
+        "data-paths": "preview"
 
     @previewImage.hide() unless data.link?
 

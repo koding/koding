@@ -20,7 +20,7 @@ class AvatarView extends LinkView
       options.tooltip or= {}
       options.tooltip.view         or= if options.detailed then @detailedAvatar else null
       options.tooltip.viewCssClass or= 'avatar-tooltip'
-      options.tooltip.animate      or= yes
+      options.tooltip.animate       ?= yes
       options.tooltip.placement    or= 'top'
       options.tooltip.direction    or= 'right'
 
@@ -35,30 +35,27 @@ class AvatarView extends LinkView
           @tooltip.getView().updateData data if data?.profile.nickname
 
     @bgImg = null
+    @fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
-  # click:(event)->
-  #   event.stopPropagation()
-  #   event.preventDefault()
-  #   @getTooltip().hide()
-  #   @utils.defer => @emit 'LinkClicked'
-  #   return no
+  setAvatar:(uri)->
+    if @bgImg isnt uri
+      @$().css "background-image", uri
+      @bgImg = uri
 
   render:->
     account = @getData()
     return unless account
-    {profile} = account
-    options = @getOptions()
-    fallbackUri = "#{KD.apiUri}/images/defaultavatar/default.avatar.#{options.size.width}.png"
 
-    # this is a temp fix to avoid avatar flashing on every account change - Sinan 08/2012
-    bgImg = "url(//gravatar.com/avatar/#{profile.hash}?size=#{options.size.width}&d=#{encodeURIComponent fallbackUri})"
+    {profile, type} = account
+    return @setAvatar "url(#{@fallbackUri})"  if type is 'unregistered'
 
-    if @bgImg isnt bgImg
-      @$().css "background-image", bgImg
-      @bgImg = bgImg
+    {width} = @getOptions().size
+    @setAvatar "url(//gravatar.com/avatar/#{profile.hash}?size=#{width}&d=#{encodeURIComponent @fallbackUri})"
 
     flags = account.globalFlags?.join(" ") ? ""
     @$('cite').addClass flags
+
+    @$().attr href: profile.nickname
 
   viewAppended:->
     super
@@ -73,21 +70,15 @@ class AvatarTooltipView extends KDView
     super options, data
 
     origin = options.origin
+    name   = KD.utils.getFullnameFromAccount @getData()
 
     @profileName = new KDCustomHTMLView
-      tagName : 'a'
-      cssClass : 'profile-name'
-      # click:(event)=>
-      #   KD.getSingleton('router').handleRoute "/#{@getData().profile.nickname}", state:@getData()
-      attributes:
-        href : "/#{@getData().profile.nickname}"
-        target : '_blank'
-      pistachio : \
-      """
-        <h2>
-        {{#(profile.firstName)+' '+#(profile.lastName)}}
-        </h2>
-      """
+      tagName    : 'a'
+      cssClass   : 'profile-name'
+      attributes :
+        href     : "/#{@getData().profile.nickname}"
+        target   : '_blank'
+      pistachio  : "<h2>#{name}</h2>"
     , data
 
     @staticAvatar = new AvatarStaticView
@@ -159,14 +150,14 @@ class AvatarTooltipView extends KDView
         warn err  if KD.isLoggedIn()
         if data.followee
           @followButton.setClass 'following-btn'
-          @followButton.setState "Unfollow"
+          @followButton.setState "Following"
         else
           @followButton.setState "Follow"
           @followButton.unsetClass 'following-btn'
     else
       if data.followee
         @followButton.setClass 'following-btn'
-        @followButton.setState "Unfollow"
+        @followButton.setState "Following"
     @followButton.setData data
     @followButton.render()
 

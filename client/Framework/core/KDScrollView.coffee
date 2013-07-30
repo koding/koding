@@ -10,6 +10,7 @@ class KDScrollView extends KDView
 
     # if @getOptions().ownScrollBars
     #   @_createScrollBars()
+    @on 'click', -> KD.getSingleton('windowController').enableScroll()
 
   bindEvents:->
 

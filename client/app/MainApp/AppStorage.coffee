@@ -68,5 +68,21 @@ class AppStorage extends KDEventEmitter
     pack[_key] = value
     pack
 
+class AppStorageController extends KDController
+
+  constructor:->
+    super
+    @appStorages = {}
+
+  storage:(appName, version)->
+
+    if @appStorages[appName]?
+      storage = @appStorages[appName]
+    else
+      storage = @appStorages[appName] = new AppStorage appName, version
+
+    storage.fetchStorage()
+    return storage
+
 # Let people can use AppStorage
 KD.classes.AppStorage = AppStorage

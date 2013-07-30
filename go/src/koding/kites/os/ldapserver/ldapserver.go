@@ -20,9 +20,7 @@ var userByNameCache = make(map[string]*virt.User)
 func Listen() {
 	go func() {
 		for {
-			vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
-			userByUidCache = make(map[int]*virt.User, len(userByUidCache))
-			userByNameCache = make(map[string]*virt.User, len(userByNameCache))
+			ClearCache()
 			time.Sleep(10 * time.Second)
 		}
 	}()
@@ -44,6 +42,12 @@ func Listen() {
 		}
 		ln.Close()
 	}
+}
+
+func ClearCache() {
+	vmCache = make(map[bson.ObjectId]*virt.VM, len(vmCache))
+	userByUidCache = make(map[int]*virt.User, len(userByUidCache))
+	userByNameCache = make(map[string]*virt.User, len(userByNameCache))
 }
 
 func handleConnection(conn net.Conn) {
@@ -131,29 +135,37 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 				return true
 			}
 			permissions := vm.GetPermissions(user)
-
-			if permissions != nil && permissions.Sudo {
-				conn.Write(createSearchResultEntry(messageID, map[string]string{
-					"objectClass": "posixGroup",
-					"cn":          "sudo",
-					"gidNumber":   "27",
-				}).Bytes())
-			}
-			return true
-		}
-
-		if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
-			gid, _ := strconv.Atoi(gidStr)
-			user, err := findUserByUid(gid)
-			if err != nil || (vm != nil && vm.GetPermissions(user) == nil) {
+			if permissions == nil {
 				return true
 			}
 
-			conn.Write(createSearchResultEntry(messageID, map[string]string{
-				"objectClass": "posixGroup",
-				"cn":          user.Name,
-				"gidNumber":   gidStr,
-			}).Bytes())
+			if permissions.Sudo {
+				conn.Write(createGroupSearchResultEntry(messageID, "sudo", 27).Bytes())
+			}
+
+			conn.Write(createGroupSearchResultEntry(messageID, "www-data", 33).Bytes())
+
+			return true
+		}
+
+		var user *virt.User
+		var err error
+
+		if gidStr := findAttributeInFilter(filter, "gidNumber"); gidStr != "" {
+			gid, _ := strconv.Atoi(gidStr)
+			user, err = findUserByUid(gid)
+		}
+
+		if name := findAttributeInFilter(filter, "cn"); name != "" {
+			user, err = findUserByName(name)
+		}
+
+		if err != nil || (vm != nil && user != nil && vm.GetPermissions(user) == nil) {
+			return true
+		}
+
+		if user != nil {
+			conn.Write(createGroupSearchResultEntry(messageID, user.Name, user.Uid).Bytes())
 			return true
 		}
 
@@ -166,6 +178,10 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			return true
 		}
 
+		if user.Shell == "" {
+			user.Shell = "/bin/bash"
+		}
+
 		conn.Write(createSearchResultEntry(messageID, map[string]string{
 			"objectClass":   "posixAccount",
 			"cn":            user.Name,
@@ -174,7 +190,8 @@ func lookupUser(filter *ber.Packet, messageID uint64, vm *virt.VM, conn net.Conn
 			"uidNumber":     strconv.Itoa(user.Uid),
 			"gidNumber":     strconv.Itoa(user.Uid),
 			"homeDirectory": "/home/" + user.Name,
-			"loginShell":    "/bin/bash",
+			"loginShell":    user.Shell,
+			"sshPublicKey":  strings.Join(user.SshKeyList(), "\n"),
 		}).Bytes())
 		return true
 
@@ -270,6 +287,15 @@ func createSearchResultEntry(messageID uint64, attributes map[string]string) *be
 	entry.AppendChild(attributeSequence)
 	response.AppendChild(entry)
 	return response
+}
+
+func createGroupSearchResultEntry(messageID uint64, name string, gid int) *ber.Packet {
+	return createSearchResultEntry(messageID, map[string]string{
+		"objectClass":  "posixGroup",
+		"cn":           name,
+		"gidNumber":    strconv.Itoa(gid),
+		"userPassword": "{crypt}x",
+	})
 }
 
 func createAttribute(name, value string) *ber.Packet {

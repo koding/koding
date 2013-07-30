@@ -43,11 +43,8 @@ class KDInputView extends KDView
     @enableTabKey() if options.enableTabKey
     @setCase options.forceCase if options.forceCase
 
-    if options.validate?
-      @setValidation options.validate
-      @on "ValidationError", @bound "giveValidationFeedback"
-      @on "ValidationPassed", @bound "giveValidationFeedback"
-      @on "focus", @bound "clearValidationFeedback"
+    @setValidation options.validate  if options.validate
+    @bindValidationEvents()
 
     if options.type is "select" and options.selectOptions
       @on "viewAppended", =>
@@ -72,14 +69,20 @@ class KDInputView extends KDView
       when "range"    then $ "<input #{name} type='range' class='kdinput range #{cssClass}'/>"
       else                 $ "<input #{name} type='#{@getType()}' class='kdinput #{@getType()} #{cssClass}'/>"
 
-  setLabel:(label = @options.label)->
+  bindValidationEvents:->
+    @on "ValidationError", @bound "giveValidationFeedback"
+    @on "ValidationPassed", @bound "giveValidationFeedback"
+    @on "focus", @bound "clearValidationFeedback"
 
-    return no unless @options.label?
+  setLabel:(label = @getOptions().label)->
+
+    return  unless label
+
     @inputLabel = label
-    @inputLabel.getDomElement().attr "for", @getName()
-    @inputLabel.getDomElement().bind "click",()=>
-      @getDomElement().trigger "focus"
-      @getDomElement().trigger "click"
+    @inputLabel.$()[0].setAttribute "for", @getName()
+    @inputLabel.$().bind "click",()=>
+      @$().trigger "focus"
+      @$().trigger "click"
 
   getLabel:-> @inputLabel
 
@@ -115,16 +118,12 @@ class KDInputView extends KDView
 
     @$().val @getDefaultValue()
 
-  setDefaultValue:(value) ->
-    if @getOption("type") is "checkbox"
-      @getDomElement().attr checked : value
-    else
-      @getDomElement().val value if value isnt ""
-
+  setDefaultValue:(value)->
+    return  if not value? and value isnt ''
+    KDInputView::setValue.call this, value
     @inputDefaultValue = value
 
-  getDefaultValue:->
-    @inputDefaultValue
+  getDefaultValue:-> @inputDefaultValue
 
   setPlaceHolder:(value)->
     if @$().is("input") or @$().is("textarea")
@@ -144,17 +143,20 @@ class KDInputView extends KDView
       value = @getDomElement().val()
       {forceCase} = @getOptions()
       if forceCase
-        value = if /uppercase/i.test forceCase
-          value.toUpperCase()
-        else
-          value.toLowerCase()
+        value = if forceCase.toLowerCase() is 'uppercase'
+        then value.toUpperCase()
+        else value.toLowerCase()
 
     return value
 
   setValue:(value)->
-    if @getOption("type") is "checkbox"
-      @getDomElement().attr checked : value
-    else @getDomElement().val(value) if value?
+    $el = @$()
+    el  = $el[0]
+    if @getOption("type") in ["checkbox", "radio"]
+      if value
+      then el.setAttribute "checked", "checked"
+      else el.removeAttribute "checked"
+    else $el.val value
 
   _prevVal = null
 
@@ -166,6 +168,8 @@ class KDInputView extends KDView
 
     @on "keyup", cb.bind this
     @on "blur",  cb.bind this
+
+  unsetValidation:-> @setValidation {}
 
   setValidation:(ruleSet)->
 
@@ -214,12 +218,11 @@ class KDInputView extends KDView
     for result, errMsg of @validationResults
       if errMsg then allClear = no
 
-    if allClear
-      @emit "ValidationPassed"
-      @emit "ValidationResult", yes
-      @valid = yes
-    else
-      @emit "ValidationResult", no
+    @valid = if allClear then yes else no
+    @emit "ValidationPassed" if @valid
+    @emit "ValidationResult", @valid
+
+    return @valid
 
 
   createRuleChain:(ruleSet)->
@@ -352,7 +355,7 @@ class KDInputView extends KDView
 
   focus:->
 
-    @setKeyView @
+    @setKeyView()
     yes
 
   blur:->

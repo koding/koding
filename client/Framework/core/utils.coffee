@@ -328,9 +328,15 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-  getFullnameFromAccount:(account)->
-    {firstName, lastName} = account.profile
-    return "#{firstName} #{lastName}"
+  getFullnameFromAccount:(account, justName=no)->
+    account or= KD.whoami()
+    if account.type is 'unregistered'
+      name = account.profile.nickname.capitalize()
+    else if justName
+      name = account.profile.firstName
+    else
+      name = "#{account.profile.firstName} #{account.profile.lastName}"
+    return Encoder.htmlDecode name
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
@@ -438,7 +444,6 @@ __utils =
     fallback = (rest...)=>
       timedOut = yes
       @updateLogTimer timerName, fallbackTimer
-      @logTimeoutToExternal timerName
 
       onTimeout rest...
 
@@ -448,8 +453,17 @@ __utils =
     kallback.cancel =-> clearTimeout fallbackTimer
     kallback
 
-  logTimeoutToExternal: (timerName)->
-    KD.logToMixpanel timerName+".timeout"
+  notifyAndEmailVMTurnOnFailureToSysAdmin: (vmName, reason)->
+    if window.localStorage.notifiedSysAdminOfVMFailureTime
+      if parseInt(window.localStorage.notifiedSysAdminOfVMFailureTime, 10)+(1000*60*60)>Date.now()
+        return
+
+    window.localStorage.notifiedSysAdminOfVMFailureTime = Date.now()
+
+    new KDNotificationView
+      title:"Sorry, your vm failed to turn on. An email has been sent to a sysadmin."
+
+    KD.whoami().sendEmailVMTurnOnFailureToSysAdmin vmName, reason
 
   logTimer:(timerName, timerNumber, startTime)->
     log "logTimer name:#{timerName}"
@@ -601,7 +615,7 @@ __utils =
     if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
       group = KD.config.entryPoint.slug
     else
-      group = 'koding'
+      group = 'koding' # KD.defaultSlug
 
     KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err
@@ -712,10 +726,48 @@ __utils =
   # Get next highest Z-index
   getNextHighestZIndex:(context)->
    uniqid = context.data 'data-id'
-   if isNaN zIndexContexts[uniqid]
-     zIndexContexts[uniqid] = 0
-   else
-     zIndexContexts[uniqid]++
+   zIndexContexts[uniqid] if isNaN zIndexContexts[uniqid] then 0 else zIndexContexts[uniqid]++
+
+  shortenUrl: (url, callback)->
+    request = $.ajax "https://www.googleapis.com/urlshortener/v1/url",
+      type        : "POST"
+      contentType : "application/json"
+      data        : JSON.stringify {longUrl: url}
+      timeout     : 4000
+      dataType    : "json"
+
+    request.done (data)=>
+      callback data?.id or url, data
+
+    request.error ({status, statusText, responseText})->
+      error "URL shorten error, returning self as fallback.", status, statusText, responseText
+      callback url
+
+  formatBytesToHumanReadable: (bytes) ->
+    thresh    = 1024
+    units     = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
+    unitIndex = -1
+    return "#{bytes} B"  if bytes < thresh
+    loop
+      bytes /= thresh
+      ++unitIndex
+      break unless bytes >= thresh
+
+    return "#{bytes.toFixed 2} #{units[unitIndex]}"
+
+  openGithubPopUp:->
+    {clientId} = KD.config.github
+    url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
+    name       = "Login"
+    size       = "height=643,width=1143"
+    newWindow  = window.open url, name, size
+    newWindow.focus()
+
+  useForeignAuth: (provider)->
+    mainController = KD.getSingleton "mainController"
+
+    if provider then mainController.emit "ForeignAuthCompleted", provider
+    else mainController.emit "ForeignAuthFailed"
 
   # deprecated ends
 

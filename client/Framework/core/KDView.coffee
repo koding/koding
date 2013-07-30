@@ -209,7 +209,8 @@ class KDView extends KDObject
 # #
 # TRAVERSE DOM ELEMENT
 # #
-  Object.defineProperty @prototype, "$$", get : @::$
+  Object.defineProperty @::, "$$", get : @::$
+  Object.defineProperty @::, "el", get : @::getElement
 
   getDomElement:-> @domElement
 
@@ -219,11 +220,10 @@ class KDView extends KDObject
 
   # shortcut method for @getDomElement()
 
-  $ :(selector)->
-    if selector?
-      @getDomElement().find(selector)
-    else
-      @getDomElement()
+  $:(selector)->
+    if selector
+    then @getDomElement().find(selector)
+    else @getDomElement()
 
 # #
 # MANIPULATE DOM ELEMENT
@@ -286,20 +286,25 @@ class KDView extends KDObject
 # CSS METHODS
 # #
 
+  _helpSetClass = (el, addOrRemove, cssClass)->
+    el.classList[addOrRemove] cl for cl in cssClass.split(' ') when cl isnt ''
+
   setClass:(cssClass)->
-    @$().addClass cssClass
-    @
+    return unless cssClass
+    _helpSetClass @getElement(), "add", cssClass
+    return this
 
   unsetClass:(cssClass)->
-    @$().removeClass cssClass
-    @
+    return unless cssClass
+    _helpSetClass @getElement(), "remove", cssClass
+    return this
 
   toggleClass:(cssClass)->
     @$().toggleClass cssClass
-    @
+    return this
 
   hasClass:(cssClass)->
-    @$().hasClass cssClass
+    @getElement().classList.contains cssClass
 
   getBounds:->
     #return false unless @viewDidAppend
@@ -495,6 +500,7 @@ class KDView extends KDObject
     if @getSubViews()
       (subView.parentDidResize(parent,event) for subView in @getSubViews())
 
+  # if threshold is greater than 1 it is treated as pixel value
   setLazyLoader:(threshold=.75)->
     @getOptions().bind += ' scroll' unless /\bscroll\b/.test @getOptions().bind
     view = @
@@ -502,9 +508,17 @@ class KDView extends KDObject
       lastRatio = 0
       (event)->
         el = view.$()[0]
-        ratio = (el.scrollTop + view.getHeight()) / el.scrollHeight
-        if ratio > lastRatio and ratio > threshold
+        {scrollHeight, scrollTop} = el
+
+        dynamicThreshold = if threshold > 1
+        then (scrollHeight - threshold) / scrollHeight
+        else threshold
+
+        ratio = (scrollTop + view.getHeight()) / scrollHeight
+
+        if dynamicThreshold < ratio > lastRatio
           @emit 'LazyLoadThresholdReached', {ratio}
+
         lastRatio = ratio
 
   bindEvents:($elm)->
@@ -767,6 +781,8 @@ class KDView extends KDObject
 
   putOverlay:(options = {})->
 
+    # Will be deprecated soon, will use KDOverlayView
+
     {isRemovable, cssClass, parent, animated, color} = options
 
     isRemovable ?= yes
@@ -832,22 +848,19 @@ class KDView extends KDObject
       left        : 0
     o.delayIn   or= 0
     o.delayOut  or= 0
-    o.html      or= yes
-    o.animate   or= no
+    o.html       ?= yes
+    o.animate    ?= no
     o.selector  or= null
     o.gravity   or= placementMap[o.placement]
     o.fade      or= o.animate
     o.fallback  or= o.title
     o.view      or= null
-    o.sticky    or= no
+    o.sticky     ?= no
     o.delegate  or= @
     o.events    or= ['mouseenter','mouseleave','mousemove']
     o.viewCssClass or= null
-    o.showOnlyWhenOverflowing or= no # this will check for horizontal overflow
 
-    isOverflowing = @$(o.selector)[0]?.offsetWidth < @$(o.selector)[0]?.scrollWidth
-    if o.showOnlyWhenOverflowing and isOverflowing or not o.showOnlyWhenOverflowing
-      @tooltip ?= new KDTooltip o, {}
+    @tooltip ?= new KDTooltip o, {}
 
   getTooltip:-> @tooltip
 

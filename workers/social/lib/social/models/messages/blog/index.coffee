@@ -56,8 +56,12 @@ module.exports = class JBlogPost extends JPost
         { name: 'ReplyIsAdded' }
         { name: 'LikeIsAdded' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
-      static          : []
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     schema            : schema
     relationships     : JPost.relationships
 

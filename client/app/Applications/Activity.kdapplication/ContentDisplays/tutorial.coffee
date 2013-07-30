@@ -35,22 +35,20 @@ class ContentDisplayTutorial extends ActivityContentDisplay
       partial  : @opinionHeaderCountString data.opinionCount
 
     @embedOptions = $.extend {}, options,
-      delegate  : @
+      delegate  : this
       hasConfig : no
       forceType : "object"
-
     @embedBox = new EmbedBox @embedOptions, data
 
     @previewImage = new KDCustomHTMLView
-      tagName : "img"
-      cssClass : "tutorial-preview-image"
-      attributes:
-        src: @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
-        title:"View the full Tutorial"
-        alt:"View the full tutorial"
-        "data-paths":"preview"
-
-    @previewImage.hide() unless data.link?.link_embed?.images?[0]?.url
+      tagName    : "img"
+      cssClass   : "tutorial-preview-image"
+      attributes :
+        src      : @utils.proxifyUrl(data.link?.link_embed?.images?[0]?.url or "")
+        title    : "View the full Tutorial"
+        alt      : "View the full tutorial"
+        "data-paths": "preview"
+    @previewImage.hide()  unless data.link?.link_embed?.images?[0]?.url
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
@@ -65,6 +63,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
         language      : "markdown"
         autoUpdate    : yes
         showInitially : no
+      typeLabel       : 'tutorial'
       cssClass        : "opinion-container"
       callback        : (data)=>
         @getData().reply data, (err, opinion) =>
@@ -111,35 +110,34 @@ class ContentDisplayTutorial extends ActivityContentDisplay
        KD.checkFlag "super-admin", KD.whoami()  # if super-admin
 
       @editDiscussionLink.on "click", =>
-          if @editDiscussionForm?
-            @editDiscussionForm?.destroy()
-            delete @editDiscussionForm
-            @$(".tutorial-body .data").show()
-            @utils.defer =>
-              @embedBox.show()
-          else
-            @editDiscussionForm = new TutorialFormView
-              title         : "edit-tutorial"
-              cssClass      : "edit-tutorial-form"
-              delegate      : @
-              callback      : (data)=>
-                @getData().modify data, (err, tutorial) =>
-                  callback? err, opinion
-                  @editDiscussionForm.reset()
-                  if err
-                    new KDNotificationView
-                      title : "Your changes weren't saved."
-                      type  : "mini"
-                  else
-                    @editDiscussionForm.setClass "hidden"
-                    @$(".tutorial-body .data").show()
-                    @utils.defer =>
-                      @embedBox.show() if @embedBox.hasValidContent
-            , data
+        if @editDiscussionForm?
+          @editDiscussionForm?.destroy()
+          delete @editDiscussionForm
+          @$(".tutorial-body .data").show()
+          @utils.defer =>
+            @embedBox.show()
+        else
+          @editDiscussionForm = new TutorialFormView
+            title         : "edit-tutorial"
+            cssClass      : "edit-tutorial-form"
+            delegate      : @
+            callback      : (data)=>
+              @getData().modify data, (err, tutorial) =>
+                callback? err, opinion
+                @editDiscussionForm.reset()
+                if err
+                  new KDNotificationView
+                    title : "Your changes weren't saved."
+                    type  : "mini"
+                else
+                  @editDiscussionForm.setClass "hidden"
+                  @$(".tutorial-body .data").show()
+                  @utils.defer => @embedBox.show()  if @embedBox.hasValidContent
+          , data
 
-            @addSubView @editDiscussionForm, "p.tutorial-body", yes
-            @$(".tutorial-body .data").hide()
-            @embedBox.hide()
+          @addSubView @editDiscussionForm, "p.tutorial-body", yes
+          @$(".tutorial-body .data").hide()
+          @embedBox.hide()
 
       @deleteDiscussionLink.on "click", =>
         @confirmDeleteTutorial data
@@ -234,15 +232,7 @@ class ContentDisplayTutorial extends ActivityContentDisplay
 
     if @getData().link?
       @embedBox.embedExistingData @getData().link.link_embed, @embedOptions, =>
-        @embedBox.show() unless (("embed" in @embedBox.getEmbedHiddenItems()) or\
-                                 (@embedBox.hasValidContent is no))
-      ,@getData().link.link_cache
-
-            # <div class="tutorial-navigation-container clear clearfix">
-            #   {{> @listAnchorPrevious}}
-            #   {{> @comingUpNextAnchor}}
-            #   {{> @listAnchorNext}}
-            # </div>
+        @embedBox.show()  unless @embedBox.hasValidContent is no
 
   click:(event)->
     if $(event.target).is("[data-paths~=preview]")

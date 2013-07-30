@@ -16,8 +16,8 @@ type ProxyPostMessage struct {
 	Name          string
 	Username      string
 	Domain        string
+	Persistence   string
 	Mode          string
-	CurrentIndex  string
 	Key           string
 	RabbitKey     string
 	Host          string
@@ -63,6 +63,7 @@ func main() {
 	rout.HandleFunc("/deployments", GetClients).Methods("GET")
 	rout.HandleFunc("/deployments", CreateClient).Methods("POST")
 	rout.HandleFunc("/deployments/{build}", GetClient).Methods("GET")
+	rout.HandleFunc("/deployments/{build}", DeleteClient).Methods("DELETE")
 
 	// Worker handlers
 	rout.HandleFunc("/workers", GetWorkers).Methods("GET")
@@ -88,6 +89,7 @@ func main() {
 	// Domain handlers
 	rout.HandleFunc("/domains", GetDomains).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", GetDomain).Methods("GET")
+	rout.HandleFunc("/domains/{domain}/resolv", ResolveDomain).Methods("GET")
 	rout.HandleFunc("/domains/{domain}", CreateOrUpdateDomain).Methods("POST", "PUT")
 	rout.HandleFunc("/domains/{domain}", DeleteDomain).Methods("DELETE")
 
@@ -95,14 +97,14 @@ func main() {
 	rout.HandleFunc("/restrictions", GetRestrictions).Methods("GET")
 	rout.HandleFunc("/restrictions/{domain}", GetRestrictionByDomain).Methods("GET")
 	rout.HandleFunc("/restrictions/{domain}", DeleteRestriction).Methods("DELETE")
-	rout.HandleFunc("/restrictions/{domain}/{match}", CreateRuleByMatch).Methods("POST", "PUT")
-	rout.HandleFunc("/restrictions/{domain}/{match}", DeleteRuleByMatch).Methods("DELETE")
+	rout.HandleFunc("/restrictions/{domain}/{name}", CreateRuleByName).Methods("POST", "PUT")
+	rout.HandleFunc("/restrictions/{domain}/{name}", DeleteRuleByName).Methods("DELETE")
 
 	// Filter handlers
 	rout.HandleFunc("/filters", GetFilters).Methods("GET")
-	rout.HandleFunc("/filters/{match}", GetFilter).Methods("GET")
-	rout.HandleFunc("/filters/{match}", CreateFilterByMatch).Methods("POST")
-	rout.HandleFunc("/filters/{match}", DeleteFilterByMatch).Methods("DELETE")
+	rout.HandleFunc("/filters", CreateFilterByName).Methods("POST")
+	rout.HandleFunc("/filters/{name}", GetFilterByName).Methods("GET")
+	rout.HandleFunc("/filters/{name}", DeleteFilterByName).Methods("DELETE")
 
 	// Statistics handlers
 	rout.HandleFunc("/stats/domains", GetDomainStats).Methods("GET")
@@ -111,9 +113,6 @@ func main() {
 	rout.HandleFunc("/stats/proxies", GetProxyStats).Methods("GET")
 	rout.HandleFunc("/stats/proxies/{proxy}", GetProxyStat).Methods("GET")
 	rout.HandleFunc("/stats/proxies/{proxy}", DeleteProxyStat).Methods("DELETE")
-
-	// Rollbar api
-	rout.HandleFunc("/rollbar", rollbar).Methods("POST")
 
 	log.Printf("kontrol api is started. serving at :%s ...", port)
 

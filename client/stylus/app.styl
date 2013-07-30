@@ -258,6 +258,20 @@ body
     min-width         250px
   &.no-anim
     vendor            transition, none!important
+  &.fullscreen
+    width             100%!important
+    left              0!important
+    top               -51px!important
+    bottom            0!important
+    right             0!important
+    z-index           10
+    height            calc(100% \+ 51px)
+    .application-page
+      padding         0!important
+      height          calc(100% \+ 10px)
+    .app-settings-menu
+      top             0
+      right           0
 // body.loggedIn
 //   #content-panel
 //     left              160px
@@ -342,8 +356,11 @@ body
       bg                position, -160px -620px
     &.help span
       bg                position, -140px -620px
+      &.opacity-up
+        opacity           1
     &.chat span
       bg                position, -180px -620px
+
 
 #avatar-area
   overflow              visible
@@ -361,6 +378,7 @@ body
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
+    cursor              pointer
     // vendor transition,  background-size 0.15s ease-in-out
     h3
       abs()
@@ -516,8 +534,9 @@ span.main-nav-icon
     bg                    position, 0 -60px
   &.admin-panel
   &.group
-    bg                    position, -80px -300px
-  &.invite-friends, &.transparent
+    bg                    position, 0 -560px
+  &.invite-friends
+  &.transparent
     text-shadow     0 -1px 0 #26231F
     padding         3px 3px 1px 3px
     color           #ccc
@@ -563,6 +582,8 @@ span.main-nav-icon
       bg                    position, -20px -300px
     &.demos
       bg                    position, -20px -100px
+    &.group
+      bg                    position, -20px -560px
 
 
 .navigation-item
@@ -607,6 +628,15 @@ span.main-nav-icon
     padding           0
     sprite()
     bg                  position, -137px -298px !important
+
+.app-settings
+  .enable-fullscreen-menu-item
+    padding           3px 10px
+    font              inherit
+    font-size         12px
+    span
+      width           87px
+      display         inline-block
 
 #main-tab-handle-holder
   abs()
@@ -953,6 +983,7 @@ span.main-nav-icon
     .kdlistview-navigation
       opacity         1
       vendor          transition, opacity .3s linear
+      margin-top      10px
       &.out
         opacity       0
 
@@ -983,6 +1014,7 @@ span.main-nav-icon
           size            20px,20px
           sprite()
           blockMid()
+
     .count
       abs()
       top               -16px
@@ -992,11 +1024,12 @@ span.main-nav-icon
       font-size         10px
       text-align        center
       line-height       12px
-      opacity           0
       z-index           2
-      vendor            transition, opacity .4s linear
+      display           none
+
       &.in
-        opacity         1
+        display         block
+
       cite
         font-style      normal
         text-shadow     0 -1px 0 rgb(173, 103, 0, 0.5)
@@ -1625,7 +1658,7 @@ span.main-nav-icon
 
         span.icon
           abs()
-          right         116px
+          right         56px
           top           14px
           size          30px, 20px
           sprite()
@@ -1673,6 +1706,5 @@ span.main-nav-icon
   text-align            center
   line-height           12px
   left                  25px
-  top                   -1px
   color                 #fff
   abs()

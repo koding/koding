@@ -20,7 +20,7 @@ class FSHelper
 
     sortedFiles = []
     for p in [yes, no]
-      z = [x for x in files when x.isDir is p][0].sort (x,y)-> x.name > y.name
+      z = (x for x in files when x.isDir is p).sort (x,y)-> x.name > y.name
       sortedFiles.push x for x in z
 
     nickname = KD.nick()
@@ -47,7 +47,7 @@ class FSHelper
 
   @grepInDirectory = (keyword, directory, callback, matchingLinesCount = 3) ->
     command = "grep #{keyword} '#{directory}' -n -r -i -I -H -T -C#{matchingLinesCount}"
-    KD.getSingleton('kiteController').run command, (err, res) =>
+    KD.getSingleton('vmController').run command, (err, res) =>
       result = {}
 
       if res
@@ -79,14 +79,14 @@ class FSHelper
       callback err, res?
 
   @getInfo = (path, vmName, callback=noop)->
-    KD.getSingleton('kiteController').run
+    KD.getSingleton('vmController').run
       method   : "fs.getInfo"
       vmName   : vmName
       withArgs : {path}
     , callback
 
   @ensureNonexistentPath = (path, vmName, callback=noop)->
-    KD.getSingleton('kiteController').run
+    KD.getSingleton('vmController').run
       method   : "fs.ensureNonexistentPath"
       vmName   : vmName
       withArgs : {path}
@@ -160,7 +160,7 @@ class FSHelper
   @createRecursiveFolder = ({ path, vmName }, callback = noop) ->
     return warn "Pass a path to create folders recursively"  unless path
 
-    KD.getSingleton("kiteController").run {
+    KD.getSingleton("vmController").run {
       kiteName    : "os"
       method      : "fs.createDirectory"
       withArgs    : {
@@ -181,5 +181,8 @@ class FSHelper
 
   @unescapeFilePath = (name) ->
     return name.replace(/^(\s\")/g,'').replace(/(\"\s)$/g, '').replace(/\\\'/g,"'").replace(/\\"/g,'"')
+
+  @isPublicPath = (path)->
+    /^\/home\/.*\/Web\//.test FSHelper.plainPath path
 
 KD.classes.FSHelper = FSHelper

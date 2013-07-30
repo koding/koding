@@ -35,11 +35,20 @@ class ActivityAppView extends KDScrollView
     @on 'scroll', @bound "changePageToActivity"
     @header.bindTransitionEnd()
 
-    @decorate()
-    @setLazyLoader .99
+    @feedWrapper.ready =>
+      @activityHeader = @feedWrapper.controller.activityHeader
+      @on 'scroll', (event) =>
+        if event.delegateTarget.scrollTop > 0
+          @activityHeader.setClass "scrolling-up-outset"
+          @activityHeader.liveUpdateButton.setValue off
+        else
+          @activityHeader.unsetClass "scrolling-up-outset"
+          @activityHeader.liveUpdateButton.setValue on
 
-    {scrollView} = @feedWrapper.controller
-    @on "LazyLoadThresholdReached", scrollView.emit.bind scrollView, "LazyLoadThresholdReached"
+    @decorate()
+
+    @setLazyLoader 200
+
     @header.on ["viewAppended", "ready"], => headerHeight = @header.getHeight()
 
     $(".kdview.fl.common-inner-nav, .kdview.activity-content.feeder-tabs").remove()
@@ -47,28 +56,24 @@ class ActivityAppView extends KDScrollView
     @addSubView @widget
     @addSubView @innerNav
     @addSubView @feedWrapper
-    @utils.wait 1500, =>
-      {navController} = @mainController.sidebarController.getView()
-      navController.selectItemByName 'Home'
-      @_windowDidResize()
-
 
   decorate:->
     @unsetClass "guest"
     {entryPoint, roles} = KD.config
     @setClass "guest" unless "member" in roles
-    if KD.isLoggedIn()
-      @setClass 'loggedin'
-      if entryPoint?.type is 'group' and 'member' not in roles
-      then @widget.hide()
-      else @widget.show()
-    else
-      @unsetClass 'loggedin'
-      @widget.hide()
+    # if KD.isLoggedIn()
+    @setClass 'loggedin'
+    if entryPoint?.type is 'group' and 'member' not in roles
+    then @widget.hide()
+    else @widget.show()
+    # else
+    #   @unsetClass 'loggedin'
+    #   @widget.hide()
     @_windowDidResize()
 
   changePageToActivity:(event)->
 
+    # if KD.isLoggedIn()
     if not @$().hasClass("fixed") and @getScrollTop() > headerHeight - 10
       {navController} = @mainController.sidebarController.getView()
       navController.selectItemByName 'Activity'
@@ -76,7 +81,6 @@ class ActivityAppView extends KDScrollView
       @header.once "transitionend", @header.bound "hide"
       @header.$().css marginTop : -headerHeight
       KD.getSingleton('mainViewController').emit "browseRequested"
-
 
   navigateHome:(itemData)->
 
@@ -89,18 +93,18 @@ class ActivityAppView extends KDScrollView
           @unsetClass "fixed"
           @header.$().css marginTop : 0
       when "Activity"
-        if KD.isLoggedIn()
-          @header.once "transitionend", =>
-            @header.hide()
-            @setClass "fixed"
-          @header.$().css marginTop : -headerHeight
-        else
-          @scrollTo {duration : 300, top : @header.getHeight()}
+        # if KD.isLoggedIn()
+        @header.once "transitionend", =>
+          @header.hide()
+          @setClass "fixed"
+        @header.$().css marginTop : -headerHeight
+        # else
+        #   @scrollTo {duration : 300, top : @header.getHeight()}
 
   _windowDidResize:->
     return unless @header
     headerHeight = @header.getHeight()
-    @innerNav.setHeight @getHeight() - (if KD.isLoggedIn() then 77 else 0)
+    @innerNav.setHeight @getHeight() - 77 # (if KD.isLoggedIn() then 77 else 0)
 
 
 
@@ -113,14 +117,14 @@ class ActivityListContainer extends JView
 
     @controller = new ActivityListController
       delegate          : @
-      lazyLoadThreshold : .99
       itemClass         : ActivityListItemView
+      showHeader        : yes
       # wrapper           : no
       # scrollView        : no
 
     @listWrapper = @controller.getView()
 
-    @utils.defer => @emit 'ready'
+    @controller.ready => @emit "ready"
 
   setSize:(newHeight)->
     # @controller.scrollView.setHeight newHeight - 28 # HEIGHT OF THE LIST HEADER

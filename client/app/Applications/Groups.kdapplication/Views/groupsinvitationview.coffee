@@ -12,6 +12,9 @@ class GroupsInvitationView extends KDView
         tabHandleContainer
       }, data
 
+      unless @policy.communications?.inviteApprovedMessage
+        @saveInviteMessage 'inviteApprovedMessage', @getDefaultInvitationMessage()
+
     @on 'SearchInputChanged', (value)=>
       console.log @tabView.getActivePane().mainView
       @tabView.getActivePane().mainView.emit 'SearchInputChanged', value
@@ -31,7 +34,7 @@ class GroupsInvitationView extends KDView
             buttons          :
               Send           :
                 itemClass    : KDButtonView
-                label        : options.submitButtonLabel or 'Send'
+                title        : options.submitButtonLabel or 'Send'
                 type         : 'submit'
                 loader       :
                   color      : '#444444'
@@ -79,28 +82,101 @@ class GroupsInvitationView extends KDView
             label         : "Maximum uses"
             itemClass     : KDInputView
             name          : "maxUses"
-            placeholder   : "How many people can redeem this code?"
+            placeholder   : "How many times can this code be redeemed?"
+          memo            :
+            label         : "Memo"
+            itemClass     : KDInputView
+            name          : "memo"
+            placeholder   : "(optional)"
+
+  getDefaultInvitationMessage:->
+    """
+    Hi there,
+
+    #INVITER# has invited you to the group #{@getData().title}.
+
+    This link will allow you to join the group: #URL#
+
+    If you reply to this email, it will go to #INVITER#.
+
+    Enjoy! :)
+    """
+
+  showEditInviteMessageModal:->
+    @editInviteMessage = @showModalForm
+      title              : 'Edit Invitation Message'
+      cssClass           : 'edit-invitation-message'
+      submitButtonLabel  : 'Save'
+      callback           : ({message})=>
+        @saveInviteMessage 'inviteApprovedMessage', message, (err)=>
+          @editInviteMessage.modalTabs.forms.invite.buttons.Send.hideLoader()
+          unless err
+            new KDNotificationView title:'Message saved'
+            @editInviteMessage.destroy()
+          else
+            @showErrorMessage err
+      fields             :
+        message          :
+          label          : 'Message'
+          type           : 'textarea'
+          cssClass       : 'message-input'
+          defaultValue   : Encoder.htmlDecode @policy.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
+          validate       :
+            rules        :
+              required   : yes
+              regExp     : /(#URL#)+/
+            messages     :
+              required   : 'Message is required!'
+              regExp     : 'Message must contain #URL# for invitation link!'
 
   showInviteByEmailModal:->
     @inviteByEmail = @showModalForm
-      title            : 'Invite by Email'
-      cssClass         : 'invite-by-email'
-      callback         : ({emails})=>
-        @getData().inviteByEmails emails, @modalCallback.bind this, @inviteByEmail
-      fields           :
-        emails         :
-          label        : 'Emails'
-          type         : 'textarea'
-          cssClass     : 'emails-input'
-          placeholder  : 'Enter each email address on a new line...'
-          validate     :
-            rules      :
-              required : yes
-            messages   :
-              required : 'At least one email address required!'
-        report         :
-          itemClass    : KDScrollView
-          cssClass     : 'report'
+      title              : 'Invite by Email'
+      cssClass           : 'invite-by-email'
+      callback           : ({emails, message, saveMessage, bcc})=>
+        @getData().inviteByEmails emails, message, {bcc}, (err)=>
+          @modalCallback @inviteByEmail, noop, err
+          @saveInviteMessage 'invitationMessage', message  if saveMessage
+      fields             :
+        emails           :
+          label          : 'Emails'
+          type           : 'textarea'
+          cssClass       : 'emails-input'
+          placeholder    : 'Enter each email address on a new line...'
+          validate       :
+            rules        :
+              required   : yes
+            messages     :
+              required   : 'At least one email address required!'
+        message          :
+          label          : 'Message'
+          type           : 'textarea'
+          cssClass       : 'message-input'
+          defaultValue   : Encoder.htmlDecode @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
+          validate       :
+            rules        :
+              required   : yes
+              regExp     : /(#URL#)+/
+            messages     :
+              required   : 'Message is required!'
+              regExp     : 'Message must contain #URL# for invitation link!'
+        saveMessage      :
+          type           : 'checkbox'
+          cssClass       : 'save-message'
+          defaultValue   : no
+          nextElement    :
+            saveMsgLabel :
+              itemClass  : KDLabelView
+              title      : 'Remember this message'
+              click      : (event)=>
+                @inviteByEmail.modalTabs.forms.invite.fields.saveMessage.subViews.first.subViews.first.getDomElement().click()
+        bcc            :
+          label        : 'BCC'
+          type         : 'text'
+          placeholder  : '(optional)'
+        report           :
+          itemClass      : KDScrollView
+          cssClass       : 'report'
 
     @inviteByEmail.modalTabs.forms.invite.fields.report.hide()
 
@@ -108,9 +184,12 @@ class GroupsInvitationView extends KDView
     subject = if @policy.approvalEnabled then 'Membership' else 'Invitation'
     @bulkApprove = @showModalForm
       title            : "Bulk Approve #{subject} Requests"
-      callback         : ({count})=>
-        @getData().sendSomeInvitations count,
-          @modalCallback.bind this, @bulkApprove
+      cssClass         : 'bulk-approve'
+      callback         : ({count, bcc})=>
+        @getData().sendSomeInvitations count, {bcc}, (err, emails)=>
+          log 'successfully approved/invited: ', emails
+          @modalCallback @bulkApprove, noop, err
+      submitButtonLabel: if @policy.approvalEnabled then 'Approve' else 'Invite'
       content          : "<div class='modalformline'>Enter how many of the pending #{subject.toLowerCase()} requests you want to approve:</div>"
       fields           :
         count          :
@@ -123,10 +202,17 @@ class GroupsInvitationView extends KDView
               regExp   : /\d+/i
             messages   :
               regExp   : 'numbers only please'
+        bcc            :
+          label        : 'BCC'
+          type         : 'text'
+          placeholder  : '(optional)'
+        report           :
+          itemClass      : KDScrollView
+          cssClass       : 'report'
+
+    @bulkApprove.modalTabs.forms.invite.fields.report.hide()
 
   modalCallback:(modal, errCallback, err)->
-    [err, errCallback] = [errCallback, err]  unless errCallback
-
     form = modal.modalTabs.forms.invite
     form.buttons.Send.hideLoader()
     @tabView.getActivePane().subViews.first.refresh()
@@ -143,6 +229,13 @@ class GroupsInvitationView extends KDView
 
     new KDNotificationView title:'Invitation sent!'
     modal.destroy()
+
+  saveInviteMessage:(messageType, message, callback=noop)->
+    @getData().saveInviteMessage messageType, message, (err)=>
+      return callback err  if err
+      @policy.communications ?= {}
+      @policy.communications[messageType] = message
+      callback null
 
   showErrorMessage:(err, errCallback)->
     warn err

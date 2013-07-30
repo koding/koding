@@ -72,14 +72,14 @@ module.exports = class JPrivateMessage extends JPost
 
       JAccount = require '../account'
 
-      unless delegate instanceof JAccount
-        callback new KodingError 'Access denied.'
+      if delegate.type is 'unregistered'
+        callback new KodingError 'Access denied'
         return no
 
       {to, subject, body} = data
       if 'string' is typeof to
         # accept virtaully any non-wordchar delimiters for now.
-        to = to.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').split(' ')
+        to = to.replace(/[^\w\s-]/g, ' ').replace(/\s+/g, ' ').split(' ')
       JAccount.all 'profile.nickname': $in: to, (err, recipients)->
         if err
           callback err

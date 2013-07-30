@@ -13,6 +13,12 @@ func CreateErrorObject(err error) *ErrorObject {
 	return &ErrorObject{Name: reflect.TypeOf(err).Elem().Name(), Message: err.Error()}
 }
 
+type InternalKiteError struct{}
+
+func (err *InternalKiteError) Error() string {
+	return "An internal error occurred in the Kite."
+}
+
 type UnknownMethodError struct {
 	Method string
 }

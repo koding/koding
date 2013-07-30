@@ -98,6 +98,35 @@ class LoginView extends KDScrollView
 
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
+    setValue = (field, value)=>
+      @registerForm[field].input?.setValue value
+
+    mainController = KD.getSingleton "mainController"
+    mainController.on "ForeignAuthCompleted", (provider)=>
+      isUserLoggedIn = KD.isLoggedIn()
+      params = {isUserLoggedIn, provider}
+
+      KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
+        if err
+          new KDNotificationView
+            title : "An error occurred: #{err.message}"
+        else
+          {account, replacementToken, isNewUser, userInfo} = resp
+          if isNewUser
+            @animateToForm "register"
+            for own field, value of userInfo
+              setValue field, value
+          else
+            if isUserLoggedIn
+              mainController.emit "ForeignAuthSuccess", provider
+              new KDNotificationView
+                title : "Thanks for linking your account!"
+            else
+              @afterLoginCallback err, {account, replacementToken}
+
+    mainController.on "ForeignAuthFailed", ->
+      new KDNotificationView title : "Authorization failed."
+
   viewAppended:->
 
     @setY -KD.getSingleton('windowController').winHeight
@@ -167,59 +196,116 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
+  showInstructionsBookIfFirstLogin:->
+    appStorage = new AppStorage "instruction-book", "1.0"
+    appStorage.fetchValue "readPages", (pages) ->
+      pages or= []
+      if pages.length is 0
+        pages.push "table-of-contents"
+        appStorage.setValue "readPages", pages
+        KD.getSingleton('mainController').emit "FirstTimeLoginHappened", 1
+
   doRegister:(formData)->
-    {kodingenUser} = formData
     formData.agree = 'on'
     @registerForm.notificationsDisabled = yes
     @registerForm.notification?.destroy()
 
-    KD.remote.api.JUser.register formData, (err, account, replacementToken)=>
+    # we need to close the group channel so we don't receive the cycleChannel event.
+    # getting the cycleChannel even for our own MemberAdded can cause a race condition
+    # that'll leak a guest account.
+    KD.getSingleton('groupsController').groupChannel.close()
+
+    KD.remote.api.JUser.convert formData, (err, replacementToken)=>
+      account = KD.whoami()
       @registerForm.button.hideLoader()
+
       if err
+
         {message} = err
         warn "An error occured while registering:", err
         @registerForm.notificationsDisabled = no
         @registerForm.emit "SubmitFailed", message
+
       else
+
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
+
         new KDNotificationView
           cssClass  : "login"
-          title     : if kodingenUser then '<span></span>Nice to see an old friend here!' else '<span></span>Good to go, Enjoy!'
+          title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
+        @showInstructionsBookIfFirstLogin()
+
+        # send information to mixpanel
+        KD.track 'UserLogin', 'UserRegistered',
+          vendor         : 'mixpanel'
+          extra          :
+            '$username'  : account.profile.nickname
+            '$loginDate' : Date.now()
+
         KD.getSingleton('router').clear()
+
         setTimeout =>
           @hide()
           @registerForm.reset()
           @registerForm.button.hideLoader()
-          # setTimeout =>
-          #   KD.getSingleton('mainController').emit "ShowInstructionsBook"
-          # , 1000
         , 1000
+
+        # log to external / TODO: sending account optional if non of track tools use, just delete it
+        KD.track "userSignedUp", account
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
-      @loginForm.button.hideLoader()
+    KD.remote.api.JUser.login credentials, @bound "afterLoginCallback"
 
-      {entryPoint} = KD.config
+  runExternal = (token)->
+    KD.getSingleton("kiteController").run
+      kiteName        : "externals"
+      method          : "import"
+      correlationName : " "
+      withArgs        :
+        value         : token
+        serviceName   : "github"
+        userId        : KD.whoami().getId()
+      ,
+    (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
-      if err
+  afterLoginCallback: (err, params={})->
+    @loginForm.button.hideLoader()
+    {entryPoint} = KD.config
+
+    if err
+      if err.message.length > 50
+        new KDModalView
+          title        : "Something is wrong!"
+          width        : 500
+          overlay      : yes
+          cssClass     : "new-kdmodal"
+          content      :
+            """
+              <div class='modalformline'>
+                #{err.message}
+              </div>
+            """
+      else
         new KDNotificationView
           title   : err.message
           duration: 1000
-        @loginForm.resetDecoration()
-      else
-        $.cookie 'clientId', replacementToken  if replacementToken
-        mainController = KD.getSingleton('mainController')
-        mainView       = mainController.mainViewController.getView()
-        mainController.accountChanged account
-        mainView.show()
-        mainView.$().css "opacity", 1
 
-        KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+      @loginForm.resetDecoration()
+    else
+      {account, replacementToken} = params
+      $.cookie 'clientId', replacementToken  if replacementToken
+      mainController = KD.getSingleton('mainController')
+      mainView       = mainController.mainViewController.getView()
+      mainController.accountChanged account
+      mainView.show()
+      mainView.$().css "opacity", 1
 
+      KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+      KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
@@ -227,12 +313,19 @@ class LoginView extends KDScrollView
           duration  : 2000
         @loginForm.reset()
 
-        @hide()
+      new KDNotificationView
+        cssClass  : "login"
+        title     : "<span></span>Happy Coding!"
+        # content   : "Successfully logged in."
+        duration  : 2000
+      @loginForm.reset()
+
+      @hide()
 
   doRequest:(formData)->
     {entryPoint} = KD.config
     slug = if entryPoint?.type is 'group' and entryPoint.slug\
-           then entryPoint.slug else 'koding'
+           then entryPoint.slug else KD.defaultSlug
     KD.remote.cacheable slug, (err, [group])=>
       group.requestAccess formData, (err)=>
         if err
@@ -354,9 +447,19 @@ class LoginView extends KDScrollView
       @emit "LoginViewAnimated", name
       @setClass name
 
+      switch name
+        when "join"
+          @requestForm.email.input.setFocus()
+        when "register"
+          @registerForm.invitationCode.input.setFocus()
+        when "login"
+          @loginForm.username.input.setFocus()
+        when "recover"
+          @recoverForm.usernameOrEmail.input.setFocus()
+
   getRouteWithEntryPoint:(route)->
     {entryPoint} = KD.config
-    if entryPoint and entryPoint.slug isnt 'koding'
+    if entryPoint and entryPoint.slug isnt KD.defaultSlug
       return "/#{entryPoint.slug}/#{route}"
     else
       return "/#{route}"

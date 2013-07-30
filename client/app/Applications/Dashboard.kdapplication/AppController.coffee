@@ -2,8 +2,14 @@ class DashboardAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Dashboard"
-    route        : "/Dashboard"
+    route        : "/:name?/Dashboard"
     hiddenHandle : yes
+    navItem      :
+      title      : "Group"
+      path       : "/Dashboard"
+      order      : 75
+      role       : "admin"
+      type       : "account"
 
   constructor:(options={},data)->
 
@@ -46,6 +52,13 @@ class DashboardAppController extends AppController
           viewClass  : GroupsMembershipPolicyDetailView
           lazy       : yes
           callback   : @policyViewAdded
+      ,
+        name         : 'Blocked Users'
+        hiddenHandle : data.privacy is 'public'
+        kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
+        viewOptions  :
+          viewClass  : GroupsBlockedUserView
+          lazy       : yes
 
       # CURRENTLY DISABLED
 

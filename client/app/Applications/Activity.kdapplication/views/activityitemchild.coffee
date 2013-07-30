@@ -60,10 +60,17 @@ class ActivityItemChild extends KDView
         @tags.setData tags
         @tags.render()
 
+    deleteActivity = (activityItem)->
+      activityItem.slideOut -> activityItem.destroy()
+
+    @on 'ActivityIsDeleted', =>
+      activityItem = @getDelegate()
+      deleteActivity activityItem
+
     data.on 'PostIsDeleted', =>
       activityItem = @getDelegate()
       if KD.whoami().getId() is data.getAt('originId')
-        activityItem.slideOut -> activityItem.destroy()
+        deleteActivity activityItem
       else
         activityItem.putOverlay
           isRemovable : no
@@ -114,6 +121,10 @@ class ActivityItemChild extends KDView
         callback : =>
           @confirmDeletePost data
 
+      menu['Block User'] =
+        callback : ->
+          mainController.openBlockUserModal data
+
       return menu
 
 
@@ -131,6 +142,13 @@ class ActivityItemChild extends KDView
             color    : "#ffffff"
             diameter : 16
           callback   : =>
+
+            if data.fake
+              @emit 'ActivityIsDeleted'
+              modal.buttons.Delete.hideLoader()
+              modal.destroy()
+              return
+
             data.delete (err)=>
               modal.buttons.Delete.hideLoader()
               modal.destroy()
@@ -138,7 +156,7 @@ class ActivityItemChild extends KDView
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title     : "Error, please try again later!"
+                title    : "Error, please try again later!"
 
   click: KD.utils.showMoreClickHandler
 

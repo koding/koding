@@ -201,7 +201,6 @@ do ->
         # we won't know that disconnection has happened.
         if lastPong && (Date.now() - lastPong) > 600*1000  # 10 minutes
           log "lastPong too long ago, possible computer sleep; disconnecting"
-          KD.logToMixpanel "computer woke up from sleep"
 
           status = KD.getSingleton "status"
           status.disconnect

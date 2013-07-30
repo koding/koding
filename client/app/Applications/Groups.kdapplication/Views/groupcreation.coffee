@@ -45,19 +45,20 @@ class GroupCreationModal extends KDModalView
   viewAppended:->
 
     @addSubView @typeSelector = new KDFormViewWithFields
-      cssClass      : "type-selector"
-      fields        :
-        label       :
-          itemClass : KDCustomHTMLView
-          tagName   : 'h2'
-          cssClass  : 'heading'
-          partial   : "<span>1</span> What will be this group for?"
-        selector    :
-          name      : "type"
-          itemClass : GroupCreationSelector
-          cssClass  : "group-type"
-          radios    : GROUP_TYPES
-          change    : =>
+      cssClass         : "type-selector"
+      fields           :
+        label          :
+          itemClass    : KDCustomHTMLView
+          tagName      : 'h2'
+          cssClass     : 'heading'
+          partial      : "<span>1</span> What will be this group for?"
+        selector       :
+          name         : "type"
+          itemClass    : GroupCreationSelector
+          cssClass     : "group-type"
+          defaultValue : "project"
+          radios       : GROUP_TYPES
+          change       : =>
             @ready =>
               typeSelector = @typeSelector.inputs.selector
               # hostSelector = @hostSelector.inputs.selector
@@ -140,17 +141,17 @@ class GroupCreationModal extends KDModalView
       @addSubView @hostSelector = new KDFormViewWithFields
         cssClass         : "host-selector"
         fields           :
-          label          :
-            itemClass    : KDCustomHTMLView
-            tagName      : 'h2'
-            cssClass     : 'heading'
-            partial      : "<span>2</span> Do you want a shared host for your Group?"
-          sharedHost     :
-            itemClass    : KDOnOffSwitch
-            name         : "shared-vm"
-            defaultValue : no
-            cssClass     : "shared-vm"
-            callback     : @bound "hostChanged"
+          # label          :
+          #   itemClass    : KDCustomHTMLView
+          #   tagName      : 'h2'
+          #   cssClass     : 'heading'
+          #   partial      : "<span>2</span> Do you want a shared host for your Group?"
+          # sharedHost     :
+          #   itemClass    : KDOnOffSwitch
+          #   name         : "shared-vm"
+          #   defaultValue : no
+          #   cssClass     : "shared-vm"
+          #   callback     : @bound "hostChanged"
           # selector    :
           #   name      : "host"
           #   itemClass : HostCreationSelector
@@ -172,15 +173,16 @@ class GroupCreationModal extends KDModalView
             itemClass     : KDCustomHTMLView
             tagName       : 'h2'
             cssClass      : 'heading'
-            partial       : "<span>3</span> How much resources do you want to allocate to your each user?"
+            partial       : "<span>2</span> How much resources do you want to allocate to your each user?"
           sharedHost      :
             itemClass     : KDSelectBox
             type          : "select"
             name          : "allocation"
-            defaultValue  : "10"
+            defaultValue  : "0"
             cssClass      : "allocation"
             change        : @bound "allocationChanged"
             selectOptions : [
+              { title : "None",  value : "0" }
               { title : "$ 10",  value : "10" }
               { title : "$ 20",  value : "20" }
               { title : "$ 30",  value : "30" }
@@ -197,6 +199,7 @@ class GroupCreationModal extends KDModalView
                 <cite>VMs</cite>
               </p>
               Each member of your group can have $<span class='price'>10</span> worth of Koding resources e.g. <span class='vm'>2</span> VMs.
+              <strong>You</strong> will be charged for each member.
               </section>"
           approval       :
             title        : "Admin approval is required on member purchases"
@@ -211,6 +214,7 @@ class GroupCreationModal extends KDModalView
             defaultValue : yes
             cssClass     : "right-aligned"
 
+      @allocationChanged()
       @emit 'ready'
 
   hostChanged:->
@@ -242,6 +246,15 @@ class GroupCreationModal extends KDModalView
     price = parseInt sharedHost.getValue(), 10
     desc.$('section span.vm').text price / 5
     desc.$('section span.price').text price
+
+    if price > 0
+      @allocation.fields["Admin approval is required on member purchases"].show()
+      @allocation.fields["Allow over-usage"].show()
+      desc.show()
+    else
+      @allocation.fields["Admin approval is required on member purchases"].hide()
+      @allocation.fields["Allow over-usage"].hide()
+      desc.hide()
 
   back:->
 

@@ -6,76 +6,114 @@ class VirtualizationController extends KDController
     @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
+
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
+    @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(vm, command, callback)->
-    KD.requireMembership
-      callback : =>
-        @askForApprove command, (approved)=>
-          if approved
-            cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-                 else callback
-            @kc.run
-              kiteName : 'os'
-              method   : command
-              vmName   : vm
-            , cb
-          else unless command is 'vm.info' then @info vm
-      onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-      onFail    : =>
-        unless command is 'vm.info' then callback yes
-        else callback null, state: 'STOPPED'
-      silence   : yes
+  run:(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
+    if "string" is typeof options
+      command = options
+      options =
+        withArgs : command
 
-  _runWraper:(command, vm, callback)->
+    @fetchVmName options, (err, vmName) =>
+      return callback err  if err?
+      options.correlationName = vmName
+      @kc.run options, (rest...) ->
+        # log rest...
+        callback rest...
+
+  _runWrapper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @run vm, command, callback  if vm
+      return  unless vm
+      @askForApprove command, (approved)=>
+        if approved
+          cb =
+            unless command is 'vm.info'
+            then @_cbWrapper vm, callback
+            else callback
+          @run
+            kiteName : 'os'
+            method   : command
+            vmName   : vm
+          , cb
+        else unless command is 'vm.info' then @info vm
 
   start:(vm, callback)->
-    @_runWraper 'vm.start', vm, callback
+    @_runWrapper 'vm.start', vm, callback
 
   stop:(vm, callback)->
-    @_runWraper 'vm.shutdown', vm, callback
+    @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWraper 'vm.stop', vm, callback
+    @_runWrapper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
-    @_runWraper 'vm.reinitialize', vm, callback
+    @_runWrapper 'vm.reinitialize', vm, callback
 
-  remove:(vm, callback=noop)->
-    @askForApprove 'vm.remove', (state)->
-      return callback null  unless state
-      KD.remote.api.JVM.removeByName vm, (err)->
-        return callback err  if err
+  remove: do->
+
+    deleteVM = (vm, cb)->
+      KD.remote.api.JVM.removeByHostname vm, (err)->
+        return cb err  if err
         KD.getSingleton("finderController").unmountVm vm
         KD.getSingleton("vmController").emit 'VMListChanged'
-        callback null
+        cb null
+
+    (vm, callback=noop)->
+      KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
+        if vmInfo
+          if vmInfo.planCode is 'free'
+            @askForApprove 'vm.remove', (state)->
+              return callback null  unless state
+              deleteVM vm, callback
+          else
+            paymentController = KD.getSingleton('paymentController')
+            paymentController.deleteVM vmInfo, (state)->
+              return callback null  unless state
+              deleteVM vm, callback
+        else
+          new KDNotificationView
+            title: 'Failed to remove!'
+          callback message: "No such VM!"
 
   info:(vm, callback)->
-    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+    [callback, vm] = [vm, callback]  unless callback
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @_runWraper 'vm.info', vm, (err, info)=>
+      @_runWrapper 'vm.info', vm, (err, info)=>
         warn "[VM-#{vm}]", err  if err
         @emit 'StateChanged', err, vm, info
         callback? err, vm, info
       , no
 
   hasThisVM:(vmTemplate, vms)->
-    for i in [0..vms.length]  when "#{vmTemplate}#{i}" in vms
-      return "#{vmTemplate}#{i}"
+    for i in [0..vms.length]  when ("#{vmTemplate}".replace '%d', i) in vms
+      return ("#{vmTemplate}".replace '%d', i)
     return no
+
+  fetchVmName: (options, callback) ->
+    if options.vmName?
+    then @utils.defer -> callback null, options.vmName
+    # else if KD.whoami().type is 'unregistered'
+    # then @utils.defer -> callback null, 'guest'
+    else
+      @fetchDefaultVmName (defaultVmName) ->
+        if defaultVmName?
+        then callback null, defaultVmName
+        else callback message: 'There is no VM for this account.'
 
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
-      return callback @defaultVmName
+      return @utils.defer => callback @defaultVmName
 
     {entryPoint}   = KD.config
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
-    currentGroup or= 'koding'
+    currentGroup or= KD.defaultSlug
 
     @fetchVMs (err, vms)=>
       if err or not vms
@@ -86,43 +124,86 @@ class VirtualizationController extends KDController
         return callback @defaultVmName = vms.first
 
       # Check for personal VMs in current group
-      vmName = @hasThisVM("#{currentGroup}~#{KD.nick()}~", vms)
+      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{currentGroup}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       # Check for shared VMs in current group
-      vmName = @hasThisVM("#{currentGroup}~", vms)
+      vmName = @hasThisVM("shared-%d.#{currentGroup}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
-      # Check for personal VMs in Koding group
-      vmName = @hasThisVM("koding~#{KD.nick()}~", vms)
+      # Check for personal VMs in Koding or Guests group
+      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{KD.defaultSlug}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       callback @defaultVmName = vms.first
 
-  createGroupVM:(type='user', planCode, callback)->
+  createGroupVM:(type='user', planCode, callback=->)->
+    vmCreateCallback = (err, vm)->
+      vmController = KD.getSingleton('vmController')
+
+      if err
+        warn err
+        return new KDNotificationView
+          title : err.message or "Something bad happened while creating VM"
+      else
+        KD.getSingleton("finderController").mountVm vm.hostnameAlias
+        vmController.emit 'VMListChanged'
+        vmController.showVMDetails vm
+
     defaultVMOptions = {planCode}
     group = KD.getSingleton("groupsController").getCurrentGroup()
-    group.createVM {type, planCode}, callback
+    group.createVM {type, planCode}, vmCreateCallback
 
-  fetchVMs:(callback)->
-    return callback null, @vms  if @vms.length > 0
-    KD.remote.api.JVM.fetchVms (err, vms)=>
-      @vms = vms  unless err
-      callback? err, vms
+  fetchVMs: do (waiting = []) ->
+    (force, callback)->
+      [callback, force] = [force, callback]  unless callback?
+      return  unless callback?
 
-  fetchGroupVMs:(callback)->
-    return callback null, @groupVms  if @groupVms.length > 0
+      if @vms.length
+        return @utils.defer => callback null, @vms
+
+      if not force and (waiting.push callback) > 1
+        return  callback null, []
+
+      KD.remote.api.JVM.fetchVms (err, vms)=>
+        @vms = vms  unless err
+        if force
+        then callback err, vms
+        else
+          cb err, vms  for cb in waiting
+          waiting = []
+
+
+  fetchGroupVMs:(callback = noop)->
+    if @groupVms.length > 0
+      return @utils.defer =>
+        callback null, @groupVms
+
     KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @groupVms = vms  unless err
       callback? err, vms
 
-  resetVMData:->
-    @vms = @groupVms = []
-    @defaultVmName = null
+  fetchVMDomains:(vmName, callback = noop)->
+    if domains = @vmDomains[vmName]
+      return @utils.defer -> callback null, domains
 
-  # fixme GG!
+    KD.remote.api.JVM.fetchDomains vmName, (err, domains=[])=>
+      if err
+        callback err, domains
+      else
+        @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
+        callback null, @vmDomains[vmName]
+
+  resetVMData:->
+    @vms      = []
+    @groupVms = []
+    @defaultVmName = null
+    @vmDomains = {}
+
   fetchTotalVMCount:(callback)->
-    callback null, "0"
+    KD.remote.api.JVM.count (err, count)->
+      if err then warn err
+      callback null, count ? "0"
 
   # fixme GG!
   fetchTotalLoC:(callback)->
@@ -133,32 +214,69 @@ class VirtualizationController extends KDController
       @info vm, callback? rest...
 
   hasDefaultVM:(callback)->
-    @fetchDefaultVmName (defaultVmName)=>
-      @fetchVMs (err, vms)->
-        callback defaultVmName in vms
+    # Default VM should be the personal vm in Koding group
+    @fetchVMs (err, vms)->
+      if err
+        warn "An error occured while fetching VMs:", err
+        return callback yes
+
+      # Check if there is at least one personal vm from koding group
+      for vm in vms
+        if (vm.indexOf 'vm-') is 0 and (vm.indexOf "#{KD.defaultSlug}.kd.io") > -1
+          return callback yes
+
+      callback no
 
   createDefaultVM:->
-    @fetchDefaultVmName (defaultVmName)=>
-      @hasDefaultVM (state)->
-        return warn 'Default VM already exists.'  if state
-        KD.remote.cacheable 'koding', (err, group)->
-          if err or not group?.length
-            return warn err
-          koding = group.first
-          koding.createVM
-            planCode : 'free'
-            type     : 'user'
-          , (err)->
-            unless err
-              KD.getSingleton('vmController').emit 'VMListChanged'
+    @hasDefaultVM (state)->
+      return warn 'Default VM already exists.'  if state
+      KD.remote.cacheable KD.defaultSlug, (err, group)->
+        if err or not group?.length
+          return warn err
+        koding = group.first
+        koding.createVM
+          planCode : 'free'
+          type     : 'user'
+        , (err)->
+          unless err
+            vmController = KD.getSingleton('vmController')
+            vmController.fetchDefaultVmName (defaultVmName)->
+              vmController.emit 'VMListChanged'
               KD.getSingleton('finderController').mountVm defaultVmName
-            else warn err
+          else warn err
 
   createNewVM:->
-    vmController = @getSingleton('vmController')
-    vmController.hasDefaultVM (state)->
-      unless state then vmController.createDefaultVM()
-      else vmController.createPaidVM()
+    @hasDefaultVM (state)=>
+      if state then @createPaidVM() else @createDefaultVM()
+
+  showVMDetails: (vm)->
+    vmName = vm.hostnameAlias
+    url    = "http://#{vm.hostnameAlias}"
+
+    content = """
+                <div class="item">
+                  <span class="title">Name:</span>
+                  <span class="value">#{vmName}</span>
+                </div>
+                <div class="item">
+                  <span class="title">Hostname:</span>
+                  <span class="value">
+                    <a target="_new" href="#{url}">#{url}</a>
+                  </span>
+                </div>
+              """
+
+    modal           = new KDModalView
+      title         : "Your VM is ready"
+      content       : "<div class='modalformline'>#{content}</div>"
+      cssClass      : "vm-details-modal"
+      overlay       : yes
+      buttons       :
+        OK          :
+          title     : "OK"
+          cssClass  : "modal-clean-green"
+          callback  : =>
+            modal.destroy()
 
   createPaidVM:->
     return  if @dialogIsOpen
@@ -167,16 +285,6 @@ class VirtualizationController extends KDController
     paymentController   = KD.getSingleton('paymentController')
     canCreateSharedVM   = "owner" in KD.config.roles or "admin" in KD.config.roles
     canCreatePersonalVM = "member" in KD.config.roles
-
-    vmCreateCallback=(err, vm)->
-      if err
-        warn err
-        return new KDNotificationView
-          title : err.message or "Something bad happened while creating VM"
-      else
-        KD.getSingleton("finderController").mountVm vm.name
-        vmController.emit 'VMListChanged'
-      paymentModal?.destroy()
 
     group = KD.getSingleton("groupsController").getGroupSlug()
 
@@ -217,8 +325,9 @@ class VirtualizationController extends KDController
           forms                     :
             "Create VM"             :
               callback              : (formData)=>
-                paymentController.makePaymentModal formData.type, @paymentPlans[formData.host], ->
+                paymentController.confirmPayment formData.type, @paymentPlans[formData.host], ->
                   modal.destroy()
+                  KD.track "User Clicked Buy VM", KD.nick()
               buttons               :
                 user                :
                   title             : "Create a <b>Personal</b> VM"
@@ -230,16 +339,6 @@ class VirtualizationController extends KDController
                   callback          : ->
                     form = modal.modalTabs.forms["Create VM"]
                     form.inputs.type.setValue "user"
-                expensed            :
-                  title             : "Create a <b>Personal</b> VM using group quota"
-                  style             : "modal-clean-gray hidden"
-                  type              : "submit"
-                  loader            :
-                    color           : "#ffffff"
-                    diameter        : 12
-                  callback          : ->
-                    form = modal.modalTabs.forms["Create VM"]
-                    form.inputs.type.setValue "expensed"
                 group               :
                   title             : "Create a <b>Shared</b> VM"
                   style             : "modal-clean-gray hidden"
@@ -287,17 +386,8 @@ class VirtualizationController extends KDController
                   name              : "type"
                   type              : "hidden"
 
-
       if canCreateSharedVM
         modal.modalTabs.forms["Create VM"].buttons.group.show()
-
-      # group = KD.getSingleton("groupsController").getCurrentGroup()
-      # group.vmUsage (err, limit)->
-      #   if limit and limit.usage < limit.quota
-      #     # content += """<br/><br/>
-      #     #               You can also get a <b>Personal</b> VM using your
-      #     #               <b>goups</b> quota. Your group will be charged."""
-      #     modal.modalTabs.forms["Create VM"].buttons.expensed.show()
 
       @dialogIsOpen = yes
       modal.once 'KDModalViewDestroyed', => @dialogIsOpen = no
@@ -305,39 +395,40 @@ class VirtualizationController extends KDController
       form = modal.modalTabs.forms["Create VM"]
 
       hideLoaders = ->
-        {group, user, expensed} = form.buttons
+        {group, user} = form.buttons
         user.hideLoader()
         group.hideLoader()
-        expensed.hideLoader()
 
       vmController.on "PaymentModalDestroyed", hideLoaders
       form.on "FormValidationFailed", hideLoaders
+
 
   askForApprove:(command, callback)->
 
     switch command
       when 'vm.stop', 'vm.shutdown'
-        content = """Turning off your VM will <b>stop</b> running Terminal
+        content = """<p>Turning off your VM will <b>stop</b> running Terminal
                      instances and all running proccesess that you have on
-                     your VM. Do you want to continue?"""
+                     your VM. Do you want to continue?</p>"""
         button  =
           title : "Turn off"
           style : "modal-clean-red"
 
       when 'vm.reinitialize'
-        content = """Re-initializing your VM will <b>reset</b> all of your
+        content = """<p>Re-initializing your VM will <b>reset</b> all of your
                      settings that you've done in root filesystem. This
                      process will not remove any of your files under your
-                     home directory. Do you want to continue?"""
+                     home directory. Do you want to continue?</p>"""
         button  =
           title : "Re-initialize"
           style : "modal-clean-red"
 
       when 'vm.remove'
-        content = """Removing this VM will <b>destroy</b> all the data in
-                     this VM including all other users in filesystem.
-                     <b>Please be careful this process cannot be undone</b>.
-                     Do you want to continue?"""
+        content = """<p>Removing this VM will <b>destroy</b> all the data in
+                     this VM including all other users in filesystem. <b>Please
+                     be careful this process cannot be undone.</b></p>
+
+                     <p>Do you want to continue?</p>"""
         button  =
           title : "Remove VM"
           style : "modal-clean-red"
@@ -349,7 +440,8 @@ class VirtualizationController extends KDController
 
     modal = new KDModalView
       title          : "Approval required"
-      content        : "<div class='modalformline'><p>#{content}</p></div>"
+      content        : "<div class='modalformline'>#{content}</div>"
+      cssClass       : "vm-approval"
       height         : "auto"
       overlay        : yes
       buttons        :

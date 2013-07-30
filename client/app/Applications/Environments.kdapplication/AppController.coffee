@@ -1,15 +1,19 @@
 class EnvironmentsAppController extends AppController
 
-  KD.registerAppClass @,
+  KD.registerAppClass this,
     name         : "Environments"
-    route        : "/Environments"
-    hiddenHandle : no
-    behavior     : "application"
+    route        : "/:name?/Environments"
+    hiddenHandle : yes
+    # behavior     : "application"
+    navItem      :
+      title      : "Environments"
+      path       : "/Environments"
+      role       : "member"
 
   constructor:(options = {}, data)->
 
     options.view    = new EnvironmentsMainView
-      cssClass      : "Environments"
+      cssClass      : "environments split-layout"
     options.appInfo =
       name          : "Environments"
 

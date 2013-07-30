@@ -2,9 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io/ioutil"
+	"koding/kontrol/kontrolproxy/proxyconfig"
+	"koding/tools/amqputil"
+	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -24,12 +28,14 @@ type ConfigFile struct {
 }
 
 type Domain struct {
-	Domainname  string
-	Mode        string
-	Username    string
-	Servicename string
-	Key         string
-	FullUrl     string
+	Domainname string `json:"Domain"`
+	Proxy      struct {
+		Mode        string `json:"mode"`
+		Username    string `json:"username"`
+		Servicename string `json:"servicename"`
+		Key         string `json:"key"`
+	} `json:"Proxy"`
+	FullUrl string `json:"Domain"`
 }
 
 type ServerInfo struct {
@@ -83,13 +89,14 @@ type WorkerInfo struct {
 }
 
 type StatusInfo struct {
-	BuildNumber string
-	NewKoding   struct {
-		ServerHost string
-		BrokerHost string
+	BuildNumber    string
+	CurrentVersion string
+	Koding         struct {
+		ServerHosts []string
+		BrokerHosts []string
 	}
 	Workers struct {
-		Running int
+		Started int
 		Dead    int
 	}
 }
@@ -115,15 +122,23 @@ func NewServerInfo() *ServerInfo {
 }
 
 var templates = template.Must(template.ParseFiles("index.html"))
+var proxyDB *proxyconfig.ProxyConfiguration
 
 const uptimeLayout = "03:04:00"
 
 func main() {
+	var err error
+	proxyDB, err = proxyconfig.Connect()
+	if err != nil {
+		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
+		log.Println(res)
+	}
+
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
 
 	fmt.Println("koding overview started")
-	err := http.ListenAndServe(":8080", nil)
+	err = http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -133,6 +148,17 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	build := r.FormValue("build")
 	if build == "" {
 		build = "latest"
+	}
+
+	version := r.PostFormValue("switchVersion")
+	if version != "" {
+		log.Println("switching to version", version)
+		err := switchVersion(version)
+		if err != nil {
+			log.Println("error switching", err, version)
+		}
+		http.Redirect(w, r, "/", http.StatusFound)
+		return
 	}
 
 	workers, status, err := workerInfo(build)
@@ -149,14 +175,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		server = NewServerInfo()
 	}
 
-	domain, err := domainInfo("new.koding.com")
+	domain, err := domainInfo()
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	s, b := keyLookup(domain.Key)
-	status.NewKoding.ServerHost = s
-	status.NewKoding.BrokerHost = b
+	s, b := keyLookup(domain.Proxy.Key)
+	status.Koding.ServerHosts = s
+	status.Koding.BrokerHosts = b
 
 	home := HomePage{
 		Status:  status,
@@ -170,7 +196,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func keyLookup(key string) (string, string) {
+func keyLookup(key string) ([]string, []string) {
 	workersApi := "http://kontrol.in.koding.com/workers?version=" + key
 	resp, err := http.Get(workersApi)
 	if err != nil {
@@ -188,20 +214,20 @@ func keyLookup(key string) (string, string) {
 		fmt.Println(err)
 	}
 
-	var server string
-	var broker string
+	servers := make([]string, 0)
+	brokers := make([]string, 0)
 	for _, w := range workers {
 		if w.Name == "server" {
-			server = w.Hostname + ":" + strconv.Itoa(w.Port)
+			servers = append(servers, w.Hostname+":"+strconv.Itoa(w.Port))
 		}
 
 		if w.Name == "broker" {
-			broker = w.Hostname + ":" + strconv.Itoa(w.Port)
+			brokers = append(brokers, w.Hostname+":"+strconv.Itoa(w.Port))
 		}
 
 	}
 
-	return server, broker
+	return servers, brokers
 }
 
 func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
@@ -212,7 +238,6 @@ func renderTemplate(w http.ResponseWriter, tmpl string, home HomePage) {
 }
 
 func jenkinsInfo() *JenkinsInfo {
-	fmt.Println("getting jenkins info")
 	j := &JenkinsInfo{}
 	jenkinsApi := "http://salt-master.in.koding.com/job/build-koding/api/json"
 	resp, err := http.Get(jenkinsApi)
@@ -257,8 +282,8 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 
 	for i, val := range workers {
 		switch val.State {
-		case "running":
-			s.Workers.Running++
+		case "started":
+			s.Workers.Started++
 			workers[i].Info = "success"
 		case "dead":
 			s.Workers.Dead++
@@ -275,6 +300,9 @@ func workerInfo(build string) ([]WorkerInfo, StatusInfo, error) {
 		}
 		workers[i].Clock = d.String()
 	}
+
+	version, _ := currentVersion()
+	s.CurrentVersion = version
 
 	return workers, s, nil
 }
@@ -348,29 +376,95 @@ func parseMongoLogin(login string) string {
 	)
 }
 
-func domainInfo(domainname string) (Domain, error) {
-	domainApi := "http://kontrol.in.koding.com/domains"
+func domainInfo() (Domain, error) {
+	d := Domain{}
+	domainApi := "http://kontrol.in.koding.com/domains/koding.com"
 	resp, err := http.Get(domainApi)
 	if err != nil {
-		return Domain{}, err
+		return d, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return Domain{}, err
+		return d, err
 	}
 
-	d := make([]Domain, 0)
 	err = json.Unmarshal(body, &d)
 	if err != nil {
-		return Domain{}, err
+		fmt.Println("Couldn't unmarshall koding.com into a domain object.")
+		return d, err
 	}
 
-	for _, domain := range d {
-		if domain.Domainname == domainname {
-			return domain, nil
-		}
+	return d, nil
+}
+
+func currentVersion() (string, error) {
+	domain, err := proxyDB.GetDomain("koding.com") // will be changed to koding.com
+	if err != nil {
+		return "", err
 	}
 
-	return Domain{}, fmt.Errorf("no domain info available for %s", domainname)
+	if domain.Proxy == nil {
+		return "", errors.New("proxy field is empty for koding.com")
+	}
+
+	currentVersion := domain.Proxy.Key
+	if currentVersion == "" {
+		return "", errors.New("key does not exist for koding.com")
+	}
+
+	return currentVersion, nil
+}
+
+func switchVersion(newVersion string) error {
+	_, err := strconv.Atoi(newVersion)
+	if err != nil {
+		return err
+	}
+
+	domain, err := proxyDB.GetDomain("koding.com") // will be changed to koding.com
+	if err != nil {
+		return err
+	}
+
+	if domain.Proxy == nil {
+		return errors.New("proxy field is empty for koding.com")
+	}
+
+	oldVersion := domain.Proxy.Key
+	if oldVersion == "" {
+		return errors.New("key does not exist for koding.com")
+	}
+
+	conn := amqputil.CreateConnection("overview")
+	defer conn.Close()
+
+	channel := amqputil.CreateChannel(conn)
+	defer channel.Close()
+
+	destination := "auth-" + newVersion
+	routingKey := ""
+	source := "auth"
+
+	err = channel.ExchangeBind(destination, routingKey, source, true, nil)
+	if err != nil {
+		return err
+	}
+
+	oldDestination := "auth-" + oldVersion
+
+	err = channel.ExchangeUnbind(oldDestination, routingKey, source, true, nil)
+	if err != nil {
+		return err
+	}
+
+	domain.Proxy.Key = newVersion
+
+	err = proxyDB.UpdateDomain(&domain)
+	if err != nil {
+		log.Printf("could not update %+v\n", domain)
+		return err
+	}
+
+	return nil
 }

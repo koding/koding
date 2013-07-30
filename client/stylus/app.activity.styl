@@ -18,12 +18,12 @@ body.group
       .activity-content
         margin-top           0
 
-
 .content-area-pane.activity
   overflow                     hidden
   #content-page-activity
     height                     100%
     .kdview.screenshots
+      height                   auto
       margin-top               0
       transition               margin-top .3s ease
     &.fixed
@@ -36,6 +36,9 @@ body.group
         fix()
       .activity-content
         margin                 0 0 0 138px
+      .update-widget-tabs
+        .kdtabpaneview
+          width                calc(100% \- 160px)
       &.loggedin
         .common-inner-nav
           top                  128px
@@ -67,7 +70,8 @@ body.group
   .panel-1
     overflow hidden
 
-  a,&:visited
+  a
+  a:visited
     color #FF9200
 
 h1.kdheaderview.notification-header
@@ -113,6 +117,13 @@ h1.kdheaderview.notification-header
   display           block !important
   margin            10px auto !important
 
+
+.download-old-koding-files
+  cursor           pointer
+  color            #ff9200
+  text-decoration  none
+  width            190px
+  left             5px
 
 .new-member
   .close-button
@@ -408,8 +419,6 @@ h1.kdheaderview.notification-header
     font-weight           500
     cursor                pointer
     display               inline-block
-  > p:not(.blog-post-body) > span
-    cursor                pointer
   p
     color                 #5F5F5F
     font-size             14px
@@ -423,10 +432,10 @@ h1.kdheaderview.notification-header
 
   p.context
     margin                0 0 18px 0
-    font-size             12px
+    font-size             14px
     line-height           150%
     padding               0
-    color                 #353535
+    color                 #5f5f5f
     min-height            12px
   footer
     color                 #A5A5A5
@@ -480,6 +489,63 @@ h1.kdheaderview.notification-header
         line-height     10px
         rounded         3px
         noTextDeco()
+
+.activity-share-popup
+  min-width             233px
+  clear                 both
+  .kdlistview-activity-share
+    padding             5px
+    overflow            visible
+    padding             5px
+    border              1px solid rgba(0,0,0,0.275)
+    z-index             9001
+    border-color        rgba(0,0,0,0.1) rgba(0,0,0,0.15) rgba(0,0,0,0.2)
+    rounded             5px
+    bg                  color, white
+    shadow              0 10px 20px 5px rgba(0,0,0,0.1)
+    borderBox()
+    rel()
+  .share-popup
+    .share-input
+      size              160px, 30px
+      padding-top       5px
+      padding-bottom    4px
+      line-height       21px
+      font-size         13px
+      margin-right      7px
+      padding-right     20px
+      display           inline-block
+      borderBox()
+
+    .icon-link
+      width             21px
+      height            21px
+      display           inline-block
+      vertical-align    top
+      margin-top        6px
+
+    .share-twitter
+      .icon.tw
+        display         block
+        width           19px
+        height          19px
+        opacity         .7
+        vendor          transition, opacity .2s ease
+        sprite()
+        bg              position, -71px -343px
+      &:hover
+        .icon.tw
+          opacity       1
+
+    .custom-link-view
+      margin-right      4px
+      .icon.new-page
+        opacity         .4
+        bg              position, -180px -280px
+      &:hover
+        .icon.new-page
+          opacity       1
+          bg            position, -180px -260px
 
 button.kdbutton.dark
   span.icon
@@ -585,6 +651,7 @@ button.kdbutton.dark
 
   .kdinput.text
     size                  100%,33px
+    max-width             100%
     font-size             13px
     border-color          rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
     padding               8px 10px 6px 10px
@@ -1330,10 +1397,11 @@ div.kdview.link-embed-box.condensed
 
   span.embed-loader
     abs()
-    left 50%
-    right 50%
-    top 40%
-    bottom 50%
+    left              50%
+    top               50%
+    margin-top        -15px
+    margin-left       -15px
+    z-index           1
 
   > div.embed-links-container
     // div.embed-link-list-head
@@ -1353,7 +1421,7 @@ div.kdview.link-embed-box.condensed
 
       &.layout-wrapper
         padding 5px 5px 2px 5px
-        margin 5px
+        margin 5px 5px 5px
         border 1px solid #e8e8e8
         background-color #fff
         rounded 4px
@@ -1576,7 +1644,7 @@ div.kdview.link-embed-box.condensed
           padding-top 2px
           padding-bottom 5px
           clear both
-          margin-bottom 15px
+          margin-bottom 5px
 
           > a.preview_link_switch
             borderBox()
@@ -1750,7 +1818,7 @@ div.unhide-embed
 
 div.kdview.status-widget.link-embed-box
   div.link-embed
-    width : 560px
+    width 560px
 
 div.link
   div.activity-item-right-col
@@ -1772,13 +1840,15 @@ form.link-widget
 
 form.status-widget
   div.formline
-    div.link-embed-box
+    .link-embed-box
       margin-left   153px
+      max-width     560px
 
 div.modal-fullscreen-text
 
   textarea.fullscreen-data
     float           left
+    resize          none
 
   div.kdinputwithpreview.input_preview
     abs()
@@ -2768,7 +2838,6 @@ div.kdtooltip
     width auto
     vendor transition, height 0.25s linear
     height 32px
-    overflow-y scroll
     &.hidden
       height 0px!important
       display block!important

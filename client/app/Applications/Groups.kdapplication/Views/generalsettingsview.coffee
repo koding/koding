@@ -22,6 +22,7 @@ class GroupGeneralSettingsView extends JView
             if formData.privacy isnt group.privacy
               group.privacy = formData.privacy
               for navTitle in ['Membership policy', 'Invitations']
+                # fix this
                 navController = @parent.parent.parent.navController
                 if formData.privacy is 'private'
                   navController.getItemByName(navTitle).unsetClass 'hidden'

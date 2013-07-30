@@ -14,55 +14,31 @@ class ActivityListController extends KDListViewController
 
   resetNewMemberGroups = -> hiddenNewMemberItemGroups = [[]]
 
-  constructor:(options,data)->
+  constructor:(options={}, data)->
 
     viewOptions = options.viewOptions or {}
     viewOptions.cssClass      or= 'activity-related'
-    viewOptions.comments      or= yes
+    viewOptions.comments       ?= yes
     viewOptions.itemClass     or= options.itemClass
     options.view              or= new KDListView viewOptions, data
     options.startWithLazyLoader = yes
-    options.showHeader         ?= yes
-
+    options.showHeader         ?= no
     options.noItemFoundWidget or= new KDCustomHTMLView
       cssClass : "lazy-loader"
       partial  : "There is no activity."
 
-    options.noMoreItemFoundWidget or= new KDCustomHTMLView
-      cssClass : "lazy-loader"
-      partial  : "There is no more activity."
+    # this is regressed until i touch this again. - SY
+    # options.noMoreItemFoundWidget or= new KDCustomHTMLView
+    #   cssClass : "lazy-loader"
+    #   partial  : "There is no more activity."
 
-    super
+    super options, data
 
     @resetList()
-
     @_state = 'public'
 
-    @getListView().on "ItemIsBeingDestroyed", @bound "addNoItemFoundWidget"
-
-    @getListView().on "ItemWasAdded", @bound "removeNoItemFoundWidget"
-
-    @scrollView.on 'scroll', (event) =>
-      if event.delegateTarget.scrollTop > 0
-        @activityHeader.setClass "scrolling-up-outset"
-        @activityHeader.liveUpdateButton.setValue off
-      else
-        @emit "scrolledToTopOfPage"
-
-        @activityHeader.unsetClass "scrolling-up-outset"
-        @activityHeader.liveUpdateButton.setValue on
-
-  removeNoItemFoundWidget:->
-    if @getItemCount() is 1
-      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-      @scrollView.addSubView noMoreItemFoundWidget if noMoreItemFoundWidget
-      noItemFoundWidget.destroy() if noItemFoundWidget
-
-  addNoItemFoundWidget:->
-    if @getItemCount() is 0
-      {noItemFoundWidget, noMoreItemFoundWidget} = @getOptions()
-      noMoreItemFoundWidget.destroy() if noMoreItemFoundWidget
-      @scrollView.addSubView noItemFoundWidget if noItemFoundWidget
+    KD.getSingleton("groupsController").on "MemberJoinedGroup", (member) =>
+      @updateNewMemberBucket member.member
 
   resetList:->
     @newActivityArrivedList = {}
@@ -70,18 +46,11 @@ class ActivityListController extends KDListViewController
 
   loadView:(mainView)->
 
-    @hideNoItemWidget()
     data = @getData()
     mainView.addSubView @activityHeader = new ActivityListHeader
       cssClass : 'feeder-header clearfix'
 
-    @activityHeader.hide() unless @getOptions().showHeader
-
-    @scrollView.on 'scroll', (event) =>
-      if event.delegateTarget.scrollTop > 10
-        @activityHeader.setClass "scrolling-up-outset"
-      else
-        @activityHeader.unsetClass "scrolling-up-outset"
+    @activityHeader.hide()  unless @getOptions().showHeader
 
     @activityHeader.on "UnhideHiddenNewItems", =>
       firstHiddenItem = @getListView().$('.hidden-item').eq(0)
@@ -90,6 +59,9 @@ class ActivityListController extends KDListViewController
         top or= 0
         @scrollView.scrollTo {top, duration : 200}, =>
           unhideNewHiddenItems hiddenItems
+
+    @emit "ready"
+
     super
 
   isMine:(activity)->
@@ -97,6 +69,8 @@ class ActivityListController extends KDListViewController
     id? and id in [activity.originId, activity.anchor?.id]
 
   listActivities:(activities)->
+    @hideLazyLoader()
+    return  unless activities.length > 0
     activityIds = []
     for activity in activities when activity
       @addItem activity
@@ -105,53 +79,49 @@ class ActivityListController extends KDListViewController
     @checkIfLikedBefore activityIds
 
     @lastItemTimeStamp or= Date.now()
-    
+
     for obj in activities
       objectTimestamp = (new Date(obj.meta.createdAt)).getTime()
       if objectTimestamp < @lastItemTimeStamp
         @lastItemTimeStamp = objectTimestamp
 
-    KD.logToMixpanel "populateActivity.success", 5
-
     @emit "teasersLoaded"
 
-  listActivitiesFromCache:(cache)->
-    return @showNoItemWidget() unless cache.overview?
-
+  listActivitiesFromCache:(cache, index, animation, isFeaturedContent)->
+    @hideLazyLoader()
+    return  unless cache.overview?.length > 0
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        anchors = []
+        group = []
         for id in overviewItem.ids
           if cache.activities[id].teaser?
-            anchors.push cache.activities[id].teaser.anchor
+            group.push cache.activities[id].teaser.anchor
           else
             KD.logToExternal msg:'no teaser for activity', activityId:id
 
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          anchors             : anchors
+          group               : group
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
         activity = cache.activities[overviewItem.ids.first]
         if activity?.teaser
           activity.teaser.createdAtTimestamps = overviewItem.createdAt
-          @addItem activity.teaser
+          view = @addHiddenItem activity.teaser, index, animation
+          view.slideIn -> removeFromHiddenItems view
           activityIds.push activity.teaser._id
 
-    @checkIfLikedBefore activityIds
+    @checkIfLikedBefore activityIds  unless isFeaturedContent
 
     @lastItemTimeStamp = cache.from
-
-    KD.logToMixpanel "populateActivity.cache.success", 5
 
     @emit "teasersLoaded"
 
   checkIfLikedBefore:(activityIds)->
-
     KD.remote.api.CActivity.checkIfLikedBefore activityIds, (err, likedIds)=>
-      for activity in @getListView().items when activity.data._id.toString() in likedIds
+      for activity in @getListView().items when activity.data.getId().toString() in likedIds
         likeView = activity.subViews.first.actionLinks?.likeView
         if likeView
           likeView.likeLink.updatePartial 'Unlike'
@@ -194,33 +164,26 @@ class ActivityListController extends KDListViewController
         view = @addHiddenItem activity, 0
         @activityHeader?.newActivityArrived()
 
-  updateNewMemberBucket:(activity)->
-
-    return unless activity.snapshot?
-
-    activityCreatedAt = activity.createdAt or (new Date()).toString()
-    activity.snapshot = activity.snapshot.replace /&quot;/g, '"'
-    KD.remote.reviveFromSnapshots [activity], (err, [bucket])=>
-      for item in @itemsOrdered
-        if item.getData() instanceof NewMemberBucketData
-          data = item.getData()
-          if data.count > 3
-            data.anchors.pop()
-          data.anchors.unshift bucket.anchor
-          data.createdAtTimestamps.push activityCreatedAt
-          data.count++
-          item.slideOut =>
-            @removeItem item, data
-            newItem = @addHiddenItem data, 0
-            @utils.wait 500, -> newItem.slideIn()
-          break
-
+  updateNewMemberBucket:(memberAccount)=>
+    for item in @itemsOrdered
+      if item.getData() instanceof NewMemberBucketData
+        data = item.getData()
+        if data.count > 3
+          data.group.pop()
+        id = memberAccount.id
+        data.group.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
+        data.createdAtTimestamps.push (new Date).toJSON()
+        data.count++
+        item.slideOut =>
+          @removeItem item, data
+          newItem = @addHiddenItem data, 0
+          @utils.wait 500, -> newItem.slideIn()
+        break
 
   fakeItems = []
 
   addItem:(activity, index, animation) ->
-    dataId = activity.getId?()
-
+    dataId = activity.getId?() or activity._id
     if dataId?
       if @itemsIndexed[dataId]
         log "duplicate entry", activity.bongo_?.constructorName, dataId
@@ -238,8 +201,11 @@ class ActivityListController extends KDListViewController
     else
       view = @addHiddenItem activity, 0
       @utils.defer ->
-        view.slideIn ->
-          hiddenItems.splice hiddenItems.indexOf(view), 1
+        view.slideIn -> removeFromHiddenItems view
+
+  removeFromHiddenItems = (view)->
+    hiddenItems.splice hiddenItems.indexOf(view), 1
+
 
   fakeActivityArrived:(activity)->
 
@@ -259,3 +225,8 @@ class ActivityListController extends KDListViewController
     repeater = KD.utils.repeat 177, ->
       item = hiddenItems.shift()
       if item then item.show() else KD.utils.killRepeat repeater
+
+  instantiateListItems:(items)->
+    newItems = super
+    @checkIfLikedBefore (item.getId()  for item in items)
+    return newItems

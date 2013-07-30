@@ -8,16 +8,15 @@ class BookUpdateWidget extends KDView
     @addSubView @statusField = new KDHitEnterInputView
       type          : "text"
       defaultValue  : "Hello World!"
-      focus         : => @statusField.setKeyView()
-      click         : (pubInst, event)=>
-        event.stopPropagation()
-        no
+      focus         : =>
+        @statusField.setKeyView()
       validate      :
         rules       :
           required  : yes
       callback      : (status)=> @updateStatus status
-
+    
     @statusField.$().trigger "focus"
+    @statusField.on "click", (event) => event.stopPropagation()
 
 
   updateStatus:(status)->
@@ -44,5 +43,7 @@ class BookUpdateWidget extends KDView
           duration : 2000
         @statusField.setValue ""
         @statusField.setPlaceHolder reply.body
+        @statusField.$().trigger "focus"
+
       else
         new KDNotificationView type : "mini", title : "There was an error, try again later!"

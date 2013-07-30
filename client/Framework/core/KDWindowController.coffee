@@ -11,6 +11,20 @@ class KDWindowController extends KDController
 
   @keyViewHistory = []
   superKey        = if navigator.userAgent.indexOf("Mac OS X") is -1 then "ctrl" else "command"
+  addListener     = (eventName, listener, capturePhase=yes)->
+    document.body.addEventListener eventName, listener, capturePhase
+
+  # Finding vendor prefixes for visibility
+  getVisibilityProperty = ->
+    prefixes = ["webkit", "moz", "o"]
+    return "hidden" if `"hidden" in document`
+    return "#{prefix}Hidden" for prefix in prefixes when `prefix + "Hidden" in document`
+    return ""
+
+  isFocused = -> Boolean document[getVisibilityProperty()]
+
+  getVisibilityEventName = ->
+    return "#{getVisibilityProperty().replace(/[Hh]idden/, '')}visibilitychange"
 
   constructor:(options,data)->
 
@@ -21,13 +35,13 @@ class KDWindowController extends KDController
     @dragView              = null
     @scrollingEnabled      = yes
     @layers                = []
+    @unloadListeners       = []
+    @focusListeners        = []
 
     @bindEvents()
     @setWindowProperties()
 
     super options, data
-
-    KD.registerSingleton "windowController", @, yes
 
   addLayer: (layer)->
 
@@ -52,28 +66,25 @@ class KDWindowController extends KDController
       @setWindowProperties event
       @notifyWindowResizeListeners event
 
-    document.body.addEventListener "dragenter", (event)=>
+    addListener "dragenter", (event)=>
       unless @dragInAction
         @emit 'DragEnterOnWindow', event
         @setDragInAction yes
-    , yes
 
-    document.body.addEventListener "dragleave", (event)=>
+    addListener "dragleave", (event)=>
       unless 0 < event.clientX < @winWidth and
              0 < event.clientY < @winHeight
         @emit 'DragExitOnWindow', event
         @setDragInAction no
-    , yes
 
-    document.body.addEventListener "drop", (event)=>
+    addListener "drop", (event)=>
       @emit 'DragExitOnWindow', event
       @emit 'DropOnWindow', event
       @setDragInAction no
-    , yes
 
     layers = @layers
 
-    document.body.addEventListener 'mousedown', (e)=>
+    addListener 'mousedown', (e)=>
       # $('.twipsy').remove() # temporary for beta
       lastLayer = layers.last
 
@@ -81,74 +92,64 @@ class KDWindowController extends KDController
         # log lastLayer, "ReceivedClickElsewhere"
         lastLayer.emit 'ReceivedClickElsewhere', e
         @removeLayer lastLayer
-    , yes
 
-    document.body.addEventListener 'mouseup', (e)=>
+    addListener 'mouseup', (e)=>
       @unsetDragView e if @dragView
       @emit 'ReceivedMouseUpElsewhere', e
-    , yes
 
-    document.body.addEventListener 'mousemove', (e)=>
+    addListener 'mousemove', (e)=>
       @redirectMouseMoveEvent e if @dragView
-    , yes
 
     # internal links (including "#") should prevent default, so we don't end
     # up with duplicate entries in history: e.g. /Activity and /Activity#
     # also so that we don't redirect the browser
-    document.body.addEventListener 'click', (e)->
-      isInternalLink = e.target?.nodeName.toLowerCase() is 'a' and\   # html nodenames are uppercase, so lowercase this.
-                       e.target.target?.length is 0                      # targeted links should work as normal.
-                       # e.target.target isnt '_blank'                  # target _blank links should work as normal.
+    addListener 'click', (e)->
+      isInternalLink = e.target?.nodeName.toLowerCase() is 'a' and\           # html nodenames are uppercase, so lowercase this.
+                       e.target.target?.length is 0                           # targeted links should work as normal.
+                       # e.target.target isnt '_blank'                        # target _blank links should work as normal.
       if isInternalLink
         e.preventDefault()
         href = $(e.target).attr 'href'
         if href and not /^#/.test href
           KD.getSingleton('router').handleRoute href
-    , yes
 
-    # unless window.location.hostname is 'localhost'
     window.addEventListener 'beforeunload', @bound "beforeUnload"
 
+    @utils.repeat 1000, do (cookie = $.cookie 'clientId') => =>
+      if cookie? and cookie isnt $.cookie 'clientId'
+        window.removeEventListener 'beforeunload', @bound 'beforeUnload'
+        window.location.replace '/'
+      cookie = $.cookie 'clientId'
+
+    document.addEventListener getVisibilityEventName(), (event)=>
+      @focusChange event, isFocused()
+
+  addUnloadListener:(listener)-> @unloadListeners.push listener
+
+  addFocusListener: (listener)-> @focusListeners.push listener
+
+  focusChange: (event, state)->
+
+    return unless event
+    listener state, event for listener in @focusListeners
+
   beforeUnload:(event)->
-    # fixme: fix this with appmanager
 
-    # if KD.getSingleton('mainView')?.mainTabView?.panes
-    #   for pane in KD.getSingleton('mainView').mainTabView.panes
-    #     msg = no
+    return unless event
 
-    #     # For open Tabs (apps, editors)
-    #     if pane.getOptions().type is "application" and pane.getOptions().name isnt "New Tab"
-    #       msg = "Please make sure that you saved all your work."
+    # all the listeners make their checks if it is safe or not to reload the page
+    # they either return true or false if any of them returns false we intercept reload
 
-    #     # This cssClass needs to be added to the KDInputView OR
-    #     # a shadow KDInputView
-    #     pane.data.$(".warn-on-unsaved-data").each (i,element) =>
+    for listener in @unloadListeners
+      if listener() is off
+        return "Please make sure that you saved all your work."
 
+  setDragInAction:(@dragInAction = no)->
+    $('body')[if @dragInAction then "addClass" else "removeClass"] "dragInAction"
 
-    #       # If the View is a KDInputview, we don"t need to look
-    #       # further than the .val(). For ACE and others, we have
-    #       # to implement content shadowing in the widgets/inputs
-    #       if $(element).hasClass("kdinput") and $(element).val()
-    #         msg = "You may lose some input that you filled in."
+  setMainView:(@mainView)->
 
-
-    # if msg # has to be created in the above checks
-    #   event or= window.event
-    #   event.returnValue = msg if event # For IE and Firefox prior to version 4
-    #   return msg
-
-
-
-  setDragInAction:(action = no)->
-
-    $('body')[if action then "addClass" else "removeClass"]("dragInAction")
-    @dragInAction = action
-
-  setMainView:(view)->
-    @mainView = view
-
-  getMainView:(view)->
-    @mainView
+  getMainView:(view)-> @mainView
 
   revertKeyView:(view)->
 
@@ -240,8 +241,7 @@ class KDWindowController extends KDController
 
     view.drag event, delta
 
-  getKeyView:->
-    @keyView
+  getKeyView:-> @keyView
 
   key:(event)->
     # log event.type, @keyView.constructor.name, @keyView.getOptions().name
@@ -251,11 +251,9 @@ class KDWindowController extends KDController
     @emit event.type, event
     @keyView?.handleEvent event
 
-  enableScroll:->
-    @scrollingEnabled = yes
+  enableScroll:-> @scrollingEnabled = yes
 
-  disableScroll:->
-    @scrollingEnabled = no
+  disableScroll:-> @scrollingEnabled = no
 
   registerWindowResizeListener:(instance)->
     @windowResizeListeners[instance.id] = instance
@@ -266,8 +264,8 @@ class KDWindowController extends KDController
     delete @windowResizeListeners[instance.id]
 
   setWindowProperties:(event)->
-    @winWidth  = $(window).width()
-    @winHeight = $(window).height()
+    @winWidth  = window.innerWidth
+    @winHeight = window.innerHeight
 
   notifyWindowResizeListeners:(event, throttle = no, duration = 17)->
     event or= type : "resize"
@@ -278,5 +276,3 @@ class KDWindowController extends KDController
       KD.utils.killWait @resizeNotifiersTimer
       @resizeNotifiersTimer = KD.utils.wait duration, fireResizeHandlers
     else do fireResizeHandlers
-
-do -> new KDWindowController

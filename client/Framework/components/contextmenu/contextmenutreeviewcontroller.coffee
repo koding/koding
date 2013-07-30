@@ -6,7 +6,7 @@ class JContextMenuTreeViewController extends JTreeViewController
 
   uId = 0
   getUId = -> ++uId
-  convertToArray = (items, pId = null)->
+  convertToArray = @convertToArray = (items, pId = null)->
     results = []
 
     for title, options of items
@@ -49,8 +49,8 @@ class JContextMenuTreeViewController extends JTreeViewController
     o.type              or= "contextmenu"
     o.treeItemClass     or= JContextMenuItem
     o.listViewClass     or= JContextMenuTreeView
-    o.addListsCollapsed or= yes
-    o.putDepthInfo      or= yes
+    o.addListsCollapsed  ?= yes
+    o.putDepthInfo       ?= yes
     super o, data
     @expandedNodes        = []
 

@@ -1,7 +1,9 @@
 class DomainsListViewController extends KDListViewController
 
   constructor:(options={}, data)->
-    options.itemClass = DomainsListItemView
+
+    options.itemClass = DomainListItemView
+
     super options, data
 
     @loadItems()
@@ -11,19 +13,20 @@ class DomainsListViewController extends KDListViewController
     @getListView().on "domainsListItemViewClicked", (item)=>
       @emit "domainItemClicked", item
 
-  loadItems:->
-    KD.remote.api.JDomain.findByAccount {owner:KD.whoami().getId()}, (err, domains) =>
-      if err
-        @instantiateListItems []
-      unless err
-        @instantiateListItems domains
+    @getListView().on "domainRemoved", (item)=>
+      @removeItem item
 
+  loadItems:(callback)->
+    @showLazyLoader()
+    KD.whoami().fetchDomains (err, domains) =>
+      @instantiateListItems domains or []
       @hideLazyLoader()
+      callback?()
 
-  update:->
+  update:(callback)->
     @showLazyLoader()
     @removeAllItems()
-    @loadItems()
+    @loadItems callback
 
   appendNewDomain:(domainData)=>
     @addItem domainData

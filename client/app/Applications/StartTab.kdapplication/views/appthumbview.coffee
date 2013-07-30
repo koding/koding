@@ -1,5 +1,8 @@
 class StartTabAppThumbView extends KDCustomHTMLView
 
+  proxifyUrl = (url) ->
+    return "#{KD.config.mainUri}/-/imageProxy?url=#{encodeURIComponent url}"
+
   constructor:(options, data)->
 
     options.tagName    = 'figure'
@@ -23,13 +26,10 @@ class StartTabAppThumbView extends KDCustomHTMLView
     if not authorNick
       authorNick = KD.whoami().profile.nickname
 
-    proxifyUrl=(url)->
-      KD.config.mainUri + '/-/imageProxy?url=' + encodeURIComponent(url)
-
-    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}/"
+    resourceRoot = "#{KD.appsUri}/#{authorNick}/#{identifier}/#{version}"
 
     if manifest.devMode
-      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}/"
+      resourceRoot = "https://#{authorNick}.#{KD.config.userSitesDomain}/.applications/#{__utils.slugify name}"
 
     thumb = "#{KD.apiUri + '/images/default.app.thumb.png'}"
 
@@ -44,7 +44,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
       error       : =>
         @img.$().attr "src", "/images/default.app.thumb.png"
       attributes  :
-        src       : thumb
+        src       : encodeURI thumb
 
     @loader = new KDLoaderView
       size          :
@@ -59,9 +59,9 @@ class StartTabAppThumbView extends KDCustomHTMLView
           left : -5
         title  : """
           <div class='app-tip'>
-            <header><strong>#{name} #{version}</strong> <cite>by #{author}</cite></header>
-            <p class='app-desc'>#{description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
-            #{additionalinfo}
+            <header><strong>#{Encoder.XSSEncode name} #{Encoder.XSSEncode version}</strong> <cite>by #{Encoder.XSSEncode author}</cite></header>
+            <p class='app-desc'>#{Encoder.XSSEncode description.slice(0,200)}#{if description.length > 199 then '...' else ''}</p>
+            #{if additionalinfo then "<cite>#{Encoder.XSSEncode additionalinfo}</cite>" else ""}
           <div>
           """
       click    : -> no
@@ -77,8 +77,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
       click    : =>
         @delete.getTooltip().hide()
         @deleteModal = new KDModalView
-          title          : "Delete App"
-          content        : "<div class='modalformline'>Are you sure you want to delete this app?</div>"
+          title          : "Delete #{Encoder.XSSEncode name}"
+          content        : "<div class='modalformline'>Are you sure you want to delete <strong>#{Encoder.XSSEncode name}</strong> application?</div>"
           height         : "auto"
           overlay        : yes
           buttons        :
@@ -88,9 +88,13 @@ class StartTabAppThumbView extends KDCustomHTMLView
                 color    : "#ffffff"
                 diameter : 16
               callback   : => @appDeleteCall manifest
+            cancel       :
+              style      : "modal-cancel"
+              callback   : =>
+                @deleteModal.destroy()
 
     @updateView  = new KDCustomHTMLView
-      cssClass   : "top-badge update"
+      cssClass   : "top-badge"
       click      : (e) =>
         e.preventDefault()
         e.stopPropagation()
@@ -98,7 +102,29 @@ class StartTabAppThumbView extends KDCustomHTMLView
         KD.getSingleton("appManager").open "Apps", =>
           KD.getSingleton("router").handleRoute "/Apps/#{manifest.slug}", state: jApp
 
-    if @getData().devMode
+    {experimental, devMode} = @getData()
+
+    if experimental
+      @experimentalView = new KDCustomHTMLView
+        cssClass   : "top-badge orange"
+        partial    : "Experimental"
+        tooltip    :
+          title    : "This is an experimental app, click for help."
+        click      : (e) =>
+          e.stopPropagation()
+          new KDModalView
+            overlay  : yes
+            width    : 500
+            title    : "Experimental App"
+            content  : """
+              <div class='modalformline'>
+                <p>This is an experimental app, you can spot bugs or the app may break the ux and could force you to reload or it can even DAMAGE your files. If you're 100% sure, go ahead and use this app!</p>
+              </div>
+            """
+    else
+      @experimentalView = new KDView
+
+    if devMode
       @compile = new KDCustomHTMLView
         tagName  : "span"
         cssClass : "icon compile"
@@ -115,10 +141,11 @@ class StartTabAppThumbView extends KDCustomHTMLView
 
       @devModeView = new KDCustomHTMLView
         partial  : "Dev Mode"
-        cssClass : "top-badge dev-mode"
+        cssClass : "top-badge gray"
         tooltip  :
           title  : "Dev-Mode enabled, click for help."
-        click    : =>
+        click    : (e) ->
+          e.stopPropagation()
           new KDModalView
             overlay  : yes
             width    : 500
@@ -130,6 +157,8 @@ class StartTabAppThumbView extends KDCustomHTMLView
                           compile your app, shared resources like stylesheets
                           or images in your app will be served from
                           #{resourceRoot} </p></div>"""
+      @experimentalView.destroy()
+      @experimentalView = new KDView
     else
       @compile     = new KDView
       @devModeView = new KDView
@@ -142,18 +171,21 @@ class StartTabAppThumbView extends KDCustomHTMLView
     isUpdateAvailable = @appsController.isAppUpdateAvailable manifest.name, manifest.version
     return unless isUpdateAvailable
 
-    updateClass       = "available"
+    updateClass       = "green"
     updateText        = "Update Available"
     updateTooltip     = "An update available for this app. Click here to see."
 
     if manifest.forceUpdate is yes
-      updateClass     = "required"
+      updateClass     = "orange"
       updateText      = "Update Required"
       updateTooltip   = "You must update this app. Click here to see."
 
     @updateView.updatePartial updateText
     @updateView.setClass      updateClass
     @updateView.setTooltip    title : updateTooltip
+
+    @experimentalView.destroy()
+    @experimentalView = new KDView
 
   appDeleteCall:(manifest)->
     KD.track "Apps", "ApplicationDelete", manifest.name
@@ -183,7 +215,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
               $(event.target).closest('.dev-mode').length > 0
     manifest = @getData()
     @showLoader()
-    @appsController.runApp manifest, =>
+    KD.getSingleton("appManager").open manifest.name, =>
       @hideLoader()
       KD.track "Apps", "ApplicationRun", manifest.name
 
@@ -201,6 +233,7 @@ class StartTabAppThumbView extends KDCustomHTMLView
     """
       {{> @devModeView}}
       {{> @updateView}}
+      {{> @experimentalView}}
       <div class='icon-container'>
         {{> @delete}}
         {{> @info}}
@@ -242,13 +275,14 @@ class AppShortcutButton extends StartTabAppThumbView
     if data.type is 'comingsoon'
       data.disabled = yes
 
-    data.additionalinfo = "<cite>This is a shortcut for an internal Koding Application</cite>"
+    data.additionalinfo = "This is a shortcut for an internal Koding Application"
 
     super options, data
 
     @img.$().attr "src", "/images/#{data.icon}"
 
     @compile = new KDView
+    @delete  = new KDView  if data.type is 'koding-app'
 
   appDeleteCall:({name})->
     @showLoader()

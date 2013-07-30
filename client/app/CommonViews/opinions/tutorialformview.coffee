@@ -37,27 +37,17 @@ class TutorialFormView extends KDFormView
       title           : "your Video"
       type            : "text"
       placeholder     : "The URL to your video"
-      keyup :=>
+      keyup           : =>
         if @discussionEmbedLink.getValue() is ""
           @getDelegate().embedBox.resetEmbedAndHide()
-      focus:=>
-        # @getDelegate().embedBox.show()
-      blur:=>
-        # @getDelegate().embedBox.hide()
-      paste:=>
+      paste           : =>
           @utils.defer =>
-
             @discussionEmbedLink.setValue @sanitizeUrls @discussionEmbedLink.getValue()
-
             url = @discussionEmbedLink.getValue()
-
             if /^((http(s)?\:)?\/\/)/.test url
               # parse this for URL
-              @getDelegate().embedBox.embedUrl url,
-                maxWidth: 540
-                maxHeight: 200
-              , =>
-                @getDelegate().embedBox.show()
+              embedOptions = maxWidth: 540, maxHeight: 200
+              @getDelegate().embedBox.embedUrl url, embedOptions, @getDelegate().embedBox.show.bind this
 
     @discussionTitle = new KDInputView
       cssClass        : "tutorial-title"
@@ -77,9 +67,6 @@ class TutorialFormView extends KDFormView
       @discussionBody.setValue Encoder.htmlDecode data.body
       @discussionEmbedLink.setValue Encoder.htmlDecode data.link?.link_url
       @discussionTitle.setValue Encoder.htmlDecode data.title
-
-    @on "discussion.changeMarkdown", (value) ->
-      # once markdown usage can be switched on and off, this will be used
 
     @tagController = new TagAutoCompleteController
       name                : "meta.tags"
@@ -124,14 +111,10 @@ class TutorialFormView extends KDFormView
   submit:->
     # @once "FormValidationPassed", => @reset()
     @removeCustomData "link"
-
     if @getDelegate().embedBox.hasValidContent
       @addCustomData "link",
-        link_cache: @getDelegate().embedBox.getEmbedCache()
-        link_url : @getDelegate().embedBox.getEmbedURL()
-        link_embed : @getDelegate().embedBox.getEmbedDataForSubmit()
-        link_embed_hidden_items:@getDelegate().embedBox.getEmbedHiddenItems()
-        link_embed_image_index:@getDelegate().embedBox.getEmbedImageIndex()
+        link_url   : @getDelegate().embedBox.url
+        link_embed : @getDelegate().embedBox.getDataForSubmit()
     super
 
   pistachio:->

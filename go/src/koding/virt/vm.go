@@ -4,33 +4,19 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"koding/virt/models"
 	"labix.org/v2/mgo/bson"
 	"net"
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 	"syscall"
 	"text/template"
 	"time"
 )
 
-type VM struct {
-	Id            bson.ObjectId  `bson:"_id"`
-	Name          string         `bson:"name"`
-	Users         []*Permissions `bson:"users"`
-	LdapPassword  string         `bson:"ldapPassword"`
-	IP            net.IP         `bson:"ip"`
-	HostKite      string         `bson:"hostKite"`
-	SnapshotOf    bson.ObjectId  `bson:"snapshotOf"`
-	HostnameAlias []string       `bson:"hostnameAlias"`
-	hostname      string
-}
-
-type Permissions struct {
-	Id   bson.ObjectId `bson:"id"`
-	Sudo bool          `bson:"sudo"`
-}
+type VM models.VM
+type Permissions models.Permissions
 
 var templateDir string
 var Templates = template.New("lxc")
@@ -72,26 +58,6 @@ func (vm *VM) MAC() net.HardwareAddr {
 	return net.HardwareAddr([]byte{0, 0, vm.IP[12], vm.IP[13], vm.IP[14], vm.IP[15]})
 }
 
-func (vm *VM) Hostname() string {
-	return vm.HostnameAlias[0]
-}
-
-func (vm *VM) HostnameAliasesLine() string {
-	return strings.Join(vm.HostnameAlias[1:], " ")
-}
-
-func (vm *VM) SitesHomeName() string {
-	// vm.Name is group~n or group~user~n
-	parts := strings.Split(vm.Name, "~")
-	switch len(parts) {
-	case 2:
-		return parts[0]
-	case 3:
-		return parts[1]
-	}
-	panic("Invalid vm.Name format.")
-}
-
 func (vm *VM) RbdDevice() string {
 	return "/dev/rbd/vms/" + vm.String()
 }
@@ -104,6 +70,10 @@ func (vm *VM) OverlayFile(p string) string {
 	return vm.File("overlay/" + p)
 }
 
+func (vm *VM) LowerdirFile(p string) string {
+	return vm.VMRoot + "rootfs/" + p
+}
+
 func (vm *VM) PtsDir() string {
 	return vm.File("rootfs/dev/pts")
 }
@@ -111,18 +81,23 @@ func (vm *VM) PtsDir() string {
 func (vm *VM) GetPermissions(user *User) *Permissions {
 	for _, entry := range vm.Users {
 		if entry.Id == user.ObjectId {
-			return entry
+			p := Permissions(entry)
+			return &p
 		}
 	}
 	return nil
 }
-
-func LowerdirFile(p string) string {
-	return "/var/lib/lxc/vmroot/rootfs/" + p
-}
-
-func (vm *VM) Prepare(users []User, reinitialize bool) {
+func (vm *VM) Prepare(reinitialize bool) {
 	vm.Unprepare()
+
+	var err error
+	vm.VMRoot, err = os.Readlink("/var/lib/lxc/vmroot/")
+	if err != nil {
+		vm.VMRoot = "/var/lib/lxc/vmroot/"
+	}
+	if vm.VMRoot[0] != '/' {
+		vm.VMRoot = "/var/lib/lxc/" + vm.VMRoot
+	}
 
 	// write LXC files
 	prepareDir(vm.File(""), 0)
@@ -161,8 +136,8 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 
 	// mount overlay
 	prepareDir(vm.File("rootfs"), RootIdOffset)
-	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
-	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("br=%s:%s", vm.OverlayFile("/"), LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	// if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "overlayfs", "-o", fmt.Sprintf("lowerdir=%s,upperdir=%s", vm.LowerdirFile("/"), vm.OverlayFile("/")), "overlayfs", vm.File("rootfs")).CombinedOutput(); err != nil {
+	if out, err := exec.Command("/bin/mount", "--no-mtab", "-t", "aufs", "-o", fmt.Sprintf("noplink,br=%s:%s", vm.OverlayFile("/"), vm.LowerdirFile("/")), "aufs", vm.File("rootfs")).CombinedOutput(); err != nil {
 		panic(commandError("mount overlay failed.", err, out))
 	}
 
@@ -185,13 +160,17 @@ func (vm *VM) Prepare(users []User, reinitialize bool) {
 	}
 }
 
+func UnprepareVM(id bson.ObjectId) error {
+	vm := VM{Id: id}
+	return vm.Unprepare()
+}
+
 func (vm *VM) Unprepare() error {
 	var firstError error
 
 	// stop VM
-	out, err := vm.Stop()
-	if vm.GetState() != "STOPPED" {
-		panic(commandError("Could not stop VM.", err, out))
+	if err := vm.Shutdown(); err != nil {
+		panic(err)
 	}
 
 	// backup dpkg database for statistical purposes
@@ -219,6 +198,10 @@ func (vm *VM) Unprepare() error {
 	// unmount and unmap everything
 	if out, err := exec.Command("/bin/umount", vm.PtsDir()).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount devpts failed.", err, out)
+	}
+	//Flush the aufs
+	if out, err := exec.Command("/sbin/auplink", vm.File("rootfs"), "flush").CombinedOutput(); err != nil && firstError == nil {
+		firstError = commandError("AUFS flush failed.", err, out)
 	}
 	if out, err := exec.Command("/bin/umount", vm.File("rootfs")).CombinedOutput(); err != nil && firstError == nil {
 		firstError = commandError("umount overlay failed.", err, out)
@@ -248,8 +231,18 @@ func (vm *VM) MountRBD(mountDir string) error {
 			return commandError("rbd info failed.", err, out)
 		}
 
-		if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", "1200", "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
-			return commandError("rbd create failed.", err, out)
+		if vm.DiskSizeInMB == 0 {
+			vm.DiskSizeInMB = 1200
+		}
+		if vm.SnapshotName == "" {
+			if out, err := exec.Command("/usr/bin/rbd", "create", "--pool", "vms", "--size", strconv.Itoa(vm.DiskSizeInMB), "--image", vm.String(), "--image-format", "2").CombinedOutput(); err != nil {
+				return commandError("rbd create failed.", err, out)
+			}
+		}
+		if vm.SnapshotName != "" {
+			if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotVM.Hex(), "--snap", vm.SnapshotName, "--dest-pool", "vms", "--dest", vm.String()).CombinedOutput(); err != nil {
+				return commandError("rbd clone failed.", err, out)
+			}
 		}
 
 		makeFileSystem = true
@@ -278,6 +271,21 @@ func (vm *VM) MountRBD(mountDir string) error {
 		}
 	}
 
+	// check/correct filesystem
+	if out, err := exec.Command("/sbin/fsck.ext4", "-p", vm.RbdDevice()).CombinedOutput(); err != nil {
+		exitError, ok := err.(*exec.ExitError)
+		if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() == 4 {
+			if out, err := exec.Command("/sbin/fsck.ext4", "-y", vm.RbdDevice()).CombinedOutput(); err != nil {
+				exitError, ok := err.(*exec.ExitError)
+				if !ok || exitError.Sys().(syscall.WaitStatus).ExitStatus() != 1 {
+					return commandError(fmt.Sprintf("fsck.ext4 could not automatically repair FS for %s.", vm.HostnameAlias), err, out)
+				}
+			}
+		} else {
+			return commandError(fmt.Sprintf("fsck.ext4 failed %s.", vm.HostnameAlias), err, out)
+		}
+	}
+
 	if err := os.Mkdir(mountDir, 0755); err != nil && !os.IsExist(err) {
 		return err
 	}
@@ -299,6 +307,22 @@ func (vm *VM) UnmountRBD(mountDir string) error {
 	}
 	os.Remove(mountDir)
 	return firstError
+}
+
+func (vm *VM) ResizeRBD() error {
+	if out, err := exec.Command("/usr/bin/rbd", "resize", "--pool", "vms", "--image", vm.String(), "--size", strconv.Itoa(vm.DiskSizeInMB)).CombinedOutput(); err != nil {
+		return commandError("rbd resize failed.", err, out)
+	}
+
+	if out, err := exec.Command("/sbin/resize2fs", vm.RbdDevice()).CombinedOutput(); err != nil {
+		return commandError("resize2fs failed.", err, out)
+	}
+
+	if out, err := exec.Command("/bin/mount", "-o", "remount", vm.OverlayFile("")).CombinedOutput(); err != nil {
+		return commandError("remount failed.", err, out)
+	}
+
+	return nil
 }
 
 const FIFREEZE = 0xC0045877
@@ -348,28 +372,11 @@ func (vm *VM) DeleteSnapshot(snapshotName string) error {
 	return nil
 }
 
-func (vm *VM) CreateTemporaryVM() (*VM, error) {
-	temporaryVM := VM{
-		Id:         bson.NewObjectId(),
-		SnapshotOf: vm.SnapshotOf,
-	}
-
-	if out, err := exec.Command("/usr/bin/rbd", "clone", "--pool", "vms", "--image", "vm-"+vm.SnapshotOf.Hex(), "--snap", vm.Id.Hex(), "--dest-pool", "vms", "--dest", temporaryVM.String()).CombinedOutput(); err != nil {
-		return nil, commandError("Cloning snapshot failed.", err, out)
-	}
-
-	return &temporaryVM, nil
-}
-
-func (vm *VM) Destroy() error {
-	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", vm.String()).CombinedOutput(); err != nil {
+func DestroyVM(id bson.ObjectId) error {
+	if out, err := exec.Command("/usr/bin/rbd", "rm", "--pool", "vms", "--image", "vm-"+id.Hex()).CombinedOutput(); err != nil {
 		return commandError("Removing image failed.", err, out)
 	}
 	return nil
-}
-
-func (vm *VM) IsTemporary() bool {
-	return vm.SnapshotOf != ""
 }
 
 func commandError(message string, err error, out []byte) error {
@@ -400,7 +407,12 @@ func (vm *VM) generateFile(p, template string, id int, executable bool) {
 		panic(err)
 	}
 
-	chown(p, id, id)
+	if err := file.Chown(id, id); err != nil {
+		panic(err)
+	}
+	if err := file.Chmod(mode); err != nil {
+		panic(err)
+	}
 }
 
 // may panic
