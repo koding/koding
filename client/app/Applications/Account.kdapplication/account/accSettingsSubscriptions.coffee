@@ -1,10 +1,7 @@
-class AccountSubscriptionsListController extends KDListViewController
+class AccountSubscriptionsListController extends AccountKDListViewController
   constructor:(options,data)->
 
-    options.noItemFoundWidget = new KDView
-      cssClass: "no-item-found"
-      partial : "<cite>You have no subscription.</cite>"
-
+    options.noItemFoundText = "You have no subscription."
     super options,data
 
     @loadItems()

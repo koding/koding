@@ -1,11 +1,8 @@
-class AccountPaymentHistoryListController extends KDListViewController
+class AccountPaymentHistoryListController extends AccountKDListViewController
 
   constructor:(options,data)->
 
-    options.noItemFoundWidget = new KDView
-      cssClass: "no-item-found"
-      partial : "<cite>You have no payment history.</cite>"
-
+    options.noItemFoundText = "You have no payment history."
     super options,data
 
     @list = @getListView()
