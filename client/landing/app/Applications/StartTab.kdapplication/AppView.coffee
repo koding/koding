@@ -54,7 +54,7 @@ class StartTabMainView extends JView
       cssClass : 'file-container'
 
     @downloadFilesLink = new KDCustomHTMLView
-    userJoinDate       = KD.whoami().meta.createdAt
+    userJoinDate       = new Date(KD.whoami().meta.createdAt).getTime()
     oldKodingDownDate  = 1374267600000
 
     if userJoinDate < oldKodingDownDate
