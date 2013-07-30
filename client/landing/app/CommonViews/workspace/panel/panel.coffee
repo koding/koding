@@ -47,7 +47,9 @@ class Panel extends JView
       cssClass     : "panel-container"
 
     if pane
-      @container.addSubView @createPane pane
+      newPane = @createPane pane
+      @container.addSubView newPane
+      @getDelegate().emit "AllPanesAddedToPanel", @, [newPane]
     else if layout
       @container.addSubView new WorkspaceLayout
         delegate      : @
