@@ -78,10 +78,11 @@ class InboxView extends KDView
     @on "MessageSelectedFromOutside", (item)=>
       @newMessageBar.enableMessageActionButtons()
 
+      _id = item.getData?()._id or item.id
+
       messageIsSelectable = =>
         {items} = inboxMessagesList
         return no if items.length is 0
-        {_id} = item.getData()
         wasMessageInList = no
         items.forEach (message) =>
           if message.getData()?.getId?() is _id
