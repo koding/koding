@@ -2,9 +2,9 @@ class ActivitySplitView extends SplitView
 
   constructor:(options = {}, data)->
 
-    options.sizes     or= [139,null]
-    options.minimums  or= [10,null]
-    options.resizable or= no
+    options.sizes     or= [139, null]
+    options.minimums  or= [10, null]
+    options.resizable  ?= no
 
     super options, data
 

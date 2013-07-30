@@ -38,7 +38,7 @@ class SidebarController extends KDViewController
     resourcesController.reset()
 
   resetAdminNavItems:->
-    return unless KD.isLoggedIn()
+    # return unless KD.isLoggedIn()
 
     KD.whoami().fetchRole? (err, role)=>
       if role is "super-admin"
