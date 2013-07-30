@@ -1,5 +1,7 @@
-class AccountSshKeyListController extends KDListViewController
+class AccountSshKeyListController extends AccountListViewController
   constructor:(options,data)->
+
+    options.noItemFoundText = "You have no SSH key."
     super options,data
 
     @loadItems()
@@ -8,7 +10,7 @@ class AccountSshKeyListController extends KDListViewController
       @newItem = no
       newKeys = @getItemsOrdered().map (item)-> item.getData()
       if newKeys.length is 0
-        @addCustomItem "You have no SSH keys."
+        @addCustomItem "<cite>You have no SSH keys.</cite>"
       else
         @customItem?.destroy()
       KD.remote.api.JUser.setSSHKeys newKeys, ->
@@ -23,14 +25,10 @@ class AccountSshKeyListController extends KDListViewController
 
   loadItems: ()->
     @removeAllItems()
-    @customItem?.destroy()
     @showLazyLoader no
 
     KD.remote.api.JUser.getSSHKeys (keys)=>
-      if keys.length > 0
-        @instantiateListItems keys
-      else
-        @addCustomItem "You have no SSH keys."
+      @instantiateListItems keys
       @hideLazyLoader()
 
   loadView:->
@@ -45,14 +43,7 @@ class AccountSshKeyListController extends KDListViewController
         unless @newItem
           @newItem = true
           @addItem {key: '', title: ''}, 0
-          @getListView().items.first.swapSwappable()
-
-  addCustomItem:(message)->
-    @removeAllItems()
-    @customItem?.destroy()
-    @scrollView.addSubView @customItem = new KDCustomHTMLView
-      cssClass : "no-item-found"
-      partial  : message
+          @getListView().items.first.swapSwappable hideDelete: yes
 
 class AccountSshKeyList extends KDListView
   constructor:(options,data)->
@@ -70,10 +61,10 @@ class AccountSshKeyForm extends KDFormView
 
     @titleLabel = new KDLabelView
       for      : "sshtitle"
-      title    : "Label"
+      title    : "Title"
 
     @titleInput = new KDInputView
-      placeholder  : "Label your SSH key here..."
+      placeholder  : "your SSH key title"
       name         : "sshtitle"
       label        : @titleLabel
 
@@ -82,7 +73,7 @@ class AccountSshKeyForm extends KDFormView
       title    : "SSH Key"
 
     @keyTextarea = new KDInputView
-      placeholder  : "Paste your SSH key here..."
+      placeholder  : "your SSH key"
       type         : "textarea"
       name         : "sshkey"
       cssClass     : "light"
@@ -113,7 +104,7 @@ class AccountSshKeyForm extends KDFormView
       cssClass     : "cancel-link clean-gray button"
       click        : => @emit "FormCancelled"
 
-    formline2.addSubView deletebtn = new KDButtonView
+    formline2.addSubView @deletebtn = new KDButtonView
       style        : "clean-red deletebtn"
       title        : "Delete"
       callback     : => @emit "FormDeleted"
@@ -166,7 +157,11 @@ class AccountSshKeyListItem extends KDListItemView
     form.on "FormSaved", @bound "saveItem"
     form.on "FormDeleted", @bound "deleteItem"
 
-  swapSwappable:->
+  swapSwappable: (options)->
+    if options.hideDelete
+      @form.deletebtn.hide()
+    else
+      @form.deletebtn.show()
     @swappable.swapViews()
 
   cancelItem:->
