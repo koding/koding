@@ -398,6 +398,7 @@ module.exports = [
   "app/Applications/Home.kdapplication/AppController.coffee",
   "app/Applications/Topics.kdapplication/AppController.coffee",
   "app/Applications/Feeder.kdapplication/AppController.coffee",
+  "app/Applications/Environments.kdapplication/AppController.coffee",
   "app/Applications/Apps.kdapplication/AppController.coffee",
   "app/Applications/Inbox.kdapplication/AppController.coffee",
   "app/Applications/Demos.kdapplication/AppController.coffee",
@@ -553,7 +554,6 @@ module.exports = [
   "app/Applications/Environments.kdapplication/views/NewDNSRecordFormView.coffee",
   "app/Applications/Environments.kdapplication/views/DNSRecordListItemView.coffee",
   "app/Applications/Environments.kdapplication/AppView.coffee",
-  "app/Applications/Environments.kdapplication/AppController.coffee",
   # "app/Applications/Environments.kdapplication/Controllers/VMListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/DomainsListViewController.coffee",
   "app/Applications/Environments.kdapplication/Controllers/FirewallFilterListController.coffee"
