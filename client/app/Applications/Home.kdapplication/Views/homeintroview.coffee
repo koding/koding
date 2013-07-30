@@ -17,16 +17,10 @@ class HomeIntroView extends JView
     @subSlogan = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'slogan-continues'
-      click    : (event)->
-        if $(event.target).is 'a'
-          KD.utils.stopDOMEvent event
-          KD.getSingleton('router').handleRoute "/Develop"
       partial  : """
                 <span>Software development has finally evolved.</span>
                 <br>
                 <span>It's now social, in the browser and free.</span>
-                <br>
-                <a href='/Develop'>Go ahead & try!</a>
                 """
 
     @github = new KDButtonView
@@ -47,6 +41,7 @@ class HomeIntroView extends JView
       cssClass : 'toc'
       partial  : 'By signing up, you agree to our <a href="/toc.html" target="_blank">terms of service</a> and <a href="/privacyPolicy.html" target="_blank">privacy policy</a>.'
 
+
     @videoThumb = new KDCustomHTMLView
       tagName  : 'a'
       partial  : "<i></i><img src='/images/timedude.jpg'/>"
@@ -57,6 +52,15 @@ class HomeIntroView extends JView
           "Koding and the Timedude!",
           "width=#{w},height=#{h},left=#{Math.floor (screen.width/2) - (w/2)},top=#{Math.floor (screen.height/2) - (h/2)}"
 
+    @try = new KDCustomHTMLView
+      tagName    : 'a'
+      cssClass   : 'try'
+      partial    : 'Go ahead & try!'
+      attributes :
+        href     : '/Develop'
+      click      : (event)->
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute "/Develop"
 
     @counterBar = new CounterGroupView
       domId    : "home-counter-bar"
@@ -95,6 +99,10 @@ class HomeIntroView extends JView
 
   hide:-> @setClass 'out'
 
+  viewAppended:->
+    super
+    # @utils.wait 2000, => @try.setClass 'in'
+
   pistachio:->
     if KD.isLoggedIn()
       """
@@ -109,6 +117,7 @@ class HomeIntroView extends JView
           </ul>
         </aside>
       </section>
+      {{> @try}}
       {{> @counterBar}}
       """
     else
@@ -127,6 +136,7 @@ class HomeIntroView extends JView
          <form>
         </aside>
       </section>
+      {{> @try}}
       {{> @counterBar}}
       """
 
