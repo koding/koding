@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"koding/databases/mongo"
 	"koding/tools/config"
-	"labix.org/v2/mgo/bson"
 	"log"
 	"net/http"
 	"strconv"

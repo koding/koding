@@ -19,16 +19,6 @@ import (
 
 var GRAPH_URL = config.Current.Neo4j.Write + ":" + strconv.Itoa(config.Current.Neo4j.Port)
 
-type Relationship struct {
-	Id         bson.ObjectId `bson:"_id,omitempty"`
-	TargetId   bson.ObjectId `bson:"targetId,omitempty"`
-	TargetName string        `bson:"targetName"`
-	SourceId   bson.ObjectId `bson:"sourceId,omitempty"`
-	SourceName string        `bson:"sourceName"`
-	As         string
-	Data       bson.Binary
-}
-
 func main() {
 	amqpChannel := connectToRabbitMQ()
 
@@ -39,7 +29,7 @@ func main() {
 	}
 	iter := coll.Find(query).Skip(0).Limit(1000).Sort("-timestamp").Iter()
 
-	var result Relationship
+	var result oldNeo.Relationship
 	for iter.Next(&result) {
 		if processRelationship(result) {
 			createRelationship(result, amqpChannel)
@@ -56,7 +46,7 @@ func connectToRabbitMQ() *amqp.Channel {
 	return amqpChannel
 }
 
-func createRelationship(rel Relationship, amqpChannel *amqp.Channel) {
+func createRelationship(rel oldNeo.Relationship, amqpChannel *amqp.Channel) {
 	data := make([]bson.M, 1)
 	data[0] = bson.M{
 		"_id":        rel.Id,
@@ -86,7 +76,7 @@ func createRelationship(rel Relationship, amqpChannel *amqp.Channel) {
 	)
 }
 
-func processRelationship(result Relationship) bool {
+func processRelationship(result oldNeo.Relationship) bool {
 	exists := true
 	targetId, sourceId := "", ""
 
