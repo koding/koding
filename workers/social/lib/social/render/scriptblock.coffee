@@ -1,5 +1,18 @@
 module.exports = ->
   """
+  <script>
+    var _rollbarParams = {
+      "server.environment": "production",
+      "client.javascript.source_map_enabled": true,
+      "client.javascript.code_version": #{KONFIG.version},
+      "client.javascript.colno_default_one": true
+    };
+    _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["713a5f6ab23c4ab0abc05494ef7bca55", _rollbarParams]; var _ratchet=_rollbar;
+    (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var
+    f=d.getElementsByTagName("script")[0];s.src="//d37gvrvc0wt4s1.cloudfront.net/js/1/rollbar.min.js";s.async=!0;
+    f.parentNode.insertBefore(s,f);};if(w.addEventListener){w.addEventListener("load",i,!1);}else{w.attachEvent("onload",i);}})(window,document);
+  </script>
+
   <script src="/js/require.js"></script>
 
   <script>
@@ -24,4 +37,5 @@ module.exports = ->
     })();
   </script>
 
+  <script type="text/javascript" src="https://www.dropbox.com/static/api/1/dropins.js" id="dropboxjs" data-app-key="yzye39livlcc21j"></script>
   """
