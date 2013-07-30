@@ -18,4 +18,4 @@ class WorkspaceLayout extends KDSplitComboView
 
         views.push wrapper
 
-    new KDSplitView { type, sizes, views }
+    return new SplitViewWithOlderSiblings { type, sizes, views }
