@@ -30,7 +30,6 @@ type Relationship struct {
 }
 
 func main() {
-
 	amqpChannel := connectToRabbitMQ()
 
 	coll := mongo.GetCollection("relationships")
@@ -43,7 +42,7 @@ func main() {
 	var result Relationship
 	for iter.Next(&result) {
 		if processRelationship(result) {
-			createRelaionship(result, amqpChannel)
+			createRelationship(result, amqpChannel)
 		}
 	}
 }
@@ -57,8 +56,7 @@ func connectToRabbitMQ() *amqp.Channel {
 	return amqpChannel
 }
 
-func createRelaionship(rel Relationship, amqpChannel *amqp.Channel) {
-
+func createRelationship(rel Relationship, amqpChannel *amqp.Channel) {
 	data := make([]bson.M, 1)
 	data[0] = bson.M{
 		"_id":        rel.Id,
@@ -89,7 +87,6 @@ func createRelaionship(rel Relationship, amqpChannel *amqp.Channel) {
 }
 
 func processRelationship(result Relationship) bool {
-
 	exists := true
 	targetId, sourceId := "", ""
 
@@ -113,7 +110,6 @@ func processRelationship(result Relationship) bool {
 
 	// everything is fine
 	return false
-
 }
 
 func getAndParse(url string) ([]byte, error) {
