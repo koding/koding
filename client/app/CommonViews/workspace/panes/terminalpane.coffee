@@ -18,7 +18,7 @@ class TerminalPane extends Pane
       advancedSettings : no
 
   onWebTermConnected: ->
-    {command} = @getProperties()
+    {command} = @getOptions()
     @runCommand command if command
 
   runCommand: (command) ->
