@@ -64,13 +64,15 @@ class CollaborativeEditorPane extends CollaborativePane
     @setEditorMode()
 
   setEditorTheme: ->
-    unless document.getElementById "codemirror-ambiance-style"
-      link       = document.createElement "link"
-      link.rel   = "stylesheet"
-      link.type  = "text/css"
-      link.href  = "#{cdnRoot}/theme/ambiance.css"
-      document.head.appendChild link
-      @codeMirrorEditor.setOption "theme", "ambiance"
+    return if document.getElementById "codemirror-ambiance-style"
+    link       = document.createElement "link"
+    link.rel   = "stylesheet"
+    link.type  = "text/css"
+    link.href  = "#{cdnRoot}/theme/ambiance.css"
+    link.id    = "codemirror-ambiance-style"
+    document.head.appendChild link
+
+    @codeMirrorEditor.setOption "theme", "ambiance"
 
   setEditorMode: ->
     {file} = @getOptions()
