@@ -35,20 +35,19 @@ class DemosAppController extends AppController
             }
 
           ]
-          # pane: { type: "editor" }
-          layout: {
-            direction           : "vertical"
-            sizes               : [ "20%", null ]
-            views               : [
-              { type: "finder" }
+          layout            : {
+            direction       : "vertical"
+            sizes           : [ "20%", null ]
+            views           : [
+              { type        : "finder" }
               {
-                type: "split"
-                options:
-                  direction: "horizontal"
-                  sizes: ["50%", null]
-                views: [
-                  { type: "tabbedEditor" }
-                  { type: "terminal" }
+                type        : "split"
+                options     :
+                  direction : "horizontal"
+                  sizes     : ["50%", null]
+                views       : [
+                  { type    : "tabbedEditor" }
+                  { type    : "terminal" }
                 ]
               }
             ]
