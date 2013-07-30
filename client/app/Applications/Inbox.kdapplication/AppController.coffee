@@ -55,11 +55,21 @@ class InboxAppController extends AppController
                 label         : "Subject:"
                 placeholder   : 'Enter a subject'
                 name          : "subject"
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "Subject field is required!"
               message         :
                 label         : "Message:"
                 type          : "textarea"
                 name          : "body"
                 placeholder   : 'Enter your message'
+                validate      :
+                  rules       :
+                    required  : yes
+                  messages    :
+                    required  : "Message field is required!"
             buttons           :
               Send            :
                 title         : "Send"
@@ -210,15 +220,6 @@ class InboxAppController extends AppController
     if KD.isGuest()
       return new KDNotificationView
         title : "Sending private message for guests not allowed."
-
-    {subject, body} = messageDetails
-    if subject.trim() is ''
-      return new KDNotificationView
-        title : "Please enter a subject."
-
-    if body.trim() is ''
-      return new KDNotificationView
-        title : "Please enter a message."
 
     KD.remote.api.JPrivateMessage.create messageDetails, callback
 
