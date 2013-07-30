@@ -150,6 +150,13 @@ class ActivityItemChild extends KDView
                 type     : "mini"
                 cssClass : "error editor"
                 title     : "Error, please try again later!"
+        Cancel       :
+          style      : "modal-cancel"
+          title      : "cancel"
+          callback   : ->
+            modal.destroy()
+    
+    modal.buttons.Delete.blur()
 
   click: KD.utils.showMoreClickHandler
 
