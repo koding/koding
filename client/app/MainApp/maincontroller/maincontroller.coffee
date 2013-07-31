@@ -280,7 +280,7 @@ class MainController extends KDController
   showInstructionsBookIfNeeded:->
     if $.cookie 'newRegister'
       @emit "ShowInstructionsBook", 9
-      $.cookie 'newRegister', no
+      $.cookie 'newRegister', erase: yes
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'

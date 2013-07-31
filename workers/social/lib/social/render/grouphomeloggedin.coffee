@@ -35,7 +35,7 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
                 </section>
                 <div class="home-links" id="group-home-links">
                   <div class='overlay'></div>
-                  <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register an account</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
+                  <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Login"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register an account</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
                 </div>
               </div>
             </div>
@@ -53,5 +53,5 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
   """
 getInviteLink =(policy)->
   if policy.approvalEnabled
-    '<p class="bigLink"><a href="./Join">Request an Invite</a></p>'
+    '<p class="bigLink"><a href="./Login">Request an Invite</a></p>'
   else ''
