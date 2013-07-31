@@ -354,6 +354,7 @@ class LoginView extends KDScrollView
       $('body').removeClass 'recovery'
       @show =>
         @animateToForm "register"
+        @$('.flex-wrapper').addClass 'taller'
         KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
@@ -431,10 +432,8 @@ class LoginView extends KDScrollView
       @setClass name
 
       switch name
-        when "join"
-          @requestForm.email.input.setFocus()
         when "register"
-          @registerForm.invitationCode.input.setFocus()
+          @registerForm.firstName.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"
