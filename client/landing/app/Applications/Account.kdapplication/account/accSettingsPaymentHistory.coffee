@@ -1,6 +1,8 @@
-class AccountPaymentHistoryListController extends KDListViewController
+class AccountPaymentHistoryListController extends AccountListViewController
 
   constructor:(options,data)->
+
+    options.noItemFoundText = "You have no payment history."
     super options,data
 
     @list = @getListView()

@@ -24,9 +24,6 @@ class Sidebar extends JView
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
 
-    # @statusLEDs = new KDView
-    #   cssClass : 'status-leds'
-
     # Main Navigations
     @navController = new MainNavController
       view           : new NavigationList
@@ -297,7 +294,7 @@ class Sidebar extends JView
     id : "finder-bottom-controls"
     items : [
       {
-        title   : "your environments",   icon : "resources",
+        title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
       }
     ]
