@@ -9,8 +9,8 @@ class FatihPluginAbstract extends KDController
     options.iconCssClass        or= ""
     options.itemCssClass        or= ""
     options.maxItemCount        or= 4
-    options.displayNoResultView or= yes
-    options.thirdParty          or= no
+    options.displayNoResultView  ?= yes
+    options.thirdParty           ?= no
     options.itemClickedCallback or= noop
     options.actionCallback      or= noop
 

@@ -106,7 +106,7 @@ class ActivityItemChild extends KDView
       return menu
 
     if KD.checkFlag 'super-admin'
-      if data.isLowQuality
+      if KD.checkFlag 'exempt', account
         menu =
           'Unmark User as Troll' :
             callback             : ->
@@ -156,7 +156,14 @@ class ActivityItemChild extends KDView
               else new KDNotificationView
                 type     : "mini"
                 cssClass : "error editor"
-                title    : "Error, please try again later!"
+                title     : "Error, please try again later!"
+        Cancel       :
+          style      : "modal-cancel"
+          title      : "cancel"
+          callback   : ->
+            modal.destroy()
+    
+    modal.buttons.Delete.blur()
 
   click: KD.utils.showMoreClickHandler
 

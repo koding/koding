@@ -14,6 +14,8 @@ class Sidebar extends JView
     @avatar = new AvatarView
       tagName    : "div"
       cssClass   : "avatar-image-wrapper"
+      attributes :
+        title    : "View your public profile"
       size       :
         width    : 160
         height   : 76
@@ -21,9 +23,6 @@ class Sidebar extends JView
 
     @avatarAreaIconMenu = new AvatarAreaIconMenu
       delegate     : @
-
-    # @statusLEDs = new KDView
-    #   cssClass : 'status-leds'
 
     # Main Navigations
     @navController = new MainNavController
@@ -295,7 +294,7 @@ class Sidebar extends JView
     id : "finder-bottom-controls"
     items : [
       {
-        title   : "your environments",   icon : "resources",
+        title   : "your servers",   icon : "resources",
         action  : "showEnvironments"
       }
     ]

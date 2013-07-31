@@ -3,13 +3,19 @@ class CounterGroupView extends KDCustomHTMLView
   constructor:(options = {},data)->
     options.tagName  = "div"
     options.cssClass = "counters"
+
     super options, data
+
     @counters = {}
-    counters = @getData()
+    counters  = @getData()
+
     for title, options of counters
       @counters[title] = new CounterView {title}, options
+
     @$().html "" # tmp: clear the lazy dom stuff
-    @addSubView counter for title, counter of @counters
+
+    @addSubView wrapper = new KDView
+    wrapper.addSubView counter for title, counter of @counters
 
 class CounterView extends KDCustomHTMLView
 

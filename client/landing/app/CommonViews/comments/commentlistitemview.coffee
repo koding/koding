@@ -56,6 +56,7 @@ class CommentListItemView extends KDListItemView
 
     @timeAgoView = new KDTimeAgoView {}, @getData().meta.createdAt
 
+    # TODO: ??
     data.on 'ContentMarkedAsLowQuality', @bound 'hide' unless KD.checkFlag 'exempt'
     data.on 'ContentUnmarkedAsLowQuality', @bound 'show'
 
