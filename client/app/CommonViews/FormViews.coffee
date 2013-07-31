@@ -136,7 +136,7 @@ class PersonalFormNameView extends AbstractPersonalFormView
           duration  : 500
 
         @unsetClass "active"
-        # Set window title too
+        # Set document title too...
         document.title = "#{firstName} #{lastName}"
 
 class PersonalFormAboutView extends AbstractPersonalFormView
