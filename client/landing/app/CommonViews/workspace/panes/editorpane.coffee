@@ -6,9 +6,7 @@ class EditorPane extends Pane
 
     super options, data
 
-    @appStorage = new AppStorage "Ace", "1.0"
-
-    @files = @getProperty "files"
+    @files = @getOptions "files"
 
     if Array.isArray @files then @createEditorTabs() else @createSingleEditor()
 
