@@ -125,7 +125,7 @@ class KDWindowController extends KDController
     document.addEventListener getVisibilityEventName(), (event)=>
       @focusChange event, isFocused()
 
-  addUnloadListener:(listener, key="global")->
+  addUnloadListener:(key, listener)->
     listeners = @unloadListeners[key] or= []
     listeners.push listener
 
@@ -152,7 +152,7 @@ class KDWindowController extends KDController
     for key, listeners of @unloadListeners
       for listener in listeners
         if listener() is off
-          message = unless key is "global" then " on #{key}" else ""
+          message = unless key is "window" then " on #{key}" else ""
           return "Please make sure that you saved all your work#{message}."
 
   setDragInAction:(@dragInAction = no)->
