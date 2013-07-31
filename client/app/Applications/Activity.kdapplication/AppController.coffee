@@ -165,6 +165,11 @@ class ActivityAppController extends AppController
         limit  : 20
         facets : @getActivityFilter()
 
+      if KD.getSingleton('activityController').flags?.showExempt?  
+        options.withExempt = KD.getSingleton('activityController').flags.showExempt
+      else
+        options.withExempt = false
+
       eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
 
       {roles} = KD.config
@@ -323,8 +328,18 @@ class ActivityAppController extends AppController
           callback null, null
 
   fetchActivitiesProfilePage:(options,callback)->
-    {CStatusActivity} = KD.remote.api
     options.to = options.to or Date.now()
+    if KD.checkFlag 'super-admin'
+      appStorage = new AppStorage 'Activity', '1.0'
+      appStorage.fetchStorage (storage)=>
+        options.withExempt = appStorage.getValue('showLowQualityContent') or off
+        @fetchActivitiesProfilePageWithExemptOption options, callback
+    else
+      options.withExempt = false
+      @fetchActivitiesProfilePageWithExemptOption options, callback
+
+  fetchActivitiesProfilePageWithExemptOption:(options, callback)->
+    {CStatusActivity} = KD.remote.api
     eventSuffix = "#{@getFeedFilter()}_#{@getActivityFilter()}"
     CStatusActivity.fetchUsersActivityFeed options, (err, activities)=>
       return @emit "activitiesCouldntBeFetched", err  if err
