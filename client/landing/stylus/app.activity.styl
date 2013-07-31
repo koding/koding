@@ -22,10 +22,6 @@ body.group
   overflow                     hidden
   #content-page-activity
     height                     100%
-    .kdview.screenshots
-      height                   auto
-      margin-top               0
-      transition               margin-top .3s ease
     &.fixed
       .common-inner-nav
         top                    51px
@@ -117,6 +113,13 @@ h1.kdheaderview.notification-header
   display           block !important
   margin            10px auto !important
 
+
+.download-old-koding-files
+  cursor           pointer
+  color            #ff9200
+  text-decoration  none
+  width            190px
+  left             5px
 
 .new-member
   .close-button
@@ -458,9 +461,10 @@ h1.kdheaderview.notification-header
 
     .activity-actions
       color               #ccc
-      size                auto,auto
+      size                auto, auto
       fr()
-
+      i
+        font-style        normal
       span.like-view
       a.action-link
         margin            0 2px
@@ -644,6 +648,7 @@ button.kdbutton.dark
 
   .kdinput.text
     size                  100%,33px
+    max-width             100%
     font-size             13px
     border-color          rgb(232,232,232) rgb(232,232,232) rgb(224,224,224) rgb(232,232,232)
     padding               8px 10px 6px 10px
@@ -1393,6 +1398,7 @@ div.kdview.link-embed-box.condensed
     top               50%
     margin-top        -15px
     margin-left       -15px
+    z-index           1
 
   > div.embed-links-container
     // div.embed-link-list-head
@@ -1412,7 +1418,7 @@ div.kdview.link-embed-box.condensed
 
       &.layout-wrapper
         padding 5px 5px 2px 5px
-        margin 5px 5px 0
+        margin 5px 5px 5px
         border 1px solid #e8e8e8
         background-color #fff
         rounded 4px
@@ -1839,6 +1845,7 @@ div.modal-fullscreen-text
 
   textarea.fullscreen-data
     float           left
+    resize          none
 
   div.kdinputwithpreview.input_preview
     abs()
@@ -2487,123 +2494,13 @@ div.activity-content-container
 
 @keyframes pulseOnce
   50%
-    bg color,                           #0f0
+    bg                color, #0f0
 
 @keyframes pulseAlert
   50%
-      background-color                  #ff0
-      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
-      opacity                           1
-
-// div.virt-controls
-//   padding-left                          10px
-//   text-align                            left
-
-//   div.led-label
-//     display                             inline-block
-//     padding-left                        10px
-//     font-size                           11px
-
-//   div.led-wrapper
-//     padding-left                        5px
-//     &.red
-//       .led
-//         box-shadow                        none !important //#000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
-//     &.green
-//       .led
-//         box-shadow                        none !important // rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
-//     &.yellow
-//       box-shadow                        none !important //#000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
-//     &.blue
-//       box-shadow                        none !important //#000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
-//     &.off
-//       box-shadow                        none !important
-
-//   div.led
-//     box-shadow                          none !important
-//     bg color,                           none !important
-
-// ---
-div.status-leds
-  margin                                0px auto 0px auto
-  text-align                            center
-  size                                  auto, 22px
-  opacity                               1
-  vendor transition,                    opacity 0.25s ease-in-out
-
-  &.fadeout
-    opacity 1
-
-  &.pulse
-    div.led-wrapper > .led
-      animation-name                    pulseOnce
-      animation-duration                1s
-      animation-iteration-count         1
-
-  &:hover
-    div.led-wrapper.green > .led
-      background-color                  darken(#0f0, 50%)
-    opacity                             1
-
-    div.led-wrapper:hover
-      &.green
-        .led
-          bg color,                       #0f0
-          box-shadow                      #000 0 -1px 7px 1px, inset #460 0 -1px 9px, #7D0 0 2px 12px
-      &.red
-        .led
-          bg color,                       #f60
-          box-shadow                      #000 0 -1px 7px 1px, inset #600 0 -1px 9px, #F00 0 2px 12px
-
-  div.led-wrapper
-    borderBox()
-    size 22px, 22px
-    padding 2px 0px
-    display                             inline-block
-    opacity 1
-    vendor transition, opacity .1s ease-in-out
-    &.fadeout
-      opacity 1
-    div.led
-      borderBox()
-      display inline-block
-      width                               6px
-      height                              6px
-      border-radius                       50%
-      vendor transition,                  background-color 0.25s ease-in-out \, box-shadow 0.25s ease-in-out \, opacity 0.25s ease-in-out
-    &.red
-      .led
-        background-color                  #ff9200
-        box-shadow                        #000 0 -1px 7px 1px, inset #884600 0 -1px 9px, #ff9200 0 2px 12px
-        animation-name                    pulseAlert
-        animation-duration                1s
-        animation-iteration-count         infinite
-    &.green
-      .led
-        animation-name                    pulseOnce
-        animation-duration                1s
-        animation-iteration-count         1
-        background-color                  #5f5f5f
-        box-shadow                        rgba(0, 0, 0, 0.3) 0 -1px 5px 1px,inset #333 0 -1px 2px,#555 0 2px 6px
-        // box-shadow                        #181818 0 -1px 7px 1px, inset #333 0 -1px 5px, #555 0 2px 14px
-    &.yellow
-      background-color                  #ff0
-      box-shadow                        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
-    &.blue
-      background-color                  #00f
-      box-shadow                        #000 0 -1px 7px 1px, inset #006 0 -1px 9px, #06F 0 2px 14px
-    &.off
-      background-color                  #444
-      box-shadow                        #111 0 -1px 7px 1px, inset #333 0 -1px 9px, #888 0 2px 14px
-
-  div.status-label
-    color                               #ADADAD !important
-    font-size                           11px
-    cursor                              pointer
-    font-weight 300 !important
-    text-shadow none !important
-
-// ---
+    background-color  #ff0
+    box-shadow        #000 0 -1px 7px 1px, inset #660 0 -1px 9px, #DD0 0 2px 12px
+    opacity           1
 
 span.instance-count
   white-space                           pre

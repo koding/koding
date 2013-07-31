@@ -148,10 +148,11 @@ class CodeSnippetView extends KDCustomHTMLView
       iconClass : "open"
       tooltip   :
         title   : 'Open'
-      callback  : ->
+      callback  : =>
+        {title, content, syntax} = @getData()
         fileName      = "localfile:/#{title}"
         file          = FSHelper.createFileFromPath fileName
-        file.contents = Encoder.htmlDecode(content)
+        file.contents = Encoder.htmlDecode content
         file.syntax   = syntax
         KD.getSingleton("appManager").openFile file
 
@@ -173,7 +174,7 @@ class CodeSnippetView extends KDCustomHTMLView
     @codeView.render()
     @applySyntaxColoring()
 
-  applySyntaxColoring:( syntax = @getData().syntax)->
+  applySyntaxColoring:(syntax = @getData().syntax)->
 
     snipView  = @
 

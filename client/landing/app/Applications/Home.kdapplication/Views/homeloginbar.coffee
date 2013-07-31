@@ -20,6 +20,17 @@ class HomeLoginBar extends JView
 
     # links on the right
 
+    @register     = new CustomLinkView
+      tagName     : "a"
+      cssClass    : "register"
+      title       : "Not a member? Register"
+      icon        : {}
+      attributes  :
+        href      : "/Register"
+      click       : (event)=>
+        handler.call @register, event
+        KD.track "Login", "Register"
+
     @redeem     = new CustomLinkView
       tagName     : "a"
       cssClass    : "redeem"
@@ -35,7 +46,7 @@ class HomeLoginBar extends JView
 
     @login        = new CustomLinkView
       tagName     : "a"
-      title       : "Already a user? Sign In!"
+      title       : "Already a user? Sign In"
       icon        : {}
       cssClass    : "login"
       attributes  :
@@ -201,12 +212,7 @@ class HomeLoginBar extends JView
     KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   handleBackendResponse:(err, successMsg)->
-    if err
-      warn err
-      return new KDNotificationView
-        title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-        duration : 2000
-
+    return KD.showError err  if err
     new KDNotificationView
       title    : successMsg
       duration : 2000
