@@ -82,7 +82,7 @@ module.exports = class Graph
                 tempRes[i] = res
                 fin()
             else
-              tempRes.push res
+              tempRes[i] = res
               fin()
     , =>
       {groupName, groupId} = options.group if options.group?
