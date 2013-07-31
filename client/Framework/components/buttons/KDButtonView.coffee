@@ -7,12 +7,12 @@ class KDButtonView extends KDView
     # options.style     or= "clean-gray"  # a String of one of button styles ==> DEPRECATE THIS
     options.type      or= "button"      # a String of submit, reset, button
     options.cssClass  or= options.style or= "clean-gray"            # a String
-    options.icon      or= no            # a Boolean value
-    options.iconOnly  or= no            # a Boolean value
+    options.icon       ?= no            # a Boolean value
+    options.iconOnly   ?= no            # a Boolean value
     options.iconClass or= ""            # a String
-    options.disabled  or= no            # a Boolean value
+    options.disabled   ?= no            # a Boolean value
     options.hint      or= null          # a String of HTML ---> not yet implemented
-    options.loader    or= no
+    options.loader     ?= no
 
     super options,data
 
@@ -126,6 +126,8 @@ class KDButtonView extends KDView
   enable:-> @$().attr "disabled", no
 
   focus:-> @$().trigger "focus"
+  
+  blur:-> @$().trigger "blur"
 
   click:(event)->
 

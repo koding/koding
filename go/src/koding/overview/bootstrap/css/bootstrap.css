@@ -389,6 +389,8 @@ a:focus {
 }
 
 .row-fluid {
+  padding-left: 30px;
+  padding-bottom: 30px;
   width: 100%;
   *zoom: 1;
 }
@@ -1668,6 +1670,7 @@ select:focus:invalid:focus {
 .input-prepend {
   display: inline-block;
   margin-bottom: 10px;
+  padding-top: 15px;
   font-size: 0;
   white-space: nowrap;
   vertical-align: middle;

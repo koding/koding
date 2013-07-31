@@ -1,17 +1,19 @@
+module.exports = ({ account, renderedAccount, isLoggedIn, content})->
 
-module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
-  # content ?= getDefaultuserContents()
+  getStyles       = require './styleblock'
+  getScripts      = require './scriptblock'
+
+  {profile, counts, skilltags} = renderedAccount
   {nickname, firstName, lastName, hash, about, handles, staticPage} = profile
-  staticPage ?= {}
-  {customize} = staticPage
-  {locationTags,meta} = account
-  firstName ?= 'Koding'
-  lastName  ?= 'User'
-  nickname  ?= ''
-  about     ?= ''
-  title = "#{firstName} #{lastName}"
-  slug = nickname
-
+  staticPage  ?= {}
+  {customize}  = staticPage
+  {locationTags, meta} = account
+  firstName   ?= 'Koding'
+  lastName    ?= 'User'
+  nickname    ?= ''
+  about       ?= ''
+  title        = "#{firstName} #{lastName}"
+  slug         = nickname
   amountOfDays = Math.floor (new Date().getTime()-meta.createdAt)/(1000*60*60*24)
 
   """
@@ -43,7 +45,6 @@ module.exports = ({account,profile,skillTags,counts,isLoggedIn,content})->
               <a class="messages" href="#"><span class="count"><cite>0</cite></span><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
               <a class="group-switcher" href="#"><span class="count"><cite>0</cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
             </div>
-            <div class="kdview status-leds"></div>
             <div class="kdview kdlistview kdlistview-navigation">
               <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix selected">
                 <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
@@ -227,81 +228,7 @@ addHomeLinkBar =->
   <div class='screenshots'>
     <div class="home-links" id='home-login-bar'>
       <div class='overlay'></div>
-      <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Join"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
+      <a class="custom-link-view browse orange" href="#"><span class="icon"></span><span class="title">Learn more...</span></a><a class="custom-link-view join green" href="/#{slug}/Login"><span class="icon"></span><span class="title">Request an Invite</span></a><a class="custom-link-view register" href="/#{slug}/Register"><span class="icon"></span><span class="title">Register</span></a><a class="custom-link-view login" href="/#{slug}/Login"><span class="icon"></span><span class="title">Login</span></a>
     </div>
   </div>
-  """
-
-getStyles =->
-  """
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="" />
-  <meta name="author" content="" />
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Koding" />
-  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
-  <link rel="shortcut icon" href="/images/favicon.ico" />
-  <link rel="fluid-icon" href="/images/kd-fluid-icon512.png" title="Koding" />
-  <link rel="stylesheet" href="/css/kd.#{KONFIG.version}.css" />
-  """
-
-getScripts =->
-  """
-  <!--[if IE]>
-  <script type="text/javascript">
-    (function() { window.location.href = '/unsupported.html'})();
-  </script>
-  <![endif]-->
-
-  <script>
-    var _rollbarParams = {
-      "server.environment": "production",
-      "client.javascript.source_map_enabled": true,
-      "client.javascript.code_version": KD.config.version,
-      "client.javascript.colno_default_one": true
-    };
-    _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["713a5f6ab23c4ab0abc05494ef7bca55", _rollbarParams]; var _ratchet=_rollbar;
-    (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var 
-    f=d.getElementsByTagName("script")[0];s.src="//d37gvrvc0wt4s1.cloudfront.net/js/1/rollbar.min.js";s.async=!0;
-    f.parentNode.insertBefore(s,f);};if(w.addEventListener){w.addEventListener("load",i,!1);}else{w.attachEvent("onload",i);}})(window,document);
-  </script>
-  
-  <script src="/js/require.js"></script>
-
-  <script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==
-typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]);
-b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]);
-mixpanel.init("e25475c7a850a49a512acdf04aa111cf");</script>
-
-  <script>
-    require.config({baseUrl: "/js", waitSeconds:15});
-    require(["order!/js/highlightjs/highlight.pack.js","order!/js/kd.#{KONFIG.version}.js"]);
-  </script>
-
-
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-6520910-8']);
-    _gaq.push(['_setDomainName', 'koding.com']);
-    _gaq.push(['_trackPageview']);
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
-  <script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src=("https:"===e.location.protocol?"https:":"http:")+'//cdn.mxpnl.com/libs/mixpanel-2.2.min.js';f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f);b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!== typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]); b._i.push([a,e,d])};b.__SV=1.2}})(document,window.mixpanel||[]); mixpanel.init("113c2731b47a5151f4be44ddd5af0e7a");</script>
-  """
-
-getDefaultUserContents =(firstName, lastName)->
-  """
-    <div class="content-item default-item" id='profile-blog-default-item'>
-      <div class="title"><span class="text">Hello!</span></div>
-      <div class="has-markdown"><span class="data">
-        <p>
-          #{firstName} #{lastName} has not written any Blog Posts yet. Click 'Activitiy' on top to see #{firstName}'s posts on Koding.</span></div>
-        </p>
-    </div>
   """

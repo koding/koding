@@ -1,8 +1,5 @@
 class RegisterOptions extends KDView
   viewAppended:->
-    @addSubView new KDHeaderView
-      type     : "small"
-      title    : "YOU NEED AN INVITATION CODE TO REGISTER."
 
     @addSubView optionsHolder = new KDCustomHTMLView
       tagName  : "ul"

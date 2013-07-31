@@ -32,9 +32,9 @@ __utils =
 
   getUniqueId: do -> i = 0; -> "kd-#{i++}"
 
-  getRandomNumber :(range)->
-    range = range or 1000000
-    Math.floor Math.random()*range+1
+  getRandomNumber :(range=1e6, min=0)->
+    res = Math.floor Math.random()*range+1
+    return if res > min then res else res + min
 
   uniqueId : (prefix)->
     id = __utils.idCounter++
@@ -740,7 +740,7 @@ __utils =
       callback data?.id or url, data
 
     request.error ({status, statusText, responseText})->
-      error "url shorten error, returing self as fallback.", status, statusText, responseText
+      error "URL shorten error, returning self as fallback.", status, statusText, responseText
       callback url
 
   formatBytesToHumanReadable: (bytes) ->

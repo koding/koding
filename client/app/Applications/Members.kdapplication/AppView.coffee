@@ -48,6 +48,7 @@ class MembersListItemView extends KDListItemView
     @location = new LocationView {},memberData
 
     @profileLink = new ProfileLinkView {}, memberData
+    @profileLink.render()
 
   click:(event)->
     KD.utils.showMoreClickHandler.call this, event

@@ -20,10 +20,8 @@ class LoginView extends KDScrollView
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
-    learnMoreHandler  = handler.bind null, '/Join'
     loginHandler      = handler.bind null, '/Login'
     registerHandler   = handler.bind null, '/Register'
-    joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
@@ -41,11 +39,6 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Recover password"
       click       : recoverHandler
-
-    @goToRequestLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an invite"
-      click       : joinHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
@@ -167,7 +160,6 @@ class LoginView extends KDScrollView
       </div>
     </div>
     <div class="login-footer">
-      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
       <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
@@ -196,15 +188,6 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
-  showInstructionsBookIfFirstLogin:->
-    appStorage = new AppStorage "instruction-book", "1.0"
-    appStorage.fetchValue "readPages", (pages) ->
-      pages or= []
-      if pages.length is 0
-        pages.push "table-of-contents"
-        appStorage.setValue "readPages", pages
-        KD.getSingleton('mainController').emit "FirstTimeLoginHappened", 1
-
   doRegister:(formData)->
     formData.agree = 'on'
     @registerForm.notificationsDisabled = yes
@@ -213,7 +196,7 @@ class LoginView extends KDScrollView
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
-    KD.getSingleton('groupsController').groupChannel.close()
+    KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
@@ -228,6 +211,7 @@ class LoginView extends KDScrollView
 
       else
 
+        $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
@@ -236,7 +220,6 @@ class LoginView extends KDScrollView
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-        @showInstructionsBookIfFirstLogin()
 
         # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
@@ -371,6 +354,7 @@ class LoginView extends KDScrollView
       $('body').removeClass 'recovery'
       @show =>
         @animateToForm "register"
+        @$('.flex-wrapper').addClass 'taller'
         KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
@@ -415,7 +399,7 @@ class LoginView extends KDScrollView
             if entryPoint?.type is 'group' and entryPoint.slug
             then route.replace "/#{entryPoint.slug}", ''
             else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover']
             router.handleRoute route
             routed = yes
             break
@@ -443,15 +427,13 @@ class LoginView extends KDScrollView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "join register recover login reset home"
+      @unsetClass "register recover login reset home"
       @emit "LoginViewAnimated", name
       @setClass name
 
       switch name
-        when "join"
-          @requestForm.email.input.setFocus()
         when "register"
-          @registerForm.invitationCode.input.setFocus()
+          @registerForm.firstName.input.setFocus()
         when "login"
           @loginForm.username.input.setFocus()
         when "recover"

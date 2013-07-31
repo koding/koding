@@ -1,6 +1,6 @@
 module.exports = new class
 
-  createKodingError = (message) ->
+  createKodingError = (err) ->
     message:
       if 'string' is typeof err
       then err

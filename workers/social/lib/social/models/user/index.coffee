@@ -154,7 +154,7 @@ module.exports = class JUser extends jraphical.Module
       callback err? or prefs?.isRegistrationEnabled or no
 
   @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)->
+    JSession.one {clientId}, (err, session)=>
       if err
         callback createKodingError err
       else unless session?
@@ -293,7 +293,7 @@ module.exports = class JUser extends jraphical.Module
             callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
-    if 'string' is typeof clientId
+    if 'string' is typeof client
       sessionToken = client
     else
       {sessionToken} = client
@@ -314,13 +314,12 @@ module.exports = class JUser extends jraphical.Module
           code: inviteCode
           status: $in : ['active','sent']
         }, (err, invite)->
-          # callback null, yes, invite
           if err or !invite?
             callback createKodingError 'Invalid invitation ID!'
           else
             callback null, yes, invite
       else
-        callback createKodingError 'Invitation code is required!'
+        callback null, yes
 
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'
@@ -778,10 +777,10 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView:(account, callback)->
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView callback
+      else account.fetchHomepageView account, callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require '../emailconfirmation'

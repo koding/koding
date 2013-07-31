@@ -112,33 +112,12 @@ func startConsuming() {
 }
 
 func checkIfEligible(sourceName, targetName string) bool {
-
-	notAllowedNames := []string{
-		"CStatusActivity",
-		"CFolloweeBucketActivity",
-		"CFollowerBucketActivity",
-		"CCodeSnipActivity",
-		"CDiscussionActivity",
-		"CReplieeBucketActivity",
-		"CReplierBucketActivity",
-		"CBlogPostActivity",
-		"CNewMemberBucketActivity",
-		"CTutorialActivity",
-		"CLikeeBucketActivity",
-		"CLikerBucketActivity",
-		"CInstalleeBucketActivity",
-		"CInstallerBucketActivity",
-		"CActivity",
-		"CRunnableActivity",
-		"JAppStorage",
-		"JFeed",
-	}
 	notAllowedSuffixes := []string{
 		"Bucket",
 		"BucketActivity",
 	}
 
-	for _, name := range notAllowedNames {
+	for _, name := range neo4j.NotAllowedNames {
 		if name == sourceName {
 			fmt.Println("not eligible " + sourceName)
 			return false
