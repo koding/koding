@@ -239,7 +239,6 @@ module.exports = class JAccount extends jraphical.Module
                 change = {
                   oldUsername, username, mustReauthenticate, isRegistration
                 }
-                console.log { @chris }
                 @sendNotification 'UsernameChanged', change  if mustReauthenticate
                 @constructor.emit 'UsernameChanged', change
                 freeOldUsername()
@@ -666,8 +665,9 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim","gokmen", "chris", "testdude", "blum", "neelance", "halk",
-                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas", "fkadev"]
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "blum", "neelance", "halk"
+                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "cihangirsavas"
+                  "fkadev" ]
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
