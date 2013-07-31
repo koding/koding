@@ -91,9 +91,9 @@ app.login-signup.styl
     .login-options-holder.reg
       visible()
     .flex-wrapper
-      size                400px, 435px
-    &.taller .flex-wrapper
-      height              503px
+      size                400px, 421px
+      &.taller
+        height              452px
 
   &.redeem
     .rdf
@@ -193,7 +193,7 @@ app.login-signup.styl
     margin                40px auto
     padding               10px
     border                1px solid rgba(255,255,255,0.15)
-    rounded               0 0 5px 5px
+    rounded               5px
     bg                    color, rgba(0, 0, 0, .75)
     shadow                0 5px 15px rgba(0,0,0,0.8)
     borderBox()
@@ -208,7 +208,7 @@ app.login-signup.styl
   padding                 30px 0 0 0
   text-align              center
   overflow                visible
-  height                  98px
+  height                  78px
   borderBox()
   .betatag
     text-indent           -9999px
@@ -236,17 +236,22 @@ app.login-signup.styl
     noTextDeco()
 
 .login-options-holder
-  border-top              1px solid rgba(0, 0, 0, 0.1)
-  height                  76px
+  height                  72px
   overflow                visible
   margin-bottom           24px
+
+  &.reg
+    height                52px
+    margin-top            22px
+
+  &.log
+    margin-bottom         34px
 
 .kdview.login-screen
   h3
     color                 #b4b3b3
     text-shadow           0 -1px 0 rgba(0, 0, 0, 0.64)
     border                none
-    border-top            1px solid rgba(255, 255, 255, 0.1)
     padding               12px 10px 0 10px
     text-align            center !important
     font-size             11px

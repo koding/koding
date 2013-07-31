@@ -158,10 +158,6 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       defaultValue  : if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
       placeholder   : if profile.about isnt @defaultPlaceHolder then null else Encoder.htmlDecode profile.about
       name          : 'about'
-      validate      :
-        rules       :
-          required  : yes
-          maxLength : 500
 
     @aboutInfo = new PersonalAboutView
       tooltip            :
@@ -188,10 +184,17 @@ class PersonalFormAboutView extends AbstractPersonalFormView
 
   formCallback:(formData)->
     {profile} = @memberData
-    {about} = formData
-    if profile.about is about or about is ''
-      @unsetClass 'active'
+    {about}   = formData
+    
+    if profile.about is about
+      @unsetClass "active"
       return no
+
+    if about is ""
+      @unsetClass "active"
+      profile.about = @defaultPlaceHolder
+      @aboutInfo.setData @memberData
+      @resetInputValue()
 
     changes = 'profile.about' : about
     @memberData.modify changes, (err)=>
