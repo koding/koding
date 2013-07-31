@@ -389,6 +389,8 @@ a:focus {
 }
 
 .row-fluid {
+  padding-left: 30px;
+  padding-bottom: 30px;
   width: 100%;
   *zoom: 1;
 }

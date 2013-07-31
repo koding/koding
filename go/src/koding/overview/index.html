@@ -44,7 +44,7 @@
 		</div><!-- navbar -->
 
 		<div class="row-fluid">
-			<div class="span5 offset1">
+			<div class="span6">
 				<h2>Status</h2>
 
                 <!-- switch versions input -->
@@ -103,6 +103,7 @@
 					<thead>
 						<tr>
 							<td><strong>Name</strong></td>
+							<td><strong>Hostname</strong></td>
 							<td><strong>Pid</strong></td>
 							<td><strong>Port</strong></td>
 							<td><strong>Uptime</strong></td>
@@ -113,6 +114,7 @@
 						{{range .Workers}} 
 						<tr class="{{.Info}}">
 							<td>{{.Name}}</td>
+							<td>{{.Hostname}}</td>
 							<td>{{.Pid}}</td>
 							<td>{{.Port}}</td>
 							<td>{{.Clock}}</td>
@@ -124,7 +126,7 @@
 				<span class="label label-info">Info</span>
 				Kontrold is cleaning up death workers in one hour intervals.
 			</div>
-			<div class="span4">
+			<div class="span5">
 				<h2>Deployment
 				<div class="btn-group">
 					<a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
