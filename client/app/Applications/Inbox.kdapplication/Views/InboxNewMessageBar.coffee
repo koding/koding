@@ -59,8 +59,7 @@ class InboxNewMessageBar extends KDView
         Cancel       :
           style      : "modal-cancel"
           title      : "cancel"
-          callback   : ->
-            modal.destroy()
+          callback   : -> modal.destroy()
 
     modal.buttons.Delete.blur()
 
