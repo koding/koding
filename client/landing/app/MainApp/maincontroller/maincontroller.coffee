@@ -55,6 +55,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "appStorageController", new AppStorageController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
+      @showInstructionsBookIfNeeded()
       @emit 'AppIsReady'
 
   accountChanged:(account, firstLoad = no)->
@@ -276,6 +277,10 @@ class MainController extends KDController
 
       return totalTimestamp
 
+  showInstructionsBookIfNeeded:->
+    if $.cookie 'newRegister'
+      @emit "ShowInstructionsBook", 9
+      $.cookie 'newRegister', no
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
