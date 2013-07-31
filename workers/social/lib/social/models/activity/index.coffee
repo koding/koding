@@ -335,7 +335,7 @@ module.exports = class CActivity extends jraphical.Capsule
     if not delegate
       callback callback {error: "Request not valid"}
     else
-      groupName = client.context.group
+      groupName = client.context.group or "koding"
       JGroup = require '../group'
       JGroup.one slug : groupName, (err, group)=>
         if err then return callback err
