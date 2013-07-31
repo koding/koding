@@ -68,7 +68,7 @@ class HomeAppController extends ActivityAppController
 
   featuredActivityCommentRequested:({activityId, commentId}, callback)=>
     return if commentId > 2
-    timeoutValue = KD.utils.getRandomNumber 100000
+    timeoutValue = KD.utils.getRandomNumber 100000, 70000
     KD.utils.wait timeoutValue, =>
       eventName = "activity_#{activityId}_C#{commentId}_fetch"
       @off "#{eventName}_succeeded"
@@ -88,7 +88,7 @@ class HomeAppController extends ActivityAppController
     return if activityId > 7
 
     @isLoading = true
-    timeoutValue = KD.utils.getRandomNumber 10000
+    timeoutValue = KD.utils.getRandomNumber 10000, 8000
 
     eventName = "activity_#{activityId}_fetch"
     @off "#{eventName}_succeeded"
