@@ -183,13 +183,14 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member)->
       @constructor.emit 'MemberAdded', { group: this, member }
-      @sendNotificationToAdmins 'GroupJoined',
-        actionType : 'groupJoined'
-        actorType  : 'member'
-        subject    : ObjectRef(this).data
-        member     : ObjectRef(member).data
-      @broadcast 'MemberJoinedGroup',
-        member : ObjectRef(member).data
+      unless @slug is 'guests'
+        @sendNotificationToAdmins 'GroupJoined',
+          actionType : 'groupJoined'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
+        @broadcast 'MemberJoinedGroup',
+          member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
