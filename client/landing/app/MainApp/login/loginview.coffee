@@ -22,7 +22,6 @@ class LoginView extends KDScrollView
     homeHandler       = handler.bind null, '/'
     loginHandler      = handler.bind null, '/Login'
     registerHandler   = handler.bind null, '/Register'
-    joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
@@ -195,7 +194,7 @@ class LoginView extends KDScrollView
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
-    KD.getSingleton('groupsController').groupChannel.close()
+    KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
@@ -344,6 +343,7 @@ class LoginView extends KDScrollView
       $('body').removeClass 'recovery'
       @show =>
         @animateToForm "register"
+        @$('.flex-wrapper').addClass 'taller'
         KD.getSingleton('mainController').emit 'InvitationReceived', invite
 
   hide:(callback)->
@@ -386,7 +386,7 @@ class LoginView extends KDScrollView
             if entryPoint?.type is 'group' and entryPoint.slug
             then route.replace "/#{entryPoint.slug}", ''
             else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover']
             router.handleRoute route
             routed = yes
             break
@@ -414,13 +414,11 @@ class LoginView extends KDScrollView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "join register recover login reset home"
+      @unsetClass "register recover login reset home"
       @emit "LoginViewAnimated", name
       @setClass name
 
       switch name
-        when "join"
-          @requestForm.email.input.setFocus()
         when "register"
           @registerForm.firstName.input.setFocus()
         when "redeem"

@@ -163,7 +163,6 @@ class RegisterInlineForm extends LoginViewInlineForm
         @password.input.validate()
 
       @button.hideLoader()
-      @invitationCode.notify msg
 
   usernameCheckTimer = null
 
