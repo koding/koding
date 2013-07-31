@@ -79,7 +79,7 @@ class WebTermAppView extends JView
 
       if query.fullscreen
         windowController = KD.getSingleton("windowController")
-        windowController.clearUnloadListeners()
+        windowController.clearUnloadListeners "global"
 
         windowController.on "clientIdChanged", =>
           window.parent.postMessage "clientIdChanged", "*"
