@@ -18,7 +18,7 @@ class OwnProfileView extends JView
       @[route] = new KDView
         tagName     : 'a'
         attributes  :
-          href      : '#'
+          href      : "/#{memberData.profile.nickname}/#{route[0].toUpperCase() + route[1..-1]}"
         pistachio   : "<cite/>{{#(counts[route] or 0)}} <span>#{route[0].toUpperCase() + route[1..-1]}</span>"
         click       : (event)->
           event.preventDefault()

@@ -42,7 +42,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   // Subscribes stream to source so it will return events added to source.
   @POST
   @Path("/subscriptions")
-  def addSubscription(@QueryParam("stream") streamUrl: String, @QueryParam("source") sourceUrl: String) = {
+  def addSubscription(@QueryParam("stream") streamUrl: String, @QueryParam("source") sourceUrl: String) {
     val tx = db.beginTx()
     try {
       val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
@@ -61,7 +61,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   // Adds event to source at the given timestamp. An event is more recent if it has a higher timestamp value.
   @POST
   @Path("/events")
-  def addEvent(@QueryParam("source") sourceUrl: String, @QueryParam("event") eventUrl: String, @QueryParam("timestamp") timestamp: Long) = {
+  def addEvent(@QueryParam("source") sourceUrl: String, @QueryParam("event") eventUrl: String, @QueryParam("timestamp") timestamp: Long) {
     val tx = db.beginTx()
     try {
       val source = getInternalNode(sourceUrl, GRAPHITY_SOURCE)
@@ -83,7 +83,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   // Gets most recent events from stream. Those are the most recent events of all sources that this stream is subscribed to.
   @GET
   @Path("/events")
-  def getEvents(@QueryParam("stream") streamUrl: String, @QueryParam("count") count: Int): Response = {
+  def getEvents(@QueryParam("stream") streamUrl: String, @QueryParam("count") count: Int) = {
     val tx = db.beginTx()
     try {
       val stream = getInternalNode(streamUrl, GRAPHITY_STREAM)
@@ -136,17 +136,17 @@ class Graphity(@Context db: GraphDatabaseService) {
       insertCandidate(LinkedList.getPrevious(event))
     }
 
-    return results
+    results
   }
 
   // Inserts the subscription at the correct position of the stream's subscription list.
-  def insertSubscription(stream: Node, subscription: Node) = {
+  def insertSubscription(stream: Node, subscription: Node) {
     val timestamp = getSubscriptionTimestamp(subscription)
     LinkedList.insertFromTail(stream, { previous => getSubscriptionTimestamp(previous) <= timestamp }, subscription)
   }
 
   // Updates all subscription lists which have a subscription to source.
-  def updateSource(source: Node) = {
+  def updateSource(source: Node) {
     source.getRelationships(GRAPHITY_SUBSCRIBED_TO, Direction.INCOMING).foreach({ rel =>
       val subscription = rel.getStartNode()
       val stream = LinkedList.remove(subscription)
@@ -155,7 +155,7 @@ class Graphity(@Context db: GraphDatabaseService) {
   }
 
   // Gets timestamp from event node.
-  def getEventTimestamp(event: Node): Long = {
+  def getEventTimestamp(event: Node) = {
     event.getProperty("timestamp") match {
       case v: java.lang.Integer => v.longValue()
       case v: java.lang.Long => v.longValue()
@@ -171,13 +171,13 @@ class Graphity(@Context db: GraphDatabaseService) {
     getEventTimestamp(LinkedList.getPrevious(subRel.getEndNode()))
   }
 
-  def getNodeFromUrl(url: String): Node = {
+  def getNodeFromUrl(url: String) = {
     val parts = url.split("/")
     db.getNodeById(parts(parts.length - 1).toLong)
   }
 
-  def getUrlFromNode(node: Node): String = {
-    return "http://localhost:7474/db/data/node/" + node.getId()
+  def getUrlFromNode(node: Node) = {
+    "http://localhost:7474/db/data/node/" + node.getId()
   }
 
   def getInternalNode(externalNodeUrl: String, relType: RelationshipType): Node = {

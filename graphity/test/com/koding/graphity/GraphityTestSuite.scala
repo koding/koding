@@ -16,48 +16,51 @@ class GraphityTestSuite extends FunSuite {
   val db = client.resource("http://localhost:7474/db/data/")
   val graphity = client.resource("http://localhost:7474/graphity/")
 
-  test("inserting and retrieving events") {
-    val streamUrl = createNode()
-    println("stream", streamUrl)
+  test("inserting and retrieving events in correct order") {
+    val stream = createNode("stream")
+    val source1 = createNode("source1")
+    val source2 = createNode("source2")
+    val event1 = createNode("event1")
+    val event2 = createNode("event2")
+    val event3 = createNode("event3")
 
-    val source1Url = createNode()
-    println("source1", source1Url)
-    graphity.path("subscriptions").queryParam("source", source1Url).queryParam("stream", streamUrl).post()
+    addSubscription(stream, source1)
+    addSubscription(stream, source2)
 
-    val source2Url = createNode()
-    println("source1", source2Url)
-    graphity.path("subscriptions").queryParam("source", source2Url).queryParam("stream", streamUrl).post()
+    addEvent(source1, event2, 2)
+    addEvent(source2, event3, 3)
+    addEvent(source1, event1, 1)
 
-    val event2Url = createNode()
-    println("event2", event2Url)
-    graphity.path("events").queryParam("source", source1Url).queryParam("event", event2Url).queryParam("timestamp", "2").post()
-
-    val event3Url = createNode()
-    println("event3", event3Url)
-    graphity.path("events").queryParam("source", source2Url).queryParam("event", event3Url).queryParam("timestamp", "3").post()
-
-    val event1Url = createNode()
-    println("event1", event1Url)
-    graphity.path("events").queryParam("source", source1Url).queryParam("event", event1Url).queryParam("timestamp", "1").post()
-
-    val json1 = graphity.path("events").queryParam("stream", streamUrl).queryParam("count", "2").get(classOf[String])
-    val list1 = gson.fromJson(json1, classOf[java.util.List[String]])
+    val list1 = getEvents(stream, 2)
     assert(list1.size() === 2)
-    assert(list1.get(0) === event3Url)
-    assert(list1.get(1) === event2Url)
+    assert(list1.get(0) === event3)
+    assert(list1.get(1) === event2)
 
-    val json2 = graphity.path("events").queryParam("stream", streamUrl).queryParam("count", "10").get(classOf[String])
-    val list2 = gson.fromJson(json2, classOf[java.util.List[String]])
+    val list2 = getEvents(stream, 10)
     assert(list2.size() === 3)
-    assert(list2.get(0) === event3Url)
-    assert(list2.get(1) === event2Url)
-    assert(list2.get(2) === event1Url)
+    assert(list2.get(0) === event3)
+    assert(list2.get(1) === event2)
+    assert(list2.get(2) === event1)
   }
 
-  def createNode(): String = {
+  def createNode(name: String) = {
     val json = db.path("node").accept("application/json").post(classOf[String])
     val node = gson.fromJson(json, classOf[Node])
-    return node.self
+    println(name + ": " + node.self)
+    node.self
+  }
+
+  def addSubscription(stream: String, source: String) {
+    graphity.path("subscriptions").queryParam("stream", stream).queryParam("source", source).post()
+  }
+
+  def addEvent(source: String, event: String, timestamp: Long) {
+    graphity.path("events").queryParam("source", source).queryParam("event", event).queryParam("timestamp", timestamp.toString()).post()
+  }
+
+  def getEvents(stream: String, count: Int) = {
+    val json = graphity.path("events").queryParam("stream", stream).queryParam("count", count.toString()).get(classOf[String])
+    gson.fromJson(json, classOf[java.util.List[String]])
   }
 
 }

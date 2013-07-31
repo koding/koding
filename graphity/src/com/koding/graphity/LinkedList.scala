@@ -6,7 +6,7 @@ import org.neo4j.graphdb.RelationshipType
 
 // Linked list with fixed head and tail nodes.
 object LinkedList {
-  
+
   // Points from head node and each entry node to tail node.
   object LINKED_LIST_TAIL extends RelationshipType { def name(): String = "LINKED_LIST_TAIL" }
 
@@ -14,7 +14,7 @@ object LinkedList {
   object LINKED_LIST_NEXT extends RelationshipType { def name(): String = "LINKED_LIST_NEXT" }
 
   // Initializes a linked list with given head and tail nodes.
-  def init(head: Node, tail: Node) = {
+  def init(head: Node, tail: Node) {
     head.createRelationshipTo(tail, LINKED_LIST_TAIL)
     head.createRelationshipTo(tail, LINKED_LIST_NEXT)
   }
@@ -41,7 +41,7 @@ object LinkedList {
   }
 
   // Remove entry and return tail node. Do not execute on head or tail node.
-  def remove(entry: Node): Node = {
+  def remove(entry: Node) = {
     val tailRel = entry.getSingleRelationship(LINKED_LIST_TAIL, Direction.OUTGOING)
     val outgoingNextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.OUTGOING)
     val incomingNextRel = entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING)
@@ -55,7 +55,7 @@ object LinkedList {
   }
 
   // Get previous entry. Do not execute on head node.
-  def getPrevious(entry: Node): Node = {
+  def getPrevious(entry: Node) = {
     entry.getSingleRelationship(LINKED_LIST_NEXT, Direction.INCOMING).getStartNode()
   }
 
