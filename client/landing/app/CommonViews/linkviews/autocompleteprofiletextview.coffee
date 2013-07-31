@@ -13,7 +13,7 @@ class AutoCompleteProfileTextView extends ProfileTextView
   pistachio:->
 
     name = KD.utils.getFullnameFromAccount @getData()
-    "{{@highlightMatch name}}" +
+    "#{@highlightMatch name}" +
       if @getOptions().shouldShowNick then """
         <span class='nick'>
           (@{{@highlightMatch #(profile.nickname), yes}})

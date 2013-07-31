@@ -14,7 +14,7 @@ class MemberMailLink extends KDCustomHTMLView
 
   pistachio:->
     name = KD.utils.getFullnameFromAccount @getData(), yes
-    "<cite/><span>Contact</span>#{name}"
+    "<cite/><span>Contact #{name}</span>"
 
   click:(event)->
 
