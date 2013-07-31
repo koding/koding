@@ -9,9 +9,9 @@ active-color = rgb(246,162,32)
 body
 
   font-family         "Open Sans", Helvetica, sans-serif
-  background-color    #393630
-  background-image    url(../images/koding-new-bg.png)
-  background-repeat   repeat-x
+  bg                  color, #393630
+  bg                  image, url('../images/koding-new-bg.png')
+  bg                  repeat, repeat-x
   font-weight         400
   overflow            hidden
   // &.login,
@@ -137,18 +137,37 @@ body
 }
 
 #kdmaincontainer
-  vendor            transition, opacity .6s ease-in-out
-  overflow          visible
+  vendor              transition, opacity .6s ease-in-out
+  overflow            visible
   &.scale
-    vendor         animation, shrink 1s ease-out
-    vendor         animation-iteration-count, 1
-    vendor         transform-style, preserve-3d
-    vendor         transform, scale(0)
+    vendor            animation, shrink 1s ease-out
+    vendor            animation-iteration-count, 1
+    vendor            transform-style, preserve-3d
+    vendor            transform, scale(0)
+
+  &.home
+    overflow          auto
+    > header
+      bg              color, #000
+      bg              image, url('../images/gunduz-varligi.jpg')
+      bg              position, -600px -211px
+
+
+    #main-panel-wrapper
+      min-height      100%
+      height          auto!important
+    #sidebar-panel
+      hidden()
+    #content-panel
+      min-height      100%
+      height          auto!important
 
   > header
     margin            0
     bg                color,transparent
     size              100%,51px
+    > div.kdview
+      max-width       1280px
     .button-holder
       width           auto
       padding         10px
@@ -210,6 +229,7 @@ body
   font-weight         600
   -moz-opacity        0.99 //hack for FF bold rendering issue
   color               #f2f2f2
+  vendor              transition, left .15s linear
   vendor              font-smoothing, antialiased
   vendor              text-rendering, geometricPrecision
   text-shadow         0 1px 0 rgba(0, 0, 0, .75)
@@ -225,7 +245,8 @@ body
   &.group
     span
       size            30px, 30px
-
+  &.large
+    left              70px
 
 #sidebar-panel
   abs()
@@ -250,10 +271,13 @@ body
     shadow            none
   &.with-finder
     left              260px
+    width             calc(100%\-260px)
   &.mouse-on-nav
     left              173px!important
+    width             calc(100%\-173px)
   &.social
     left              160px!important
+    width             calc(100%\-160px)
   &.develop
     min-width         250px
   &.no-anim
@@ -378,6 +402,7 @@ body
     bg                  repeat,no-repeat
     shadow              inset 0 0 13px 0 rgba(0,0,0,0.6)
     size                100%,76px
+    cursor              pointer
     // vendor transition,  background-size 0.15s ease-in-out
     h3
       abs()
@@ -628,6 +653,15 @@ span.main-nav-icon
     padding           0
     sprite()
     bg                  position, -137px -298px !important
+
+.app-settings
+  .enable-fullscreen-menu-item
+    padding           3px 10px
+    font              inherit
+    font-size         12px
+    span
+      width           87px
+      display         inline-block
 
 #main-tab-handle-holder
   abs()
@@ -957,10 +991,11 @@ span.main-nav-icon
 /*
 **  LEFT SIDEBAR STYLES
 */
-.profile-personal-wrapper
-#sidebar #main-nav
+
+#sidebar
+  #main-nav
     rel()
-    size              160px,auto
+    size              160px, auto
     min-height        100%
     overflow          hidden
     .avatar-placeholder
@@ -982,8 +1017,7 @@ span.main-nav-icon
       height          27px
       border-top      1px solid #403d37
       overflow        visible
-      // margin          0 0 23px 0
-      margin          0 0 0px 0
+      margin          0 0 23px 0
       >a
         border-right      1px solid #403d37
         text-align        center

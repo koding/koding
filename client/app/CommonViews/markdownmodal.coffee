@@ -1,4 +1,30 @@
-class KDMarkdownModalText
+class MarkdownModal extends KDModalView
+
+  constructor:(options = {}, data)->
+
+    options = $.extend
+      title       : "How to use the <em>Markdown</em> syntax."
+      cssClass    : "what-you-should-know-modal markdown-cheatsheet"
+      height      : "auto"
+      overlay     : yes
+      width       : 500
+      content     : @markdownText()
+      buttons     :
+        Close     :
+          title   : 'Close'
+          style   : 'modal-clean-gray'
+          callback: => @destroy()
+    , options
+
+    return  if KD._markdownHelpModal
+
+    KD._markdownHelpModal = this
+
+    super options, data
+
+  destroy:->
+    delete KD._markdownHelpModal
+    super
 
   markdownText:->
     # if we ever need any highlighting
@@ -6,7 +32,6 @@ class KDMarkdownModalText
 
   markdownTextHTML:->
     """
-
 <div class='modalformline'>This form supports <a href="http://daringfireball.net/projects/markdown/" target="_blank" title="Markdown project homepage">Markdown</a> and <a href="http://github.github.com/github-flavored-markdown/" target="_blank">GitHub-flavored Markdown</a>. Here is how to use it:</div>
 
 <div class="modalformline markdown-cheatsheet">

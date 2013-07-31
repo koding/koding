@@ -75,7 +75,8 @@ module.exports = class JUser extends jraphical.Module
       static        : [
         'login','logout','register','usernameAvailable','emailAvailable',
         'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
-        'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys'
+        'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
+        'authenticateWithOauth'
       ]
 
     schema          :
@@ -118,7 +119,8 @@ module.exports = class JUser extends jraphical.Module
           # enum      : ['invalid status',['online','offline','away','busy']]
 
       sshKeys       : [Object]
-
+      foreignAuth   :
+        github      : Object
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -152,28 +154,20 @@ module.exports = class JUser extends jraphical.Module
       callback err? or prefs?.isRegistrationEnabled or no
 
   @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)->
+    JSession.one {clientId}, (err, session)=>
       if err
         callback createKodingError err
       else unless session?
         JUser.createTemporaryUser callback
 #        JGuest.obtain null, clientId, callback
       else
-        {username, guestId} = session
-        if guestId?
-          JGuest.one {guestId}, (err, guest)=>
-            if err
-              callback createKodingError err
-            else if guest?
-              callback null, guest
-            else
-              @logout clientId, callback
-        else if username?
-          JUser.one {username}, (err, user)->
+        {username} = session
+        if username?
+          JUser.one {username}, (err, user)=>
             if err
               callback createKodingError err
             else unless user?
-              callback createKodingError 'Unknown user!'
+              @logout clientId, callback
             else
               user.fetchAccount context, (err, account)->
                 if err
@@ -270,33 +264,36 @@ module.exports = class JUser extends jraphical.Module
             , () ->
               callback createKodingError 'Access denied!'
           else
-            checkBlockedStatus user, (err)->
-              if err then return callback err
-              replacementToken = createId()
-              JGuest.recycle session.guestId
-              session.update {
-                $set            :
-                  username      : user.username
-                  lastLoginDate : new Date
-                  clientId      : replacementToken
-                $unset:
-                  guestId       : 1
-              }, (err)->
-                  if err then callback err
-                  user.fetchOwnAccount (err, account)->
-                    if err then return callback err
-                    connection.delegate = account
-                    JAccount.emit "AccountAuthenticated", account
+            afterLogin connection, user, clientId, session, callback
 
-                    # This should be called after login and this
-                    # is not correct place to do it, FIXME GG
-                    # p.s. we could do that in workers
-                    account.updateCounts()
+  afterLogin = (connection, user, clientId, session, callback)->
+    checkBlockedStatus user, (err)->
+      if err then return callback err
+      replacementToken = createId()
+      JGuest.recycle session.guestId
+      session.update {
+        $set            :
+          username      : user.username
+          lastLoginDate : new Date
+          clientId      : replacementToken
+        $unset:
+          guestId       : 1
+      }, (err)->
+          if err then callback err
+          user.fetchOwnAccount (err, account)->
+            if err then return callback err
+            connection.delegate = account
+            JAccount.emit "AccountAuthenticated", account
 
-                    callback null, account, replacementToken
+            # This should be called after login and this
+            # is not correct place to do it, FIXME GG
+            # p.s. we could do that in workers
+            account.updateCounts()
+
+            callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
-    if 'string' is typeof clientId
+    if 'string' is typeof client
       sessionToken = client
     else
       {sessionToken} = client
@@ -365,8 +362,10 @@ module.exports = class JUser extends jraphical.Module
 
           @configureNewAcccount account, user, createId(), callback
 
+  @createUser = (userInfo, callback)->
+    { username, email, password, firstName, lastName, foreignAuth,
+      silence } = userInfo
 
-  @createUser = ({ username, email, password, firstName, lastName }, callback)->
     slug =
       slug            : username
       constructorName : 'JUser'
@@ -394,6 +393,9 @@ module.exports = class JUser extends jraphical.Module
             groupApproved  : on
           }
         }
+
+        user.foreignAuth = foreignAuth  if foreignAuth
+
         user.save (err)=>
           if err
             if err.code is 11000
@@ -419,7 +421,49 @@ module.exports = class JUser extends jraphical.Module
     JUser.emit 'UserCreated', user
     createNewMemberActivity account
     JAccount.emit "AccountAuthenticated", account
-    callback null, account, replacementToken
+    callback null, {account, replacementToken}
+
+  @fetchUserByProvider = (provider, session, callback)->
+    query = {}
+    query["foreignAuth.#{provider}.foreignId"] = session.foreignAuth[provider].foreignId
+    JUser.one query, callback
+
+  @authenticateWithOauth = secure (client, resp, callback)->
+    {isUserLoggedIn, provider} = resp
+    {sessionToken} = client
+    JSession.one {clientId: sessionToken}, (err, session) =>
+      return callback err  if err
+      kallback = (err, resp={}) ->
+        {account, replacementToken} = resp
+        callback err, {
+          isNewUser : false
+          userInfo  : null
+          account
+          replacementToken
+        }
+      @fetchUserByProvider provider, session, (err, user) =>
+        if err
+          callback createKodingError err.message
+        else
+          if isUserLoggedIn
+            if user
+              callback createKodingError """
+                Account is already linked with another user.
+              """
+            else
+              @fetchUser client, (err, user)=>
+                {username} = user
+                @copyOauthFromSessionToUser user.username, sessionToken, kallback
+          else
+            if user
+              afterLogin client.connection, user, sessionToken, session, kallback
+            else
+              info = session.foreignAuth[provider]
+              {username, email, firstName, lastName} = info
+              callback null, {
+                isNewUser : true,
+                userInfo  : {username, email, firstName, lastName}
+              }
 
   @validateAll = (userFormData, callback) =>
 
@@ -497,20 +541,22 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err?
         @changeEmailByUsername oldUsername, email, (err) =>
           return callback err  if err?
-          options = { account, username, clientId, isRegistration: yes }
-          @changeUsernameByAccount options, (err, newToken) =>
-            return callback err  if err?
-            @addToGroups account, null, email, (err) =>
+          @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
+            return callback err  if err
+            options = { account, username, clientId, isRegistration: yes }
+            @changeUsernameByAccount options, (err, newToken) =>
               return callback err  if err?
-              @removeFromGuestsGroup account, (err) ->
+              @addToGroups account, null, email, (err) =>
                 return callback err  if err?
-                account.update $set: {
-                  'profile.firstName' : firstName
-                  'profile.lastName'  : lastName
-                  type                : 'registered'
-                }, (err) =>
+                @removeFromGuestsGroup account, (err) ->
                   return callback err  if err?
-                  callback null, newToken
+                  account.update $set: {
+                    'profile.firstName' : firstName
+                    'profile.lastName'  : lastName
+                    type                : 'registered'
+                  }, (err) =>
+                    return callback err  if err?
+                    callback null, newToken
 
   @register = secure (client, userFormData, callback) ->
     { connection } = client
@@ -539,6 +585,8 @@ module.exports = class JUser extends jraphical.Module
             userData = {
               username, password, email, firstName, lastName
             }
+            userData.foreignAuth = session.foreignAuth  if session.foreignAuth
+
             @createUser userData, (err, user, account) =>
               return callback err  if err
               @removeUnsubscription userData, (err)=>
@@ -684,10 +732,10 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView:(account, callback)->
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView callback
+      else account.fetchHomepageView account, callback
 
   sendEmailConfirmation:(callback=->)->
     JEmailConfirmation = require '../emailconfirmation'
@@ -707,6 +755,16 @@ module.exports = class JUser extends jraphical.Module
         status: 'blocked',
         blockedUntil : blockedUntil
     , callback
+
+  @copyOauthFromSessionToUser: (username, clientId, callback)->
+    JSession.one {clientId: clientId}, (err, session) =>
+      if err
+        callback err
+      else
+        if session.foreignAuth
+          @update {username}, $set: foreignAuth: session.foreignAuth, callback
+        else
+          callback()
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->

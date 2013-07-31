@@ -25,7 +25,7 @@ module.exports =
     port        : 3000
     clusterSize : 1
     queueName   : socialQueueName+'web'
-    watch       : yes
+    watch       : no
   sourceServer  :
     enabled     : yes
     port        : 1337
@@ -33,12 +33,12 @@ module.exports =
     read        : "http://internal-neo4j-read-elb-1962816121.us-east-1.elb.amazonaws.com"
     write       : "http://internal-neo4j-write-elb-1924664554.us-east-1.elb.amazonaws.com"
     port        : 7474
-  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding-staging'
-  runNeo4jFeeder: no
+  mongo         : 'dev:k9lc4G1k32nyD72@kmongodb1.in.koding.com:27017/koding'
+  runNeo4jFeeder: yes
   runGoBroker   : no
-  runKontrol    : no
-  runRerouting  : no
-  runUserPresence: no
+  runKontrol    : yes
+  runRerouting  : yes
+  runUserPresence: yes
   runPersistence: yes
   compileGo     : no
   buildClient   : yes
@@ -79,18 +79,18 @@ module.exports =
     login       : 'prod-authworker'
     queueName   : socialQueueName+'auth'
     numberOfWorkers: 2
-    watch       : yes
+    watch       : no
   graphFeederWorker:
     numberOfWorkers: 2
   social        :
     login       : 'prod-social'
-    numberOfWorkers: 4
-    watch       : yes
+    numberOfWorkers: 7
+    watch       : no
     queueName   : socialQueueName
     verbose     : no
   cacheWorker   :
     login       : 'prod-social'
-    watch       : yes
+    watch       : no
     queueName   : socialQueueName+'cache'
     run         : no
   presence        :
@@ -109,6 +109,8 @@ module.exports =
     staticFilesBaseUrl: "https://koding.com"
     runtimeOptions:
       authExchange: authExchange
+      github        :
+        clientId    : "5891e574253e65ddb7ea"
       userSitesDomain: 'kd.io'
       useNeo4j: yes
       logToExternal : yes
@@ -124,9 +126,9 @@ module.exports =
       appsUri   : 'https://koding-apps.s3.amazonaws.com'
       sourceUri : "http://webserver-build-koding-#{version}a.in.koding.com:1337"
   mq            :
-    host        : 'rabbitmq1.in.koding.com'
+    host        : 'rabbitmq.in.koding.com'
     port        : 5672
-    apiAddress  : "ec2-rabbit-1302453274.us-east-1.elb.amazonaws.com"
+    apiAddress  : "rabbitmq.in.koding.com"
     apiPort     : 15672
     login       : 'guest'
     componentUser: "guest"
@@ -183,6 +185,8 @@ module.exports =
       vhost       : '/'
   recurly       :
     apiKey      : '0cb2777651034e6889fb0d091126481a' # koding.recurly.com
+  embedly       :
+    apiKey      : 'd03fb0338f2849479002fe747bda2fc7'
   opsview	:
     push	: yes
     host	: 'opsview.in.koding.com'
@@ -194,3 +198,6 @@ module.exports =
     componentUser: 'guest'
     password    : 's486auEkPzvUjYfeFTMQ'
     vhost       : 'followfeed'
+  github        :
+    clientId    : "5891e574253e65ddb7ea"
+    clientSecret: "9c8e89e9ae5818a2896c01601e430808ad31c84a"

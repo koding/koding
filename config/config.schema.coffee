@@ -36,7 +36,7 @@ config =
       mongo             :
         databases       :
           mongodb       : [{ host : 1, user : 1, password:1}]
-  main :
+  main            :
     haproxy       :
       webPort     : 1
     aws           :
@@ -130,8 +130,10 @@ config =
       index         : 1
       useStaticFileServer: 1
       staticFilesBaseUrl: 1
-      runtimeOptions:
-        authExchange   : 1
+      runtimeOptions  :
+        authExchange  : 1
+        github        :
+          clientId    : 1
         userSitesDomain: 1
         useNeo4j      : 1
         logToExternal : 1
@@ -202,6 +204,8 @@ config =
         vhost       : 1
     recurly         :
       apiKey        : 1
+    embedly         :
+      apiKey        : 1
     followFeed      :
       host          : 1
       port          : 1
@@ -213,4 +217,7 @@ config =
       host          : 1
       bin           : 1
       conf          : 1
+    github          :
+      clientId      : 1
+      clientSecret  : 1
 module.exports = config

@@ -26,6 +26,9 @@ module.exports =
       'cancelRequest', 'acceptInvitation', 'ignoreInvitation',
       'fetchMyGroupInvitationStatus', 'fetchMyPermissions',
       'fetchMyPermissionsAndRoles', 'fetchMyFollowingsFromGraph',
-      'fetchMyFollowersFromGraph', 'fetchDomains', 'sendEmailVMTurnOnFailureToSysAdmin',
-      'blockUser', 'fetchDomains', 'changeUsername'
+      'fetchMyFollowersFromGraph', 'blockUser',
+      'sendEmailVMTurnOnFailureToSysAdmin', 'fetchRelatedTagsFromGraph',
+      'fetchRelatedUsersFromGraph', 'fetchDomains', 'fetchDomains',
+      'unlinkOauth', 'changeUsername', 'fetchOldKodingDownloadLink',
+      'markUserAsExempt', 'checkFlag', 'userIsExempt'
     ]

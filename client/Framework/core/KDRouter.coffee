@@ -32,12 +32,10 @@ class KDRouter extends KDObject
 
   popState:(event)->
     revive event.state, (err, state)=>
-      if err?
-        new KDNotificationView title: 'An unknown error has occurred.'
-      else
-        @handleRoute "#{location.pathname}#{location.search}",
-          shouldPushState   : no
-          state             : state
+      return KD.showError err  if err
+      @handleRoute "#{location.pathname}#{location.search}",
+        shouldPushState   : no
+        state             : state
 
   clear:(route = '/', replaceState = yes)->
     console.log {arguments}

@@ -52,7 +52,7 @@ class TopicsAppController extends AppController
               else
                 {everything} = resultsController.listControllers
                 everything.forEachItemByIndex followees, ({followButton})->
-                  followButton.setState 'Unfollow'
+                  followButton.setState 'Following'
           dataError         :->
             log "Seems something broken:", arguments
 
@@ -71,7 +71,7 @@ class TopicsAppController extends AppController
           dataEnd           : ({resultsController}, ids)->
             {following} = resultsController.listControllers
             following.forEachItemByIndex ids, ({followButton})->
-              followButton.setState 'Unfollow'
+              followButton.setState 'Following'
         # recommended         :
         #   title             : "Recommended"
         #   dataSource        : (selector, options, callback)=>

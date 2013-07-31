@@ -91,6 +91,35 @@ class LoginView extends KDScrollView
 
     KD.getSingleton("mainController").on "landingSidebarClicked", => @unsetClass 'landed'
 
+    setValue = (field, value)=>
+      @registerForm[field].input?.setValue value
+
+    mainController = KD.getSingleton "mainController"
+    mainController.on "ForeignAuthCompleted", (provider)=>
+      isUserLoggedIn = KD.isLoggedIn()
+      params = {isUserLoggedIn, provider}
+
+      KD.remote.api.JUser.authenticateWithOauth params, (err, resp)=>
+        if err
+          new KDNotificationView
+            title : "An error occurred: #{err.message}"
+        else
+          {account, replacementToken, isNewUser, userInfo} = resp
+          if isNewUser
+            @animateToForm "register"
+            for own field, value of userInfo
+              setValue field, value
+          else
+            if isUserLoggedIn
+              mainController.emit "ForeignAuthSuccess", provider
+              new KDNotificationView
+                title : "Thanks for linking your account!"
+            else
+              @afterLoginCallback err, {account, replacementToken}
+
+    mainController.on "ForeignAuthFailed", ->
+      new KDNotificationView title : "Authorization failed."
+
   viewAppended:->
 
     @setY -KD.getSingleton('windowController').winHeight
@@ -158,15 +187,6 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
-  showInstructionsBookIfFirstLogin:->
-    appStorage = new AppStorage "instruction-book", "1.0"
-    appStorage.fetchValue "readPages", (pages) ->
-      pages or= []
-      if pages.length is 0
-        pages.push "table-of-contents"
-        appStorage.setValue "readPages", pages
-        KD.getSingleton('mainController').emit "FirstTimeLoginHappened", 1
-
   doRegister:(formData)->
     formData.agree = 'on'
     @registerForm.notificationsDisabled = yes
@@ -190,6 +210,7 @@ class LoginView extends KDScrollView
 
       else
 
+        $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
@@ -198,7 +219,6 @@ class LoginView extends KDScrollView
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-        @showInstructionsBookIfFirstLogin()
 
         # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',
@@ -220,53 +240,68 @@ class LoginView extends KDScrollView
 
   doLogin:(credentials)->
     credentials.username = credentials.username.toLowerCase()
-    KD.remote.api.JUser.login credentials, (err, account, replacementToken) =>
-      @loginForm.button.hideLoader()
+    KD.remote.api.JUser.login credentials, @bound "afterLoginCallback"
 
-      {entryPoint} = KD.config
+  runExternal = (token)->
+    KD.getSingleton("kiteController").run
+      kiteName        : "externals"
+      method          : "import"
+      correlationName : " "
+      withArgs        :
+        value         : token
+        serviceName   : "github"
+        userId        : KD.whoami().getId()
+      ,
+    (err, status)-> console.log "Status of fetching stuff from external: #{status}"
 
-      if err
-        if err.message.length > 50
-          new KDModalView
-            title        : "Something is wrong!"
-            width        : 500
-            overlay      : yes
-            cssClass     : "new-kdmodal"
-            content      :
-              """
-                <div class='modalformline'>
-                  #{err.message}
-                </div>
-              """
-        else
-          new KDNotificationView
-            title   : err.message
-            duration: 1000
+  afterLoginCallback: (err, params={})->
+    @loginForm.button.hideLoader()
+    {entryPoint} = KD.config
 
-        @loginForm.resetDecoration()
+    if err
+      if err.message.length > 50
+        new KDModalView
+          title        : "Something is wrong!"
+          width        : 500
+          overlay      : yes
+          cssClass     : "new-kdmodal"
+          content      :
+            """
+              <div class='modalformline'>
+                #{err.message}
+              </div>
+            """
       else
-        $.cookie 'clientId', replacementToken  if replacementToken
-        mainController = KD.getSingleton('mainController')
-        mainView       = mainController.mainViewController.getView()
-        mainController.accountChanged account
-        mainView.show()
-        mainView.$().css "opacity", 1
+        new KDNotificationView
+          title   : err.message
+          duration: 1000
 
-        KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
-        KD.getSingleton('groupsController').on 'GroupChanged', =>
-          new KDNotificationView
-            cssClass  : "login"
-            title     : "<span></span>Happy Coding!"
-            duration  : 2000
-          @loginForm.reset()
+      @loginForm.resetDecoration()
+    else
+      {account, replacementToken} = params
+      $.cookie 'clientId', replacementToken  if replacementToken
+      mainController = KD.getSingleton('mainController')
+      mainView       = mainController.mainViewController.getView()
+      mainController.accountChanged account
+      mainView.show()
+      mainView.$().css "opacity", 1
 
+      KD.getSingleton('router').handleRoute '/Activity', {replaceState: yes, entryPoint}
+      KD.getSingleton('groupsController').on 'GroupChanged', =>
         new KDNotificationView
           cssClass  : "login"
           title     : "<span></span>Happy Coding!"
           duration  : 2000
         @loginForm.reset()
 
-        @hide()
+      new KDNotificationView
+        cssClass  : "login"
+        title     : "<span></span>Happy Coding!"
+        # content   : "Successfully logged in."
+        duration  : 2000
+      @loginForm.reset()
+
+      @hide()
 
   doRedeem:({inviteCode})->
     return  unless KD.config.entryPoint?.slug or KD.isLoggedIn()

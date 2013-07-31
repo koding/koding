@@ -1,8 +1,7 @@
-{Module} = require 'jraphical'
+{Module}     = require 'jraphical'
 {difference} = require 'underscore'
 
 module.exports = class JGroup extends Module
-
 
   [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
@@ -11,15 +10,11 @@ module.exports = class JGroup extends Module
   {Inflector, ObjectId, ObjectRef, secure, daisy, race, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
-  {permit} = JPermissionSet
-
-  KodingError = require '../../error'
-
-  Validators = require './validators'
-
-  {throttle} = require 'underscore'
-
-  Graph       = require "../graph/graph"
+  {permit}       = JPermissionSet
+  KodingError    = require '../../error'
+  Validators     = require './validators'
+  {throttle}     = require 'underscore'
+  Graph          = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -189,13 +184,14 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member)->
       @constructor.emit 'MemberAdded', { group: this, member }
-      @sendNotificationToAdmins 'GroupJoined',
-        actionType : 'groupJoined'
-        actorType  : 'member'
-        subject    : ObjectRef(this).data
-        member     : ObjectRef(member).data
-      @broadcast 'MemberJoinedGroup',
-        member : ObjectRef(member).data
+      unless @slug is 'guests'
+        @sendNotificationToAdmins 'GroupJoined',
+          actionType : 'groupJoined'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
+        @broadcast 'MemberJoinedGroup',
+          member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -259,7 +255,10 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderHomepage: require './render-homepage'
+  @renderGroupHomeLoggedIn   : require '../../render/grouphomeloggedin'
+  @renderGroupHomeLoggedOut  : require '../../render/grouphomeloggedout'
+  @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
+  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -456,7 +455,7 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
         console.error err  if err
         unless group
@@ -601,6 +600,7 @@ module.exports = class JGroup extends Module
     success:(client, rest...)->
       [selector, options, callback] = Module.limitEdges 100, rest
       # delete options.targetOptions
+      options.client = client
       @fetchMembers selector, options, ->
         callback arguments...
 
@@ -671,13 +671,14 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView: (account, callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
         else
-          callback null, JGroup.renderHomepage {
+          options = {
+            account
             @slug
             @title
             policy
@@ -687,6 +688,10 @@ module.exports = class JGroup extends Module
             content : readme?.html ? readme?.content
             @customize
           }
+          if account.type is 'unregistered'
+            callback null, JGroup.renderGroupHomeLoggedOut options
+          else
+            callback null, JGroup.renderGroupHomeLoggedIn options
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1384,6 +1389,7 @@ module.exports = class JGroup extends Module
       graph = new Graph({config:KONFIG['neo4j']})
       options.groupId = @getId()
       JAccount = require '../account'
+      options.client = client
       graph.fetchMembers options, (err, results)=>
         if err then return callback err
         else if results.length < 1 then return callback null, []

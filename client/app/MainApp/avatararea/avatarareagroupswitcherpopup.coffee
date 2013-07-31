@@ -61,10 +61,15 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         KD.getSingleton('router').handleRoute '/Groups'
         @hide()
 
+    groupsController = KD.getSingleton("groupsController")
+    groupsController.once 'GroupChanged', () =>
+      group =  groupsController.getCurrentGroup()
+      if group?.slug isnt "koding"
+        backToKodingView.updatePartial "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
+
     backToKodingView = new KDView
       height   : "auto"
       cssClass : "split sublink right"
-      partial  : "<a class='right' target='_blank' href='/Activity'>Back to Koding</a>"
       click    : =>
         @hide()
 

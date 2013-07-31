@@ -92,6 +92,8 @@ class Ace extends KDView
 
       @addKeyCombo "preview", "Ctrl-Shift-P", => @getDelegate().preview()
 
+      @addKeyCombo "fullscreen", "Ctrl-Enter", => @getDelegate().toggleFullscreen()
+
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()
     selectedText         = @editor.session.getTextRange @editor.getSelectionRange()

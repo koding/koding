@@ -32,6 +32,8 @@ class AceAppController extends AppController
       { title     : "customViewRecents",   parentId  : "recents"}
       { title     : "Reopen Latest Files", eventName : "reopen" }
       { type      : "separator" }
+      { title     : "customViewFullscreen" }
+      { type      : "separator" }
       { title     : "Exit",                eventName : "exit" }
     ]
     fileTypes     : [

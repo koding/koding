@@ -1,39 +1,66 @@
+# TODO: we have to move kd related functions to somewhere else...
+
 {argv} = require 'optimist'
-Object.defineProperty global, 'KONFIG', {
+Object.defineProperty global, 'KONFIG',
   value: require('koding-config-manager').load("main.#{argv.c}")
-}
 
-{webserver, mongo, mq, projectRoot, kites, uploads, basicAuth, neo4j} = KONFIG
-page = require './staticpages'
-
+{
+  webserver
+  mongo
+  mq
+  projectRoot
+  kites
+  uploads
+  basicAuth
+  neo4j
+  github
+}       = KONFIG
 webPort = argv.p ? webserver.port
+koding  = require './bongo'
 
 processMonitor = (require 'processes-monitor').start
-  name : "webServer on port #{webPort}"
-  stats_id: "webserver." + process.pid
-  interval : 30000
-  librato: KONFIG.librato
-  limit_hard  :
-    memory   : 300
-    callback : ->
+  name                : "webServer on port #{webPort}"
+  stats_id            : "webserver." + process.pid
+  interval            : 30000
+  librato             : KONFIG.librato
+  limit_hard          :
+    memory            : 300
+    callback          : ->
       console.log "[WEBSERVER #{webPort}] Using excessive memory, exiting."
       process.exit()
-  die :
-    after: "non-overlapping, random, 3 digits prime-number of minutes"
-    middleware : (name,callback) -> koding.disconnect callback
+  die                 :
+    after             : "non-overlapping, random, 3 digits prime-number of minutes"
+    middleware        : (name,callback) -> koding.disconnect callback
     middlewareTimeout : 5000
 
-_        = require 'underscore'
-async    = require 'async'
-{extend} = require 'underscore'
-express  = require 'express'
-Broker   = require 'broker'
-request  = require 'request'
-fs       = require 'fs'
-hat      = require 'hat'
-nodePath = require 'path'
+_          = require 'underscore'
+async      = require 'async'
+{extend}   = require 'underscore'
+express    = require 'express'
+Broker     = require 'broker'
+request    = require 'request'
+fs         = require 'fs'
+hat        = require 'hat'
+nodePath   = require 'path'
+http       = require "https"
+{JSession} = koding.models
+app        = express()
 
-app      = express()
+{
+  error_
+  error_404
+  error_500
+  authenticationFailed
+  findUsernameFromKey
+  findUsernameFromSession
+  fetchJAccountByKiteUserNameAndKey
+  renderLoginTemplate
+  serve
+  isLoggedIn
+  saveOauthToSession
+  getAlias
+}          = require './helpers'
+
 
 # this is a hack so express won't write the multipart to /tmp
 #delete express.bodyParser.parse['multipart/form-data']
@@ -57,13 +84,6 @@ process.on 'uncaughtException',(err)->
   console.log 'there was an uncaught exception'
   console.log process.pid
   console.error err
-#    stack = err?.stack
-#    console.log stack  if stack?
-
-koding = require './bongo'
-
-authenticationFailed = (res, err)->
-  res.send "forbidden! (reason: #{err?.message or "no session!"})", 403
 
 app.use (req, res, next) ->
   {JSession} = koding.models
@@ -73,28 +93,6 @@ app.use (req, res, next) ->
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
     next()
-
-app.get "/-/cache/latest", (req, res)->
-  {JActivityCache} = koding.models
-  startTime = Date.now()
-  JActivityCache.latest (err, cache)->
-    if err then console.warn err
-    # if you want to jump to previous cache - uncomment if needed
-    if cache and req.query?.previous?
-      timestamp = new Date(cache.from).getTime()
-      return res.redirect 301, "/-/cache/before/#{timestamp}"
-    # console.log "latest: #{Date.now() - startTime} msecs!"
-    return res.send if cache then cache.data else {}
-
-app.get "/-/cache/before/:timestamp", (req, res)->
-  {JActivityCache} = koding.models
-  JActivityCache.before req.params.timestamp, (err, cache)->
-    if err then console.warn err
-    # if you want to jump to previous cache - uncomment if needed
-    if cache and req.query?.previous?
-      timestamp = new Date(cache.from).getTime()
-      return res.redirect 301, "/-/cache/before/#{timestamp}"
-    res.send if cache then cache.data else {}
 
 app.get "/-/imageProxy", (req, res)->
   if req.query.url
@@ -193,49 +191,7 @@ app.get "/-/kite/login", (req, res) ->
                 res.header "Content-Type", "application/json"
                 res.send 200, JSON.stringify creds
 
-# TODO: we have to move kd related functions to somewhere else...
 
-# gate for kd
-findUsernameFromKey = (req, res, callback) ->
-  fetchJAccountByKiteUserNameAndKey req, (err, account)->
-    if err
-      console.log "we have a problem houston", err
-      callback err, null
-    else if not account
-      console.log "couldnt find the account"
-      res.send 401
-      callback false, null
-    else
-      callback false, account.profile.nickname
-
-fetchJAccountByKiteUserNameAndKey = (req, callback)->
-  if req.fields
-    {username, key} = req.fields
-  else
-    {username, key} = req.body
-
-  {JKodingKey, JAccount} = koding.models
-  {ObjectId} = require "bongo"
-
-  JKodingKey.fetchByUserKey
-    username: username
-    key     : key
-  , (err, kodingKey)=>
-    console.log err, kodingKey.owner
-    #if err or not kodingKey
-    #  return callback(err, kodingKey)
-
-    JAccount.one
-      _id: ObjectId(kodingKey.owner)
-    , (err, account)->
-      if not account or err
-         callback("couldnt find account #{kodingKey.owner}", null)
-         return
-      console.log "account ====================="
-      console.log account
-      console.log "======== account"
-      req.account = account
-      callback(err, account)
 
 
 s3 = require('./s3') uploads.s3, findUsernameFromKey
@@ -279,17 +235,6 @@ app.get "/Logout", (req, res)->
   res.clearCookie 'clientId'
   res.redirect 302, '/'
 
-findUsernameFromSession = (req, res, callback) ->
-  {clientId} = req.cookies
-  koding.models.JSession.fetchSession clientId, (err, session)->
-    if err
-      console.error err
-      callback "", err
-    else unless session?
-      res.send 403, 'Access denied!'
-      callback false, ""
-    callback false, session.username
-
 if uploads?.enableStreamingUploads
 
   s3 = require('./s3') uploads.s3, findUsernameFromSession
@@ -329,10 +274,7 @@ app.get "/-/presence/:service", (req, res) ->
   # else
     # res.send 404
 
-
-
 app.get '/-/services/:service', require './services-presence'
-
 
 app.get "/-/status/:event/:kiteName",(req,res)->
   # req.params.data
@@ -354,75 +296,111 @@ app.get "/-/api/user/:username/flags/:flag", (req, res)->
       state = account.checkFlag('super-admin') or account.checkFlag(flag)
     res.end "#{state}"
 
-error_ =(code, message)->
-  messageHTML = message.split('\n')
-    .map((line)-> "<p>#{line}</p>")
-    .join '\n'
-  """
-  <title>#{code}</title>
-  <h1>#{code}</h1>
-  #{messageHTML}
-  """
+app.get "/-/oauth/:provider/callback", (req,res)->
+  {provider} = req.params
+  code = req.query.code
+  access_token = null
 
-error_404 =->
-  error_ 404,
-    """
-    not found
-    fayamf
-    """
+  unless code
+    {loginFailureTemplate} = require './staticpages'
+    serve loginFailureTemplate, res
+    return
 
-error_500 =->
-  error_ 500, 'internal server error'
+  headers =
+    "Accept"     : "application/json"
+    "User-Agent" : "Koding"
+
+  authorizeUser = (authUserResp)->
+    rawResp = ""
+    authUserResp.on "data", (chunk) -> rawResp += chunk
+    authUserResp.on "end", ->
+      {access_token} = JSON.parse rawResp
+      if access_token
+        options =
+          host    : "api.github.com"
+          path    : "/user?access_token=#{access_token}"
+          method  : "GET"
+          headers : headers
+        request = http.request options, fetchUserInfo
+        request.end()
+
+  fetchUserInfo = (userInfoResp) ->
+    rawResp = ""
+    userInfoResp.on "data", (chunk) -> rawResp += chunk
+    userInfoResp.on "end", ->
+      {login, id, email, name} = JSON.parse rawResp
+      if name
+        [firstName, restOfNames...] = name.split ' '
+        lastName = restOfNames.join ' '
+
+      {clientId} = req.cookies
+      resp = {provider, firstName, lastName, login, id, email, access_token,
+              clientId}
+
+      if not email? or email is ""
+        options =
+          host    : "api.github.com"
+          path    : "/user/emails?access_token=#{access_token}"
+          method  : "GET"
+          headers : headers
+        request = http.request options, (newResp)-> fetchUserEmail newResp, resp
+        request.end()
+      else
+        renderLoginTemplate resp, res
+
+  fetchUserEmail = (userEmailResp, originalResp)->
+    rawResp = ""
+    userEmailResp.on "data", (chunk) -> rawResp += chunk
+    userEmailResp.on "end", ->
+      email = JSON.parse(rawResp)[0]
+      originalResp.email = email
+      renderLoginTemplate originalResp, res
+
+  options =
+    host   : "github.com"
+    path   : "/login/oauth/access_token?client_id=#{github.clientId}&client_secret=#{github.clientSecret}&code=#{code}"
+    method : "POST"
+    headers : headers
+  request = http.request options, authorizeUser
+  request.end()
 
 app.get '/:name/:section?*', (req, res, next)->
-  {JGroup, JName, JSession} = koding.models
+  {JName} = koding.models
   {name} = req.params
   return res.redirect 302, req.url.substring 7  if name in ['koding', 'guests']
   [firstLetter] = name
   if firstLetter.toUpperCase() is firstLetter
     next()
   else
-    JName.fetchModels name, (err, models)->
-      if err then next err
-      else unless models? then res.send 404, error_404()
-      else
-        models[models.length-1].fetchHomepageView (err, view)->
-          if err then next err
-          else if view? then res.send view
-          else res.send 500, error_500()
-
-  # groupName = name
-  # JGroup.one { slug: groupName }, (err, group)->
-  #   if err or !group? then next err
-  #   else
-  #     group.fetchHomepageView (err, view)->
-  #       if err then next err
-  #       else res.send view
-
-# app.get '/:userName', (req, res, next)->
-#   {JAccount} = koding.models
-#   {userName} = req.params
-#   JAccount.one { 'profile.nickname': userName }, (err, account)->
-#     if err or !account? then next err
-#     else
-#       if account.profile.staticPage?.show is yes
-#         account.fetchHomepageView (err, view)->
-#           if err then next err
-#           else res.send view
-#       else
-#         res.header 'Location', '/Activity'
-#         res.send 302
-
-serve = (content, res)->
-  res.header 'Content-type', 'text/html'
-  res.send content
+    {JGroup} = koding.models
+    isLoggedIn req, res, (err, loggedIn, account)->
+      JName.fetchModels name, (err, models)->
+        if err then next err
+        else unless models? then res.send 404, error_404()
+        else
+          models.last.fetchHomepageView account, (err, view)->
+            if err then next err
+            else if view? then res.send view
+            else res.send 500, error_500()
 
 app.get "/", (req, res)->
   if frag = req.query._escaped_fragment_?
     res.send 'this is crawlable content'
   else
-    defaultTemplate = require './staticpages'
-    serve defaultTemplate, res
+    {JGroup} = koding.models
+    isLoggedIn req, res, (err, loggedIn, account)->
+      if err
+        res.send 500, error_500()
+        console.error err
+      else if loggedIn
+        # go to koding activity
+        activityPage = JGroup.renderKodingHomeLoggedIn {account}
+        serve activityPage, res
+      else
+        # go to koding home
+        homePage = JGroup.renderKodingHomeLoggedOut()
+        serve homePage, res
+
 
 ###
 app.get "/-/kd/register/:key", (req, res)->
@@ -451,23 +429,21 @@ app.get "/-/kd/register/:key", (req, res)->
               JPublicKey.create {connection: {delegate: account}}, {key}, (err, publicKey)->
                 res.send "true"
 ###
-getAlias = do->
-  caseSensitiveAliases = ['auth']
-  (url)->
-    rooted = '/' is url.charAt 0
-    url = url.slice 1  if rooted
-    if url in caseSensitiveAliases
-      alias = "#{url.charAt(0).toUpperCase()}#{url.slice 1}"
-    if alias and rooted then "/#{alias}" else alias
 
 app.get '*', (req,res)->
-  {url} = req
-  queryIndex = url.indexOf '?'
+  {url}            = req
+  queryIndex       = url.indexOf '?'
   [urlOnly, query] =\
-    if ~queryIndex then [url.slice(0, queryIndex), url.slice(queryIndex)]
+    if ~queryIndex
+    then [url.slice(0, queryIndex), url.slice(queryIndex)]
     else [url, '']
-  alias = getAlias urlOnly
-  redirectTo = if alias then "#{alias}#{query}" else "/#!#{urlOnly}#{query}"
+
+  alias      = getAlias urlOnly
+  redirectTo =\
+    if alias
+    then "#{alias}#{query}"
+    else "/#!#{urlOnly}#{query}"
+
   res.header 'Location', redirectTo
   res.send 302
 

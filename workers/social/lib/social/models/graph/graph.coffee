@@ -157,6 +157,20 @@ module.exports = class Graph
         filteredContent.push content if content.group not in secretGroups
       return callback null, filteredContent
 
+  getExemptUsersClauseIfNeeded: (requestOptions, callback)->  
+    if not requestOptions.withExempt
+      {delegate} = requestOptions.client.connection
+      JAccount = require '../account/index'
+      JAccount.getExemptUserIds (err, ids)=>
+        return callback err, null if err
+        trollIds = ('"' + id + '"' for id in ids when id.toString() isnt delegate.getId().toString()).join(',')
+        if trollIds.length > 0
+          callback null, " AND NOT(members.id in ["+trollIds+"])  "
+        else
+          callback null, ""
+    else
+      callback null, ""
+
   fetchAll:(requestOptions, callback)->
     {group:{groupName, groupId}, startDate, client} = requestOptions
 
@@ -176,37 +190,41 @@ module.exports = class Graph
         and content.group! = "#{groupName}"
 
       """
-    query += """
 
-      return content
-      order by content.`meta.createdAtEpoch` DESC
-      limit 20
-    """
-    @db.query query, {}, (err, results)=>
-      tempRes = []
-      if err then callback err
-      else if results.length is 0 then callback null, []
-      else
-        collectRelations = race (i, res, fin)=>
-          id = res.id
+    @getExemptUsersClauseIfNeeded requestOptions, (err, exemptClause)=>
+      return callback err, null if err
 
-          @fetchRelatedItems id, (err, relatedResult)=>
-            if err
-              callback err
-              fin()
+      query += """
+        #{exemptClause}
+        return content
+        order by content.`meta.createdAtEpoch` DESC
+        limit 20
+      """
+      @db.query query, {}, (err, results)=>
+        tempRes = []
+        if err then callback err
+        else if results.length is 0 then callback null, []
+        else
+          collectRelations = race (i, res, fin)=>
+            id = res.id
+
+            @fetchRelatedItems id, (err, relatedResult)=>
+              if err
+                callback err
+                fin()
+              else
+                tempRes[i].relationData =  relatedResult
+                fin()
+          , =>
+            if groupName == "koding"
+              @removePrivateContent client, groupId, tempRes, callback
             else
-              tempRes[i].relationData =  relatedResult
-              fin()
-        , =>
-          if groupName == "koding"
-            @removePrivateContent client, groupId, tempRes, callback
-          else
-            callback null, tempRes
-        resultData = ( result.content.data for result in results)
-        objectify resultData, (objecteds)->
-          for objected in objecteds
-            tempRes.push objected
-            collectRelations objected
+              callback null, tempRes
+          resultData = ( result.content.data for result in results)
+          objectify resultData, (objecteds)->
+            for objected in objecteds
+              tempRes.push objected
+              collectRelations objected
 
   fetchRelateds: (query, callback)->
     @db.query query, {}, (err, results) ->
@@ -278,6 +296,47 @@ module.exports = class Graph
           resultData.push data
           @generateInstalledApps resultData, results, callback
 
+  searchMembers:(options, callback)->
+    {groupId, seed, firstNameRegExp, lastNameRegexp, skip, limit, blacklist} = options
+
+    activity = require '../activity/index'
+
+    activity.getCurrentGroup options.client, (err, group)=>
+      if err
+        return callback err
+
+      query = """
+        START  koding=node:koding("id:#{group.getId()}")
+        MATCH  koding-[r:member]->members
+        
+        WHERE  (
+          members.`profile.nickname` =~ '(?i)#{seed}'
+          or members.`profile.firstName` =~ '(?i)#{firstNameRegExp}'
+          or members.`profile.lastName` =~ '(?i)#{lastNameRegexp}'
+        )
+        """
+      query += " \n"
+
+      if blacklist? and blacklist.length
+        blacklistIds = ("'#{id}'" for id in blacklist).join(',')
+        query += " AND NOT( members.id IN [#{ blacklistIds }] ) \n"
+
+      query += " RETURN members \n"
+      query += " ORDER BY members.`profile.firstName` "
+
+      query += " SKIP #{skip} \n" if skip
+      query += " LIMIT #{limit} \n" if limit
+      
+      @db.query query, {}, (err, results) =>
+        if err
+          return callback err
+        else if results.length is 0 then callback null, []
+        else
+          objectify results[0].members.data, (objected)=>
+            {collections, wantedOrder} = @getIdsFromAResultSet [objected]
+            @fetchObjectsFromMongo collections, wantedOrder, (err, dbObjects)->
+              callback err, dbObjects
+
   fetchNewMembers:(group, startDate, callback)->
     {groupId} = group
 
@@ -347,6 +406,14 @@ module.exports = class Graph
           resultData.push data
           @generateFollows resultData, results, callback
 
+  generateOrderByQuery:(sort)->
+    orderByQuery = ''
+    if sort
+      orderBy = Object.keys(sort)[0]
+      orderByQuery = "ORDER BY #{@getOrderByQuery orderBy} DESC"
+
+    return orderByQuery
+
   getOrderByQuery:(orderBy)->
     orderByQuery = ""
     switch orderBy
@@ -365,22 +432,24 @@ module.exports = class Graph
     skip   ?= 0
     limit  ?= 20
 
-    if sort
-      orderBy = Object.keys(sort)[0]
-      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
-    else
-      orderByQuery = ''
-
     query = """
       START  group=node:koding("id:#{groupId}")
       MATCH  group-[r:member]->members
-      return members
-      #{orderByQuery}
-      skip #{skip}
-      limit #{limit}
-      """
+      WHERE members.name = 'JAccount'
+    """
+    
+    @getExemptUsersClauseIfNeeded options, (err, exemptClause)=>
+      if err
+        return callback err, null
 
-    @queryMembers query, {}, callback
+      query += """
+        #{exemptClause}
+        return members  
+        #{@generateOrderByQuery sort}
+        skip #{skip}
+        limit #{limit}
+        """
+      @queryMembers query, {}, callback
 
   fetchFollowingMembers:(options, callback)->
     {skip, limit, sort, groupId, currentUserId} = options
@@ -388,18 +457,12 @@ module.exports = class Graph
     skip   ?= 0
     limit  ?= 20
 
-    if sort
-      orderBy = Object.keys(sort)[0]
-      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
-    else
-      orderByQuery = ''
-
     query = """
         START  group=node:koding("id:#{groupId}")
         MATCH  group-[r:member]->members-[:follower]->currentUser
         WHERE currentUser.id = "#{currentUserId}"
         RETURN members, r
-        ORDER BY #{orderByQuery} DESC
+        #{@generateOrderByQuery sort}
         SKIP #{skip}
         LIMIT #{limit}
         """
@@ -412,18 +475,12 @@ module.exports = class Graph
     skip   ?= 0
     limit  ?= 20
 
-    if sort
-      orderBy = Object.keys(sort)[0]
-      orderByQuery = "order by #{@getOrderByQuery orderBy} DESC"
-    else
-      orderByQuery = ''
-
     query = """
         START group=node:koding("id:#{groupId}")
         MATCH group-[r:member]->members<-[:follower]-currentUser
         WHERE currentUser.id = "#{currentUserId}"
         RETURN members, r
-        ORDER BY #{orderByQuery} DESC
+        #{@generateOrderByQuery sort}
         SKIP #{skip}
         LIMIT #{limit}
         """
@@ -506,6 +563,50 @@ module.exports = class Graph
           resultData.push obj
 
         callback err, resultData
+
+  ## NEWER IMPLEMENATION: Fetch ids from graph db, get items from document db.
+
+  fetchRelatedTagsFromGraph: (options, callback)->
+    {userId} = options
+
+    query = """
+      START follower=node:koding("id:#{userId}")
+      MATCH follower-[:related]->oauth-[r:github_followed_JTag]->followees
+      return followees.id as id
+    """
+
+    JTag = require "../tag"
+    @fetchItems query, JTag, callback
+
+  fetchRelatedUsersFromGraph: (options, callback)->
+    {userId} = options
+
+    query = """
+      START follower=node:koding("id:#{userId}")
+      MATCH follower-[:related]->oauth-[r:github_followed_JUser]->followees
+      return followees.id as id
+    """
+
+    JUser = require "../user"
+    @fetchItems query, JUser, callback
+
+  fetchItems:(query, modelName, callback)->
+    @db.query query, {}, (err, results)=>
+      if err then throw err
+      else
+        tempRes = []
+        collectContents = race (i, id, fin)=>
+          modelName.one  { _id : id }, (err, account)=>
+            if err
+              callback err
+              fin()
+            else
+              tempRes[i] =  account
+              fin()
+        , ->
+          callback null, tempRes
+        for res in results
+          collectContents res.id
 
   fetchRelationshipCount:(options, callback)->
     {groupId, relName} = options

@@ -66,9 +66,8 @@ class GroupsInvitationListItemView extends KDListItemView
     @statusText.$('span.title').html @getData().status.capitalize()
     @statusText.unsetClass 'hidden'
 
-  updateButtons:(expectedStatus, err)->
-    if err
-      return new KDNotificationView title:'An error occurred. Please try again later'
+  updateButtons:(err, expectedStatus)->
+    return KD.showError err  if err
 
     @getData().status = expectedStatus
 
