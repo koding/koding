@@ -67,18 +67,21 @@ class ChatAppController extends AppController
       height         : "auto"
       overlay        : yes
       buttons        :
-        'Leave'      :
+        Leave       :
           style      : "modal-clean-red"
-          callback   : =>
+          callback   : ->
             chatChannel?.close()?.off()
-            conversation.leave (err)=>
+            conversation.leave (err)->
               warn err  if err
               modal.destroy()
               callback?()
         Cancel       :
-          style      : "modal-clean-gray"
+          style      : "modal-cancel"
+          title      : "cancel"
           callback   : ->
             modal.destroy()
+
+    modal.buttons.Leave.blur()
 
 class ChannelWrapper extends KDObject
   constructor:(@channel)-> super {}

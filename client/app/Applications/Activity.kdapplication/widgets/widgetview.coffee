@@ -2,6 +2,7 @@ class ActivityUpdateWidget extends KDView
 
   constructor:(options = {}, data)->
 
+    options.domId    = "activity-update-widget"
     options.cssClass = "activity-update-widget-wrapper"
 
     super options, data
@@ -10,7 +11,7 @@ class ActivityUpdateWidget extends KDView
     @listenWindowResize()
 
   setMainSections:->
-
+    @updatePartial ''
     @addSubView widgetWrapper = new KDView
       cssClass : 'widget-holder clearfix'
 
@@ -40,7 +41,7 @@ class ActivityUpdateWidget extends KDView
     @unsetClass "edit-mode"
     @changeTab "update", "Status Update"
     @mainInputTabs.emit "MainInputTabsReset", isHardReset
-    
+
     @_windowDidResize()
 
   addWidgetPane:(options)->

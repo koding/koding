@@ -48,10 +48,8 @@ class MainView extends KDView
     about.setY offset
     about.bindTransitionEnd()
 
-  addBook:-> 
-    @addSubView new BookView 
-      delegate : this
-    
+  addBook:->
+    @addSubView new BookView delegate : this
 
   _windowDidResize:->
 
@@ -59,6 +57,8 @@ class MainView extends KDView
     @panelWrapper.setHeight winHeight - 51
 
   createMainPanels:->
+
+    @addSubView @homeIntro = new HomeIntroView
 
     @addSubView @panelWrapper = new KDView
       tagName  : "section"
@@ -83,22 +83,33 @@ class MainView extends KDView
 
   addHeader:->
 
+    {entryPoint} = KD.config
+
     @addSubView @header = new KDView
       tagName : "header"
       domId   : "main-header"
 
-    {entryPoint} = KD.config
-    @header.addSubView @logo = new KDCustomHTMLView
+    @logo = new KDCustomHTMLView
       tagName   : "a"
       domId     : "koding-logo"
       cssClass  : if entryPoint?.type? is 'group' then 'group' else ''
       partial   : "<span></span>"
       click     : (event)=>
-        # return if @userEnteredFromGroup()
-        event.stopPropagation()
-        event.preventDefault()
+        KD.utils.stopDOMEvent event
+        homeRoute = if KD.isLoggedIn() then "/Activity" else "/Home"
+        KD.getSingleton('router').handleRoute homeRoute, {entryPoint}
 
-        KD.getSingleton('router').handleRoute "/Activity", {entryPoint}
+    loginLink = new CustomLinkView
+      domId       : 'header-sign-in'
+      title       : 'Already a user? Sign in'
+      icon        :
+        placement : 'right'
+      cssClass    : 'login'
+      attributes  :
+        href      : '/Login'
+      click       : (event)->
+        KD.utils.stopDOMEvent event
+        KD.getSingleton('router').handleRoute "/Login"
 
     if entryPoint?.slug? and entryPoint.type is "group"
       KD.remote.cacheable entryPoint.slug, (err, models)=>
@@ -113,7 +124,7 @@ class MainView extends KDView
     @mainTabHandleHolder = new MainTabHandleHolder
       domId    : "main-tab-handle-holder"
       cssClass : "kdtabhandlecontainer"
-      delegate : @
+      delegate : this
 
     @appSettingsMenuButton = new AppSettingsMenuButton
     @appSettingsMenuButton.hide()
@@ -121,7 +132,7 @@ class MainView extends KDView
     @mainTabView = new MainTabView
       domId              : "main-tab-view"
       listenToFinder     : yes
-      delegate           : @
+      delegate           : this
       slidingPanes       : no
       tabHandleContainer : @mainTabHandleHolder
     ,null
@@ -147,7 +158,7 @@ class MainView extends KDView
 
   createSideBar:->
 
-    @sidebar             = new Sidebar domId : "sidebar", delegate : @
+    @sidebar             = new Sidebar domId : "sidebar", delegate : this
     mc                   = KD.getSingleton 'mainController'
     mc.sidebarController = new SidebarController view : @sidebar
     @sidebarPanel.addSubView @sidebar
@@ -206,33 +217,3 @@ class MainView extends KDView
           title       : systemStatus.title
           content     : systemStatus.content
           type        : systemStatus.type
-
-# inactive code
-
-    # mainController = KD.getSingleton('mainController')
-    # mainController.popupController = new VideoPopupController
-
-    # mainController.monitorController = new MonitorController
-
-    # @videoButton = new KDButtonView
-    #   cssClass : "video-popup-button"
-    #   icon : yes
-    #   title : "Video"
-    #   callback :=>
-    #     unless @popupList.$().hasClass "hidden"
-    #       @videoButton.unsetClass "active"
-    #       @popupList.hide()
-    #     else
-    #       @videoButton.setClass "active"
-    #       @popupList.show()
-
-    # @videoButton.hide()
-
-    # @popupList = new VideoPopupList
-    #   cssClass      : "hidden"
-    #   type          : "videos"
-    #   itemClass     : VideoPopupListItem
-    #   delegate      : @
-    # , {}
-    # @contentPanel.addSubView @videoButton
-    # @contentPanel.addSubView @popupList

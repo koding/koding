@@ -54,7 +54,7 @@ class KodingAppsController extends KDController
   fetchApps:(callback)->
 
     if not @appStorage? # KD.isLoggedIn() and
-      @appStorage = new AppStorage 'KodingApps', '1.0'
+      @appStorage = new AppStorage 'KodingApps', '1.0.1'
 
     if Object.keys(@constructor.manifests).length isnt 0
       callback null, @constructor.manifests
@@ -487,7 +487,14 @@ class KodingAppsController extends KDController
 
     newAppModal = new KDModalViewWithForms
       title                       : "Create a new Application"
-      content                     : "<div class='modalformline'>Please select the application type you want to start with.</div>"
+      content                     : 
+        """ <div class='modalformline'><p>
+            Please select the application type you want to start with.
+            Alternatively, you can modify an existing app; all applications are installed under <code>~/Applications</code> folder, 
+            you can right click on any of them, go to <b>Applications</b> menu, and click <b>Download source files</b> and start 
+            reading <code>manifest.json</code>
+            </p></div>
+        """
       overlay                     : yes
       width                       : 400
       height                      : "auto"
@@ -771,7 +778,7 @@ class KodingAppsController extends KDController
       description : 'Code Editor'
       author      : 'Mozilla'
     Terminal      :
-      name        : 'WebTerm'
+      name        : 'Terminal'
       type        : 'koding-app'
       icon        : 'icn-terminal.png'
       description : 'Koding Terminal'

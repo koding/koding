@@ -37,19 +37,10 @@ class ActivityListHeader extends JView
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
 
-    @downloadOldKodingFilesLink = new KDView
-      cssClass : "download-old-koding-files"
-      partial  : ''
-      click    : (event)=>
-        @downloadOldKodingFiles()
-
     KD.getSingleton('mainController').on 'AccountChanged', ()=>
       @decorateLiveUpdateButton()
-      @decorateDownloadOldFilesLink()
-
 
     @decorateLiveUpdateButton()
-    @decorateDownloadOldFilesLink()
 
     if KD.checkFlag "super-admin"
       @lowQualitySwitch = new KDOnOffSwitch
@@ -58,6 +49,8 @@ class ActivityListHeader extends JView
         size         : "tiny"
         callback     : (state) =>
           @appStorage.setValue 'showLowQualityContent', state, =>
+          KD.getSingleton('activityController').flags = showExempt: state
+          KD.getSingleton('activityController').emit 'Refresh'
 
       @refreshLink = new KDCustomHTMLView
         tagName  : 'a'
@@ -75,6 +68,7 @@ class ActivityListHeader extends JView
       state = @appStorage.getValue('liveUpdates') or off
       @liveUpdateButton.setValue state
       KD.getSingleton('activityController').flags = liveUpdates : state
+      KD.getSingleton('activityController').flags = showExempt : (@appStorage.getValue('showLowQualityContent') or off)
       @lowQualitySwitch.setValue? @appStorage.getValue('showLowQualityContent') or off
 
   _checkForUpdates: do (lastTs = null, lastCount = null) ->
@@ -91,7 +85,7 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    "<div class='header-wrapper'>{{> @headerTitle}} {{> @downloadOldKodingFilesLink }} {{> @lowQualitySwitch}} {{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
+    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}} {{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     __count++

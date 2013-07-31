@@ -30,15 +30,20 @@ class KDFormViewWithFields extends KDFormView
       @buttonField.addSubView button = @createButton buttonOptions
       @buttons[buttonOptions.key] = button
 
-  createField:(fieldData, field)->
+  createField:(fieldData, field, isNextElement = no)->
     {itemClass, title} = fieldData
     itemClass          or= KDInputView
     fieldData.cssClass or= ""
     fieldData.name     or= title
     field or= new KDView cssClass : "formline #{KD.utils.slugify fieldData.name} #{fieldData.cssClass}"
     field.addSubView label = fieldData.label = @createLabel(fieldData) if fieldData.label
-    field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
-    inputWrapper.addSubView input = @createInput itemClass, fieldData
+
+    unless isNextElement
+      field.addSubView inputWrapper = new KDCustomHTMLView cssClass : "input-wrapper"
+      inputWrapper.addSubView input = @createInput itemClass, fieldData
+    else
+      field.addSubView input = @createInput itemClass, fieldData
+
     if fieldData.hint
       inputWrapper.addSubView hint  = new KDCustomHTMLView
         partial  : fieldData.hint
@@ -48,7 +53,7 @@ class KDFormViewWithFields extends KDFormView
     if fieldData.nextElement
       for key, next of fieldData.nextElement
         next.title or= key
-        @createField next, inputWrapper
+        @createField next, (inputWrapper or field), yes
 
     if fieldData.nextElementFlat
       for key, next of fieldData.nextElementFlat

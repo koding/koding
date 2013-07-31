@@ -126,6 +126,8 @@ class KDButtonView extends KDView
   enable:-> @$().attr "disabled", no
 
   focus:-> @$().trigger "focus"
+  
+  blur:-> @$().trigger "blur"
 
   click:(event)->
 
