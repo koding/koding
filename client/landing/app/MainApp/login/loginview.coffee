@@ -158,9 +158,9 @@ class LoginView extends KDScrollView
       </div>
     </div>
     <div class="login-footer">
-      <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
+      <p class='regLink'>Not a member? {{> @goToRegisterLink}}</p>
+      <p class='logLink'>Already a member? {{> @backToLoginLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
-      <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
     </div>
     """
 
