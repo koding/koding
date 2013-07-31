@@ -123,49 +123,50 @@ class KodingRouter extends KDRouter
     if passOptions
       method += 'WithOptions'
       options = {model:models, route, query}
-    groupName = if section is "Groups" then name else "koding"
-    KD.getSingleton('groupsController').changeGroup groupName, (err) =>
-      KD.getSingleton("appManager").tell section, method, options ? models,
-        (contentDisplay)=>
-          routeWithoutParams = route.split('?')[0]
-          @openRoutes[routeWithoutParams] = contentDisplay
-          @openRoutesById[contentDisplay.id] = routeWithoutParams
-          contentDisplay.emit 'handleQuery', query
+    KD.getSingleton("appManager").tell section, method, options ? models,
+      (contentDisplay)=>
+        routeWithoutParams = route.split('?')[0]
+        @openRoutes[routeWithoutParams] = contentDisplay
+        @openRoutesById[contentDisplay.id] = routeWithoutParams
+        contentDisplay.emit 'handleQuery', query
 
   loadContent:(name, section, slug, route, query, passOptions)->
     routeWithoutParams = route.split('?')[0]
-    # return log name, ">>>>>"
 
-    onSuccess = (models)=> @openContent name, section, models, route, query, passOptions
-    onError   = (err)=>
-      KD.showError err
-      @handleNotFound route
+    groupName = if section is "Groups" then name else "koding"
+    KD.getSingleton('groupsController').changeGroup groupName, (err) =>
+      KD.showError err if err
+      onSuccess = (models)=>
+        @openContent name, section, models, route, query, passOptions
+      onError   = (err)=>
+        KD.showError err
+        @handleNotFound route
 
-    if name and not slug
-      KD.remote.cacheable name, (err, models)=>
-        if models?
-        then onSuccess models
-        else onError err
-    else
-      # TEMP FIX: getting rid of the leading slash for the post slugs
-      slashlessSlug = routeWithoutParams.slice(1)
-      KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
-        if err then onError err
-        else if jName?
-          models = []
-          jName.slugs.forEach (aSlug, i)=>
-            {constructorName, usedAsPath} = aSlug
-            selector = {}
-            konstructor = KD.remote.api[constructorName]
-            selector[usedAsPath] = aSlug.slug
-            selector.group = aSlug.group if aSlug.group
-            konstructor?.one selector, (err, model)=>
-              return onError err if err?
-              if model
-                models[i] = model
-                if models.length is jName.slugs.length
-                  onSuccess models
-        else onError()
+      if name and not slug
+        KD.remote.cacheable name, (err, models)=>
+          if models?
+          then onSuccess models
+          else onError err
+      else
+        # TEMP FIX: getting rid of the leading slash for the post slugs
+        slashlessSlug = routeWithoutParams.slice(1)
+        KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
+          if err then onError err
+          else if jName?
+            models = []
+            jName.slugs.forEach (aSlug, i)=>
+              {constructorName, usedAsPath} = aSlug
+              selector = {}
+              konstructor = KD.remote.api[constructorName]
+              selector[usedAsPath] = aSlug.slug
+              selector.group = aSlug.group if aSlug.group
+              konstructor?.one selector, (err, model)=>
+                return onError err if err?
+                if model
+                  models[i] = model
+                  if models.length is jName.slugs.length
+                    onSuccess models
+          else onError()
 
   createContentDisplayHandler:(section, passOptions=no)->
     ({params:{name, slug}, query}, models, route)=>
