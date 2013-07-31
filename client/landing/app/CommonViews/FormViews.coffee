@@ -148,10 +148,6 @@ class PersonalFormAboutView extends AbstractPersonalFormView
       defaultValue  : if profile.about is @defaultPlaceHolder then '' else Encoder.htmlDecode profile.about
       placeholder   : if profile.about isnt @defaultPlaceHolder then null else Encoder.htmlDecode profile.about
       name          : 'about'
-      validate      :
-        rules       :
-          required  : yes
-          maxLength : 500
 
     @aboutInfo = new PersonalAboutView
       tooltip            :
@@ -183,6 +179,12 @@ class PersonalFormAboutView extends AbstractPersonalFormView
     if @memberData.profile.about is about
       @unsetClass 'active'
       return no
+
+    if about is ''
+      @unsetClass 'active'
+      @memberData.profile.about = @defaultPlaceHolder
+      @aboutInfo.setData @memberData
+      @resetInputValue()
 
     @doModify 'profile.about' : about
 
@@ -301,7 +303,6 @@ class PersonalFormSkillTagView extends AbstractPersonalFormView
     @tagController.on 'ItemListChanged', =>
       @loader.show()
       {skillTags} = @getData()
-      console.log skillTags
       @memberData.addTags skillTags, (err)=>
         return KD.notify_ "There was an error while adding new skills."  if err
         skillTagsFlat = skillTags.map (tag)-> tag.$suggest ? tag.title
