@@ -1,12 +1,9 @@
 class OwnProfileView extends JView
 
-  constructor:->
-
-    super
+  constructor:(options={}, data)->
+    super options, data
 
     memberData = @getData()
-
-    memberData.skillTags or= []
 
     @avatar = new AvatarStaticView
       size        :
@@ -17,45 +14,22 @@ class OwnProfileView extends JView
         placement : "below"
     , memberData
 
-    @profileName = new PersonalFormNameView {memberData}
-    @location    = new PersonalFormLocationView {memberData}
+    for route in ['followers', 'following', 'likes']
+      @[route] = new KDView
+        tagName     : 'a'
+        attributes  :
+          href      : '#'
+        pistachio   : "<cite/>{{#(counts[route] or 0)}} <span>#{route[0].toUpperCase() + route[1..-1]}</span>"
+        click       : (event)->
+          event.preventDefault()
+          unless memberData.counts[route] is 0
+            KD.getSingleton('router').handleRoute "/#{memberData.profile.nickname}/#{route}", {state:memberData}
+      , memberData
 
-    {nickname} = memberData.profile
-    @followers = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
-      click       : (event)->
-        event.preventDefault()
-        return if memberData.counts.followers is 0
-        KD.getSingleton('router').handleRoute "/#{nickname}/Followers", {state:memberData}
-    , memberData
-
-    @following = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
-      click       : (event)->
-        event.preventDefault()
-        return if memberData.counts.following is 0
-        KD.getSingleton('router').handleRoute "/#{nickname}/Following", {state:memberData}
-    , memberData
-
-    @likes = new KDView
-      tagName     : 'a'
-      attributes  :
-        href      : '#'
-      pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
-      click       : (event)->
-        event.preventDefault()
-        return if memberData.counts.following is 0
-        KD.getSingleton('router').handleRoute "/#{nickname}/Likes", {state:memberData}
-    , memberData
-
-    @aboutYou     = new PersonalFormAboutView {memberData}
-    @skillTagView = new PersonalFormSkillTagView {memberData}
+    @profileName  = new PersonalFormNameView     {}, memberData
+    @location     = new PersonalFormLocationView {}, memberData
+    @aboutYou     = new PersonalFormAboutView    {}, memberData
+    @skillTagView = new PersonalFormSkillTagView {}, memberData
 
     @skillTagView.on "AutoCompleteNeedsTagData", (event)=>
       {callback,inputValue,blacklist} = event
