@@ -196,7 +196,7 @@ class LoginView extends KDScrollView
     # we need to close the group channel so we don't receive the cycleChannel event.
     # getting the cycleChannel even for our own MemberAdded can cause a race condition
     # that'll leak a guest account.
-    KD.getSingleton('groupsController').groupChannel.close()
+    KD.getSingleton('groupsController').groupChannel?.close()
 
     KD.remote.api.JUser.convert formData, (err, replacementToken)=>
       account = KD.whoami()
