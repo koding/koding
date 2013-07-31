@@ -734,7 +734,7 @@ __utils =
     resourceRoot = "#{KD.appsUri}/#{authorNick}/#{name}/#{version}/"
 
     if appManifest.devMode # TODO: change url to https when vm urls are ready for it
-      resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/" 
+      resourceRoot = "http://#{KD.getSingleton('vmController').defaultVm}/.applications/#{__utils.slugify name}/"
 
     image  = if name is "Ace" then "icn-ace" else "default.app.thumb"
     thumb  = "#{KD.apiUri}/images/#{image}.png"
