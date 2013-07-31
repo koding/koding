@@ -55,14 +55,14 @@ class VirtualizationController extends KDController
   reinitialize:(vm, callback)->
     @_runWrapper 'vm.reinitialize', vm, callback
 
-  _deleteVM: (vm, cb)->
+  remove: do->
+
+    deleteVM = (vm, cb)->
       KD.remote.api.JVM.removeByHostname vm, (err)->
         return cb err  if err
         KD.getSingleton("finderController").unmountVm vm
         KD.getSingleton("vmController").emit 'VMListChanged'
         cb null
-
-  remove: do->
 
     (vm, callback=noop)->
       KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
