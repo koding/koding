@@ -28,7 +28,7 @@ class GroupAdminModal extends KDModalViewWithForms
                   accounts = @userController.getSelectedItemData()
                   if accounts.length > 0
                     account  = accounts[0]
-                    flags    = [flag.trim() for flag in inputs.Flags.getValue().split(",")][0]
+                    flags    = (flag.trim() for flag in inputs.Flags.getValue().split ",")
                     account.updateFlags flags, (err)->
                       error err if err
                       KD.remote.api.JInvitation.grantInvitesFromClient

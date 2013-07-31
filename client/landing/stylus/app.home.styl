@@ -11,228 +11,303 @@ app.home.styl
 */
 }
 // NEW TRY
-
-div.screenshots
-  rel()
-  height                  auto
-
-  .arrow
+#kdmaincontainer > header
+  .custom-link-view
+    hidden()
+#kdmaincontainer.home > header
+  .custom-link-view
+    right             70px
+    top               5px
+    text-align        right
+    opacity           .8
+    visible()
     abs()
-    display               block
-    top                   50%
-    size                  30px, 60px
-    margin-top            -30px
-    shadow                0 10px 25px rgba(0, 0, 0, .4)
-    bg                    color, rgba(0, 0, 0, .5)
-    vendor                transition, left  .15s ease-in-out\,\
-                                      right .15s ease-in-out\,\
-                                      width .15s ease-in-out
-    z-index               1
-    borderBox()
-    &.left
-      left                0
-      span
-        right             10px
-        bg                position, -220px -100px
-    &.right
-      right               0
-      span
-        left              20px
-        bg                position, -200px -100px
     &:hover
-      width               40px
+      opacity         1
+    &:first-child
+      padding-top     4px
+    span.title
+      font-size       12px
+      text-shadow     0 1px 0 rgba(0,0,0,.9)
 
+    &.login
+      .icon
+        margin-top    1px
+        bg            position, -220px -320px
 
-    span
-      abs()
-      display             block
-      top                 50%
-      margin-top          -15px
-      margin-left         -10px
-      size                20px, 30px
-      sprite()
-
-  > section
-    size                  100%, 506px
-    text-align            center
-    padding               0
-    background            transparent url("../images/bg/blurred/1.jpg") no-repeat center 0
-    background-size       cover
-    shadow                inset 0 5px 15px rgba(0, 0, 0, .2)
-    transition            height .2s linear
-    overflow              hidden
+div#home-intro
+  min-width               1200px
+  size                    100%, 526px
+  color                   white
+  vendor                  transition, height .3s linear
+  bg                      image, url('../images/gunduz-varligi.jpg')
+  bg                      position, -600px -261px
+  bg                      color, black
+  shadow                  inset 0 -5px 10px rgba(0,0,0,.1)
+  &.out
+    height                0
+  section
+    size                  100%, 100%
+    padding               50px 0 10px
+    max-width             1280px
     rel()
-    ul
-      abs()
-      margin              0
-      size                600%, 100%
-      z-index             0
-      overflow            hidden
-      vendor              transition, margin .5s ease-out
-    li
-      top                 0
-      size                16.666666668%, 100%
-      overflow            hidden
-      padding             0
-      background-size     cover
-      background-position 50% 0px
-      background-repeat   no-repeat
-      background-color    transparent
-      rel()
+    borderBox()
+    > div
+      width               calc(100%\-360px)
+      padding             0 60px
       fl()
       borderBox()
-      &.to-left p
-        margin-left       100%
-        opacity           0
-      &.to-right p
-        margin-left       -100%
-        opacity           0
-      p
-        abs()
-        width             100%
-        text-align        center
-        margin-top        150px
-        margin-left       0%
-        opacity           1
-        vendor            transition, margin .4s ease-in-out\, opacity .3s ease-in-out
-        span
-          color           rgba(255,255,255,.95)
-          text-shadow     0 1px 0 rgba(0,0,0,0.4)
-          bg              color, rgba(0,0,0,.3)
-          line-height     2em
-          display         inline
-          font-size       48px
-          transition      font-size .2s linear
-          font-weight     600
-          padding         0.25em 0.6em
 
-      > figure
-        rel()
-        display           inline-block
-        overflow          hidden
-        &.video
-          size            100%, 100%
-          iframe
-            size          100%, 100%
-            borderBox()
-        img
-          width           100%
-
-  .home-links
-    size                100%, 80px
-    text-align          left
-    opacity             0
-    transition          opacity .15s ease-in-out
-    overflow            hidden
-    margin-top          -80px
-    text-align          center
-    bg                  color, transparent
-    abs()
-    &.in
-      opacity           1
-
-    .overlay
-      abs()
-      size              100%, 100%
-      z-index           10
-      bg                color, transparent
-    > ul
-      size              auto, 100%
-      z-index           0
-      font-size         0
-      display           inline-block
-      vertical-align    top
-      li
-        size            auto, 100%
-        display         inline-block
-        padding         15px 0 0 15px
-        overflow        visible
-        vertical-align  top
-        borderBox()
-        rel()
-        &:hover
-          z-index       1
-        &:last-child
-          padding       15px 15px 0 15px
-
-    .custom-link-view.button
-      size              auto, 50px
-      padding           0 26px 0 16px
-      rounded           25px
-      line-height       50px
-      text-align        left
-      gradient          #666, #4a4a4a
-      // border            1px solid rgba(0,0,0,.2)
-      // border-top        none
-      border            none
-      shadow            0 4px 12px rgba(0, 0, 0, .3)\,\
-                        0 1px 1px rgba(255, 255, 255, .5) inset\,\
-                        0 -1px 1px rgba(0, 0, 0, .4) inset
-      overflow          hidden
-      vertical-align    top
+    > aside
+      width               360px
+      padding             52px 60px 0 0
+      fl()
       borderBox()
-      &:first-child
-        padding-top     0
-      .title
-        color           rgba(255,255,255,.9)
-        width           100%
-        font-size       17px
-        text-shadow     0 -1px 0 rgba(0,0,0,.9)
-      .icon
-        margin          15px 3px 0 0
-      &:hover
-        .title
-          color         rgba(255,255,255,1)
-      &.open
-        .icon
-          bg            position, -200px -340px
-      &.customize
-        .icon
-          bg            position, -200px -380px
-      &.invitation-pending
-      &.request-pending
-      &.request
-        .icon
-          bg            position, -200px -360px
-      &.join
-        .icon
-          bg            position, -220px -379px
-      &.browse
-        .icon
-          bg            position, -220px -399px
-      &.green
-        text-shadow     0 -1px 0 rgba(0,0,0,.6)
-        gradient        #68B43B, #5B9D33
+
+  h2.slogan
+  h3.slogan-continues
+    font-weight           300
+    text-shadow           0 1px 0 rgba(0, 0, 0, .5)
+
+  h2.slogan
+    font-size             60px
+
+  h3.slogan-continues
+    font-size             28px
+    margin-top            30px
+    line-height           1.8em
+    margin-left           -15px
+    span
+      padding             5px 15px
+      bg                  color, rgba(0, 0, 0, .3)
+
+  a.try
+    padding             5px 15px
+    width               200px
+    color               linkColor1
+    font-size           0px
+    font-weight         400
+    text-shadow         none
+    text-decoration     none
+    text-align          center
+    margin-left         -100px
+    vendor              transition, font-size .4s 3s ease-in
+    abs                 null, null, 90px, 50%
+    &.in
+      font-size         22px
+
+  .toc
+    width                 300px
+    margin-top            14px
+    font-weight           300
+    font-size             12px
+    line-height           18px
+    opacity               .5
+    a
+      color               linkColor1
+      noTextDeco()
+
+  form
+    .formline
+      border              none
+      height              44px
+      line-height         44px
+      margin-bottom       6px
+      padding             0
+      width               300px
+      overflow            visible
+      > .input-wrapper
+        size              100%, 100%
+        overflow          visible
+      &.or
+        font-weight       300
+        font-size         16px
+        height            34px
+        line-height       34px
+        text-align        center
+        color             #777
+
+    button
+      size              100%, 100%
+      margin            0
+      font-size         19px
+      border            none
+      font-weight       400
+      rounded           5px
+
       &.orange
-        text-shadow     0 -1px 0 rgba(0,0,0,.6)
-        gradient        rgb(233, 142, 27), rgb(223, 118, 4)
-    .custom-link-view
-      display           block
-      text-align        left
-      &:first-child
-        padding-top     4px
-      span.title
-        font-size       12px
+        gradient        #fca520, #c46325
+        shadow          inset 0 1px 0 rgba(255, 255, 255, .5)\,\
+                        0 1px 1px rgba(0, 0, 0, .5)
+        text-shadow     0 -1px 0 rgba(0, 0, 0, .3)
         color           white
-        text-shadow     0 1px 0 rgba(0,0,0,.9)
+        &:active
+          gradient      #c46325, #fca520
+          text-shadow   0 1px 0 rgba(0, 0, 0, .3)
+        &:active
+        &:focus
+          shadow        inset 0 1px 0 rgba(255, 255, 255, .5)\,\
+                        0 1px 1px rgba(0, 0, 0, .5)\,\
+                        0 0 9px 3px rgba(255,187,4,0.33)
 
-      &.register
-        .icon
-          bg            position, -220px -341px
-      &.logout
-        .icon
-          bg            position, -200px -320px
-      &.login
-        .icon
-          bg            position, -220px -320px
+      &.gray
+        gradient        #ddd, #bbb
+        shadow          inset 0 1px 0 white\,\
+                        0 1px 1px rgba(0, 0, 0, .5)
+        text-shadow     0 1px 0 rgba(255,255,255,0.5)
+        color           #444
+        &:active
+          gradient      #a8a8a8, #f1f1f1
+          text-shadow   0 -1px 0 rgba(255,255,255,0.5)
+        &:active
+        &:focus
+          shadow        inset 0 1px 0 white\,\
+                        0 1px 1px rgba(0, 0, 0, .5)\,\
+                        0 0 9px 3px rgba(255,255,255,0.3)
 
+      &.gh-gray
+        gradient        #f1f1f1, #a8a8a8
+        shadow          inset 0 1px 0 white\,\
+                        0 1px 1px rgba(0, 0, 0, .5)
+        font-weight     600
+        text-shadow     0 1px 0 rgba(255,255,255,0.8)
+        color           #444
+        &:active
+          gradient      #a8a8a8, #f1f1f1
+          text-shadow   0 -1px 0 rgba(255,255,255,0.8)
+        &:active
+        &:focus
+          shadow        inset 0 1px 0 white\,\
+                        0 1px 1px rgba(0, 0, 0, .5)\,\
+                        0 0 9px 3px rgba(255,255,255,0.3)
+        .button-title
+          margin-left   -15px
+          line-height   41px
+        .icon.octocat
+          size            30px, 28px
+          padding         0
+          margin          6px 0 0 20px
+          bg              position, -575px -45px
+          vertical-align  top
+
+    input
+      size                100%, 100%
+      line-height         34px
+      border              none
+      padding             5px 15px
+      font-size           16px
+      font-weight         300
+      rounded             5px
+      shadow              0 1px 1px rgba(0,0,0,.5)
+      outline             none
+      borderBox()
+      &.half
+        width             calc(50%\-3px)
+        min-width         0
+        fl()
+        &:first-child
+          margin-right    6px
+
+      &:focus
+        shadow            0 1px 1px rgba(0,0,0,.5)\,\
+                          0 0 9px 3px rgba(255,187,4,0.44)
+
+  aside
+    ul
+      size                  100%, 200px
+      margin-top            0
+      li
+        size                100%, 100%
+        margin              0
+        border              1px solid rgba(255, 255, 255, .2)
+        padding             1px
+        shadow              0 3px 8px rgba(0, 0, 0, .5)
+        rel()
+        &:active
+          size              auto, 100%
+          margin            0
+          i
+            top             80px
+        i
+          display           block
+          size              40px, 40px
+          top               80px
+          left              50%
+          margin            0 0 0 -20px
+          sprite()
+          bg                position, -580px 0px
+          abs()
+        a
+          display           block
+          size              300px, 200px
+        img
+          size              300px, 200px
+
+  ul
+    size                  100%, 60px
+    margin-top            20px
+    li
+      size                100px, 60px
+      margin              0 12px 0 0
+      border              1px solid rgba(255, 255, 255, .2)
+      padding             1px
+      shadow              0 1px 3px rgba(0, 0, 0, .5)
+      fl()
+      rel()
+      &:active
+        size              96px, 56px
+        margin            2px 14px 0 2px
+        i
+          top             10px
+      i
+        display           block
+        size              40px, 40px
+        top               12px
+        left              50%
+        margin            0 0 0 -20px
+        sprite()
+        bg                position, -580px 0px
+        abs()
+      a
+        display           block
+        size              100%, 100%
+      img
+        size              100%, 100%
+
+#content-page-home
+  > footer
+    size                100%, 200px
+    bg                  color, #393630
+    bg                  image, url('../images/koding-new-bg.png')
+    bg                  repeat, repeat-x
+    bg                  position, 0 -900px
+    shadow              inset 0 5px 15px rgba(0, 0, 0, .75)
+
+  // hiding action links from homepage
+  .kdlistitemview-activity
+    .action-link.reply-link
+    .comment-actions
+    .activity-actions .logged-in
+    .activity-actions i
+    .comment-container .item-add-comment-box
+    time
+      hidden()
+    .comment-container.commented .kdlistitemview-comment:last-child
+      border-bottom     none!important
 
 #home-counter-bar
   padding               30px 0
-  gradient              #37332C ,#1D1B18
   text-align            center
   min-height            90px
+  bottom                0
+  width                 100%
+  shadow                inset 0 1px 0 rgba(255, 255, 255, .1)
+  gradient              rgba(55, 51, 44, .4), rgba(29, 27, 24, .8)
+  abs()
   borderBox()
+  > div.kdview:first-child
+    max-width           1280px
+
 
 figure.counter
   display               inline-block
@@ -285,25 +360,13 @@ figure.counter
       shadow            0 1px 0 rgba(255,255,255,.1)
       abs()
 
-// .wide.screenshots
-//   #home-counter-bar
-//     text-align      left
-//   figure.counter
-//     width           30%
-
-.extra-narrow.screenshots
-.narrow.screenshots
+#content-page-home.extra-narrow
+#content-page-home.narrow
   figure.counter
     h6.title
       font-size     10px
     i
       font-size     1.3em
-  > section
-    height          200px
-    > ul > li > p
-      margin-top    40px
-      > span
-        font-size   24px
   .home-links
     height          50px
     margin-top      -50px
@@ -332,18 +395,12 @@ figure.counter
       span.icon
         margin-top    -3px
 
-.medium.screenshots
+#content-page-home.medium
   figure.counter
     h6.title
       font-size     12px
     i
       font-size     1.5em
-  > section
-    height          300px
-    > ul > li > p
-      margin-top    80px
-      > span
-        font-size   36px
   .home-links
     height          60px
     margin-top      -60px
@@ -369,7 +426,7 @@ figure.counter
       span.title
         font-size     12px
 
-.extra-wide.screenshots
+#content-page-home.extra-wide
   #home-counter-bar
     text-align      left
     padding         30px 5%
@@ -382,9 +439,9 @@ figure.counter
       clear         right
       fr()
 
-.wide.screenshots
-.medium.screenshots
-.narrow.screenshots
+#content-page-home.wide
+#content-page-home.medium
+#content-page-home.narrow
   #home-counter-bar
     text-align      left
     padding         20px 8%
@@ -397,7 +454,7 @@ figure.counter
       clear         right
       fr()
 
-.narrow.screenshots
+#content-page-home.narrow
   #home-counter-bar
     text-align      left
     padding         10px 5%
@@ -410,7 +467,7 @@ figure.counter
       margin        0
 
 
-.extra-narrow.screenshots
+#content-page-home.extra-narrow
   #home-counter-bar
     text-align      left
     padding         10px 15%

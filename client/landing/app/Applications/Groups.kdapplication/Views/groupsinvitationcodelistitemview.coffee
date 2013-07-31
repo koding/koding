@@ -37,11 +37,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
           invite              :
             callback          : (formData)=>
               @getData().modifyMultiuse formData, (err)=>
-                if err
-                  warn err
-                  return new KDNotificationView
-                    title    : err.message ? 'An error occured! Please try again later.'
-                    duration : 2000
+                KD.showError err
                 new KDNotificationView
                   title      : 'Invitation code updated!'
                   duration   : 2000
@@ -107,7 +103,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
 
   getInvitationUrl:->
     {group, code} = @getData()
-    slug  = if group and group isnt 'koding' then "#{group}/" else ''
+    slug  = if group and group isnt KD.defaultSlug then "#{group}/" else ''
     "https://#{location.host}/#{slug}Invitation/#{code}"
 
   markDeleted:->
