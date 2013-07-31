@@ -5,7 +5,7 @@ module.exports = ->
       "server.environment": "production",
       "client.javascript.source_map_enabled": true,
       "client.javascript.code_version": "#{KONFIG.version}",
-      "client.javascript.colno_default_one": true
+      "client.javascript.guess_uncaught_frames": true
     };
     _rollbarParams["notifier.snippet_version"] = "2"; var _rollbar=["713a5f6ab23c4ab0abc05494ef7bca55", _rollbarParams]; var _ratchet=_rollbar;
     (function(w,d){w.onerror=function(e,u,l){_rollbar.push({_t:'uncaught',e:e,u:u,l:l});};var i=function(){var s=d.createElement("script");var
