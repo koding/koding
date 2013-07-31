@@ -1,8 +1,9 @@
 do->
+
+  KD.kdMixpanel = new KDMixpanel
   KD.track = (rest...)->
     logToGoogle rest...
-    kdMixpanel = new KDMixpanel
-    kdMixpanel.createEvent rest...
+    KD.kdMixpanel.createEvent rest...
 
   logToGoogle = (rest...)->
     category = action = rest.first

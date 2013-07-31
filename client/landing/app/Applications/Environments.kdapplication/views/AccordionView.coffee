@@ -5,7 +5,7 @@ class AccordionView extends KDView
     options.type         or= ""
     options.activePane   or= null
     options.cssClass     or= "kdaccview"
-    options.multipleOpen or= no
+    options.multipleOpen  ?= no
 
     @panes = options.panes
 

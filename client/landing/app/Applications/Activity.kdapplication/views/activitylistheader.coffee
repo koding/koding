@@ -36,7 +36,10 @@ class ActivityListHeader extends JView
         KD.getSingleton('activityController').flags = liveUpdates : state
         KD.getSingleton('activityController').emit "LiveStatusUpdateStateChanged", state
 
-    KD.getSingleton('mainController').on 'AccountChanged', @bound 'decorateLiveUpdateButton'
+
+    KD.getSingleton('mainController').on 'AccountChanged', ()=>
+      @decorateLiveUpdateButton()
+
     @decorateLiveUpdateButton()
 
     if KD.checkFlag "super-admin"
@@ -79,7 +82,7 @@ class ActivityListHeader extends JView
     else clearInterval i
 
   pistachio:(newCount)->
-    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}}{{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
+    "<div class='header-wrapper'>{{> @headerTitle}} {{> @lowQualitySwitch}} {{> @liveUpdateButton}} {{> @showNewItemsLink}}{{> @refreshLink}}</div>"
 
   newActivityArrived:->
     __count++
@@ -88,8 +91,9 @@ class ActivityListHeader extends JView
     @updateShowNewItemsTitle()  if @showNewItemsInTitle
 
   decorateLiveUpdateButton:->
-    if KD.isLoggedIn() then @liveUpdateButton.show()
-    else @liveUpdateButton.hide()
+    @liveUpdateButton.show()
+    # if KD.isLoggedIn() then @liveUpdateButton.show()
+    # else @liveUpdateButton.hide()
 
   updateShowNewItemsLink:(showNewItems = no)->
     if @_newItemsCount > 0
