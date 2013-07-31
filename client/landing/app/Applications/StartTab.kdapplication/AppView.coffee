@@ -304,6 +304,7 @@ class StartTabMainView extends JView
       endTitle    : "Your session end, logging out."
       content     : "You can use Koding for 20 minutes without registering. <a href='/Register'>Register now</a>."
       callback    : =>
+        return  unless KD.isGuest()
         {defaultVmName} = KD.getSingleton "vmController"
         KD.remote.api.JVM.removeByHostname defaultVmName, (err)->
           KD.getSingleton("finderController").unmountVm defaultVmName
