@@ -34,7 +34,7 @@ class HomeLoginBar extends JView
       title       : "Request an Invite"
       icon        : {}
       attributes  :
-        href      : "/Join"
+        href      : "/Login"
       click       : (event)=>
         KD.track "Login", "RequestInvite"
         @utils.stopDOMEvent event
@@ -46,7 +46,7 @@ class HomeLoginBar extends JView
                 @request.hide()
                 @requested.show()
         else
-          KD.getSingleton('router').handleRoute "/Join", {entryPoint}
+          KD.getSingleton('router').handleRoute "/Login", {entryPoint}
 
     @login        = new CustomLinkView
       tagName     : "a"

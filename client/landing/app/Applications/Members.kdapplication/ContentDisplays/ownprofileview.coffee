@@ -24,7 +24,7 @@ class OwnProfileView extends JView
     @followers = new KDView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{nickname}/Followers"
       pistachio   : "<cite/>{{#(counts.followers)}} <span>Followers</span>"
       click       : (event)->
         event.preventDefault()
@@ -35,7 +35,7 @@ class OwnProfileView extends JView
     @following = new KDView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{nickname}/Following"
       pistachio   : "<cite/>{{#(counts.following)}} <span>Following</span>"
       click       : (event)->
         event.preventDefault()
@@ -46,7 +46,7 @@ class OwnProfileView extends JView
     @likes = new KDView
       tagName     : 'a'
       attributes  :
-        href      : '#'
+        href      : "/#{nickname}/Likes"
       pistachio   : "<cite/>{{#(counts.likes) or 0}} <span>Likes</span>"
       click       : (event)->
         event.preventDefault()
