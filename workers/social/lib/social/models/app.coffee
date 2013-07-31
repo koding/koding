@@ -1,4 +1,3 @@
-
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 
@@ -349,22 +348,23 @@ module.exports = class JApp extends jraphical.Module
     selector or= {}
 
     # Just show approved apps to regular users
-    if not delegate.checkFlag 'super-admin'
+    unless delegate.checkFlag 'super-admin'
       selector.approved = yes
 
     # If delegate is a publisher one can see its apps
     # even they are not approved yet.
-    if delegate.checkFlag 'app-publisher'
+    if not (delegate.checkFlag 'super-admin') \
+       and (delegate.checkFlag 'app-publisher')
+      selector.$or = [
+        {approved: yes}
+        {originId: delegate.getId()}
+      ]
       delete selector.approved
 
-    @some selector, options, (err, _apps)=>
-      if err then callback err
-      else
-        if delegate.checkFlag 'app-publisher'
-          _apps = [app for app in _apps when app.approved or delegate.getId().equals app.originId][0]
-
-        @markInstalled client, _apps, (err, apps)=>
-          @markFollowing client, apps, callback
+    @some selector, options, (err, apps)=>
+      return callback err  if err
+      @markInstalled client, apps, (err, apps)=>
+        @markFollowing client, apps, callback
 
   @markInstalled = secure (client, apps, callback)->
     Relationship.all

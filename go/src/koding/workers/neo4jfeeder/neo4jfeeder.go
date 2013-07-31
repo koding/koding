@@ -112,33 +112,12 @@ func startConsuming() {
 }
 
 func checkIfEligible(sourceName, targetName string) bool {
-
-	notAllowedNames := []string{
-		"CStatusActivity",
-		"CFolloweeBucketActivity",
-		"CFollowerBucketActivity",
-		"CCodeSnipActivity",
-		"CDiscussionActivity",
-		"CReplieeBucketActivity",
-		"CReplierBucketActivity",
-		"CBlogPostActivity",
-		"CNewMemberBucketActivity",
-		"CTutorialActivity",
-		"CLikeeBucketActivity",
-		"CLikerBucketActivity",
-		"CInstalleeBucketActivity",
-		"CInstallerBucketActivity",
-		"CActivity",
-		"CRunnableActivity",
-		"JAppStorage",
-		"JFeed",
-	}
 	notAllowedSuffixes := []string{
 		"Bucket",
 		"BucketActivity",
 	}
 
-	for _, name := range notAllowedNames {
+	for _, name := range neo4j.NotAllowedNames {
 		if name == sourceName {
 			fmt.Println("not eligible " + sourceName)
 			return false
@@ -179,22 +158,21 @@ func createNode(data map[string]interface{}) {
 		return
 	}
 
-	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
-
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		neo4j.UpdateNode(sourceId, sourceContent)
+		fmt.Println("sourceContent", err)
+		return
 	}
+	sourceNode := neo4j.CreateUniqueNode(sourceId, sourceName)
+	neo4j.UpdateNode(sourceId, sourceContent)
 
-	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
 	targetContent, err := mongo.FetchContent(bson.ObjectIdHex(targetId), targetName)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		neo4j.UpdateNode(targetId, targetContent)
+		fmt.Println("targetContent", err)
+		return
 	}
+	targetNode := neo4j.CreateUniqueNode(targetId, targetName)
+	neo4j.UpdateNode(targetId, targetContent)
 
 	source := fmt.Sprintf("%s", sourceNode["create_relationship"])
 	target := fmt.Sprintf("%s", targetNode["self"])
@@ -275,11 +253,12 @@ func updateNode(data map[string]interface{}) {
 		return
 	}
 
-	neo4j.CreateUniqueNode(sourceId, sourceName)
 	sourceContent, err := mongo.FetchContent(bson.ObjectIdHex(sourceId), sourceName)
 	if err != nil {
-		fmt.Println(err)
-	} else {
-		neo4j.UpdateNode(sourceId, sourceContent)
+		fmt.Println("sourceContent", err)
+		return
 	}
+
+	neo4j.CreateUniqueNode(sourceId, sourceName)
+	neo4j.UpdateNode(sourceId, sourceContent)
 }

@@ -119,38 +119,38 @@ module.exports = class JDomain extends jraphical.Module
           callback null, !/shared[\-]?([0-9]+)?$/.test prefix
 
   @createDomain: secure (client, options={}, callback)->
-      {delegate} = client.connection
+    {delegate} = client.connection
 
-      JGroup.one {slug:'koding'}, (err, group)->
+    JGroup.one {slug:'koding'}, (err, group)->
+      return callback err  if err
+
+      delegate.checkPermission group, 'create domains', (err, hasPermission)->
         return callback err  if err
+        return callback new KodingError "Access denied"  unless hasPermission
 
-        delegate.checkPermission group, 'create domains', (err, hasPermission)->
+        JDomain.isDomainEligible
+          delegate : delegate
+          domain   : options.domain
+        , (err, isEligible)->
           return callback err  if err
-          return callback new KodingError "Access denied"  unless hasPermission
+          return callback new KodingError "You can't create this domain."  unless isEligible
 
-          JDomain.isDomainEligible
-            delegate : delegate
-            domain   : options.domain
-          , (err, isEligible)->
-            return callback err  if err
-            return callback new KodingError "You can't create this domain."  unless isEligible
+          model = new JDomain options
+          model.save (err) ->
+            return callback err if err
 
-            model = new JDomain options
-            model.save (err) ->
+            account = client.connection.delegate
+            rel = new Relationship
+              targetId: model.getId()
+              targetName: 'JDomain'
+              sourceId: account.getId()
+              sourceName: 'JAccount'
+              as: 'owner'
+
+            rel.save (err)->
               return callback err if err
 
-              account = client.connection.delegate
-              rel = new Relationship
-                targetId: model.getId()
-                targetName: 'JDomain'
-                sourceId: account.getId()
-                sourceName: 'JAccount'
-                as: 'owner'
-
-              rel.save (err)->
-                return callback err if err
-
-              callback err, model
+            callback err, model
 
 
   @isDomainAvailable = (domainName, tld, callback)->

@@ -666,6 +666,13 @@ task 'deleteCache',(options)->
   exec "rm -rf #{__dirname}/.build",->
     console.log "Cache is pruned."
 
+task 'resetEverything',(options)->
+  invoke 'deleteCache'
+  exec "vagrant halt -f", ->
+    exec "rm -rf #{__dirname}/go/{bin,pkg,bin-vagrant}", ->
+      exec "vagrant up", ->
+        console.log "Vagrant restarted, go binaries removed."
+
 task 'aws', (options) ->
   {configFile,type} = options
   {aws} = config = require('koding-config-manager').load("main.#{configFile}")
@@ -750,8 +757,20 @@ task 'addVPNuser', "adds a VPN user, use with -n, -u and -e", (options) ->
     verbose : yes
     onExit : null
 
+task 'runExternals',(options)->
+  {configFile} = options
+  config = require('koding-config-manager').load("main.#{configFile}")
 
-
+  processes.spawn
+    name              : 'externals'
+    cmd               : "./go/bin/externals -c #{configFile}"
+    restart           : yes
+    restartTimeout    : 100
+    stdout            : process.stdout
+    stderr            : process.stderr
+    kontrol           :
+      enabled         : if config.runKontrol is yes then yes else no
+    verbose           : yes
 
 
 

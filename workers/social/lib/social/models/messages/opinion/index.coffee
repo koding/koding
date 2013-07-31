@@ -16,7 +16,9 @@ module.exports = class JOpinion extends JPost
 
   {log} = console
 
+  {permit}    = require '../../group/permissionset'
   KodingError = require '../../../error'
+
 
   @trait __dirname, '../../../traits/grouprelated'
 
@@ -29,6 +31,12 @@ module.exports = class JOpinion extends JPost
     sharedEvents    :
       instance      : [
         { name: 'OpinionIsDeleted' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
       static          : ['create','one','updateAllSlugs',"fetchRelated"]
@@ -52,12 +60,13 @@ module.exports = class JOpinion extends JPost
       kodingErr[prop] = err[prop]
     kodingErr
 
-  @create = secure (client, data, callback)->
-    codeSnip =
-      title       : data.title
-      body        : data.body
-      meta        : data.meta
-    JPost.create.call @, client, codeSnip, callback
+  @create = permit 'reply to posts',
+    success: (client, data, callback)->
+      codeSnip =
+        title       : data.title
+        body        : data.body
+        meta        : data.meta
+      JPost.create.call @, client, codeSnip, callback
 
   @fetchRelated = (targetId, callback)->
     {Relationship} = require 'jraphical'
@@ -80,7 +89,7 @@ module.exports = class JOpinion extends JPost
   delete: secure ({connection:{delegate}}, callback)->
     originId = @getAt 'originId'
     unless delegate.getId().equals originId
-      callback new KodingError 'Access denied!'
+      callback new KodingError 'Access denied'
     else
       id = @getId()
       {getDeleteHelper} = Relationship

@@ -76,9 +76,9 @@ module.exports = class JGroupBundle extends JBundle
       , {}, (err, cursor)=>
         cursor.toArray (err, arr)=>
           return callback err  if err
-
-          createdVMs = arr.length
-          firstVM    = group.slug is 'koding' and createdVMs == 0 and planCode is 'free'
+		  createdVMs = arr.length or 0
+          firstVM = group.slug in ['koding','guests'] and \
+                    createdVMs == 0 and planCode is 'free'
 
           callback null, paidVMs > createdVMs or firstVM
 

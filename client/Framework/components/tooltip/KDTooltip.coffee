@@ -18,7 +18,7 @@ class KDTooltip extends KDView
   constructor:(options,data)->
 
     options.bind   or= "mouseenter mouseleave"
-    options.sticky ?= no
+    options.sticky  ?= no
 
     super options, data
 
@@ -234,7 +234,6 @@ class KDTooltip extends KDView
         ['top','left']
         ['top','center']
         ['right','center']
-
         ['bottom','center']
         ['bottom','left']
         ['left','bottom']

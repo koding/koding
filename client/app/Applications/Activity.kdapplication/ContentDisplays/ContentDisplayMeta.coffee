@@ -10,8 +10,11 @@ class ContentDisplayMeta extends KDView
       KD.getSingleton("appManager").tell "Members", "createContentDisplay", account
 
   partial: (activity, account) ->
+
+    name = KD.utils.getFullnameFromAccount account, yes
+
     dom = $ """
-      <div>by <a href="#">#{account.profile.firstName}</a> <time class='timeago' datetime="#{new Date(activity.meta.createdAt).format 'isoUtcDateTime'}"></time></div>
+      <div>by <a href="#">#{name}</a> <time class='timeago' datetime="#{new Date(activity.meta.createdAt).format 'isoUtcDateTime'}"></time></div>
     """
     dom.find("time.timeago").timeago()
     dom

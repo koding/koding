@@ -20,7 +20,7 @@ class HomeLoginBar extends JView
     @register     = new CustomLinkView
       tagName     : "a"
       cssClass    : "register"
-      title       : "Have an invite code? Register!"
+      title       : "Not a member? Register"
       icon        : {}
       attributes  :
         href      : "/Register"
@@ -34,7 +34,7 @@ class HomeLoginBar extends JView
       title       : "Request an Invite"
       icon        : {}
       attributes  :
-        href      : "/Join"
+        href      : "/Login"
       click       : (event)=>
         KD.track "Login", "RequestInvite"
         @utils.stopDOMEvent event
@@ -46,11 +46,11 @@ class HomeLoginBar extends JView
                 @request.hide()
                 @requested.show()
         else
-          KD.getSingleton('router').handleRoute "/Join", {entryPoint}
+          KD.getSingleton('router').handleRoute "/Login", {entryPoint}
 
     @login        = new CustomLinkView
       tagName     : "a"
-      title       : "Already a user? Sign In!"
+      title       : "Already a user? Sign In"
       icon        : {}
       cssClass    : "login"
       attributes  :
@@ -187,12 +187,7 @@ class HomeLoginBar extends JView
     KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   handleBackendResponse:(err, successMsg)->
-    if err
-      warn err
-      return new KDNotificationView
-        title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-        duration : 2000
-
+    return KD.showError err  if err
     new KDNotificationView
       title    : successMsg
       duration : 2000
@@ -207,7 +202,6 @@ class HomeLoginBar extends JView
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
       else @request.hide()
-      return
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()

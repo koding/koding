@@ -143,7 +143,6 @@ class KiteController extends KDController
 
 
   parseKiteResponse:({err, response}, options, callback)->
-
     if err and response
       callback? err, response
       warn "Command failed:", err
