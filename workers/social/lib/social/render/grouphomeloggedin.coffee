@@ -31,7 +31,7 @@ module.exports = ({account, slug, title, content, body, avatar, counts, policy, 
             <div id="content-page-activity" class="kdview content-page activity kdscrollview">
               <div class="kdview screenshots" id="home-group-header" >
                 <section id="home-group-body" class="kdview kdscrollview">
-                  <div class="group-desc">#{body or getDefaultGroupContents()}</div>
+                  <div class="group-desc">#{body}</div>
                 </section>
                 <div class="home-links" id="group-home-links">
                   <div class='overlay'></div>
@@ -55,16 +55,3 @@ getInviteLink =(policy)->
   if policy.approvalEnabled
     '<p class="bigLink"><a href="./Login">Request an Invite</a></p>'
   else ''
-
-getDefaultGroupContents = (title)->
-  """
-  <h1>Hello!</h1>
-  <p>Welcome to the <strong>#{title}</strong> group on Koding.<p>
-  <h2>Talk.</h2>
-  <p>Looking for people who share your interest? You are in the right place. And you can discuss your ideas, questions and problems with them easily.</p>
-  <h2>Share.</h2>
-  <p>Here you will be able to find and share interesting content. Experts share their wisdom through links or tutorials, professionals answer the questions of those who want to learn.</p>
-  <h2>Collaborate.</h2>
-  <p>You will be able to share your code, thoughts and designs with like-minded enthusiasts, discussing and improving it with a community dedicated to improving each other's work.</p>
-  <p>Go ahead, the members of <strong>#{title}</strong> are waiting for you.</p>
-  """
