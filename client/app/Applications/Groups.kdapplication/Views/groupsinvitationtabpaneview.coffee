@@ -18,6 +18,7 @@ class GroupsInvitationTabPaneView extends KDView
     @addSubView @listView
 
     @controller.on 'UpdatePendingCount', @updatePendingCount.bind this
+    @listView.on 'invitationStatusChanged', @parent.tabHandle.bound 'markDirty'
 
   addListeners:->
     @on 'teasersLoaded', =>
@@ -56,6 +57,7 @@ class GroupsInvitationTabPaneView extends KDView
 
     @getData().fetchInvitationsFromGraph @options.type, options, (err, results)=>
       @controller.hideLazyLoader()
+      results = results.filter (res)-> res isnt null
       if err or results.length is 0
         warn err  if err
         return @controller.emit 'noItemsFound'

@@ -1,11 +1,7 @@
 class DomainsRoutingView extends JView
 
   notifyError = (err)->
-    new KDNotificationView
-      type     : "mini"
-      cssClass : "error"
-      duration : 5000
-      title    : err
+    KD.showError err
 
   getNoItemView = (partial)-> new KDCustomHTMLView {cssClass : 'no-item', partial}
 
