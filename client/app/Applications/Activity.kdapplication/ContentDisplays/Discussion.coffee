@@ -63,8 +63,8 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
     @newAnswers = 0
 
     @actionLinks = new DiscussionActivityActionsView
-      delegate    : @opinionBox.opinionList
-      cssClass    : "comment-header"
+      delegate : @commentBox.commentList
+      cssClass : "comment-header"
     , data
 
     @tags = new ActivityChildViewTagGroup
@@ -129,6 +129,11 @@ class ContentDisplayDiscussion extends ActivityContentDisplay
 
       @editDiscussionLink.unsetClass "hidden"
       @deleteDiscussionLink.unsetClass "hidden"
+
+    # quick fix - noli me judicare - MSA
+    activity.on 'CommentIsAdded', (reply) =>
+      activity.repliesCount = reply.repliesCount
+      @commentBox.setData activity
 
     activity.on 'ReplyIsAdded',(reply)=>
       if data.bongo_.constructorName is "JDiscussion"

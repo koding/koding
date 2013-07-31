@@ -3,14 +3,17 @@ class ShowMoreDataModalView extends KDModalView
   titleMap = ->
     account : "Members"
     tag     : "Topics"
+    app     : "Applications"
 
   listControllerMap = ->
     account : MembersListViewController
     tag     : KDListViewController
+    app     : KDListViewController
 
   listItemMap = ->
     account : MembersListItemView
     tag     : ModalTopicsListItem
+    app     : ModalAppsListItemView
 
   constructor:(options = {}, data)->
 
@@ -20,11 +23,13 @@ class ShowMoreDataModalView extends KDModalView
       @type = "account"
     else if participants[0] instanceof KD.remote.api.JTag
       @type = "tag"
+    else
+      @type = "app"
 
     options.title    or= titleMap()[@type]
     options.height   = "auto"
     options.overlay  = yes
-    options.cssClass = "modal-topic-wrapper"
+    options.cssClass = "modal-applications-wrapper"
     options.buttons  =
       Close :
         style : "modal-clean-gray"
@@ -54,7 +59,7 @@ class ShowMoreDataModalView extends KDModalView
   putList: (participants) ->
     controller = new KDListViewController
       view              : new KDListView
-        itemClass    : listItemMap()[@type]
+        itemClass       : listItemMap()[@type]
         cssClass        : "modal-topic-list"
     , items             : participants
 
