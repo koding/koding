@@ -80,16 +80,16 @@ class ActivityListController extends KDListViewController
     activityIds = []
     for overviewItem in cache.overview when overviewItem
       if overviewItem.ids.length > 1 and overviewItem.type is "CNewMemberBucketActivity"
-        group = []
+        anchors = []
         for id in overviewItem.ids
           if cache.activities[id].teaser?
-            group.push cache.activities[id].teaser.anchor
+            anchors.push cache.activities[id].teaser.anchor
           else
             KD.logToExternal msg:'no teaser for activity', activityId:id
 
         @addItem new NewMemberBucketData
           type                : "CNewMemberBucketActivity"
-          group               : group
+          anchors             : anchors
           count               : overviewItem.count
           createdAtTimestamps : overviewItem.createdAt
       else
@@ -156,9 +156,9 @@ class ActivityListController extends KDListViewController
       if item.getData() instanceof NewMemberBucketData
         data = item.getData()
         if data.count > 3
-          data.group.pop()
+          data.anchors.pop()
         id = memberAccount.id
-        data.group.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
+        data.anchors.unshift {bongo_: {constructorName:"ObjectRef"}, constructorName:"JAccount", id:id}
         data.createdAtTimestamps.push (new Date).toJSON()
         data.count++
         item.slideOut =>

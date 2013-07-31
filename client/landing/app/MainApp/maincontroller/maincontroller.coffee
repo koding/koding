@@ -55,6 +55,7 @@ class MainController extends KDController
       KD.registerSingleton "activityController",   new ActivityController
       KD.registerSingleton "appStorageController", new AppStorageController
       KD.registerSingleton "kodingAppsController", new KodingAppsController
+      @showInstructionsBookIfNeeded()
       @emit 'AppIsReady'
 
   accountChanged:(account, firstLoad = no)->
@@ -118,7 +119,7 @@ class MainController extends KDController
   unmarkUserAsTroll:(data)->
 
     kallback = (acc)=>
-      acc.unflagAccount "exempt", (err, res)->
+      acc.markUserAsExempt false, (err, res)->
         if err then warn err
         else
           new KDNotificationView
@@ -152,7 +153,7 @@ class MainController extends KDController
             diameter : 16
           callback   : =>
             kallback = (acc)=>
-              acc.flagAccount "exempt", (err, res)->
+              acc.markUserAsExempt true, (err, res)->
                 if err then warn err
                 else
                   modal.destroy()
@@ -276,6 +277,10 @@ class MainController extends KDController
 
       return totalTimestamp
 
+  showInstructionsBookIfNeeded:->
+    if $.cookie 'newRegister'
+      @emit "ShowInstructionsBook", 9
+      $.cookie 'newRegister', no
 
   decorateBodyTag:->
     if KD.checkFlag 'super-admin'
@@ -294,8 +299,8 @@ class MainController extends KDController
         overlay : yes
         buttons :
           "Refresh Now" :
-            style     : "modal-clean-red"
-            callback  : ->
+            style       : "modal-clean-red"
+            callback    : ->
               modal.destroy()
               location.reload yes
       # if location.hostname is "localhost"
@@ -304,7 +309,8 @@ class MainController extends KDController
     checkConnectionState = ->
       unless connectedState.connected
         fail()
-    ->
+
+    return ->
       @utils.wait @getOptions().failWait, checkConnectionState
       @on "AccountChanged", =>
         KD.track "Connected to backend"
@@ -312,4 +318,6 @@ class MainController extends KDController
         if modal
           modal.setTitle "Connection Established"
           modal.$('.modalformline').html "<b>It just connected</b>, don't worry about this warning."
+          modal.buttons["Refresh Now"].destroy()
+
           @utils.wait 2500, -> modal?.destroy()
