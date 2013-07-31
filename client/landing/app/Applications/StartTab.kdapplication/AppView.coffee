@@ -296,7 +296,6 @@ class StartTabMainView extends JView
     guestCreate      = new Date KD.whoami().meta.createdAt
     guestCreateTime  = guestCreate.getTime()
 
-    console.log guestTimeout
     endTime       = new Date(guestCreateTime + guestTimeout*60*1000)
     log endTime
     notification  = new GlobalNotification
