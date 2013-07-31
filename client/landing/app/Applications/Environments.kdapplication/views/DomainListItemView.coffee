@@ -5,21 +5,25 @@ class DomainListItemView extends KDListItemView
     options.cssClass = 'domain-item'
     super options, data
 
-    {createdAt} = @getData()
+    {createdAt, domain} = @getData()
 
     @createdAgo = new KDTimeAgoView {}, createdAt
-    @deleteIcon = new KDCustomHTMLView
-      tagName    : "a"
-      cssClass   : "delete-link"
-      attributes :
-        title    : "Remove domain."
-      click      : (event)=>
-        domain = @getData()
-        event.preventDefault()
-        event.stopPropagation()
-        @deletionModal = new DomainDeletionModal {}, @getData()
-        @deletionModal.on "domainRemoved", =>
-          @getDelegate().emit "domainRemoved", this
+
+    if /^([\w\-]+)\.kd\.io$/.test domain
+      @deleteIcon = new KDView
+    else
+      @deleteIcon = new KDCustomHTMLView
+        tagName    : "a"
+        cssClass   : "delete-link"
+        attributes :
+          title    : "Remove domain."
+        click      : (event)=>
+          domain = @getData()
+          event.preventDefault()
+          event.stopPropagation()
+          @deletionModal = new DomainDeletionModal {}, @getData()
+          @deletionModal.on "domainRemoved", =>
+            @getDelegate().emit "domainRemoved", this
 
 
   click: (event)->

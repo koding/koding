@@ -751,6 +751,8 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
+  "app/CommonViews/modalappslistitemview.coffee",
+
   # OLD PAGES
   # "app/MainApp/oldPages/pageHome.coffee",
   # "app/MainApp/oldPages/pageRegister.coffee",
