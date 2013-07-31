@@ -6,6 +6,22 @@ class ClassroomAppView extends KDView
 
     super options, data
 
+    @appStorage = new AppStorage "Classroom", "1.0"
+
+    @createHeader()
+    @fetchUserClasses()
+
+  fetchUserClasses: ->
+    @appStorage.fetchStorage (storage) =>
+
+      @addSubView @classesView = new ClassroomClassesView
+        delegate : this
+      ,
+        enrolled : @appStorage.getValue "UserClasses"
+
+  createHeader: ->
+    @addSubView @header = new KDView
+      cssClass : "container"
       partial  : """
         <div class="banner">
           <h1>&lt;classroom /&gt;</h1>
