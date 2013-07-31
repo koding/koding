@@ -8,7 +8,6 @@ class HomeAppController extends ActivityAppController
     navItem      :
       title      : "Home"
       path       : "/Home"
-      order      : 9
 
   constructor:(options = {}, data)->
 
