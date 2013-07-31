@@ -183,13 +183,14 @@ module.exports = class JGroup extends Module
 
     @on 'MemberAdded', (member)->
       @constructor.emit 'MemberAdded', { group: this, member }
-      @sendNotificationToAdmins 'GroupJoined',
-        actionType : 'groupJoined'
-        actorType  : 'member'
-        subject    : ObjectRef(this).data
-        member     : ObjectRef(member).data
-      @broadcast 'MemberJoinedGroup',
-        member : ObjectRef(member).data
+      unless @slug is 'guests'
+        @sendNotificationToAdmins 'GroupJoined',
+          actionType : 'groupJoined'
+          actorType  : 'member'
+          subject    : ObjectRef(this).data
+          member     : ObjectRef(member).data
+        @broadcast 'MemberJoinedGroup',
+          member : ObjectRef(member).data
 
     @on 'MemberRemoved', (member)->
       @constructor.emit 'MemberRemoved', { group: this, member }
@@ -598,6 +599,7 @@ module.exports = class JGroup extends Module
     success:(client, rest...)->
       [selector, options, callback] = Module.limitEdges 100, rest
       # delete options.targetOptions
+      options.client = client
       @fetchMembers selector, options, ->
         callback arguments...
 
@@ -1482,6 +1484,7 @@ module.exports = class JGroup extends Module
       graph = new Graph({config:KONFIG['neo4j']})
       options.groupId = @getId()
       JAccount = require '../account'
+      options.client = client
       graph.fetchMembers options, (err, results)=>
         if err then return callback err
         else if results.length < 1 then return callback null, []

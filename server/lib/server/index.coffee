@@ -373,7 +373,7 @@ app.get '/:name/:section?*', (req, res, next)->
     next()
   else
     {JGroup} = koding.models
-    isLoggedIn req, res, (loggedIn, account)->
+    isLoggedIn req, res, (err, loggedIn, account)->
       JName.fetchModels name, (err, models)->
         if err then next err
         else unless models? then res.send 404, error_404()
@@ -388,8 +388,11 @@ app.get "/", (req, res)->
     res.send 'this is crawlable content'
   else
     {JGroup} = koding.models
-    isLoggedIn req, res, (loggedIn, account)->
-      if loggedIn
+    isLoggedIn req, res, (err, loggedIn, account)->
+      if err
+        res.send 500, error_500()
+        console.error err
+      else if loggedIn
         # go to koding activity
         activityPage = JGroup.renderKodingHomeLoggedIn {account}
         serve activityPage, res

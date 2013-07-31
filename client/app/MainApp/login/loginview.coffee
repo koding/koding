@@ -196,15 +196,6 @@ class LoginView extends KDScrollView
           content   : "We've sent you a password recovery token."
           duration  : 4500
 
-  showInstructionsBookIfFirstLogin:->
-    appStorage = new AppStorage "instruction-book", "1.0"
-    appStorage.fetchValue "readPages", (pages) ->
-      pages or= []
-      if pages.length is 0
-        pages.push "table-of-contents"
-        appStorage.setValue "readPages", pages
-        KD.getSingleton('mainController').emit "FirstTimeLoginHappened", 1
-
   doRegister:(formData)->
     formData.agree = 'on'
     @registerForm.notificationsDisabled = yes
@@ -228,6 +219,7 @@ class LoginView extends KDScrollView
 
       else
 
+        $.cookie 'newRegister', yes
         $.cookie 'clientId', replacementToken
         KD.getSingleton('mainController').accountChanged account
 
@@ -236,7 +228,6 @@ class LoginView extends KDScrollView
           title     : '<span></span>Good to go, Enjoy!'
           # content   : 'Successfully registered!'
           duration  : 2000
-        @showInstructionsBookIfFirstLogin()
 
         # send information to mixpanel
         KD.track 'UserLogin', 'UserRegistered',

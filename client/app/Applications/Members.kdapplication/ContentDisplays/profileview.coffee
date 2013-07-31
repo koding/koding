@@ -4,6 +4,9 @@ class ProfileView extends JView
     super
 
     memberData = @getData()
+    if KD.checkFlag('exempt', memberData)
+      if not KD.checkFlag 'super-admin'
+        return KD.getSingleton('router').handleRoute "/Activity"
 
     @avatar = new AvatarStaticView
       size     :
@@ -79,7 +82,6 @@ class ProfileView extends JView
     @skillTags = new SkillTagGroup {}, memberData
 
     if KD.checkFlag 'super-admin'
-
       @trollSwitch = new KDCustomHTMLView
         tagName      : "a"
         partial      : if KD.checkFlag('exempt', memberData) then 'Unmark Troll' else 'Mark as Troll'

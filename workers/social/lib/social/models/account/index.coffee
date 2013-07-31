@@ -50,6 +50,7 @@ module.exports = class JAccount extends jraphical.Module
     taggedContentRole   : 'developer'
     indexes:
       'profile.nickname' : 'unique'
+      isExempt           : 1
     sharedEvents    :
       static        : [
         { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
@@ -117,6 +118,9 @@ module.exports = class JAccount extends jraphical.Module
           type              : Number
           default           : 0
         lastStatusUpdate    : String
+      isExempt              : # is a troll ?
+        type                : Boolean
+        default             : false
       globalFlags           : [String]
       meta                  : require 'bongo/bundles/meta'
       onlineStatus          :
@@ -239,7 +243,6 @@ module.exports = class JAccount extends jraphical.Module
                 change = {
                   oldUsername, username, mustReauthenticate, isRegistration
                 }
-                console.log { @chris }
                 @sendNotification 'UsernameChanged', change  if mustReauthenticate
                 @constructor.emit 'UsernameChanged', change
                 freeOldUsername()
@@ -664,20 +667,41 @@ module.exports = class JAccount extends jraphical.Module
     , (err, count)=>
       @update ($set: 'counts.topics': count), ->
 
-  dummyAdmins = [ "sinan", "devrim","gokmen", "chris", "testdude", "blum", "neelance", "halk",
-                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "armagan", "cihangirsavas", "fkadev"]
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "blum", "neelance", "halk"
+                  "fatihacet", "chrisblum", "sent-hil", "kiwigeraint", "cihangirsavas"
+                  "fkadev" ]
+
+
+  userIsExempt: (callback)->
+    console.log @isExempt, this
+    callback null, @isExempt
+
+  # returns troll users ids
+  @getExemptUserIds: (callback)->
+    JAccount.someData {isExempt:true}, {_id:1}, (err, cursor)-> 
+      cursor.toArray (err, data)-> 
+        if err
+          return callback err, null
+        callback null, (i._id for i in data)
+
+  markUserAsExempt: secure (client, exempt, callback)->
+    {delegate} = client.connection
+    if delegate.can 'flag', this
+      @update $set: {isExempt: exempt}, callback
+      # this is for backwards comp. will remove later...
+      if exempt
+        @update {$addToSet: globalFlags: "exempt"}, ()->
+      else
+        @update {$pullAll: globalFlags: ["exempt"]}, ()->
+
+    else
+      callback new KodingError 'Access denied'
 
   flagAccount: secure (client, flag, callback)->
     {delegate} = client.connection
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$addToSet: globalFlags: flag}, callback
-      if flag is 'exempt'
-        console.log 'is exempt'
-        @markAllContentAsLowQuality()
-        @cleanCacheFromActivities()
-      else
-        console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
 
@@ -686,11 +710,6 @@ module.exports = class JAccount extends jraphical.Module
     JAccount.taint @getId()
     if delegate.can 'flag', this
       @update {$pullAll: globalFlags: [flag]}, callback
-      if flag is 'exempt'
-        console.log 'was exempt'
-        @unmarkAllContentAsLowQuality()
-      else
-        console.log 'aint exempt'
     else
       callback new KodingError 'Access denied'
 
@@ -718,7 +737,9 @@ module.exports = class JAccount extends jraphical.Module
     else
       callback new KodingError 'Access denied'
 
-  checkFlag:(flagToCheck)->
+  checkFlag:(flagToCheck)=>
+    if flagToCheck is 'exempt'
+      return @isExempt
     flags = @getAt('globalFlags')
     if flags
       if 'string' is typeof flagToCheck
@@ -919,6 +940,7 @@ module.exports = class JAccount extends jraphical.Module
     JUser.one {username: @profile.nickname}, callback
 
   markAllContentAsLowQuality:->
+    # this is obsolete
     @fetchContents (err, contents)->
       contents.forEach (item)->
         item.update {$set: isLowQuality: yes}, ->
@@ -929,6 +951,7 @@ module.exports = class JAccount extends jraphical.Module
             item.emit 'ContentMarkedAsLowQuality', null
 
   unmarkAllContentAsLowQuality:->
+    # this is obsolete
     @fetchContents (err, contents)->
       contents.forEach (item)->
         item.update {$set: isLowQuality: no}, ->
@@ -939,6 +962,7 @@ module.exports = class JAccount extends jraphical.Module
             item.emit 'ContentUnmarkedAsLowQuality', null
 
   cleanCacheFromActivities:->
+    # TODO: this is obsolete
     CActivity.emit 'UserMarkedAsTroll', @getId()
 
   @taintedAccounts = {}

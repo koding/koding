@@ -23,9 +23,7 @@ module.exports = (account)->
             <a class="group-switcher" href="#"><span class="count"><cite>0</cite><span class="arrow-wrap"><span class="arrow"></span></span></span><span class="icon"></span></a>
           </div>
           <div class="kdview kdlistview kdlistview-navigation">
-            <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
-              <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
-            </div>
+            #{getHomeItem loggedIn}
             <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix#{ if loggedIn then ' selected' else ''}">
               <a class="title" href="#"><span class="main-nav-icon activity"></span>Activity</a>
             </div>
@@ -61,6 +59,15 @@ module.exports = (account)->
     """
 
   return markup
+
+getHomeItem = (loggedIn)->
+  if loggedIn then ''
+  else
+    """
+    <div class="kdview kdlistitemview kdlistitemview-default navigation-item clearfix">
+      <a class="title" href="#"><span class="main-nav-icon home"></span>Home</a>
+    </div>
+    """
 
 getSmallNavigation = ({loggedIn})->
   if loggedIn

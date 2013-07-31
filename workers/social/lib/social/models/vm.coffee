@@ -304,10 +304,10 @@ module.exports = class JVM extends Model
 
     slug = group ? if delegate.type is 'unregistered' then 'guests' else 'koding'
 
-    JGroup.one {slug}, (err, group) =>
+    JGroup.one {slug}, (err, fetchedGroup) =>
       return callback err  if err
 
-      selector = groups: { $elemMatch: id: group.getId() }
+      selector = groups: { $elemMatch: id: fetchedGroup.getId() }
       @fetchAccountVmsBySelector delegate, selector, options, callback
 
   @fetchVms = secure (client, options, callback) ->

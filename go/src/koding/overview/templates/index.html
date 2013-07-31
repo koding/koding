@@ -44,17 +44,22 @@
 		</div><!-- navbar -->
 
 		<div class="row-fluid">
-			<div class="span5 offset1">
-				<h2>Status</h2>
+			<div class="span6">
+                <div class="span2">
+                  <h2>Status</h2>
+                </div>
 
-                <!-- switch versions input -->
-                <form method="POST">
+                <div class="span4">
+                  <!-- switch versions input -->
+                  <form method="POST">
 
-                  <div class="input-append">
-                    <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
-                    <button class="btn btn-success">Switch Version <i class="icon-random icon-white"></i></button>
-                  </div>
-                </form>
+                    <div class="input-append">
+                      <input name="switchVersion" class="span4" id="appendedInputButton" type="text">
+                      <button class="btn btn-success">Switch Version <i class="icon-random icon-white"></i></button>
+                    </div>
+                  </form>
+                </div>
+
 
 				<table class="table table-bordered">
 					<tr>
@@ -103,6 +108,7 @@
 					<thead>
 						<tr>
 							<td><strong>Name</strong></td>
+							<td><strong>Hostname</strong></td>
 							<td><strong>Pid</strong></td>
 							<td><strong>Port</strong></td>
 							<td><strong>Uptime</strong></td>
@@ -113,6 +119,7 @@
 						{{range .Workers}} 
 						<tr class="{{.Info}}">
 							<td>{{.Name}}</td>
+							<td>{{.Hostname}}</td>
 							<td>{{.Pid}}</td>
 							<td>{{.Port}}</td>
 							<td>{{.Clock}}</td>
@@ -124,7 +131,7 @@
 				<span class="label label-info">Info</span>
 				Kontrold is cleaning up death workers in one hour intervals.
 			</div>
-			<div class="span4">
+			<div class="span5">
 				<h2>Deployment
 				<div class="btn-group">
 					<a class="btn btn-info dropdown-toggle" data-toggle="dropdown">{{.Status.BuildNumber}}<span class="caret"></span> </a>
