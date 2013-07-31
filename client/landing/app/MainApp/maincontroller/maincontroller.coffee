@@ -118,7 +118,7 @@ class MainController extends KDController
   unmarkUserAsTroll:(data)->
 
     kallback = (acc)=>
-      acc.unflagAccount "exempt", (err, res)->
+      acc.markUserAsExempt false, (err, res)->
         if err then warn err
         else
           new KDNotificationView
@@ -152,7 +152,7 @@ class MainController extends KDController
             diameter : 16
           callback   : =>
             kallback = (acc)=>
-              acc.flagAccount "exempt", (err, res)->
+              acc.markUserAsExempt true, (err, res)->
                 if err then warn err
                 else
                   modal.destroy()
