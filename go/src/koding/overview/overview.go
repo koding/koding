@@ -1,6 +1,7 @@
 package main
 
 import (
+	auth "bitbucket.org/rj/httpauth-go"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -121,8 +122,13 @@ func NewServerInfo() *ServerInfo {
 	}
 }
 
-var templates = template.Must(template.ParseFiles("index.html"))
-var proxyDB *proxyconfig.ProxyConfiguration
+var (
+	checkAuth *auth.Basic
+	proxyDB   *proxyconfig.ProxyConfiguration
+	templates = template.Must(template.ParseFiles(
+		"templates/index.html",
+	))
+)
 
 const uptimeLayout = "03:04:00"
 
@@ -133,6 +139,18 @@ func main() {
 		res := fmt.Sprintf("proxyconfig mongodb connect: %s", err)
 		log.Println(res)
 	}
+
+	checkAuth = auth.NewBasic("Kontrol.in.koding.com", func(username, password string) bool {
+		if username != "koding" {
+			return false
+		}
+
+		if password != "1234567890-=" {
+			return false
+		}
+
+		return true
+	}, nil)
 
 	http.HandleFunc("/", viewHandler)
 	http.Handle("/bootstrap/", http.StripPrefix("/bootstrap/", http.FileServer(http.Dir("bootstrap/"))))
@@ -145,6 +163,12 @@ func main() {
 }
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
+	username := checkAuth.Authorize(r)
+	if username == "" {
+		checkAuth.NotifyAuthRequired(w, r)
+		return
+	}
+
 	build := r.FormValue("build")
 	if build == "" || build == "current" {
 		version, _ := currentVersion()
