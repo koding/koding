@@ -78,6 +78,9 @@ class KodingRouter extends KDRouter
     KD.getSingleton('groupsController').changeGroup group, (err)=>
       if err then new KDNotificationView title: err.message
       else
+        # temp fix for not showing homepage to loggedin users
+        app = 'Activity' if app is 'Home' and KD.isLoggedIn()
+
         @setPageTitle nicenames[app] ? app
         appManager = KD.getSingleton "appManager"
         appManager.open app, (appInstance)=>
@@ -242,18 +245,19 @@ class KodingRouter extends KDRouter
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
       # apps
-      '/:name?/Develop/:slug'           : createSectionHandler 'Develop'
+      '/:name?/Develop/:slug'  : createSectionHandler 'Develop'
 
       # content
-      '/:name?/Topics/:slug'            : createContentHandler 'Topics'
-      '/:name?/Activity/:slug'          : createContentHandler 'Activity'
-      '/:name?/Apps/:slug'              : createContentHandler 'Apps'
+      '/:name?/Topics/:slug'   : createContentHandler 'Topics'
+      '/:name?/Activity/:slug' : createContentHandler 'Activity'
+      '/:name?/Apps/:slug'     : createContentHandler 'Apps'
 
-      '/:name/Groups'                   : createSectionHandler 'Groups'
+      '/:name/Groups'          : createSectionHandler 'Groups'
 
-      '/:name/Followers'                : createContentHandler 'Members', yes
-      '/:name/Following'                : createContentHandler 'Members', yes
-      '/:name/Likes'                    : createContentHandler 'Members', yes
+      '/:name/Followers'       : createContentHandler 'Members', yes
+      '/:name/Following'       : createContentHandler 'Members', yes
+      '/:name/Likes'           : createContentHandler 'Members', yes
+
 
       '/:name?/Recover/:recoveryToken': ({params:{recoveryToken}})->
         return  if recoveryToken is 'Password'
