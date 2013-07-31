@@ -127,6 +127,8 @@ class KDWindowController extends KDController
 
   addUnloadListener:(listener)-> @unloadListeners.push listener
 
+  clearUnloadListeners: -> @unloadListeners = []
+
   addFocusListener: (listener)-> @focusListeners.push listener
 
   focusChange: (event, state)->
