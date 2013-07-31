@@ -112,6 +112,13 @@ class StartTabMainView extends JView
     @addRealApps()
     @addSplitOptions()
     @addRecentFiles()
+    if KD.isGuest()
+      unless $.cookie "guestForFirstTime"
+        @utils.wait 5*60*1000, =>
+          @showGuestNotification()
+          $.cookie "guestForFirstTime", yes
+      else
+        @showGuestNotification()
 
   _windowDidResize:->
 
@@ -283,3 +290,24 @@ class StartTabMainView extends JView
         splits                : [2,2]
       },
     ]
+
+  showGuestNotification: (guestTimeout = 20)->
+    return  unless KD.isGuest()
+    guestCreate      = new Date KD.whoami().meta.createdAt
+    guestCreateTime  = guestCreate.getTime()
+
+    console.log guestTimeout
+    endTime       = new Date(guestCreateTime + guestTimeout*60*1000)
+    log endTime
+    notification  = new GlobalNotification
+      title       : "Your session will end in"
+      targetDate  : endTime
+      endTitle    : "Your session end, logging out."
+      content     : "You can use Koding for 20 minutes without registering. <a href='/Register'>Register now</a>."
+      callback    : =>
+        {defaultVmName} = KD.getSingleton "vmController"
+        KD.remote.api.JVM.removeByHostname defaultVmName, (err)->
+          KD.getSingleton("finderController").unmountVm defaultVmName
+          KD.getSingleton("vmController").emit 'VMListChanged'
+          $.cookie "clientId", erase: yes
+          $.cookie "guestForFirstTime", erase: yes
