@@ -322,11 +322,11 @@ class KDInputView extends KDView
         $growCalculator.css
           height        : "auto"
           "z-index"     : 100000
-          width         : @$().width()
-          padding       : @$().css('padding')
-          "word-break"  : @$().css('word-break')
-          "font-size"   : @$().css('font-size')
-          "line-height" : @$().css('line-height')
+          width         : $input.width()
+          padding       : $input.css('padding')
+          "word-break"  : $input.css('word-break')
+          "font-size"   : $input.css('font-size')
+          "line-height" : $input.css('line-height')
 
     @on "blur", =>
       $growCalculator.detach()
