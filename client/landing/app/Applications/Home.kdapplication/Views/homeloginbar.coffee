@@ -90,29 +90,17 @@ class HomeLoginBar extends JView
               @requested.show()
               @listenToApproval()
 
-    if entryPoint?.slug
-      @join         = new CustomLinkView
-        tagName     : "a"
-        title       : "Join Group"
-        icon        : {}
-        cssClass    : "join green hidden button"
-        attributes  :
-          href      : "#"
-        click       : (event)=>
-          KD.track "Login", "GroupJoinRequest", @group.slug
-          @utils.stopDOMEvent event
-          requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
-    else
-      @join         = new CustomLinkView
-        tagName     : "a"
-        title       : "Join Koding"
-        icon        : {}
-        cssClass    : "join green hidden button"
-        attributes  :
-          href      : "/Register"
-        click       : (event)=>
-          KD.track "Login", "Register", @group.slug
-          handler.call @join, event
+    @join         = new CustomLinkView
+      tagName     : "a"
+      title       : "Join Group"
+      icon        : {}
+      cssClass    : "join green hidden button"
+      attributes  :
+        href      : "#"
+      click       : (event)=>
+        KD.track "Login", "GroupJoinRequest", @group.slug
+        @utils.stopDOMEvent event
+        requiresLogin => @appManager.tell 'Groups', "joinGroup", @group
 
     @requested    = new CustomLinkView
       tagName     : "a"
