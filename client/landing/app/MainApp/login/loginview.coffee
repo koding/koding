@@ -20,10 +20,8 @@ class LoginView extends KDScrollView
       KD.getSingleton('router').handleRoute route, {entryPoint}
 
     homeHandler       = handler.bind null, '/'
-    learnMoreHandler  = handler.bind null, '/Join'
     loginHandler      = handler.bind null, '/Login'
     registerHandler   = handler.bind null, '/Register'
-    joinHandler       = handler.bind null, '/Join'
     recoverHandler    = handler.bind null, '/Recover'
 
     @logo = new KDCustomHTMLView
@@ -41,11 +39,6 @@ class LoginView extends KDScrollView
       tagName     : "a"
       partial     : "Recover password"
       click       : recoverHandler
-
-    @goToRequestLink = new KDCustomHTMLView
-      tagName     : "a"
-      partial     : "Request an invite"
-      click       : joinHandler
 
     @goToRegisterLink = new KDCustomHTMLView
       tagName     : "a"
@@ -167,7 +160,6 @@ class LoginView extends KDScrollView
       </div>
     </div>
     <div class="login-footer">
-      <p class='reqLink'>Want to get in? {{> @goToRequestLink}}</p>
       <p class='regLink'>Have an invite? {{> @goToRegisterLink}}</p>
       <p class='recLink'>Trouble logging in? {{> @goToRecoverLink}}</p>
       <p class='logLink'>Already a user? {{> @backToLoginLink}}</p>
@@ -406,7 +398,7 @@ class LoginView extends KDScrollView
             if entryPoint?.type is 'group' and entryPoint.slug
             then route.replace "/#{entryPoint.slug}", ''
             else route
-          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Join', '/Recover']
+          unless routeWithoutEntryPoint in ['/Login', '/Register', '/Recover']
             router.handleRoute route
             routed = yes
             break
@@ -434,7 +426,7 @@ class LoginView extends KDScrollView
             @headBanner.updatePartial @headBannerMsg
             @headBanner.show()
 
-      @unsetClass "join register recover login reset home"
+      @unsetClass "register recover login reset home"
       @emit "LoginViewAnimated", name
       @setClass name
 
