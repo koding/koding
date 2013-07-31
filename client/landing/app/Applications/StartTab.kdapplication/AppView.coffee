@@ -305,8 +305,9 @@ class StartTabMainView extends JView
       content     : "You can use Koding for 20 minutes without registering. <a href='/Register'>Register now</a>."
       callback    : =>
         {defaultVmName} = KD.getSingleton "vmController"
-        KD.remote.api.JVM.removeByHostname defaultVmName, (err)->
-          KD.getSingleton("finderController").unmountVm defaultVmName
-          KD.getSingleton("vmController").emit 'VMListChanged'
-          $.cookie "clientId", erase: yes
-          $.cookie "guestForFirstTime", erase: yes
+        if KD.isGuest()
+          KD.remote.api.JVM.removeByHostname defaultVmName, (err)->
+            KD.getSingleton("finderController").unmountVm defaultVmName
+            KD.getSingleton("vmController").emit 'VMListChanged'
+            $.cookie "clientId", erase: yes
+            $.cookie "guestForFirstTime", erase: yes
