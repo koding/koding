@@ -400,6 +400,8 @@ module.exports = class CActivity extends jraphical.Capsule
   @fetchFolloweeContents: secure (client, options, callback)->
     @getCurrentGroup client, (err, group)=>
       if err then return callback err
+      graph = new Graph {config:KONFIG['neo4j']}
+      
       userId = client.connection.delegate.getId()
 
       {facets, to, limit} = options
@@ -429,18 +431,23 @@ module.exports = class CActivity extends jraphical.Capsule
         timestamp = Math.floor(to / 1000)
         query.push "AND content.`meta.createdAtEpoch` < #{timestamp}"
 
-      # add return statement
-      query.push "return distinct content"
-      # add sorting option
-      query.push "order by content.`meta.createdAtEpoch` DESC"
-      # add limit option
-      query.push "LIMIT #{limit}"
+      options.client = client
 
-      query = query.join('\n')
+      graph.getExemptUsersClauseIfNeeded options, (err, exemptClause)->
+        query.push exemptClause
 
-      graph = new Graph({config:KONFIG['neo4j']})
-      options.returnAsBongoObjects = true
-      graph.runQuery(query, options, callback)
+        # add return statement
+        query.push "return distinct content"
+        # add sorting option
+        query.push "order by content.`meta.createdAtEpoch` DESC"
+        # add limit option
+        query.push "LIMIT #{limit}"
+
+        query = query.join('\n')
+
+        options.returnAsBongoObjects = true
+        options.client = client
+        graph.runQuery(query, options, callback)
 
   markAsRead: secure ({connection:{delegate}}, callback)->
     @update
@@ -486,6 +493,7 @@ module.exports = class CActivity extends jraphical.Capsule
         client    : client
         startDate : to
         neo4j     : neo4jConfig
+        withExempt: options.withExempt
         group     :
           groupName : group.slug
           groupId   : group._id
