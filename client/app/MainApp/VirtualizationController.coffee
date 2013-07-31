@@ -6,57 +6,54 @@ class VirtualizationController extends KDController
     @kc = KD.getSingleton("kiteController")
     @dialogIsOpen = no
     @resetVMData()
+
     (KD.getSingleton 'mainController').once 'AppIsReady', => @fetchVMs()
     @on 'VMListChanged', @bound 'resetVMData'
 
-  run:(options={}, callback)->
-
+  run:(options, callback)->
+    [callback, options] = [options, callback]  unless callback
+    options ?= {}
     if "string" is typeof options
       command = options
       options =
         withArgs : command
 
-    @fetchDefaultVmName (defaultVmName)=>
-      vmName = if options.vmName then options.vmName else defaultVmName
-      unless vmName
-        return callback message: 'There is no VM for this account.'
+    @fetchVmName options, (err, vmName) =>
+      return callback err  if err?
       options.correlationName = vmName
-      @kc.run options, callback
+      @kc.run options, (rest...) ->
+        # log rest...
+        callback rest...
 
-  _runWraper:(command, vm, callback)->
+  _runWrapper:(command, vm, callback)->
     [callback, vm] = [vm, callback]  unless 'string' is typeof vm
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
       return  unless vm
-      KD.requireMembership
-        callback : =>
-          @askForApprove command, (approved)=>
-            if approved
-              cb = unless command is 'vm.info' then @_cbWrapper vm, callback \
-                   else callback
-              @run
-                kiteName : 'os'
-                method   : command
-                vmName   : vm
-              , cb
-            else unless command is 'vm.info' then @info vm
-        onFailMsg : "Login required to use VMs"  unless command is 'vm.info'
-        onFail    : =>
-          unless command is 'vm.info' then callback yes
-          else callback null, state: 'STOPPED'
-        silence   : yes
+      @askForApprove command, (approved)=>
+        if approved
+          cb =
+            unless command is 'vm.info'
+            then @_cbWrapper vm, callback
+            else callback
+          @run
+            kiteName : 'os'
+            method   : command
+            vmName   : vm
+          , cb
+        else unless command is 'vm.info' then @info vm
 
   start:(vm, callback)->
-    @_runWraper 'vm.start', vm, callback
+    @_runWrapper 'vm.start', vm, callback
 
   stop:(vm, callback)->
-    @_runWraper 'vm.shutdown', vm, callback
+    @_runWrapper 'vm.shutdown', vm, callback
 
   halt:(vm, callback)->
-    @_runWraper 'vm.stop', vm, callback
+    @_runWrapper 'vm.stop', vm, callback
 
   reinitialize:(vm, callback)->
-    @_runWraper 'vm.reinitialize', vm, callback
+    @_runWrapper 'vm.reinitialize', vm, callback
 
   remove: do->
 
@@ -68,7 +65,7 @@ class VirtualizationController extends KDController
         cb null
 
     (vm, callback=noop)->
-      KD.remote.api.JVM.fetchVMInfo vm, (err, vmInfo)=>
+      KD.remote.api.JVM.fetchVmInfo vm, (err, vmInfo)=>
         if vmInfo
           if vmInfo.planCode is 'free'
             @askForApprove 'vm.remove', (state)->
@@ -80,13 +77,15 @@ class VirtualizationController extends KDController
               return callback null  unless state
               deleteVM vm, callback
         else
+          new KDNotificationView
+            title: 'Failed to remove!'
           callback message: "No such VM!"
 
-  info:(vm, callback=noop)->
-    [callback, vm] = [vm, callback]  unless 'string' is typeof vm
+  info:(vm, callback)->
+    [callback, vm] = [vm, callback]  unless callback
     @fetchDefaultVmName (defaultVm)=>
       vm or= defaultVm
-      @_runWraper 'vm.info', vm, (err, info)=>
+      @_runWrapper 'vm.info', vm, (err, info)=>
         warn "[VM-#{vm}]", err  if err
         @emit 'StateChanged', err, vm, info
         callback? err, vm, info
@@ -97,13 +96,24 @@ class VirtualizationController extends KDController
       return ("#{vmTemplate}".replace '%d', i)
     return no
 
+  fetchVmName: (options, callback) ->
+    if options.vmName?
+    then @utils.defer -> callback null, options.vmName
+    # else if KD.whoami().type is 'unregistered'
+    # then @utils.defer -> callback null, 'guest'
+    else
+      @fetchDefaultVmName (defaultVmName) ->
+        if defaultVmName?
+        then callback null, defaultVmName
+        else callback message: 'There is no VM for this account.'
+
   fetchDefaultVmName:(callback=noop, force=no)->
     if @defaultVmName and not force
-      return callback @defaultVmName
+      return @utils.defer => callback @defaultVmName
 
     {entryPoint}   = KD.config
     currentGroup   = if entryPoint?.type is 'group' then entryPoint.slug
-    currentGroup or= 'koding'
+    currentGroup or= KD.defaultSlug
 
     @fetchVMs (err, vms)=>
       if err or not vms
@@ -121,8 +131,8 @@ class VirtualizationController extends KDController
       vmName = @hasThisVM("shared-%d.#{currentGroup}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
-      # Check for personal VMs in Koding group
-      vmName = @hasThisVM("vm-%d.#{KD.nick()}.koding.kd.io", vms)
+      # Check for personal VMs in Koding or Guests group
+      vmName = @hasThisVM("vm-%d.#{KD.nick()}.#{KD.defaultSlug}.kd.io", vms)
       return callback @defaultVmName = vmName  if vmName
 
       callback @defaultVmName = vms.first
@@ -144,31 +154,52 @@ class VirtualizationController extends KDController
     group = KD.getSingleton("groupsController").getCurrentGroup()
     group.createVM {type, planCode}, vmCreateCallback
 
-  fetchVMs:(callback)->
-    return callback null, @vms  if @vms.length > 0
-    KD.remote.api.JVM.fetchVms (err, vms)=>
-      @vms = vms  unless err
-      callback? err, vms
+  fetchVMs: do (waiting = []) ->
+    (force, callback)->
+      [callback, force] = [force, callback]  unless callback?
+      return  unless callback?
 
-  fetchGroupVMs:(callback)->
-    return callback null, @groupVms  if @groupVms.length > 0
+      if @vms.length
+        return @utils.defer => callback null, @vms
+
+      if not force and (waiting.push callback) > 1
+        return  callback null, []
+
+      KD.remote.api.JVM.fetchVms (err, vms)=>
+        @vms = vms  unless err
+        if force
+        then callback err, vms
+        else
+          cb err, vms  for cb in waiting
+          waiting = []
+
+
+  fetchGroupVMs:(callback = noop)->
+    if @groupVms.length > 0
+      return @utils.defer =>
+        callback null, @groupVms
+
     KD.remote.api.JVM.fetchVmsByContext (err, vms)=>
       @groupVms = vms  unless err
       callback? err, vms
 
-  fetchVMDomains:(vmName, callback)->
-    domains = @vmDomains[vmName]
-    return callback null, domains  if domains
+  fetchVMDomains:(vmName, callback = noop)->
+    if domains = @vmDomains[vmName]
+      return @utils.defer -> callback null, domains
+
     KD.remote.api.JVM.fetchDomains vmName, (err, domains=[])=>
-      return callback err, domains  if err
-      callback null, @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
+      if err
+        callback err, domains
+      else
+        @vmDomains[vmName] = domains.sort (x, y)-> x.length>y.length
+        callback null, @vmDomains[vmName]
 
   resetVMData:->
-    @vms = @groupVms = []
+    @vms      = []
+    @groupVms = []
     @defaultVmName = null
     @vmDomains = {}
 
-  # fixme GG!
   fetchTotalVMCount:(callback)->
     KD.remote.api.JVM.count (err, count)->
       if err then warn err
@@ -191,7 +222,7 @@ class VirtualizationController extends KDController
 
       # Check if there is at least one personal vm from koding group
       for vm in vms
-        if (vm.indexOf 'vm-') is 0 and (vm.indexOf 'koding.kd.io') > -1
+        if (vm.indexOf 'vm-') is 0 and (vm.indexOf "#{KD.defaultSlug}.kd.io") > -1
           return callback yes
 
       callback no
@@ -199,7 +230,7 @@ class VirtualizationController extends KDController
   createDefaultVM:->
     @hasDefaultVM (state)->
       return warn 'Default VM already exists.'  if state
-      KD.remote.cacheable 'koding', (err, group)->
+      KD.remote.cacheable KD.defaultSlug, (err, group)->
         if err or not group?.length
           return warn err
         koding = group.first

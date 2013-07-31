@@ -35,7 +35,15 @@ module.exports = class JTutorialList extends jraphical.Module
         "one","on","some","create","byRelevance",
         "someWithRelationship", "fetchForTutorialId"
       ]
-
+    sharedEvents      :
+      instance        : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
     schema          :
       title         :
         type        : String

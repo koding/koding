@@ -1,8 +1,7 @@
-{Module} = require 'jraphical'
+{Module}     = require 'jraphical'
 {difference} = require 'underscore'
 
 module.exports = class JGroup extends Module
-
 
   [ERROR_UNKNOWN, ERROR_NO_POLICY, ERROR_POLICY] = [403010, 403001, 403009]
 
@@ -11,15 +10,11 @@ module.exports = class JGroup extends Module
   {Inflector, ObjectId, ObjectRef, secure, daisy, race, dash} = require 'bongo'
 
   JPermissionSet = require './permissionset'
-  {permit} = JPermissionSet
-
-  KodingError = require '../../error'
-
-  Validators = require './validators'
-
-  {throttle} = require 'underscore'
-
-  Graph       = require "../graph/graph"
+  {permit}       = JPermissionSet
+  KodingError    = require '../../error'
+  Validators     = require './validators'
+  {throttle}     = require 'underscore'
+  Graph          = require "../graph/graph"
 
   PERMISSION_EDIT_GROUPS = [
     {permission: 'edit groups'}
@@ -64,6 +59,9 @@ module.exports = class JGroup extends Module
         { name: 'MemberRolesChanged' }
         { name: 'GroupDestroyed' }
         { name: 'broadcast' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+
       ]
       instance      : [
         { name: 'GroupCreated' }
@@ -71,6 +69,7 @@ module.exports = class JGroup extends Module
         { name: 'MemberRemoved',    filter: -> null }
         { name: 'NewInvitationRequest' }
         { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods   :
       static        : [
@@ -254,7 +253,10 @@ module.exports = class JGroup extends Module
       else
         console.log 'Nothing to remove'
 
-  @renderHomepage: require './render-homepage'
+  @renderGroupHomeLoggedIn   : require '../../render/grouphomeloggedin'
+  @renderGroupHomeLoggedOut  : require '../../render/grouphomeloggedout'
+  @renderKodingHomeLoggedIn  : require '../../render/kodinghomeloggedin'
+  @renderKodingHomeLoggedOut : require '../../render/kodinghomeloggedout'
 
   @__resetAllGroups = secure (client, callback)->
     {delegate} = client.connection
@@ -376,10 +378,16 @@ module.exports = class JGroup extends Module
     JAccount = require '../account'
     {delegate} = client.connection
 
-    unless delegate instanceof JAccount
-      return callback new KodingError 'Access denied.'
+    @one {slug:"koding"}, (err, kodingGroup)=>
+      delegate.checkPermission kodingGroup, 'create groups', (err, hasPermission)=>
+        unless hasPermission
+          return callback new KodingError 'Access denied'
 
-    @create formData, delegate, callback
+        @create formData, delegate, callback
+
+    #unless delegate instanceof JAccount
+    #  return callback new KodingError 'Access denied'
+
 
   @findSuggestions = (client, seed, options, callback)->
     {limit, blacklist, skip}  = options
@@ -445,10 +453,14 @@ module.exports = class JGroup extends Module
   # from public and visible groups in koding group
   @oldBroadcast = @broadcast
   @broadcast = (groupSlug, event, message)->
-    if groupSlug isnt "koding"
+    if groupSlug isnt "koding" or event isnt "MemberJoinedGroup"
       @one {slug : groupSlug }, (err, group)=>
-        if err then console.error err
-        unless group then console.error "unknown group #{groupSlug}"
+        console.error err  if err
+        unless group
+          # console.trace()
+          # At some point this error happens with groupSlug as 'undefined'
+          # Tried to trace but failed, maybe its important ~ GG
+          console.error "unknown group #{groupSlug}"
         else if group.privacy isnt "private" and group.visibility isnt "hidden"
           unless event is "MemberJoinedGroup"
             @oldBroadcast.call this, "koding", event, message
@@ -656,13 +668,14 @@ module.exports = class JGroup extends Module
     failure:(client,text, callback)->
       callback new KodingError "You are not allowed to change this."
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView: (account, callback)->
     @fetchReadme (err, readme)=>
       return callback err  if err
       @fetchMembershipPolicy (err, policy)=>
         if err then callback err
         else
-          callback null, JGroup.renderHomepage {
+          options = {
+            account
             @slug
             @title
             policy
@@ -672,6 +685,10 @@ module.exports = class JGroup extends Module
             content : readme?.html ? readme?.content
             @customize
           }
+          if account.type is 'unregistered'
+            callback null, JGroup.renderGroupHomeLoggedOut options
+          else
+            callback null, JGroup.renderGroupHomeLoggedIn options
 
   fetchRolesByClientId:(clientId, callback)->
     [callback, clientId] = [clientId, callback]  unless callback
@@ -1103,8 +1120,8 @@ module.exports = class JGroup extends Module
 
     [callback, options] = [options, callback] unless callback
 
-    if @slug is 'koding'
-      return callback new KodingError 'Leaving Koding group is not supported yet'
+    if @slug in ['koding', 'guests']
+      return callback new KodingError "It's not allowed to leave this group"
 
     @fetchMyRoles client, (err, roles)=>
       return callback err if err

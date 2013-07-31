@@ -1,4 +1,3 @@
-
 jraphical   = require 'jraphical'
 KodingError = require '../error'
 

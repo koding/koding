@@ -187,12 +187,7 @@ class HomeLoginBar extends JView
     KD.getSingleton('mainController').on 'JoinedGroup', @bound 'hide'
 
   handleBackendResponse:(err, successMsg)->
-    if err
-      warn err
-      return new KDNotificationView
-        title    : if err.name is 'KodingError' then err.message else 'An error occured! Please try again later.'
-        duration : 2000
-
+    return KD.showError err  if err
     new KDNotificationView
       title    : successMsg
       duration : 2000
@@ -207,7 +202,6 @@ class HomeLoginBar extends JView
     if entryPoint?.type is 'profile'
       if KD.isLoggedIn() then @hide()
       else @request.hide()
-      return
 
     if 'member' not in KD.config.roles
       if KD.isLoggedIn()

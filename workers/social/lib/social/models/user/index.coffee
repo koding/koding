@@ -1,18 +1,18 @@
 jraphical = require 'jraphical'
 
-Flaggable = require '../traits/flaggable'
+Flaggable = require '../../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
   {secure}       = require 'bongo'
-  {daisy}        = require 'sinkrow'
+  {daisy, dash}  = require 'sinkrow'
 
-  JAccount       = require './account'
-  JSession       = require './session'
-  JGuest         = require './guest'
-  JInvitation    = require './invitation'
-  JName          = require './name'
-  JGroup         = require './group'
-  JLog           = require './log'
+  JAccount       = require '../account'
+  JSession       = require '../session'
+  JGuest         = require '../guest'
+  JInvitation    = require '../invitation'
+  JName          = require '../name'
+  JGroup         = require '../group'
+  JLog           = require '../log'
 
   createId       = require 'hat'
 
@@ -55,7 +55,7 @@ module.exports = class JUser extends jraphical.Module
 
   @share()
 
-  @trait __dirname, '../traits/flaggable'
+  @trait __dirname, '../../traits/flaggable'
 
   @getFlagRole =-> 'owner'
 
@@ -66,22 +66,25 @@ module.exports = class JUser extends jraphical.Module
       username      : 'unique'
       email         : 'unique'
 
-    sharedEvents    :
-      static        : [
-        { name: 'UserCreated' }
-      ]
+    sharedEvents    : {}
+      # static        : [
+      #   { name: 'UserCreated' }
+      # ]
     sharedMethods   :
       instance      : ['sendEmailConfirmation']
       static        : [
-        'login','logout','register','usernameAvailable','emailAvailable','changePassword','changeEmail'
-        'fetchUser','setDefaultHash','whoami','isRegistrationEnabled', 'setSSHKeys', 'getSSHKeys'
+        'login','logout','register','usernameAvailable','emailAvailable',
+        'changePassword','changeEmail','fetchUser','setDefaultHash','whoami',
+        'isRegistrationEnabled','convert','setSSHKeys', 'getSSHKeys',
+        'authenticateWithOauth'
       ]
 
     schema          :
       username      :
         type        : String
-        validate    : require('./name').validateName
+        validate    : require('../name').validateName
         set         : (value)-> value.toLowerCase()
+      oldUsername   : String
       uid           :
         type        : Number
         set         : Math.floor
@@ -90,7 +93,7 @@ module.exports = class JUser extends jraphical.Module
         email       : yes
       password      : String
       salt          : String
-      blockedUntil     : Date
+      blockedUntil  : Date
       status        :
         type        : String
         enum        : [
@@ -116,7 +119,8 @@ module.exports = class JUser extends jraphical.Module
           # enum      : ['invalid status',['online','offline','away','busy']]
 
       sshKeys       : [Object]
-
+      foreignAuth   :
+        github      : Object
     relationships       :
       ownAccount        :
         targetType      : JAccount
@@ -125,7 +129,7 @@ module.exports = class JUser extends jraphical.Module
         targetType      : JAccount
         as              : 'leasor'
       emailConfirmation :
-        targetType      : 'JEmailConfirmation'
+        targetType      : require '../emailconfirmation'
         as              : 'confirmation'
 
   sessions  = {}
@@ -145,30 +149,25 @@ module.exports = class JUser extends jraphical.Module
   #       constructor.one {username}, callback
 
   @isRegistrationEnabled =(callback)->
-    JRegistrationPreferences = require './registrationpreferences'
+    JRegistrationPreferences = require '../registrationpreferences'
     JRegistrationPreferences.one {}, (err, prefs)->
       callback err? or prefs?.isRegistrationEnabled or no
 
   @authenticateClient:(clientId, context, callback)->
-    JSession.one {clientId}, (err, session)->
+    JSession.one {clientId}, (err, session)=>
       if err
         callback createKodingError err
       else unless session?
-        JGuest.obtain null, clientId, callback
+        JUser.createTemporaryUser callback
+#        JGuest.obtain null, clientId, callback
       else
-        {username, guestId} = session
-        if guestId?
-          JGuest.one {guestId}, (err, guest)=>
+        {username} = session
+        if username?
+          JUser.one {username}, (err, user)=>
             if err
               callback createKodingError err
-            else if guest?
-              callback null, guest
-            else
+            else unless user?
               @logout clientId, callback
-        else if username?
-          JUser.one {username}, (err, user)->
-            if err
-              callback createKodingError err
             else
               user.fetchAccount context, (err, account)->
                 if err
@@ -180,8 +179,8 @@ module.exports = class JUser extends jraphical.Module
 
 
   createNewMemberActivity =(account, callback=->)->
-    CNewMemberBucket = require './bucket/newmemberbucket'
-    CBucketActivity = require './activity/bucketactivity'
+    CNewMemberBucket = require '../bucket/newmemberbucket'
+    CBucketActivity = require '../activity/bucketactivity'
     bucket = new CNewMemberBucket
       anchor      : account
       sourceName  : 'JAccount'
@@ -204,7 +203,7 @@ module.exports = class JUser extends jraphical.Module
                   $addToSet     :
                     snapshotIds : bucket.getId()
                 , ->
-                  CActivity = require "./activity"
+                  CActivity = require "../activity"
                   CActivity.emit "ActivityIsCreated", activity
                   callback()
 
@@ -265,43 +264,46 @@ module.exports = class JUser extends jraphical.Module
             , () ->
               callback createKodingError 'Access denied!'
           else
-            checkBlockedStatus user, (err)->
-              if err then return callback err
-              replacementToken = createId()
-              JGuest.recycle session.guestId
-              session.update {
-                $set            :
-                  username      : user.username
-                  lastLoginDate : new Date
-                  clientId      : replacementToken
-                $unset:
-                  guestId       : 1
-              }, (err)->
-                  if err then callback err
-                  user.fetchOwnAccount (err, account)->
-                    if err then return callback err
-                    connection.delegate = account
-                    JAccount.emit "AccountAuthenticated", account
+            afterLogin connection, user, clientId, session, callback
 
-                    # This should be called after login and this
-                    # is not correct place to do it, FIXME GG
-                    # p.s. we could do that in workers
-                    account.updateCounts()
+  afterLogin = (connection, user, clientId, session, callback)->
+    checkBlockedStatus user, (err)->
+      if err then return callback err
+      replacementToken = createId()
+      JGuest.recycle session.guestId
+      session.update {
+        $set            :
+          username      : user.username
+          lastLoginDate : new Date
+          clientId      : replacementToken
+        $unset:
+          guestId       : 1
+      }, (err)->
+          if err then callback err
+          user.fetchOwnAccount (err, account)->
+            if err then return callback err
+            connection.delegate = account
+            JAccount.emit "AccountAuthenticated", account
 
-                    callback null, account, replacementToken
+            # This should be called after login and this
+            # is not correct place to do it, FIXME GG
+            # p.s. we could do that in workers
+            account.updateCounts()
+
+            callback null, {account, replacementToken}
 
   @logout = secure (client, callback)->
-    if 'string' is typeof clientId
+    if 'string' is typeof client
       sessionToken = client
     else
       {sessionToken} = client
       delete client.connection.delegate
       delete client.sessionToken
-    JSession.cycleSession sessionToken, callback
+    JSession.remove { clientId: sessionToken }, callback
 
   @verifyEnrollmentEligibility = ({email, inviteCode}, callback)->
-    JRegistrationPreferences = require './registrationpreferences'
-    JInvitation = require './invitation'
+    JRegistrationPreferences = require '../registrationpreferences'
+    JInvitation = require '../invitation'
     JRegistrationPreferences.one {}, (err, prefs)->
       if err
         callback err
@@ -320,9 +322,27 @@ module.exports = class JUser extends jraphical.Module
       else
         callback createKodingError 'Invitation code is required!'
 
+  @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
+    if kodingenUser isnt 'on'
+      callback null
+    else
+      require('https').get
+        hostname  : 'kodingen.com'
+        path      : "/bridge_.php?username=#{encodeURIComponent username}&password=#{encodeURIComponent password}"
+      , (res)->
+        data = ''
+        res.setEncoding 'utf-8'
+        res.on 'data', (chunk)-> data += chunk
+        res.on 'error', (err)-> callback err, r
+        res.on 'end', ->
+          data = JSON.parse data.substr(1, data.length - 2)
+          if data.error then callback yes else callback null
+
   @addToGroup = (account, slug, email, invite, callback)->
     JGroup.one {slug}, (err, group)->
       if err or not group then callback err
+      else if invite? and invite.group isnt slug and group.privacy is 'private' and group.slug isnt 'koding'
+        group.requestAccessFor account, callback
       else
         group.approveMember account, (err)->
           return callback err  if err
@@ -330,19 +350,45 @@ module.exports = class JUser extends jraphical.Module
           if invite?.group is slug then cb invite
           else
             selector = {group: slug, inviteeEmail: email, status: 'sent'}
-            (require './invitation').one selector, (err, invite)->
+            (require '../invitation').one selector, (err, invite)->
               if invite and not err then cb invite
               else callback err
 
-  @addToGroups = (account, invite, email, callback)->
+  @addToGroups = (account, invite, entryPoint, email, callback)->
     @addToGroup account, 'koding', email, invite, (err)=>
       if err then callback err
-      else if invite.group and invite.group isnt 'koding'
+      else if (slug = invite?.group or entryPoint) and slug isnt 'koding'
         @addToGroup account, slug, email, invite, callback
       else
         callback null
 
-  @createUser = ({ username, email, password, firstName, lastName }, callback)->
+  @createTemporaryUser = (callback) ->
+    ((require 'koding-counter') {
+      db          : @getClient()
+      counterName : 'guest'
+      offset      : 0
+    }).next (err, guestId) =>
+      return callback err  if err?
+
+      username = "guest-#{guestId}"
+
+      options     =
+        username  : username
+        email     : "#{username}@koding.com"
+        password  : createId()
+
+      @createUser options, (err, user, account) =>
+        return callback err  if err?
+
+        @addToGroup account, 'guests', null, null, (err) =>
+          return callback err  if err?
+
+          @configureNewAcccount account, user, createId(), callback
+
+  @createUser = (userInfo, callback)->
+    { username, email, password, firstName, lastName, foreignAuth,
+      silence } = userInfo
+
     slug =
       slug            : username
       constructorName : 'JUser'
@@ -370,6 +416,9 @@ module.exports = class JUser extends jraphical.Module
             groupApproved  : on
           }
         }
+
+        user.foreignAuth = foreignAuth  if foreignAuth
+
         user.save (err)=>
           if err
             if err.code is 11000
@@ -384,29 +433,175 @@ module.exports = class JUser extends jraphical.Module
                 lastName
                 hash
               }
+              silence : silence # won't be saved, just for further processing
+
             account.save (err)=>
               if err then callback err
               else user.addOwnAccount account, (err) ->
                 return callback err  if err
                 callback null, user, account
 
-  @register = secure (client, userFormData, callback)->
-    {connection} = client
-    {username, email, password, passwordConfirm, firstName, lastName,
-     agree, inviteCode, clientId} = userFormData
+  @configureNewAcccount = (account, user, replacementToken, callback) ->
+    user.sendEmailConfirmation (err) -> console.error err  if err
+    JUser.grantInitialInvitations user.username
+    JUser.emit 'UserCreated', user
+    createNewMemberActivity account
+    JAccount.emit "AccountAuthenticated", account
+    callback null, {account, replacementToken}
 
-    @usernameAvailable username, (err, r)=>
-      isAvailable = yes
-      if err
-        callback err
-      else if r.forbidden
-        callback createKodingError 'That username is forbidden!'
-      else if r.kodingUser
-        callback createKodingError 'That username is taken!'
-      else
-        @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
-          return callback createKodingError err.message  if err
+  @fetchUserByProvider = (provider, session, callback)->
+    query = {}
+    query["foreignAuth.#{provider}.foreignId"] = session.foreignAuth[provider].foreignId
+    JUser.one query, callback
 
+  @authenticateWithOauth = secure (client, resp, callback)->
+    {isUserLoggedIn, provider} = resp
+    {sessionToken} = client
+    JSession.one {clientId: sessionToken}, (err, session) =>
+      return callback err  if err
+      kallback = (err, resp={}) ->
+        {account, replacementToken} = resp
+        callback err, {
+          isNewUser : false
+          userInfo  : null
+          account
+          replacementToken
+        }
+      @fetchUserByProvider provider, session, (err, user) =>
+        if err
+          callback createKodingError err.message
+        else
+          if isUserLoggedIn
+            if user
+              callback createKodingError """
+                Account is already linked with another user.
+              """
+            else
+              @fetchUser client, (err, user)=>
+                {username} = user
+                @copyOauthFromSessionToUser user.username, sessionToken, kallback
+          else
+            if user
+              afterLogin client.connection, user, sessionToken, session, kallback
+            else
+              info = session.foreignAuth[provider]
+              {username, email, firstName, lastName} = info
+              callback null, {
+                isNewUser : true,
+                userInfo  : {username, email, firstName, lastName}
+              }
+
+  @validateAll = (userFormData, callback) =>
+
+    validate = require './validators'
+
+    isError = no
+    errors = {}
+
+    queue = Object.keys(userFormData).map (field) => =>
+      if field of validate
+        validate[field].call this, userFormData, (err) =>
+          if err?
+            errors[field] = err
+            isError = yes
+          queue.fin()
+      else queue.fin()
+
+    dash queue, -> callback(
+      if isError
+      then { message: "Errors were encountered during validation", errors }
+      else null
+    )
+
+  @changePasswordByUsername = (username, password, callback) ->
+    salt = createSalt()
+    hashedPassword = hashPassword password, salt
+    @update { username }, {
+      $set: { salt, password: hashedPassword }
+    }, callback
+
+  @changeEmailByUsername = (username, email, callback) ->
+    @update { username }, { $set: { email }}, callback
+
+  @changeUsernameByAccount = (options, callback)->
+    { account, username, clientId, isRegistration } = options
+    account.changeUsername { username, isRegistration }, (err) =>
+      return callback err   if err?
+      return callback null  unless clientId?
+      newToken = createId()
+      JSession.one { clientId }, (err, session) =>
+        if err?
+          return callback createKodingError "Could not update your session"
+
+        if session?
+          session.update { $set: { clientId: newToken, username }}, (err) ->
+            return callback err  if err?
+            callback null, newToken
+        else
+          callback createKodingError "Session not found!"
+
+  @removeFromGuestsGroup = (account, callback) ->
+    JGroup.one { slug: 'guests' }, (err, guestsGroup) ->
+      return callback err  if err?
+      unless guestsGroup?
+        return callback createKodingError "Guests group not found!"
+      guestsGroup.removeMember account, callback
+
+  @convert = secure (client, userFormData, callback) ->
+    { connection, sessionToken : clientId } = client
+    { delegate : account } = connection
+    { nickname : oldUsername } = account.profile
+    { username, email, password, passwordConfirm, firstName, lastName,
+      agree, inviteCode, kodingenUser, entryPoint } = userFormData
+
+    # only unreigstered accounts can be "converted"
+    if account.status is "registered"
+      return callback createKodingError "This account is already registered."
+
+    if /^guest-/.test username
+      return callback createKodingError "Reserved username!"
+
+    @validateAll userFormData, (err) =>
+      return callback err  if err?
+      @changePasswordByUsername oldUsername, password, (err) =>
+        return callback err  if err?
+        @changeEmailByUsername oldUsername, email, (err) =>
+          return callback err  if err?
+          @copyOauthFromSessionToUser oldUsername, client.sessionToken, (err)=>
+            return callback err  if err
+            options = { account, username, clientId, isRegistration: yes }
+            @changeUsernameByAccount options, (err, newToken) =>
+              return callback err  if err?
+              @addToGroups account, null, entryPoint, email, (err) =>
+                return callback err  if err?
+                @removeFromGuestsGroup account, (err) ->
+                  return callback err  if err?
+                  account.update $set: {
+                    'profile.firstName' : firstName
+                    'profile.lastName'  : lastName
+                    type                : 'registered'
+                  }, (err) =>
+                    return callback err  if err?
+                    callback null, newToken
+
+  @register = secure (client, userFormData, callback) ->
+    { connection } = client
+    { username, email, password, passwordConfirm, firstName, lastName,
+      agree, inviteCode, kodingenUser, entryPoint } = userFormData
+    # The silence option provides silence registers,
+    # means no welcome e-mail for new users.
+    # We're using it for migrating Kodingen users to Koding
+    silence  = no
+    if client.connection?.delegate?.can? 'migrate-kodingen-users'
+      {silence} = userFormData
+
+    @validateUsername username, (err) ->
+      return callback err  if err?
+
+      @verifyEnrollmentEligibility {email, inviteCode}, (err, isEligible, invite) =>
+        if err
+          callback createKodingError err.message
+        else
           if passwordConfirm isnt password
             return callback createKodingError 'Passwords must be the same'
           else if agree isnt 'on'
@@ -414,42 +609,50 @@ module.exports = class JUser extends jraphical.Module
           else if not username? or not email?
             return callback createKodingError 'Username and email are required fields'
 
-          JSession.one {clientId: client.sessionToken}, (err, session) =>
+          @verifyKodingenPassword {username, password, kodingenUser}, (err) =>
             if err
-              callback err
-            else unless session
-              callback createKodingError 'Could not restore your session!'
+              return callback createKodingError 'Wrong password'
             else
-              userData = {
-                username, password, email, firstName, lastName
-              }
-              @createUser userData, (err, user, account) =>
-                return callback err  if err
-                @removeUnsubscription userData, (err)=>
-                  return callback err  if err
-                  @addToGroups account, invite, email, (err) ->
+              JSession.one {clientId: client.sessionToken}, (err, session) =>
+                if err
+                  callback err
+                else unless session
+                  callback createKodingError 'Could not restore your session!'
+                else
+                  userData = {
+                    username, password, email, firstName, lastName
+                  }
+
+                  if session.foreignAuth
+                    userData.foreignAuth = session.foreignAuth
+
+                  @createUser userData, (err, user, account) =>
                     return callback err  if err
-
-                    replacementToken = createId()
-                    session.update {
-                      $set:
-                        username      : user.username
-                        lastLoginDate : new Date
-                        clientId      : replacementToken
-                      $unset          :
-                        guestId       : 1
-                    }, (err, docs) ->
+                    @removeUnsubscription userData, (err)=>
                       return callback err  if err
-
-                      user.sendEmailConfirmation()
-                      JUser.grantInitialInvitations user.username
-                      JUser.emit 'UserCreated', user
-                      createNewMemberActivity account
-                      JAccount.emit "AccountAuthenticated", account
-                      callback null, account, replacementToken
+                      @addToGroups account, invite, entryPoint, email, (err) ->
+                        if err then callback err
+                        else if silence
+                          JUser.grantInitialInvitations user.username
+                          createNewMemberActivity account
+                          JUser.emit 'UserCreated', user
+                          callback null, account
+                        else
+                          replacementToken = createId()
+                          session.update {
+                            $set:
+                              username      : user.username
+                              lastLoginDate : new Date
+                              clientId      : replacementToken
+                            $unset          :
+                              guestId       : 1
+                          }, (err, docs) ->
+                            if err then callback err
+                            else
+                              @configureNewAcccount account, user, replacementToken, callback
 
   @removeUnsubscription:({email}, callback)->
-    JUnsubscribedMail = require './unsubscribedmail'
+    JUnsubscribedMail = require '../unsubscribedmail'
     JUnsubscribedMail.one {email}, (err, unsubscribed)->
       return callback err  if err or not unsubscribed
       unsubscribed.remove callback
@@ -499,11 +702,12 @@ module.exports = class JUser extends jraphical.Module
         callback null, yes
 
   @usernameAvailable = (username, callback)->
-    JName = require './name'
+    JName = require '../name'
 
     username += ''
     res =
       kodingUser   : no
+      kodingenUser : no
       forbidden    : yes
 
     JName.count { name: username }, (err, count)=>
@@ -541,7 +745,7 @@ module.exports = class JUser extends jraphical.Module
 
   changeEmail:(account, options, callback)->
 
-    JVerificationToken = require './verificationtoken'
+    JVerificationToken = require '../verificationtoken'
 
     {email, pin} = options
 
@@ -574,13 +778,13 @@ module.exports = class JUser extends jraphical.Module
         else
           callback createKodingError 'PIN is not confirmed.'
 
-  fetchHomepageView:(callback)->
+  fetchHomepageView:(account, callback)->
     @fetchAccount 'koding', (err, account)->
       if err then callback err
-      else account.fetchHomepageView callback
+      else account.fetchHomepageView account, callback
 
   sendEmailConfirmation:(callback=->)->
-    JEmailConfirmation = require './emailconfirmation'
+    JEmailConfirmation = require '../emailconfirmation'
     JEmailConfirmation.create @, (err, confirmation)->
       if err
         callback err
@@ -597,6 +801,16 @@ module.exports = class JUser extends jraphical.Module
         status: 'blocked',
         blockedUntil : blockedUntil
     , callback
+
+  @copyOauthFromSessionToUser: (username, clientId, callback)->
+    JSession.one {clientId: clientId}, (err, session) =>
+      if err
+        callback err
+      else
+        if session.foreignAuth
+          @update {username}, $set: foreignAuth: session.foreignAuth, callback
+        else
+          callback()
 
   @setSSHKeys: secure (client, sshKeys, callback)->
     @fetchUser client, (err,user)->

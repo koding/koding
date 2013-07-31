@@ -328,9 +328,15 @@ __utils =
   getYearOptions  : (min = 1900,max = Date::getFullYear())->
     ({ title : "#{i}", value : i} for i in [min..max])
 
-  getFullnameFromAccount:(account)->
-    {firstName, lastName} = account.profile
-    return "#{firstName} #{lastName}"
+  getFullnameFromAccount:(account, justName=no)->
+    account or= KD.whoami()
+    if account.type is 'unregistered'
+      name = account.profile.nickname.capitalize()
+    else if justName
+      name = account.profile.firstName
+    else
+      name = "#{account.profile.firstName} #{account.profile.lastName}"
+    return Encoder.htmlDecode name
 
   getNameFromFullname :(fullname)->
     fullname.split(' ')[0]
@@ -609,7 +615,7 @@ __utils =
     if KD.config.entryPoint?.type is 'group' and KD.config.entryPoint?.slug
       group = KD.config.entryPoint.slug
     else
-      group = 'koding'
+      group = 'koding' # KD.defaultSlug
 
     KD.remote.api.JStatusUpdate.create {body, group}, (err,reply)=>
       unless err
@@ -734,7 +740,7 @@ __utils =
       callback data?.id or url, data
 
     request.error ({status, statusText, responseText})->
-      error "url shorten error, returing self as fallback.", status, statusText, responseText
+      error "URL shorten error, returning self as fallback.", status, statusText, responseText
       callback url
 
   formatBytesToHumanReadable: (bytes) ->
@@ -748,6 +754,20 @@ __utils =
       break unless bytes >= thresh
 
     return "#{bytes.toFixed 2} #{units[unitIndex]}"
+
+  openGithubPopUp:->
+    {clientId} = KD.config.github
+    url        = "https://github.com/login/oauth/authorize?client_id=#{clientId}&scope=user:email"
+    name       = "Login"
+    size       = "height=643,width=1143"
+    newWindow  = window.open url, name, size
+    newWindow.focus()
+
+  useForeignAuth: (provider)->
+    mainController = KD.getSingleton "mainController"
+
+    if provider then mainController.emit "ForeignAuthCompleted", provider
+    else mainController.emit "ForeignAuthFailed"
 
   # deprecated ends
 

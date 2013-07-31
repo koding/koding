@@ -141,6 +141,7 @@ catch e
     options.behavior     or= ""           # a String "application", "hideTabs", or ""
     options.thirdParty    ?= no           # a Boolean
     options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
+    options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>
 
     options.route        or= {}           # <string> or <Object{slug: string, handler: function}>
 
@@ -160,8 +161,8 @@ catch e
         router.addRoute slug, handler
 
       if KD.singletons.router
-      then do -> cb KD.getSingleton('router')
-      else KodingRouter.on 'RouterReady', do -> cb
+      then @utils.defer -> cb KD.getSingleton('router')
+      else KodingRouter.on 'RouterReady', cb
 
     if options.navItem?.order
       @registerNavItem options.navItem

@@ -13,7 +13,7 @@ module.exports = class JDiscussion extends JPost
   {Base,ObjectId,ObjectRef,secure,dash,daisy} = require 'bongo'
   {Relationship} = require 'jraphical'
   {permit} = require '../../group/permissionset'
-  
+
   {log} = console
 
   {once, extend} = require 'underscore'
@@ -43,6 +43,12 @@ module.exports = class JDiscussion extends JPost
         { name: 'ReplyIsRemoved' }
         { name: 'CommentIsAdded' }
         { name: 'CommentIsRemoved' }
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
+      ]
+      static          : [
+        { name: 'updateInstance' }
+        { name: 'RemovedFromCollection' }
       ]
     sharedMethods     :
       static          : ['create','one']

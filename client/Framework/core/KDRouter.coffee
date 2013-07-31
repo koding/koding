@@ -32,14 +32,13 @@ class KDRouter extends KDObject
 
   popState:(event)->
     revive event.state, (err, state)=>
-      if err?
-        new KDNotificationView title: 'An unknown error has occurred.'
-      else
-        @handleRoute "#{location.pathname}#{location.search}",
-          shouldPushState   : no
-          state             : state
+      return KD.showError err  if err
+      @handleRoute "#{location.pathname}#{location.search}",
+        shouldPushState   : no
+        state             : state
 
   clear:(route = '/', replaceState = yes)->
+    console.log {arguments}
     delete @userRoute # TODO: i hope deleting the userRoute here doesn't break anything... C.T.
     @handleRoute route, {replaceState}
 
@@ -59,7 +58,9 @@ class KDRouter extends KDObject
     window.removeEventListener 'popstate', @bound "popState"
     return yes
 
-  @handleNotFound =(route)-> log "The route #{route} was not found!"
+  @handleNotFound =(route)->
+    console.trace()
+    log "The route #{route} was not found!"
 
   getCurrentPath:-> @currentPath
 
@@ -101,7 +102,7 @@ class KDRouter extends KDObject
 
   handleRoute:(userRoute, options={})->
 
-    userRoute = userRoute.slice 1  if userRoute.indexOf('!') is 0
+    userRoute = userRoute.slice 1  if (userRoute.indexOf '!') is 0
     @visitedRoutes.push userRoute
 
     [frag, query...] = (userRoute ? @getDefaultRoute?() ? '/').split '?'
