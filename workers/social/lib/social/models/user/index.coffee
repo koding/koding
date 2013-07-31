@@ -314,13 +314,12 @@ module.exports = class JUser extends jraphical.Module
           code: inviteCode
           status: $in : ['active','sent']
         }, (err, invite)->
-          # callback null, yes, invite
           if err or !invite?
             callback createKodingError 'Invalid invitation ID!'
           else
             callback null, yes, invite
       else
-        callback createKodingError 'Invitation code is required!'
+        callback null, yes
 
   @verifyKodingenPassword = ({username, password, kodingenUser}, callback)->
     if kodingenUser isnt 'on'

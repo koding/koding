@@ -18,7 +18,7 @@ class LoginInputView extends JView
     @icon  = new KDCustomHTMLView iconOptions, data
 
     @icon.on "mouseenter", =>
-      @input.validate() if @$().hasClass "validation-error"
+      @input.validate()  if @$().hasClass "validation-error"
 
     @input.on "ValidationError", (err)=> @decorateValidation err
     @input.on "ValidationPassed", => @decorateValidation()
@@ -42,18 +42,17 @@ class LoginInputView extends JView
   pistachio:-> "{{> @input}}{{> @icon}}"
 
   destroyNotification:->
-    @parent.notification.destroy() if @parent.notification
+    @parent.notification.destroy()  if @parent.notification
 
   notify:(msg)->
     @destroyNotification()
     unless @parent.notificationsDisabled
       {container} = @input.getOptions().validate
       @parent.notification = new KDNotificationView
-        container : container if container
+        container : container  if container
         title     : "#{@img} #{msg}" or "#{@img} seems invalid!"
         type      : "mini"
         cssClass  : "register"
-        # container : @parent
         duration  : 15000
 
 class LoginInputViewWithLoader extends LoginInputView

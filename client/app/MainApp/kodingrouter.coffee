@@ -239,8 +239,6 @@ class KodingRouter extends KDRouter
         requireLogin  -> mainController.doLogout()
       '/:name?/Register'  : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'register'
-      '/:name?/Join'      : ({params:{name}})->
-        requireLogout -> mainController.loginScreen.animateToForm 'join'
       '/:name?/Recover'   : ({params:{name}})->
         requireLogout -> mainController.loginScreen.animateToForm 'recover'
 
