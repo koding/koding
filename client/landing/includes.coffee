@@ -750,6 +750,9 @@ module.exports = [
   "app/CommonViews/workspace/collaborativeworkspaceuserlist.coffee",
   "app/CommonViews/workspace/collaborativeworkspace.coffee",
 
+  # CLASSROOM
+  "app/Applications/Classroom.kdapplication/Views/classroomclassthumbview.coffee",
+  "app/Applications/Classroom.kdapplication/Views/classroomclassesview.coffee",
   "app/Applications/Classroom.kdapplication/AppView.coffee",
   "app/Applications/Classroom.kdapplication/AppController.coffee",
 
