@@ -146,8 +146,9 @@ func main() {
 
 func viewHandler(w http.ResponseWriter, r *http.Request) {
 	build := r.FormValue("build")
-	if build == "" {
-		build = "latest"
+	if build == "" || build == "current" {
+		version, _ := currentVersion()
+		build = version
 	}
 
 	version := r.PostFormValue("switchVersion")
@@ -417,12 +418,13 @@ func currentVersion() (string, error) {
 }
 
 func switchVersion(newVersion string) error {
+	// Test if the string is an integer, if not abort
 	_, err := strconv.Atoi(newVersion)
 	if err != nil {
 		return err
 	}
 
-	domain, err := proxyDB.GetDomain("koding.com") // will be changed to koding.com
+	domain, err := proxyDB.GetDomain("koding.com")
 	if err != nil {
 		return err
 	}

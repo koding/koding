@@ -8,7 +8,8 @@ class ActivityListItemView extends KDListItemView
     JLink               : LinkActivityItemView
     JTutorial           : TutorialActivityItemView
     JBlogPost           : BlogPostActivityItemView
-    NewMemberBucketData : MemberBucketItemView
+
+    NewMemberBucketData   : NewMemberBucketView
 
   getActivityChildCssClass = ->
 
