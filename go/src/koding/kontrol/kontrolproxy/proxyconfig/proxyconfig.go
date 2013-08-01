@@ -37,3 +37,15 @@ func Connect() (*ProxyConfiguration, error) {
 
 	return pr, nil
 }
+
+func (p *ProxyConfiguration) Close() {
+	p.Session.Close()
+}
+
+func (p *ProxyConfiguration) Refresh() {
+	p.Session.Refresh()
+}
+
+func (p *ProxyConfiguration) Copy() *mgo.Session {
+	return p.Session.Copy()
+}
