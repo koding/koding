@@ -6,18 +6,31 @@ class ClassroomAppView extends KDScrollView
 
     super options, data
 
-    @appStorage = new AppStorage "Classroom", "1.0"
+    @cdnRoot     = "http://fatihacet.kd.io/cdn/classes"
+    @appStorage  = new AppStorage "Classroom", "1.0"
 
     @createHeader()
-    @fetchUserClasses()
+    @fetchClasses()
 
-  fetchUserClasses: ->
+  fetchClasses: ->
+    predefinedClasses = [ "CoffeeScript", "JavaScript", "PHP" ]
+
     @appStorage.fetchStorage (storage) =>
+      @enrolledClasses = @appStorage.getValue "UserClasses"
+      @relatedClasses  = []
+
+      for className in predefinedClasses
+        if @enrolledClasses
+          if @enrolledClasses.indexOf(className) is -1
+            @relatedClasses.push className
+        else
+          @relatedClasses.push className
 
       @addSubView @classesView = new ClassroomClassesView
         delegate : this
       ,
-        enrolled : @appStorage.getValue "UserClasses"
+        enrolled : @enrolledClasses
+        related  : @relatedClasses
 
   createHeader: ->
     @addSubView @header = new KDView
