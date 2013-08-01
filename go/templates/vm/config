@@ -26,7 +26,6 @@ lxc.id_map = g 1000000 1000000 49000000
 lxc.cgroup.cpu.shares = 1000
 #lxc.cgroup.memory.limit_in_bytes = 60M
 #lxc.cgroup.memory.memsw.limit_in_bytes = 1G
-lxc.cgroup.memory.kmem.limit_in_bytes = 100M
 
 # Deny all access to devices
 lxc.cgroup.devices.deny = a

@@ -82,7 +82,7 @@ module.exports = class Graph
                 tempRes[i] = res
                 fin()
             else
-              tempRes.push res
+              tempRes[i] = res
               fin()
     , =>
       {groupName, groupId} = options.group if options.group?
@@ -425,6 +425,20 @@ module.exports = class Graph
         orderByQuery = "members.`meta.modifiedAt`"
 
     return orderByQuery
+
+
+  countMembers:(options, callback)->
+    {groupId} = options
+
+    query = """
+      START  group=node:koding("id:#{groupId}")
+      MATCH  group-[r:member]->members
+      RETURN count(members) as count
+      """
+    @db.query query, options, (err, results) ->
+      if err then throw err
+      count = if results and results[0]['count'] then results[0]['count'] else 0
+      callback null, count
 
   fetchMembers:(options, callback)->
     {skip, limit, sort, groupId} = options
